@@ -1,0 +1,53 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+  <form>
+    Label <input type="text" name="name" value="" autofocus/><br>
+    <span id="roles">
+    </span>
+    <input type="button" name="save" value="Save" onclick="javascript:save()"/>
+    <input type="button" name="cancel" value="Cancel" onclick="javascript:window.location='/';"/>
+  </form>
+  <script type="text/javascript">
+    var roles = [ "namenode", "secondary-namenode", "datanode", "jobtracker", "tasktracker", "gateway", "jobhistory-server" ];
+    function addRole(type, multiple) {
+      var role = document.createElement("input");
+      role.name="role";
+      role.type="hidden";
+      if(type!=null) {
+        role.value=type;
+      }
+      var host = document.createElement("input");
+      host.name="host";
+      host.size=100;
+      var role_item = document.createElement("span");
+      var host_item = document.createElement("span");
+      role_item.innerHTML=type+" ";
+      role_item.appendChild(role);
+      role_item.appendChild(document.createElement("br"));
+      if(multiple) {
+        host_item.innerHTML="Hosts";
+      } else {
+        host_item.innerHTML="Host";
+      }
+      host_item.appendChild(host);
+      host_item.appendChild(document.createElement("br"));
+      $('#roles').append(role_item);
+      $('#roles').append(host_item);
+    }
+
+    function save() {
+    }
+
+    $(document).ready(function() {
+      for(type in roles) {
+        if(roles[type]=='jobtracker') {
+          addRole(roles[type], false);
+        } else {
+          addRole(roles[type], true);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

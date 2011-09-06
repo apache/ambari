@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: hms-agent
+Version: 0.1.0
+Summary: Hadoop Management System agent
+Home-page: http://hms.apache.org
+Author: Apache Software Foundation
+Author-email: user@hms.apache.org
+License: Apache License v2.0
+Description: This package implements the Hadoop Management System agent for install and configure software on large scale clusters.
+Keywords: hadoop
+Platform: any

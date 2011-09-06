@@ -1,0 +1,4 @@
+[console_scripts]
+hms-agent = hms_agent.main:main
+hms-torrent-callback = hms_torrent.main:main
+

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite failures="0" time="0.55" errors="0" skipped="0" tests="1" name="TestSuite">
+  <properties>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="sun.boot.library.path" value="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Libraries"/>
+    <property name="java.vm.version" value="20.1-b02-383"/>
+    <property name="awt.nativeDoubleBuffering" value="true"/>
+    <property name="gopherProxySet" value="false"/>
+    <property name="mrj.build" value="11A511"/>
+    <property name="java.vm.vendor" value="Apple Inc."/>
+    <property name="java.vendor.url" value="http://www.apple.com/"/>
+    <property name="path.separator" value=":"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="file.encoding.pkg" value="sun.io"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="sun.os.patch.level" value="unknown"/>
+    <property name="HMS_LOG_DIR" value="/Users/eyang/sandbox/hms/client/target/logs"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="user.dir" value="/Users/eyang/sandbox/hms/client"/>
+    <property name="java.runtime.version" value="1.6.0_26-b03-383-11A511"/>
+    <property name="java.awt.graphicsenv" value="apple.awt.CGraphicsEnvironment"/>
+    <property name="basedir" value="/Users/eyang/sandbox/hms/client"/>
+    <property name="java.endorsed.dirs" value="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/endorsed"/>
+    <property name="os.arch" value="x86_64"/>
+    <property name="surefire.real.class.path" value="/var/folders/hs/g85hpd_d1919d25cxpg9zrl80000gn/T/surefirebooter5966134313781984769.jar"/>
+    <property name="java.io.tmpdir" value="/var/folders/hs/g85hpd_d1919d25cxpg9zrl80000gn/T/"/>
+    <property name="line.separator" value="
+"/>
+    <property name="java.vm.specification.vendor" value="Sun Microsystems Inc."/>
+    <property name="os.name" value="Mac OS X"/>
+    <property name="sun.jnu.encoding" value="MacRoman"/>
+    <property name="java.library.path" value=".:/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java"/>
+    <property name="surefire.test.class.path" value="/Users/eyang/sandbox/hms/client/target/test-classes:/Users/eyang/sandbox/hms/client/target/classes:/Users/eyang/.m2/repository/commons-cli/commons-cli/1.2/commons-cli-1.2.jar:/Users/eyang/sandbox/hms/common/target/common-0.1.0-SNAPSHOT.jar:/Users/eyang/.m2/repository/dk/brics/automaton/automaton/1.11.2/automaton-1.11.2.jar:/Users/eyang/sandbox/hms/controller/target/hms-controller-0.1.0-SNAPSHOT.jar:/Users/eyang/.m2/repository/commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar:/Users/eyang/.m2/repository/commons-collections/commons-collections/3.2.1/commons-collections-3.2.1.jar:/Users/eyang/.m2/repository/commons-digester/commons-digester/1.8/commons-digester-1.8.jar:/Users/eyang/.m2/repository/commons-beanutils/commons-beanutils/1.7.0/commons-beanutils-1.7.0.jar:/Users/eyang/.m2/repository/commons-beanutils/commons-beanutils-core/1.8.0/commons-beanutils-core-1.8.0.jar:/Users/eyang/.m2/repository/commons-daemon/commons-daemon/1.0.5/commons-daemon-1.0.5.jar:/Users/eyang/.m2/repository/org/testng/testng/5.8/testng-5.8-jdk15.jar:/Users/eyang/.m2/repository/org/apache/zookeeper/zookeeper/3.3.2/zookeeper-3.3.2.jar:/Users/eyang/.m2/repository/jline/jline/0.9.94/jline-0.9.94.jar:/Users/eyang/.m2/repository/org/mortbay/jetty/jetty/6.1.26/jetty-6.1.26.jar:/Users/eyang/.m2/repository/org/mortbay/jetty/jetty-util/6.1.26/jetty-util-6.1.26.jar:/Users/eyang/.m2/repository/org/mortbay/jetty/servlet-api/2.5-20081211/servlet-api-2.5-20081211.jar:/Users/eyang/.m2/repository/javax/jmdns/jmdns/3.4.0/jmdns-3.4.0.jar:/Users/eyang/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar:/Users/eyang/.m2/repository/commons-codec/commons-codec/1.3/commons-codec-1.3.jar:/Users/eyang/.m2/repository/commons-lang/commons-lang/2.4/commons-lang-2.4.jar:/Users/eyang/.m2/repository/commons-httpclient/commons-httpclient/3.0.1/commons-httpclient-3.0.1.jar:/Users/eyang/.m2/repository/junit/junit/3.8.1/junit-3.8.1.jar:/Users/eyang/.m2/repository/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar:/Users/eyang/.m2/repository/log4j/log4j/1.2.15/log4j-1.2.15.jar:/Users/eyang/.m2/repository/com/sun/jersey/jersey-json/1.6/jersey-json-1.6.jar:/Users/eyang/.m2/repository/org/codehaus/jettison/jettison/1.1/jettison-1.1.jar:/Users/eyang/.m2/repository/stax/stax-api/1.0.1/stax-api-1.0.1.jar:/Users/eyang/.m2/repository/com/sun/xml/bind/jaxb-impl/2.2.3-1/jaxb-impl-2.2.3-1.jar:/Users/eyang/.m2/repository/javax/xml/bind/jaxb-api/2.2.2/jaxb-api-2.2.2.jar:/Users/eyang/.m2/repository/javax/xml/stream/stax-api/1.0-2/stax-api-1.0-2.jar:/Users/eyang/.m2/repository/javax/activation/activation/1.1/activation-1.1.jar:/Users/eyang/.m2/repository/org/codehaus/jackson/jackson-core-asl/1.7.1/jackson-core-asl-1.7.1.jar:/Users/eyang/.m2/repository/org/codehaus/jackson/jackson-mapper-asl/1.7.1/jackson-mapper-asl-1.7.1.jar:/Users/eyang/.m2/repository/org/codehaus/jackson/jackson-jaxrs/1.7.1/jackson-jaxrs-1.7.1.jar:/Users/eyang/.m2/repository/org/codehaus/jackson/jackson-xc/1.7.1/jackson-xc-1.7.1.jar:/Users/eyang/.m2/repository/com/sun/jersey/jersey-core/1.6/jersey-core-1.6.jar:/Users/eyang/.m2/repository/com/sun/jersey/jersey-server/1.6/jersey-server-1.6.jar:/Users/eyang/.m2/repository/asm/asm/3.1/asm-3.1.jar:/Users/eyang/.m2/repository/com/sun/jersey/jersey-client/1.6/jersey-client-1.6.jar:"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.class.version" value="50.0"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="os.version" value="10.7.1"/>
+    <property name="http.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+    <property name="user.home" value="/Users/eyang"/>
+    <property name="user.timezone" value="America/Los_Angeles"/>
+    <property name="java.awt.printerjob" value="apple.awt.CPrinterJob"/>
+    <property name="java.specification.version" value="1.6"/>
+    <property name="file.encoding" value="MacRoman"/>
+    <property name="user.name" value="eyang"/>
+    <property name="java.class.path" value="/Users/eyang/sandbox/hms/client/target/test-classes:/Users/eyang/sandbox/hms/client/target/classes:/Users/eyang/.m2/repository/commons-cli/commons-cli/1.2/commons-cli-1.2.jar:/Users/eyang/sandbox/hms/common/target/common-0.1.0-SNAPSHOT.jar:/Users/eyang/.m2/repository/dk/brics/automaton/automaton/1.11.2/automaton-1.11.2.jar:/Users/eyang/sandbox/hms/controller/target/hms-controller-0.1.0-SNAPSHOT.jar:/Users/eyang/.m2/repository/commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar:/Users/eyang/.m2/repository/commons-collections/commons-collections/3.2.1/commons-collections-3.2.1.jar:/Users/eyang/.m2/repository/commons-digester/commons-digester/1.8/commons-digester-1.8.jar:/Users/eyang/.m2/repository/commons-beanutils/commons-beanutils/1.7.0/commons-beanutils-1.7.0.jar:/Users/eyang/.m2/repository/commons-beanutils/commons-beanutils-core/1.8.0/commons-beanutils-core-1.8.0.jar:/Users/eyang/.m2/repository/commons-daemon/commons-daemon/1.0.5/commons-daemon-1.0.5.jar:/Users/eyang/.m2/repository/org/testng/testng/5.8/testng-5.8-jdk15.jar:/Users/eyang/.m2/repository/org/apache/zookeeper/zookeeper/3.3.2/zookeeper-3.3.2.jar:/Users/eyang/.m2/repository/jline/jline/0.9.94/jline-0.9.94.jar:/Users/eyang/.m2/repository/org/mortbay/jetty/jetty/6.1.26/jetty-6.1.26.jar:/Users/eyang/.m2/repository/org/mortbay/jetty/jetty-util/6.1.26/jetty-util-6.1.26.jar:/Users/eyang/.m2/repository/org/mortbay/jetty/servlet-api/2.5-20081211/servlet-api-2.5-20081211.jar:/Users/eyang/.m2/repository/javax/jmdns/jmdns/3.4.0/jmdns-3.4.0.jar:/Users/eyang/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar:/Users/eyang/.m2/repository/commons-codec/commons-codec/1.3/commons-codec-1.3.jar:/Users/eyang/.m2/repository/commons-lang/commons-lang/2.4/commons-lang-2.4.jar:/Users/eyang/.m2/repository/commons-httpclient/commons-httpclient/3.0.1/commons-httpclient-3.0.1.jar:/Users/eyang/.m2/repository/junit/junit/3.8.1/junit-3.8.1.jar:/Users/eyang/.m2/repository/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar:/Users/eyang/.m2/repository/log4j/log4j/1.2.15/log4j-1.2.15.jar:/Users/eyang/.m2/repository/com/sun/jersey/jersey-json/1.6/jersey-json-1.6.jar:/Users/eyang/.m2/repository/org/codehaus/jettison/jettison/1.1/jettison-1.1.jar:/Users/eyang/.m2/repository/stax/stax-api/1.0.1/stax-api-1.0.1.jar:/Users/eyang/.m2/repository/com/sun/xml/bind/jaxb-impl/2.2.3-1/jaxb-impl-2.2.3-1.jar:/Users/eyang/.m2/repository/javax/xml/bind/jaxb-api/2.2.2/jaxb-api-2.2.2.jar:/Users/eyang/.m2/repository/javax/xml/stream/stax-api/1.0-2/stax-api-1.0-2.jar:/Users/eyang/.m2/repository/javax/activation/activation/1.1/activation-1.1.jar:/Users/eyang/.m2/repository/org/codehaus/jackson/jackson-core-asl/1.7.1/jackson-core-asl-1.7.1.jar:/Users/eyang/.m2/repository/org/codehaus/jackson/jackson-mapper-asl/1.7.1/jackson-mapper-asl-1.7.1.jar:/Users/eyang/.m2/repository/org/codehaus/jackson/jackson-jaxrs/1.7.1/jackson-jaxrs-1.7.1.jar:/Users/eyang/.m2/repository/org/codehaus/jackson/jackson-xc/1.7.1/jackson-xc-1.7.1.jar:/Users/eyang/.m2/repository/com/sun/jersey/jersey-core/1.6/jersey-core-1.6.jar:/Users/eyang/.m2/repository/com/sun/jersey/jersey-server/1.6/jersey-server-1.6.jar:/Users/eyang/.m2/repository/asm/asm/3.1/asm-3.1.jar:/Users/eyang/.m2/repository/com/sun/jersey/jersey-client/1.6/jersey-client-1.6.jar:"/>
+    <property name="java.vm.specification.version" value="1.0"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.home" value="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home"/>
+    <property name="sun.java.command" value="/var/folders/hs/g85hpd_d1919d25cxpg9zrl80000gn/T/surefirebooter5966134313781984769.jar /var/folders/hs/g85hpd_d1919d25cxpg9zrl80000gn/T/surefire382766220672021651tmp /var/folders/hs/g85hpd_d1919d25cxpg9zrl80000gn/T/surefire8739772742383177574tmp"/>
+    <property name="java.specification.vendor" value="Sun Microsystems Inc."/>
+    <property name="user.language" value="en"/>
+    <property name="awt.toolkit" value="apple.awt.CToolkit"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.version" value="1.6.0_26"/>
+    <property name="java.ext.dirs" value="/Library/Java/Extensions:/System/Library/Java/Extensions:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/ext"/>
+    <property name="sun.boot.class.path" value="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/jsfd.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar:/System/Library/Frameworks/JavaVM.framework/Frameworks/JavaRuntimeSupport.framework/Resources/Java/JavaRuntimeSupport.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/ui.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/laf.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/sunrsasign.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/jsse.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/jce.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/charsets.jar"/>
+    <property name="java.vendor" value="Apple Inc."/>
+    <property name="localRepository" value="/Users/eyang/.m2/repository"/>
+    <property name="file.separator" value="/"/>
+    <property name="java.vendor.url.bug" value="http://bugreport.apple.com/"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="mrj.version" value="1070.1.6.0_26-383"/>
+    <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+    <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+    <property name="sun.cpu.isalist" value=""/>
+  </properties>
+  <testcase time="0.401" classname="org.apache.hms.client.TestClient" name="testCreateCluster"/>
+</testsuite>

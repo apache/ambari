@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html>
+  <body>
+    <section>
+      <h3>Managed Node Lists</h3>
+
+      <table id="node-list" class="display">
+        <thead>
+          <th>Label</th><th>Roles</th><th>Hosts</th>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </section>
+
+    <script type="text/javascript">
+      function renderManifest(list) {
+        var buffer = [];
+        var i=0;
+        var x=0;
+        buffer[i++]='<a href="/?func=status-nodes&list='+list['@url']+'">'+list['@url']+'</a>';
+        var roles = [];
+        var hosts = [];
+        for(role in list['roles']) {
+          roles[x++]=list['roles'][role]['@name'];
+          var tmp = list['roles'][role]['host'];
+          if(tmp.constructor.toString().indexOf("Array") == -1) {
+            hosts[x++]=list['roles'][role]['host'];
+          } else {
+            hosts[x++]=list['roles'][role]['host'].join(" ");
+          }
+        }
+        buffer[i++]=roles.join(" ");
+        buffer[i++]="<div class='tableCell'>"+hosts.join(" ")+"</div>";
+        return buffer;
+      }
+
+      $(document).ready(function() {
+        $('#node-list').dataTable({"bJQueryUI": true, "sPaginationType": "full_numbers"});
+        jQuery.getJSON('/v1/nodes/manifest',
+          function(data) {
+            for(var list in data["nodesManifest"]) {
+              $('#node-list').dataTable().fnAddData(renderManifest(data["nodesManifest"][list]));
+            }
+          }
+        );
+      });
+    </script>
+  </body>
+</html>

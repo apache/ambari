@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html>
+  <body>
+    <section>
+      <h2>Cluster <span id="id"></div></h2>
+
+      <h3>Nodes</h3>
+
+      <form class="form">
+        <table id="nodes" class="display">
+          <thead>
+            <th>Roles</th><th>Hosts</th>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+
+      <h3>Software</h3>
+
+<table id="software" class="display">
+<thead>
+  <th>Software Stack</th><th>Version</th>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p/>
+  <p>
+    <button id="configure" onClick="return redirectByType('configure')">Configure</button>
+    <button id="delete" onclick="return redirectByType('delete')">Delete</button>
+  </p>
+</form>
+</section>
+<script type="text/javascript">
+
+  function redirectByType(type) {
+    if(type=='configure') {
+      window.location.href = "/?func=configure-cluster&cluster="+$.getUrlVar('cluster');
+    } else {
+      window.location.href = "/?func=delete-cluster&cluster="+$.getUrlVar('cluster');
+    }
+    return false;
+  }
+
+  function renderRole(role) {
+    var buffer = [];
+    var i = 0;
+    buffer[i++] = role['name'];
+    buffer[i++] = role['host'].join(" ");
+    return buffer;
+  }
+
+  function render(cluster) {
+    var id = $.getUrlVar('cluster');
+    $('#id').text(id);
+    for(var roles in cluster['nodes']['roles']) {
+      $('#nodes').dataTable().fnAddData(renderRole(cluster['nodes']['roles'][roles]));
+    }
+    $('#software').dataTable().fnAddData([ cluster['software']['name'], cluster['software']['version'] ]);
+  }
+
+  $(document).ready(function() {
+/*    $.extend({
+      getUrlVars: function(){
+        var vars = [], hash;
+        var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+        for(var i = 0; i < hashes.length; i++) {
+          hash = hashes[i].split('=');
+          vars.push(hash[0]);
+          vars[hash[0]] = hash[1];
+        }
+        return vars;
+      },
+      getUrlVar: function(name){
+        return $.getUrlVars()[name];
+      }
+    });*/
+
+    var cluster = $.getUrlVar('cluster');
+    jQuery.getJSON('/v1/cluster/status/'+cluster,
+      function(cluster) {
+        render(cluster);
+      }
+    );
+    $('#nodes').dataTable({"bJQueryUI": true});
+    $('#software').dataTable({"bJQueryUI": true});
+
+  });
+</script>
+</body>
+</html>

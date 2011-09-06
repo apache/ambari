@@ -1,0 +1,35 @@
+<ul id="drawers">
+  <li class="drawer">
+    <h2 class="drawer-handle open">Cluster</h2>
+    <ul>
+      <li><a href="/?func=create-cluster">Create a cluster...</a></li>
+      <li><a href="/?func=manage-clusters">Manage clusters...</a></li>
+    </ul>
+  </li>
+  <li class="drawer">
+    <h2 class="drawer-handle">Hardware</h2>
+    <ul>
+      <li><a href="/?func=create-nodes">Define a node list...</a></li>
+      <li><a href="/?func=list-nodes">Manage node lists...</a></li>
+    </ul>
+  </li>
+  <li class="drawer">
+    <h2 class="drawer-handle">Software</h2>
+    <ul>
+      <li><a href="/?func=create-software">Define a software stack...</a></li>
+      <li><a href="/?func=list-software">Manage software stacks...</a></li>
+    </ul>
+  </li>
+</ul>
+<script type='text/javascript'>
+/*    $('#drawers').accordion({
+      header: 'H2.drawer-handle',
+      selectedClass: 'open',
+      event: 'mouseover'
+    });
+    $('#drawers LI.drawer H2:not(.open)').next().hide();
+    $('#drawers H2.drawer-handle').click(function() {
+      $('#drawers H2.open').removeClass('open').next().hide();
+      $(this).addClass('open').next().show();
+    });*/
+</script>

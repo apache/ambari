@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# The HMS command script
+#
+# Environment Variables
+#
+#   JAVA_HOME        The java implementation to use.  Overrides JAVA_HOME.
+#   HMS_CONF_DIR     Alternate conf dir.  Default is ${HMS_HOME}/conf.
+#
+
+bin=`dirname "$0"`
+bin=`cd "$bin"; pwd`
+
+. "$bin"/hms-config.sh
+
+# if no args specified, show usage
+if [ $# = 0 ]; then
+  echo "Usage: hms [--config confdir] COMMAND"
+  echo "where COMMAND is one of:"
+  echo "  agent         run a HMS Agent"
+  echo "  beacon        run a HMS Beacon"
+  echo "  controller    run a HMS Controller"
+  echo "  client        run a HMS client"
+  echo "  version       print the version"
+  exit 1
+fi
+
+# get arguments
+COMMAND=$1
+shift
+
+if [ -f "${HMS_CONF_DIR}/hms-env.sh" ]; then
+  . "${HMS_CONF_DIR}/hms-env.sh"
+fi
+
+# Java parameters
+if [ "$JAVA_HOME" != "" ]; then
+  JAVA_HOME=$JAVA_HOME
+fi
+
+if [ "$JAVA_HOME" = "" ]; then
+  echo "Error: JAVA_HOME is not set."
+  exit 1
+fi
+
+if [ "$HMS_CONF_DIR" != "" ]; then
+  CLASSPATH=${HMS_CONF_DIR}:${CLASSPATH}
+fi
+
+BACKGROUND="false"
+
+# configure command parameters
+if [ "$COMMAND" = "agent" ]; then
+  APP='agent'
+  PID="hms-agent"
+elif [ "$COMMAND" = "beacon" ]; then
+  APP='beacon'
+  CLASS='org.apache.hms.beacon.Beacon'
+  PID="hms-$HMS_IDENT_STRING-beacon"
+  BACKGROUND="true"
+elif [ "$COMMAND" = "controller" ]; then
+  APP='controller'
+  CLASS='org.apache.hms.controller.Controller'
+  PID="hms-$HMS_IDENT_STRING-controller"
+  BACKGROUND="true"
+elif [ "$COMMAND" = "client" ]; then
+  APP='client'
+  CLASS='org.apache.hms.client.Client'
+  PID="client"
+elif [ "$COMMAND" = "version" ]; then
+  echo `cat ${HMS_HOME}/bin/VERSION`
+  exit 0
+fi
+
+if [ "$1" = "stop" ]; then
+  if [ -e ${HMS_PID_DIR}/${PID}.pid ]; then
+    kill -TERM `cat ${HMS_PID_DIR}/$PID.pid`
+  else
+    echo "${PID} is not running."
+  fi
+else
+  if [ "$APP" = "agent" ]; then
+    echo
+  else 
+    # run command
+    RUN="${JAVA_HOME}/bin/java ${JAVA_OPT} -Djava.library.path=${JAVA_LIBRARY_PATH} -DPID=${PID} -DHMS_HOME=${HMS_HOME} -DHMS_CONF_DIR=${HMS_CONF_DIR} -DHMS_LOG_DIR=${HMS_LOG_DIR} -DHMS_DATA_DIR=${HMS_DATA_DIR} -DAPP=${APP} -Dlog4j.configuration=log4j.properties -classpath ${HMS_CONF_DIR}:${CLASSPATH}:${HMS_CORE}:${HMS_JAR}:${COMMON}:${tools} ${CLASS} $OPTS $@"
+    if [ "$BACKGROUND" = "true" ]; then
+      exec ${RUN} &
+    else
+      exec ${RUN}
+    fi
+  fi
+fi
+

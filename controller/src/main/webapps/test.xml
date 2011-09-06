@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<softwareManifest name="hadoop" version="0.20.204">
+  <roles name="namenode">
+    <package>
+      <name>http://people.apache.org/~omalley/hadoop-0.20.204.0-rc3/hadoop-0.20.204.0.tar.gz</name>
+    </package>
+  </roles>
+</softwareManifest>

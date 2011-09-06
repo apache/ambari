@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+  <configManifest>
+    <actions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="packageAction">
+      <actionId>0</actionId>
+      <actionType>install</actionType>
+      <expectedResults>
+        <type>PACKAGE</type>
+        <name>hadoop</name>
+        <status>INSTALLED</status>
+      </expectedResults>
+      <dry-run>false</dry-run>
+    </actions>
+  </configManifest>

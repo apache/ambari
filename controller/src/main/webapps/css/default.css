@@ -1,0 +1,115 @@
+body {
+  color: #757575;
+  font-family: Arial,sans-serif;
+  font-size: 0.9em;
+  line-height: 1.5em;
+  height: 100%;
+}
+
+h2 {
+  font-size: 26px;
+}
+
+h3 {
+  font-size: 22px;
+}
+
+a {
+  color: #757575;
+  text-decoration: none;
+}
+
+.link {
+  cursor: pointer;
+}
+
+.form input, .form button {
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  padding: 13px 10px 13px;
+  vertical-align: middle;
+  border: 1px solid #aaaaaa;
+  font-size: 16px;
+}
+
+.formInput {
+  width: 95%;
+}
+
+.textBox {
+  height: 200px;
+}
+
+.tableCell {
+  max-height: 200px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.form button:active {
+  background-color: #D3D6FF;
+}
+
+.warn {
+  color: #BB0000;
+  font-weight: bold;
+}
+
+section {
+  border-bottom: 1px solid #D8D8D8;
+  box-shadow: 0 1px 0 #FFFFFF;
+}
+
+.block {
+  white-space: nowrap;
+}
+
+.drawer {
+  text-indent:25px;
+}
+
+nav {
+  margin-top: 30px;
+  width: 350px;
+  float: right;
+}
+
+header, footer, section, nav, article, aside {
+  margin: 0px;
+  padding: 0px;
+  display: block;
+}
+
+#content {
+  min-width: 640px;
+  margin: 0 350px 0 10px;
+  position: relative;
+}
+
+#navigation {
+  width: 320px;
+  display: inline;
+  margin-left: -330px;
+  float: left;
+  border-left: 1px solid #D8D8D8;
+  height: 100%;
+}
+
+#navigation li {
+  text-shadow: 1px 1px 1px #FFFFFF;
+}
+
+#navigation ul {
+  list-style-type: none;
+}
+
+#wrapper {
+  float: left;
+  width: 100%;
+}
+
+#main {
+  min-width: 1020px;
+  height: 100%;
+}
+

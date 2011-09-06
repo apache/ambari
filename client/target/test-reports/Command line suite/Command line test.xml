@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Command line test" failures="0" tests="1" time="0.409" errors="0">
+  <properties/>
+  <testcase name="testCreateCluster" time="0.401" classname="org.apache.hms.client.TestClient"/>
+</testsuite>

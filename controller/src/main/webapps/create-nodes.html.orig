@@ -1,0 +1,100 @@
+<!DOCTYPE HTML>
+<html>
+  <body>
+    <section>
+      <h3>Define A Node List</h3>
+      <form class="form">
+        <table id="form" class="display">
+          <thead>
+            <th width="200px">Role</th><th>Host(s)</th>
+          </thead>
+        <tbody></tbody>
+        </table>
+        <p>
+        <button type="submit" id="save" onclick="return verifyNodesList()" value="save">Save</button>
+        <button id="cancel" onclick="javascript:window.location='/';">Cancel</button>
+        </p>
+      </form>
+    </section>
+    <script type="text/javascript">
+      var roles = [ "namenode", "secondary-namenode", "datanode", "jobtracker", "tasktracker", "gateway", "jobhistory-server" ];
+      var labelError = "What is the node list name?";
+      var hostError = "Role can not be empty.";
+      function addRole(type) {
+        var buffer = [];
+        var i = 0;
+        var role = "<input type='hidden' id='role."+type+".name' value='"+type+"'>"+type;
+        buffer[i++]=role;
+        var host = "<input type='text' id='role."+type+".host' value='' class='formInput'>";
+        buffer[i++]=host;
+        return buffer;
+      }
+
+      function verifyNodesList() {
+        var labelControl = document.getElementById('label');
+        var invalid = false;
+        if((labelControl.value == "") || (labelControl.value == labelError)) {
+          labelControl.value = labelError;
+          labelControl.select();
+          labelControl.focus();
+          invalid = true;
+        }
+        var label = labelControl.value;
+        for(type in roles) {
+          var control = document.getElementById('role.'+roles[type]+'.host');
+          if((control.value == "") || (control.value == hostError)) {
+            control.value = hostError;
+            control.select();
+            control.focus();
+            invalid = true;
+          }
+        }
+        if(!invalid) {
+          var data = [];
+          var i = 0;
+          var url = window.location.protocol+"//"+window.location.host+"/v1/nodes/manifest/"+labelControl.value;
+          data[i++] = '{"@url":"'+url+'", "roles":[';
+          var list = [];
+          var j = 0;
+          for(type in roles) {
+            var hosts = document.getElementById('role.'+roles[type]+'.host').value;
+            var role = '{"@name":"'+roles[type]+'","host":"'+hosts+'"}';
+            list[j] = role;
+            j++;
+          }
+          data[i++] = list.join(',');
+          data[i++] = ']}';
+          var buffer = data.join("");
+          $.ajax({
+            type: 'POST',
+            url: '/v1/nodes/manifest',
+            contentType: "application/json; charset=utf-8",
+            data: buffer,
+            success: function(data) {
+              window.location.href = '/?func=list-nodes';
+            },
+            dataType:'json'
+          });
+        }
+        return false;
+      }
+
+      var label = "Label <input type='text' id='label' value='' />";
+      $(document).ready(function() {
+        $("#navigation").load("/nav.html");
+        $('#form').dataTable({
+          "bJQueryUI": true, 
+          "sPaginationType": "full_numbers",
+          "oLanguage": {
+            "sInfo" : label
+          },
+          "sDom": '<"H"if>rt<"F"p>'
+        });
+        for(type in roles) {
+          $('#form').dataTable().fnAddData(addRole(roles[type]));
+        }
+        $("#label").focus();
+      });
+    </script>
+  </body>
+</html>
