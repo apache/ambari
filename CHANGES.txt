@@ -2,4 +2,6 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
-  AMBARI-1 Initial code import
+  AMBARI-4. Created interface for component plugins. (omalley)
+
+  AMBARI-1. Initial code import (omalley)
