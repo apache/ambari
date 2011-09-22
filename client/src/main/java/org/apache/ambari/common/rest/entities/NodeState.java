@@ -22,7 +22,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @XmlType(name = "NodeState", propOrder = {
     "lastHeartbeatTime",
     "clusterName",
-    "allocatedToCluster",
+    "AllocatedToCluster",
     "agentInstalled",
 	"nodeServers"
 })
@@ -39,16 +39,11 @@ public class NodeState {
 	@XmlElement(name = "ClusterName", required = true)
     protected String clusterName;
 
-	/*
-	 * Actual allocation of the node in terms of having components installed on it is reflected 
-     * through this AllocatedToCluster boolean variable. This is updated through hearbeat message
-     * sent by Node.
-	 */
-	@XmlElement(name = "AllocatedToCluster", required = true)
-    protected Boolean allocatedToCluster = false;
-
 	@XmlElement(name = "AgentInstalled", required = true)
     protected Boolean agentInstalled = true;
+
+	@XmlElement(name = "AllocatedToCluster", required = true)
+    protected Boolean allocatedToCluster = false;
 	
 	@XmlElement(name = "NodeServers", required = true)
     protected List<NodeServer> nodeServers = new ArrayList<NodeServer>();
@@ -66,7 +61,7 @@ public class NodeState {
 	public void setAllocatedToCluster(Boolean allocatedToCluster) {
 		this.allocatedToCluster = allocatedToCluster;
 	}
-
+	
 	/**
 	 * @return the agentInstalled
 	 */

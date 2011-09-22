@@ -33,7 +33,8 @@ public class NodeServer {
 	public static final String NODE_SERVER_STATE_DOWN = "DOWN";
 	
 	/*
-	 * name should be component/service name : role name
+	 * name should be component name : role name
+	 * TODO : May be we can have component and role as two separate attributes instead of name
 	 */
 	@XmlElement(name = "Name", required = true)
 	protected String name;
@@ -44,6 +45,10 @@ public class NodeServer {
 	@XmlElement(name = "LastStateUpdateTime", required = true)
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar lastStateUpdateTime;
+	
+	/**
+	 * 
+	 */
 	
 	/**
 	 * @return the name

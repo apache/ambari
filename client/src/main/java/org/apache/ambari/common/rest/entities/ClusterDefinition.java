@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlType;
     "description",
     "blueprintName",
     "goalState",
-    "runningServices",
+    "activeServices",
     "nodes",
     "roleToNodesMap"
 })
@@ -47,8 +47,8 @@ public class ClusterDefinition {
     protected String blueprintName;
 	@XmlElement(name = "GoalState", required = true)
 	protected String goalState;
-	@XmlElement(name = "RunningServices", required = true)
-	protected List<String> runningServices;
+	@XmlElement(name = "ActiveServices", required = true)
+	protected List<String> activeServices;
 	@XmlElement(name = "NodeRangeExpressions", required = true)
 	protected List<String> nodeRangeExpressions;
 	@XmlElement(name = "RoleToNodesMap", required = true)
@@ -112,17 +112,17 @@ public class ClusterDefinition {
 	}
 
 	/**
-	 * @return the runningServices
+	 * @return the activeServices
 	 */
-	public List<String> getRunningServices() {
-		return runningServices;
+	public List<String> getActiveServices() {
+		return activeServices;
 	}
 
 	/**
-	 * @param runningServices the runningServices to set
+	 * @param activeServices the active3Services to set
 	 */
-	public void setRunningServices(List<String> runningServices) {
-		this.runningServices = runningServices;
+	public void setActiveServices(List<String> activeServices) {
+		this.activeServices = activeServices;
 	}
 
 	/**

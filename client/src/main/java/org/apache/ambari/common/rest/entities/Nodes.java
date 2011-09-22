@@ -40,6 +40,13 @@ public class Nodes {
 	// Cluster name to Node names hash map
 	protected ConcurrentHashMap<String, ConcurrentHashMap<String, String>> cluster_to_nodes = new ConcurrentHashMap<String, ConcurrentHashMap<String, String>>();
 	
+	/**
+	 * @return the cluster_to_nodes
+	 */
+	public ConcurrentHashMap<String, ConcurrentHashMap<String, String>> getCluster_to_nodes() {
+		return cluster_to_nodes;
+	}
+
 	private static Nodes NodesTypeRef=null;
 	
 	private Nodes() {}

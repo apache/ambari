@@ -142,6 +142,8 @@ public class Clusters {
      */
     private synchronized void updateClusterNodesReservation (Cluster cls, List<String> nodeRangeExpressions) throws Exception {
     	
+    	String cname = cls.getClusterDefinition().getName();
+    	
     	/*
 		 * Reserve the nodes as specified in the node range expressions
 		 * -- throw exception if any nodes are pre-associated with other cluster
@@ -188,14 +190,19 @@ public class Clusters {
 		/*
 		 * Allocate nodes to given cluster
 		 */
+		
 		for (String node_name : nodes_to_allocate) {
 			if (all_nodes.containsKey(node_name)) { 
+				// Set the cluster name in the node 
 				synchronized (all_nodes.get(node_name)) {
-					all_nodes.get(node_name).getNodeState().setClusterName(cls.getClusterDefinition().getName());
-				}
+					all_nodes.get(node_name).reserveNodeForCluster(cname, true);
+				}	
 			} else {
 				Node node = new Node(node_name);
-				node.reserveNodeForCluster(cls.getClusterDefinition().getName(), true);
+				/*
+				 * TODO: Set agentInstalled = true, unless controller uses SSH to setup the agent
+				 */
+				node.reserveNodeForCluster(cname, true);
 				Nodes.getInstance().getNodes().put(node_name, node);
 			}
 		}
@@ -203,7 +210,7 @@ public class Clusters {
 		/*
 		 * deallocate nodes from a given cluster
 		 * TODO: Node agent would check its been deallocated from the cluster and then shutdown any role/servers running it
-		 *       then update the deployment state to be FREE 
+		 *       then 
 		 */
 		for (String node_name : nodes_to_deallocate) {
 			if (all_nodes.containsKey(node_name)) {
