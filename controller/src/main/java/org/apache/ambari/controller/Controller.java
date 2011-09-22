@@ -60,7 +60,8 @@ public class Controller {
       
       ServletHolder sh = new ServletHolder(ServletContainer.class);
       sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass", "com.sun.jersey.api.core.PackagesResourceConfig");
-      sh.setInitParameter("com.sun.jersey.config.property.packages", "org.apache.ambari.controller.rest.resources");      
+      sh.setInitParameter("com.sun.jersey.config.property.packages", "org.apache.ambari.controller.rest.resources");
+      //sh.setInitParameter("com.sun.jersey.config.property.WadlGeneratorConfig", "org.apache.ambari.controller.rest.resources.config.ExtendedWadlGeneratorConfig");
       root.addServlet(sh, "/*");
       sh.setInitOrder(2);
       server.setStopAtShutdown(true);

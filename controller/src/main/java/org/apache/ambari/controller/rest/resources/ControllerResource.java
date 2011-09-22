@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.ambari.controller.rest.resources;
 
 import java.net.InetAddress;
@@ -16,6 +34,8 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.ambari.common.rest.entities.agent.Action;
+import org.apache.ambari.common.rest.entities.agent.Action.Kind;
+import org.apache.ambari.common.rest.entities.agent.Action.Signal;
 import org.apache.ambari.common.rest.entities.agent.ActionResult;
 import org.apache.ambari.common.rest.entities.agent.Command;
 import org.apache.ambari.common.rest.entities.agent.CommandResult;
@@ -23,7 +43,6 @@ import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
 import org.apache.ambari.common.rest.entities.agent.HardwareProfile;
 import org.apache.ambari.common.rest.entities.agent.HeartBeat;
 import org.apache.ambari.common.rest.entities.agent.ServerStatus;
-import org.apache.ambari.common.rest.entities.agent.ServersStatus;
 
 /** Controller Resource represents Ambari controller.
  *	It provides API for Ambari agents to get the cluster configuration changes
@@ -80,22 +99,23 @@ public class ControllerResource {
       List<ActionResult> actionResults = new ArrayList<ActionResult>();      
 
       List<CommandResult> commandResults = new ArrayList<CommandResult>();
-      commandResults.add(new CommandResult("id", 0, "stdout", "stderr"));
+      commandResults.add(new CommandResult(0, "stdout", "stderr"));
       List<CommandResult> cleanUpResults = new ArrayList<CommandResult>();
-      cleanUpResults.add(new CommandResult("id", 0, "stdout", "stderr"));
+      cleanUpResults.add(new CommandResult(0, "stdout", "stderr"));
       ActionResult actionResult = new ActionResult();
-      actionResult.setCommandResults(commandResults);
-      actionResult.setCleanUpResults(cleanUpResults);
+      actionResult.setId("action-001");
+      actionResult.setClusterId("cluster-001");
+      actionResult.setKind(Kind.STOP_ACTION);
 
       ActionResult actionResult2 = new ActionResult();
+      actionResult2.setClusterId("cluster-002");
       actionResult2.setCommandResults(commandResults);
       actionResult2.setCleanUpResults(cleanUpResults);
+      actionResult2.setKind(Kind.START_ACTION);
+      actionResult2.setServerName("hadoop.datanode");
 
       actionResults.add(actionResult);
       actionResults.add(actionResult2);
-
-      ServersStatus serversStatus = new ServersStatus();
-      serversStatus.add("hadoop.datanode", ServerStatus.State.STARTED);
 
       HardwareProfile hp = new HardwareProfile();
       hp.setCoreCount(8);
@@ -106,12 +126,17 @@ public class ControllerResource {
       hp.setRamSize(16442752);
       
       HeartBeat hb = new HeartBeat();
+      hb.setResponseId("unknown");
       hb.setClusterId("cluster-123");
       hb.setTimestamp(System.currentTimeMillis());
       hb.setHostname(addr.getHostName());
       hb.setStackId(stackId);
       hb.setActionResults(actionResults);
       hb.setHardwareProfile(hp);
+      List<ServerStatus> serversStatus = new ArrayList<ServerStatus>();
+      serversStatus.add(new ServerStatus("hadoop.datanode", ServerStatus.State.STARTED));
+      serversStatus.add(new ServerStatus("hadoop.tasktracker", ServerStatus.State.STARTED));
+      hb.setServersStatus(serversStatus);
       return hb;
     } catch (UnknownHostException e) {
       throw new WebApplicationException(e);
@@ -128,27 +153,34 @@ public class ControllerResource {
   @Produces("application/json")
   public ControllerResponse getControllerResponse() {
     ControllerResponse controllerResponse = new ControllerResponse();
-        
+    controllerResponse.setResponseId("id-00002");    
     List<Command> commands = new ArrayList<Command>();
     String[] cmd = { "ls", "-l" };
-    commands.add(new Command("cmd-001", "root", cmd));
-    commands.add(new Command("cmd-002", "root", cmd));
-    commands.add(new Command("cmd-003", "root", cmd));
+    commands.add(new Command("root", cmd));
+    commands.add(new Command("root", cmd));
+    commands.add(new Command("root", cmd));
 
     List<Command> cleanUps = new ArrayList<Command>();
     String[] cleanUpCmd = { "ls", "-t" };
-    cleanUps.add(new Command("clean-01", "hdfs", cleanUpCmd));
-    cleanUps.add(new Command("clean-02", "hdfs", cleanUpCmd));
+    cleanUps.add(new Command("hdfs", cleanUpCmd));
+    cleanUps.add(new Command("hdfs", cleanUpCmd));
     
     Action action = new Action();
+    action.setUser("hdfs");
+    action.setServerName("hadoop.datanode");
+    action.setKind(Kind.STOP_ACTION);
+    action.setSignal(Signal.KILL);
+    action.setClusterId("cluster-001");
     action.setId("action-001");
-    action.setCommands(commands);
-    action.setCleanUpCommands(cleanUps);
 
     Action action2 = new Action();
+    action2.setUser("hdfs");
+    action2.setKind(Kind.START_ACTION);
     action2.setId("action-002");
+    action2.setClusterId("cluster-002");
     action2.setCommands(commands);
     action2.setCleanUpCommands(cleanUps);
+    action2.setServerName("hadoop.datanode");
     
     List<Action> actions = new ArrayList<Action>();
     actions.add(action);

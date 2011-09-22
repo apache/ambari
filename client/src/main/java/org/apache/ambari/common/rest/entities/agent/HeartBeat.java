@@ -34,8 +34,10 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {"timestamp", "clusterId", "hostname", "stackId", "hardwareProfile", "actionResults", "serversStatus"})
+@XmlType(name = "", propOrder = {"responseId","timestamp", "clusterId", "hostname", "stackId", "hardwareProfile", "actionResults", "serversStatus"})
 public class HeartBeat {
+  @XmlElement
+  private String responseId;
   @XmlElement
   private String clusterId;
   @XmlElement
@@ -49,7 +51,15 @@ public class HeartBeat {
   @XmlElement
   private List<ActionResult> actionResults;
   @XmlElement
-  private ServersStatus serversStatus;
+  private List<ServerStatus> serversStatus;
+  
+  public String getResponseId() {
+    return responseId;
+  }
+  
+  public void setResponseId(String responseId) {
+    this.responseId=responseId;
+  }
   
   public String getClusterId() {
     return clusterId;
@@ -75,7 +85,7 @@ public class HeartBeat {
     return actionResults;
   }
   
-  public ServersStatus getServersStatus() {
+  public List<ServerStatus> getServersStatus() {
     return serversStatus;
   }
   
@@ -103,7 +113,7 @@ public class HeartBeat {
     this.hardwareProfile = hardwareProfile;    
   }
   
-  public void setServersStatus(ServersStatus serversStatus) {
+  public void setServersStatus(List<ServerStatus> serversStatus) {
     this.serversStatus = serversStatus;
   }
 }

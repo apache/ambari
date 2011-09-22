@@ -30,21 +30,15 @@ import org.apache.ambari.common.rest.entities.agent.Action.Kind;
 
 /**
  * 
- * Data model for reporting server related commands.
- * for example:
- * 
- * role: hadoop.datanode
- * processState: RUNNING
- * id: COMMAND-123456
- * stdout: Pid 123 is alive.
- * stderr:
- * exitCode: 0
+ * Data model for reporting server related actions.
  * 
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
 public class ActionResult {
+  @XmlElement
+  private String clusterId;
   @XmlElement
   private String id;
   @XmlElement
@@ -53,7 +47,17 @@ public class ActionResult {
   private List<CommandResult> commandResults;
   @XmlElement
   private List<CommandResult> cleanUpCommandResults;
+  @XmlElement
+  private String serverName;
 
+  public String getClusterId() {
+    return clusterId;
+  }
+  
+  public void setClusterId(String clusterId) {
+    this.clusterId = clusterId;
+  }
+  
   public String getId() {
     return id;
   }
@@ -87,4 +91,11 @@ public class ActionResult {
     
   }
   
+  public String getServerName() {
+    return serverName;
+  }
+  
+  public void setServerName(String serverName) {
+    this.serverName = serverName;
+  }
 }

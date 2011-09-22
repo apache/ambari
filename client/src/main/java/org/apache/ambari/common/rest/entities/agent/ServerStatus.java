@@ -20,46 +20,60 @@ package org.apache.ambari.common.rest.entities.agent;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
-/**
- * 
- * Data model for Ambari Controller to issue command to Ambari Agent.
- *
- */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
-public class Command {
-  public Command() {
+public class ServerStatus {
+  public String serverName;
+  public State state;
+  
+  public ServerStatus() {  
   }
   
-  public Command(String user, String[] cmd) {
-    this.cmd = cmd;
-    this.user = user;
+  public ServerStatus(String serverName, State state) {
+    this.serverName = serverName;
+    this.state = state;
   }
-  
-  @XmlElement
-  private String[] cmd;
 
-  @XmlElement
-  private String user;
+  public String getServerName() {
+    return serverName;
+  }
+  
+  public void setServerName(String serverName) {
+    this.serverName = serverName;
+  }
+  
+  public State getState() {
+    return state;
+  }
+  
+  public void setState(State state) {
+    this.state = state;
+  }
+  
+  public static enum State {
+    START, STARTED, STOP, STOPPED;
+    public static class ServerStateAdaptor extends XmlAdapter<String, State> {
+      @Override
+      public String marshal(State obj) throws Exception {
+        return obj.toString();
+      }
 
-  public String[] getCmd() {
-    return cmd;
-  }
-  
-  public String getUser() {
-    return user;
-  }
-  
-  public void setCmd(String[] cmd) {
-    this.cmd = cmd;
-  }
-  
-  public void setUser(String user) {
-    this.user = user;
+      @Override
+      public State unmarshal(String str) throws Exception {
+        for (State j : State.class.getEnumConstants()) {
+          if (j.toString().equals(str)) {
+            return j;
+          }
+        }
+        throw new Exception("Can't convert " + str + " to "
+          + State.class.getName());
+      }
+
+    }
   }
 }

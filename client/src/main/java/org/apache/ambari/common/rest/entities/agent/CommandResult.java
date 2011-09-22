@@ -37,15 +37,12 @@ public class CommandResult {
   public CommandResult() {
   }
   
-  public CommandResult(String id, int exitCode, String stdout, String stderr) {
-    this.id = id;
+  public CommandResult(int exitCode, String stdout, String stderr) {
     this.exitCode = exitCode;
     this.stdout = stdout;
     this.stderr = stderr;
   }
   
-  @XmlElement
-  private String id;
   @XmlElement
   private int exitCode;
   @XmlElement
@@ -53,10 +50,6 @@ public class CommandResult {
   @XmlElement
   private String stderr;
 
-  public String getId() {
-    return id;
-  }
-  
   public int getExitCode() {
     return exitCode;
   }
@@ -67,10 +60,6 @@ public class CommandResult {
   
   public String getStdErr() {
     return this.stderr;
-  }
-  
-  public void setId(String id) {
-    this.id = id;  
   }
   
   public void setExitCode(int exitCode) {

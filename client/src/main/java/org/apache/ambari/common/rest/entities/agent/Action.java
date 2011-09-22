@@ -31,7 +31,11 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
 public class Action {
+  @XmlElement
   public Kind kind;
+  @XmlElement
+  public String clusterId;
+  @XmlElement
   public String user;
   @XmlElement
   public String id;
@@ -52,6 +56,14 @@ public class Action {
     this.kind = kind;
   }  
 
+  public String getClusterId() {
+    return clusterId;
+  }
+  
+  public void setClusterId(String clusterId) {
+    this.clusterId = clusterId;
+  }
+  
   public String getUser() {
     return user;
   }
