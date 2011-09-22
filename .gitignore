@@ -1,0 +1,9 @@
+agent/src/main/python/hms_agent.egg-info
+*/.project
+*/.classpath
+*/.settings
+target
+*~
+.classpath
+.project
+.settings

@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<project name="hms agent packaging">
+  <target name="move-tarball">
+    <move todir="${project.build.directory}">
+      <fileset dir="${project.build.directory}/${final.name}/dist">
+        <include name="*.tar.gz"/>
+      </fileset>
+    </move>
+  </target>
+
+  <target name="package-deb" depends="move-tarball">
+    <taskdef name="deb"
+           classname="org.vafer.jdeb.ant.DebAntTask">
+    </taskdef>
+    <mkdir dir="${project.build.directory}/deb/hms-agent.control" />
+    <copy todir="${project.build.directory}/deb/hms-agent.control">
+      <fileset dir="${basedir}/src/packages/deb/hms-agent.control">
+        <exclude name="control" />
+      </fileset>
+    </copy>
+    <copy file="src/packages/deb/hms-agent.control/control" todir="${basedir}/target/deb/hms-agent.control">
+      <filterchain>
+        <replacetokens>
+          <token key="version" value="${project.version}" />
+        </replacetokens>
+      </filterchain>
+    </copy>
+    <path id="source.id"> 
+      <fileset dir="${project.build.directory}"> 
+        <include name="${final.name}.linux-*.tar.gz"/> 
+      </fileset>
+    </path> 
+    <property name="source.file" refid="source.id"/>
+    <deb destfile="${project.build.directory}/${artifactId}_${project.version}-${package.release}_${os.arch}.deb" control="${basedir}/target/deb/hms-agent.control">
+      <data src="${source.file}">
+        <mapper type="prefix" strip="1" prefix="${package.prefix}" />
+        <include name="**" />
+      </data>
+      <tarfileset dir="${basedir}/src/packages/deb/init.d" filemode="755" prefix="${package.prefix}/share/hms/sbin">
+        <exclude name=".svn" />
+        <include name="**" />
+      </tarfileset>
+    </deb>
+  </target>
+
+  <target name="package-rpm">
+    <path id="source.id"> 
+      <fileset dir="${project.build.directory}"> 
+        <include name="${final.name}.linux*.tar.gz"/> 
+      </fileset>
+    </path> 
+    <property name="source.file" refid="source.id"/>
+    <delete dir="${project.build.directory}/rpm/hms/buildroot" />
+    <mkdir dir="${project.build.directory}/rpm/hms/SOURCES" />
+    <mkdir dir="${project.build.directory}/rpm/hms/BUILD" />
+    <mkdir dir="${project.build.directory}/rpm/hms/RPMS" />
+    <mkdir dir="${project.build.directory}/rpm/hms/buildroot" />
+    <copy file="${source.file}" tofile="${project.build.directory}/rpm/hms/SOURCES/${final.name}.tar.gz" />
+    <copy file="src/packages/rpm/spec/hms-agent.spec" todir="target/rpm/hms/SPECS">
+      <filterchain>
+        <replacetokens>
+          <token key="final.name" value="${final.name}" />
+          <token key="version" value="${project.version}" />
+          <token key="package.name" value="${source.file}" />
+          <token key="package.release" value="${package.release}" />
+          <token key="package.build.dir" value="${project.build.directory}/rpm/hms/BUILD" />
+          <token key="package.prefix" value="${package.prefix}" />
+          <token key="package.conf.dir" value="${package.conf.dir}" />
+          <token key="package.log.dir" value="${package.log.dir}" />
+          <token key="package.pid.dir" value="${package.pid.dir}" />
+        </replacetokens>
+      </filterchain>
+    </copy>
+    <rpm specFile="hms-agent.spec" command="-bb" topDir="${project.build.directory}/rpm/hms" cleanBuildDir="true" failOnError="true"/>
+    <copy todir="${project.build.directory}" flatten="true">
+      <fileset dir="${project.build.directory}/rpm/hms/RPMS">
+        <include name="**/*.rpm" />
+      </fileset>
+    </copy>
+    <!-- delete dir="${project.build.directory}/rpm" / -->
+  </target>
+
+</project>

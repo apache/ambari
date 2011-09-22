@@ -1,0 +1,9 @@
+Package: hms-agent
+Version: @version@
+Section: misc
+Priority: optional
+Architecture: all
+Depends: openjdk-6-jre-headless
+Maintainer: Apache Software Foundation <hms-dev@incubator.apache.org>
+Description: Hadoop Management System Agent manage software installation and configuration for Hadoop software stack.
+Distribution: development

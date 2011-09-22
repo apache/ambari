@@ -1,0 +1,5 @@
+Ambari Change log
+
+Release 0.1.0 - unreleased
+
+  AMBARI-1 Initial code import

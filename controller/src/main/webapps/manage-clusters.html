@@ -1,0 +1,68 @@
+<!DOCTYPE HTML>
+<html>
+  <body>
+    <section>
+      <h3>Managed Clusters</h3>
+
+      <table id="cluster" class="display">
+        <thead>
+          <th>Cluster Name</th><th>Nodes</th><th>Software</th><th>Configuration</th>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <br>
+    </section>
+
+    <h3>Deployment History</h3>
+
+    <table id="history" class="display">
+      <thead>
+        <th>Deployment ID</th><th>Operation</th>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <script type="text/javascript">
+      function renderCluster(cluster) {
+        var buffer = [];
+        var i=0;
+        buffer[i++]='<a href="/?func=status-cluster&cluster='+cluster['clusterName']+'">'+cluster['clusterName']+'</a>';
+        buffer[i++]='<a href="'+cluster['nodes']['url']+'">Nodes List</a>';
+        buffer[i++]='<a href="'+cluster['software']['url']+'">Software Stack</a>';
+        buffer[i++]='<a href="'+cluster['config']['url']+'">Configuration</a>';
+        return buffer;
+      }
+
+      function renderCommand(command) {
+        var buffer = [];
+        var i=0;
+        buffer[i++]='<a href="/?func=status-command&cmd='+command['id']+'">'+command['id']+'</a>';
+        buffer[i++]=command['cmd'];
+        return buffer;
+      }
+
+      $(document).ready(function() {
+        $('#cluster').dataTable({"bJQueryUI": true, "sPaginationType": "full_numbers"});
+        $('#history').dataTable({"bJQueryUI": true, "sPaginationType": "full_numbers"});
+        $.getJSON('/v1/cluster/list',
+          function(data) {
+            for(var cluster in data) {
+              $('#cluster').dataTable().fnAddData(renderCluster(data[cluster]));
+            }
+          }
+        );
+
+        $.getJSON('/v1/command/list',
+          function(data) {
+            for(var command in data) {
+              $('#history').dataTable().fnAddData(renderCommand(data[command]));
+            }
+          }
+        );
+        $('#history').dataTable().fnSort( [ [0,'desc'] ] );
+      });
+    </script>
+  </body>
+</html>

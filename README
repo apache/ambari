@@ -1,0 +1,74 @@
+Hadoop Management System
+
+HMS is open-sourced under the Apache Software Foundation License v2.0.
+
+Quick Start
+
+1.  Setup Zookeeper
+
+2.  Compile HMS
+    mvn clean package
+
+3.  Setup HMS beacon on zookeeper nodes
+    $PREFIX/bin/hms beacon
+
+4.  Setup HMS controller
+    $PREFIX/bin/hms controller
+
+5.  Deploy HMS agent on all managed servers
+    cd hms/agent
+    mvn clean package -P rpm
+    sudo rpm -i hms-agent-[version].[arch].rpm
+    sudo hms-agent
+
+6.  Create a torrent file for the stack of software you want to install and seed the torrent.
+
+7.  Create a software manifest file to describe the software stack.
+    See: http://[hms-controller-host]:4080/v1/software/manifest/sample
+
+8.  Create a nodes manifest file to describe the list of servers.
+    See: http://[hms-controller-host]:4080/v1/nodes/manifest/sample
+
+9.  Create a config manifest file to describe how to configure the cluster.
+    See: http://[hms-controller-host]:4080/v1/config/manifest/create-hadoop-cluster
+
+10. Launch browser and visit:
+    http://[hms-controller-host]:4080/
+
+Start deploying clusters, and have fun.
+
+Note HMS agent depends on the following software:
+
+BitTorrent-bencode-5.0.8.1-1.noarch.rpm
+libevent-2.0.10-1geekery.i386.rpm
+mimeparse-0.1.3-1.noarch.rpm
+mimerender-0.2.2-1.noarch.rpm
+python-setuptools-0.6c5-2.el5.noarch.rpm
+simplejson-2.1.3-1.x86_64.rpm
+transmission-2.22-1geekery.i386.rpm
+transmission-cli-2.22-1geekery.i386.rpm
+transmission-common-2.22-1geekery.i386.rpm
+transmission-daemon-2.22-1geekery.i386.rpm
+web.py-0.34-1.noarch.rpm
+zkpython-3.4.0-1.x86_64.rpm
+zookeeper-lib-3.4.0-1.x86_64.rpm
+
+FAQ
+
+1. How to use HMS Controller without Zeroconf?
+
+Edit hms-controller-[version]/conf/hms.ini, and put:
+
+[zookeeper]
+quorum=host1:2181,host2:2181,host3:2181
+
+Then start HMS controller.
+
+2. How to use HMS Agent without Zeroconf?
+
+Edit /etc/hms/hms.ini, and put:
+
+[zookeeper]
+quorum=host1:2181,host2:2181,host3:2181
+
+Then start HMS agent.

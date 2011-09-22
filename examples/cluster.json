@@ -1,0 +1,14 @@
+{
+  "name": "kryptonite-green",
+  "description": "alpha cluster",
+  "blueprint": "kryptonite",
+  "nodes": ["node000-999", "gateway0-1"],
+  "goal": "active",
+  "services": ["hdfs", "mapreduce"],
+  "roles": {
+    "namenode": ["node000"],
+    "jobtracker": ["node001"],
+    "secondary-namenode": ["node002"],
+    "gateway": ["gateway0-1"],
+  }
+}

@@ -1,0 +1,54 @@
+{ "name": "kryptonite",
+  "stack": "ambari-1.0",
+  "parent": "site",
+  "parent-revision": "42",
+  "repositories": [
+    {
+      "location": "http://repos.hortonworks.com/yum",
+      "type": "yum"
+    },
+    {
+      "location": "http://incubator.apache.org/ambari/stack",
+      "type": "tar"
+    },
+  ],
+  "configuration": {
+    "hadoop-env": {
+      "HADOOP_CONF_DIR": "/etc/hadoop",
+      "HADOOP_NAMENODE_OPTS": "-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT",
+      "HADOOP_CLIENT_OPTS": "-Xmx128m"
+    },
+    "core-site": {
+       "fs.default.name" : "hdfs://${namenode}:8020/",
+       "hadoop.tmp.dir" : "/grid/0/hadoop/tmp",
+       "!hadoop.security.authentication" : "kerberos",
+    }
+  }
+  "components": {
+    "common": {
+      "version": "0.20.203.0"
+      "arch": "i386"
+    },
+    "hdfs": {
+      "user": "hdfs"
+    },
+    "mapreduce": {
+      "user": "mapred"
+    },
+    "hbase": {
+      "enabled": "false"
+    }
+    "pig": {
+      "version": "0.9.0"
+    }
+  },
+  "roles": {
+    "namenode": {
+      "configuration": {
+        "hdfs-site": {
+           "dfs.https.enable": "true"
+        }
+      }
+    }
+  }
+}

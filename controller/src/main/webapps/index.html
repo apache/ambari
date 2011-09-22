@@ -1,0 +1,53 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Hadoop Management System</title>
+    <style type="text/css" media="screen">
+			@import "/css/demo_table_jui.css";
+                        @import "/css/smoothness/jquery-ui-1.8.13.custom.css";
+                        @import "/css/default.css";
+    </style>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="/js/default.js"></script>
+  </head>
+  <body>
+    <section>
+      <a href="/"><h2>HMS</h2></a>
+    </section>
+    <section id="main">
+      <div id="wrapper">
+        <article id="content">
+        </article>
+      </div>
+      <nav id="navigation"></nav>
+    </section>
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $.extend({
+          getUrlVars: function(){
+            var vars = [], hash;
+            var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+            for(var i = 0; i < hashes.length; i++) {
+              hash = hashes[i].split('=');
+              vars.push(hash[0]);
+              vars[hash[0]] = hash[1];
+            }
+            return vars;
+          },
+          getUrlVar: function(name){
+            return $.getUrlVars()[name];
+          }
+        });
+
+        var func = $.getUrlVar('func');
+        if(func==undefined) {
+          func="manage-clusters";
+        }
+        $("#content").load("/"+func+".html");
+        $("#navigation").load("/nav.html");
+      });
+    </script>
+  </body>
+</html>

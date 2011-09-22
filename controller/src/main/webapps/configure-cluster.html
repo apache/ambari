@@ -1,0 +1,105 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+<h2>Configure a cluster</h2>
+<form class="form">
+<p>Cluster Name</p>
+<p>
+  <span id="clusterName"></span>
+  <input type="hidden" id="cluster" value="">
+  <span id="cluster_message" class="warn"></span>
+</p>
+<p>Nodes Manifest</p>
+<p>
+  <input type="text" id="nodes" value="http://hadooplab21:4080/v1/nodes/manifest/sample" size="80">
+  <span id="nodes_message" class="warn"></span>
+</p>
+<p>Software Manifest</p>
+<p>
+  <input type="text" id="software" value="http://hadooplab21:4080/v1/software/manifest/sample" size="80">
+  <span id="software_message" class="warn"></span>
+</p>
+<p>Configuration Manifest</p>
+<p>
+  <input type="text" id="config" value="http://hadooplab21:4080/v1/config/manifest/create-hadoop-cluster" size="80">
+  <span id="config_message" class="warn"></span>
+</p>
+<p>
+<button type="submit" id="config" value="Configure" onClick="return configureCluster()">Configure</button>
+<button type="submit" id="cancel" onclick="javascript:window.location='/';">Cancel</button>
+</p>
+</form>
+<script type="text/javascript">
+function configureCluster() {
+  var cluster = $('#cluster').val();
+  var nodes = $('#nodes').val();
+  var config = $('#config').val();
+  var software = $('#software').val();
+  var bailout = false;
+
+  if(cluster=="") {
+    $('#cluster_message').text("Cluster name can not be empty.");
+    bailout = true;
+  }
+
+  if(nodes=="") {
+    $('#nodes_message').text("Nodes manifest URL can not be empty.");
+    bailout = true;
+  }
+
+  if(software=="") {
+    $('#software_message').text("Software manifest URL can not be empty.");
+    bailout = true;
+  }
+
+  if(config=="") {
+    $('#config_message').text("Config manifest URL can not be empty.");
+    bailout = true;
+  }
+
+  if(bailout) {
+    return false;
+  }
+
+  var data = '{"cmd":"upgrade","dry-run":"false","clusterManifest":{"@clusterName":"'+cluster+'","nodes":{"@url":"'+nodes+'"},"software":{"@url":"'+software+'"},"config":{"@url":"'+config+'"}}}';
+    $.ajax({
+      type: 'POST',
+      url: '/v1/controller/upgrade/cluster',
+      contentType: "application/json; charset=utf-8",
+      data: data,
+      success: function(data) {
+        var url = '/?func=status-command&cmd='+data['output'];
+        window.location.href = url;
+      },
+      dataType:'json'
+    });
+}
+
+$(document).ready(function() {
+  $.extend({
+    getUrlVars: function(){
+      var vars = [], hash;
+      var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+      for(var i = 0; i < hashes.length; i++) {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+      }
+      return vars;
+    },
+    getUrlVar: function(name){
+      return $.getUrlVars()[name];
+    }
+  });
+  var prefix = window.location.protocol+'//'+window.location.hostname+':'+window.location.port;
+  $('#nodes').val(prefix+'/v1/nodes/manifest/sample');
+  $('#software').val(prefix+'/v1/software/manifest/sample');
+  $('#config').val(prefix+'/v1/config/manifest/create-hadoop-cluster');
+  var cluster = $.getUrlVar('cluster');
+  $('#cluster').val(cluster);
+  $('#clusterName').text(cluster);
+
+});
+</script>
+</body>
+</html>
