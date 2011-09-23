@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-10. Initial checkin of the heartbeat handling code (ddas)
+
   AMBARI-9. Fix all of the files to have the Apache header and include
   RAT in the build. (omalley)
 
