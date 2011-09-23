@@ -85,7 +85,6 @@
           </executions>
 
           <configuration>
-
             <encoding>UTF-8</encoding>
             <verbose>false</verbose>
             <show>public</show>
@@ -101,7 +100,7 @@
                   Also specify jersey and xerces as doclet artifacts as the ResourceDoclet
                   uses classes provided by them to generate the resourcedoc.
                 -->
-<!--                <docletArtifact>
+                <!--<docletArtifact>
                   <groupId>com.sun.jersey</groupId>
                   <artifactId>jersey-server</artifactId>
                   <version>1.6</version>

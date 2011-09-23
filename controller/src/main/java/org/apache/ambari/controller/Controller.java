@@ -80,7 +80,7 @@ public class Controller {
   }
 
   public static void main(String[] args) {
-    //DaemonWatcher.createInstance(System.getProperty("PID"), 9100);
+    DaemonWatcher.createInstance(System.getProperty("PID"), 9100);
     try {
       Controller controller = Controller.getInstance();
       if (controller != null) {

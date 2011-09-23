@@ -13,8 +13,8 @@ public class ExtendedWadlGeneratorConfig extends WadlGeneratorConfig {
   public List<WadlGeneratorDescription> configure() {
     return generator(WadlGeneratorGrammarsSupport.class)
         .prop("grammarsStream", "application-grammars.xml")
-        .generator(WadlGeneratorResourceDocSupport.class)
-        .prop("resourceDocStream", "resourcedoc.xml")
+        //.generator(WadlGeneratorResourceDocSupport.class)
+        //.prop("resourceDocStream", "resourcedoc.xml")
         .descriptions();
     }
 }
