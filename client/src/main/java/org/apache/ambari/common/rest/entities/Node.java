@@ -61,18 +61,7 @@ public class Node {
 		this.getNodeState().setAgentInstalled(agentInstalled);
 	}
 	
-	/*
-	 * 
-	 */
-	public List<String> getAssociatedRoleNames() throws Exception {
-		List<String> list = new ArrayList<String>();
-		if (this.getNodeState().getClusterName() != null) {
-			for (RoleToNodesMapEntry rnme : Clusters.getInstance().getCluster(this.getNodeState().getClusterName()).getRoleToNodesMap().getRoleToNodesMapEntry()) {
-				list.add(rnme.getRoleName());
-			}
-		}
-		return list;
-	}
+
 	
     /**
 	 * @return the name

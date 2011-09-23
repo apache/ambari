@@ -16,9 +16,10 @@ import javax.xml.bind.annotation.XmlElement;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.Cluster;
-import org.apache.ambari.common.rest.entities.Clusters;
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.Stacks;
+import org.apache.ambari.controller.Clusters;
+
 import com.sun.jersey.spi.resource.Singleton;
 
 /** Stacks resource represents a collection of Hadoop Stacks

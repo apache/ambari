@@ -79,7 +79,7 @@ public class ClusterState {
 	/**
 	 * @param creationTime the creationTime to set
 	 */
-	protected void setCreationTime(Date creationTime) throws Exception {
+	public void setCreationTime(Date creationTime) throws Exception {
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTime(creationTime);
 		this.creationTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
@@ -102,7 +102,7 @@ public class ClusterState {
 	/**
 	 * @param creationTime the creationTime to set
 	 */
-	protected void setDeployTime(Date deployTime) throws Exception {
+	public void setDeployTime(Date deployTime) throws Exception {
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTime(deployTime);
 		this.deployTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
@@ -125,7 +125,7 @@ public class ClusterState {
 	/**
 	 * @param creationTime the creationTime to set
 	 */
-	protected void setLastUpdateTime(Date lastUpdateTime) throws Exception {
+	public void setLastUpdateTime(Date lastUpdateTime) throws Exception {
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTime(lastUpdateTime);
 		this.lastUpdateTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);

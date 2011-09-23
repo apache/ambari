@@ -16,9 +16,9 @@ import javax.ws.rs.QueryParam;
 
 
 import org.apache.ambari.common.rest.entities.Cluster;
-import org.apache.ambari.common.rest.entities.Clusters;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.ClusterState;
+import org.apache.ambari.controller.Clusters;
 
 /** ClusterResource represents a Hadoop Cluster in a data center.
  *  

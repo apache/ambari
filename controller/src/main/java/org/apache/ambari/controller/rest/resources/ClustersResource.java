@@ -5,8 +5,8 @@ package org.apache.ambari.controller.rest.resources;
 
 import java.util.List;
 
-import org.apache.ambari.common.rest.entities.Clusters;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
+import org.apache.ambari.controller.Clusters;
 
 import com.sun.jersey.spi.resource.Singleton;
 import javax.ws.rs.GET;

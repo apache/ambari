@@ -6,7 +6,7 @@
 //
 
 
-package org.apache.ambari.common.rest.entities;
+package org.apache.ambari.controller;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,6 +32,13 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.ambari.common.rest.entities.Cluster;
+import org.apache.ambari.common.rest.entities.ClusterDefinition;
+import org.apache.ambari.common.rest.entities.ClusterState;
+import org.apache.ambari.common.rest.entities.Node;
+import org.apache.ambari.common.rest.entities.RoleToNodesMap;
+import org.apache.ambari.common.rest.entities.RoleToNodesMapEntry;
 
 public class Clusters {
 
@@ -494,4 +501,20 @@ public class Clusters {
 			}
     	}
     }
+    
+    /* 
+     * Util methods on entities
+     */
+	/*
+	 * 
+	 */
+	public List<String> getAssociatedRoleNames(Node n) throws Exception {
+		List<String> list = new ArrayList<String>();
+		if (n.getNodeState().getClusterName() != null) {
+			for (RoleToNodesMapEntry rnme : Clusters.getInstance().getCluster(n.getNodeState().getClusterName()).getRoleToNodesMap().getRoleToNodesMapEntry()) {
+				list.add(rnme.getRoleName());
+			}
+		}
+		return list;
+	}
 }

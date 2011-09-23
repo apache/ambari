@@ -82,14 +82,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Nodes }
-     * 
-     */
-    public Nodes createNodesType() {
-        return Nodes.getInstance();
-    }
-
-    /**
      * Create an instance of {@link RoleToNodesMapEntry }
      * 
      */
@@ -127,14 +119,6 @@ public class ObjectFactory {
      */
     public ClusterDefinition createClusterType() {
         return new ClusterDefinition();
-    }
-
-    /**
-     * Create an instance of {@link Clusters }
-     * 
-     */
-    public Clusters createClustersType() {
-        return Clusters.getInstance();
     }
 
     /**
@@ -191,24 +175,6 @@ public class ObjectFactory {
      */
     public DiagnosticLog createDiagnosticLogType() {
         return new DiagnosticLog();
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link Clusters }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "Clusters")
-    public JAXBElement<Clusters> createClusters(Clusters value) {
-        return new JAXBElement<Clusters>(_Clusters_QNAME, Clusters.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link Nodes }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "Nodes")
-    public JAXBElement<Nodes> createNodes(Nodes value) {
-        return new JAXBElement<Nodes>(_Nodes_QNAME, Nodes.class, null, value);
     }
 
 }

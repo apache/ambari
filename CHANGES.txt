@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-6. Moving Clusters and Nodes container objects into controller
+
   AMBARI-5. Added some left over changes from git repository for Ambari REST APIs
 
   AMBARI-4. Created interface for component plugins. (omalley)
