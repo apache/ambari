@@ -18,7 +18,7 @@
 package org.apache.ambari.resource.statemachine;
 
 /**
- * All participants have two states -
+ * All participants have at least two states -
  * ACTIVE, INACTIVE
  * 
  */

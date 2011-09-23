@@ -45,7 +45,7 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
   <RoleImpl, RoleState, RoleEventType, RoleEvent> stateMachineFactory 
          = new StateMachineFactory<RoleImpl, RoleState, RoleEventType, 
          RoleEvent>(RoleState.INACTIVE)
-         .addTransition(RoleState.INACTIVE, RoleState.STARTING, RoleEventType.S_START)
+         .addTransition(RoleState.INACTIVE, RoleState.STARTING, RoleEventType.S_START, new RoleStartTransition())
          .addTransition(RoleState.STARTING, RoleState.ACTIVE, RoleEventType.S_START_SUCCESS, new SuccessStartTransition())
          .addTransition(RoleState.STARTING, RoleState.FAIL, RoleEventType.S_START_FAILURE)
          .addTransition(RoleState.ACTIVE, RoleState.STOPPING, RoleEventType.S_STOP)
@@ -94,6 +94,15 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
     this.hosts.addAll(hosts);
   }
   
+  static class RoleStartTransition implements 
+  SingleArcTransition<RoleImpl, RoleEvent>  {
+
+    @Override
+    public void transition(RoleImpl operand, RoleEvent event) {
+      //load the plugin and get the command for starting the role 
+    }
+  }
+  
   static class SuccessStartTransition implements 
   SingleArcTransition<RoleImpl, RoleEvent>  {
 
@@ -113,5 +122,5 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
   @Override
   public void deactivate() {
     //load the plugin and get the commands for stopping the role
-  }  
+  }
 }

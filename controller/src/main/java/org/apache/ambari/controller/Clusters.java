@@ -388,13 +388,12 @@ public class Clusters {
     /* 
      * Get the cluster definition 
     */
-    public ClusterDefinition getCluster(String clusterName) throws Exception {
+    public ClusterDefinition getCluster(String clusterName) {
         /*for (ClusterDefinition cls : operational_clusters) {
                         if (cls.getName().equals(clusterName)) {
                                 return cls;
                         }
-                }*/
-        throw new Exception ("Cluster:["+clusterName+"] does not exists");
+                }*/return null;
     }
     
     /*
@@ -517,7 +516,7 @@ public class Clusters {
         /*
          * 
          */
-        public List<String> getAssociatedRoleNames(Node n) throws Exception {
+        public List<String> getAssociatedRoleNames(Node n) {
                 List<String> list = new ArrayList<String>();
                 if (n.getNodeState().getClusterName() != null) {
                         for (RoleToNodesMapEntry rnme : Clusters.getInstance().getCluster(n.getNodeState().getClusterName()).getRoleToNodesMap().getRoleToNodesMapEntry()) {

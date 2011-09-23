@@ -59,7 +59,7 @@ public class StateMachineInvoker {
     }
   }
   
-  public static Cluster createClusterImpl(String clusterName) {
+  public static Cluster createCluster(String clusterName) {
     return new ClusterImpl(clusterName);
   }
   
