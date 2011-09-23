@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-9. Fix all of the files to have the Apache header and include
+  RAT in the build. (omalley)
+
   AMBARI-8. Move dependencies into controller. (omalley)
 
   AMBARI-6. Moving Clusters and Nodes container objects into controller

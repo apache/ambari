@@ -265,6 +265,34 @@
               <artifactId>maven-site-plugin</artifactId>
               <version>3.0</version>
             </plugin>
+            <plugin>
+              <groupId>org.apache.rat</groupId>
+              <artifactId>apache-rat-plugin</artifactId>
+              <version>0.7</version>
+              <executions>
+                <execution>
+                  <phase>verify</phase>
+                  <goals>
+                    <goal>check</goal>
+                  </goals>
+                </execution>
+              </executions>
+              <configuration>
+                <numUnapprovedLicenses>0</numUnapprovedLicenses>
+                <excludes>
+                  <!-- notice files -->
+                  <exclude>CHANGES.txt</exclude>
+                  <!-- generated files -->
+                  <exclude>**/target/**</exclude>
+                  <exclude>**/.classpath</exclude>
+                  <exclude>**/.project</exclude>
+                  <exclude>**/.settings/**</exclude>
+                  <!-- bsd/gpl dual licensed files -->
+                  <exclude>src/main/webapps/css/smoothness/jquery-ui-1.8.13.custom.css</exclude>
+                  <exclude>src/main/webapps/js/jquery.dataTables.min.js</exclude>
+                </excludes>
+              </configuration>
+            </plugin>
         </plugins>
     </build>
 
