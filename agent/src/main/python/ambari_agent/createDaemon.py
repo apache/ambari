@@ -76,7 +76,7 @@ def createDaemon():
    except OSError, e:
       raise Exception, "%s [%d]" % (e.strerror, e.errno)
 
-   if (pid == 0):	# The first child.
+   if (pid == 0):       # The first child.
       # To become the session leader of this new session and the process group
       # leader of the new process group, we call os.setsid().  The process is
       # also guaranteed not to have a controlling terminal.
@@ -120,11 +120,11 @@ def createDaemon():
          # based systems).  This second fork guarantees that the child is no
          # longer a session leader, preventing the daemon from ever acquiring
          # a controlling terminal.
-         pid = os.fork()	# Fork a second child.
+         pid = os.fork()        # Fork a second child.
       except OSError, e:
          raise Exception, "%s [%d]" % (e.strerror, e.errno)
 
-      if (pid == 0):	# The second child.
+      if (pid == 0):    # The second child.
          # Since the current working directory may be a mounted filesystem, we
          # avoid the issue of not being able to unmount the filesystem at
          # shutdown time by changing it to the root directory.
@@ -134,7 +134,7 @@ def createDaemon():
          os.umask(UMASK)
       else:
          # exit() or _exit()?  See below.
-         os._exit(0)	# Exit parent (the first child) of the second child.
+         os._exit(0)    # Exit parent (the first child) of the second child.
    else:
       # exit() or _exit()?
       # _exit is like exit(), but it doesn't call any functions registered
@@ -143,7 +143,7 @@ def createDaemon():
       # streams to be flushed twice and any temporary files may be unexpectedly
       # removed.  It's therefore recommended that child branches of a fork()
       # and the parent branch(es) of a daemon use _exit().
-      os._exit(0)	# Exit parent of the first child.
+      os._exit(0)       # Exit parent of the first child.
 
    # Close all open file descriptors.  This prevents the child from keeping
    # open any file descriptors inherited from the parent.  There is a variety
@@ -171,7 +171,7 @@ def createDaemon():
    # that can be opened by this process.  If there is not limit on the
    # resource, use the default value.
    #
-   import resource		# Resource usage information.
+   import resource              # Resource usage information.
    maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
    if (maxfd == resource.RLIM_INFINITY):
       maxfd = MAXFD
@@ -180,7 +180,7 @@ def createDaemon():
    for fd in range(0, maxfd):
       try:
          os.close(fd)
-      except OSError:	# ERROR, fd wasn't open to begin with (ignored)
+      except OSError:   # ERROR, fd wasn't open to begin with (ignored)
          pass
 
    # Redirect the standard I/O file descriptors to the specified file.  Since
@@ -190,11 +190,11 @@ def createDaemon():
 
    # This call to open is guaranteed to return the lowest file descriptor,
    # which will be 0 (stdin), since it was closed above.
-   os.open(REDIRECT_TO, os.O_RDWR)	# standard input (0)
+   os.open(REDIRECT_TO, os.O_RDWR)      # standard input (0)
 
    # Duplicate standard input to standard output and standard error.
-   os.dup2(0, 1)			# standard output (1)
-   os.dup2(0, 2)			# standard error (2)
+   os.dup2(0, 1)                        # standard output (1)
+   os.dup2(0, 2)                        # standard error (2)
 
    return(0)
 

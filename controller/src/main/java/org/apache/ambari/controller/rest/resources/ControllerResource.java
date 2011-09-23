@@ -45,44 +45,44 @@ import org.apache.ambari.common.rest.entities.agent.HeartBeat;
 import org.apache.ambari.common.rest.entities.agent.ServerStatus;
 
 /** Controller Resource represents Ambari controller.
- *	It provides API for Ambari agents to get the cluster configuration changes
- *	as well as report the node attributes and state of services running the on the 
- *	cluster nodes
+ *      It provides API for Ambari agents to get the cluster configuration changes
+ *      as well as report the node attributes and state of services running the on the 
+ *      cluster nodes
  */
 @Path(value = "/controller")
 public class ControllerResource {
-	
-	/** Update state of the node (Internal API to be used by Ambari agent).
-	 *  <p>
-	 *	This API is invoked by Ambari agent running on a cluster to update the 
-	 *	the state of various services running on the nodes. This API also registers 
-	 *	the node w/ controller (if not already done).
-	 *  <p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /controller/agent/{hostname}<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : PUT <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
-	 * 
-	 * @response.representation.200.doc This API is invoked by Ambari agent running
-	 *  on a cluster to update the state of various services running on the node.
-	 * @response.representation.200.mediaType application/json
-	 * @response.representation.500.doc Error in accepting heartbeat message
-	 * @param message Heartbeat message
-	 * @throws Exception	throws Exception
-	 */
+        
+        /** Update state of the node (Internal API to be used by Ambari agent).
+         *  <p>
+         *      This API is invoked by Ambari agent running on a cluster to update the 
+         *      the state of various services running on the nodes. This API also registers 
+         *      the node w/ controller (if not already done).
+         *  <p>
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /controller/agent/{hostname}<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : PUT <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
+         * 
+         * @response.representation.200.doc This API is invoked by Ambari agent running
+         *  on a cluster to update the state of various services running on the node.
+         * @response.representation.200.mediaType application/json
+         * @response.representation.500.doc Error in accepting heartbeat message
+         * @param message Heartbeat message
+         * @throws Exception    throws Exception
+         */
   @Path(value = "/agent/{hostname}")
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   public ControllerResponse heartbeat(HeartBeat message) {
     ControllerResponse response = new ControllerResponse();
-  	return response;
-	}
+        return response;
+        }
 
   /**
    * @response.representation.200.doc Print an example of the Ambari heartbeat message

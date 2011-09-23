@@ -40,49 +40,49 @@ public class BlueprintsResource {
  
     /** Creates a new blueprint.
      *  <p>
-     * 	If named blueprint does not exists already, then it creates new one i.e. revision zero.
+     *  If named blueprint does not exists already, then it creates new one i.e. revision zero.
      *  <p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
      * 
-     * @param blueprint			Input blueprint object specifying the blueprint definition
-     * @return					Returns the newly created revision of the blueprint
-     * @throws Exception		throws Exception
+     * @param blueprint                 Input blueprint object specifying the blueprint definition
+     * @return                                  Returns the newly created revision of the blueprint
+     * @throws Exception                throws Exception
      */
     @POST
     @Consumes
     public Blueprint createBlueprint(Blueprint blueprint) throws Exception {
-    	return null;
+        return null;
     }
 
     /** Get the list of blueprint names
      *  <p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
      * 
-     * @return	 				Returns the list of blueprint names
-     * @throws Exception		throws Exception
+     * @return                                  Returns the list of blueprint names
+     * @throws Exception                throws Exception
      */
     @GET
     @Consumes
     public List<String> listBlueprints() throws Exception {
-    	return null;
+        return null;
     }
     
 }

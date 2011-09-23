@@ -40,8 +40,8 @@ import javax.ws.rs.core.Response;
 @Singleton
 @Path(value = "/clusters")
 public class ClustersResource {
-	
-    public ClustersResource() throws Exception {	
+        
+    public ClustersResource() throws Exception {        
         ClusterDefinition cluster123 = new ClusterDefinition();
         ClusterDefinition cluster124 = new ClusterDefinition();
         cluster123.setName("blue.dev.Cluster123");
@@ -57,85 +57,85 @@ public class ClustersResource {
     /** Get the list of clusters.
      *  <p>
      *  State: <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;"ALL"		: All the clusters (irrespective of their state), 
-     *  &nbsp;&nbsp;&nbsp;&nbsp;"ACTIVE"	: All the active state clusters
-     *  &nbsp;&nbsp;&nbsp;&nbsp;"INACTIVE"	: All the inactive state clusters
-     *  &nbsp;&nbsp;&nbsp;&nbsp;"ATTIC"		: All the retired i.e. ATTIC state clusters
+     *  &nbsp;&nbsp;&nbsp;&nbsp;"ALL"           : All the clusters (irrespective of their state), 
+     *  &nbsp;&nbsp;&nbsp;&nbsp;"ACTIVE"        : All the active state clusters
+     *  &nbsp;&nbsp;&nbsp;&nbsp;"INACTIVE"      : All the inactive state clusters
+     *  &nbsp;&nbsp;&nbsp;&nbsp;"ATTIC"         : All the retired i.e. ATTIC state clusters
      *  
      *  <p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
-	 *  
-     *  @param	state			The state of the cluster
-     *  @param	search   		Optional search expression to return list of matching clusters
-     *  @return					Returns the list of clusters based on specified state and optional search criteria.
-     *  @throws	Exception		throws Exception (TBD)
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
+         *  
+     *  @param  state                   The state of the cluster
+     *  @param  search                  Optional search expression to return list of matching clusters
+     *  @return                                 Returns the list of clusters based on specified state and optional search criteria.
+     *  @throws Exception               throws Exception (TBD)
      */
     @GET
     @Produces({"application/json", "application/xml"})
     public List<ClusterDefinition> getClusterList (
-    						 @DefaultValue("ALL") @QueryParam("state") String state,
-    		                 @DefaultValue("") @QueryParam("search") String search) throws Exception {
-    	List<ClusterDefinition> searchResults = null;
-    	if (!search.equals("")) {
-    		/*
-    		 * TODO: Implement search 
-    		searchResults = new ArrayList<Cluster>();
-    		for (Cluster cls : Clusters.getInstance().getClusterList(state)) {
-    			if (cls.getName().matches("^.*"+search+".*$")) {
-    				searchResults.add(cls);
-    			}
-    		}
-    		*/
-    	} else {
-    		//searchResults = Clusters.getInstance().getClusterList(state);
-    	}
+                                                 @DefaultValue("ALL") @QueryParam("state") String state,
+                                 @DefaultValue("") @QueryParam("search") String search) throws Exception {
+        List<ClusterDefinition> searchResults = null;
+        if (!search.equals("")) {
+                /*
+                 * TODO: Implement search 
+                searchResults = new ArrayList<Cluster>();
+                for (Cluster cls : Clusters.getInstance().getClusterList(state)) {
+                        if (cls.getName().matches("^.*"+search+".*$")) {
+                                searchResults.add(cls);
+                        }
+                }
+                */
+        } else {
+                //searchResults = Clusters.getInstance().getClusterList(state);
+        }
     
-    	if (searchResults.isEmpty()) {
-    		throw new WebApplicationException(Response.Status.NOT_FOUND);
-    	}
-    	
-    	return searchResults;
+        if (searchResults.isEmpty()) {
+                throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
+        
+        return searchResults;
     }
     
     /** Add new cluster definition.
-	 *  <p>
-	 *  Cluster goal state can be either "ACTIVE" or "INACTIVE". In the "INACTIVE" state, nodes specified in the 
-	 *  cluster definition will be reserved for the cluster. Although the actual deployment and starting of services 
-	 *  would begin when cluster definition is updated to be "ACTIVE"
+         *  <p>
+         *  Cluster goal state can be either "ACTIVE" or "INACTIVE". In the "INACTIVE" state, nodes specified in the 
+         *  cluster definition will be reserved for the cluster. Although the actual deployment and starting of services 
+         *  would begin when cluster definition is updated to be "ACTIVE"
      *  <p>   
      *  For cluster to be in active state cluster definition needs to be complete & valid 
      *  e.g. number of nodes associated are sufficient for each role, specified blueprint for cluster configuration
      *  should exist etc. 
      *  
      *  <p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
      *  
-     *   @param		cluster			Definition of the cluster to be created 
-     *   @return					Returns the cluster definition 
-     *   @throws	Exception		Throws exception (TBD)
+     *   @param         cluster                 Definition of the cluster to be created 
+     *   @return                                        Returns the cluster definition 
+     *   @throws        Exception               Throws exception (TBD)
      */
     @POST
-	@Consumes({"application/json", "application/xml"})
-	public ClusterDefinition addCluster(ClusterDefinition cluster) throws Exception {
-		Clusters.getInstance().addCluster(cluster);
-		return null;
-	}
+        @Consumes({"application/json", "application/xml"})
+        public ClusterDefinition addCluster(ClusterDefinition cluster) throws Exception {
+                Clusters.getInstance().addCluster(cluster);
+                return null;
+        }
 }

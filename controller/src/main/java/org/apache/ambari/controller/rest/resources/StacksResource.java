@@ -44,10 +44,10 @@ import com.sun.jersey.spi.resource.Singleton;
 @Singleton
 @Path(value = "/stacks")
 public class StacksResource {
-	   
-	Stacks stacks = Stacks.getInstance();
-	
-    public StacksResource() throws Exception {	
+           
+        Stacks stacks = Stacks.getInstance();
+        
+    public StacksResource() throws Exception {  
         Stack stack123 = new Stack();
         stacks.addStack(stack123);
     }  
@@ -55,19 +55,19 @@ public class StacksResource {
     /** Import a new Hadoop Stack description
      * 
      *  <p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /stacks/<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /stacks/<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
      * 
-     * @param	url Location of the new stack definition
-     * @throws 	Exception		throws Exception
+     * @param   url Location of the new stack definition
+     * @throws  Exception               throws Exception
      */
     @Path(value = "/stacks/")
     @PUT
@@ -78,56 +78,56 @@ public class StacksResource {
     /** Get the list of stacks installed with Ambari controller.
      * 
      *  <p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /stacks/{stackName}<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /stacks/{stackName}<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
      * 
-     * @param searchToken	Optionally specify the search token to return the stacks where stack name includes the search token 
-     * @return				Returns list of stack definitions
-     * @throws Exception	throws Exception
+     * @param searchToken       Optionally specify the search token to return the stacks where stack name includes the search token 
+     * @return                          Returns list of stack definitions
+     * @throws Exception        throws Exception
      */
     /*@GET
     public List<Stack> getStackList (@DefaultValue("") @QueryParam("search") String searchToken) throws Exception {
-    	List<Stack> searchResults = Stacks.getInstance().getStackList();
-    	if (!searchToken.equals("")) {
-    		searchResults = new ArrayList<Stack>();
-    		for (Stack cls : Stacks.getInstance().getStackList()) {
-    			if (cls.getName().matches("^.*"+searchToken+".*$")) {
-    				searchResults.add(cls);
-    			}
-    		}
-    	}
+        List<Stack> searchResults = Stacks.getInstance().getStackList();
+        if (!searchToken.equals("")) {
+                searchResults = new ArrayList<Stack>();
+                for (Stack cls : Stacks.getInstance().getStackList()) {
+                        if (cls.getName().matches("^.*"+searchToken+".*$")) {
+                                searchResults.add(cls);
+                        }
+                }
+        }
     
-    	if (searchResults.isEmpty()) {
-    		throw new Exception ("No matching stacks found!");
-    	}
-    	return null;
+        if (searchResults.isEmpty()) {
+                throw new Exception ("No matching stacks found!");
+        }
+        return null;
     }*/
 
     /** Get the default blueprint for a particular stack
      * 
      *  <p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /stacks/{stackName}<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /stacks/{stackName}<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
      * 
      * @param stackName  The name of the stack to get the default blueprint
-     * @return	The default blueprint for that stack
-     * @throws Exception	throws Exception
+     * @return  The default blueprint for that stack
+     * @throws Exception        throws Exception
      */
     @GET
     public Blueprint getDefaultBlueprint(@PathParam("stackName") String stackName) throws Exception {

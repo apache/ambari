@@ -63,114 +63,114 @@ public class Blueprint {
     @XmlElement(name = "Roles")
     protected List<Role> roles;
     
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-	/**
-	 * @return the revision
-	 */
-	public String getRevision() {
-		return revision;
-	}
-	/**
-	 * @param revision the revision to set
-	 */
-	public void setRevision(String revision) {
-		this.revision = revision;
-	}
-	/**
-	 * @return the stackName
-	 */
-	public String getStackName() {
-		return stackName;
-	}
-	/**
-	 * @param stackName the stackName to set
-	 */
-	public void setStackName(String stackName) {
-		this.stackName = stackName;
-	}
-	/**
-	 * @return the parentName
-	 */
-	public String getParentName() {
-		return parentName;
-	}
-	/**
-	 * @param parentName the parentName to set
-	 */
-	public void setParentName(String parentName) {
-		this.parentName = parentName;
-	}
-	/**
-	 * @return the parentRevision
-	 */
-	public String getParentRevision() {
-		return parentRevision;
-	}
-	/**
-	 * @param parentRevision the parentRevision to set
-	 */
-	public void setParentRevision(String parentRevision) {
-		this.parentRevision = parentRevision;
-	}
-	/**
-	 * @return the packageRepositories
-	 */
-	public List<PackageRepository> getPackageRepositories() {
-		return packageRepositories;
-	}
-	/**
-	 * @param packageRepositories the packageRepositories to set
-	 */
-	public void setPackageRepositories(
-			List<PackageRepository> packageRepositories) {
-		this.packageRepositories = packageRepositories;
-	}
-	/**
-	 * @return the configuration
-	 */
-	public Configuration getConfiguration() {
-		return configuration;
-	}
-	/**
-	 * @param configuration the configuration to set
-	 */
-	public void setConfiguration(Configuration configuration) {
-		this.configuration = configuration;
-	}
-	/**
-	 * @return the components
-	 */
-	public List<Component> getComponents() {
-		return components;
-	}
-	/**
-	 * @param components the components to set
-	 */
-	public void setComponents(List<Component> components) {
-		this.components = components;
-	}
-	/**
-	 * @return the roles
-	 */
-	public List<Role> getRoles() {
-		return roles;
-	}
-	/**
-	 * @param roles the roles to set
-	 */
-	public void setRoles(List<Role> roles) {
-		this.roles = roles;
-	}
+        /**
+         * @return the name
+         */
+        public String getName() {
+                return name;
+        }
+        /**
+         * @param name the name to set
+         */
+        public void setName(String name) {
+                this.name = name;
+        }
+        /**
+         * @return the revision
+         */
+        public String getRevision() {
+                return revision;
+        }
+        /**
+         * @param revision the revision to set
+         */
+        public void setRevision(String revision) {
+                this.revision = revision;
+        }
+        /**
+         * @return the stackName
+         */
+        public String getStackName() {
+                return stackName;
+        }
+        /**
+         * @param stackName the stackName to set
+         */
+        public void setStackName(String stackName) {
+                this.stackName = stackName;
+        }
+        /**
+         * @return the parentName
+         */
+        public String getParentName() {
+                return parentName;
+        }
+        /**
+         * @param parentName the parentName to set
+         */
+        public void setParentName(String parentName) {
+                this.parentName = parentName;
+        }
+        /**
+         * @return the parentRevision
+         */
+        public String getParentRevision() {
+                return parentRevision;
+        }
+        /**
+         * @param parentRevision the parentRevision to set
+         */
+        public void setParentRevision(String parentRevision) {
+                this.parentRevision = parentRevision;
+        }
+        /**
+         * @return the packageRepositories
+         */
+        public List<PackageRepository> getPackageRepositories() {
+                return packageRepositories;
+        }
+        /**
+         * @param packageRepositories the packageRepositories to set
+         */
+        public void setPackageRepositories(
+                        List<PackageRepository> packageRepositories) {
+                this.packageRepositories = packageRepositories;
+        }
+        /**
+         * @return the configuration
+         */
+        public Configuration getConfiguration() {
+                return configuration;
+        }
+        /**
+         * @param configuration the configuration to set
+         */
+        public void setConfiguration(Configuration configuration) {
+                this.configuration = configuration;
+        }
+        /**
+         * @return the components
+         */
+        public List<Component> getComponents() {
+                return components;
+        }
+        /**
+         * @param components the components to set
+         */
+        public void setComponents(List<Component> components) {
+                this.components = components;
+        }
+        /**
+         * @return the roles
+         */
+        public List<Role> getRoles() {
+                return roles;
+        }
+        /**
+         * @param roles the roles to set
+         */
+        public void setRoles(List<Role> roles) {
+                this.roles = roles;
+        }
 
 }

@@ -37,32 +37,32 @@ import org.apache.ambari.common.rest.entities.Blueprint;
  */
 @Path(value = "/blueprints/{blueprintName}")
 public class BlueprintResource {
-	
-	/** Get a blueprint
-	 * 
-	 *  <p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/{blueprintName}<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
-	 *  
-	 * 	@param	blueprintName	Name of the blueprint
+        
+        /** Get a blueprint
+         * 
+         *  <p>
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/{blueprintName}<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
+         *  
+         *      @param  blueprintName   Name of the blueprint
          *      @param  revision        The optional blueprint revision to get
-	 * 	@return			blueprint definition
-	 * 	@throws	Exception	throws Exception (TBD)
+         *      @return                 blueprint definition
+         *      @throws Exception       throws Exception (TBD)
      */
     @GET
-	@Produces({"application/json", "application/xml"})
+        @Produces({"application/json", "application/xml"})
       public Blueprint getBlueprint(@PathParam("blueprintName") String blueprintName, 
                                     @QueryParam("revision") int revision) throws Exception {
       return null;
-	}
+        }
     
     /* 
      * Delete blueprint
@@ -70,50 +70,50 @@ public class BlueprintResource {
     /** Delete the blueprint
      * 
      *  <p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/{blueprintName}<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : DELETE <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
-	 *  
-     * @param stackName		Name of the Hadoop stack
-     * @throws Exception	throws Exception (TBD)
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/{blueprintName}<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : DELETE <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
+         *  
+     * @param stackName         Name of the Hadoop stack
+     * @throws Exception        throws Exception (TBD)
      */
     @DELETE
-	@Consumes({"application/json", "application/xml"})
-	public void deleteBlueprint(@PathParam("blueprintName") String blueprintName) throws Exception {
-	}
+        @Consumes({"application/json", "application/xml"})
+        public void deleteBlueprint(@PathParam("blueprintName") String blueprintName) throws Exception {
+        }
     
     /** Update a current blueprint.
      *  <p>
-     * 	Updates a current blueprint to update some of its fields.
+     *  Updates a current blueprint to update some of its fields.
      *  <p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/{blueprintName}<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : PUT <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/{blueprintName}<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : PUT <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
      * 
-     * @param blueprintName		Name of the blueprint
-     * @param blueprint			Input blueprint object specifying the blueprint definition
-     * @return					Returns the new revision of the blueprint
-     * @throws Exception		throws Exception
+     * @param blueprintName             Name of the blueprint
+     * @param blueprint                 Input blueprint object specifying the blueprint definition
+     * @return                                  Returns the new revision of the blueprint
+     * @throws Exception                throws Exception
      */
     @Path(value = "/blueprints/{blueprintName}")
     @PUT
     @Consumes
     public Blueprint updateBlueprint(@PathParam("blueprintName") String blueprintName, Blueprint blueprint) throws Exception {
-    	return null;
+        return null;
     }
     
 }

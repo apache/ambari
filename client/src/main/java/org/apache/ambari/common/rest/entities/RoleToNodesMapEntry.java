@@ -59,28 +59,28 @@ public class RoleToNodesMapEntry {
     @XmlElement(name = "Nodes", required = true)
     protected List<String> nodeRangeExpressions;
     
-	/**
-	 * @return the roleName
-	 */
-	public String getRoleName() {
-		return roleName;
-	}
-	/**
-	 * @param roleName the roleName to set
-	 */
-	public void setRoleName(String roleName) {
-		this.roleName = roleName;
-	}
-	/**
-	 * @return the nodeRangeExpressions
-	 */
-	public List<String> getNodeRangeExpressions() {
-		return nodeRangeExpressions;
-	}
-	/**
-	 * @param nodeRangeExpressions the nodeRangeExpressions to set
-	 */
-	public void setNodeRangeExpressions(List<String> nodeRangeExpressions) {
-		this.nodeRangeExpressions = nodeRangeExpressions;
-	}
+        /**
+         * @return the roleName
+         */
+        public String getRoleName() {
+                return roleName;
+        }
+        /**
+         * @param roleName the roleName to set
+         */
+        public void setRoleName(String roleName) {
+                this.roleName = roleName;
+        }
+        /**
+         * @return the nodeRangeExpressions
+         */
+        public List<String> getNodeRangeExpressions() {
+                return nodeRangeExpressions;
+        }
+        /**
+         * @param nodeRangeExpressions the nodeRangeExpressions to set
+         */
+        public void setNodeRangeExpressions(List<String> nodeRangeExpressions) {
+                this.nodeRangeExpressions = nodeRangeExpressions;
+        }
 }

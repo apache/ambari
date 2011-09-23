@@ -37,48 +37,48 @@ import org.apache.ambari.common.rest.entities.Node;
 
 
 public class Nodes {
-	
-	public static final String AGENT_DEPLOYMENT_STATE_TOBE_INSTALLED = "AGENT_TOBE_INSTALLED";
-	public static final String AGENT_DEPLOYMENT_STATE_INSTALLED = "AGENT_INSTALLED";
-	
-	
-	public static final short NODE_HEARTBEAT_INTERVAL_IN_MINUTES = 5;
-	public static final short NODE_MAX_MISSING_HEARBEAT_INTERVALS = 3;
-	
-	// One node name to Node hashmap
-	protected ConcurrentHashMap<String, Node> nodes = new ConcurrentHashMap<String, Node>();
-	
-	// Cluster name to Node names hash map
-	protected ConcurrentHashMap<String, ConcurrentHashMap<String, String>> cluster_to_nodes = new ConcurrentHashMap<String, ConcurrentHashMap<String, String>>();
-	
-	/**
-	 * @return the cluster_to_nodes
-	 */
-	public ConcurrentHashMap<String, ConcurrentHashMap<String, String>> getCluster_to_nodes() {
-		return cluster_to_nodes;
-	}
+        
+        public static final String AGENT_DEPLOYMENT_STATE_TOBE_INSTALLED = "AGENT_TOBE_INSTALLED";
+        public static final String AGENT_DEPLOYMENT_STATE_INSTALLED = "AGENT_INSTALLED";
+        
+        
+        public static final short NODE_HEARTBEAT_INTERVAL_IN_MINUTES = 5;
+        public static final short NODE_MAX_MISSING_HEARBEAT_INTERVALS = 3;
+        
+        // One node name to Node hashmap
+        protected ConcurrentHashMap<String, Node> nodes = new ConcurrentHashMap<String, Node>();
+        
+        // Cluster name to Node names hash map
+        protected ConcurrentHashMap<String, ConcurrentHashMap<String, String>> cluster_to_nodes = new ConcurrentHashMap<String, ConcurrentHashMap<String, String>>();
+        
+        /**
+         * @return the cluster_to_nodes
+         */
+        public ConcurrentHashMap<String, ConcurrentHashMap<String, String>> getCluster_to_nodes() {
+                return cluster_to_nodes;
+        }
 
-	private static Nodes NodesTypeRef=null;
-	
-	private Nodes() {}
-	    
-	public static synchronized Nodes getInstance() {
-		if(NodesTypeRef == null) {
-			NodesTypeRef = new Nodes();
-		}
-	    return NodesTypeRef;
-	}
+        private static Nodes NodesTypeRef=null;
+        
+        private Nodes() {}
+            
+        public static synchronized Nodes getInstance() {
+                if(NodesTypeRef == null) {
+                        NodesTypeRef = new Nodes();
+                }
+            return NodesTypeRef;
+        }
 
-	public Object clone() throws CloneNotSupportedException {
-		throw new CloneNotSupportedException();
-	}
-	   
-	public ConcurrentHashMap<String, Node> getNodes () {
-		return nodes;
-	}
-	
-	public List<Node> getNodes (String clusterName, String roleName) {
-		
-		return null;
-	}
+        public Object clone() throws CloneNotSupportedException {
+                throw new CloneNotSupportedException();
+        }
+           
+        public ConcurrentHashMap<String, Node> getNodes () {
+                return nodes;
+        }
+        
+        public List<Node> getNodes (String clusterName, String roleName) {
+                
+                return null;
+        }
 }

@@ -33,97 +33,97 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "clusterName",
     "AllocatedToCluster",
     "agentInstalled",
-	"nodeServers"
+        "nodeServers"
 })
 public class NodeState {
 
-	@XmlElement(name = "lastHeartbeatTime", required = true)
+        @XmlElement(name = "lastHeartbeatTime", required = true)
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar lastHeartbeatTime;
-	
-	/*
+        
+        /*
      * Associating the cluster name would reserve the node for a given cluster
      * 
      */
-	@XmlElement(name = "ClusterName", required = true)
+        @XmlElement(name = "ClusterName", required = true)
     protected String clusterName;
 
-	@XmlElement(name = "AgentInstalled", required = true)
+        @XmlElement(name = "AgentInstalled", required = true)
     protected Boolean agentInstalled = true;
 
-	@XmlElement(name = "AllocatedToCluster", required = true)
+        @XmlElement(name = "AllocatedToCluster", required = true)
     protected Boolean allocatedToCluster = false;
-	
-	@XmlElement(name = "NodeServers", required = true)
+        
+        @XmlElement(name = "NodeServers", required = true)
     protected List<NodeServer> nodeServers = new ArrayList<NodeServer>();
 
-	/**
-	 * @return the allocatedToCluster
-	 */
-	public Boolean getAllocatedToCluster() {
-		return allocatedToCluster;
-	}
+        /**
+         * @return the allocatedToCluster
+         */
+        public Boolean getAllocatedToCluster() {
+                return allocatedToCluster;
+        }
 
-	/**
-	 * @param allocatedToCluster the allocatedToCluster to set
-	 */
-	public void setAllocatedToCluster(Boolean allocatedToCluster) {
-		this.allocatedToCluster = allocatedToCluster;
-	}
-	
-	/**
-	 * @return the agentInstalled
-	 */
-	public Boolean getAgentInstalled() {
-		return agentInstalled;
-	}
+        /**
+         * @param allocatedToCluster the allocatedToCluster to set
+         */
+        public void setAllocatedToCluster(Boolean allocatedToCluster) {
+                this.allocatedToCluster = allocatedToCluster;
+        }
+        
+        /**
+         * @return the agentInstalled
+         */
+        public Boolean getAgentInstalled() {
+                return agentInstalled;
+        }
 
-	/**
-	 * @param agentInstalled the agentInstalled to set
-	 */
-	public void setAgentInstalled(Boolean agentInstalled) {
-		this.agentInstalled = agentInstalled;
-	}
-	
-	/**
-	 * @return the clusterName
-	 */
-	public String getClusterName() {
-		return clusterName;
-	}
+        /**
+         * @param agentInstalled the agentInstalled to set
+         */
+        public void setAgentInstalled(Boolean agentInstalled) {
+                this.agentInstalled = agentInstalled;
+        }
+        
+        /**
+         * @return the clusterName
+         */
+        public String getClusterName() {
+                return clusterName;
+        }
 
-	/**
-	 * @param clusterName the clusterName to set
-	 */
-	public void setClusterName(String clusterName) {
-		this.clusterName = clusterName;
-	}
-	
-	/**
-	 * @return the lastHeartbeatTime
-	 */
-	public XMLGregorianCalendar getLastHeartbeatTime() {
-		return lastHeartbeatTime;
-	}
+        /**
+         * @param clusterName the clusterName to set
+         */
+        public void setClusterName(String clusterName) {
+                this.clusterName = clusterName;
+        }
+        
+        /**
+         * @return the lastHeartbeatTime
+         */
+        public XMLGregorianCalendar getLastHeartbeatTime() {
+                return lastHeartbeatTime;
+        }
 
-	/**
-	 * @param lastHeartbeatTime the lastHeartbeatTime to set
-	 */
-	public void setLastHeartbeatTime(XMLGregorianCalendar lastHeartbeatTime) {
-		this.lastHeartbeatTime = lastHeartbeatTime;
-	}
+        /**
+         * @param lastHeartbeatTime the lastHeartbeatTime to set
+         */
+        public void setLastHeartbeatTime(XMLGregorianCalendar lastHeartbeatTime) {
+                this.lastHeartbeatTime = lastHeartbeatTime;
+        }
 
-	/**
-	 * @return the nodeServers
-	 */
-	public List<NodeServer> getNodeServers() {
-		return nodeServers;
-	}
+        /**
+         * @return the nodeServers
+         */
+        public List<NodeServer> getNodeServers() {
+                return nodeServers;
+        }
 
-	/**
-	 * @param nodeServers the nodeServers to set
-	 */
-	public void setNodeServers(List<NodeServer> nodeServers) {
-		this.nodeServers = nodeServers;
-	}
+        /**
+         * @param nodeServers the nodeServers to set
+         */
+        public void setNodeServers(List<NodeServer> nodeServers) {
+                this.nodeServers = nodeServers;
+        }
 }

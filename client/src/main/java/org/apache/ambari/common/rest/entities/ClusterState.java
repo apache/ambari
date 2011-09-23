@@ -44,114 +44,114 @@ import javax.xml.datatype.XMLGregorianCalendar;
 })
 @XmlRootElement(name = "ClusterState")
 public class ClusterState {
-	
-	/*
-	 *  Cluster is deployed w/ Hadoop stack and required services are up
-	 */
-	public static final String CLUSTER_STATE_ACTIVE = "ACTIVE";
-	/* 
-	 * Cluster nodes are reserved but may not be deployed w/ stack. If deployed w/ stack
-	 * then cluster services are down
-	 */
-	public static final String CLUSTER_STATE_INACTIVE = "INACTIVE";
-	/*
-	 * No nodes are reserved for the cluster
-	 */
-	public static final String CLUSTER_STATE_ATTIC = "ATTIC";
-	
-	@XmlElement(name = "RepresentativeState", required = true)
+        
+        /*
+         *  Cluster is deployed w/ Hadoop stack and required services are up
+         */
+        public static final String CLUSTER_STATE_ACTIVE = "ACTIVE";
+        /* 
+         * Cluster nodes are reserved but may not be deployed w/ stack. If deployed w/ stack
+         * then cluster services are down
+         */
+        public static final String CLUSTER_STATE_INACTIVE = "INACTIVE";
+        /*
+         * No nodes are reserved for the cluster
+         */
+        public static final String CLUSTER_STATE_ATTIC = "ATTIC";
+        
+        @XmlElement(name = "RepresentativeState", required = true)
     protected String representativeState;
     @XmlElement(name = "CreationTime", required = true)
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar creationTime;
-	@XmlElement(name = "DeployTime", required = true)
+        @XmlElement(name = "DeployTime", required = true)
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar deployTime;
     @XmlElement(name = "LastUpdateTime", required = true)
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar lastUpdateTime;
 
-	/**
-	 * @return the creationTime
-	 */
-	public XMLGregorianCalendar getCreationTime() {
-		return creationTime;
-	}
+        /**
+         * @return the creationTime
+         */
+        public XMLGregorianCalendar getCreationTime() {
+                return creationTime;
+        }
 
-	/**
-	 * @param creationTime the creationTime to set
-	 */
-	public void setCreationTime(XMLGregorianCalendar creationTime) {
-		this.creationTime = creationTime;
-	}
-	
-	/**
-	 * @param creationTime the creationTime to set
-	 */
-	public void setCreationTime(Date creationTime) throws Exception {
-		GregorianCalendar cal = new GregorianCalendar();
-		cal.setTime(creationTime);
-		this.creationTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-	}
+        /**
+         * @param creationTime the creationTime to set
+         */
+        public void setCreationTime(XMLGregorianCalendar creationTime) {
+                this.creationTime = creationTime;
+        }
+        
+        /**
+         * @param creationTime the creationTime to set
+         */
+        public void setCreationTime(Date creationTime) throws Exception {
+                GregorianCalendar cal = new GregorianCalendar();
+                cal.setTime(creationTime);
+                this.creationTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+        }
 
-	/**
-	 * @return the deployTime
-	 */
-	public XMLGregorianCalendar getDeployTime() {
-		return deployTime;
-	}
+        /**
+         * @return the deployTime
+         */
+        public XMLGregorianCalendar getDeployTime() {
+                return deployTime;
+        }
 
-	/**
-	 * @param deployTime the deployTime to set
-	 */
-	public void setDeployTime(XMLGregorianCalendar deployTime) {
-		this.deployTime = deployTime;
-	}
+        /**
+         * @param deployTime the deployTime to set
+         */
+        public void setDeployTime(XMLGregorianCalendar deployTime) {
+                this.deployTime = deployTime;
+        }
 
-	/**
-	 * @param creationTime the creationTime to set
-	 */
-	public void setDeployTime(Date deployTime) throws Exception {
-		GregorianCalendar cal = new GregorianCalendar();
-		cal.setTime(deployTime);
-		this.deployTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-	}
-	
-	/**
-	 * @return the lastUpdateTime
-	 */
-	public XMLGregorianCalendar getLastUpdateTime() {
-		return lastUpdateTime;
-	}
+        /**
+         * @param creationTime the creationTime to set
+         */
+        public void setDeployTime(Date deployTime) throws Exception {
+                GregorianCalendar cal = new GregorianCalendar();
+                cal.setTime(deployTime);
+                this.deployTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+        }
+        
+        /**
+         * @return the lastUpdateTime
+         */
+        public XMLGregorianCalendar getLastUpdateTime() {
+                return lastUpdateTime;
+        }
 
-	/**
-	 * @param lastUpdateTime the lastUpdateTime to set
-	 */
-	public void setLastUpdateTime(XMLGregorianCalendar lastUpdateTime) {
-		this.lastUpdateTime = lastUpdateTime;
-	}
+        /**
+         * @param lastUpdateTime the lastUpdateTime to set
+         */
+        public void setLastUpdateTime(XMLGregorianCalendar lastUpdateTime) {
+                this.lastUpdateTime = lastUpdateTime;
+        }
 
-	/**
-	 * @param creationTime the creationTime to set
-	 */
-	public void setLastUpdateTime(Date lastUpdateTime) throws Exception {
-		GregorianCalendar cal = new GregorianCalendar();
-		cal.setTime(lastUpdateTime);
-		this.lastUpdateTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-	}
-	
-	/**
-	 * @return the representativeState
-	 */
-	public String getRepresentativeState() {
-		return representativeState;
-	}
+        /**
+         * @param creationTime the creationTime to set
+         */
+        public void setLastUpdateTime(Date lastUpdateTime) throws Exception {
+                GregorianCalendar cal = new GregorianCalendar();
+                cal.setTime(lastUpdateTime);
+                this.lastUpdateTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+        }
+        
+        /**
+         * @return the representativeState
+         */
+        public String getRepresentativeState() {
+                return representativeState;
+        }
 
-	/**
-	 * @param representativeState the representativeState to set
-	 */
-	public void setRepresentativeState(String representativeState) {
-		this.representativeState = representativeState;
-	}
+        /**
+         * @param representativeState the representativeState to set
+         */
+        public void setRepresentativeState(String representativeState) {
+                this.representativeState = representativeState;
+        }
 
 }

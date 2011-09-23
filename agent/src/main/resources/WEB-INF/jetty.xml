@@ -69,8 +69,8 @@
             <Set name="Acceptors">2</Set>
             <Set name="statsOn">false</Set>
             <Set name="confidentialPort">8443</Set>
-	    <Set name="lowResourcesConnections">5000</Set>
-	    <Set name="lowResourcesMaxIdleTime">5000</Set>
+            <Set name="lowResourcesConnections">5000</Set>
+            <Set name="lowResourcesMaxIdleTime">5000</Set>
           </New>
       </Arg>
     </Call>
@@ -170,9 +170,9 @@
         <New class="org.mortbay.jetty.deployer.WebAppDeployer">
           <Set name="contexts"><Ref id="Contexts"/></Set>
           <Set name="webAppDir"><SystemProperty name="HMS_HOME" default="."/>/webapps</Set>
-	  <Set name="parentLoaderPriority">false</Set>
-	  <Set name="extract">false</Set>
-	  <Set name="allowDuplicates">false</Set>
+          <Set name="parentLoaderPriority">false</Set>
+          <Set name="extract">false</Set>
+          <Set name="allowDuplicates">false</Set>
         </New>
       </Arg>
     </Call> -->

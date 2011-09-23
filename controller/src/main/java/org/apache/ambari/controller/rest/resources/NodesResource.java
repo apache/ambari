@@ -35,36 +35,36 @@ import com.sun.jersey.spi.resource.Singleton;
 @Singleton
 @Path(value = "/nodes")
 public class NodesResource {
-	    
-	/** Get list of nodes
+            
+        /** Get list of nodes
      *  <p>
-     *	The "allocated and "alive" are the boolean variables that specify the type of nodes to return based on their state i.e. if they are already allocated to any cluster and live or dead. 
+     *  The "allocated and "alive" are the boolean variables that specify the type of nodes to return based on their state i.e. if they are already allocated to any cluster and live or dead. 
      *  Live nodes are the ones that are consistently heart beating with the controller. If both "allocated" and "alive" are set to NULL then all the nodes are returned.  
-     *	<p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}/nodes<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
-	 *  
-     *  @param	allocated		Boolean value to specify, if nodes to be returned are allocated/reserved for some cluster (specify null to return both allocated and unallocated nodes)
-     * 	@param	alive			Boolean value to specify, if nodes to be returned are alive or dead or both (specify null to return both live and dead nodes) 
-     * 	@return					List of nodes
-     * 	@throws	Exception		throws Exception
+     *  <p>
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}/nodes<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
+         *  
+     *  @param  allocated               Boolean value to specify, if nodes to be returned are allocated/reserved for some cluster (specify null to return both allocated and unallocated nodes)
+     *  @param  alive                   Boolean value to specify, if nodes to be returned are alive or dead or both (specify null to return both live and dead nodes) 
+     *  @return                                 List of nodes
+     *  @throws Exception               throws Exception
      */
     @Path(value = "/nodes")
     @GET
     @Produces({"application/json", "application/xml"})
     public List<Node> getNodes (@DefaultValue("false") @QueryParam("allocated") Boolean allocated,
-    							@DefaultValue("false") @QueryParam("alive") Boolean alive) throws Exception {
-    	//return NodesType.getInstance().getNodes (clusterName, roleName, allocated, alive);
-    	return null;
-	}
+                                                        @DefaultValue("false") @QueryParam("alive") Boolean alive) throws Exception {
+        //return NodesType.getInstance().getNodes (clusterName, roleName, allocated, alive);
+        return null;
+        }
 
     /*
      * Get specified Node information
@@ -72,25 +72,25 @@ public class NodesResource {
     /** Get the node information that includes, service states, node attributes etc.
      * 
      *  <p>
-	 *  REST:<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /nodes/{hostname}<br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header	                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-	 *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-	 *  <p> 
-	 *  
-     * @param hostname		Fully qualified hostname
-     * @return				Returns the node information
-     * @throws Exception	throws Exception
+         *  REST:<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /nodes/{hostname}<br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+         *  <p> 
+         *  
+     * @param hostname          Fully qualified hostname
+     * @return                          Returns the node information
+     * @throws Exception        throws Exception
      */
     @Path(value = "/{hostname}")
     @GET
     @Produces({"application/json", "application/xml"})
     public Node getNode (@PathParam("hostname") String hostname) throws Exception {
-    	return null;
+        return null;
     }
 }

@@ -33,96 +33,96 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement (name = "Stacks")
 public class Stacks {
 
-	@XmlElement(name = "Stack", required = true)
+        @XmlElement(name = "Stack", required = true)
     protected List<Stack> stack = new ArrayList<Stack>();
     private static Stacks StacksTypeRef=null;
-	
+        
     private Stacks() {}
     
     public static synchronized Stacks getInstance() {
-    	if(StacksTypeRef == null) {
-    		StacksTypeRef = new Stacks();
-    	}
-    	return StacksTypeRef;
+        if(StacksTypeRef == null) {
+                StacksTypeRef = new Stacks();
+        }
+        return StacksTypeRef;
     }
 
     public Object clone() throws CloneNotSupportedException {
-    	throw new CloneNotSupportedException();
+        throw new CloneNotSupportedException();
     }
 
     /* 
      * Add StackType to Stack list 
     */
     public void addStack(Stack s) throws Exception {
-    	/*
-    	 * TODO: Validate the cluster definition that could not be
-    	 * done on client side.
-    	 */
-    	synchronized (stack) {
-    		for (Stack cls : stack) {
-    			if (cls.getName().equals(s.getName())) {
-    				throw new Exception("Stack Already Exists");
-    			}
-    		}
-    		stack.add(s);
-    		
-    		/*
-    		 * TODO: Persist the cluster definition to data store
-    		 * as a initial version r0. 
-    		 */
-    	}
-    	return;
+        /*
+         * TODO: Validate the cluster definition that could not be
+         * done on client side.
+         */
+        synchronized (stack) {
+                for (Stack cls : stack) {
+                        if (cls.getName().equals(s.getName())) {
+                                throw new Exception("Stack Already Exists");
+                        }
+                }
+                stack.add(s);
+                
+                /*
+                 * TODO: Persist the cluster definition to data store
+                 * as a initial version r0. 
+                 */
+        }
+        return;
     } 
     
     /* 
      * Update the existing ClusterType from cluster list 
     */
     public void updateStack(Stack s) throws Exception {
-    	/*
-    	 * TODO: Validate the StackType element?
-    	 */
-    	synchronized (stack) {
-    		int i;
-    		for (i=0; i<stack.size(); i++) {
-    			if (stack.get(i).getName().equals(s.getName())) {
-    				if (s.getDescription() != null) stack.get(i).setDescription(s.getDescription());
-    				if (s.getLocationURL() != null) stack.get(i).setLocationURL(s.getLocationURL());
-    			}
-    		}
-    		if (i==stack.size()) {
-    			throw new Exception ("Stack:["+s.getName()+"] does not exists");
-    		}
-    	}
-    	return;
+        /*
+         * TODO: Validate the StackType element?
+         */
+        synchronized (stack) {
+                int i;
+                for (i=0; i<stack.size(); i++) {
+                        if (stack.get(i).getName().equals(s.getName())) {
+                                if (s.getDescription() != null) stack.get(i).setDescription(s.getDescription());
+                                if (s.getLocationURL() != null) stack.get(i).setLocationURL(s.getLocationURL());
+                        }
+                }
+                if (i==stack.size()) {
+                        throw new Exception ("Stack:["+s.getName()+"] does not exists");
+                }
+        }
+        return;
     }
     
     /* 
      * Delete stack 
     */
     public void deleteStack(String stackName) throws Exception {
-    	/* 
-    	 * 
-    	 */
-    	synchronized (stack) {
-    		for (Stack stk : stack) {
-    			if (stk.getName().equals(stackName)) {
-    				stack.remove(stk);
-    			}
-    		}
-    	} 	
-    	return;
+        /* 
+         * 
+         */
+        synchronized (stack) {
+                for (Stack stk : stack) {
+                        if (stk.getName().equals(stackName)) {
+                                stack.remove(stk);
+                        }
+                }
+        }       
+        return;
     }
 
     /* 
      * Get StackType from stack list given its name 
     */
     public Stack getStack(String stackName) throws Exception {
-    	for (Stack stk : stack) {
-			if (stk.getName().equals(stackName)) {
-				return stk;
-			}
-		}
-    	throw new Exception ("Stack:["+stackName+"] does not exists");
+        for (Stack stk : stack) {
+                        if (stk.getName().equals(stackName)) {
+                                return stk;
+                        }
+                }
+        throw new Exception ("Stack:["+stackName+"] does not exists");
     }
     
     public synchronized List<Stack> getStackList() {

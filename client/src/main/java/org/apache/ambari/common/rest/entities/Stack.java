@@ -56,10 +56,10 @@ import javax.xml.bind.annotation.XmlType;
 })
 @XmlRootElement(name = "Stack")
 public class Stack {
-	
+        
     @XmlElement(name = "Name", required = true)
     protected String name;
-	@XmlElement(name = "Description", required = true)
+        @XmlElement(name = "Description", required = true)
     protected String description;
     @XmlElement(name = "LocationURL", required = true)
     protected String locationURL;
@@ -70,11 +70,11 @@ public class Stack {
      * Get blueprint
      */
     public Blueprint getBlueprint(String blueprintName, int revision) throws Exception {
-    	if (!blueprints.containsKey(blueprintName) || revision < 0 || revision >= blueprints.get(blueprintName).size()
-    		|| blueprints.get(blueprintName).get(revision) == null) {
-    		throw new Exception ("Specified revision ["+revision+"] of ["+blueprintName+"] blueprint does not exists");
-    	}
-    	return blueprints.get(blueprintName).get(revision);  	
+        if (!blueprints.containsKey(blueprintName) || revision < 0 || revision >= blueprints.get(blueprintName).size()
+                || blueprints.get(blueprintName).get(revision) == null) {
+                throw new Exception ("Specified revision ["+revision+"] of ["+blueprintName+"] blueprint does not exists");
+        }
+        return blueprints.get(blueprintName).get(revision);     
     }
     
     
@@ -82,29 +82,29 @@ public class Stack {
      * Add or update the blueprint
      */
     public void putBlueprint(String blueprintName, Blueprint blueprint) {
-    	if (!blueprints.containsKey(blueprintName)) {
-    		blueprints.put(blueprintName, new ArrayList<Blueprint>());
-    	}
-    	blueprints.get(blueprintName).add(blueprint);    
+        if (!blueprints.containsKey(blueprintName)) {
+                blueprints.put(blueprintName, new ArrayList<Blueprint>());
+        }
+        blueprints.get(blueprintName).add(blueprint);    
     }
     
     /*
      * Delete the specified version of blueprint
      */
     public void deleteBlueprint(String blueprintName, int revision) throws Exception {
-    	if (!blueprints.containsKey(blueprintName) || revision < 0 || revision >= blueprints.get(blueprintName).size()) {
-    		throw new Exception ("Specified revision ["+revision+"] of ["+blueprintName+"] blueprint does not exists");
-    	}
-    	// This would change 
-    	blueprints.get(blueprintName).set(revision, null);  	
+        if (!blueprints.containsKey(blueprintName) || revision < 0 || revision >= blueprints.get(blueprintName).size()) {
+                throw new Exception ("Specified revision ["+revision+"] of ["+blueprintName+"] blueprint does not exists");
+        }
+        // This would change 
+        blueprints.get(blueprintName).set(revision, null);      
     }
     
     /**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
+         * @param name the name to set
+         */
+        public void setName(String name) {
+                this.name = name;
+        }
 
     /**
      * Gets the value of the name property.
@@ -142,18 +142,18 @@ public class Stack {
         this.description = value;
     }
 
-	/**
-	 * @return the defaultBlueprintDownloadURI
-	 */
-	public String getLocationURL() {
-		return locationURL;
-	}
+        /**
+         * @return the defaultBlueprintDownloadURI
+         */
+        public String getLocationURL() {
+                return locationURL;
+        }
 
 
-	/**
-	 * @param locationURL the locationURL to set
-	 */
-	public void setLocationURL(String locationURL) {
-		this.locationURL = locationURL;
-	}
+        /**
+         * @param locationURL the locationURL to set
+         */
+        public void setLocationURL(String locationURL) {
+                this.locationURL = locationURL;
+        }
 }
