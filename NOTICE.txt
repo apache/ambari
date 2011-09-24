@@ -9,3 +9,6 @@ Copyright 2011 http://jqueryui.com/about
 
 This product includes DataTables (www.datatables.net)
 Copyright 2008-2010 Allan Jardine
+
+This product includes wadl.xsl (Transforms WADL XML documents to HTML.)
+Copyright 2011 Mark Sawers
