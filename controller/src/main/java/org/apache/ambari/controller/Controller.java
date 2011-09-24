@@ -28,6 +28,8 @@ import org.mortbay.jetty.Server;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.DefaultServlet;
 import org.mortbay.jetty.servlet.ServletHolder;
+import org.mortbay.resource.Resource;
+import org.mortbay.resource.ResourceCollection;
 
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
@@ -48,21 +50,22 @@ public class Controller {
 
     try {
       Context root = new Context(server, "/", Context.SESSIONS);
-      /*
-        String AMBARI_HOME = System.getenv("AMBARI_HOME");
-        root.setBaseResource(new ResourceCollection(new Resource[]
+      String AMBARI_HOME = System.getenv("AMBARI_HOME");
+      root.setBaseResource(new ResourceCollection(new Resource[]
         {
           Resource.newResource(AMBARI_HOME+"/webapps/")
         }));
-      */
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitOrder(1);
       
       ServletHolder sh = new ServletHolder(ServletContainer.class);
-      sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass", "com.sun.jersey.api.core.PackagesResourceConfig");
-      sh.setInitParameter("com.sun.jersey.config.property.packages", "org.apache.ambari.controller.rest.resources");
-      //sh.setInitParameter("com.sun.jersey.config.property.WadlGeneratorConfig", "org.apache.ambari.controller.rest.resources.config.ExtendedWadlGeneratorConfig");
-      root.addServlet(sh, "/*");
+      sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass", 
+        "com.sun.jersey.api.core.PackagesResourceConfig");
+      sh.setInitParameter("com.sun.jersey.config.property.packages", 
+        "org.apache.ambari.controller.rest.resources");
+      sh.setInitParameter("com.sun.jersey.config.property.WadlGeneratorConfig", 
+        "org.apache.ambari.controller.rest.config.ExtendedWadlGeneratorConfig");
+      root.addServlet(sh, "/v1/*");
       sh.setInitOrder(2);
       server.setStopAtShutdown(true);
       server.start();

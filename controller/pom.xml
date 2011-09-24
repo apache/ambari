@@ -34,92 +34,47 @@
     <build>
       <resources>
         <resource>
-         <directory>${project.build.directory}/generated-resources/schemas</directory>
-        </resource>
-        <resource>
-         <directory>src/main/resources/WEB-INF</directory>
+         <directory>src/main/resources</directory>
         </resource>
       </resources>
-
+      <pluginManagement>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.4</version>
+          </plugin>
+        </plugins>
+      </pluginManagement>
       <plugins>
         <plugin>
-          <groupId>com.sun.tools.jxc.maven2</groupId>
-          <artifactId>maven-jaxb-schemagen-plugin</artifactId>
-          <version>1.2</version>
-          <executions>
-            <execution>
-              <phase>generate-resources</phase>
-              <goals>
-                <goal>generate</goal>
-              </goals>
-              <configuration>
-                <destdir>${project.build.directory}/generated-resources/schemas</destdir>
-                <srcdir>${project.build.sourceDirectory}/org/apache/ambari/controller/rest/resources</srcdir>
-                <schemas>
-                  <schema>
-                    <namespace>http://incubator.apache.org/ambari/2011/09/22/ambari</namespace>
-                    <file>schema.xsd</file>
-                  </schema>
-                </schemas>
-              </configuration>
-            </execution>
-          </executions>
-
-          <dependencies>
-            <dependency>
-              <groupId>javax.xml.bind</groupId>
-              <artifactId>jaxb-api</artifactId>
-              <version>2.2</version>
-            </dependency>
-            <dependency>
-              <groupId>com.sun.xml.bind</groupId>
-              <artifactId>jaxb-xjc</artifactId>
-              <version>2.2</version>
-            </dependency>
-            <dependency>
-              <groupId>com.sun.xml.bind</groupId>
-              <artifactId>jaxb-impl</artifactId>
-              <version>2.2</version>
-            </dependency>
-            <dependency>
-              <groupId>com.sun.xml.bind</groupId>
-              <artifactId>jaxb-xjc</artifactId>
-              <version>2.2</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-<!--        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <executions>
-            <execution>
-              <goals>
-                <goal>javadoc</goal>
-              </goals>
-              <phase>compile</phase>
-            </execution>
-          </executions>
-
-          <configuration>
-            <encoding>UTF-8</encoding>
-            <verbose>false</verbose>
-            <show>public</show>
-            <subpackages>com.sun.jersey.samples.generatewadl.resources</subpackages>
-            <doclet>com.sun.jersey.wadl.resourcedoc.ResourceDoclet</doclet>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>javadoc</goal>
+                </goals>
+                <phase>compile</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <encoding>UTF-8</encoding>
+              <verbose>false</verbose>
+              <show>public</show>
+              <subpackages>org.apache.ambari.controller.rest.resources</subpackages>
+              <doclet>com.sun.jersey.wadl.resourcedoc.ResourceDoclet</doclet>
+              <docletPath>${path.separator}${project.build.outputDirectory}</docletPath>
               <docletArtifacts>
                 <docletArtifact>
                   <groupId>com.sun.jersey.contribs</groupId>
                   <artifactId>wadl-resourcedoc-doclet</artifactId>
-                  <version>1.6</version>
-                </docletArtifact> -->
-                <!--
-                  Also specify jersey and xerces as doclet artifacts as the ResourceDoclet
-                  uses classes provided by them to generate the resourcedoc.
-                -->
-                <!--<docletArtifact>
+                  <version>1.8</version>
+                </docletArtifact>
+                <docletArtifact>
                   <groupId>com.sun.jersey</groupId>
                   <artifactId>jersey-server</artifactId>
-                  <version>1.6</version>
+                  <version>1.8</version>
                 </docletArtifact>
                 <docletArtifact>
                   <groupId>xerces</groupId>
@@ -127,11 +82,25 @@
                   <version>2.6.1</version>
                 </docletArtifact>
               </docletArtifacts>
+              <useStandardDocletOptions>false</useStandardDocletOptions>
               <additionalparam>-output ${project.build.outputDirectory}/resourcedoc.xml</additionalparam>
-          </configuration>
-        </plugin> -->
+            </configuration>
+          </plugin>
       </plugins>
     </build>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>maven2-repository.dev.java.net</id>
+            <name>Java.net Repository for Maven</name>
+            <url>http://download.java.net/maven/2/</url>
+            <layout>default</layout>
+        </pluginRepository>
+        <pluginRepository>
+            <id>maven2-glassfish-repository.dev.java.net</id>
+            <name>Java.net Repository for Maven</name>
+            <url>http://download.java.net/maven/glassfish/</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <dependencies>
       <dependency>
@@ -185,17 +154,35 @@
       <dependency>
         <groupId>com.sun.jersey</groupId>
         <artifactId>jersey-json</artifactId>
-        <version>1.9</version>
+        <version>1.8</version>
       </dependency>
       <dependency>
         <groupId>com.sun.jersey</groupId>
         <artifactId>jersey-server</artifactId>
-        <version>1.9</version>
+        <version>1.8</version>
       </dependency>
       <dependency>
         <groupId>com.sun.jersey</groupId>
         <artifactId>jersey-client</artifactId>
-        <version>1.9</version>
+        <version>1.8</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.jersey.contribs</groupId>
+        <artifactId>jersey-multipart</artifactId>
+        <version>1.8</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.jersey.jersey-test-framework</groupId>
+        <artifactId>jersey-test-framework-grizzly2</artifactId>
+        <version>1.8</version>
+        <scope>test</scope>
+      </dependency>
+      <!-- for external testing -->
+      <dependency>
+        <groupId>com.sun.jersey.jersey-test-framework</groupId>
+        <artifactId>jersey-test-framework-external</artifactId>
+        <version>1.8</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
 </project>
