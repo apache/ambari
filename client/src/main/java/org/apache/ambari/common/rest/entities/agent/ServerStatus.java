@@ -56,7 +56,7 @@ public class ServerStatus {
   }
   
   public static enum State {
-    START, STARTED, STOP, STOPPED;
+    START, STARTING, STARTED, STOP, STOPPING, STOPPED;
     public static class ServerStateAdaptor extends XmlAdapter<String, State> {
       @Override
       public String marshal(State obj) throws Exception {
