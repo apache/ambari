@@ -50,27 +50,29 @@ public class Node {
    
         public Node () {}
 
-        public Node (String name) {
-                this.name = name;
-        }
-        
-        /*
-         * 
-         */
-        public void releaseNodeFromCluster() {
-                this.nodeState.setClusterName(null);
-                this.getNodeState().setNodeServers(null);
-        }
-        
-        /*
-         * Reserving node for cluster is done by associating cluster name w/ node
-         */
-        public void reserveNodeForCluster (String clusterName, Boolean agentInstalled) {
-                this.getNodeState().setClusterName(clusterName);
-                this.getNodeState().setAgentInstalled(agentInstalled);
-        }
-        
-
+	public Node (String name) {
+		this.name = name;
+	}
+	
+	/*
+	 * 
+	 */
+	public void releaseNodeFromCluster() {
+		this.nodeState.setClusterName(null);
+		this.getNodeState().setNodeServers(null);
+		/*
+		 * TODO: AllocatedToClsuter flag will be reset part of heart beat processing when node completes cleanup.
+		 */
+	}
+	
+	/*
+	 * Reserving node for cluster is done by associating cluster name w/ node
+	 */
+	public void reserveNodeForCluster (String clusterName, Boolean agentInstalled) {
+		this.getNodeState().setClusterName(clusterName);
+		this.getNodeState().setAgentInstalled(agentInstalled);
+		this.getNodeState().setAllocatedToCluster(true);
+	}
         
     /**
          * @return the name
