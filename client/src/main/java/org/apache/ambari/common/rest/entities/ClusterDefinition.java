@@ -38,7 +38,7 @@ import javax.xml.bind.annotation.XmlType;
     "blueprintName",
     "goalState",
     "activeServices",
-    "nodes",
+    "nodeRangeExpressions",
     "roleToNodesMap"
 })
 @XmlRootElement(name = "ClusterDefinition")

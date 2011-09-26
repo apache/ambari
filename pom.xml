@@ -290,6 +290,8 @@
                   <!-- bsd/gpl dual licensed files -->
                   <exclude>src/main/webapps/css/smoothness/jquery-ui-1.8.13.custom.css</exclude>
                   <exclude>src/main/webapps/js/jquery.dataTables.min.js</exclude>
+                  <exclude>**/application-grammars.xml</exclude>
+  		  <exclude>**/wadl.xsl</exclude>
                 </excludes>
               </configuration>
             </plugin>
