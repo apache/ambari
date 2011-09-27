@@ -37,13 +37,6 @@ public interface ClusterContext {
   String[] getAllRoles();
   
   /**
-   * Get the list of all roles for this component that should be started 
-   * running on this node.
-   * @return the lists of roles that should be running
-   */
-  String[] getActiveRoles();
-  
-  /**
    * Get the directory name for the directory that should contain the software.
    * @return the full pathname of the directory
    */

@@ -20,7 +20,7 @@ package org.apache.ambari.components;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.ambari.common.rest.entities.agent.Command;
+import org.apache.ambari.common.rest.entities.agent.Action;
 
 /**
  * A plug in that defines how to manage each component.
@@ -57,8 +57,8 @@ public abstract class ComponentPlugin {
    * @return the list of commands to run on each node
    * @throws IOException
    */
-  public abstract List<Command> writeConfiguration(ClusterContext cluster
-                                                   ) throws IOException;
+  public abstract List<Action> writeConfiguration(ClusterContext cluster
+                                                  ) throws IOException;
   
   /**
    * Get the commands to finalize the installation on the machine.
@@ -66,24 +66,37 @@ public abstract class ComponentPlugin {
    * @return the list of commands to execute
    * @throws IOException
    */
-  public abstract List<Command> install(ClusterContext cluster
-                                        ) throws IOException;
+  public abstract List<Action> install(ClusterContext cluster
+                                       ) throws IOException;
   
   /**
-   * Get the commands start and stop the servers on this node.
+   * Get the commands to start a role's server.
    * @param cluster the cluster that is being installed
+   * @param role the role that needs to start running its server
    * @return the list of commands to execute
    * @throws IOException
    */
-  public abstract List<Command> startStopServices(ClusterContext cluster
-                                                  ) throws IOException;
-  
+  public abstract List<Action> startRoleServer(ClusterContext cluster,
+                                               String role
+                                               ) throws IOException;
+
+  /**
+   * Get the commands to stop a role's server.
+   * @param cluster the cluster that is being installed
+   * @param role the role that needs to stop running its server
+   * @return the list of commands to execute
+   * @throws IOException
+   */
+  public abstract List<Action> stopRoleServer(ClusterContext cluster,
+                                              String role
+                                              ) throws IOException;
+
   /**
    * Get the commands to run before the software is uninstalled.
    * @param cluster the cluster that is being uninstalled
    * @return the list of commands to execute
    * @throws IOException
    */
-  public abstract List<Command> uninstall(ClusterContext cluster
-                                          ) throws IOException;
+  public abstract List<Action> uninstall(ClusterContext cluster
+                                         ) throws IOException;
 }
