@@ -99,7 +99,9 @@ def main():
     config = ConfigParser.RawConfigParser()
     config.read('/etc/ambari/ambari.ini')
     try:
-      credential = config.get('controller', 'user')+":"+config.get('controller', 'password')
+      credential = {}
+      credential['user'] = config.get('controller', 'user')
+      credential['password'] = config.get('controller', 'password')
       controllerUrl = config.get('controller', 'url')
     except Exception, err:
       credential = None
@@ -110,7 +112,7 @@ def main():
   logger.info("Connecting to controller at:"+controllerUrl)
 
   # Launch Controller communication
-  controller = Controller(controllerUrl) 
+  controller = Controller(controllerUrl, credential) 
   controller.start()
   controller.run()
   logger.info("finished")

@@ -56,14 +56,15 @@ class Controller(threading.Thread):
 
   def run(self):
     id='unknown'
+    if self.credential!=None:
+      auth_handler = urllib2.HTTPBasicAuthHandler()
+      auth_handler.add_password(uri=self.url,
+                                user=self.credential['user'],
+                                passwd=self.credential['password'])
+      opener = urllib2.build_opener(auth_handler)
+      urllib2.install_openner(opener)
     while True:
       try:
-        '''auth_handler = urllib2.HTTPBasicAuthHandler()
-        auth_handler.add_password(uri='',
-                                  user='',
-                                  passwd='')
-        opener = urllib2.build_opener(auth_handler)
-        urllib2.install_openner(opener) '''
         data = json.dumps(self.heartbeat.build(id))
         logger.info(data)
         req = urllib2.Request(self.url, data, {'Content-Type': 'application/json'})
