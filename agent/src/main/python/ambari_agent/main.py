@@ -20,44 +20,26 @@ limitations under the License.
 
 import logging
 import logging.handlers
-from mimerender import mimerender
-import mimeparse
-from Runner import Runner
 import code
 import signal
-import simplejson
 import sys, traceback
-import web
 import os
 import time
 import ConfigParser
-from PackageHandler import PackageHandler
-from DaemonHandler import DaemonHandler
-from ShellHandler import ShellHandler
-from ZooKeeperCommunicator import ZooKeeperCommunicator
 from createDaemon import createDaemon
-from Zeroconf import dnsResolver
+from Controller import Controller
 
 logger = logging.getLogger()
 
-urls = (
-    '/package/info/(.*)', 'PackageHandler',
-    '/package/(.*)', 'PackageHandler',
-    '/daemon/status/(.*)', 'DaemonHandler',
-    '/daemon/(.*)', 'DaemonHandler',
-    '/shell/(.*)', 'ShellHandler'
-)
-app = web.application(urls, globals())
-
-if 'HMS_PID_DIR' in os.environ:
-  pidfile = os.environ['HMS_PID_DIR'] + "/hms-agent.pid"
+if 'AMBARI_PID_DIR' in os.environ:
+  pidfile = os.environ['AMBARI_PID_DIR'] + "/ambari-agent.pid"
 else:
-  pidfile = "/var/run/hms/hms-agent.pid"    
+  pidfile = "/var/run/ambari/ambari-agent.pid"
 
-if 'HMS_LOG_DIR' in os.environ:
-  logfile = os.environ['HMS_LOG_DIR'] + "/hms-agent.log"
+if 'AMBARI_LOG_DIR' in os.environ:
+  logfile = os.environ['AMBARI_LOG_DIR'] + "/ambari-agent.log"
 else:
-  logfile = "/var/log/hms/hms-agent.log"
+  logfile = "/var/log/ambari/ambari-agent.log"
 
 def signal_handler(signum, frame):
   logger.info('signal received, exiting.')
@@ -80,6 +62,7 @@ def main():
   signal.signal(signal.SIGTERM, signal_handler)
   signal.signal(signal.SIGUSR1, debug)
   if (len(sys.argv) >1) and sys.argv[1]=='stop':
+    # stop existing Ambari agent
     try:
       f = open(pidfile, 'r')
       pid = f.read()
@@ -91,44 +74,46 @@ def main():
         raise Exception("PID file still exists.")
       os._exit(0)
     except Exception, err:
-      traceback.print_exc(file=sys.stdout)
+      os.kill(pid, signal.SIGKILL)
       os._exit(1)
+
+  # Check if there is another instance running
   if os.path.isfile(pidfile):
     print("%s already exists, exiting" % pidfile)
     sys.exit(1)
   else:
+    # Daemonize current instance of Ambari Agent
     retCode = createDaemon()
     pid = str(os.getpid())
     file(pidfile, 'w').write(pid)
+
   logger.setLevel(logging.DEBUG)
   formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - %(message)s")
   rotateLog = logging.handlers.RotatingFileHandler(logfile, "a", 10000000, 10)
   rotateLog.setFormatter(formatter)
   logger.addHandler(rotateLog)
-  zeroconf = dnsResolver()
   credential = None
-  if(os.path.exists('/etc/hms/hms.ini')):
+
+  # Check for ambari configuration file.
+  if(os.path.exists('/etc/ambari/ambari.ini')):
     config = ConfigParser.RawConfigParser()
-    config.read('/etc/hms/hms.ini')
-    zkservers = config.get('zookeeper', 'quorum')
+    config.read('/etc/ambari/ambari.ini')
     try:
-      credential = config.get('zookeeper', 'user')+":"+config.get('zookeeper', 'password')
+      credential = config.get('controller', 'user')+":"+config.get('controller', 'password')
+      controllerUrl = config.get('controller', 'url')
     except Exception, err:
       credential = None
+      controllerUrl = "http://localhost:4080"
   else:
-    zkservers = ""
-  while zkservers=="":
-    zkservers = zeroconf.find('_zookeeper._tcp')
-    if zkservers=="":
-      logger.warn("Unable to locate zookeeper, sleeping 30 seconds")
-      loop = 0
-      while loop < 10:
-        time.sleep(3)
-        loop = loop + 1
-  logger.info("Connecting to "+zkservers+".")
-  zc = ZooKeeperCommunicator(zkservers, credential)
-  zc.start()
-  zc.run()
+    credential = None
+    controllerUrl = "http://localhost:4080"
+  logger.info("Connecting to controller at:"+controllerUrl)
+
+  # Launch Controller communication
+  controller = Controller(controllerUrl) 
+  controller.start()
+  controller.run()
+  logger.info("finished")
     
 if __name__ == "__main__":
   main()

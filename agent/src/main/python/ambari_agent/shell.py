@@ -18,16 +18,54 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import logging
+import logging.handlers
 import subprocess
 import os
+import signal
+
+global serverTracker
+serverTracker = {}
+logger = logging.getLogger()
 
 class shellRunner:
-    def run(self, script):
-        code = 0
-        cmd = " "
-        cmd = cmd.join(script)
+  # Run any command
+  def run(self, script, user):
+    code = 0
+    cmd = " "
+    cmd = cmd.join(script)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
+    out, err = p.communicate()
+    if p.wait() != 0:
+      code = 1
+    return {'exit_code': code, 'output': out, 'error': err}
+
+  # Start a process and presist its state
+  def startProcess(self, serverName, script, user):
+    global serverTracker
+    if not serverName in serverTracker:
+      cmd = " "
+      cmd = cmd.join(script)
+      child_pid = os.fork()
+      if child_pid == 0:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
-        out, err = p.communicate()
-        if p.wait() != 0:
-            code = 1
-        return {'exit_code': code, 'output': out, 'error': err}
+        p.wait()
+        serverTracker[serverName] = None
+      else:
+        serverTracker[serverName] = child_pid
+
+  # Stop a process and remove presisted state
+  def stopProcess(self, serverName, sig):
+    global serverTracker
+    if serverName in serverTracker:
+      if sig=='TERM':
+        os.kill(serverTracker[serverName], signal.SIGTERM)
+        # TODO: gracefully check if process is still alive
+        # before remove from serverTracker
+        del serverTracker[serverName]
+      else:
+        os.kill(serverTracker[serverName], signal.SIGKILL)
+        del serverTracker[serverName]
+
+  def getServerTracker(self):
+    return serverTracker

@@ -65,10 +65,53 @@ public class ControllerResource {
   @Path(value = "/agent/{hostname}")
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public ControllerResponse heartbeat(HeartBeat message) {
-    ControllerResponse response = new ControllerResponse();
-        return response;
-        }
+    ControllerResponse controllerResponse = new ControllerResponse();
+    controllerResponse.setResponseId("id-00002");    
+    List<Command> commands = new ArrayList<Command>();
+    String[] cmd = { "ls", "-l" };
+    commands.add(new Command("root", cmd));
+    commands.add(new Command("root", cmd));
+    commands.add(new Command("root", cmd));
+
+    List<Command> cleanUps = new ArrayList<Command>();
+    String[] cleanUpCmd = { "ls", "-t" };
+    cleanUps.add(new Command("hdfs", cleanUpCmd));
+    cleanUps.add(new Command("hdfs", cleanUpCmd));
+    
+    Action action = new Action();
+    action.setUser("hdfs");
+    action.setServerName("hadoop.datanode");
+    action.setKind(Kind.STOP_ACTION);
+    action.setSignal(Signal.KILL);
+    action.setClusterId("cluster-001");
+    action.setId("action-001");
+
+    Action action2 = new Action();
+    action2.setUser("hdfs");
+    action2.setKind(Kind.START_ACTION);
+    action2.setId("action-002");
+    action2.setClusterId("cluster-002");
+    action2.setCommands(commands);
+    action2.setCleanUpCommands(cleanUps);
+    action2.setServerName("hadoop.datanode");
+
+    Action action3 = new Action();
+    action3.setUser("hdfs");
+    action3.setKind(Kind.RUN_ACTION);
+    action3.setId("action-003");
+    action3.setClusterId("cluster-003");
+    action3.setCommands(commands);
+    action3.setCleanUpCommands(cleanUps);
+
+    List<Action> actions = new ArrayList<Action>();
+    actions.add(action);
+    actions.add(action2);
+    actions.add(action3);
+    controllerResponse.setActions(actions);
+    return controllerResponse;
+  }
 
   /**
    * Sample Ambari heartbeat message
@@ -148,9 +191,7 @@ public class ControllerResource {
     ControllerResponse controllerResponse = new ControllerResponse();
     controllerResponse.setResponseId("id-00002");    
     List<Command> commands = new ArrayList<Command>();
-    String[] cmd = { "ls", "-l" };
-    commands.add(new Command("root", cmd));
-    commands.add(new Command("root", cmd));
+    String[] cmd = { "top" };
     commands.add(new Command("root", cmd));
 
     List<Command> cleanUps = new ArrayList<Command>();
