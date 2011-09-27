@@ -36,26 +36,22 @@ import org.apache.ambari.common.rest.entities.RoleToNodesMapEntry;
 
 public class Clusters {
 
-        /*
-         * Operational clusters include both active and inactive clusters
-         */
-    protected ConcurrentHashMap<String, ClusterDefinition> operational_clusters = new ConcurrentHashMap<String, ClusterDefinition>();
-    
-    /* 
-     * Attic clusters are just definitions left around. When cluster is retired i.e. all its nodes 
-     * are released then the cluster entry is transferred to attic and deleted from active 
-     * clusters list.
-     * Cluster in attic list should be submitted as new cluster, if needs to be reactivated. 
+    /*
+     * Operational clusters include both active and inactive clusters
      */
-    protected ConcurrentHashMap<String, ClusterDefinition> attic_clusters = new ConcurrentHashMap<String, ClusterDefinition>();
+    protected ConcurrentHashMap<String, Cluster> operational_clusters = new ConcurrentHashMap<String, Cluster>();
     
     /*
-     * Hashmap of cluster name to NodeToRolesMap
-     * For every cluster it keeps the association of each cluster node to its list of associated roles based on
-     * cluster definition. If roleToNodesExpressions are explicitly specified in the cluster definitions then
-     * it is considered else it is derived based on node attributes.
+     * Operational clusters name to ID map
      */
-    protected ConcurrentHashMap<String, ConcurrentHashMap<String, List<String>>> cluster_to_node_to_roles_map = new ConcurrentHashMap<String, ConcurrentHashMap<String, List<String>>>();
+    protected ConcurrentHashMap<String, String> operational_clusters_id_to_name = new ConcurrentHashMap<String, String>();
+    
+    /*
+     * List of clusters to be deleted when they get into ATTIC state 
+     * When cluster state is switched to ATTIC, if it is present in the tobe_deleted_list, 
+     * it should be deleted from the persistence list and inmemory list. 
+     */
+    ConcurrentHashMap<String, String> tobe_deleted_clusters = new ConcurrentHashMap<String, String>();
     
     private static Clusters ClustersTypeRef=null;
         
@@ -139,7 +135,7 @@ public class Clusters {
 				updateNodeToRolesAssociation(c, c.getRoleToNodesMap());
 			} else {
 				/*
-				 * Derive the role to nodes map based on nodes attributes
+				 * TODO: Derive the role to nodes map based on nodes attributes
 				 * then populate the node to roles association.
 				 */
 			}
@@ -149,8 +145,9 @@ public class Clusters {
     		 * 		 Persist reserved nodes against the cluster & service/role
     		 */
     			
-    		// Add the cluster to list, when definition is persisted
-    		operational_clusters.put(c.getName(), c);
+    		// Add the cluster to the list, when definition is persisted
+    		this.operational_clusters.put(c.getName(), cls);
+    		this.operational_clusters_id_to_name.put(cls.getID(), c.getName());
     	}
     	return c;
     } 
@@ -250,265 +247,183 @@ public class Clusters {
 		}
 		
 		/*
-		 * Generate node to roles hash map. 
+		 * Add list of roles to Node
 		 * If node is not explicitly associated with any role then assign it w/ default role
+		 * TODO: 
 		 */
-		ConcurrentHashMap<String, List<String>> nodeToRolesHashMap = new ConcurrentHashMap<String, List<String>>();
 		for (RoleToNodesMapEntry e : roleToNodesMap.getRoleToNodesMapEntry()) {
 			List<String> hosts = getHostnamesFromRangeExpressions(e.getNodeRangeExpressions());
 			for (String host : hosts) {
-				if (!nodeToRolesHashMap.containsKey(host)) {
-					List<String> x = new ArrayList<String>();
-					x.add(e.getRoleName());
-					nodeToRolesHashMap.put(host, x);
-				} else {
-					nodeToRolesHashMap.get(host).add(e.getRoleName());
-				}
+			  if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
+			    Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
+			  } 
+			  Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(e.getRoleName());
 			}
 		}
-				
+		
+		
 		/*
-		 * Get the list of specified global node list for the cluster 
+		 * Get the list of specified global node list for the cluster and any nodes not explicitly specified in the
+		 * role to nodes map, assign them with default role defined in cluster blueprint
 		 */
 		List<String> specified_node_range = new ArrayList<String>();
     	specified_node_range.addAll(getHostnamesFromRangeExpressions(c.getNodeRangeExpressions()));
     	for (String host : specified_node_range) {
-    		if (!nodeToRolesHashMap.containsKey(host)) {
-    			List<String> x = new ArrayList<String>();
-				x.add(getDefaultRoleName());
-				nodeToRolesHashMap.put(host, x);
-    		} else {
-    			nodeToRolesHashMap.get(host).add(getDefaultRoleName());
-    		}
+    	  if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
+          Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
+          String clusterName = Nodes.getInstance().getNodes().get(host).getNodeState().getClusterName();
+          Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(getDefaultRoleName(clusterName));
+        } 
+        
     	}
-    	
-    	/*
-    	 * Add the nodeToRolesHashMap to gobal clsuter_to_node_to_roles map
-    	 */
-    	cluster_to_node_to_roles_map.put(c.getName(), nodeToRolesHashMap);
 	}
 
     /* 
-     * Update cluster 
+     * Update cluster definition
+     * Always latest version is kept in memory
     */
     public void updateCluster(String clusterName, ClusterDefinition c) throws Exception {
+        
         /*
-         * Update the cluster definition. 
-         * Always latest version of cluster definition is kept in memory 
-         * Revisions for cluster definition is mainly need for agents to know
-         * that something is changed in cluster definition?
-         * TODO: 
-         *              Make update atomic? i.e. persist the new revision first and then update the 
-         *              definition in memory? make sure get cluster does not get partial definition.. 
+         * Validate cluster definition
          */
-        int i;
-        ClusterDefinition cls = null;
-        for (i=0; i<operational_clusters.size(); i++) {
-                if (operational_clusters.get(i).equals(clusterName)) {
-                        cls = operational_clusters.get(i);
-                        break;
-                }
+        if (c.getName() == null || c.getName().equals("") || !c.getName().equals(clusterName)) {
+            Exception e = new Exception("Cluster name in resource URI ["+clusterName+"] does not match with one specified in update request element");
+            throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
         }
         
-        // Throw exception if cluster is not found
-        if (i == operational_clusters.size()) {
-                throw new Exception("Specified cluster ["+clusterName+"] does not exists");
+        /*
+         * Check if cluster already exists
+         */
+        if (!this.operational_clusters.containsKey(clusterName)) {
+            Exception e = new Exception("Cluster ["+clusterName+"] does not exits");
+            throw new WebApplicationException(e, Response.Status.NOT_FOUND);
         }
         
-        synchronized (cls) {
-                if (c.getDescription() != null) cls.setDescription(c.getDescription());
-                // Update the last update time
-                //cls.setLastUpdateTime(new Date());
-                //cls.setRevision(cls.getRevision()+1);
-                /*
-                 * TODO: Persist the latest cluster definition under new revision
-                */
+        Cluster cls = this.operational_clusters.get(clusterName);
+        synchronized (cls.getClusterDefinition()) {
+            if (c.getBlueprintName() != null) cls.getClusterDefinition().setBlueprintName(c.getBlueprintName());
+            if (c.getDescription() != null) cls.getClusterDefinition().setDescription(c.getDescription());
+            if (c.getGoalState() != null) cls.getClusterDefinition().setGoalState(c.getGoalState());
+            if (c.getActiveServices() != null) cls.getClusterDefinition().setActiveServices(c.getActiveServices());
+            if (c.getNodeRangeExpressions() != null) {
+                cls.getClusterDefinition().setNodeRangeExpressions(c.getNodeRangeExpressions());
+                updateClusterNodesReservation (cls, c.getNodeRangeExpressions());
+            }
+            if (c.getRoleToNodesMap() != null) {
+                cls.getClusterDefinition().setRoleToNodesMap(c.getRoleToNodesMap());
+                updateNodeToRolesAssociation(cls.getClusterDefinition(), c.getRoleToNodesMap());
+            }  
+            
+            /*
+             *  Update the last update time & revision
+             */
+            cls.getClusterState().setLastUpdateTime(new Date());
+            cls.setRevision(cls.getRevision()+1);
+            
+            /*
+             * TODO: Persist the latest cluster definition under new revision
+             */
         }
         return;
     }
     
     /*
-     * Update role to Nodes Map
-    
-    private void updateClusterRoleToNodesMap (RoleToNodesMapType s, RoleToNodesMapType t) throws Exception {
-        for (RoleToNodesMapEntryType se : s.getRoleToNodesMapEntry()) {
-                for (RoleToNodesMapEntryType te : t.getRoleToNodesMapEntry()) {
-                        if (se.getServiceName().equals(te.getServiceName()) && se.getRoleName().equals(te.getRoleName())) {
-                                te.setNodeRangeExpression(se.getNodeRangeExpression());
-                        } else {
-                                t.getRoleToNodesMapEntry().add(se);
-                        }
-                }
-        }
-    } */
-    
-    /*
-     * Delete ClusterType from the list
-     * Delete operation will only remove the entry from the controller 
-     * Cluster must be in ATTIC state to be deleted from controller
-     
-    public void deleteCluster(ClusterType c) throws Exception { 
+     * Delete Cluster 
+     * Delete operation will bring the clsuter to ATTIC state and then remove the
+     * cluster definition from the controller 
+     * When cluster state transitions to ATTIC, it should check if the cluster definition is 
+     * part of tobe_deleted_clusters map and then deleted the definition.
+     */
+    public void deleteCluster(String clusterName) throws Exception { 
         synchronized (operational_clusters) {
-                for (int i=0;i<operational_clusters.size();i++) {
-                        if (operational_clusters.get(i).getName().equals(c.getName())) {
-                                synchronized (operational_clusters.get(i)) {
-                                        if (operational_clusters.get(i).getCurrentState().equals(ClusterState.CLUSTER_STATE_ATTIC)) {
-                                                // TODO: remove the persistent entry from data store
-                                                
-                                                 // Remove the entry from the in-memory clsuter list
-                                                 
-                                                operational_clusters.remove(i);
-                                        } else {
-                                                throw new Exception ("Cluster ["+operational_clusters.get(i).getName()+"] not in ATTIC state");
-                                        }
-                                }
-                        }
+            for (Cluster cls : operational_clusters.values()) {
+                if (cls.getClusterDefinition().getName().equals(clusterName)) {
+                    synchronized (cls) {
+                        cls.getClusterDefinition().setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
+                        this.tobe_deleted_clusters.put(clusterName, null);                    
+                    }
                 } 
+            }
         }
-        return;
-    } */  
-    
-    
-    /*
-     * Get Cluster definition snapshot (whenever it is to be serialized over wire)
-     * TODO: CHECK_IT
+    }   
      
-    public ClusterType getClusterSnapshot(String clusterName) throws Exception {
-        for (ClusterType cls : operational_clusters) {
-                ClusterType cls1 = null;
-                        if (cls.getName().equals(clusterName)) {
-                                synchronized (cls) {
-                                        //cls1 = cls.clone();
-                                }
-                        }
-                        return cls1;
-                }
-        throw new Exception ("Cluster:["+clusterName+"] does not exists");
-    } */
+    /* 
+     * Get the cluster by name
+     */
+    public Cluster getClusterByName(String clusterName) {
+        return this.operational_clusters.get(clusterName);
+    }
     
     /* 
-     * Get the cluster definition 
-    */
-    public ClusterDefinition getCluster(String clusterName) {
-        /*for (ClusterDefinition cls : operational_clusters) {
-                        if (cls.getName().equals(clusterName)) {
-                                return cls;
-                        }
-                }*/return null;
+     * Get the cluster by ID
+     */
+    public Cluster getClusterByID(String clusterID) {
+        String clusterName = this.operational_clusters_id_to_name.get(clusterID);
+        if (clusterName != null) {
+            return this.getClusterByName(clusterName);
+        } else {
+            return null;
+        }
     }
     
-    /*
-     * Get the list of deployed clusters
-     * TODO: return the synchronized snapshot of the deployed cluster list
+    /* 
+     * Get the cluster definition by name
      */
-    public List<ClusterDefinition> getDeployedClusterList(String type) {
-        List<ClusterDefinition> list = new ArrayList<ClusterDefinition>();
-        if (type.equals("ALL")) {
-                //list.addAll(this.operational_clusters);
-                return list;
-        } else {
-                //for (ClusterDefinition cls : operational_clusters) {
-                        //if (cls.gcurrentState.equals(type)) {
-                        //      list.add(cls);
-                        //}
-                //}
+    public ClusterDefinition getClusterDefinition(String clusterName) throws WebApplicationException  {
+        if (!this.operational_clusters.containsKey(clusterName)) {
+            Exception e = new Exception("Cluster ["+clusterName+"] does not exits");
+            throw new WebApplicationException(e, Response.Status.NOT_FOUND);
         }
-        return list;
-    } 
+        return this.operational_clusters.get(clusterName).getClusterDefinition();
+    }
+    
+    
+    /* 
+     * Get the cluster state
+    */
+    public ClusterState getClusterState(String clusterName) throws WebApplicationException {
+        if (!this.operational_clusters.containsKey(clusterName)) {
+            Exception e = new Exception("Cluster ["+clusterName+"] does not exits");
+            throw new WebApplicationException(e, Response.Status.NOT_FOUND);
+        }
+        return this.operational_clusters.get(clusterName).getClusterState();
+    }
+    
     
     /*
-     * Get the list of retired cluster definitions
-     * TODO: return synchronized snapshot of the retired cluster list
+     * Get Cluster definition list
      */
-    public List<ClusterDefinition> getRetiredClusterList() {
-        List<ClusterDefinition> list = new ArrayList<ClusterDefinition>();
-        //list.addAll(this.attic_clusters);
-        return list;
+    public List<ClusterDefinition> getClusterDefinitionsList(String state) {
+      List<ClusterDefinition> list = new ArrayList<ClusterDefinition>();
+      for (Cluster cls : this.operational_clusters.values()) {
+        if (state.equals("ALL")) {
+          list.add(cls.getClusterDefinition());
+        } else {
+          if (cls.getClusterState().getRepresentativeState().equals(state)) {
+            list.add(cls.getClusterDefinition());
+          }
+        }
+      }
+      return list;
     }
     
     /*
      * Get the list of clusters
      * TODO: Get the synchronized snapshot of each cluster definition? 
-     
-    public List<ClusterType> getClusterList(String type) {
-        List<ClusterType> list = new ArrayList<ClusterType>();
-        if (type.equals("ALL")) {
-                list.addAll(getRetiredClusterList());
-                list.addAll(getDeployedClusterList("ALL"));
-        } else if (type.equals("ATTIC")) {
-                list.addAll(getRetiredClusterList());
+     */
+    public List<Cluster> getClustersList(String state) {
+        List<Cluster> list = new ArrayList<Cluster>();
+        if (state.equals("ALL")) {
+          list.addAll(this.operational_clusters.values());
         } else {
-                for (ClusterType cls : operational_clusters ) {
-                        if (cls.currentState.equals(type)) {
-                                list.add(cls);
-                        }
-                }
+          for (Cluster cls : this.operational_clusters.values()) {
+            if (cls.getClusterState().getRepresentativeState().equals(state)) {
+              list.add(cls);
+            }
+          }
         }
         return list;
-    } */
-    
-    /*
-     * Change the cluster goal state
-     * TODO: Change the argument goalState from string to enum
-     * TODO: Use state machine to trigger the state change events  
-     */
-    public void changeClusterGoalState (String clusterName, String goalState, Date requestTime) throws Exception {
-        int i;
-        ClusterDefinition cls = null;
-        for (i=0; i<operational_clusters.size(); i++) {
-                if (operational_clusters.get(i).equals(clusterName)) {
-                        cls = operational_clusters.get(i);
-                        break;
-                }
-        }
-        
-        // Throw exception if cluster is not found
-        if (i == operational_clusters.size()) {
-                throw new Exception("Specified cluster ["+clusterName+"] does not exists");
-        }
-        
-        synchronized (cls) {
-                // Set the goal state
-                //cls.setLastRequestedGoalState(goalState);
-                        //cls.setTimeOflastRequestedGoalState(requestTime);
-                
-                /*
-                 * TODO: Persist the latest cluster definition under new revision
-                */
-        }
-        
-        /*
-         * send state change event to cluster state machine 
-         */
-        //changeClusterState(this.getName());
-    }
-    
-    /*
-     * Cluster state change event Handler
-     * 
-         * TODO: 
-         *               -- Make sure cluster definition is complete else throw exception 
-         *                      -- Check all ClusterType fields have valid values
-         *                      -- Check if roles have required number of nodes associated with it.
-         *               -- Add the nodes to NodesType list w/ name, cluster name, deployment state etc.
-         *               -- Trigger agent installation on the nodes, if not already done 
-         * 
-         *               -- Once agent is installed it should register itself w/ controller, get the 
-         *                      associated latest cluster definition and deploy the stack. If goal state is active
-         *                      it should get the associated services up. Once sync-ed, it should
-         *                      update its state w/ controller through heartbeat.
-         * 
-         *      -- Once required number of service nodes are up cluster state should be changed accordingly
-        */
-    public void stateChangeEventHandler (String currentState, String goalState) {
-        synchronized(this) {
-                /*
-                 * ATTIC to ACTIVE or INACTIVE
-                 */
-                        if (currentState.equals(ClusterState.CLUSTER_STATE_ATTIC) && goalState.equals(ClusterState.CLUSTER_STATE_ACTIVE)) {
-                                
-                        }
-        }
     }
     
     /* 
@@ -518,35 +433,33 @@ public class Clusters {
 	/*
 	 * Get the list of role names associated with node
 	 */
-	public List<String> getAssociatedRoleNames(Node n) {
-		String clusterName = n.getNodeState().getClusterName();
-		if (clusterName != null) {
-			return Clusters.getInstance().cluster_to_node_to_roles_map.get(n.getNodeState().getClusterName()).get(n.getName());
-		} else {
-			return null;
-		}
+	public List<String> getAssociatedRoleNames(String hostname) {
+	  return Nodes.getInstance().getNodes().get(hostname).getNodeState().getNodeRoleNames();
 	}
 	
 	/*
 	 *  Return the default role name to be associated with specified cluster node that 
 	 *  has no specific role to nodes association specified in the cluster definition
+	 *  Throw exception if node is not associated to with any cluster
 	 */
-	public String getDefaultRoleName() {
+	public String getDefaultRoleName(String clusterName) throws Exception {
+	    Cluster c = Clusters.getInstance().getClusterByName(clusterName);
+	    // TODO: find the default role from the clsuter blueprint 
 		return "slaves";
 	}
 	
 	/*
-     * TODO: Implement proper range expression
-     */
-    public List<String> getHostnamesFromRangeExpressions (List<String> nodeRangeExpressions) throws Exception {
-  
-    	List<String> list = new ArrayList<String>();
-    	for (String nodeRangeExpression : nodeRangeExpressions) {
-	    	StringTokenizer st = new StringTokenizer(nodeRangeExpression);
-	    	while (st.hasMoreTokens()) {
-	    		list.add(st.nextToken());
-	    	}
+   * TODO: Implement proper range expression
+   * TODO: Remove any duplicate nodes from the derived list
+   */
+  public List<String> getHostnamesFromRangeExpressions (List<String> nodeRangeExpressions) throws Exception {
+  	List<String> list = new ArrayList<String>();
+  	for (String nodeRangeExpression : nodeRangeExpressions) {
+    	StringTokenizer st = new StringTokenizer(nodeRangeExpression);
+    	while (st.hasMoreTokens()) {
+    		list.add(st.nextToken());
     	}
-    	return list;
-    }
+  	}
+  	return list;
+  }
 }

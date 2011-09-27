@@ -79,7 +79,7 @@ public class HeartbeatHandler {
     heartbeatQueue.add(heartbeat);
     
     //get the current response for the node/role
-    List<String> roles = Clusters.getInstance().getAssociatedRoleNames(node);
+    List<String> roles = Clusters.getInstance().getAssociatedRoleNames(heartbeat.getHostname());
     
     if (roles != null && roles.size() != 0) {
       

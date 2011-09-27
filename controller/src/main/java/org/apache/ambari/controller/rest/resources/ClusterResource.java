@@ -33,6 +33,7 @@ import javax.ws.rs.QueryParam;
 
 
 import org.apache.ambari.common.rest.entities.Cluster;
+import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.controller.Clusters;
@@ -43,60 +44,57 @@ import org.apache.ambari.controller.Clusters;
 @Path(value = "/clusters/{clusterName}")
 public class ClusterResource {
         
-        /** Get the definition of specified Hadoop cluster.
-         * 
-         *  <p>
-         *  REST:<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  <p> 
-         *  
-         *  @param      clusterName             Name of the cluster; Each cluster is identified w/ unique name
-         *  @return                                     Returns the Cluster definition
-         *  @throws     Exception               Throws exception (TBD)
-         */
-        @GET
-        @Produces({"application/json", "application/xml"})
-        public Cluster getCluster(@PathParam("clusterName") String clusterName) throws Exception {
-                //return Clusters.getInstance().getCluster(clusterName);
-                return null;
-        }
+    /** Get the definition of specified Hadoop cluster.
+     * 
+     *  <p>
+     *  REST:<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  <p> 
+     *  
+     *  @param      clusterName             Name of the cluster; Each cluster is identified w/ unique name
+     *  @return                             Returns the Cluster definition
+     *  @throws     Exception               Throws exception (TBD)
+     */
+    @GET
+    @Produces({"application/json", "application/xml"})
+    public ClusterDefinition getClusterDefinition(@PathParam("clusterName") String clusterName) throws Exception {
+        return Clusters.getInstance().getClusterDefinition(clusterName);
+    }
     
     /** Update cluster definition.
      *  <p>
      *  Update cluster definition allows updating any sub-elements of cluster definition. Only sub-elements to be 
      *  updated can be specified with new values while others can be "null".
      *  <p>
-         *  REST:<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : PUT <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  <p> 
+     *  REST:<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : PUT <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  <p> 
      * 
      * @param   clusterName             Name of the cluster; Each cluster is identified w/ unique name
      * @param   cluster                 Cluster definition with specific sub-elements to be updated
-     * @return                                  Returns updated cluster definition
+     * @return                          Returns updated cluster definition
      * @throws  Exception               throws Exception (TBD)
      */ 
     @PUT
-        @Consumes({"application/json", "application/xml"})
-        public Cluster updateClusterDefinition(@PathParam("clusterName") String clusterName, Cluster cluster) throws Exception {
-        //      if (cluster.getName() == null || cluster.getName().equals("") || !cluster.getName().equals(clusterName)) {
-        //              throw new Exception("Cluster name in URI ["+clusterName+"] does not match with one specified in update request elelemt");
-      //                }
-        //Clusters.getInstance().updateCluster(clusterName, cluster);
-        return null;
+    @Consumes({"application/json", "application/xml"})
+    public ClusterDefinition updateClusterDefinition(@PathParam("clusterName") String clusterName, ClusterDefinition cluster) throws Exception {
+        
+    //Clusters.getInstance().updateCluster(clusterName, cluster);
+    return null;
     }
      
     /** Delete the the cluster.
@@ -105,25 +103,25 @@ public class ClusterResource {
      *  the controller repository. In "ATTIC" state all the cluster services would be stopped and nodes are 
      *  released. All the data on the cluster will be lost.
      *  <p>
-         *  REST:<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}/action/terminate<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : DELETE <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  <p> 
-         *  
+     *  REST:<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}/action/terminate<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : DELETE <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  <p> 
+     *  
      *  @param  clusterName             Name of the cluster; Each cluster is identified w/ unique name
      *  @throws Exception               throws Exception (TBD)
      */
     @DELETE
-        @Consumes({"application/json", "application/xml"})
-        public void deleteCluster( @PathParam("clusterName") String clusterName) throws Exception {
-                //Clusters.getInstance().changeClusterGoalState (clusterName, Clusters.GOAL_STATE_ATTIC, new Date());
-        }
+    @Consumes({"application/json", "application/xml"})
+    public void deleteCluster( @PathParam("clusterName") String clusterName) throws Exception {
+        Clusters.getInstance().deleteCluster(clusterName);
+    }
     
     /** Get the cluster state.
      *  <p>
@@ -134,17 +132,17 @@ public class ClusterResource {
      *          "ATTIC"         : Only cluster definition is available. No nodes are reserved for the cluster in this state.  <br>
      *  
      *  <p>
-         *  REST:<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}/clusterstate<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  <p> 
-         *  
+     *  REST:<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}/clusterstate<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  <p> 
+     *  
      *  @param  clusterName             Name of the cluster; Each cluster is identified w/ unique name
      *  @return                                 Returns cluster state object.
      *  @throws Exception               throws Exception (TBD)  

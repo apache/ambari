@@ -48,68 +48,69 @@ public class Node {
     @XmlElement(name = "NodeState", required = true)
     protected NodeState nodeState;
    
-        public Node () {}
+    public Node () {}
 
-	public Node (String name) {
-		this.name = name;
-	}
+    public Node (String name) {
+      this.name = name;
+    }
 	
-	/*
-	 * 
-	 */
-	public void releaseNodeFromCluster() {
-		this.nodeState.setClusterName(null);
-		this.getNodeState().setNodeServers(null);
-		/*
-		 * TODO: AllocatedToClsuter flag will be reset part of heart beat processing when node completes cleanup.
-		 */
-	}
+    /*
+     * 
+     */
+    public void releaseNodeFromCluster() {
+      this.nodeState.setClusterName(null);
+      this.getNodeState().setNodeServers(null);
+      this.getNodeState().setNodeRoleNames(null);
+      /*
+       * TODO: AllocatedToClsuter flag will be reset part of heart beat processing when node completes cleanup.
+       */
+    }
 	
-	/*
-	 * Reserving node for cluster is done by associating cluster name w/ node
-	 */
-	public void reserveNodeForCluster (String clusterName, Boolean agentInstalled) {
-		this.getNodeState().setClusterName(clusterName);
-		this.getNodeState().setAgentInstalled(agentInstalled);
-		this.getNodeState().setAllocatedToCluster(true);
-	}
+  	/*
+  	 * Reserving node for cluster is done by associating cluster name w/ node
+  	 */
+  	public void reserveNodeForCluster (String clusterName, Boolean agentInstalled) {
+  		this.getNodeState().setClusterName(clusterName);
+  		this.getNodeState().setAgentInstalled(agentInstalled);
+  		this.getNodeState().setAllocatedToCluster(true);
+  	}
         
     /**
-         * @return the name
-         */
-        public String getName() {
-                return name;
-        }
-        /**
-         * @param name the name to set
-         */
-        public void setName(String name) {
-                this.name = name;
-        }
-        
-        /**
-         * @return the nodeMetrics
-         */
-        public NodeAttributes getNodeAttributes() {
-                return nodeAttributes;
-        }
-        /**
-         * @param nodeMetrics the nodeMetrics to set
-         */
-        public void setNodeAttributes(NodeAttributes nodeAttributes) {
-                this.nodeAttributes = nodeAttributes;
-        }
-        /**
-         * @return the nodeState
-         */
-        public NodeState getNodeState() {
-                return nodeState;
-        }
-        
-        /**
-         * @param nodeState the nodeState to set
-         */
-        public void setNodeState(NodeState nodeState) {
-                this.nodeState = nodeState;
-        }
+     * @return the name
+     */
+    public String getName() {
+            return name;
+    }
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+            this.name = name;
+    }
+    
+    /**
+     * @return the nodeMetrics
+     */
+    public NodeAttributes getNodeAttributes() {
+            return nodeAttributes;
+    }
+    /**
+     * @param nodeMetrics the nodeMetrics to set
+     */
+    public void setNodeAttributes(NodeAttributes nodeAttributes) {
+            this.nodeAttributes = nodeAttributes;
+    }
+    /**
+     * @return the nodeState
+     */
+    public NodeState getNodeState() {
+            return nodeState;
+    }
+    
+    /**
+     * @param nodeState the nodeState to set
+     */
+    public void setNodeState(NodeState nodeState) {
+            this.nodeState = nodeState;
+    }
 }
