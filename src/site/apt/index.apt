@@ -1,0 +1,299 @@
+~~ Licensed to the Apache Software Foundation (ASF) under one or more
+~~ contributor license agreements.  See the NOTICE file distributed with
+~~ this work for additional information regarding copyright ownership.
+~~ The ASF licenses this file to You under the Apache License, Version 2.0
+~~ (the "License"); you may not use this file except in compliance with
+~~ the License.  You may obtain a copy of the License at
+~~
+~~     http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+~~
+Introduction
+
+  Ambari is a monitoring, administration and lifecycle management project
+  for Apache Hadoop clusters. Hadoop clusters require many inter-related
+  components that must be installed, configured, and managed across the
+  entire cluster. The stack of components that are currently supported by
+  Ambari includes:
+
+  * {{{http://hbase.apache.org} Apache HBase}}
+
+  * {{{http://incubator.apache.org/hcatalog} Apache HCatalog}}
+
+  * {{{http://hadoop.apache.org/hdfs} Apache Hadoop HDFS}}
+
+  * {{{http://hive.apache.org} Apache Hive}}
+
+  * {{{http://hadoop.apache.org/mapreduce} Apache Hadoop MapReduce}}
+
+  * {{{http://pig.apache.org} Apache Pig}}
+
+  * {{{http://zookeeper.apache.org} Apache Zookeeper}}
+
+  []
+
+  Ambari's audience is operators responsible for managing Hadoop clusters.
+  It allow them to:
+
+  * Deploy and configure Hadoop
+
+    * Define a set of nodes as a cluster
+
+    * Assign roles to particular nodes or let Ambari pick a mapping for them.
+
+    * Override the stack's default versions of components or configure 
+    particular values.
+
+  * Upgrade a cluster
+
+    * Modify the versions or configuration of each component
+
+    * Upgrade easily without losing data
+
+  * Monitoring and other maintanace tasks
+
+    * Check which servers are currently running across the cluster
+
+    * Starting and stopping Hadoop services (like HDFS, MR, HBase)
+
+  * Integrate with other tools
+
+    * Provide a REST interface for defining or manipulating clusters.
+
+  []
+
+  Ambari requires that the base operating system has been deployed and
+  managed via existing tools, such as Chef or Puppet. Ambari is solely focused
+  on simplifying configuring and managing the Hadoop stack.
+
+Key concepts
+
+  * <<Nodes>> are machines in the datacenter that will run Hadoop and
+  be managed by Ambari.
+
+  * <<Components>> are the individual software products that are
+  installed to create a complete Hadoop cluster. Some components
+  include servers, such as HDFS and some are passive, such as Pig.
+
+  * <<Components>> consist of roles, which differentiate how each node
+  is supporting the component. The roles for HDFS include NameNode,
+  Secondary NameNode, slave, and gateway. Some roles, such as the
+  NameNode are active and run servers, while other roles such gateway
+  are passive. All roles of a component will have the same software,
+  but may have different configurations.
+
+  * <<Blueprints>> define the software and configuration for a
+  cluster, but not the specific nodes. Blueprints can derive from each
+  and only need to specify the part that differ from their
+  parent. Thus, although blueprints can specify the version for each
+  component, most will not.
+
+  * <<Stack>> are a tested combination of specific component versions
+  that are tested and distributed by a vendor. These stacks form the
+  basis for the blueprints and include the suggested versions of each
+  component and the default configuration.
+
+  * A <<cluster>> uses a blueprint and a set of nodes to form a
+  cluster. Clusters can define a specific mapping of roles to sets of
+  nodes or let Ambari assign the roles. Clusters can either be active,
+  inactive, or retired. Active clusters will be started, inactive
+  clusters have reserved nodes, but will not be started. Retired
+  clusters will keep their definition, but their nodes are released.
+
+Blueprints
+
+  Blueprints form the basis of defining what software needs to be
+  installed and run and the configuration for that software. Rather than
+  have the administrator define the entire blueprint from scratch,
+  blueprints inherit most of their properties from their parent. This
+  allows the administrator to take a default stack and only modify the
+  properties that need to be changed without dealing with a lot of
+  boilerplate.
+
+  Blueprints include a list of repositories that contain the rpms or
+  tarballs. The repositories will be searched in the given order and
+  if the required component versions are not found, the next one will
+  be searched. If the required file isn't found, the parent's
+  blueprint will be searched and so on.
+
+  Blueprints define the version of each component that they need. Most
+  of the versions will come from the stack, but the operator can
+  override the version as needed.
+
+  The blueprint define the configuration parameters that need to be
+  specified. The configuration is broken down by file (eg. hadoop-env
+  versus core-site) and then a list of key/value pairs that represent
+  each configuration item.  To keep the blueprints generic, the
+  configuration values may refer to the nodes that hold a particular
+  role. Thus, <<<fs.default.name>>> may be configured to
+  <<<hdfs://${namenode}/>>> and the name of the namenode will be
+  filled in during the configuration.
+
+  Finally (and unfortunately), a few configuration settings need to
+  set for particular roles. Examples of this include using different
+  JVM options for the NameNode and setting the https security option
+  for the NameNode.
+
+* Blueprint example
+
+  Although users will typically define blueprints and clusters over
+  the web UI, it is useful to examine a sample JSON expression that
+  would define a blueprint for the REST api.
+
+------
+{
+  "parent": "site",        /* declare parent as site, r42 */
+  "parent-revision": "42",
+  "repositories": [        /* declare where to get components */
+    {
+      "location": "http://repos.hortonworks.com/yum",
+      "type": "yum"
+    },
+    {
+      "location": "http://incubator.apache.org/ambari/stack",
+      "type": "tar"
+    },
+  ],
+  "configuration": {    /* define the general configuration */
+    "hadoop-env": {
+      "HADOOP_CONF_DIR": "/etc/hadoop",
+      "HADOOP_NAMENODE_OPTS": "-Dsecurity.audit.logger=INFO,DRFAS",
+      "HADOOP_CLIENT_OPTS": "-Xmx128m"
+    },
+    "core-site": {
+       "fs.default.name" : "hdfs://${namenode}:8020/",
+       "hadoop.tmp.dir" : "/grid/0/hadoop/tmp",
+       "!hadoop.security.authentication" : "kerberos",
+    }
+  }
+  "components": {
+    "common": {
+      "version": "0.20.204.1" /* define a new version for common */
+      "arch": "i386"
+    },
+    "hdfs": {
+      "user": "hdfs" /* define the user to run the servers */
+    },
+    "mapreduce": {
+      "user": "mapred"
+    },
+    "pig": {
+      "version": "0.9.0"
+    }
+  },
+  "roles": {  /* override one value on the namenode */
+    "namenode": {
+      "configuration": {
+        "hdfs-site": {
+           "dfs.https.enable": "true"
+        }
+      }
+    }
+  }
+}
+------
+
+Clusters
+
+  Defining a cluster, involves picking a blueprint and assigning nodes to the
+  cluster.
+
+  Clusters have a goal state, which can be one of three values:
+
+  * <<Active>> -- the user wants the cluster to be started
+
+  * <<Inactive>> -- the user wants the cluster to be stopped
+
+  * <<Retired>> -- the user wants the cluster to be stopped, the nodes 
+  released, and the data deleted. This is useful, if the user expects
+  to recreate the cluster eventually, but wants to release the nodes.
+
+  []
+
+  Clusters also have a list of active services that should be running. This 
+  overrides the blueprint and provides a mechanism for the administrator to
+  shutdown a service temporarily.
+
+* Cluster example
+
+------
+{
+  "description": "alpha cluster",
+  "blueprint": "kryptonite",
+  "nodes": ["node000-999", "gateway0-1"],
+  "goal": "active",
+  "services": ["hdfs", "mapreduce"],
+  "roles": {
+    "namenode": ["node000"],
+    "jobtracker": ["node001"],
+    "secondary-namenode": ["node002"],
+    "gateway": ["gateway0-1"],
+  }
+}
+------
+  
+Monitoring
+
+  Monitoring the current state of the cluster is an important part of
+  operating Hadoop. Ambari current supports running basic
+  health-checks on processes running on nodes. The status will be
+  aggregated up as the health of the corresponding Hadoop
+  services). Roughly these checks will consist of pinging the RPC port
+  of the server to see if it responds.
+
+High-level Design
+
+  Ambari is managed by the Ambari Controller – a central server, which
+  provides the user interface and that directs the agent on each node.
+  The agent is responsible for installing, configuring, running and
+  cleaning up components of the Hadoop stack on the local node. Each agent will
+  contact the controller when it has finished its work or N seconds have 
+  passed.
+
+  Ambari abstracts out the configuration and software stack in the
+  cluster as blueprint. Every stack release provides a default
+  blueprint. If a site has multiple clusters, they can define a "site"
+  blueprint that provides the site-wide defaults and have the cluster 
+  blueprints derive from it. Ambari will keep the revision history of
+  blueprints to enable operators to diagnose problems and track changes.
+
+Roadmap
+
+  In the future, Ambari would integrate with and use existing
+  datacenter management and monitoring infrastructure - Nagios,
+  etc. The other area where Ambari will focus on is a store for
+  metrics data. HBase is a likely candidate for such a store.
+
+  We also need to support adding and removing nodes from a running cluster
+  without brining it down first. This will require doing decommissioning
+  of nodes before they are removed.
+
+  A lot of support needs to be added for supporting secure clusters,
+  including providing a single interface to manage access control lists
+  for the cluster.
+
+  Ambari would also host a KDC, especially for servers like the
+  tasktracker and the datanode to have their own keytabs generated and
+  deployed by Ambari. The native KDC could optionally hook up to the
+  Corporate KDC for user management, or host user management within
+  itself. Continuing on the security aspects, Ambari would also have a
+  convenient way of allowing administrators to specify ACLs for
+  services and queues.
+
+  We plan to integrate an SNMP interface for integration with other cluster
+  management tools.
+
+  We are designing the Ambari infrastructure to have an abstract
+  interface for managing components. The current version of Ambari
+  doesn't publicize the interface, but the intention is to open it up
+  to support 3rd party components. Once the plugin is made available,
+  Ambari can be used to deploy these services as any other standard
+  Hadoop service. To have consistency in the architecture, the
+  standard Hadoop services will also be plugged in to Ambari using the same
+  mechanism.
+

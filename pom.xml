@@ -29,31 +29,58 @@
         <package.log.dir>/var/log/ambari</package.log.dir>
         <package.pid.dir>/var/run/ambari</package.pid.dir>
         <package.release>1</package.release>
-        <package.version>0.1.0</package.version>
-        <final.name>${project.artifactId}-${project.version}</final.name>
+        <ambari.version>0.1.0</ambari.version>
+        <final.name>${project.artifactId}-${ambari.version}</final.name>
     </properties>
 
     <name>ambari</name>
-    <description>Ambari</description>
+    <description>
+      Ambari is a monitoring, administration and lifecycle management project
+      for Apache Hadoop clusters. Hadoop clusters require many inter-related
+      components that must be installed, configured, and managed across the
+      entire cluster. The stack of components that are currently supported by
+      Ambari includes HBase, HCatalog, HDFS, Hive, MapReduce, Pig, and 
+      Zookeeper.
+    </description>
     <url>http://incubator.apache.org/ambari</url>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
-    <version>0.1.0</version>
+    <version>${ambari.version}</version>
     <artifactId>ambari</artifactId>
     <packaging>pom</packaging>
 
     <issueManagement>
-        <system>Ambari jira</system>
+        <system>Jira</system>
         <url>http://issues.apache.org/jira/browse/AMBARI</url>
     </issueManagement>
 
     <mailingLists>
         <mailingList>
-            <name>ambari-dev</name>
-            <subscribe></subscribe>
-            <unsubscribe></unsubscribe>
+            <name>User list</name>
+            <subscribe>mailto:ambari-user-subscribe@incubator.apache.com
+            </subscribe>
+            <unsubscribe>mailto:ambari-user-unsubscribe@incubator.apache.com
+            </unsubscribe>
+            <post>mailto:ambari-user@incubator.apache.com</post>
+            <archive></archive>
+        </mailingList>
+        <mailingList>
+            <name>Development list</name>
+            <subscribe>mailto:ambari-dev-subscribe@incubator.apache.com
+            </subscribe>
+            <unsubscribe>mailto:ambari-dev-unsubscribe@incubator.apache.com
+            </unsubscribe>
             <post>mailto:ambari-dev@incubator.apache.com</post>
+            <archive></archive>
+        </mailingList>
+        <mailingList>
+            <name>Commit list</name>
+            <subscribe>mailto:ambari-commits-subscribe@incubator.apache.com
+            </subscribe>
+            <unsubscribe>mailto:ambari-commits-unsubscribe@incubator.apache.com
+            </unsubscribe>
+            <post>mailto:ambari-commits@incubator.apache.com</post>
             <archive></archive>
         </mailingList>
     </mailingLists>

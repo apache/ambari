@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-{ "name": "kryptonite",
+{
   "stack": "ambari-1.0",
   "parent": "site",
   "parent-revision": "42",

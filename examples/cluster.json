@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 {
-  "name": "kryptonite-green",
   "description": "alpha cluster",
   "blueprint": "kryptonite",
   "nodes": ["node000-999", "gateway0-1"],
