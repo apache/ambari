@@ -59,7 +59,7 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
   private final StateMachine<RoleState, RoleEventType, RoleEvent>
       stateMachine;
   
-  public RoleImpl(Service service, String roleName, Set<String> hosts) {
+  public RoleImpl(Service service, String roleName) {
     this.roleName = roleName;
     this.service = service;
     this.myState = RoleState.INACTIVE;

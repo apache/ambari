@@ -37,6 +37,12 @@ public interface ClusterContext {
   String[] getAllRoles();
   
   /**
+   * Get all of the components that are currently active in the cluster
+   * @return a list of all of the services for this node
+   */
+  String[] getClusterComponents();
+  
+  /**
    * Get the directory name for the directory that should contain the software.
    * @return the full pathname of the directory
    */

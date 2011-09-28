@@ -17,8 +17,6 @@
 */
 package org.apache.ambari.resource.statemachine;
 
-import java.util.List;
-
 public interface Service extends LifeCycle {
   
   public ServiceState getServiceState();

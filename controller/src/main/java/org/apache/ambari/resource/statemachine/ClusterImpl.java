@@ -32,6 +32,7 @@ import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
 import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
+import org.apache.ambari.components.ClusterContext;
 import org.apache.ambari.event.EventHandler;
 
 public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
@@ -81,12 +82,12 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   private Map<String, Set<String>> roleToNodes;
   private StateMachine<ClusterState, ClusterEventType, ClusterEvent> 
           stateMachine;
-  private String clusterName;
   private int numServicesStarted;
   private int totalEnabledServices;
   private Lock readLock;
   private Lock writeLock;
   private short roleCount; 
+  private String clusterName;
     
   public ClusterImpl(String name) {
     this.clusterName = name;
@@ -94,11 +95,6 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
     this.readLock = readWriteLock.readLock();
     this.writeLock = readWriteLock.writeLock();
     this.stateMachine = stateMachineFactory.make(this);
-  }
-
-  @Override
-  public String getClusterName() {
-    return clusterName;
   }
 
   @Override
@@ -122,6 +118,7 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   
   @Override  
   public void addServices(List<Service> services) {
+    //The services start in the order they appear in the list
     this.services.addAll(services);
   }
   
@@ -210,6 +207,11 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   public void terminate() {
     StateMachineInvoker.getAMBARIEventHandler().handle(
         new ClusterEvent(ClusterEventType.S_RELEASE_NODES, this));    
+  }
+
+  @Override
+  public String getClusterName() {
+    return clusterName;
   }
 
 }

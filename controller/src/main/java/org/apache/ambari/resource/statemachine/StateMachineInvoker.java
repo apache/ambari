@@ -17,10 +17,14 @@
 */
 package org.apache.ambari.resource.statemachine;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+import org.apache.ambari.components.ClusterContext;
 import org.apache.ambari.event.AsyncDispatcher;
 import org.apache.ambari.event.Dispatcher;
 import org.apache.ambari.event.EventHandler;
@@ -59,11 +63,20 @@ public class StateMachineInvoker {
     }
   }
   
-  public static Cluster createCluster(String clusterName) {
-    return new ClusterImpl(clusterName);
+  private static ConcurrentMap<String, Cluster> clusters = 
+      new ConcurrentHashMap<String, Cluster>();
+  public static Cluster createCluster(String clusterId) {
+    ClusterImpl cluster = new ClusterImpl(clusterId);
+    clusters.put(clusterId, cluster);
+    return cluster;
   }
   
-  public static Service addServiceInCluster(Cluster cluster, String serviceName) {
+  public static Cluster getStateMachineClusterInstance(String clusterId) {
+    return clusters.get(clusterId);
+  }
+  
+  public static Service addServiceInCluster(Cluster cluster, String serviceName) 
+      throws IOException {
     Service service = new ServiceImpl(cluster, serviceName);
     return addServiceInCluster(cluster, service);
   }

@@ -17,6 +17,7 @@
 */
 package org.apache.ambari.resource.statemachine;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -27,12 +28,15 @@ import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
 import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
+import org.apache.ambari.components.ComponentPlugin;
+import org.apache.ambari.components.impl.HDFSPluginImpl;
 import org.apache.ambari.event.EventHandler;
 
 public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
 
   private ServiceState myState;
   private Cluster cluster;
+  private ComponentPlugin plugin;
   
   /* The state machine for the service looks like:
    * INACTIVE --S_START--> STARTING --S_START_SUCCESS--> ACTIVE
@@ -65,12 +69,18 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
   private final String serviceName;
   private short roleCount;
   
-  public ServiceImpl(Cluster cluster, String serviceName) {
+  public ServiceImpl(Cluster cluster, String serviceName) throws IOException {
     this.cluster = cluster;
     this.serviceName = serviceName;
     this.myState = ServiceState.INACTIVE;
-    stateMachine = stateMachineFactory.make(this);
     //load plugin and get the roles and create them
+    this.plugin = new HDFSPluginImpl();
+    String[] roles = this.plugin.getRoles();
+    for (String role : roles) {
+      RoleImpl roleImpl = new RoleImpl(this, role);
+      serviceRoles.add(roleImpl);
+    }
+    stateMachine = stateMachineFactory.make(this);
   }
     
   public StateMachine getStateMachine() {
