@@ -29,31 +29,29 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.annotation.XmlElement;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.Cluster;
 import org.apache.ambari.common.rest.entities.Stack;
-import org.apache.ambari.common.rest.entities.Stacks;
 import org.apache.ambari.controller.Clusters;
+import org.apache.ambari.controller.Stacks;
 
+import com.sun.jersey.spi.container.WebApplication;
 import com.sun.jersey.spi.resource.Singleton;
 
 /** Stacks resource represents a collection of Hadoop Stacks
  */
 @Singleton
 @Path(value = "/stacks")
-public class StacksResource {
-           
-        Stacks stacks = Stacks.getInstance();
-        
-    public StacksResource() throws Exception {  
-        Stack stack123 = new Stack();
-        stacks.addStack(stack123);
-    }  
+public class StacksResource {       
     
     /** Import a new Hadoop Stack description
-     * 
+     *  <p>
+     *  Specific revision of stack is imported/created into Ambari, if not already present. It returns the 
+     *  description of the stack if imported successfully. If 
      *  <p>
      *  REST:<br>
      *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /stacks/<br>
@@ -69,10 +67,16 @@ public class StacksResource {
      * @param   url Location of the new stack definition
      * @throws  Exception               throws Exception
      */
-    @Path(value = "/stacks/")
-    @PUT
+    @POST
     @Consumes({"application/json", "application/xml"})
-    public synchronized void importStackDescription(String url) throws Exception {
+    public Stack importStackDescription(@DefaultValue("") @QueryParam("url") String url) throws WebApplicationException {       
+        try {
+            return Stacks.getInstance().importStackDescription(url);
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
     }
     
     /** Get the list of stacks installed with Ambari controller.
@@ -93,25 +97,25 @@ public class StacksResource {
      * @return                  Returns list of stack definitions
      * @throws Exception        throws Exception
      */
-    /*@GET
-    public List<Stack> getStackList (@DefaultValue("") @QueryParam("search") String searchToken) throws Exception {
-        List<Stack> searchResults = Stacks.getInstance().getStackList();
-        if (!searchToken.equals("")) {
-                searchResults = new ArrayList<Stack>();
-                for (Stack cls : Stacks.getInstance().getStackList()) {
-                        if (cls.getName().matches("^.*"+searchToken+".*$")) {
-                                searchResults.add(cls);
-                        }
-                }
-        }
-    
-        if (searchResults.isEmpty()) {
-                throw new Exception ("No matching stacks found!");
-        }
-        return null;
-    }*/
+    @GET
+    @Consumes({"application/json", "application/xml"})
+    public List<String> getStackList (@DefaultValue("") @QueryParam("search") String searchToken) throws Exception {
+        
+        try {
+            List <String> list = Stacks.getInstance().getStackList();
+            if (list.isEmpty()) {
+                Exception e = new Exception ("No stacks found");
+                throw new WebApplicationException (e, Response.Status.NO_CONTENT);
+            }
+            return list;
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        } 
+    }
 
-    /** Get the default blueprint for a particular stack
+    /** Get the stack definition
      * 
      *  <p>
      *  REST:<br>
@@ -129,8 +133,57 @@ public class StacksResource {
      * @return                  The default blueprint for that stack
      * @throws Exception        throws Exception
      */
+    @Path(value = "/{stackName}")
     @GET
-    public Blueprint getDefaultBlueprint(@PathParam("stackName") String stackName) throws Exception {
-      return null;
+    @Produces({"application/json", "application/xml"})
+    public Stack getStackDefinition(@PathParam("stackName") String stackName,
+                     @DefaultValue("") @QueryParam("revision") String revision) throws Exception {  
+        try {
+            if (revision == null || revision.equals("")) {
+                Exception e = new Exception ("Revision number not specified");
+                throw new WebApplicationException (e, Response.Status.BAD_REQUEST);
+            }
+            return Stacks.getInstance().getStack(stackName, Integer.parseInt(revision));
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }      
+    }
+    
+    /** Get the default blueprint for a particular stack
+     * 
+     *  <p>
+     *  REST:<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /stacks/{stackName}/default-blueprint<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  <p> 
+     * 
+     * @param stackName         The name of the stack to get the default blueprint
+     * @return                  The default blueprint for that stack
+     * @throws Exception        throws Exception
+     */
+    @Path(value = "/{stackName}/default-blueprint")
+    @GET
+    @Produces({"application/json", "application/xml"})
+    public Blueprint getDefaultBlueprint(@PathParam("stackName") String stackName,
+                     @DefaultValue("") @QueryParam("revision") String revision) throws Exception {
+        try {
+            if (revision == null || revision.equals("")) {
+                Exception e = new Exception ("Revision number not specified");
+                throw new WebApplicationException (e, Response.Status.BAD_REQUEST);
+            }
+            return Stacks.getInstance().getDefaultBlueprint(stackName, Integer.parseInt(revision));
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }     
     }
 }

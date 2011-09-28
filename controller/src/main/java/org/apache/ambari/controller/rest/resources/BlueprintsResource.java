@@ -28,8 +28,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.controller.Blueprints;
+import org.apache.ambari.controller.Stacks;
 
 /** BlueprintResource represents a Hadoop blueprint to be installed on a 
  *  cluster. Blueprints define a collection of Hadoop components that are
@@ -42,16 +46,16 @@ public class BlueprintsResource {
      *  <p>
      *  If named blueprint does not exists already, then it creates new one i.e. revision zero.
      *  <p>
-         *  REST:<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  <p> 
+     *  REST:<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  <p> 
      * 
      * @param blueprint                 Input blueprint object specifying the blueprint definition
      * @return                                  Returns the newly created revision of the blueprint
@@ -59,30 +63,41 @@ public class BlueprintsResource {
      */
     @POST
     @Consumes
-    public Blueprint createBlueprint(Blueprint blueprint) throws Exception {
-        return null;
+    public void createBlueprint(Blueprint blueprint) throws Exception {
+        Blueprints.getInstance().addBlueprint(blueprint);
     }
 
     /** Get the list of blueprint names
      *  <p>
-         *  REST:<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  <p> 
+     *  REST:<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  <p> 
      * 
-     * @return                                  Returns the list of blueprint names
+     * @return                          Returns the list of blueprint names
      * @throws Exception                throws Exception
      */
     @GET
     @Consumes
     public List<String> listBlueprints() throws Exception {
-        return null;
+        try {
+            List <String> list = Blueprints.getInstance().getBlueprintList();
+            if (list.isEmpty()) {
+                Exception e = new Exception ("No user defined blueprints found");
+                throw new WebApplicationException (e, Response.Status.NO_CONTENT);
+            }
+            return list;
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        } 
     }
     
 }

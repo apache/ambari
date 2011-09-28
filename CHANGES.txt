@@ -2,6 +2,10 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-16. Implement Stacks resource API
+
+  AMBARI-14. Implement Ambari REST API for cluster resource
+
   AMBARI-13. Initial attempt at a website. (omalley)
 
   AMBARI-10. Initial checkin of the heartbeat handling code (ddas)
