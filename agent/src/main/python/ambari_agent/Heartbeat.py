@@ -40,7 +40,8 @@ class Heartbeat:
                   'hostname' : socket.gethostname(),
                   'hardwareProfile' : hardware.get(),
                   'actionResults' : self.actionQueue.result(),
-                  'serversStatus' : serverStatus.build()
+                  'serversStatus' : serverStatus.build(),
+                  'idle' : self.actionQueue.isIdle()
                 }
     return heartbeat
 

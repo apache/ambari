@@ -123,3 +123,7 @@ class ActionQueue(threading.Thread):
     logger.error('Unknown action: %s' % action['id'])
     result = { 'id': action['id'] }
     return result
+
+  # Discover agent idle state
+  def isIdle(self):
+    return q.empty()
