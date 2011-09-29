@@ -25,4 +25,7 @@ public interface Role extends LifeCycle {
   
   public Service getAssociatedService();
   
+  public boolean shouldStop();
+  
+  public boolean shouldStart();
 }

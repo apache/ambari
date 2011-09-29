@@ -31,11 +31,18 @@ import org.apache.ambari.common.rest.entities.agent.Action;
 public abstract class ComponentPlugin {
   
   /**
-   * Get the roles for this component.
+   * Get the inactive roles for this component.
+   * @return the list of roles that need to be installed, but don't have servers.
+   * @throws IOException
+   */
+  public abstract String[] getInactiveRoles() throws IOException;
+  
+  /**
+   * Get the active roles (ie. with servers) for this component.
    * @return the list of roles in the order that they should be started
    * @throws IOException
    */
-  public abstract String[] getRoles() throws IOException;
+  public abstract String[] getActiveRoles() throws IOException;
   
   /**
    * Get the components that this one depends on.

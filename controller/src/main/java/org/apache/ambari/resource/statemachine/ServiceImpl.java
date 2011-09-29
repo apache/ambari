@@ -75,7 +75,7 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
     this.myState = ServiceState.INACTIVE;
     //load plugin and get the roles and create them
     this.plugin = new HDFSPluginImpl();
-    String[] roles = this.plugin.getRoles();
+    String[] roles = this.plugin.getActiveRoles();
     for (String role : roles) {
       RoleImpl roleImpl = new RoleImpl(this, role);
       serviceRoles.add(roleImpl);
@@ -160,5 +160,15 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
   public void deactivate() {
     StateMachineInvoker.getAMBARIEventHandler().handle(
               new ServiceEvent(ServiceEventType.S_STOP, this));
+  }
+
+  @Override
+  public boolean isActive() {
+    return myState == ServiceState.ACTIVE;
+  }
+
+  @Override
+  public List<Role> getRoles() {
+    return serviceRoles;
   }
 }

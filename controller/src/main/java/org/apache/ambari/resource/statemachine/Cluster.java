@@ -20,8 +20,6 @@ package org.apache.ambari.resource.statemachine;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.components.ClusterContext;
-
 public interface Cluster extends LifeCycle {
   public List<Service> getServices();
   public ClusterState getClusterState();

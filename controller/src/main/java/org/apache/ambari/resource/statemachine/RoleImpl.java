@@ -121,6 +121,16 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
 
   @Override
   public void deactivate() {
-    //load the plugin and get the commands for stopping the role
+    
+  }
+
+  @Override
+  public boolean shouldStop() {
+    return myState == RoleState.STOPPING;
+  }
+
+  @Override
+  public boolean shouldStart() {
+    return myState == RoleState.STARTING;
   }
 }

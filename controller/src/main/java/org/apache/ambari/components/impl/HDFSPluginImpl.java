@@ -28,12 +28,6 @@ import org.apache.ambari.components.ComponentPlugin;
 public class HDFSPluginImpl extends ComponentPlugin {
 
   @Override
-  public String[] getRoles() throws IOException {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public String[] getRequiredComponents() throws IOException {
     // TODO Auto-generated method stub
     return null;
@@ -74,6 +68,18 @@ public class HDFSPluginImpl extends ComponentPlugin {
   @Override
   public List<Action> stopRoleServer(ClusterContext cluster, String role)
       throws IOException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String[] getInactiveRoles() throws IOException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String[] getActiveRoles() throws IOException {
     // TODO Auto-generated method stub
     return null;
   }

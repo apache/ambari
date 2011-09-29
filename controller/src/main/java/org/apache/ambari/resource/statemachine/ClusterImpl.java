@@ -213,5 +213,4 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   public String getClusterName() {
     return clusterName;
   }
-
 }
