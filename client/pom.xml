@@ -114,4 +114,12 @@
       </plugins>
     </build>
 
+  <distributionManagement>
+    <site>
+      <id>apache-website</id>
+      <name>Apache website</name>
+      <url>scpexe://people.apache.org/www/incubator.apache.org/client</url>
+    </site>
+  </distributionManagement>
+
 </project>

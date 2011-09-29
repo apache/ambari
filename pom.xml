@@ -173,156 +173,168 @@
     </organization>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
+      <resources>
+        <resource>
+          <directory>src/main/resources</directory>
+          <filtering>true</filtering>
+        </resource>
+      </resources>
+      <pluginManagement>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.4.3</version>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>2.4.3</version>
+            <configuration>
+              <encoding>UTF-8</encoding>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>2.3.2</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>test-jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>2.3.2</version>
+            <configuration>
+              <compilerVersion>1.5</compilerVersion>
+              <source>1.6</source>
+              <target>1.6</target>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.1.1</version>
+            <executions>
+              <execution>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.5</version>
+            <configuration>
+              <phase>test</phase>
+              <argLine>-Xmx1024m</argLine>
+              <includes>
+                <include>**/Test*.java</include>
+              </includes>
+              <excludes>
+                <exclude>**/IntegrationTest*.java</exclude>
+                <exclude>**/PerformanceTest*.java</exclude>
+              </excludes>
+              <skipTests>${skipTests}</skipTests>
+              <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
+              <systemProperties>
+                <property>
+                  <name>AMBARI_LOG_DIR</name>
+                  <value>${project.build.directory}/logs</value>
+                </property>
+              </systemProperties>
+            </configuration>
+          </plugin>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <configuration>
+              <tarLongFileMode>gnu</tarLongFileMode>
+              <descriptors>
+                <descriptor>src/packages/tarball/all.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>build-tarball</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.4</version>
+            <executions>
+              <execution>
+                <phase>validate</phase>
                 <configuration>
-                    <encoding>UTF-8</encoding>
+                  <tasks name="setup">
+                    <mkdir dir="${basedir}/target"/>
+                    <echo message="0.1.0" file="${basedir}/target/VERSION"/>
+                    <mkdir dir="${basedir}/target/clover"/>
+                    <chmod dir="${basedir}/target/clover" perm="a+w" />
+                  </tasks>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.2</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <compilerVersion>1.5</compilerVersion>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.1.1</version>
-                <executions>
-                    <execution>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.5</version>
-                <configuration>
-                    <phase>test</phase>
-                    <argLine>-Xmx1024m</argLine>
-                    <includes>
-                        <include>**/Test*.java</include>
-                    </includes>
-                    <excludes>
-                        <exclude>**/IntegrationTest*.java</exclude>
-                        <exclude>**/PerformanceTest*.java</exclude>
-                    </excludes>
-                    <skipTests>${skipTests}</skipTests>
-                    <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
-                    <systemProperties>
-                        <property>
-                            <name>AMBARI_LOG_DIR</name>
-                            <value>${project.build.directory}/logs</value>
-                        </property>
-                    </systemProperties>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <tarLongFileMode>gnu</tarLongFileMode>
-                    <descriptors>
-                        <descriptor>src/packages/tarball/all.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>build-tarball</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <phase>validate</phase>
-                        <configuration>
-                            <tasks name="setup">
-                                <mkdir dir="${basedir}/target"/>
-                                <echo message="0.1.0" file="${basedir}/target/VERSION"/>
-                                <mkdir dir="${basedir}/target/clover"/>
-                                <chmod dir="${basedir}/target/clover" perm="a+w" />
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-site-plugin</artifactId>
-              <version>3.0</version>
-            </plugin>
-            <plugin>
-              <groupId>org.apache.rat</groupId>
-              <artifactId>apache-rat-plugin</artifactId>
-              <version>0.7</version>
-              <executions>
-                <execution>
-                  <phase>verify</phase>
-                  <goals>
-                    <goal>check</goal>
-                  </goals>
-                </execution>
-              </executions>
-              <configuration>
-                <numUnapprovedLicenses>0</numUnapprovedLicenses>
-                <excludes>
-                  <!-- notice files -->
-                  <exclude>CHANGES.txt</exclude>
-                  <!-- generated files -->
-                  <exclude>**/target/**</exclude>
-                  <exclude>**/.classpath</exclude>
-                  <exclude>**/.project</exclude>
-                  <exclude>**/.settings/**</exclude>
-                  <!-- bsd/gpl dual licensed files -->
-                  <exclude>src/main/webapps/css/smoothness/jquery-ui-1.8.13.custom.css</exclude>
-                  <exclude>src/main/webapps/js/jquery.dataTables.min.js</exclude>
-                  <exclude>**/application-grammars.xml</exclude>
-  		  <exclude>**/wadl.xsl</exclude>
-                </excludes>
-              </configuration>
-            </plugin>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-site-plugin</artifactId>
+            <version>3.0</version>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.rat</groupId>
+            <artifactId>apache-rat-plugin</artifactId>
+            <version>0.7</version>
+            <executions>
+              <execution>
+                <phase>verify</phase>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <numUnapprovedLicenses>0</numUnapprovedLicenses>
+              <excludes>
+                <!-- notice files -->
+                <exclude>CHANGES.txt</exclude>
+                <!-- generated files -->
+                <exclude>**/target/**</exclude>
+                <exclude>**/.classpath</exclude>
+                <exclude>**/.project</exclude>
+                <exclude>**/.settings/**</exclude>
+                <!-- bsd/gpl dual licensed files -->
+                <exclude>src/main/webapps/css/smoothness/jquery-ui-1.8.13.custom.css</exclude>
+                <exclude>src/main/webapps/js/jquery.dataTables.min.js</exclude>
+                <exclude>**/application-grammars.xml</exclude>
+  		<exclude>**/wadl.xsl</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.wagon</groupId>
+            <artifactId>wagon-ssh-external</artifactId>
+            <version>1.0</version>
+          </plugin>
         </plugins>
+      </pluginManagement>
+      <extensions>
+        <extension>
+          <groupId>org.apache.maven.wagon</groupId>
+          <artifactId>wagon-ssh-external</artifactId>
+        </extension>
+      </extensions>
     </build>
 
     <profiles>
@@ -757,5 +769,13 @@
         <dependencies>
         </dependencies>
     </dependencyManagement>
+
+  <distributionManagement>
+    <site>
+      <id>apache-website</id>
+      <name>Apache website</name>
+      <url>scpexe://people.apache.org/www/incubator.apache.org/ambari</url>
+    </site>
+  </distributionManagement>
 
 </project>

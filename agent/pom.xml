@@ -82,6 +82,12 @@
                 </executions>
             </plugin>
         </plugins>
+      <extensions>
+        <extension>
+          <groupId>org.apache.maven.wagon</groupId>
+          <artifactId>wagon-ssh-external</artifactId>
+        </extension>
+      </extensions>
     </build>
 
   <profiles>
@@ -150,5 +156,13 @@
       </build>
     </profile>
   </profiles>
+
+  <distributionManagement>
+    <site>
+      <id>apache-website</id>
+      <name>Apache website</name>
+      <url>scpexe://people.apache.org/www/incubator.apache.org/ambari/agent</url>
+    </site>
+  </distributionManagement>
 
 </project>

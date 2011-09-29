@@ -185,4 +185,13 @@
         <scope>test</scope>
       </dependency>
     </dependencies>
+
+  <distributionManagement>
+    <site>
+      <id>apache-website</id>
+      <name>Apache website</name>
+      <url>scpexe://people.apache.org/www/incubator.apache.org/ambari/controller</url>
+    </site>
+  </distributionManagement>
+
 </project>
