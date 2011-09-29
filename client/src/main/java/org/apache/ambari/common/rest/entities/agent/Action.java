@@ -40,6 +40,8 @@ public class Action {
   @XmlElement
   public String id;
   @XmlElement
+  public String component;
+  @XmlElement
   public String serverName;
   @XmlElement
   public Signal signal;
@@ -80,8 +82,16 @@ public class Action {
     this.id = id;
   }
   
+  public String getComponent() {
+    return component;
+  }
+  
   public String getServerName() {
     return serverName;
+  }
+  
+  public void setComponent(String component) {
+    this.component = component;
   }
   
   public void setServerName(String serverName) {

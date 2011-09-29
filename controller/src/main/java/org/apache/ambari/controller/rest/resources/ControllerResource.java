@@ -82,7 +82,8 @@ public class ControllerResource {
     
     Action action = new Action();
     action.setUser("hdfs");
-    action.setServerName("hadoop.datanode");
+    action.setComponent("hdfs");
+    action.setServerName("datanode");
     action.setKind(Kind.STOP_ACTION);
     action.setSignal(Signal.KILL);
     action.setClusterId("cluster-001");
@@ -95,7 +96,8 @@ public class ControllerResource {
     action2.setClusterId("cluster-002");
     action2.setCommands(commands);
     action2.setCleanUpCommands(cleanUps);
-    action2.setServerName("hadoop.datanode");
+    action2.setComponent("hdfs");
+    action2.setServerName("datanode");
 
     Action action3 = new Action();
     action3.setUser("hdfs");
@@ -144,7 +146,8 @@ public class ControllerResource {
       actionResult2.setCommandResults(commandResults);
       actionResult2.setCleanUpResults(cleanUpResults);
       actionResult2.setKind(Kind.START_ACTION);
-      actionResult2.setServerName("hadoop.datanode");
+      actionResult2.setComponent("hadoop");
+      actionResult2.setServerName("datanode");
 
       actionResults.add(actionResult);
       actionResults.add(actionResult2);
@@ -166,9 +169,9 @@ public class ControllerResource {
       hb.setActionResults(actionResults);
       hb.setHardwareProfile(hp);
       List<ServerStatus> serversStatus = new ArrayList<ServerStatus>();
-      serversStatus.add(new ServerStatus("hadoop.datanode", 
+      serversStatus.add(new ServerStatus("hdfs","datanode", 
           ServerStatus.State.STARTED));
-      serversStatus.add(new ServerStatus("hadoop.tasktracker", 
+      serversStatus.add(new ServerStatus("hdfs","tasktracker", 
           ServerStatus.State.STARTED));
       hb.setServersStatus(serversStatus);
       hb.setIdle(false);
@@ -202,7 +205,8 @@ public class ControllerResource {
     
     Action action = new Action();
     action.setUser("hdfs");
-    action.setServerName("hadoop.datanode");
+    action.setComponent("hdfs");
+    action.setServerName("datanode");
     action.setKind(Kind.STOP_ACTION);
     action.setSignal(Signal.KILL);
     action.setClusterId("cluster-001");
@@ -215,7 +219,8 @@ public class ControllerResource {
     action2.setClusterId("cluster-002");
     action2.setCommands(commands);
     action2.setCleanUpCommands(cleanUps);
-    action2.setServerName("hadoop.datanode");
+    action2.setComponent("hdfs");
+    action2.setServerName("datanode");
     
     List<Action> actions = new ArrayList<Action>();
     actions.add(action);

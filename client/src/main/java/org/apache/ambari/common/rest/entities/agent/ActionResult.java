@@ -48,6 +48,8 @@ public class ActionResult {
   @XmlElement
   private List<CommandResult> cleanUpCommandResults;
   @XmlElement
+  private String component;
+  @XmlElement
   private String serverName;
 
   public String getClusterId() {
@@ -91,8 +93,16 @@ public class ActionResult {
     
   }
   
+  public String getComponent() {
+    return this.component;
+  }
+  
   public String getServerName() {
     return serverName;
+  }
+  
+  public void setComponent(String component) {
+    this.component = component;
   }
   
   public void setServerName(String serverName) {

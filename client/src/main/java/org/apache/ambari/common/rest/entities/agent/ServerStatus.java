@@ -28,17 +28,27 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
 public class ServerStatus {
+  public String component;
   public String serverName;
   public State state;
   
   public ServerStatus() {  
   }
   
-  public ServerStatus(String serverName, State state) {
+  public ServerStatus(String component, String serverName, State state) {
+    this.component = component;
     this.serverName = serverName;
     this.state = state;
   }
 
+  public String getComponent() {
+    return this.component;
+  }
+
+  public void setComponent(String component) {
+    this.component = component;  
+  }
+  
   public String getServerName() {
     return serverName;
   }
