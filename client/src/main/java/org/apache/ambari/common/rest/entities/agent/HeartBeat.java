@@ -25,6 +25,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+
+import org.apache.ambari.common.rest.entities.agent.Action.Signal;
 
 
 /**
@@ -34,7 +37,9 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {"responseId","timestamp", "clusterId", "hostname", "stackId", "hardwareProfile", "actionResults", "serversStatus"})
+@XmlType(name = "", propOrder = {"responseId","timestamp", "clusterId", 
+    "hostname", "stackId", "hardwareProfile", 
+    "actionResults", "serversStatus", "idle"})
 public class HeartBeat {
   @XmlElement
   private String responseId;
@@ -52,6 +57,8 @@ public class HeartBeat {
   private List<ActionResult> actionResults;
   @XmlElement
   private List<ServerStatus> serversStatus;
+  @XmlElement
+  private boolean idle;
   
   public String getResponseId() {
     return responseId;
@@ -75,6 +82,10 @@ public class HeartBeat {
   
   public String getStackId() {
     return stackId;
+  }
+  
+  public boolean getIdle() {
+    return idle;
   }
   
   public HardwareProfile getHardwareProfile() {
@@ -115,5 +126,9 @@ public class HeartBeat {
   
   public void setServersStatus(List<ServerStatus> serversStatus) {
     this.serversStatus = serversStatus;
+  }
+  
+  public void setIdle(boolean idle) {
+    this.idle = idle;
   }
 }

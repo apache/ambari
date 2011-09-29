@@ -171,6 +171,7 @@ public class ControllerResource {
       serversStatus.add(new ServerStatus("hadoop.tasktracker", 
           ServerStatus.State.STARTED));
       hb.setServersStatus(serversStatus);
+      hb.setIdle(false);
       return hb;
     } catch (UnknownHostException e) {
       throw new WebApplicationException(e);
