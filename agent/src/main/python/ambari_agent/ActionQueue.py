@@ -22,6 +22,7 @@ import logging
 import logging.handlers
 import Queue
 import threading
+from FileUtil import writeFile
 from shell import shellRunner
 
 logger = logging.getLogger()
@@ -97,7 +98,10 @@ class ActionQueue(threading.Thread):
     cmdResult = []
     for cmd in commands:
       script = cmd['cmd']
-      response = self.sh.run(script, cmd['user'])
+      if script[0]=="ambari-write-file":
+        response = writeFile(script)
+      else
+        response = self.sh.run(script, cmd['user'])
       exitCode = response['exit_code']
       if exitCode==0:
         cmdResult.append({'exitCode':exitCode})
