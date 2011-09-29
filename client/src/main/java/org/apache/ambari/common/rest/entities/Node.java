@@ -36,22 +36,20 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @XmlType(name = "NodeType", propOrder = {
     "name",
     "nodeAttributes",
-    "nodeState",
-    "agentDeploymentState"
+    "nodeState"
 })
 public class Node {
     
     @XmlElement(name = "Name", required = true)
     protected String name;
-    @XmlElement(name = "NodeAttributes", required = true)
+    @XmlElement(name = "NodeAttributes")
     protected NodeAttributes nodeAttributes;
     @XmlElement(name = "NodeState", required = true)
     protected NodeState nodeState;
    
-    public Node () {}
-
     public Node (String name) {
       this.name = name;
+      this.nodeState = new NodeState();
     }
 	
     /*

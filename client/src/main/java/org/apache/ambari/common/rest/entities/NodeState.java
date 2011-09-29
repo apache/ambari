@@ -38,11 +38,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 })
 public class NodeState {
 
-        @XmlElement(name = "lastHeartbeatTime", required = true)
+    @XmlElement(name = "lastHeartbeatTime", required = true)
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar lastHeartbeatTime;
         
-        /*
+    /*
      * Associating the cluster name would reserve the node for a given cluster
      * 
      */

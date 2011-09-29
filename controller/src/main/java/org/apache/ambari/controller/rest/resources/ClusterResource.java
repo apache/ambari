@@ -101,10 +101,14 @@ public class ClusterResource {
      */ 
     @PUT
     @Consumes({"application/json", "application/xml"})
-    public ClusterDefinition updateClusterDefinition(@PathParam("clusterName") String clusterName, ClusterDefinition cluster) throws Exception {
-        
-    //Clusters.getInstance().updateCluster(clusterName, cluster);
-    return null;
+    public ClusterDefinition updateClusterDefinition(@PathParam("clusterName") String clusterName, ClusterDefinition cluster) throws Exception {    
+        try {
+            return Clusters.getInstance().updateCluster(clusterName, cluster);
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        }     
     }
      
     /** Delete the the cluster.
@@ -130,7 +134,13 @@ public class ClusterResource {
     @DELETE
     @Consumes({"application/json", "application/xml"})
     public void deleteCluster( @PathParam("clusterName") String clusterName) throws Exception {
-        Clusters.getInstance().deleteCluster(clusterName);
+        try {
+            Clusters.getInstance().deleteCluster(clusterName);
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        }    
     }
     
     /** Get the cluster state.
@@ -159,28 +169,33 @@ public class ClusterResource {
      */
     @Path(value = "/state")
     @GET
-        @Produces({"application/json", "application/xml"})
-        public ClusterState getClusterState(@PathParam("clusterName") String clusterName) throws Exception {
-                //return Clusters.getInstance().getCluster(clusterName).getCurrentState();
-        return null;
-        }
+    @Produces({"application/json", "application/xml"})
+    public ClusterState getClusterState(@PathParam("clusterName") String clusterName) throws Exception {
+        try {
+            return Clusters.getInstance().getClusterState(clusterName);
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        }    
+    }
     
     /** Get list of nodes associated with the cluster.
      *  <p>
      *  The "alive" is a boolean variable that specify the type of nodes to return based on their state i.e. live or dead. Live nodes are the ones that are consistently heart beating with the controller. 
      *  If both live and dead nodes are need to be returned then specify the alive parameter as null.  
      *  <p>
-         *  REST:<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}/nodes<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  <p> 
-         *  
+     *  REST:<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}/nodes<br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
+     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
+     *  <p> 
+     *  
      *  @param  clusterName             Name of the cluster; Each cluster is identified w/ unique name
      *  @param  roleName                Optionally specify the role name to get the nodes associated with the service role
      *  @param  alive                   Boolean value to specify, if nodes to be returned are alive or dead or both (if alive is set to null) 

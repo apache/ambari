@@ -56,6 +56,9 @@ public class Clusters {
     private static Clusters ClustersTypeRef=null;
         
     private Clusters() {
+        /*
+         * Cluster definition 
+         */
         ClusterDefinition cluster123 = new ClusterDefinition();
         
         cluster123.setName("blue.dev.Cluster123");
@@ -67,6 +70,46 @@ public class Clusters {
         activeServices.add("mapred");
         cluster123.setActiveServices(activeServices);
         
+        List<String> nodeRangeExpressions = new ArrayList<String>();
+        String nodes1 = "jt-nodex";
+        String nodes2 = "nn-nodex";
+        String nodes3 = "hostname-1x hostname-2x hostname-3x hostname-4x";
+        String nodes4 = "node-2x node-3x node-4x";  
+        nodeRangeExpressions.add(nodes1);
+        nodeRangeExpressions.add(nodes2);
+        nodeRangeExpressions.add(nodes3);
+        nodeRangeExpressions.add(nodes4);    
+        cluster123.setNodeRangeExpressions(nodeRangeExpressions);
+        
+        RoleToNodesMap rnm = new RoleToNodesMap();
+        
+        RoleToNodesMapEntry rnme = new RoleToNodesMapEntry();
+        rnme.setRoleName("jobtracker-role");
+        nodeRangeExpressions = new ArrayList<String>();
+        nodeRangeExpressions.add(nodes1);
+        rnme.setNodeRangeExpressions(nodeRangeExpressions);
+        rnm.getRoleToNodesMapEntry().add(rnme);
+        
+        rnme = new RoleToNodesMapEntry();
+        rnme.setRoleName("namenode-role");
+        nodeRangeExpressions = new ArrayList<String>();
+        nodeRangeExpressions.add(nodes2);
+        rnme.setNodeRangeExpressions(nodeRangeExpressions);
+        rnm.getRoleToNodesMapEntry().add(rnme);
+        
+        rnme = new RoleToNodesMapEntry();
+        rnme.setRoleName("slaves-role");
+        nodeRangeExpressions = new ArrayList<String>();
+        nodeRangeExpressions.add(nodes3);
+        nodeRangeExpressions.add(nodes4);
+        rnme.setNodeRangeExpressions(nodeRangeExpressions);
+        rnm.getRoleToNodesMapEntry().add(rnme);
+        
+        cluster123.setRoleToNodesMap(rnm);
+        
+        /*
+         * Cluster definition 
+         */
         ClusterDefinition cluster124 = new ClusterDefinition();
         cluster124.setName("blue.research.Cluster124");
         cluster124.setBlueprintName("cluster124-blueprint");
@@ -76,6 +119,43 @@ public class Clusters {
         activeServices.add("hdfs");
         activeServices.add("mapred");
         cluster124.setActiveServices(activeServices);
+        
+        nodeRangeExpressions = new ArrayList<String>();
+        nodes1 = "jt-node";
+        nodes2 = "nn-node";
+        nodes3 = "hostname-1 hostname-2 hostname-3 hostname-4";
+        nodes4 = "node-2 node-3 node-4";  
+        nodeRangeExpressions.add(nodes1);
+        nodeRangeExpressions.add(nodes2);
+        nodeRangeExpressions.add(nodes3);
+        nodeRangeExpressions.add(nodes4);    
+        cluster124.setNodeRangeExpressions(nodeRangeExpressions);
+        
+        rnm = new RoleToNodesMap();
+        
+        rnme = new RoleToNodesMapEntry();
+        rnme.setRoleName("jobtracker-role");
+        nodeRangeExpressions = new ArrayList<String>();
+        nodeRangeExpressions.add(nodes1);
+        rnme.setNodeRangeExpressions(nodeRangeExpressions);
+        rnm.getRoleToNodesMapEntry().add(rnme);
+        
+        rnme = new RoleToNodesMapEntry();
+        rnme.setRoleName("namenode-role");
+        nodeRangeExpressions = new ArrayList<String>();
+        nodeRangeExpressions.add(nodes2);
+        rnme.setNodeRangeExpressions(nodeRangeExpressions);
+        rnm.getRoleToNodesMapEntry().add(rnme);
+        
+        rnme = new RoleToNodesMapEntry();
+        rnme.setRoleName("slaves-role");
+        nodeRangeExpressions = new ArrayList<String>();
+        nodeRangeExpressions.add(nodes3);
+        nodeRangeExpressions.add(nodes4);
+        rnme.setNodeRangeExpressions(nodeRangeExpressions);
+        rnm.getRoleToNodesMapEntry().add(rnme);
+        
+        cluster124.setRoleToNodesMap(rnm);
         
         try {
             addCluster(cluster123);
@@ -116,8 +196,8 @@ public class Clusters {
     	 * TODO: Validate the cluster definition
     	 */
     	if (c.getName() == null ||  c.getName().equals("")) {
-    		Exception e = new Exception("Cluster Name must be specified and must be non-empty string");
-    		throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+    		String msg = "Cluster Name must be specified and must be non-empty string";
+    		throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
     	}
     	
     	synchronized (operational_clusters) {
@@ -125,8 +205,8 @@ public class Clusters {
     		 * Check if cluster already exists
     		 */
     		if (operational_clusters.containsKey(c.getName())) {
-    			Exception e = new Exception("Cluster ["+c.getName()+"] already exists");
-    			throw new WebApplicationException(e, Response.Status.CONFLICT);
+    			String msg = "Cluster ["+c.getName()+"] already exists";
+    			throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.CONFLICT)).get());
     		}
     		
     		/*
@@ -189,23 +269,41 @@ public class Clusters {
     	String cname = cls.getClusterDefinition().getName();
     	
     	/*
+    	 * Check if all the nodes explicitly specified in the RoleToNodesMap belong the cluster node range specified 
+    	 */
+    	ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
+        List<String> cluster_node_range = new ArrayList<String>();
+        cluster_node_range.addAll(getHostnamesFromRangeExpressions(nodeRangeExpressions));
+        
+        List<String> nodes_specified_using_role_association = new ArrayList<String>();
+        for (RoleToNodesMapEntry e : cls.getClusterDefinition().getRoleToNodesMap().getRoleToNodesMapEntry()) {
+            List<String> hosts = getHostnamesFromRangeExpressions(e.getNodeRangeExpressions());
+            nodes_specified_using_role_association.addAll(hosts);
+            // TODO: Remove any duplicate nodes from nodes_specified_using_role_association
+        }
+        
+        nodes_specified_using_role_association.removeAll(cluster_node_range);
+        if (!nodes_specified_using_role_association.isEmpty()) {
+            String msg = "Some nodes explicityly associated with roles using RoleToNodesMap do not belong in the " +
+            		     "golbal node range specified for the cluster : ["+nodes_specified_using_role_association+"]";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
+        
+    	/*
 		 * Reserve the nodes as specified in the node range expressions
 		 * -- throw exception if any nodes are pre-associated with other cluster
-		 */
-    	ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
-    	List<String> specified_node_range = new ArrayList<String>();
-    	specified_node_range.addAll(getHostnamesFromRangeExpressions(nodeRangeExpressions));
-    	List<String> nodes_currently_allocated = new ArrayList<String>();
+		 */	
+    	List<String> nodes_currently_allocated_to_cluster = new ArrayList<String>();
     	for (Node n : Nodes.getInstance().getNodes().values()) {
     		if (n.getNodeState().getClusterName().equals(cls.getClusterDefinition().getName())) {
-    			nodes_currently_allocated.add(n.getName());
+    			nodes_currently_allocated_to_cluster.add(n.getName());
     		}
     	}
     	
-    	List<String> nodes_to_allocate = new ArrayList<String>(specified_node_range);
-    	nodes_to_allocate.removeAll(nodes_currently_allocated);
-    	List<String> nodes_to_deallocate = new ArrayList<String>(nodes_currently_allocated);
-    	nodes_to_deallocate.removeAll(specified_node_range);
+    	List<String> nodes_to_allocate = new ArrayList<String>(cluster_node_range);
+    	nodes_to_allocate.removeAll(nodes_currently_allocated_to_cluster);
+    	List<String> nodes_to_deallocate = new ArrayList<String>(nodes_currently_allocated_to_cluster);
+    	nodes_to_deallocate.removeAll(cluster_node_range);
     	
 		/*
 		 * Check for any nodes that are allocated to other cluster
@@ -229,8 +327,8 @@ public class Clusters {
 			 * TODO: Return invalid request code and return list of preallocated nodes as a part of
 			 *       response element
 			 */
-			Exception e = new Exception("Some of the nodes specified for the cluster roles are allocated to other cluster: ["+preallocatedhosts+"]");
-    		throw new WebApplicationException(e, Response.Status.CONFLICT);
+			String msg = "Some of the nodes specified for the cluster roles are allocated to other cluster: ["+preallocatedhosts+"]";
+    		throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.CONFLICT)).get());
 		}
 		
 		/*
@@ -277,7 +375,6 @@ public class Clusters {
 		/*
 		 * Add list of roles to Node
 		 * If node is not explicitly associated with any role then assign it w/ default role
-		 * TODO: 
 		 */
 		for (RoleToNodesMapEntry e : roleToNodesMap.getRoleToNodesMapEntry()) {
 			List<String> hosts = getHostnamesFromRangeExpressions(e.getNodeRangeExpressions());
@@ -309,23 +406,24 @@ public class Clusters {
     /* 
      * Update cluster definition
      * Always latest version is kept in memory
+     * TODO: Need versions to be preserved in memory w/ link to cluster before update? 
     */
-    public void updateCluster(String clusterName, ClusterDefinition c) throws Exception {
+    public ClusterDefinition updateCluster(String clusterName, ClusterDefinition c) throws Exception {
         
         /*
          * Validate cluster definition
          */
         if (c.getName() == null || c.getName().equals("") || !c.getName().equals(clusterName)) {
-            Exception e = new Exception("Cluster name in resource URI ["+clusterName+"] does not match with one specified in update request element");
-            throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+            String msg = "Cluster name in resource URI ["+clusterName+"] does not match with one specified in update request element";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
         
         /*
          * Check if cluster already exists
          */
         if (!this.operational_clusters.containsKey(clusterName)) {
-            Exception e = new Exception("Cluster ["+clusterName+"] does not exits");
-            throw new WebApplicationException(e, Response.Status.NOT_FOUND);
+            String msg = "Cluster ["+clusterName+"] does not exits";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         
         Cluster cls = this.operational_clusters.get(clusterName);
@@ -353,7 +451,7 @@ public class Clusters {
              * TODO: Persist the latest cluster definition under new revision
              */
         }
-        return;
+        return cls.getClusterDefinition();
     }
     
     /*
@@ -400,9 +498,8 @@ public class Clusters {
      */
     public ClusterDefinition getClusterDefinition(String clusterName) throws Exception  {
         if (!this.operational_clusters.containsKey(clusterName)) {
-            Exception e = new Exception("Cluster ["+clusterName+"] does not exits");
-            //throw new WebApplicationException(e, Response.Status.NOT_FOUND);
-            throw e;
+            String msg = "Cluster ["+clusterName+"] does not exits";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         return this.operational_clusters.get(clusterName).getClusterDefinition();
     }
@@ -413,8 +510,8 @@ public class Clusters {
     */
     public ClusterState getClusterState(String clusterName) throws WebApplicationException {
         if (!this.operational_clusters.containsKey(clusterName)) {
-            Exception e = new Exception("Cluster ["+clusterName+"] does not exits");
-            throw new WebApplicationException(e, Response.Status.NOT_FOUND);
+            String msg = "Cluster ["+clusterName+"] does not exits";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         return this.operational_clusters.get(clusterName).getClusterState();
     }
@@ -474,7 +571,7 @@ public class Clusters {
 	public String getDefaultRoleName(String clusterName) throws Exception {
 	    Cluster c = Clusters.getInstance().getClusterByName(clusterName);
 	    // TODO: find the default role from the clsuter blueprint 
-		return "slaves";
+		return "slaves-role";
 	}
 	
 	/*

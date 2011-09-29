@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-19. Fix Cluster resource API nodes reservation logic
+
   AMBARI-16. Implement Stacks resource API
 
   AMBARI-14. Implement Ambari REST API for cluster resource
