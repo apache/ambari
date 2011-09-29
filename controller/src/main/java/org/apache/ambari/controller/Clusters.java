@@ -55,7 +55,35 @@ public class Clusters {
     
     private static Clusters ClustersTypeRef=null;
         
-    private Clusters() {}
+    private Clusters() {
+        ClusterDefinition cluster123 = new ClusterDefinition();
+        
+        cluster123.setName("blue.dev.Cluster123");
+        cluster123.setBlueprintName("cluster123-blueprint");
+        cluster123.setDescription("cluster123 - development cluster");
+        cluster123.setGoalState(ClusterState.CLUSTER_STATE_ACTIVE);
+        List<String> activeServices = new ArrayList<String>();
+        activeServices.add("hdfs");
+        activeServices.add("mapred");
+        cluster123.setActiveServices(activeServices);
+        
+        ClusterDefinition cluster124 = new ClusterDefinition();
+        cluster124.setName("blue.research.Cluster124");
+        cluster124.setBlueprintName("cluster124-blueprint");
+        cluster124.setDescription("cluster124 - research cluster");
+        cluster124.setGoalState(ClusterState.CLUSTER_STATE_INACTIVE);
+        activeServices = new ArrayList<String>();
+        activeServices.add("hdfs");
+        activeServices.add("mapred");
+        cluster124.setActiveServices(activeServices);
+        
+        try {
+            addCluster(cluster123);
+            addCluster(cluster124);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     
     public static synchronized Clusters getInstance() {
         if(ClustersTypeRef == null) {
@@ -89,7 +117,7 @@ public class Clusters {
     	 */
     	if (c.getName() == null ||  c.getName().equals("")) {
     		Exception e = new Exception("Cluster Name must be specified and must be non-empty string");
-    		throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+    		throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     	}
     	
     	synchronized (operational_clusters) {
@@ -110,7 +138,7 @@ public class Clusters {
     		clsState.setCreationTime(requestTime);
     		clsState.setLastUpdateTime(requestTime);
     		clsState.setDeployTime((Date)null);
-    		clsState.setRepresentativeState(ClusterState.CLUSTER_STATE_INACTIVE);
+    		clsState.setState(ClusterState.CLUSTER_STATE_INACTIVE);
     		
     		cls.setID(UUID.randomUUID().toString());
     		cls.setClusterDefinition(c);
@@ -370,10 +398,11 @@ public class Clusters {
     /* 
      * Get the cluster definition by name
      */
-    public ClusterDefinition getClusterDefinition(String clusterName) throws WebApplicationException  {
+    public ClusterDefinition getClusterDefinition(String clusterName) throws Exception  {
         if (!this.operational_clusters.containsKey(clusterName)) {
             Exception e = new Exception("Cluster ["+clusterName+"] does not exits");
-            throw new WebApplicationException(e, Response.Status.NOT_FOUND);
+            //throw new WebApplicationException(e, Response.Status.NOT_FOUND);
+            throw e;
         }
         return this.operational_clusters.get(clusterName).getClusterDefinition();
     }
@@ -400,7 +429,7 @@ public class Clusters {
         if (state.equals("ALL")) {
           list.add(cls.getClusterDefinition());
         } else {
-          if (cls.getClusterState().getRepresentativeState().equals(state)) {
+          if (cls.getClusterState().getState().equals(state)) {
             list.add(cls.getClusterDefinition());
           }
         }
@@ -418,7 +447,7 @@ public class Clusters {
           list.addAll(this.operational_clusters.values());
         } else {
           for (Cluster cls : this.operational_clusters.values()) {
-            if (cls.getClusterState().getRepresentativeState().equals(state)) {
+            if (cls.getClusterState().getState().equals(state)) {
               list.add(cls);
             }
           }

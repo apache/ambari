@@ -129,15 +129,7 @@ public class ObjectFactory {
     public ClusterDefinition createClusterType() {
         return new ClusterDefinition();
     }
-
-    /**
-     * Create an instance of {@link Services }
-     * 
-     */
-    public Services createServicesType() {
-        return new Services();
-    }
-
+    
     /**
      * Create an instance of {@link Blueprint }
      * 
@@ -160,14 +152,6 @@ public class ObjectFactory {
      */
     public Configuration createConfigurationType() {
         return new Configuration();
-    }
-
-    /**
-     * Create an instance of {@link Service }
-     * 
-     */
-    public Service createServiceType() {
-        return new Service();
     }
 
     /**

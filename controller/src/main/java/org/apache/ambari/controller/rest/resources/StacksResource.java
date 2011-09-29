@@ -44,7 +44,6 @@ import com.sun.jersey.spi.resource.Singleton;
 
 /** Stacks resource represents a collection of Hadoop Stacks
  */
-@Singleton
 @Path(value = "/stacks")
 public class StacksResource {       
     
@@ -104,8 +103,7 @@ public class StacksResource {
         try {
             List <String> list = Stacks.getInstance().getStackList();
             if (list.isEmpty()) {
-                Exception e = new Exception ("No stacks found");
-                throw new WebApplicationException (e, Response.Status.NO_CONTENT);
+                throw new WebApplicationException (Response.Status.NO_CONTENT);
             }
             return list;
         }catch (WebApplicationException we) {

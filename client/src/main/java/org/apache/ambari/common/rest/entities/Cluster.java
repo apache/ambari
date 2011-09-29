@@ -26,79 +26,62 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
-
-/**
- * <p>Java class for ClusterType complex type.
- * 
- */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Cluster", propOrder = {
-    "name",
-    "ID",
-    "revision",
-    "clusterDefinition",
-    "clusterState"
-})
-@XmlRootElement(name = "Cluster")
 public class Cluster {
         
     protected String ID;
     protected long revision;
-        
-        @XmlElement(name = "ClusterDefinition", required = true)
-        protected ClusterDefinition clusterDefinition;
-        @XmlElement(name = "ClusterState", required = true)
-        protected ClusterState clusterState;
-        
-        /**
-         * @return the revision
-         */
-        public long getRevision() {
-                return revision;
-        }
-        /**
-         * @param revision the revision to set
-         */
-        public void setRevision(long revision) {
-                this.revision = revision;
-        }
-        
-        /**
-         * @return the iD
-         */
-        public String getID() {
-                return ID;
-        }
-        /**
-         * @param iD the iD to set
-         */
-        public void setID(String iD) {
-                ID = iD;
-        }
-        
-        /**
-         * @return the clusterDefinition
-         */
-        public ClusterDefinition getClusterDefinition() {
-                return clusterDefinition;
-        }
-        /**
-         * @param clusterDefinition the clusterDefinition to set
-         */
-        public void setClusterDefinition(ClusterDefinition clusterDefinition) {
-                this.clusterDefinition = clusterDefinition;
-        }
-        /**
-         * @return the clusterState
-         */
-        public ClusterState getClusterState() {
-                return clusterState;
-        }
-        /**
-         * @param clusterState the clusterState to set
-         */
-        public void setClusterState(ClusterState clusterState) {
-                this.clusterState = clusterState;
-        }
+    protected ClusterDefinition clusterDefinition;
+    protected ClusterState clusterState;
+    
+    /**
+     * @return the revision
+     */
+    public long getRevision() {
+            return revision;
+    }
+    /**
+     * @param revision the revision to set
+     */
+    public void setRevision(long revision) {
+            this.revision = revision;
+    }
+    
+    /**
+     * @return the iD
+     */
+    public String getID() {
+            return ID;
+    }
+    /**
+     * @param iD the iD to set
+     */
+    public void setID(String iD) {
+            ID = iD;
+    }
+    
+    /**
+     * @return the clusterDefinition
+     */
+    public ClusterDefinition getClusterDefinition() {
+            return clusterDefinition;
+    }
+    /**
+     * @param clusterDefinition the clusterDefinition to set
+     */
+    public void setClusterDefinition(ClusterDefinition clusterDefinition) {
+            this.clusterDefinition = clusterDefinition;
+    }
+    /**
+     * @return the clusterState
+     */
+    public ClusterState getClusterState() {
+            return clusterState;
+    }
+    /**
+     * @param clusterState the clusterState to set
+     */
+    public void setClusterState(ClusterState clusterState) {
+            this.clusterState = clusterState;
+    }
         
 }

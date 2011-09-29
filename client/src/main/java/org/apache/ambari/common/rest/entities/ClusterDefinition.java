@@ -50,17 +50,17 @@ public class ClusterDefinition {
    
     @XmlElement(name = "Name", required = true)
     protected String name = null;
-    @XmlElement(name = "Description", required = true)
+    @XmlElement(name = "Description")
     protected String description = null;
-    @XmlElement(name = "BlueprintName", required = true)
+    @XmlElement(name = "BlueprintName")
     protected String blueprintName = null;
-    @XmlElement(name = "GoalState", required = true)
+    @XmlElement(name = "GoalState")
     protected String goalState = null;
-    @XmlElement(name = "ActiveServices", required = true)
+    @XmlElement(name = "ActiveServices")
     protected List<String> activeServices = null;
-    @XmlElement(name = "NodeRangeExpressions", required = true)
+    @XmlElement(name = "NodeRangeExpressions")
     protected List<String> nodeRangeExpressions = null;
-    @XmlElement(name = "RoleToNodesMap", required = true)
+    @XmlElement(name = "RoleToNodesMap")
     protected RoleToNodesMap roleToNodesMap = null;
     
     

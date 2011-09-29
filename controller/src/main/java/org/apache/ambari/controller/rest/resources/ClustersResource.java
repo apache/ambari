@@ -21,6 +21,8 @@ import java.util.List;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.controller.Clusters;
+import org.apache.ambari.controller.ExceptionResponse;
+import org.apache.ambari.controller.Stacks;
 
 import com.sun.jersey.spi.resource.Singleton;
 import javax.ws.rs.GET;
@@ -37,21 +39,11 @@ import javax.ws.rs.core.Response;
 /**
  * Clusters Resource represents the collection of Hadoop clusters in a data center
  */
-@Singleton
 @Path(value = "/clusters")
 public class ClustersResource {
         
     public ClustersResource() throws Exception {        
-        ClusterDefinition cluster123 = new ClusterDefinition();
-        ClusterDefinition cluster124 = new ClusterDefinition();
-        cluster123.setName("blue.dev.Cluster123");
-        //cluster123.setBlueprintURI("http://localhost:123/blueprint");
-        // cluster123.setDescription("test cluster");
-        // cluster124.setName("blue.research.Cluster124");
-        //cluster124.setBlueprintURI("http://localhost:124/blueprint");
-        // cluster124.setDescription("production cluster");
-        // Clusters.getInstance().addCluster(cluster123, Clusters.GOAL_STATE_ATTIC);
-        // Clusters.getInstance().addCluster(cluster124, Clusters.GOAL_STATE_ATTIC);
+        
     }  
     
     /** Get the list of clusters.
@@ -85,11 +77,16 @@ public class ClustersResource {
                                  @DefaultValue("ALL") @QueryParam("state") String state,
                                  @DefaultValue("") @QueryParam("search") String search) throws Exception {
         List<ClusterDefinition> searchResults = null;
-        searchResults = Clusters.getInstance().getClusterDefinitionsList(state);
-    
-        if (searchResults.isEmpty()) {
-                throw new WebApplicationException(Response.Status.NOT_FOUND);
-        }   
+        try {
+            searchResults = Clusters.getInstance().getClusterDefinitionsList(state);
+            if (searchResults.isEmpty()) {
+                throw new WebApplicationException(Response.Status.NO_CONTENT);
+            }   
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        } 
         return searchResults;
     }
     
@@ -122,6 +119,12 @@ public class ClustersResource {
     @POST
     @Consumes({"application/json", "application/xml"})
     public ClusterDefinition addCluster(ClusterDefinition cluster) throws Exception {
-        return Clusters.getInstance().addCluster(cluster);
+        try {
+            return Clusters.getInstance().addCluster(cluster);
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        } 
     }
 }

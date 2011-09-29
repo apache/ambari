@@ -59,7 +59,28 @@ public class Stacks {
     
     private static Stacks StacksTypeRef=null;
         
-    private Stacks() {}
+    private Stacks() {
+        /*
+         * Add stack and default blueprint 
+         */
+        Stack x = new Stack();
+        x.setName("ambari-hortonworks-1.0");
+        x.setBlueprintLocationURL("http://hortonworks.com/ambari");
+        x.setDescription("Hortonworks ambari stack");
+        x.setStackRevision(0);
+        ConcurrentHashMap<Integer,Stack> y = new ConcurrentHashMap<Integer,Stack>();
+        y.put(x.getStackRevision(), x);
+        this.stacks.put(x.getName(), y);
+        
+        Blueprint bp = new Blueprint();
+        bp.setName("default");
+        bp.setStackName(x.getName());
+        bp.setParentName("default");
+        bp.setRevision(new Integer(x.getStackRevision()).toString());
+        bp.setParentRevision(new Integer(x.getStackRevision()).toString());
+        
+        this.default_blueprints.put(x.getName()+":"+x.getStackRevision(), bp);
+    }
     
     public static synchronized Stacks getInstance() {
         if(StacksTypeRef == null) {
@@ -210,4 +231,5 @@ public class Stacks {
             is.close();
         }
     }
+    
 }

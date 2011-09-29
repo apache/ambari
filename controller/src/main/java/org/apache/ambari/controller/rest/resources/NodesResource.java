@@ -32,7 +32,6 @@ import com.sun.jersey.spi.resource.Singleton;
 
 /** Nodes Resource represents collection of cluster nodes.
  */
-@Singleton
 @Path(value = "/nodes")
 public class NodesResource {
             
