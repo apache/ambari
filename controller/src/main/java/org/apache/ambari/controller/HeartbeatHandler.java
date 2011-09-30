@@ -95,7 +95,7 @@ public class HeartbeatHandler {
       StartedComponentServers componentServers = new StartedComponentServers();
       for (ServerStatus status : roleStatuses) {
         componentServers.roleServerStarted(status.getComponent(), 
-            status.getServerName());
+            status.getRole());
       }
 
       //get the state machine reference to the cluster
