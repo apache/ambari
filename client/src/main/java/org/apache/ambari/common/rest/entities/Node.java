@@ -17,27 +17,25 @@
  */
 package org.apache.ambari.common.rest.entities;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.datatype.XMLGregorianCalendar;
-
 
 /**
  * <p>Java class for NodeType complex type.
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "NodeType", propOrder = {
+@XmlType(name = "Node", propOrder = {
     "name",
     "nodeAttributes",
     "nodeState"
 })
+@XmlRootElement(name = "Node")
 public class Node {
     
     @XmlElement(name = "Name", required = true)
@@ -47,21 +45,23 @@ public class Node {
     @XmlElement(name = "NodeState", required = true)
     protected NodeState nodeState;
    
+    public Node () {}
+    
     public Node (String name) {
-      this.name = name;
-      this.nodeState = new NodeState();
+        this.name = name;
+        this.nodeState = new NodeState();
     }
 	
     /*
      * 
      */
     public void releaseNodeFromCluster() {
-      this.nodeState.setClusterName(null);
-      this.getNodeState().setNodeServers(null);
-      this.getNodeState().setNodeRoleNames(null);
-      /*
-       * TODO: AllocatedToClsuter flag will be reset part of heart beat processing when node completes cleanup.
-       */
+        this.nodeState.setClusterName(null);
+        this.getNodeState().setNodeServers(null);
+        this.getNodeState().setNodeRoleNames(null);
+        /*
+         * TODO: AllocatedToClsuter flag will be reset part of heart beat processing when node completes cleanup.
+         */
     }
 	
   	/*

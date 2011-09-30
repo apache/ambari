@@ -41,6 +41,7 @@ import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.ExceptionResponse;
+import org.apache.ambari.controller.Nodes;
 
 /** ClusterResource represents a Hadoop Cluster in a data center.
  *  
@@ -133,7 +134,7 @@ public class ClusterResource {
      */
     @DELETE
     @Consumes({"application/json", "application/xml"})
-    public void deleteCluster( @PathParam("clusterName") String clusterName) throws Exception {
+    public void deleteCluster(@PathParam("clusterName") String clusterName) throws Exception {
         try {
             Clusters.getInstance().deleteCluster(clusterName);
         }catch (WebApplicationException we) {
@@ -206,9 +207,8 @@ public class ClusterResource {
     @GET
     @Produces({"application/json", "application/xml"})
     public List<Node> getNodes (@PathParam("clusterName") String clusterName,
-                                                                @DefaultValue("") @QueryParam("roleName") String roleName,
-                                                                @DefaultValue("true") @QueryParam("alive") Boolean alive) throws Exception {
-        //return NodesType.getInstance().getNodes (clusterName, roleName, allocated, alive);
-        return null;
-        }
+                                @DefaultValue("") @QueryParam("roleName") String roleName,
+                                @DefaultValue("") @QueryParam("alive") boolean alive) throws Exception {
+        return Nodes.getInstance().getClusterNodes(clusterName, roleName, alive);
+    }
 }

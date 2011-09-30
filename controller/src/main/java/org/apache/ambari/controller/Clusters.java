@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.controller;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -33,6 +35,7 @@ import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.RoleToNodesMap;
 import org.apache.ambari.common.rest.entities.RoleToNodesMapEntry;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class Clusters {
 
@@ -106,6 +109,17 @@ public class Clusters {
         rnm.getRoleToNodesMapEntry().add(rnme);
         
         cluster123.setRoleToNodesMap(rnm);
+       
+        /*
+        try {
+            ObjectMapper m = new ObjectMapper();
+            ByteArrayOutputStream x = new ByteArrayOutputStream();
+            m.writeValue(x, cluster123);
+            System.out.println ("CLUSTERDEF: <"+new String(x.toString()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
+        
         
         /*
          * Cluster definition 
@@ -343,6 +357,11 @@ public class Clusters {
 			} else {
 				Node node = new Node(node_name);
 				/*
+				 * Set the heartbeat time to very old epoch value
+				 */
+				Date epoch = new Date(0);
+		        node.getNodeState().setLastHeartbeatTime(epoch);
+				/*
 				 * TODO: Set agentInstalled = true, unless controller uses SSH to setup the agent
 				 */
 				node.reserveNodeForCluster(cname, true);
@@ -388,18 +407,17 @@ public class Clusters {
 		
 		
 		/*
-		 * Get the list of specified global node list for the cluster and any nodes not explicitly specified in the
-		 * role to nodes map, assign them with default role defined in cluster blueprint
+		 * Get the list of specified global node list for the cluster and any nodes NOT explicitly specified in the
+		 * role to nodes map, assign them with default role 
 		 */
 		List<String> specified_node_range = new ArrayList<String>();
     	specified_node_range.addAll(getHostnamesFromRangeExpressions(c.getNodeRangeExpressions()));
     	for (String host : specified_node_range) {
-    	  if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
-          Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
-          String clusterName = Nodes.getInstance().getNodes().get(host).getNodeState().getClusterName();
-          Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(getDefaultRoleName(clusterName));
-        } 
-        
+    	    if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
+    	        Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
+    	        String clusterName = Nodes.getInstance().getNodes().get(host).getNodeState().getClusterName();
+    	        Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(getDefaultRoleName(clusterName));
+    	    } 
     	}
 	}
 
@@ -419,7 +437,8 @@ public class Clusters {
         }
         
         /*
-         * Check if cluster already exists
+         * Check if cluster already exists. 
+         * TODO: If PUT is idempotent, then should following check is valid?  
          */
         if (!this.operational_clusters.containsKey(clusterName)) {
             String msg = "Cluster ["+clusterName+"] does not exits";
@@ -459,15 +478,20 @@ public class Clusters {
      * Delete operation will bring the clsuter to ATTIC state and then remove the
      * cluster definition from the controller 
      * When cluster state transitions to ATTIC, it should check if the cluster definition is 
-     * part of tobe_deleted_clusters map and then deleted the definition.
+     * part of tobe_deleted_clusters map and then delete the definition.
+     * TODO: Delete definition from both operational_clusters and operational_clusters_id_name map and to_be_deleted 
+     * clusters list.
      */
     public void deleteCluster(String clusterName) throws Exception { 
-        synchronized (operational_clusters) {
-            for (Cluster cls : operational_clusters.values()) {
+        synchronized (this.operational_clusters) {
+            for (Cluster cls : this.operational_clusters.values()) {
                 if (cls.getClusterDefinition().getName().equals(clusterName)) {
                     synchronized (cls) {
-                        cls.getClusterDefinition().setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
-                        this.tobe_deleted_clusters.put(clusterName, null);                    
+                        ClusterDefinition cdf = new ClusterDefinition();
+                        cdf.setName(clusterName);
+                        cdf.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
+                        updateCluster(clusterName, cdf);
+                        this.tobe_deleted_clusters.put(clusterName, "null");                    
                     }
                 } 
             }

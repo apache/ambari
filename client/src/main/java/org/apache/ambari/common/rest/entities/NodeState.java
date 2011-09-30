@@ -18,12 +18,16 @@
 package org.apache.ambari.common.rest.entities;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 
@@ -31,11 +35,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @XmlType(name = "NodeState", propOrder = {
     "lastHeartbeatTime",
     "clusterName",
-    "AllocatedToCluster",
+    "allocatedToCluster",
     "agentInstalled",
     "nodeRoleNames",
     "nodeServers"
 })
+@XmlRootElement(name = "NodeState")
 public class NodeState {
 
     @XmlElement(name = "lastHeartbeatTime", required = true)
@@ -134,6 +139,19 @@ public class NodeState {
             this.lastHeartbeatTime = lastHeartbeatTime;
     }
 
+    /**
+     * @param lastHeartbeatTime the lastHeartbeatTime to set
+     */
+    public void setLastHeartbeatTime(Date lastHeartbeatTime) throws Exception {
+        if (lastHeartbeatTime == null) {
+            this.lastHeartbeatTime = null;
+        } else {
+            GregorianCalendar cal = new GregorianCalendar();
+            cal.setTime(lastHeartbeatTime);
+            this.lastHeartbeatTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+        }
+    }
+    
     /**
      * @return the nodeServers
      */
