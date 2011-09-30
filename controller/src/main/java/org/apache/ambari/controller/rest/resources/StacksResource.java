@@ -35,9 +35,12 @@ import javax.xml.bind.annotation.XmlElement;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.Cluster;
+import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.controller.Clusters;
+import org.apache.ambari.controller.ExceptionResponse;
 import org.apache.ambari.controller.Stacks;
+import org.codehaus.jettison.json.JSONArray;
 
 import com.sun.jersey.spi.container.WebApplication;
 import com.sun.jersey.spi.resource.Singleton;
@@ -67,15 +70,15 @@ public class StacksResource {
      * @throws  Exception               throws Exception
      */
     @POST
-    @Consumes({"application/json", "application/xml"})
+    @Produces({"application/json"})
     public Stack importStackDescription(@DefaultValue("") @QueryParam("url") String url) throws WebApplicationException {       
         try {
             return Stacks.getInstance().importStackDescription(url);
-        }catch (WebApplicationException we) {
+        } catch (WebApplicationException we) {
             throw we;
-        }catch (Exception e) {
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
-        }
+        } catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        } 
     }
     
     /** Get the list of stacks installed with Ambari controller.
@@ -97,20 +100,21 @@ public class StacksResource {
      * @throws Exception        throws Exception
      */
     @GET
-    @Consumes({"application/json", "application/xml"})
-    public List<String> getStackList (@DefaultValue("") @QueryParam("search") String searchToken) throws Exception {
+    @Produces({"application/json"})
+    public JSONArray getStackList (@DefaultValue("") @QueryParam("search") String searchToken) throws Exception {
         
+        JSONArray list;
         try {
-            List <String> list = Stacks.getInstance().getStackList();
-            if (list.isEmpty()) {
-                throw new WebApplicationException (Response.Status.NO_CONTENT);
-            }
-            return list;
+            list = Stacks.getInstance().getStackList();
+            if (list.length() == 0) {
+                throw new WebApplicationException(Response.Status.NO_CONTENT);
+            }   
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
         } 
+        return list;
     }
 
     /** Get the stack definition
@@ -138,14 +142,14 @@ public class StacksResource {
                      @DefaultValue("") @QueryParam("revision") String revision) throws Exception {  
         try {
             if (revision == null || revision.equals("")) {
-                Exception e = new Exception ("Revision number not specified");
-                throw new WebApplicationException (e, Response.Status.BAD_REQUEST);
+                String msg = "Revision number not specified";
+                throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             }
             return Stacks.getInstance().getStack(stackName, Integer.parseInt(revision));
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
         }      
     }
     
@@ -174,14 +178,14 @@ public class StacksResource {
                      @DefaultValue("") @QueryParam("revision") String revision) throws Exception {
         try {
             if (revision == null || revision.equals("")) {
-                Exception e = new Exception ("Revision number not specified");
-                throw new WebApplicationException (e, Response.Status.BAD_REQUEST);
+                String msg = "Revision number not specified";
+                throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             }
             return Stacks.getInstance().getDefaultBlueprint(stackName, Integer.parseInt(revision));
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
         }     
     }
 }

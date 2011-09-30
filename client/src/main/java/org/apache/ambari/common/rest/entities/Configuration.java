@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -30,12 +31,13 @@ import javax.xml.bind.annotation.XmlType;
  *  
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "ConfigurationType", propOrder = {
+@XmlType(name = "Configuration", propOrder = {
     "category"
 })
+@XmlRootElement(name = "Configuration")
 public class Configuration {
 
-    @XmlElement(name = "Category", required = true)
+    @XmlElement(name = "ConfigPropertyCategories", required = true)
     protected List<ConfigPropertiesCategory> category;
 
     /**

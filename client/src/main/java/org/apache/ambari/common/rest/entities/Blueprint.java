@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -30,7 +31,7 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "BlueprintType", propOrder = {
+@XmlType(name = "Blueprint", propOrder = {
     "name",
     "revision",
     "stackName",
@@ -38,8 +39,10 @@ import javax.xml.bind.annotation.XmlType;
     "parentRevision",
     "packageRepositories",
     "configuration",
-    "services"
+    "components",
+    "roles"
 })
+@XmlRootElement(name = "Blueprint")
 public class Blueprint {
 
     @XmlElement(name = "Name", required = true)

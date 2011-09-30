@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlType;
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.Stack;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -64,9 +65,9 @@ public class Stacks {
          * Add stack and default blueprint 
          */
         Stack x = new Stack();
-        x.setName("ambari-hortonworks-1.0");
-        x.setBlueprintLocationURL("http://hortonworks.com/ambari");
-        x.setDescription("Hortonworks ambari stack");
+        x.setName("hortonworks-1.0");
+        x.setBlueprintLocationURL("http://localhost/~vgogate/ambari/hortonworks-1.0/default-blueprint.json");
+        x.setDescription("Hortonworks ambari stack 1.0");
         x.setStackRevision(0);
         ConcurrentHashMap<Integer,Stack> y = new ConcurrentHashMap<Integer,Stack>();
         y.put(x.getStackRevision(), x);
@@ -101,8 +102,8 @@ public class Stacks {
          * Check for stackLocation not null 
          */
         if (stackLocation == null || stackLocation.equals("")) {
-            Exception e = new Exception("Query parameter url must be specified");
-            throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+            String msg = "Query parameter url must be specified";
+            throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
         
         /*
@@ -113,8 +114,10 @@ public class Stacks {
         try {
             stackLocationURL = new URL(stackLocation);
         } catch (MalformedURLException e) {
-            throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+            String msg = "MalformedURLException for stack location URL";
+            throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
+        
         
         /*
          * Fetch the stack definition as JSON and create Stack object and 
@@ -122,12 +125,12 @@ public class Stacks {
          */
         ObjectMapper m = new ObjectMapper();
         InputStream is = stackLocationURL.openStream();
-        Stack stack = m.readValue(is, Stack.class);
+        Stack stack = m.readValue(is, Stack.class);   
+        
         if (stacks.containsKey(stack.getName())) {
             if (stacks.get(stack.getName()).containsKey(stack.getStackRevision())) {
-                Exception e = new Exception(
-                      "Specified stack [Name:"+stack.getName()+", Revision: ["+stack.getStackRevision()+"] is already imported");
-                throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+                String msg = "Specified stack [Name:"+stack.getName()+", Revision: ["+stack.getStackRevision()+"] is already imported";
+                throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             } else {
                 stacks.get(stack.getName()).put(stack.getStackRevision(), stack);
                 Blueprint blueprint = importDefaultBlueprint(stack);
@@ -148,8 +151,9 @@ public class Stacks {
      */
     public Blueprint importDefaultBlueprint (Stack stack) throws Exception {
         Blueprint blueprint;
+        URL blueprintUrl;
         try {
-            URL blueprintUrl = new URL(stack.getBlueprintLocationURL());
+            blueprintUrl = new URL(stack.getBlueprintLocationURL());
             ObjectMapper m = new ObjectMapper();
             InputStream is = blueprintUrl.openStream();
             blueprint = m.readValue(is, Blueprint.class);
@@ -158,7 +162,7 @@ public class Stacks {
             if (this.stacks.get(stack.getName()).keySet().isEmpty()) {
                 this.stacks.remove(stack.getName());
             }
-            throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+            throw new WebApplicationException ((new ExceptionResponse(e)).get());
         }
         return blueprint;
     }
@@ -177,12 +181,10 @@ public class Stacks {
      * Get StackType from stack list given its name 
     */
     public Stack getStack(String stackName, int revision) throws Exception {
-
-        Stack sk = this.stacks.get(stackName).get(revision);
-       
+        Stack sk = this.stacks.get(stackName).get(revision); 
         if (sk == null) {
-            Exception e = new Exception ("Stack ["+stackName+"] revision ["+revision+"] does not exists");
-            throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+            String msg = "Stack ["+stackName+"] revision ["+revision+"] does not exists";
+            throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         return sk;
     }
@@ -195,8 +197,8 @@ public class Stacks {
         Blueprint bp = this.default_blueprints.get(stackName+":"+revision);
         
         if (bp == null) {
-            Exception e = new Exception ("Stack ["+stackName+"] revision ["+revision+"] does not exists");
-            throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+            String msg = "Stack ["+stackName+"] revision ["+revision+"] does not exists";
+            throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         return bp;
     }
@@ -204,10 +206,10 @@ public class Stacks {
     /*
      * Returns stack names
      */
-    public List<String> getStackList() {
+    public JSONArray getStackList() throws Exception {
         List<String> list = new ArrayList<String>();
         list.addAll(this.stacks.keySet());
-        return list;
+        return new JSONArray(list);
     }
     
     private static String readAll(Reader rd) throws IOException {

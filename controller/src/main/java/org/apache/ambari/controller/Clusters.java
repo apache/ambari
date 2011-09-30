@@ -109,7 +109,6 @@ public class Clusters {
         rnm.getRoleToNodesMapEntry().add(rnme);
         
         cluster123.setRoleToNodesMap(rnm);
-       
         /*
         try {
             ObjectMapper m = new ObjectMapper();
@@ -118,8 +117,8 @@ public class Clusters {
             System.out.println ("CLUSTERDEF: <"+new String(x.toString()));
         } catch (Exception e) {
             e.printStackTrace();
-        }*/
-        
+        }
+        */
         
         /*
          * Cluster definition 

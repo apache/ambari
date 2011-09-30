@@ -45,12 +45,12 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "RoleToNodesMapType", propOrder = {
+@XmlType(name = "RoleToNodesMap", propOrder = {
     "roleToNodesMapEntry"
 })
 public class RoleToNodesMap {
 
-    @XmlElement(name = "RoleToNodesMapEntry", required = true)
+    @XmlElement(name = "RoleToNodesMapEntries", required = true)
     protected List<RoleToNodesMapEntry> roleToNodesMapEntry;
 
     /**

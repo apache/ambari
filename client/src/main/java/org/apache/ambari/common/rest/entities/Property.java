@@ -20,44 +20,22 @@ package org.apache.ambari.common.rest.entities;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
-/**
- * <p>Java class for PropertyType complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
- * 
- * <pre>
- * &lt;complexType name="PropertyType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="name" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="value" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="final" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
- * </pre>
- * 
- * 
- */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "PropertyType", propOrder = {
+@XmlType(name = "Property", propOrder = {
     "name",
-    "value",
-    "_final"
+    "value"
 })
+@XmlRootElement(name = "Property")
 public class Property {
 
     @XmlElement(required = true)
     protected String name;
     @XmlElement(required = true)
     protected String value;
-    @XmlElement(name = "final")
-    protected String _final;
 
     /**
      * Gets the value of the name property.
@@ -106,29 +84,4 @@ public class Property {
     public void setValue(String value) {
         this.value = value;
     }
-
-    /**
-     * Gets the value of the final property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getFinal() {
-        return _final;
-    }
-
-    /**
-     * Sets the value of the final property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setFinal(String value) {
-        this._final = value;
-    }
-
 }
