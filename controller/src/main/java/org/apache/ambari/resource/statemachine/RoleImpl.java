@@ -47,13 +47,17 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
          RoleEvent>(RoleState.INACTIVE)
          .addTransition(RoleState.INACTIVE, RoleState.STARTING, RoleEventType.S_START, new RoleStartTransition())
          .addTransition(RoleState.STARTING, RoleState.ACTIVE, RoleEventType.S_START_SUCCESS, new SuccessStartTransition())
+         .addTransition(RoleState.ACTIVE, RoleState.ACTIVE, RoleEventType.S_START_SUCCESS)
          .addTransition(RoleState.STARTING, RoleState.FAIL, RoleEventType.S_START_FAILURE)
+         .addTransition(RoleState.FAIL, RoleState.FAIL, RoleEventType.S_START_FAILURE)
          .addTransition(RoleState.ACTIVE, RoleState.STOPPING, RoleEventType.S_STOP)
          .addTransition(RoleState.STOPPING, RoleState.INACTIVE, RoleEventType.S_STOP_SUCCESS)
          .addTransition(RoleState.STOPPING, RoleState.UNCLEAN_STOP, RoleEventType.S_STOP_FAILURE)
          .addTransition(RoleState.FAIL, RoleState.STOPPING, RoleEventType.S_STOP)
          .addTransition(RoleState.STOPPING, RoleState.INACTIVE, RoleEventType.S_STOP_SUCCESS)
+         .addTransition(RoleState.INACTIVE, RoleState.INACTIVE, RoleEventType.S_STOP_SUCCESS)
          .addTransition(RoleState.STOPPING, RoleState.UNCLEAN_STOP, RoleEventType.S_STOP_FAILURE)
+         .addTransition(RoleState.UNCLEAN_STOP, RoleState.UNCLEAN_STOP, RoleEventType.S_STOP_FAILURE)
          .installTopology();
   
   private final StateMachine<RoleState, RoleEventType, RoleEvent>

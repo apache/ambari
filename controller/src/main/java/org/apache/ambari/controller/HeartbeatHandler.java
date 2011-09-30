@@ -19,13 +19,12 @@ package org.apache.ambari.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -39,34 +38,23 @@ import org.apache.ambari.common.rest.entities.agent.Action;
 import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
 import org.apache.ambari.common.rest.entities.agent.HeartBeat;
 import org.apache.ambari.common.rest.entities.agent.ServerStatus;
-import org.apache.ambari.common.rest.entities.agent.ServerStatus.State;
 import org.apache.ambari.components.ClusterContext;
 import org.apache.ambari.components.impl.ClusterContextImpl;
 import org.apache.ambari.components.impl.HDFSPluginImpl;
 import org.apache.ambari.resource.statemachine.Role;
+import org.apache.ambari.resource.statemachine.RoleEvent;
+import org.apache.ambari.resource.statemachine.RoleEventType;
 import org.apache.ambari.resource.statemachine.Service;
 import org.apache.ambari.resource.statemachine.StateMachineInvoker;
-import org.apache.zookeeper.server.quorum.QuorumPeer.ServerState;
 
 public class HeartbeatHandler {
   
   private Map<String, ControllerResponse> agentToHeartbeatResponseMap = 
-      new TreeMap<String, ControllerResponse>();
+      Collections.synchronizedMap(new HashMap<String, ControllerResponse>());
   
-  LinkedBlockingQueue<HeartBeat> heartbeatQueue = 
-      new LinkedBlockingQueue<HeartBeat>();
+  private RetryCountForRoleServerAction retryCountForRole = new RetryCountForRoleServerAction();
   
-  Map<String, List<Action>> responseMap = 
-      new HashMap<String, List<Action>>();
-  
-  public void addActionsForNode(String hostname, List<Action> actions) {
-    synchronized (this) {
-      List<Action> currentActions = responseMap.get(hostname);
-      if (currentActions != null) {
-        currentActions.addAll(actions);
-      }
-    }
-  }
+  final short MAX_RETRY_COUNT = 3;
   
   public ControllerResponse processHeartBeat(HeartBeat heartbeat) 
       throws DatatypeConfigurationException, IOException {
@@ -92,7 +80,7 @@ public class HeartbeatHandler {
         Clusters.getInstance().getClusterByName(state.getClusterName());
     ClusterContext clusterContext = new ClusterContextImpl(cluster, node);
     
-    List <Action> allActions = new ArrayList<Action>();
+    List<Action> allActions = new ArrayList<Action>();
     
     if (heartbeat.getIdle()) {
       //if the command-execution takes longer than one heartbeat interval
@@ -101,15 +89,13 @@ public class HeartbeatHandler {
       //to reflect the command execution state more accurately.
       
       //get what is currently running on the node
-      List<ServerStatus> serverStatuses = heartbeat.getServersStatus();
+      List<ServerStatus> roleStatuses = heartbeat.getServersStatus();
       
-      //CHECK what servers moved the role to ACTIVE state
+      //what servers are running currently
       StartedComponentServers componentServers = new StartedComponentServers();
-      for (ServerStatus status : serverStatuses) {
-        if (status.getState() == State.STARTED) {
-          componentServers.serverStarted(status.getComponent(), 
-              status.getRole());
-        }
+      for (ServerStatus status : roleStatuses) {
+        componentServers.roleServerStarted(status.getComponent(), 
+            status.getServerName());
       }
 
       //get the state machine reference to the cluster
@@ -119,19 +105,60 @@ public class HeartbeatHandler {
       //the state machine reference to the services
       List<Service> clusterServices = clusterSMobject.getServices();
       //go through all the services, and check which role should be started
-      //Get the corresponding commands
       for (Service service : clusterServices) {
         List<Role> roles = service.getRoles();
+        
         for (Role role : roles) {
-          if (role.shouldStart() && 
-              !componentServers.isStarted(
-                  role.getAssociatedService().getServiceName(),
-                  role.getRoleName())) {
-            //TODO: get reference to the plugin impl
-            HDFSPluginImpl plugin = new HDFSPluginImpl();
-            List<Action> actions = 
-                plugin.startRoleServer(clusterContext, role.getRoleName());
-            allActions.addAll(actions);
+          boolean roleServerRunning = componentServers.isStarted(
+              role.getAssociatedService().getServiceName(),
+              role.getRoleName());
+          //TODO: get reference to the plugin impl for this service/component
+          HDFSPluginImpl plugin = new HDFSPluginImpl();
+          //check whether the agent should start any server
+          if (role.shouldStart()) {
+            if (!roleServerRunning) {
+              short retryCount = retryCountForRole.get(role);
+              if (retryCount > MAX_RETRY_COUNT) {
+                //LOG the failure to start the role server
+                StateMachineInvoker.getAMBARIEventHandler()
+                .handle(new RoleEvent(RoleEventType.S_START_FAILURE, role));
+                retryCountForRole.reset(role);
+                continue;
+              }
+              List<Action> actions = 
+                  plugin.startRoleServer(clusterContext, role.getRoleName());
+              allActions.addAll(actions);
+              retryCountForRole.incr(role);
+            }
+            //raise an event to the state machine for a successful role-start
+            if (roleServerRunning) {
+              retryCountForRole.reset(role);
+              StateMachineInvoker.getAMBARIEventHandler()
+              .handle(new RoleEvent(RoleEventType.S_START_SUCCESS, role));
+            }
+          }
+          //check whether the agent should stop any server
+          if (role.shouldStop()) {
+            if (roleServerRunning) {
+              short retryCount = retryCountForRole.get(role);
+              if (retryCount > MAX_RETRY_COUNT) {
+                //LOG the failure to start the role server
+                StateMachineInvoker.getAMBARIEventHandler()
+                .handle(new RoleEvent(RoleEventType.S_STOP_FAILURE, role));
+                retryCountForRole.reset(role);
+                continue;
+              }
+              List<Action> actions = 
+                  plugin.stopRoleServer(clusterContext, role.getRoleName());
+              allActions.addAll(actions);
+              retryCountForRole.incr(role);
+            }
+            //raise an event to the state machine for a successful role-stop
+            if (!roleServerRunning) {
+              retryCountForRole.reset(role);
+              StateMachineInvoker.getAMBARIEventHandler()
+              .handle(new RoleEvent(RoleEventType.S_STOP_SUCCESS, role));
+            }
           }
         }
       }
@@ -146,7 +173,7 @@ public class HeartbeatHandler {
   private static class StartedComponentServers {
     private Map<String, Map<String, Boolean>> startedComponentServerMap =
         new HashMap<String, Map<String, Boolean>>();
-    void serverStarted(String component, String server) {
+    void roleServerStarted(String component, String server) {
       Map<String, Boolean> serverStartedMap = null;
       if ((serverStartedMap = startedComponentServerMap.get(component))
           != null) {
@@ -159,10 +186,28 @@ public class HeartbeatHandler {
     }
     boolean isStarted(String component, String server) {
       Map<String, Boolean> startedServerMap;
-      if ((startedServerMap=startedComponentServerMap.get(component)) != null){
+      if ((startedServerMap=startedComponentServerMap.get(component)) 
+          != null) {
         return startedServerMap.get(server) != null;
       }
       return false;
+    }
+  }
+  
+  private static class RetryCountForRoleServerAction {
+    private Map<Role, Short> countMap = new HashMap<Role, Short>();
+    public short get(Role role) {
+      return countMap.get(role);
+    }
+    public void incr(Role role) {
+      Short currentCount = 0;
+      if ((currentCount = countMap.get(role)) == null) {
+        currentCount = 0;
+      }
+      countMap.put(role, (short) (currentCount + 1));
+    }
+    public void reset(Role role) {
+      countMap.remove(role);
     }
   }
 }

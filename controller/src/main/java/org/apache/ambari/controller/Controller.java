@@ -47,13 +47,18 @@ public class Controller {
   private static Controller instance = new Controller();
   private Server server = null;
   public volatile boolean running = true; // true while controller runs
-
+  private HeartbeatHandler hbHandler;
+  
   public static Controller getInstance() {
     return instance;
   }
   
+  public HeartbeatHandler getHeartbeatHandler() {
+    return hbHandler;
+  }
+  
   public void run() {
-          
+    hbHandler = new HeartbeatHandler();      
     server = new Server(CONTROLLER_PORT);
 
     try {

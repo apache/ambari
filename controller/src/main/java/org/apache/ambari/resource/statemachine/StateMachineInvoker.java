@@ -35,6 +35,7 @@ public class StateMachineInvoker {
     dispatcher = new AsyncDispatcher();
     dispatcher.register(ClusterEventType.class, new ClusterEventDispatcher());
     dispatcher.register(ServiceEventType.class, new ServiceEventDispatcher());
+    dispatcher.register(RoleEventType.class, new RoleEventDispatcher());
   }
 
   public Dispatcher getAMBARIDispatcher() {
@@ -58,6 +59,14 @@ public class StateMachineInvoker {
     @Override
     public void handle(ServiceEvent event) {
       ((EventHandler<ServiceEvent>)event.getService()).handle(event);
+    }
+  }
+  
+  public static class RoleEventDispatcher 
+  implements EventHandler<RoleEvent> {
+    @Override
+    public void handle(RoleEvent event) {
+      ((EventHandler<RoleEvent>)event.getRole()).handle(event);
     }
   }
   
