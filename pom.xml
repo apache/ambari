@@ -19,20 +19,6 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <properties>
-        <buildtype>test</buildtype>
-        <BUILD_NUMBER>${env.BUILD_NUMBER}</BUILD_NUMBER>
-        <VERSION>0.1</VERSION>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
-        <package.prefix>/usr</package.prefix>
-        <package.conf.dir>/etc/ambari</package.conf.dir>
-        <package.log.dir>/var/log/ambari</package.log.dir>
-        <package.pid.dir>/var/run/ambari</package.pid.dir>
-        <package.release>1</package.release>
-        <ambari.version>0.1.0</ambari.version>
-        <final.name>${project.artifactId}-${ambari.version}</final.name>
-    </properties>
-
     <name>ambari</name>
     <description>
       Ambari is a monitoring, administration and lifecycle management project
@@ -46,9 +32,37 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
-    <version>${ambari.version}</version>
+    <version>0.1.0-SNAPSHOT</version>
     <artifactId>ambari</artifactId>
     <packaging>pom</packaging>
+
+    <properties>
+        <buildtype>test</buildtype>
+        <BUILD_NUMBER>${env.BUILD_NUMBER}</BUILD_NUMBER>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
+        <package.prefix>/usr</package.prefix>
+        <package.conf.dir>/etc/ambari</package.conf.dir>
+        <package.log.dir>/var/log/ambari</package.log.dir>
+        <package.pid.dir>/var/run/ambari</package.pid.dir>
+        <package.release>1</package.release>
+        <ambari.version>0.1.0-SNAPSHOT</ambari.version>
+        <final.name>${project.artifactId}-${ambari.version}</final.name>
+    </properties>
+
+    <licenses>
+      <license>
+        <name>Apache 2</name>
+        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        <distribution>repo</distribution>
+      </license>
+    </licenses>
+
+    <scm>
+      <connection>scm:svn:http://svn.apache.org/repos/asf/incubator/ambari</connection>
+      <developerConnection>scm:svn:https://svn.apache.org/repos/asf/incubator/ambari</developerConnection>
+      <tag>HEAD</tag>
+      <url>http://svn.apache.org/repos/asf/incubator/ambari</url>
+    </scm>
 
     <issueManagement>
         <system>Jira</system>

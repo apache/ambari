@@ -2,17 +2,19 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
-  AMBARI-22. Implement Blueprint Resource API
+  AMBARI-24. Fix the versions in the pom.xml. (omalley)
 
-  AMBARI-21. Fix the problem w/ Stacks Resource API
+  AMBARI-22. Implement Blueprint Resource API (vgogate)
 
-  AMBARI-20. Fix the rest API for getting the cluster nodes
+  AMBARI-21. Fix the problem w/ Stacks Resource API (vgogate)
 
-  AMBARI-19. Fix Cluster resource API nodes reservation logic
+  AMBARI-20. Fix the rest API for getting the cluster nodes (vgogate)
 
-  AMBARI-16. Implement Stacks resource API
+  AMBARI-19. Fix Cluster resource API nodes reservation logic (vgogate)
 
-  AMBARI-14. Implement Ambari REST API for cluster resource
+  AMBARI-16. Implement Stacks resource API (vgogate)
+
+  AMBARI-14. Implement Ambari REST API for cluster resource (vgogate)
 
   AMBARI-13. Initial attempt at a website. (omalley)
 
