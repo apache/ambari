@@ -58,11 +58,12 @@ class Controller(threading.Thread):
     id='unknown'
     if self.credential!=None:
       auth_handler = urllib2.HTTPBasicAuthHandler()
-      auth_handler.add_password(uri=self.url,
+      auth_handler.add_password(realm="Controller",
+                                uri=self.url,
                                 user=self.credential['user'],
                                 passwd=self.credential['password'])
       opener = urllib2.build_opener(auth_handler)
-      urllib2.install_openner(opener)
+      urllib2.install_opener(opener)
     while True:
       try:
         data = json.dumps(self.heartbeat.build(id))
@@ -76,7 +77,10 @@ class Controller(threading.Thread):
         self.actionQueue.put(data)
       except URLError, err:
         logger.error(err.code)
-      time.sleep(5)
+      if self.actionQueue.isIdle():
+        time.sleep(30)
+      else:
+        time.sleep(1)
 
 def main(argv=None):
   # Allow Ctrl-C
@@ -107,7 +111,8 @@ def main(argv=None):
 
   logger.info('Starting Controller RPC Thread: %s' % ' '.join(sys.argv))
 
-  controller = Controller(options.url, None)
+  credential = { 'user' : 'controller', 'password' : 'controller' }
+  controller = Controller(options.url, credential)
   controller.start()
   controller.run()
 

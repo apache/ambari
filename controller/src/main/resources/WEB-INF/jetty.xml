@@ -206,4 +206,19 @@
     <Set name="sendDateHeader">true</Set>
     <Set name="gracefulShutdown">1000</Set>
 
+    <!-- =========================================================== -->
+    <!-- shared key authentication                                   -->
+    <!-- =========================================================== -->
+    <Set name="UserRealms">
+      <Array type="org.mortbay.jetty.security.UserRealm">
+        <Item>
+          <New class="org.mortbay.jetty.security.HashUserRealm">
+           <Set name="name">Auth</Set>
+           <Set name="config"><SystemProperty name="AMBARI_CONF_DIR" default="."/>/auth.conf</Set>
+           <Set name="refreshInterval">0</Set>
+          </New>
+        </Item>
+      </Array>
+    </Set>
+
 </Configure>

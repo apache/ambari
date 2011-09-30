@@ -23,9 +23,9 @@
    version="2.5"> 
 
     <description>
-      HMS Controller
+      Ambari Controller
     </description>
-    <display-name>HMS Controller</display-name>
+    <display-name>Ambari Controller</display-name>
 
     <servlet>
       <servlet-name>REST_API</servlet-name>
@@ -42,4 +42,22 @@
       <url-pattern>/v1/*</url-pattern>
     </servlet-mapping>    
 
+    <security-role>
+    <role-name>user</role-name>
+    </security-role>
+
+    <login-config>
+    <realm-name>Controller</realm-name>
+    </login-config>
+
+    <security-constraint>
+    <web-resource-collection>
+    <web-resource-name>Controller Resource</web-resource-name>
+    <url-pattern>/v1/controller/*</url-pattern>
+    </web-resource-collection>
+
+    <auth-constraint>
+    <role-name>user</role-name>
+    </auth-constraint>
+    </security-constraint>
 </web-app>

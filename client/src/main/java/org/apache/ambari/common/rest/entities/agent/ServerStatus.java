@@ -29,15 +29,15 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 @XmlType(name = "", propOrder = {})
 public class ServerStatus {
   public String component;
-  public String serverName;
+  public String role;
   public State state;
   
   public ServerStatus() {  
   }
   
-  public ServerStatus(String component, String serverName, State state) {
+  public ServerStatus(String component, String role, State state) {
     this.component = component;
-    this.serverName = serverName;
+    this.role = role;
     this.state = state;
   }
 
@@ -49,12 +49,12 @@ public class ServerStatus {
     this.component = component;  
   }
   
-  public String getServerName() {
-    return serverName;
+  public String getRole() {
+    return role;
   }
   
-  public void setServerName(String serverName) {
-    this.serverName = serverName;
+  public void setServerName(String role) {
+    this.role = role;
   }
   
   public State getState() {

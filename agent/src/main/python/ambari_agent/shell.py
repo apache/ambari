@@ -41,31 +41,33 @@ class shellRunner:
     return {'exit_code': code, 'output': out, 'error': err}
 
   # Start a process and presist its state
-  def startProcess(self, serverName, script, user):
+  def startProcess(self, component, role, script, user):
     global serverTracker
-    if not serverName in serverTracker:
+    process = component+"."+role
+    if not process in serverTracker:
       cmd = " "
       cmd = cmd.join(script)
       child_pid = os.fork()
       if child_pid == 0:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
         p.wait()
-        serverTracker[serverName] = None
+        serverTracker[process] = None
       else:
-        serverTracker[serverName] = child_pid
+        serverTracker[process] = child_pid
 
   # Stop a process and remove presisted state
-  def stopProcess(self, serverName, sig):
+  def stopProcess(self, component, role, sig):
     global serverTracker
-    if serverName in serverTracker:
+    process = component+"."+role
+    if process in serverTracker:
       if sig=='TERM':
-        os.kill(serverTracker[serverName], signal.SIGTERM)
+        os.kill(serverTracker[process], signal.SIGTERM)
         # TODO: gracefully check if process is still alive
         # before remove from serverTracker
-        del serverTracker[serverName]
+        del serverTracker[process]
       else:
-        os.kill(serverTracker[serverName], signal.SIGKILL)
-        del serverTracker[serverName]
+        os.kill(serverTracker[process], signal.SIGKILL)
+        del serverTracker[process]
 
   def getServerTracker(self):
     return serverTracker

@@ -31,7 +31,13 @@ class ServerStatus:
     list = []
     servers = sh.getServerTracker()
     for server in servers:
-      list.append({ server : 'STARTED' })
+      (component, role) = server.split(".")
+      result = {
+                 'component' : component,
+                 'role' : role,
+                 'state' : 'STARTED'
+               }
+      list.append(result)
     return list
 
 def main(argv=None):

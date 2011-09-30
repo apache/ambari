@@ -108,7 +108,7 @@ public class HeartbeatHandler {
       for (ServerStatus status : serverStatuses) {
         if (status.getState() == State.STARTED) {
           componentServers.serverStarted(status.getComponent(), 
-              status.getServerName());
+              status.getRole());
         }
       }
 

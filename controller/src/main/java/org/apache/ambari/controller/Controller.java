@@ -24,7 +24,15 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ambari.common.util.DaemonWatcher;
 import org.apache.ambari.common.util.ExceptionUtil;
 
+import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
+import org.mortbay.jetty.handler.DefaultHandler;
+import org.mortbay.jetty.handler.HandlerCollection;
+import org.mortbay.jetty.security.Constraint;
+import org.mortbay.jetty.security.ConstraintMapping;
+import org.mortbay.jetty.security.HashUserRealm;
+import org.mortbay.jetty.security.SecurityHandler;
+import org.mortbay.jetty.security.UserRealm;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.DefaultServlet;
 import org.mortbay.jetty.servlet.ServletHolder;
@@ -67,6 +75,22 @@ public class Controller {
         "org.apache.ambari.controller.rest.config.ExtendedWadlGeneratorConfig");
       root.addServlet(sh, "/v1/*");
       sh.setInitOrder(2);
+      
+      Constraint constraint = new Constraint();
+      constraint.setName(Constraint.__BASIC_AUTH);;
+      constraint.setRoles(new String[]{"user","admin","moderator"});
+      constraint.setAuthenticate(true);
+       
+      ConstraintMapping cm = new ConstraintMapping();
+      cm.setConstraint(constraint);
+      cm.setPathSpec("/v1/controller/*");
+      
+      SecurityHandler security = new SecurityHandler();
+      security.setUserRealm(new HashUserRealm("Controller",
+          System.getenv("AMBARI_CONF_DIR")+"/auth.conf"));
+      security.setConstraintMappings(new ConstraintMapping[]{cm});
+
+      root.addHandler(security);
       server.setStopAtShutdown(true);
       server.start();
     } catch (Exception e) {

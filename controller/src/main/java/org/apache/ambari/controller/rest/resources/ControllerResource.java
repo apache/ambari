@@ -83,7 +83,7 @@ public class ControllerResource {
     Action action = new Action();
     action.setUser("hdfs");
     action.setComponent("hdfs");
-    action.setServerName("datanode");
+    action.setRole("datanode");
     action.setKind(Kind.STOP_ACTION);
     action.setSignal(Signal.KILL);
     action.setClusterId("cluster-001");
@@ -97,7 +97,7 @@ public class ControllerResource {
     action2.setCommands(commands);
     action2.setCleanUpCommands(cleanUps);
     action2.setComponent("hdfs");
-    action2.setServerName("datanode");
+    action2.setRole("datanode");
 
     Action action3 = new Action();
     action3.setUser("hdfs");
@@ -147,7 +147,7 @@ public class ControllerResource {
       actionResult2.setCleanUpResults(cleanUpResults);
       actionResult2.setKind(Kind.START_ACTION);
       actionResult2.setComponent("hadoop");
-      actionResult2.setServerName("datanode");
+      actionResult2.setRole("datanode");
 
       actionResults.add(actionResult);
       actionResults.add(actionResult2);
@@ -206,7 +206,7 @@ public class ControllerResource {
     Action action = new Action();
     action.setUser("hdfs");
     action.setComponent("hdfs");
-    action.setServerName("datanode");
+    action.setRole("datanode");
     action.setKind(Kind.STOP_ACTION);
     action.setSignal(Signal.KILL);
     action.setClusterId("cluster-001");
@@ -220,11 +220,28 @@ public class ControllerResource {
     action2.setCommands(commands);
     action2.setCleanUpCommands(cleanUps);
     action2.setComponent("hdfs");
-    action2.setServerName("datanode");
+    action2.setRole("datanode");
     
+    Action action3 = new Action();
+    action3.setUser("hdfs");
+    action3.setKind(Kind.RUN_ACTION);
+    action3.setId("action-003");
+    action3.setClusterId("cluster-002");
+    List<Command> configFiles = new ArrayList<Command>();
+    String[] writeFile = { 
+        "ambari-write-file",
+        "hdfs",
+        "hadoop",
+        "0700",
+        "/tmp/test",
+        "content of file"
+        };
+    configFiles.add(new Command("hdfs", writeFile));
+    action3.setCommands(configFiles);
     List<Action> actions = new ArrayList<Action>();
     actions.add(action);
     actions.add(action2);
+    actions.add(action3);
     controllerResponse.setActions(actions);
     return controllerResponse;
   }

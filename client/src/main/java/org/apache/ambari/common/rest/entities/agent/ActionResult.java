@@ -50,7 +50,7 @@ public class ActionResult {
   @XmlElement
   private String component;
   @XmlElement
-  private String serverName;
+  private String role;
 
   public String getClusterId() {
     return clusterId;
@@ -97,15 +97,15 @@ public class ActionResult {
     return this.component;
   }
   
-  public String getServerName() {
-    return serverName;
-  }
-  
   public void setComponent(String component) {
     this.component = component;
   }
+
+  public String getRole() {
+    return role;
+  }  
   
-  public void setServerName(String serverName) {
-    this.serverName = serverName;
+  public void setRole(String role) {
+    this.role = role;
   }
 }

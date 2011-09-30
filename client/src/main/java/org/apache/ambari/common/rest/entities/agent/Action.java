@@ -42,7 +42,7 @@ public class Action {
   @XmlElement
   public String component;
   @XmlElement
-  public String serverName;
+  public String role;
   @XmlElement
   public Signal signal;
   @XmlElement
@@ -86,16 +86,16 @@ public class Action {
     return component;
   }
   
-  public String getServerName() {
-    return serverName;
+  public String getRole() {
+    return role;
   }
   
   public void setComponent(String component) {
     this.component = component;
   }
   
-  public void setServerName(String serverName) {
-    this.serverName = serverName;
+  public void setRole(String role) {
+    this.role = role;
   }
   
   public Signal getSignal() {

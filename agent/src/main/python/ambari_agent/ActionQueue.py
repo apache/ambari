@@ -67,20 +67,22 @@ class ActionQueue(threading.Thread):
                'id'         : action['id'], 
                'clusterId'  : action['clusterId'],
                'kind'       : action['kind'], 
-               'serverName' : action['serverName'] 
+               'component'  : action['component'], 
+               'role'       : action['role'] 
              }
-    self.sh.startProcess(action['serverName'], action['commands'][0]['cmd'], action['user'])
+    self.sh.startProcess(action['component'], action['role'], action['commands'][0]['cmd'], action['user'])
     return result
 
   # Run stop action, stop a server process.
   def stopAction(self, action):
     result = { 
-               'id': action['id'], 
-               'kind': action['kind'], 
-               'clusterId': action['clusterId'], 
-               'serverName': action['serverName']
+               'id'        : action['id'], 
+               'kind'      : action['kind'], 
+               'clusterId' : action['clusterId'], 
+               'component' : action['component'],
+               'role'      : action['role']
              }
-    self.sh.stopProcess(action['serverName'], action['signal'])
+    self.sh.stopProcess(action['component'], action['role'], action['signal'])
     return result
 
   # Run commands action
@@ -100,7 +102,7 @@ class ActionQueue(threading.Thread):
       script = cmd['cmd']
       if script[0]=="ambari-write-file":
         response = writeFile(script)
-      else
+      else:
         response = self.sh.run(script, cmd['user'])
       exitCode = response['exit_code']
       if exitCode==0:
