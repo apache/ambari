@@ -33,7 +33,9 @@ import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.controller.Blueprints;
+import org.apache.ambari.controller.ExceptionResponse;
 import org.apache.ambari.controller.Stacks;
+import org.codehaus.jettison.json.JSONArray;
 
 /** BlueprintResource represents a Hadoop blueprint to be installed on a 
  *  cluster. Blueprints define a collection of Hadoop components that are
@@ -62,7 +64,7 @@ public class BlueprintsResource {
      * @throws Exception                throws Exception
      */
     @POST
-    @Consumes
+    @Consumes ({"application/json"})
     public void createBlueprint(Blueprint blueprint) throws Exception {
         Blueprints.getInstance().addBlueprint(blueprint);
     }
@@ -84,19 +86,19 @@ public class BlueprintsResource {
      * @throws Exception                throws Exception
      */
     @GET
-    @Consumes
-    public List<String> listBlueprints() throws Exception {
+    @Produces({"application/json"})
+    public JSONArray listBlueprints() throws Exception {
+        JSONArray list;
         try {
-            List <String> list = Blueprints.getInstance().getBlueprintList();
-            if (list.isEmpty()) {
-                Exception e = new Exception ("No user defined blueprints found");
-                throw new WebApplicationException (e, Response.Status.NO_CONTENT);
-            }
+            list = Blueprints.getInstance().getBlueprintList();
+            if (list.length() == 0) {
+                throw new WebApplicationException(Response.Status.NO_CONTENT);
+            } 
             return list;
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
         } 
     }
     

@@ -39,8 +39,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.Cluster;
+import org.apache.ambari.common.rest.entities.Component;
+import org.apache.ambari.common.rest.entities.ConfigPropertiesCategory;
+import org.apache.ambari.common.rest.entities.Configuration;
+import org.apache.ambari.common.rest.entities.PackageRepository;
+import org.apache.ambari.common.rest.entities.Property;
+import org.apache.ambari.common.rest.entities.Role;
 import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.resource.statemachine.ClusterState;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -48,7 +57,65 @@ public class Blueprints {
 
     private static Blueprints BlueprintsRef=null;
         
-    private Blueprints() {}
+    private Blueprints() {
+      
+        Blueprint bp = new Blueprint();
+        bp.setName("MyClusterBlueprint");
+        bp.setStackName("hortonworks-3.0");
+        bp.setParentName("MySiteBlueprint");
+        bp.setRevision("0");
+        bp.setParentRevision("0");
+ 
+        Component hdfsC = new Component(); hdfsC.setName("hdfs");
+        hdfsC.getProperty().add(getProperty ("dfs.name.dir", "${HADOOP_NN_DIR}"));
+        hdfsC.getProperty().add(getProperty ("dfs.data.dir", "${HADOOP_DATA_DIR}"));
+        Component mapredC = new Component(); mapredC.setName("hdfs");
+        mapredC.getProperty().add(getProperty ("mapred.system.dir", "/mapred/mapredsystem"));
+        mapredC.getProperty().add(getProperty ("mapred.local.dir", "${HADOOP_MAPRED_DIR}"));
+        List<Component> compList = new ArrayList();
+        compList.add(mapredC);
+        compList.add(hdfsC);
+        bp.setComponents(compList);
+        
+        List<PackageRepository> prList = new ArrayList<PackageRepository>();
+        PackageRepository pr = new PackageRepository();
+        pr.setLocationURL("http://localhost/~vgogate/ambari");
+        pr.setType("RPM");  
+        bp.setPackageRepositories(prList);
+        
+        Configuration bpDefaultCfg = new Configuration();
+        ConfigPropertiesCategory hdfs_site = new ConfigPropertiesCategory();
+        hdfs_site.setName("hdfs-site");
+        ConfigPropertiesCategory mapred_site = new ConfigPropertiesCategory();
+        mapred_site.setName("mapred-site");  
+        hdfs_site.getProperty().add(getProperty ("dfs.name.dir", "/tmp/namenode"));
+        hdfs_site.getProperty().add(getProperty ("dfs.data.dir", "/tmp/datanode"));
+        mapred_site.getProperty().add(getProperty ("mapred.system.dir", "/mapred/mapredsystem"));
+        mapred_site.getProperty().add(getProperty ("mapred.local.dir", "/tmp/mapred")); 
+        bpDefaultCfg.getCategory().add(mapred_site);
+        bpDefaultCfg.getCategory().add(hdfs_site);
+        
+        bp.setConfiguration(bpDefaultCfg);
+        
+        List<Role> roleList = new ArrayList<Role>();
+        Role hdfs_nn_role = new Role();
+        hdfs_nn_role.setName("hdfs-NN");
+        hdfs_nn_role.setConfiguration(bpDefaultCfg);
+        
+        Role mapred_jt_role = new Role();
+        mapred_jt_role.setName("mapred-JT");
+        mapred_jt_role.setConfiguration(bpDefaultCfg);
+        
+        Role slaves_role = new Role();
+        slaves_role.setName("slaves");
+        slaves_role.setConfiguration(bpDefaultCfg);
+        
+        bp.setRoles(roleList);
+        
+        ConcurrentHashMap<Integer, Blueprint> x = new ConcurrentHashMap<Integer, Blueprint>();
+        x.put(new Integer(bp.getRevision()), bp);
+        this.blueprints.put(bp.getName(), x);
+    }
     
     public static synchronized Blueprints getInstance() {
         if(BlueprintsRef == null) {
@@ -103,18 +170,53 @@ public class Blueprints {
     /*
      * Return list of blueprint names
      */
-    public List<String> getBlueprintList() throws Exception {
+    /*
+     * Returns stack names
+     */
+    public JSONArray getBlueprintList() throws Exception {
         List<String> list = new ArrayList<String>();
         list.addAll(this.blueprints.keySet());
-        return list;
+        return new JSONArray(list);
     }
+    
     /*
      * Delete the specified version of blueprint
+     * TODO: Check if blueprint is associated with any stack... 
      */
     public void deleteBlueprint(String blueprintName, int revision) throws Exception {
+        Blueprint bp = this.blueprints.get(blueprintName).get(new Integer(revision));
+        
+        for (Cluster c : Clusters.getInstance().operational_clusters.values()) {
+            String bpName = c.getClusterDefinition().getBlueprintName();
+            String bpRevision = c.getClusterDefinition().getBlueprintRevision();
+            // TODO: May be don't consider ATTIC clusters
+            if (c.getClusterState().getState().equals(ClusterState.ATTIC)) {
+                continue;
+            }
+            Blueprint bpx = Blueprints.getInstance().blueprints.get(bpName).get(new Integer(bpRevision));
+            if (bpx.getName().equals(bp.getName()) && bpx.getRevision().equals(bp.getRevision()) ||
+                bpx.getParentName().equals(bp.getParentName()) && bpx.getParentRevision().equals(bp.getParentRevision())) {
+                String msg = "One or more clusters are associated with the specified blueprint";
+                throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_ACCEPTABLE)).get());
+            }
+        }
+        
+        /*
+         * If no cluster is associated then remvove the blueprint
+         */
         this.blueprints.get(blueprintName).remove(revision);
         if (this.blueprints.get(blueprintName).keySet().isEmpty()) {
             this.blueprints.remove(blueprintName);
         }    
+    }
+    
+    /*
+     * UTIL methods
+     */
+    public Property getProperty(String key, String value) {
+        Property p = new Property();
+        p.setName(key);
+        p.setValue(value);
+        return p;
     }
 }

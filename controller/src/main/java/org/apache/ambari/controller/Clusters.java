@@ -66,6 +66,7 @@ public class Clusters {
         
         cluster123.setName("blue.dev.Cluster123");
         cluster123.setBlueprintName("cluster123-blueprint");
+        cluster123.setBlueprintRevision("0");
         cluster123.setDescription("cluster123 - development cluster");
         cluster123.setGoalState(ClusterState.CLUSTER_STATE_ACTIVE);
         List<String> activeServices = new ArrayList<String>();
@@ -126,6 +127,7 @@ public class Clusters {
         ClusterDefinition cluster124 = new ClusterDefinition();
         cluster124.setName("blue.research.Cluster124");
         cluster124.setBlueprintName("cluster124-blueprint");
+        cluster124.setBlueprintRevision("0");
         cluster124.setDescription("cluster124 - research cluster");
         cluster124.setGoalState(ClusterState.CLUSTER_STATE_INACTIVE);
         activeServices = new ArrayList<String>();
@@ -447,6 +449,7 @@ public class Clusters {
         Cluster cls = this.operational_clusters.get(clusterName);
         synchronized (cls.getClusterDefinition()) {
             if (c.getBlueprintName() != null) cls.getClusterDefinition().setBlueprintName(c.getBlueprintName());
+            if (c.getBlueprintRevision() != null) cls.getClusterDefinition().setBlueprintRevision(c.getBlueprintRevision());
             if (c.getDescription() != null) cls.getClusterDefinition().setDescription(c.getDescription());
             if (c.getGoalState() != null) cls.getClusterDefinition().setGoalState(c.getGoalState());
             if (c.getActiveServices() != null) cls.getClusterDefinition().setActiveServices(c.getActiveServices());

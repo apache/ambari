@@ -36,6 +36,7 @@ import javax.xml.bind.annotation.XmlType;
     "name",
     "description",
     "blueprintName",
+    "blueprintRevision",
     "goalState",
     "activeServices",
     "nodeRangeExpressions",
@@ -54,6 +55,8 @@ public class ClusterDefinition {
     protected String description = null;
     @XmlElement(name = "BlueprintName")
     protected String blueprintName = null;
+    @XmlElement(name = "BlueprintRevision")
+    protected String blueprintRevision = null;
     @XmlElement(name = "GoalState")
     protected String goalState = null;
     @XmlElement(name = "ActiveServices")
@@ -64,6 +67,20 @@ public class ClusterDefinition {
     protected RoleToNodesMap roleToNodesMap = null;
     
     
+    /**
+     * @return the blueprintRevision
+     */
+    public String getBlueprintRevision() {
+        return blueprintRevision;
+    }
+
+    /**
+     * @param blueprintRevision the blueprintRevision to set
+     */
+    public void setBlueprintRevision(String blueprintRevision) {
+        this.blueprintRevision = blueprintRevision;
+    }
+
     /**
      * @return the name
      */

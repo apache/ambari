@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.controller.Blueprints;
+import org.apache.ambari.controller.ExceptionResponse;
 import org.apache.ambari.controller.Stacks;
 
 /** BlueprintResource represents a Hadoop blueprint to be installed on a 
@@ -65,18 +66,18 @@ public class BlueprintResource {
     @GET
     @Produces({"application/json", "application/xml"})
     public Blueprint getBlueprint(@PathParam("blueprintName") String blueprintName, 
-            @DefaultValue("") @QueryParam("revision") String revision) throws Exception {
+                                  @DefaultValue("") @QueryParam("revision") String revision) throws Exception {     
         try {
             if (revision == null || revision.equals("")) {
-                Exception e = new Exception ("Revision number not specified");
-                throw new WebApplicationException (e, Response.Status.BAD_REQUEST);
+                String msg = "Revision number not specified";
+                throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             }
             return Blueprints.getInstance().getBlueprint(blueprintName, Integer.parseInt(revision));
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
-        }     
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        }      
     }
     
     /** Delete the blueprint
@@ -99,18 +100,19 @@ public class BlueprintResource {
     @DELETE
     @Consumes({"application/json", "application/xml"})
     public void deleteBlueprint(@PathParam("blueprintName") String blueprintName,
-            @DefaultValue("") @QueryParam("revision") String revision ) throws Exception {       
+                                @DefaultValue("") @QueryParam("revision") String revision ) throws Exception {
+        
         try {
             if (revision == null || revision.equals("")) {
-                Exception e = new Exception ("Revision number not specified");
-                throw new WebApplicationException (e, Response.Status.BAD_REQUEST);
+                String msg = "Revision number not specified";
+                throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             }
             Blueprints.getInstance().deleteBlueprint(blueprintName, Integer.parseInt(revision));
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
-        }     
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        }    
     }
     
     /** Update a current blueprint.
