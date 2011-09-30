@@ -95,7 +95,7 @@ public class Nodes {
                 if (!n.getNodeState().getNodeRoleNames().contains(roleName)) { continue; }
             }
             
-            // TODO: If heartbeat is null
+            // TODO: If heartbeat is null? It is set to epoch during node initialization.
             
             GregorianCalendar cal = new GregorianCalendar(); 
             cal.setTime(new Date());
@@ -104,6 +104,10 @@ public class Nodes {
                 || (!alive && getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) >= NODE_NOT_RESPONDING_DURATION)) {
                 list.add(this.nodes.get(host));
             }
+        }
+        if (list.isEmpty()) {
+            String msg = "No nodes found!";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NO_CONTENT)).get());
         }
         return list;
     }
