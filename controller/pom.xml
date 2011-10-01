@@ -37,16 +37,10 @@
          <directory>src/main/resources</directory>
         </resource>
       </resources>
-      <pluginManagement>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.4</version>
-          </plugin>
-        </plugins>
-      </pluginManagement>
       <plugins>
+        <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>

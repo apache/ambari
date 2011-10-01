@@ -96,6 +96,9 @@
     <build>
       <plugins>
         <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <configuration>

@@ -2,7 +2,10 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
-  AMBARI-29. Implement Node Resource API
+  AMBARI-30. Fix the build so that the client and controller tarballs are 
+  built. (omalley)
+
+  AMBARI-29. Implement Node Resource API. (vgogate)
 
   AMBARI-24. Fix the versions in the pom.xml. (omalley)
 
