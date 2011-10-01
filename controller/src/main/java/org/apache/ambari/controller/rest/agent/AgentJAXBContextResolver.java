@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.controller.rest.resources;
+package org.apache.ambari.controller.rest.agent;
 
 import java.util.Arrays;
 import java.util.HashMap;

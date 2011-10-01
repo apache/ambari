@@ -50,21 +50,12 @@ import com.sun.jersey.spi.resource.Singleton;
 @Path(value = "/stacks")
 public class StacksResource {       
     
-    /** Import a new Hadoop Stack description
-     *  <p>
-     *  Specific revision of stack is imported/created into Ambari, if not already present. It returns the 
-     *  description of the stack if imported successfully. If 
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /stacks/<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+    /** 
+     * Import a new Hadoop Stack description
+     *
+     * @response.representation.200.doc Specific revision of stack is 
+     * imported/created into Ambari, if not already present. It returns the 
+     * description of the stack if imported successfully. 
      * 
      * @param   url Location of the new stack definition
      * @throws  Exception               throws Exception
@@ -81,19 +72,8 @@ public class StacksResource {
         } 
     }
     
-    /** Get the list of stacks installed with Ambari controller.
-     * 
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /stacks/{stackName}<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+    /** 
+     * Get the list of stacks installed with Ambari controller.
      * 
      * @param searchToken       Optionally specify the search token to return the stacks where stack name includes the search token 
      * @return                  Returns list of stack definitions
@@ -117,19 +97,8 @@ public class StacksResource {
         return list;
     }
 
-    /** Get the stack definition
-     * 
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /stacks/{stackName}<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+    /** 
+     * Get the stack definition
      * 
      * @param stackName         The name of the stack to get the default blueprint
      * @return                  The default blueprint for that stack
@@ -153,19 +122,8 @@ public class StacksResource {
         }      
     }
     
-    /** Get the default blueprint for a particular stack
-     * 
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /stacks/{stackName}/default-blueprint<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+    /** 
+     * Get the default blueprint for a particular stack
      * 
      * @param stackName         The name of the stack to get the default blueprint
      * @return                  The default blueprint for that stack

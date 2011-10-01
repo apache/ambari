@@ -35,22 +35,11 @@ import com.sun.jersey.spi.resource.Singleton;
 @Path(value = "/nodes")
 public class NodesResource {
             
-        /** Get list of nodes
-     *  <p>
+    /** Get list of nodes
+     *
      *  The "allocated and "alive" are the boolean variables that specify the type of nodes to return based on their state i.e. if they are already allocated to any cluster and live or dead. 
      *  Live nodes are the ones that are consistently heart beating with the controller. If both "allocated" and "alive" are set to NULL then all the nodes are returned.  
-     *  <p>
-         *  REST:<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}/nodes<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  <p> 
-         *  
+     *  
      *  @param  allocated               Boolean value to specify, if nodes to be returned are allocated/reserved for some cluster (specify null to return both allocated and unallocated nodes)
      *  @param  alive                   Boolean value to specify, if nodes to be returned are alive or dead or both (specify null to return both live and dead nodes) 
      *  @return                                 List of nodes
@@ -68,22 +57,11 @@ public class NodesResource {
     /*
      * Get specified Node information
      */
-    /** Get the node information that includes, service states, node attributes etc.
+    /** 
+     * Get the node information that includes, service states, node attributes etc.
      * 
-     *  <p>
-         *  REST:<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /nodes/{hostname}<br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-         *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-         *  <p> 
-         *  
      * @param hostname          Fully qualified hostname
-     * @return                          Returns the node information
+     * @return                  Returns the node information
      * @throws Exception        throws Exception
      */
     @Path(value = "/{hostname}")

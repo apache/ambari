@@ -52,39 +52,74 @@
             <artifactId>maven-javadoc-plugin</artifactId>
             <executions>
               <execution>
+                <id>public-api</id>
                 <goals>
                   <goal>javadoc</goal>
                 </goals>
                 <phase>compile</phase>
+                <configuration>
+                  <encoding>UTF-8</encoding>
+                  <verbose>false</verbose>
+                  <show>public</show>
+                  <subpackages>org.apache.ambari.controller.rest.resources</subpackages>
+                  <doclet>com.sun.jersey.wadl.resourcedoc.ResourceDoclet</doclet>
+                  <docletPath>${path.separator}${project.build.outputDirectory}</docletPath>
+                  <docletArtifacts>
+                    <docletArtifact>
+                      <groupId>com.sun.jersey.contribs</groupId>
+                      <artifactId>wadl-resourcedoc-doclet</artifactId>
+                      <version>1.8</version>
+                    </docletArtifact>
+                    <docletArtifact>
+                      <groupId>com.sun.jersey</groupId>
+                      <artifactId>jersey-server</artifactId>
+                      <version>1.8</version>
+                    </docletArtifact>
+                    <docletArtifact>
+                      <groupId>xerces</groupId>
+                      <artifactId>xercesImpl</artifactId>
+                      <version>2.6.1</version>
+                    </docletArtifact>
+                  </docletArtifacts>
+                  <useStandardDocletOptions>false</useStandardDocletOptions>
+                  <additionalparam>-output ${project.build.outputDirectory}/resourcedoc.xml</additionalparam>
+                </configuration>
+              </execution>
+              <execution>
+                <id>private-api</id>
+                <goals>
+                  <goal>javadoc</goal>
+                </goals>
+                <phase>compile</phase>
+                <configuration>
+                  <encoding>UTF-8</encoding>
+                  <verbose>false</verbose>
+                  <show>public</show>
+                  <subpackages>org.apache.ambari.controller.rest.agent</subpackages>
+                  <doclet>com.sun.jersey.wadl.resourcedoc.ResourceDoclet</doclet>
+                  <docletPath>${path.separator}${project.build.outputDirectory}</docletPath>
+                  <docletArtifacts>
+                    <docletArtifact>
+                      <groupId>com.sun.jersey.contribs</groupId>
+                      <artifactId>wadl-resourcedoc-doclet</artifactId>
+                      <version>1.8</version>
+                    </docletArtifact>
+                    <docletArtifact>
+                      <groupId>com.sun.jersey</groupId>
+                      <artifactId>jersey-server</artifactId>
+                      <version>1.8</version>
+                    </docletArtifact>
+                    <docletArtifact>
+                      <groupId>xerces</groupId>
+                      <artifactId>xercesImpl</artifactId>
+                      <version>2.6.1</version>
+                    </docletArtifact>
+                  </docletArtifacts>
+                  <useStandardDocletOptions>false</useStandardDocletOptions>
+                  <additionalparam>-output ${project.build.outputDirectory}/resourcedoc-agent.xml</additionalparam>
+                </configuration>
               </execution>
             </executions>
-            <configuration>
-              <encoding>UTF-8</encoding>
-              <verbose>false</verbose>
-              <show>public</show>
-              <subpackages>org.apache.ambari.controller.rest.resources</subpackages>
-              <doclet>com.sun.jersey.wadl.resourcedoc.ResourceDoclet</doclet>
-              <docletPath>${path.separator}${project.build.outputDirectory}</docletPath>
-              <docletArtifacts>
-                <docletArtifact>
-                  <groupId>com.sun.jersey.contribs</groupId>
-                  <artifactId>wadl-resourcedoc-doclet</artifactId>
-                  <version>1.8</version>
-                </docletArtifact>
-                <docletArtifact>
-                  <groupId>com.sun.jersey</groupId>
-                  <artifactId>jersey-server</artifactId>
-                  <version>1.8</version>
-                </docletArtifact>
-                <docletArtifact>
-                  <groupId>xerces</groupId>
-                  <artifactId>xercesImpl</artifactId>
-                  <version>2.6.1</version>
-                </docletArtifact>
-              </docletArtifacts>
-              <useStandardDocletOptions>false</useStandardDocletOptions>
-              <additionalparam>-output ${project.build.outputDirectory}/resourcedoc.xml</additionalparam>
-            </configuration>
           </plugin>
       </plugins>
     </build>

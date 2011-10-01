@@ -37,31 +37,22 @@ import org.apache.ambari.controller.ExceptionResponse;
 import org.apache.ambari.controller.Stacks;
 import org.codehaus.jettison.json.JSONArray;
 
-/** BlueprintResource represents a Hadoop blueprint to be installed on a 
- *  cluster. Blueprints define a collection of Hadoop components that are
- *  installed together on a cluster and their configuration.
+/** 
+ * BlueprintResource represents a Hadoop blueprint to be installed on a 
+ * cluster. Blueprints define a collection of Hadoop components that are
+ * installed together on a cluster and their configuration.
  */
 @Path(value = "/blueprints")
 public class BlueprintsResource {
  
-    /** Creates a new blueprint.
-     *  <p>
+    /** 
+     * Creates a new blueprint.
+     *
      *  If named blueprint does not exists already, then it creates new one i.e. revision zero.
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : POST <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
      * 
-     * @param blueprint                 Input blueprint object specifying the blueprint definition
-     * @return                                  Returns the newly created revision of the blueprint
-     * @throws Exception                throws Exception
+     * @param blueprint  Input blueprint object specifying the blueprint definition
+     * @return Returns the newly created revision of the blueprint
+     * @throws Exception throws Exception
      */
     @POST
     @Consumes ({"application/json"})
@@ -69,21 +60,11 @@ public class BlueprintsResource {
         Blueprints.getInstance().addBlueprint(blueprint);
     }
 
-    /** Get the list of blueprint names
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+    /** 
+     * Get the list of blueprint names
      * 
-     * @return                          Returns the list of blueprint names
-     * @throws Exception                throws Exception
+     * @return Returns the list of blueprint names
+     * @throws Exception throws Exception
      */
     @GET
     @Produces({"application/json"})

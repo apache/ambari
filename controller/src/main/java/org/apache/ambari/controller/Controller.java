@@ -78,9 +78,19 @@ public class Controller {
         "org.apache.ambari.controller.rest.resources");
       sh.setInitParameter("com.sun.jersey.config.property.WadlGeneratorConfig", 
         "org.apache.ambari.controller.rest.config.ExtendedWadlGeneratorConfig");
-      root.addServlet(sh, "/v1/*");
+      root.addServlet(sh, "/rest/*");
       sh.setInitOrder(2);
-      
+
+      ServletHolder agent = new ServletHolder(ServletContainer.class);
+      agent.setInitParameter("com.sun.jersey.config.property.resourceConfigClass", 
+        "com.sun.jersey.api.core.PackagesResourceConfig");
+      agent.setInitParameter("com.sun.jersey.config.property.packages", 
+        "org.apache.ambari.controller.rest.agent");
+      agent.setInitParameter("com.sun.jersey.config.property.WadlGeneratorConfig", 
+        "org.apache.ambari.controller.rest.config.PrivateWadlGeneratorConfig");
+      root.addServlet(agent, "/agent/*");
+      agent.setInitOrder(3);
+
       Constraint constraint = new Constraint();
       constraint.setName(Constraint.__BASIC_AUTH);;
       constraint.setRoles(new String[]{"user","admin","moderator"});
@@ -88,7 +98,7 @@ public class Controller {
        
       ConstraintMapping cm = new ConstraintMapping();
       cm.setConstraint(constraint);
-      cm.setPathSpec("/v1/controller/*");
+      cm.setPathSpec("/agent/*");
       
       SecurityHandler security = new SecurityHandler();
       security.setUserRealm(new HashUserRealm("Controller",

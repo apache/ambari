@@ -43,25 +43,19 @@ import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.ExceptionResponse;
 import org.apache.ambari.controller.Nodes;
 
-/** ClusterResource represents a Hadoop Cluster in a data center.
+/** 
+ * ClusterResource represents a Hadoop Cluster in a data center.
  *  
  */
 @Path(value = "/clusters/{clusterName}")
 public class ClusterResource {
         
-    /** Get the definition of specified Hadoop cluster.
+    /** 
+     * Get the definition of specified Hadoop cluster.
      * 
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+     *  @response.representation.200.doc       Get the definition of specified
+     *                                         Hadoop cluster
+     *  @response.representation.200.mediaType application/json
      *  
      *  @param      clusterName             Name of the cluster; Each cluster is identified w/ unique name
      *  @return                             Returns the Cluster definition
@@ -79,21 +73,11 @@ public class ClusterResource {
         }       
     }
     
-    /** Update cluster definition.
-     *  <p>
-     *  Update cluster definition allows updating any sub-elements of cluster definition. Only sub-elements to be 
-     *  updated can be specified with new values while others can be "null".
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : PUT <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+    /** 
+     * Update cluster definition.
+     * 
+     * @request.representation.example { 'abc' : 'abc' }
+     * @response.representation.200.doc Returns cluster definition.
      * 
      * @param   clusterName             Name of the cluster; Each cluster is identified w/ unique name
      * @param   cluster                 Cluster definition with specific sub-elements to be updated
@@ -112,22 +96,16 @@ public class ClusterResource {
         }     
     }
      
-    /** Delete the the cluster.
-     *  <p>
-     *  Delete operation will lead the cluster to "ATTIC" state and then the cluster definition is purged from
-     *  the controller repository. In "ATTIC" state all the cluster services would be stopped and nodes are 
-     *  released. All the data on the cluster will be lost.
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}/action/terminate<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : DELETE <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+    /** 
+     * Delete the the cluster.
+     * 
+     * @response.representation.200.doc Delete operation will lead the cluster 
+     *                                  to "ATTIC" state and then the cluster 
+     *                                  definition is purged from the controller 
+     *                                  repository. In "ATTIC" state all the 
+     *                                  cluster services would be stopped and 
+     *                                  nodes are released. All the data on 
+     *                                  the cluster will be lost.
      *  
      *  @param  clusterName             Name of the cluster; Each cluster is identified w/ unique name
      *  @throws Exception               throws Exception (TBD)
@@ -144,28 +122,24 @@ public class ClusterResource {
         }    
     }
     
-    /** Get the cluster state.
-     *  <p>
-     *  This provides the run time state of the cluster. Representative cluster state is based on the state of various services running on the cluster. <br>
-     *  Representative cluster states: <br>
-     *          "ACTIVE"        : Hadoop stack is deployed on cluster nodes and required cluster services are running <br>
-     *          "INACTIVE       : No cluster services are running. Hadoop stack may or may not be deployed on the cluster nodes <br>
-     *          "ATTIC"         : Only cluster definition is available. No nodes are reserved for the cluster in this state.  <br>
+    /** 
+     * Get the cluster state.
      *  
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}/clusterstate<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+     *  @response.representation.200.doc This provides the run time state of the 
+     *                                   cluster. Representative cluster state 
+     *                                   is based on the state of various 
+     *                                   services running on the cluster.
+     *  Representative cluster states:
+     *    "ACTIVE"  : Hadoop stack is deployed on cluster nodes and 
+     *                required cluster services are running
+     *    "INACTIVE : No cluster services are running. Hadoop stack 
+     *                may or may not be deployed on the cluster nodes
+     *    "ATTIC"   : Only cluster definition is available. No nodes are 
+     *                reserved for the cluster in this state.
      *  
-     *  @param  clusterName             Name of the cluster; Each cluster is identified w/ unique name
-     *  @return                                 Returns cluster state object.
+     *  @param  clusterName             Name of the cluster; Each cluster is 
+     *                                  identified w/ unique name
+     *  @return                         Returns cluster state object.
      *  @throws Exception               throws Exception (TBD)  
      */
     @Path(value = "/state")
@@ -181,27 +155,23 @@ public class ClusterResource {
         }    
     }
     
-    /** Get list of nodes associated with the cluster.
-     *  <p>
-     *  The "alive" is a boolean variable that specify the type of nodes to return based on their state i.e. live or dead. Live nodes are the ones that are consistently heart beating with the controller. 
-     *  If both live and dead nodes are need to be returned then specify the alive parameter as null.  
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /clusters/{clusterName}/nodes<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+    /** 
+     * Get list of nodes associated with the cluster.
      *  
-     *  @param  clusterName             Name of the cluster; Each cluster is identified w/ unique name
-     *  @param  role                    Optionally specify the role name to get the nodes associated with the service role
-     *  @param  alive                   Boolean value to specify, if nodes to be returned are alive or dead or both (if alive is set to null) 
-     *  @return                                 List of nodes
-     *  @throws Exception               throws Exception
+     *  @response.representation.200.doc The "alive" is a boolean variable that 
+     *  specify the type of nodes to return based on their state i.e. live or 
+     *  dead. Live nodes are the ones that are consistently heart beating with 
+     *  the controller. If both live and dead nodes are need to be returned 
+     *  then specify the alive parameter as null.  
+     *  
+     *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
+     *                      unique name
+     *  @param  roleName    Optionally specify the role name to get the nodes 
+     *                      associated with the service role
+     *  @param  alive       Boolean value to specify, if nodes to be returned 
+     *                       are alive or dead or both (if alive is set to null) 
+     *  @return             List of nodes
+     *  @throws Exception   throws Exception
      */
     @Path(value = "/nodes")
     @GET

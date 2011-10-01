@@ -43,7 +43,7 @@ class Controller(threading.Thread):
     self.lock = threading.Lock()
     self.safeMode = True
     self.credential = credential
-    self.url = url + '/v1/controller/agent/' + socket.gethostname()
+    self.url = url + '/agent/' + socket.gethostname()
 
   def start(self):
     self.actionQueue = ActionQueue()

@@ -44,24 +44,16 @@ import org.apache.ambari.controller.Stacks;
 @Path(value = "/blueprints/{blueprintName}")
 public class BlueprintResource {
         
-    /** Get a blueprint
+    /** 
+     * Get a blueprint
      * 
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/{blueprintName}<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : GET <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+     * @response.representation.200.doc       Get a blueprint
+     * @response.representation.200.mediaType application/json
      *  
-     *      @param  blueprintName   Name of the blueprint
-     *      @param  revision        The optional blueprint revision to get
-     *      @return                 blueprint definition
-     *      @throws Exception       throws Exception (TBD)
+     * @param  blueprintName   Name of the blueprint
+     * @param  revision        The optional blueprint revision to get
+     * @return                 blueprint definition
+     * @throws Exception       throws Exception (TBD)
      */
     @GET
     @Produces({"application/json", "application/xml"})
@@ -80,19 +72,11 @@ public class BlueprintResource {
         }      
     }
     
-    /** Delete the blueprint
+    /** 
+     * Delete the blueprint
      * 
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/{blueprintName}<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : DELETE <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+     * @response.representation.200.doc       Delete a blueprint
+     * @response.representation.200.mediaType application/json
      *  
      * @param  blueprintName    Name of the blueprint
      * @throws Exception        throws Exception (TBD)
@@ -115,25 +99,17 @@ public class BlueprintResource {
         }    
     }
     
-    /** Update a current blueprint.
-     *  <p>
-     *  Updates a current blueprint to update some of its fields.
-     *  <p>
-     *  REST:<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;URL Path                                    : /blueprints/{blueprintName}<br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Method                                 : PUT <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Request Header                         : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;HTTP Response Header                        : <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Content-type        = application/json <br>
-     *  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accept              = application/json <br>
-     *  <p> 
+    /** 
+     * Update a current blueprint.
+     *
+     * @response.representation.200.doc       Updates a current blueprint to 
+     *                                        update some of its fields.
+     * @response.representation.200.mediaType application/json
      * 
-     * @param blueprintName             Name of the blueprint
-     * @param blueprint                 Input blueprint object specifying the blueprint definition
-     * @return                                  Returns the new revision of the blueprint
-     * @throws Exception                throws Exception
+     * @param blueprintName Name of the blueprint
+     * @param blueprint     Input blueprint object specifying the blueprint definition
+     * @return              Returns the new revision of the blueprint
+     * @throws Exception    throws Exception
      */
     @Path(value = "/blueprints/{blueprintName}")
     @PUT
