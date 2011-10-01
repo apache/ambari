@@ -41,10 +41,6 @@ import javax.ws.rs.core.Response;
  */
 @Path(value = "/clusters")
 public class ClustersResource {
-        
-    public ClustersResource() throws Exception {        
-        
-    }  
     
     /** 
      * Get the list of clusters.

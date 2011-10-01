@@ -74,7 +74,7 @@ public class Nodes {
     }
        
     public ConcurrentHashMap<String, Node> getNodes () {
-            return nodes;
+        return nodes;
     }
     
     public List<Node> getClusterNodes (String clusterName, String roleName, boolean alive) throws Exception {
@@ -95,8 +95,7 @@ public class Nodes {
                 if (!n.getNodeState().getNodeRoleNames().contains(roleName)) { continue; }
             }
             
-            // TODO: If heartbeat is null? It is set to epoch during node initialization.
-            
+            // Heart beat is set to epoch during node initialization.
             GregorianCalendar cal = new GregorianCalendar(); 
             cal.setTime(new Date());
             XMLGregorianCalendar curTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
@@ -110,6 +109,58 @@ public class Nodes {
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NO_CONTENT)).get());
         }
         return list;
+    }
+    
+    /*
+     * Get Nodes 
+     */
+    public List<Node> getNodesByState (boolean allocated, boolean alive) throws Exception {
+        List<Node> list = new ArrayList<Node>();
+        GregorianCalendar cal = new GregorianCalendar(); 
+        cal.setTime(new Date());
+        XMLGregorianCalendar curTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+        for (Node n : this.nodes.values()) {
+            if (allocated && alive) {
+                if (n.getNodeState().getAllocatedToCluster() && 
+                    getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) < NODE_NOT_RESPONDING_DURATION) {
+                    list.add(n);
+                }
+            }
+            if (allocated && !alive) {
+                if (n.getNodeState().getAllocatedToCluster() && 
+                    getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) >= NODE_NOT_RESPONDING_DURATION) {
+                    list.add(n);
+                }
+            }
+            if (!allocated && alive) {
+                if (!n.getNodeState().getAllocatedToCluster() && 
+                    getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) < NODE_NOT_RESPONDING_DURATION) {
+                    list.add(n);
+                }
+            }
+            if (!allocated && !alive) {
+                if (!n.getNodeState().getAllocatedToCluster() && 
+                    getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) >= NODE_NOT_RESPONDING_DURATION) {
+                    list.add(n);
+                }
+            }
+        }
+        
+        if (list.isEmpty()) {
+            throw new WebApplicationException(Response.Status.NO_CONTENT);
+        }   
+        return list;
+    }
+    
+    /*
+     * Get the node
+     */
+    public Node getNode (String name) throws Exception {
+        if (this.nodes.get(name) == null) {
+            String msg = "Node ["+name+"] does not exists";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
+        }
+        return this.nodes.get(name);
     }
     
     /*

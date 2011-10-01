@@ -56,8 +56,14 @@ public class BlueprintsResource {
      */
     @POST
     @Consumes ({"application/json"})
-    public void createBlueprint(Blueprint blueprint) throws Exception {
-        Blueprints.getInstance().addBlueprint(blueprint);
+    public void createBlueprint(Blueprint blueprint) throws Exception {   
+        try {
+            Blueprints.getInstance().addBlueprint(blueprint);
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        } 
     }
 
     /** 

@@ -25,8 +25,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 
 import org.apache.ambari.common.rest.entities.Node;
+import org.apache.ambari.controller.Clusters;
+import org.apache.ambari.controller.ExceptionResponse;
+import org.apache.ambari.controller.Nodes;
 
 import com.sun.jersey.spi.resource.Singleton;
 
@@ -45,14 +49,18 @@ public class NodesResource {
      *  @return                                 List of nodes
      *  @throws Exception               throws Exception
      */
-    @Path(value = "/nodes")
     @GET
     @Produces({"application/json", "application/xml"})
-    public List<Node> getNodes (@DefaultValue("false") @QueryParam("allocated") Boolean allocated,
-                                                        @DefaultValue("false") @QueryParam("alive") Boolean alive) throws Exception {
-        //return NodesType.getInstance().getNodes (clusterName, roleName, allocated, alive);
-        return null;
-        }
+    public List<Node> getNodes (@DefaultValue("true") @QueryParam("allocated") boolean allocated,
+                                @DefaultValue("true") @QueryParam("alive") boolean alive) throws Exception {
+        try {
+            return Nodes.getInstance().getNodesByState(allocated, alive);
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        } 
+    }
 
     /*
      * Get specified Node information
@@ -68,6 +76,12 @@ public class NodesResource {
     @GET
     @Produces({"application/json", "application/xml"})
     public Node getNode (@PathParam("hostname") String hostname) throws Exception {
-        return null;
+        try {
+            return Nodes.getInstance().getNode(hostname);
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        } 
     }
 }

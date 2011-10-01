@@ -152,11 +152,18 @@ public class Blueprints {
      */
     public void addBlueprint(Blueprint bp) throws Exception {
         
+        /* 
+         * Validate the name is not a reserved keyword and it does not exists already
+         * TODO: Check the specified parent blueprint already exits? may be not! 
+         */
+        if (bp.getName().equals("default")) {
+            String msg = "Blueprint can not have name default, a reserved keyword for default blueprints associated w/ Hadoop stack";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_ACCEPTABLE)).get());
+        }
         if (blueprints.containsKey(bp.getName())) {
             if (blueprints.get(bp.getName()).containsKey(new Integer(bp.getRevision()))) {
-                Exception e = new Exception(
-                      "Specified blueprint [Name:"+bp.getName()+", Revision: ["+bp.getRevision()+"] is already imported");
-                throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+                String msg = "Specified blueprint [Name:"+bp.getName()+", Revision: ["+bp.getRevision()+"] already imported";
+                throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             } else {
                 blueprints.get(bp.getName()).put(new Integer(bp.getRevision()), bp);
             }
@@ -184,11 +191,16 @@ public class Blueprints {
      * TODO: Check if blueprint is associated with any stack... 
      */
     public void deleteBlueprint(String blueprintName, int revision) throws Exception {
-        Blueprint bp = this.blueprints.get(blueprintName).get(new Integer(revision));
         
+        /*
+         * Check if the specified blueprint revision is used in any cluster definition
+         * except in ATTIC clusters.
+         */
+        Blueprint bp = this.blueprints.get(blueprintName).get(new Integer(revision));
         for (Cluster c : Clusters.getInstance().operational_clusters.values()) {
             String bpName = c.getClusterDefinition().getBlueprintName();
             String bpRevision = c.getClusterDefinition().getBlueprintRevision();
+            
             // TODO: May be don't consider ATTIC clusters
             if (c.getClusterState().getState().equals(ClusterState.ATTIC)) {
                 continue;

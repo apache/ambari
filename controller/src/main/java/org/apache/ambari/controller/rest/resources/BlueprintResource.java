@@ -84,8 +84,7 @@ public class BlueprintResource {
     @DELETE
     @Consumes({"application/json", "application/xml"})
     public void deleteBlueprint(@PathParam("blueprintName") String blueprintName,
-                                @DefaultValue("") @QueryParam("revision") String revision ) throws Exception {
-        
+                                @DefaultValue("") @QueryParam("revision") String revision ) throws Exception {     
         try {
             if (revision == null || revision.equals("")) {
                 String msg = "Revision number not specified";

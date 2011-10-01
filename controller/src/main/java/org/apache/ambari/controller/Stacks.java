@@ -39,6 +39,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.Component;
+import org.apache.ambari.common.rest.entities.ConfigPropertiesCategory;
+import org.apache.ambari.common.rest.entities.Configuration;
+import org.apache.ambari.common.rest.entities.PackageRepository;
+import org.apache.ambari.common.rest.entities.Role;
 import org.apache.ambari.common.rest.entities.Stack;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jettison.json.JSONArray;
@@ -73,13 +78,66 @@ public class Stacks {
         y.put(x.getStackRevision(), x);
         this.stacks.put(x.getName(), y);
         
+        /*
+         * Create default blueprint
+         */
         Blueprint bp = new Blueprint();
         bp.setName("default");
         bp.setStackName(x.getName());
         bp.setParentName("default");
         bp.setRevision(new Integer(x.getStackRevision()).toString());
         bp.setParentRevision(new Integer(x.getStackRevision()).toString());
+       
+ 
+        Component hdfsC = new Component(); hdfsC.setName("hdfs");
+        hdfsC.getProperty().add(Blueprints.getInstance().getProperty ("dfs.name.dir", "${HADOOP_NN_DIR}"));
+        hdfsC.getProperty().add(Blueprints.getInstance().getProperty ("dfs.data.dir", "${HADOOP_DATA_DIR}"));
+        Component mapredC = new Component(); mapredC.setName("hdfs");
+        mapredC.getProperty().add(Blueprints.getInstance().getProperty ("mapred.system.dir", "/mapred/mapredsystem"));
+        mapredC.getProperty().add(Blueprints.getInstance().getProperty ("mapred.local.dir", "${HADOOP_MAPRED_DIR}"));
+        List<Component> compList = new ArrayList();
+        compList.add(mapredC);
+        compList.add(hdfsC);
+        bp.setComponents(compList);
         
+        List<PackageRepository> prList = new ArrayList<PackageRepository>();
+        PackageRepository pr = new PackageRepository();
+        pr.setLocationURL("http://localhost/~vgogate/ambari");
+        pr.setType("RPM");  
+        bp.setPackageRepositories(prList);
+        
+        Configuration bpDefaultCfg = new Configuration();
+        ConfigPropertiesCategory hdfs_site = new ConfigPropertiesCategory();
+        hdfs_site.setName("hdfs-site");
+        ConfigPropertiesCategory mapred_site = new ConfigPropertiesCategory();
+        mapred_site.setName("mapred-site");  
+        hdfs_site.getProperty().add(Blueprints.getInstance().getProperty ("dfs.name.dir", "/tmp/namenode"));
+        hdfs_site.getProperty().add(Blueprints.getInstance().getProperty ("dfs.data.dir", "/tmp/datanode"));
+        mapred_site.getProperty().add(Blueprints.getInstance().getProperty ("mapred.system.dir", "/mapred/mapredsystem"));
+        mapred_site.getProperty().add(Blueprints.getInstance().getProperty ("mapred.local.dir", "/tmp/mapred")); 
+        bpDefaultCfg.getCategory().add(mapred_site);
+        bpDefaultCfg.getCategory().add(hdfs_site);
+        
+        bp.setConfiguration(bpDefaultCfg);
+        
+        List<Role> roleList = new ArrayList<Role>();
+        Role hdfs_nn_role = new Role();
+        hdfs_nn_role.setName("hdfs-NN");
+        hdfs_nn_role.setConfiguration(bpDefaultCfg);
+        
+        Role mapred_jt_role = new Role();
+        mapred_jt_role.setName("mapred-JT");
+        mapred_jt_role.setConfiguration(bpDefaultCfg);
+        
+        Role slaves_role = new Role();
+        slaves_role.setName("slaves");
+        slaves_role.setConfiguration(bpDefaultCfg);
+        
+        bp.setRoles(roleList);
+        
+        /*
+         * Add default blueprint to default blueprints list assciated with the stack
+         */
         this.default_blueprints.put(x.getName()+":"+x.getStackRevision(), bp);
     }
     
@@ -157,6 +215,12 @@ public class Stacks {
             ObjectMapper m = new ObjectMapper();
             InputStream is = blueprintUrl.openStream();
             blueprint = m.readValue(is, Blueprint.class);
+            /*
+             * Validate default blueprint
+             */
+            validateDefaultBlueprint(blueprint, stack);
+        } catch (WebApplicationException we) {
+            throw we;
         } catch (Exception e) {
             this.stacks.get(stack.getName()).remove(stack.getStackRevision());
             if (this.stacks.get(stack.getName()).keySet().isEmpty()) {
@@ -167,6 +231,29 @@ public class Stacks {
         return blueprint;
     }
    
+    /*
+     * Validate the default blueprint before importing into stack.
+     */
+    public void validateDefaultBlueprint(Blueprint blueprint, Stack stack) throws WebApplicationException {
+        if (!blueprint.getName().equals("default")) {
+            String msg = "Default blueprint associated with stack must be named <default>";
+            throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
+        if (!blueprint.getName().equals(blueprint.getParentName()) ||
+            !blueprint.getParentRevision().equals(blueprint.getParentRevision())) {
+            String msg = "Parent name & version of default blueprint associated with stack must be same as default blueprint";
+            throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
+        /*
+         * Check if stack name and revision matches with blueprint stackname and blueprint revision
+         */
+        if (!blueprint.getStackName().equals(stack.getName()) ||
+            !blueprint.getRevision().equals(stack.getStackRevision())) {
+            String msg = "Default blueprint's stanck name and revision does not match with it's associated stack";
+            throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
+    }
+    
     /* 
      * Delete stack 
     */
