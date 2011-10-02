@@ -20,6 +20,7 @@ package org.apache.ambari.common.rest.entities;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
@@ -48,6 +49,7 @@ import javax.xml.bind.annotation.XmlType;
     "locationURL",
     "type"
 })
+@XmlRootElement(name = "PackageRepository")
 public class PackageRepository {
 
     @XmlElement(name = "LocationURL", required = true)

@@ -110,6 +110,10 @@ public class Blueprints {
         slaves_role.setName("slaves");
         slaves_role.setConfiguration(bpDefaultCfg);
         
+        roleList.add(hdfs_nn_role);
+        roleList.add(mapred_jt_role);
+        roleList.add(slaves_role);
+        
         bp.setRoles(roleList);
         
         ConcurrentHashMap<Integer, Blueprint> x = new ConcurrentHashMap<Integer, Blueprint>();

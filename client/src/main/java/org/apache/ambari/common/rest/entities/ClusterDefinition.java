@@ -42,7 +42,7 @@ import javax.xml.bind.annotation.XmlType;
     "nodeRangeExpressions",
     "roleToNodesMap"
 })
-@XmlRootElement(name = "ClusterDefinition")
+@XmlRootElement(name = "ClusterDefinitions")
 public class ClusterDefinition {
         
     public static final String GOAL_STATE_ACTIVE = "ACTIVE";

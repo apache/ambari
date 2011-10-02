@@ -38,77 +38,76 @@ import javax.xml.datatype.XMLGregorianCalendar;
 })
 public class NodeServer {
 
-        public static final String NODE_SERVER_STATE_UP = "UP";
-        public static final String NODE_SERVER_STATE_DOWN = "DOWN";
-        
-        /*
-         * name should be component name : role name
-         * TODO : May be we can have component and role as two separate attributes instead of name
-         */
-        @XmlElement(name = "Name", required = true)
-        protected String name;
-        
-        @XmlElement(name = "State", required = true)
-        protected String state;  // UP/DOWN
-        
-        @XmlElement(name = "LastStateUpdateTime", required = true)
+    public static final String NODE_SERVER_STATE_UP = "UP";
+    public static final String NODE_SERVER_STATE_DOWN = "DOWN";
+    
+    /*
+     * name should be component name : role name
+     * TODO : May be we can have component and role as two separate attributes instead of name
+     */
+    @XmlElement(name = "Name", required = true)
+    protected String name;
+    
+    @XmlElement(name = "State", required = true)
+    protected String state;  // UP/DOWN
+    
+    @XmlElement(name = "LastStateUpdateTime", required = true)
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar lastStateUpdateTime;
         
-        /**
-         * 
-         */
-        
-        /**
-         * @return the name
-         */
-        public String getName() {
-                return name;
-        }
+    /**
+     * 
+     */
+    
+    /**
+     * @return the name
+     */
+    public String getName() {
+            return name;
+    }
 
-        /**
-         * @param name the name to set
-         */
-        public void setName(String name) {
-                this.name = name;
-        }
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+            this.name = name;
+    }
 
-        /**
-         * @return the state
-         */
-        public String getState() {
-                return state;
-        }
+    /**
+     * @return the state
+     */
+    public String getState() {
+            return state;
+    }
 
-        /**
-         * @param state the state to set
-         */
-        public void setState(String state) {
-                this.state = state;
-        }
+    /**
+     * @param state the state to set
+     */
+    public void setState(String state) {
+            this.state = state;
+    }
 
 
-        /**
-         * @return the lastStateUpdateTime
-         */
-        public XMLGregorianCalendar getLastStateUpdateTime() {
-                return lastStateUpdateTime;
-        }
+    /**
+     * @return the lastStateUpdateTime
+     */
+    public XMLGregorianCalendar getLastStateUpdateTime() {
+            return lastStateUpdateTime;
+    }
 
-        /**
-         * @param lastStateUpdateTime the lastStateUpdateTime to set
-         */
-        public void setLastStateUpdateTime(XMLGregorianCalendar lastStateUpdateTime) {
-                this.lastStateUpdateTime = lastStateUpdateTime;
-        }
+    /**
+     * @param lastStateUpdateTime the lastStateUpdateTime to set
+     */
+    public void setLastStateUpdateTime(XMLGregorianCalendar lastStateUpdateTime) {
+            this.lastStateUpdateTime = lastStateUpdateTime;
+    }
 
-        /**
-         * @param creationTime the creationTime to set
-         */
-        protected void setLastUpdateTime(Date lastStateUpdateTime) throws Exception {
-                GregorianCalendar cal = new GregorianCalendar();
-                cal.setTime(lastStateUpdateTime);
-                this.lastStateUpdateTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-        }
-
+    /**
+     * @param creationTime the creationTime to set
+     */
+    protected void setLastUpdateTime(Date lastStateUpdateTime) throws Exception {
+            GregorianCalendar cal = new GregorianCalendar();
+            cal.setTime(lastStateUpdateTime);
+            this.lastStateUpdateTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+    }
 }

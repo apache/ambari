@@ -35,12 +35,12 @@ import javax.xml.bind.annotation.XmlType;
     "name",
     "property"
 })
-@XmlRootElement(name = "ConfigPropertiesCategory")
+@XmlRootElement(name = "ConfigPropertyCategories")
 public class ConfigPropertiesCategory {
 
     @XmlElement(name = "Name", required = true)
     protected String name;
-    @XmlElement(name = "Property", required = true)
+    @XmlElement(name = "Properties", required = true)
     protected List<Property> property;
 
     /**

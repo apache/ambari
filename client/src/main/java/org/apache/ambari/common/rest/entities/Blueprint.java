@@ -42,7 +42,7 @@ import javax.xml.bind.annotation.XmlType;
     "components",
     "roles"
 })
-@XmlRootElement(name = "Blueprint")
+@XmlRootElement(name = "Blueprints")
 public class Blueprint {
 
     @XmlElement(name = "Name", required = true)

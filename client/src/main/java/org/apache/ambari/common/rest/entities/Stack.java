@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlType;
     "blueprintLocationURL",
     "stackRevision"
 })
-@XmlRootElement(name = "Stack")
+@XmlRootElement(name = "Stacks")
 public class Stack {
     
     @XmlElement(name = "Name", required = true)

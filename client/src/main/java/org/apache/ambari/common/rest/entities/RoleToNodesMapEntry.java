@@ -56,7 +56,7 @@ public class RoleToNodesMapEntry {
 
     @XmlElement(name = "RoleName", required = true)
     protected String roleName;
-    @XmlElement(name = "Nodes", required = true)
+    @XmlElement(name = "NodeRangeExpressions", required = true)
     protected List<String> nodeRangeExpressions;
     
         /**
