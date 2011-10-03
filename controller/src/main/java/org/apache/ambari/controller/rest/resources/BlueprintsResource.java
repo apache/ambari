@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -34,7 +35,6 @@ import javax.ws.rs.core.Response;
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.controller.Blueprints;
 import org.apache.ambari.controller.ExceptionResponse;
-import org.apache.ambari.controller.Stacks;
 import org.codehaus.jettison.json.JSONArray;
 
 /** 
@@ -56,9 +56,13 @@ public class BlueprintsResource {
      */
     @POST
     @Consumes ({"application/json"})
-    public void createBlueprint(Blueprint blueprint) throws Exception {   
+    public void createBlueprint(@DefaultValue("") @QueryParam("locationURL") String locationURL, Blueprint blueprint) throws Exception {  
         try {
-            Blueprints.getInstance().addBlueprint(blueprint);
+            if (locationURL == null || locationURL.equals("")) {
+                Blueprints.getInstance().addBlueprint(blueprint);
+            } else {
+                Blueprints.getInstance().importDefaultBlueprint (locationURL);
+            }
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {

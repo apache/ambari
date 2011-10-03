@@ -22,7 +22,6 @@ import java.util.List;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.ExceptionResponse;
-import org.apache.ambari.controller.Stacks;
 
 import com.sun.jersey.spi.resource.Singleton;
 import javax.ws.rs.GET;

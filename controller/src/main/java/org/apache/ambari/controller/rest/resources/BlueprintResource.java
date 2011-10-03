@@ -35,7 +35,6 @@ import javax.ws.rs.core.Response;
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.controller.Blueprints;
 import org.apache.ambari.controller.ExceptionResponse;
-import org.apache.ambari.controller.Stacks;
 
 /** BlueprintResource represents a Hadoop blueprint to be installed on a 
  *  cluster. Blueprints define a collection of Hadoop components that are

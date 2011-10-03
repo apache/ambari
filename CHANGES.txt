@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-32. Remove stack resource Remove the Stack resource from Ambari (vgogate)
+
   AMBARI-25. Clean up the configuration entity to collapse some levels. 
   (omalley)
 

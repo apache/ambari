@@ -22,21 +22,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.MalformedURLException;
+
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.Cluster;
@@ -46,7 +40,6 @@ import org.apache.ambari.common.rest.entities.ConfigurationCategory;
 import org.apache.ambari.common.rest.entities.PackageRepository;
 import org.apache.ambari.common.rest.entities.Property;
 import org.apache.ambari.common.rest.entities.Role;
-import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.resource.statemachine.ClusterState;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jettison.json.JSONArray;
@@ -61,7 +54,6 @@ public class Blueprints {
       
         Blueprint bp = new Blueprint();
         bp.setName("MyClusterBlueprint");
-        bp.setStackName("hortonworks-3.0");
         bp.setParentName("MySiteBlueprint");
         bp.setRevision("0");
         bp.setParentRevision("0");
@@ -156,14 +148,11 @@ public class Blueprints {
      */
     public void addBlueprint(Blueprint bp) throws Exception {
         
-        /* 
-         * Validate the name is not a reserved keyword and it does not exists already
-         * TODO: Check the specified parent blueprint already exits? may be not! 
+        /*
+         * Validate the blueprint
          */
-        if (bp.getName().equals("default")) {
-            String msg = "Blueprint can not have name default, a reserved keyword for default blueprints associated w/ Hadoop stack";
-            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_ACCEPTABLE)).get());
-        }
+        validateDefaultBlueprint(bp);
+        
         if (blueprints.containsKey(bp.getName())) {
             if (blueprints.get(bp.getName()).containsKey(new Integer(bp.getRevision()))) {
                 String msg = "Specified blueprint [Name:"+bp.getName()+", Revision: ["+bp.getRevision()+"] already imported";
@@ -179,10 +168,37 @@ public class Blueprints {
     }
     
     /*
-     * Return list of blueprint names
+     * Import the default blueprint from the URL location
      */
+    public void importDefaultBlueprint (String locationURL) throws Exception {
+        Blueprint blueprint;
+        URL blueprintUrl;
+        try {
+            blueprintUrl = new URL(locationURL);
+            ObjectMapper m = new ObjectMapper();
+            InputStream is = blueprintUrl.openStream();
+            blueprint = m.readValue(is, Blueprint.class);
+            addBlueprint(blueprint);
+        } catch (WebApplicationException we) {
+            throw we;
+        } catch (Exception e) {
+            throw new WebApplicationException ((new ExceptionResponse(e)).get());
+        }
+    }
+   
     /*
-     * Returns stack names
+     * Validate the default blueprint before importing into stack.
+     */
+    public void validateDefaultBlueprint(Blueprint blueprint) throws WebApplicationException {
+        
+        if (blueprint.getName() == null || blueprint.getName().equals("")) {
+            String msg = "Blueprint must be associated with non-empty name";
+            throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
+    }
+    
+    /*
+     * Return list of blueprint names
      */
     public JSONArray getBlueprintList() throws Exception {
         List<String> list = new ArrayList<String>();
@@ -218,14 +234,14 @@ public class Blueprints {
         }
         
         /*
-         * If no cluster is associated then remvove the blueprint
+         * If no cluster is associated then remove the blueprint
          */
         this.blueprints.get(blueprintName).remove(revision);
         if (this.blueprints.get(blueprintName).keySet().isEmpty()) {
             this.blueprints.remove(blueprintName);
         }    
     }
-    
+   
     /*
      * UTIL methods
      */
@@ -235,4 +251,27 @@ public class Blueprints {
         p.setValue(value);
         return p;
     }
+    
+    private static String readAll(Reader rd) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        int cp;
+        while ((cp = rd.read()) != -1) {
+            sb.append((char) cp);
+        }
+        return sb.toString();
+    }
+
+    public static JSONObject readJsonFromUrl(String url) throws IOException, JSONException {
+        ObjectMapper m = new ObjectMapper();
+        InputStream is = new URL(url).openStream();
+        try {
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String jsonText = readAll(rd);
+            JSONObject json = new JSONObject(jsonText);
+            return json;
+        } finally {
+            is.close();
+        }
+    }
+    
 }

@@ -34,7 +34,6 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "Blueprint", propOrder = {
     "name",
     "revision",
-    "stackName",
     "parentName",
     "parentRevision",
     "packageRepositories",
@@ -49,8 +48,6 @@ public class Blueprint {
     protected String name;
     @XmlElement(name = "Revision", required = true)
     protected String revision;
-    @XmlElement(name = "StackName", required = true)
-    protected String stackName;
     @XmlElement(name = "ParentName", required = true)
     protected String parentName;
     @XmlElement(name = "ParentRevision", required = true)
@@ -90,18 +87,7 @@ public class Blueprint {
     public void setRevision(String revision) {
             this.revision = revision;
     }
-    /**
-     * @return the stackName
-     */
-    public String getStackName() {
-            return stackName;
-    }
-    /**
-     * @param stackName the stackName to set
-     */
-    public void setStackName(String stackName) {
-            this.stackName = stackName;
-    }
+    
     /**
      * @return the parentName
      */
