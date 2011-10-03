@@ -146,7 +146,7 @@ public class Blueprints {
     /*
      * Add or update the blueprint
      */
-    public void addBlueprint(Blueprint bp) throws Exception {
+    public Blueprint addBlueprint(Blueprint bp) throws Exception {
         
         /*
          * Validate the blueprint
@@ -165,12 +165,14 @@ public class Blueprints {
             x.put(new Integer(bp.getRevision()), bp);
             this.blueprints.put(bp.getName(), x);
         }
+        
+        return bp;
     }
     
     /*
      * Import the default blueprint from the URL location
      */
-    public void importDefaultBlueprint (String locationURL) throws Exception {
+    public Blueprint importDefaultBlueprint (String locationURL) throws Exception {
         Blueprint blueprint;
         URL blueprintUrl;
         try {
@@ -178,7 +180,7 @@ public class Blueprints {
             ObjectMapper m = new ObjectMapper();
             InputStream is = blueprintUrl.openStream();
             blueprint = m.readValue(is, Blueprint.class);
-            addBlueprint(blueprint);
+            return addBlueprint(blueprint);
         } catch (WebApplicationException we) {
             throw we;
         } catch (Exception e) {

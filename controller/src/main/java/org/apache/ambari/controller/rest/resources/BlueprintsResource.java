@@ -56,12 +56,12 @@ public class BlueprintsResource {
      */
     @POST
     @Consumes ({"application/json"})
-    public void createBlueprint(@DefaultValue("") @QueryParam("locationURL") String locationURL, Blueprint blueprint) throws Exception {  
+    public Blueprint createBlueprint(@DefaultValue("") @QueryParam("locationURL") String locationURL, Blueprint blueprint) throws Exception {  
         try {
             if (locationURL == null || locationURL.equals("")) {
-                Blueprints.getInstance().addBlueprint(blueprint);
+                return Blueprints.getInstance().addBlueprint(blueprint);
             } else {
-                Blueprints.getInstance().importDefaultBlueprint (locationURL);
+                return Blueprints.getInstance().importDefaultBlueprint (locationURL);
             }
         }catch (WebApplicationException we) {
             throw we;
