@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-25. Clean up the configuration entity to collapse some levels. 
+  (omalley)
+
   AMBARI-31. Fix JAXB annotations for Ambari resourcesi (vgogate)
 
   AMBARI-30. Fix the build so that the client and controller tarballs are 

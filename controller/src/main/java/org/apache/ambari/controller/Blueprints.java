@@ -41,8 +41,8 @@ import javax.xml.bind.annotation.XmlType;
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.Cluster;
 import org.apache.ambari.common.rest.entities.Component;
-import org.apache.ambari.common.rest.entities.ConfigPropertiesCategory;
 import org.apache.ambari.common.rest.entities.Configuration;
+import org.apache.ambari.common.rest.entities.ConfigurationCategory;
 import org.apache.ambari.common.rest.entities.PackageRepository;
 import org.apache.ambari.common.rest.entities.Property;
 import org.apache.ambari.common.rest.entities.Role;
@@ -84,9 +84,9 @@ public class Blueprints {
         bp.setPackageRepositories(prList);
         
         Configuration bpDefaultCfg = new Configuration();
-        ConfigPropertiesCategory hdfs_site = new ConfigPropertiesCategory();
+        ConfigurationCategory hdfs_site = new ConfigurationCategory();
         hdfs_site.setName("hdfs-site");
-        ConfigPropertiesCategory mapred_site = new ConfigPropertiesCategory();
+        ConfigurationCategory mapred_site = new ConfigurationCategory();
         mapred_site.setName("mapred-site");  
         hdfs_site.getProperty().add(getProperty ("dfs.name.dir", "/tmp/namenode"));
         hdfs_site.getProperty().add(getProperty ("dfs.data.dir", "/tmp/datanode"));

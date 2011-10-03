@@ -19,7 +19,7 @@ package org.apache.ambari.common.rest.entities;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -27,15 +27,18 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "Property", propOrder = {
     "name",
-    "value"
+    "value",
+    "force"
 })
 @XmlRootElement(name = "Property")
 public class Property {
 
-    @XmlElement(required = true)
+    @XmlAttribute(required = true)
     protected String name;
-    @XmlElement(required = true)
+    @XmlAttribute(required = true)
     protected String value;
+    @XmlAttribute(required = false)
+    protected boolean force = false;
 
     /**
      * Gets the value of the name property.
@@ -83,5 +86,21 @@ public class Property {
      */
     public void setValue(String value) {
         this.value = value;
+    }
+    
+    /**
+     * Get whether this property is forced.
+     * @return true if it is forced
+     */
+    public boolean getForce() {
+      return force;
+    }
+    
+    /**
+     * Set whether this property is forced
+     * @param force mark it as forced
+     */
+    public void setForce(boolean force) {
+      this.force = force;
     }
 }

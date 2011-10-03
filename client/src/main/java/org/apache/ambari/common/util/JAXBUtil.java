@@ -30,7 +30,8 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 public class JAXBUtil {
 
   private static ObjectMapper mapper = new ObjectMapper();
-  private static AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
+  private static AnnotationIntrospector introspector = 
+      new JaxbAnnotationIntrospector();
   
   public JAXBUtil() {
     mapper.getDeserializationConfig().setAnnotationIntrospector(introspector);
@@ -46,7 +47,7 @@ public class JAXBUtil {
     }
   }
   
-  public static <T> T read(byte[] buffer, java.lang.Class<T> c) throws IOException {
+  public static <T> T read(byte[] buffer, Class<T> c) throws IOException {
     return (T) mapper.readValue(buffer, 0, buffer.length, c);
   }
 

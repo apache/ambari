@@ -92,11 +92,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ConfigPropertiesCategory }
+     * Create an instance of {@link ConfigurationCategory }
      * 
      */
-    public ConfigPropertiesCategory createCategoryType() {
-        return new ConfigPropertiesCategory();
+    public ConfigurationCategory createCategoryType() {
+        return new ConfigurationCategory();
     }
 
     /**
