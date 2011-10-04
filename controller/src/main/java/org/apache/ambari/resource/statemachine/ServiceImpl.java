@@ -20,6 +20,7 @@ package org.apache.ambari.resource.statemachine;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +68,7 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
              ServiceEventType.ROLE_STARTED)
              
          .addTransition(ServiceState.ACTIVE, ServiceState.STOPPING, 
-             ServiceEventType.STOP)
+             ServiceEventType.STOP, new StopServiceTransition())
              
          .addTransition(ServiceState.STOPPING, 
              EnumSet.of(ServiceState.INACTIVE, ServiceState.STOPPING),
@@ -91,8 +92,8 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
   private final StateMachine<ServiceState, ServiceEventType, ServiceEvent>
       stateMachine;
   private final List<Role> serviceRoles = new ArrayList<Role>();
+  private Iterator<Role> iterator;
   private final String serviceName;
-  private short roleCount;
   
   public ServiceImpl(Cluster cluster, String serviceName) throws IOException {
     this.cluster = cluster;
@@ -105,6 +106,7 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
       RoleImpl roleImpl = new RoleImpl(this, role);
       serviceRoles.add(roleImpl);
     }
+    
     stateMachine = stateMachineFactory.make(this);
   }
     
@@ -136,9 +138,18 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
     this.serviceRoles.addAll(roles);
   }
   
-  public Role getNextRole() {
-    if (++roleCount <= serviceRoles.size()) {
-      return serviceRoles.get(roleCount - 1);  
+  private Role getFirstRole() {
+    //this call should reset the iterator
+    iterator = serviceRoles.iterator();
+    if (iterator.hasNext()) {
+      return iterator.next();
+    }
+    return null;
+  }
+  
+  private Role getNextRole() {
+    if (iterator.hasNext()) {
+      return iterator.next();
     }
     return null;
   }
@@ -148,13 +159,25 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
 
     @Override
     public void transition(ServiceImpl operand, ServiceEvent event) {
-      Role firstRole = operand.getNextRole();
+      Role firstRole = operand.getFirstRole();
       if (firstRole != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(
                             new RoleEvent(RoleEventType.START, firstRole));
       }
-    }
+    } 
+  }
+  
+  static class StopServiceTransition implements 
+  SingleArcTransition<ServiceImpl, ServiceEvent>  {
     
+    @Override
+    public void transition(ServiceImpl operand, ServiceEvent event) {
+      Role firstRole = operand.getFirstRole();
+      if (firstRole != null) {
+        StateMachineInvoker.getAMBARIEventHandler().handle(
+                            new RoleEvent(RoleEventType.STOP, firstRole));
+      }
+    }
   }
   
   static class RoleStartedTransition 
@@ -191,7 +214,6 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
         return ServiceState.INACTIVE;
       }
     }
-    
   }
 
   @Override

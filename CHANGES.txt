@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-35. Replaces the counters for keeping track of service/role start/stop
+  with iterators. (ddas)
+
   AMBARI-34. Address the start cluster part of the statemachine implementation,
   and handle the heartbeat. (ddas)
 

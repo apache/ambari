@@ -17,8 +17,10 @@
 */
 package org.apache.ambari.resource.statemachine;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,19 +83,23 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   private List<Service> services;
   private StateMachine<ClusterState, ClusterEventType, ClusterEvent> 
           stateMachine;
-  private int numServicesStarted;
   private int totalEnabledServices;
   private Lock readLock;
   private Lock writeLock;
-  private short roleCount; 
   private String clusterName;
+  private Iterator<Service> iterator;
     
-  public ClusterImpl(String name) {
+  public ClusterImpl(String name, List<Service> services) {
     this.clusterName = name;
     ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     this.readLock = readWriteLock.readLock();
     this.writeLock = readWriteLock.writeLock();
     this.stateMachine = stateMachineFactory.make(this);
+    this.services = services;
+  }
+  
+  public ClusterImpl(String name) {
+    this(name, new ArrayList<Service>());
   }
 
   @Override
@@ -121,29 +127,20 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
     this.services.addAll(services);
   }
   
-  public Service getNextService() {
-    if (++roleCount <= services.size()) {
-      return services.get(roleCount - 1);
+  private Service getFirstService() {
+    //this call should reset the iterator
+    iterator = services.iterator();
+    if (iterator.hasNext()) {
+      return iterator.next();
     }
     return null;
   }
   
-  private void incrStartedServiceCount() {
-    try {
-      writeLock.lock();
-      numServicesStarted++;
-    } finally {
-      writeLock.unlock();
+  private Service getNextService() {
+    if (iterator.hasNext()) {
+      return iterator.next();
     }
-  }
-  
-  private int getStartedServiceCount() {
-    try {
-      readLock.lock();
-      return numServicesStarted;
-    } finally {
-      readLock.unlock();
-    }
+    return null;
   }
   
   private int getTotalServiceCount() {
@@ -155,9 +152,8 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
 
     @Override
     public void transition(ClusterImpl operand, ClusterEvent event) {
-      Service service = operand.getNextService();
+      Service service = operand.getFirstService();
       if (service != null) {
-              //start the first service (plugin)
         StateMachineInvoker.getAMBARIEventHandler().handle(
             new ServiceEvent(ServiceEventType.START, service));
       }
@@ -171,12 +167,13 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
     public ClusterState transition(ClusterImpl operand, ClusterEvent event) {
       //check whether all services started, and if not remain in the STARTING
       //state, else move to the ACTIVE state
-      if (operand.getStartedServiceCount() == operand.getTotalServiceCount()) {
-        return ClusterState.ACTIVE;
+      Service service = operand.getNextService();
+      if (service != null) {
+        StateMachineInvoker.getAMBARIEventHandler().handle(new ServiceEvent(
+            ServiceEventType.START, service));
+        return ClusterState.STARTING;
       }
-      operand.incrStartedServiceCount();
-      //TODO: start the next service (plugin)
-      return ClusterState.STARTING;
+      return ClusterState.ACTIVE;
     }
     
   }
