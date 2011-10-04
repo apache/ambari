@@ -51,16 +51,41 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
   <ServiceImpl, ServiceState, ServiceEventType, ServiceEvent> stateMachineFactory 
          = new StateMachineFactory<ServiceImpl, ServiceState, ServiceEventType, 
          ServiceEvent>(ServiceState.INACTIVE)
-         .addTransition(ServiceState.INACTIVE, ServiceState.STARTING, ServiceEventType.S_START, new StartServiceTransition())
-         .addTransition(ServiceState.STARTING, EnumSet.of(ServiceState.ACTIVE, ServiceState.STARTING), ServiceEventType.S_ROLE_STARTED,
+         
+         .addTransition(ServiceState.INACTIVE, ServiceState.STARTING, 
+             ServiceEventType.START, new StartServiceTransition())
+             
+         .addTransition(ServiceState.STARTING, 
+             EnumSet.of(ServiceState.ACTIVE, ServiceState.STARTING), 
+             ServiceEventType.ROLE_STARTED,
              new RoleStartedTransition())
-         .addTransition(ServiceState.STARTING, ServiceState.FAIL, ServiceEventType.S_START_FAILURE)
-         .addTransition(ServiceState.ACTIVE, ServiceState.STOPPING, ServiceEventType.S_STOP)
-         .addTransition(ServiceState.STOPPING, ServiceState.INACTIVE, ServiceEventType.S_STOP_SUCCESS)
-         .addTransition(ServiceState.STOPPING, ServiceState.UNCLEAN_STOP, ServiceEventType.S_STOP_FAILURE)
-         .addTransition(ServiceState.FAIL, ServiceState.STOPPING, ServiceEventType.S_STOP)
-         .addTransition(ServiceState.STOPPING, ServiceState.INACTIVE, ServiceEventType.S_STOP_SUCCESS)
-         .addTransition(ServiceState.STOPPING, ServiceState.UNCLEAN_STOP, ServiceEventType.S_STOP_FAILURE)
+             
+         .addTransition(ServiceState.STARTING, ServiceState.FAIL, 
+             ServiceEventType.START_FAILURE)
+             
+         .addTransition(ServiceState.ACTIVE, ServiceState.ACTIVE, 
+             ServiceEventType.ROLE_STARTED)
+             
+         .addTransition(ServiceState.ACTIVE, ServiceState.STOPPING, 
+             ServiceEventType.STOP)
+             
+         .addTransition(ServiceState.STOPPING, 
+             EnumSet.of(ServiceState.INACTIVE, ServiceState.STOPPING),
+             ServiceEventType.STOP_SUCCESS, 
+             new RoleStoppedTransition())
+             
+         .addTransition(ServiceState.STOPPING, ServiceState.UNCLEAN_STOP, 
+             ServiceEventType.STOP_FAILURE)
+             
+         .addTransition(ServiceState.FAIL, ServiceState.STOPPING, 
+             ServiceEventType.STOP)
+             
+         .addTransition(ServiceState.STOPPING, ServiceState.INACTIVE, 
+             ServiceEventType.STOP_SUCCESS)
+             
+         .addTransition(ServiceState.STOPPING, ServiceState.UNCLEAN_STOP,
+             ServiceEventType.STOP_FAILURE)
+             
          .installTopology();
   
   private final StateMachine<ServiceState, ServiceEventType, ServiceEvent>
@@ -126,7 +151,7 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
       Role firstRole = operand.getNextRole();
       if (firstRole != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(
-                            new RoleEvent(RoleEventType.S_START, firstRole));
+                            new RoleEvent(RoleEventType.START, firstRole));
       }
     }
     
@@ -142,24 +167,43 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
       Role role = operand.getNextRole();
       if (role != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(new RoleEvent(
-            RoleEventType.S_START, role));
+            RoleEventType.START, role));
         return ServiceState.STARTING;
       } else {
         return ServiceState.ACTIVE;
       }
     }
   }
+  
+  static class RoleStoppedTransition 
+  implements MultipleArcTransition<ServiceImpl, ServiceEvent, ServiceState>  {
+
+    @Override
+    public ServiceState transition(ServiceImpl operand, ServiceEvent event) {
+      //check whether all roles stopped, and if not remain in the STOPPING
+      //state, else move to the ACTIVE state
+      Role role = operand.getNextRole();
+      if (role != null) {
+        StateMachineInvoker.getAMBARIEventHandler().handle(new RoleEvent(
+            RoleEventType.STOP, role));
+        return ServiceState.STOPPING;
+      } else {
+        return ServiceState.INACTIVE;
+      }
+    }
+    
+  }
 
   @Override
   public void activate() {
     StateMachineInvoker.getAMBARIEventHandler().handle(
-              new ServiceEvent(ServiceEventType.S_START, this));
+              new ServiceEvent(ServiceEventType.START, this));
   }
 
   @Override
   public void deactivate() {
     StateMachineInvoker.getAMBARIEventHandler().handle(
-              new ServiceEvent(ServiceEventType.S_STOP, this));
+              new ServiceEvent(ServiceEventType.STOP, this));
   }
 
   @Override

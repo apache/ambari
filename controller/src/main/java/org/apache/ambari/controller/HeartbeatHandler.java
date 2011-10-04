@@ -92,6 +92,9 @@ public class HeartbeatHandler {
       List<ServerStatus> roleStatuses = heartbeat.getServersStatus();
       
       //what servers are running currently
+      //ADD LOGIC FOR CAPTURING THE CLUSTER-ID THE SERVERS BELONG TO
+      //IF THEY BELONG TO THE CLUSTER-ID THIS AGENT IS PART OF, WELL AND GOOD
+      //IF NOT, THEN SEND COMMANDS TO STOP THE SERVERS
       StartedComponentServers componentServers = new StartedComponentServers();
       for (ServerStatus status : roleStatuses) {
         componentServers.roleServerStarted(status.getComponent(), 
@@ -121,7 +124,7 @@ public class HeartbeatHandler {
               if (retryCount > MAX_RETRY_COUNT) {
                 //LOG the failure to start the role server
                 StateMachineInvoker.getAMBARIEventHandler()
-                .handle(new RoleEvent(RoleEventType.S_START_FAILURE, role));
+                .handle(new RoleEvent(RoleEventType.START_FAILURE, role));
                 retryCountForRole.reset(role);
                 continue;
               }
@@ -134,7 +137,7 @@ public class HeartbeatHandler {
             if (roleServerRunning) {
               retryCountForRole.reset(role);
               StateMachineInvoker.getAMBARIEventHandler()
-              .handle(new RoleEvent(RoleEventType.S_START_SUCCESS, role));
+              .handle(new RoleEvent(RoleEventType.START_SUCCESS, role));
             }
           }
           //check whether the agent should stop any server
@@ -142,9 +145,9 @@ public class HeartbeatHandler {
             if (roleServerRunning) {
               short retryCount = retryCountForRole.get(role);
               if (retryCount > MAX_RETRY_COUNT) {
-                //LOG the failure to start the role server
+                //LOG the failure to stop the role server
                 StateMachineInvoker.getAMBARIEventHandler()
-                .handle(new RoleEvent(RoleEventType.S_STOP_FAILURE, role));
+                .handle(new RoleEvent(RoleEventType.STOP_FAILURE, role));
                 retryCountForRole.reset(role);
                 continue;
               }
@@ -157,7 +160,7 @@ public class HeartbeatHandler {
             if (!roleServerRunning) {
               retryCountForRole.reset(role);
               StateMachineInvoker.getAMBARIEventHandler()
-              .handle(new RoleEvent(RoleEventType.S_STOP_SUCCESS, role));
+              .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
             }
           }
         }
@@ -173,15 +176,15 @@ public class HeartbeatHandler {
   private static class StartedComponentServers {
     private Map<String, Map<String, Boolean>> startedComponentServerMap =
         new HashMap<String, Map<String, Boolean>>();
-    void roleServerStarted(String component, String server) {
+    void roleServerStarted(String component, String roleServer) {
       Map<String, Boolean> serverStartedMap = null;
       if ((serverStartedMap = startedComponentServerMap.get(component))
           != null) {
-        serverStartedMap.put(server, true);
+        serverStartedMap.put(roleServer, true);
         return;
       }
       serverStartedMap = new HashMap<String, Boolean>();
-      serverStartedMap.put(server, true);
+      serverStartedMap.put(roleServer, true);
       startedComponentServerMap.put(component, serverStartedMap);
     }
     boolean isStarted(String component, String server) {

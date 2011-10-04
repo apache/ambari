@@ -17,9 +17,11 @@
 */
 package org.apache.ambari.resource.statemachine;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
 import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
@@ -29,10 +31,13 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
 
   private RoleState myState;
   private String roleName;
-  private List<String> hosts;
+  private int totalRolesRequired;
+  private int totalRolesStarted;
+  private int totalRolesFailedToStart;
+  private int totalRoles;
   private Service service;
   
-  /* The state machine for the service looks like:
+  /* The state machine for the role looks like:
    * INACTIVE --S_START--> STARTING --S_START_SUCCESS--> ACTIVE
    *                                --S_START_FAILURE--> FAIL
    * ACTIVE --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
@@ -45,28 +50,62 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
   <RoleImpl, RoleState, RoleEventType, RoleEvent> stateMachineFactory 
          = new StateMachineFactory<RoleImpl, RoleState, RoleEventType, 
          RoleEvent>(RoleState.INACTIVE)
-         .addTransition(RoleState.INACTIVE, RoleState.STARTING, RoleEventType.S_START, new RoleStartTransition())
-         .addTransition(RoleState.STARTING, RoleState.ACTIVE, RoleEventType.S_START_SUCCESS, new SuccessStartTransition())
-         .addTransition(RoleState.ACTIVE, RoleState.ACTIVE, RoleEventType.S_START_SUCCESS)
-         .addTransition(RoleState.STARTING, RoleState.FAIL, RoleEventType.S_START_FAILURE)
-         .addTransition(RoleState.FAIL, RoleState.FAIL, RoleEventType.S_START_FAILURE)
-         .addTransition(RoleState.ACTIVE, RoleState.STOPPING, RoleEventType.S_STOP)
-         .addTransition(RoleState.STOPPING, RoleState.INACTIVE, RoleEventType.S_STOP_SUCCESS)
-         .addTransition(RoleState.STOPPING, RoleState.UNCLEAN_STOP, RoleEventType.S_STOP_FAILURE)
-         .addTransition(RoleState.FAIL, RoleState.STOPPING, RoleEventType.S_STOP)
-         .addTransition(RoleState.STOPPING, RoleState.INACTIVE, RoleEventType.S_STOP_SUCCESS)
-         .addTransition(RoleState.INACTIVE, RoleState.INACTIVE, RoleEventType.S_STOP_SUCCESS)
-         .addTransition(RoleState.STOPPING, RoleState.UNCLEAN_STOP, RoleEventType.S_STOP_FAILURE)
-         .addTransition(RoleState.UNCLEAN_STOP, RoleState.UNCLEAN_STOP, RoleEventType.S_STOP_FAILURE)
+         
+         .addTransition(RoleState.INACTIVE, RoleState.STARTING, 
+             RoleEventType.START)
+             
+         .addTransition(RoleState.STARTING, 
+             EnumSet.of(RoleState.ACTIVE, RoleState.STARTING),
+             RoleEventType.START_SUCCESS, new SuccessfulStartTransition())
+         
+         .addTransition(RoleState.ACTIVE, RoleState.ACTIVE,
+             RoleEventType.START_SUCCESS)
+             
+         .addTransition(RoleState.STARTING, 
+             EnumSet.of(RoleState.FAIL, RoleState.STARTING),
+             RoleEventType.START_FAILURE, new FailedStartTransition())
+             
+         .addTransition(RoleState.FAIL, RoleState.FAIL, 
+             RoleEventType.START_FAILURE)
+             
+         .addTransition(RoleState.ACTIVE, RoleState.STOPPING, 
+             RoleEventType.STOP)
+             
+         .addTransition(RoleState.STOPPING, RoleState.INACTIVE,
+             RoleEventType.STOP_SUCCESS)
+             
+         .addTransition(RoleState.STOPPING, RoleState.UNCLEAN_STOP,
+             RoleEventType.STOP_FAILURE)
+             
+         .addTransition(RoleState.FAIL, RoleState.STOPPING, RoleEventType.STOP)
+         
+         .addTransition(RoleState.STOPPING, RoleState.INACTIVE, 
+             RoleEventType.STOP_SUCCESS)
+             
+         .addTransition(RoleState.INACTIVE, RoleState.INACTIVE,
+             RoleEventType.STOP_SUCCESS)
+             
+         .addTransition(RoleState.STOPPING, RoleState.UNCLEAN_STOP, 
+             RoleEventType.STOP_FAILURE)
+             
+         .addTransition(RoleState.UNCLEAN_STOP, RoleState.UNCLEAN_STOP,
+             RoleEventType.STOP_FAILURE)
+             
          .installTopology();
   
   private final StateMachine<RoleState, RoleEventType, RoleEvent>
       stateMachine;
   
   public RoleImpl(Service service, String roleName) {
+    this(service, roleName, 1, 1);
+  }
+  
+  public RoleImpl(Service service, String roleName, int totalRoles, int totalRolesRequired) {
     this.roleName = roleName;
     this.service = service;
     this.myState = RoleState.INACTIVE;
+    this.totalRolesRequired = totalRolesRequired;
+    this.totalRoles = totalRoles;
     stateMachine = stateMachineFactory.make(this);
   }
   
@@ -94,27 +133,45 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
     return service;
   }
   
-  public void addHosts(List<String> hosts) {
-    this.hosts.addAll(hosts);
-  }
-  
-  static class RoleStartTransition implements 
-  SingleArcTransition<RoleImpl, RoleEvent>  {
+  static class SuccessfulStartTransition implements 
+  MultipleArcTransition<RoleImpl, RoleEvent, RoleState>  {
 
     @Override
-    public void transition(RoleImpl operand, RoleEvent event) {
-      //load the plugin and get the command for starting the role 
+    public RoleState transition(RoleImpl operand, RoleEvent event) {
+      ServiceImpl service = (ServiceImpl)operand.getAssociatedService();
+      ++operand.totalRolesStarted;
+      if (operand.totalRolesRequired <= operand.totalRolesStarted) {
+        StateMachineInvoker.getAMBARIEventHandler().handle(
+            new ServiceEvent(ServiceEventType.ROLE_STARTED, service, 
+                operand));
+
+        return RoleState.ACTIVE;
+      } else {
+        return RoleState.STARTING;   
+      }
     }
   }
   
-  static class SuccessStartTransition implements 
-  SingleArcTransition<RoleImpl, RoleEvent>  {
+  static class FailedStartTransition implements 
+  MultipleArcTransition<RoleImpl, RoleEvent, RoleState>  {
 
     @Override
-    public void transition(RoleImpl operand, RoleEvent event) {
+    public RoleState transition(RoleImpl operand, RoleEvent event) {
       ServiceImpl service = (ServiceImpl)operand.getAssociatedService();
-      StateMachineInvoker.getAMBARIEventHandler().handle(
-       new ServiceEvent(ServiceEventType.S_ROLE_STARTED, service, operand));
+      ++operand.totalRolesFailedToStart;
+      //if number of remaining roles required to declare a role as 'started'
+      //is more than the total number of roles that haven't reported back
+      //declare the role failed to start
+      if ((operand.totalRolesRequired - operand.totalRolesStarted) 
+          >= (operand.totalRoles - 
+              (operand.totalRolesStarted + operand.totalRolesFailedToStart))) {
+        StateMachineInvoker.getAMBARIEventHandler().handle(
+            new ServiceEvent(ServiceEventType.START_FAILURE, service, 
+                operand));
+        return RoleState.FAIL;
+      } else {
+        return RoleState.STARTING;   
+      }
     }
   }
 

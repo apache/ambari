@@ -72,6 +72,7 @@ public class StateMachineInvoker {
   
   private static ConcurrentMap<String, Cluster> clusters = 
       new ConcurrentHashMap<String, Cluster>();
+  
   public static Cluster createCluster(String clusterId) {
     ClusterImpl cluster = new ClusterImpl(clusterId);
     clusters.put(clusterId, cluster);

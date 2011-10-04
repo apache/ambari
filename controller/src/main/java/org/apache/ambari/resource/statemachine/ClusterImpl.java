@@ -38,14 +38,14 @@ import org.apache.ambari.event.EventHandler;
 public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
 
   /* The state machine for the cluster looks like:
-   * INACTIVE --S_START--> STARTING --S_START_SUCCESS from all services--> ACTIVE
-   *                                --S_START_FAILURE from any service--> FAIL
-   * ACTIVE --S_STOP--> STOPPING --S_STOP_SUCCESS from all services--> INACTIVE
-   *                             --S_STOP_FAILURE from any service--> UNCLEAN_STOP
-   * FAIL --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
-   *                           --S_STOP_FAILURE--> UNCLEAN_STOP
-   * INACTIVE --S_RELEASE_NODES--> ATTIC
-   * ATTIC --S_ADD_NODES--> INACTIVE
+   * INACTIVE --START--> STARTING --START_SUCCESS from all services--> ACTIVE
+   *                                --START_FAILURE from any service--> FAIL
+   * ACTIVE --STOP--> STOPPING --STOP_SUCCESS from all services--> INACTIVE
+   *                             --STOP_FAILURE from any service--> UNCLEAN_STOP
+   * FAIL --STOP--> STOPPING --STOP_SUCCESS--> INACTIVE
+   *                           --STOP_FAILURE--> UNCLEAN_STOP
+   * INACTIVE --RELEASE_NODES--> ATTIC
+   * ATTIC --ADD_NODES--> INACTIVE
    */
 
   private static final StateMachineFactory
@@ -54,32 +54,31 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   new StateMachineFactory
   <ClusterImpl,ClusterState,ClusterEventType,ClusterEvent>(ClusterState.INACTIVE)
   .addTransition(ClusterState.INACTIVE, ClusterState.STARTING, 
-      ClusterEventType.S_START, new StartClusterTransition())
+      ClusterEventType.START, new StartClusterTransition())
   .addTransition(ClusterState.STARTING, EnumSet.of(ClusterState.ACTIVE, 
-      ClusterState.STARTING), ClusterEventType.S_START_SUCCESS, 
+      ClusterState.STARTING), ClusterEventType.START_SUCCESS, 
       new ServiceStartedTransition())
   .addTransition(ClusterState.STARTING, ClusterState.FAIL, 
-      ClusterEventType.S_START_FAILURE)
+      ClusterEventType.START_FAILURE)
   .addTransition(ClusterState.ACTIVE, ClusterState.STOPPING, 
-      ClusterEventType.S_STOP)
+      ClusterEventType.STOP)
   .addTransition(ClusterState.STOPPING, ClusterState.INACTIVE, 
-      ClusterEventType.S_STOP_SUCCESS)
+      ClusterEventType.STOP_SUCCESS)
   .addTransition(ClusterState.STOPPING, ClusterState.UNCLEAN_STOP, 
-      ClusterEventType.S_STOP_FAILURE)
+      ClusterEventType.STOP_FAILURE)
   .addTransition(ClusterState.FAIL, ClusterState.STOPPING, 
-      ClusterEventType.S_STOP)
+      ClusterEventType.STOP)
   .addTransition(ClusterState.STOPPING, ClusterState.INACTIVE, 
-      ClusterEventType.S_STOP_SUCCESS)
+      ClusterEventType.STOP_SUCCESS)
   .addTransition(ClusterState.STOPPING, ClusterState.UNCLEAN_STOP, 
-      ClusterEventType.S_STOP_FAILURE)
+      ClusterEventType.STOP_FAILURE)
   .addTransition(ClusterState.INACTIVE, ClusterState.ATTIC, 
-      ClusterEventType.S_RELEASE_NODES)
+      ClusterEventType.RELEASE_NODES)
   .addTransition(ClusterState.ATTIC, ClusterState.INACTIVE, 
-      ClusterEventType.S_ADD_NODES)
+      ClusterEventType.ADD_NODES)
   .installTopology();
   
   private List<Service> services;
-  private Map<String, Set<String>> roleToNodes;
   private StateMachine<ClusterState, ClusterEventType, ClusterEvent> 
           stateMachine;
   private int numServicesStarted;
@@ -98,7 +97,7 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   }
 
   @Override
-  public ClusterState getClusterState() {
+  public ClusterState getState() {
     return stateMachine.getCurrentState();
   }
   
@@ -160,7 +159,7 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
       if (service != null) {
               //start the first service (plugin)
         StateMachineInvoker.getAMBARIEventHandler().handle(
-            new ServiceEvent(ServiceEventType.S_START, service));
+            new ServiceEvent(ServiceEventType.START, service));
       }
     }
     
@@ -194,19 +193,19 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   @Override
   public void activate() {
     StateMachineInvoker.getAMBARIEventHandler().handle(
-        new ClusterEvent(ClusterEventType.S_START, this));
+        new ClusterEvent(ClusterEventType.START, this));
   }
 
   @Override
   public void deactivate() {
     StateMachineInvoker.getAMBARIEventHandler().handle(
-        new ClusterEvent(ClusterEventType.S_STOP, this));
+        new ClusterEvent(ClusterEventType.STOP, this));
   }
 
   @Override
   public void terminate() {
     StateMachineInvoker.getAMBARIEventHandler().handle(
-        new ClusterEvent(ClusterEventType.S_RELEASE_NODES, this));    
+        new ClusterEvent(ClusterEventType.RELEASE_NODES, this));    
   }
 
   @Override

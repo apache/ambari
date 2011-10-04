@@ -22,7 +22,7 @@ import java.util.Map;
 
 public interface Cluster extends LifeCycle {
   public List<Service> getServices();
-  public ClusterState getClusterState();
+  public ClusterState getState();
   public Map<String, String> getServiceStates();
   public String getClusterName();
   public void addServices(List<Service> services);

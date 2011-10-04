@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-34. Address the start cluster part of the statemachine implementation,
+  and handle the heartbeat. (ddas)
+
   AMBARI-32. Remove stack resource Remove the Stack resource from Ambari (vgogate)
 
   AMBARI-25. Clean up the configuration entity to collapse some levels. 

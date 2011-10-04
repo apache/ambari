@@ -20,27 +20,27 @@ package org.apache.ambari.resource.statemachine;
 public enum ClusterEventType {
   
   //Producer:Client, Cluster
-  S_START,
+  START,
 
   //Producer:Client, Cluster
-  S_STOP,
+  STOP,
 
   //Producer: Service
-  S_START_SUCCESS,
+  START_SUCCESS,
   
   //Producer: Service
-  S_START_FAILURE,
+  START_FAILURE,
   
   //Producer: Service
-  S_STOP_SUCCESS,
+  STOP_SUCCESS,
   
   //Producer: Service
-  S_STOP_FAILURE,
+  STOP_FAILURE,
   
   //Producer: Client
-  S_RELEASE_NODES,
+  RELEASE_NODES,
   
   //Producer: Client
-  S_ADD_NODES
+  ADD_NODES
   
 }
