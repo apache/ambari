@@ -17,6 +17,7 @@
 */
 package org.apache.ambari.resource.statemachine;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -51,33 +52,44 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
    */
 
   private static final StateMachineFactory
-  <ClusterImpl,ClusterState,ClusterEventType,ClusterEvent>
-  stateMachineFactory = 
-  new StateMachineFactory
-  <ClusterImpl,ClusterState,ClusterEventType,ClusterEvent>(ClusterState.INACTIVE)
+  <ClusterImpl,ClusterState,ClusterEventType,ClusterEvent> stateMachineFactory 
+          = new StateMachineFactory<ClusterImpl,ClusterState,ClusterEventType,
+          ClusterEvent>(ClusterState.INACTIVE)
+  
   .addTransition(ClusterState.INACTIVE, ClusterState.STARTING, 
       ClusterEventType.START, new StartClusterTransition())
+      
   .addTransition(ClusterState.STARTING, EnumSet.of(ClusterState.ACTIVE, 
       ClusterState.STARTING), ClusterEventType.START_SUCCESS, 
       new ServiceStartedTransition())
+      
   .addTransition(ClusterState.STARTING, ClusterState.FAIL, 
       ClusterEventType.START_FAILURE)
+      
   .addTransition(ClusterState.ACTIVE, ClusterState.STOPPING, 
       ClusterEventType.STOP)
+      
   .addTransition(ClusterState.STOPPING, ClusterState.INACTIVE, 
       ClusterEventType.STOP_SUCCESS)
+      
   .addTransition(ClusterState.STOPPING, ClusterState.UNCLEAN_STOP, 
       ClusterEventType.STOP_FAILURE)
+      
   .addTransition(ClusterState.FAIL, ClusterState.STOPPING, 
       ClusterEventType.STOP)
+      
   .addTransition(ClusterState.STOPPING, ClusterState.INACTIVE, 
       ClusterEventType.STOP_SUCCESS)
+      
   .addTransition(ClusterState.STOPPING, ClusterState.UNCLEAN_STOP, 
       ClusterEventType.STOP_FAILURE)
+      
   .addTransition(ClusterState.INACTIVE, ClusterState.ATTIC, 
       ClusterEventType.RELEASE_NODES)
+      
   .addTransition(ClusterState.ATTIC, ClusterState.INACTIVE, 
       ClusterEventType.ADD_NODES)
+      
   .installTopology();
   
   private List<Service> services;
@@ -89,19 +101,20 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   private String clusterName;
   private Iterator<Service> iterator;
     
-  public ClusterImpl(String name, List<Service> services) {
+  public ClusterImpl(String name, List<String> services) throws IOException {
     this.clusterName = name;
     ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     this.readLock = readWriteLock.readLock();
     this.writeLock = readWriteLock.writeLock();
     this.stateMachine = stateMachineFactory.make(this);
-    this.services = services;
+    List<Service> serviceImpls = new ArrayList<Service>();
+    for (String service : services) {
+      ServiceImpl serviceImpl = new ServiceImpl(this, service);
+      serviceImpls.add(serviceImpl);
+    }
+    this.services = serviceImpls;
   }
   
-  public ClusterImpl(String name) {
-    this(name, new ArrayList<Service>());
-  }
-
   @Override
   public ClusterState getState() {
     return stateMachine.getCurrentState();
@@ -119,12 +132,6 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   
   public StateMachine getStateMachine() {
     return stateMachine;
-  }
-  
-  @Override  
-  public void addServices(List<Service> services) {
-    //The services start in the order they appear in the list
-    this.services.addAll(services);
   }
   
   private Service getFirstService() {

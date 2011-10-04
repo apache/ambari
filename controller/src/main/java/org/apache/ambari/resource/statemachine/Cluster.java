@@ -25,6 +25,5 @@ public interface Cluster extends LifeCycle {
   public ClusterState getState();
   public Map<String, String> getServiceStates();
   public String getClusterName();
-  public void addServices(List<Service> services);
   public void terminate();
 }
