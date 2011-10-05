@@ -4,6 +4,8 @@ Release 0.1.0 - unreleased
 
   AMBARI-37. Tidies up a bit the statemachine API and related classes (ddas)
 
+  AMBARI-36. Add CLI interface document to Ambari site (vgogate)
+
   AMBARI-35. Replaces the counters for keeping track of service/role start/stop
   with iterators. (ddas)
 
