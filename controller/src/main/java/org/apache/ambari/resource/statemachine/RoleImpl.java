@@ -18,8 +18,6 @@
 package org.apache.ambari.resource.statemachine;
 
 import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
 
 import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
@@ -31,10 +29,10 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
 
   private RoleState myState;
   private String roleName;
-  private int totalRolesRequired;
-  private int totalRolesStarted;
+  private int totalInstancesRequired;
+  private int totalRoleInstancesStarted;
   private int totalRolesFailedToStart;
-  private int totalRoles;
+  private int totalInstancesDesired;
   private Service service;
   
   /* The state machine for the role looks like:
@@ -72,7 +70,7 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
              RoleEventType.STOP)
              
          .addTransition(RoleState.STOPPING, RoleState.INACTIVE,
-             RoleEventType.STOP_SUCCESS)
+             RoleEventType.STOP_SUCCESS, new RoleStopTransition())
              
          .addTransition(RoleState.STOPPING, RoleState.UNCLEAN_STOP,
              RoleEventType.STOP_FAILURE)
@@ -100,12 +98,12 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
     this(service, roleName, 1, 1);
   }
   
-  public RoleImpl(Service service, String roleName, int totalRoles, int totalRolesRequired) {
+  public RoleImpl(Service service, String roleName, int totalInstancesDesired, int totalInstancesRequired) {
     this.roleName = roleName;
     this.service = service;
     this.myState = RoleState.INACTIVE;
-    this.totalRolesRequired = totalRolesRequired;
-    this.totalRoles = totalRoles;
+    this.totalInstancesRequired = totalInstancesRequired;
+    this.totalInstancesDesired = totalInstancesDesired;
     stateMachine = stateMachineFactory.make(this);
   }
   
@@ -138,9 +136,9 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
 
     @Override
     public RoleState transition(RoleImpl operand, RoleEvent event) {
-      ServiceImpl service = (ServiceImpl)operand.getAssociatedService();
-      ++operand.totalRolesStarted;
-      if (operand.totalRolesRequired <= operand.totalRolesStarted) {
+      Service service = operand.getAssociatedService();
+      ++operand.totalRoleInstancesStarted;
+      if (operand.totalInstancesRequired <= operand.totalRoleInstancesStarted){
         StateMachineInvoker.getAMBARIEventHandler().handle(
             new ServiceEvent(ServiceEventType.ROLE_STARTED, service, 
                 operand));
@@ -157,14 +155,15 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
 
     @Override
     public RoleState transition(RoleImpl operand, RoleEvent event) {
-      ServiceImpl service = (ServiceImpl)operand.getAssociatedService();
+      Service service = operand.getAssociatedService();
       ++operand.totalRolesFailedToStart;
-      //if number of remaining roles required to declare a role as 'started'
-      //is more than the total number of roles that haven't reported back
+      //if number of remaining instances required to declare a role as 'started'
+      //is more than the total number of available nodes that haven't reported
       //declare the role failed to start
-      if ((operand.totalRolesRequired - operand.totalRolesStarted) 
-          >= (operand.totalRoles - 
-              (operand.totalRolesStarted + operand.totalRolesFailedToStart))) {
+      if ((operand.totalInstancesRequired - operand.totalRoleInstancesStarted) 
+          >= (operand.totalInstancesDesired - 
+              (operand.totalRoleInstancesStarted + 
+                  operand.totalRolesFailedToStart))) {
         StateMachineInvoker.getAMBARIEventHandler().handle(
             new ServiceEvent(ServiceEventType.START_FAILURE, service, 
                 operand));
@@ -172,6 +171,18 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
       } else {
         return RoleState.STARTING;   
       }
+    }
+  }
+  
+  static class RoleStopTransition implements
+  SingleArcTransition<RoleImpl, RoleEvent> {
+    
+    @Override
+    public void transition(RoleImpl operand, RoleEvent event) {
+      Service service = operand.getAssociatedService();
+      StateMachineInvoker.getAMBARIEventHandler().handle(
+          new ServiceEvent(ServiceEventType.ROLE_STOPPED, service,
+              operand));
     }
   }
 
@@ -187,11 +198,11 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
 
   @Override
   public boolean shouldStop() {
-    return myState == RoleState.STOPPING;
+    return myState == RoleState.STOPPING || myState == RoleState.INACTIVE;
   }
 
   @Override
   public boolean shouldStart() {
-    return myState == RoleState.STARTING;
+    return myState == RoleState.STARTING || myState == RoleState.ACTIVE;
   }
 }

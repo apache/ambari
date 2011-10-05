@@ -203,14 +203,22 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
 
     @Override
     public ServiceState transition(ServiceImpl operand, ServiceEvent event) {
-      //check whether all roles stopped, and if not remain in the STOPPING
-      //state, else move to the ACTIVE state
+      //check whether all roles stopped, and if not, remain in the STOPPING
+      //state, else move to the INACTIVE state
       Role role = operand.getNextRole();
       if (role != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(new RoleEvent(
             RoleEventType.STOP, role));
         return ServiceState.STOPPING;
       } else {
+        if (operand.getAssociatedCluster().getState() == ClusterState.STOPPING) {
+          //since we support stopping services explicitly (without stopping the 
+          //associated cluster), we need to check what the cluster state is
+          //before sending it any event
+          StateMachineInvoker.getAMBARIEventHandler().handle(
+              new ClusterEvent(ClusterEventType.STOP_SUCCESS, 
+                  operand.getAssociatedCluster()));
+        }
         return ServiceState.INACTIVE;
       }
     }

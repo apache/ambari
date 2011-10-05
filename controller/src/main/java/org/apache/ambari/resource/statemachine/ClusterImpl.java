@@ -24,18 +24,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
 import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
-import org.apache.ambari.components.ClusterContext;
 import org.apache.ambari.event.EventHandler;
 
 public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
@@ -67,10 +63,11 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
       ClusterEventType.START_FAILURE)
       
   .addTransition(ClusterState.ACTIVE, ClusterState.STOPPING, 
-      ClusterEventType.STOP)
+      ClusterEventType.STOP, new StopClusterTransition())
       
-  .addTransition(ClusterState.STOPPING, ClusterState.INACTIVE, 
-      ClusterEventType.STOP_SUCCESS)
+  .addTransition(ClusterState.STOPPING, EnumSet.of(ClusterState.INACTIVE,
+      ClusterState.STOPPING), ClusterEventType.STOP_SUCCESS,
+      new ServiceStoppedTransition())
       
   .addTransition(ClusterState.STOPPING, ClusterState.UNCLEAN_STOP, 
       ClusterEventType.STOP_FAILURE)
@@ -95,7 +92,6 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   private List<Service> services;
   private StateMachine<ClusterState, ClusterEventType, ClusterEvent> 
           stateMachine;
-  private int totalEnabledServices;
   private Lock readLock;
   private Lock writeLock;
   private String clusterName;
@@ -150,10 +146,6 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
     return null;
   }
   
-  private int getTotalServiceCount() {
-    return totalEnabledServices;
-  }
-  
   static class StartClusterTransition implements 
   SingleArcTransition<ClusterImpl, ClusterEvent>  {
 
@@ -168,13 +160,44 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
     
   }
   
+  static class StopClusterTransition implements
+  SingleArcTransition<ClusterImpl, ClusterEvent>  {
+    
+    @Override
+    public void transition(ClusterImpl operand, ClusterEvent event) {
+      Service service = operand.getFirstService();
+      if (service != null) {
+        StateMachineInvoker.getAMBARIEventHandler().handle(
+            new ServiceEvent(ServiceEventType.STOP, service));
+      }
+    }
+  }
+  
+  static class ServiceStoppedTransition implements
+  MultipleArcTransition<ClusterImpl, ClusterEvent, ClusterState> {
+
+    @Override
+    public ClusterState transition(ClusterImpl operand, ClusterEvent event) {
+      //check whether all services stopped, and if not remain in the STOPPING
+      //state, else move to the INACTIVE state
+      Service service = operand.getNextService();
+      if (service != null) {
+        StateMachineInvoker.getAMBARIEventHandler().handle(new ServiceEvent(
+            ServiceEventType.STOP, service));
+        return ClusterState.STOPPING;
+      }
+      return ClusterState.INACTIVE;
+    }
+    
+  }
+  
   static class ServiceStartedTransition implements 
   MultipleArcTransition<ClusterImpl, ClusterEvent, ClusterState>  {
     @Override
     public ClusterState transition(ClusterImpl operand, ClusterEvent event) {
       //check whether all services started, and if not remain in the STARTING
       //state, else move to the ACTIVE state
-      Service service = operand.getNextService();
+      Service service = operand.getFirstService();
       if (service != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(new ServiceEvent(
             ServiceEventType.START, service));

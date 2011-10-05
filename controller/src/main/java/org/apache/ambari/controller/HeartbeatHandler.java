@@ -68,8 +68,10 @@ public class HeartbeatHandler {
     
     short responseId = 
         (short) (Short.parseShort(response.getResponseId()) + 1);
+    
+    String hostname = heartbeat.getHostname();
 
-    Node node = Nodes.getInstance().getNodes().get(heartbeat.getHostname());
+    Node node = Nodes.getInstance().getNodes().get(hostname);
     NodeState state = node.getNodeState();
     GregorianCalendar c = new GregorianCalendar();
     c.setTime(new Date());
@@ -93,7 +95,7 @@ public class HeartbeatHandler {
       
       //what servers are running currently
       //ADD LOGIC FOR CAPTURING THE CLUSTER-ID THE SERVERS BELONG TO
-      //IF THEY BELONG TO THE CLUSTER-ID THIS AGENT IS PART OF, WELL AND GOOD
+      //IF THEY BELONG TO THE CLUSTER-ID THIS NODE IS PART OF, WELL AND GOOD
       //IF NOT, THEN SEND COMMANDS TO STOP THE SERVERS
       StartedComponentServers componentServers = new StartedComponentServers();
       for (ServerStatus status : roleStatuses) {
@@ -120,22 +122,22 @@ public class HeartbeatHandler {
           //check whether the agent should start any server
           if (role.shouldStart()) {
             if (!roleServerRunning) {
-              short retryCount = retryCountForRole.get(role);
+              short retryCount = retryCountForRole.get(hostname);
               if (retryCount > MAX_RETRY_COUNT) {
                 //LOG the failure to start the role server
                 StateMachineInvoker.getAMBARIEventHandler()
                 .handle(new RoleEvent(RoleEventType.START_FAILURE, role));
-                retryCountForRole.reset(role);
+                retryCountForRole.resetAttemptCount(hostname);
                 continue;
               }
               List<Action> actions = 
                   plugin.startRoleServer(clusterContext, role.getRoleName());
               allActions.addAll(actions);
-              retryCountForRole.incr(role);
+              retryCountForRole.incrAttemptCount(hostname);
             }
             //raise an event to the state machine for a successful role-start
             if (roleServerRunning) {
-              retryCountForRole.reset(role);
+              retryCountForRole.resetAttemptCount(hostname);
               StateMachineInvoker.getAMBARIEventHandler()
               .handle(new RoleEvent(RoleEventType.START_SUCCESS, role));
             }
@@ -143,22 +145,22 @@ public class HeartbeatHandler {
           //check whether the agent should stop any server
           if (role.shouldStop()) {
             if (roleServerRunning) {
-              short retryCount = retryCountForRole.get(role);
+              short retryCount = retryCountForRole.get(hostname);
               if (retryCount > MAX_RETRY_COUNT) {
                 //LOG the failure to stop the role server
                 StateMachineInvoker.getAMBARIEventHandler()
                 .handle(new RoleEvent(RoleEventType.STOP_FAILURE, role));
-                retryCountForRole.reset(role);
+                retryCountForRole.resetAttemptCount(hostname);
                 continue;
               }
               List<Action> actions = 
                   plugin.stopRoleServer(clusterContext, role.getRoleName());
               allActions.addAll(actions);
-              retryCountForRole.incr(role);
+              retryCountForRole.incrAttemptCount(hostname);
             }
             //raise an event to the state machine for a successful role-stop
             if (!roleServerRunning) {
-              retryCountForRole.reset(role);
+              retryCountForRole.resetAttemptCount(hostname);
               StateMachineInvoker.getAMBARIEventHandler()
               .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
             }
@@ -198,19 +200,19 @@ public class HeartbeatHandler {
   }
   
   private static class RetryCountForRoleServerAction {
-    private Map<Role, Short> countMap = new HashMap<Role, Short>();
-    public short get(Role role) {
-      return countMap.get(role);
+    private Map<String, Short> countMap = new HashMap<String, Short>();
+    public short get(String hostname) {
+      return countMap.get(hostname);
     }
-    public void incr(Role role) {
+    public void incrAttemptCount(String hostname) {
       Short currentCount = 0;
-      if ((currentCount = countMap.get(role)) == null) {
+      if ((currentCount = countMap.get(hostname)) == null) {
         currentCount = 0;
       }
-      countMap.put(role, (short) (currentCount + 1));
+      countMap.put(hostname, (short) (currentCount + 1));
     }
-    public void reset(Role role) {
-      countMap.remove(role);
+    public void resetAttemptCount(String hostname) {
+      countMap.remove(hostname);
     }
   }
 }

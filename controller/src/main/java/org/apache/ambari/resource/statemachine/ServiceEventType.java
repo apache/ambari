@@ -38,5 +38,8 @@ public enum ServiceEventType {
   STOP_FAILURE,
   
   //Producer: Role
-  ROLE_STARTED
+  ROLE_STARTED,
+  
+  //Producer: Role
+  ROLE_STOPPED
 }
