@@ -209,7 +209,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
             RoleEventType.STOP, role));
         return ServiceState.STOPPING;
       } else {
-        if (operand.getAssociatedCluster().getState() 
+        if (((ClusterImpl)operand.getAssociatedCluster()).getState() 
             == ClusterStateFSM.STOPPING) {
           //since we support stopping services explicitly (without stopping the 
           //associated cluster), we need to check what the cluster state is

@@ -113,7 +113,6 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
     this.services = serviceImpls;
   }
   
-  @Override
   public ClusterStateFSM getState() {
     return stateMachine.getCurrentState();
   }
@@ -148,7 +147,8 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
     return null;
   }
   
-  private ClusterState getClusterState() {
+  @Override
+  public ClusterState getClusterState() {
     return cluster.getClusterState();
   }
   

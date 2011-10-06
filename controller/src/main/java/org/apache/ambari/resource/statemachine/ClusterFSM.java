@@ -20,10 +20,12 @@ package org.apache.ambari.resource.statemachine;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.common.rest.entities.ClusterState;
+
 public interface ClusterFSM extends LifeCycle {
   public List<ServiceFSM> getServices();
-  public ClusterStateFSM getState();
   public Map<String, String> getServiceStates();
   public String getClusterID();
   public void terminate();
+  public ClusterState getClusterState();
 }
