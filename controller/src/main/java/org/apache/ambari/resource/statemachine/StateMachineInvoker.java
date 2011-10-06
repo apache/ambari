@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.ambari.common.rest.entities.Cluster;
+import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.event.AsyncDispatcher;
 import org.apache.ambari.event.Dispatcher;
 import org.apache.ambari.event.EventHandler;
@@ -88,5 +89,11 @@ public class StateMachineInvoker {
   public static ClusterFSM getStateMachineClusterInstance(String clusterId,
       String blueprintName, String blueprintRev) {
     return clusters.get(getClusterKey(clusterId, blueprintName, blueprintRev));
-  }    
+  }
+  
+  public static ClusterState getClusterState(String clusterId,
+      String blueprintName, String blueprintRev) {
+    return clusters.get(getClusterKey(clusterId, blueprintName, blueprintRev))
+                     .getClusterState();
+  }
 }

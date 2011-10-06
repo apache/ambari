@@ -80,7 +80,7 @@ public class HeartbeatHandler {
         DatatypeFactory.newInstance().newXMLGregorianCalendar(c));
     
     Cluster cluster = 
-        Clusters.getInstance().getClusterByName(state.getClusterName());
+        Clusters.getInstance().getClusterByID(state.getClusterName());
     ClusterContext clusterContext = new ClusterContextImpl(cluster, node);
     
     List<Action> allActions = new ArrayList<Action>();
@@ -106,7 +106,9 @@ public class HeartbeatHandler {
 
       //get the state machine reference to the cluster
       ClusterFSM clusterSMobject = StateMachineInvoker
-          .getStateMachineClusterInstance(state.getClusterName());
+          .getStateMachineClusterInstance(cluster.getID(), 
+              cluster.getClusterDefinition().getBlueprintName(), 
+              cluster.getClusterDefinition().getBlueprintRevision());
       //the state machine reference to the services
       List<ServiceFSM> clusterServices = clusterSMobject.getServices();
       //go through all the services, and check which role should be started
