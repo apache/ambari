@@ -18,7 +18,6 @@
 package org.apache.ambari.resource.statemachine;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -73,13 +72,21 @@ public class StateMachineInvoker {
   private static ConcurrentMap<String, ClusterFSM> clusters = 
       new ConcurrentHashMap<String, ClusterFSM>();
   
+  private static String getClusterKey(String clusterId,
+      String blueprintName, String blueprintRev) {
+    return clusterId + blueprintName + blueprintRev;
+  }
+  
   public static ClusterFSM createCluster(Cluster cluster) throws IOException {
     ClusterImpl clusterFSM = new ClusterImpl(cluster);
-    clusters.put(cluster.getID(), clusterFSM);
+    clusters.put(getClusterKey(cluster.getID(), 
+        cluster.getClusterDefinition().getBlueprintName(), 
+        cluster.getClusterDefinition().getBlueprintRevision()), clusterFSM);
     return clusterFSM;
   }
   
-  public static ClusterFSM getStateMachineClusterInstance(String clusterId) {
-    return clusters.get(clusterId);
+  public static ClusterFSM getStateMachineClusterInstance(String clusterId,
+      String blueprintName, String blueprintRev) {
+    return clusters.get(getClusterKey(clusterId, blueprintName, blueprintRev));
   }    
 }
