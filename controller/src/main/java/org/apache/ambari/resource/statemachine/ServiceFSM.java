@@ -19,16 +19,16 @@ package org.apache.ambari.resource.statemachine;
 
 import java.util.List;
 
-public interface Service extends LifeCycle {
+public interface ServiceFSM extends LifeCycle {
   
   public ServiceState getServiceState();
   
   public String getServiceName();
   
-  public Cluster getAssociatedCluster();
+  public ClusterFSM getAssociatedCluster();
   
   public boolean isActive();
   
-  public List<Role> getRoles();
+  public List<RoleFSM> getRoles();
 
 }

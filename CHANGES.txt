@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-45. Rename the Role/Cluster/Service classes in the statemachine package to 
+  RoleFSM/ClusterFSM/ServiceFSM (ddas)
+
   AMBARI-37. Tidies up a bit the statemachine API and related classes (ddas)
 
   AMBARI-36. Add CLI interface document to Ambari site (vgogate)

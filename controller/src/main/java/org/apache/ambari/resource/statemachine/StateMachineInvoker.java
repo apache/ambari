@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.apache.ambari.common.rest.entities.Cluster;
 import org.apache.ambari.event.AsyncDispatcher;
 import org.apache.ambari.event.Dispatcher;
 import org.apache.ambari.event.EventHandler;
@@ -69,17 +70,16 @@ public class StateMachineInvoker {
     }
   }
   
-  private static ConcurrentMap<String, Cluster> clusters = 
-      new ConcurrentHashMap<String, Cluster>();
+  private static ConcurrentMap<String, ClusterFSM> clusters = 
+      new ConcurrentHashMap<String, ClusterFSM>();
   
-  public static Cluster createCluster(String clusterId, 
-      List<String> services) throws IOException {
-    ClusterImpl cluster = new ClusterImpl(clusterId, services);
-    clusters.put(clusterId, cluster);
-    return cluster;
+  public static ClusterFSM createCluster(Cluster cluster) throws IOException {
+    ClusterImpl clusterFSM = new ClusterImpl(cluster);
+    clusters.put(cluster.getID(), clusterFSM);
+    return clusterFSM;
   }
   
-  public static Cluster getStateMachineClusterInstance(String clusterId) {
+  public static ClusterFSM getStateMachineClusterInstance(String clusterId) {
     return clusters.get(clusterId);
   }    
 }

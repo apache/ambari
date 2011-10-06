@@ -17,6 +17,13 @@
 */
 package org.apache.ambari.resource.statemachine;
 
-public enum ClusterState {
-  INACTIVE, STARTING, ACTIVE, FAIL, ATTIC, STOPPING, UNCLEAN_STOP
+import java.util.List;
+import java.util.Map;
+
+public interface ClusterFSM extends LifeCycle {
+  public List<ServiceFSM> getServices();
+  public ClusterStateFSM getState();
+  public Map<String, String> getServiceStates();
+  public String getClusterID();
+  public void terminate();
 }

@@ -25,7 +25,7 @@ import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
 import org.apache.ambari.event.EventHandler;
 
-public class RoleImpl implements Role, EventHandler<RoleEvent> {
+public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
 
   private RoleState myState;
   private String roleName;
@@ -33,7 +33,7 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
   private int totalRoleInstancesStarted;
   private int totalRolesFailedToStart;
   private int totalInstancesDesired;
-  private Service service;
+  private ServiceFSM service;
   
   /* The state machine for the role looks like:
    * INACTIVE --S_START--> STARTING --S_START_SUCCESS--> ACTIVE
@@ -94,11 +94,11 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
   private final StateMachine<RoleState, RoleEventType, RoleEvent>
       stateMachine;
   
-  public RoleImpl(Service service, String roleName) {
+  public RoleImpl(ServiceFSM service, String roleName) {
     this(service, roleName, 1, 1);
   }
   
-  public RoleImpl(Service service, String roleName, int totalInstancesDesired, int totalInstancesRequired) {
+  public RoleImpl(ServiceFSM service, String roleName, int totalInstancesDesired, int totalInstancesRequired) {
     this.roleName = roleName;
     this.service = service;
     this.myState = RoleState.INACTIVE;
@@ -127,7 +127,7 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
   }
 
   @Override
-  public Service getAssociatedService() {
+  public ServiceFSM getAssociatedService() {
     return service;
   }
   
@@ -136,7 +136,7 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
 
     @Override
     public RoleState transition(RoleImpl operand, RoleEvent event) {
-      Service service = operand.getAssociatedService();
+      ServiceFSM service = operand.getAssociatedService();
       ++operand.totalRoleInstancesStarted;
       if (operand.totalInstancesRequired <= operand.totalRoleInstancesStarted){
         StateMachineInvoker.getAMBARIEventHandler().handle(
@@ -155,7 +155,7 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
 
     @Override
     public RoleState transition(RoleImpl operand, RoleEvent event) {
-      Service service = operand.getAssociatedService();
+      ServiceFSM service = operand.getAssociatedService();
       ++operand.totalRolesFailedToStart;
       //if number of remaining instances required to declare a role as 'started'
       //is more than the total number of available nodes that haven't reported
@@ -179,7 +179,7 @@ public class RoleImpl implements Role, EventHandler<RoleEvent> {
     
     @Override
     public void transition(RoleImpl operand, RoleEvent event) {
-      Service service = operand.getAssociatedService();
+      ServiceFSM service = operand.getAssociatedService();
       StateMachineInvoker.getAMBARIEventHandler().handle(
           new ServiceEvent(ServiceEventType.ROLE_STOPPED, service,
               operand));

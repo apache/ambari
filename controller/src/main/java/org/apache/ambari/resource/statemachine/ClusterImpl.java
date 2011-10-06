@@ -28,13 +28,15 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.ambari.common.rest.entities.Cluster;
+import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
 import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
 import org.apache.ambari.event.EventHandler;
 
-public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
+public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
 
   /* The state machine for the cluster looks like:
    * INACTIVE --START--> STARTING --START_SUCCESS from all services--> ACTIVE
@@ -48,63 +50,63 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
    */
 
   private static final StateMachineFactory
-  <ClusterImpl,ClusterState,ClusterEventType,ClusterEvent> stateMachineFactory 
-          = new StateMachineFactory<ClusterImpl,ClusterState,ClusterEventType,
-          ClusterEvent>(ClusterState.INACTIVE)
+  <ClusterImpl,ClusterStateFSM,ClusterEventType,ClusterEvent> stateMachineFactory 
+          = new StateMachineFactory<ClusterImpl,ClusterStateFSM,ClusterEventType,
+          ClusterEvent>(ClusterStateFSM.INACTIVE)
   
-  .addTransition(ClusterState.INACTIVE, ClusterState.STARTING, 
+  .addTransition(ClusterStateFSM.INACTIVE, ClusterStateFSM.STARTING, 
       ClusterEventType.START, new StartClusterTransition())
       
-  .addTransition(ClusterState.STARTING, EnumSet.of(ClusterState.ACTIVE, 
-      ClusterState.STARTING), ClusterEventType.START_SUCCESS, 
+  .addTransition(ClusterStateFSM.STARTING, EnumSet.of(ClusterStateFSM.ACTIVE, 
+      ClusterStateFSM.STARTING), ClusterEventType.START_SUCCESS, 
       new ServiceStartedTransition())
       
-  .addTransition(ClusterState.STARTING, ClusterState.FAIL, 
+  .addTransition(ClusterStateFSM.STARTING, ClusterStateFSM.FAIL, 
       ClusterEventType.START_FAILURE)
       
-  .addTransition(ClusterState.ACTIVE, ClusterState.STOPPING, 
+  .addTransition(ClusterStateFSM.ACTIVE, ClusterStateFSM.STOPPING, 
       ClusterEventType.STOP, new StopClusterTransition())
       
-  .addTransition(ClusterState.STOPPING, EnumSet.of(ClusterState.INACTIVE,
-      ClusterState.STOPPING), ClusterEventType.STOP_SUCCESS,
+  .addTransition(ClusterStateFSM.STOPPING, EnumSet.of(ClusterStateFSM.INACTIVE,
+      ClusterStateFSM.STOPPING), ClusterEventType.STOP_SUCCESS,
       new ServiceStoppedTransition())
       
-  .addTransition(ClusterState.STOPPING, ClusterState.UNCLEAN_STOP, 
+  .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.UNCLEAN_STOP, 
       ClusterEventType.STOP_FAILURE)
       
-  .addTransition(ClusterState.FAIL, ClusterState.STOPPING, 
+  .addTransition(ClusterStateFSM.FAIL, ClusterStateFSM.STOPPING, 
       ClusterEventType.STOP)
       
-  .addTransition(ClusterState.STOPPING, ClusterState.INACTIVE, 
+  .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.INACTIVE, 
       ClusterEventType.STOP_SUCCESS)
       
-  .addTransition(ClusterState.STOPPING, ClusterState.UNCLEAN_STOP, 
+  .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.UNCLEAN_STOP, 
       ClusterEventType.STOP_FAILURE)
       
-  .addTransition(ClusterState.INACTIVE, ClusterState.ATTIC, 
+  .addTransition(ClusterStateFSM.INACTIVE, ClusterStateFSM.ATTIC, 
       ClusterEventType.RELEASE_NODES)
       
-  .addTransition(ClusterState.ATTIC, ClusterState.INACTIVE, 
+  .addTransition(ClusterStateFSM.ATTIC, ClusterStateFSM.INACTIVE, 
       ClusterEventType.ADD_NODES)
       
   .installTopology();
   
-  private List<Service> services;
-  private StateMachine<ClusterState, ClusterEventType, ClusterEvent> 
+  private List<ServiceFSM> services;
+  private StateMachine<ClusterStateFSM, ClusterEventType, ClusterEvent> 
           stateMachine;
   private Lock readLock;
   private Lock writeLock;
-  private String clusterName;
-  private Iterator<Service> iterator;
+  private Cluster cluster;
+  private Iterator<ServiceFSM> iterator;
     
-  public ClusterImpl(String name, List<String> services) throws IOException {
-    this.clusterName = name;
+  public ClusterImpl(Cluster cluster) throws IOException {
+    this.cluster = cluster;
     ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     this.readLock = readWriteLock.readLock();
     this.writeLock = readWriteLock.writeLock();
     this.stateMachine = stateMachineFactory.make(this);
-    List<Service> serviceImpls = new ArrayList<Service>();
-    for (String service : services) {
+    List<ServiceFSM> serviceImpls = new ArrayList<ServiceFSM>();
+    for (String service : cluster.getClusterDefinition().getActiveServices()) {
       ServiceImpl serviceImpl = new ServiceImpl(this, service);
       serviceImpls.add(serviceImpl);
     }
@@ -112,7 +114,7 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   }
   
   @Override
-  public ClusterState getState() {
+  public ClusterStateFSM getState() {
     return stateMachine.getCurrentState();
   }
   
@@ -122,7 +124,7 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   }
 
   @Override
-  public List<Service> getServices() {
+  public List<ServiceFSM> getServices() {
     return services;
   }
   
@@ -130,7 +132,7 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
     return stateMachine;
   }
   
-  private Service getFirstService() {
+  private ServiceFSM getFirstService() {
     //this call should reset the iterator
     iterator = services.iterator();
     if (iterator.hasNext()) {
@@ -139,11 +141,15 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
     return null;
   }
   
-  private Service getNextService() {
+  private ServiceFSM getNextService() {
     if (iterator.hasNext()) {
       return iterator.next();
     }
     return null;
+  }
+  
+  private ClusterState getClusterState() {
+    return cluster.getClusterState();
   }
   
   static class StartClusterTransition implements 
@@ -151,7 +157,8 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
 
     @Override
     public void transition(ClusterImpl operand, ClusterEvent event) {
-      Service service = operand.getFirstService();
+      operand.getClusterState().setState(operand.getState().name());
+      ServiceFSM service = operand.getFirstService();
       if (service != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(
             new ServiceEvent(ServiceEventType.START, service));
@@ -165,7 +172,8 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
     
     @Override
     public void transition(ClusterImpl operand, ClusterEvent event) {
-      Service service = operand.getFirstService();
+      operand.getClusterState().setState(operand.getState().name());
+      ServiceFSM service = operand.getFirstService();
       if (service != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(
             new ServiceEvent(ServiceEventType.STOP, service));
@@ -174,36 +182,38 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   }
   
   static class ServiceStoppedTransition implements
-  MultipleArcTransition<ClusterImpl, ClusterEvent, ClusterState> {
+  MultipleArcTransition<ClusterImpl, ClusterEvent, ClusterStateFSM> {
 
     @Override
-    public ClusterState transition(ClusterImpl operand, ClusterEvent event) {
+    public ClusterStateFSM transition(ClusterImpl operand, ClusterEvent event) {
+      operand.getClusterState().setState(operand.getState().name());
       //check whether all services stopped, and if not remain in the STOPPING
       //state, else move to the INACTIVE state
-      Service service = operand.getNextService();
+      ServiceFSM service = operand.getNextService();
       if (service != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(new ServiceEvent(
             ServiceEventType.STOP, service));
-        return ClusterState.STOPPING;
+        return ClusterStateFSM.STOPPING;
       }
-      return ClusterState.INACTIVE;
+      return ClusterStateFSM.INACTIVE;
     }
     
   }
   
   static class ServiceStartedTransition implements 
-  MultipleArcTransition<ClusterImpl, ClusterEvent, ClusterState>  {
+  MultipleArcTransition<ClusterImpl, ClusterEvent, ClusterStateFSM>  {
     @Override
-    public ClusterState transition(ClusterImpl operand, ClusterEvent event) {
+    public ClusterStateFSM transition(ClusterImpl operand, ClusterEvent event){
+      operand.getClusterState().setState(operand.getState().name());
       //check whether all services started, and if not remain in the STARTING
       //state, else move to the ACTIVE state
-      Service service = operand.getFirstService();
+      ServiceFSM service = operand.getFirstService();
       if (service != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(new ServiceEvent(
             ServiceEventType.START, service));
-        return ClusterState.STARTING;
+        return ClusterStateFSM.STARTING;
       }
-      return ClusterState.ACTIVE;
+      return ClusterStateFSM.ACTIVE;
     }
     
   }
@@ -211,7 +221,7 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   @Override
   public Map<String, String> getServiceStates() {
     Map<String, String> serviceStateMap = new HashMap<String,String>();
-    for (Service s : services) {
+    for (ServiceFSM s : services) {
       serviceStateMap.put(s.getServiceName(), s.getServiceState().toString());
     }
     return serviceStateMap;
@@ -236,7 +246,7 @@ public class ClusterImpl implements Cluster, EventHandler<ClusterEvent> {
   }
 
   @Override
-  public String getClusterName() {
-    return clusterName;
+  public String getClusterID() {
+    return cluster.getID();
   }
 }

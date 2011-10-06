@@ -41,10 +41,11 @@ import org.apache.ambari.common.rest.entities.agent.ServerStatus;
 import org.apache.ambari.components.ClusterContext;
 import org.apache.ambari.components.impl.ClusterContextImpl;
 import org.apache.ambari.components.impl.HDFSPluginImpl;
-import org.apache.ambari.resource.statemachine.Role;
+import org.apache.ambari.resource.statemachine.ClusterFSM;
+import org.apache.ambari.resource.statemachine.RoleFSM;
 import org.apache.ambari.resource.statemachine.RoleEvent;
 import org.apache.ambari.resource.statemachine.RoleEventType;
-import org.apache.ambari.resource.statemachine.Service;
+import org.apache.ambari.resource.statemachine.ServiceFSM;
 import org.apache.ambari.resource.statemachine.StateMachineInvoker;
 
 public class HeartbeatHandler {
@@ -104,16 +105,15 @@ public class HeartbeatHandler {
       }
 
       //get the state machine reference to the cluster
-      org.apache.ambari.resource.statemachine.Cluster clusterSMobject = 
-          StateMachineInvoker
+      ClusterFSM clusterSMobject = StateMachineInvoker
           .getStateMachineClusterInstance(state.getClusterName());
       //the state machine reference to the services
-      List<Service> clusterServices = clusterSMobject.getServices();
+      List<ServiceFSM> clusterServices = clusterSMobject.getServices();
       //go through all the services, and check which role should be started
-      for (Service service : clusterServices) {
-        List<Role> roles = service.getRoles();
+      for (ServiceFSM service : clusterServices) {
+        List<RoleFSM> roles = service.getRoles();
         
-        for (Role role : roles) {
+        for (RoleFSM role : roles) {
           boolean roleServerRunning = componentServers.isStarted(
               role.getAssociatedService().getServiceName(),
               role.getRoleName());
@@ -175,6 +175,11 @@ public class HeartbeatHandler {
     return r;
   }
   
+  private static class InstalledComponents {
+    private Map<String, Boolean> installedComponentMap =
+        new HashMap<String, Boolean>();
+    
+  }
   private static class StartedComponentServers {
     private Map<String, Map<String, Boolean>> startedComponentServerMap =
         new HashMap<String, Map<String, Boolean>>();

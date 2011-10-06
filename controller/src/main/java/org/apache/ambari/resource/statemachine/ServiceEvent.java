@@ -21,25 +21,25 @@ import org.apache.ambari.event.AbstractEvent;
 
 
 public class ServiceEvent extends AbstractEvent<ServiceEventType> {
-  private Service service;
-  private Role role;
+  private ServiceFSM service;
+  private RoleFSM role;
   
-  public ServiceEvent(ServiceEventType eventType, Service service) {
+  public ServiceEvent(ServiceEventType eventType, ServiceFSM service) {
     super (eventType);
     this.service = service;
   }
   
-  public ServiceEvent(ServiceEventType eventType, Service service, Role role) {
+  public ServiceEvent(ServiceEventType eventType, ServiceFSM service, RoleFSM role) {
     super (eventType);
     this.service = service;
     this.role = role;
   }
   
-  public Service getService() {
+  public ServiceFSM getService() {
     return service;
   }
   
-  public Role getRole() {
+  public RoleFSM getRole() {
     return role;
   }
 

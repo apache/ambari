@@ -40,7 +40,7 @@ import org.apache.ambari.common.rest.entities.ConfigurationCategory;
 import org.apache.ambari.common.rest.entities.PackageRepository;
 import org.apache.ambari.common.rest.entities.Property;
 import org.apache.ambari.common.rest.entities.Role;
-import org.apache.ambari.resource.statemachine.ClusterState;
+import org.apache.ambari.resource.statemachine.ClusterStateFSM;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -224,7 +224,7 @@ public class Blueprints {
             String bpRevision = c.getClusterDefinition().getBlueprintRevision();
             
             // TODO: May be don't consider ATTIC clusters
-            if (c.getClusterState().getState().equals(ClusterState.ATTIC)) {
+            if (c.getClusterState().getState().equals(ClusterStateFSM.ATTIC)) {
                 continue;
             }
             Blueprint bpx = Blueprints.getInstance().blueprints.get(bpName).get(new Integer(bpRevision));

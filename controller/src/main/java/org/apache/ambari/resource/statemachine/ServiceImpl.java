@@ -22,8 +22,6 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
@@ -33,10 +31,10 @@ import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.components.impl.HDFSPluginImpl;
 import org.apache.ambari.event.EventHandler;
 
-public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
+public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
 
   private ServiceState myState;
-  private Cluster cluster;
+  private ClusterFSM cluster;
   private ComponentPlugin plugin;
   
   /* The state machine for the service looks like:
@@ -91,11 +89,11 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
   
   private final StateMachine<ServiceState, ServiceEventType, ServiceEvent>
       stateMachine;
-  private final List<Role> serviceRoles = new ArrayList<Role>();
-  private Iterator<Role> iterator;
+  private final List<RoleFSM> serviceRoles = new ArrayList<RoleFSM>();
+  private Iterator<RoleFSM> iterator;
   private final String serviceName;
   
-  public ServiceImpl(Cluster cluster, String serviceName) throws IOException {
+  public ServiceImpl(ClusterFSM cluster, String serviceName) throws IOException {
     this.cluster = cluster;
     this.serviceName = serviceName;
     this.myState = ServiceState.INACTIVE;
@@ -125,7 +123,7 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
   }
 
   @Override
-  public Cluster getAssociatedCluster() {
+  public ClusterFSM getAssociatedCluster() {
     return cluster;
   }
   
@@ -134,11 +132,11 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
     return serviceName;
   }
   
-  public void addRoles(List<Role> roles) {
+  public void addRoles(List<RoleFSM> roles) {
     this.serviceRoles.addAll(roles);
   }
   
-  private Role getFirstRole() {
+  private RoleFSM getFirstRole() {
     //this call should reset the iterator
     iterator = serviceRoles.iterator();
     if (iterator.hasNext()) {
@@ -147,7 +145,7 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
     return null;
   }
   
-  private Role getNextRole() {
+  private RoleFSM getNextRole() {
     if (iterator.hasNext()) {
       return iterator.next();
     }
@@ -159,7 +157,7 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
 
     @Override
     public void transition(ServiceImpl operand, ServiceEvent event) {
-      Role firstRole = operand.getFirstRole();
+      RoleFSM firstRole = operand.getFirstRole();
       if (firstRole != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(
                             new RoleEvent(RoleEventType.START, firstRole));
@@ -172,7 +170,7 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
     
     @Override
     public void transition(ServiceImpl operand, ServiceEvent event) {
-      Role firstRole = operand.getFirstRole();
+      RoleFSM firstRole = operand.getFirstRole();
       if (firstRole != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(
                             new RoleEvent(RoleEventType.STOP, firstRole));
@@ -187,7 +185,7 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
     public ServiceState transition(ServiceImpl operand, ServiceEvent event) {
       //check whether all roles started, and if not remain in the STARTING
       //state, else move to the ACTIVE state
-      Role role = operand.getNextRole();
+      RoleFSM role = operand.getNextRole();
       if (role != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(new RoleEvent(
             RoleEventType.START, role));
@@ -205,13 +203,14 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
     public ServiceState transition(ServiceImpl operand, ServiceEvent event) {
       //check whether all roles stopped, and if not, remain in the STOPPING
       //state, else move to the INACTIVE state
-      Role role = operand.getNextRole();
+      RoleFSM role = operand.getNextRole();
       if (role != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(new RoleEvent(
             RoleEventType.STOP, role));
         return ServiceState.STOPPING;
       } else {
-        if (operand.getAssociatedCluster().getState() == ClusterState.STOPPING) {
+        if (operand.getAssociatedCluster().getState() 
+            == ClusterStateFSM.STOPPING) {
           //since we support stopping services explicitly (without stopping the 
           //associated cluster), we need to check what the cluster state is
           //before sending it any event
@@ -242,7 +241,7 @@ public class ServiceImpl implements Service, EventHandler<ServiceEvent> {
   }
 
   @Override
-  public List<Role> getRoles() {
+  public List<RoleFSM> getRoles() {
     return serviceRoles;
   }
 }

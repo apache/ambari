@@ -21,13 +21,13 @@ import org.apache.ambari.event.AbstractEvent;
 
 
 public class RoleEvent extends AbstractEvent<RoleEventType> {
-  Role role;
-  public RoleEvent(RoleEventType eventType, Role role) {
+  RoleFSM role;
+  public RoleEvent(RoleEventType eventType, RoleFSM role) {
     super (eventType);
     this.role = role;
   }
   
-  public Role getRole() {
+  public RoleFSM getRole() {
     return role;
   }
 

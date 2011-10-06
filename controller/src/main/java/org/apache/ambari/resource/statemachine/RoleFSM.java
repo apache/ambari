@@ -17,13 +17,15 @@
 */
 package org.apache.ambari.resource.statemachine;
 
-import java.util.List;
-import java.util.Map;
-
-public interface Cluster extends LifeCycle {
-  public List<Service> getServices();
-  public ClusterState getState();
-  public Map<String, String> getServiceStates();
-  public String getClusterName();
-  public void terminate();
+public interface RoleFSM extends LifeCycle {
+  
+  public RoleState getRoleState();
+  
+  public String getRoleName();
+  
+  public ServiceFSM getAssociatedService();
+  
+  public boolean shouldStop();
+  
+  public boolean shouldStart();
 }
