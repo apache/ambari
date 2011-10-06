@@ -50,19 +50,15 @@ public class BlueprintResource {
      * @response.representation.200.mediaType application/json
      *  
      * @param  blueprintName   Name of the blueprint
-     * @param  revision        The optional blueprint revision to get
+     * @param  revision        The optional blueprint revision, if not specified get the latest revision
      * @return                 blueprint definition
      * @throws Exception       throws Exception (TBD)
      */
     @GET
     @Produces({"application/json", "application/xml"})
     public Blueprint getBlueprint(@PathParam("blueprintName") String blueprintName, 
-                                  @DefaultValue("") @QueryParam("revision") String revision) throws Exception {     
+                                  @DefaultValue("-1") @QueryParam("revision") String revision) throws Exception {     
         try {
-            if (revision == null || revision.equals("")) {
-                String msg = "Revision number not specified";
-                throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
-            }
             return Blueprints.getInstance().getBlueprint(blueprintName, Integer.parseInt(revision));
         }catch (WebApplicationException we) {
             throw we;

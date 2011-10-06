@@ -45,7 +45,7 @@ public class Clusters {
     protected ConcurrentHashMap<String, Cluster> operational_clusters = new ConcurrentHashMap<String, Cluster>();
     
     /*
-     * Operational clusters name to ID map
+     * Operational clusters ID to name map
      */
     protected ConcurrentHashMap<String, String> operational_clusters_id_to_name = new ConcurrentHashMap<String, String>();
     
@@ -281,7 +281,7 @@ public class Clusters {
      */
     private synchronized void updateClusterNodesReservation (Cluster cls, List<String> nodeRangeExpressions) throws Exception {
     	
-    	String cname = cls.getClusterDefinition().getName();
+    	String clusterID = getClusterIDByName(cls.getClusterDefinition().getName());
     	
     	/*
     	 * Check if all the nodes explicitly specified in the RoleToNodesMap belong the cluster node range specified 
@@ -310,7 +310,7 @@ public class Clusters {
 		 */	
     	List<String> nodes_currently_allocated_to_cluster = new ArrayList<String>();
     	for (Node n : Nodes.getInstance().getNodes().values()) {
-    		if (n.getNodeState().getClusterName().equals(cls.getClusterDefinition().getName())) {
+    		if (n.getNodeState().getClusterID().equals(cls.getClusterDefinition().getName())) {
     			nodes_currently_allocated_to_cluster.add(n.getName());
     		}
     	}
@@ -326,7 +326,7 @@ public class Clusters {
     	List<String> preallocatedhosts = new ArrayList<String>();
     	for (String n : nodes_to_allocate) {
     		if (all_nodes.containsKey(n) && 
-    				(all_nodes.get(n).getNodeState().getClusterName() != null || 
+    				(all_nodes.get(n).getNodeState().getClusterID() != null || 
     				 all_nodes.get(n).getNodeState().getAllocatedToCluster()
     				)
     			) {
@@ -353,7 +353,7 @@ public class Clusters {
 			if (all_nodes.containsKey(node_name)) { 
 				// Set the cluster name in the node 
 				synchronized (all_nodes.get(node_name)) {
-					all_nodes.get(node_name).reserveNodeForCluster(cname, true);
+					all_nodes.get(node_name).reserveNodeForCluster(clusterID, true);
 				}	
 			} else {
 				Node node = new Node(node_name);
@@ -365,7 +365,7 @@ public class Clusters {
 				/*
 				 * TODO: Set agentInstalled = true, unless controller uses SSH to setup the agent
 				 */
-				node.reserveNodeForCluster(cname, true);
+				node.reserveNodeForCluster(clusterID, true);
 				Nodes.getInstance().getNodes().put(node_name, node);
 			}
 		}
@@ -416,8 +416,8 @@ public class Clusters {
     	for (String host : specified_node_range) {
     	    if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
     	        Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
-    	        String clusterName = Nodes.getInstance().getNodes().get(host).getNodeState().getClusterName();
-    	        Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(getDefaultRoleName(clusterName));
+    	        String cid = Nodes.getInstance().getNodes().get(host).getNodeState().getClusterID();
+    	        Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(getDefaultRoleName(cid));
     	    } 
     	}
 	}
@@ -519,6 +519,16 @@ public class Clusters {
         }
     }
     
+    /*
+     * Get cluster ID given cluster Name
+     */
+    public String getClusterIDByName (String clusterName) {
+        if (this.operational_clusters.containsKey(clusterName)) {
+            return this.operational_clusters.get(clusterName).getID();
+        } else {
+            return null;
+        }
+    }
     /* 
      * Get the cluster definition by name
      */
@@ -594,8 +604,8 @@ public class Clusters {
 	 *  has no specific role to nodes association specified in the cluster definition
 	 *  Throw exception if node is not associated to with any cluster
 	 */
-	public String getDefaultRoleName(String clusterName) throws Exception {
-	    Cluster c = Clusters.getInstance().getClusterByName(clusterName);
+	public String getDefaultRoleName(String clusterID) throws Exception {
+	    Cluster c = Clusters.getInstance().getClusterByID(clusterID);
 	    // TODO: find the default role from the clsuter blueprint 
 		return "slaves-role";
 	}

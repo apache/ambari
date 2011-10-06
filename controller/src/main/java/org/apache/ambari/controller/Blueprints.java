@@ -26,6 +26,8 @@ import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -131,14 +133,26 @@ public class Blueprints {
     
     
     /*
-     * Get blueprint
+     * Get blueprint. If revision = -1 then return latest revision
      */
     public Blueprint getBlueprint(String blueprintName, int revision) throws Exception {
-        Blueprint bp = this.blueprints.get(blueprintName).get(revision);
-        
-        if (bp == null) {
-            Exception e = new Exception ("Stack ["+blueprintName+"] revision ["+revision+"] does not exists");
-            throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+        /*
+         * If revision is -1, then return the latest revision
+         */  
+        Blueprint bp = null;
+        if (revision == -1) {
+            this.blueprints.get(blueprintName).keySet();
+            Integer [] a = new Integer [] {};
+            Integer[] keys = this.blueprints.get(blueprintName).keySet().toArray(a);
+            Arrays.sort(keys);  
+            bp = this.blueprints.get(blueprintName).get(keys[keys.length-1]);
+        } else {
+            if (!this.blueprints.containsKey(blueprintName) || !this.blueprints.get(blueprintName).containsKey(revision)) {
+                
+                String msg = "Blueprint ["+blueprintName+"], revision ["+revision+"] does not exists";
+                throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+            }
+            bp = this.blueprints.get(blueprintName).get(revision);
         }
         return bp;  
     }

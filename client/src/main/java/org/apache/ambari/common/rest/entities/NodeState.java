@@ -51,8 +51,8 @@ public class NodeState {
      * Associating the cluster name would reserve the node for a given cluster
      * 
      */
-    @XmlElement(name = "ClusterName", required = true)
-    protected String clusterName;
+    @XmlElement(name = "ClusterID", required = true)
+    protected String clusterID;
 
     @XmlElement(name = "AgentInstalled", required = true)
     protected Boolean agentInstalled = true;
@@ -111,19 +111,6 @@ public class NodeState {
             this.agentInstalled = agentInstalled;
     }
     
-    /**
-     * @return the clusterName
-     */
-    public String getClusterName() {
-            return clusterName;
-    }
-
-    /**
-     * @param clusterName the clusterName to set
-     */
-    public void setClusterName(String clusterName) {
-            this.clusterName = clusterName;
-    }
     
     /**
      * @return the lastHeartbeatTime
@@ -165,4 +152,19 @@ public class NodeState {
     public void setNodeServers(List<NodeServer> nodeServers) {
             this.nodeServers = nodeServers;
     }
+    
+    /**
+     * @return the clusterID
+     */
+    public String getClusterID() {
+        return clusterID;
+    }
+
+    /**
+     * @param clusterID the clusterID to set
+     */
+    public void setClusterID(String clusterID) {
+        this.clusterID = clusterID;
+    }
+
 }

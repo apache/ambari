@@ -80,7 +80,7 @@ public class HeartbeatHandler {
         DatatypeFactory.newInstance().newXMLGregorianCalendar(c));
     
     Cluster cluster = 
-        Clusters.getInstance().getClusterByID(state.getClusterName());
+        Clusters.getInstance().getClusterByID(state.getClusterID());
     ClusterContext clusterContext = new ClusterContextImpl(cluster, node);
     
     List<Action> allActions = new ArrayList<Action>();

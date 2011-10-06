@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-42. Return the latest blueprint revision if revision is not specified as query parameter.
+
   AMBARI-43. Change the API StateMachineInvoker.getStateMachineClusterInstance 
   to take blueprint related arguments. (ddas)
 
