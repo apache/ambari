@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,10 +36,16 @@ import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.RoleToNodesMap;
 import org.apache.ambari.common.rest.entities.RoleToNodesMapEntry;
+import org.apache.ambari.common.util.ExceptionUtil;
+import org.apache.ambari.resource.statemachine.ClusterFSM;
+import org.apache.ambari.resource.statemachine.StateMachineInvoker;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class Clusters {
-
+    private static Log LOG = LogFactory.getLog(Clusters.class);
+    
     /*
      * Operational clusters include both active and inactive clusters
      */
@@ -271,7 +278,14 @@ public class Clusters {
     		// Add the cluster to the list, when definition is persisted
     		this.operational_clusters.put(c.getName(), cls);
     		this.operational_clusters_id_to_name.put(cls.getID(), c.getName());
+        /*
+         * Activate the cluster if the goal state is activate
+         */
+        if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {          
+          org.apache.ambari.resource.statemachine.ClusterFSM cs = StateMachineInvoker.createCluster(cls);
+        }
     	}
+    	
     	return c;
     } 
     
@@ -548,6 +562,20 @@ public class Clusters {
         if (!this.operational_clusters.containsKey(clusterName)) {
             String msg = "Cluster ["+clusterName+"] does not exits";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
+        }
+        try {
+          /*
+           * Find the state of the latest blue print name and revision
+           */
+          String clusterId = this.operational_clusters.get(clusterName).getID();
+          String blueprintName = this.operational_clusters.get(clusterName).getClusterDefinition().getBlueprintName();
+          String blueprintRev = this.operational_clusters.get(clusterName).getClusterDefinition().getBlueprintRevision();
+          ClusterState clusterState = StateMachineInvoker.getClusterState(clusterId, blueprintName, blueprintRev);
+          Cluster cluster = this.operational_clusters.get(clusterName);
+          cluster.setClusterState(clusterState);
+          this.operational_clusters.put(clusterName, cluster);
+        } catch (Exception e) {
+          LOG.error(ExceptionUtil.getStackTrace(e));
         }
         return this.operational_clusters.get(clusterName).getClusterState();
     }
