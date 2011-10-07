@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-46. Implemented preservation of cluster id, blueprint name and
+  blueprint revision on agent. (Eric Yang)
+
   AMBARI-44. Implemented blueprint name and revision in heartbeat. (Eric Yang)
   
   AMBARI-39. Bridged cluster reference gap between REST API with State machine. (Eric Yang)

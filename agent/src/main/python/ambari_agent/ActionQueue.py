@@ -24,19 +24,32 @@ import Queue
 import threading
 from FileUtil import writeFile
 from shell import shellRunner
+import json
+import os
 
 logger = logging.getLogger()
 
 class ActionQueue(threading.Thread):
-  global q, r, clusterId, bluePrintName, bluePrintRevision
+  global q, r, clusterId, bluePrintName, bluePrintRevision, checkFile
   q = Queue.Queue()
   r = Queue.Queue()
   clusterId = 'unknown'
   bluePrintName = 'unknown'
   bluePrintRevision = 'unknown'
+  checkFile = '/tmp/blueprint'
 
   def __init__(self):
+    global clusterId, bluePrintName, bluePrintRevision, checkFile
     threading.Thread.__init__(self)
+    if 'AMBARI_LOG_DIR' in os.environ:
+      checkFile = os.environ['AMBARI_LOG_DIR']+"/blueprint"
+    if os.path.exists(checkFile):
+      f = open(checkFile, 'r')
+      data = json.load(f)
+      clusterId = data['clusterId']
+      bluePrintName = data['bluePrintName']
+      bluePrintRevision = data['bluePrintRevision']
+      f.close()
     self.sh = shellRunner()
 
   def put(self, response):
@@ -56,9 +69,20 @@ class ActionQueue(threading.Thread):
                      'RUN_ACTION': self.runAction
                    }
         result = switches.get(action['kind'], self.unknownAction)(action)
-        clusterId = action['clusterId']
-        bluePrintName = action['bluePrintName']
-        bluePrintRevision = action['bluePrintRevision']
+        # Store the blue print check point file
+        if clusterId!=action['clusterId'] or bluePrintName!=action['bluePrintName'] or bluePrintRevision!=action['bluePrintRevision']:
+          clusterId = action['clusterId']
+          bluePrintName = action['bluePrintName']
+          bluePrintRevision = action['bluePrintRevision']
+          output = { 
+                     'clusterId' : clusterId,
+                     'bluePrintName' : bluePrintName,
+                     'bluePrintRevision' : bluePrintRevision
+                   }
+          data = json.dumps(output)
+          info = ['ambari-write-file',os.getuid(),os.getgid(),'0700','/tmp/blueprint',data]
+          writeFile(info)
+        # Update the result
         r.put(result)
 
   def result(self):
