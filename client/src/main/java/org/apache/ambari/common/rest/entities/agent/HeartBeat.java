@@ -25,9 +25,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-
-import org.apache.ambari.common.rest.entities.agent.Action.Signal;
 
 
 /**
@@ -38,7 +35,7 @@ import org.apache.ambari.common.rest.entities.agent.Action.Signal;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {"responseId","timestamp", "clusterId", 
-    "hostname", "stackId", "hardwareProfile", 
+    "hostname", "bluePrintName", "bluePrintRevision", "hardwareProfile", 
     "actionResults", "serversStatus", "idle"})
 public class HeartBeat {
   @XmlElement
@@ -50,7 +47,9 @@ public class HeartBeat {
   @XmlElement
   private String hostname;
   @XmlElement
-  private String stackId;
+  private String bluePrintName;
+  @XmlElement
+  private String bluePrintRevision;
   @XmlElement
   private HardwareProfile hardwareProfile;
   @XmlElement
@@ -80,10 +79,14 @@ public class HeartBeat {
     return hostname;
   }
   
-  public String getStackId() {
-    return stackId;
+  public String getBluePrintName() {
+    return bluePrintName;
   }
   
+  public String getBluePrintRevision() {
+    return bluePrintRevision;
+  }
+    
   public boolean getIdle() {
     return idle;
   }
@@ -112,8 +115,12 @@ public class HeartBeat {
     this.hostname = hostname;
   }
   
-  public void setStackId(String stackId) {
-    this.stackId = stackId;
+  public void setBluePrintName(String bluePrintName) {
+    this.bluePrintName = bluePrintName;
+  }
+  
+  public void setBluePrintRevision(String bluePrintRevision) {
+    this.bluePrintRevision = bluePrintRevision;    
   }
   
   public void setActionResults(List<ActionResult> actionResults) {

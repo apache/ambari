@@ -137,11 +137,15 @@ public class ControllerResource {
       List<CommandResult> cleanUpResults = new ArrayList<CommandResult>();
       cleanUpResults.add(new CommandResult(0, "stdout", "stderr"));
       ActionResult actionResult = new ActionResult();
+      actionResult.setBluePrintName("blueprint");
+      actionResult.setBluePrintRevision("0.2");
       actionResult.setId("action-001");
       actionResult.setClusterId("cluster-001");
       actionResult.setKind(Kind.STOP_ACTION);
 
       ActionResult actionResult2 = new ActionResult();
+      actionResult2.setBluePrintName("blueprint");
+      actionResult2.setBluePrintRevision("0.2");
       actionResult2.setClusterId("cluster-002");
       actionResult2.setCommandResults(commandResults);
       actionResult2.setCleanUpResults(cleanUpResults);
@@ -165,7 +169,8 @@ public class ControllerResource {
       hb.setClusterId("cluster-123");
       hb.setTimestamp(System.currentTimeMillis());
       hb.setHostname(addr.getHostName());
-      hb.setStackId(stackId);
+      hb.setBluePrintName("blueprint");
+      hb.setBluePrintRevision("0.1");
       hb.setActionResults(actionResults);
       hb.setHardwareProfile(hp);
       List<ServerStatus> serversStatus = new ArrayList<ServerStatus>();
@@ -184,6 +189,7 @@ public class ControllerResource {
   /**
    * Sample controller to agent response message
    * 
+   * @response.representation.200.example { "a" : "b" }
    * @response.representation.200.doc Print an example of Controller Response to Agent
    * @response.representation.200.mediaType application/json
    * @return ControllerResponse A list of command to execute on agent
@@ -204,6 +210,8 @@ public class ControllerResource {
     cleanUps.add(new Command("hdfs", cleanUpCmd));
     
     Action action = new Action();
+    action.setBluePrintName("blueprint");
+    action.setBluePrintRevision("0.1");
     action.setUser("hdfs");
     action.setComponent("hdfs");
     action.setRole("datanode");
@@ -213,6 +221,8 @@ public class ControllerResource {
     action.setId("action-001");
 
     Action action2 = new Action();
+    action2.setBluePrintName("blueprint");
+    action2.setBluePrintRevision("0.1");
     action2.setUser("hdfs");
     action2.setKind(Kind.START_ACTION);
     action2.setId("action-002");
@@ -223,6 +233,8 @@ public class ControllerResource {
     action2.setRole("datanode");
     
     Action action3 = new Action();
+    action3.setBluePrintName("blueprint");
+    action3.setBluePrintRevision("0.1");
     action3.setUser("hdfs");
     action3.setKind(Kind.RUN_ACTION);
     action3.setId("action-003");

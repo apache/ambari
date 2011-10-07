@@ -2,6 +2,30 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-44. Implemented blueprint name and revision in heartbeat. (Eric Yang)
+  
+  AMBARI-39. Bridged cluster reference gap between REST API with State machine. (Eric Yang)
+
+  AMBARI-28. Clean up html encoded javadoc. (Eric Yang) 
+
+  AMBARI-23. Renamed agent API to /agent, and public API to /rest. (Eric Yang)
+
+  AMBARI-18. Implemented special command to write configuration file. (Eric Yang)
+
+  AMBARI-17. Added idle state for agent heartbeat. (Eric Yang)
+
+  AMBARI-15. Implemented agent side of authentication hooks. (Eric Yang)
+
+  AMBARI-12. Added transition state STARTING, STOPPING. (Eric Yang)
+
+  AMBARI-11. Implemented Agent to controller heartbeat communication. (Eric Yang)
+
+  AMBARI-7. Updated Jersey to 1.9 for automating wadl generation. (Eric Yang)
+
+  AMBARI-3. Move HMS prototype code to branch 0.0. (Eric Yang)
+
+  AMBARI-2. Added heartbeat/controller response data model, and wadl configuration. (Eric Yang)
+
   AMBARI-42. Return the latest blueprint revision if revision is not specified as query parameter.
 
   AMBARI-43. Change the API StateMachineInvoker.getStateMachineClusterInstance 

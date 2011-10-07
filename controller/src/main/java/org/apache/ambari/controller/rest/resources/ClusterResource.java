@@ -76,7 +76,6 @@ public class ClusterResource {
     /** 
      * Update cluster definition.
      * 
-     * @request.representation.example { 'abc' : 'abc' }
      * @response.representation.200.doc Returns cluster definition.
      * 
      * @param   clusterName             Name of the cluster; Each cluster is identified w/ unique name

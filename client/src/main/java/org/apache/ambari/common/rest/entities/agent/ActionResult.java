@@ -51,6 +51,10 @@ public class ActionResult {
   private String component;
   @XmlElement
   private String role;
+  @XmlElement
+  private String bluePrintName;
+  @XmlElement
+  private String bluePrintRevision;
 
   public String getClusterId() {
     return clusterId;
@@ -107,5 +111,21 @@ public class ActionResult {
   
   public void setRole(String role) {
     this.role = role;
+  }
+  
+  public String getBluePrintName() {
+    return bluePrintName;
+  }
+  
+  public void setBluePrintName(String bluePrintName) {
+    this.bluePrintName = bluePrintName;
+  }
+  
+  public String getBluePrintRevision() {
+    return bluePrintRevision;
+  }
+  
+  public void setBluePrintRevision(String bluePrintRevision) {
+    this.bluePrintRevision = bluePrintRevision;
   }
 }

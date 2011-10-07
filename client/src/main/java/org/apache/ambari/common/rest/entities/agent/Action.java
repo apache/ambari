@@ -49,6 +49,10 @@ public class Action {
   public List<Command> commands;
   @XmlElement
   public List<Command> cleanUpCommands;
+  @XmlElement
+  public String bluePrintName;
+  @XmlElement
+  public String bluePrintRevision;
   
   public Kind getKind() {
     return kind;
@@ -120,6 +124,22 @@ public class Action {
   
   public void setCleanUpCommands(List<Command> cleanUpCommands) {
     this.cleanUpCommands = cleanUpCommands;  
+  }
+  
+  public String getBluePrintName() {
+    return bluePrintName;
+  }
+  
+  public void setBluePrintName(String bluePrintName) {
+    this.bluePrintName = bluePrintName;
+  }
+  
+  public String getBluePrintRevision() {
+    return bluePrintRevision;
+  }
+  
+  public void setBluePrintRevision(String bluePrintRevision) {
+    this.bluePrintRevision = bluePrintRevision;
   }
   
   public static enum Kind {
