@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-45. Implement CLI command Cluster create (vgogate)
+
   AMBARI-46. Implemented preservation of cluster id, blueprint name and
   blueprint revision on agent. (Eric Yang)
 

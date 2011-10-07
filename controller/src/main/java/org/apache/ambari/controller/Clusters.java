@@ -214,79 +214,79 @@ public class Clusters {
      */   
     public ClusterDefinition addCluster(ClusterDefinition c) throws Exception {
 
-    	/*
-    	 * TODO: Validate the cluster definition
-    	 */
-    	if (c.getName() == null ||  c.getName().equals("")) {
-    		String msg = "Cluster Name must be specified and must be non-empty string";
-    		throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
-    	}
-    	
-    	synchronized (operational_clusters) {
-    		/* 
-    		 * Check if cluster already exists
-    		 */
-    		if (operational_clusters.containsKey(c.getName())) {
-    			String msg = "Cluster ["+c.getName()+"] already exists";
-    			throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.CONFLICT)).get());
-    		}
-    		
-    		/*
-    		 * Add new cluster to cluster list
-    		 */
-    		Date requestTime = new Date();
-    		Cluster cls = new Cluster();
-    		ClusterState clsState = new ClusterState();
-    		clsState.setCreationTime(requestTime);
-    		clsState.setLastUpdateTime(requestTime);
-    		clsState.setDeployTime((Date)null);
-    		clsState.setState(ClusterState.CLUSTER_STATE_INACTIVE);
-    		
-    		cls.setID(UUID.randomUUID().toString());
-    		cls.setClusterDefinition(c);
-    		cls.setClusterState(clsState);
-    		
-			/*
-			 * Update cluster nodes reservation.
-			 * TODO: REST API should allow roleToNodesMap separately based on the node attributes 
-			 */
-			if (c.getNodeRangeExpressions() != null) {
-				updateClusterNodesReservation (cls, c.getNodeRangeExpressions());
-			}
-			
-			/*
-			 * Update the Node to Roles association if specified
-			 * Create map of <Cluster - nodeToRolesMap>
-			 * If role is not explicitly associated w/ any node then assign it w/ default role
-			 * If RoleToNodes map is not specified then derive it based on the node attributes 
-			 *  
-			 */
-			if (c.getRoleToNodesMap() != null) {
-				updateNodeToRolesAssociation(c, c.getRoleToNodesMap());
-			} else {
-				/*
-				 * TODO: Derive the role to nodes map based on nodes attributes
-				 * then populate the node to roles association.
-				 */
-			}
-			
-    		/*
-    		 * TODO: Persist the cluster definition to data store as a initial version r0. 
-    		 * 		 Persist reserved nodes against the cluster & service/role
-    		 */
-    			
-    		// Add the cluster to the list, when definition is persisted
-    		this.operational_clusters.put(c.getName(), cls);
-    		this.operational_clusters_id_to_name.put(cls.getID(), c.getName());
         /*
-         * Activate the cluster if the goal state is activate
+         * TODO: Validate the cluster definition
          */
-        if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {          
-          org.apache.ambari.resource.statemachine.ClusterFSM cs = StateMachineInvoker.createCluster(cls);
+        if (c.getName() == null ||  c.getName().equals("")) {
+            String msg = "Cluster Name must be specified and must be non-empty string";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
-    	}
-    	
-    	return c;
+        
+        synchronized (operational_clusters) {
+            /* 
+             * Check if cluster already exists
+             */
+            if (operational_clusters.containsKey(c.getName())) {
+                String msg = "Cluster ["+c.getName()+"] already exists";
+                throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.CONFLICT)).get());
+            }
+            
+            /*
+             * Add new cluster to cluster list
+             */
+            Date requestTime = new Date();
+            Cluster cls = new Cluster();
+            ClusterState clsState = new ClusterState();
+            clsState.setCreationTime(requestTime);
+            clsState.setLastUpdateTime(requestTime);
+            clsState.setDeployTime((Date)null);
+            clsState.setState(ClusterState.CLUSTER_STATE_INACTIVE);
+            
+            cls.setID(UUID.randomUUID().toString());
+            cls.setClusterDefinition(c);
+            cls.setClusterState(clsState);
+            
+            /*
+             * Update cluster nodes reservation.
+             * TODO: REST API should allow roleToNodesMap separately based on the node attributes 
+             */
+            if (c.getNodeRangeExpressions() != null) {
+                updateClusterNodesReservation (cls, c.getNodeRangeExpressions());
+            }
+            
+            /*
+             * Update the Node to Roles association if specified
+             * Create map of <Cluster - nodeToRolesMap>
+             * If role is not explicitly associated w/ any node then assign it w/ default role
+             * If RoleToNodes map is not specified then derive it based on the node attributes 
+             *  
+             */
+            if (c.getRoleToNodesMap() != null) {
+                updateNodeToRolesAssociation(c, c.getRoleToNodesMap());
+            } else {
+                /*
+                 * TODO: Derive the role to nodes map based on nodes attributes
+                 * then populate the node to roles association.
+                 */
+            }
+            
+            /*
+             * TODO: Persist the cluster definition to data store as a initial version r0. 
+             *          Persist reserved nodes against the cluster & service/role
+             */
+                
+            // Add the cluster to the list, when definition is persisted
+            this.operational_clusters.put(c.getName(), cls);
+            this.operational_clusters_id_to_name.put(cls.getID(), c.getName());
+        
+            /*
+             * Activate the cluster if the goal state is activate
+            */
+            if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {          
+                org.apache.ambari.resource.statemachine.ClusterFSM cs = StateMachineInvoker.createCluster(cls);
+            }
+        }
+        return c;
     } 
     
     
@@ -294,147 +294,149 @@ public class Clusters {
      * Update the nodes associated with cluster
      */
     private synchronized void updateClusterNodesReservation (Cluster cls, List<String> nodeRangeExpressions) throws Exception {
-    	
-    	String clusterID = getClusterIDByName(cls.getClusterDefinition().getName());
-    	
-    	/*
-    	 * Check if all the nodes explicitly specified in the RoleToNodesMap belong the cluster node range specified 
-    	 */
-    	ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
+        
+        String clusterID = cls.getID();
+        
+        ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
         List<String> cluster_node_range = new ArrayList<String>();
         cluster_node_range.addAll(getHostnamesFromRangeExpressions(nodeRangeExpressions));
         
-        List<String> nodes_specified_using_role_association = new ArrayList<String>();
-        for (RoleToNodesMapEntry e : cls.getClusterDefinition().getRoleToNodesMap().getRoleToNodesMapEntry()) {
-            List<String> hosts = getHostnamesFromRangeExpressions(e.getNodeRangeExpressions());
-            nodes_specified_using_role_association.addAll(hosts);
-            // TODO: Remove any duplicate nodes from nodes_specified_using_role_association
+        /*
+         * Check if all the nodes explicitly specified in the RoleToNodesMap belong the cluster node range specified 
+         */
+        if (cls.getClusterDefinition().getRoleToNodesMap() != null) {
+            List<String> nodes_specified_using_role_association = new ArrayList<String>();
+            for (RoleToNodesMapEntry e : cls.getClusterDefinition().getRoleToNodesMap().getRoleToNodesMapEntry()) {
+                List<String> hosts = getHostnamesFromRangeExpressions(e.getNodeRangeExpressions());
+                nodes_specified_using_role_association.addAll(hosts);
+                // TODO: Remove any duplicate nodes from nodes_specified_using_role_association
+            }
+            
+            nodes_specified_using_role_association.removeAll(cluster_node_range);
+            if (!nodes_specified_using_role_association.isEmpty()) {
+                String msg = "Some nodes explicityly associated with roles using RoleToNodesMap do not belong in the " +
+                             "golbal node range specified for the cluster : ["+nodes_specified_using_role_association+"]";
+                throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+            }
         }
         
-        nodes_specified_using_role_association.removeAll(cluster_node_range);
-        if (!nodes_specified_using_role_association.isEmpty()) {
-            String msg = "Some nodes explicityly associated with roles using RoleToNodesMap do not belong in the " +
-            		     "golbal node range specified for the cluster : ["+nodes_specified_using_role_association+"]";
-            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        /*
+         * Reserve the nodes as specified in the node range expressions
+         * -- throw exception if any nodes are pre-associated with other cluster
+         */    
+        List<String> nodes_currently_allocated_to_cluster = new ArrayList<String>();
+        for (Node n : Nodes.getInstance().getNodes().values()) {
+            if (n.getNodeState().getClusterID().equals(cls.getID())) {
+                nodes_currently_allocated_to_cluster.add(n.getName());
+            }
         }
         
-    	/*
-		 * Reserve the nodes as specified in the node range expressions
-		 * -- throw exception if any nodes are pre-associated with other cluster
-		 */	
-    	List<String> nodes_currently_allocated_to_cluster = new ArrayList<String>();
-    	for (Node n : Nodes.getInstance().getNodes().values()) {
-    		if (n.getNodeState().getClusterID().equals(cls.getClusterDefinition().getName())) {
-    			nodes_currently_allocated_to_cluster.add(n.getName());
-    		}
-    	}
-    	
-    	List<String> nodes_to_allocate = new ArrayList<String>(cluster_node_range);
-    	nodes_to_allocate.removeAll(nodes_currently_allocated_to_cluster);
-    	List<String> nodes_to_deallocate = new ArrayList<String>(nodes_currently_allocated_to_cluster);
-    	nodes_to_deallocate.removeAll(cluster_node_range);
-    	
-		/*
-		 * Check for any nodes that are allocated to other cluster
-		 */
-    	List<String> preallocatedhosts = new ArrayList<String>();
-    	for (String n : nodes_to_allocate) {
-    		if (all_nodes.containsKey(n) && 
-    				(all_nodes.get(n).getNodeState().getClusterID() != null || 
-    				 all_nodes.get(n).getNodeState().getAllocatedToCluster()
-    				)
-    			) {
-    			preallocatedhosts.add(n);
-    		}
-    	}
-    	
-    	/* 
-		 * Throw exception, if some of the hosts are already allocated to other cluster
-		 */
-		if (!preallocatedhosts.isEmpty()) {
-			/*
-			 * TODO: Return invalid request code and return list of preallocated nodes as a part of
-			 *       response element
-			 */
-			String msg = "Some of the nodes specified for the cluster roles are allocated to other cluster: ["+preallocatedhosts+"]";
-    		throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.CONFLICT)).get());
-		}
-		
-		/*
-		 * Allocate nodes to given cluster
-		 */	
-		for (String node_name : nodes_to_allocate) {
-			if (all_nodes.containsKey(node_name)) { 
-				// Set the cluster name in the node 
-				synchronized (all_nodes.get(node_name)) {
-					all_nodes.get(node_name).reserveNodeForCluster(clusterID, true);
-				}	
-			} else {
-				Node node = new Node(node_name);
-				/*
-				 * Set the heartbeat time to very old epoch value
-				 */
-				Date epoch = new Date(0);
-		        node.getNodeState().setLastHeartbeatTime(epoch);
-				/*
-				 * TODO: Set agentInstalled = true, unless controller uses SSH to setup the agent
-				 */
-				node.reserveNodeForCluster(clusterID, true);
-				Nodes.getInstance().getNodes().put(node_name, node);
-			}
-		}
-		
-		/*
-		 * deallocate nodes from a given cluster
-		 * TODO: Node agent would asynchronously clean up the node and notify it through heartbeat which 
-		 * would set the allocatedtoCluster flag false
-		 */
-		for (String node_name : nodes_to_deallocate) {
-			if (all_nodes.containsKey(node_name)) {
-				synchronized (all_nodes.get(node_name)) {
-					all_nodes.get(node_name).releaseNodeFromCluster();
-				}
-			}
-		}
+        List<String> nodes_to_allocate = new ArrayList<String>(cluster_node_range);
+        nodes_to_allocate.removeAll(nodes_currently_allocated_to_cluster);
+        List<String> nodes_to_deallocate = new ArrayList<String>(nodes_currently_allocated_to_cluster);
+        nodes_to_deallocate.removeAll(cluster_node_range);
+        
+        /*
+         * Check for any nodes that are allocated to other cluster
+         */
+        List<String> preallocatedhosts = new ArrayList<String>();
+        for (String n : nodes_to_allocate) {
+            if (all_nodes.containsKey(n) && 
+                    (all_nodes.get(n).getNodeState().getClusterID() != null || 
+                     all_nodes.get(n).getNodeState().getAllocatedToCluster()
+                    )
+                ) {
+                preallocatedhosts.add(n);
+            }
+        }
+        
+        /* 
+         * Throw exception, if some of the hosts are already allocated to other cluster
+         */
+        if (!preallocatedhosts.isEmpty()) {
+            /*
+             * TODO: Return invalid request code and return list of preallocated nodes as a part of
+             *       response element
+             */
+            String msg = "Some of the nodes specified for the cluster roles are allocated to other cluster: ["+preallocatedhosts+"]";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.CONFLICT)).get());
+        }
+        
+        /*
+         * Allocate nodes to given cluster
+         */    
+        for (String node_name : nodes_to_allocate) {
+            if (all_nodes.containsKey(node_name)) { 
+                // Set the cluster name in the node 
+                synchronized (all_nodes.get(node_name)) {
+                    all_nodes.get(node_name).reserveNodeForCluster(clusterID, true);
+                }    
+            } else {
+                Node node = new Node(node_name);
+                /*
+                 * Set the heartbeat time to very old epoch value
+                 */
+                Date epoch = new Date(0);
+                node.getNodeState().setLastHeartbeatTime(epoch);
+                /*
+                 * TODO: Set agentInstalled = true, unless controller uses SSH to setup the agent
+                 */
+                node.reserveNodeForCluster(clusterID, true);
+                Nodes.getInstance().getNodes().put(node_name, node);
+            }
+        }
+        
+        /*
+         * deallocate nodes from a given cluster
+         * TODO: Node agent would asynchronously clean up the node and notify it through heartbeat which 
+         * would set the allocatedtoCluster flag false
+         */
+        for (String node_name : nodes_to_deallocate) {
+            if (all_nodes.containsKey(node_name)) {
+                synchronized (all_nodes.get(node_name)) {
+                    all_nodes.get(node_name).releaseNodeFromCluster();
+                }
+            }
+        }
     }
 
-	private synchronized void updateNodeToRolesAssociation (ClusterDefinition c, RoleToNodesMap roleToNodesMap) throws Exception {
-		/*
-		 * Associate roles list with node
-		 */
-		if (roleToNodesMap == null) {
-			return;
-		}
-		
-		/*
-		 * Add list of roles to Node
-		 * If node is not explicitly associated with any role then assign it w/ default role
-		 */
-		for (RoleToNodesMapEntry e : roleToNodesMap.getRoleToNodesMapEntry()) {
-			List<String> hosts = getHostnamesFromRangeExpressions(e.getNodeRangeExpressions());
-			for (String host : hosts) {
-			  if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
-			    Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
-			  } 
-			  Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(e.getRoleName());
-			}
-		}
-		
-		
-		/*
-		 * Get the list of specified global node list for the cluster and any nodes NOT explicitly specified in the
-		 * role to nodes map, assign them with default role 
-		 */
-		List<String> specified_node_range = new ArrayList<String>();
-    	specified_node_range.addAll(getHostnamesFromRangeExpressions(c.getNodeRangeExpressions()));
-    	for (String host : specified_node_range) {
-    	    if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
-    	        Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
-    	        String cid = Nodes.getInstance().getNodes().get(host).getNodeState().getClusterID();
-    	        Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(getDefaultRoleName(cid));
-    	    } 
-    	}
-	}
+    private synchronized void updateNodeToRolesAssociation (ClusterDefinition c, RoleToNodesMap roleToNodesMap) throws Exception {
+        /*
+         * Associate roles list with node
+         */
+        if (roleToNodesMap == null) {
+            return;
+        }
+        
+        /*
+         * Add list of roles to Node
+         * If node is not explicitly associated with any role then assign it w/ default role
+         */
+        for (RoleToNodesMapEntry e : roleToNodesMap.getRoleToNodesMapEntry()) {
+            List<String> hosts = getHostnamesFromRangeExpressions(e.getNodeRangeExpressions());
+            for (String host : hosts) {
+              if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
+                Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
+              } 
+              Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(e.getRoleName());
+            }
+        }
+        
+        
+        /*
+         * Get the list of specified global node list for the cluster and any nodes NOT explicitly specified in the
+         * role to nodes map, assign them with default role 
+         */
+        List<String> specified_node_range = new ArrayList<String>();
+        specified_node_range.addAll(getHostnamesFromRangeExpressions(c.getNodeRangeExpressions()));
+        for (String host : specified_node_range) {
+            if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
+                Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
+                String cid = Nodes.getInstance().getNodes().get(host).getNodeState().getClusterID();
+                Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(getDefaultRoleName(cid));
+            } 
+        }
+    }
 
     /* 
      * Update cluster definition
@@ -620,36 +622,36 @@ public class Clusters {
      * UTIL methods on entities
      */
     
-	/*
-	 * Get the list of role names associated with node
-	 */
-	public List<String> getAssociatedRoleNames(String hostname) {
-	  return Nodes.getInstance().getNodes().get(hostname).getNodeState().getNodeRoleNames();
-	}
-	
-	/*
-	 *  Return the default role name to be associated with specified cluster node that 
-	 *  has no specific role to nodes association specified in the cluster definition
-	 *  Throw exception if node is not associated to with any cluster
-	 */
-	public String getDefaultRoleName(String clusterID) throws Exception {
-	    Cluster c = Clusters.getInstance().getClusterByID(clusterID);
-	    // TODO: find the default role from the clsuter blueprint 
-		return "slaves-role";
-	}
-	
-	/*
+    /*
+     * Get the list of role names associated with node
+     */
+    public List<String> getAssociatedRoleNames(String hostname) {
+      return Nodes.getInstance().getNodes().get(hostname).getNodeState().getNodeRoleNames();
+    }
+    
+    /*
+     *  Return the default role name to be associated with specified cluster node that 
+     *  has no specific role to nodes association specified in the cluster definition
+     *  Throw exception if node is not associated to with any cluster
+     */
+    public String getDefaultRoleName(String clusterID) throws Exception {
+        Cluster c = Clusters.getInstance().getClusterByID(clusterID);
+        // TODO: find the default role from the clsuter blueprint 
+        return "slaves-role";
+    }
+    
+  /*
    * TODO: Implement proper range expression
    * TODO: Remove any duplicate nodes from the derived list
    */
   public List<String> getHostnamesFromRangeExpressions (List<String> nodeRangeExpressions) throws Exception {
-  	List<String> list = new ArrayList<String>();
-  	for (String nodeRangeExpression : nodeRangeExpressions) {
-    	StringTokenizer st = new StringTokenizer(nodeRangeExpression);
-    	while (st.hasMoreTokens()) {
-    		list.add(st.nextToken());
-    	}
-  	}
-  	return list;
+      List<String> list = new ArrayList<String>();
+      for (String nodeRangeExpression : nodeRangeExpressions) {
+        StringTokenizer st = new StringTokenizer(nodeRangeExpression);
+        while (st.hasMoreTokens()) {
+            list.add(st.nextToken());
+        }
+      }
+      return list;
   }
 }

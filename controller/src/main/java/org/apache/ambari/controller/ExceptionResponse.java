@@ -29,6 +29,7 @@ public class ExceptionResponse  {
         builder.header("ErrorMessage", e.getMessage());
         builder.header("ErrorCode", Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         r = builder.build();
+        e.printStackTrace();
     }
     
     public ExceptionResponse (String exceptionMessage, Response.Status rs) {
