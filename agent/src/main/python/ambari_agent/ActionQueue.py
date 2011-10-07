@@ -28,9 +28,12 @@ from shell import shellRunner
 logger = logging.getLogger()
 
 class ActionQueue(threading.Thread):
-  global q, r
+  global q, r, clusterId, bluePrintName, bluePrintRevision
   q = Queue.Queue()
   r = Queue.Queue()
+  clusterId = 'unknown'
+  bluePrintName = 'unknown'
+  bluePrintRevision = 'unknown'
 
   def __init__(self):
     threading.Thread.__init__(self)
@@ -43,6 +46,7 @@ class ActionQueue(threading.Thread):
 
   # dispatch action types
   def run(self):
+    global clusterId, bluePrintName, bluePrintRevision
     while True:
       while not q.empty():
         action = q.get()
@@ -52,6 +56,9 @@ class ActionQueue(threading.Thread):
                      'RUN_ACTION': self.runAction
                    }
         result = switches.get(action['kind'], self.unknownAction)(action)
+        clusterId = action['clusterId']
+        bluePrintName = action['bluePrintName']
+        bluePrintRevision = action['bluePrintRevision']
         r.put(result)
 
   def result(self):
@@ -64,11 +71,13 @@ class ActionQueue(threading.Thread):
   # track the liveness of the children process
   def startAction(self, action):
     result = { 
-               'id'         : action['id'], 
-               'clusterId'  : action['clusterId'],
-               'kind'       : action['kind'], 
-               'component'  : action['component'], 
-               'role'       : action['role'] 
+               'id'                : action['id'], 
+               'clusterId'         : action['clusterId'],
+               'kind'              : action['kind'], 
+               'component'         : action['component'], 
+               'role'              : action['role'],
+               'bluePrintName'     : action['bluePrintName'],
+               'bluePrintRevision' : action['bluePrintRevision']
              }
     self.sh.startProcess(action['component'], action['role'], action['commands'][0]['cmd'], action['user'])
     return result
@@ -76,11 +85,13 @@ class ActionQueue(threading.Thread):
   # Run stop action, stop a server process.
   def stopAction(self, action):
     result = { 
-               'id'        : action['id'], 
-               'kind'      : action['kind'], 
-               'clusterId' : action['clusterId'], 
-               'component' : action['component'],
-               'role'      : action['role']
+               'id'                : action['id'], 
+               'kind'              : action['kind'], 
+               'clusterId'         : action['clusterId'], 
+               'component'         : action['component'],
+               'role'              : action['role'],
+               'bluePrintName'     : action['bluePrintName'],
+               'bluePrintRevision' : action['bluePrintRevision']
              }
     self.sh.stopProcess(action['component'], action['role'], action['signal'])
     return result
@@ -88,9 +99,11 @@ class ActionQueue(threading.Thread):
   # Run commands action
   def runAction(self, action):
     result = { 
-               'id': action['id'],
-               'clusterId' : action['clusterId'],
-               'kind'       : action['kind']
+               'id'                : action['id'],
+               'clusterId'         : action['clusterId'],
+               'kind'              : action['kind'],
+               'bluePrintName'     : action['bluePrintName'],
+               'bluePrintRevision' : action['bluePrintRevision']
              }
     return self.runCommands(action['commands'], action['cleanUpCommands'], result)
 
@@ -133,3 +146,15 @@ class ActionQueue(threading.Thread):
   # Discover agent idle state
   def isIdle(self):
     return q.empty()
+
+  # Report current clusterId
+  def getClusterId(self):
+    return clusterId
+
+  # Report blue print name
+  def getBluePrintName(self):
+    return bluePrintName
+
+  # Report blue print revision
+  def getBluePrintRevision(self):
+    return bluePrintRevision

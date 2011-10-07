@@ -26,27 +26,31 @@ import socket
 import time
 
 class Heartbeat:
+
   def __init__(self, actionQueue):
     self.actionQueue = actionQueue
+    self.hardware = Hardware()
 
   def build(self, id='unknown'):
-    hardware = Hardware()
+    global clusterId, bluePrintName, bluePrintRevision
     serverStatus = ServerStatus()
     timestamp = int(time.time()*1000)
-    heartbeat = { 'responseId' : id,
-                  'timestamp' : timestamp,
-                  'clusterId' : 'unknown',
-                  'stackId' : 'unknown',
-                  'hostname' : socket.gethostname(),
-                  'hardwareProfile' : hardware.get(),
-                  'actionResults' : self.actionQueue.result(),
-                  'serversStatus' : serverStatus.build(),
-                  'idle' : self.actionQueue.isIdle()
+    heartbeat = { 'responseId'        : id,
+                  'timestamp'         : timestamp,
+                  'clusterId'         : self.actionQueue.getClusterId(),
+                  'bluePrintName'     : self.actionQueue.getBluePrintName(),
+                  'bluePrintRevision' : self.actionQueue.getBluePrintRevision(),
+                  'hostname'          : socket.gethostname(),
+                  'hardwareProfile'   : self.hardware.get(),
+                  'actionResults'     : self.actionQueue.result(),
+                  'serversStatus'     : serverStatus.build(),
+                  'idle'              : self.actionQueue.isIdle()
                 }
     return heartbeat
 
 def main(argv=None):
-  heartbeat = Heartbeat()
+  actionQueue = ActionQueue()
+  heartbeat = Heartbeat(actionQueue)
   print json.dumps(heartbeat.build())
 
 if __name__ == '__main__':

@@ -50,7 +50,7 @@ import org.apache.ambari.common.rest.entities.agent.ServerStatus;
  * as well as report the node attributes and state of services running the on 
  * the cluster nodes
  */
-@Path(value = "/controller")
+@Path("controller")
 public class ControllerResource {
 	
   /** 
@@ -62,7 +62,7 @@ public class ControllerResource {
    * @response.representation.500.doc Error in accepting heartbeat message
    * @param message Heartbeat message
    */
-  @Path(value = "/agent/{hostname}")
+  @Path("heartbeat/{hostname}")
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
@@ -87,6 +87,8 @@ public class ControllerResource {
     action.setKind(Kind.STOP_ACTION);
     action.setSignal(Signal.KILL);
     action.setClusterId("cluster-001");
+    action.setBluePrintName("blueprint");
+    action.setBluePrintRevision("0.1");
     action.setId("action-001");
 
     Action action2 = new Action();
@@ -97,12 +99,16 @@ public class ControllerResource {
     action2.setCommands(commands);
     action2.setCleanUpCommands(cleanUps);
     action2.setComponent("hdfs");
+    action2.setBluePrintName("blueprint");
+    action2.setBluePrintRevision("0.2");
     action2.setRole("datanode");
 
     Action action3 = new Action();
     action3.setUser("hdfs");
     action3.setKind(Kind.RUN_ACTION);
     action3.setId("action-003");
+    action3.setBluePrintName("blueprint");
+    action3.setBluePrintRevision("0.2");
     action3.setClusterId("cluster-003");
     action3.setCommands(commands);
     action3.setCleanUpCommands(cleanUps);
@@ -123,7 +129,7 @@ public class ControllerResource {
    * @param stackId Stack ID
    * @return Heartbeat message
    */
-  @Path("agent/heartbeat/sample")
+  @Path("heartbeat/sample")
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public HeartBeat getHeartBeat(@DefaultValue("stack-123") 
