@@ -34,13 +34,13 @@ public class AmbariClient {
        
         HashMap<String, String> clusterCommands = new HashMap<String, String>();
         clusterCommands.put("create", "ClusterCreate");
-        clusterCommands.put("update", "ClusterUpdate.class");
-        clusterCommands.put("delete", "ClusterDelete.class");
+        clusterCommands.put("update", "ClusterUpdate");
+        clusterCommands.put("delete", "ClusterDelete");
         
         HashMap<String, String> blueprintCommands = new HashMap<String, String>();
-        blueprintCommands.put("list", "BlueprintList.class");
-        blueprintCommands.put("history", "BlueprintHistory.class");
-        blueprintCommands.put("add", "BlueprintAdd.class");
+        blueprintCommands.put("list", "BlueprintList");
+        blueprintCommands.put("history", "BlueprintHistory");
+        blueprintCommands.put("add", "BlueprintAdd");
         
         HashMap<String, String> nodeCommands = new HashMap<String, String>();
         nodeCommands.put("list", "NodeList.class");
@@ -64,15 +64,21 @@ public class AmbariClient {
         c.InitializeCommandsMap();
         
         /*
-         * 
+         * Validate the arguments
          */
         if (args.length < 2) {
-           System.out.println("Usage: AmbariClient <CommandCateogry> <CommandName> <CommandOptions>");
-           System.out.println("");
-           for (String category : c.commands.keySet()) {
-               System.out.println("CommandCategory : ["+ category+"] : Commands "+c.commands.get(category).keySet());
+           if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
+               System.out.println("Usage: AmbariClient <CommandCateogry> <CommandName> <CommandOptions>\n");
+               System.out.println("       To get the help on each command use -help  e.g. \"AmbariClient cluster list -help\"\n");
+               for (String category : c.commands.keySet()) {
+                   System.out.println("CommandCategory : ["+ category+"] : Commands "+c.commands.get(category).keySet());
+               }
+               System.exit(0);
            }
-           System.exit(-1);
+           if (args[0].equalsIgnoreCase("version")) {
+               System.out.println("VERSION 0.1.0");
+               System.exit(0);
+           }
         }
         
         /*
@@ -89,7 +95,7 @@ public class AmbariClient {
         }
         
         /*
-         * Instantiate appropriate class based on command cateogry and command name
+         * Instantiate appropriate class based on command category and command name
          */
         try {
             Class<?>[] classParm = new Class<?>[] {String[].class};

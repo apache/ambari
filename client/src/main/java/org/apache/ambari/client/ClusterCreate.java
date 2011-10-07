@@ -258,21 +258,6 @@ public class ClusterCreate extends Command {
         clsDef.setDescription(this.description);
         clsDef.setRoleToNodesMap(getRoleToNodesMap(this.roleToNodeExpressions));
         
-        /*
-        List<String> services = new ArrayList<String>();
-        services.add("hdfs");
-        services.add("mapred");
-        clsDef.setActiveServices(services);
-        clsDef.setBlueprintName("MyClusterBlueprint");
-        clsDef.setGoalState(ClusterDefinition.GOAL_STATE_ACTIVE);
-        
-        List<String> nodeRangeExpressions = new ArrayList();
-        nodeRangeExpressions.add("mhost1 mhost2 mhost3");
-        clsDef.setNodeRangeExpressions(nodeRangeExpressions);
-        clsDef.setBlueprintRevision("0");
-        clsDef.setDescription("This Test Cluster");
-        */
-        
         ClientResponse response = service.path("clusters").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, clsDef);
         if (response.getStatus() != 200) { 
             System.err.println("Cluster create command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");

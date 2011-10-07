@@ -17,12 +17,9 @@
  */
 package org.apache.ambari.client;
 
-public class Command {
+public abstract class Command {
     
     protected String baseURLString = "http://localhost:4080/rest";
     
-    public void run () throws Exception {
-        
-    }
-
+    public abstract void run () throws Exception;
 }
