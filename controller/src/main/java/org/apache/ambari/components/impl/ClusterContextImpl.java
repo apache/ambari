@@ -18,10 +18,10 @@
 package org.apache.ambari.components.impl;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
-import org.apache.ambari.common.rest.entities.Cluster;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.components.ClusterContext;
+import org.apache.ambari.controller.Cluster;
 
 public class ClusterContextImpl implements ClusterContext {
 

@@ -29,7 +29,6 @@ import java.util.Map;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
-import org.apache.ambari.common.rest.entities.Cluster;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.NodeState;
 import org.apache.ambari.controller.Clusters;

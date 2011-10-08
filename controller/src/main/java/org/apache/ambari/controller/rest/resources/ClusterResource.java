@@ -35,10 +35,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 
-import org.apache.ambari.common.rest.entities.Cluster;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.ClusterState;
+import org.apache.ambari.controller.Cluster;
 import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.ExceptionResponse;
 import org.apache.ambari.controller.Nodes;

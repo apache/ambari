@@ -28,12 +28,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.ambari.common.rest.entities.Cluster;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
 import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
+import org.apache.ambari.controller.Cluster;
 import org.apache.ambari.event.EventHandler;
 
 public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {

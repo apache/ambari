@@ -35,7 +35,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
-import org.apache.ambari.common.rest.entities.Cluster;
 import org.apache.ambari.common.rest.entities.Component;
 import org.apache.ambari.common.rest.entities.Configuration;
 import org.apache.ambari.common.rest.entities.ConfigurationCategory;

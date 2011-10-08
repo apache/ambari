@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-48. Move Cluster object from rest entities to controller(vgogate)
+
   AMBARI-47. Implement Cluster definition re-visioning(vgogate)
 
   AMBARI-45. Implement CLI command Cluster create (vgogate)
