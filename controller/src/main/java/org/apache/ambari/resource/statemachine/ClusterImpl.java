@@ -106,7 +106,7 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
     this.writeLock = readWriteLock.writeLock();
     this.stateMachine = stateMachineFactory.make(this);
     List<ServiceFSM> serviceImpls = new ArrayList<ServiceFSM>();
-    for (String service : cluster.getClusterDefinition().getActiveServices()) {
+    for (String service : cluster.getLatestClusterDefinition().getActiveServices()) {
       ServiceImpl serviceImpl = new ServiceImpl(this, service);
       serviceImpls.add(serviceImpl);
     }

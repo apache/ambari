@@ -234,8 +234,8 @@ public class Blueprints {
          */
         Blueprint bp = this.blueprints.get(blueprintName).get(new Integer(revision));
         for (Cluster c : Clusters.getInstance().operational_clusters.values()) {
-            String bpName = c.getClusterDefinition().getBlueprintName();
-            String bpRevision = c.getClusterDefinition().getBlueprintRevision();
+            String bpName = c.getLatestClusterDefinition().getBlueprintName();
+            String bpRevision = c.getLatestClusterDefinition().getBlueprintRevision();
             
             // TODO: May be don't consider ATTIC clusters
             if (c.getClusterState().getState().equals(ClusterStateFSM.ATTIC)) {

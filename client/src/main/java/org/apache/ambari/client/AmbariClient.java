@@ -100,7 +100,6 @@ public class AmbariClient {
         try {
             Class<?>[] classParm = new Class<?>[] {String[].class};
             Object[] objectParm =  new Object[] {args};
-            
             Class<?> commandClass  = Class.forName("org.apache.ambari.client."+c.commands.get(args[0]).get(args[1]));
             Constructor<?> co = commandClass.getConstructor(classParm);
             Command cmd = (Command)co.newInstance(objectParm);

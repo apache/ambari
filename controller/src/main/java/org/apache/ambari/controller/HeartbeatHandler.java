@@ -107,8 +107,8 @@ public class HeartbeatHandler {
       //get the state machine reference to the cluster
       ClusterFSM clusterSMobject = StateMachineInvoker
           .getStateMachineClusterInstance(cluster.getID(), 
-              cluster.getClusterDefinition().getBlueprintName(), 
-              cluster.getClusterDefinition().getBlueprintRevision());
+              cluster.getLatestClusterDefinition().getBlueprintName(), 
+              cluster.getLatestClusterDefinition().getBlueprintRevision());
       //the state machine reference to the services
       List<ServiceFSM> clusterServices = clusterSMobject.getServices();
       //go through all the services, and check which role should be started

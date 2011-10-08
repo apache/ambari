@@ -212,12 +212,12 @@ public class Clusters {
      *      (daemon can keep track of which nodes agent is already installed or check it by ssh to nodes, if nodes added
      *       are in UNREGISTERED state).  
      */   
-    public ClusterDefinition addCluster(ClusterDefinition c) throws Exception {
+    public ClusterDefinition addCluster(ClusterDefinition cdef) throws Exception {
 
         /*
          * TODO: Validate the cluster definition
          */
-        if (c.getName() == null ||  c.getName().equals("")) {
+        if (cdef.getName() == null ||  cdef.getName().equals("")) {
             String msg = "Cluster Name must be specified and must be non-empty string";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
@@ -226,13 +226,13 @@ public class Clusters {
             /* 
              * Check if cluster already exists
              */
-            if (operational_clusters.containsKey(c.getName())) {
-                String msg = "Cluster ["+c.getName()+"] already exists";
+            if (operational_clusters.containsKey(cdef.getName())) {
+                String msg = "Cluster ["+cdef.getName()+"] already exists";
                 throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.CONFLICT)).get());
             }
             
             /*
-             * Add new cluster to cluster list
+             * Create new cluster object
              */
             Date requestTime = new Date();
             Cluster cls = new Cluster();
@@ -243,31 +243,33 @@ public class Clusters {
             clsState.setState(ClusterState.CLUSTER_STATE_INACTIVE);
             
             cls.setID(UUID.randomUUID().toString());
-            cls.setClusterDefinition(c);
+            cls.addClusterDefinition(cdef);
             cls.setClusterState(clsState);
             
             /*
-             * Update cluster nodes reservation.
-             * TODO: REST API should allow roleToNodesMap separately based on the node attributes 
+             * Update cluster nodes reservation. 
              */
-            if (c.getNodeRangeExpressions() != null) {
-                updateClusterNodesReservation (cls, c.getNodeRangeExpressions());
+            if (cdef.getNodeRangeExpressions() != null) {
+                updateClusterNodesReservation (cls.getID(), cdef);
             }
             
             /*
-             * Update the Node to Roles association if specified
+             * Update the Node to Roles association, if specified
              * Create map of <Cluster - nodeToRolesMap>
              * If role is not explicitly associated w/ any node then assign it w/ default role
              * If RoleToNodes map is not specified then derive it based on the node attributes 
              *  
              */
-            if (c.getRoleToNodesMap() != null) {
-                updateNodeToRolesAssociation(c, c.getRoleToNodesMap());
+            if (cdef.getRoleToNodesMap() != null) {
+                updateNodeToRolesAssociation(cdef.getNodeRangeExpressions(), cdef.getRoleToNodesMap());
             } else {
                 /*
                  * TODO: Derive the role to nodes map based on nodes attributes
                  * then populate the node to roles association.
                  */
+                //RoleToNodesMap rnm = new RoleToNodesMap();
+                // TODO: Populate RoleToNodesMap based on node attributes
+                //updateNodeToRolesAssociation(cdef, rnm);
             }
             
             /*
@@ -276,26 +278,25 @@ public class Clusters {
              */
                 
             // Add the cluster to the list, when definition is persisted
-            this.operational_clusters.put(c.getName(), cls);
-            this.operational_clusters_id_to_name.put(cls.getID(), c.getName());
+            this.operational_clusters.put(cdef.getName(), cls);
+            this.operational_clusters_id_to_name.put(cls.getID(), cdef.getName());
         
             /*
              * Activate the cluster if the goal state is activate
             */
-            if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {          
+            if(cdef.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {          
                 org.apache.ambari.resource.statemachine.ClusterFSM cs = StateMachineInvoker.createCluster(cls);
             }
         }
-        return c;
+        return cdef;
     } 
-    
     
     /*
      * Update the nodes associated with cluster
      */
-    private synchronized void updateClusterNodesReservation (Cluster cls, List<String> nodeRangeExpressions) throws Exception {
-        
-        String clusterID = cls.getID();
+    private synchronized void updateClusterNodesReservation (String clusterID, ClusterDefinition clsDef) throws Exception {
+                
+        List<String> nodeRangeExpressions = clsDef.getNodeRangeExpressions();
         
         ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
         List<String> cluster_node_range = new ArrayList<String>();
@@ -304,9 +305,9 @@ public class Clusters {
         /*
          * Check if all the nodes explicitly specified in the RoleToNodesMap belong the cluster node range specified 
          */
-        if (cls.getClusterDefinition().getRoleToNodesMap() != null) {
+        if (clsDef.getRoleToNodesMap() != null) {
             List<String> nodes_specified_using_role_association = new ArrayList<String>();
-            for (RoleToNodesMapEntry e : cls.getClusterDefinition().getRoleToNodesMap().getRoleToNodesMapEntry()) {
+            for (RoleToNodesMapEntry e : clsDef.getRoleToNodesMap().getRoleToNodesMapEntry()) {
                 List<String> hosts = getHostnamesFromRangeExpressions(e.getNodeRangeExpressions());
                 nodes_specified_using_role_association.addAll(hosts);
                 // TODO: Remove any duplicate nodes from nodes_specified_using_role_association
@@ -326,7 +327,7 @@ public class Clusters {
          */    
         List<String> nodes_currently_allocated_to_cluster = new ArrayList<String>();
         for (Node n : Nodes.getInstance().getNodes().values()) {
-            if (n.getNodeState().getClusterID().equals(cls.getID())) {
+            if (n.getNodeState().getClusterID().equals(clusterID)) {
                 nodes_currently_allocated_to_cluster.add(n.getName());
             }
         }
@@ -400,7 +401,7 @@ public class Clusters {
         }
     }
 
-    private synchronized void updateNodeToRolesAssociation (ClusterDefinition c, RoleToNodesMap roleToNodesMap) throws Exception {
+    private synchronized void updateNodeToRolesAssociation (List<String> nodeRangeExpressions, RoleToNodesMap roleToNodesMap) throws Exception {
         /*
          * Associate roles list with node
          */
@@ -428,7 +429,7 @@ public class Clusters {
          * role to nodes map, assign them with default role 
          */
         List<String> specified_node_range = new ArrayList<String>();
-        specified_node_range.addAll(getHostnamesFromRangeExpressions(c.getNodeRangeExpressions()));
+        specified_node_range.addAll(getHostnamesFromRangeExpressions(nodeRangeExpressions));
         for (String host : specified_node_range) {
             if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
                 Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
@@ -463,32 +464,65 @@ public class Clusters {
         }
         
         Cluster cls = this.operational_clusters.get(clusterName);
-        synchronized (cls.getClusterDefinition()) {
-            if (c.getBlueprintName() != null) cls.getClusterDefinition().setBlueprintName(c.getBlueprintName());
-            if (c.getBlueprintRevision() != null) cls.getClusterDefinition().setBlueprintRevision(c.getBlueprintRevision());
-            if (c.getDescription() != null) cls.getClusterDefinition().setDescription(c.getDescription());
-            if (c.getGoalState() != null) cls.getClusterDefinition().setGoalState(c.getGoalState());
-            if (c.getActiveServices() != null) cls.getClusterDefinition().setActiveServices(c.getActiveServices());
+        /*
+         * Time being we will keep entire updated copy as new revision
+         */
+        ClusterDefinition newcd = new ClusterDefinition ();
+        
+        synchronized (cls.getClusterDefinitionList()) {
+            if (c.getBlueprintName() != null) {
+                newcd.setBlueprintName(c.getBlueprintName());
+            } else {
+                newcd.setBlueprintName(cls.getLatestClusterDefinition().getBlueprintName());
+            }
+            if (c.getBlueprintRevision() != null) {
+                newcd.setBlueprintRevision(c.getBlueprintRevision());
+            } else {
+                newcd.setBlueprintRevision(cls.getLatestClusterDefinition().getBlueprintRevision());
+            }
+            if (c.getDescription() != null) {
+                newcd.setDescription(c.getDescription());
+            } else {
+                newcd.setDescription(cls.getLatestClusterDefinition().getDescription());
+            }
+            if (c.getGoalState() != null) {
+                newcd.setGoalState(c.getGoalState());
+            } else {
+                newcd.setGoalState(cls.getLatestClusterDefinition().getGoalState());
+            }
+            if (c.getActiveServices() != null) {
+                newcd.setActiveServices(c.getActiveServices());
+            } else {
+                newcd.setActiveServices(cls.getLatestClusterDefinition().getActiveServices());
+            }
+            
+            /*
+             * TODO: What if controller is crashed after updateClusterNodesReservation 
+             * before updating and adding new revision of cluster definition?
+             */
             if (c.getNodeRangeExpressions() != null) {
-                cls.getClusterDefinition().setNodeRangeExpressions(c.getNodeRangeExpressions());
-                updateClusterNodesReservation (cls, c.getNodeRangeExpressions());
+                newcd.setNodeRangeExpressions(c.getNodeRangeExpressions());
+                updateClusterNodesReservation (cls.getID(), c);
+            } else {
+                newcd.setNodeRangeExpressions(cls.getLatestClusterDefinition().getNodeRangeExpressions());
             }
             if (c.getRoleToNodesMap() != null) {
-                cls.getClusterDefinition().setRoleToNodesMap(c.getRoleToNodesMap());
-                updateNodeToRolesAssociation(cls.getClusterDefinition(), c.getRoleToNodesMap());
+                newcd.setRoleToNodesMap(c.getRoleToNodesMap());
+                updateNodeToRolesAssociation(newcd.getNodeRangeExpressions(), c.getRoleToNodesMap());
             }  
             
             /*
              *  Update the last update time & revision
              */
             cls.getClusterState().setLastUpdateTime(new Date());
-            cls.setRevision(cls.getRevision()+1);
+            cls.addClusterDefinition(newcd);
             
             /*
              * TODO: Persist the latest cluster definition under new revision
              */
+            
         }
-        return cls.getClusterDefinition();
+        return cls.getLatestClusterDefinition();
     }
     
     /*
@@ -503,7 +537,7 @@ public class Clusters {
     public void deleteCluster(String clusterName) throws Exception { 
         synchronized (this.operational_clusters) {
             for (Cluster cls : this.operational_clusters.values()) {
-                if (cls.getClusterDefinition().getName().equals(clusterName)) {
+                if (cls.getLatestClusterDefinition().getName().equals(clusterName)) {
                     synchronized (cls) {
                         ClusterDefinition cdf = new ClusterDefinition();
                         cdf.setName(clusterName);
@@ -545,6 +579,7 @@ public class Clusters {
             return null;
         }
     }
+    
     /* 
      * Get the cluster definition by name
      */
@@ -553,7 +588,7 @@ public class Clusters {
             String msg = "Cluster ["+clusterName+"] does not exits";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
-        return this.operational_clusters.get(clusterName).getClusterDefinition();
+        return this.operational_clusters.get(clusterName).getLatestClusterDefinition();
     }
     
     
@@ -570,8 +605,8 @@ public class Clusters {
            * Find the state of the latest blue print name and revision
            */
           String clusterId = this.operational_clusters.get(clusterName).getID();
-          String blueprintName = this.operational_clusters.get(clusterName).getClusterDefinition().getBlueprintName();
-          String blueprintRev = this.operational_clusters.get(clusterName).getClusterDefinition().getBlueprintRevision();
+          String blueprintName = this.operational_clusters.get(clusterName).getLatestClusterDefinition().getBlueprintName();
+          String blueprintRev = this.operational_clusters.get(clusterName).getLatestClusterDefinition().getBlueprintRevision();
           ClusterState clusterState = StateMachineInvoker.getClusterState(clusterId, blueprintName, blueprintRev);
           Cluster cluster = this.operational_clusters.get(clusterName);
           cluster.setClusterState(clusterState);
@@ -590,10 +625,10 @@ public class Clusters {
       List<ClusterDefinition> list = new ArrayList<ClusterDefinition>();
       for (Cluster cls : this.operational_clusters.values()) {
         if (state.equals("ALL")) {
-          list.add(cls.getClusterDefinition());
+          list.add(cls.getLatestClusterDefinition());
         } else {
           if (cls.getClusterState().getState().equals(state)) {
-            list.add(cls.getClusterDefinition());
+            list.add(cls.getLatestClusterDefinition());
           }
         }
       }

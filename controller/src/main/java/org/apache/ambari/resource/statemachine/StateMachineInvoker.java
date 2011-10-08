@@ -81,8 +81,8 @@ public class StateMachineInvoker {
   public static ClusterFSM createCluster(Cluster cluster) throws IOException {
     ClusterImpl clusterFSM = new ClusterImpl(cluster);
     clusters.put(getClusterKey(cluster.getID(), 
-        cluster.getClusterDefinition().getBlueprintName(), 
-        cluster.getClusterDefinition().getBlueprintRevision()), clusterFSM);
+        cluster.getLatestClusterDefinition().getBlueprintName(), 
+        cluster.getLatestClusterDefinition().getBlueprintRevision()), clusterFSM);
     return clusterFSM;
   }
   

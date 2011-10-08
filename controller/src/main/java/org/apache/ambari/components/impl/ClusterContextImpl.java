@@ -35,7 +35,7 @@ public class ClusterContextImpl implements ClusterContext {
   
   @Override
   public String getClusterName() {
-    return cluster.getClusterDefinition().getName();
+    return cluster.getLatestClusterDefinition().getName();
   }
 
   @Override
