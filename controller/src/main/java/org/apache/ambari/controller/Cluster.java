@@ -17,15 +17,8 @@
  */
 package org.apache.ambari.controller;
 
-import java.util.List;
+
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 
@@ -48,7 +41,7 @@ public class Cluster {
     /*
      * Map of cluster revision to cluster definition
      */
-    protected ConcurrentHashMap<Long, ClusterDefinition> clusterDefinitionList = null;
+    protected ConcurrentHashMap<Long, ClusterDefinition> clusterDefinitionRevisionsList = null;
     protected ClusterState clusterState;
     
     
@@ -70,35 +63,35 @@ public class Cluster {
      * @return the clusterDefinition
      */
     public ClusterDefinition getClusterDefinition(long revision) {
-            return clusterDefinitionList.get(revision);
+            return clusterDefinitionRevisionsList.get(revision);
     }
     
     /**
      * @return the latest clusterDefinition
      */
     public ClusterDefinition getLatestClusterDefinition() {
-        return clusterDefinitionList.get(this.latestRevision);
+        return clusterDefinitionRevisionsList.get(this.latestRevision);
     }
     
     /**
      * @return Add Cluster definition
      */
     public void addClusterDefinition(ClusterDefinition c) {
-        if (clusterDefinitionList == null) {
-            clusterDefinitionList = new ConcurrentHashMap<Long, ClusterDefinition>();
-            clusterDefinitionList.put((long)0, c);
+        if (clusterDefinitionRevisionsList == null) {
+            clusterDefinitionRevisionsList = new ConcurrentHashMap<Long, ClusterDefinition>();
+            clusterDefinitionRevisionsList.put((long)0, c);
             this.latestRevision = 0;
         } else {
             this.latestRevision++;
-            clusterDefinitionList.put((long)this.latestRevision, c);
+            clusterDefinitionRevisionsList.put((long)this.latestRevision, c);
         }
     }
     
     /**
      * @return the clusterDefinitionList
      */
-    public ConcurrentHashMap<Long, ClusterDefinition> getClusterDefinitionList() {
-        return clusterDefinitionList;
+    public ConcurrentHashMap<Long, ClusterDefinition> getClusterDefinitionRevisionsList() {
+        return clusterDefinitionRevisionsList;
     }
 
     /**

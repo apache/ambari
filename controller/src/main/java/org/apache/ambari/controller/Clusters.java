@@ -468,7 +468,7 @@ public class Clusters {
          */
         ClusterDefinition newcd = new ClusterDefinition ();
         
-        synchronized (cls.getClusterDefinitionList()) {
+        synchronized (cls.getClusterDefinitionRevisionsList()) {
             if (c.getBlueprintName() != null) {
                 newcd.setBlueprintName(c.getBlueprintName());
             } else {
