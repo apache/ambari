@@ -18,20 +18,18 @@
 
 package org.apache.ambari.common.rest.entities.agent;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {"clusterId", "bluePrintName", 
     "bluePrintRevision", "componentName", "roleName",
-    "serversStatus"})
+    "serverStatus"})
 public class AgentRoleState {
   @XmlElement
   private String bluePrintName;
@@ -44,7 +42,7 @@ public class AgentRoleState {
   @XmlElement
   private String roleName;
   @XmlElement
-  private ServerStatus serverStatus;
+  private State serverStatus;
   
   public String getClusterId() {
     return clusterId;
@@ -66,7 +64,7 @@ public class AgentRoleState {
     return roleName;
   }
   
-  public ServerStatus getServerStatus() {
+  public State getServerStatus() {
     return serverStatus;
   }
   
@@ -90,7 +88,29 @@ public class AgentRoleState {
     this.roleName = roleName;
   }
   
-  public void setServerStatus(ServerStatus serverStatus) {
+  public void setServerStatus(State serverStatus) {
     this.serverStatus = serverStatus;
+  }
+  
+  public static enum State {
+    START, STARTING, STARTED, STOP, STOPPING, STOPPED;
+    public static class ServerStateAdaptor extends XmlAdapter<String, State> {
+      @Override
+      public String marshal(State obj) throws Exception {
+        return obj.toString();
+      }
+
+      @Override
+      public State unmarshal(String str) throws Exception {
+        for (State j : State.class.getEnumConstants()) {
+          if (j.toString().equals(str)) {
+            return j;
+          }
+        }
+        throw new Exception("Can't convert " + str + " to "
+          + State.class.getName());
+      }
+
+    }
   }
 }

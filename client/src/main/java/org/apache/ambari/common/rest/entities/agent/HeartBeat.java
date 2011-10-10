@@ -34,9 +34,9 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {"responseId","timestamp", "clusterId", 
-    "hostname", "bluePrintName", "bluePrintRevision", "hardwareProfile", 
-    "actionResults", "serversStatus", "idle"})
+@XmlType(name = "", propOrder = {"responseId","timestamp", 
+    "hostname", "hardwareProfile", "installedRoleStates",
+    "actionResults", "idle"})
 public class HeartBeat {
   @XmlElement
   private String responseId;

@@ -32,6 +32,7 @@ import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.ambari.common.util.ExceptionUtil;
+import org.apache.ambari.resource.statemachine.ClusterFSM;
 import org.apache.ambari.resource.statemachine.StateMachineInvoker;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -488,14 +489,26 @@ public class Clusters {
             /*
              * TODO: Persist the latest cluster definition under new revision
              */
-            
+            ClusterFSM clusterFSM = StateMachineInvoker.
+                getStateMachineClusterInstance(cls.getID(), 
+                    c.getBlueprintName(), c.getBlueprintRevision());
+            if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {
+              clusterFSM.activate();
+            } else if(c.getGoalState().
+                equals(ClusterState.CLUSTER_STATE_INACTIVE)) {
+              clusterFSM.deactivate();
+            } else if(c.getGoalState().
+                equals(ClusterState.CLUSTER_STATE_ATTIC)) {
+              clusterFSM.deactivate();
+              clusterFSM.terminate();
+            }
         }
         return cls.getLatestClusterDefinition();
     }
     
     /*
      * Delete Cluster 
-     * Delete operation will bring the clsuter to ATTIC state and then remove the
+     * Delete operation will bring the cluster to ATTIC state and then remove the
      * cluster definition from the controller 
      * When cluster state transitions to ATTIC, it should check if the cluster definition is 
      * part of tobe_deleted_clusters map and then delete the definition.

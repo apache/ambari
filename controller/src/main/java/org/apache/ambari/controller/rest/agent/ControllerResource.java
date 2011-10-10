@@ -43,7 +43,6 @@ import org.apache.ambari.common.rest.entities.agent.CommandResult;
 import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
 import org.apache.ambari.common.rest.entities.agent.HardwareProfile;
 import org.apache.ambari.common.rest.entities.agent.HeartBeat;
-import org.apache.ambari.common.rest.entities.agent.ServerStatus;
 
 /** 
  * Controller Resource represents Ambari controller.
@@ -60,6 +59,7 @@ public class ControllerResource {
    * @response.representation.200.doc This API is invoked by Ambari agent running
    *  on a cluster to update the state of various services running on the node.
    * @response.representation.200.mediaType application/json
+   * @response.representation.200.example { "a" : "b" }
    * @response.representation.500.doc Error in accepting heartbeat message
    * @param message Heartbeat message
    */
@@ -70,16 +70,11 @@ public class ControllerResource {
   public ControllerResponse heartbeat(HeartBeat message) {
     ControllerResponse controllerResponse = new ControllerResponse();
     controllerResponse.setResponseId("id-00002");    
-    List<Command> commands = new ArrayList<Command>();
-    String[] cmd = { "ls", "-l" };
-    commands.add(new Command("root", cmd));
-    commands.add(new Command("root", cmd));
-    commands.add(new Command("root", cmd));
+    String cmd = "import os\nos._exit(0)";
+    String[] param = { "cluster", "role" };
+    Command command = new Command("root", cmd, param);
 
-    List<Command> cleanUps = new ArrayList<Command>();
-    String[] cleanUpCmd = { "ls", "-t" };
-    cleanUps.add(new Command("hdfs", cleanUpCmd));
-    cleanUps.add(new Command("hdfs", cleanUpCmd));
+    Command cleanUp = new Command("root", cmd, param);
     
     Action action = new Action();
     action.setUser("hdfs");
@@ -97,8 +92,8 @@ public class ControllerResource {
     action2.setKind(Kind.START_ACTION);
     action2.setId("action-002");
     action2.setClusterId("cluster-002");
-    action2.setCommands(commands);
-    action2.setCleanUpCommands(cleanUps);
+    action2.setCommand(command);
+    action2.setCleanUpCommand(cleanUp);
     action2.setComponent("hdfs");
     action2.setBluePrintName("blueprint");
     action2.setBluePrintRevision("0.2");
@@ -111,8 +106,8 @@ public class ControllerResource {
     action3.setBluePrintName("blueprint");
     action3.setBluePrintRevision("0.2");
     action3.setClusterId("cluster-003");
-    action3.setCommands(commands);
-    action3.setCleanUpCommands(cleanUps);
+    action3.setCommand(command);
+    action3.setCleanUpCommand(cleanUp);
 
     List<Action> actions = new ArrayList<Action>();
     actions.add(action);
@@ -178,8 +173,8 @@ public class ControllerResource {
       agentRole1.setClusterId("cluster-003");
       agentRole1.setComponentName("hdfs");
       agentRole1.setRoleName("datanode");
-      ServerStatus serverStatus = new ServerStatus(ServerStatus.State.STARTED);
-      agentRole1.setServerStatus(serverStatus);
+      agentRole1.setServerStatus(AgentRoleState.State.STARTED);
+      agentRoles.add(agentRole1);
       
       HeartBeat hb = new HeartBeat();
       hb.setResponseId("unknown");
@@ -209,25 +204,28 @@ public class ControllerResource {
   public ControllerResponse getControllerResponse() {
     ControllerResponse controllerResponse = new ControllerResponse();
     controllerResponse.setResponseId("id-00002");    
-    List<Command> commands = new ArrayList<Command>();
-    String[] cmd = { "top" };
-    commands.add(new Command("root", cmd));
+    
+    String cmd = "import os\nos._exit(0)";
+    String[] param = { "cluster", "role" };
 
-    List<Command> cleanUps = new ArrayList<Command>();
-    String[] cleanUpCmd = { "ls", "-t" };
-    cleanUps.add(new Command("hdfs", cleanUpCmd));
-    cleanUps.add(new Command("hdfs", cleanUpCmd));
+    Command command = new Command("root", cmd, param);
+    Command cleanUp = new Command("root", cmd, param);
     
     Action action = new Action();
-    action.setBluePrintName("blueprint");
-    action.setBluePrintRevision("0.1");
-    action.setUser("hdfs");
+    action.setKind(Kind.CREATE_STRUCTURE_ACTION);
     action.setComponent("hdfs");
     action.setRole("datanode");
-    action.setKind(Kind.STOP_ACTION);
-    action.setSignal(Signal.KILL);
-    action.setClusterId("cluster-001");
-    action.setId("action-001");
+    
+    Action action1 = new Action();
+    action1.setBluePrintName("blueprint");
+    action1.setBluePrintRevision("0.1");
+    action1.setUser("hdfs");
+    action1.setComponent("hdfs");
+    action1.setRole("datanode");
+    action1.setKind(Kind.STOP_ACTION);
+    action1.setSignal(Signal.KILL);
+    action1.setClusterId("cluster-001");
+    action1.setId("action-001");
 
     Action action2 = new Action();
     action2.setBluePrintName("blueprint");
@@ -236,8 +234,8 @@ public class ControllerResource {
     action2.setKind(Kind.START_ACTION);
     action2.setId("action-002");
     action2.setClusterId("cluster-002");
-    action2.setCommands(commands);
-    action2.setCleanUpCommands(cleanUps);
+    action2.setCommand(command);
+    action2.setCleanUpCommand(cleanUp);
     action2.setComponent("hdfs");
     action2.setRole("datanode");
     
@@ -248,21 +246,20 @@ public class ControllerResource {
     action3.setKind(Kind.RUN_ACTION);
     action3.setId("action-003");
     action3.setClusterId("cluster-002");
-    List<Command> configFiles = new ArrayList<Command>();
-    String[] writeFile = { 
-        "ambari-write-file",
-        "hdfs",
-        "hadoop",
-        "0700",
-        "/tmp/test",
-        "content of file"
-        };
-    configFiles.add(new Command("hdfs", writeFile));
-    action3.setCommands(configFiles);
+    action3.setCommand(command);
+    action3.setCleanUpCommand(cleanUp);
+    
+    Action action4 = new Action();
+    action4.setKind(Kind.DELETE_STRUCTURE_ACTION);
+    action4.setComponent("hdfs");
+    action4.setRole("datanode");
+    
     List<Action> actions = new ArrayList<Action>();
     actions.add(action);
+    actions.add(action1);
     actions.add(action2);
     actions.add(action3);
+    actions.add(action4);
     controllerResponse.setActions(actions);
     return controllerResponse;
   }

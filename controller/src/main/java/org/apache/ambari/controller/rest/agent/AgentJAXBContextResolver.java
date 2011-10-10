@@ -53,6 +53,7 @@ public class AgentJAXBContextResolver implements ContextResolver<JAXBContext> {
       add("cmd");
       add("commands");
       add("cleanUpCommands");
+      add("installedRoleStates");
     }
   };
   

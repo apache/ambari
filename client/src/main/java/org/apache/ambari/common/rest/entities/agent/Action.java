@@ -18,8 +18,6 @@
 
 package org.apache.ambari.common.rest.entities.agent;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -46,9 +44,9 @@ public class Action {
   @XmlElement
   public Signal signal;
   @XmlElement
-  public List<Command> commands;
+  public Command command;
   @XmlElement
-  public List<Command> cleanUpCommands;
+  public Command cleanUpCommand;
   @XmlElement
   public String bluePrintName;
   @XmlElement
@@ -110,20 +108,20 @@ public class Action {
     this.signal = signal;
   }
   
-  public List<Command> getCommands() {
-    return commands;
+  public Command getCommand() {
+    return command;
   }
   
-  public void setCommands(List<Command> commands) {
-    this.commands = commands;
+  public void setCommand(Command command) {
+    this.command = command;
   }
   
-  public List<Command> getCleanUpCommands() {
-    return cleanUpCommands;
+  public Command getCleanUpCommand() {
+    return cleanUpCommand;
   }
   
-  public void setCleanUpCommands(List<Command> cleanUpCommands) {
-    this.cleanUpCommands = cleanUpCommands;  
+  public void setCleanUpCommand(Command cleanUpCommand) {
+    this.cleanUpCommand = cleanUpCommand;  
   }
   
   public String getBluePrintName() {
@@ -143,7 +141,8 @@ public class Action {
   }
   
   public static enum Kind {
-    RUN_ACTION, START_ACTION, STOP_ACTION, STATUS_ACTION;
+    RUN_ACTION, START_ACTION, STOP_ACTION, STATUS_ACTION, 
+    CREATE_STRUCTURE_ACTION, DELETE_STRUCTURE_ACTION;
     public static class KindAdaptor extends XmlAdapter<String, Kind> {
       @Override
       public String marshal(Kind obj) throws Exception {

@@ -40,7 +40,6 @@ import org.apache.ambari.common.rest.entities.agent.ActionResults;
 import org.apache.ambari.common.rest.entities.agent.AgentRoleState;
 import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
 import org.apache.ambari.common.rest.entities.agent.HeartBeat;
-import org.apache.ambari.common.rest.entities.agent.ServerStatus;
 import org.apache.ambari.common.rest.entities.agent.Action.Signal;
 import org.apache.ambari.components.ClusterContext;
 import org.apache.ambari.components.impl.ClusterContextImpl;
@@ -264,7 +263,7 @@ public class HeartbeatHandler {
         }
       }
       if (stopRole && 
-        agentRoleState.getServerStatus().state == ServerStatus.State.STARTED) {
+        agentRoleState.getServerStatus() == AgentRoleState.State.STARTED) {
         //TODO: not sure whether this requires to be done...
         Action action = new Action();
         action.setClusterId(agentRoleState.getClusterId());
