@@ -69,7 +69,7 @@ public class AmbariClient {
         if (args.length < 2) {
            if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
                System.out.println("Usage: AmbariClient <CommandCateogry> <CommandName> <CommandOptions>\n");
-               System.out.println("       To get the help on each command use -help  e.g. \"AmbariClient cluster list -help\"\n");
+               System.out.println("To get the help on each command use -help  e.g. \"AmbariClient cluster list -help\"\n");
                for (String category : c.commands.keySet()) {
                    System.out.println("CommandCategory : ["+ category+"] : Commands "+c.commands.get(category).keySet());
                }

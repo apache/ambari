@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-55. release cluster nodes function (vgogate)
+
   AMBARI-53. Refactor the HeartBeat to have Agents' states separated by 
   component/role (ddas)
 

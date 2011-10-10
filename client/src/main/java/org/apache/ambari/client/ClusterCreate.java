@@ -220,9 +220,12 @@ public class ClusterCreate extends Command {
     }
     
     private List<String> splitServices(String services) {
+      if (services == null) { return null; }
       String[] arr = services.split(",");
       List<String> result = new ArrayList<String>(arr.length);
-      Collections.addAll(result, arr);
+      for (String x: arr) {
+          result.add(x.trim());
+      }
       return result;
     }
 

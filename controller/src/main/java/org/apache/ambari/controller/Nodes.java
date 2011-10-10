@@ -77,7 +77,12 @@ public class Nodes {
         return nodes;
     }
     
-    public List<Node> getClusterNodes (String clusterName, String roleName, boolean alive) throws Exception {
+    /*
+     * Return the list of nodes associated with cluster given the role name and alive state
+     * If rolename or alive state is not specified (i.e. "") then all the nodes associated
+     * with cluster are returned.
+     */
+    public List<Node> getClusterNodes (String clusterName, String roleName, String alive) throws Exception {
         List<Node> list = new ArrayList<Node>();
         ClusterDefinition c = Clusters.getInstance().getClusterDefinition(clusterName);
         if (c.getNodes() == null) {
@@ -99,8 +104,8 @@ public class Nodes {
             GregorianCalendar cal = new GregorianCalendar(); 
             cal.setTime(new Date());
             XMLGregorianCalendar curTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-            if ((alive && getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) < NODE_NOT_RESPONDING_DURATION)
-                || (!alive && getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) >= NODE_NOT_RESPONDING_DURATION)) {
+            if (alive.equals("") || (alive.equalsIgnoreCase("true") && getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) < NODE_NOT_RESPONDING_DURATION)
+                || (alive.equals("false") && getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) >= NODE_NOT_RESPONDING_DURATION)) {
                 list.add(this.nodes.get(host));
             }
         }

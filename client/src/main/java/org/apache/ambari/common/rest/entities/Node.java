@@ -51,15 +51,16 @@ public class Node {
     }
 	
     /*
-     * 
+     * Marks the nodes associated w/ Cluster to be released
      */
     public void releaseNodeFromCluster() {
-        this.nodeState.setClusterID(null);
+        /*
+         * Cluster ID + NodeServers + NodeToRoleNames associated w/ cluster will be reset 
+         * part of heartbeat when node stop services and does clean up.
+         */
+        this.nodeState.setAllocatedToCluster(false);
         this.getNodeState().setNodeServers(null);
         this.getNodeState().setNodeRoleNames(null);
-        /*
-         * TODO: AllocatedToClsuter flag will be reset part of heart beat processing when node completes cleanup.
-         */
     }
 	
   	/*

@@ -46,13 +46,13 @@ public class RoleToNodes {
                 this.roleName = roleName;
         }
         /**
-         * @return the nodeRangeExpressions
+         * @return the nodes
          */
-        public String getNodeRangeExpressions() {
+        public String getNodes() {
                 return nodes;
         }
         /**
-         * @param nodeRangeExpressions the nodeRangeExpressions to set
+         * @param nodes the nodeRangeExpressions to set
          */
         public void setNodes(String nodes) {
                 this.nodes = nodes;

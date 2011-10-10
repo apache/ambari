@@ -167,8 +167,10 @@ public class ClusterResource {
      *                      unique name
      *  @param  roleName    Optionally specify the role name to get the nodes 
      *                      associated with the service role
-     *  @param  alive       Boolean value to specify, if nodes to be returned 
-     *                       are alive or dead or both (if alive is set to null) 
+     *  @param  alive       Boolean value (true/false) to specify, if nodes to be 
+     *                      returned are alive or dead. if this query parameter is 
+     *                      is not specified them all the nodes associated with cluster
+     *                      are returned) 
      *  @return             List of nodes
      *  @throws Exception   throws Exception
      */
@@ -177,7 +179,7 @@ public class ClusterResource {
     @Produces({"application/json", "application/xml"})
     public List<Node> getNodes (@PathParam("clusterName") String clusterName,
                                 @DefaultValue("") @QueryParam("role") String role,
-                                @DefaultValue("") @QueryParam("alive") boolean alive) throws Exception {    
+                                @DefaultValue("") @QueryParam("alive") String alive) throws Exception {    
         try {
             return Nodes.getInstance().getClusterNodes(clusterName, role, alive);
         }catch (WebApplicationException we) {

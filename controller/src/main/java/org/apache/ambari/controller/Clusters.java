@@ -97,16 +97,6 @@ public class Clusters {
         rnm.add(rnme);
         
         cluster123.setRoleToNodesMap(rnm);
-        /*
-        try {
-            ObjectMapper m = new ObjectMapper();
-            ByteArrayOutputStream x = new ByteArrayOutputStream();
-            m.writeValue(x, cluster123);
-            System.out.println ("CLUSTERDEF: <"+new String(x.toString()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        */
         
         /*
          * Cluster definition 
@@ -275,7 +265,7 @@ public class Clusters {
         if (clsDef.getRoleToNodes() != null) {
             List<String> nodes_specified_using_role_association = new ArrayList<String>();
             for (RoleToNodes e : clsDef.getRoleToNodes()) {
-                List<String> hosts = getHostnamesFromRangeExpressions(e.getNodeRangeExpressions());
+                List<String> hosts = getHostnamesFromRangeExpressions(e.getNodes());
                 nodes_specified_using_role_association.addAll(hosts);
                 // TODO: Remove any duplicate nodes from nodes_specified_using_role_association
             }
@@ -357,7 +347,7 @@ public class Clusters {
         /*
          * deallocate nodes from a given cluster
          * TODO: Node agent would asynchronously clean up the node and notify it through heartbeat which 
-         * would set the allocatedtoCluster flag false
+         * would reset the clusterID associated with node
          */
         for (String node_name : nodes_to_deallocate) {
             if (all_nodes.containsKey(node_name)) {
@@ -368,11 +358,22 @@ public class Clusters {
         }
     }
 
-    private synchronized void updateNodeToRolesAssociation (String nodeRangeExpressions, List<RoleToNodes> roleToNodesMap) throws Exception {
+    /*
+     * This function disassociate the node from the cluster. The clsuterID associated w/
+     * cluster will be reset by heart beat when node reports all clean.
+     */
+    public synchronized void releaseClusterNodes (String clusterID) throws Exception {
+        String clusterName = this.getClusterByID(clusterID).getLatestClusterDefinition().getName();
+        for (Node clusterNode : Nodes.getInstance().getClusterNodes (clusterName, "", "")) {
+            clusterNode.releaseNodeFromCluster();     
+        }
+    }
+    
+    private synchronized void updateNodeToRolesAssociation (String clusterNodes, List<RoleToNodes> roleToNodesList) throws Exception {
         /*
          * Associate roles list with node
          */
-        if (roleToNodesMap == null) {
+        if (roleToNodesList == null) {
             return;
         }
         
@@ -380,8 +381,8 @@ public class Clusters {
          * Add list of roles to Node
          * If node is not explicitly associated with any role then assign it w/ default role
          */
-        for (RoleToNodes e : roleToNodesMap) {
-            List<String> hosts = getHostnamesFromRangeExpressions(e.getNodeRangeExpressions());
+        for (RoleToNodes e : roleToNodesList) {
+            List<String> hosts = getHostnamesFromRangeExpressions(e.getNodes());
             for (String host : hosts) {
               if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
                 Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
@@ -396,7 +397,7 @@ public class Clusters {
          * role to nodes map, assign them with default role 
          */
         List<String> specified_node_range = new ArrayList<String>();
-        specified_node_range.addAll(getHostnamesFromRangeExpressions(nodeRangeExpressions));
+        specified_node_range.addAll(getHostnamesFromRangeExpressions(clusterNodes));
         for (String host : specified_node_range) {
             if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
                 Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
