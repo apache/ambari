@@ -58,4 +58,20 @@ public class ZookeeperUtil {
     nodesPath.append(id);
     return nodesPath.toString();
   }
+
+  public static String getSoftwareManifestPath(String id) {
+    StringBuilder nodesPath = new StringBuilder();
+    nodesPath.append(CommonConfigurationKeys.ZOOKEEPER_SOFTWARE_MANIFEST_PATH_DEFAULT);
+    nodesPath.append("/");
+    nodesPath.append(id);
+    return nodesPath.toString();
+  }
+  
+  public static String getConfigManifestPath(String id) {
+    StringBuilder configPath = new StringBuilder();
+    configPath.append(CommonConfigurationKeys.ZOOKEEPER_CONFIG_BLUEPRINT_PATH_DEFAULT);
+    configPath.append("/");
+    configPath.append(id);
+    return configPath.toString();
+  }
 }

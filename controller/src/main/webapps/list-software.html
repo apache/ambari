@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html>
+  <body>
+    <section>
+      <h3>Managed Software Stacks</h3>
+
+      <table id="software-list" class="display">
+        <thead>
+          <th>Name</th><th>Version</th>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </section>
+
+    <script type="text/javascript">
+      function renderStack(list) {
+        var buffer = [];
+        var i=0;
+        var x=0;
+        buffer[i++]='<a href="/?func=manage-software&list='+list['@url']+'">'+list['@name']+'</a>';
+        buffer[i++]='<a href="/?func=manage-software&stack='+list['@url']+'">'+list['@version']+'</a>';
+        return buffer;
+      }
+
+      $(document).ready(function() {
+        $('#software-list').dataTable({"bJQueryUI": true, "sPaginationType": "full_numbers"});
+        jQuery.getJSON('/v1/software/stack',
+          function(data) {
+            if(data["softwareManifest"].constructor.toString().indexOf("Array")==-1) {
+              $('#software-list').dataTable().fnAddData(renderStack(data["softwareManifest"]));
+            } else {
+              for(var list in data["softwareManifest"]) {
+                $('#software-list').dataTable().fnAddData(renderStack(data["softwareManifest"][list]));
+              }
+            }
+          }
+        );
+      });
+    </script>
+  </body>
+</html>

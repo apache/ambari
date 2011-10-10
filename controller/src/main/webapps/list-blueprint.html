@@ -1,0 +1,40 @@
+<!DOCTYPE HTML>
+<html>
+  <body>
+    <section>
+      <h3>Managed Blue Prints</h3>
+
+      <table id="blueprint-list" class="display">
+        <thead>
+          <th>URL</th>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </section>
+
+    <script type="text/javascript">
+      function renderBlueprint(list) {
+        var buffer = [];
+        var i=0;
+        buffer[i++]='<a href="/?func=manage-blueprint&list='+list['@url']+'">'+list['@url']+'</a>';
+        return buffer;
+      }
+
+      $(document).ready(function() {
+        $('#blueprint-list').dataTable({"bJQueryUI": true, "sPaginationType": "full_numbers"});
+        jQuery.getJSON('/v1/config/blueprint',
+          function(data) {
+            if(data["configManifest"].constructor.toString().indexOf("Array")==-1) {
+                $('#blueprint-list').dataTable().fnAddData(renderBlueprint(data["configManifest"]));
+            } else {
+              for(var list in data["configManifest"]) {
+                $('#blueprint-list').dataTable().fnAddData(renderBlueprint(data["configManifest"][list]));
+              }
+            }
+          }
+        );
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE HTML>
+<html>
+  <body>
+    <section>
+      <h3>Define A Software Stack</h3>
+      <form class="form">
+        <div class="column">
+        <p>
+          Software stack name<br>
+          <input type="text" id="name">
+          <span id="name_message" class="warn"></span>
+        </p>
+        <p>
+          Software stack version<br>
+          <input type="text" id="version">
+          <span id="version_message" class="warn"></span>
+        </p>
+        </div>
+        Specify the download URL(s) to compose the stack:
+        <p>
+          Java<br>
+          <input type="text" id="java_url" class="formInput">
+          <span id="java_message" class="warn"></span>
+        </p>
+        <p>
+          Hadoop<br>
+          <input type="text" id="hadoop_url" class="formInput">
+        </p>
+        <p>
+          HBase<br>
+          <input type="text" id="hbase_url" class="formInput">
+        </p>
+        <p>
+          Pig<br>
+          <input type="text" id="pig_url" class="formInput">
+        </p>
+        <p>
+          HCatalog/Hive<br>
+          <input type="text" id="hcatalog_url" class="formInput">
+        </p>
+        <p>
+          <button type="submit" id="save" onclick="return verifySoftwareStack()" value="save">Save</button>
+          <button type="cancel" onclick="javasccript:window.location='/';">Cancel</button>
+        </p>
+      </form>
+    </section>
+    <script type="text/javascript">
+      var software = {
+        'hadoop'   : [ 'namenode', 'secondary-namenode', 'datanode', 'jobtracker', 'tasktracker', 'gateway' ],
+        'hbase'    : [ 'hbase-master', 'hbase-regionserver', 'gateway' ],
+        'pig'      : [ 'gateway' ],
+        'hcatalog' : [ 'hcatalog-server', 'gateway' ]
+      };
+      function verifySoftwareStack() {
+        var name = $('#name').val();
+        var version = $('#version').val();
+        var java = $('#java_url').val();
+        var hadoop = $('#hadoop_url').val();
+        var hbase = $('#hbase_url').val();
+        var pig = $('#pig_url').val();
+        var hcatalog = $('hcatalog_url').val();
+
+        var bailout = false;
+        if(name=="") {
+          $('#name_message').text("Name can not be empty.");
+          bailout = true;
+        }
+        if(version=="") {
+          $('#version_message').text("Version can not be empty.");
+          bailout = true;
+        }
+        if(java=="") {
+          $('#java_message').text("Java URL can not be empty.");
+          bailout = true;
+        }
+        if(bailout) {
+          return false;
+        }
+        return saveSoftwareStack()
+      }
+
+      function saveSoftwareStack() {
+        var stack = { 
+                      '@url'     : window.location.protocol+"//"+window.location.host+"/v1/software/stack/"+$('#name').val()+'-'+$('#version').val(),
+                      '@name'    : $('#name').val(),
+                      '@version' : $('#version').val(),
+                      'roles'   : []
+        };
+        var roles = {};
+        for(var component in software) {
+          var components = software[component];
+          for(var roleIndex in components) {
+            if($('#'+component+'_url').val()!=null &&
+               $('#'+component+'_url').val()!="") {
+              var roleName = components[roleIndex];
+              var packages;
+              var found = false;
+              var role;
+              for(x in roles) {
+                if(x==roleName) {
+                  role = roles[x];
+                  var size = role['package'].length;
+                  role['package'][size] = { 'name' : $('#'+component+'_url').val() };
+                  found = true;
+                  break;
+                }
+              }
+              if(!found) {
+                packages = [
+                  { 'name' : $('#java_url').val() },
+                  { 'name' : $('#'+component+'_url').val() }
+                ]; 
+                role = { 
+                  '@name' : roleName,
+                  'package' : packages
+                };
+              }
+              roles[roleName] = role;
+            }
+          }
+        }
+        for(var index in roles) {
+          var size = stack['roles'].length;
+          stack['roles'][size] = roles[index];
+        }
+        var data = JSON.stringify(stack);
+        $.ajax({
+          type: 'POST',
+          url: '/v1/software/stack',
+          contentType: "application/json; charset=utf-8",
+          data: data,
+          success: function(data) {
+            var url = '/?func=list-software';
+            window.location.href = url;
+          },
+          dataType:'json'
+        });
+        return false;
+      }
+    </script>
+  </body>
+</html>

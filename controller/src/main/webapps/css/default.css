@@ -23,7 +23,7 @@ a {
   cursor: pointer;
 }
 
-.form input, .form button {
+.form input, .form button, .form select {
   -moz-border-radius: 5px;
   border-radius: 5px;
   padding: 13px 10px 13px;
@@ -57,7 +57,6 @@ a {
 
 section {
   border-bottom: 1px solid #D8D8D8;
-  box-shadow: 0 1px 0 #FFFFFF;
 }
 
 .block {
@@ -109,7 +108,18 @@ header, footer, section, nav, article, aside {
 }
 
 #main {
+  border: 0px;
   min-width: 1020px;
   height: 100%;
+}
+
+.column {
+  -moz-column-count: 2;
+  -moz-column-gap: 1.5em;
+  -o-column-count: 2;
+  -o-column-gap: 1.5em;
+  -webkit-column-count: 2;
+  -webkit-column-gap: 1.5em;
+  column-count: 2;
 }
 

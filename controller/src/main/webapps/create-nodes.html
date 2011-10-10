@@ -4,6 +4,10 @@
     <section>
       <h3>Define A Node List</h3>
       <form class="form">
+        <p>
+          Choose nodes layout from software stack<br>
+          <select id="software" onclick="loadRoles()" />
+        </p>
         <table id="form" class="display">
           <thead>
             <th width="200px">Role</th><th>Host(s)</th>
@@ -79,9 +83,31 @@
         return false;
       }
 
+      function loadRoles() {
+        roles = $('#software').val().split(/,/);
+        $('#form').dataTable().fnClearTable();
+        for(type in roles) {
+          $('#form').dataTable().fnAddData(addRole(roles[type]));
+        }
+      }
+
       var label = "Label <input type='text' id='label' value='' />";
       $(document).ready(function() {
         $("#navigation").load("/nav.html");
+        jQuery.getJSON('/v1/software/stack',
+          function(data) {
+            var $software = $("#software");
+            $software.empty();
+            $.each(data["softwareManifest"], function () {
+              var roles = [];
+              var i = 0;
+              $.each(this['roles'], function() {
+                roles[i++] = this['@name'];
+              });
+              $software.append($('<option></option>').attr("value", roles).text(this['@url']));
+            });
+          }
+        );
         $('#form').dataTable({
           "bJQueryUI": true, 
           "sPaginationType": "full_numbers",

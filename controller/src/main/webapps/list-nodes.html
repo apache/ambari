@@ -39,8 +39,12 @@
         $('#node-list').dataTable({"bJQueryUI": true, "sPaginationType": "full_numbers"});
         jQuery.getJSON('/v1/nodes/manifest',
           function(data) {
-            for(var list in data["nodesManifest"]) {
-              $('#node-list').dataTable().fnAddData(renderManifest(data["nodesManifest"][list]));
+            if(data["nodesManifest"].constructor.toString().indexOf("Array")==-1) {
+              $('#node-list').dataTable().fnAddData(renderManifest(data["nodesManifest"]));
+            } else {
+              for(var list in data["nodesManifest"]) {
+                $('#node-list').dataTable().fnAddData(renderManifest(data["nodesManifest"][list]));
+              }
             }
           }
         );

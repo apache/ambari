@@ -61,4 +61,13 @@ public class CommonConfigurationKeys {
   public static final String ZOOKEEPER_STATUS_QUEUE_PATH_KEY = "hms.zookeeper.status.queue.path";
   /** Default location of zookeeper status queue */
   public static final String ZOOKEEPER_STATUS_QUEUE_PATH_DEFAULT = "/status";
+  
+  /** Path to zookeeper software manifest */
+  public static final String ZOOKEEPER_SOFTWARE_MANIFEST_KEY = "hms.software.manifest.path";
+  
+  /** Default location of software manifest */
+  public static final String ZOOKEEPER_SOFTWARE_MANIFEST_PATH_DEFAULT = "/software-manifest";
+  
+  /** Path to zookeeper config blueprint */
+  public static final String ZOOKEEPER_CONFIG_BLUEPRINT_PATH_DEFAULT = "/config-blueprint";
 }

@@ -1,0 +1,66 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+  <h2>Software Stack</h2>
+  <form class="form">
+    <p>URL <span id="url"></span></p>
+    <p>Name <span id="name"></span></p>
+    <p>Version <span id="version"></span></p>
+    <p id="roles"> Packages
+    </p>
+    <input type="button" name="Delete" value="Delete" onclick="return confirmDelete()"/>
+    <input type="button" name="cancel" value="Cancel" onclick="javascript:window.location='/';"/>
+  </form>
+  <script type="text/javascript">
+    function confirmDelete() {
+      var question = "Delete software stack "+$.getUrlVar('list')+"?";
+      if(confirm(question)) {
+        deleteStack($.getUrlVar('list'));
+        return false;
+      } else {
+        return false;
+      }
+    }
+
+
+    function deleteStack(url) {
+      $.ajax({
+        type: 'DELETE',
+        url: url,
+        success: function(data) {
+          window.location.href = '/?func=list-software';
+        },
+        error: function(xhr, textStatus, errorThrown) {
+          alert(textStatus);
+        }
+      });
+    }
+
+    $(document).ready(function() {
+      var url = $.getUrlVar("list");
+      $.getJSON(url, 
+        function(data) {
+          $('#url').text(data['@url']);
+          $('#name').text(data['@name']);
+          $('#version').text(data['@version']);
+          for(index in data['roles']) {
+            var role_item = document.createElement("ol");
+            role_item.innerHTML="Role "+data['roles'][index]['@name'];
+            var packages = [];
+            var i=0;
+            var list = document.createElement("ul");
+            for(packageIndex in data['roles'][index]['package']) {
+              var package = data['roles'][index]['package'][packageIndex];
+              var item = document.createElement("li");
+              item.innerHTML=package['name'];
+              list.appendChild(item);
+            }
+            role_item.appendChild(list);
+            $('#roles').append(role_item);
+          }
+        }
+      );
+    });
+  </script>
+</body>
+</html>

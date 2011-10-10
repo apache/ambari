@@ -8,17 +8,17 @@
   <input type="text" id="cluster" value="" size="50">
   <span id="cluster_message" class="warn"></span>
 </p>
-<p>Nodes Manifest</p>
+<p>Nodes List</p>
 <p>
   <input type="text" id="nodes" value="http://localhost:4080/v1/nodes/manifest/sample" class="formInput">
   <span id="nodes_message" class="warn"></span>
 </p>
-<p>Software Manifest</p>
+<p>Software Stack</p>
 <p>
   <input type="text" id="software" value="http://localhost:4080/v1/software/manifest/sample" class="formInput">
   <span id="software_message" class="warn"></span>
 </p>
-<p>Configuration Manifest</p>
+<p>Configuration Blue Print</p>
 <p>
   <input type="text" id="config" value="http://localhost:4080/v1/config/manifest/create-hadoop-cluster" class="formInput">
   <span id="config_message" class="warn"></span>
@@ -42,17 +42,17 @@ function createCluster() {
   }
 
   if(nodes=="") {
-    $('#nodes_message').text("Nodes manifest URL can not be empty.");
+    $('#nodes_message').text("Nodes list URL can not be empty.");
     bailout = true;
   }
 
   if(software=="") {
-    $('#software_message').text("Software manifest URL can not be empty.");
+    $('#software_message').text("Software stack URL can not be empty.");
     bailout = true;
   }
 
   if(config=="") {
-    $('#config_message').text("Config manifest URL can not be empty.");
+    $('#config_message').text("Config blueprint URL can not be empty.");
     bailout = true;
   }
 
@@ -77,7 +77,6 @@ function createCluster() {
 
 $(document).ready(function() {
   var prefix = window.location.protocol+'//'+window.location.hostname+':'+window.location.port;
-  $('#nodes').val(prefix+'/v1/nodes/manifest/sample');
   $.ajax({
     type: 'GET',
     url: '/v1/nodes/manifest',
@@ -96,13 +95,51 @@ $(document).ready(function() {
       if(list.length>0) {
         $('#nodes').val(list[0]);
       }
-      $('#nodes').autocomplete({ source: list });
+      $('input#nodes').autocomplete({ source : list });
     }
   }); 
-  $('#software').val('http://hrt8n36.cc1.ygridcore.net/hadoop-0.20.204.0.xml');
-  $('#config').val('http://hrt8n36.cc1.ygridcore.net/create-hadoop-0.20.204.0.xml');
-  //$('#software').val(prefix+'/v1/software/manifest/sample');
-  //$('#config').val(prefix+'/v1/config/manifest/create-hadoop-cluster');
+  $.ajax({
+    type: 'GET',
+    url: '/v1/software/stack',
+    dataType:'json',
+    success: function(data) {
+      var stacks = data['softwareManifest'];
+      var list = [];
+      var x = 0;
+      if(stacks.constructor.toString().indexOf('Array') == -1) {
+        list[x++] = stacks['@url'];
+      } else {
+        for(var stack in stacks) {
+          list[x++] = stacks[stack]['@url'];
+        }
+      }
+      if(list.length>0) {
+        $('#software').val(list[0]);
+      }
+      $('#software').autocomplete({ source : list });
+    }
+  }); 
+  $.ajax({
+    type: 'GET',
+    url: '/v1/config/blueprint',
+    dataType:'json',
+    success: function(data) {
+      var blueprints = data['configManifest'];
+      var list = [];
+      var x = 0;
+      if(blueprints.constructor.toString().indexOf('Array') == -1) {
+        list[x++] = blueprints['@url'];
+      } else {
+        for(var blueprint in blueprints) {
+          list[x++] = blueprints[blueprint]['@url'];
+        }
+      }
+      if(list.length>0) {
+        $('#config').val(list[0]);
+      }
+      $('#config').autocomplete({ source : list });
+    }
+  });
   $("#navigation").load("/nav.html");
 });
 

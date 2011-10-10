@@ -189,7 +189,9 @@ public class Controller implements Watcher {
         CommonConfigurationKeys.ZOOKEEPER_LOCK_QUEUE_PATH_DEFAULT,
         CommonConfigurationKeys.ZOOKEEPER_LIVE_CONTROLLER_PATH_DEFAULT,
         CommonConfigurationKeys.ZOOKEEPER_NODES_MANIFEST_PATH_DEFAULT,
-        CommonConfigurationKeys.ZOOKEEPER_STATUS_QUEUE_PATH_DEFAULT
+        CommonConfigurationKeys.ZOOKEEPER_STATUS_QUEUE_PATH_DEFAULT,
+        CommonConfigurationKeys.ZOOKEEPER_SOFTWARE_MANIFEST_PATH_DEFAULT,
+        CommonConfigurationKeys.ZOOKEEPER_CONFIG_BLUEPRINT_PATH_DEFAULT
     };
     for(String path : list) {
       createDirectory(path);

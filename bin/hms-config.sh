@@ -73,8 +73,8 @@ if [ -f "${HMS_CONF_DIR}/hms-env.sh" ]; then
   . "${HMS_CONF_DIR}/hms-env.sh"
 fi
 
-COMMON=`ls ${HMS_HOME}/lib/*.jar`
-export COMMON=`echo ${COMMON} | sed 'y/ /:/'`
+COMMON="${HMS_HOME}/lib/*"
+#export COMMON=`echo ${COMMON} | sed 'y/ /:/'`
 
 export HMS_CORE=${HMS_HOME}/hms-core-${HMS_VERSION}.jar
 export HMS_AGENT=${HMS_HOME}/hms-agent-${HMS_VERSION}.jar
