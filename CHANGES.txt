@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-50. Refactor the REST apis. (omalley)
+
   AMBARI-48. Move Cluster object from rest entities to controller(vgogate)
 
   AMBARI-47. Implement Cluster definition re-visioning(vgogate)
@@ -13,13 +15,15 @@ Release 0.1.0 - unreleased
 
   AMBARI-44. Implemented blueprint name and revision in heartbeat. (Eric Yang)
   
-  AMBARI-39. Bridged cluster reference gap between REST API with State machine. (Eric Yang)
+  AMBARI-39. Bridged cluster reference gap between REST API with State machine.
+  (Eric Yang)
 
   AMBARI-28. Clean up html encoded javadoc. (Eric Yang) 
 
   AMBARI-23. Renamed agent API to /agent, and public API to /rest. (Eric Yang)
 
-  AMBARI-18. Implemented special command to write configuration file. (Eric Yang)
+  AMBARI-18. Implemented special command to write configuration file. (Eric 
+  Yang)
 
   AMBARI-17. Added idle state for agent heartbeat. (Eric Yang)
 
@@ -27,21 +31,24 @@ Release 0.1.0 - unreleased
 
   AMBARI-12. Added transition state STARTING, STOPPING. (Eric Yang)
 
-  AMBARI-11. Implemented Agent to controller heartbeat communication. (Eric Yang)
+  AMBARI-11. Implemented Agent to controller heartbeat communication. (Eric 
+  Yang)
 
   AMBARI-7. Updated Jersey to 1.9 for automating wadl generation. (Eric Yang)
 
   AMBARI-3. Move HMS prototype code to branch 0.0. (Eric Yang)
 
-  AMBARI-2. Added heartbeat/controller response data model, and wadl configuration. (Eric Yang)
+  AMBARI-2. Added heartbeat/controller response data model, and wadl 
+  configuration. (Eric Yang)
 
-  AMBARI-42. Return the latest blueprint revision if revision is not specified as query parameter.
+  AMBARI-42. Return the latest blueprint revision if revision is not specified
+  as query parameter.
 
   AMBARI-43. Change the API StateMachineInvoker.getStateMachineClusterInstance 
   to take blueprint related arguments. (ddas)
 
-  AMBARI-41. Rename the Role/Cluster/Service classes in the statemachine package to 
-  RoleFSM/ClusterFSM/ServiceFSM (ddas)
+  AMBARI-41. Rename the Role/Cluster/Service classes in the statemachine 
+  package to RoleFSM/ClusterFSM/ServiceFSM (ddas)
 
   AMBARI-37. Tidies up a bit the statemachine API and related classes (ddas)
 
@@ -53,7 +60,8 @@ Release 0.1.0 - unreleased
   AMBARI-34. Address the start cluster part of the statemachine implementation,
   and handle the heartbeat. (ddas)
 
-  AMBARI-32. Remove stack resource Remove the Stack resource from Ambari (vgogate)
+  AMBARI-32. Remove stack resource Remove the Stack resource from Ambari 
+  (vgogate)
 
   AMBARI-25. Clean up the configuration entity to collapse some levels. 
   (omalley)

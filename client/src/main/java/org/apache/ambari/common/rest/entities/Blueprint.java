@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -32,36 +33,30 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "Blueprint", propOrder = {
-    "name",
-    "revision",
-    "parentName",
-    "parentRevision",
-    "packageRepositories",
+    "repositories",
     "configuration",
-    "components",
-    "roles"
+    "components"
 })
-@XmlRootElement(name = "Blueprints")
+@XmlRootElement
 public class Blueprint {
 
-    @XmlElement(name = "Name", required = true)
+    @XmlAttribute
     protected String name;
-    @XmlElement(name = "Revision", required = true)
+    @XmlAttribute
     protected String revision;
-    @XmlElement(name = "ParentName", required = true)
+    @XmlAttribute
     protected String parentName;
-    @XmlElement(name = "ParentRevision", required = true)
+    @XmlAttribute
     protected String parentRevision;
-    @XmlElement(name = "PackageRepositories")
-    protected List<PackageRepository> packageRepositories;
-    @XmlElement(name = "Configuration")
+
+    @XmlElement
+    protected List<RepositoryKind> repositories;
+    
+    @XmlElement
     protected Configuration configuration;
     
-    // TODO: Should component include fixed or variable set of properties?
-    @XmlElement(name = "Components")
+    @XmlElement
     protected List<Component> components;
-    @XmlElement(name = "Roles")
-    protected List<Role> roles;
     
     /**
      * @return the name
@@ -115,15 +110,15 @@ public class Blueprint {
     /**
      * @return the packageRepositories
      */
-    public List<PackageRepository> getPackageRepositories() {
-            return packageRepositories;
+    public List<RepositoryKind> getPackageRepositories() {
+            return repositories;
     }
     /**
      * @param packageRepositories the packageRepositories to set
      */
     public void setPackageRepositories(
-                    List<PackageRepository> packageRepositories) {
-            this.packageRepositories = packageRepositories;
+                    List<RepositoryKind> value) {
+            this.repositories = value;
     }
     /**
      * @return the configuration
@@ -148,18 +143,6 @@ public class Blueprint {
      */
     public void setComponents(List<Component> components) {
             this.components = components;
-    }
-    /**
-     * @return the roles
-     */
-    public List<Role> getRoles() {
-            return roles;
-    }
-    /**
-     * @param roles the roles to set
-     */
-    public void setRoles(List<Role> roles) {
-            this.roles = roles;
     }
 
 }

@@ -41,7 +41,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.Node;
-import org.apache.ambari.common.rest.entities.RoleToNodesMapEntry;
+import org.apache.ambari.common.rest.entities.RoleToNodes;
 
 
 public class Nodes {
@@ -80,11 +80,11 @@ public class Nodes {
     public List<Node> getClusterNodes (String clusterName, String roleName, boolean alive) throws Exception {
         List<Node> list = new ArrayList<Node>();
         ClusterDefinition c = Clusters.getInstance().getClusterDefinition(clusterName);
-        if (c.getNodeRangeExpressions() == null) {
+        if (c.getNodes() == null) {
             String msg = "No nodes are reserved for the cluster. Typically cluster in ATTIC state does not have any nodes reserved";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NO_CONTENT)).get());
         }
-        List<String> hosts = Clusters.getInstance().getHostnamesFromRangeExpressions(c.getNodeRangeExpressions());
+        List<String> hosts = Clusters.getInstance().getHostnamesFromRangeExpressions(c.getNodes());
         for (String host : hosts) {
             if (!this.nodes.containsKey(host)) {
                 String msg = "Node ["+host+"] is expected to be registered w/ controller but not locatable";

@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -33,38 +34,33 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ClusterDefinition", propOrder = {
-    "name",
-    "description",
-    "blueprintName",
-    "blueprintRevision",
-    "goalState",
     "activeServices",
-    "nodeRangeExpressions",
     "roleToNodesMap"
 })
-@XmlRootElement(name = "ClusterDefinitions")
+@XmlRootElement(name = "Cluster")
 public class ClusterDefinition {
         
     public static final String GOAL_STATE_ACTIVE = "ACTIVE";
     public static final String GOAL_STATE_INACTIVE = "INACTIVE";
     public static final String GOAL_STATE_ATTIC = "ATTIC";
    
-    @XmlElement(name = "Name", required = true)
+    @XmlAttribute
     protected String name = null;
-    @XmlElement(name = "Description")
+    @XmlAttribute
     protected String description = null;
-    @XmlElement(name = "BlueprintName")
+    @XmlAttribute
     protected String blueprintName = null;
-    @XmlElement(name = "BlueprintRevision")
+    @XmlAttribute
     protected String blueprintRevision = null;
-    @XmlElement(name = "GoalState")
+    @XmlAttribute
     protected String goalState = null;
-    @XmlElement(name = "ActiveServices")
+    @XmlElement
     protected List<String> activeServices = null;
-    @XmlElement(name = "NodeRangeExpressions")
-    protected List<String> nodeRangeExpressions = null;
-    @XmlElement(name = "RoleToNodesMap")
-    protected RoleToNodesMap roleToNodesMap = null;
+    @XmlAttribute
+    protected String nodes = null;
+
+    @XmlElement
+    protected List<RoleToNodes> roleToNodesMap = null;
     
     
     /**
@@ -154,28 +150,28 @@ public class ClusterDefinition {
     /**
      * @return the nodeRangeExpressions
      */
-    public List<String> getNodeRangeExpressions() {
-            return nodeRangeExpressions;
+    public String getNodes() {
+            return nodes;
     }
 
     /**
      * @param nodeRangeExpressions the nodeRangeExpressions to set
      */
-    public void setNodeRangeExpressions(List<String> nodeRangeExpressions) {
-            this.nodeRangeExpressions = nodeRangeExpressions;
+    public void setNodes(String nodeRangeExpressions) {
+            this.nodes = nodeRangeExpressions;
     }
 
     /**
      * @return the roleToNodesMap
      */
-    public RoleToNodesMap getRoleToNodesMap() {
+    public List<RoleToNodes> getRoleToNodes() {
             return roleToNodesMap;
     }
 
     /**
      * @param roleToNodesMap the roleToNodesMap to set
      */
-    public void setRoleToNodesMap(RoleToNodesMap roleToNodesMap) {
+    public void setRoleToNodesMap(List<RoleToNodes> roleToNodesMap) {
             this.roleToNodesMap = roleToNodesMap;
     }
 }

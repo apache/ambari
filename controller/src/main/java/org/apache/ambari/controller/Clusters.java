@@ -17,12 +17,9 @@
  */
 package org.apache.ambari.controller;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,12 +30,9 @@ import javax.ws.rs.core.Response;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Node;
-import org.apache.ambari.common.rest.entities.RoleToNodesMap;
-import org.apache.ambari.common.rest.entities.RoleToNodesMapEntry;
+import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.ambari.common.util.ExceptionUtil;
-import org.apache.ambari.resource.statemachine.ClusterFSM;
 import org.apache.ambari.resource.statemachine.StateMachineInvoker;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -80,40 +74,27 @@ public class Clusters {
         activeServices.add("mapred");
         cluster123.setActiveServices(activeServices);
         
-        List<String> nodeRangeExpressions = new ArrayList<String>();
-        String nodes1 = "jt-nodex";
-        String nodes2 = "nn-nodex";
-        String nodes3 = "hostname-1x hostname-2x hostname-3x hostname-4x";
-        String nodes4 = "node-2x node-3x node-4x";  
-        nodeRangeExpressions.add(nodes1);
-        nodeRangeExpressions.add(nodes2);
-        nodeRangeExpressions.add(nodes3);
-        nodeRangeExpressions.add(nodes4);    
-        cluster123.setNodeRangeExpressions(nodeRangeExpressions);
+        String nodes = "jt-nodex,nn-nodex,hostname-1x,hostname-2x,hostname-3x,"+
+                       "hostname-4x,node-2x,node-3x,node-4x";  
+        cluster123.setNodes(nodes);
         
-        RoleToNodesMap rnm = new RoleToNodesMap();
+        List<RoleToNodes> rnm = new ArrayList<RoleToNodes>();
         
-        RoleToNodesMapEntry rnme = new RoleToNodesMapEntry();
+        RoleToNodes rnme = new RoleToNodes();
         rnme.setRoleName("jobtracker-role");
-        nodeRangeExpressions = new ArrayList<String>();
-        nodeRangeExpressions.add(nodes1);
-        rnme.setNodeRangeExpressions(nodeRangeExpressions);
-        rnm.getRoleToNodesMapEntry().add(rnme);
+        rnme.setNodes("jt-nodex");
+        rnm.add(rnme);
         
-        rnme = new RoleToNodesMapEntry();
+        rnme = new RoleToNodes();
         rnme.setRoleName("namenode-role");
-        nodeRangeExpressions = new ArrayList<String>();
-        nodeRangeExpressions.add(nodes2);
-        rnme.setNodeRangeExpressions(nodeRangeExpressions);
-        rnm.getRoleToNodesMapEntry().add(rnme);
+        rnme.setNodes("nn-nodex");
+        rnm.add(rnme);
         
-        rnme = new RoleToNodesMapEntry();
+        rnme = new RoleToNodes();
         rnme.setRoleName("slaves-role");
-        nodeRangeExpressions = new ArrayList<String>();
-        nodeRangeExpressions.add(nodes3);
-        nodeRangeExpressions.add(nodes4);
-        rnme.setNodeRangeExpressions(nodeRangeExpressions);
-        rnm.getRoleToNodesMapEntry().add(rnme);
+        rnme.setNodes("hostname-1x,hostname-2x,hostname-3x,"+
+                       "hostname-4x,node-2x,node-3x,node-4x");
+        rnm.add(rnme);
         
         cluster123.setRoleToNodesMap(rnm);
         /*
@@ -141,40 +122,27 @@ public class Clusters {
         activeServices.add("mapred");
         cluster124.setActiveServices(activeServices);
         
-        nodeRangeExpressions = new ArrayList<String>();
-        nodes1 = "jt-node";
-        nodes2 = "nn-node";
-        nodes3 = "hostname-1 hostname-2 hostname-3 hostname-4";
-        nodes4 = "node-2 node-3 node-4";  
-        nodeRangeExpressions.add(nodes1);
-        nodeRangeExpressions.add(nodes2);
-        nodeRangeExpressions.add(nodes3);
-        nodeRangeExpressions.add(nodes4);    
-        cluster124.setNodeRangeExpressions(nodeRangeExpressions);
+        nodes = "jt-node,nn-node,hostname-1,hostname-2,hostname-3,hostname-4,"+
+                "node-2,node-3,node-4";  
+        cluster124.setNodes(nodes);
         
-        rnm = new RoleToNodesMap();
+        rnm = new ArrayList<RoleToNodes>();
         
-        rnme = new RoleToNodesMapEntry();
+        rnme = new RoleToNodes();
         rnme.setRoleName("jobtracker-role");
-        nodeRangeExpressions = new ArrayList<String>();
-        nodeRangeExpressions.add(nodes1);
-        rnme.setNodeRangeExpressions(nodeRangeExpressions);
-        rnm.getRoleToNodesMapEntry().add(rnme);
+        rnme.setNodes("jt-node");
+        rnm.add(rnme);
         
-        rnme = new RoleToNodesMapEntry();
+        rnme = new RoleToNodes();
         rnme.setRoleName("namenode-role");
-        nodeRangeExpressions = new ArrayList<String>();
-        nodeRangeExpressions.add(nodes2);
-        rnme.setNodeRangeExpressions(nodeRangeExpressions);
-        rnm.getRoleToNodesMapEntry().add(rnme);
+        rnme.setNodes("nn-node");
+        rnm.add(rnme);
         
-        rnme = new RoleToNodesMapEntry();
+        rnme = new RoleToNodes();
         rnme.setRoleName("slaves-role");
-        nodeRangeExpressions = new ArrayList<String>();
-        nodeRangeExpressions.add(nodes3);
-        nodeRangeExpressions.add(nodes4);
-        rnme.setNodeRangeExpressions(nodeRangeExpressions);
-        rnm.getRoleToNodesMapEntry().add(rnme);
+        rnme.setNodes("hostname-1,hostname-2,hostname-3,hostname-4,"+
+                      "node-2,node-3,node-4");
+        rnm.add(rnme);
         
         cluster124.setRoleToNodesMap(rnm);
         
@@ -248,7 +216,7 @@ public class Clusters {
             /*
              * Update cluster nodes reservation. 
              */
-            if (cdef.getNodeRangeExpressions() != null) {
+            if (cdef.getNodes() != null) {
                 updateClusterNodesReservation (cls.getID(), cdef);
             }
             
@@ -259,8 +227,8 @@ public class Clusters {
              * If RoleToNodes map is not specified then derive it based on the node attributes 
              *  
              */
-            if (cdef.getRoleToNodesMap() != null) {
-                updateNodeToRolesAssociation(cdef.getNodeRangeExpressions(), cdef.getRoleToNodesMap());
+            if (cdef.getRoleToNodes() != null) {
+                updateNodeToRolesAssociation(cdef.getNodes(), cdef.getRoleToNodes());
             } else {
                 /*
                  * TODO: Derive the role to nodes map based on nodes attributes
@@ -295,7 +263,7 @@ public class Clusters {
      */
     private synchronized void updateClusterNodesReservation (String clusterID, ClusterDefinition clsDef) throws Exception {
                 
-        List<String> nodeRangeExpressions = clsDef.getNodeRangeExpressions();
+        String nodeRangeExpressions = clsDef.getNodes();
         
         ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
         List<String> cluster_node_range = new ArrayList<String>();
@@ -304,9 +272,9 @@ public class Clusters {
         /*
          * Check if all the nodes explicitly specified in the RoleToNodesMap belong the cluster node range specified 
          */
-        if (clsDef.getRoleToNodesMap() != null) {
+        if (clsDef.getRoleToNodes() != null) {
             List<String> nodes_specified_using_role_association = new ArrayList<String>();
-            for (RoleToNodesMapEntry e : clsDef.getRoleToNodesMap().getRoleToNodesMapEntry()) {
+            for (RoleToNodes e : clsDef.getRoleToNodes()) {
                 List<String> hosts = getHostnamesFromRangeExpressions(e.getNodeRangeExpressions());
                 nodes_specified_using_role_association.addAll(hosts);
                 // TODO: Remove any duplicate nodes from nodes_specified_using_role_association
@@ -400,7 +368,7 @@ public class Clusters {
         }
     }
 
-    private synchronized void updateNodeToRolesAssociation (List<String> nodeRangeExpressions, RoleToNodesMap roleToNodesMap) throws Exception {
+    private synchronized void updateNodeToRolesAssociation (String nodeRangeExpressions, List<RoleToNodes> roleToNodesMap) throws Exception {
         /*
          * Associate roles list with node
          */
@@ -412,7 +380,7 @@ public class Clusters {
          * Add list of roles to Node
          * If node is not explicitly associated with any role then assign it w/ default role
          */
-        for (RoleToNodesMapEntry e : roleToNodesMap.getRoleToNodesMapEntry()) {
+        for (RoleToNodes e : roleToNodesMap) {
             List<String> hosts = getHostnamesFromRangeExpressions(e.getNodeRangeExpressions());
             for (String host : hosts) {
               if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
@@ -499,15 +467,15 @@ public class Clusters {
              * TODO: What if controller is crashed after updateClusterNodesReservation 
              * before updating and adding new revision of cluster definition?
              */
-            if (c.getNodeRangeExpressions() != null) {
-                newcd.setNodeRangeExpressions(c.getNodeRangeExpressions());
+            if (c.getNodes() != null) {
+                newcd.setNodes(c.getNodes());
                 updateClusterNodesReservation (cls.getID(), c);
             } else {
-                newcd.setNodeRangeExpressions(cls.getLatestClusterDefinition().getNodeRangeExpressions());
+                newcd.setNodes(cls.getLatestClusterDefinition().getNodes());
             }
-            if (c.getRoleToNodesMap() != null) {
-                newcd.setRoleToNodesMap(c.getRoleToNodesMap());
-                updateNodeToRolesAssociation(newcd.getNodeRangeExpressions(), c.getRoleToNodesMap());
+            if (c.getRoleToNodes() != null) {
+                newcd.setRoleToNodesMap(c.getRoleToNodes());
+                updateNodeToRolesAssociation(newcd.getNodes(), c.getRoleToNodes());
             }  
             
             /*
@@ -678,13 +646,11 @@ public class Clusters {
    * TODO: Implement proper range expression
    * TODO: Remove any duplicate nodes from the derived list
    */
-  public List<String> getHostnamesFromRangeExpressions (List<String> nodeRangeExpressions) throws Exception {
+  public List<String> getHostnamesFromRangeExpressions (String nodeRangeExpression) throws Exception {
       List<String> list = new ArrayList<String>();
-      for (String nodeRangeExpression : nodeRangeExpressions) {
-        StringTokenizer st = new StringTokenizer(nodeRangeExpression);
-        while (st.hasMoreTokens()) {
-            list.add(st.nextToken());
-        }
+      StringTokenizer st = new StringTokenizer(nodeRangeExpression, ",");
+      while (st.hasMoreTokens()) {
+        list.add(st.nextToken());
       }
       return list;
   }

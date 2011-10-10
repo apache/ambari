@@ -60,22 +60,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Roles }
-     * 
-     */
-    public Roles createRolesType() {
-        return new Roles();
-    }
-
-    /**
-     * Create an instance of {@link RoleToNodesMap }
-     * 
-     */
-    public RoleToNodesMap createRoleToNodesMapType() {
-        return new RoleToNodesMap();
-    }
-
-    /**
      * Create an instance of {@link Role }
      * 
      */
@@ -84,11 +68,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link RoleToNodesMapEntry }
+     * Create an instance of {@link RoleToNodes }
      * 
      */
-    public RoleToNodesMapEntry createRoleToNodesMapEntryType() {
-        return new RoleToNodesMapEntry();
+    public RoleToNodes createRoleToNodesMapEntryType() {
+        return new RoleToNodes();
     }
 
     /**
@@ -100,11 +84,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link PackageRepository }
+     * Create an instance of {@link RepositoryKind }
      * 
      */
-    public PackageRepository createPackageType() {
-        return new PackageRepository();
+    public RepositoryKind createPackageType() {
+        return new RepositoryKind();
     }
 
     /**

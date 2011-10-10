@@ -17,10 +17,9 @@
  */
 package org.apache.ambari.common.rest.entities;
 
-import java.util.Date;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -31,14 +30,13 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "Node", propOrder = {
-    "name",
     "nodeAttributes",
     "nodeState"
 })
 @XmlRootElement(name = "Nodes")
 public class Node {
     
-    @XmlElement(name = "Name", required = true)
+    @XmlAttribute(required = true)
     protected String name;
     @XmlElement(name = "NodeAttributes")
     protected NodeAttributes nodeAttributes;

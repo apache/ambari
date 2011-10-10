@@ -19,14 +19,12 @@ package org.apache.ambari.common.rest.entities;
 
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -36,13 +34,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "ClusterType", propOrder = {
-    "state",
-    "creationTime",
-    "deployTime",
-    "lastUpdateTime"
-})
-@XmlRootElement(name = "ClusterState")
+@XmlRootElement
 public class ClusterState {
         
     /*
@@ -61,15 +53,15 @@ public class ClusterState {
      */
     public static final String CLUSTER_STATE_ATTIC = "ATTIC";
     
-    @XmlElement(name = "State", required = true)
+    @XmlAttribute(required = true)
     protected String state;
-    @XmlElement(name = "CreationTime", required = true)
+    @XmlAttribute(required = true)
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar creationTime;
-    @XmlElement(name = "DeployTime")
+    @XmlAttribute
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar deployTime;
-    @XmlElement(name = "LastUpdateTime", required = true)
+    @XmlAttribute
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar lastUpdateTime;
 

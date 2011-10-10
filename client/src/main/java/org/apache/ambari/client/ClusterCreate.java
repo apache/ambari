@@ -20,6 +20,7 @@ package org.apache.ambari.client;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -27,8 +28,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
-import org.apache.ambari.common.rest.entities.RoleToNodesMap;
-import org.apache.ambari.common.rest.entities.RoleToNodesMapEntry;
+import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -61,7 +61,7 @@ public class ClusterCreate extends Command {
     String nodeRangeExpressions = null;
     
     Properties roleToNodeExpressions = null;
-    RoleToNodesMap roleToNodeMap = null;
+    List<RoleToNodes> roleToNodeMap = null;
     Boolean wait = false;
     Boolean dry_run = false;
     
@@ -205,37 +205,27 @@ public class ClusterCreate extends Command {
                 "http://localhost:4080/rest/").build();
     }
     
-    public static List<String> parseExpressionString(String exp) {
-        if (exp == null) { return null; }
-        List<String> list = new ArrayList<String>();
-        String[] result = exp.split(";");
-        for (String x: result) {
-            list.add(x.trim());
-        }
-        return list;
-    }
-    
-    public static RoleToNodesMap getRoleToNodesMap (Properties roleToNodeExpressions) {
+    public static 
+    List<RoleToNodes> getRoleToNodesMap (Properties roleToNodeExpressions) {
         if (roleToNodeExpressions == null) { return null; };
         
-        RoleToNodesMap roleToNodesMap = new RoleToNodesMap();
+        List<RoleToNodes> roleToNodesMap = new ArrayList<RoleToNodes>();
         for (String roleName : roleToNodeExpressions.stringPropertyNames()) {
-            RoleToNodesMapEntry e = new RoleToNodesMapEntry();
+            RoleToNodes e = new RoleToNodes();
             e.setRoleName(roleName);
-            e.setNodeRangeExpressions(parseExpressionString(roleToNodeExpressions.getProperty(roleName)));
-            roleToNodesMap.getRoleToNodesMapEntry().add(e);
+            e.setNodes(roleToNodeExpressions.getProperty(roleName));
+            roleToNodesMap.add(e);
         }
         return roleToNodesMap;
     }
     
-    public static void main (String[] args) {
-        String exp = " abc ; pqr ; xyz";
-        List<String> result = parseExpressionString(exp);
-        for (String x : result) {
-            System.out.println("token :<"+x+">");
-        }
+    private List<String> splitServices(String services) {
+      String[] arr = services.split(",");
+      List<String> result = new ArrayList<String>(arr.length);
+      Collections.addAll(result, arr);
+      return result;
     }
-    
+
     public void run() throws Exception {
         /* 
          * Parse the command line to get the command line arguments
@@ -250,11 +240,11 @@ public class ClusterCreate extends Command {
         ClusterDefinition clsDef = new ClusterDefinition();
         clsDef.setName(this.clusterName);
         clsDef.setBlueprintName(this.blueprint);
-        clsDef.setNodeRangeExpressions(parseExpressionString(this.nodeRangeExpressions));
+        clsDef.setNodes(this.nodeRangeExpressions);
         
         clsDef.setGoalState(this.goalState);
         clsDef.setBlueprintRevision(this.blueprint_revision);
-        clsDef.setActiveServices(parseExpressionString(this.activeServices));
+        clsDef.setActiveServices(splitServices(this.activeServices));
         clsDef.setDescription(this.description);
         clsDef.setRoleToNodesMap(getRoleToNodesMap(this.roleToNodeExpressions));
         

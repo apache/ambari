@@ -19,36 +19,26 @@ package org.apache.ambari.common.rest.entities;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
-
+import javax.xml.bind.annotation.XmlAttribute;
 
 /**
  * <p>Java class for NodeMetricsType complex type. 
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "NodeMetricsType", propOrder = {
-    "cpuType",
-    "cpuUnits",
-    "cpuCores",
-    "ramInGB",
-    "diskSizeInGB",
-    "diskUnits"
-})
 public class NodeAttributes {
 
-    @XmlElement(name = "CPU_Type", required = true)
+    @XmlAttribute
     protected String cpuType;
-    @XmlElement(name = "CPU_Units")
+    @XmlAttribute
     protected short cpuUnits;
-    @XmlElement(name = "CPU_Cores")
+    @XmlAttribute
     protected short cpuCores;
-    @XmlElement(name = "RAM_InGB")
+    @XmlAttribute
     protected long ramInGB;
-    @XmlElement(name = "DISK_SizeInGB")
+    @XmlAttribute
     protected long diskSizeInGB;
-    @XmlElement(name = "DISK_Units")
+    @XmlAttribute
     protected short diskUnits;
 
     /**

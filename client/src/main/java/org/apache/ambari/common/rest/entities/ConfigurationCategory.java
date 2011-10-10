@@ -34,7 +34,6 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ConfigurationCategory", propOrder = {
-    "name",
     "property"
 })
 @XmlRootElement(name = "ConfigurationCategory")

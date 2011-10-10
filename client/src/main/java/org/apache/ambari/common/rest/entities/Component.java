@@ -17,10 +17,10 @@
  */
 package org.apache.ambari.common.rest.entities;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -32,16 +32,24 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "CategoryType", propOrder = {
-    "name",
-    "property"
+    "definition",
+    "roles"
 })
-@XmlRootElement(name = "Components")
+@XmlRootElement
 public class Component {
 
-    @XmlElement(name = "Name", required = true)
+    @XmlAttribute(required = true)
     protected String name;
-    @XmlElement(name = "Properties", required = true)
-    protected List<Property> property;
+    @XmlAttribute
+    protected String architecture;
+    @XmlAttribute
+    protected String version;
+    @XmlAttribute
+    protected String provider;
+    @XmlElement
+    protected ComponentDefinition definition;
+    @XmlElement
+    protected List<Role> roles;
 
     /**
      * Gets the value of the name property.
@@ -68,32 +76,82 @@ public class Component {
     }
 
     /**
-     * Gets the value of the property property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the property property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getProperty().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Property }
-     * 
-     * 
+     * Get the roles property
+     * @return the custom configuration for the component
      */
-    public List<Property> getProperty() {
-        if (property == null) {
-            property = new ArrayList<Property>();
-        }
-        return this.property;
+    public List<Role> getRoles() {
+      return roles;
+    }
+    
+    /**
+     * Set the roles property
+     * @param roles
+     */
+    public void setRoles(List<Role> roles) {
+      this.roles = roles;
     }
 
+    /**
+     * Get the architecture of the package to install.
+     * @return the name of the architecture.
+     */
+    public String getArchitecture() {
+      return architecture;
+    }
+    
+    /**
+     * Set the architecture of the package to install.
+     * @param value the new architecture
+     */
+    public void setArchitecture(String value) {
+      architecture = value;
+    }
+    
+    /**
+     * Get the name of the component definition
+     * @return the component definition name
+     */
+    public ComponentDefinition getDefinition() {
+      return definition;
+    }
+    
+    /**
+     * Set the name of the component definition
+     * @param value the new name
+     */
+    public void setDefinition(ComponentDefinition value) {
+      definition = value;
+    }
+
+    /**
+     * Get the version of the package to install
+     * @return the version string
+     */
+    public String getVersion() {
+      return version;
+    }
+    
+    /**
+     * Set the version of the package to install
+     * @param version the new version
+     */
+    public void setVersion(String version) {
+      this.version = version;
+    }
+    
+    /**
+     * Get the provider of the package to install
+     * @return the provider name
+     */
+    public String getProvider() {
+      return provider;
+    }
+    
+    /**
+     * Set the provider of the package to install
+     * @param value the new provider
+     */
+    public void setProvider(String value) {
+      provider = value;
+    }
 }

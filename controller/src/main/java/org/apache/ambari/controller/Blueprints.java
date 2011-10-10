@@ -27,7 +27,6 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,7 +37,7 @@ import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.Component;
 import org.apache.ambari.common.rest.entities.Configuration;
 import org.apache.ambari.common.rest.entities.ConfigurationCategory;
-import org.apache.ambari.common.rest.entities.PackageRepository;
+import org.apache.ambari.common.rest.entities.RepositoryKind;
 import org.apache.ambari.common.rest.entities.Property;
 import org.apache.ambari.common.rest.entities.Role;
 import org.apache.ambari.resource.statemachine.ClusterStateFSM;
@@ -60,20 +59,21 @@ public class Blueprints {
         bp.setParentRevision("0");
  
         Component hdfsC = new Component(); hdfsC.setName("hdfs");
-        hdfsC.getProperty().add(getProperty ("dfs.name.dir", "${HADOOP_NN_DIR}"));
-        hdfsC.getProperty().add(getProperty ("dfs.data.dir", "${HADOOP_DATA_DIR}"));
-        Component mapredC = new Component(); mapredC.setName("hdfs");
-        mapredC.getProperty().add(getProperty ("mapred.system.dir", "/mapred/mapredsystem"));
-        mapredC.getProperty().add(getProperty ("mapred.local.dir", "${HADOOP_MAPRED_DIR}"));
-        List<Component> compList = new ArrayList();
+        hdfsC.setArchitecture("x86_64");
+        hdfsC.setVersion("0.20.205.0");
+        Component mapredC = new Component(); mapredC.setName("mapred");
+        mapredC.setVersion("0.20.205.1");
+        List<Component> compList = new ArrayList<Component>();
         compList.add(mapredC);
         compList.add(hdfsC);
         bp.setComponents(compList);
         
-        List<PackageRepository> prList = new ArrayList<PackageRepository>();
-        PackageRepository pr = new PackageRepository();
-        pr.setLocationURL("http://localhost/~vgogate/ambari");
-        pr.setType("RPM");  
+        List<RepositoryKind> prList = new ArrayList<RepositoryKind>();
+        RepositoryKind pr = new RepositoryKind();
+        ArrayList<String> list = new ArrayList<String>();
+        list.add("http://localhost/~vgogate/ambari");
+        pr.setUrls(list);
+        pr.setKind("RPM");  
         bp.setPackageRepositories(prList);
         
         Configuration bpDefaultCfg = new Configuration();
@@ -107,7 +107,7 @@ public class Blueprints {
         roleList.add(mapred_jt_role);
         roleList.add(slaves_role);
         
-        bp.setRoles(roleList);
+        mapredC.setRoles(roleList);
         
         ConcurrentHashMap<Integer, Blueprint> x = new ConcurrentHashMap<Integer, Blueprint>();
         x.put(new Integer(bp.getRevision()), bp);
