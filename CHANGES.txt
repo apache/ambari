@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-53. Refactor the HeartBeat to have Agents' states separated by 
+  component/role (ddas)
+
   AMBARI-50. Refactor the REST apis. (omalley)
 
   AMBARI-48. Move Cluster object from rest entities to controller(vgogate)

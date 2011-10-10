@@ -29,14 +29,19 @@ import java.util.Map;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
+import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.NodeState;
 import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.Nodes;
 import org.apache.ambari.common.rest.entities.agent.Action;
+import org.apache.ambari.common.rest.entities.agent.Action.Kind;
+import org.apache.ambari.common.rest.entities.agent.ActionResults;
+import org.apache.ambari.common.rest.entities.agent.AgentRoleState;
 import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
 import org.apache.ambari.common.rest.entities.agent.HeartBeat;
 import org.apache.ambari.common.rest.entities.agent.ServerStatus;
+import org.apache.ambari.common.rest.entities.agent.Action.Signal;
 import org.apache.ambari.components.ClusterContext;
 import org.apache.ambari.components.impl.ClusterContextImpl;
 import org.apache.ambari.components.impl.HDFSPluginImpl;
@@ -46,6 +51,7 @@ import org.apache.ambari.resource.statemachine.RoleEvent;
 import org.apache.ambari.resource.statemachine.RoleEventType;
 import org.apache.ambari.resource.statemachine.ServiceFSM;
 import org.apache.ambari.resource.statemachine.StateMachineInvoker;
+import org.apache.zookeeper.server.quorum.QuorumPeer.ServerState;
 
 public class HeartbeatHandler {
   
@@ -90,24 +96,28 @@ public class HeartbeatHandler {
       //command more than once. In the future this could be improved
       //to reflect the command execution state more accurately.
       
-      //get what is currently running on the node
-      List<ServerStatus> roleStatuses = heartbeat.getServersStatus();
+      String desiredBlueprint = 
+          cluster.getLatestClusterDefinition().getBlueprintName();
+      String desiredBlueprintRev = 
+          cluster.getLatestClusterDefinition().getBlueprintRevision();
+      String desiredClusterId = cluster.getID();
+      ClusterFSM desiredClusterFSM = StateMachineInvoker
+          .getStateMachineClusterInstance(desiredClusterId, desiredBlueprint,
+              desiredBlueprintRev);
       
-      //what servers are running currently
-      //ADD LOGIC FOR CAPTURING THE CLUSTER-ID THE SERVERS BELONG TO
-      //IF THEY BELONG TO THE CLUSTER-ID THIS NODE IS PART OF, WELL AND GOOD
-      //IF NOT, THEN SEND COMMANDS TO STOP THE SERVERS
       StartedComponentServers componentServers = new StartedComponentServers();
-      for (ServerStatus status : roleStatuses) {
-        componentServers.roleServerStarted(status.getComponent(), 
-            status.getRole());
-      }
+      //check if the node is in the expected cluster (with the appropriate 
+      //revision of the blueprint)      
+      //get the list of install/uninstall actions
+      //create a map from component/role to 'started' for easy lookup later
+      List<Action> installAndUninstallActions = 
+          getInstallAndUninstallActions(heartbeat, desiredClusterFSM, 
+              clusterContext, componentServers);
 
       //get the state machine reference to the cluster
       ClusterFSM clusterSMobject = StateMachineInvoker
-          .getStateMachineClusterInstance(cluster.getID(), 
-              cluster.getLatestClusterDefinition().getBlueprintName(), 
-              cluster.getLatestClusterDefinition().getBlueprintRevision());
+          .getStateMachineClusterInstance(desiredClusterId, desiredBlueprint, 
+              desiredBlueprintRev);
       //the state machine reference to the services
       List<ServiceFSM> clusterServices = clusterSMobject.getServices();
       //go through all the services, and check which role should be started
@@ -176,11 +186,6 @@ public class HeartbeatHandler {
     return r;
   }
   
-  private static class InstalledComponents {
-    private Map<String, Boolean> installedComponentMap =
-        new HashMap<String, Boolean>();
-    
-  }
   private static class StartedComponentServers {
     private Map<String, Map<String, Boolean>> startedComponentServerMap =
         new HashMap<String, Map<String, Boolean>>();
@@ -220,5 +225,68 @@ public class HeartbeatHandler {
     public void resetAttemptCount(String hostname) {
       countMap.remove(hostname);
     }
+  }
+  
+  private static List<Action> getInstallAndUninstallActions(
+      HeartBeat heartbeat, ClusterFSM desiredClusterFSM, 
+      ClusterContext context, StartedComponentServers componentServers)
+          throws IOException {
+    List<AgentRoleState> agentRoleStates = 
+        heartbeat.getInstalledRoleStates();
+    List<Action> killAndUninstallCmds = new ArrayList<Action>();
+    //Go over all the reported role states, and stop/uninstall the
+    //unnecessary ones
+    for (AgentRoleState agentRoleState : agentRoleStates) {
+      boolean stopRole = false;
+      boolean uninstall = false;
+      
+      ClusterFSM clusterFSM = StateMachineInvoker
+          .getStateMachineClusterInstance(agentRoleState.getClusterId(), 
+              agentRoleState.getBluePrintName(), 
+              agentRoleState.getBluePrintRevision());
+      if (clusterFSM == null) {
+        //ask the agent to stop everything belonging to this role
+        //since the controller can't be in a state where the clusterFSM
+        //is null and the cluster is not in ATTIC or deleted state
+        stopRole = true;
+        uninstall = true;
+      }
+      if (clusterFSM != null) {
+        if (clusterFSM.getClusterState().getState()
+            .equals(ClusterState.CLUSTER_STATE_INACTIVE)) {
+          stopRole = true;
+          uninstall = false;
+        }
+        else if (clusterFSM.getClusterState().getState()
+            .equals(ClusterState.CLUSTER_STATE_ATTIC)) {
+          stopRole = true;
+          uninstall = true;
+        }
+      }
+      if (stopRole && 
+        agentRoleState.getServerStatus().state == ServerStatus.State.STARTED) {
+        //TODO: not sure whether this requires to be done...
+        Action action = new Action();
+        action.setClusterId(agentRoleState.getClusterId());
+        action.setBluePrintName(agentRoleState.getBluePrintName());
+        action.setBluePrintRevision(agentRoleState.getBluePrintRevision());
+        action.setRole(agentRoleState.getRoleName());
+        action.setComponent(agentRoleState.getComponentName());
+        action.setKind(Kind.STOP_ACTION);
+        action.setSignal(Signal.KILL);
+        killAndUninstallCmds.add(action);
+      }
+      if (uninstall) {
+        //TODO: get reference to the plugin impl for this service/component
+        HDFSPluginImpl plugin = new HDFSPluginImpl();
+        List<Action> uninstallAction = plugin.uninstall(context);
+        killAndUninstallCmds.addAll(uninstallAction);
+      }
+      if (!stopRole && !uninstall) {
+        componentServers.roleServerStarted(agentRoleState.getComponentName(), 
+              agentRoleState.getRoleName());
+      }
+    }
+    return killAndUninstallCmds;
   }
 }

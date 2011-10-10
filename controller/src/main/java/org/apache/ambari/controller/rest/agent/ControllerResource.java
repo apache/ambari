@@ -37,6 +37,7 @@ import org.apache.ambari.common.rest.entities.agent.Action;
 import org.apache.ambari.common.rest.entities.agent.Action.Kind;
 import org.apache.ambari.common.rest.entities.agent.Action.Signal;
 import org.apache.ambari.common.rest.entities.agent.ActionResult;
+import org.apache.ambari.common.rest.entities.agent.AgentRoleState;
 import org.apache.ambari.common.rest.entities.agent.Command;
 import org.apache.ambari.common.rest.entities.agent.CommandResult;
 import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
@@ -156,7 +157,7 @@ public class ControllerResource {
       actionResult2.setCommandResults(commandResults);
       actionResult2.setCleanUpResults(cleanUpResults);
       actionResult2.setKind(Kind.START_ACTION);
-      actionResult2.setComponent("hadoop");
+      actionResult2.setComponent("hdfs");
       actionResult2.setRole("datanode");
 
       actionResults.add(actionResult);
@@ -170,21 +171,23 @@ public class ControllerResource {
       hp.setNetSpeed(1000);
       hp.setRamSize(16442752);
       
+      List<AgentRoleState> agentRoles = new ArrayList<AgentRoleState>(2);
+      AgentRoleState agentRole1 = new AgentRoleState();
+      agentRole1.setBluePrintName("blueprint");
+      agentRole1.setBluePrintRevision("0.2");
+      agentRole1.setClusterId("cluster-003");
+      agentRole1.setComponentName("hdfs");
+      agentRole1.setRoleName("datanode");
+      ServerStatus serverStatus = new ServerStatus(ServerStatus.State.STARTED);
+      agentRole1.setServerStatus(serverStatus);
+      
       HeartBeat hb = new HeartBeat();
       hb.setResponseId("unknown");
-      hb.setClusterId("cluster-123");
       hb.setTimestamp(System.currentTimeMillis());
       hb.setHostname(addr.getHostName());
-      hb.setBluePrintName("blueprint");
-      hb.setBluePrintRevision("0.1");
       hb.setActionResults(actionResults);
       hb.setHardwareProfile(hp);
-      List<ServerStatus> serversStatus = new ArrayList<ServerStatus>();
-      serversStatus.add(new ServerStatus("hdfs","datanode", 
-          ServerStatus.State.STARTED));
-      serversStatus.add(new ServerStatus("hdfs","tasktracker", 
-          ServerStatus.State.STARTED));
-      hb.setServersStatus(serversStatus);
+      hb.setInstalledRoleStates(agentRoles);
       hb.setIdle(false);
       return hb;
     } catch (UnknownHostException e) {

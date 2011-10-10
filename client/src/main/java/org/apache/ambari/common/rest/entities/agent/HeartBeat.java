@@ -41,21 +41,15 @@ public class HeartBeat {
   @XmlElement
   private String responseId;
   @XmlElement
-  private String clusterId;
-  @XmlElement
   private long timestamp;
   @XmlElement
   private String hostname;
   @XmlElement
-  private String bluePrintName;
-  @XmlElement
-  private String bluePrintRevision;
-  @XmlElement
   private HardwareProfile hardwareProfile;
   @XmlElement
-  private List<ActionResult> actionResults;
+  private List<AgentRoleState> installedRoleStates;
   @XmlElement
-  private List<ServerStatus> serversStatus;
+  private List<ActionResult> actionResults;
   @XmlElement
   private boolean idle;
   
@@ -67,10 +61,6 @@ public class HeartBeat {
     this.responseId=responseId;
   }
   
-  public String getClusterId() {
-    return clusterId;
-  }
-  
   public long getTimestamp() {
     return timestamp;
   }
@@ -79,14 +69,6 @@ public class HeartBeat {
     return hostname;
   }
   
-  public String getBluePrintName() {
-    return bluePrintName;
-  }
-  
-  public String getBluePrintRevision() {
-    return bluePrintRevision;
-  }
-    
   public boolean getIdle() {
     return idle;
   }
@@ -99,14 +81,10 @@ public class HeartBeat {
     return actionResults;
   }
   
-  public List<ServerStatus> getServersStatus() {
-    return serversStatus;
+  public List<AgentRoleState> getInstalledRoleStates() {
+    return installedRoleStates;
   }
   
-  public void setClusterId(String clusterId) {
-    this.clusterId = clusterId;
-  }
-
   public void setTimestamp(long timestamp) {
     this.timestamp = timestamp;
   }
@@ -114,15 +92,7 @@ public class HeartBeat {
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
-  
-  public void setBluePrintName(String bluePrintName) {
-    this.bluePrintName = bluePrintName;
-  }
-  
-  public void setBluePrintRevision(String bluePrintRevision) {
-    this.bluePrintRevision = bluePrintRevision;    
-  }
-  
+    
   public void setActionResults(List<ActionResult> actionResults) {
     this.actionResults = actionResults;
   }
@@ -131,8 +101,8 @@ public class HeartBeat {
     this.hardwareProfile = hardwareProfile;    
   }
   
-  public void setServersStatus(List<ServerStatus> serversStatus) {
-    this.serversStatus = serversStatus;
+  public void setInstalledRoleStates(List<AgentRoleState> installedRoleStates) {
+    this.installedRoleStates = installedRoleStates;
   }
   
   public void setIdle(boolean idle) {
