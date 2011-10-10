@@ -17,56 +17,42 @@
  */
 package org.apache.ambari.common.rest.entities;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for PackageType complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
- * 
- * <pre>
- * &lt;complexType name="PackageType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="LocationURL" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="Type" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
- * </pre>
- * 
- * 
+ * Entity for defining a list of repositories
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "PackageType", propOrder = {
-    "locationURL",
-    "type"
+    "urls"
 })
-@XmlRootElement(name = "PackageRepository")
-public class PackageRepository {
+@XmlRootElement
+public class RepositoryKind {
 
-    @XmlElement(name = "LocationURL", required = true)
-    protected String locationURL;
-    @XmlElement(name = "Type", required = true)
-    protected String type;
+    @XmlAttribute(required = true)
+    protected String kind;
+    
+    @XmlElement(required = true)
+    protected List<String> urls;
 
     /**
-     * Gets the value of the locationURL property.
+     * Gets the value of the urls property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getLocationURL() {
-        return locationURL;
+    public List<String> getUrls() {
+        return urls;
     }
 
     /**
@@ -77,32 +63,32 @@ public class PackageRepository {
      *     {@link String }
      *     
      */
-    public void setLocationURL(String value) {
-        this.locationURL = value;
+    public void setUrls(List<String> value) {
+        this.urls = value;
     }
 
     /**
-     * Gets the value of the type property.
+     * Gets the value of the kind property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getType() {
-        return type;
+    public String getKind() {
+        return kind;
     }
 
     /**
-     * Sets the value of the type property.
+     * Sets the value of the kind property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setType(String value) {
-        this.type = value;
+    public void setKind(String value) {
+        this.kind = value;
     }
 
 }

@@ -17,47 +17,21 @@
  */
 package org.apache.ambari.common.rest.entities;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlAttribute;
 
 
 /**
  * <p>Java class for RoleToNodesMapEntryType complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
- * 
- * <pre>
- * &lt;complexType name="RoleToNodesMapEntryType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="ServiceName" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="RoleName" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="NodeRangeExpression" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
- * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "RoleToNodesMapEntry", propOrder = {
-    "roleName",
-    "nodeRangeExpressions"
-})
-public class RoleToNodesMapEntry {
+public class RoleToNodes {
 
-    @XmlElement(name = "RoleName", required = true)
+    @XmlAttribute(required = true)
     protected String roleName;
-    @XmlElement(name = "NodeRangeExpressions", required = true)
-    protected List<String> nodeRangeExpressions;
+    @XmlAttribute
+    protected String nodes;
     
         /**
          * @return the roleName
@@ -74,13 +48,13 @@ public class RoleToNodesMapEntry {
         /**
          * @return the nodeRangeExpressions
          */
-        public List<String> getNodeRangeExpressions() {
-                return nodeRangeExpressions;
+        public String getNodeRangeExpressions() {
+                return nodes;
         }
         /**
          * @param nodeRangeExpressions the nodeRangeExpressions to set
          */
-        public void setNodeRangeExpressions(List<String> nodeRangeExpressions) {
-                this.nodeRangeExpressions = nodeRangeExpressions;
+        public void setNodes(String nodes) {
+                this.nodes = nodes;
         }
 }
