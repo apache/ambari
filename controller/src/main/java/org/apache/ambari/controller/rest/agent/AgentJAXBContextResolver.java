@@ -46,13 +46,8 @@ public class AgentJAXBContextResolver implements ContextResolver<JAXBContext> {
       Action.class };
   protected Set<String> jsonArray = new HashSet<String>() {
     {
-      add("commandResults");
-      add("cleanUpCommandResults");
       add("actionResults");
       add("serversStatus");
-      add("cmd");
-      add("commands");
-      add("cleanUpCommands");
       add("installedRoleStates");
     }
   };

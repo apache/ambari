@@ -71,21 +71,21 @@ public class ControllerResource {
   public ControllerResponse heartbeat(HeartBeat message) {
     ControllerResponse controllerResponse = new ControllerResponse();
     controllerResponse.setResponseId("id-00002");    
-    String cmd = "import os\nos._exit(0)";
+    String script = "import os\nos._exit(0)";
     String[] param = { "cluster", "role" };
-    Command command = new Command("root", cmd, param);
+    Command command = new Command("root", script, param);
 
-    Command cleanUp = new Command("root", cmd, param);
+    Command cleanUp = new Command("root", script, param);
     
     Action action = new Action();
     action.setUser("hdfs");
-    action.setComponent("hdfs");
-    action.setRole("datanode");
     action.setKind(Kind.STOP_ACTION);
     action.setSignal(Signal.KILL);
     action.setClusterId("cluster-001");
     action.setBluePrintName("blueprint");
     action.setBluePrintRevision("0.1");
+    action.setComponent("hdfs");
+    action.setRole("datanode");
     action.setId("action-001");
 
     Action action2 = new Action();
@@ -95,18 +95,20 @@ public class ControllerResource {
     action2.setClusterId("cluster-002");
     action2.setCommand(command);
     action2.setCleanUpCommand(cleanUp);
-    action2.setComponent("hdfs");
     action2.setBluePrintName("blueprint");
     action2.setBluePrintRevision("0.2");
+    action2.setComponent("hdfs");
     action2.setRole("datanode");
 
     Action action3 = new Action();
     action3.setUser("hdfs");
     action3.setKind(Kind.RUN_ACTION);
     action3.setId("action-003");
+    action3.setClusterId("cluster-003");
     action3.setBluePrintName("blueprint");
     action3.setBluePrintRevision("0.2");
-    action3.setClusterId("cluster-003");
+    action3.setComponent("hdfs");
+    action3.setRole("datanode");
     action3.setCommand(command);
     action3.setCleanUpCommand(cleanUp);
 
@@ -135,10 +137,6 @@ public class ControllerResource {
       InetAddress addr = InetAddress.getLocalHost();
       List<ActionResult> actionResults = new ArrayList<ActionResult>();      
 
-      List<CommandResult> commandResults = new ArrayList<CommandResult>();
-      commandResults.add(new CommandResult(0, "stdout", "stderr"));
-      List<CommandResult> cleanUpResults = new ArrayList<CommandResult>();
-      cleanUpResults.add(new CommandResult(0, "stdout", "stderr"));
       ActionResult actionResult = new ActionResult();
       actionResult.setBluePrintName("blueprint");
       actionResult.setBluePrintRevision("0.2");
@@ -150,8 +148,8 @@ public class ControllerResource {
       actionResult2.setBluePrintName("blueprint");
       actionResult2.setBluePrintRevision("0.2");
       actionResult2.setClusterId("cluster-002");
-      actionResult2.setCommandResults(commandResults);
-      actionResult2.setCleanUpResults(cleanUpResults);
+      actionResult2.setCommandResult(new CommandResult(0, "stdout", "stderr"));
+      actionResult2.setCleanUpResult(new CommandResult(0, "stdout", "stderr"));
       actionResult2.setKind(Kind.START_ACTION);
       actionResult2.setComponent("hdfs");
       actionResult2.setRole("datanode");
@@ -206,11 +204,11 @@ public class ControllerResource {
     ControllerResponse controllerResponse = new ControllerResponse();
     controllerResponse.setResponseId("id-00002");    
     
-    String cmd = "import os\nos._exit(0)";
+    String script = "import os\nos._exit(0)";
     String[] param = { "cluster", "role" };
 
-    Command command = new Command("root", cmd, param);
-    Command cleanUp = new Command("root", cmd, param);
+    Command command = new Command("root", script, param);
+    Command cleanUp = new Command("root", script, param);
     
     Action action = new Action();
     action.setKind(Kind.CREATE_STRUCTURE_ACTION);
@@ -249,12 +247,16 @@ public class ControllerResource {
     action3.setClusterId("cluster-002");
     action3.setCommand(command);
     action3.setCleanUpCommand(cleanUp);
+    action3.setUser("hdfs");
+    action3.setComponent("hdfs");
     
     Action action4 = new Action();
     action4.setBluePrintName("blueprint");
     action4.setBluePrintRevision("0.1");
     action4.setUser("hdfs");
     action4.setKind(Kind.WRITE_FILE_ACTION);
+    action4.setUser("hdfs");
+    action4.setComponent("hdfs");    
     String owner ="hdfs";
     String group = "hadoop";
     String permission = "0700";

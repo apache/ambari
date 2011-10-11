@@ -2,6 +2,10 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-54. Refactor agent implementation to match AMBARI-53. (Eric Yang)
+
+  AMBARI-51. Refactor transport data model for commands to become action. (Eric Yang)
+
   AMBARI-56. Surface the write config file command to write config file action. (Eric Yang)
 
   AMBARI-55. release cluster nodes function (vgogate)
