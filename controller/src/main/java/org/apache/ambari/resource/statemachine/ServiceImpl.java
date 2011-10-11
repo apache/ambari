@@ -38,8 +38,10 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
   private ComponentPlugin plugin;
   
   /* The state machine for the service looks like:
-   * INACTIVE --S_START--> STARTING --S_START_SUCCESS--> ACTIVE
+   * INACTIVE --S_START--> STARTING --S_START_SUCCESS--> STARTED
    *                                --S_START_FAILURE--> FAIL
+   * STARTED --S_AVAILABLE--> ACTIVE  (check for things like safemode here)
+   * STARTED --S_UNAVAILABLE--> FAIL
    * ACTIVE --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
    *                             --S_STOP_FAILURE--> UNCLEAN_STOP
    * FAIL --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
@@ -47,21 +49,32 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
    */
   
   private static final StateMachineFactory 
-  <ServiceImpl, ServiceState, ServiceEventType, ServiceEvent> stateMachineFactory 
-         = new StateMachineFactory<ServiceImpl, ServiceState, ServiceEventType, 
+  <ServiceImpl, ServiceState, ServiceEventType, ServiceEvent> 
+  stateMachineFactory 
+         = new StateMachineFactory<ServiceImpl, ServiceState, ServiceEventType,
          ServiceEvent>(ServiceState.INACTIVE)
          
          .addTransition(ServiceState.INACTIVE, ServiceState.STARTING, 
              ServiceEventType.START, new StartServiceTransition())
              
          .addTransition(ServiceState.STARTING, 
-             EnumSet.of(ServiceState.ACTIVE, ServiceState.STARTING), 
+             EnumSet.of(ServiceState.STARTED, ServiceState.STARTING), 
              ServiceEventType.ROLE_STARTED,
              new RoleStartedTransition())
              
          .addTransition(ServiceState.STARTING, ServiceState.FAIL, 
              ServiceEventType.START_FAILURE)
              
+         .addTransition(ServiceState.STARTED, 
+             ServiceState.ACTIVE,
+             ServiceEventType.AVAILABLE_CHECK_SUCCESS,
+             new AvailableTransition())
+         
+         .addTransition(ServiceState.STARTED, 
+             ServiceState.FAIL,
+             ServiceEventType.AVAILABLE_CHECK_FAILURE,
+             new UnavailableTransition())
+                      
          .addTransition(ServiceState.ACTIVE, ServiceState.ACTIVE, 
              ServiceEventType.ROLE_STARTED)
              
@@ -135,7 +148,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
   public void addRoles(List<RoleFSM> roles) {
     this.serviceRoles.addAll(roles);
   }
-  
+    
   private RoleFSM getFirstRole() {
     //this call should reset the iterator
     iterator = serviceRoles.iterator();
@@ -165,6 +178,40 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
     } 
   }
   
+  static class AvailableTransition implements 
+  SingleArcTransition<ServiceImpl, ServiceEvent>  {
+
+    @Override
+    public void transition(ServiceImpl operand, ServiceEvent event) {
+      if (((ClusterImpl)operand.getAssociatedCluster()).getState() 
+          == ClusterStateFSM.STARTING) {
+        //since we support starting services explicitly (without touching the 
+        //associated cluster), we need to check what the cluster state is
+        //before sending it any event
+        StateMachineInvoker.getAMBARIEventHandler().handle(
+            new ClusterEvent(ClusterEventType.START_SUCCESS, 
+                operand.getAssociatedCluster()));
+      }
+    } 
+  }
+  
+  static class UnavailableTransition implements 
+  SingleArcTransition<ServiceImpl, ServiceEvent>  {
+
+    @Override
+    public void transition(ServiceImpl operand, ServiceEvent event) {
+      if (((ClusterImpl)operand.getAssociatedCluster()).getState() 
+          == ClusterStateFSM.STARTING) {
+        //since we support starting services explicitly (without touching the 
+        //associated cluster), we need to check what the cluster state is
+        //before sending it any event
+        StateMachineInvoker.getAMBARIEventHandler().handle(
+            new ClusterEvent(ClusterEventType.START_FAILURE, 
+                operand.getAssociatedCluster()));
+      }
+    } 
+  }
+  
   static class StopServiceTransition implements 
   SingleArcTransition<ServiceImpl, ServiceEvent>  {
     
@@ -184,14 +231,14 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
     @Override
     public ServiceState transition(ServiceImpl operand, ServiceEvent event) {
       //check whether all roles started, and if not remain in the STARTING
-      //state, else move to the ACTIVE state
+      //state, else move to the STARTED state
       RoleFSM role = operand.getNextRole();
       if (role != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(new RoleEvent(
             RoleEventType.START, role));
         return ServiceState.STARTING;
       } else {
-        return ServiceState.ACTIVE;
+        return ServiceState.STARTED;
       }
     }
   }

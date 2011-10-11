@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-57. Adds a state for monitoring safe-mode success/failure checks in the
+  ServiceFSM (ddas)
+
   AMBARI-56. Refactor write config file command to write config file action. (Eric Yang)
 
   AMBARI-54. Refactor agent implementation to match AMBARI-53. (Eric Yang)

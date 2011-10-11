@@ -32,6 +32,12 @@ public enum ServiceEventType {
   START_FAILURE,
   
   //Producer: Service
+  AVAILABLE_CHECK_SUCCESS,
+  
+  //Producer: Service
+  AVAILABLE_CHECK_FAILURE,
+  
+  //Producer: Service
   STOP_SUCCESS,
   
   //Producer: Service

@@ -18,6 +18,8 @@
 
 package org.apache.ambari.common.rest.entities.agent;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -53,6 +55,13 @@ public class Action {
   public String bluePrintRevision;
   @XmlElement
   public ConfigFile file;
+  
+  private static AtomicLong globalId;
+  
+  public Action() {
+    long id = globalId.incrementAndGet();
+    this.id = new Long(id).toString();
+  }
   
   public Kind getKind() {
     return kind;

@@ -36,6 +36,7 @@ import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.Nodes;
 import org.apache.ambari.common.rest.entities.agent.Action;
 import org.apache.ambari.common.rest.entities.agent.Action.Kind;
+import org.apache.ambari.common.rest.entities.agent.ActionResult;
 import org.apache.ambari.common.rest.entities.agent.AgentRoleState;
 import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
 import org.apache.ambari.common.rest.entities.agent.HeartBeat;
@@ -47,7 +48,10 @@ import org.apache.ambari.resource.statemachine.ClusterFSM;
 import org.apache.ambari.resource.statemachine.RoleFSM;
 import org.apache.ambari.resource.statemachine.RoleEvent;
 import org.apache.ambari.resource.statemachine.RoleEventType;
+import org.apache.ambari.resource.statemachine.ServiceEvent;
+import org.apache.ambari.resource.statemachine.ServiceEventType;
 import org.apache.ambari.resource.statemachine.ServiceFSM;
+import org.apache.ambari.resource.statemachine.ServiceState;
 import org.apache.ambari.resource.statemachine.StateMachineInvoker;
 
 public class HeartbeatHandler {
@@ -126,22 +130,22 @@ public class HeartbeatHandler {
           //check whether the agent should start any server
           if (role.shouldStart()) {
             if (!roleServerRunning) {
-              short retryCount = retryCountForRole.get(hostname);
+              short retryCount = retryCountForRole.get(hostname,role.getRoleName());
               if (retryCount > MAX_RETRY_COUNT) {
                 //LOG the failure to start the role server
                 StateMachineInvoker.getAMBARIEventHandler()
                 .handle(new RoleEvent(RoleEventType.START_FAILURE, role));
-                retryCountForRole.resetAttemptCount(hostname);
+                retryCountForRole.resetAttemptCount(hostname,role.getRoleName());
                 continue;
               }
               List<Action> actions = 
                   plugin.startRoleServer(clusterContext, role.getRoleName());
               allActions.addAll(actions);
-              retryCountForRole.incrAttemptCount(hostname);
+              retryCountForRole.incrAttemptCount(hostname,role.getRoleName());
             }
             //raise an event to the state machine for a successful role-start
             if (roleServerRunning) {
-              retryCountForRole.resetAttemptCount(hostname);
+              retryCountForRole.resetAttemptCount(hostname,role.getRoleName());
               StateMachineInvoker.getAMBARIEventHandler()
               .handle(new RoleEvent(RoleEventType.START_SUCCESS, role));
             }
@@ -149,27 +153,28 @@ public class HeartbeatHandler {
           //check whether the agent should stop any server
           if (role.shouldStop()) {
             if (roleServerRunning) {
-              short retryCount = retryCountForRole.get(hostname);
+              short retryCount = retryCountForRole.get(hostname,role.getRoleName());
               if (retryCount > MAX_RETRY_COUNT) {
                 //LOG the failure to stop the role server
                 StateMachineInvoker.getAMBARIEventHandler()
                 .handle(new RoleEvent(RoleEventType.STOP_FAILURE, role));
-                retryCountForRole.resetAttemptCount(hostname);
+                retryCountForRole.resetAttemptCount(hostname,role.getRoleName());
                 continue;
               }
               List<Action> actions = 
                   plugin.stopRoleServer(clusterContext, role.getRoleName());
               allActions.addAll(actions);
-              retryCountForRole.incrAttemptCount(hostname);
+              retryCountForRole.incrAttemptCount(hostname,role.getRoleName());
             }
             //raise an event to the state machine for a successful role-stop
             if (!roleServerRunning) {
-              retryCountForRole.resetAttemptCount(hostname);
+              retryCountForRole.resetAttemptCount(hostname,role.getRoleName());
               StateMachineInvoker.getAMBARIEventHandler()
               .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
             }
           }
         }
+        checkActionResults(service, cluster, heartbeat, allActions);
       }
     }
     ControllerResponse r = new ControllerResponse();
@@ -180,6 +185,7 @@ public class HeartbeatHandler {
   }
   
   private static class StartedComponentServers {
+    //Convenience class to aid in heartbeat processing
     private Map<String, Map<String, Boolean>> startedComponentServerMap =
         new HashMap<String, Map<String, Boolean>>();
     void roleServerStarted(String component, String roleServer) {
@@ -208,18 +214,57 @@ public class HeartbeatHandler {
     //fix this to take care of multiple roles started in parallel 
     //on a node
     private Map<String, Short> countMap = new HashMap<String, Short>();
-    public short get(String hostname) {
-      return countMap.get(hostname);
+    public short get(String hostname, String role) {
+      return countMap.get(hostname+role);
     }
-    public void incrAttemptCount(String hostname) {
+    public void incrAttemptCount(String hostname, String role) {
       Short currentCount = 0;
-      if ((currentCount = countMap.get(hostname)) == null) {
+      if ((currentCount = countMap.get(hostname+role)) == null) {
         currentCount = 0;
       }
       countMap.put(hostname, (short) (currentCount + 1));
     }
-    public void resetAttemptCount(String hostname) {
-      countMap.remove(hostname);
+    public void resetAttemptCount(String hostname, String role) {
+      countMap.remove(hostname+role);
+    }
+  }
+  
+  private final static String SERVICE_AVAILABILITY_CHECK_ID = 
+      "SERVICE_AVAILABILITY_CHECK_ID";
+  
+  private static String getActionIDForServiceAvailability(Cluster cluster, 
+      ServiceFSM service) {
+    String id = cluster.getID() + cluster.getLatestRevision() + 
+        service.getServiceName() + SERVICE_AVAILABILITY_CHECK_ID;
+    return id;
+  }
+  
+  private static void checkActionResults(ServiceFSM service, Cluster cluster,
+      HeartBeat heartbeat, List<Action> allActions) {
+    //see whether the service is in the STARTED state, and if so,
+    //check whether there is any action-result that indicates success
+    //of the availability check (safemode, etc.)
+    if (service.getServiceState() == ServiceState.STARTED) {
+      //TODO: check with plugin whether this node can run the health-check
+      String id = getActionIDForServiceAvailability(cluster, service);
+      boolean serviceActivated = false;
+      for (ActionResult result : heartbeat.getActionResults()) {
+        if (result.getId().equals(id)) {
+          if (result.getCommandResult().getExitCode() == 0) {
+            StateMachineInvoker.getAMBARIEventHandler().handle(
+               new ServiceEvent(ServiceEventType.AVAILABLE_CHECK_SUCCESS,
+                   service));
+            serviceActivated = true;
+          }
+          break;
+        }
+      }
+      //TODO: check with plugin whether this node can run the health-check (OWEN)
+//      if (!serviceActivated) {
+//        Action action = plugin.getAvailabilityCheck(cluster.getLatestClusterDefinition().getName()));
+//        action.setId(id);
+//        allActions.add(action);
+//      }
     }
   }
   
