@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.6
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -35,16 +35,13 @@ class Heartbeat:
     global clusterId, bluePrintName, bluePrintRevision
     serverStatus = ServerStatus()
     timestamp = int(time.time()*1000)
-    heartbeat = { 'responseId'        : id,
-                  'timestamp'         : timestamp,
-                  'clusterId'         : self.actionQueue.getClusterId(),
-                  'bluePrintName'     : self.actionQueue.getBluePrintName(),
-                  'bluePrintRevision' : self.actionQueue.getBluePrintRevision(),
-                  'hostname'          : socket.gethostname(),
-                  'hardwareProfile'   : self.hardware.get(),
-                  'actionResults'     : self.actionQueue.result(),
-                  'serversStatus'     : serverStatus.build(),
-                  'idle'              : self.actionQueue.isIdle()
+    heartbeat = { 'responseId'          : id,
+                  'timestamp'           : timestamp,
+                  'hostname'            : socket.gethostname(),
+                  'hardwareProfile'     : self.hardware.get(),
+                  'actionResults'       : self.actionQueue.result(),
+                  'installedRoleStates' : serverStatus.build(),
+                  'idle'                : self.actionQueue.isIdle()
                 }
     return heartbeat
 

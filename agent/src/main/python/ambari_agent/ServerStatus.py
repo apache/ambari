@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.6
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -31,11 +31,14 @@ class ServerStatus:
     list = []
     servers = sh.getServerTracker()
     for server in servers:
-      (component, role) = server.split(".")
+      (clusterId, bluePrintName, bluePrintRevision, component, role) = server.split("/")
       result = {
-                 'component' : component,
-                 'role' : role,
-                 'state' : 'STARTED'
+                 'clusterId'         : clusterId,
+                 'bluePrintName'     : bluePrintName,
+                 'bluePrintRevision' : bluePrintRevision,
+                 'component'         : component,
+                 'roleName'          : role,
+                 'serverStatus'      : 'STARTED'
                }
       list.append(result)
     return list

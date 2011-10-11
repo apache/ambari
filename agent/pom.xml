@@ -62,7 +62,7 @@
                 <executions>
                     <execution>
                         <configuration>
-                            <executable>python</executable>
+                            <executable>python2.6</executable>
                             <workingDirectory>target/ambari-agent-${project.version}</workingDirectory>
                             <arguments>
                                 <argument>${project.basedir}/src/main/python/setup.py</argument>

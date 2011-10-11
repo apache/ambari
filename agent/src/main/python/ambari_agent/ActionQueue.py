@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.6
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -57,108 +57,90 @@ class ActionQueue(threading.Thread):
     for action in actions:
       q.put(action)
 
-  # dispatch action types
   def run(self):
     global clusterId, bluePrintName, bluePrintRevision
     while True:
       while not q.empty():
         action = q.get()
         switches = {
-                     'START_ACTION': self.startAction,
-                     'STOP_ACTION': self.stopAction,
-                     'RUN_ACTION': self.runAction
+                     'START_ACTION'            : self.startAction,
+                     'STOP_ACTION'             : self.stopAction,
+                     'RUN_ACTION'              : self.runAction,
+                     'CREATE_STRUCTURE_ACTION' : self.createStructureAction,
+                     'DELETE_STRUCTURE_ACTION' : self.deleteStructureAction,
+                     'WRITE_FILE_ACTION'       : self.writeFileAction,
                    }
         result = switches.get(action['kind'], self.unknownAction)(action)
-        # Store the blue print check point file
-        if clusterId!=action['clusterId'] or bluePrintName!=action['bluePrintName'] or bluePrintRevision!=action['bluePrintRevision']:
-          clusterId = action['clusterId']
-          bluePrintName = action['bluePrintName']
-          bluePrintRevision = action['bluePrintRevision']
-          output = { 
-                     'clusterId' : clusterId,
-                     'bluePrintName' : bluePrintName,
-                     'bluePrintRevision' : bluePrintRevision
-                   }
-          data = json.dumps(output)
-          info = ['ambari-write-file',os.getuid(),os.getgid(),'0700','/tmp/blueprint',data]
-          writeFile(info)
         # Update the result
         r.put(result)
 
+  # Store action result to agent response queue
   def result(self):
     result = []
     while not r.empty():
       result.append(r.get())
     return result
 
-  # Run start action, start a server process and
-  # track the liveness of the children process
-  def startAction(self, action):
-    result = { 
-               'id'                : action['id'], 
-               'clusterId'         : action['clusterId'],
-               'kind'              : action['kind'], 
-               'component'         : action['component'], 
-               'role'              : action['role'],
-               'bluePrintName'     : action['bluePrintName'],
-               'bluePrintRevision' : action['bluePrintRevision']
-             }
-    self.sh.startProcess(action['component'], action['role'], action['commands'][0]['cmd'], action['user'])
-    return result
-
-  # Run stop action, stop a server process.
-  def stopAction(self, action):
-    result = { 
-               'id'                : action['id'], 
-               'kind'              : action['kind'], 
-               'clusterId'         : action['clusterId'], 
-               'component'         : action['component'],
-               'role'              : action['role'],
-               'bluePrintName'     : action['bluePrintName'],
-               'bluePrintRevision' : action['bluePrintRevision']
-             }
-    self.sh.stopProcess(action['component'], action['role'], action['signal'])
-    return result
-
-  # Run commands action
-  def runAction(self, action):
+  # Generate default action response
+  def genResult(self, action):
     result = { 
                'id'                : action['id'],
                'clusterId'         : action['clusterId'],
                'kind'              : action['kind'],
                'bluePrintName'     : action['bluePrintName'],
-               'bluePrintRevision' : action['bluePrintRevision']
+               'bluePrintRevision' : action['bluePrintRevision'],
+               'component'         : action['component'],
+               'role'              : action['role']
              }
-    return self.runCommands(action['commands'], action['cleanUpCommands'], result)
+    return result
 
-  # run commands
-  def runCommands(self, commands, cleanUps, result):
-    failure = False
-    cmdResult = []
-    for cmd in commands:
-      script = cmd['cmd']
-      if script[0]=="ambari-write-file":
-        response = writeFile(script)
-      else:
-        response = self.sh.run(script, cmd['user'])
-      exitCode = response['exit_code']
-      if exitCode==0:
-        cmdResult.append({'exitCode':exitCode})
-      else:
-        failure=True
-        cmdResult.append({'exitCode':exitCode, 'stdout':response['stdout'], 'stderr':response['stderr']})
-    result['commandResults'] = cmdResult
-    if(failure):
-      cleanUpResult = []
-      for cmd in cleanUps:
-        script = cmd['cmd']
-        response = self.sh.run(script, cmd['user'])
-        exitCode = response['exit_code']
-        if exitCode==0:
-          cleanUpResult.append({'exitCode':exitCode})
-        else:
-          cleanUpResult.append({'exitCode':exitCode,'stdout':response['stdout'],'stderr':response['stderr']})
-      result['cleanUpCommandResults'] = cleanUpResult
+  # Run start action, start a server process and
+  # track the liveness of the children process
+  def startAction(self, action):
+    result = self.genResult(action)
+    return self.sh.startProcess(action['clusterId'],
+      action['bluePrintName'],
+      action['bluePrintRevision'],
+      action['component'], 
+      action['role'], 
+      action['command'], 
+      action['user'], result)
+
+  # Run stop action, stop a server process.
+  def stopAction(self, action):
+    result = self.genResult(action)
+    return self.sh.stopProcess(action['clusterId'], 
+      action['bluePrintName'],
+      action['bluePrintRevision'],
+      action['component'],
+      action['role'], 
+      action['signal'], result)
+
+  # Write file action
+  def writeFileAction(self, action):
+    result = self.genResult(action)
+    return self.sh.writeFile(action, result)
+
+  # Run command action
+  def runAction(self, action):
+    result = self.genResult(action)
+    return self.sh.runAction(action['clusterId'], 
+      action['component'],
+      action['role'],
+      action['user'], 
+      action['command'], 
+      action['cleanUpCommand'], result)
+
+  # Create directory structure for cluster
+  def createStructureAction(self, action):
+    result = self.genResult(action)
+    result['exitCode'] = 0
+    return result
+
+  # Delete directory structure for cluster
+  def deleteStructureAction(self, action):
+    result = self.genResult(action)
+    result['exitCode'] = 0
     return result
 
   # Handle unknown action
@@ -171,14 +153,3 @@ class ActionQueue(threading.Thread):
   def isIdle(self):
     return q.empty()
 
-  # Report current clusterId
-  def getClusterId(self):
-    return clusterId
-
-  # Report blue print name
-  def getBluePrintName(self):
-    return bluePrintName
-
-  # Report blue print revision
-  def getBluePrintRevision(self):
-    return bluePrintRevision

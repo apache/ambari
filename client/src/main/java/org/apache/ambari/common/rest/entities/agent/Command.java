@@ -36,31 +36,29 @@ public class Command {
   public Command() {
   }
   
-  public Command(String user, String cmd, String[] param) {
-    this.cmd = cmd;
+  public Command(String user, String script, String[] param) {
+    this.script = script;
     this.user = user;
     this.param = param;
   }
   
   @XmlElement
-  private String cmd;
-
+  private String script;
   @XmlElement
   private String[] param;
-  
   @XmlElement
   private String user;
 
-  public String getCmd() {
-    return cmd;
+  public String getScript() {
+    return script;
   }
   
+  public void setScript(String script) {
+    this.script = script;
+  }
+
   public String getUser() {
     return user;
-  }
-  
-  public void setCmd(String cmd) {
-    this.cmd = cmd;
   }
   
   public void setUser(String user) {

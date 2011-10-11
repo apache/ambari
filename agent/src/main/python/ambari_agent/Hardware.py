@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.6
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+from shell import shellRunner
 import multiprocessing
 import platform
 
@@ -47,35 +48,39 @@ class Hardware:
 
   def scanCpu(self):
     self.cpuCount = multiprocessing.cpu_count()
-    self.cpuSpeed = 1
+    self.cpuSpeed = 0
     self.cpuFlag = ""
 
   def scanNet(self):
     switches = {
-                'Linux': self.ethtools,
+                'Linux': self.ethtool,
                 'Darwin': self.ifconfig
                }
-    switches.get(self.os, self.ethtools)()
+    switches.get(self.os, self.ethtool)()
 
-  def ethtools(self):
-    self.netSpeed = 10
+  def ethtool(self):
+    sh = shellRunner()
+    script = [ 'ethtool', 'eth0', '|', 'grep', 'Speed:', '|', 'sed', "'s/\s*Speed:\s*//'", '|', 'sed', "'s/Mb\/s//'" ]
+    result = sh.run(script)
+    self.netSpeed = int(result['output'].rstrip())
 
   def ifconfig(self):
-    self.netSpeed = 100
+    sh = shellRunner()
+    script = [ 'ifconfig', 'en0', '|', 'grep', 'media:', '|', 'sed', "'s/.*(//'", '|', 'sed', "'s/ .*//'", '|', 'sed', "'s/baseT//'" ]
+    result = sh.run(script)
+    if "none" in result['output']:
+      # No ethernet detected, detect airport
+      script = [ '/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport', '-I', '|', 'grep', 'lastTxRate:', '|', 'sed', "'s/.*: //'", '|', 'sed', "'s/$//'"]
+      result = sh.run(script)
+    self.netSpeed = int(result['output'].rstrip())
 
   def scanOS(self):
     self.arch = platform.processor()
     self.os = platform.system()
 
-'''
-SPEED="$(ifconfig en0 | grep media: | sed 's/.*(//' | sed 's/ .*//' | sed 's/baseT/ MBit\/s/')";
-
-SPEED="$(/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | grep lastTxRate: | sed 's/.*: //' | sed 's/$/ MBit\/s/')";
-'''
-
 def main(argv=None):
   hardware = Hardware()
-  print hardware.build()
+  print hardware.get()
 
 if __name__ == '__main__':
   main()

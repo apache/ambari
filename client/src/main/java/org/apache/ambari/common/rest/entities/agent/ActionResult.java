@@ -18,8 +18,6 @@
 
 package org.apache.ambari.common.rest.entities.agent;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -44,9 +42,9 @@ public class ActionResult {
   @XmlElement
   private Kind kind;
   @XmlElement
-  private List<CommandResult> commandResults;
+  private CommandResult commandResult;
   @XmlElement
-  private List<CommandResult> cleanUpCommandResults;
+  private CommandResult cleanUpCommandResult;
   @XmlElement
   private String component;
   @XmlElement
@@ -80,20 +78,20 @@ public class ActionResult {
     this.kind = kind;
   }
   
-  public List<CommandResult> getCommandResults() {
-    return commandResults;
+  public CommandResult getCommandResult() {
+    return commandResult;
   }
   
-  public void setCommandResults(List<CommandResult> commandResults) {
-    this.commandResults = commandResults;
+  public void setCommandResult(CommandResult commandResult) {
+    this.commandResult = commandResult;
   }
 
-  public List<CommandResult> getCleanUpCommandResults() {
-    return cleanUpCommandResults;  
+  public CommandResult getCleanUpCommandResult() {
+    return cleanUpCommandResult;  
   }
   
-  public void setCleanUpResults(List<CommandResult> cleanUpResults) {
-    this.cleanUpCommandResults = cleanUpResults;
+  public void setCleanUpResult(CommandResult cleanUpResult) {
+    this.cleanUpCommandResult = cleanUpResult;
     
   }
   
