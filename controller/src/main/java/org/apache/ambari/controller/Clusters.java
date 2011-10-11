@@ -173,27 +173,9 @@ public class Clusters {
     public ClusterDefinition addCluster(ClusterDefinition cdef, boolean dry_run) throws Exception {
 
         /*
-         * TODO: Validate the cluster definition
+         * TODO: Validate the cluster definition and set the default
          */
-        if (cdef.getName() == null ||  cdef.getName().equals("")) {
-            String msg = "Cluster Name must be specified and must be non-empty string";
-            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
-        }
-        
-        /* 
-         * Populate the input cluster definition w/ default values
-         */
-        if (cdef.getDescription() == null) {
-            cdef.setDescription("Ambari cluster : ["+cdef.getName()+"]");
-        }
-        if (cdef.getGoalState() == null) {
-            cdef.setGoalState(cdef.GOAL_STATE_INACTIVE);
-        }
-        if (cdef.getActiveServices() == null) {
-            List<String> services = new ArrayList<String>();
-            services.add("ALL");
-            cdef.setActiveServices(services);
-        }
+        validateClusterDefinition(cdef);
         
         synchronized (operational_clusters) {
             /* 
@@ -287,22 +269,53 @@ public class Clusters {
     }
     
     /*
-     * Update the nodes associated with cluster
+     * Validates the cluster definition
      */
-    private synchronized void updateClusterNodesReservation (String clusterID, ClusterDefinition clsDef) throws Exception {
-                
-        String nodeRangeExpressions = clsDef.getNodes();
+    public void validateClusterDefinition (ClusterDefinition cdef) throws Exception {
+        /*
+         * Check if name is not empty or null
+         */
+        if (cdef.getName() == null ||  cdef.getName().equals("")) {
+            String msg = "Cluster Name must be specified and must be non-empty string";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
         
-        ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
-        List<String> cluster_node_range = new ArrayList<String>();
-        cluster_node_range.addAll(getHostnamesFromRangeExpressions(nodeRangeExpressions));
+        if (cdef.getNodes() == null || cdef.getNodes().equals("")) {
+            String msg = "Cluster node range must be specified and must be non-empty string";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
+        
+        if (cdef.getBlueprintName() == null || cdef.getBlueprintName().equals("")) {
+            String msg = "Cluster blueprint must be specified and must be non-empty string";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
+        
+        /* 
+         * Populate the input cluster definition w/ default values
+         */
+        if (cdef.getDescription() == null) { cdef.setDescription("Ambari cluster : ["+cdef.getName()+"]");
+        }
+        if (cdef.getGoalState() == null) { cdef.setGoalState(cdef.GOAL_STATE_INACTIVE);
+        }
+        /*
+         * TODO: If blueprint revision is -1, then use latest blueprint revision.
+         */
+        if (cdef.getBlueprintRevision() == null) { cdef.setBlueprintRevision("-1");
+        }
+        if (cdef.getActiveServices() == null) {
+            List<String> services = new ArrayList<String>();
+            services.add("ALL");
+            cdef.setActiveServices(services);
+        }
         
         /*
          * Check if all the nodes explicitly specified in the RoleToNodesMap belong the cluster node range specified 
          */
-        if (clsDef.getRoleToNodes() != null) {
+        List<String> cluster_node_range = new ArrayList<String>();
+        cluster_node_range.addAll(getHostnamesFromRangeExpressions(cdef.getNodes()));
+        if (cdef.getRoleToNodes() != null) {
             List<String> nodes_specified_using_role_association = new ArrayList<String>();
-            for (RoleToNodes e : clsDef.getRoleToNodes()) {
+            for (RoleToNodes e : cdef.getRoleToNodes()) {
                 List<String> hosts = getHostnamesFromRangeExpressions(e.getNodes());
                 nodes_specified_using_role_association.addAll(hosts);
                 // TODO: Remove any duplicate nodes from nodes_specified_using_role_association
@@ -315,7 +328,17 @@ public class Clusters {
                 throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             }
         }
-        
+    }
+    
+    /*
+     * Update the nodes associated with cluster
+     */
+    private synchronized void updateClusterNodesReservation (String clusterID, ClusterDefinition clsDef) throws Exception {
+                
+        ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
+        List<String> cluster_node_range = new ArrayList<String>();
+        cluster_node_range.addAll(getHostnamesFromRangeExpressions(clsDef.getNodes()));
+       
         /*
          * Reserve the nodes as specified in the node range expressions
          * -- throw exception if any nodes are pre-associated with other cluster

@@ -63,7 +63,7 @@ public class Cluster {
      * @return the clusterDefinition
      */
     public ClusterDefinition getClusterDefinition(long revision) {
-            return clusterDefinitionRevisionsList.get(revision);
+        return clusterDefinitionRevisionsList.get(revision);
     }
     
     /**
