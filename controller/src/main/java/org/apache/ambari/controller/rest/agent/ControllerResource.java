@@ -104,7 +104,7 @@ public class ControllerResource {
     action3.setUser("hdfs");
     action3.setKind(Kind.RUN_ACTION);
     action3.setId("action-003");
-    action3.setClusterId("cluster-003");
+    action3.setClusterId("cluster-002");
     action3.setBluePrintName("blueprint");
     action3.setBluePrintRevision("0.2");
     action3.setComponent("hdfs");
@@ -112,10 +112,28 @@ public class ControllerResource {
     action3.setCommand(command);
     action3.setCleanUpCommand(cleanUp);
 
+    Action action4 = new Action();
+    action4.setId("action-004");
+    action4.setClusterId("cluster-002");
+    action4.setBluePrintName("blueprint");
+    action4.setBluePrintRevision("0.1");
+    action4.setUser("hdfs");
+    action4.setKind(Kind.WRITE_FILE_ACTION);
+    action4.setComponent("hdfs");    
+    action4.setRole("namenode");
+    String owner ="hdfs";
+    String group = "hadoop";
+    String permission = "0700";
+    String path = "$prefix/config";
+    String umask = "022";
+    String data = "Content of the file";
+    action4.setFile(new ConfigFile(owner, group, permission, path, umask, data));
+    
     List<Action> actions = new ArrayList<Action>();
     actions.add(action);
     actions.add(action2);
     actions.add(action3);
+    actions.add(action4);
     controllerResponse.setActions(actions);
     return controllerResponse;
   }
@@ -256,7 +274,8 @@ public class ControllerResource {
     action4.setUser("hdfs");
     action4.setKind(Kind.WRITE_FILE_ACTION);
     action4.setUser("hdfs");
-    action4.setComponent("hdfs");    
+    action4.setComponent("hdfs");
+    action4.setRole("namenode");
     String owner ="hdfs";
     String group = "hadoop";
     String permission = "0700";

@@ -21,35 +21,68 @@ limitations under the License.
 from pwd import getpwnam
 from grp import getgrnam
 import getpass
-import os
+import os, errno
 import sys, traceback
 
-def writeFile(parts):
+def writeFile(action, result):
+  fileInfo = action['file']
   try:
-    user=parts[1]
-    if isinstance(user, str):
+    user=fileInfo['owner']
+    if isinstance(user, int)!=True:
       user=getpwnam(user)[2]
-    group=parts[2]
-    if isinstance(group, str):
+    group=fileInfo['group']
+    if isinstance(group, int)!=True:
       group=getgrnam(group)[2]
-    permission=parts[3]
-    filename=parts[4]
-    content=parts[5]
-
+    permission=int(fileInfo['permission'])
+    umask=int(fileInfo['umask'])
+    filename=fileInfo['path']
+    content=fileInfo['data']
+    oldMask = os.umask(0)
+    os.umask(int(umask))
+    prefix = os.path.dirname(filename)
+    try:
+      os.makedirs(prefix)
+    except OSError as err:
+      if err.errno == errno.EEXIST:
+        pass
+      else:
+        raise
     f = open(filename, 'w')
     f.write(content)
     f.close()
     os.chmod(filename, permission)
     os.chown(filename, user, group)
-    return { 'exit_code' : 0 }
+    os.umask(oldMask)
+    result['exitCode'] = 0
+    return result
   except Exception, err:
-    return { 'exit_code' : 1, 'stderr' : traceback.format_exc() }
+    result['exitCode'] = 1
+    result['stderr'] = traceback.format_exc()
+    return result
 
 def main():
-  data = [ 'ambari-write-file', os.getuid(), os.getgid() , 0700, "/tmp/_file_write_test", "This is a test" ]
-  print writeFile(data)
-  data = [ 'ambari-write-file', 'root', 'staff', 0777, "/tmp/_file_write_test2", "This is a test" ]
-  print writeFile(data)
+  config = {
+    "data"       : "test", 
+    "owner"      : os.getuid(), 
+    "group"      : os.getgid() , 
+    "permission" : 0700, 
+    "path"       : "/tmp/ambari_file_test/_file_write_test", 
+    "umask"      : 022 
+  }
+  action = { 'file' : config }
+  result = { }
+  print writeFile(action, result)
+  config = { 
+    "data"       : "test", 
+    "owner"      : "eyang", 
+    "group"      : "staff", 
+    "permission" : "0700", 
+    "path"       : "/tmp/ambari_file_test/_file_write_test", 
+    "umask"      : "022" 
+  }
+  result = { }
+  action = { 'file' : config }
+  print writeFile(action, result)
 
 if __name__ == "__main__":
   main()

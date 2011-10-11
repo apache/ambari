@@ -30,7 +30,7 @@ import os
 logger = logging.getLogger()
 
 class ActionQueue(threading.Thread):
-  global q, r, clusterId, bluePrintName, bluePrintRevision, checkFile
+  global q, r, clusterId, bluePrintName, bluePrintRevision
   q = Queue.Queue()
   r = Queue.Queue()
   clusterId = 'unknown'
@@ -39,17 +39,8 @@ class ActionQueue(threading.Thread):
   checkFile = '/tmp/blueprint'
 
   def __init__(self):
-    global clusterId, bluePrintName, bluePrintRevision, checkFile
+    global clusterId, bluePrintName, bluePrintRevision
     threading.Thread.__init__(self)
-    if 'AMBARI_LOG_DIR' in os.environ:
-      checkFile = os.environ['AMBARI_LOG_DIR']+"/blueprint"
-    if os.path.exists(checkFile):
-      f = open(checkFile, 'r')
-      data = json.load(f)
-      clusterId = data['clusterId']
-      bluePrintName = data['bluePrintName']
-      bluePrintRevision = data['bluePrintRevision']
-      f.close()
     self.sh = shellRunner()
 
   def put(self, response):
@@ -119,7 +110,7 @@ class ActionQueue(threading.Thread):
   # Write file action
   def writeFileAction(self, action):
     result = self.genResult(action)
-    return self.sh.writeFile(action, result)
+    return writeFile(action, result)
 
   # Run command action
   def runAction(self, action):
