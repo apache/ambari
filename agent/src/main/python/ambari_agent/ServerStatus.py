@@ -31,14 +31,13 @@ class ServerStatus:
     list = []
     servers = sh.getServerTracker()
     for server in servers:
-      (clusterId, bluePrintName, bluePrintRevision, component, role) = server.split("/")
+      (clusterId, clusterDefinitionRevision, component, role) = server.split("/")
       result = {
-                 'clusterId'         : clusterId,
-                 'bluePrintName'     : bluePrintName,
-                 'bluePrintRevision' : bluePrintRevision,
-                 'component'         : component,
-                 'roleName'          : role,
-                 'serverStatus'      : 'STARTED'
+                 'clusterId'                 : clusterId,
+                 'clusterDefinitionRevision' : clusterDefinitionRevision,
+                 'component'                 : component,
+                 'roleName'                  : role,
+                 'serverStatus'              : 'STARTED'
                }
       list.append(result)
     return list

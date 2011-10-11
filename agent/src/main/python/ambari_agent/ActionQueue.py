@@ -30,16 +30,14 @@ import os
 logger = logging.getLogger()
 
 class ActionQueue(threading.Thread):
-  global q, r, clusterId, bluePrintName, bluePrintRevision
+  global q, r, clusterId, clusterDefinitionRevision
   q = Queue.Queue()
   r = Queue.Queue()
   clusterId = 'unknown'
-  bluePrintName = 'unknown'
-  bluePrintRevision = 'unknown'
-  checkFile = '/tmp/blueprint'
+  clusterDefinitionRevision = 0
 
   def __init__(self):
-    global clusterId, bluePrintName, bluePrintRevision
+    global clusterId, clusterDefinitionRevision 
     threading.Thread.__init__(self)
     self.sh = shellRunner()
 
@@ -49,7 +47,7 @@ class ActionQueue(threading.Thread):
       q.put(action)
 
   def run(self):
-    global clusterId, bluePrintName, bluePrintRevision
+    global clusterId, clusterDefinitionRevision
     while True:
       while not q.empty():
         action = q.get()
@@ -75,13 +73,12 @@ class ActionQueue(threading.Thread):
   # Generate default action response
   def genResult(self, action):
     result = { 
-               'id'                : action['id'],
-               'clusterId'         : action['clusterId'],
-               'kind'              : action['kind'],
-               'bluePrintName'     : action['bluePrintName'],
-               'bluePrintRevision' : action['bluePrintRevision'],
-               'component'         : action['component'],
-               'role'              : action['role']
+               'id'                        : action['id'],
+               'clusterId'                 : action['clusterId'],
+               'kind'                      : action['kind'],
+               'clusterDefinitionRevision' : action['clusterDefinitionRevision'],
+               'component'                 : action['component'],
+               'role'                      : action['role']
              }
     return result
 
@@ -90,8 +87,7 @@ class ActionQueue(threading.Thread):
   def startAction(self, action):
     result = self.genResult(action)
     return self.sh.startProcess(action['clusterId'],
-      action['bluePrintName'],
-      action['bluePrintRevision'],
+      action['clusterDefinitionRevision'],
       action['component'], 
       action['role'], 
       action['command'], 
@@ -101,8 +97,7 @@ class ActionQueue(threading.Thread):
   def stopAction(self, action):
     result = self.genResult(action)
     return self.sh.stopProcess(action['clusterId'], 
-      action['bluePrintName'],
-      action['bluePrintRevision'],
+      action['clusterDefinitionRevision'],
       action['component'],
       action['role'], 
       action['signal'], result)

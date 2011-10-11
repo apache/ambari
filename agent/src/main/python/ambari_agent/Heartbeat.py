@@ -32,7 +32,7 @@ class Heartbeat:
     self.hardware = Hardware()
 
   def build(self, id='unknown'):
-    global clusterId, bluePrintName, bluePrintRevision
+    global clusterId, clusterDefinitionRevision
     serverStatus = ServerStatus()
     timestamp = int(time.time()*1000)
     heartbeat = { 'responseId'          : id,

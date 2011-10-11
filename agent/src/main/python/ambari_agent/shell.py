@@ -81,11 +81,11 @@ class shellRunner:
     return result
 
   # Start a process and presist its state
-  def startProcess(self, clusterId, bluePrintName, bluePrintRevision, component, role, script, user, result):
+  def startProcess(self, clusterId, clusterDefinitionRevision, component, role, script, user, result):
     global serverTracker
     code = 0
     commandResult = {}
-    process = clusterId+"/"+bluePrintName+"/"+bluePrintRevision+"/"+component+"/"+role
+    process = clusterId+"/"+clusterDefinitionRevision+"/"+component+"/"+role
     if not process in serverTracker:
       cmd = sys.executable
       tempfilename = tempfile.mktemp()
@@ -107,9 +107,9 @@ class shellRunner:
     return result
 
   # Stop a process and remove presisted state
-  def stopProcess(self, clusterId, bluePrintName, bluePrintRevision, component, role, sig, result):
+  def stopProcess(self, clusterId, clusterDefinitionRevision, component, role, sig, result):
     global serverTracker
-    process = clusterId+"/"+bluePrintName+"/"+bluePrintRevision+"/"+component+"/"+role
+    process = clusterId+"/"+clusterDefinitionRevision+"/"+component+"/"+role
     commandResult = {'exitCode': 0}
     if process in serverTracker:
       if sig=='TERM':
