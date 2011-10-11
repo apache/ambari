@@ -36,7 +36,6 @@ import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.Nodes;
 import org.apache.ambari.common.rest.entities.agent.Action;
 import org.apache.ambari.common.rest.entities.agent.Action.Kind;
-import org.apache.ambari.common.rest.entities.agent.ActionResults;
 import org.apache.ambari.common.rest.entities.agent.AgentRoleState;
 import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
 import org.apache.ambari.common.rest.entities.agent.HeartBeat;
@@ -50,7 +49,6 @@ import org.apache.ambari.resource.statemachine.RoleEvent;
 import org.apache.ambari.resource.statemachine.RoleEventType;
 import org.apache.ambari.resource.statemachine.ServiceFSM;
 import org.apache.ambari.resource.statemachine.StateMachineInvoker;
-import org.apache.zookeeper.server.quorum.QuorumPeer.ServerState;
 
 public class HeartbeatHandler {
   
@@ -100,18 +98,14 @@ public class HeartbeatHandler {
       String desiredBlueprintRev = 
           cluster.getLatestClusterDefinition().getBlueprintRevision();
       String desiredClusterId = cluster.getID();
-      ClusterFSM desiredClusterFSM = StateMachineInvoker
-          .getStateMachineClusterInstance(desiredClusterId, desiredBlueprint,
-              desiredBlueprintRev);
       
       StartedComponentServers componentServers = new StartedComponentServers();
-      //check if the node is in the expected cluster (with the appropriate 
-      //revision of the blueprint)      
-      //get the list of install/uninstall actions
+
+      //get the list of uninstall actions
       //create a map from component/role to 'started' for easy lookup later
-      List<Action> installAndUninstallActions = 
-          getInstallAndUninstallActions(heartbeat, desiredClusterFSM, 
-              clusterContext, componentServers);
+      allActions = 
+          getStopAndUninstallActions(heartbeat, clusterContext, 
+              componentServers);
 
       //get the state machine reference to the cluster
       ClusterFSM clusterSMobject = StateMachineInvoker
@@ -210,6 +204,9 @@ public class HeartbeatHandler {
   }
   
   private static class RetryCountForRoleServerAction {
+    //currently handles only one role start at a time on a node
+    //fix this to take care of multiple roles started in parallel 
+    //on a node
     private Map<String, Short> countMap = new HashMap<String, Short>();
     public short get(String hostname) {
       return countMap.get(hostname);
@@ -226,9 +223,9 @@ public class HeartbeatHandler {
     }
   }
   
-  private static List<Action> getInstallAndUninstallActions(
-      HeartBeat heartbeat, ClusterFSM desiredClusterFSM, 
-      ClusterContext context, StartedComponentServers componentServers)
+  private static List<Action> getStopAndUninstallActions(
+      HeartBeat heartbeat, ClusterContext context, 
+      StartedComponentServers componentServers)
           throws IOException {
     List<AgentRoleState> agentRoleStates = 
         heartbeat.getInstalledRoleStates();
@@ -263,8 +260,8 @@ public class HeartbeatHandler {
         }
       }
       if (stopRole && 
+        //TODO: not sure whether this state requires to be checked...
         agentRoleState.getServerStatus() == AgentRoleState.State.STARTED) {
-        //TODO: not sure whether this requires to be done...
         Action action = new Action();
         action.setClusterId(agentRoleState.getClusterId());
         action.setBluePrintName(agentRoleState.getBluePrintName());
@@ -281,7 +278,9 @@ public class HeartbeatHandler {
         List<Action> uninstallAction = plugin.uninstall(context);
         killAndUninstallCmds.addAll(uninstallAction);
       }
-      if (!stopRole && !uninstall) {
+      if (!stopRole && !uninstall && 
+          agentRoleState.getServerStatus() == AgentRoleState.State.STARTED) {
+        //make a note of the fact that a server is running for reference later
         componentServers.roleServerStarted(agentRoleState.getComponentName(), 
               agentRoleState.getRoleName());
       }
