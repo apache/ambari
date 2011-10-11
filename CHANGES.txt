@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-56. Surface the write config file command to write config file action. (Eric Yang)
+
   AMBARI-55. release cluster nodes function (vgogate)
 
   AMBARI-53. Refactor the HeartBeat to have Agents' states separated by 

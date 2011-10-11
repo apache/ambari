@@ -41,6 +41,7 @@ import org.apache.ambari.common.rest.entities.agent.AgentRoleState;
 import org.apache.ambari.common.rest.entities.agent.Command;
 import org.apache.ambari.common.rest.entities.agent.CommandResult;
 import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
+import org.apache.ambari.common.rest.entities.agent.ConfigFile;
 import org.apache.ambari.common.rest.entities.agent.HardwareProfile;
 import org.apache.ambari.common.rest.entities.agent.HeartBeat;
 
@@ -250,9 +251,22 @@ public class ControllerResource {
     action3.setCleanUpCommand(cleanUp);
     
     Action action4 = new Action();
-    action4.setKind(Kind.DELETE_STRUCTURE_ACTION);
-    action4.setComponent("hdfs");
-    action4.setRole("datanode");
+    action4.setBluePrintName("blueprint");
+    action4.setBluePrintRevision("0.1");
+    action4.setUser("hdfs");
+    action4.setKind(Kind.WRITE_FILE_ACTION);
+    String owner ="hdfs";
+    String group = "hadoop";
+    String permission = "0700";
+    String path = "$prefix/config";
+    String umask = "022";
+    String data = "Content of the file";
+    action4.setFile(new ConfigFile(owner, group, permission, path, umask, data));
+    
+    Action action5 = new Action();
+    action5.setKind(Kind.DELETE_STRUCTURE_ACTION);
+    action5.setComponent("hdfs");
+    action5.setRole("datanode");
     
     List<Action> actions = new ArrayList<Action>();
     actions.add(action);

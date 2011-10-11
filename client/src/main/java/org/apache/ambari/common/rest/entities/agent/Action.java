@@ -51,6 +51,8 @@ public class Action {
   public String bluePrintName;
   @XmlElement
   public String bluePrintRevision;
+  @XmlElement
+  public ConfigFile file;
   
   public Kind getKind() {
     return kind;
@@ -140,9 +142,17 @@ public class Action {
     this.bluePrintRevision = bluePrintRevision;
   }
   
+  public ConfigFile getFile() {
+    return this.file;
+  }
+  
+  public void setFile(ConfigFile file) {
+    this.file = file;
+  }
+  
   public static enum Kind {
     RUN_ACTION, START_ACTION, STOP_ACTION, STATUS_ACTION, 
-    CREATE_STRUCTURE_ACTION, DELETE_STRUCTURE_ACTION;
+    CREATE_STRUCTURE_ACTION, DELETE_STRUCTURE_ACTION, WRITE_FILE_ACTION;
     public static class KindAdaptor extends XmlAdapter<String, Kind> {
       @Override
       public String marshal(Kind obj) throws Exception {
