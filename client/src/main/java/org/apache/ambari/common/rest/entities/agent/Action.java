@@ -50,9 +50,7 @@ public class Action {
   @XmlElement
   public Command cleanUpCommand;
   @XmlElement
-  public String bluePrintName;
-  @XmlElement
-  public String bluePrintRevision;
+  public long clusterDefinitionRevision;
   @XmlElement
   public ConfigFile file;
   
@@ -135,20 +133,12 @@ public class Action {
     this.cleanUpCommand = cleanUpCommand;  
   }
   
-  public String getBluePrintName() {
-    return bluePrintName;
+  public long getClusterDefinitionRevision() {
+    return this.clusterDefinitionRevision;
   }
   
-  public void setBluePrintName(String bluePrintName) {
-    this.bluePrintName = bluePrintName;
-  }
-  
-  public String getBluePrintRevision() {
-    return bluePrintRevision;
-  }
-  
-  public void setBluePrintRevision(String bluePrintRevision) {
-    this.bluePrintRevision = bluePrintRevision;
+  public void setClusterDefinitionRevision(long clusterDefinitionRevision) {
+    this.clusterDefinitionRevision = clusterDefinitionRevision;
   }
   
   public ConfigFile getFile() {

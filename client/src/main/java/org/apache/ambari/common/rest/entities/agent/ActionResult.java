@@ -50,7 +50,7 @@ public class ActionResult {
   @XmlElement
   private String role;
   @XmlElement
-  private String bluePrintName;
+  private long clusterDefinitionRevision;
   @XmlElement
   private String bluePrintRevision;
 
@@ -111,19 +111,11 @@ public class ActionResult {
     this.role = role;
   }
   
-  public String getBluePrintName() {
-    return bluePrintName;
+  public long getClusterDefinitionRevision() {
+    return clusterDefinitionRevision;
   }
   
-  public void setBluePrintName(String bluePrintName) {
-    this.bluePrintName = bluePrintName;
-  }
-  
-  public String getBluePrintRevision() {
-    return bluePrintRevision;
-  }
-  
-  public void setBluePrintRevision(String bluePrintRevision) {
-    this.bluePrintRevision = bluePrintRevision;
+  public void setClusterDefinitionRevision(long clusterDefinitionRevision) {
+    this.clusterDefinitionRevision = clusterDefinitionRevision;
   }
 }

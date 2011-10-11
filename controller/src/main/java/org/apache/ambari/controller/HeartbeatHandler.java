@@ -97,10 +97,8 @@ public class HeartbeatHandler {
       //command more than once. In the future this could be improved
       //to reflect the command execution state more accurately.
       
-      String desiredBlueprint = 
-          cluster.getLatestClusterDefinition().getBlueprintName();
-      String desiredBlueprintRev = 
-          cluster.getLatestClusterDefinition().getBlueprintRevision();
+      long desiredClusterDefinitionRev =
+          cluster.getLatestRevision();
       String desiredClusterId = cluster.getID();
       
       StartedComponentServers componentServers = new StartedComponentServers();
@@ -113,8 +111,8 @@ public class HeartbeatHandler {
 
       //get the state machine reference to the cluster
       ClusterFSM clusterSMobject = StateMachineInvoker
-          .getStateMachineClusterInstance(desiredClusterId, desiredBlueprint, 
-              desiredBlueprintRev);
+          .getStateMachineClusterInstance(desiredClusterId, 
+              desiredClusterDefinitionRev);
       //the state machine reference to the services
       List<ServiceFSM> clusterServices = clusterSMobject.getServices();
       //go through all the services, and check which role should be started
@@ -283,8 +281,7 @@ public class HeartbeatHandler {
       
       ClusterFSM clusterFSM = StateMachineInvoker
           .getStateMachineClusterInstance(agentRoleState.getClusterId(), 
-              agentRoleState.getBluePrintName(), 
-              agentRoleState.getBluePrintRevision());
+              agentRoleState.getClusterDefinitionRevision());
       if (clusterFSM == null) {
         //ask the agent to stop everything belonging to this role
         //since the controller can't be in a state where the clusterFSM
@@ -309,8 +306,7 @@ public class HeartbeatHandler {
         agentRoleState.getServerStatus() == AgentRoleState.State.STARTED) {
         Action action = new Action();
         action.setClusterId(agentRoleState.getClusterId());
-        action.setBluePrintName(agentRoleState.getBluePrintName());
-        action.setBluePrintRevision(agentRoleState.getBluePrintRevision());
+        action.setClusterDefinitionRevision(agentRoleState.getClusterDefinitionRevision());
         action.setRole(agentRoleState.getRoleName());
         action.setComponent(agentRoleState.getComponentName());
         action.setKind(Kind.STOP_ACTION);

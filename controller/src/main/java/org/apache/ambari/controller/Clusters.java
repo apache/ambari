@@ -578,8 +578,8 @@ public class Clusters {
              * TODO: Persist the latest cluster definition under new revision
              */
             ClusterFSM clusterFSM = StateMachineInvoker.
-                getStateMachineClusterInstance(cls.getID(), 
-                    c.getBlueprintName(), c.getBlueprintRevision());
+                getStateMachineClusterInstance(cls.getID(),
+                    cls.getLatestRevision());
             if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {
               clusterFSM.activate();
             } else if(c.getGoalState().

@@ -27,14 +27,11 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {"clusterId", "bluePrintName", 
-    "bluePrintRevision", "componentName", "roleName",
-    "serverStatus"})
+@XmlType(name = "", propOrder = {"clusterId", "clusterDefinitionRevision", 
+    "componentName", "roleName", "serverStatus"})
 public class AgentRoleState {
   @XmlElement
-  private String bluePrintName;
-  @XmlElement
-  private String bluePrintRevision;
+  private long clusterDefinitionRevision;
   @XmlElement
   private String clusterId;
   @XmlElement
@@ -48,12 +45,8 @@ public class AgentRoleState {
     return clusterId;
   }
   
-  public String getBluePrintName() {
-    return bluePrintName;
-  }
-  
-  public String getBluePrintRevision() {
-    return bluePrintRevision;
+  public long getClusterDefinitionRevision() {
+    return clusterDefinitionRevision;
   }
   
   public String getComponentName() {
@@ -72,12 +65,8 @@ public class AgentRoleState {
     this.clusterId = clusterId;
   }
   
-  public void setBluePrintName(String bluePrintName) {
-    this.bluePrintName = bluePrintName;
-  }
-  
-  public void setBluePrintRevision(String bluePrintRevision) {
-    this.bluePrintRevision = bluePrintRevision;    
+  public void setClusterDefinitionRevision(long clusterDefinitionRevision) {
+    this.clusterDefinitionRevision = clusterDefinitionRevision;    
   }
   
   public void setComponentName(String componentName) {

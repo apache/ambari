@@ -18,6 +18,7 @@
 
 package org.apache.ambari.controller.rest.agent;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.xml.datatype.DatatypeConfigurationException;
 
 import org.apache.ambari.common.rest.entities.agent.Action;
 import org.apache.ambari.common.rest.entities.agent.Action.Kind;
@@ -44,6 +46,7 @@ import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
 import org.apache.ambari.common.rest.entities.agent.ConfigFile;
 import org.apache.ambari.common.rest.entities.agent.HardwareProfile;
 import org.apache.ambari.common.rest.entities.agent.HeartBeat;
+import org.apache.ambari.controller.HeartbeatHandler;
 
 /** 
  * Controller Resource represents Ambari controller.
@@ -53,6 +56,7 @@ import org.apache.ambari.common.rest.entities.agent.HeartBeat;
  */
 @Path("controller")
 public class ControllerResource {
+  private HeartbeatHandler hh = new HeartbeatHandler();
 	
   /** 
    * Update state of the node (Internal API to be used by Ambari agent).
@@ -61,7 +65,8 @@ public class ControllerResource {
    *  on a cluster to update the state of various services running on the node.
    * @response.representation.200.mediaType application/json
    * @response.representation.200.example { "a" : "b" }
-   * @response.representation.500.doc Error in accepting heartbeat message
+   * @response.representation.406.doc Error in heartbeat message format
+   * @response.representation.408.doc Request Timed out
    * @param message Heartbeat message
    */
   @Path("heartbeat/{hostname}")
@@ -70,6 +75,14 @@ public class ControllerResource {
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public ControllerResponse heartbeat(HeartBeat message) {
     ControllerResponse controllerResponse = new ControllerResponse();
+//    try {
+//      controllerResponse = hh.processHeartBeat(message);
+//    } catch (DatatypeConfigurationException e) {
+//      throw new WebApplicationException(406);
+//    } catch (IOException e) {
+//      throw new WebApplicationException(408);
+//    }
+
     controllerResponse.setResponseId("id-00002");    
     String script = "import os\nos._exit(0)";
     String[] param = { "cluster", "role" };
@@ -82,8 +95,7 @@ public class ControllerResource {
     action.setKind(Kind.STOP_ACTION);
     action.setSignal(Signal.KILL);
     action.setClusterId("cluster-001");
-    action.setBluePrintName("blueprint");
-    action.setBluePrintRevision("0.1");
+    action.setClusterDefinitionRevision(1);
     action.setComponent("hdfs");
     action.setRole("datanode");
     action.setId("action-001");
@@ -95,8 +107,7 @@ public class ControllerResource {
     action2.setClusterId("cluster-002");
     action2.setCommand(command);
     action2.setCleanUpCommand(cleanUp);
-    action2.setBluePrintName("blueprint");
-    action2.setBluePrintRevision("0.2");
+    action2.setClusterDefinitionRevision(1);
     action2.setComponent("hdfs");
     action2.setRole("datanode");
 
@@ -105,8 +116,7 @@ public class ControllerResource {
     action3.setKind(Kind.RUN_ACTION);
     action3.setId("action-003");
     action3.setClusterId("cluster-002");
-    action3.setBluePrintName("blueprint");
-    action3.setBluePrintRevision("0.2");
+    action3.setClusterDefinitionRevision(1);
     action3.setComponent("hdfs");
     action3.setRole("datanode");
     action3.setCommand(command);
@@ -115,8 +125,7 @@ public class ControllerResource {
     Action action4 = new Action();
     action4.setId("action-004");
     action4.setClusterId("cluster-002");
-    action4.setBluePrintName("blueprint");
-    action4.setBluePrintRevision("0.1");
+    action4.setClusterDefinitionRevision(1);
     action4.setUser("hdfs");
     action4.setKind(Kind.WRITE_FILE_ACTION);
     action4.setComponent("hdfs");    
@@ -156,15 +165,13 @@ public class ControllerResource {
       List<ActionResult> actionResults = new ArrayList<ActionResult>();      
 
       ActionResult actionResult = new ActionResult();
-      actionResult.setBluePrintName("blueprint");
-      actionResult.setBluePrintRevision("0.2");
+      actionResult.setClusterDefinitionRevision(1);
       actionResult.setId("action-001");
       actionResult.setClusterId("cluster-001");
       actionResult.setKind(Kind.STOP_ACTION);
 
       ActionResult actionResult2 = new ActionResult();
-      actionResult2.setBluePrintName("blueprint");
-      actionResult2.setBluePrintRevision("0.2");
+      actionResult2.setClusterDefinitionRevision(2);
       actionResult2.setClusterId("cluster-002");
       actionResult2.setCommandResult(new CommandResult(0, "stdout", "stderr"));
       actionResult2.setCleanUpResult(new CommandResult(0, "stdout", "stderr"));
@@ -185,8 +192,7 @@ public class ControllerResource {
       
       List<AgentRoleState> agentRoles = new ArrayList<AgentRoleState>(2);
       AgentRoleState agentRole1 = new AgentRoleState();
-      agentRole1.setBluePrintName("blueprint");
-      agentRole1.setBluePrintRevision("0.2");
+      agentRole1.setClusterDefinitionRevision(2);
       agentRole1.setClusterId("cluster-003");
       agentRole1.setComponentName("hdfs");
       agentRole1.setRoleName("datanode");
@@ -234,8 +240,8 @@ public class ControllerResource {
     action.setRole("datanode");
     
     Action action1 = new Action();
-    action1.setBluePrintName("blueprint");
-    action1.setBluePrintRevision("0.1");
+    action1.setClusterDefinitionRevision(2);
+
     action1.setUser("hdfs");
     action1.setComponent("hdfs");
     action1.setRole("datanode");
@@ -245,8 +251,7 @@ public class ControllerResource {
     action1.setId("action-001");
 
     Action action2 = new Action();
-    action2.setBluePrintName("blueprint");
-    action2.setBluePrintRevision("0.1");
+    action2.setClusterDefinitionRevision(3);
     action2.setUser("hdfs");
     action2.setKind(Kind.START_ACTION);
     action2.setId("action-002");
@@ -257,8 +262,7 @@ public class ControllerResource {
     action2.setRole("datanode");
     
     Action action3 = new Action();
-    action3.setBluePrintName("blueprint");
-    action3.setBluePrintRevision("0.1");
+    action3.setClusterDefinitionRevision(3);
     action3.setUser("hdfs");
     action3.setKind(Kind.RUN_ACTION);
     action3.setId("action-003");
@@ -269,8 +273,7 @@ public class ControllerResource {
     action3.setComponent("hdfs");
     
     Action action4 = new Action();
-    action4.setBluePrintName("blueprint");
-    action4.setBluePrintRevision("0.1");
+    action4.setClusterDefinitionRevision(4);
     action4.setUser("hdfs");
     action4.setKind(Kind.WRITE_FILE_ACTION);
     action4.setUser("hdfs");

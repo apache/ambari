@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-59. Refactor to use clusterRevision instead of bluePrintName and 
+  bluePrintRevision. (Eric Yang)
+
   AMBARI-57. Adds a state for monitoring safe-mode success/failure checks in the
   ServiceFSM (ddas)
 
