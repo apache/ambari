@@ -69,7 +69,7 @@ public class Clusters {
         cluster123.setBlueprintName("cluster123-blueprint");
         cluster123.setBlueprintRevision("0");
         cluster123.setDescription("cluster123 - development cluster");
-        cluster123.setGoalState(ClusterState.CLUSTER_STATE_ACTIVE);
+        cluster123.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
         List<String> activeServices = new ArrayList<String>();
         activeServices.add("hdfs");
         activeServices.add("mapred");
@@ -138,8 +138,8 @@ public class Clusters {
         cluster124.setRoleToNodesMap(rnm);
         
         try {
-            addCluster(cluster123);
-            addCluster(cluster124);
+            addCluster(cluster123, false);
+            addCluster(cluster124, false);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -170,7 +170,7 @@ public class Clusters {
      *      (daemon can keep track of which nodes agent is already installed or check it by ssh to nodes, if nodes added
      *       are in UNREGISTERED state).  
      */   
-    public ClusterDefinition addCluster(ClusterDefinition cdef) throws Exception {
+    public ClusterDefinition addCluster(ClusterDefinition cdef, boolean dry_run) throws Exception {
 
         /*
          * TODO: Validate the cluster definition
@@ -178,6 +178,21 @@ public class Clusters {
         if (cdef.getName() == null ||  cdef.getName().equals("")) {
             String msg = "Cluster Name must be specified and must be non-empty string";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
+        
+        /* 
+         * Populate the input cluster definition w/ default values
+         */
+        if (cdef.getDescription() == null) {
+            cdef.setDescription("Ambari cluster : ["+cdef.getName()+"]");
+        }
+        if (cdef.getGoalState() == null) {
+            cdef.setGoalState(cdef.GOAL_STATE_INACTIVE);
+        }
+        if (cdef.getActiveServices() == null) {
+            List<String> services = new ArrayList<String>();
+            services.add("ALL");
+            cdef.setActiveServices(services);
         }
         
         synchronized (operational_clusters) {
@@ -188,7 +203,7 @@ public class Clusters {
                 String msg = "Cluster ["+cdef.getName()+"] already exists";
                 throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.CONFLICT)).get());
             }
-            
+ 
             /*
              * Create new cluster object
              */
@@ -197,37 +212,49 @@ public class Clusters {
             ClusterState clsState = new ClusterState();
             clsState.setCreationTime(requestTime);
             clsState.setLastUpdateTime(requestTime);
-            clsState.setDeployTime((Date)null);
-            clsState.setState(ClusterState.CLUSTER_STATE_INACTIVE);
-            
+            clsState.setDeployTime((Date)null);          
+            if (cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
+                clsState.setState(ClusterState.CLUSTER_STATE_ATTIC);
+            } else {
+                clsState.setState(ClusterDefinition.GOAL_STATE_INACTIVE);
+            }
             cls.setID(UUID.randomUUID().toString());
             cls.addClusterDefinition(cdef);
             cls.setClusterState(clsState);
             
             /*
+             * If dry run then update roles to nodes map, if not specified explicitly
+             * and return
+             */
+            if (dry_run) {
+                List<RoleToNodes> role2NodesList = generateRoleToNodesListBasedOnNodeAttributes (cdef);
+                cdef.setRoleToNodesMap(role2NodesList);
+                return cdef;
+            }
+            
+            /*
              * Update cluster nodes reservation. 
              */
-            if (cdef.getNodes() != null) {
+            if (cdef.getNodes() != null 
+                && !cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
                 updateClusterNodesReservation (cls.getID(), cdef);
             }
             
             /*
              * Update the Node to Roles association, if specified
-             * Create map of <Cluster - nodeToRolesMap>
-             * If role is not explicitly associated w/ any node then assign it w/ default role
-             * If RoleToNodes map is not specified then derive it based on the node attributes 
-             *  
+             * If role is not explicitly associated w/ any node, then assign it w/ default role
+             * If RoleToNodes list is not specified then derive it based on the node attributes  
              */
-            if (cdef.getRoleToNodes() != null) {
+            if (!cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
+                if (cdef.getRoleToNodes() == null) {
+                    /*
+                     * TODO: Derive the role to nodes map based on nodes attributes
+                     * then populate the node to roles association.
+                     */
+                    List<RoleToNodes> role2NodesList = generateRoleToNodesListBasedOnNodeAttributes (cdef);
+                    cdef.setRoleToNodesMap(role2NodesList);
+                }
                 updateNodeToRolesAssociation(cdef.getNodes(), cdef.getRoleToNodes());
-            } else {
-                /*
-                 * TODO: Derive the role to nodes map based on nodes attributes
-                 * then populate the node to roles association.
-                 */
-                //RoleToNodesMap rnm = new RoleToNodesMap();
-                // TODO: Populate RoleToNodesMap based on node attributes
-                //updateNodeToRolesAssociation(cdef, rnm);
             }
             
             /*
@@ -235,19 +262,29 @@ public class Clusters {
              *          Persist reserved nodes against the cluster & service/role
              */
                 
-            // Add the cluster to the list, when definition is persisted
+            // Add the cluster to the list, after definition is persisted
             this.operational_clusters.put(cdef.getName(), cls);
             this.operational_clusters_id_to_name.put(cls.getID(), cdef.getName());
-        
+            
             /*
-             * Activate the cluster if the goal state is activate
+             * Activate the cluster if the goal state is ACTIVE
+             * TODO: What to do if activate fails ??? 
             */
-            if(cdef.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {          
+            if(cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ACTIVE)) {          
                 org.apache.ambari.resource.statemachine.ClusterFSM cs = StateMachineInvoker.createCluster(cls);
             }
         }
         return cdef;
     } 
+    
+    /*
+     * Create RoleToNodes list based on node attributes
+     * TODO: For now just pick some nodes randomly
+     */
+    public List<RoleToNodes> generateRoleToNodesListBasedOnNodeAttributes (ClusterDefinition cdef) {
+        List<RoleToNodes> role2NodesList = new ArrayList<RoleToNodes>();
+        return role2NodesList;
+    }
     
     /*
      * Update the nodes associated with cluster
@@ -593,7 +630,10 @@ public class Clusters {
           cluster.setClusterState(clusterState);
           this.operational_clusters.put(clusterName, cluster);
         } catch (Exception e) {
-          LOG.error(ExceptionUtil.getStackTrace(e));
+            String msg = "Internal error retriving cluster state for : ["+clusterName+"]";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.INTERNAL_SERVER_ERROR)).get());
+            // TODO: log the error instead of STDOUT -  also in ExceptionResponse
+            // LOG.error(ExceptionUtil.getStackTrace(e));
         }
         return this.operational_clusters.get(clusterName).getClusterState();
     }

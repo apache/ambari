@@ -28,6 +28,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
+import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -51,19 +52,11 @@ public class ClusterCreate extends Command {
     
     String urlPath = "/clusters";
     URL resourceURL = null;
-    
-    String clusterName = null;
-    String description = null;
-    String blueprint = null;
-    String blueprint_revision = "-1";
-    String goalState = null;
-    String activeServices = null;
-    String nodeRangeExpressions = null;
+    CommandLine line;
+    String dry_run = "false";
     
     Properties roleToNodeExpressions = null;
-    List<RoleToNodes> roleToNodeMap = null;
-    Boolean wait = false;
-    Boolean dry_run = false;
+    List<RoleToNodes> roleToNodeList = null;
     
     public ClusterCreate (String [] args) throws Exception {  
         /*
@@ -106,7 +99,7 @@ public class ClusterCreate extends Command {
         OptionBuilder.withArgName( "blueprint_revision" );
         OptionBuilder.hasArg();
         OptionBuilder.withDescription(  "Blueprint revision, if not specified latest revision is used" );
-        Option blueprint_revision = OptionBuilder.create( "revision" );
+        Option revision = OptionBuilder.create( "revision" );
         
         OptionBuilder.withArgName( "description" );
         OptionBuilder.hasArg();
@@ -134,7 +127,7 @@ public class ClusterCreate extends Command {
         options.addOption(dry_run);
         options.addOption( name );
         options.addOption( blueprint );   
-        options.addOption(blueprint_revision);
+        options.addOption(revision);
         options.addOption( desc );
         options.addOption( role );
         options.addOption( goalstate );
@@ -149,48 +142,17 @@ public class ClusterCreate extends Command {
         CommandLineParser parser = new GnuParser();
         try {
             // parse the command line arguments
-            CommandLine line = parser.parse(this.options, this.args );
+            line = parser.parse(this.options, this.args );
             
             if (line.hasOption("help")) {
                 printUsage();
                 System.exit(0);
             }
             
-            this.clusterName=line.getOptionValue("name");
-            this.blueprint=line.getOptionValue("blueprint");
-            this.nodeRangeExpressions=line.getOptionValue("nodes");
-            
-            if (line.hasOption("revision")){
-                this.blueprint_revision=line.getOptionValue("revision");
-                System.out.println("Blueprint Revision = "+this.blueprint_revision);
-            }
-            if (line.hasOption("desc")){
-                this.description=line.getOptionValue("desc");
-                System.out.println("DESCRIPTION = "+this.description);
-            }
-            if (line.hasOption("role")){
-                this.roleToNodeExpressions = line.getOptionProperties("role");
-                /* 
-                System.out.println ("RoleToNodesMap");
-                for (String roleName : this.roleToNodeExpressions.stringPropertyNames()) {
-                    System.out.println ("    <"+roleName+">:<"+ this.roleToNodeExpressions.getProperty(roleName)+">");
-                }
-                */
-            }
-            if (line.hasOption("goalstate")){
-                this.goalState=line.getOptionValue("goalstate");
-                System.out.println("Goalstate = "+this.goalState);
-            }
-            if (line.hasOption("services")){
-                this.activeServices=line.getOptionValue("services");
-                System.out.println("Active Services = "+this.activeServices);
-            }
-            if (line.hasOption("wait")) {
-                this.wait = true;
-            }
             if (line.hasOption("dry_run")) {
-                this.dry_run = true;
-            } 
+                dry_run = "true";
+            }
+            
         }
         catch( ParseException exp ) {
             // oops, something went wrong
@@ -206,7 +168,7 @@ public class ClusterCreate extends Command {
     }
     
     public static 
-    List<RoleToNodes> getRoleToNodesMap (Properties roleToNodeExpressions) {
+    List<RoleToNodes> getRoleToNodesList (Properties roleToNodeExpressions) {
         if (roleToNodeExpressions == null) { return null; };
         
         List<RoleToNodes> roleToNodesMap = new ArrayList<RoleToNodes>();
@@ -241,24 +203,56 @@ public class ClusterCreate extends Command {
         
         // Create Cluster Definition
         ClusterDefinition clsDef = new ClusterDefinition();
-        clsDef.setName(this.clusterName);
-        clsDef.setBlueprintName(this.blueprint);
-        clsDef.setNodes(this.nodeRangeExpressions);
+        clsDef.setName(line.getOptionValue("name"));
+        clsDef.setBlueprintName(line.getOptionValue("blueprint"));
+        clsDef.setNodes(line.getOptionValue("nodes"));
         
-        clsDef.setGoalState(this.goalState);
-        clsDef.setBlueprintRevision(this.blueprint_revision);
-        clsDef.setActiveServices(splitServices(this.activeServices));
-        clsDef.setDescription(this.description);
-        clsDef.setRoleToNodesMap(getRoleToNodesMap(this.roleToNodeExpressions));
+        clsDef.setGoalState(line.getOptionValue("goalstate"));
+        clsDef.setBlueprintRevision(line.getOptionValue("revision"));
+        clsDef.setActiveServices(splitServices(line.getOptionValue("services")));
+        clsDef.setDescription(line.getOptionValue("desc"));
+        clsDef.setRoleToNodesMap(getRoleToNodesList(line.getOptionProperties("role")));
         
-        ClientResponse response = service.path("clusters").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, clsDef);
+        /*
+         * Create cluster
+         */
+        ClientResponse response = service.path("clusters").queryParam("dry_run", dry_run).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, clsDef);
         if (response.getStatus() != 200) { 
             System.err.println("Cluster create command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
             System.exit(-1);
         }
         
+        /* 
+         * Retrieve the cluster definition from the response
+         */
         ClusterDefinition def = response.getEntity(ClusterDefinition.class);
+        
         System.out.println("CLUSTER NAME ["+def.getName()+"]");
-        System.out.println("CLUSTER NAME ["+def.getDescription()+"]");
+        System.out.println("CLUSTER DESC ["+def.getDescription()+"]");
+        if (!line.hasOption("wait")) {
+           return; 
+        }
+        
+        /*
+         * If wait option is specified then wait for cluster state to reach the desired state 
+         */
+        ClusterState clusterState;
+        for (;;) {
+            response = service.path("clusters/"+def.getName()+"/state").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+            if (response.getStatus() != 200) { 
+                System.err.println("Failed to get the cluster state. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+                System.exit(-1);
+            }
+            
+            clusterState = response.getEntity(ClusterState.class);
+            if (clusterState.getState().equals(def.getGoalState())) {
+                break;
+            }
+            System.out.println("Waiting for cluster ["+def.getName()+"] to get to desired goalstate");
+            Thread.sleep(15 * 60000);
+        }  
+        
+        System.out.println("Cluster Goal State ["+def.getGoalState());
+        System.out.println("Cluster state ["+clusterState.getState());
     }
 }

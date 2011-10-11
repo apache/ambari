@@ -87,6 +87,10 @@ Cluster Commands
 
         * Name of the user defined blueprint defining cluster configuration
 
+      * <<--blueprint_revision>> [ BLUEPRINT REVISION ] 
+
+        * Revision of the blueprint. If not specified latest one is used.
+
       * <<--goalstate>> [ACTIVE]
 
         * Default is INACTIVE

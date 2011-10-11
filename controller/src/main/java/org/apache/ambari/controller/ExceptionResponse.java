@@ -19,8 +19,13 @@ package org.apache.ambari.controller;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.apache.ambari.common.util.ExceptionUtil;
 
 public class ExceptionResponse  {
+    private static Log LOG = LogFactory.getLog(ExceptionResponse.class);
 
     Response r;
     
@@ -30,6 +35,7 @@ public class ExceptionResponse  {
         builder.header("ErrorCode", Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         r = builder.build();
         e.printStackTrace();
+        LOG.error(ExceptionUtil.getStackTrace(e));
     }
     
     public ExceptionResponse (String exceptionMessage, Response.Status rs) {
