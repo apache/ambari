@@ -85,9 +85,12 @@ public class ClusterResource {
      */ 
     @PUT
     @Consumes({"application/json", "application/xml"})
-    public ClusterDefinition updateClusterDefinition(@PathParam("clusterName") String clusterName, ClusterDefinition cluster) throws Exception {    
+    public ClusterDefinition updateClusterDefinition(
+           @PathParam("clusterName") String clusterName,
+           @DefaultValue("false") @QueryParam("dry_run") boolean dry_run,
+           ClusterDefinition cluster) throws Exception {    
         try {
-            return Clusters.getInstance().updateCluster(clusterName, cluster);
+            return Clusters.getInstance().updateCluster(clusterName, cluster, dry_run);
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {

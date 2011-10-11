@@ -270,8 +270,9 @@ public class Clusters {
     
     /*
      * Validates the cluster definition
+     * TODO: Validate each role has enough nodes associated with it. 
      */
-    public void validateClusterDefinition (ClusterDefinition cdef) throws Exception {
+    private void validateClusterDefinition (ClusterDefinition cdef) throws Exception {
         /*
          * Check if name is not empty or null
          */
@@ -297,6 +298,7 @@ public class Clusters {
         }
         if (cdef.getGoalState() == null) { cdef.setGoalState(cdef.GOAL_STATE_INACTIVE);
         }
+        
         /*
          * TODO: If blueprint revision is -1, then use latest blueprint revision.
          */
@@ -469,11 +471,11 @@ public class Clusters {
     }
 
     /* 
-     * Update cluster definition
-     * Always latest version is kept in memory
-     * TODO: Need versions to be preserved in memory w/ link to cluster before update? 
+     * Update cluster definition 
+     * TODO: Update to nodes or NodeToRoles, what if key service nodes are removed or replaced by
+     * other nodes? Does system allow this? 
     */
-    public ClusterDefinition updateCluster(String clusterName, ClusterDefinition c) throws Exception {
+    public ClusterDefinition updateCluster(String clusterName, ClusterDefinition c, boolean dry_run) throws Exception {
         
         /*
          * Validate cluster definition
@@ -484,8 +486,7 @@ public class Clusters {
         }
         
         /*
-         * Check if cluster already exists. 
-         * TODO: If PUT is idempotent, then should following check is valid?  
+         * Check if cluster already exists.  
          */
         if (!this.operational_clusters.containsKey(clusterName)) {
             String msg = "Cluster ["+clusterName+"] does not exits";
@@ -529,16 +530,43 @@ public class Clusters {
              * TODO: What if controller is crashed after updateClusterNodesReservation 
              * before updating and adding new revision of cluster definition?
              */
+            boolean updateNodesReservation = false;
+            boolean updateNodeToRolesAssociation = false;
             if (c.getNodes() != null) {
                 newcd.setNodes(c.getNodes());
-                updateClusterNodesReservation (cls.getID(), c);
+                updateNodesReservation = true;
+                
             } else {
                 newcd.setNodes(cls.getLatestClusterDefinition().getNodes());
             }
             if (c.getRoleToNodes() != null) {
                 newcd.setRoleToNodesMap(c.getRoleToNodes());
-                updateNodeToRolesAssociation(newcd.getNodes(), c.getRoleToNodes());
+                updateNodeToRolesAssociation = true;
+                
             }  
+            
+            /*
+             * Validate the updated cluster definition
+             */
+            validateClusterDefinition(newcd);
+            
+            /*
+             * TODO: If dry_run then return the newcd at this point
+             */
+            if (dry_run) {
+                System.out.println ("Dry run for update cluster..");
+                return newcd;
+            }
+            
+            /*
+             * Update the nodes reservation and node to roles association 
+             */
+            if (updateNodesReservation) {
+                updateClusterNodesReservation (cls.getID(), c);   
+            }
+            if (updateNodeToRolesAssociation) {
+                updateNodeToRolesAssociation(newcd.getNodes(), c.getRoleToNodes());
+            }
             
             /*
              *  Update the last update time & revision
@@ -583,7 +611,7 @@ public class Clusters {
                         ClusterDefinition cdf = new ClusterDefinition();
                         cdf.setName(clusterName);
                         cdf.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
-                        updateCluster(clusterName, cdf);
+                        updateCluster(clusterName, cdf, false);
                         this.tobe_deleted_clusters.put(clusterName, "null");                    
                     }
                 } 
@@ -640,23 +668,6 @@ public class Clusters {
         if (!this.operational_clusters.containsKey(clusterName)) {
             String msg = "Cluster ["+clusterName+"] does not exits";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
-        }
-        try {
-          /*
-           * Find the state of the latest blue print name and revision
-           */
-          String clusterId = this.operational_clusters.get(clusterName).getID();
-          String blueprintName = this.operational_clusters.get(clusterName).getLatestClusterDefinition().getBlueprintName();
-          String blueprintRev = this.operational_clusters.get(clusterName).getLatestClusterDefinition().getBlueprintRevision();
-          ClusterState clusterState = StateMachineInvoker.getClusterState(clusterId, blueprintName, blueprintRev);
-          Cluster cluster = this.operational_clusters.get(clusterName);
-          cluster.setClusterState(clusterState);
-          this.operational_clusters.put(clusterName, cluster);
-        } catch (Exception e) {
-            String msg = "Internal error retriving cluster state for : ["+clusterName+"]";
-            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.INTERNAL_SERVER_ERROR)).get());
-            // TODO: log the error instead of STDOUT -  also in ExceptionResponse
-            // LOG.error(ExceptionUtil.getStackTrace(e));
         }
         return this.operational_clusters.get(clusterName).getClusterState();
     }
