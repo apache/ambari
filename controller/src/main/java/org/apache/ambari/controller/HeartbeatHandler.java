@@ -58,9 +58,7 @@ public class HeartbeatHandler {
   
   private Map<String, ControllerResponse> agentToHeartbeatResponseMap = 
       Collections.synchronizedMap(new HashMap<String, ControllerResponse>());
-  
-  private RetryCountForRoleServerAction retryCountForRole = new RetryCountForRoleServerAction();
-  
+    
   final short MAX_RETRY_COUNT = 3;
   
   public ControllerResponse processHeartBeat(HeartBeat heartbeat) 
@@ -110,7 +108,7 @@ public class HeartbeatHandler {
           inspectAgentState(heartbeat, clusterContext, 
               componentServers, clusterFsm);
 
-      
+      checkActionResults(cluster, clusterFsm, heartbeat, allActions);
       //the state machine reference to the services
       List<ServiceFSM> clusterServices = clusterFsm.getServices();
       //go through all the services, and check which role should be started
@@ -135,22 +133,13 @@ public class HeartbeatHandler {
               continue;
             }
             if (!roleServerRunning) {
-              short retryCount = retryCountForRole.get(hostname,role.getRoleName());
-              if (retryCount > MAX_RETRY_COUNT) {
-                //LOG the failure to start the role server
-                StateMachineInvoker.getAMBARIEventHandler()
-                .handle(new RoleEvent(RoleEventType.START_FAILURE, role));
-                retryCountForRole.resetAttemptCount(hostname,role.getRoleName());
-                continue;
-              }
+              //TODO: keep track of retries (via checkActionResults)
               List<Action> actions = 
                   plugin.startRoleServer(clusterContext, role.getRoleName());
               allActions.addAll(actions);
-              retryCountForRole.incrAttemptCount(hostname,role.getRoleName());
             }
             //raise an event to the state machine for a successful role-start
             if (roleServerRunning) {
-              retryCountForRole.resetAttemptCount(hostname,role.getRoleName());
               StateMachineInvoker.getAMBARIEventHandler()
               .handle(new RoleEvent(RoleEventType.START_SUCCESS, role));
             }
@@ -158,22 +147,13 @@ public class HeartbeatHandler {
           //check whether the agent should stop any server
           if (role.shouldStop()) {
             if (roleServerRunning) {
-              short retryCount = retryCountForRole.get(hostname,role.getRoleName());
-              if (retryCount > MAX_RETRY_COUNT) {
-                //LOG the failure to stop the role server
-                StateMachineInvoker.getAMBARIEventHandler()
-                .handle(new RoleEvent(RoleEventType.STOP_FAILURE, role));
-                retryCountForRole.resetAttemptCount(hostname,role.getRoleName());
-                continue;
-              }
+              //TODO: keep track of retries (via checkActionResults)
               List<Action> actions = 
                   plugin.stopRoleServer(clusterContext, role.getRoleName());
               allActions.addAll(actions);
-              retryCountForRole.incrAttemptCount(hostname,role.getRoleName());
             }
             //raise an event to the state machine for a successful role-stop
             if (!roleServerRunning) {
-              retryCountForRole.resetAttemptCount(hostname,role.getRoleName());
               StateMachineInvoker.getAMBARIEventHandler()
               .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
             }
@@ -184,7 +164,6 @@ public class HeartbeatHandler {
             }
           }
         }
-        checkActionResults(service, cluster, heartbeat, allActions);
       }
     }
     ControllerResponse r = new ControllerResponse();
@@ -237,25 +216,6 @@ public class HeartbeatHandler {
     }
   }
   
-  private static class RetryCountForRoleServerAction {
-    //currently handles only one role start at a time on a node
-    //fix this to take care of multiple roles started in parallel 
-    //on a node
-    private Map<String, Short> countMap = new HashMap<String, Short>();
-    public short get(String hostname, String role) {
-      return countMap.get(hostname+role);
-    }
-    public void incrAttemptCount(String hostname, String role) {
-      Short currentCount = 0;
-      if ((currentCount = countMap.get(hostname+role)) == null) {
-        currentCount = 0;
-      }
-      countMap.put(hostname, (short) (currentCount + 1));
-    }
-    public void resetAttemptCount(String hostname, String role) {
-      countMap.remove(hostname+role);
-    }
-  }
   
   private final static String SERVICE_AVAILABILITY_CHECK_ID = 
       "SERVICE_AVAILABILITY_CHECK_ID";
@@ -267,32 +227,37 @@ public class HeartbeatHandler {
     return id;
   }
   
-  private static void checkActionResults(ServiceFSM service, Cluster cluster,
-      HeartBeat heartbeat, List<Action> allActions) {
-    //see whether the service is in the STARTED state, and if so,
-    //check whether there is any action-result that indicates success
-    //of the availability check (safemode, etc.)
-    if (service.getServiceState() == ServiceState.STARTED) {
-      //TODO: check with plugin whether this node can run the health-check
-      String id = getActionIDForServiceAvailability(cluster, service);
-      boolean serviceActivated = false;
-      for (ActionResult result : heartbeat.getActionResults()) {
-        if (result.getId().equals(id)) {
-          if (result.getCommandResult().getExitCode() == 0) {
-            StateMachineInvoker.getAMBARIEventHandler().handle(
-               new ServiceEvent(ServiceEventType.AVAILABLE_CHECK_SUCCESS,
-                   service));
-            serviceActivated = true;
+  private static void checkActionResults(Cluster cluster,
+      ClusterFSM clusterFsm, HeartBeat heartbeat, List<Action> allActions) {
+    //this method should check things like number of retries (based on action-IDs)
+    //etc. this method should note issues like too many failures starting
+    //a role, etc.
+    for (ServiceFSM service : clusterFsm.getServices()) {    
+      //see whether the service is in the STARTED state, and if so,
+      //check whether there is any action-result that indicates success
+      //of the availability check (safemode, etc.)
+      if (service.getServiceState() == ServiceState.STARTED) {
+        //TODO: check with plugin whether this role/node can run the service availability-check
+        String id = getActionIDForServiceAvailability(cluster, service);
+        boolean serviceActivated = false;
+        for (ActionResult result : heartbeat.getActionResults()) {
+          if (result.getId().equals(id)) {
+            if (result.getCommandResult().getExitCode() == 0) {
+              StateMachineInvoker.getAMBARIEventHandler().handle(
+                  new ServiceEvent(ServiceEventType.AVAILABLE_CHECK_SUCCESS,
+                      service));
+              serviceActivated = true;
+            }
+            break;
           }
-          break;
         }
+        //TODO: check with plugin whether this node can run the health-check (OWEN)
+        //      if (!serviceActivated) {
+        //        Action action = plugin.getAvailabilityCheck(cluster.getLatestClusterDefinition().getName()));
+        //        action.setId(id);
+        //        allActions.add(action);
+        //      }
       }
-      //TODO: check with plugin whether this node can run the health-check (OWEN)
-//      if (!serviceActivated) {
-//        Action action = plugin.getAvailabilityCheck(cluster.getLatestClusterDefinition().getName()));
-//        action.setId(id);
-//        allActions.add(action);
-//      }
     }
   }
   
