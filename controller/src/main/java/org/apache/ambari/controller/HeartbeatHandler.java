@@ -99,24 +99,30 @@ public class HeartbeatHandler {
       
       String desiredClusterId = cluster.getID();
       
-      StartedComponentServers componentServers = new StartedComponentServers();
-
+      InstalledOrStartedComponents componentServers = new InstalledOrStartedComponents();
+      //get the state machine reference to the cluster
+      ClusterFSM clusterFsm = StateMachineInvoker
+          .getStateMachineClusterInstance(desiredClusterId);
+      
       //get the list of uninstall actions
       //create a map from component/role to 'started' for easy lookup later
       allActions = 
-          getStopAndUninstallActions(heartbeat, clusterContext, 
-              componentServers);
+          inspectAgentState(heartbeat, clusterContext, 
+              componentServers, clusterFsm);
 
-      //get the state machine reference to the cluster
-      ClusterFSM clusterSMobject = StateMachineInvoker
-          .getStateMachineClusterInstance(desiredClusterId);
+      
       //the state machine reference to the services
-      List<ServiceFSM> clusterServices = clusterSMobject.getServices();
+      List<ServiceFSM> clusterServices = clusterFsm.getServices();
       //go through all the services, and check which role should be started
+      //TODO: Given that we already look at what is running/installed in 
+      //inspectAgentState, having this for loop is inefficient. We
+      //should combine the two aspects.
       for (ServiceFSM service : clusterServices) {
         List<RoleFSM> roles = service.getRoles();
         
         for (RoleFSM role : roles) {
+          boolean roleInstalled = componentServers.isInstalled(
+              role.getAssociatedService().getServiceName(), role.getRoleName());       
           boolean roleServerRunning = componentServers.isStarted(
               role.getAssociatedService().getServiceName(),
               role.getRoleName());
@@ -124,6 +130,10 @@ public class HeartbeatHandler {
           HDFSPluginImpl plugin = new HDFSPluginImpl();
           //check whether the agent should start any server
           if (role.shouldStart()) {
+            if (!roleInstalled) {
+              allActions.addAll(plugin.install(clusterContext));
+              continue;
+            }
             if (!roleServerRunning) {
               short retryCount = retryCountForRole.get(hostname,role.getRoleName());
               if (retryCount > MAX_RETRY_COUNT) {
@@ -167,6 +177,11 @@ public class HeartbeatHandler {
               StateMachineInvoker.getAMBARIEventHandler()
               .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
             }
+            if (roleInstalled && 
+                clusterFsm.getClusterState()
+                  .equals(ClusterState.CLUSTER_STATE_ATTIC)) {
+              allActions.addAll(plugin.uninstall(clusterContext));
+            }
           }
         }
         checkActionResults(service, cluster, heartbeat, allActions);
@@ -179,28 +194,46 @@ public class HeartbeatHandler {
     return r;
   }
   
-  private static class StartedComponentServers {
+  private static class InstalledOrStartedComponents {
     //Convenience class to aid in heartbeat processing
-    private Map<String, Map<String, Boolean>> startedComponentServerMap =
-        new HashMap<String, Map<String, Boolean>>();
+    //TODO: do this in a better way (define Map, etc.)
+    private enum State {INSTALLED,STARTED}
+    private Map<String, Map<String, State>> componentServerMap =
+        new HashMap<String, Map<String, State>>();
+    void roleInstalled(String component, String role) {
+      recordState(component,role,State.INSTALLED);
+    }
     void roleServerStarted(String component, String roleServer) {
-      Map<String, Boolean> serverStartedMap = null;
-      if ((serverStartedMap = startedComponentServerMap.get(component))
-          != null) {
-        serverStartedMap.put(roleServer, true);
-        return;
-      }
-      serverStartedMap = new HashMap<String, Boolean>();
-      serverStartedMap.put(roleServer, true);
-      startedComponentServerMap.put(component, serverStartedMap);
+      recordState(component,roleServer,State.STARTED);
     }
     boolean isStarted(String component, String server) {
-      Map<String, Boolean> startedServerMap;
-      if ((startedServerMap=startedComponentServerMap.get(component)) 
+      Map<String, State> startedServerMap;
+      if ((startedServerMap = componentServerMap.get(component)) 
           != null) {
-        return startedServerMap.get(server) != null;
+        State state = startedServerMap.get(server);
+        return state == State.STARTED;
       }
       return false;
+    }
+    boolean isInstalled(String component, String role) {
+      Map<String, State> startedServerMap;
+      if ((startedServerMap = componentServerMap.get(component)) 
+          != null) {
+        State state = startedServerMap.get(role);
+        return state == State.STARTED || state == State.INSTALLED;
+      }
+      return false;
+    }
+    void recordState(String component, String roleServer, State state) {
+      Map<String, State> serverStartedMap = null;
+      if ((serverStartedMap = componentServerMap.get(component))
+          != null) {
+        serverStartedMap.put(roleServer, state);
+        return;
+      }
+      serverStartedMap = new HashMap<String, State>();
+      serverStartedMap.put(roleServer, state);
+      componentServerMap.put(component, serverStartedMap);
     }
   }
   
@@ -263,9 +296,9 @@ public class HeartbeatHandler {
     }
   }
   
-  private static List<Action> getStopAndUninstallActions(
+  private static List<Action> inspectAgentState(
       HeartBeat heartbeat, ClusterContext context, 
-      StartedComponentServers componentServers)
+      InstalledOrStartedComponents componentServers, ClusterFSM desiredCluster)
           throws IOException {
     List<AgentRoleState> agentRoleStates = 
         heartbeat.getInstalledRoleStates();
@@ -302,7 +335,8 @@ public class HeartbeatHandler {
         agentRoleState.getServerStatus() == AgentRoleState.State.STARTED) {
         Action action = new Action();
         action.setClusterId(agentRoleState.getClusterId());
-        action.setClusterDefinitionRevision(agentRoleState.getClusterDefinitionRevision());
+        action.setClusterDefinitionRevision(agentRoleState
+            .getClusterDefinitionRevision());
         action.setRole(agentRoleState.getRoleName());
         action.setComponent(agentRoleState.getComponentName());
         action.setKind(Kind.STOP_ACTION);
@@ -315,11 +349,16 @@ public class HeartbeatHandler {
         List<Action> uninstallAction = plugin.uninstall(context);
         killAndUninstallCmds.addAll(uninstallAction);
       }
-      if (!stopRole && !uninstall && 
-          agentRoleState.getServerStatus() == AgentRoleState.State.STARTED) {
-        //make a note of the fact that a server is running for reference later
-        componentServers.roleServerStarted(agentRoleState.getComponentName(), 
+      if (!stopRole && !uninstall) {
+        //this must be one of the roles we care about
+        componentServers.roleInstalled(agentRoleState.getComponentName(), 
+            agentRoleState.getRoleName());
+        if (agentRoleState.getServerStatus() == AgentRoleState.State.STARTED) {
+          //make a note of the fact that a server is running for reference
+          //later
+          componentServers.roleServerStarted(agentRoleState.getComponentName(), 
               agentRoleState.getRoleName());
+        }
       }
     }
     return killAndUninstallCmds;
