@@ -116,12 +116,13 @@ public class HeartbeatHandler {
         
         for (RoleFSM role : roles) {
           boolean roleInstalled = componentServers.isInstalled(
-              role.getAssociatedService().getServiceName(), role.getRoleName());       
+             role.getAssociatedService().getServiceName(), role.getRoleName());     
           boolean roleServerRunning = componentServers.isStarted(
               role.getAssociatedService().getServiceName(),
               role.getRoleName());
           //TODO: get reference to the plugin impl for this service/component
-          ComponentPlugin plugin = cluster.getComponentDefinition(service.getServiceName());
+          ComponentPlugin plugin = 
+              cluster.getComponentDefinition(service.getServiceName());
           //check whether the agent should start any server
           if (role.shouldStart()) {
             if (!roleInstalled) {
@@ -131,11 +132,9 @@ public class HeartbeatHandler {
             }
             if (!roleServerRunning) {
               //TODO: keep track of retries (via checkActionResults)
-              Action actions = 
-		plugin.startServer(cluster.getName(), role.getRoleName());
-              if (actions != null) {
-                allActions.add(actions);
-	      }
+              Action action = 
+                  plugin.startServer(cluster.getName(), role.getRoleName());
+              addAction(action, allActions);
             }
             //raise an event to the state machine for a successful role-start
             if (roleServerRunning) {
@@ -147,7 +146,10 @@ public class HeartbeatHandler {
           if (role.shouldStop()) {
             if (roleServerRunning) {
               //TODO: keep track of retries (via checkActionResults)
-              //TODO: addin stop server actions
+              addAction(getStopRoleAction(cluster.getID(), 
+                  cluster.getLatestRevision(), 
+                  role.getAssociatedService().getServiceName(), 
+                  role.getRoleName()), allActions);
             }
             //raise an event to the state machine for a successful role-stop
             if (!roleServerRunning) {
@@ -159,9 +161,7 @@ public class HeartbeatHandler {
                   .equals(ClusterState.CLUSTER_STATE_ATTIC)) {
               Action action = plugin.uninstall(cluster.getName(), 
                                                role.getRoleName());
-              if (action != null) {
-                allActions.add(action);
-              }
+              addAction(action, allActions);
             }
           }
         }
@@ -262,7 +262,7 @@ public class HeartbeatHandler {
     }
   }
   
-  private static List<Action> inspectAgentState(
+  private List<Action> inspectAgentState(
       HeartBeat heartbeat, Cluster cluster, 
       InstalledOrStartedComponents componentServers, ClusterFSM desiredCluster)
           throws IOException {
@@ -299,15 +299,10 @@ public class HeartbeatHandler {
       if (stopRole && 
         //TODO: not sure whether this state requires to be checked...
         agentRoleState.getServerStatus() == AgentRoleState.State.STARTED) {
-        Action action = new Action();
-        action.setClusterId(agentRoleState.getClusterId());
-        action.setClusterDefinitionRevision(agentRoleState
-            .getClusterDefinitionRevision());
-        action.setRole(agentRoleState.getRoleName());
-        action.setComponent(agentRoleState.getComponentName());
-        action.setKind(Kind.STOP_ACTION);
-        action.setSignal(Signal.KILL);
-        killAndUninstallCmds.add(action);
+        addAction(getStopRoleAction(agentRoleState.getClusterId(), 
+            agentRoleState.getClusterDefinitionRevision(), 
+            agentRoleState.getComponentName(), agentRoleState.getRoleName()),
+            killAndUninstallCmds);
       }
       if (uninstall) {
         //TODO: get reference to the plugin impl for this service/component
@@ -315,7 +310,7 @@ public class HeartbeatHandler {
             cluster.getComponentDefinition(agentRoleState.getComponentName());
         Action uninstallAction = 
             plugin.uninstall(cluster.getName(), agentRoleState.getRoleName());
-        killAndUninstallCmds.add(uninstallAction);
+        addAction(uninstallAction, killAndUninstallCmds);
       }
       if (!stopRole && !uninstall) {
         //this must be one of the roles we care about
@@ -330,5 +325,23 @@ public class HeartbeatHandler {
       }
     }
     return killAndUninstallCmds;
+  }
+  
+  private void addAction(Action action, List<Action> allActions) {
+    if (action != null) {
+      allActions.add(action);
+    }
+  }
+  
+  private Action getStopRoleAction(String clusterId, long clusterRev, 
+      String componentName, String roleName) {
+    Action action = new Action();
+    action.setClusterId(clusterId);
+    action.setClusterDefinitionRevision(clusterRev);
+    action.setRole(roleName);
+    action.setComponent(componentName);
+    action.setKind(Kind.STOP_ACTION);
+    action.setSignal(Signal.KILL);
+    return action;
   }
 }
