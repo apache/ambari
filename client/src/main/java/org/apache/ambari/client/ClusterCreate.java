@@ -26,6 +26,8 @@ import java.util.Properties;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
@@ -97,6 +99,7 @@ public class ClusterCreate extends Command {
         Option nodes = OptionBuilder.create( "nodes" );
         
         OptionBuilder.withArgName( "blueprint_revision" );
+        OptionBuilder.isRequired();
         OptionBuilder.hasArg();
         OptionBuilder.withDescription(  "Blueprint revision, if not specified latest revision is used" );
         Option revision = OptionBuilder.create( "revision" );
@@ -191,6 +194,13 @@ public class ClusterCreate extends Command {
       return result;
     }
 
+    public void printClusterDefinition(ClusterDefinition def) throws Exception {
+        JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.ClusterDefinition.class);
+        Marshaller m = jc.createMarshaller();
+        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        m.marshal(def, System.out);
+    }
+    
     public void run() throws Exception {
         /* 
          * Parse the command line to get the command line arguments
@@ -227,9 +237,21 @@ public class ClusterCreate extends Command {
          */
         ClusterDefinition def = response.getEntity(ClusterDefinition.class);
         
-        System.out.println("CLUSTER NAME ["+def.getName()+"]");
-        System.out.println("CLUSTER DESC ["+def.getDescription()+"]");
+        /*
+         * If dry_run print the clsuter defn and return
+         */
+        if (line.hasOption("dry_run")) {
+            System.out.println("Cluster: ["+def.getName()+"] created. Mode: dry_run.\n");
+            printClusterDefinition(def);
+            return;
+        }
+        
+        /*
+         * If no wait, then print the cluster definition and return
+         */
         if (!line.hasOption("wait")) {
+           System.out.println("Cluster: ["+def.getName()+"] created.\n");
+           printClusterDefinition(def);
            return; 
         }
         
@@ -248,11 +270,11 @@ public class ClusterCreate extends Command {
             if (clusterState.getState().equals(def.getGoalState())) {
                 break;
             }
-            System.out.println("Waiting for cluster ["+def.getName()+"] to get to desired goalstate");
+            System.out.println("Waiting for cluster ["+def.getName()+"] to get to desired goalstate of ["+def.getGoalState()+"]");
             Thread.sleep(15 * 60000);
         }  
         
-        System.out.println("Cluster Goal State ["+def.getGoalState());
-        System.out.println("Cluster state ["+clusterState.getState());
+        System.out.println("Cluster: ["+def.getName()+"] created. Cluster state: ["+clusterState.getState()+"]\n");
+        printClusterDefinition(def);
     }
 }

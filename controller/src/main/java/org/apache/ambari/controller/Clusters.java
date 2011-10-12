@@ -31,7 +31,6 @@ import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
-import org.apache.ambari.common.util.ExceptionUtil;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
 import org.apache.ambari.resource.statemachine.StateMachineInvoker;
 import org.apache.commons.logging.Log;
@@ -156,7 +155,38 @@ public class Clusters {
         throw new CloneNotSupportedException();
     }
 
-
+    /*
+     * Rename the cluster
+     */
+    public void renameCluster(String clusterName, String new_name) throws Exception {
+        /*
+         * 
+         */
+        if (!this.operational_clusters.containsKey(clusterName)) {
+            String msg = "Cluster ["+clusterName+"] does not exits";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
+        }
+        
+        synchronized (operational_clusters) {
+            /*
+             * Check if cluster state is ATTAIC, If yes update the name
+             * don't make new revision of cluster definition as it is in ATTIC state
+             */
+            if (!this.operational_clusters.get(clusterName).getClusterState().getState().equals(ClusterState.CLUSTER_STATE_ATTIC)) {
+                String msg = "Cluster state is not ATTIC. Cluster is only allowed to be renamed in ATTIC state";
+                throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_ACCEPTABLE)).get());
+            }
+            
+            Cluster x = this.operational_clusters.get(clusterName);
+            x.getLatestClusterDefinition().setName(new_name);
+            this.operational_clusters.remove(clusterName);
+            this.operational_clusters.put(new_name, x);
+            this.operational_clusters_id_to_name.remove(x.getID());
+            this.operational_clusters_id_to_name.put(x.getID(), new_name);
+        }
+     
+    }
+    
     /* 
      * Add new Cluster to cluster list 
      * Validate the cluster definition
@@ -291,19 +321,20 @@ public class Clusters {
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
         
+        if (cdef.getBlueprintRevision() == null || cdef.getBlueprintRevision().equals("")) {
+            String msg = "Cluster blueprint revision must be specified";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
+        
         /* 
          * Populate the input cluster definition w/ default values
          */
-        if (cdef.getDescription() == null) { cdef.setDescription("Ambari cluster : ["+cdef.getName()+"]");
+        if (cdef.getDescription() == null) { cdef.setDescription("Ambari cluster : "+cdef.getName());
         }
         if (cdef.getGoalState() == null) { cdef.setGoalState(cdef.GOAL_STATE_INACTIVE);
         }
         
-        /*
-         * TODO: If blueprint revision is -1, then use latest blueprint revision.
-         */
-        if (cdef.getBlueprintRevision() == null) { cdef.setBlueprintRevision("-1");
-        }
+        // TODO: Add the list of active services by querying pluging component.
         if (cdef.getActiveServices() == null) {
             List<String> services = new ArrayList<String>();
             services.add("ALL");
@@ -546,6 +577,19 @@ public class Clusters {
             }  
             
             /*
+             * if Cluster goal state is ATTIC then no need to take any action other than
+             * updating the cluster definition.
+             */
+            if (newcd.getGoalState().equals(ClusterState.CLUSTER_STATE_ATTIC)) {
+                cls.getClusterState().setLastUpdateTime(new Date());
+                cls.addClusterDefinition(newcd);
+                /*
+                 * TODO: Persist the latest cluster definition under new revision
+                 */
+                return cls.getLatestClusterDefinition();
+            }
+            
+            /*
              * Validate the updated cluster definition
              */
             validateClusterDefinition(newcd);
@@ -576,6 +620,10 @@ public class Clusters {
             
             /*
              * TODO: Persist the latest cluster definition under new revision
+             */
+            
+            /*
+             * Invoke state machine event
              */
             ClusterFSM clusterFSM = StateMachineInvoker.
                 getStateMachineClusterInstance(cls.getID());

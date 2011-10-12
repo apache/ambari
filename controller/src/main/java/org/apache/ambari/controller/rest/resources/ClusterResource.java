@@ -99,6 +99,29 @@ public class ClusterResource {
     }
      
     /** 
+     * Rename the cluster.
+     * 
+     * @response.representation.200.doc 
+     * 
+     * @param   clusterName             Name of the cluster; Each cluster is identified w/ unique name
+     * @param   new_name                New name of the cluster
+     * @throws  Exception               throws Exception (TBD)
+     */ 
+    @PUT
+    @Consumes({"application/json", "application/xml"})
+    public void updateClusterDefinition(
+           @PathParam("clusterName") String clusterName,
+           @DefaultValue("") @QueryParam("new_name") String new_name) throws Exception {    
+        try {
+            Clusters.getInstance().renameCluster(clusterName, new_name);
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        }     
+    }
+    
+    /** 
      * Delete the the cluster.
      * 
      * @response.representation.200.doc Delete operation will lead the cluster 

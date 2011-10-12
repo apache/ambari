@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-61. Rename cluster REST API. (vgogate)
+
   AMBARI-59. Refactor to use clusterRevision instead of bluePrintName and 
   bluePrintRevision. (Eric Yang)
 
