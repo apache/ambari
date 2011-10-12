@@ -73,26 +73,18 @@ public class StateMachineInvoker {
   private static ConcurrentMap<String, ClusterFSM> clusters = 
       new ConcurrentHashMap<String, ClusterFSM>();
   
-  private static String getClusterKey(String clusterId,
-      long clusterDefinitionRev) {
-    return clusterId + clusterDefinitionRev;
-  }
-  
   public static ClusterFSM createCluster(Cluster cluster) throws IOException {
     ClusterImpl clusterFSM = new ClusterImpl(cluster);
-    clusters.put(getClusterKey(cluster.getID(), 
-        cluster.getLatestRevision()), clusterFSM);
+    clusters.put(cluster.getID(), clusterFSM);
     return clusterFSM;
   }
   
-  public static ClusterFSM getStateMachineClusterInstance(String clusterId,
-      long clusterDefinitionRev) {
-    return clusters.get(getClusterKey(clusterId, clusterDefinitionRev));
+  public static ClusterFSM getStateMachineClusterInstance(String clusterId) {
+    return clusters.get(clusterId);
   }
   
   public static ClusterState getClusterState(String clusterId,
       long clusterDefinitionRev) {
-    return clusters.get(getClusterKey(clusterId, clusterDefinitionRev))
-                     .getClusterState();
+    return clusters.get(clusterId).getClusterState();
   }
 }

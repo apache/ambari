@@ -97,8 +97,6 @@ public class HeartbeatHandler {
       //command more than once. In the future this could be improved
       //to reflect the command execution state more accurately.
       
-      long desiredClusterDefinitionRev =
-          cluster.getLatestRevision();
       String desiredClusterId = cluster.getID();
       
       StartedComponentServers componentServers = new StartedComponentServers();
@@ -111,8 +109,7 @@ public class HeartbeatHandler {
 
       //get the state machine reference to the cluster
       ClusterFSM clusterSMobject = StateMachineInvoker
-          .getStateMachineClusterInstance(desiredClusterId, 
-              desiredClusterDefinitionRev);
+          .getStateMachineClusterInstance(desiredClusterId);
       //the state machine reference to the services
       List<ServiceFSM> clusterServices = clusterSMobject.getServices();
       //go through all the services, and check which role should be started
@@ -280,8 +277,7 @@ public class HeartbeatHandler {
       boolean uninstall = false;
       
       ClusterFSM clusterFSM = StateMachineInvoker
-          .getStateMachineClusterInstance(agentRoleState.getClusterId(), 
-              agentRoleState.getClusterDefinitionRevision());
+          .getStateMachineClusterInstance(agentRoleState.getClusterId());
       if (clusterFSM == null) {
         //ask the agent to stop everything belonging to this role
         //since the controller can't be in a state where the clusterFSM
