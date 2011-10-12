@@ -22,7 +22,7 @@ import logging
 import logging.handlers
 import Queue
 import threading
-from FileUtil import writeFile
+from FileUtil import writeFile, createStructure, deleteStructure
 from shell import shellRunner
 import json
 import os
@@ -121,13 +121,13 @@ class ActionQueue(threading.Thread):
   def createStructureAction(self, action):
     result = self.genResult(action)
     result['exitCode'] = 0
-    return result
+    return createStructure(action, result)
 
   # Delete directory structure for cluster
   def deleteStructureAction(self, action):
     result = self.genResult(action)
     result['exitCode'] = 0
-    return result
+    return deleteStructure(action, result)
 
   # Handle unknown action
   def unknownAction(self, action):

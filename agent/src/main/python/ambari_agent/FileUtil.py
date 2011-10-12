@@ -25,12 +25,19 @@ import logging.handlers
 import getpass
 import os, errno
 import sys, traceback
+import ConfigParser
+import shutil
+import StringIO
 
 logger = logging.getLogger()
 
 def writeFile(action, result):
+  global config
+  oldCwd = os.getcwd()
   fileInfo = action['file']
   try:
+    path = config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
+    os.chdir(path)
     user=fileInfo['owner']
     group=fileInfo['group']
     filename=fileInfo['path']
@@ -62,14 +69,41 @@ def writeFile(action, result):
       os.chown(filename, user, group)
     os.umask(oldMask)
     result['exitCode'] = 0
-    return result
   except Exception, err:
     result['exitCode'] = 1
     result['stderr'] = traceback.format_exc()
-    return result
+  os.chdir(oldCwd)
+  return result
+
+def createStructure(action, result):
+  global config
+  try:
+    path = config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
+    os.makedirs(path+"/stack")
+    os.makedirs(path+"/logs")
+    os.makedirs(path+"/data")
+    os.makedirs(path+"/pkgs")
+    os.makedirs(path+"/config")
+    result['exitCode'] = 0
+  except Exception, err:
+    result['exitCode'] = 1
+    result['stderr'] = traceback.format_exc()
+  return result
+
+def deleteStructure(action, result):
+  global config
+  try:
+    path = config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
+    if os.path.exists(path):
+      shutil.rmtree(path)
+    result['exitCode'] = 0
+  except Exception, err:
+    result['exitCode'] = 1
+    result['stderr'] = traceback.format_exc()
+  return result
 
 def main():
-  config = {
+  configFile = {
     "data"       : "test", 
     "owner"      : os.getuid(), 
     "group"      : os.getgid() , 
@@ -77,10 +111,10 @@ def main():
     "path"       : "/tmp/ambari_file_test/_file_write_test", 
     "umask"      : 022 
   }
-  action = { 'file' : config }
+  action = { 'file' : configFile }
   result = { }
   print writeFile(action, result)
-  config = { 
+  configFile = { 
     "data"       : "test", 
     "owner"      : "eyang", 
     "group"      : "staff", 
@@ -89,8 +123,21 @@ def main():
     "umask"      : "022" 
   }
   result = { }
-  action = { 'file' : config }
+  action = { 'file' : configFile }
   print writeFile(action, result)
+
+  global config
+  config = ConfigParser.RawConfigParser()
+  content = """
+[agent]
+prefix=/tmp/ambari
+  """
+  s = StringIO.StringIO(content)
+  config.readfp(s);
+  action = { 'clusterId' : 'abc', 'role' : 'hdfs' }
+  result = {}
+  print createStructure(action, result)
+  print deleteStructure(action, result)
 
 if __name__ == "__main__":
   main()

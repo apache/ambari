@@ -58,6 +58,9 @@ def debug(sig, frame):
     logger.info(message)
       
 def main():
+  global config
+  default_cfg = { 'agent' : { 'prefix' : '/home/ambari' } }
+  config = ConfigParser.RawConfigParser(default_cfg)
   signal.signal(signal.SIGINT, signal_handler)
   signal.signal(signal.SIGTERM, signal_handler)
   signal.signal(signal.SIGUSR1, debug)
@@ -96,7 +99,6 @@ def main():
 
   # Check for ambari configuration file.
   if(os.path.exists('/etc/ambari/ambari.ini')):
-    config = ConfigParser.RawConfigParser()
     config.read('/etc/ambari/ambari.ini')
     try:
       credential = {}
@@ -109,9 +111,11 @@ def main():
   else:
     credential = None
     controllerUrl = "http://localhost:4080"
-  logger.info("Connecting to controller at:"+controllerUrl)
+  logger.info("Connecting to controller at: "+controllerUrl)
 
   # Launch Controller communication
+  print controllerUrl
+  print credential
   controller = Controller(controllerUrl, credential) 
   controller.start()
   controller.run()
