@@ -18,6 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+from pwd import getpwnam
+from grp import getgrnam
 import logging
 import logging.handlers
 import subprocess
@@ -33,16 +35,34 @@ logger = logging.getLogger()
 class shellRunner:
   # Run any command
   def run(self, script, user=None):
+    oldUid = os.getuid()
+    try:
+      if user!=None:
+        user=getpwnam(user)[2]
+        os.setuid(user)
+    except Exception:
+      logger.warn("can not switch user for RUN_COMMAND.")
     code = 0
     cmd = " "
     cmd = cmd.join(script)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
     out, err = p.communicate()
     code = p.wait()
+    try:
+      if user!=None:
+        os.setuid(oldUid)
+    except Exception:
+      logger.warn("can not restore user for RUN_COMMAND.")
     return {'exitCode': code, 'output': out, 'error': err}
 
   # dispatch action types
   def runAction(self, clusterId, component, role, user, command, cleanUpCommand, result):
+    oldUid = os.getuid()
+    try:
+      user=getpwnam(user)[2]
+      os.setuid(user)
+    except Exception:
+      logger.warn("%s %s %s can not switch user for RUN_ACTION." % (clusterId, component, role))
     code = 0
     cmd = sys.executable
     tempfilename = tempfile.mktemp()
@@ -78,11 +98,21 @@ class shellRunner:
       cleanUpResult['exitCode'] = cleanUpCode
       result['cleanUpResult'] = cleanUpResult
       os.unlink(tempfilename)
+    try:
+      os.setuid(oldUid)
+    except Exception:
+      logger.warn("%s %s %s can not restore user for RUN_ACTION." % (clusterId, component, role))
     return result
 
   # Start a process and presist its state
   def startProcess(self, clusterId, clusterDefinitionRevision, component, role, script, user, result):
     global serverTracker
+    oldUid = os.getuid()
+    try:
+      user=getpwnam(user)[2]
+      os.setuid(user)
+    except Exception:
+      logger.warn("%s %s %s can not switch user for START_ACTION." % (clusterId, component, role))
     code = 0
     commandResult = {}
     process = clusterId+"/"+clusterDefinitionRevision+"/"+component+"/"+role
@@ -104,6 +134,10 @@ class shellRunner:
         serverTracker[process] = child_pid
         commandResult['exitCode'] = 0
       result['commandResult'] = commandResult
+    try:
+      os.setuid(oldUid)
+    except Exception:
+      logger.warn("%s %s %s can not restore user for START_ACTION." % (clusterId, component, role))
     return result
 
   # Stop a process and remove presisted state

@@ -20,23 +20,30 @@ limitations under the License.
 
 from pwd import getpwnam
 from grp import getgrnam
+import logging
+import logging.handlers
 import getpass
 import os, errno
 import sys, traceback
+
+logger = logging.getLogger()
 
 def writeFile(action, result):
   fileInfo = action['file']
   try:
     user=fileInfo['owner']
-    if isinstance(user, int)!=True:
-      user=getpwnam(user)[2]
     group=fileInfo['group']
-    if isinstance(group, int)!=True:
-      group=getgrnam(group)[2]
-    permission=int(fileInfo['permission'])
-    umask=int(fileInfo['umask'])
     filename=fileInfo['path']
     content=fileInfo['data']
+    try:
+      if isinstance(user, int)!=True:
+        user=getpwnam(user)[2]
+      if isinstance(group, int)!=True:
+        group=getgrnam(group)[2]
+    except Exception:
+      logger.warn("can not find user uid/gid: (%s/%s) for writing %s" % (user, group, filename))
+    permission=int(fileInfo['permission'])
+    umask=int(fileInfo['umask'])
     oldMask = os.umask(0)
     os.umask(int(umask))
     prefix = os.path.dirname(filename)
@@ -50,8 +57,9 @@ def writeFile(action, result):
     f = open(filename, 'w')
     f.write(content)
     f.close()
-    os.chmod(filename, permission)
-    os.chown(filename, user, group)
+    if os.getuid()==0:
+      os.chmod(filename, permission)
+      os.chown(filename, user, group)
     os.umask(oldMask)
     result['exitCode'] = 0
     return result
