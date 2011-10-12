@@ -134,7 +134,7 @@ public class Blueprints {
     /*
      * Get blueprint. If revision = -1 then return latest revision
      */
-    public Blueprint getBlueprint(String blueprintName, int revision) throws Exception {
+    public Blueprint getBlueprint(String blueprintName, int revision) {
         /*
          * If revision is -1, then return the latest revision
          */  

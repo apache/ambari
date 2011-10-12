@@ -18,24 +18,17 @@
 package org.apache.ambari.components;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.ambari.common.rest.entities.agent.Action;
 
 /**
- * A plug in that defines how to manage each component.
- * 
- * All commands must be idempotent, so that if they are replayed, they
- * work without failure.
+ * An interface for pluggable component definitions.
  */
 public abstract class ComponentPlugin {
   
-  /**
-   * Get the inactive roles for this component.
-   * @return the list of roles that need to be installed, but don't have servers.
-   * @throws IOException
-   */
-  public abstract String[] getInactiveRoles() throws IOException;
+  public abstract String getProvides();
+  
+  public abstract String getPackage();
   
   /**
    * Get the active roles (ie. with servers) for this component.
@@ -52,58 +45,58 @@ public abstract class ComponentPlugin {
   public abstract String[] getRequiredComponents() throws IOException;
   
   /**
-   * Is this component a service (ie. runs servers)?
-   * @return true if it has running servers
-   * @throws IOException
-   */
-  public abstract boolean isService() throws IOException;
-  
-  /**
    * Get the commands to write the configuration for this component.
    * @param cluster the cluster that is being configured
-   * @return the list of commands to run on each node
+   * @return the commands to run on each node
    * @throws IOException
    */
-  public abstract List<Action> writeConfiguration(ClusterContext cluster
-                                                  ) throws IOException;
+  public abstract Action configure(String cluster,
+                                   String role) throws IOException;
   
   /**
    * Get the commands to finalize the installation on the machine.
    * @param cluster the cluster that is being installed
-   * @return the list of commands to execute
+   * @return the commands to execute
    * @throws IOException
    */
-  public abstract List<Action> install(ClusterContext cluster
-                                       ) throws IOException;
+  public abstract Action install(String cluster,
+                                 String role) throws IOException;
   
   /**
    * Get the commands to start a role's server.
    * @param cluster the cluster that is being installed
    * @param role the role that needs to start running its server
-   * @return the list of commands to execute
+   * @return the commands to execute
    * @throws IOException
    */
-  public abstract List<Action> startRoleServer(ClusterContext cluster,
-                                               String role
-                                               ) throws IOException;
-
+  public abstract Action startServer(String cluster,
+                                     String role
+                                     ) throws IOException;
+  
   /**
-   * Get the commands to stop a role's server.
-   * @param cluster the cluster that is being installed
-   * @param role the role that needs to stop running its server
-   * @return the list of commands to execute
+   * Get the role that should run the check command.
+   * @return the role name
    * @throws IOException
    */
-  public abstract List<Action> stopRoleServer(ClusterContext cluster,
-                                              String role
-                                              ) throws IOException;
+  public abstract String runCheckRole() throws IOException;
+  
+  /**
+   * Get the commands to check whether the service is up
+   * @param clusterv the name of the cluster
+   * @param role the role that is being checked
+   * @return the commands to run on the agent
+   * @throws IOException
+   */
+  public abstract Action checkService(String cluster, 
+                                      String role) throws IOException;
 
   /**
    * Get the commands to run before the software is uninstalled.
    * @param cluster the cluster that is being uninstalled
-   * @return the list of commands to execute
+   * @return the commands to execute
    * @throws IOException
    */
-  public abstract List<Action> uninstall(ClusterContext cluster
-                                         ) throws IOException;
+  public abstract Action uninstall(String cluster,
+                                   String role
+                                   ) throws IOException;
 }

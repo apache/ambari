@@ -28,14 +28,16 @@ import org.apache.ambari.common.state.SingleArcTransition;
 import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
 import org.apache.ambari.components.ComponentPlugin;
-import org.apache.ambari.components.impl.HDFSPluginImpl;
+import org.apache.ambari.controller.Cluster;
+import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.event.EventHandler;
 
 public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
 
   private ServiceState myState;
-  private ClusterFSM cluster;
+  private ClusterFSM clusterFsm;
   private ComponentPlugin plugin;
+  private Cluster cluster;
   
   /* The state machine for the service looks like:
    * INACTIVE --S_START--> STARTING --S_START_SUCCESS--> STARTED
@@ -107,11 +109,13 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
   private final String serviceName;
   
   public ServiceImpl(ClusterFSM cluster, String serviceName) throws IOException {
-    this.cluster = cluster;
+    this.clusterFsm = cluster;
     this.serviceName = serviceName;
     this.myState = ServiceState.INACTIVE;
     //load plugin and get the roles and create them
-    this.plugin = new HDFSPluginImpl();
+    this.cluster = 
+        Clusters.getInstance().getClusterByID(cluster.getClusterID());
+    this.plugin = this.cluster.getComponentDefinition(serviceName);
     String[] roles = this.plugin.getActiveRoles();
     for (String role : roles) {
       RoleImpl roleImpl = new RoleImpl(this, role);
@@ -137,7 +141,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
 
   @Override
   public ClusterFSM getAssociatedCluster() {
-    return cluster;
+    return clusterFsm;
   }
   
   @Override

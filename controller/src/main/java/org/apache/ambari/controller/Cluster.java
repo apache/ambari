@@ -18,9 +18,17 @@
 package org.apache.ambari.controller;
 
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
+import org.apache.ambari.common.rest.entities.Component;
+import org.apache.ambari.components.ComponentPlugin;
+import org.apache.ambari.components.impl.XmlComponentDefinition;
 
 
 public class Cluster {
@@ -29,7 +37,7 @@ public class Cluster {
     /*
      * Latest revision of cluster definition
      */
-    protected long latestRevision;
+    private long latestRevision = 0;
     
     /**
      * @return the latestRevision
@@ -41,9 +49,12 @@ public class Cluster {
     /*
      * Map of cluster revision to cluster definition
      */
-    protected ConcurrentHashMap<Long, ClusterDefinition> clusterDefinitionRevisionsList = null;
-    protected ClusterState clusterState;
-    
+    private final Map<Long, ClusterDefinition> clusterDefinitionRevisionsList = 
+        new ConcurrentHashMap<Long, ClusterDefinition>();
+    private ClusterState clusterState;
+    private ClusterDefinition definition;
+    private final Map<String, ComponentPlugin> plugins =
+        new HashMap<String, ComponentPlugin>();
     
     /**
      * @return the iD
@@ -62,35 +73,46 @@ public class Cluster {
     /**
      * @return the clusterDefinition
      */
-    public ClusterDefinition getClusterDefinition(long revision) {
+    public synchronized ClusterDefinition getClusterDefinition(long revision) {
         return clusterDefinitionRevisionsList.get(revision);
     }
     
     /**
      * @return the latest clusterDefinition
      */
-    public ClusterDefinition getLatestClusterDefinition() {
-        return clusterDefinitionRevisionsList.get(this.latestRevision);
+    public synchronized ClusterDefinition getLatestClusterDefinition() {
+        return definition;
     }
     
     /**
      * @return Add Cluster definition
      */
-    public void addClusterDefinition(ClusterDefinition c) {
-        if (clusterDefinitionRevisionsList == null) {
-            clusterDefinitionRevisionsList = new ConcurrentHashMap<Long, ClusterDefinition>();
-            clusterDefinitionRevisionsList.put((long)0, c);
-            this.latestRevision = 0;
-        } else {
-            this.latestRevision++;
-            clusterDefinitionRevisionsList.put((long)this.latestRevision, c);
+    public synchronized 
+    void addClusterDefinition(ClusterDefinition c) throws IOException {
+      this.latestRevision++;
+      clusterDefinitionRevisionsList.put((long)this.latestRevision, c);
+      definition = c;
+      // find the plugins for the current definition of the cluster
+      Blueprints context = Blueprints.getInstance();
+      Blueprint bp = context.getBlueprint(c.getBlueprintName(),
+                                   Integer.parseInt(c.getBlueprintRevision()));
+      while (bp != null) {
+        for(Component comp: bp.getComponents()) {
+          String name = comp.getName();
+          if (!plugins.containsKey(name) && comp.getDefinition() != null) {
+            plugins.put(name, new XmlComponentDefinition(comp.getDefinition()));
+          }
         }
+        // go up to the parent
+        bp = context.getBlueprint(bp.getParentName(), 
+                                  Integer.parseInt(bp.getParentRevision()));
+      }
     }
     
     /**
      * @return the clusterDefinitionList
      */
-    public ConcurrentHashMap<Long, ClusterDefinition> getClusterDefinitionRevisionsList() {
+    public Map<Long, ClusterDefinition> getClusterDefinitionRevisionsList() {
         return clusterDefinitionRevisionsList;
     }
 
@@ -107,5 +129,17 @@ public class Cluster {
     public void setClusterState(ClusterState clusterState) {
             this.clusterState = clusterState;
     }
-        
+    
+    public synchronized String getName() {
+      return definition.getName();
+    }
+
+    public synchronized Iterable<String> getComponents() {
+      return plugins.keySet();
+    }
+    
+    public synchronized 
+    ComponentPlugin getComponentDefinition(String component) {
+      return plugins.get(component);
+    }
 }

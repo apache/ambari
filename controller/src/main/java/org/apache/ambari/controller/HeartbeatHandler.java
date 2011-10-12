@@ -41,9 +41,7 @@ import org.apache.ambari.common.rest.entities.agent.AgentRoleState;
 import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
 import org.apache.ambari.common.rest.entities.agent.HeartBeat;
 import org.apache.ambari.common.rest.entities.agent.Action.Signal;
-import org.apache.ambari.components.ClusterContext;
-import org.apache.ambari.components.impl.ClusterContextImpl;
-import org.apache.ambari.components.impl.HDFSPluginImpl;
+import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
 import org.apache.ambari.resource.statemachine.RoleFSM;
 import org.apache.ambari.resource.statemachine.RoleEvent;
@@ -85,7 +83,6 @@ public class HeartbeatHandler {
     
     Cluster cluster = 
         Clusters.getInstance().getClusterByID(state.getClusterID());
-    ClusterContext clusterContext = new ClusterContextImpl(cluster, node);
     
     List<Action> allActions = new ArrayList<Action>();
     
@@ -105,8 +102,7 @@ public class HeartbeatHandler {
       //get the list of uninstall actions
       //create a map from component/role to 'started' for easy lookup later
       allActions = 
-          inspectAgentState(heartbeat, clusterContext, 
-              componentServers, clusterFsm);
+          inspectAgentState(heartbeat, cluster, componentServers, clusterFsm);
 
       checkActionResults(cluster, clusterFsm, heartbeat, allActions);
       //the state machine reference to the services
@@ -125,18 +121,21 @@ public class HeartbeatHandler {
               role.getAssociatedService().getServiceName(),
               role.getRoleName());
           //TODO: get reference to the plugin impl for this service/component
-          HDFSPluginImpl plugin = new HDFSPluginImpl();
+          ComponentPlugin plugin = cluster.getComponentDefinition(service.getServiceName());
           //check whether the agent should start any server
           if (role.shouldStart()) {
             if (!roleInstalled) {
-              allActions.addAll(plugin.install(clusterContext));
+              Action action = plugin.install(cluster.getName(), 
+                                             role.getRoleName());
               continue;
             }
             if (!roleServerRunning) {
               //TODO: keep track of retries (via checkActionResults)
-              List<Action> actions = 
-                  plugin.startRoleServer(clusterContext, role.getRoleName());
-              allActions.addAll(actions);
+              Action actions = 
+		plugin.startServer(cluster.getName(), role.getRoleName());
+              if (actions != null) {
+                allActions.add(actions);
+	      }
             }
             //raise an event to the state machine for a successful role-start
             if (roleServerRunning) {
@@ -148,19 +147,21 @@ public class HeartbeatHandler {
           if (role.shouldStop()) {
             if (roleServerRunning) {
               //TODO: keep track of retries (via checkActionResults)
-              List<Action> actions = 
-                  plugin.stopRoleServer(clusterContext, role.getRoleName());
-              allActions.addAll(actions);
+              //TODO: addin stop server actions
             }
             //raise an event to the state machine for a successful role-stop
             if (!roleServerRunning) {
               StateMachineInvoker.getAMBARIEventHandler()
-              .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
+                .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
             }
             if (roleInstalled && 
                 clusterFsm.getClusterState()
                   .equals(ClusterState.CLUSTER_STATE_ATTIC)) {
-              allActions.addAll(plugin.uninstall(clusterContext));
+              Action action = plugin.uninstall(cluster.getName(), 
+                                               role.getRoleName());
+              if (action != null) {
+                allActions.add(action);
+              }
             }
           }
         }
@@ -262,7 +263,7 @@ public class HeartbeatHandler {
   }
   
   private static List<Action> inspectAgentState(
-      HeartBeat heartbeat, ClusterContext context, 
+      HeartBeat heartbeat, Cluster cluster, 
       InstalledOrStartedComponents componentServers, ClusterFSM desiredCluster)
           throws IOException {
     List<AgentRoleState> agentRoleStates = 
@@ -310,9 +311,11 @@ public class HeartbeatHandler {
       }
       if (uninstall) {
         //TODO: get reference to the plugin impl for this service/component
-        HDFSPluginImpl plugin = new HDFSPluginImpl();
-        List<Action> uninstallAction = plugin.uninstall(context);
-        killAndUninstallCmds.addAll(uninstallAction);
+        ComponentPlugin plugin = 
+            cluster.getComponentDefinition(agentRoleState.getComponentName());
+        Action uninstallAction = 
+            plugin.uninstall(cluster.getName(), agentRoleState.getRoleName());
+        killAndUninstallCmds.add(uninstallAction);
       }
       if (!stopRole && !uninstall) {
         //this must be one of the roles we care about

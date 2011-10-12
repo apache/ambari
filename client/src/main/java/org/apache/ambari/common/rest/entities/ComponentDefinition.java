@@ -83,4 +83,14 @@ public class ComponentDefinition {
   public void setVersion(String version) {
     this.version = version;
   }
+  
+  public String toString() {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(group);
+    buffer.append('.');
+    buffer.append(definition);
+    buffer.append('@');
+    buffer.append(version);
+    return buffer.toString();
+  }
 }
