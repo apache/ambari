@@ -134,6 +134,10 @@ Cluster Commands
 
       * <<--blueprint>> [ BLUEPRINT NAME ]   
 
+      * <<--blueprint_revision>> [ BLUEPRINT REVISION ] <<[REQUIRED]>>
+
+        * Revision of the blueprint. If not specified latest one is used.
+
       * <<--goalstate>> [ACTIVE/INACTIVE/ATTIC]
 
       * <<--services>> [component, component, component]    

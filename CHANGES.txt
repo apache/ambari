@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-63. Implement cluster update, rename and delete CLI commands (vgogte)
+
   AMBARI-62. Adds the install/uninstall checks in the heartbeat handler (ddas)
 
   AMBARI-60. Added permission check for RUN_ACTION, and WRITE_FILE_ACTION. (Eric Yang)

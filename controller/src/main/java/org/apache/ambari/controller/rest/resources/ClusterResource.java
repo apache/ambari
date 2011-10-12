@@ -109,6 +109,7 @@ public class ClusterResource {
      */ 
     @PUT
     @Consumes({"application/json", "application/xml"})
+    @Path(value = "/rename")
     public void updateClusterDefinition(
            @PathParam("clusterName") String clusterName,
            @DefaultValue("") @QueryParam("new_name") String new_name) throws Exception {    

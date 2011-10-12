@@ -163,8 +163,13 @@ public class Clusters {
          * 
          */
         if (!this.operational_clusters.containsKey(clusterName)) {
-            String msg = "Cluster ["+clusterName+"] does not exits";
+            String msg = "Cluster ["+clusterName+"] does not exist";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
+        }
+        
+        if (new_name == null || new_name.equals("")) {
+            String msg = "New name of the cluster should be specified as query parameter, (?new_name=xxxx)";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
         
         synchronized (operational_clusters) {
@@ -191,7 +196,7 @@ public class Clusters {
      * Add new Cluster to cluster list 
      * Validate the cluster definition
      * Lock the cluster list
-     *   -- Check if cluster with given name already exits?
+     *   -- Check if cluster with given name already exist?
      *   -- Set the cluster state and timestamps 
      *   -- Reserve the nodes. i.e. add the cluster and role referenes to Node
      *   -- Throw exception, if some nodes are already preallocated to other cluster.
@@ -209,10 +214,10 @@ public class Clusters {
         
         synchronized (operational_clusters) {
             /* 
-             * Check if cluster already exists
+             * Check if cluster already exist
              */
             if (operational_clusters.containsKey(cdef.getName())) {
-                String msg = "Cluster ["+cdef.getName()+"] already exists";
+                String msg = "Cluster ["+cdef.getName()+"] already exist";
                 throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.CONFLICT)).get());
             }
  
@@ -503,8 +508,8 @@ public class Clusters {
 
     /* 
      * Update cluster definition 
-     * TODO: Update to nodes or NodeToRoles, what if key service nodes are removed or replaced by
-     * other nodes? Does system allow this? 
+     * TODO: As nodes or role to node association changes, validate key services nodes are not removed
+     * TODO: Don't allow update of blueprint name/version if cluster is in ACTIVE/INACTIVE state
     */
     public ClusterDefinition updateCluster(String clusterName, ClusterDefinition c, boolean dry_run) throws Exception {
         
@@ -517,10 +522,10 @@ public class Clusters {
         }
         
         /*
-         * Check if cluster already exists.  
+         * Check if cluster already exist.  
          */
         if (!this.operational_clusters.containsKey(clusterName)) {
-            String msg = "Cluster ["+clusterName+"] does not exits";
+            String msg = "Cluster ["+clusterName+"] does not exist";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         
@@ -531,6 +536,7 @@ public class Clusters {
         ClusterDefinition newcd = new ClusterDefinition ();
         
         synchronized (cls.getClusterDefinitionRevisionsList()) {
+            newcd.setName(clusterName);
             if (c.getBlueprintName() != null) {
                 newcd.setBlueprintName(c.getBlueprintName());
             } else {
@@ -701,7 +707,7 @@ public class Clusters {
      */
     public ClusterDefinition getClusterDefinition(String clusterName) throws Exception  {
         if (!this.operational_clusters.containsKey(clusterName)) {
-            String msg = "Cluster ["+clusterName+"] does not exits";
+            String msg = "Cluster ["+clusterName+"] does not exist";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         return this.operational_clusters.get(clusterName).getLatestClusterDefinition();
@@ -713,7 +719,7 @@ public class Clusters {
     */
     public ClusterState getClusterState(String clusterName) throws WebApplicationException {
         if (!this.operational_clusters.containsKey(clusterName)) {
-            String msg = "Cluster ["+clusterName+"] does not exits";
+            String msg = "Cluster ["+clusterName+"] does not exist";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         return this.operational_clusters.get(clusterName).getClusterState();
