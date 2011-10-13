@@ -303,9 +303,9 @@ Blueprint Commands
 
     * <<Options:>>
 
-      * <<--file>> [FILE_NAME]
+      * <<--location>> [FILE_PATH/URL]
 
-        * Specify file name of the blueprint to be imported into Ambari
+        * Specify local file path or the URL from where blueprint is to be imported into Ambari
 
   []
 

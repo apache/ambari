@@ -2,7 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
-  AMBARI-67. Implement cluster list, get CLI commands
+  AMBARI-68. Implement add blueprint CLI (vgogate)
+
+  AMBARI-67. Implement cluster list, get CLI commands (vgogate)
 
   AMBARI-65. Added directory structure actions. (Eric Yang)
 

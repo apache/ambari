@@ -56,7 +56,7 @@ public class BlueprintsResource {
      */
     @POST
     @Consumes ({"application/json"})
-    public Blueprint createBlueprint(@DefaultValue("") @QueryParam("locationURL") String locationURL, Blueprint blueprint) throws Exception {  
+    public Blueprint createBlueprint(@DefaultValue("") @QueryParam("url") String locationURL, Blueprint blueprint) throws Exception {  
         try {
             if (locationURL == null || locationURL.equals("")) {
                 return Blueprints.getInstance().addBlueprint(blueprint);
