@@ -2,6 +2,11 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-66. Implemented compatible package install/uninstall action for 
+  plugin. (Eric Yang)
+
+  AMBARI-69. Added skeleton for Ambari component plugin library. (Eric Yang)
+
   AMBARI-68. Implement add blueprint CLI (vgogate)
 
   AMBARI-67. Implement cluster list, get CLI commands (vgogate)

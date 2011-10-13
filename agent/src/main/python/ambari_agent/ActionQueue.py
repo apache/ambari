@@ -57,7 +57,7 @@ class ActionQueue(threading.Thread):
                      'RUN_ACTION'              : self.runAction,
                      'CREATE_STRUCTURE_ACTION' : self.createStructureAction,
                      'DELETE_STRUCTURE_ACTION' : self.deleteStructureAction,
-                     'WRITE_FILE_ACTION'       : self.writeFileAction,
+                     'WRITE_FILE_ACTION'       : self.writeFileAction
                    }
         result = switches.get(action['kind'], self.unknownAction)(action)
         # Update the result

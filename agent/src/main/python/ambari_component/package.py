@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import string
-from shell import shellRunner
+from ambari_agent.shell import shellRunner
 import os
 import sys
 import time
@@ -36,31 +36,38 @@ logger = logging.getLogger()
 q = Queue.Queue()
 
 class packageRunner:
-    hmsPrefix = '/home/hms'
-    softwarePrefix = '/home/hms/apps'
-    downloadDir = '/home/hms/var/cache/downloads/'
+    global config
+    ambariPrefix = config.get('agent','prefix')
+    softwarePrefix = config.get('agent','prefix')
+    downloadDir = config.get('agent','prefix')+'/var/cache/downloads/'
 
-    def install(self, packages, dryRun):
+    def install(self, cluster, role, packages, dryRun, result):
         try:
             for package in packages:
                 packageName=package['name']
                 if string.find(packageName, ".torrent")>0:
-                    self.torrentInstall(packageName, dryRun)
+                    self.torrentInstall(cluster, role, packageName, dryRun)
                 elif string.find(packageName, ".tar.gz")>0 or string.find(packageName, ".tgz")>0:
                     packageName = self.tarballDownload(packageName)
-                    self.tarballInstall(packageName)
+                    self.tarballInstall(cluster, role, packageName)
                 elif string.find(packageName, ".rpm")>0 and (string.find(packageName, "http://")==0 or string.find(packageName, "https://")==0):
                     rpmName = self.rpmDownload(packageName)
                     list = [ rpmName ]
                     test = self.rpmInstall(list)
                     if test['exit_code']!=0:
                         raise Exception(test['error'])
-                else:
+                elif string.find(packageName, "yum:///")==0):
+                    packageName = packageName[7:]
                     self.yumInstall(packageName, dryRun)
-            result = {'exit_code': 0, 'output': 'Install Successfully', 'error': ''}
+                else:
+                    raise Exception("Unknown package hanlding type:"+packageName)
+            result['exitCode']=0
+            result['output']='Install Successfully'
         except Exception, err:
             logger.exception(str(err))
-            result = {'exit_code': 1, 'output': packageName+" installation failed", 'error': str(err)}
+            result['exitCode']=0
+            result['output']=packageName+" installation failed"
+            result['error']=str(err)
         return result
     
     def remove(self, packages, dryRun):
@@ -68,7 +75,7 @@ class packageRunner:
             for package in packages:
                 packageName=package['name']
                 if string.find(packageName, ".tar.gz")>0 or string.find(package, ".tgz")>0:
-                    self.tarballRemove(packageName, dryRun)
+                    #self.tarballRemove(packageName, dryRun)
                 else:
                     self.yumRemove(packageName, dryRun)
             result = {'exit_code': 0, 'output': 'Remove Successfully', 'error': ''}
@@ -124,7 +131,7 @@ class packageRunner:
     def torrentDownload(self, package):
         sh = shellRunner()
         startTime = time.time()
-        script = ['transmission-daemon', '-y', '-O', '-M', '-w', packageRunner.downloadDir, '-g', packageRunner.hmsPrefix+'/var/cache/config']
+        script = ['transmission-daemon', '-y', '-O', '-M', '-w', packageRunner.downloadDir, '-g', packageRunner.ambariPrefix+'/var/cache/config']
         result = sh.run(script)
         for wait in [ 1, 1, 2, 2, 5 ]:
             script = ['transmission-remote', '-l']
@@ -135,11 +142,11 @@ class packageRunner:
 
         if result['exit_code']!=0:
             raise Exception('Unable to start transmission-daemon, exit_code:'+str(result['exit_code']))
-        script = ['transmission-remote', '-a', package, '--torrent-done-script', '/usr/bin/hms-torrent-callback']
+        script = ['transmission-remote', '-a', package, '--torrent-done-script', '/usr/bin/ambari-torrent-callback']
         result = sh.run(script)
         if result['exit_code']!=0:
             raise Exception('Unable to issue transmission-remote command')
-        trackerComplete = packageRunner.hmsPrefix+'/var/tmp/tracker'
+        trackerComplete = packageRunner.ambariPrefix+'/var/tmp/tracker'
         while True:
             if os.path.exists(trackerComplete):
                 break
@@ -169,7 +176,7 @@ class packageRunner:
                 break
         return {'exit_code': code, 'output': output, 'error': ''}
     
-    def torrentInstall(self, package, dryRun):
+    def torrentInstall(self, cluster, role, package, dryRun):
         if string.find(package, "http://")==0:
             urllib.urlretrieve(package, packageRunner.downloadDir+os.path.basename(package))
             tFile = packageRunner.downloadDir+os.path.basename(package)
@@ -185,7 +192,7 @@ class packageRunner:
                 if dryRun=='true':
                     continue
                 if string.find(p, ".tar.gz")>0:
-                    result = self.tarballInstall(p)
+                    result = self.tarballInstall(cluster, role, p)
                 elif string.find(p, ".rpm")>0:
                     list.append(packageRunner.downloadDir+p)
                 else:
@@ -208,56 +215,20 @@ class packageRunner:
         
     def tarballInfo(self, package):
         sh = shellRunner()
-        script = [ 'cat', packageRunner.hmsPrefix+'/var/repos/'+package+'/info' ]
+        script = [ 'cat', packageRunner.ambariPrefix+'/var/repos/'+package+'/info' ]
         return sh.run(script)
 
-    def tarballInstall(self, package):
+    def tarballInstall(self, cluster, role, package):
+        softwarePrefix = packageRunner.ambariPrefix+'/clusters/'+cluster+'-'+role+'/stack'
         sh = shellRunner()
-        src = packageRunner.hmsPrefix+'/var/cache/downloads/'+package
-        script = [ 'tar', 'fxz', src, '-C', packageRunner.softwarePrefix ]
+        src = packageRunner.ambariPrefix+'/var/cache/downloads/'+package
+        script = [ 'tar', 'fxz', src, '--strip-components', '1', '-C', softwarePrefix ]
         result = sh.run(script)
         if result['exit_code']!=0:
             err = 'Tarball decompress error, exit code: %d' % result['exit_code']
             raise Exception(err)
-#        script = [ packageRunner.hmsPrefix+'/var/repos/'+package+'/preinstall' ]
-#        result = sh.run(script)
-#        if result['exit_code']!=0:
-#            err = 'Preinstall script exit code: %d' % result['exit_code']
-#            raise Exception(err)
-#        script = [ 'tar', 'fxz', package, '-C', softwarePrefix ]
-#        result = sh.run(script)
-#        if result['exit_code']!=0:
-#            err = 'Tarball decompress error, exit code: %d' % result['exit_code']
-#            raise Exception(err)
-#        script = [ packageRunner.hmsPrefix+'/var/repos'+package+'/postinstall' ]
         return result
         
-    def tarballRemove(self, package, dryRun):
-        sh = shellRunner()
-        package = os.path.basename(package)
-        if string.find(package, '.tgz')!=-1:
-            package = package[:-4]            
-        elif string.find(package, '.tar.gz')!=-1:
-            package = package[:-7]
-        src = packageRunner.softwarePrefix+'/'+package
-        try:
-            if dryRun!='true':
-                shutil.rmtree(src)
-            else:
-                if os.path.exists(src)!=True:
-                    err = packageRunner.softwarePrefix+'/'+package+' does not exist.'
-                    raise Exception(err)
-            result = {'exit_code': 0, 'output': package+' deleted', 'error': ''}
-        except Exception, err:
-            result = {'exit_code': 1, 'output': 'Error in deleting '+package, 'error': str(err)}
-#        script = [ packageRunner.hmsPrefix+'/var/repos/'+package+'/prerm' ]
-#        result = sh.run(script)
-#        if result['exit_code']!=0:
-#            err = 'Pre-remove script exit code: %d' % result['exit_code']
-#            raise Exception(err)
-#        script = [ packageRunner.hmsPrefix+'/var/repos/'+package+'/postrm' ]
-        return result
-    
     def rpmInstall(self, packages):
         sh = shellRunner()
         list = ' '.join([str(x) for x in packages])

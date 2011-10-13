@@ -43,7 +43,10 @@ else:
 
 def signal_handler(signum, frame):
   logger.info('signal received, exiting.')
-  os.unlink(pidfile)
+  try:
+    os.unlink(pidfile)
+  except Exception:
+    logger.warn("Unable to remove: "+pidfile)
   os._exit(0)
 
 def debug(sig, frame):
@@ -86,7 +89,7 @@ def main():
     sys.exit(1)
   else:
     # Daemonize current instance of Ambari Agent
-    retCode = createDaemon()
+    #retCode = createDaemon()
     pid = str(os.getpid())
     file(pidfile, 'w').write(pid)
 
