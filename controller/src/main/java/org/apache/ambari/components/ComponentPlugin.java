@@ -82,7 +82,7 @@ public abstract class ComponentPlugin {
   
   /**
    * Get the commands to check whether the service is up
-   * @param clusterv the name of the cluster
+   * @param cluster the name of the cluster
    * @param role the role that is being checked
    * @return the commands to run on the agent
    * @throws IOException

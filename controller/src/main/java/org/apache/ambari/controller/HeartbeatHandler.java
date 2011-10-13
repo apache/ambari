@@ -120,7 +120,6 @@ public class HeartbeatHandler {
           boolean roleServerRunning = componentServers.isStarted(
               role.getAssociatedService().getServiceName(),
               role.getRoleName());
-          //TODO: get reference to the plugin impl for this service/component
           ComponentPlugin plugin = 
               cluster.getComponentDefinition(service.getServiceName());
           //check whether the agent should start any server
@@ -128,13 +127,18 @@ public class HeartbeatHandler {
             if (!roleInstalled) {
               Action action = plugin.install(cluster.getName(), 
                                              role.getRoleName());
+              fillDetailsAndAddAction(action, allActions, desiredClusterId,
+                  cluster.getLatestRevision(), service.getServiceName(), 
+                  role.getRoleName());
               continue;
             }
             if (!roleServerRunning) {
               //TODO: keep track of retries (via checkActionResults)
               Action action = 
                   plugin.startServer(cluster.getName(), role.getRoleName());
-              addAction(action, allActions);
+              fillDetailsAndAddAction(action, allActions, desiredClusterId,
+                  cluster.getLatestRevision(), service.getServiceName(), 
+                  role.getRoleName());
             }
             //raise an event to the state machine for a successful role-start
             if (roleServerRunning) {
@@ -161,7 +165,10 @@ public class HeartbeatHandler {
                   .equals(ClusterState.CLUSTER_STATE_ATTIC)) {
               Action action = plugin.uninstall(cluster.getName(), 
                                                role.getRoleName());
-              addAction(action, allActions);
+              fillDetailsAndAddAction(action, allActions, cluster.getID(), 
+                  cluster.getLatestRevision(), 
+                  role.getAssociatedService().getServiceName(), 
+                  role.getRoleName());
             }
           }
         }
@@ -228,36 +235,45 @@ public class HeartbeatHandler {
     return id;
   }
   
-  private static void checkActionResults(Cluster cluster,
-      ClusterFSM clusterFsm, HeartBeat heartbeat, List<Action> allActions) {
-    //this method should check things like number of retries (based on action-IDs)
-    //etc. this method should note issues like too many failures starting
-    //a role, etc.
+  private void checkActionResults(Cluster cluster,
+      ClusterFSM clusterFsm, HeartBeat heartbeat, List<Action> allActions)
+          throws IOException {
+    //this method should check things like number of retries (based on 
+    //action-IDs) etc. this method should note issues like too many failures 
+    //starting a role, etc.
     for (ServiceFSM service : clusterFsm.getServices()) {    
       //see whether the service is in the STARTED state, and if so,
       //check whether there is any action-result that indicates success
       //of the availability check (safemode, etc.)
       if (service.getServiceState() == ServiceState.STARTED) {
-        //TODO: check with plugin whether this role/node can run the service availability-check
-        String id = getActionIDForServiceAvailability(cluster, service);
-        boolean serviceActivated = false;
-        for (ActionResult result : heartbeat.getActionResults()) {
-          if (result.getId().equals(id)) {
-            if (result.getCommandResult().getExitCode() == 0) {
-              StateMachineInvoker.getAMBARIEventHandler().handle(
-                  new ServiceEvent(ServiceEventType.AVAILABLE_CHECK_SUCCESS,
-                      service));
-              serviceActivated = true;
+        ComponentPlugin plugin = 
+            cluster.getComponentDefinition(service.getServiceName());
+        String role = plugin.runCheckRole();
+        boolean checker = agentPlayingRole(heartbeat, role);
+        if (checker) {
+          String id = getActionIDForServiceAvailability(cluster, service);
+          boolean serviceActivated = false;
+          //TODO: another optimization opportunity
+          for (ActionResult result : heartbeat.getActionResults()) {
+            if (result.getId().equals(id)) {
+              if (result.getCommandResult().getExitCode() == 0) {
+                StateMachineInvoker.getAMBARIEventHandler().handle(
+                    new ServiceEvent(ServiceEventType.AVAILABLE_CHECK_SUCCESS,
+                        service));
+                serviceActivated = true;
+              }
+              break;
             }
-            break;
+          }
+          if (!serviceActivated) {
+            Action action = plugin.checkService(cluster.getName(), role);
+            fillActionDetails(action, cluster.getID(),
+                cluster.getLatestRevision(),service.getServiceName(), role);
+            action.setId(id);
+            action.setKind(Action.Kind.RUN_ACTION);
+            allActions.add(action);
           }
         }
-        //TODO: check with plugin whether this node can run the health-check (OWEN)
-        //      if (!serviceActivated) {
-        //        Action action = plugin.getAvailabilityCheck(cluster.getLatestClusterDefinition().getName()));
-        //        action.setId(id);
-        //        allActions.add(action);
-        //      }
       }
     }
   }
@@ -305,7 +321,6 @@ public class HeartbeatHandler {
             killAndUninstallCmds);
       }
       if (uninstall) {
-        //TODO: get reference to the plugin impl for this service/component
         ComponentPlugin plugin = 
             cluster.getComponentDefinition(agentRoleState.getComponentName());
         Action uninstallAction = 
@@ -336,12 +351,37 @@ public class HeartbeatHandler {
   private Action getStopRoleAction(String clusterId, long clusterRev, 
       String componentName, String roleName) {
     Action action = new Action();
-    action.setClusterId(clusterId);
-    action.setClusterDefinitionRevision(clusterRev);
-    action.setRole(roleName);
-    action.setComponent(componentName);
+    fillActionDetails(action, clusterId, clusterRev, componentName, roleName);
     action.setKind(Kind.STOP_ACTION);
     action.setSignal(Signal.KILL);
     return action;
+  }
+  
+  private void fillActionDetails(Action action, String clusterId, 
+      long clusterDefRev, String component, String role) {
+    if (action == null) {
+      return;
+    }
+    action.setClusterId(clusterId);
+    action.setClusterDefinitionRevision(clusterDefRev);
+    action.setComponent(component);
+    action.setRole(role);
+  }
+  
+  private void fillDetailsAndAddAction(Action action, List<Action> allActions, 
+      String clusterId, 
+      long clusterDefRev, String component, String role) {
+    fillActionDetails(action, clusterId, clusterDefRev, component, role);
+    addAction(action, allActions);
+  }
+  
+  private boolean agentPlayingRole(HeartBeat heartbeat, String role) {
+    //TODO: might be possible to optimize this to not do iteration
+    for (AgentRoleState roleState : heartbeat.getInstalledRoleStates()) {
+      if (roleState.getRoleName().equals(role)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
