@@ -35,10 +35,10 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "Configuration", propOrder = {
     "category"
 })
-@XmlRootElement(name = "Configuration")
+@XmlRootElement
 public class Configuration {
 
-    @XmlElements({@XmlElement(name = "ConfigurationCategory")})
+    @XmlElements({@XmlElement})
     protected List<ConfigurationCategory> category;
 
     /**

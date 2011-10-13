@@ -55,7 +55,7 @@ public class BlueprintsResource {
      * @throws Exception throws Exception
      */
     @POST
-    @Consumes ({"application/json"})
+    @Consumes ({"application/xml"})
     public Blueprint createBlueprint(@DefaultValue("") @QueryParam("url") String locationURL, Blueprint blueprint) throws Exception {  
         try {
             if (locationURL == null || locationURL.equals("")) {
@@ -77,7 +77,7 @@ public class BlueprintsResource {
      * @throws Exception throws Exception
      */
     @GET
-    @Produces({"application/json"})
+    @Produces({"application/json", "application/xml"})
     public JSONArray listBlueprints() throws Exception {
         JSONArray list;
         try {

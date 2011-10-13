@@ -193,13 +193,6 @@ public class ClusterCreate extends Command {
       }
       return result;
     }
-
-    public void printClusterDefinition(ClusterDefinition def) throws Exception {
-        JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.ClusterDefinition.class);
-        Marshaller m = jc.createMarshaller();
-        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        m.marshal(def, System.out);
-    }
     
     public void run() throws Exception {
         /* 

@@ -32,6 +32,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.Component;
@@ -190,9 +192,15 @@ public class Blueprints {
         URL blueprintUrl;
         try {
             blueprintUrl = new URL(locationURL);
-            ObjectMapper m = new ObjectMapper();
             InputStream is = blueprintUrl.openStream();
+            
+            /* JSON FORMAT READER
+            ObjectMapper m = new ObjectMapper();
             blueprint = m.readValue(is, Blueprint.class);
+            */
+            JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Blueprint.class);
+            Unmarshaller u = jc.createUnmarshaller();
+            blueprint = (Blueprint)u.unmarshal(is);
             return addBlueprint(blueprint);
         } catch (WebApplicationException we) {
             throw we;

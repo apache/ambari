@@ -80,7 +80,7 @@ public class BlueprintAdd extends Command {
         OptionBuilder.withArgName("location");
         OptionBuilder.isRequired();
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Either URL or local file path where blueprint is available");
+        OptionBuilder.withDescription( "Either URL or local file path where blueprint in XML format is available");
         Option location = OptionBuilder.create( "location" );
         
         this.options = new Options();
@@ -141,16 +141,20 @@ public class BlueprintAdd extends Command {
             Blueprint bp = new Blueprint();
             response = service.path("blueprints")
                     .queryParam("url", location)
-                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, bp);
+                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).post(ClientResponse.class, bp);
         } else {
             Blueprint bp = this.readBlueprintFromFile(f);
             response = service.path("blueprints")
-                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, bp);
-        }        
+                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).post(ClientResponse.class, bp);
+        }     
+        
+        Blueprint bp_return = response.getEntity(Blueprint.class);
         if (response.getStatus() != 200) { 
             System.err.println("Blueprint add command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
             System.exit(-1);
         }
+        System.out.println("Blueprint added.\n");
+        printClusterBlueprint(bp_return, null);
     }
     
     public Blueprint readBlueprintFromFile (File f) throws Exception {      
