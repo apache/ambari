@@ -20,6 +20,7 @@ package org.apache.ambari.controller.rest.resources;
 import java.util.List;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
+import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.ExceptionResponse;
 
@@ -59,12 +60,12 @@ public class ClustersResource {
      */
     @GET
     @Produces({"application/json", "application/xml"})
-    public List<ClusterDefinition> getClusterList (
+    public List<ClusterInformation> getClusterList (
                                  @DefaultValue("ALL") @QueryParam("state") String state,
                                  @DefaultValue("") @QueryParam("search") String search) throws Exception {
-        List<ClusterDefinition> searchResults = null;
+        List<ClusterInformation> searchResults = null;
         try {
-            searchResults = Clusters.getInstance().getClusterDefinitionsList(state);
+            searchResults = Clusters.getInstance().getClusterInformationList(state);
             if (searchResults.isEmpty()) {
                 throw new WebApplicationException(Response.Status.NO_CONTENT);
             }   

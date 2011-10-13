@@ -36,6 +36,8 @@ public class AmbariClient {
         clusterCommands.put("create", "ClusterCreate");
         clusterCommands.put("update", "ClusterUpdate");
         clusterCommands.put("delete", "ClusterDelete");
+        clusterCommands.put("list", "ClusterList");
+        clusterCommands.put("get", "ClusterGet");
         
         HashMap<String, String> blueprintCommands = new HashMap<String, String>();
         blueprintCommands.put("list", "BlueprintList");

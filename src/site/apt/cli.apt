@@ -199,14 +199,29 @@ Cluster Commands
 
     * <<Options:>>
 
-      * <<--name>> [NAME]
+      * <<--state>> [cluster_state]
 
-        * Optionally only list the cluster with specified name. If no name specified then all the clusters are listed
+        * Optionally specify the cluster state to list the cluster(s) in the specified state.
 
       * <<--verbose>>
 
-        * This option will provide verbose cluster definition as used while adding or updating the cluster. 
-        It is displayed as JSON document.
+        * This option will provide verbose cluster information displayed as JSON document.
+
+  []
+
+  * <<cluster get>> 
+
+    * Get the cluster information displayed as a JSON document 
+
+    * <<Options:>>
+
+      * <<--name>> [NAME] <<[REQUIRED]>>
+
+        * Name of the cluster
+
+      * <<--verbose>>
+
+        * This option will provide verbose cluster information displayed as JSON document.
 
   []
 

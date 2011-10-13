@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-67. Implement cluster list, get CLI commands
+
   AMBARI-65. Added directory structure actions. (Eric Yang)
 
   AMBARI-60. Added permission check for RUN_ACTION, and WRITE_FILE_ACTION. (Eric Yang)

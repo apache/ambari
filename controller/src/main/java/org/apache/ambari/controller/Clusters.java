@@ -28,6 +28,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
+import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
@@ -702,15 +703,32 @@ public class Clusters {
         }
     }
     
-    /* 
-     * Get the cluster definition by name
+    /*
+     * Get the latest cluster definition
      */
-    public ClusterDefinition getClusterDefinition(String clusterName) throws Exception  {
+    public ClusterDefinition getLatestClusterDefinition(String clusterName) {
+        return this.operational_clusters.get(clusterName).getLatestClusterDefinition();
+    }
+    
+    /*
+     * Get Cluster Definition given name and revision
+     */
+    public ClusterDefinition getClusterDefinition(String clusterName, long revision) {
+        return this.operational_clusters.get(clusterName).getClusterDefinition(revision);
+    }
+    
+    /* 
+     * Get the cluster Information by name
+     */
+    public ClusterInformation getClusterInformation (String clusterName) throws Exception  {
         if (!this.operational_clusters.containsKey(clusterName)) {
             String msg = "Cluster ["+clusterName+"] does not exist";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
-        return this.operational_clusters.get(clusterName).getLatestClusterDefinition();
+        ClusterInformation clsInfo = new ClusterInformation();
+        clsInfo.setDefinition(this.getLatestClusterDefinition(clusterName));
+        clsInfo.setState(this.operational_clusters.get(clusterName).getClusterState());
+        return clsInfo;
     }
     
     
@@ -727,16 +745,22 @@ public class Clusters {
     
     
     /*
-     * Get Cluster definition list
+     * Get Cluster Information list i.e. cluster definition and cluster state
      */
-    public List<ClusterDefinition> getClusterDefinitionsList(String state) {
-      List<ClusterDefinition> list = new ArrayList<ClusterDefinition>();
+    public List<ClusterInformation> getClusterInformationList(String state) {
+      List<ClusterInformation> list = new ArrayList<ClusterInformation>();
       for (Cluster cls : this.operational_clusters.values()) {
         if (state.equals("ALL")) {
-          list.add(cls.getLatestClusterDefinition());
+          ClusterInformation clsInfo = new ClusterInformation();
+          clsInfo.setDefinition(cls.getLatestClusterDefinition());
+          clsInfo.setState(cls.getClusterState());
+          list.add(clsInfo);
         } else {
           if (cls.getClusterState().getState().equals(state)) {
-            list.add(cls.getLatestClusterDefinition());
+              ClusterInformation clsInfo = new ClusterInformation();
+              clsInfo.setDefinition(cls.getLatestClusterDefinition());
+              clsInfo.setState(cls.getClusterState());
+              list.add(clsInfo);
           }
         }
       }

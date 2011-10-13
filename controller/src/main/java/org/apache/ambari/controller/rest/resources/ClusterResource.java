@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
+import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.controller.Cluster;
@@ -51,21 +52,21 @@ import org.apache.ambari.controller.Nodes;
 public class ClusterResource {
         
     /** 
-     * Get the definition of specified Hadoop cluster.
+     * Get the information of specified Hadoop cluster.
      * 
      *  @response.representation.200.doc       Get the definition of specified
      *                                         Hadoop cluster
      *  @response.representation.200.mediaType application/json
      *  
      *  @param      clusterName             Name of the cluster; Each cluster is identified w/ unique name
-     *  @return                             Returns the Cluster definition
+     *  @return                             Returns the Cluster Information
      *  @throws     Exception               Throws exception (TBD)
      */
     @GET
     @Produces({"application/json", "application/xml"})
-    public ClusterDefinition getClusterDefinition(@PathParam("clusterName") String clusterName) throws WebApplicationException {
+    public ClusterInformation getClusterDefinition(@PathParam("clusterName") String clusterName) throws WebApplicationException {
         try {
-            return Clusters.getInstance().getClusterDefinition(clusterName);
+            return Clusters.getInstance().getClusterInformation(clusterName);
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
