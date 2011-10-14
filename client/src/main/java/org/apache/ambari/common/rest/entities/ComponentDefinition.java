@@ -32,7 +32,7 @@ public class ComponentDefinition {
   @XmlAttribute
   protected String group;
   @XmlAttribute
-  protected String definition;
+  protected String definition; 
   @XmlAttribute
   protected String version;
   

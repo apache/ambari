@@ -37,6 +37,7 @@ import javax.xml.bind.Unmarshaller;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.Component;
+import org.apache.ambari.common.rest.entities.ComponentDefinition;
 import org.apache.ambari.common.rest.entities.Configuration;
 import org.apache.ambari.common.rest.entities.ConfigurationCategory;
 import org.apache.ambari.common.rest.entities.RepositoryKind;
@@ -63,69 +64,100 @@ public class Blueprints {
         bp.setParentName(siteName);
         bp.setRevision(revision);
         bp.setParentRevision(siteVersion);
- 
+        
+        /*
+         * Repository URLs
+         */
+        List<RepositoryKind> prList = new ArrayList<RepositoryKind>();
+        RepositoryKind hdfsRepo = new RepositoryKind();
+        hdfsRepo.setKind("TAR");
+        List<String> repoURLs = new ArrayList<String>();
+        repoURLs.add("http://www.apache.org/dist/hadoop/common/");   
+        hdfsRepo.setUrls(repoURLs);
+        prList.add(hdfsRepo);
+        bp.setPackageRepositories(prList);
+        
+        /*
+         * Global Configuration
+         */
+        Configuration bpDefaultCfg = new Configuration();
+        
+        ConfigurationCategory ambari = new ConfigurationCategory();
+        ambari.setName("ambari");
+        ambari.getProperty().add(getProperty ("ambari.install.dir", "/var/ambari"));
+        ambari.getProperty().add(getProperty ("ambari.data.dir.pattern", "/grid/*"));
+        
+        ConfigurationCategory core_site = new ConfigurationCategory();
+        core_site.setName("core-site");
+        core_site.getProperty().add(getProperty ("dfs.name.dir", "/tmp/namenode"));
+        
+        ConfigurationCategory hdfs_site = new ConfigurationCategory();
+        hdfs_site.setName("hdfs-site");
+        hdfs_site.getProperty().add(getProperty ("dfs.name.dir", "/tmp/namenode"));
+        hdfs_site.getProperty().add(getProperty ("dfs.data.dir", "/tmp/datanode"));
+        
+        bpDefaultCfg.getCategory().add(core_site);
+        bpDefaultCfg.getCategory().add(hdfs_site);
+        bpDefaultCfg.getCategory().add(ambari);
+        
+        bp.setConfiguration(bpDefaultCfg);
+        
+        /*
+         * Define and add common component
+         */
+        List<Component> compList = new ArrayList<Component>();
+        
+        Component commonC = new Component(); 
+        commonC.setName("common");
+        commonC.setArchitecture("x86_64");
+        commonC.setVersion("0.20.205.0");
+        commonC.setProvider("org.apache.hadoop");
+        ComponentDefinition commonCD = new ComponentDefinition(); 
+        commonCD.setGroup("org.apache.ambari");
+        commonCD.setDefinition("hadoop-common-0.1.0.acd");
+        commonCD.setVersion("0.1.0");
+        commonC.setDefinition(commonCD);
+        
+        compList.add(commonC);
+        
+        /*
+         * Define and add hdfs component
+         */
         Component hdfsC = new Component(); 
         hdfsC.setName("hdfs");
         hdfsC.setArchitecture("x86_64");
         hdfsC.setVersion("0.20.205.0");
-        Component mapredC = new Component(); mapredC.setName("mapred");
-        mapredC.setVersion("0.20.205.1");
-        List<Component> compList = new ArrayList<Component>();
-        compList.add(mapredC);
-        compList.add(hdfsC);
-        bp.setComponents(compList);
-        
-        List<RepositoryKind> prList = new ArrayList<RepositoryKind>();
-        RepositoryKind pr = new RepositoryKind();
-        ArrayList<String> list = new ArrayList<String>();
-        list.add("http://localhost/~vgogate/ambari");
-        pr.setUrls(list);
-        pr.setKind("RPM");  
-        bp.setPackageRepositories(prList);
-        
-        Configuration bpDefaultCfg = new Configuration();
-        ConfigurationCategory hdfs_site = new ConfigurationCategory();
-        hdfs_site.setName("hdfs-site");
-        ConfigurationCategory mapred_site = new ConfigurationCategory();
-        mapred_site.setName("mapred-site");  
-        hdfs_site.getProperty().add(getProperty ("dfs.name.dir", "/tmp/namenode"));
-        hdfs_site.getProperty().add(getProperty ("dfs.data.dir", "/tmp/datanode"));
-        mapred_site.getProperty().add(getProperty ("mapred.system.dir", "/mapred/mapredsystem"));
-        mapred_site.getProperty().add(getProperty ("mapred.local.dir", "/tmp/mapred")); 
-        bpDefaultCfg.getCategory().add(mapred_site);
-        bpDefaultCfg.getCategory().add(hdfs_site);
-        
-        bp.setConfiguration(bpDefaultCfg);
-        
-        List<Role> roleList = new ArrayList<Role>();
+        hdfsC.setProvider("org.apache.hadoop");
+        ComponentDefinition hdfsCD = new ComponentDefinition(); 
+        hdfsCD.setGroup("org.apache.ambari");
+        hdfsCD.setDefinition("hadoop-hdfs-0.1.0.acd");
+        hdfsCD.setVersion("0.1.0");
+        hdfsC.setDefinition(hdfsCD);
+        /*
+         * Set the list of roles to hdfsC
+         */
+        List<Role> hdfsRoleList = new ArrayList<Role>();
         Role hdfs_nn_role = new Role();
-        hdfs_nn_role.setName("hdfs-NN");
+        hdfs_nn_role.setName("namenode");
         hdfs_nn_role.setConfiguration(bpDefaultCfg);
         
-        Role mapred_jt_role = new Role();
-        mapred_jt_role.setName("mapred-JT");
-        mapred_jt_role.setConfiguration(bpDefaultCfg);
+        Role hdfs_dn_role = new Role();
+        hdfs_dn_role.setName("datanode");
+        hdfs_dn_role.setConfiguration(bpDefaultCfg);
         
-        Role slaves_role = new Role();
-        slaves_role.setName("slaves");
-        slaves_role.setConfiguration(bpDefaultCfg);
-        
-        roleList.add(hdfs_nn_role);
-        roleList.add(mapred_jt_role);
-        roleList.add(slaves_role);
-        
-        mapredC.setRoles(roleList);
-        
+        hdfsRoleList.add(hdfs_nn_role);
+        hdfsRoleList.add(hdfs_dn_role);
+        hdfsC.setRoles(hdfsRoleList);
+       
+        compList.add(hdfsC);  
+        bp.setComponents(compList);
+     
+      
         try {
             addBlueprint (bp);
         }catch (Exception e) {
             e.printStackTrace();
         }
-        /*
-        ConcurrentHashMap<Integer, Blueprint> x = new ConcurrentHashMap<Integer, Blueprint>(); 
-        x.put(new Integer(bp.getRevision()), bp);
-        this.blueprints.put(bp.getName(), x);
-        */
     }
     
     public static synchronized Blueprints getInstance() {
