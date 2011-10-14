@@ -53,12 +53,15 @@ public class Blueprints {
     private static Blueprints BlueprintsRef=null;
         
     private Blueprints() {
-      
+        this.createDummyBlueprint("MyDummyBlueprint", "0", "MyDummySiteBlueprint", "0");
+    }
+    
+    public void createDummyBlueprint (String name, String revision, String siteName, String siteVersion) {
         Blueprint bp = new Blueprint();
-        bp.setName("MyClusterBlueprint");
-        bp.setParentName("MySiteBlueprint");
-        bp.setRevision("0");
-        bp.setParentRevision("0");
+        bp.setName(name);
+        bp.setParentName(siteName);
+        bp.setRevision(revision);
+        bp.setParentRevision(siteVersion);
  
         Component hdfsC = new Component(); hdfsC.setName("hdfs");
         hdfsC.setArchitecture("x86_64");
@@ -111,9 +114,16 @@ public class Blueprints {
         
         mapredC.setRoles(roleList);
         
-        ConcurrentHashMap<Integer, Blueprint> x = new ConcurrentHashMap<Integer, Blueprint>();
+        try {
+            addBlueprint (bp);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        /*
+        ConcurrentHashMap<Integer, Blueprint> x = new ConcurrentHashMap<Integer, Blueprint>(); 
         x.put(new Integer(bp.getRevision()), bp);
         this.blueprints.put(bp.getName(), x);
+        */
     }
     
     public static synchronized Blueprints getInstance() {
@@ -136,7 +146,7 @@ public class Blueprints {
     /*
      * Get blueprint. If revision = -1 then return latest revision
      */
-    public Blueprint getBlueprint(String blueprintName, int revision) {
+    public Blueprint getBlueprint(String blueprintName, int revision) throws Exception {
         /*
          * If revision is -1, then return the latest revision
          */  
@@ -148,8 +158,7 @@ public class Blueprints {
             Arrays.sort(keys);  
             bp = this.blueprints.get(blueprintName).get(keys[keys.length-1]);
         } else {
-            if (!this.blueprints.containsKey(blueprintName) || !this.blueprints.get(blueprintName).containsKey(revision)) {
-                
+            if (!this.blueprints.containsKey(blueprintName) || !this.blueprints.get(blueprintName).containsKey(revision)) {  
                 String msg = "Blueprint ["+blueprintName+"], revision ["+revision+"] does not exists";
                 throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             }

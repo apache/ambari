@@ -38,6 +38,8 @@ public class AmbariClient {
         clusterCommands.put("delete", "ClusterDelete");
         clusterCommands.put("list", "ClusterList");
         clusterCommands.put("get", "ClusterGet");
+        clusterCommands.put("blueprint", "ClusterBlueprint");
+        
         
         HashMap<String, String> blueprintCommands = new HashMap<String, String>();
         blueprintCommands.put("list", "BlueprintList");
@@ -108,7 +110,7 @@ public class AmbariClient {
             cmd.run();
         } catch (Exception e) {
             System.err.println( "Command failed. Reason: <" + e.getMessage() +">\n" );
-            // if (verbose) { e.printStackTrace(); }
+            e.printStackTrace();
             System.exit(-1);
         }
     }

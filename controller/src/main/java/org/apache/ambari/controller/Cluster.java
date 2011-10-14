@@ -88,7 +88,7 @@ public class Cluster {
      * @return Add Cluster definition
      */
     public synchronized 
-    void addClusterDefinition(ClusterDefinition c) throws IOException {
+    void addClusterDefinition(ClusterDefinition c) throws Exception {
       this.latestRevision++;
       clusterDefinitionRevisionsList.put((long)this.latestRevision, c);
       definition = c;
@@ -96,13 +96,16 @@ public class Cluster {
       Blueprints context = Blueprints.getInstance();
       Blueprint bp = context.getBlueprint(c.getBlueprintName(),
                                    Integer.parseInt(c.getBlueprintRevision()));
-      while (bp != null) {
+      
+      //while (!bp.getName().equals(bp.getParentName()) || !bp.getRevision().equals(bp.getParentRevision())) {    
+      while (bp.getParentName() != null) {
         for(Component comp: bp.getComponents()) {
           String name = comp.getName();
           if (!plugins.containsKey(name) && comp.getDefinition() != null) {
             plugins.put(name, new XmlComponentDefinition(comp.getDefinition()));
           }
         }
+        
         // go up to the parent
         bp = context.getBlueprint(bp.getParentName(), 
                                   Integer.parseInt(bp.getParentRevision()));

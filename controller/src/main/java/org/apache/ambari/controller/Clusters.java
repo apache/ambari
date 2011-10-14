@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
+import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.ClusterState;
@@ -60,6 +61,14 @@ public class Clusters {
     private static Clusters ClustersTypeRef=null;
         
     private Clusters() {
+        /*
+         * Add cluster and site blueprints
+         */
+        Blueprints.getInstance().createDummyBlueprint("cluster123-site-blueprint", "0", null, null);
+        Blueprints.getInstance().createDummyBlueprint("cluster123-blueprint", "0", "cluster123-site-blueprint", "0");
+        Blueprints.getInstance().createDummyBlueprint("cluster124-site-blueprint", "0", null, null);
+        Blueprints.getInstance().createDummyBlueprint("cluster124-blueprint", "0", "cluster124-site-blueprint", "0");
+        
         /*
          * Cluster definition 
          */
@@ -507,6 +516,29 @@ public class Clusters {
         }
     }
 
+    /*
+     * Get Cluster blueprint
+     */
+    public Blueprint getClusterBlueprint(String clusterName, boolean expanded) throws Exception {
+        if (!this.operational_clusters.containsKey(clusterName)) {
+            String msg = "Cluster ["+clusterName+"] does not exist";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
+        }
+        
+        Cluster cls = this.operational_clusters.get(clusterName);
+        String blueprintName = cls.getLatestClusterDefinition().getBlueprintName();
+        int blueprintRevision = Integer.parseInt(cls.getLatestClusterDefinition().getBlueprintRevision());
+        
+        Blueprint bp;
+        if (!expanded) {
+            bp = Blueprints.getInstance().getBlueprint(blueprintName, blueprintRevision);
+        } else {
+            // TODO: Get the derived/expanded blueprint
+            bp = Blueprints.getInstance().getBlueprint(blueprintName, blueprintRevision);
+        }
+        return bp;
+    }
+    
     /* 
      * Update cluster definition 
      * TODO: As nodes or role to node association changes, validate key services nodes are not removed

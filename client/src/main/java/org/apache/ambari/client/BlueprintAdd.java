@@ -18,6 +18,8 @@
 package org.apache.ambari.client;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -42,6 +44,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -143,7 +146,7 @@ public class BlueprintAdd extends Command {
                     .queryParam("url", location)
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).post(ClientResponse.class, bp);
         } else {
-            Blueprint bp = this.readBlueprintFromFile(f);
+            Blueprint bp = this.readBlueprintFromXMLFile(f);
             response = service.path("blueprints")
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).post(ClientResponse.class, bp);
         }     
@@ -157,11 +160,20 @@ public class BlueprintAdd extends Command {
         printClusterBlueprint(bp_return, null);
     }
     
-    public Blueprint readBlueprintFromFile (File f) throws Exception {      
+    public Blueprint readBlueprintFromXMLFile (File f) throws Exception {      
         JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Blueprint.class);
         Unmarshaller u = jc.createUnmarshaller();
         Blueprint bp = (Blueprint)u.unmarshal(f);
         return bp;
     }
+    
+    public Blueprint readBlueprintFromJSONFile (File f) throws Exception {      
+        FileInputStream fis = new FileInputStream(f);
+        ObjectMapper m = new ObjectMapper();
+        Blueprint blueprint = m.readValue(fis, Blueprint.class);
+        return blueprint;
+    }
+    
+    
 }
 

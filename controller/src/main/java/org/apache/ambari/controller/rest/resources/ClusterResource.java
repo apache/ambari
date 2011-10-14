@@ -35,6 +35,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 
+import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.Node;
@@ -210,6 +211,34 @@ public class ClusterResource {
                                 @DefaultValue("") @QueryParam("alive") String alive) throws Exception {    
         try {
             return Nodes.getInstance().getClusterNodes(clusterName, role, alive);
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        }   
+    }
+    
+    /** 
+     * Get the blueprint associated with cluster
+     *  
+     *  @response.representation.200.doc .  
+     *  
+     *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
+     *                      unique name
+     *  @param  expanded    Optionally specify the boolean value to indicate if 
+     *                      to retrieved the cluster level blueprint or the fully
+     *                      derived blueprint in-lining the parent blueprints 
+     *                      associated with the service role
+     *  @return             Blueprint
+     *  @throws Exception   throws Exception
+     */
+    @Path(value = "/blueprint")
+    @GET
+    @Produces({"application/json", "application/xml"})
+    public Blueprint getBlueprint (@PathParam("clusterName") String clusterName,
+                                @DefaultValue("true") @QueryParam("expanded") boolean expanded) throws Exception {    
+        try {
+            return Clusters.getInstance().getClusterBlueprint(clusterName, expanded);
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {

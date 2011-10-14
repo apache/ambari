@@ -55,7 +55,7 @@ public class BlueprintsResource {
      * @throws Exception throws Exception
      */
     @POST
-    @Consumes ({"application/xml"})
+    @Consumes ({"application/xml", "application/json"})
     public Blueprint createBlueprint(@DefaultValue("") @QueryParam("url") String locationURL, Blueprint blueprint) throws Exception {  
         try {
             if (locationURL == null || locationURL.equals("")) {
