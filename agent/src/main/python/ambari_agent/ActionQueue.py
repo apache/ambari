@@ -26,6 +26,7 @@ from FileUtil import writeFile, createStructure, deleteStructure
 from shell import shellRunner
 import json
 import os
+import time
 
 logger = logging.getLogger()
 
@@ -62,6 +63,7 @@ class ActionQueue(threading.Thread):
         result = switches.get(action['kind'], self.unknownAction)(action)
         # Update the result
         r.put(result)
+      time.sleep(5)
 
   # Store action result to agent response queue
   def result(self):

@@ -67,7 +67,6 @@ class Controller(threading.Thread):
     while True:
       try:
         data = json.dumps(self.heartbeat.build(id))
-        logger.info(data)
         req = urllib2.Request(self.url, data, {'Content-Type': 'application/json'})
         f = urllib2.urlopen(req)
         response = f.read()
@@ -76,7 +75,10 @@ class Controller(threading.Thread):
         id=data['responseId']
         self.actionQueue.put(data)
       except URLError, err:
-        logger.error(err.code)
+        if "code" in err:
+          logger.error(err.code)
+        else:
+          logger.error("Unable to connect to: "+self.url)
       if self.actionQueue.isIdle():
         time.sleep(30)
       else:
@@ -115,7 +117,6 @@ def main(argv=None):
   controller = Controller(options.url, credential)
   controller.start()
   controller.run()
-
 
 if __name__ == '__main__':
   main()
