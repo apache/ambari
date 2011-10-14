@@ -439,17 +439,13 @@ public class Clusters {
                     all_nodes.get(node_name).reserveNodeForCluster(clusterID, true);
                 }    
             } else {
-                Node node = new Node(node_name);
-                /*
-                 * Set the heartbeat time to very old epoch value
-                 */
                 Date epoch = new Date(0);
-                node.getNodeState().setLastHeartbeatTime(epoch);
+                Nodes.getInstance().registerNewNode(node_name, epoch);
+                Node node = Nodes.getInstance().getNode(node_name);
                 /*
                  * TODO: Set agentInstalled = true, unless controller uses SSH to setup the agent
                  */
                 node.reserveNodeForCluster(clusterID, true);
-                Nodes.getInstance().getNodes().put(node_name, node);
             }
         }
         

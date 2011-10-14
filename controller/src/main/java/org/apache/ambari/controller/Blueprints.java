@@ -58,12 +58,14 @@ public class Blueprints {
     
     public void createDummyBlueprint (String name, String revision, String siteName, String siteVersion) {
         Blueprint bp = new Blueprint();
+        
         bp.setName(name);
         bp.setParentName(siteName);
         bp.setRevision(revision);
         bp.setParentRevision(siteVersion);
  
-        Component hdfsC = new Component(); hdfsC.setName("hdfs");
+        Component hdfsC = new Component(); 
+        hdfsC.setName("hdfs");
         hdfsC.setArchitecture("x86_64");
         hdfsC.setVersion("0.20.205.0");
         Component mapredC = new Component(); mapredC.setName("mapred");

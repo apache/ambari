@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-76. Register new node w/ Ambari controller (vgogate)
+
   AMBARI-75. Centralize agent configuration parsing. (Eric Yang)
 
   AMBARI-74. Throttle the frequency of checking action queue to 5 seconds.

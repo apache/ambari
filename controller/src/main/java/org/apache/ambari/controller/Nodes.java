@@ -169,6 +169,15 @@ public class Nodes {
     }
     
     /*
+     * Register new node
+     */
+    public void registerNewNode (String name, Date hearbeatTime) throws Exception {
+        Node node = new Node(name);
+        node.getNodeState().setLastHeartbeatTime(hearbeatTime);
+        Nodes.getInstance().getNodes().put(name, node);
+    }
+    
+    /*
      * Get time difference
      */
     public long getTimeDiffInMillis (XMLGregorianCalendar t2, XMLGregorianCalendar t1) throws Exception {
