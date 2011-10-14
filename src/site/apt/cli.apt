@@ -261,7 +261,7 @@ Cluster Commands
         * Optionally specify the node state alive as true or false. Alive nodes are ones 
         regularly heart beating with Ambari controller. If this option is not specified then all nodes are returned.
 
-      * <<--role>> [ROLE_NAME] <<[REPEATABLE]>>
+      * <<--role>> [ROLE_NAME] 
 
         * Optional role name to list the nodes associated with specified role.
 

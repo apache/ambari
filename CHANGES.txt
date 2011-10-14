@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-73. Implement cluster nodes CLI. (vgogate)
+
   AMBARI-72. Adding (dummy) blueprints before (dummy) cluster definitions and
              fixing null pointer exception when parent blueprint is set to null
              for top level blueprint  (vgogate)

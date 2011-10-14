@@ -27,6 +27,7 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
+import org.apache.ambari.common.rest.entities.Node;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
@@ -123,6 +124,13 @@ public abstract class Command {
         m.marshal(clsInfo, System.out);
     }
     
+    public void printNodeInformation(Node node) throws Exception {
+        JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Node.class);
+        Marshaller m = jc.createMarshaller();
+        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        m.marshal(node, System.out);
+    }
+    
     public void printClusterBlueprint(Blueprint blueprint, String file_path) throws Exception {
         JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Blueprint.class);
         Marshaller m = jc.createMarshaller();
@@ -130,7 +138,7 @@ public abstract class Command {
         if (file_path == null) {
             m.marshal(blueprint, System.out);
         } else {
-            m.marshal(blueprint, new File("file_path"));
+            m.marshal(blueprint, new File(file_path));
         }
     }
     

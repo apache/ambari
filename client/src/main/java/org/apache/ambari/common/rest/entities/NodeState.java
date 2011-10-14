@@ -33,17 +33,17 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "NodeState", propOrder = {
-    "lastHeartbeatTime",
-    "clusterName",
+    "clusterID",
     "allocatedToCluster",
+    "lastHeartbeatTime",
     "agentInstalled",
     "nodeRoleNames",
     "nodeServers"
 })
-@XmlRootElement(name = "NodeState")
+@XmlRootElement
 public class NodeState {
 
-    @XmlElement(name = "lastHeartbeatTime", required = true)
+    @XmlElement
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar lastHeartbeatTime;
         
@@ -51,22 +51,22 @@ public class NodeState {
      * Associating the cluster name would reserve the node for a given cluster
      * 
      */
-    @XmlElement(name = "ClusterID", required = true)
+    @XmlElement
     protected String clusterID;
 
-    @XmlElement(name = "AgentInstalled", required = true)
+    @XmlElement
     protected Boolean agentInstalled = true;
 
-    @XmlElement(name = "AllocatedToCluster", required = true)
+    @XmlElement
     protected Boolean allocatedToCluster = false;
         
     /*
      * null indicates no roles associated with this node.
      */
-    @XmlElement(name = "NodeRoleNames", required = true)
+    @XmlElement
     protected List<String> nodeRoleNames = null;
         
-    @XmlElement(name = "NodeServers", required = true)
+    @XmlElement
     protected List<NodeServer> nodeServers = new ArrayList<NodeServer>();
 
     /**

@@ -221,7 +221,7 @@ public class ClusterResource {
     /** 
      * Get the blueprint associated with cluster
      *  
-     *  @response.representation.200.doc .  
+     *  @response.representation.200.doc 
      *  
      *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
      *                      unique name
