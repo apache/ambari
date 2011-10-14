@@ -171,10 +171,14 @@ public class Nodes {
     /*
      * Register new node
      */
-    public void registerNewNode (String name, Date hearbeatTime) throws Exception {
-        Node node = new Node(name);
-        node.getNodeState().setLastHeartbeatTime(hearbeatTime);
-        Nodes.getInstance().getNodes().put(name, node);
+    public synchronized void registerNewNode (String name, Date hearbeatTime) throws Exception {
+        Node node = this.nodes.get(name);
+        
+        if (node == null) {
+            node = new Node(name);
+            Nodes.getInstance().getNodes().put(name, node);
+        }
+        node.getNodeState().setLastHeartbeatTime(hearbeatTime);      
     }
     
     /*
