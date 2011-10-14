@@ -54,7 +54,7 @@ public class Action {
   @XmlElement
   public ConfigFile file;
   
-  private static AtomicLong globalId;
+  private static AtomicLong globalId = new AtomicLong();
   
   public Action() {
     long id = globalId.incrementAndGet();
