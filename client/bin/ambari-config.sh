@@ -45,7 +45,7 @@ then
     shift
     confdir=$1
     shift
-    AMBARI_CONF_DIR=$confdir
+    export AMBARI_CONF_DIR=$confdir
   fi
 fi
 
@@ -65,10 +65,10 @@ AMBARI_VERSION=`cat ${AMBARI_HOME}/share/ambari/VERSION`
 # Allow alternate conf dir location.
 if [ -z "${AMBARI_CONF_DIR}" ]; then
     if [ -e "${AMBARI_HOME}/conf" ]; then
-      AMBARI_CONF_DIR="$AMBARI_HOME/conf"
+      export AMBARI_CONF_DIR="$AMBARI_HOME/conf"
     fi
     if [ -e "${AMBARI_HOME}/etc/ambari" ]; then
-      AMBARI_CONF_DIR="$AMBARI_HOME/etc/ambari"
+      export AMBARI_CONF_DIR="$AMBARI_HOME/etc/ambari"
     fi
 fi
 
