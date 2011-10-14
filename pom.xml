@@ -193,6 +193,29 @@
           <filtering>true</filtering>
         </resource>
       </resources>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.4</version>
+          <executions>
+            <execution>
+              <phase>validate</phase>
+              <configuration>
+                <tasks name="setup">
+                  <mkdir dir="${basedir}/target"/>
+                  <echo message="${project.version}" file="${basedir}/target/VERSION"/>
+                  <mkdir dir="${basedir}/target/clover"/>
+                  <chmod dir="${basedir}/target/clover" perm="a+w" />
+                </tasks>
+              </configuration>
+              <goals>
+                <goal>run</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
       <pluginManagement>
         <plugins>
           <plugin>
@@ -266,45 +289,6 @@
                 </property>
               </systemProperties>
             </configuration>
-          </plugin>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <configuration>
-              <tarLongFileMode>gnu</tarLongFileMode>
-              <descriptors>
-                <descriptor>src/packages/tarball/all.xml</descriptor>
-              </descriptors>
-            </configuration>
-            <executions>
-              <execution>
-                <id>build-tarball</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <version>1.4</version>
-            <executions>
-              <execution>
-                <phase>validate</phase>
-                <configuration>
-                  <tasks name="setup">
-                    <mkdir dir="${basedir}/target"/>
-                    <echo message="0.1.0" file="${basedir}/target/VERSION"/>
-                    <mkdir dir="${basedir}/target/clover"/>
-                    <chmod dir="${basedir}/target/clover" perm="a+w" />
-                  </tasks>
-                </configuration>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -556,6 +540,54 @@
         <profile>
             <id>src</id>
             <build>
+              <plugins>
+                <plugin>
+                  <artifactId>maven-assembly-plugin</artifactId>
+                  <configuration>
+                    <tarLongFileMode>gnu</tarLongFileMode>
+                    <descriptors>
+                      <descriptor>src/packages/tarball/source.xml</descriptor>
+                    </descriptors>
+                    <finalName>${project.artifactId}-${project.version}-source</finalName>
+                  </configuration>
+                  <executions>
+                    <execution>
+                      <id>build-source-tarball</id>
+                      <phase>package</phase>
+                      <goals>
+                        <goal>single</goal>
+                      </goals>
+                    </execution>
+                  </executions>
+                </plugin>
+              </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>binary</id>
+            <build>
+              <plugins>
+                <plugin>
+                  <artifactId>maven-assembly-plugin</artifactId>
+                  <configuration>
+                    <tarLongFileMode>gnu</tarLongFileMode>
+                    <descriptors>
+                      <descriptor>src/packages/tarball/binary.xml</descriptor>
+                    </descriptors>
+                    <finalName>${project.artifactId}-${project.version}-binary</finalName>
+                  </configuration>
+                  <executions>
+                    <execution>
+                      <id>build-tarball</id>
+                      <phase>package</phase>
+                      <goals>
+                        <goal>single</goal>
+                      </goals>
+                    </execution>
+                  </executions>
+                </plugin>
+              </plugins>
             </build>
         </profile>
 

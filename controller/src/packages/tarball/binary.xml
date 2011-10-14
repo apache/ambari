@@ -28,23 +28,29 @@
   </formats>
   <fileSets>
     <fileSet>
+      <outputDirectory>share/ambari</outputDirectory>
       <includes>
         <include>${basedir}/*.txt</include>
       </includes>
     </fileSet>
     <fileSet>
-      <includes>
-        <include>pom.xml</include>
-      </includes>
+      <directory>src/main/webapps</directory>
+      <outputDirectory>webapps</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>src</directory>
+      <directory>src/main/resources</directory>
+      <outputDirectory>var/run</outputDirectory>
+      <directoryMode>0755</directoryMode>
+      <excludes>
+        <exclude>*</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directory>conf</directory>
+      <outputDirectory>etc/ambari</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>bin</directory>
+      <directory>../client/bin</directory>
       <outputDirectory>bin</outputDirectory>
       <fileMode>755</fileMode>
     </fileSet>
@@ -54,12 +60,6 @@
       <includes>
           <include>${artifactId}-${project.version}.jar</include>
           <include>${artifactId}-${project.version}-tests.jar</include>
-      </includes>
-    </fileSet>
-    <fileSet>
-      <directory>target</directory>
-      <outputDirectory>share/ambari</outputDirectory>
-      <includes>
           <include>VERSION</include>
       </includes>
     </fileSet>
@@ -78,7 +78,7 @@
   </fileSets>
   <dependencySets>
     <dependencySet>
-      <outputDirectory>share/ambari/lib</outputDirectory>
+      <outputDirectory>share/ambari</outputDirectory>
       <unpack>false</unpack>
       <scope>runtime</scope>
     </dependencySet>

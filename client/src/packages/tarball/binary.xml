@@ -28,20 +28,14 @@
   </formats>
   <fileSets>
     <fileSet>
+      <outputDirectory>share/ambari</outputDirectory>
       <includes>
         <include>${basedir}/*.txt</include>
       </includes>
     </fileSet>
     <fileSet>
-      <includes>
-        <include>pom.xml</include>
-      </includes>
-    </fileSet>
-    <fileSet>
-      <directory>src</directory>
-    </fileSet>
-    <fileSet>
       <directory>conf</directory>
+      <outputDirectory>etc/ambari</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>bin</directory>

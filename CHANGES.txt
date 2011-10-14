@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-71. Fix broken packaging and startup scripts. (Eric Yang)
+
   AMBARI-70. Implements the installation/configuration of gateway role (ddas)
 
   AMBARI-66. Implemented compatible package install/uninstall action for 

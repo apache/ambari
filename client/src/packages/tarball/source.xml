@@ -49,25 +49,6 @@
       <fileMode>755</fileMode>
     </fileSet>
     <fileSet>
-      <directory>target</directory>
-      <outputDirectory>share/ambari</outputDirectory>
-      <includes>
-          <include>${artifactId}-${project.version}.jar</include>
-          <include>${artifactId}-${project.version}-tests.jar</include>
-      </includes>
-    </fileSet>
-    <fileSet>
-      <directory>target</directory>
-      <outputDirectory>share/ambari</outputDirectory>
-      <includes>
-          <include>VERSION</include>
-      </includes>
-    </fileSet>
-    <fileSet>
-      <directory>target/site</directory>
-      <outputDirectory>docs</outputDirectory>
-    </fileSet>
-    <fileSet>
       <directory>src/packages</directory>
       <outputDirectory>sbin</outputDirectory>
       <fileMode>755</fileMode>
@@ -76,11 +57,4 @@
       </includes>
     </fileSet>
   </fileSets>
-  <dependencySets>
-    <dependencySet>
-      <outputDirectory>share/ambari/lib</outputDirectory>
-      <unpack>false</unpack>
-      <scope>runtime</scope>
-    </dependencySet>
-  </dependencySets>
 </assembly>

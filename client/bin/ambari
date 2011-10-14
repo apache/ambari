@@ -33,7 +33,6 @@ bin=`cd "$bin"; pwd`
 if [ $# = 0 ]; then
   echo "Usage: $0 [--config confdir] COMMAND"
   echo "where COMMAND is one of:"
-  echo "  agent         run Ambari Agent"
   echo "  controller    run Ambari Controller"
   echo "  client        run Ambari client"
   echo "  version       print the version"
@@ -80,7 +79,7 @@ elif [ "$COMMAND" = "controller" ]; then
   BACKGROUND="true"
 elif [ "$COMMAND" = "client" ]; then
   APP='client'
-  CLASS='org.apache.ambari.client.Client'
+  CLASS='org.apache.ambari.client.AmbariClient'
   PID="client"
 elif [ "$COMMAND" = "version" ]; then
   echo `cat ${AMBARI_HOME}/bin/VERSION`

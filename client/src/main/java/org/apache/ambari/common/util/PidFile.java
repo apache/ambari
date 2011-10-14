@@ -48,9 +48,9 @@ public class PidFile extends Thread {
     String pidLong = ManagementFactory.getRuntimeMXBean().getName();
     String[] items = pidLong.split("@");
     String pid = items[0];
-    String chukwaPath = System.getProperty("HMS_HOME");
+    String chukwaPath = System.getProperty("AMBARI_HOME");
     StringBuffer pidFilesb = new StringBuffer();
-    String pidDir = System.getenv("HMS_PID_DIR");
+    String pidDir = System.getenv("AMBARI_PID_DIR");
     if (pidDir == null) {
       pidDir = chukwaPath + File.separator + "var" + File.separator + "run";
     }
@@ -82,9 +82,9 @@ public class PidFile extends Thread {
   }
 
   public void clean() {
-    String chukwaPath = System.getenv("HMS_HOME");
+    String chukwaPath = System.getenv("AMBARI_HOME");
     StringBuffer pidFilesb = new StringBuffer();
-    String pidDir = System.getenv("HMS_PID_DIR");
+    String pidDir = System.getenv("AMBARI_PID_DIR");
     if (pidDir == null) {
       pidDir = chukwaPath + File.separator + "var" + File.separator + "run";
     }

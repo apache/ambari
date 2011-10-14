@@ -53,27 +53,30 @@ fi
 export AMBARI_HOME=`dirname "$this"`/..
 
 if [ -z ${AMBARI_LOG_DIR} ]; then
-    export AMBARI_LOG_DIR="${AMBARI_HOME}/logs"
+    export AMBARI_LOG_DIR="${AMBARI_HOME}/var/log"
 fi
 
 if [ -z ${AMBARI_PID_DIR} ]; then
     export AMBARI_PID_DIR="${AMBARI_HOME}/var/run"
 fi
 
-AMBARI_VERSION=`cat ${AMBARI_HOME}/VERSION`
+AMBARI_VERSION=`cat ${AMBARI_HOME}/share/ambari/VERSION`
 
 # Allow alternate conf dir location.
 if [ -z "${AMBARI_CONF_DIR}" ]; then
-    AMBARI_CONF_DIR="${AMBARI_CONF_DIR:-$AMBARI_HOME/conf}"
-    export AMBARI_CONF_DIR=${AMBARI_HOME}/conf
+    if [ -e "${AMBARI_HOME}/conf" ]; then
+      AMBARI_CONF_DIR="$AMBARI_HOME/conf"
+    fi
+    if [ -e "${AMBARI_HOME}/etc/ambari" ]; then
+      AMBARI_CONF_DIR="$AMBARI_HOME/etc/ambari"
+    fi
 fi
 
 if [ -f "${AMBARI_CONF_DIR}/ambari-env.sh" ]; then
   . "${AMBARI_CONF_DIR}/ambari-env.sh"
 fi
 
-COMMON=`ls ${AMBARI_HOME}/lib/*.jar`
-export COMMON=`echo ${COMMON} | sed 'y/ /:/'`
+COMMON="${AMBARI_HOME}/share/ambari/*:${AMBARI_HOME}/share/ambari/lib/*"
 
 export AMBARI_CORE=${AMBARI_HOME}/ambari-core-${AMBARI_VERSION}.jar
 export AMBARI_AGENT=${AMBARI_HOME}/ambari-agent-${AMBARI_VERSION}.jar
