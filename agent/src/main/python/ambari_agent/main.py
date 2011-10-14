@@ -28,6 +28,7 @@ import time
 import ConfigParser
 from createDaemon import createDaemon
 from Controller import Controller
+import AmbariConfig
 
 logger = logging.getLogger()
 
@@ -59,7 +60,7 @@ def debug(sig, frame):
     message  = "Signal recieved : entering python shell.\nTraceback:\n"
     message += ''.join(traceback.format_stack(frame))
     logger.info(message)
-      
+
 def main():
   global config
   default_cfg = { 'agent' : { 'prefix' : '/home/ambari' } }
@@ -101,25 +102,20 @@ def main():
   credential = None
 
   # Check for ambari configuration file.
-  if(os.path.exists('/etc/ambari/ambari.ini')):
-    config.read('/etc/ambari/ambari.ini')
-    try:
-      credential = {}
-      credential['user'] = config.get('controller', 'user')
-      credential['password'] = config.get('controller', 'password')
-      controllerUrl = config.get('controller', 'url')
-    except Exception, err:
-      credential = None
-      controllerUrl = "http://localhost:4080"
-  else:
-    credential = None
-    controllerUrl = "http://localhost:4080"
-  logger.info("Connecting to controller at: "+controllerUrl)
+  try:
+    config = AmbariConfig.config
+    if(os.path.exists('/etc/ambari/ambari.ini')):
+      config.read('/etc/ambari/ambari.ini')
+      AmbariConfig.setConfig(config)
+    else:
+      raise Exception("No config found, use default")
+  except Exception, err:
+    logger.warn(err)
+
+  logger.info("Connecting to controller at: "+config.get('controller', 'url'))
 
   # Launch Controller communication
-  print controllerUrl
-  print credential
-  controller = Controller(controllerUrl, credential) 
+  controller = Controller(config) 
   controller.start()
   controller.run()
   logger.info("finished")

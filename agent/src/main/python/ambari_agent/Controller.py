@@ -28,25 +28,30 @@ import time
 import threading
 import urllib2
 from urllib2 import Request, urlopen, URLError
+import AmbariConfig
 from Heartbeat import Heartbeat
 from ActionQueue import ActionQueue
-
 from optparse import OptionParser
 
 logger = logging.getLogger()
 
 class Controller(threading.Thread):
 
-  def __init__(self, url, credential=None):
+  def __init__(self, config):
     threading.Thread.__init__(self)
     logger.debug('Initializing Controller RPC thread.')
     self.lock = threading.Lock()
     self.safeMode = True
-    self.credential = credential
-    self.url = url + '/agent/controller/heartbeat/' + socket.gethostname()
+    self.credential = None
+    self.config = config
+    if(config.get('controller', 'user')!=None and config.get('controller', 'password')!=None):
+      self.credential = { 'user' : config.get('controller', 'user'),
+                          'password' : config.get('controller', 'password')
+      }
+    self.url = config.get('controller', 'url') + '/agent/controller/heartbeat/' + socket.gethostname()
 
   def start(self):
-    self.actionQueue = ActionQueue()
+    self.actionQueue = ActionQueue(self.config)
     self.actionQueue.start()
     self.heartbeat = Heartbeat(self.actionQueue)
     logger.info("Controller connection established.")
@@ -67,6 +72,7 @@ class Controller(threading.Thread):
     while True:
       try:
         data = json.dumps(self.heartbeat.build(id))
+        logger.info(data)
         req = urllib2.Request(self.url, data, {'Content-Type': 'application/json'})
         f = urllib2.urlopen(req)
         response = f.read()
@@ -88,24 +94,7 @@ def main(argv=None):
   # Allow Ctrl-C
   signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-  parser = OptionParser()
-  parser.add_option('-v', '--verbose',
-    dest='verbose',
-    default=False,
-    action='store_true',
-    help='Verbose logging. (default: %default)')
-  parser.add_option('--controller',
-    dest='url',
-    default='http://localhost:4080',
-    help='Controller URL. (default: %default)')
-  global options
-  global args
-  (options, args) = parser.parse_args()
-
-  if options.verbose:
-    logger.setLevel(logging.DEBUG)
-  else:
-    logger.setLevel(logging.INFO)
+  logger.setLevel(logging.INFO)
   formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - %(message)s")
   stream_handler = logging.StreamHandler()
   stream_handler.setFormatter(formatter)
@@ -113,8 +102,8 @@ def main(argv=None):
 
   logger.info('Starting Controller RPC Thread: %s' % ' '.join(sys.argv))
 
-  credential = { 'user' : 'controller', 'password' : 'controller' }
-  controller = Controller(options.url, credential)
+  config = AmbariConfig.config
+  controller = Controller(config)
   controller.start()
   controller.run()
 

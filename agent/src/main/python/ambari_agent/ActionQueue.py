@@ -37,9 +37,10 @@ class ActionQueue(threading.Thread):
   clusterId = 'unknown'
   clusterDefinitionRevision = 0
 
-  def __init__(self):
+  def __init__(self, config):
     global clusterId, clusterDefinitionRevision 
     threading.Thread.__init__(self)
+    self.config = config
     self.sh = shellRunner()
 
   def put(self, response):

@@ -28,15 +28,16 @@ import sys, traceback
 import ConfigParser
 import shutil
 import StringIO
+import AmbariConfig
 
 logger = logging.getLogger()
 
 def writeFile(action, result):
-  global config
   oldCwd = os.getcwd()
   fileInfo = action['file']
   try:
-    path = config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
+    path = AmbariConfig.config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
+    logger.info("path: %s" % path)
     os.chdir(path)
     user=fileInfo['owner']
     group=fileInfo['group']
@@ -76,9 +77,8 @@ def writeFile(action, result):
   return result
 
 def createStructure(action, result):
-  global config
   try:
-    path = config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
+    path = AmbariConfig.config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
     os.makedirs(path+"/stack")
     os.makedirs(path+"/logs")
     os.makedirs(path+"/data")
@@ -91,9 +91,8 @@ def createStructure(action, result):
   return result
 
 def deleteStructure(action, result):
-  global config
   try:
-    path = config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
+    path = AmbariConfig.config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
     if os.path.exists(path):
       shutil.rmtree(path)
     result['exitCode'] = 0
@@ -103,6 +102,11 @@ def deleteStructure(action, result):
   return result
 
 def main():
+
+  action = { 'clusterId' : 'abc', 'role' : 'hdfs' }
+  result = {}
+  print createStructure(action, result)
+
   configFile = {
     "data"       : "test", 
     "owner"      : os.getuid(), 
@@ -114,6 +118,7 @@ def main():
   action = { 'file' : configFile }
   result = { }
   print writeFile(action, result)
+
   configFile = { 
     "data"       : "test", 
     "owner"      : "eyang", 
@@ -126,17 +131,6 @@ def main():
   action = { 'file' : configFile }
   print writeFile(action, result)
 
-  global config
-  config = ConfigParser.RawConfigParser()
-  content = """
-[agent]
-prefix=/tmp/ambari
-  """
-  s = StringIO.StringIO(content)
-  config.readfp(s);
-  action = { 'clusterId' : 'abc', 'role' : 'hdfs' }
-  result = {}
-  print createStructure(action, result)
   print deleteStructure(action, result)
 
 if __name__ == "__main__":
