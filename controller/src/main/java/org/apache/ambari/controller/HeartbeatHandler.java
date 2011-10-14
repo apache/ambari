@@ -32,6 +32,7 @@ import javax.xml.datatype.DatatypeFactory;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.NodeState;
+import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.Nodes;
 import org.apache.ambari.common.rest.entities.agent.Action;
@@ -56,8 +57,6 @@ public class HeartbeatHandler {
   
   private Map<String, ControllerResponse> agentToHeartbeatResponseMap = 
       Collections.synchronizedMap(new HashMap<String, ControllerResponse>());
-    
-  final short MAX_RETRY_COUNT = 3;
   
   public ControllerResponse processHeartBeat(HeartBeat heartbeat) 
       throws DatatypeConfigurationException, IOException {
@@ -94,7 +93,8 @@ public class HeartbeatHandler {
       
       String desiredClusterId = cluster.getID();
       
-      InstalledOrStartedComponents componentServers = new InstalledOrStartedComponents();
+      InstalledOrStartedComponents componentStates = 
+          new InstalledOrStartedComponents();
       //get the state machine reference to the cluster
       ClusterFSM clusterFsm = StateMachineInvoker
           .getStateMachineClusterInstance(desiredClusterId);
@@ -102,9 +102,14 @@ public class HeartbeatHandler {
       //get the list of uninstall actions
       //create a map from component/role to 'started' for easy lookup later
       allActions = 
-          inspectAgentState(heartbeat, cluster, componentServers, clusterFsm);
+          inspectAgentState(heartbeat, cluster, componentStates, clusterFsm);
 
       checkActionResults(cluster, clusterFsm, heartbeat, allActions);
+      
+      //Install software for roles like gateways (note that client role 
+      //start/stops are not tracked through FSM).
+      getGatewayInstallActions(cluster, allActions, componentStates);
+      
       //the state machine reference to the services
       List<ServiceFSM> clusterServices = clusterFsm.getServices();
       //go through all the services, and check which role should be started
@@ -115,9 +120,9 @@ public class HeartbeatHandler {
         List<RoleFSM> roles = service.getRoles();
         
         for (RoleFSM role : roles) {
-          boolean roleInstalled = componentServers.isInstalled(
+          boolean roleInstalled = componentStates.isInstalled(
              role.getAssociatedService().getServiceName(), role.getRoleName());     
-          boolean roleServerRunning = componentServers.isStarted(
+          boolean roleServerRunning = componentStates.isStarted(
               role.getAssociatedService().getServiceName(),
               role.getRoleName());
           ComponentPlugin plugin = 
@@ -125,8 +130,14 @@ public class HeartbeatHandler {
           //check whether the agent should start any server
           if (role.shouldStart()) {
             if (!roleInstalled) {
+              //send action for installing the role
               Action action = plugin.install(cluster.getName(), 
                                              role.getRoleName());
+              fillDetailsAndAddAction(action, allActions, desiredClusterId,
+                  cluster.getLatestRevision(), service.getServiceName(), 
+                  role.getRoleName());
+              //send action for configuring
+              action = plugin.configure(desiredClusterId, role.getRoleName());
               fillDetailsAndAddAction(action, allActions, desiredClusterId,
                   cluster.getLatestRevision(), service.getServiceName(), 
                   role.getRoleName());
@@ -241,7 +252,7 @@ public class HeartbeatHandler {
     //this method should check things like number of retries (based on 
     //action-IDs) etc. this method should note issues like too many failures 
     //starting a role, etc.
-    for (ServiceFSM service : clusterFsm.getServices()) {    
+    for (ServiceFSM service : clusterFsm.getServices()) {
       //see whether the service is in the STARTED state, and if so,
       //check whether there is any action-result that indicates success
       //of the availability check (safemode, etc.)
@@ -272,6 +283,35 @@ public class HeartbeatHandler {
             action.setId(id);
             action.setKind(Action.Kind.RUN_ACTION);
             allActions.add(action);
+          }
+        }
+      }
+    }
+  }
+  
+  private void getGatewayInstallActions(Cluster cluster, List<Action>actions, 
+      InstalledOrStartedComponents components) throws IOException {
+    //TODO: the cluster definition should provide a way to get the 
+    //special roles easily
+    if (cluster.getClusterState().equals(ClusterState.CLUSTER_STATE_ATTIC)) {
+      return;
+    }
+    List<RoleToNodes> roleToNodes = cluster.getClusterDefinition(
+        cluster.getLatestRevision()).getRoleToNodes();
+    for (RoleToNodes roleToNode : roleToNodes) {
+      if (roleToNode.getRoleName().equals("GATEWAY")) { //TODO: this needs to be resolved
+        //go over all the enabled services and get the client role
+        //install action for each
+        List<String>services = cluster.getLatestClusterDefinition()
+            .getActiveServices();
+        for (String service : services) {
+          ComponentPlugin plugin = 
+              cluster.getComponentDefinition(service);
+          if (components.isInstalled(service, "CLIENT")) {
+            Action action = plugin.install(cluster.getName(), "CLIENT"); //TODO:this needs to be resolved
+            addAction(action,actions);
+            action = plugin.configure(cluster.getName(), "CLIENT"); //TODO:this needs to be resolved
+            addAction(action,actions);
           }
         }
       }
