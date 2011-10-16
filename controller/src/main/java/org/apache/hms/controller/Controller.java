@@ -203,7 +203,7 @@ public class Controller implements Watcher {
       initializeZooKeeper();
       LOG.info("Connected to ZooKeeper");
       clientHandler = new ClientHandler(zk);
-      commandHandler = new CommandHandler(zk, 5);
+      commandHandler = new CommandHandler(zk, 200);
       commandHandler.start();
     } catch (Exception e) {
       LOG.error(ExceptionUtil.getStackTrace(e));

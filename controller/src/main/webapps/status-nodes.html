@@ -116,7 +116,10 @@
         });
         jQuery.getJSON(url,
           function(data) {
+            var i = 0;
+            roles = [];
             for(var list in data["roles"]) {
+              roles[i++] = data["roles"][list]["@name"]
               $('#form').dataTable().fnAddData(addRole(data["roles"][list]["@name"], data["roles"][list]["host"]));
             }
           }

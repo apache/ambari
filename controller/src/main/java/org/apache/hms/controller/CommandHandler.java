@@ -18,10 +18,8 @@
 
 package org.apache.hms.controller;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,17 +33,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hms.controller.Controller;
 import org.apache.hms.common.conf.CommonConfigurationKeys;
 import org.apache.hms.common.entity.Status;
 import org.apache.hms.common.entity.action.Action;
 import org.apache.hms.common.entity.action.ActionDependency;
 import org.apache.hms.common.entity.action.ActionStatus;
 import org.apache.hms.common.entity.action.PackageAction;
-import org.apache.hms.common.entity.action.ScriptAction;
 import org.apache.hms.common.entity.cluster.MachineState;
 import org.apache.hms.common.entity.cluster.MachineState.StateEntry;
-import org.apache.hms.common.entity.cluster.MachineState.StateType;
 import org.apache.hms.common.entity.command.ClusterCommand;
 import org.apache.hms.common.entity.command.Command;
 import org.apache.hms.common.entity.command.CommandStatus;
@@ -54,18 +49,15 @@ import org.apache.hms.common.entity.command.DeleteClusterCommand;
 import org.apache.hms.common.entity.command.UpgradeClusterCommand;
 import org.apache.hms.common.entity.command.CommandStatus.ActionEntry;
 import org.apache.hms.common.entity.command.CommandStatus.HostStatusPair;
-import org.apache.hms.common.entity.command.CreateCommand;
 import org.apache.hms.common.entity.command.DeleteCommand;
 import org.apache.hms.common.entity.manifest.ClusterHistory;
 import org.apache.hms.common.entity.manifest.ClusterManifest;
 import org.apache.hms.common.entity.manifest.ConfigManifest;
-import org.apache.hms.common.entity.manifest.Node;
 import org.apache.hms.common.entity.manifest.NodesManifest;
 import org.apache.hms.common.entity.manifest.PackageInfo;
 import org.apache.hms.common.entity.manifest.Role;
 import org.apache.hms.common.entity.manifest.SoftwareManifest;
 import org.apache.hms.common.util.ExceptionUtil;
-import org.apache.hms.common.util.FileUtil;
 import org.apache.hms.common.util.JAXBUtil;
 import org.apache.hms.common.util.ZookeeperUtil;
 import org.apache.zookeeper.AsyncCallback.Children2Callback;
@@ -75,13 +67,13 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.Watcher.Event;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
 
 public class CommandHandler implements Children2Callback, VoidCallback, Watcher {
   private static Log LOG = LogFactory.getLog(CommandHandler.class);
+  private static long SEVEN_DAYS = 1000L*60*1440*7;
   private static String AGENT_ACTION = "/action";
   private static String AGENT_STATUS = "/status";
   private static String AGENT_WORKLOG = "/worklog";
@@ -191,6 +183,12 @@ public class CommandHandler implements Children2Callback, VoidCallback, Watcher 
         CommandStatus status = JAXBUtil.read(test, CommandStatus.class);
         if(status.getStatus()==Status.SUCCEEDED || status.getStatus()==Status.FAILED) {
           workOnIt=false;
+          // Delete command, if it has been completed and older than
+          // 7 days
+          if(System.currentTimeMillis()>stat.getMtime()+(SEVEN_DAYS)) {
+            LOG.info("Clean up deployment history: "+taskPath);
+            deleteIfExists(taskPath);
+          }
         }
       }
       if(workOnIt) {
