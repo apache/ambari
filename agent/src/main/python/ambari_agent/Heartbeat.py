@@ -31,11 +31,11 @@ class Heartbeat:
     self.actionQueue = actionQueue
     self.hardware = Hardware()
 
-  def build(self, id='unknown'):
+  def build(self, id='-1'):
     global clusterId, clusterDefinitionRevision
     serverStatus = ServerStatus()
     timestamp = int(time.time()*1000)
-    heartbeat = { 'responseId'          : id,
+    heartbeat = { 'responseId'          : int(id),
                   'timestamp'           : timestamp,
                   'hostname'            : socket.gethostname(),
                   'hardwareProfile'     : self.hardware.get(),

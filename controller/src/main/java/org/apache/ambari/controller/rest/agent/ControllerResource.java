@@ -46,7 +46,10 @@ import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
 import org.apache.ambari.common.rest.entities.agent.ConfigFile;
 import org.apache.ambari.common.rest.entities.agent.HardwareProfile;
 import org.apache.ambari.common.rest.entities.agent.HeartBeat;
+import org.apache.ambari.common.util.ExceptionUtil;
 import org.apache.ambari.controller.HeartbeatHandler;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /** 
  * Controller Resource represents Ambari controller.
@@ -57,7 +60,7 @@ import org.apache.ambari.controller.HeartbeatHandler;
 @Path("controller")
 public class ControllerResource {
   private HeartbeatHandler hh = new HeartbeatHandler();
-	
+	private static Log LOG = LogFactory.getLog(ControllerResource.class);
   /** 
    * Update state of the node (Internal API to be used by Ambari agent).
    *  
@@ -68,82 +71,83 @@ public class ControllerResource {
    * @response.representation.406.doc Error in heartbeat message format
    * @response.representation.408.doc Request Timed out
    * @param message Heartbeat message
+   * @throws Exception 
    */
   @Path("heartbeat/{hostname}")
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-  public ControllerResponse heartbeat(HeartBeat message) {
+  public ControllerResponse heartbeat(HeartBeat message) 
+      throws WebApplicationException {
     ControllerResponse controllerResponse = new ControllerResponse();
-//    try {
-//      controllerResponse = hh.processHeartBeat(message);
-//    } catch (DatatypeConfigurationException e) {
-//      throw new WebApplicationException(406);
-//    } catch (IOException e) {
-//      throw new WebApplicationException(408);
-//    }
+    try {
+      controllerResponse = hh.processHeartBeat(message);
+    } catch (Exception e) {
+      LOG.info(ExceptionUtil.getStackTrace(e));
+      throw new WebApplicationException(500);
+    }
 
-    controllerResponse.setResponseId("id-00002");    
-    String script = "import os\nos._exit(0)";
-    String[] param = { "cluster", "role" };
-    Command command = new Command("root", script, param);
-
-    Command cleanUp = new Command("root", script, param);
-    
-    Action action = new Action();
-    action.setUser("hdfs");
-    action.setKind(Kind.STOP_ACTION);
-    action.setSignal(Signal.KILL);
-    action.setClusterId("cluster-001");
-    action.setClusterDefinitionRevision(1);
-    action.setComponent("hdfs");
-    action.setRole("datanode");
-    action.setId("action-001");
-
-    Action action2 = new Action();
-    action2.setUser("hdfs");
-    action2.setKind(Kind.START_ACTION);
-    action2.setId("action-002");
-    action2.setClusterId("cluster-002");
-    action2.setCommand(command);
-    action2.setCleanUpCommand(cleanUp);
-    action2.setClusterDefinitionRevision(1);
-    action2.setComponent("hdfs");
-    action2.setRole("datanode");
-
-    Action action3 = new Action();
-    action3.setUser("hdfs");
-    action3.setKind(Kind.RUN_ACTION);
-    action3.setId("action-003");
-    action3.setClusterId("cluster-002");
-    action3.setClusterDefinitionRevision(1);
-    action3.setComponent("hdfs");
-    action3.setRole("datanode");
-    action3.setCommand(command);
-    action3.setCleanUpCommand(cleanUp);
-
-    Action action4 = new Action();
-    action4.setId("action-004");
-    action4.setClusterId("cluster-002");
-    action4.setClusterDefinitionRevision(1);
-    action4.setUser("hdfs");
-    action4.setKind(Kind.WRITE_FILE_ACTION);
-    action4.setComponent("hdfs");    
-    action4.setRole("namenode");
-    String owner ="hdfs";
-    String group = "hadoop";
-    String permission = "0700";
-    String path = "$prefix/config";
-    String umask = "022";
-    String data = "Content of the file";
-    action4.setFile(new ConfigFile(owner, group, permission, path, umask, data));
-    
-    List<Action> actions = new ArrayList<Action>();
-    actions.add(action);
-    actions.add(action2);
-    actions.add(action3);
-    actions.add(action4);
-    controllerResponse.setActions(actions);
+//    controllerResponse.setResponseId("id-00002");    
+//    String script = "import os\nos._exit(0)";
+//    String[] param = { "cluster", "role" };
+//    Command command = new Command("root", script, param);
+//
+//    Command cleanUp = new Command("root", script, param);
+//    
+//    Action action = new Action();
+//    action.setUser("hdfs");
+//    action.setKind(Kind.STOP_ACTION);
+//    action.setSignal(Signal.KILL);
+//    action.setClusterId("cluster-001");
+//    action.setClusterDefinitionRevision(1);
+//    action.setComponent("hdfs");
+//    action.setRole("datanode");
+//    action.setId("action-001");
+//
+//    Action action2 = new Action();
+//    action2.setUser("hdfs");
+//    action2.setKind(Kind.START_ACTION);
+//    action2.setId("action-002");
+//    action2.setClusterId("cluster-002");
+//    action2.setCommand(command);
+//    action2.setCleanUpCommand(cleanUp);
+//    action2.setClusterDefinitionRevision(1);
+//    action2.setComponent("hdfs");
+//    action2.setRole("datanode");
+//
+//    Action action3 = new Action();
+//    action3.setUser("hdfs");
+//    action3.setKind(Kind.RUN_ACTION);
+//    action3.setId("action-003");
+//    action3.setClusterId("cluster-002");
+//    action3.setClusterDefinitionRevision(1);
+//    action3.setComponent("hdfs");
+//    action3.setRole("datanode");
+//    action3.setCommand(command);
+//    action3.setCleanUpCommand(cleanUp);
+//
+//    Action action4 = new Action();
+//    action4.setId("action-004");
+//    action4.setClusterId("cluster-002");
+//    action4.setClusterDefinitionRevision(1);
+//    action4.setUser("hdfs");
+//    action4.setKind(Kind.WRITE_FILE_ACTION);
+//    action4.setComponent("hdfs");    
+//    action4.setRole("namenode");
+//    String owner ="hdfs";
+//    String group = "hadoop";
+//    String permission = "0700";
+//    String path = "$prefix/config";
+//    String umask = "022";
+//    String data = "Content of the file";
+//    action4.setFile(new ConfigFile(owner, group, permission, path, umask, data));
+//    
+//    List<Action> actions = new ArrayList<Action>();
+//    actions.add(action);
+//    actions.add(action2);
+//    actions.add(action3);
+//    actions.add(action4);
+//    controllerResponse.setActions(actions);
     return controllerResponse;
   }
 
@@ -200,7 +204,7 @@ public class ControllerResource {
       agentRoles.add(agentRole1);
       
       HeartBeat hb = new HeartBeat();
-      hb.setResponseId("unknown");
+      hb.setResponseId((short)-1);
       hb.setTimestamp(System.currentTimeMillis());
       hb.setHostname(addr.getHostName());
       hb.setActionResults(actionResults);
@@ -226,7 +230,7 @@ public class ControllerResource {
   @Produces("application/json")
   public ControllerResponse getControllerResponse() {
     ControllerResponse controllerResponse = new ControllerResponse();
-    controllerResponse.setResponseId("id-00002");    
+    controllerResponse.setResponseId((short)2);    
     
     String script = "import os\nos._exit(0)";
     String[] param = { "cluster", "role" };

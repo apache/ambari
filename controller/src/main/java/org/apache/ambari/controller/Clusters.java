@@ -440,7 +440,7 @@ public class Clusters {
                 }    
             } else {
                 Date epoch = new Date(0);
-                Nodes.getInstance().registerNewNode(node_name, epoch);
+                Nodes.getInstance().checkAndUpdateNode(node_name, epoch);
                 Node node = Nodes.getInstance().getNode(node_name);
                 /*
                  * TODO: Set agentInstalled = true, unless controller uses SSH to setup the agent

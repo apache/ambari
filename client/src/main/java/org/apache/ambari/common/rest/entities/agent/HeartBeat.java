@@ -39,7 +39,7 @@ import javax.xml.bind.annotation.XmlType;
     "actionResults", "idle"})
 public class HeartBeat {
   @XmlElement
-  private String responseId;
+  private short responseId = -1;
   @XmlElement
   private long timestamp;
   @XmlElement
@@ -53,11 +53,11 @@ public class HeartBeat {
   @XmlElement
   private boolean idle;
   
-  public String getResponseId() {
+  public short getResponseId() {
     return responseId;
   }
   
-  public void setResponseId(String responseId) {
+  public void setResponseId(short responseId) {
     this.responseId=responseId;
   }
   

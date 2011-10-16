@@ -36,17 +36,17 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "", propOrder = {})
 public class ControllerResponse {
   @XmlElement
-  public String responseId;
+  public short responseId;
   @XmlElement
   public String clusterId;
   @XmlElement
   public List<Action> actions;
 
-  public String getResponseId() {
+  public short getResponseId() {
     return responseId;
   }
   
-  public void setResponseId(String responseId) {
+  public void setResponseId(short responseId) {
     this.responseId=responseId;
   }
   

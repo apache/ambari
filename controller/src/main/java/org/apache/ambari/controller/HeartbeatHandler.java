@@ -52,14 +52,18 @@ import org.apache.ambari.resource.statemachine.ServiceEventType;
 import org.apache.ambari.resource.statemachine.ServiceFSM;
 import org.apache.ambari.resource.statemachine.ServiceState;
 import org.apache.ambari.resource.statemachine.StateMachineInvoker;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class HeartbeatHandler {
   
   private Map<String, ControllerResponse> agentToHeartbeatResponseMap = 
       Collections.synchronizedMap(new HashMap<String, ControllerResponse>());
   
+  private static Log LOG = LogFactory.getLog(HeartbeatHandler.class);
+  
   public ControllerResponse processHeartBeat(HeartBeat heartbeat) 
-      throws DatatypeConfigurationException, IOException {
+      throws Exception {
     ControllerResponse response = 
         agentToHeartbeatResponseMap.get(heartbeat.getHostname());
     if (response != null) {
@@ -67,128 +71,130 @@ public class HeartbeatHandler {
         return response; //duplicate heartbeat
       }
     }
-    
-    short responseId = 
-        (short) (Short.parseShort(response.getResponseId()) + 1);
-    
+
+    short responseId = (short)(heartbeat.getResponseId() + 1);
+
     String hostname = heartbeat.getHostname();
+    Date heartbeatTime = new Date(System.currentTimeMillis());
+    String clusterId = null;
 
-    Node node = Nodes.getInstance().getNodes().get(hostname);
-    NodeState state = node.getNodeState();
-    GregorianCalendar c = new GregorianCalendar();
-    c.setTime(new Date());
-    state.setLastHeartbeatTime(
-        DatatypeFactory.newInstance().newXMLGregorianCalendar(c));
-    
-    Cluster cluster = 
-        Clusters.getInstance().getClusterByID(state.getClusterID());
-    
+    Nodes.getInstance().checkAndUpdateNode(hostname, heartbeatTime);
+
     List<Action> allActions = new ArrayList<Action>();
-    
-    if (heartbeat.getIdle()) {
-      //if the command-execution takes longer than one heartbeat interval
-      //the check for idleness will prevent the same node getting the same 
-      //command more than once. In the future this could be improved
-      //to reflect the command execution state more accurately.
-      
-      String desiredClusterId = cluster.getID();
-      
-      InstalledOrStartedComponents componentStates = 
-          new InstalledOrStartedComponents();
-      //get the state machine reference to the cluster
-      ClusterFSM clusterFsm = StateMachineInvoker
-          .getStateMachineClusterInstance(desiredClusterId);
-      
-      //get the list of uninstall actions
-      //also, create a map from component/role to 'started' & 'installed' 
-      //for easy lookup later
-      allActions = 
-          inspectAgentState(heartbeat, cluster, componentStates, clusterFsm);
 
-      //check/create the special actions (like safemode check)
-      checkAndCreateActions(cluster, clusterFsm, heartbeat, allActions);
-      
-      //Install software for roles like gateways (note that client role 
-      //start/stops are not tracked through FSM).
-      getGatewayInstallActions(cluster, allActions, componentStates);
-      
-      //the state machine reference to the services
-      List<ServiceFSM> clusterServices = clusterFsm.getServices();
-      //go through all the services, and check which role should be started
-      //TODO: Given that we already look at what is running/installed in 
-      //inspectAgentState, having this for loop is inefficient. We
-      //should combine the two aspects.
-      for (ServiceFSM service : clusterServices) {
-        List<RoleFSM> roles = service.getRoles();
-        
-        for (RoleFSM role : roles) {
-          boolean roleInstalled = componentStates.isInstalled(
-             role.getAssociatedService().getServiceName(), role.getRoleName());     
-          boolean roleServerRunning = componentStates.isStarted(
-              role.getAssociatedService().getServiceName(),
-              role.getRoleName());
-          ComponentPlugin plugin = 
-              cluster.getComponentDefinition(service.getServiceName());
-          //check whether the agent should start any server
-          if (role.shouldStart()) {
-            if (!roleInstalled) {
-              //send action for installing the role
-              Action action = plugin.install(cluster.getName(), 
-                                             role.getRoleName());
-              fillDetailsAndAddAction(action, allActions, desiredClusterId,
-                  cluster.getLatestRevision(), service.getServiceName(), 
-                  role.getRoleName());
-              //send action for configuring
-              action = plugin.configure(desiredClusterId, role.getRoleName());
-              fillDetailsAndAddAction(action, allActions, desiredClusterId,
-                  cluster.getLatestRevision(), service.getServiceName(), 
-                  role.getRoleName());
-              continue;
+    clusterId = Nodes.getInstance().getNode(hostname)
+        .getNodeState().getClusterID();
+    
+    if (clusterId != null) {
+      Cluster cluster = 
+          Clusters.getInstance().getClusterByID(clusterId);
+      LOG.info("IDLE : " + heartbeat.getIdle());
+
+      if (heartbeat.getIdle()) {
+        //if the command-execution takes longer than one heartbeat interval
+        //the check for idleness will prevent the same node getting the same 
+        //command more than once. In the future this could be improved
+        //to reflect the command execution state more accurately.
+
+        String desiredClusterId = cluster.getID();
+
+        InstalledOrStartedComponents componentStates = 
+            new InstalledOrStartedComponents();
+        //get the state machine reference to the cluster
+        ClusterFSM clusterFsm = StateMachineInvoker
+            .getStateMachineClusterInstance(desiredClusterId);
+
+        //get the list of uninstall actions
+        //also, create a map from component/role to 'started' & 'installed' 
+        //for easy lookup later
+        allActions = 
+            inspectAgentState(heartbeat, cluster, componentStates, clusterFsm);
+
+        //check/create the special actions (like safemode check)
+        checkAndCreateActions(cluster, clusterFsm, heartbeat, allActions);
+
+        //Install software for roles like gateways (note that client role 
+        //start/stops are not tracked through FSM).
+        getGatewayInstallActions(cluster, allActions, componentStates);
+
+        //the state machine reference to the services
+        List<ServiceFSM> clusterServices = clusterFsm.getServices();
+        //go through all the services, and check which role should be started
+        //TODO: Given that we already look at what is running/installed in 
+        //inspectAgentState, having this for loop is inefficient. We
+        //should combine the two aspects.
+        for (ServiceFSM service : clusterServices) {
+          List<RoleFSM> roles = service.getRoles();
+
+          for (RoleFSM role : roles) {
+            boolean roleInstalled = componentStates.isInstalled(
+                role.getAssociatedService().getServiceName(), role.getRoleName());     
+            boolean roleServerRunning = componentStates.isStarted(
+                role.getAssociatedService().getServiceName(),
+                role.getRoleName());
+            ComponentPlugin plugin = 
+                cluster.getComponentDefinition(service.getServiceName());
+            //check whether the agent should start any server
+            if (role.shouldStart()) {
+              if (!roleInstalled) {
+                //send action for installing the role
+                Action action = plugin.install(cluster.getName(), 
+                    role.getRoleName());
+                fillDetailsAndAddAction(action, allActions, desiredClusterId,
+                    cluster.getLatestRevision(), service.getServiceName(), 
+                    role.getRoleName());
+                //send action for configuring
+                action = plugin.configure(desiredClusterId, role.getRoleName());
+                fillDetailsAndAddAction(action, allActions, desiredClusterId,
+                    cluster.getLatestRevision(), service.getServiceName(), 
+                    role.getRoleName());
+                continue;
+              }
+              if (!roleServerRunning) {
+                //TODO: keep track of retries (via checkActionResults)
+                Action action = 
+                    plugin.startServer(cluster.getName(), role.getRoleName());
+                fillDetailsAndAddAction(action, allActions, desiredClusterId,
+                    cluster.getLatestRevision(), service.getServiceName(), 
+                    role.getRoleName());
+              }
+              //raise an event to the state machine for a successful role-start
+              if (roleServerRunning) {
+                StateMachineInvoker.getAMBARIEventHandler()
+                .handle(new RoleEvent(RoleEventType.START_SUCCESS, role));
+              }
             }
-            if (!roleServerRunning) {
-              //TODO: keep track of retries (via checkActionResults)
-              Action action = 
-                  plugin.startServer(cluster.getName(), role.getRoleName());
-              fillDetailsAndAddAction(action, allActions, desiredClusterId,
-                  cluster.getLatestRevision(), service.getServiceName(), 
-                  role.getRoleName());
-            }
-            //raise an event to the state machine for a successful role-start
-            if (roleServerRunning) {
-              StateMachineInvoker.getAMBARIEventHandler()
-              .handle(new RoleEvent(RoleEventType.START_SUCCESS, role));
-            }
-          }
-          //check whether the agent should stop any server
-          if (role.shouldStop()) {
-            if (roleServerRunning) {
-              //TODO: keep track of retries (via checkActionResults)
-              addAction(getStopRoleAction(cluster.getID(), 
-                  cluster.getLatestRevision(), 
-                  role.getAssociatedService().getServiceName(), 
-                  role.getRoleName()), allActions);
-            }
-            //raise an event to the state machine for a successful role-stop
-            if (!roleServerRunning) {
-              StateMachineInvoker.getAMBARIEventHandler()
+            //check whether the agent should stop any server
+            if (role.shouldStop()) {
+              if (roleServerRunning) {
+                //TODO: keep track of retries (via checkActionResults)
+                addAction(getStopRoleAction(cluster.getID(), 
+                    cluster.getLatestRevision(), 
+                    role.getAssociatedService().getServiceName(), 
+                    role.getRoleName()), allActions);
+              }
+              //raise an event to the state machine for a successful role-stop
+              if (!roleServerRunning) {
+                StateMachineInvoker.getAMBARIEventHandler()
                 .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
-            }
-            if (roleInstalled && 
-                clusterFsm.getClusterState()
+              }
+              if (roleInstalled && 
+                  clusterFsm.getClusterState()
                   .equals(ClusterState.CLUSTER_STATE_ATTIC)) {
-              Action action = plugin.uninstall(cluster.getName(), 
-                                               role.getRoleName());
-              fillDetailsAndAddAction(action, allActions, cluster.getID(), 
-                  cluster.getLatestRevision(), 
-                  role.getAssociatedService().getServiceName(), 
-                  role.getRoleName());
+                Action action = plugin.uninstall(cluster.getName(), 
+                    role.getRoleName());
+                fillDetailsAndAddAction(action, allActions, cluster.getID(), 
+                    cluster.getLatestRevision(), 
+                    role.getAssociatedService().getServiceName(), 
+                    role.getRoleName());
+              }
             }
           }
         }
       }
     }
     ControllerResponse r = new ControllerResponse();
-    r.setResponseId(String.valueOf(responseId));
+    r.setResponseId(responseId);
     r.setActions(allActions);
     agentToHeartbeatResponseMap.put(heartbeat.getHostname(), r);
     return r;

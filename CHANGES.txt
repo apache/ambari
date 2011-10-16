@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-78. Change the datatype of responseId in the heartbeat messages to short (ddas)
+
   AMBARI-77. create default blueprint containing HDFS component (vgogate)
 
   AMBARI-76. Register new node w/ Ambari controller (vgogate)

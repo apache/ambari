@@ -171,7 +171,7 @@ public class Nodes {
     /*
      * Register new node
      */
-    public synchronized void registerNewNode (String name, Date hearbeatTime) throws Exception {
+    public synchronized void checkAndUpdateNode (String name, Date hearbeatTime) throws Exception {
         Node node = this.nodes.get(name);
         
         if (node == null) {

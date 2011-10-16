@@ -60,7 +60,7 @@ class Controller(threading.Thread):
     logger.info("Controller connection disconnected.")
 
   def run(self):
-    id='unknown'
+    id='-1'
     if self.credential!=None:
       auth_handler = urllib2.HTTPBasicAuthHandler()
       auth_handler.add_password(realm="Controller",
@@ -78,7 +78,7 @@ class Controller(threading.Thread):
         response = f.read()
         f.close()
         data = json.loads(response)
-        id=data['responseId']
+        id=int(data['responseId'])
         self.actionQueue.put(data)
       except URLError, err:
         if "code" in err:
