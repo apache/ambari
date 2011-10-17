@@ -19,11 +19,16 @@ package org.apache.ambari.client;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
+import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -32,57 +37,63 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
-public class ClusterBlueprint extends Command {
+public class BlueprintGet extends Command {
 
     String[] args = null;
     Options options = null;
-    
-    String urlPath = "/clusters";
-    URL resourceURL = null;
+   
     CommandLine line;
     
     
-    public ClusterBlueprint (String [] args) throws Exception {  
+    public BlueprintGet (String [] args) throws Exception {  
         /*
-         * Build options for cluster update
+         * Build options for cluster list
          */
         this.args = args;
         addOptions();
-        this.resourceURL = new URL (""+this.baseURLString+this.urlPath);
     }
     
     public void printUsage () {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "ambari cluster delete", this.options);
+        formatter.printHelp( "ambari blueprint get", this.options);
     }
     
     public void addOptions () {
              
         Option help = new Option( "help", "Help" );
-        Option expanded = new Option( "expanded", "Return expanded version of blueprint inlining parent blueprint" );
         
-        OptionBuilder.withArgName("cluster_name");
+        OptionBuilder.withArgName("blueprint_name");
         OptionBuilder.isRequired();
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Name of the cluster");
+        OptionBuilder.withDescription( "Name of the blueprint");
         Option name = OptionBuilder.create( "name" );
+        
+        OptionBuilder.withArgName("revision");
+        OptionBuilder.hasArg();
+        OptionBuilder.withDescription( "Name of the cluster");
+        Option revision = OptionBuilder.create( "revision" );
         
         OptionBuilder.withArgName("file_path");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "File path to store the blueprint locally on client side");
+        OptionBuilder.withDescription( "Local file path");
         Option file = OptionBuilder.create( "file" );
         
-        this.options = new Options(); 
-        options.addOption( name );
-        options.addOption( file );
-        options.addOption( expanded );
+        
+        this.options = new Options();
+        options.addOption(name);
+        options.addOption(revision);
+        options.addOption(file);
+   
         options.addOption(help);
     }
     
@@ -122,24 +133,31 @@ public class ClusterBlueprint extends Command {
         ClientConfig config = new DefaultClientConfig();
         Client client = Client.create(config);
         WebResource service = client.resource(getBaseURI());
-        String clusterName = line.getOptionValue("name");
+        String blueprintName = line.getOptionValue("name");
+        String file_path = line.getOptionValue("file");
         
         /*
-         * Update cluster
+         * Get blueprint
          */
-        ClientResponse response = service
-                .path("clusters/"+clusterName+"/blueprint")
-                .queryParam("expanded", "true")
-                .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+        ClientResponse response;
+        if (line.hasOption("revision")) {
+            response = service.path("blueprints/"+blueprintName)
+                   .queryParam("revision", line.getOptionValue("revision"))
+                   .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+        } else {
+            response = service.path("blueprints/"+blueprintName)
+                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+        }        
         if (response.getStatus() != 200) { 
-            System.err.println("Get cluster blueprint command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+            System.err.println("Blueprint get command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
             System.exit(-1);
         }
         
         /* 
-         * Retrieve the cluster blueprint
+         * Retrieve the cluster Information from the response
          */
-        Blueprint blueprint = response.getEntity(Blueprint.class);
-        printBlueprint(blueprint, line.getOptionValue("file"));
+        Blueprint bp = response.getEntity(Blueprint.class);
+        
+        printBlueprint(bp, file_path);
     }
 }

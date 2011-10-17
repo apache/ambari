@@ -253,6 +253,10 @@ public class Blueprints {
          * If revision is -1, then return the latest revision
          */  
         Blueprint bp = null;
+        if (!this.blueprints.containsKey(blueprintName)) {  
+            String msg = "Blueprint ["+blueprintName+"] is not defined";
+            throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
         if (revision == -1) {
             this.blueprints.get(blueprintName).keySet();
             Integer [] a = new Integer [] {};
@@ -260,7 +264,7 @@ public class Blueprints {
             Arrays.sort(keys);  
             bp = this.blueprints.get(blueprintName).get(keys[keys.length-1]);
         } else {
-            if (!this.blueprints.containsKey(blueprintName) || !this.blueprints.get(blueprintName).containsKey(revision)) {  
+            if (!this.blueprints.get(blueprintName).containsKey(revision)) {  
                 String msg = "Blueprint ["+blueprintName+"], revision ["+revision+"] does not exists";
                 throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             }

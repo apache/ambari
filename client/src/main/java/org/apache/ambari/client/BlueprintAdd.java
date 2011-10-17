@@ -157,7 +157,7 @@ public class BlueprintAdd extends Command {
             System.exit(-1);
         }
         System.out.println("Blueprint added.\n");
-        printClusterBlueprint(bp_return, null);
+        printBlueprint(bp_return, null);
     }
     
     public Blueprint readBlueprintFromXMLFile (File f) throws Exception {      

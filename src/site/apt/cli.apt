@@ -321,6 +321,10 @@ Blueprint Commands
 
         * Optionally specify revision number else returns latest one
 
+      * <<--file>> [Local File Path]
+
+        * Optionally stores the configuration to local file path. If not specified it displays it on the console.
+
   []
 
 Node Commands 

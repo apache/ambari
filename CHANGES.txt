@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-80. Implement blueprint get CLI
+
   AMBARI-79. create default blueprint instance
 
   AMBARI-78. Change the datatype of responseId in the heartbeat messages to short (ddas)

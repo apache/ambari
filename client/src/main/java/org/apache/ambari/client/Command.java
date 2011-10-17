@@ -131,7 +131,7 @@ public abstract class Command {
         m.marshal(node, System.out);
     }
     
-    public void printClusterBlueprint(Blueprint blueprint, String file_path) throws Exception {
+    public void printBlueprint(Blueprint blueprint, String file_path) throws Exception {
         JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Blueprint.class);
         Marshaller m = jc.createMarshaller();
         m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);

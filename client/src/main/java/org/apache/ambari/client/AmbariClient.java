@@ -46,6 +46,7 @@ public class AmbariClient {
         blueprintCommands.put("list", "BlueprintList");
         blueprintCommands.put("history", "BlueprintHistory");
         blueprintCommands.put("add", "BlueprintAdd");
+        blueprintCommands.put("get", "BlueprintGet");
         
         HashMap<String, String> nodeCommands = new HashMap<String, String>();
         nodeCommands.put("list", "NodeList.class");
