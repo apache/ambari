@@ -10,6 +10,7 @@
 
 <p>Actions Completed <span id="actions">Loading...</span></p>
 
+<p><div id="progress"></div></p>
 <form class="form">
   <p>
     <button id="expand" onClick="return showHide()">More details...</button>
@@ -43,6 +44,8 @@
     buffer[i++]=' of ';
     buffer[i++]=command['totalActions'];
     $('#actions').text(buffer.join(""));
+    var progress = command['completedActions']/command['totalActions']*100;
+    $('#progress').progressbar({ value: progress });
     buffer = [];
     i = 0;
     var actionEntries;
@@ -84,9 +87,9 @@
   function renderScriptAction(action) {
     var buffer = [];
     var i = 0;
-    buffer[i++] = "<p>Script: ";
+    buffer[i++] = "<p>Action: ";
     buffer[i++] = action['script'];
-    buffer[i++] = "</p><p>Parameters: ";
+    buffer[i++] = " ";
     if (action['parameters'].constructor.toString().indexOf('Array') == -1) {
       buffer[i++] = action['parameters'];
     } else {
@@ -101,8 +104,7 @@
     var i = 0;
     buffer[i++] = "<p>Action: ";
     buffer[i++] = action['actionType'];
-    buffer[i++] = "</p>";
-    buffer[i++] = "<p>Package: ";
+    buffer[i++] = " ";
     var list = action['packages'];
     if(list.constructor.toString().indexOf('Array') == -1) {
       buffer[i++] = action['packages']['name'];
@@ -122,8 +124,7 @@
     var i = 0;
     buffer[i++] = "<p>Action: ";
     buffer[i++] = action['actionType'];
-    buffer[i++] = "</p>";
-    buffer[i++] = "<p>Service: ";
+    buffer[i++] = " ";
     buffer[i++] = action['daemon'];
     buffer[i++] = "</p>";
     return buffer.join("");
