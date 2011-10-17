@@ -161,7 +161,7 @@ public class Nodes {
      * Get the node
      */
     public Node getNode (String name) throws Exception {
-        if (this.nodes.get(name) == null) {
+        if (!this.nodes.containsKey(name)) {
             String msg = "Node ["+name+"] does not exists";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }

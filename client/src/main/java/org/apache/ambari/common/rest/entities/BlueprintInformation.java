@@ -28,23 +28,18 @@ import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-
-/**
- * <p>Java class for BlueprintType complex type.
- * 
- */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Blueprint", propOrder = {
+@XmlType(name = "BlueprintInformation", propOrder = {
     "name",
     "revision",
     "parentName",
     "parentRevision",
-    "repositories",
-    "configuration",
-    "components"
+    "creationTime",
+    "lastUpdateTime",
+    "component"
 })
 @XmlRootElement
-public class Blueprint {
+public class BlueprintInformation {
 
     @XmlAttribute
     protected String name;
@@ -54,123 +49,97 @@ public class Blueprint {
     protected String parentName;
     @XmlAttribute
     protected String parentRevision;
-    
-    /*
+    @XmlElement
+    protected List<String> component;
     @XmlAttribute
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar creationTime;
-    
     @XmlAttribute
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar lastUpdateTime;
-    */
-
-    @XmlElement
-    protected List<RepositoryKind> repositories;
-    
-    @XmlElement
-    protected Configuration configuration;
-    
-    @XmlElement
-    protected List<Component> components;
-    
     /**
-     * @return the repositories
+     * @return the component
      */
-    public List<RepositoryKind> getRepositories() {
-        return repositories;
+    public List<String> getComponent() {
+        return component;
     }
     /**
-     * @param repositories the repositories to set
+     * @param component the component to set
      */
-    public void setRepositories(List<RepositoryKind> repositories) {
-        this.repositories = repositories;
+    public void setComponent(List<String> component) {
+        this.component = component;
     }
     /**
      * @return the name
      */
     public String getName() {
-            return name;
+        return name;
     }
     /**
      * @param name the name to set
      */
     public void setName(String name) {
-            this.name = name;
+        this.name = name;
     }
     /**
      * @return the revision
      */
     public String getRevision() {
-            return revision;
+        return revision;
     }
     /**
      * @param revision the revision to set
      */
     public void setRevision(String revision) {
-            this.revision = revision;
+        this.revision = revision;
     }
-    
     /**
      * @return the parentName
      */
     public String getParentName() {
-            return parentName;
+        return parentName;
     }
     /**
      * @param parentName the parentName to set
      */
     public void setParentName(String parentName) {
-            this.parentName = parentName;
+        this.parentName = parentName;
     }
     /**
      * @return the parentRevision
      */
     public String getParentRevision() {
-            return parentRevision;
+        return parentRevision;
     }
     /**
      * @param parentRevision the parentRevision to set
      */
     public void setParentRevision(String parentRevision) {
-            this.parentRevision = parentRevision;
+        this.parentRevision = parentRevision;
+    }
+    
+    /**
+     * @return the creationTime
+     */
+    public XMLGregorianCalendar getCreationTime() {
+        return creationTime;
     }
     /**
-     * @return the packageRepositories
+     * @param creationTime the creationTime to set
      */
-    public List<RepositoryKind> getPackageRepositories() {
-            return repositories;
+    public void setCreationTime(XMLGregorianCalendar creationTime) {
+        this.creationTime = creationTime;
     }
     /**
-     * @param packageRepositories the packageRepositories to set
+     * @return the lastUpdateTime
      */
-    public void setPackageRepositories(
-                    List<RepositoryKind> value) {
-            this.repositories = value;
+    public XMLGregorianCalendar getLastUpdateTime() {
+        return lastUpdateTime;
     }
     /**
-     * @return the configuration
+     * @param lastUpdateTime the lastUpdateTime to set
      */
-    public Configuration getConfiguration() {
-            return configuration;
+    public void setLastUpdateTime(XMLGregorianCalendar lastUpdateTime) {
+        this.lastUpdateTime = lastUpdateTime;
     }
-    /**
-     * @param configuration the configuration to set
-     */
-    public void setConfiguration(Configuration configuration) {
-            this.configuration = configuration;
-    }
-    /**
-     * @return the components
-     */
-    public List<Component> getComponents() {
-            return components;
-    }
-    /**
-     * @param components the components to set
-     */
-    public void setComponents(List<Component> components) {
-            this.components = components;
-    }
-
 }

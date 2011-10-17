@@ -33,6 +33,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.BlueprintInformation;
 import org.apache.ambari.controller.Blueprints;
 import org.apache.ambari.controller.ExceptionResponse;
 import org.codehaus.jettison.json.JSONArray;
@@ -78,11 +79,11 @@ public class BlueprintsResource {
      */
     @GET
     @Produces({"application/json", "application/xml"})
-    public JSONArray listBlueprints() throws Exception {
-        JSONArray list;
+    public List<BlueprintInformation> listBlueprints() throws Exception {
+        List<BlueprintInformation> list;
         try {
             list = Blueprints.getInstance().getBlueprintList();
-            if (list.length() == 0) {
+            if (list.isEmpty()) {
                 throw new WebApplicationException(Response.Status.NO_CONTENT);
             } 
             return list;

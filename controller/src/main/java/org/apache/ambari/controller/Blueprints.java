@@ -36,6 +36,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.BlueprintInformation;
 import org.apache.ambari.common.rest.entities.Component;
 import org.apache.ambari.common.rest.entities.ComponentDefinition;
 import org.apache.ambari.common.rest.entities.Configuration;
@@ -84,20 +85,87 @@ public class Blueprints {
         
         ConfigurationCategory ambari = new ConfigurationCategory();
         ambari.setName("ambari");
-        ambari.getProperty().add(getProperty ("ambari.install.dir", "/var/ambari"));
-        ambari.getProperty().add(getProperty ("ambari.data.dir.pattern", "/grid/*"));
+        ambari.getProperty().add(getProperty ("AMBARI_INSTALL_DIR", "/var/ambari"));
+        ambari.getProperty().add(getProperty ("AMBARI_HADOOP_JAVA_HOME", "/home/hms/apps/jdk1.6.0_27"));
+        ambari.getProperty().add(getProperty ("AMBARI_HADOOP_NN_DIR","/grid/2/hadoop/var/hdfs/name")); 
+        ambari.getProperty().add(getProperty ("AMBARI_DATA_DIRS", "/grid/*"));
+        ambari.getProperty().add(getProperty ("AMBARI_HADOOP_SECURITY", "false"));
+        
+        ambari.getProperty().add(getProperty ("AMBARI_HADOOP_DN_ADDR", "DEFAULT"));
+        ambari.getProperty().add(getProperty ("AMBARI_HADOOP_DN_HTTP_ADDR", "DEFAULT"));
+        ambari.getProperty().add(getProperty ("AMBARI_HADOOP_NN_HOST", "DEFAULT"));
+        
+        
+
         
         ConfigurationCategory core_site = new ConfigurationCategory();
         core_site.setName("core-site");
-        core_site.getProperty().add(getProperty ("dfs.name.dir", "/tmp/namenode"));
+        core_site.getProperty().add(getProperty ("local.realm","${KERBEROS_REALM}"));
+        core_site.getProperty().add(getProperty ("fs.default.name","hdfs://${HADOOP_NN_HOST}:8020"));
+        core_site.getProperty().add(getProperty ("fs.trash.interval","360"));
+        core_site.getProperty().add(getProperty ("hadoop.security.auth_to_local","RULE:[2:$1@$0]([jt]t@.*${KERBEROS_REALM})s/.*/${HADOOP_MR_USER}/ RULE:[2:$1@$0](hm@.*${KERBEROS_REALM})s/.*/${HADOOP_HDFS_USER}/ RULE:[2:$1@$0](rs@.*${KERBEROS_REALM})s/.*/${HADOOP_HDFS_USER}/ RULE:[2:$1@$0]([nd]n@.*${KERBEROS_REALM})s/.*/${HADOOP_HDFS_USER}/ RULE:[2:$1@$0](mapred@.*${KERBEROS_REALM})s/.*/${HADOOP_MR_USER}/ RULE:[2:$1@$0](hdfs@.*${KERBEROS_REALM})s/.*/${HADOOP_HDFS_USER}/ RULE:[2:$1@$0](mapredqa@.*${KERBEROS_REALM})s/.*/${HADOOP_MR_USER}/ RULE:[2:$1@$0](hdfsqa@.*${KERBEROS_REALM})s/.*/${HADOOP_HDFS_USER}/ DEFAULT"));
+        core_site.getProperty().add(getProperty ("hadoop.security.authentication","${SECURITY_TYPE}"));
+        core_site.getProperty().add(getProperty ("hadoop.security.authorization","${SECURITY}"));
+        core_site.getProperty().add(getProperty ("hadoop.security.groups.cache.secs","14400"));
+        core_site.getProperty().add(getProperty ("hadoop.kerberos.kinit.command","${KINIT}"));
+        core_site.getProperty().add(getProperty ("hadoop.http.filter.initializers","org.apache.hadoop.http.lib.StaticUserWebFilter"));
         
         ConfigurationCategory hdfs_site = new ConfigurationCategory();
         hdfs_site.setName("hdfs-site");
-        hdfs_site.getProperty().add(getProperty ("dfs.name.dir", "/tmp/namenode"));
-        hdfs_site.getProperty().add(getProperty ("dfs.data.dir", "/tmp/datanode"));
+        hdfs_site.getProperty().add(getProperty ("dfs.name.dir","${HADOOP_NN_DIR}"));
+        hdfs_site.getProperty().add(getProperty ("dfs.data.dir","${HADOOP_DN_DIR}"));
+        hdfs_site.getProperty().add(getProperty ("dfs.safemode.threshold.pct","1.0f"));
+        hdfs_site.getProperty().add(getProperty ("dfs.datanode.address","${HADOOP_DN_ADDR}"));
+        hdfs_site.getProperty().add(getProperty ("dfs.datanode.http.address","${HADOOP_DN_HTTP_ADDR}"));
+        hdfs_site.getProperty().add(getProperty ("dfs.http.address","${HADOOP_NN_HOST}:50070"));
+        hdfs_site.getProperty().add(getProperty ("dfs.umaskmode","077"));
+        hdfs_site.getProperty().add(getProperty ("dfs.block.access.token.enable","${SECURITY}"));
+        hdfs_site.getProperty().add(getProperty ("dfs.namenode.kerberos.principal","nn/_HOST@${local.realm}"));
+        hdfs_site.getProperty().add(getProperty ("dfs.secondary.namenode.kerberos.principal","nn/_HOST@${local.realm}"));
+        hdfs_site.getProperty().add(getProperty ("dfs.namenode.kerberos.https.principal","host/_HOST@${local.realm}"));
+        hdfs_site.getProperty().add(getProperty ("dfs.secondary.namenode.kerberos.https.principal","host/_HOST@${local.realm}"));
+        hdfs_site.getProperty().add(getProperty ("dfs.secondary.https.port","50490"));
+        hdfs_site.getProperty().add(getProperty ("dfs.datanode.kerberos.principal","dn/_HOST@${local.realm}"));
+        hdfs_site.getProperty().add(getProperty ("dfs.namenode.keytab.file","/etc/security/keytabs/nn.service.keytab"));
+        hdfs_site.getProperty().add(getProperty ("dfs.secondary.namenode.keytab.file","/etc/security/keytabs/nn.service.keytab"));
+        hdfs_site.getProperty().add(getProperty ("dfs.datanode.keytab.file","/etc/security/keytabs/dn.service.keytab"));
+        hdfs_site.getProperty().add(getProperty ("dfs.https.port","50470"));
+        hdfs_site.getProperty().add(getProperty ("dfs.https.address","${HADOOP_NN_HOST}:50470"));
+        hdfs_site.getProperty().add(getProperty ("dfs.datanode.data.dir.perm","700"));
+        hdfs_site.getProperty().add(getProperty ("dfs.cluster.administrators","${HADOOP_HDFS_USER}"));
+        hdfs_site.getProperty().add(getProperty ("dfs.permissions.superusergroup","${HADOOP_GROUP}"));
+        hdfs_site.getProperty().add(getProperty ("dfs.namenode.http-address","${HADOOP_NN_HOST}:50070"));
+        hdfs_site.getProperty().add(getProperty ("dfs.namenode.https-address","${HADOOP_NN_HOST}:50470"));
+        hdfs_site.getProperty().add(getProperty ("dfs.secondary.http.address","${HADOOP_SNN_HOST}:50090"));
+        hdfs_site.getProperty().add(getProperty ("dfs.hosts","${HADOOP_CONF_DIR}/dfs.include"));
+        hdfs_site.getProperty().add(getProperty ("dfs.hosts.exclude","${HADOOP_CONF_DIR}/dfs.exclude"));
+        
+        ConfigurationCategory hadoop_env = new ConfigurationCategory();
+        hadoop_env.setName("hadoop-env");
+        hadoop_env.getProperty().add(getProperty ("JAVA_HOME","${JAVA_HOME}"));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_CONF_DIR","${HADOOP_CONF_DIR:-\"/etc/hadoop\"}"));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_OPTS","\"-Djava.net.preferIPv4Stack=true $HADOOP_OPTS\""));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_NAMENODE_OPTS","\"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_NAMENODE_OPTS}\""));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_JOBTRACKER_OPTS","\"-Dsecurity.audit.logger=INFO,DRFAS -Dmapred.audit.logger=INFO,MRAUDIT -Dmapred.jobsummary.logger=INFO,JSA ${HADOOP_JOBTRACKER_OPTS}\""));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_TASKTRACKER_OPTS","\"-Dsecurity.audit.logger=ERROR,console -Dmapred.audit.logger=ERROR,console ${HADOOP_TASKTRACKER_OPTS}\""));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_DATANODE_OPTS","\"-Dsecurity.audit.logger=ERROR,DRFAS ${HADOOP_DATANODE_OPTS}\""));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_SECONDARYNAMENODE_OPTS","\"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_SECONDARYNAMENODE_OPTS}\""));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_CLIENT_OPTS","\"-Xmx128m ${HADOOP_CLIENT_OPTS}\""));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_SECURE_DN_USER","${HADOOP_SECURE_DN_USER}"));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_LOG_DIR","${HADOOP_LOG_DIR}/$USER"));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_SECURE_DN_LOG_DIR","${HADOOP_LOG_DIR}/${HADOOP_HDFS_USER}"));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_PID_DIR","${HADOOP_PID_DIR}"));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_SECURE_DN_PID_DIR","${HADOOP_PID_DIR}"));
+        hadoop_env.getProperty().add(getProperty ("HADOOP_IDENT_STRING","$USER"));
+
+        ConfigurationCategory hadoop_metrics2 = new ConfigurationCategory();
+        hadoop_metrics2.setName("hadoop_metrics2.properties");
+        hadoop_metrics2.getProperty().add(getProperty ("*.period","60"));
         
         bpDefaultCfg.getCategory().add(core_site);
         bpDefaultCfg.getCategory().add(hdfs_site);
+        bpDefaultCfg.getCategory().add(hadoop_env);
+        bpDefaultCfg.getCategory().add(hadoop_metrics2);
         bpDefaultCfg.getCategory().add(ambari);
         
         bp.setConfiguration(bpDefaultCfg);
@@ -139,11 +207,11 @@ public class Blueprints {
         List<Role> hdfsRoleList = new ArrayList<Role>();
         Role hdfs_nn_role = new Role();
         hdfs_nn_role.setName("namenode");
-        hdfs_nn_role.setConfiguration(bpDefaultCfg);
+        //hdfs_nn_role.setConfiguration(bpDefaultCfg);
         
         Role hdfs_dn_role = new Role();
         hdfs_dn_role.setName("datanode");
-        hdfs_dn_role.setConfiguration(bpDefaultCfg);
+        //hdfs_dn_role.setConfiguration(bpDefaultCfg);
         
         hdfsRoleList.add(hdfs_nn_role);
         hdfsRoleList.add(hdfs_dn_role);
@@ -266,10 +334,28 @@ public class Blueprints {
     /*
      * Return list of blueprint names
      */
-    public JSONArray getBlueprintList() throws Exception {
-        List<String> list = new ArrayList<String>();
-        list.addAll(this.blueprints.keySet());
-        return new JSONArray(list);
+    public List<BlueprintInformation> getBlueprintList() throws Exception {
+        List<BlueprintInformation> list = new ArrayList<BlueprintInformation>();
+        for (String bpName : this.blueprints.keySet()) {
+            // Get the latest blueprint
+            Blueprint bp = this.getBlueprint(bpName, -1);
+            BlueprintInformation bpInfo = new BlueprintInformation();
+            // TODO: get the creation and update times from blueprint
+            bpInfo.setLastUpdateTime(null);
+            bpInfo.setCreationTime(null);
+            bpInfo.setName(bp.getName());
+            bpInfo.setRevision(bp.getRevision());
+            bpInfo.setParentName(bp.getParentName());
+            bpInfo.setParentRevision(bp.getParentRevision());
+            List<String> componentNameVersions = new ArrayList<String>();
+            for (Component com : bp.getComponents()) {
+                String comNameVersion = ""+com.getName()+"-"+com.getVersion();
+                componentNameVersions.add(comNameVersion);
+            }
+            bpInfo.setComponent(componentNameVersions);
+            list.add(bpInfo);
+        }
+        return list;
     }
     
     /*
