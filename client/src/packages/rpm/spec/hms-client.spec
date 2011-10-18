@@ -17,7 +17,7 @@
 # RPM Spec file for HBase version @version@
 #
 
-%define name         hms-client
+%define name         ambari-client
 %define version      @version@
 %define release      @package.release@
 
@@ -35,7 +35,7 @@
 %define _man_dir     %{_prefix}/man
 %define _pid_dir     @package.pid.dir@
 %define _sbin_dir    %{_prefix}/sbin
-%define _share_dir   %{_prefix}/share/hms
+%define _share_dir   %{_prefix}/share/ambari
 %define _src_dir     %{_prefix}/src
 %define _var_dir     %{_prefix}/var/lib
 
@@ -44,9 +44,9 @@
 %define _final_name @final.name@
 %define debug_package %{nil}
 
-Summary: Hadoop Management System Client
+Summary: Ambari Client
 License: Apache License, Version 2.0
-URL: http://incubator.apache.org/hms
+URL: http://incubator.apache.org/ambari
 Vendor: Apache Software Foundation
 Group: Development/Libraries
 Name: %{name}
@@ -60,10 +60,10 @@ Prefix: %{_pid_dir}
 Buildroot: %{_build_dir}
 Requires: sh-utils, textutils, /usr/sbin/useradd, /usr/sbin/usermod, /sbin/chkconfig, /sbin/service, jdk >= 1.6, hadoop
 AutoReqProv: no
-Provides: hms-client
+Provides: ambari-client
 
 %description
-Hadoop Management System Agent manage software installation and configuration for Hadoop software stack.
+Ambari command line interface.
 
 %prep
 %setup -n %{_final_name}
@@ -98,14 +98,14 @@ mkdir -p ${RPM_BUILD_DIR}%{_sbin_dir}
 mkdir -p ${RPM_BUILD_DIR}%{_share_dir}
 mkdir -p ${RPM_BUILD_DIR}%{_src_dir}
 
-cp ${RPM_BUILD_DIR}/%{_final_name}/src/packages/update-hms-client-env.sh ${RPM_BUILD_DIR}/%{_final_name}/sbin/update-hms-client-env.sh
+cp ${RPM_BUILD_DIR}/%{_final_name}/src/packages/update-ambari-client-env.sh ${RPM_BUILD_DIR}/%{_final_name}/sbin/update-ambari-client-env.sh
 chmod 0755 ${RPM_BUILD_DIR}/%{_final_name}/sbin/*
 mv -f ${RPM_BUILD_DIR}/%{_final_name}/* ${RPM_BUILD_DIR}%{_share_dir}
 
 rm -rf ${RPM_BUILD_DIR}/%{_final_name}
 
 %preun
-${RPM_INSTALL_PREFIX0}/share/hms/sbin/update-hms-client-env.sh \
+${RPM_INSTALL_PREFIX0}/share/ambari/sbin/update-ambari-client-env.sh \
        --prefix=${RPM_INSTALL_PREFIX0} \
        --bin-dir=${RPM_INSTALL_PREFIX0}/bin \
        --conf-dir=${RPM_INSTALL_PREFIX1} \
@@ -116,7 +116,7 @@ ${RPM_INSTALL_PREFIX0}/share/hms/sbin/update-hms-client-env.sh \
 %pre
 
 %post
-${RPM_INSTALL_PREFIX0}/share/hms/sbin/update-hms-client-env.sh \
+${RPM_INSTALL_PREFIX0}/share/ambari/sbin/update-ambari-client-env.sh \
        --prefix=${RPM_INSTALL_PREFIX0} \
        --bin-dir=${RPM_INSTALL_PREFIX0}/bin \
        --conf-dir=${RPM_INSTALL_PREFIX1} \

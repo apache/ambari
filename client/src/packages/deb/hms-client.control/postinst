@@ -15,10 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-bash /usr/share/hbase/sbin/update-hms-client-env.sh \
+bash /usr/share/hbase/sbin/update-ambari-client-env.sh \
   --prefix=/usr \
   --bin-dir=/usr/bin \
-  --conf-dir=/etc/hms \
-  --log-dir=/var/log/hms \
-  --pid-dir=/var/run/hms
+  --conf-dir=/etc/ambari \
+  --log-dir=/var/log/ambari \
+  --pid-dir=/var/run/ambari
 

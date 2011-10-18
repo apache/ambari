@@ -72,7 +72,7 @@
       <outputDirectory>sbin</outputDirectory>
       <fileMode>755</fileMode>
       <includes>
-          <include>update-hms-${artifactId}-env.sh</include>
+          <include>update-ambari-${artifactId}-env.sh</include>
       </includes>
     </fileSet>
   </fileSets>
