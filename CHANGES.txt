@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-81. Updated xslt document to show human readable stylesheet. (Eric Yang)
+
   AMBARI-80. Implement blueprint get CLI
 
   AMBARI-79. create default blueprint instance

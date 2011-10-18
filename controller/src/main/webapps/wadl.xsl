@@ -376,10 +376,27 @@
                 <a href="{$url}"><xsl:value-of select="$url"/></a>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="text()"/>
+                <xsl:choose>
+                    <xsl:when test="node()[1]!=text()">
+                        <xsl:apply-templates select="node()" mode="copy"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="text()"/>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:for-each>
+</xsl:template>
+
+<xsl:template match="html:*" mode="copy">
+    <!-- remove the prefix on HTML elements -->
+    <xsl:element name="{local-name()}">
+        <xsl:for-each select="@*">
+            <xsl:attribute name="{local-name()}"><xsl:value-of select="."/></xsl:attribute>
+        </xsl:for-each>
+        <xsl:apply-templates select="node()" mode="copy"/>
+    </xsl:element>
 </xsl:template>
 
 <xsl:template name="getId">
