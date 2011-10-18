@@ -36,6 +36,11 @@ prefix=/tmp/ambari
 s = StringIO.StringIO(content)
 config.readfp(s)
 
+class AmbariConfig:
+  def getConfig(self):
+    global config
+    return config
+
 def setConfig(customConfig):
   global config
   config = customConfig

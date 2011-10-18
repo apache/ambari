@@ -62,6 +62,23 @@
                 <executions>
                     <execution>
                         <configuration>
+                            <executable>python</executable>
+                            <workingDirectory>src/test/python</workingDirectory>
+                            <arguments>
+                                <argument>unitTests.py</argument>
+                            </arguments>    
+                            <environmentVariables>
+                                <PYTHONPATH>../../main/python:$PYTHONPATH</PYTHONPATH>
+                            </environmentVariables>
+                        </configuration>
+                        <id>python-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <configuration>
                             <executable>python2.6</executable>
                             <workingDirectory>target/ambari-agent-${project.version}</workingDirectory>
                             <arguments>

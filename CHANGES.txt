@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-83. Added python unit test framework. (Eric Yang)
+
   AMBARI-82. Fix example clusters. (omalley)
 
   AMBARI-81. Updated xslt document to show human readable stylesheet. (Eric 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.6
-"""
+
+'''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,25 +16,34 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+'''
 
-Hadoop Management System Agent
+import unittest
+import doctest
 
-"""
+class TestAgent(unittest.TestSuite):
+  def run(self, result):
+    run = unittest.TestSuite.run
+    run(self, result)
+    return result
 
-from __future__ import generators
+def all_tests_suite():
+  suite = unittest.TestLoader().loadTestsFromNames([
+    'TestHeartbeat',
+    'TestHardware',
+    'TestServerStatus',
+    'TestFileUtil',
+    'TestActionQueue'
+  ])
+  return TestAgent([suite])
 
-__version__ = "0.1.0"
-__author__ = [
-    "Eric Yang <eyang@apache.org>",
-    "Kan Zhang <kanzhangmail@yahoo.com>"
-]
-__license__ = "Apache License v2.0"
-__contributors__ = "see http://incubator.apache.org/hms/contributors"
+def main():
+  runner = unittest.TextTestRunner()
+  suite = all_tests_suite()
+  raise SystemExit(not runner.run(suite).wasSuccessful())
 
-import logging
-import logging.handlers
-import threading
-import sys
-import time
-import signal
-
+if __name__ == '__main__':
+  import os
+  import sys
+  sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+  main()

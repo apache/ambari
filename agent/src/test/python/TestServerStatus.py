@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.6
-"""
+
+'''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,25 +16,14 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+'''
 
-Hadoop Management System Agent
+from unittest import TestCase
+from ambari_agent.ServerStatus import ServerStatus
 
-"""
-
-from __future__ import generators
-
-__version__ = "0.1.0"
-__author__ = [
-    "Eric Yang <eyang@apache.org>",
-    "Kan Zhang <kanzhangmail@yahoo.com>"
-]
-__license__ = "Apache License v2.0"
-__contributors__ = "see http://incubator.apache.org/hms/contributors"
-
-import logging
-import logging.handlers
-import threading
-import sys
-import time
-import signal
+class TestServerStatus(TestCase):
+  def test_build(self):
+    serverStatus = ServerStatus()
+    result = serverStatus.build()
+    self.assertEqual(result, [], 'List of running servers should be 0.')
 

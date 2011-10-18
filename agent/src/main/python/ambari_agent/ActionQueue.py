@@ -39,18 +39,27 @@ class ActionQueue(threading.Thread):
 
   def __init__(self, config):
     global clusterId, clusterDefinitionRevision 
-    threading.Thread.__init__(self)
+    super(ActionQueue, self).__init__()
+    #threading.Thread.__init__(self)
     self.config = config
     self.sh = shellRunner()
+    self._stop = threading.Event()
+
+  def stop(self):
+    self._stop.set()
+
+  def stopped(self):
+    return self._stop.isSet()
 
   def put(self, response):
-    actions = response['actions']
-    for action in actions:
-      q.put(action)
+    if 'actions' in response:
+      actions = response['actions']
+      for action in actions:
+        q.put(action)
 
   def run(self):
     global clusterId, clusterDefinitionRevision
-    while True:
+    while not self.stopped():
       while not q.empty():
         action = q.get()
         switches = {
@@ -64,7 +73,8 @@ class ActionQueue(threading.Thread):
         result = switches.get(action['kind'], self.unknownAction)(action)
         # Update the result
         r.put(result)
-      time.sleep(5)
+      if not self.stopped():
+        time.sleep(5)
 
   # Store action result to agent response queue
   def result(self):
