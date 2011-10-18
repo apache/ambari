@@ -182,7 +182,7 @@ public class Blueprints {
         commonC.setProvider("org.apache.hadoop");
         ComponentDefinition commonCD = new ComponentDefinition(); 
         commonCD.setGroup("org.apache.ambari");
-        commonCD.setDefinition("hadoop-common-0.1.0.acd");
+        commonCD.setDefinition("hadoop-common");
         commonCD.setVersion("0.1.0");
         commonC.setDefinition(commonCD);
         
@@ -198,7 +198,7 @@ public class Blueprints {
         hdfsC.setProvider("org.apache.hadoop");
         ComponentDefinition hdfsCD = new ComponentDefinition(); 
         hdfsCD.setGroup("org.apache.ambari");
-        hdfsCD.setDefinition("hadoop-hdfs-0.1.0.acd");
+        hdfsCD.setDefinition("hadoop-hdfs");
         hdfsCD.setVersion("0.1.0");
         hdfsC.setDefinition(hdfsCD);
         /*

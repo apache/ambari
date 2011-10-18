@@ -2,13 +2,17 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
-  AMBARI-81. Updated xslt document to show human readable stylesheet. (Eric Yang)
+  AMBARI-82. Fix example clusters. (omalley)
+
+  AMBARI-81. Updated xslt document to show human readable stylesheet. (Eric 
+  Yang)
 
   AMBARI-80. Implement blueprint get CLI
 
   AMBARI-79. create default blueprint instance
 
-  AMBARI-78. Change the datatype of responseId in the heartbeat messages to short (ddas)
+  AMBARI-78. Change the datatype of responseId in the heartbeat messages to 
+  short (ddas)
 
   AMBARI-77. create default blueprint containing HDFS component (vgogate)
 
@@ -40,7 +44,8 @@ Release 0.1.0 - unreleased
 
   AMBARI-65. Added directory structure actions. (Eric Yang)
 
-  AMBARI-60. Added permission check for RUN_ACTION, and WRITE_FILE_ACTION. (Eric Yang)
+  AMBARI-60. Added permission check for RUN_ACTION, and
+  WRITE_FILE_ACTION. (Eric Yang)
 
   AMBARI-64. Define components in terms of XML. (omalley)
 
