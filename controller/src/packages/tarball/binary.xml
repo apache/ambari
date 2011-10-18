@@ -24,7 +24,7 @@
     http://maven.apache.org/plugins/maven-assembly-plugin/faq.html#required-classifiers
   -->
   <formats>
-    <format>tar.gz</format>
+    <format>${package.type}</format>
   </formats>
   <fileSets>
     <fileSet>

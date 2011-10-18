@@ -45,6 +45,7 @@
         <package.log.dir>/var/log/ambari</package.log.dir>
         <package.pid.dir>/var/run/ambari</package.pid.dir>
         <package.release>1</package.release>
+        <package.type>tar.gz</package.type>
         <ambari.version>0.1.0-SNAPSHOT</ambari.version>
         <final.name>${project.artifactId}-${ambari.version}</final.name>
     </properties>
@@ -575,7 +576,7 @@
                     <descriptors>
                       <descriptor>src/packages/tarball/binary.xml</descriptor>
                     </descriptors>
-                    <finalName>${project.artifactId}-${project.version}-binary</finalName>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
                   </configuration>
                   <executions>
                     <execution>
