@@ -270,7 +270,7 @@
                 <xsl:choose>
                     <xsl:when test="wadl:response">
                         <xsl:for-each select="wadl:response">
-                            <div class="h8">status: </div>
+<!--                            <div class="h8">status: </div>
                             <xsl:choose>
                                 <xsl:when test="@status">
                                     <xsl:value-of select="@status"/>
@@ -286,7 +286,7 @@
                                 <xsl:if test="text()">
                                     - <xsl:value-of select="text()"/>
                                 </xsl:if>
-                            </xsl:for-each>
+                            </xsl:for-each> -->
                             
                             <!-- Get response headers/representations -->
                             <xsl:if test="wadl:param or wadl:representation">
@@ -475,6 +475,7 @@
         <table>
             <xsl:for-each select="wadl:representation">
                 <tr>
+                    <td><xsl:value-of select="@status"/></td>
                     <td><xsl:value-of select="@mediaType"/></td>
                     <xsl:if test="wadl:doc">
                         <td>
