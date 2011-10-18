@@ -255,7 +255,7 @@ public class Blueprints {
         Blueprint bp = null;
         if (!this.blueprints.containsKey(blueprintName)) {  
             String msg = "Blueprint ["+blueprintName+"] is not defined";
-            throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+            throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         if (revision == -1) {
             this.blueprints.get(blueprintName).keySet();
@@ -266,7 +266,7 @@ public class Blueprints {
         } else {
             if (!this.blueprints.get(blueprintName).containsKey(revision)) {  
                 String msg = "Blueprint ["+blueprintName+"], revision ["+revision+"] does not exists";
-                throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+                throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
             }
             bp = this.blueprints.get(blueprintName).get(revision);
         }
