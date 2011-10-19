@@ -25,6 +25,6 @@ class TestHardware(TestCase):
   def test_build(self):
     hardware = Hardware()
     result = hardware.get()
-    self.assertGreater(result['coreCount'], 1, 'CPU can not be less than 1.')
-    self.assertGreater(result['netSpeed'], 1, 'Network speed can not be less than 1.')
+    self.assertTrue(result['coreCount'] >= 1)
+    self.assertTrue(result['netSpeed'] >= 1)
 
