@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-84. Added configuration file writer for Ambari Component. (Eric Yang)
+
   AMBARI-83. Added python unit test framework. (Eric Yang)
 
   AMBARI-82. Fix example clusters. (omalley)

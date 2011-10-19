@@ -33,7 +33,8 @@ def all_tests_suite():
     'TestHardware',
     'TestServerStatus',
     'TestFileUtil',
-    'TestActionQueue'
+    'TestActionQueue',
+    'TestAmbariComponent'
   ])
   return TestAgent([suite])
 

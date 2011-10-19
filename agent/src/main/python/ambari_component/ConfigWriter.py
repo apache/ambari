@@ -18,28 +18,46 @@
 import os, errno
 import logging
 import logging.handlers
-from ConfigWriter import ConfigWriter
-import threading
 import sys
-import time
-import signal
 
 logger = logging.getLogger()
 
-def copySh(config, options):
-  result = ConfigWriter().shell(config, options)
-  return result
+class ConfigWriter:
 
-def copyXml(config, options):
-  result = ConfigWriter().xml(config, options)
-  return result
+  def shell(self, category, options):
+    content = ""
+    for key in options:
+      content+="export "+key+"=\""+options[key]+"\"\n"
+    return self.write("config/"+category+".sh", content)
 
-def copyPlist(config, options):
-  result = ConfigWriter().plist(config, options)
-  return result
+  def xml(self, category, options):
+    content = """<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+"""
+    for key in options:
+      content+="  <property>\n"
+      content+="    <name>"+key+"</name>\n"
+      content+="    <value>"+options[key]+"</value>\n"
+      content+="  </property>\n"
+    content+= "</configuration>\n"
+    return self.write("config/"+category+".xml", content)
 
-def install(cluster, role, packages):
-  return package.install(cluster, role, packages)
+  def plist(self, category, options):
+    content = ""
+    for key in options:
+      content+=key+"="+options[key]+"\n"
+    return self.write("config/"+category+".properties", content)
+
+  def write(self, path, content):
+    try:
+      f = open(path, 'w')
+      f.write(content)
+      f.close()
+      result = { 'exitCode' : 0 }
+    except Exception:
+      result = { 'exitCode' : 1 }
+    return result
 
 def main():
   logger.setLevel(logging.DEBUG)

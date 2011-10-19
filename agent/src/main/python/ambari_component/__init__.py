@@ -31,3 +31,19 @@ import logging.handlers
 import sys
 import time
 import signal
+from ConfigWriter import ConfigWriter
+
+def copySh(config, options):
+  result = ConfigWriter().shell(config, options)
+  return result
+
+def copyXml(config, options):
+  result = ConfigWriter().xml(config, options)
+  return result
+
+def copyProperties(config, options):
+  result = ConfigWriter().plist(config, options)
+  return result
+
+def install(cluster, role, packages):
+  return package.install(cluster, role, packages)
