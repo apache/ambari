@@ -62,9 +62,11 @@ public class Clusters {
         
     private Clusters() {
         /*
-         * Add cluster and site blueprints
+         * TODO: Check if blueprint in cluster definition AND its parents already exists
          */
-        Blueprints.getInstance().createDummyBlueprint("cluster123-site-blueprint", "0", null, null);
+        Blueprints.getInstance().createDummyBlueprint("cluster123-site-site-site-blueprint", "0", null, null);
+        Blueprints.getInstance().createDummyBlueprint("cluster123-site-site-blueprint", "0", "cluster123-site-site-site-blueprint", "0");
+        Blueprints.getInstance().createDummyBlueprint("cluster123-site-blueprint", "0", "cluster123-site-site-blueprint", "0");
         Blueprints.getInstance().createDummyBlueprint("cluster123-blueprint", "0", "cluster123-site-blueprint", "0");
         Blueprints.getInstance().createDummyBlueprint("cluster124-site-blueprint", "0", null, null);
         Blueprints.getInstance().createDummyBlueprint("cluster124-blueprint", "0", "cluster124-site-blueprint", "0");
@@ -340,6 +342,22 @@ public class Clusters {
         if (cdef.getBlueprintRevision() == null || cdef.getBlueprintRevision().equals("")) {
             String msg = "Cluster blueprint revision must be specified";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
+        
+        /*
+         * Check if the cluster blueprint and its parents exist
+         * getBlueprint would throw exception if it does not find the blueprint
+         */
+        Blueprint bp = Blueprints.getInstance()
+                       .getBlueprint(cdef.getBlueprintName(), Integer.parseInt(cdef.getBlueprintRevision()));
+        while (bp.getParentName() != null) {
+            if (bp.getParentRevision() == null) {
+                bp = Blueprints.getInstance()
+                    .getBlueprint(bp.getParentName(), -1);
+            } else {
+                bp = Blueprints.getInstance()
+                .getBlueprint(bp.getParentName(), Integer.parseInt(bp.getParentRevision()));
+            }
         }
         
         /* 

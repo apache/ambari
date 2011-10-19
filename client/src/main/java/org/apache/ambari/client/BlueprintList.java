@@ -155,7 +155,7 @@ public class BlueprintList extends Command {
         } else {
             ClientResponse response = service.path("blueprints")
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
-            if (response.getStatus() != 200 || response.getStatus() != 204) { 
+            if (response.getStatus() != 200 && response.getStatus() != 204) { 
                 System.err.println("Blueprint list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
                 System.exit(-1);
             }
@@ -182,10 +182,9 @@ public class BlueprintList extends Command {
         System.out.println("Name:["+bpInfo.getName()+"], Revision:["+bpInfo.getRevision()+"]");
         
         if (tree) {
-            String tab = "";
-            while (bpInfo.getParentName() != null) {
-                tab = tab+"\t";
-                System.out.println(tab+"Name:["+bpInfo.getParentName()+"], Revision:["+bpInfo.getParentRevision()+"]");
+            String tab = "    ";
+            while (bpInfo.getParentName() != null) {    
+                System.out.println(tab+":-> Name:["+bpInfo.getParentName()+"], Revision:["+bpInfo.getParentRevision()+"]");
                 ClientResponse response = service.path("blueprints/"+bpInfo.getParentName())
                         .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
                 if (response.getStatus() != 404 && response.getStatus() != 200) { 
@@ -204,18 +203,19 @@ public class BlueprintList extends Command {
                 bpInfo.setParentName(bp.getParentName());
                 bpInfo.setRevision(bp.getRevision());
                 bpInfo.setParentRevision(bp.getParentRevision());
+                tab = tab+"        ";
             }
         } 
     }
     
     public void printBlueprintInformation (WebResource service, Blueprint bp, boolean tree) {
         System.out.println("Name:["+bp.getName()+"], Revision:["+bp.getRevision()+"]");
-        
+
         if (tree) {
-            String tab = "";
+            String tab = "    ";
             while (bp.getParentName() != null) {
-                tab = tab+"\t";
-                System.out.println(tab+"Name:["+bp.getParentName()+"], Revision:["+bp.getParentRevision()+"]");
+                
+                System.out.println(tab+":-> Name:["+bp.getParentName()+"], Revision:["+bp.getParentRevision()+"]");
                 ClientResponse response = service.path("blueprints/"+bp.getParentName())
                         .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
                 if (response.getStatus() != 404 && response.getStatus() != 200) { 
@@ -229,6 +229,7 @@ public class BlueprintList extends Command {
                  * Retrieve the blueprint from the response
                  */
                 bp = response.getEntity(Blueprint.class);
+                tab = tab+"        ";
             }
         }
     }

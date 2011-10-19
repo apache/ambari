@@ -27,6 +27,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -58,13 +59,13 @@ public class Blueprints {
         this.createDummyBlueprint("MyDummyBlueprint", "0", "MyDummySiteBlueprint", "0");
     }
     
-    public void createDummyBlueprint (String name, String revision, String siteName, String siteVersion) {
+    public void createDummyBlueprint (String name, String revision, String parentName, String parentRevision) {
         Blueprint bp = new Blueprint();
         
         bp.setName(name);
-        bp.setParentName(siteName);
+        bp.setParentName(parentName);
         bp.setRevision(revision);
-        bp.setParentRevision(siteVersion);
+        bp.setParentRevision(parentRevision);
         
         /*
          * Repository URLs
@@ -370,23 +371,11 @@ public class Blueprints {
         
         /*
          * Check if the specified blueprint revision is used in any cluster definition
-         * except in ATTIC clusters.
          */
-        Blueprint bp = this.blueprints.get(blueprintName).get(new Integer(revision));
-        for (Cluster c : Clusters.getInstance().operational_clusters.values()) {
-            String bpName = c.getLatestClusterDefinition().getBlueprintName();
-            String bpRevision = c.getLatestClusterDefinition().getBlueprintRevision();
-            
-            // TODO: May be don't consider ATTIC clusters
-            if (c.getClusterState().getState().equals(ClusterStateFSM.ATTIC)) {
-                continue;
-            }
-            Blueprint bpx = Blueprints.getInstance().blueprints.get(bpName).get(new Integer(bpRevision));
-            if (bpx.getName().equals(bp.getName()) && bpx.getRevision().equals(bp.getRevision()) ||
-                bpx.getParentName().equals(bp.getParentName()) && bpx.getParentRevision().equals(bp.getParentRevision())) {
-                String msg = "One or more clusters are associated with the specified blueprint";
-                throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_ACCEPTABLE)).get());
-            }
+        Hashtable<String, String> clusterReferencedBPList = getClusterReferencedBlueprintsList();
+        if (clusterReferencedBPList.containsKey(blueprintName+"-"+revision)) {
+            String msg = "One or more clusters are associated with the specified blueprint";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_ACCEPTABLE)).get());
         }
         
         /*
@@ -396,6 +385,28 @@ public class Blueprints {
         if (this.blueprints.get(blueprintName).keySet().isEmpty()) {
             this.blueprints.remove(blueprintName);
         }    
+    }
+    
+    /*
+     * Returns the <key="name-revision", value=""> hash table for cluster referenced blueprints
+     */
+    public Hashtable<String, String> getClusterReferencedBlueprintsList() throws Exception {
+        Hashtable<String, String> clusterBlueprints = new Hashtable<String, String>();
+        for (Cluster c : Clusters.getInstance().operational_clusters.values()) {
+            String cBPName = c.getLatestClusterDefinition().getBlueprintName();
+            String cBPRevision = c.getLatestClusterDefinition().getBlueprintRevision();
+            Blueprint bpx = this.getBlueprint(cBPName, Integer.parseInt(cBPRevision));
+            clusterBlueprints.put(cBPName+"-"+cBPRevision, "");
+            while (bpx.getParentName() != null) {
+                if (bpx.getParentRevision() == null) {
+                    bpx = this.getBlueprint(bpx.getParentName(), -1);
+                } else {
+                    bpx = this.getBlueprint(bpx.getParentName(), Integer.parseInt(bpx.getParentRevision()));
+                }
+                clusterBlueprints.put(bpx.getName()+"-"+bpx.getRevision(), "");
+            }
+        }
+        return clusterBlueprints;
     }
    
     /*

@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-86. Validate blueprint referenced by cluster exist including it's parent blueprints (vgogate)
+
   AMBARI-85. Adds handling of new states to do with preinstall actions (ddas)
 
   AMBARI-84. Added configuration file writer for Ambari Component. (Eric Yang)
