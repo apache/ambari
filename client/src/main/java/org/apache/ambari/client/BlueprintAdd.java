@@ -151,11 +151,13 @@ public class BlueprintAdd extends Command {
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).post(ClientResponse.class, bp);
         }     
         
-        Blueprint bp_return = response.getEntity(Blueprint.class);
         if (response.getStatus() != 200) { 
             System.err.println("Blueprint add command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
             System.exit(-1);
         }
+        
+        Blueprint bp_return = response.getEntity(Blueprint.class);
+        
         System.out.println("Blueprint added.\n");
         printBlueprint(bp_return, null);
     }
