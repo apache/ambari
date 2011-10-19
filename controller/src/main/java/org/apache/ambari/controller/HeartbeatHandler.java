@@ -89,13 +89,11 @@ public class HeartbeatHandler {
         //command more than once. In the future this could be improved
         //to reflect the command execution state more accurately.
 
-        String desiredClusterId = cluster.getID();
-
         ComponentAndRoleStates componentStates = 
             new ComponentAndRoleStates();
         //get the state machine reference to the cluster
         ClusterFSM clusterFsm = StateMachineInvoker
-            .getStateMachineClusterInstance(desiredClusterId);
+            .getStateMachineClusterInstance(clusterId);
 
         //create some datastructures by looking at agent state
         inspectAgentState(heartbeat, componentStates);
@@ -109,87 +107,94 @@ public class HeartbeatHandler {
           List<RoleFSM> roles = service.getRoles();
 
           for (RoleFSM role : roles) {
-            boolean roleInstalled = componentStates.isInstalled(
-                role.getAssociatedService().getServiceName(), role.getRoleName());     
-            boolean roleServerRunning = componentStates.isStarted(
-                role.getAssociatedService().getServiceName(),
-                role.getRoleName()) 
-                || componentStates.isStartInProgress(
-                    role.getAssociatedService().getServiceName(), 
-                    role.getRoleName());
-            ComponentPlugin plugin = 
-                cluster.getComponentDefinition(service.getServiceName());
-            //check whether the agent should start any server
-            if (role.shouldStart()) {
-              if (!roleInstalled) {
-                //send action for installing the role
-                Action action = plugin.install(cluster.getName(), 
-                    role.getRoleName());
-                fillDetailsAndAddAction(action, allActions, desiredClusterId,
-                    cluster.getLatestRevision(), service.getServiceName(), 
-                    role.getRoleName());
-                //send action for configuring
-                action = plugin.configure(desiredClusterId, role.getRoleName());
-                fillDetailsAndAddAction(action, allActions, desiredClusterId,
-                    cluster.getLatestRevision(), service.getServiceName(), 
-                    role.getRoleName());
-                continue;
+            boolean nodePlayingRole = 
+                nodePlayingRole(hostname, role.getRoleName());
+            if (nodePlayingRole) {
+              boolean roleInstalled = componentStates.isInstalled(
+                  role.getAssociatedService().getServiceName(), 
+                  role.getRoleName());     
+              boolean roleServerRunning = componentStates.isStarted(
+                  role.getAssociatedService().getServiceName(),
+                  role.getRoleName()) 
+                  || componentStates.isStartInProgress(
+                      role.getAssociatedService().getServiceName(), 
+                      role.getRoleName());
+              ComponentPlugin plugin = 
+                  cluster.getComponentDefinition(service.getServiceName());
+              //check whether the agent should start any server
+              if (role.shouldStart()) {
+                if (!roleInstalled) {
+                  //send action for installing the role
+                  Action action = plugin.install(cluster.getName(), 
+                      role.getRoleName());
+                  fillDetailsAndAddAction(action, allActions, clusterId,
+                      cluster.getLatestRevision(), service.getServiceName(), 
+                      role.getRoleName());
+                  //send action for configuring
+                  action = plugin.configure(clusterId, role.getRoleName());
+                  fillDetailsAndAddAction(action, allActions, clusterId,
+                      cluster.getLatestRevision(), service.getServiceName(), 
+                      role.getRoleName());
+                  continue;
+                }
+                if (role.getRoleName().equals("CLIENT")) { //TODO: have a good place to define this
+                  //Client roles are special cases. They don't have any active servers
+                  //but should be considered active when installed. Setting the 
+                  //boolean to true ensures that the FSM gets an event (albeit a fake one).
+                  roleServerRunning = true;
+                }
+                if (!roleServerRunning) {
+                  //TODO: keep track of retries (via checkActionResults)
+                  Action action = 
+                      plugin.startServer(cluster.getName(), role.getRoleName());
+                  fillDetailsAndAddAction(action, allActions, clusterId,
+                      cluster.getLatestRevision(), service.getServiceName(), 
+                      role.getRoleName());
+                }
+                //raise an event to the state machine for a successful 
+                //role-start instance
+                if (roleServerRunning) {
+                  StateMachineInvoker.getAMBARIEventHandler()
+                  .handle(new RoleEvent(RoleEventType.START_SUCCESS, role));
+                }
               }
-              if (role.getRoleName().equals("CLIENT")) { //TODO: have a good place to define this
-                //Client roles are special cases. They don't have any active servers
-                //but should be considered active when installed. Setting the 
-                //boolean to true ensures that the FSM gets an event (albeit a fake one).
-                roleServerRunning = true;
-              }
-              if (!roleServerRunning) {
-                //TODO: keep track of retries (via checkActionResults)
-                Action action = 
-                    plugin.startServer(cluster.getName(), role.getRoleName());
-                fillDetailsAndAddAction(action, allActions, desiredClusterId,
-                    cluster.getLatestRevision(), service.getServiceName(), 
-                    role.getRoleName());
-              }
-              //raise an event to the state machine for a successful role-start
-              if (roleServerRunning) {
-                StateMachineInvoker.getAMBARIEventHandler()
-                .handle(new RoleEvent(RoleEventType.START_SUCCESS, role));
+              //check whether the agent should stop any server
+              if (role.shouldStop()) {
+                if (role.getRoleName().equals("CLIENT")) { //TODO: have a good place to define this
+                  //Client roles are special cases. Setting the 
+                  //boolean to false ensures that the FSM gets an event (albeit a fake one) 
+                  roleServerRunning = false;
+                }
+                if (roleServerRunning) {
+                  //TODO: keep track of retries (via checkActionResults)
+                  addAction(getStopRoleAction(cluster.getID(), 
+                      cluster.getLatestRevision(), 
+                      role.getAssociatedService().getServiceName(), 
+                      role.getRoleName()), allActions);
+                }
+                //raise an event to the state machine for a successful 
+                //role-stop instance
+                if (!roleServerRunning) {
+                  StateMachineInvoker.getAMBARIEventHandler()
+                  .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
+                }
+                if (roleInstalled && 
+                    clusterFsm.getClusterState()
+                    .equals(ClusterState.CLUSTER_STATE_ATTIC)) {
+                  Action action = plugin.uninstall(cluster.getName(), 
+                      role.getRoleName());
+                  fillDetailsAndAddAction(action, allActions, cluster.getID(), 
+                      cluster.getLatestRevision(), 
+                      role.getAssociatedService().getServiceName(), 
+                      role.getRoleName());
+                }
               }
             }
-            //check whether the agent should stop any server
-            if (role.shouldStop()) {
-              if (role.getRoleName().equals("CLIENT")) { //TODO: have a good place to define this
-                //Client roles are special cases. Setting the 
-                //boolean to false ensures that the FSM gets an event (albeit a fake one) 
-                roleServerRunning = false;
-              }
-              if (roleServerRunning) {
-                //TODO: keep track of retries (via checkActionResults)
-                addAction(getStopRoleAction(cluster.getID(), 
-                    cluster.getLatestRevision(), 
-                    role.getAssociatedService().getServiceName(), 
-                    role.getRoleName()), allActions);
-              }
-              //raise an event to the state machine for a successful role-stop
-              if (!roleServerRunning) {
-                StateMachineInvoker.getAMBARIEventHandler()
-                .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
-              }
-              if (roleInstalled && 
-                  clusterFsm.getClusterState()
-                  .equals(ClusterState.CLUSTER_STATE_ATTIC)) {
-                Action action = plugin.uninstall(cluster.getName(), 
-                    role.getRoleName());
-                fillDetailsAndAddAction(action, allActions, cluster.getID(), 
-                    cluster.getLatestRevision(), 
-                    role.getAssociatedService().getServiceName(), 
-                    role.getRoleName());
-              }
-            }
+            //check/create the special component/service-level 
+            //actions (like safemode check)
+            checkAndCreateActions(cluster, clusterFsm, service, heartbeat, 
+                allActions, componentStates);
           }
-          //check/create the special component/service-level 
-          //actions (like safemode check)
-          checkAndCreateActions(cluster, clusterFsm, service, heartbeat, 
-              allActions, componentStates);
         }
       }
     }
@@ -385,6 +390,14 @@ public class HeartbeatHandler {
         }
       }
     }
+  }
+  
+  private boolean nodePlayingRole(String host, String role) 
+      throws Exception {
+    //TODO: iteration on every call seems avoidable ..
+    List<String> nodeRoles = Nodes.getInstance()
+                      .getNode(host).getNodeState().getNodeRoleNames();
+    return nodeRoles.contains(role);
   }
   
   private void addAction(Action action, List<Action> allActions) {

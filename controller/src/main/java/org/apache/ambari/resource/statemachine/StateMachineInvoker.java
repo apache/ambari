@@ -71,14 +71,14 @@ public class StateMachineInvoker {
     }
   }
   
-  private static ConcurrentMap<ClusterDefinition, ClusterFSM> clusters = 
-      new ConcurrentHashMap<ClusterDefinition, ClusterFSM>();
+  private static ConcurrentMap<String, ClusterFSM> clusters = 
+      new ConcurrentHashMap<String, ClusterFSM>();
   
   public static ClusterFSM createCluster(String clusterId, 
       ClusterDefinition definition, 
       ClusterState state) throws IOException {
     ClusterImpl clusterFSM = new ClusterImpl(definition, state);
-    clusters.put(definition, clusterFSM);
+    clusters.put(clusterId, clusterFSM);
     return clusterFSM;
   }
   
