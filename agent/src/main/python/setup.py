@@ -18,7 +18,7 @@ from setuptools import setup
 setup(
     name = "ambari-agent",
     version = "0.1.0",
-    packages = ['ambari_agent', 'ambari_torrent'],
+    packages = ['ambari_agent', 'ambari_torrent', 'ambari_component'],
     # metadata for upload to PyPI
     author = "Apache Software Foundation",
     author_email = "ambari-dev@incubator.apache.org",

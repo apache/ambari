@@ -56,7 +56,7 @@ class packageRunner:
                     test = self.rpmInstall(list)
                     if test['exit_code']!=0:
                         raise Exception(test['error'])
-                elif string.find(packageName, "yum:///")==0):
+                elif string.find(packageName, "yum:///")==0:
                     packageName = packageName[7:]
                     self.yumInstall(packageName, dryRun)
                 else:
@@ -74,9 +74,7 @@ class packageRunner:
         try:
             for package in packages:
                 packageName=package['name']
-                if string.find(packageName, ".tar.gz")>0 or string.find(package, ".tgz")>0:
-                    #self.tarballRemove(packageName, dryRun)
-                else:
+                if string.find(packageName, ".tar.gz")==-1 and string.find(package, ".tgz")==-1:
                     self.yumRemove(packageName, dryRun)
             result = {'exit_code': 0, 'output': 'Remove Successfully', 'error': ''}
         except Exception:
