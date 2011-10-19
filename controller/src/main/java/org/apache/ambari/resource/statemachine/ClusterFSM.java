@@ -22,10 +22,11 @@ import java.util.Map;
 
 import org.apache.ambari.common.rest.entities.ClusterState;
 
-public interface ClusterFSM extends LifeCycle {
+public interface ClusterFSM {
   public List<ServiceFSM> getServices();
   public Map<String, String> getServiceStates();
-  public String getClusterID();
   public void terminate();
   public ClusterState getClusterState();
+  public void activate();
+  public void deactivate();
 }

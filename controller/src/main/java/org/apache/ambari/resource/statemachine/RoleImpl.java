@@ -29,8 +29,8 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
 
   private RoleState myState;
   private String roleName;
-  private int totalInstancesRequired;
-  private int totalRoleInstancesStarted;
+  protected int totalInstancesRequired;
+  protected int totalRoleInstancesStarted;
   private int totalRolesFailedToStart;
   private int totalInstancesDesired;
   private ServiceFSM service;
@@ -98,7 +98,8 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
     this(service, roleName, 1, 1);
   }
   
-  public RoleImpl(ServiceFSM service, String roleName, int totalInstancesDesired, int totalInstancesRequired) {
+  public RoleImpl(ServiceFSM service, String roleName, 
+      int totalInstancesDesired, int totalInstancesRequired) {
     this.roleName = roleName;
     this.service = service;
     this.myState = RoleState.INACTIVE;

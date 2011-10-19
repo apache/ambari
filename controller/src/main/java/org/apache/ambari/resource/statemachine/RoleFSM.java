@@ -17,7 +17,7 @@
 */
 package org.apache.ambari.resource.statemachine;
 
-public interface RoleFSM extends LifeCycle {
+public interface RoleFSM {
   
   public RoleState getRoleState();
   
@@ -28,4 +28,9 @@ public interface RoleFSM extends LifeCycle {
   public boolean shouldStop();
   
   public boolean shouldStart();
+
+  public void activate();
+  
+  public void deactivate();
+
 }

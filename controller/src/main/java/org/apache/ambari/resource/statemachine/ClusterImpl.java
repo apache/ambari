@@ -28,12 +28,14 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
 import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
 import org.apache.ambari.controller.Cluster;
+import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.event.EventHandler;
 
 public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
@@ -96,17 +98,20 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
           stateMachine;
   private Lock readLock;
   private Lock writeLock;
-  private Cluster cluster;
+  private ClusterDefinition cluster;
   private Iterator<ServiceFSM> iterator;
+  private ClusterState clusterState;
     
-  public ClusterImpl(Cluster cluster) throws IOException {
+  public ClusterImpl(ClusterDefinition cluster, ClusterState clusterState) 
+      throws IOException {
     this.cluster = cluster;
     ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     this.readLock = readWriteLock.readLock();
     this.writeLock = readWriteLock.writeLock();
     this.stateMachine = stateMachineFactory.make(this);
     List<ServiceFSM> serviceImpls = new ArrayList<ServiceFSM>();
-    for (String service : cluster.getLatestClusterDefinition().getActiveServices()) {
+    for (String service : 
+      cluster.getActiveServices()) {
       ServiceImpl serviceImpl = new ServiceImpl(this, service);
       serviceImpls.add(serviceImpl);
     }
@@ -149,7 +154,7 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
   
   @Override
   public ClusterState getClusterState() {
-    return cluster.getClusterState();
+    return clusterState;
   }
   
   static class StartClusterTransition implements 
@@ -245,8 +250,4 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
         new ClusterEvent(ClusterEventType.RELEASE_NODES, this));    
   }
 
-  @Override
-  public String getClusterID() {
-    return cluster.getID();
-  }
 }

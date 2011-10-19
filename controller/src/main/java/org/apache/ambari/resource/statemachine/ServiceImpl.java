@@ -40,8 +40,10 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
   private Cluster cluster;
   
   /* The state machine for the service looks like:
-   * INACTIVE --S_START--> STARTING --S_START_SUCCESS--> STARTED
-   *                                --S_START_FAILURE--> FAIL
+   * INACTIVE --S_START--> PRESTART
+   * PRESTART --S_PRESTART_FAILURE--> FAIL
+   * PRESTART --S_PRESTART_SUCCESS--> STARTING --S_START_SUCCESS--> STARTED
+   *                                           --S_START_FAILURE--> FAIL
    * STARTED --S_AVAILABLE--> ACTIVE  (check for things like safemode here)
    * STARTED --S_UNAVAILABLE--> FAIL
    * ACTIVE --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
@@ -56,8 +58,14 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
          = new StateMachineFactory<ServiceImpl, ServiceState, ServiceEventType,
          ServiceEvent>(ServiceState.INACTIVE)
          
-         .addTransition(ServiceState.INACTIVE, ServiceState.STARTING, 
-             ServiceEventType.START, new StartServiceTransition())
+         .addTransition(ServiceState.INACTIVE, ServiceState.PRESTART, 
+             ServiceEventType.START)
+             
+         .addTransition(ServiceState.PRESTART, ServiceState.FAIL, 
+             ServiceEventType.PRESTART_FAILURE)  
+             
+         .addTransition(ServiceState.PRESTART, ServiceState.STARTING, 
+             ServiceEventType.PRESTART_SUCCESS, new StartServiceTransition())    
              
          .addTransition(ServiceState.STARTING, 
              EnumSet.of(ServiceState.STARTED, ServiceState.STARTING), 
@@ -113,8 +121,6 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
     this.serviceName = serviceName;
     this.myState = ServiceState.INACTIVE;
     //load plugin and get the roles and create them
-    this.cluster = 
-        Clusters.getInstance().getClusterByID(cluster.getClusterID());
     this.plugin = this.cluster.getComponentDefinition(serviceName);
     String[] roles = this.plugin.getActiveRoles();
     for (String role : roles) {

@@ -22,6 +22,12 @@ public enum ServiceEventType {
   //Producer:Client, Cluster
   START,
 
+  //Producer: Role
+  PRESTART_SUCCESS,
+  
+  //Producer: Role
+  PRESTART_FAILURE,
+  
   //Producer:Client, Cluster
   STOP,
 

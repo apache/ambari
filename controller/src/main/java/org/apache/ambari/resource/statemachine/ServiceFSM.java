@@ -19,7 +19,7 @@ package org.apache.ambari.resource.statemachine;
 
 import java.util.List;
 
-public interface ServiceFSM extends LifeCycle {
+public interface ServiceFSM {
   
   public ServiceState getServiceState();
   
@@ -30,5 +30,9 @@ public interface ServiceFSM extends LifeCycle {
   public boolean isActive();
   
   public List<RoleFSM> getRoles();
+  
+  public void activate();
+  
+  public void deactivate();
 
 }

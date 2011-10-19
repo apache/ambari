@@ -298,7 +298,8 @@ public class Clusters {
              * TODO: What to do if activate fails ??? 
             */
             if(cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ACTIVE)) {          
-                org.apache.ambari.resource.statemachine.ClusterFSM cs = StateMachineInvoker.createCluster(cls);
+                org.apache.ambari.resource.statemachine.ClusterFSM cs = 
+                    StateMachineInvoker.createCluster(cls.getID(),cdef,cls.getClusterState());
             }
         }
         return cdef;

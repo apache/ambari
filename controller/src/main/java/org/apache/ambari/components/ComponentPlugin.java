@@ -74,12 +74,19 @@ public abstract class ComponentPlugin {
                                      ) throws IOException;
   
   /**
-   * Get the role that should run the check command.
+   * Get the role that should run the check availability command.
    * @return the role name
    * @throws IOException
    */
   public abstract String runCheckRole() throws IOException;
-  
+
+  /**
+   * Get the role that should run the initialization command.
+   * @return the role name
+   * @throws IOException
+   */
+  public abstract String runPreinstallRole() throws IOException;
+
   /**
    * Get the commands to check whether the service is up
    * @param cluster the name of the cluster
@@ -99,4 +106,14 @@ public abstract class ComponentPlugin {
   public abstract Action uninstall(String cluster,
                                    String role
                                    ) throws IOException;
+  
+  /**
+   * Get the commands to run to preinstall a component
+   * For example, MapReduce needs to have certain directories
+   * on the HDFS before JobTracker can be started.
+   * @param cluster the cluster that is being installed
+   * @param role the role that will run the action
+   */
+  public abstract Action preinstallAction(String cluster, 
+                              String role) throws IOException;
 }

@@ -26,6 +26,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
   @XmlType(name = "component", propOrder = {
       "requires",
       "roles",
+      "preinstall",
       "install",
       "configure",
       "start",
@@ -43,6 +44,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
     @XmlElement Configure configure;
     @XmlElement Start start;
     @XmlElement Check check;
+    @XmlElement Preinstall preinstall;
     @XmlElement Uninstall uninstall;
   }
   
@@ -83,7 +85,13 @@ public class XmlComponentDefinition extends ComponentPlugin {
   public static class Check extends ScriptCommand {
     @XmlAttribute String runOn;
   }
-
+  
+  @XmlAccessorType(XmlAccessType.FIELD)
+  @XmlType(name = "preinstall")
+  public static class Preinstall extends ScriptCommand {
+    @XmlAttribute String runPreinstallOn;
+  }
+  
   @XmlAccessorType(XmlAccessType.FIELD)
   @XmlType(name = "uninstall")
   public static class Uninstall extends ScriptCommand {
@@ -111,6 +119,9 @@ public class XmlComponentDefinition extends ComponentPlugin {
   private final String uninstallCommand;
   private final String uninstallUser;
   private final String checkRole;
+  private final String preinstallRole;
+  private final String preinstallCommand;
+  private final String preinstallUser;
   private final String checkCommand;
   private final String checkUser;
   
@@ -186,6 +197,23 @@ public class XmlComponentDefinition extends ComponentPlugin {
                                  new String[]{cluster, role});
     return result;
   }
+  
+  @Override
+  public String runPreinstallRole() throws IOException {
+    return preinstallRole;
+  }
+
+  @Override
+  public Action preinstallAction(String cluster, String role) throws IOException {
+    if (preinstallCommand == null) {
+      return null;
+    }
+    Action result = new Action();
+    result.kind = Action.Kind.RUN_ACTION;
+    result.command = new Command(preinstallUser, preinstallCommand, 
+                                 new String[]{cluster, role});
+    return result; 
+  }
 
   @Override
   public Action uninstall(String cluster, String role) throws IOException {
@@ -248,10 +276,17 @@ public class XmlComponentDefinition extends ComponentPlugin {
       startUser = getUser(component.start, component.user);
       checkCommand = getCommand(component.check);
       checkUser = getUser(component.check, component.user);
+      preinstallCommand = getCommand(component.preinstall);
+      preinstallUser = getUser(component.preinstall, component.user);
       if (component.check != null) {
         checkRole = component.check.runOn;
       } else {
         checkRole = null;
+      }
+      if (component.preinstall != null) {
+        preinstallRole = component.preinstall.runPreinstallOn;
+      } else {
+        preinstallRole = null;
       }
       uninstallCommand = getCommand(component.uninstall);
       uninstallUser = getUser(component.uninstall, component.user);
