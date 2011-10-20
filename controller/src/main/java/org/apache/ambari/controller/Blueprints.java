@@ -282,7 +282,7 @@ public class Blueprints {
         /*
          * Validate the blueprint
          */
-        validateDefaultBlueprint(bp);
+        validateBlueprint(bp);
         
         if (blueprints.containsKey(bp.getName())) {
             if (blueprints.get(bp.getName()).containsKey(new Integer(bp.getRevision()))) {
@@ -326,13 +326,25 @@ public class Blueprints {
     }
    
     /*
-     * Validate the default blueprint before importing into stack.
+     * Validate the blueprint before importing into controller
      */
-    public void validateDefaultBlueprint(Blueprint blueprint) throws WebApplicationException {
+    public void validateBlueprint(Blueprint blueprint) throws WebApplicationException {
         
         if (blueprint.getName() == null || blueprint.getName().equals("")) {
             String msg = "Blueprint must be associated with non-empty name";
             throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+        }
+        if (blueprint.getRevision() == null || blueprint.getRevision().equals("") ||
+            blueprint.getRevision().equalsIgnoreCase("null")) {
+            blueprint.setRevision("-1");
+        }
+        if (blueprint.getParentName() != null && 
+            (blueprint.getParentName().equals("") || blueprint.getParentName().equalsIgnoreCase("null"))) {
+            blueprint.setParentName(null);
+        }
+        if (blueprint.getParentRevision() == null || blueprint.getParentRevision().equals("") ||
+            blueprint.getParentRevision().equalsIgnoreCase("null")) {
+            blueprint.setParentRevision("-1");
         }
     }
     

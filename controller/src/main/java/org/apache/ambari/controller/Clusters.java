@@ -412,7 +412,8 @@ public class Clusters {
          */    
         List<String> nodes_currently_allocated_to_cluster = new ArrayList<String>();
         for (Node n : Nodes.getInstance().getNodes().values()) {
-            if (n.getNodeState().getClusterID().equals(clusterID)) {
+            if ( n.getNodeState().getClusterID() != null &&
+                 n.getNodeState().getClusterID().equals(clusterID)) {
                 nodes_currently_allocated_to_cluster.add(n.getName());
             }
         }

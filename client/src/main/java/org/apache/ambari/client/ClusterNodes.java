@@ -165,7 +165,7 @@ public class ClusterNodes extends Command {
          */
         List<Node> nodes = response.getEntity(new GenericType<List<Node>>(){});
         
-        System.out.println("List of associated nodes: \n");
+        System.out.println("List of cluster nodes: \n");
         for (Node node : nodes ) {
             printNodeInformation(node);
             System.out.println("\n");
