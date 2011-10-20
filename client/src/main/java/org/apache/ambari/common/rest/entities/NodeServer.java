@@ -108,4 +108,5 @@ public class NodeServer {
             cal.setTime(lastStateUpdateTime);
             this.lastStateUpdateTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
     }
+    
 }

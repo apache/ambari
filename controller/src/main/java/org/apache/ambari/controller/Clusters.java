@@ -230,7 +230,7 @@ public class Clusters {
              * Check if cluster already exist
              */
             if (operational_clusters.containsKey(cdef.getName())) {
-                String msg = "Cluster ["+cdef.getName()+"] already exist";
+                String msg = "Cluster ["+cdef.getName()+"] already exists";
                 throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.CONFLICT)).get());
             }
  

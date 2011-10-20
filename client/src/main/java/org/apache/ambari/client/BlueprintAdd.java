@@ -138,7 +138,7 @@ public class BlueprintAdd extends Command {
             try {
                 URL urlx = new URL(location);
             } catch (MalformedURLException x) {
-                System.out.println("Specified location is either a file path that does not exists or a malformed URL");
+                System.out.println("Specified location is either a file path that does not exist or a malformed URL");
                 System.exit(-1);
             }
             Blueprint bp = new Blueprint();

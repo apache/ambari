@@ -273,7 +273,7 @@ public class Blueprints {
             bp = this.blueprints.get(blueprintName).get(keys[keys.length-1]);
         } else {
             if (!this.blueprints.get(blueprintName).containsKey(revision)) {  
-                String msg = "Blueprint ["+blueprintName+"], revision ["+revision+"] does not exists";
+                String msg = "Blueprint ["+blueprintName+"], revision ["+revision+"] does not exist";
                 throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
             }
             bp = this.blueprints.get(blueprintName).get(revision);

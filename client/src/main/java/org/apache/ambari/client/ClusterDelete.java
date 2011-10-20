@@ -144,7 +144,7 @@ public class ClusterDelete extends Command {
             }
             
             /*
-             * If cluster does not exists, then break
+             * If cluster does not exist, then break
              */
             if (response.getStatus() == 404) {
                 break;

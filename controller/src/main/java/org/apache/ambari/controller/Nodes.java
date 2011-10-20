@@ -118,13 +118,50 @@ public class Nodes {
     
     /*
      * Get Nodes 
+     * TODO: simplify logic? 
      */
-    public List<Node> getNodesByState (boolean allocated, boolean alive) throws Exception {
+    public List<Node> getNodesByState (String allocatedx, String alivex) throws Exception {
+        /*
+         * Convert string to boolean states
+         */
+        Boolean allocated = true; Boolean alive = true;
+        if (allocatedx.equalsIgnoreCase("false")) { allocated = false; }
+        if (alivex.equalsIgnoreCase("false")) { alive = false; }
+        
+        //System.out.println("allocated:<"+allocated+">");
+        //System.out.println("alive:<"+alive+">");
+        //System.out.println("allocatedx:<"+allocatedx+">");
+        //System.out.println("alivex:<"+alivex+">");
+        
         List<Node> list = new ArrayList<Node>();
         GregorianCalendar cal = new GregorianCalendar(); 
         cal.setTime(new Date());
         XMLGregorianCalendar curTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+        
         for (Node n : this.nodes.values()) {
+            if (allocatedx.equals("") && alivex.equals("")) {
+                list.add(n); 
+            }
+            if (allocatedx.equals("") && alive) {
+                if (getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) < NODE_NOT_RESPONDING_DURATION) {
+                    list.add(n);
+                }
+            }
+            if (allocatedx.equals("") && !alive) {        
+                if (getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) >= NODE_NOT_RESPONDING_DURATION) {
+                    list.add(n);
+                }
+            }
+            if (alivex.equals("") && allocated ) {
+                if (n.getNodeState().getAllocatedToCluster()) {
+                    list.add(n);
+                }
+            }
+            if (alivex.equals("") && !allocated) {
+                if (!n.getNodeState().getAllocatedToCluster()) {
+                    list.add(n);
+                }
+            }
             if (allocated && alive) {
                 if (n.getNodeState().getAllocatedToCluster() && 
                     getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) < NODE_NOT_RESPONDING_DURATION) {
@@ -162,7 +199,7 @@ public class Nodes {
      */
     public Node getNode (String name) throws Exception {
         if (!this.nodes.containsKey(name)) {
-            String msg = "Node ["+name+"] does not exists";
+            String msg = "Node ["+name+"] does not exist";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         return this.nodes.get(name);

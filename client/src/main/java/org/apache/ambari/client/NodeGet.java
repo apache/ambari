@@ -17,6 +17,125 @@
  */
 package org.apache.ambari.client;
 
-public class NodeGet {
+import java.net.URI;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+
+import org.apache.ambari.common.rest.entities.ClusterDefinition;
+import org.apache.ambari.common.rest.entities.ClusterInformation;
+import org.apache.ambari.common.rest.entities.ClusterState;
+import org.apache.ambari.common.rest.entities.Node;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
+
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.GenericType;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+
+public class NodeGet extends Command {
+
+    String[] args = null;
+    Options options = null;
+   
+    CommandLine line;
+    
+    
+    public NodeGet (String [] args) throws Exception {  
+        /*
+         * Build options for node get
+         */
+        this.args = args;
+        addOptions();
+    }
+    
+    public void printUsage () {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp( "ambari node get", this.options);
+    }
+    
+    public void addOptions () {
+             
+        Option help = new Option( "help", "Help" );
+        
+        OptionBuilder.withArgName("node_name");
+        OptionBuilder.isRequired();
+        OptionBuilder.hasArg();
+        OptionBuilder.withDescription( "Name of the node");
+        Option name = OptionBuilder.create( "name" );
+
+        this.options = new Options();
+        options.addOption( name );   
+        options.addOption(help);
+    }
+    
+    public void parseCommandLine() {
+     
+        // create the parser
+        CommandLineParser parser = new GnuParser();
+        try {
+            // parse the command line arguments
+            line = parser.parse(this.options, this.args );
+            
+            if (line.hasOption("help")) {
+                printUsage();
+                System.exit(0);
+            }
+        }
+        catch( ParseException exp ) {
+            // oops, something went wrong
+            System.err.println( "Command parsing failed. Reason: <" + exp.getMessage()+">\n" );
+            printUsage();
+            System.exit(-1);
+        } 
+    }
+    
+    private static URI getBaseURI() {
+        return UriBuilder.fromUri(
+                "http://localhost:4080/rest/").build();
+    }
+    
+    
+    public void run() throws Exception {
+        /* 
+         * Parse the command line to get the command line arguments
+         */
+        parseCommandLine();
+        
+        ClientConfig config = new DefaultClientConfig();
+        Client client = Client.create(config);
+        WebResource service = client.resource(getBaseURI());
+        String nodeName = line.getOptionValue("name");
+        
+        /*
+         * Get node
+         */
+        ClientResponse response;
+        response = service.path("nodes/"+nodeName).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+        if (response.getStatus() != 200) { 
+            System.err.println("Node get command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+            System.exit(-1);
+        }
+        
+        /* 
+         * Retrieve the node Information from the response
+         */
+        Node node = response.getEntity(Node.class);     
+        System.out.println("Node Information:\n");
+            printNodeInformation(node);
+    }
 }
