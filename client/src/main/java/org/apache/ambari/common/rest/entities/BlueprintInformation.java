@@ -35,7 +35,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "parentName",
     "parentRevision",
     "creationTime",
-    "lastUpdateTime",
     "component"
 })
 @XmlRootElement
@@ -54,9 +53,7 @@ public class BlueprintInformation {
     @XmlAttribute
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar creationTime;
-    @XmlAttribute
-    @XmlSchemaType(name = "dateTime")
-    protected XMLGregorianCalendar lastUpdateTime;
+
     /**
      * @return the component
      */
@@ -129,17 +126,5 @@ public class BlueprintInformation {
      */
     public void setCreationTime(XMLGregorianCalendar creationTime) {
         this.creationTime = creationTime;
-    }
-    /**
-     * @return the lastUpdateTime
-     */
-    public XMLGregorianCalendar getLastUpdateTime() {
-        return lastUpdateTime;
-    }
-    /**
-     * @param lastUpdateTime the lastUpdateTime to set
-     */
-    public void setLastUpdateTime(XMLGregorianCalendar lastUpdateTime) {
-        this.lastUpdateTime = lastUpdateTime;
     }
 }

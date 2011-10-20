@@ -27,6 +27,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,6 +67,12 @@ public class Blueprints {
         bp.setParentName(parentName);
         bp.setRevision(revision);
         bp.setParentRevision(parentRevision);
+        try {
+            bp.setCreationTime(new Date());
+        } catch (Exception e) {
+            System.out.println ("Error setting blueprint creation time");
+            e.printStackTrace();
+        }
         
         /*
          * Repository URLs
@@ -280,9 +287,9 @@ public class Blueprints {
     public Blueprint addBlueprint(Blueprint bp) throws Exception {
         
         /*
-         * Validate the blueprint
+         * Validate and set the defaults
          */
-        validateBlueprint(bp);
+        validateAndSetBlueprintDefaults(bp);
         
         if (blueprints.containsKey(bp.getName())) {
             if (blueprints.get(bp.getName()).containsKey(new Integer(bp.getRevision()))) {
@@ -328,7 +335,7 @@ public class Blueprints {
     /*
      * Validate the blueprint before importing into controller
      */
-    public void validateBlueprint(Blueprint blueprint) throws WebApplicationException {
+    public void validateAndSetBlueprintDefaults(Blueprint blueprint) throws Exception {
         
         if (blueprint.getName() == null || blueprint.getName().equals("")) {
             String msg = "Blueprint must be associated with non-empty name";
@@ -346,6 +353,41 @@ public class Blueprints {
             blueprint.getParentRevision().equalsIgnoreCase("null")) {
             blueprint.setParentRevision("-1");
         }
+        /*
+         * Set the creation time 
+         */
+        blueprint.setCreationTime(new Date());
+    }
+    
+    /*
+     *  Get the list of blueprint revisions
+     */
+    public List<BlueprintInformation> getBlueprintRevisions(String blueprintName) throws Exception {
+        List<BlueprintInformation> list = new ArrayList<BlueprintInformation>();
+        if (!this.blueprints.containsKey(blueprintName)) {
+            String msg = "Blueprint ["+blueprintName+"] does not exist";
+            throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
+        }
+        ConcurrentHashMap<Integer, Blueprint> revisions = this.blueprints.get(blueprintName);
+        for (Integer x : revisions.keySet()) {
+            // Get the latest blueprint
+            Blueprint bp = revisions.get(x);
+            BlueprintInformation bpInfo = new BlueprintInformation();
+            // TODO: get the creation time from blueprint
+            bpInfo.setCreationTime(bp.getCreationTime());
+            bpInfo.setName(bp.getName());
+            bpInfo.setRevision(bp.getRevision());
+            bpInfo.setParentName(bp.getParentName());
+            bpInfo.setParentRevision(bp.getParentRevision());
+            List<String> componentNameVersions = new ArrayList<String>();
+            for (Component com : bp.getComponents()) {
+                String comNameVersion = ""+com.getName()+"-"+com.getVersion();
+                componentNameVersions.add(comNameVersion);
+            }
+            bpInfo.setComponent(componentNameVersions);
+            list.add(bpInfo);
+        }
+        return list;
     }
     
     /*
@@ -358,8 +400,7 @@ public class Blueprints {
             Blueprint bp = this.getBlueprint(bpName, -1);
             BlueprintInformation bpInfo = new BlueprintInformation();
             // TODO: get the creation and update times from blueprint
-            bpInfo.setLastUpdateTime(null);
-            bpInfo.setCreationTime(null);
+            bpInfo.setCreationTime(bp.getCreationTime());
             bpInfo.setName(bp.getName());
             bpInfo.setRevision(bp.getRevision());
             bpInfo.setParentName(bp.getParentName());

@@ -68,6 +68,7 @@ public class Clusters {
         Blueprints.getInstance().createDummyBlueprint("cluster123-site-site-blueprint", "0", "cluster123-site-site-site-blueprint", "0");
         Blueprints.getInstance().createDummyBlueprint("cluster123-site-blueprint", "0", "cluster123-site-site-blueprint", "0");
         Blueprints.getInstance().createDummyBlueprint("cluster123-blueprint", "0", "cluster123-site-blueprint", "0");
+        Blueprints.getInstance().createDummyBlueprint("cluster123-blueprint", "1", "cluster123-site-blueprint", "0");
         Blueprints.getInstance().createDummyBlueprint("cluster124-site-blueprint", "0", null, null);
         Blueprints.getInstance().createDummyBlueprint("cluster124-blueprint", "0", "cluster124-site-blueprint", "0");
         

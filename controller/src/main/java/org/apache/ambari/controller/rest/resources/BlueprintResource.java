@@ -33,6 +33,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.BlueprintInformation;
 import org.apache.ambari.controller.Blueprints;
 import org.apache.ambari.controller.ExceptionResponse;
 
@@ -60,6 +61,34 @@ public class BlueprintResource {
                                   @DefaultValue("-1") @QueryParam("revision") String revision) throws Exception {     
         try {
             return Blueprints.getInstance().getBlueprint(blueprintName, Integer.parseInt(revision));
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        }      
+    }
+    
+    /** 
+     * Get a blueprint revisions
+     * 
+     * @response.representation.200.doc       Get blueprint revisions
+     * @response.representation.200.mediaType application/json
+     *  
+     * @param  blueprintName   Name of the blueprint
+     * 
+     * @return                 List of blueprint revisions
+     * @throws Exception       throws Exception (TBD)
+     */
+    @Path(value = "/revisions")
+    @GET
+    @Produces({"application/json", "application/xml"})
+    public List<BlueprintInformation> getBlueprintRevisions(@PathParam("blueprintName") String blueprintName) throws Exception {     
+        try {
+            List<BlueprintInformation> list = Blueprints.getInstance().getBlueprintRevisions(blueprintName);
+            if (list.isEmpty()) {
+                throw new WebApplicationException(Response.Status.NO_CONTENT);
+            }
+            return list;
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
@@ -105,7 +134,6 @@ public class BlueprintResource {
      * @return              Returns the new revision of the blueprint
      * @throws Exception    throws Exception
      */
-    @Path(value = "/blueprints/{blueprintName}")
     @PUT
     @Consumes
     public Blueprint updateBlueprint(@PathParam("blueprintName") String blueprintName, Blueprint blueprint) throws Exception {

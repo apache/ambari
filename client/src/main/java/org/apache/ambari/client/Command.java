@@ -20,11 +20,13 @@ package org.apache.ambari.client;
 import java.io.File;
 import java.util.Hashtable;
 
+import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.BlueprintInformation;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.Node;
@@ -32,6 +34,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.codehaus.jettison.json.JSONObject;
+
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
 
 public abstract class Command {
     
@@ -139,6 +144,66 @@ public abstract class Command {
             m.marshal(blueprint, System.out);
         } else {
             m.marshal(blueprint, new File(file_path));
+        }
+    }
+    
+    /*
+     * TODO: Return Blueprint objects instead of BlueprintInformation???
+     */
+    public void printBlueprintInformation (WebResource service, BlueprintInformation bpInfo, boolean tree) {
+        
+        System.out.println("\nName:["+bpInfo.getName()+"], Revision:["+bpInfo.getRevision()+"]");
+        
+        if (tree) {
+            String tab = "    ";
+            while (bpInfo.getParentName() != null) {    
+                System.out.println(tab+":-> Name:["+bpInfo.getParentName()+"], Revision:["+bpInfo.getParentRevision()+"]");
+                ClientResponse response = service.path("blueprints/"+bpInfo.getParentName())
+                        .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+                if (response.getStatus() != 404 && response.getStatus() != 200) { 
+                    System.err.println("Blueprint list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+                    System.exit(-1);
+                }
+                if (response.getStatus() == 404) {
+                    System.exit(0);
+                }
+                /* 
+                 * Retrieve the blueprint from the response
+                 * TODO: 
+                 */
+                Blueprint bp = response.getEntity(Blueprint.class);
+                bpInfo.setName(bp.getName());
+                bpInfo.setParentName(bp.getParentName());
+                bpInfo.setRevision(bp.getRevision());
+                bpInfo.setParentRevision(bp.getParentRevision());
+                tab = tab+"        ";
+            }
+        } 
+    }
+    
+    public void printBlueprintInformation (WebResource service, Blueprint bp, boolean tree) {
+        System.out.println("\nName:["+bp.getName()+"], Revision:["+bp.getRevision()+"]");
+
+        if (tree) {
+            String tab = "    ";
+            while (bp.getParentName() != null) {
+                
+                System.out.println(tab+":-> Name:["+bp.getParentName()+"], Revision:["+bp.getParentRevision()+"]");
+                ClientResponse response = service.path("blueprints/"+bp.getParentName())
+                        .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+                if (response.getStatus() != 404 && response.getStatus() != 200) { 
+                    System.err.println("Blueprint list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+                    System.exit(-1);
+                }
+                if (response.getStatus() == 404) {
+                    System.exit(0);
+                }
+                /* 
+                 * Retrieve the blueprint from the response
+                 */
+                bp = response.getEntity(Blueprint.class);
+                tab = tab+"        ";
+            }
         }
     }
     

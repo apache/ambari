@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.common.rest.entities;
 
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -26,6 +28,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 
@@ -39,6 +42,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "revision",
     "parentName",
     "parentRevision",
+    "creationTime",
     "repositories",
     "configuration",
     "components"
@@ -55,15 +59,9 @@ public class Blueprint {
     @XmlAttribute
     protected String parentRevision;
     
-    /*
     @XmlAttribute
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar creationTime;
-    
-    @XmlAttribute
-    @XmlSchemaType(name = "dateTime")
-    protected XMLGregorianCalendar lastUpdateTime;
-    */
 
     @XmlElement
     protected List<RepositoryKind> repositories;
@@ -172,5 +170,30 @@ public class Blueprint {
     public void setComponents(List<Component> components) {
             this.components = components;
     }
-
+    
+    /**
+     * @return the creationTime
+     */
+    public XMLGregorianCalendar getCreationTime() {
+        return creationTime;
+    }
+    /**
+     * @param creationTime the creationTime to set
+     */
+    public void setCreationTime(XMLGregorianCalendar creationTime) {
+        this.creationTime = creationTime;
+    }
+    
+    /**
+     * @param creationTime the creationTime to set
+     */
+    public void setCreationTime(Date creationTime) throws Exception {
+        if (creationTime == null) {
+            this.creationTime = null;
+        } else {
+            GregorianCalendar cal = new GregorianCalendar();
+            cal.setTime(creationTime);
+            this.creationTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+        }
+    }
 }
