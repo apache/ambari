@@ -41,6 +41,12 @@ public class ConfigurationCategory {
 
     @XmlAttribute(required = true)
     protected String name;
+    @XmlAttribute(required = true)
+    protected String user;
+    @XmlAttribute(required = true)
+    protected String group;
+    @XmlAttribute(required = true)
+    protected int permission;
     @XmlElements({@XmlElement})
     protected List<Property> property;
 
@@ -96,5 +102,28 @@ public class ConfigurationCategory {
         }
         return this.property;
     }
+    
+    public String getUser() {
+    	return user;
+    }
+    
+    public void setUser(String user) {
+    	this.user = user;
+    }
+    
+    public int  getPermission() {
+    	return permission;
+    }
+    
+    public void setPermission(int mode) {
+    	this.permission = mode;
+    }
 
+    public String getGroup() {
+    	return group;
+    }
+    
+    public void setGroup(String group) {
+    	this.group = group;
+    }
 }
