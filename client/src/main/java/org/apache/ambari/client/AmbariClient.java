@@ -58,6 +58,14 @@ public class AmbariClient {
         
     }
     
+    public static void usage(HashMap<String, HashMap<String, String>> commands) {
+        System.out.println("Usage: AmbariClient <CommandCateogry> <CommandName> <CommandOptions>\n");
+        System.out.println("To get the help on each command use -help  e.g. \"AmbariClient cluster list -help\"\n");
+        for (String category : commands.keySet()) {
+            System.out.println("CommandCategory : ["+ category+"] : Commands "+commands.get(category).keySet());
+        }    	
+    }
+    
     /**
      * @param args
      */
@@ -74,11 +82,7 @@ public class AmbariClient {
          */
         if (args.length < 2) {
            if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-               System.out.println("Usage: AmbariClient <CommandCateogry> <CommandName> <CommandOptions>\n");
-               System.out.println("To get the help on each command use -help  e.g. \"AmbariClient cluster list -help\"\n");
-               for (String category : c.commands.keySet()) {
-                   System.out.println("CommandCategory : ["+ category+"] : Commands "+c.commands.get(category).keySet());
-               }
+        	   usage(c.commands);
                System.exit(0);
            }
            if (args[0].equalsIgnoreCase("version")) {
@@ -93,6 +97,11 @@ public class AmbariClient {
         if (!c.commands.containsKey(args[0])) {
             System.out.println("Invalid command category ["+args[0]+"]");
             System.exit(-1);
+        }
+        
+        if(args.length<2) {
+        	usage(c.commands);
+        	System.exit(-1);
         }
         
         if (!c.commands.get(args[0]).containsKey(args[1])){
