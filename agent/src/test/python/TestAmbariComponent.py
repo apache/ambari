@@ -39,7 +39,7 @@ class TestAmbariComponent(TestCase):
     os.chdir(oldCwd)
 
   def test_copySh(self):
-    result = ambari_component.copySh('hadoop/hadoop-env', 
+    result = ambari_component.copySh(os.getuid(), os.getgid(), 0700, 'hadoop/hadoop-env', 
       {
         'HADOOP_CONF_DIR'      : '/etc/hadoop',
         'HADOOP_NAMENODE_OPTS' : '-Dsecurity.audit.logger=INFO,DRFAS'
@@ -48,7 +48,7 @@ class TestAmbariComponent(TestCase):
     self.assertEqual(result['exitCode'], 0)
 
   def test_copyProperties(self):
-    result = ambari_component.copyProperties('hadoop/hadoop-metrics2',
+    result = ambari_component.copyProperties(os.getuid(), os.getgid(), 0700, 'hadoop/hadoop-metrics2',
       {
         '*.period':'60'
       }
@@ -56,7 +56,7 @@ class TestAmbariComponent(TestCase):
     self.assertEqual(result['exitCode'], 0)
 
   def test_copyXml(self):
-    result = ambari_component.copyXml('hadoop/core-site',
+    result = ambari_component.copyXml(os.getuid(), os.getgid(), 0700, 'hadoop/core-site',
       {
         'local.realm'     : '${KERBEROS_REALM}',
         'fs.default.name' : 'hdfs://localhost:8020'
