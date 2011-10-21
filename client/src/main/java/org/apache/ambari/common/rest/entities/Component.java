@@ -33,6 +33,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "CategoryType", propOrder = {
     "definition",
+    "configuration",
     "roles"
 })
 @XmlRootElement
@@ -48,6 +49,8 @@ public class Component {
     protected String provider;
     @XmlElement
     protected ComponentDefinition definition;
+    @XmlElement
+    protected Configuration configuration;
     @XmlElement
     protected List<Role> roles;
 
@@ -153,5 +156,21 @@ public class Component {
      */
     public void setProvider(String value) {
       provider = value;
+    }
+    
+    /**
+     * Get the configuration for all of the active roles.
+     * @return the configuration
+     */
+    public Configuration getConfiguration() {
+      return configuration;
+    }
+    
+    /**
+     * Set the configuration for all of the active roles
+     * @param conf the configuration
+     */
+    public void setConfiguration(Configuration conf) {
+      configuration = conf;
     }
 }

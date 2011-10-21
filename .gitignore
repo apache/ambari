@@ -14,6 +14,7 @@
 agent/src/main/python/hms_agent.egg-info
 target
 *~
+*.pyc
 .classpath
 .project
 .settings

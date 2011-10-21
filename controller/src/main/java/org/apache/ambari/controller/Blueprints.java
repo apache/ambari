@@ -35,204 +35,51 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.ambari.common.rest.entities.Blueprint;
 import org.apache.ambari.common.rest.entities.BlueprintInformation;
 import org.apache.ambari.common.rest.entities.Component;
-import org.apache.ambari.common.rest.entities.ComponentDefinition;
-import org.apache.ambari.common.rest.entities.Configuration;
-import org.apache.ambari.common.rest.entities.ConfigurationCategory;
-import org.apache.ambari.common.rest.entities.RepositoryKind;
 import org.apache.ambari.common.rest.entities.Property;
-import org.apache.ambari.common.rest.entities.Role;
-import org.apache.ambari.resource.statemachine.ClusterStateFSM;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.mortbay.log.Log;
 
 public class Blueprints {
 
     private static Blueprints BlueprintsRef=null;
         
     private Blueprints() {
-        this.createDummyBlueprint("MyDummyBlueprint", "0", "MyDummySiteBlueprint", "0");
+      try {
+        JAXBContext jaxbContext = 
+            JAXBContext.newInstance("org.apache.ambari.common.rest.entities");
+        loadDummyBlueprint(jaxbContext, "hadoop-security", 0);
+        loadDummyBlueprint(jaxbContext, "cluster123", 0);
+        loadDummyBlueprint(jaxbContext, "cluster124", 0);
+      } catch (JAXBException e) {
+        throw new RuntimeException("Can't create jaxb context", e);
+      }
     }
     
-    public void createDummyBlueprint (String name, String revision, String parentName, String parentRevision) {
-        Blueprint bp = new Blueprint();
-        
-        bp.setName(name);
-        bp.setParentName(parentName);
-        bp.setRevision(revision);
-        bp.setParentRevision(parentRevision);
+    public void loadDummyBlueprint (JAXBContext jaxbContext,
+                                    String name, int revision) {
         try {
-            bp.setCreationTime(new Date());
-        } catch (Exception e) {
-            System.out.println ("Error setting blueprint creation time");
-            e.printStackTrace();
-        }
-        
-        /*
-         * Repository URLs
-         */
-        List<RepositoryKind> prList = new ArrayList<RepositoryKind>();
-        RepositoryKind hdfsRepo = new RepositoryKind();
-        hdfsRepo.setKind("TAR");
-        List<String> repoURLs = new ArrayList<String>();
-        repoURLs.add("http://www.apache.org/dist/hadoop/common/");   
-        hdfsRepo.setUrls(repoURLs);
-        prList.add(hdfsRepo);
-        bp.setPackageRepositories(prList);
-        
-        /*
-         * Global Configuration
-         */
-        Configuration bpDefaultCfg = new Configuration();
-        
-        ConfigurationCategory ambari = new ConfigurationCategory();
-        ambari.setName("ambari");
-        ambari.getProperty().add(getProperty ("AMBARI_INSTALL_DIR", "/var/ambari"));
-        ambari.getProperty().add(getProperty ("AMBARI_HADOOP_JAVA_HOME", "/home/hms/apps/jdk1.6.0_27"));
-        ambari.getProperty().add(getProperty ("AMBARI_HADOOP_NN_DIR","/grid/2/hadoop/var/hdfs/name")); 
-        ambari.getProperty().add(getProperty ("AMBARI_DATA_DIRS", "/grid/*"));
-        ambari.getProperty().add(getProperty ("AMBARI_HADOOP_SECURITY", "false"));
-        
-        ambari.getProperty().add(getProperty ("AMBARI_HADOOP_DN_ADDR", "DEFAULT"));
-        ambari.getProperty().add(getProperty ("AMBARI_HADOOP_DN_HTTP_ADDR", "DEFAULT"));
-        ambari.getProperty().add(getProperty ("AMBARI_HADOOP_NN_HOST", "DEFAULT"));
-        
-        
-
-        
-        ConfigurationCategory core_site = new ConfigurationCategory();
-        core_site.setName("core-site");
-        core_site.getProperty().add(getProperty ("local.realm","${KERBEROS_REALM}"));
-        core_site.getProperty().add(getProperty ("fs.default.name","hdfs://${HADOOP_NN_HOST}:8020"));
-        core_site.getProperty().add(getProperty ("fs.trash.interval","360"));
-        core_site.getProperty().add(getProperty ("hadoop.security.auth_to_local","RULE:[2:$1@$0]([jt]t@.*${KERBEROS_REALM})s/.*/${HADOOP_MR_USER}/ RULE:[2:$1@$0](hm@.*${KERBEROS_REALM})s/.*/${HADOOP_HDFS_USER}/ RULE:[2:$1@$0](rs@.*${KERBEROS_REALM})s/.*/${HADOOP_HDFS_USER}/ RULE:[2:$1@$0]([nd]n@.*${KERBEROS_REALM})s/.*/${HADOOP_HDFS_USER}/ RULE:[2:$1@$0](mapred@.*${KERBEROS_REALM})s/.*/${HADOOP_MR_USER}/ RULE:[2:$1@$0](hdfs@.*${KERBEROS_REALM})s/.*/${HADOOP_HDFS_USER}/ RULE:[2:$1@$0](mapredqa@.*${KERBEROS_REALM})s/.*/${HADOOP_MR_USER}/ RULE:[2:$1@$0](hdfsqa@.*${KERBEROS_REALM})s/.*/${HADOOP_HDFS_USER}/ DEFAULT"));
-        core_site.getProperty().add(getProperty ("hadoop.security.authentication","${SECURITY_TYPE}"));
-        core_site.getProperty().add(getProperty ("hadoop.security.authorization","${SECURITY}"));
-        core_site.getProperty().add(getProperty ("hadoop.security.groups.cache.secs","14400"));
-        core_site.getProperty().add(getProperty ("hadoop.kerberos.kinit.command","${KINIT}"));
-        core_site.getProperty().add(getProperty ("hadoop.http.filter.initializers","org.apache.hadoop.http.lib.StaticUserWebFilter"));
-        
-        ConfigurationCategory hdfs_site = new ConfigurationCategory();
-        hdfs_site.setName("hdfs-site");
-        hdfs_site.getProperty().add(getProperty ("dfs.name.dir","${HADOOP_NN_DIR}"));
-        hdfs_site.getProperty().add(getProperty ("dfs.data.dir","${HADOOP_DN_DIR}"));
-        hdfs_site.getProperty().add(getProperty ("dfs.safemode.threshold.pct","1.0f"));
-        hdfs_site.getProperty().add(getProperty ("dfs.datanode.address","${HADOOP_DN_ADDR}"));
-        hdfs_site.getProperty().add(getProperty ("dfs.datanode.http.address","${HADOOP_DN_HTTP_ADDR}"));
-        hdfs_site.getProperty().add(getProperty ("dfs.http.address","${HADOOP_NN_HOST}:50070"));
-        hdfs_site.getProperty().add(getProperty ("dfs.umaskmode","077"));
-        hdfs_site.getProperty().add(getProperty ("dfs.block.access.token.enable","${SECURITY}"));
-        hdfs_site.getProperty().add(getProperty ("dfs.namenode.kerberos.principal","nn/_HOST@${local.realm}"));
-        hdfs_site.getProperty().add(getProperty ("dfs.secondary.namenode.kerberos.principal","nn/_HOST@${local.realm}"));
-        hdfs_site.getProperty().add(getProperty ("dfs.namenode.kerberos.https.principal","host/_HOST@${local.realm}"));
-        hdfs_site.getProperty().add(getProperty ("dfs.secondary.namenode.kerberos.https.principal","host/_HOST@${local.realm}"));
-        hdfs_site.getProperty().add(getProperty ("dfs.secondary.https.port","50490"));
-        hdfs_site.getProperty().add(getProperty ("dfs.datanode.kerberos.principal","dn/_HOST@${local.realm}"));
-        hdfs_site.getProperty().add(getProperty ("dfs.namenode.keytab.file","/etc/security/keytabs/nn.service.keytab"));
-        hdfs_site.getProperty().add(getProperty ("dfs.secondary.namenode.keytab.file","/etc/security/keytabs/nn.service.keytab"));
-        hdfs_site.getProperty().add(getProperty ("dfs.datanode.keytab.file","/etc/security/keytabs/dn.service.keytab"));
-        hdfs_site.getProperty().add(getProperty ("dfs.https.port","50470"));
-        hdfs_site.getProperty().add(getProperty ("dfs.https.address","${HADOOP_NN_HOST}:50470"));
-        hdfs_site.getProperty().add(getProperty ("dfs.datanode.data.dir.perm","700"));
-        hdfs_site.getProperty().add(getProperty ("dfs.cluster.administrators","${HADOOP_HDFS_USER}"));
-        hdfs_site.getProperty().add(getProperty ("dfs.permissions.superusergroup","${HADOOP_GROUP}"));
-        hdfs_site.getProperty().add(getProperty ("dfs.namenode.http-address","${HADOOP_NN_HOST}:50070"));
-        hdfs_site.getProperty().add(getProperty ("dfs.namenode.https-address","${HADOOP_NN_HOST}:50470"));
-        hdfs_site.getProperty().add(getProperty ("dfs.secondary.http.address","${HADOOP_SNN_HOST}:50090"));
-        hdfs_site.getProperty().add(getProperty ("dfs.hosts","${HADOOP_CONF_DIR}/dfs.include"));
-        hdfs_site.getProperty().add(getProperty ("dfs.hosts.exclude","${HADOOP_CONF_DIR}/dfs.exclude"));
-        
-        ConfigurationCategory hadoop_env = new ConfigurationCategory();
-        hadoop_env.setName("hadoop-env");
-        hadoop_env.getProperty().add(getProperty ("JAVA_HOME","${JAVA_HOME}"));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_CONF_DIR","${HADOOP_CONF_DIR:-\"/etc/hadoop\"}"));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_OPTS","\"-Djava.net.preferIPv4Stack=true $HADOOP_OPTS\""));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_NAMENODE_OPTS","\"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_NAMENODE_OPTS}\""));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_JOBTRACKER_OPTS","\"-Dsecurity.audit.logger=INFO,DRFAS -Dmapred.audit.logger=INFO,MRAUDIT -Dmapred.jobsummary.logger=INFO,JSA ${HADOOP_JOBTRACKER_OPTS}\""));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_TASKTRACKER_OPTS","\"-Dsecurity.audit.logger=ERROR,console -Dmapred.audit.logger=ERROR,console ${HADOOP_TASKTRACKER_OPTS}\""));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_DATANODE_OPTS","\"-Dsecurity.audit.logger=ERROR,DRFAS ${HADOOP_DATANODE_OPTS}\""));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_SECONDARYNAMENODE_OPTS","\"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_SECONDARYNAMENODE_OPTS}\""));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_CLIENT_OPTS","\"-Xmx128m ${HADOOP_CLIENT_OPTS}\""));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_SECURE_DN_USER","${HADOOP_SECURE_DN_USER}"));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_LOG_DIR","${HADOOP_LOG_DIR}/$USER"));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_SECURE_DN_LOG_DIR","${HADOOP_LOG_DIR}/${HADOOP_HDFS_USER}"));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_PID_DIR","${HADOOP_PID_DIR}"));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_SECURE_DN_PID_DIR","${HADOOP_PID_DIR}"));
-        hadoop_env.getProperty().add(getProperty ("HADOOP_IDENT_STRING","$USER"));
-
-        ConfigurationCategory hadoop_metrics2 = new ConfigurationCategory();
-        hadoop_metrics2.setName("hadoop_metrics2.properties");
-        hadoop_metrics2.getProperty().add(getProperty ("*.period","60"));
-        
-        bpDefaultCfg.getCategory().add(core_site);
-        bpDefaultCfg.getCategory().add(hdfs_site);
-        bpDefaultCfg.getCategory().add(hadoop_env);
-        bpDefaultCfg.getCategory().add(hadoop_metrics2);
-        bpDefaultCfg.getCategory().add(ambari);
-        
-        bp.setConfiguration(bpDefaultCfg);
-        
-        /*
-         * Define and add common component
-         */
-        List<Component> compList = new ArrayList<Component>();
-        
-        Component commonC = new Component(); 
-        commonC.setName("common");
-        commonC.setArchitecture("x86_64");
-        commonC.setVersion("0.20.205.0");
-        commonC.setProvider("org.apache.hadoop");
-        ComponentDefinition commonCD = new ComponentDefinition(); 
-        commonCD.setGroup("org.apache.ambari");
-        commonCD.setDefinition("hadoop-common");
-        commonCD.setVersion("0.1.0");
-        commonC.setDefinition(commonCD);
-        
-        compList.add(commonC);
-        
-        /*
-         * Define and add hdfs component
-         */
-        Component hdfsC = new Component(); 
-        hdfsC.setName("hdfs");
-        hdfsC.setArchitecture("x86_64");
-        hdfsC.setVersion("0.20.205.0");
-        hdfsC.setProvider("org.apache.hadoop");
-        ComponentDefinition hdfsCD = new ComponentDefinition(); 
-        hdfsCD.setGroup("org.apache.ambari");
-        hdfsCD.setDefinition("hadoop-hdfs");
-        hdfsCD.setVersion("0.1.0");
-        hdfsC.setDefinition(hdfsCD);
-        /*
-         * Set the list of roles to hdfsC
-         */
-        List<Role> hdfsRoleList = new ArrayList<Role>();
-        Role hdfs_nn_role = new Role();
-        hdfs_nn_role.setName("namenode");
-        //hdfs_nn_role.setConfiguration(bpDefaultCfg);
-        
-        Role hdfs_dn_role = new Role();
-        hdfs_dn_role.setName("datanode");
-        //hdfs_dn_role.setConfiguration(bpDefaultCfg);
-        
-        hdfsRoleList.add(hdfs_nn_role);
-        hdfsRoleList.add(hdfs_dn_role);
-        hdfsC.setRoles(hdfsRoleList);
-       
-        compList.add(hdfsC);  
-        bp.setComponents(compList);
-     
-      
-        try {
-            addBlueprint (bp);
-        }catch (Exception e) {
-            e.printStackTrace();
+            Unmarshaller um = jaxbContext.createUnmarshaller();
+            String resourceName =
+                "org/apache/ambari/stacks/" + name + "-" + revision + ".xml";
+            InputStream in = 
+                ClassLoader.getSystemResourceAsStream(resourceName);
+            Blueprint bp = (Blueprint) um.unmarshal(in);
+            bp.setName(name);
+            bp.setRevision(Integer.toString(revision));
+            addBlueprint(bp);
+        } catch (IOException e) {
+            Log.warn("Problem loading blueprint " + name + " rev " + revision,
+                     e);
+        } catch (JAXBException e) {
+          Log.warn("Problem loading blueprint " + name + " rev " + revision,
+              e);
         }
     }
     
@@ -284,7 +131,7 @@ public class Blueprints {
     /*
      * Add or update the blueprint
      */
-    public Blueprint addBlueprint(Blueprint bp) throws Exception {
+    public Blueprint addBlueprint(Blueprint bp) throws IOException {
         
         /*
          * Validate and set the defaults
@@ -310,7 +157,7 @@ public class Blueprints {
     /*
      * Import the default blueprint from the URL location
      */
-    public Blueprint importDefaultBlueprint (String locationURL) throws Exception {
+    public Blueprint importDefaultBlueprint (String locationURL) throws IOException {
         Blueprint blueprint;
         URL blueprintUrl;
         try {
@@ -335,7 +182,7 @@ public class Blueprints {
     /*
      * Validate the blueprint before importing into controller
      */
-    public void validateAndSetBlueprintDefaults(Blueprint blueprint) throws Exception {
+    public void validateAndSetBlueprintDefaults(Blueprint blueprint) throws IOException {
         
         if (blueprint.getName() == null || blueprint.getName().equals("")) {
             String msg = "Blueprint must be associated with non-empty name";
@@ -482,7 +329,6 @@ public class Blueprints {
     }
 
     public static JSONObject readJsonFromUrl(String url) throws IOException, JSONException {
-        ObjectMapper m = new ObjectMapper();
         InputStream is = new URL(url).openStream();
         try {
             BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));

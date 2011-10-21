@@ -61,16 +61,6 @@ public class Clusters {
     private static Clusters ClustersTypeRef=null;
         
     private Clusters() {
-        /*
-         * TODO: Check if blueprint in cluster definition AND its parents already exists
-         */
-        Blueprints.getInstance().createDummyBlueprint("cluster123-site-site-site-blueprint", "0", null, null);
-        Blueprints.getInstance().createDummyBlueprint("cluster123-site-site-blueprint", "0", "cluster123-site-site-site-blueprint", "0");
-        Blueprints.getInstance().createDummyBlueprint("cluster123-site-blueprint", "0", "cluster123-site-site-blueprint", "0");
-        Blueprints.getInstance().createDummyBlueprint("cluster123-blueprint", "0", "cluster123-site-blueprint", "0");
-        Blueprints.getInstance().createDummyBlueprint("cluster123-blueprint", "1", "cluster123-site-blueprint", "0");
-        Blueprints.getInstance().createDummyBlueprint("cluster124-site-blueprint", "0", null, null);
-        Blueprints.getInstance().createDummyBlueprint("cluster124-blueprint", "0", "cluster124-site-blueprint", "0");
         
         /*
          * Cluster definition 
@@ -78,7 +68,7 @@ public class Clusters {
         ClusterDefinition cluster123 = new ClusterDefinition();
         
         cluster123.setName("blue.dev.Cluster123");
-        cluster123.setBlueprintName("cluster123-blueprint");
+        cluster123.setBlueprintName("cluster123");
         cluster123.setBlueprintRevision("0");
         cluster123.setDescription("cluster123 - development cluster");
         cluster123.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
@@ -116,7 +106,7 @@ public class Clusters {
          */
         ClusterDefinition cluster124 = new ClusterDefinition();
         cluster124.setName("blue.research.Cluster124");
-        cluster124.setBlueprintName("cluster124-blueprint");
+        cluster124.setBlueprintName("cluster124");
         cluster124.setBlueprintRevision("0");
         cluster124.setDescription("cluster124 - research cluster");
         cluster124.setGoalState(ClusterState.CLUSTER_STATE_INACTIVE);

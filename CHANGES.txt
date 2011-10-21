@@ -2,15 +2,20 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-91. Move the example blueprints into xml resources. (omalley)
+
   AMBARI-90. Implement nodes get/list CLI (vgogate)
 
   AMBARI-89. Implement blueprint history CLI (vgogate)
 
-  AMBARI-88. Update cluster nodes reservation is giving null pointer exception during cluster creation (vgogate)
+  AMBARI-88. Update cluster nodes reservation is giving null pointer
+  exception during cluster creation (vgogate)
 
-  AMBARI-87. Importing pre-existing blueprint to Ambari through CLI "blueprint add" gives wrong error message (vgogate)
+  AMBARI-87. Importing pre-existing blueprint to Ambari through CLI
+  "blueprint add" gives wrong error message (vgogate)
 
-  AMBARI-86. Validate blueprint referenced by cluster exist including it's parent blueprints (vgogate)
+  AMBARI-86. Validate blueprint referenced by cluster exist including
+  it's parent blueprints (vgogate)
 
   AMBARI-85. Adds handling of new states to do with preinstall actions (ddas)
 

@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.common.rest.entities;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -28,6 +29,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -37,7 +39,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Blueprint", propOrder = {
+@XmlType(name = "blueprint", propOrder = {
     "name",
     "revision",
     "parentName",
@@ -47,7 +49,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "configuration",
     "components"
 })
-@XmlRootElement
+@XmlRootElement(name="blueprint")
 public class Blueprint {
 
     @XmlAttribute
@@ -187,13 +189,18 @@ public class Blueprint {
     /**
      * @param creationTime the creationTime to set
      */
-    public void setCreationTime(Date creationTime) throws Exception {
+    public void setCreationTime(Date creationTime) throws IOException {
         if (creationTime == null) {
             this.creationTime = null;
         } else {
             GregorianCalendar cal = new GregorianCalendar();
             cal.setTime(creationTime);
-            this.creationTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+            try {
+              this.creationTime = 
+                  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+            } catch (DatatypeConfigurationException e) {
+              throw new IOException("can't create calendar", e);
+            }
         }
     }
 }

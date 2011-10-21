@@ -1,0 +1,24 @@
+<blueprint parentName="hadoop-security" parentRevision="0">
+    <configuration>
+        <category name="ambari">
+            <property name="data.dirs" value="/grid/*" />
+            <property name="hdfs.user" value="hrt_hdfs" />
+            <property name="mapreduce.user" value="hrt_mapred" />
+            <property name="hbase.user" value="hrt_hbase" />
+            <property name="hcat.user" value="hrt_hcat" />
+            <property name="user.realm" value="HORTON.YGRIDCORE.NET" />
+        </category>
+        <category name="hadoop-env">
+            <property name="HADOOP_CLIENT_OPTS" 
+                      value="-Xmx256m ${HADOOP_CLIENT_OPTS}" />
+        </category>
+    </configuration>
+    <components name="hdfs">
+      <configuration>
+        <category name="hadoop-env">
+          <property name="HADOOP_NAMENODE_OPTS" 
+                    value="-Xmx512m -Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_NAMENODE_OPTS}" />
+        </category>
+      </configuration>
+    </components>
+</blueprint>
