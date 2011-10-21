@@ -70,9 +70,11 @@ class Controller(threading.Thread):
       opener = urllib2.build_opener(auth_handler)
       urllib2.install_opener(opener)
     while True:
+      retry=False
       try:
-        data = json.dumps(self.heartbeat.build(id))
-        logger.info(data)
+        if retry!=False:
+          data = json.dumps(self.heartbeat.build(id))
+          logger.info(data)
         req = urllib2.Request(self.url, data, {'Content-Type': 'application/json'})
         f = urllib2.urlopen(req)
         response = f.read()
@@ -80,7 +82,9 @@ class Controller(threading.Thread):
         data = json.loads(response)
         id=int(data['responseId'])
         self.actionQueue.put(data)
+        retry=False
       except URLError, err:
+        retry=True
         if "code" in err:
           logger.error(err.code)
         else:

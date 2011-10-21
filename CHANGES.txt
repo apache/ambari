@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-92. Added logic to retry heartbeat sending. (Eric Yang)
+
   AMBARI-91. Move the example blueprints into xml resources. (omalley)
 
   AMBARI-90. Implement nodes get/list CLI (vgogate)
