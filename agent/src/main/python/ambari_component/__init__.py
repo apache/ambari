@@ -33,16 +33,16 @@ import time
 import signal
 from ConfigWriter import ConfigWriter
 
-def copySh(config, options):
-  result = ConfigWriter().shell(config, options)
+def copySh(owner, group, permission, config, options):
+  result = ConfigWriter().shell(owner, group, permission, config, options)
   return result
 
-def copyXml(config, options):
-  result = ConfigWriter().xml(config, options)
+def copyXml(owner, group, permission, config, options):
+  result = ConfigWriter().xml(owner, group, permission, config, options)
   return result
 
-def copyProperties(config, options):
-  result = ConfigWriter().plist(config, options)
+def copyProperties(owner, group, permission, config, options):
+  result = ConfigWriter().plist(owner, group, permission, config, options)
   return result
 
 def install(cluster, role, packages):

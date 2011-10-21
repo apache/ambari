@@ -24,13 +24,13 @@ logger = logging.getLogger()
 
 class ConfigWriter:
 
-  def shell(self, category, options):
+  def shell(self, owner, group, permission, category, options):
     content = ""
     for key in options:
       content+="export "+key+"=\""+options[key]+"\"\n"
-    return self.write("config/"+category+".sh", content)
+    return self.write(owner, group, permission, "config/"+category+".sh", content)
 
-  def xml(self, category, options):
+  def xml(self, owner, group, permission, category, options):
     content = """<?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <configuration>
@@ -41,19 +41,22 @@ class ConfigWriter:
       content+="    <value>"+options[key]+"</value>\n"
       content+="  </property>\n"
     content+= "</configuration>\n"
-    return self.write("config/"+category+".xml", content)
+    return self.write(owner, group, permission, "config/"+category+".xml", content)
 
-  def plist(self, category, options):
+  def plist(self, owner, group, permission, category, options):
     content = ""
     for key in options:
       content+=key+"="+options[key]+"\n"
-    return self.write("config/"+category+".properties", content)
+    return self.write(owner, group, permission, "config/"+category+".properties", content)
 
-  def write(self, path, content):
+  def write(self, owner, group, permission, path, content):
     try:
       f = open(path, 'w')
       f.write(content)
       f.close()
+      if os.getuid()==0:
+        os.chmod(path, permission)
+        os.chown(path, owner, group)
       result = { 'exitCode' : 0 }
     except Exception:
       result = { 'exitCode' : 1 }
