@@ -297,7 +297,7 @@ public class ClusterResource {
                 "allocatedToCluster":"true",
                 "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
                 "agentInstalled":"true",
-                "nodeRoleNames":"jobtracker-role"
+                "nodeRoleNames":"mapred.jobtracker"
              }
           },
           {
@@ -307,7 +307,7 @@ public class ClusterResource {
                 "allocatedToCluster":"true",
                 "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
                 "agentInstalled":"true",
-                "nodeRoleNames":"namenode-role"
+                "nodeRoleNames":"hdfs.namenode"
              }
           },
           {
@@ -317,69 +317,10 @@ public class ClusterResource {
                 "allocatedToCluster":"true",
                 "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
                 "agentInstalled":"true",
-                "nodeRoleNames":"slaves-role"
-             }
-          },
-          {
-             "@name":"hostname-2",
-             "NodeState":{
-                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
-                "allocatedToCluster":"true",
-                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
-                "agentInstalled":"true",
-                "nodeRoleNames":"slaves-role"
-             }
-          },
-          {
-             "@name":"hostname-3",
-             "NodeState":{
-                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
-                "allocatedToCluster":"true",
-                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
-                "agentInstalled":"true",
-                "nodeRoleNames":"slaves-role"
-             }
-          },
-          {
-             "@name":"hostname-4",
-             "NodeState":{
-                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
-                "allocatedToCluster":"true",
-                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
-                "agentInstalled":"true",
-                "nodeRoleNames":"slaves-role"
-             }
-          },
-          {
-             "@name":"node-2",
-             "NodeState":{
-                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
-                "allocatedToCluster":"true",
-                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
-                "agentInstalled":"true",
-                "nodeRoleNames":"slaves-role"
-             }
-          },
-          {
-             "@name":"node-3",
-             "NodeState":{
-                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
-                "allocatedToCluster":"true",
-                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
-                "agentInstalled":"true",
-                "nodeRoleNames":"slaves-role"
-             }
-          },
-          {
-             "@name":"node-4",
-             "NodeState":{
-                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
-                "allocatedToCluster":"true",
-                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
-                "agentInstalled":"true",
-                "nodeRoleNames":"slaves-role"
+                "nodeRoleNames":"hdfs.datanode, mapred.tasktracker"
              }
           }
+          
         ]
      }
      *  
@@ -416,6 +357,77 @@ public class ClusterResource {
      *  @response.representation.200.mediaType   application/json
      *  @response.representgation.404.doc        Cluster does not exist
      *  
+     *  @response.representation.200.example
+        {
+           "@name":"cluster123",
+           "@revision":"0",
+           "@parentName":"hadoop-security",
+           "@parentRevision":"0",
+           "@creationTime":"2011-10-24T12:13:44.774-07:00",
+           "configuration":{
+              "category":[
+                 {
+                    "@name":"ambari",
+                    "@permission":"0",
+                    "property":[
+                       {
+                          "@name":"data.dirs",
+                          "@value":"/grid/*",
+                          "@force":"false"
+                       },
+                       {
+                          "@name":"hdfs.user",
+                          "@value":"hrt_hdfs",
+                          "@force":"false"
+                       },
+                       {
+                          "@name":"mapreduce.user",
+                          "@value":"hrt_mapred",
+                          "@force":"false"
+                       },
+                       {
+                          "@name":"hbase.user",
+                          "@value":"hrt_hbase",
+                          "@force":"false"
+                       },
+                       {
+                          "@name":"hcat.user",
+                          "@value":"hrt_hcat",
+                          "@force":"false"
+                       },
+                       {
+                          "@name":"user.realm",
+                          "@value":"HORTON.YGRIDCORE.NET",
+                          "@force":"false"
+                       }
+                    ]
+                 },
+                 {
+                    "@name":"hadoop-env",
+                    "@permission":"0",
+                    "property":{
+                       "@name":"HADOOP_CLIENT_OPTS",
+                       "@value":"-Xmx256m ${HADOOP_CLIENT_OPTS}",
+                       "@force":"false"
+                    }
+                 }
+              ]
+           },
+           "components":{
+              "@name":"hdfs",
+              "configuration":{
+                 "category":{
+                    "@name":"hadoop-env",
+                    "@permission":"0",
+                    "property":{
+                       "@name":"HADOOP_NAMENODE_OPTS",
+                       "@value":"-Xmx512m -Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_NAMENODE_OPTS}",
+                       "@force":"false"
+                    }
+                 }
+              }
+           }
+        }
      *  
      *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
      *                      unique name
