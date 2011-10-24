@@ -51,10 +51,10 @@ public class NodesResource {
      */
     @GET
     @Produces({"application/json", "application/xml"})
-    public List<Node> getNodes (@DefaultValue("") @QueryParam("allocated") String allocatedx,
-                                @DefaultValue("") @QueryParam("alive") String alivex) throws Exception {
+    public List<Node> getNodes (@DefaultValue("") @QueryParam("allocated") String allocated,
+                                @DefaultValue("") @QueryParam("alive") String alive) throws Exception {
         try {
-            return Nodes.getInstance().getNodesByState(allocatedx, alivex);
+            return Nodes.getInstance().getNodesByState(allocated, alive);
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {

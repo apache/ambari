@@ -53,15 +53,51 @@ import org.apache.ambari.controller.Nodes;
 public class ClusterResource {
         
     /** 
-     * Get the information of specified Hadoop cluster.
+     * Get the information of specified Hadoop cluster. Information includes Cluster definition 
+     * and the cluster state
      * 
-     *  @response.representation.200.doc       Get the definition of specified
-     *                                         Hadoop cluster
-     *  @response.representation.200.mediaType application/json
+     *  @response.representation.200.doc        Get the definition & current state of the specified 
+     *                                          Hadoop cluster
+     *  @response.representation.200.mediaType  application/json
+     *  @response.representation.404.doc        Specified cluster does not exist
+     *  @response.representation.200.doc.example 
+        {
+           "definition":{
+              "@name":"blue.dev.Cluster123",
+              "@description":"cluster123 - development cluster",
+              "@blueprintName":"cluster123-blueprint",
+              "@blueprintRevision":"0",
+              "@goalState":"ATTIC",
+              "@nodes":"jt-nodex,nn-nodex,hostname-1x,hostname-2x,hostname-3x,hostname-4x,node-2x,node-3x,node-4x",
+              "activeServices":[
+                 "hdfs",
+                 "mapred"
+              ],
+              "roleToNodesMap":[
+                 {
+                    "@roleName":"jobtracker-role",
+                    "@nodes":"jt-nodex"
+                 },
+                 {
+                    "@roleName":"namenode-role",
+                    "@nodes":"nn-nodex"
+                 },
+                 {
+                    "@roleName":"slaves-role",
+                    "@nodes":"hostname-1x,hostname-2x,hostname-3x,hostname-4x,node-2x,node-3x,node-4x"
+                 }
+              ]
+           },
+           "state":{
+              "@state":"ATTIC",
+              "@creationTime":"2011-10-20T11:35:06.687-07:00",
+              "@lastUpdateTime":"2011-10-20T11:35:06.687-07:00"
+           }
+        }
      *  
-     *  @param      clusterName             Name of the cluster; Each cluster is identified w/ unique name
-     *  @return                             Returns the Cluster Information
-     *  @throws     Exception               Throws exception (TBD)
+     *  @param      clusterName                 Name of the cluster; Each cluster is identified w/ unique name
+     *  @return                                 Returns the Cluster Information
+     *  @throws     Exception                   Throws exception (TBD)
      */
     @GET
     @Produces({"application/json", "application/xml"})
@@ -78,15 +114,53 @@ public class ClusterResource {
     /** 
      * Update cluster definition.
      * 
-     * @response.representation.200.doc Returns cluster definition.
+     * @response.representation.200.doc         Returns updated cluster definition.
+     * @response.representation.200.mediaType   application/json
+     * @response.representation.400.doc         Bad request (See "ErrorMessage" in the response
+     *                                          http header describing specific error condition).
+     * @response.representgation.404.doc        Cluster does not exist
      * 
-     * @param   clusterName             Name of the cluster; Each cluster is identified w/ unique name
-     * @param   cluster                 Cluster definition with specific sub-elements to be updated
-     * @return                          Returns updated cluster definition
-     * @throws  Exception               throws Exception (TBD)
+     * @response.representation.example 
+       {
+           "definition":{
+              "@name":"blue.dev.Cluster123",
+              "@description":"cluster123 - development cluster",
+              "@blueprintName":"cluster123-blueprint",
+              "@blueprintRevision":"0",
+              "@goalState":"ATTIC",
+              "@nodes":"jt-nodex,nn-nodex,hostname-1x,hostname-2x,hostname-3x,hostname-4x,node-2x,node-3x,node-4x",
+              "activeServices":[
+                 "hdfs",
+                 "mapred"
+              ],
+              "roleToNodesMap":[
+                 {
+                    "@roleName":"jobtracker-role",
+                    "@nodes":"jt-nodex"
+                 },
+                 {
+                    "@roleName":"namenode-role",
+                    "@nodes":"nn-nodex"
+                 },
+                 {
+                    "@roleName":"slaves-role",
+                    "@nodes":"hostname-1x,hostname-2x,hostname-3x,hostname-4x,node-2x,node-3x,node-4x"
+                 }
+              ]
+           }
+        }
+     * 
+     * @param   clusterName                     Name of the cluster; Each cluster is identified w/ unique name
+     * @param   cluster                         Cluster definition with only specific sub-elements to be updated.
+     *                                          Cluster name can not be updated through this API.
+     * @param   dry_run                         Boolean option to specify dry_run. In dry_run, updates to cluster
+     *                                          definition are validated but actual updates are not made
+     * @return                                  Returns updated cluster definition
+     * @throws  Exception                       throws Exception
      */ 
     @PUT
     @Consumes({"application/json", "application/xml"})
+    @Produces({"application/json", "application/xml"})
     public ClusterDefinition updateClusterDefinition(
            @PathParam("clusterName") String clusterName,
            @DefaultValue("false") @QueryParam("dry_run") boolean dry_run,
@@ -103,11 +177,17 @@ public class ClusterResource {
     /** 
      * Rename the cluster.
      * 
-     * @response.representation.200.doc 
+     * @response.representation.200.doc         Rename the cluster. This operation is allowed only
+     *                                          when cluster is in ATTIC state
+     * @response.representation.200.mediaType   application/json
+     * @response.representgation.404.doc        Cluster does not exist
+     * @response.representation.400.doc         Bad request (See "ErrorMessage" in the response
+     *                                          http header describing specific error condition).
+     * @response.representation.400.doc         Not Acceptable. Cluster is not in ATTIC state.
      * 
-     * @param   clusterName             Name of the cluster; Each cluster is identified w/ unique name
-     * @param   new_name                New name of the cluster
-     * @throws  Exception               throws Exception (TBD)
+     * @param   clusterName                     Existing name of the cluster
+     * @param   new_name                        New name of the cluster
+     * @throws  Exception                       throws Exception (TBD)
      */ 
     @PUT
     @Consumes({"application/json", "application/xml"})
@@ -130,10 +210,12 @@ public class ClusterResource {
      * @response.representation.200.doc Delete operation will lead the cluster 
      *                                  to "ATTIC" state and then the cluster 
      *                                  definition is purged from the controller 
-     *                                  repository. In "ATTIC" state all the 
+     *                                  repository when all the nodes are released 
+     *                                  from the cluster. It is asynchronous operation.
+     *                                  In "ATTIC" state all the 
      *                                  cluster services would be stopped and 
-     *                                  nodes are released. All the data on 
-     *                                  the cluster will be lost.
+     *                                  nodes are released. All the cluster data 
+     *                                  will be lost.
      *  
      *  @param  clusterName             Name of the cluster; Each cluster is identified w/ unique name
      *  @throws Exception               throws Exception (TBD)
@@ -153,17 +235,27 @@ public class ClusterResource {
     /** 
      * Get the cluster state.
      *  
-     *  @response.representation.200.doc This provides the run time state of the 
-     *                                   cluster. Representative cluster state 
-     *                                   is based on the state of various 
-     *                                   services running on the cluster.
-     *  Representative cluster states:
-     *    "ACTIVE"  : Hadoop stack is deployed on cluster nodes and 
-     *                required cluster services are running
-     *    "INACTIVE : No cluster services are running. Hadoop stack 
-     *                may or may not be deployed on the cluster nodes
-     *    "ATTIC"   : Only cluster definition is available. No nodes are 
-     *                reserved for the cluster in this state.
+     *  @response.representation.200.doc            This provides the run time state of the 
+     *                                              cluster. Cluster state is derived based 
+     *                                              on the state of various services running on the cluster.
+     *                                              Representative cluster states:
+     *                                                  "ACTIVE"  : Hadoop stack is deployed on cluster nodes and 
+     *                                                              required cluster services are running
+     *                                                  "INACTIVE : No cluster services are running. Hadoop stack 
+     *                                                              may or may not be deployed on the cluster nodes
+     *                                                  "ATTIC"   : Only cluster definition is available. No nodes are 
+     *                                                              reserved for the cluster in this state.
+     *  @response.representation.200.mediaType   application/json
+     *  @response.representgation.404.doc        Cluster does not exist
+     *  @response.representation.200.example
+     *  
+        {
+           "state":{
+              "@state":"ATTIC",
+              "@creationTime":"2011-10-20T11:35:06.687-07:00",
+              "@lastUpdateTime":"2011-10-20T11:35:06.687-07:00"
+           }
+        }
      *  
      *  @param  clusterName             Name of the cluster; Each cluster is 
      *                                  identified w/ unique name
@@ -186,11 +278,110 @@ public class ClusterResource {
     /** 
      * Get list of nodes associated with the cluster.
      *  
-     *  @response.representation.200.doc The "alive" is a boolean variable that 
+     *  @response.representation.200.doc Get list of nodes associated with the cluster.
+     *  The "alive" is a boolean variable that 
      *  specify the type of nodes to return based on their state i.e. live or 
      *  dead. Live nodes are the ones that are consistently heart beating with 
-     *  the controller. If both live and dead nodes are need to be returned 
-     *  then specify the alive parameter as null.  
+     *  the controller. If both live and dead nodes need to be returned 
+     *  then do not specify the alive query parameter
+     *  @response.representation.204.doc    No content; No nodes are associated with the cluster
+     *  @response.representation.500.doc    Internal Server Error; No nodes are associated with the cluster
+     *                                      (See "ErrorMessage" in the response http header describing specific error condition).
+     *  @response.representation.200.example
+     {
+       "Nodes":[
+          {
+             "@name":"jt-node",
+             "NodeState":{
+                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
+                "allocatedToCluster":"true",
+                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
+                "agentInstalled":"true",
+                "nodeRoleNames":"jobtracker-role"
+             }
+          },
+          {
+             "@name":"nn-node",
+             "NodeState":{
+                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
+                "allocatedToCluster":"true",
+                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
+                "agentInstalled":"true",
+                "nodeRoleNames":"namenode-role"
+             }
+          },
+          {
+             "@name":"hostname-1",
+             "NodeState":{
+                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
+                "allocatedToCluster":"true",
+                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
+                "agentInstalled":"true",
+                "nodeRoleNames":"slaves-role"
+             }
+          },
+          {
+             "@name":"hostname-2",
+             "NodeState":{
+                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
+                "allocatedToCluster":"true",
+                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
+                "agentInstalled":"true",
+                "nodeRoleNames":"slaves-role"
+             }
+          },
+          {
+             "@name":"hostname-3",
+             "NodeState":{
+                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
+                "allocatedToCluster":"true",
+                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
+                "agentInstalled":"true",
+                "nodeRoleNames":"slaves-role"
+             }
+          },
+          {
+             "@name":"hostname-4",
+             "NodeState":{
+                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
+                "allocatedToCluster":"true",
+                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
+                "agentInstalled":"true",
+                "nodeRoleNames":"slaves-role"
+             }
+          },
+          {
+             "@name":"node-2",
+             "NodeState":{
+                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
+                "allocatedToCluster":"true",
+                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
+                "agentInstalled":"true",
+                "nodeRoleNames":"slaves-role"
+             }
+          },
+          {
+             "@name":"node-3",
+             "NodeState":{
+                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
+                "allocatedToCluster":"true",
+                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
+                "agentInstalled":"true",
+                "nodeRoleNames":"slaves-role"
+             }
+          },
+          {
+             "@name":"node-4",
+             "NodeState":{
+                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
+                "allocatedToCluster":"true",
+                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
+                "agentInstalled":"true",
+                "nodeRoleNames":"slaves-role"
+             }
+          }
+        ]
+     }
      *  
      *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
      *                      unique name
@@ -221,7 +412,10 @@ public class ClusterResource {
     /** 
      * Get the blueprint associated with cluster
      *  
-     *  @response.representation.200.doc 
+     *  @response.representation.200.doc Get the blueprint associated with cluster
+     *  @response.representation.200.mediaType   application/json
+     *  @response.representgation.404.doc        Cluster does not exist
+     *  
      *  
      *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
      *                      unique name

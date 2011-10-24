@@ -53,7 +53,7 @@ public class NodeState {
      */
     @XmlElement
     protected String clusterID;
-
+    
     @XmlElement
     protected Boolean agentInstalled = true;
 
