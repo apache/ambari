@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-102. Reduce heartbeat message content, when installedRoleState
+  is empty. (Eric Yang)
+
   AMBARI-101. Remove clusterID and use cluster name as unique ID for the cluster(vgogate)
 
   AMBARI-100. Fixes the heartbeat to take into account install/uninstall 

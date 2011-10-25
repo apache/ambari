@@ -35,14 +35,18 @@ class Heartbeat:
     global clusterId, clusterDefinitionRevision
     serverStatus = ServerStatus()
     timestamp = int(time.time()*1000)
+    queueResult = self.actionQueue.result()
+    installedRoleStates = serverStatus.build()
     heartbeat = { 'responseId'          : int(id),
                   'timestamp'           : timestamp,
                   'hostname'            : socket.gethostname(),
                   'hardwareProfile'     : self.hardware.get(),
-                  'actionResults'       : self.actionQueue.result(),
-                  'installedRoleStates' : serverStatus.build(),
                   'idle'                : self.actionQueue.isIdle()
                 }
+    if len(queueResult)!=0:
+      heartbeat['actionResults'] = queueResult
+    if len(installedRoleStates)!=0:
+      heartbeat['installedRoleStates'] = installedRoleStates
     return heartbeat
 
 def main(argv=None):
