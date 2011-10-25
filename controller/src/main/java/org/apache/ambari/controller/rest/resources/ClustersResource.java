@@ -51,29 +51,7 @@ public class ClustersResource {
      *         "INACTIVE"      : All the inactive state clusters
      *         "ATTIC"         : All the retired i.e. ATTIC state clusters
      *  @response.representation.200.doc Return ClusterInformation
-     *  @response.representation.200.example {"ClusterInformation":[
-     *    {
-     *      "definition": {
-     *          "@name":"blue.dev.Cluster123",
-     *          "@description":"cluster123 - development cluster",
-     *          "@blueprintName":"cluster123",
-     *          "@blueprintRevision":"0",
-     *          "@goalState":"ATTIC",
-     *          "@nodes":"jt-nodex,nn-nodex,hostname-1x,hostname-2x",
-     *          "activeServices":["hdfs","mapred"],
-     *          "roleToNodesMap":[
-     *            {"@roleName":"jobtracker-role","@nodes":"jt-nodex"},
-     *            {"@roleName":"namenode-role","@nodes":"nn-nodex"},
-     *            {"@roleName":"slaves-role","@nodes":"hostname-1x,hostname-2x"}
-     *          ]
-     *      },
-     *      "state":{
-     *          "@state":"ATTIC",
-     *          "@creationTime":"2011-10-24T09:33:42.151-07:00",
-     *          "@lastUpdateTime":"2011-10-24T09:33:42.151-07:00"
-     *      }
-     *    }
-     *  ]}
+     *  @response.representation.200.example
      *  @response.representation.204.doc No cluster defined
      *  @response.representation.500.doc Internal Server Error
      *  @param  state      The state of the cluster
@@ -125,20 +103,7 @@ public class ClustersResource {
      *  etc. 
      *  
      *  @request.representation.doc ClusterDefinition object
-     *  @request.representation.example {
-     *      "@name":"blue.dev.Cluster123",
-     *      "@description":"cluster123 - development cluster",
-     *      "@blueprintName":"cluster123",
-     *      "@blueprintRevision":"0",
-     *      "@goalState":"ATTIC",
-     *      "@nodes":"jt-nodex,nn-nodex,hostname-1x,hostname-2x",
-     *      "activeServices":["hdfs","mapred"],
-     *      "roleToNodesMap":[
-     *        {"@roleName":"jobtracker-role","@nodes":"jt-nodex"},
-     *        {"@roleName":"namenode-role","@nodes":"nn-nodex"},
-     *        {"@roleName":"slaves-role","@nodes":"hostname-1x,hostname-2x"}
-     *      ]
-     *  }
+     *  @request.representation.example
      *      
      *  @param  dry_run   Enable dry run by setting it to true
      *  @param  cluster   Definition of the cluster to be created 

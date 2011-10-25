@@ -59,40 +59,7 @@ public class ClusterResource {
      *  @response.representation.200.doc        Get the definition & current state of the specified Hadoop cluster
      *  @response.representation.200.mediaType  application/json
      *  @response.representation.404.doc        Specified cluster does not exist
-     *  @response.representation.200.example    ClusterInformation {@link http://www.apple.com/}
-        {
-           "definition":{
-              "@name":"blue.dev.Cluster123",
-              "@description":"cluster123 - development cluster",
-              "@blueprintName":"cluster123-blueprint",
-              "@blueprintRevision":"0",
-              "@goalState":"ATTIC",
-              "@nodes":"jt-nodex,nn-nodex,hostname-1x,hostname-2x,hostname-3x,hostname-4x,node-2x,node-3x,node-4x",
-              "activeServices":[
-                 "hdfs",
-                 "mapred"
-              ],
-              "roleToNodesMap":[
-                 {
-                    "@roleName":"jobtracker-role",
-                    "@nodes":"jt-nodex"
-                 },
-                 {
-                    "@roleName":"namenode-role",
-                    "@nodes":"nn-nodex"
-                 },
-                 {
-                    "@roleName":"slaves-role",
-                    "@nodes":"hostname-1x,hostname-2x,hostname-3x,hostname-4x,node-2x,node-3x,node-4x"
-                 }
-              ]
-           },
-           "state":{
-              "@state":"ATTIC",
-              "@creationTime":"2011-10-20T11:35:06.687-07:00",
-              "@lastUpdateTime":"2011-10-20T11:35:06.687-07:00"
-           }
-        }
+     *  @response.representation.200.example    ClusterInformation
      *  
      *  @param      clusterName                 Name of the cluster; Each cluster is identified w/ unique name
      *  @return                                 Returns the Cluster Information
@@ -118,35 +85,7 @@ public class ClusterResource {
      * @response.representation.400.doc         Bad request (See "ErrorMessage" in the response
      *                                          http header describing specific error condition).
      * @response.representation.404.doc        Cluster does not exist
-     * @response.representation.200.example 
-       {
-           "definition":{
-              "@name":"blue.dev.Cluster123",
-              "@description":"cluster123 - development cluster",
-              "@blueprintName":"cluster123-blueprint",
-              "@blueprintRevision":"0",
-              "@goalState":"ATTIC",
-              "@nodes":"jt-nodex,nn-nodex,hostname-1x,hostname-2x,hostname-3x,hostname-4x,node-2x,node-3x,node-4x",
-              "activeServices":[
-                 "hdfs",
-                 "mapred"
-              ],
-              "roleToNodesMap":[
-                 {
-                    "@roleName":"jobtracker-role",
-                    "@nodes":"jt-nodex"
-                 },
-                 {
-                    "@roleName":"namenode-role",
-                    "@nodes":"nn-nodex"
-                 },
-                 {
-                    "@roleName":"slaves-role",
-                    "@nodes":"hostname-1x,hostname-2x,hostname-3x,hostname-4x,node-2x,node-3x,node-4x"
-                 }
-              ]
-           }
-        }
+     * @response.representation.200.example
      * 
      * @param   clusterName                     Name of the cluster; Each cluster is identified w/ unique name
      * @param   cluster                         Cluster definition with only specific sub-elements to be updated.
@@ -284,41 +223,6 @@ public class ClusterResource {
      *  @response.representation.500.doc    Internal Server Error; No nodes are associated with the cluster
      *                                      (See "ErrorMessage" in the response http header describing specific error condition).
      *  @response.representation.200.example
-     {
-       "Nodes":[
-          {
-             "@name":"jt-node",
-             "NodeState":{
-                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
-                "allocatedToCluster":"true",
-                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
-                "agentInstalled":"true",
-                "nodeRoleNames":"mapred.jobtracker"
-             }
-          },
-          {
-             "@name":"nn-node",
-             "NodeState":{
-                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
-                "allocatedToCluster":"true",
-                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
-                "agentInstalled":"true",
-                "nodeRoleNames":"hdfs.namenode"
-             }
-          },
-          {
-             "@name":"hostname-1",
-             "NodeState":{
-                "clusterID":"b70c764c-5970-42c0-9540-bf7df3600de4",
-                "allocatedToCluster":"true",
-                "lastHeartbeatTime":"1969-12-31T16:00:00.000-08:00",
-                "agentInstalled":"true",
-                "nodeRoleNames":"hdfs.datanode, mapred.tasktracker"
-             }
-          }
-          
-        ]
-     }
      *  
      *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
      *                      unique name
@@ -360,76 +264,6 @@ public class ClusterResource {
      *  @response.representgation.404.doc        Cluster does not exist
      *  
      *  @response.representation.200.example
-        {
-           "@name":"cluster123",
-           "@revision":"0",
-           "@parentName":"hadoop-security",
-           "@parentRevision":"0",
-           "@creationTime":"2011-10-24T12:13:44.774-07:00",
-           "configuration":{
-              "category":[
-                 {
-                    "@name":"ambari",
-                    "@permission":"0",
-                    "property":[
-                       {
-                          "@name":"data.dirs",
-                          "@value":"/grid/*",
-                          "@force":"false"
-                       },
-                       {
-                          "@name":"hdfs.user",
-                          "@value":"hrt_hdfs",
-                          "@force":"false"
-                       },
-                       {
-                          "@name":"mapreduce.user",
-                          "@value":"hrt_mapred",
-                          "@force":"false"
-                       },
-                       {
-                          "@name":"hbase.user",
-                          "@value":"hrt_hbase",
-                          "@force":"false"
-                       },
-                       {
-                          "@name":"hcat.user",
-                          "@value":"hrt_hcat",
-                          "@force":"false"
-                       },
-                       {
-                          "@name":"user.realm",
-                          "@value":"HORTON.YGRIDCORE.NET",
-                          "@force":"false"
-                       }
-                    ]
-                 },
-                 {
-                    "@name":"hadoop-env",
-                    "@permission":"0",
-                    "property":{
-                       "@name":"HADOOP_CLIENT_OPTS",
-                       "@value":"-Xmx256m ${HADOOP_CLIENT_OPTS}",
-                       "@force":"false"
-                    }
-                 }
-              ]
-           },
-           "components":{
-              "@name":"hdfs",
-              "configuration":{
-                 "category":{
-                    "@name":"hadoop-env",
-                    "@permission":"0",
-                    "property":{
-                       "@name":"HADOOP_NAMENODE_OPTS",
-                       "@value":"-Xmx512m -Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_NAMENODE_OPTS}",
-                       "@force":"false"
-                    }
-                 }
-              }
-           }
-        }
      *  
      *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
      *                      unique name
