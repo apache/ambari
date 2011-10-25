@@ -69,10 +69,10 @@ class Controller(threading.Thread):
                                 passwd=self.credential['password'])
       opener = urllib2.build_opener(auth_handler)
       urllib2.install_opener(opener)
+    retry=False
     while True:
-      retry=False
       try:
-        if retry!=False:
+        if retry==False:
           data = json.dumps(self.heartbeat.build(id))
           logger.info(data)
         req = urllib2.Request(self.url, data, {'Content-Type': 'application/json'})
