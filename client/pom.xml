@@ -120,7 +120,9 @@
   <profiles>
     <profile>
       <id>docs</id>
-      <activeByDefault>true</activeByDefault>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <build>
         <plugins>
           <plugin>
@@ -138,7 +140,7 @@
             <configuration>
               <project>${project}</project>
               <destdir>../src/site/resources</destdir>
-              <srcdir>${project.build.sourceDirectory}/org/apache/ambari/client/</srcdir>
+              <srcdir>${project.build.sourceDirectory}/org/apache/ambari/common/rest/entities/</srcdir>
               <verbose>true</verbose>
               <schemas>
                 <schema>
