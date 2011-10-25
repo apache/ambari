@@ -450,7 +450,7 @@ public class HeartbeatHandler {
       SERVICE_AVAILABILITY_CHECK_ID, SERVICE_PREINSTALL_CHECK_ID
   }  
   
-  static class ClusterIdAndRev {
+  private static class ClusterIdAndRev {
     String clusterId;
     long revision;
     ClusterIdAndRev(String clusterId, long revision) {
