@@ -59,6 +59,9 @@ public class ClusterNodes extends Command {
     URL resourceURL = null;
     CommandLine line;
     
+    public ClusterNodes() {
+    }
+    
     public ClusterNodes (String [] args) throws Exception {  
         /*
          * Build options for cluster create

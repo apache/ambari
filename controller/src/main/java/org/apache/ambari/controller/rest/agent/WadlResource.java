@@ -55,7 +55,12 @@ public class WadlResource {
         this.wadlContext = wadlContext;
         this.application = wadlContext.getApplication();
     }
- 
+
+    /**
+     * Display REST API in human readable format
+     * @param uriInfo
+     * @return WADL XML Representation of REST API
+     */
     @GET
     public synchronized Response getWadl(@Context UriInfo uriInfo) {
         if (wadlXmlRepresentation == null) {

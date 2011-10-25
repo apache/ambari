@@ -54,6 +54,8 @@ public class BlueprintGet extends Command {
    
     CommandLine line;
     
+    public BlueprintGet() {
+    }
     
     public BlueprintGet (String [] args) throws Exception {  
         /*

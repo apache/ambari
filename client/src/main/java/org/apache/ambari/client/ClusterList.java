@@ -53,6 +53,8 @@ public class ClusterList extends Command {
    
     CommandLine line;
     
+    public ClusterList() {
+    }
     
     public ClusterList (String [] args) throws Exception {  
         /*

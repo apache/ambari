@@ -43,80 +43,178 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>public-api</id>
+              <goals>
+                <goal>javadoc</goal>
+              </goals>
+              <phase>compile</phase>
+              <configuration>
+                <encoding>UTF-8</encoding>
+                <verbose>false</verbose>
+                <show>public</show>
+                <subpackages>org.apache.ambari.controller.rest.resources</subpackages>
+                <doclet>com.sun.jersey.wadl.resourcedoc.ResourceDoclet</doclet>
+                <docletPath>${path.separator}${project.build.outputDirectory}</docletPath>
+                <docletArtifacts>
+                  <docletArtifact>
+                    <groupId>com.sun.jersey.contribs</groupId>
+                    <artifactId>wadl-resourcedoc-doclet</artifactId>
+                    <version>1.8</version>
+                  </docletArtifact>
+                  <docletArtifact>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-server</artifactId>
+                    <version>1.8</version>
+                  </docletArtifact>
+                  <docletArtifact>
+                    <groupId>xerces</groupId>
+                    <artifactId>xercesImpl</artifactId>
+                    <version>2.6.1</version>
+                  </docletArtifact>
+                </docletArtifacts>
+                <useStandardDocletOptions>false</useStandardDocletOptions>
+                <additionalparam>-output ${project.build.outputDirectory}/resourcedoc.xml</additionalparam>
+              </configuration>
+            </execution>
+            <execution>
+              <id>private-api</id>
+              <goals>
+                <goal>javadoc</goal>
+              </goals>
+              <phase>compile</phase>
+              <configuration>
+                <encoding>UTF-8</encoding>
+                <verbose>false</verbose>
+                <show>public</show>
+                <subpackages>org.apache.ambari.controller.rest.agent</subpackages>
+                <doclet>com.sun.jersey.wadl.resourcedoc.ResourceDoclet</doclet>
+                <docletPath>${path.separator}${project.build.outputDirectory}</docletPath>
+                <docletArtifacts>
+                  <docletArtifact>
+                    <groupId>com.sun.jersey.contribs</groupId>
+                    <artifactId>wadl-resourcedoc-doclet</artifactId>
+                    <version>1.8</version>
+                  </docletArtifact>
+                  <docletArtifact>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-server</artifactId>
+                    <version>1.8</version>
+                  </docletArtifact>
+                  <docletArtifact>
+                    <groupId>xerces</groupId>
+                    <artifactId>xercesImpl</artifactId>
+                    <version>2.6.1</version>
+                  </docletArtifact>
+                </docletArtifacts>
+                <useStandardDocletOptions>false</useStandardDocletOptions>
+                <additionalparam>-output ${project.build.outputDirectory}/resourcedoc-agent.xml</additionalparam>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>maven-wadl-plugin</artifactId>
+            <version>1.8</version>
             <executions>
               <execution>
-                <id>public-api</id>
+                <id>generate</id>
                 <goals>
-                  <goal>javadoc</goal>
+                  <goal>generate</goal>
                 </goals>
                 <phase>compile</phase>
-                <configuration>
-                  <encoding>UTF-8</encoding>
-                  <verbose>false</verbose>
-                  <show>public</show>
-                  <subpackages>org.apache.ambari.controller.rest.resources</subpackages>
-                  <doclet>com.sun.jersey.wadl.resourcedoc.ResourceDoclet</doclet>
-                  <docletPath>${path.separator}${project.build.outputDirectory}</docletPath>
-                  <docletArtifacts>
-                    <docletArtifact>
-                      <groupId>com.sun.jersey.contribs</groupId>
-                      <artifactId>wadl-resourcedoc-doclet</artifactId>
-                      <version>1.8</version>
-                    </docletArtifact>
-                    <docletArtifact>
-                      <groupId>com.sun.jersey</groupId>
-                      <artifactId>jersey-server</artifactId>
-                      <version>1.8</version>
-                    </docletArtifact>
-                    <docletArtifact>
-                      <groupId>xerces</groupId>
-                      <artifactId>xercesImpl</artifactId>
-                      <version>2.6.1</version>
-                    </docletArtifact>
-                  </docletArtifacts>
-                  <useStandardDocletOptions>false</useStandardDocletOptions>
-                  <additionalparam>-output ${project.build.outputDirectory}/resourcedoc.xml</additionalparam>
-                </configuration>
-              </execution>
-              <execution>
-                <id>private-api</id>
-                <goals>
-                  <goal>javadoc</goal>
-                </goals>
-                <phase>compile</phase>
-                <configuration>
-                  <encoding>UTF-8</encoding>
-                  <verbose>false</verbose>
-                  <show>public</show>
-                  <subpackages>org.apache.ambari.controller.rest.agent</subpackages>
-                  <doclet>com.sun.jersey.wadl.resourcedoc.ResourceDoclet</doclet>
-                  <docletPath>${path.separator}${project.build.outputDirectory}</docletPath>
-                  <docletArtifacts>
-                    <docletArtifact>
-                      <groupId>com.sun.jersey.contribs</groupId>
-                      <artifactId>wadl-resourcedoc-doclet</artifactId>
-                      <version>1.8</version>
-                    </docletArtifact>
-                    <docletArtifact>
-                      <groupId>com.sun.jersey</groupId>
-                      <artifactId>jersey-server</artifactId>
-                      <version>1.8</version>
-                    </docletArtifact>
-                    <docletArtifact>
-                      <groupId>xerces</groupId>
-                      <artifactId>xercesImpl</artifactId>
-                      <version>2.6.1</version>
-                    </docletArtifact>
-                  </docletArtifacts>
-                  <useStandardDocletOptions>false</useStandardDocletOptions>
-                  <additionalparam>-output ${project.build.outputDirectory}/resourcedoc-agent.xml</additionalparam>
-                </configuration>
               </execution>
             </executions>
-          </plugin>
+            <configuration>
+              <wadlFile>${project.build.outputDirectory}/application.wadl</wadlFile>
+              <formatWadlFile>true</formatWadlFile>
+              <baseUri>http://incubator.apache.org/ambari/rest/api</baseUri>
+              <packagesResourceConfig>
+                <param>org.apache.ambari.controller.rest.resources</param>
+              </packagesResourceConfig>
+              <wadlGenerators>
+                <wadlGeneratorDescription>
+                  <className>com.sun.jersey.server.wadl.generators.WadlGeneratorApplicationDoc</className>
+                  <properties>
+                    <property>
+                      <name>applicationDocsFile</name>
+                      <value>${basedir}/src/main/resources/application-doc.xml</value>
+                    </property>
+                  </properties>
+                </wadlGeneratorDescription>
+                <wadlGeneratorDescription>
+                  <className>com.sun.jersey.server.wadl.generators.WadlGeneratorGrammarsSupport</className>
+                  <properties>
+                    <property>
+                      <name>grammarsFile</name>
+                      <value>${basedir}/src/main/resources/application-grammars.xml</value>
+                    </property>
+                  </properties>
+                </wadlGeneratorDescription>
+                <wadlGeneratorDescription>
+                  <className>com.sun.jersey.server.wadl.generators.resourcedoc.WadlGeneratorResourceDocSupport</className>
+                  <properties>
+                    <property>
+                      <name>resourceDocFile</name>
+                      <value>${project.build.outputDirectory}/resourcedoc.xml</value>
+                    </property>
+                  </properties>
+                </wadlGeneratorDescription>
+              </wadlGenerators>
+            </configuration>
+        </plugin>
       </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>docs</id>
+            <activation>
+                <file>
+                    <exists>/usr/bin/xsltproc</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <!--  Create/generate the application.html using xsltproc  -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.1</version>
+                        <executions>
+                            <execution>
+                                <id>exec-xsltproc: target/application.html</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <executable>xsltproc</executable>
+                                    <commandlineArgs>-o ../src/site/resources/application.html src/main/webapps/wadl.xsl target/classes/application.wadl</commandlineArgs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>com.sun.jersey.contribs</groupId>
+                    <artifactId>maven-wadl-plugin</artifactId>
+                    <version>1.8</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.sun.jersey.contribs</groupId>
+                    <artifactId>wadl-resourcedoc-doclet</artifactId>
+                    <version>1.8</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
     <pluginRepositories>
         <pluginRepository>
             <id>maven2-repository.dev.java.net</id>

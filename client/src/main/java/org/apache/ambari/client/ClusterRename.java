@@ -45,6 +45,8 @@ public class ClusterRename extends Command {
     URL resourceURL = null;
     CommandLine line;
     
+    public ClusterRename() {
+    }
     
     public ClusterRename (String [] args) throws Exception {  
         /*

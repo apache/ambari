@@ -54,6 +54,8 @@ public class NodeGet extends Command {
    
     CommandLine line;
     
+    public NodeGet() {
+    }
     
     public NodeGet (String [] args) throws Exception {  
         /*

@@ -54,6 +54,8 @@ public class NodeList extends Command {
    
     CommandLine line;
     
+    public NodeList() {
+    }
     
     public NodeList (String [] args) throws Exception {  
         /*

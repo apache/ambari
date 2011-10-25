@@ -63,6 +63,8 @@ public class BlueprintList extends Command {
    
     CommandLine line;
     
+    public BlueprintList() {
+    }
     
     public BlueprintList (String [] args) throws Exception {  
         /*

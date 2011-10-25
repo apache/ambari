@@ -37,7 +37,7 @@
     <menu name="Ambari">
       <item name="Introduction" href="index.html"/>
       <item name="Download" href="download.html"/>
-      <item name="REST API" href="rest.html"/>
+      <item name="REST API" href="application.html"/>
       <item name="CLI" href="cli.html"/>
     </menu>
 

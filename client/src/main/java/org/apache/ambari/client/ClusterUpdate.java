@@ -59,6 +59,9 @@ public class ClusterUpdate extends Command {
     Properties roleToNodeExpressions = null;
     List<RoleToNodes> roleToNodeList = null;
     
+    public ClusterUpdate() {
+    }
+    
     public ClusterUpdate (String [] args) throws Exception {  
         /*
          * Build options for cluster update

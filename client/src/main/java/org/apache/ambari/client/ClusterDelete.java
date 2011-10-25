@@ -45,6 +45,8 @@ public class ClusterDelete extends Command {
     URL resourceURL = null;
     CommandLine line;
     
+    public ClusterDelete() {
+    }
     
     public ClusterDelete (String [] args) throws Exception {  
         /*

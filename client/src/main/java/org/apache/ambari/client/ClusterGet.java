@@ -53,6 +53,8 @@ public class ClusterGet extends Command {
    
     CommandLine line;
     
+    public ClusterGet() {
+    }
     
     public ClusterGet (String [] args) throws Exception {  
         /*

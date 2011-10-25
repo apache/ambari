@@ -44,6 +44,6 @@
 <grammars xmlns="http://research.sun.com/wadl/2006/10"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:xi="http://www.w3.org/1999/XML/xinclude">
-    <include href="schema.xsd" />
+    <include href="schema1.xsd" />
 </grammars>
 

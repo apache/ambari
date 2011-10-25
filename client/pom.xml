@@ -117,6 +117,64 @@
       </plugins>
     </build>
 
+  <profiles>
+    <profile>
+      <id>docs</id>
+      <activeByDefault>true</activeByDefault>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.sun.tools.jxc.maven2</groupId>
+            <artifactId>maven-jaxb-schemagen-plugin</artifactId>
+            <version>1.2</version>
+            <executions>
+              <execution>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <project>${project}</project>
+              <destdir>../src/site/resources</destdir>
+              <srcdir>${project.build.sourceDirectory}/org/apache/ambari/client/</srcdir>
+              <verbose>true</verbose>
+              <schemas>
+                <schema>
+                  <namespace>http://incubator.apache.org/ambari/rest</namespace>
+                  <file>schema1.xsd</file>
+                </schema>
+              </schemas>
+            </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>2.2</version>
+              </dependency>
+              <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-xjc</artifactId>
+                <version>2.2</version>
+              </dependency>
+              <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>2.2</version>
+              </dependency>
+              <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-xjc</artifactId>
+                <version>2.2</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <distributionManagement>
     <site>
       <id>apache-website</id>

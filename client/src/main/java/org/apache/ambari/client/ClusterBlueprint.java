@@ -48,6 +48,8 @@ public class ClusterBlueprint extends Command {
     URL resourceURL = null;
     CommandLine line;
     
+    public ClusterBlueprint() {
+    }
     
     public ClusterBlueprint (String [] args) throws Exception {  
         /*

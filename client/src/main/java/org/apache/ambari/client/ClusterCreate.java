@@ -61,6 +61,9 @@ public class ClusterCreate extends Command {
     Properties roleToNodeExpressions = null;
     List<RoleToNodes> roleToNodeList = null;
     
+    public ClusterCreate() {
+    }
+    
     public ClusterCreate (String [] args) throws Exception {  
         /*
          * Build options for cluster create

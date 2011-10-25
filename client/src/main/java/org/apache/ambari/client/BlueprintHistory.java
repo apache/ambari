@@ -50,6 +50,8 @@ public class BlueprintHistory extends Command {
     URL resourceURL = null;
     CommandLine line;
     
+    public BlueprintHistory() {
+    }
     
     public BlueprintHistory (String [] args) throws Exception {  
         /*

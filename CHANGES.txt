@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-99. Added schema and wadl generation to be part of the build system, 
+  and integrate with maven site. (Eric Yang)
+
   AMBARI-98. Get cluster nodes with cluster in ATTIC state fails. (vgogate)
 
   AMBARI-96. Updated ambar client to show usage screen. (Eric Yang)

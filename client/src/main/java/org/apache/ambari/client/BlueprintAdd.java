@@ -62,6 +62,8 @@ public class BlueprintAdd extends Command {
    
     CommandLine line;
     
+    public BlueprintAdd() {
+    }
     
     public BlueprintAdd (String [] args) throws Exception {  
         /*
