@@ -110,10 +110,6 @@ public class Nodes {
                 list.add(this.nodes.get(host));
             }
         }
-        if (list.isEmpty()) {
-            String msg = "No nodes found!";
-            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NO_CONTENT)).get());
-        }
         return list;
     }
     

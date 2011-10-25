@@ -33,7 +33,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "NodeState", propOrder = {
-    "clusterID",
+    "clusterName",
     "allocatedToCluster",
     "lastHeartbeatTime",
     "agentInstalled",
@@ -52,8 +52,22 @@ public class NodeState {
      * 
      */
     @XmlElement
-    protected String clusterID;
+    protected String clusterName;
     
+    /**
+     * @return the clusterName
+     */
+    public String getClusterName() {
+        return clusterName;
+    }
+
+    /**
+     * @param clusterName the clusterName to set
+     */
+    public void setClusterName(String clusterName) {
+        this.clusterName = clusterName;
+    }
+
     @XmlElement
     protected Boolean agentInstalled = true;
 
@@ -151,20 +165,6 @@ public class NodeState {
      */
     public void setNodeServers(List<NodeServer> nodeServers) {
             this.nodeServers = nodeServers;
-    }
-    
-    /**
-     * @return the clusterID
-     */
-    public String getClusterID() {
-        return clusterID;
-    }
-
-    /**
-     * @param clusterID the clusterID to set
-     */
-    public void setClusterID(String clusterID) {
-        this.clusterID = clusterID;
     }
 
 }

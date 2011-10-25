@@ -33,7 +33,6 @@ import org.apache.ambari.components.impl.XmlComponentDefinition;
 
 public class Cluster {
         
-    protected String ID;
     /*
      * Latest revision of cluster definition
      */
@@ -56,19 +55,6 @@ public class Cluster {
     private final Map<String, ComponentPlugin> plugins =
         new HashMap<String, ComponentPlugin>();
     
-    /**
-     * @return the iD
-     */
-    public String getID() {
-            return ID;
-    }
-    
-    /**
-     * @param iD the iD to set
-     */
-    public void setID(String iD) {
-            ID = iD;
-    }
     
     /**
      * @return the clusterDefinition

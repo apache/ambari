@@ -46,17 +46,6 @@ public class Clusters {
      */
     protected ConcurrentHashMap<String, Cluster> operational_clusters = new ConcurrentHashMap<String, Cluster>();
     
-    /*
-     * Operational clusters ID to name map
-     */
-    protected ConcurrentHashMap<String, String> operational_clusters_id_to_name = new ConcurrentHashMap<String, String>();
-    
-    /*
-     * List of clusters to be deleted when they get into ATTIC state 
-     * When cluster state is switched to ATTIC, if it is present in the tobe_deleted_list, 
-     * it should be deleted from the persistence list and inmemory list. 
-     */
-    ConcurrentHashMap<String, String> tobe_deleted_clusters = new ConcurrentHashMap<String, String>();
     
     private static Clusters ClustersTypeRef=null;
         
@@ -189,8 +178,6 @@ public class Clusters {
             x.getLatestClusterDefinition().setName(new_name);
             this.operational_clusters.remove(clusterName);
             this.operational_clusters.put(new_name, x);
-            this.operational_clusters_id_to_name.remove(x.getID());
-            this.operational_clusters_id_to_name.put(x.getID(), new_name);
         }
      
     }
@@ -238,7 +225,6 @@ public class Clusters {
             } else {
                 clsState.setState(ClusterDefinition.GOAL_STATE_INACTIVE);
             }
-            cls.setID(UUID.randomUUID().toString());
             cls.addClusterDefinition(cdef);
             cls.setClusterState(clsState);
             
@@ -257,7 +243,7 @@ public class Clusters {
              */
             if (cdef.getNodes() != null 
                 && !cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
-                updateClusterNodesReservation (cls.getID(), cdef);
+                updateClusterNodesReservation (cls.getName(), cdef);
             }
             
             /*
@@ -284,7 +270,6 @@ public class Clusters {
                 
             // Add the cluster to the list, after definition is persisted
             this.operational_clusters.put(cdef.getName(), cls);
-            this.operational_clusters_id_to_name.put(cls.getID(), cdef.getName());
             
             /*
              * Activate the cluster if the goal state is ACTIVE
@@ -292,7 +277,7 @@ public class Clusters {
             */
             if(cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ACTIVE)) {          
                 org.apache.ambari.resource.statemachine.ClusterFSM cs = 
-                    StateMachineInvoker.createCluster(cls.getID(),cdef,cls.getClusterState());
+                    StateMachineInvoker.createCluster(cls.getName(),cdef,cls.getClusterState());
             }
         }
         return cdef;
@@ -391,7 +376,7 @@ public class Clusters {
     /*
      * Update the nodes associated with cluster
      */
-    private synchronized void updateClusterNodesReservation (String clusterID, ClusterDefinition clsDef) throws Exception {
+    private synchronized void updateClusterNodesReservation (String clusterName, ClusterDefinition clsDef) throws Exception {
                 
         ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
         List<String> cluster_node_range = new ArrayList<String>();
@@ -403,8 +388,8 @@ public class Clusters {
          */    
         List<String> nodes_currently_allocated_to_cluster = new ArrayList<String>();
         for (Node n : Nodes.getInstance().getNodes().values()) {
-            if ( n.getNodeState().getClusterID() != null &&
-                 n.getNodeState().getClusterID().equals(clusterID)) {
+            if ( n.getNodeState().getClusterName() != null &&
+                 n.getNodeState().getClusterName().equals(clusterName)) {
                 nodes_currently_allocated_to_cluster.add(n.getName());
             }
         }
@@ -420,7 +405,7 @@ public class Clusters {
         List<String> preallocatedhosts = new ArrayList<String>();
         for (String n : nodes_to_allocate) {
             if (all_nodes.containsKey(n) && 
-                    (all_nodes.get(n).getNodeState().getClusterID() != null || 
+                    (all_nodes.get(n).getNodeState().getClusterName() != null || 
                      all_nodes.get(n).getNodeState().getAllocatedToCluster()
                     )
                 ) {
@@ -447,7 +432,7 @@ public class Clusters {
             if (all_nodes.containsKey(node_name)) { 
                 // Set the cluster name in the node 
                 synchronized (all_nodes.get(node_name)) {
-                    all_nodes.get(node_name).reserveNodeForCluster(clusterID, true);
+                    all_nodes.get(node_name).reserveNodeForCluster(clusterName, true);
                 }    
             } else {
                 Date epoch = new Date(0);
@@ -456,7 +441,7 @@ public class Clusters {
                 /*
                  * TODO: Set agentInstalled = true, unless controller uses SSH to setup the agent
                  */
-                node.reserveNodeForCluster(clusterID, true);
+                node.reserveNodeForCluster(clusterName, true);
             }
         }
         
@@ -478,8 +463,7 @@ public class Clusters {
      * This function disassociate the node from the cluster. The clsuterID associated w/
      * cluster will be reset by heart beat when node reports all clean.
      */
-    public synchronized void releaseClusterNodes (String clusterID) throws Exception {
-        String clusterName = this.getClusterByID(clusterID).getLatestClusterDefinition().getName();
+    public synchronized void releaseClusterNodes (String clusterName) throws Exception {
         for (Node clusterNode : Nodes.getInstance().getClusterNodes (clusterName, "", "")) {
             clusterNode.releaseNodeFromCluster();     
         }
@@ -517,7 +501,7 @@ public class Clusters {
         for (String host : specified_node_range) {
             if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
                 Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
-                String cid = Nodes.getInstance().getNodes().get(host).getNodeState().getClusterID();
+                String cid = Nodes.getInstance().getNodes().get(host).getNodeState().getClusterName();
                 Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(getDefaultRoleName(cid));
             } 
         }
@@ -652,7 +636,7 @@ public class Clusters {
              * Update the nodes reservation and node to roles association 
              */
             if (updateNodesReservation) {
-                updateClusterNodesReservation (cls.getID(), c);   
+                updateClusterNodesReservation (cls.getName(), c);   
             }
             if (updateNodeToRolesAssociation) {
                 updateNodeToRolesAssociation(newcd.getNodes(), c.getRoleToNodes());
@@ -672,7 +656,7 @@ public class Clusters {
              * Invoke state machine event
              */
             ClusterFSM clusterFSM = StateMachineInvoker.
-                getStateMachineClusterInstance(cls.getID());
+                getStateMachineClusterInstance(cls.getName());
             if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {
               clusterFSM.activate();
             } else if(c.getGoalState().
@@ -705,7 +689,11 @@ public class Clusters {
                         cdf.setName(clusterName);
                         cdf.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
                         updateCluster(clusterName, cdf, false);
-                        this.tobe_deleted_clusters.put(clusterName, "null");                    
+                        /* Update cluster state, mark it "to be deleted" when gets to ATTIC state
+                         * TODO: PERSIST the new flag in the cluster state
+                         */
+                        cls.getClusterState().setMarkForDeletionWhenInAttic(true);          
+                        
                     }
                 } 
             }
@@ -719,28 +707,6 @@ public class Clusters {
         return this.operational_clusters.get(clusterName);
     }
     
-    /* 
-     * Get the cluster by ID
-     */
-    public Cluster getClusterByID(String clusterID) {
-        String clusterName = this.operational_clusters_id_to_name.get(clusterID);
-        if (clusterName != null) {
-            return this.getClusterByName(clusterName);
-        } else {
-            return null;
-        }
-    }
-    
-    /*
-     * Get cluster ID given cluster Name
-     */
-    public String getClusterIDByName (String clusterName) {
-        if (this.operational_clusters.containsKey(clusterName)) {
-            return this.operational_clusters.get(clusterName).getID();
-        } else {
-            return null;
-        }
-    }
     
     /*
      * Get the latest cluster definition
@@ -840,8 +806,8 @@ public class Clusters {
      *  has no specific role to nodes association specified in the cluster definition
      *  Throw exception if node is not associated to with any cluster
      */
-    public String getDefaultRoleName(String clusterID) throws Exception {
-        Cluster c = Clusters.getInstance().getClusterByID(clusterID);
+    public String getDefaultRoleName(String clusterName) throws Exception {
+        Cluster c = Clusters.getInstance().getClusterByName(clusterName);
         // TODO: find the default role from the clsuter blueprint 
         return "slaves-role";
     }

@@ -64,6 +64,22 @@ public class ClusterState {
     @XmlAttribute
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar lastUpdateTime;
+    @XmlAttribute(required = true)
+    protected boolean markForDeletionWhenInAttic = false;
+    
+    /**
+     * @return the markForDeletionWhenInAttic
+     */
+    public boolean isMarkForDeletionWhenInAttic() {
+        return markForDeletionWhenInAttic;
+    }
+
+    /**
+     * @param markForDeletionWhenInAttic the markForDeletionWhenInAttic to set
+     */
+    public void setMarkForDeletionWhenInAttic(boolean markForDeletionWhenInAttic) {
+        this.markForDeletionWhenInAttic = markForDeletionWhenInAttic;
+    }
 
     /**
      * @return the creationTime

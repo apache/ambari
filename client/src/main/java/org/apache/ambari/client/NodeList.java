@@ -164,7 +164,7 @@ public class NodeList extends Command {
             System.out.println("[NAME]\t[LAST HEARTBEAT TIME]\t[NODE_SERVICES]\t[CLUSTER_ID]\n");
             for (Node node : nodes ) {
                 String clusterID = "";
-                if (node.getNodeState().getClusterID() != null) clusterID = node.getNodeState().getClusterID();
+                if (node.getNodeState().getClusterName() != null) clusterID = node.getNodeState().getClusterName();
                 System.out.println("["+node.getName()+"]\t"+
                                    "["+node.getNodeState().getLastHeartbeatTime()+"]\t"+
                                    "["+node.getNodeState().getNodeServers()+"]\t"+

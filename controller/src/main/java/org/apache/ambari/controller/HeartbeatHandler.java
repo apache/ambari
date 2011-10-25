@@ -72,18 +72,18 @@ public class HeartbeatHandler {
 
     String hostname = heartbeat.getHostname();
     Date heartbeatTime = new Date(System.currentTimeMillis());
-    String clusterId = null;
+    String clusterName = null;
     long clusterRev = 0L;
 
     Nodes.getInstance().checkAndUpdateNode(hostname, heartbeatTime);
 
     List<Action> allActions = new ArrayList<Action>();
 
-    clusterId = Nodes.getInstance().getNode(hostname)
-        .getNodeState().getClusterID();
-    if (clusterId != null) {
+    clusterName = Nodes.getInstance().getNode(hostname)
+        .getNodeState().getClusterName();
+    if (clusterName != null) {
       clusterRev = Clusters.getInstance().
-          getClusterByID(clusterId).getLatestRevision(); 
+          getClusterByName(clusterName).getLatestRevision(); 
     }
     
     ComponentAndRoleStates componentStates = 
@@ -104,14 +104,14 @@ public class HeartbeatHandler {
         //check whether this node is out-of-sync w.r.t what's running &
         //installed, or is it compatible
         if (!isCompatible(clusterIdAndRev.getClusterId(), 
-            clusterIdAndRev.getRevision(), clusterId, clusterRev)) {
+            clusterIdAndRev.getRevision(), clusterName, clusterRev)) {
           createStopAndUninstallActions(componentStates, allActions, 
               clusterIdAndRev, true);
           continue;
         }
         //get the cluster object corresponding to the clusterId
         Cluster cluster = Clusters.getInstance()
-            .getClusterByID(clusterIdAndRev.getClusterId());
+            .getClusterByName(clusterIdAndRev.getClusterId());
         //get the state machine reference to the cluster
         ClusterFSM clusterFsm = StateMachineInvoker
             .getStateMachineClusterInstance(clusterIdAndRev.getClusterId());
@@ -151,20 +151,20 @@ public class HeartbeatHandler {
                   //send action for creating dir structure
                   Action action = new Action();
                   action.setKind(Kind.CREATE_STRUCTURE_ACTION);
-                  fillDetailsAndAddAction(action, allActions, clusterId,
+                  fillDetailsAndAddAction(action, allActions, clusterName,
                       clusterRev, service.getServiceName(), 
                       role.getRoleName());
                   
                   //send action for installing the role
                   action = plugin.install(cluster.getName(), 
                       role.getRoleName());
-                  fillDetailsAndAddAction(action, allActions, clusterId,
+                  fillDetailsAndAddAction(action, allActions, clusterName,
                       clusterRev, service.getServiceName(), 
                       role.getRoleName());
                   
                   //send action for configuring
-                  action = plugin.configure(clusterId, role.getRoleName());
-                  fillDetailsAndAddAction(action, allActions, clusterId,
+                  action = plugin.configure(clusterName, role.getRoleName());
+                  fillDetailsAndAddAction(action, allActions, clusterName,
                       clusterRev, service.getServiceName(), 
                       role.getRoleName());
                   continue;
@@ -179,7 +179,7 @@ public class HeartbeatHandler {
                   //TODO: keep track of retries (via checkActionResults)
                   Action action = 
                       plugin.startServer(cluster.getName(), role.getRoleName());
-                  fillDetailsAndAddAction(action, allActions, clusterId,
+                  fillDetailsAndAddAction(action, allActions, clusterName,
                       clusterRev, service.getServiceName(), 
                       role.getRoleName());
                 }
@@ -203,7 +203,7 @@ public class HeartbeatHandler {
                 }
                 if (roleServerRunning) {
                   //TODO: keep track of retries (via checkActionResults)
-                  addAction(getStopRoleAction(clusterId, 
+                  addAction(getStopRoleAction(clusterName, 
                       clusterRev, 
                       role.getAssociatedService().getServiceName(), 
                       role.getRoleName()), allActions);
@@ -219,7 +219,7 @@ public class HeartbeatHandler {
                     .equals(ClusterState.CLUSTER_STATE_ATTIC)) {
                   Action action = plugin.uninstall(cluster.getName(), 
                       role.getRoleName());
-                  fillDetailsAndAddAction(action, allActions, clusterId, 
+                  fillDetailsAndAddAction(action, allActions, clusterName, 
                       clusterRev, 
                       role.getAssociatedService().getServiceName(), 
                       role.getRoleName());
@@ -532,7 +532,7 @@ public class HeartbeatHandler {
     for (AgentRoleState agentRoleState : agentRoleStates) {
       componentServers.recordRoleState(heartbeat.getHostname(),agentRoleState);
       Cluster c = Clusters.getInstance().
-          getClusterByID(agentRoleState.getClusterId());
+          getClusterByName(agentRoleState.getClusterId());
       clustersNodeBelongsTo.add(c);
     }
     checkActionResults(heartbeat, componentServers);

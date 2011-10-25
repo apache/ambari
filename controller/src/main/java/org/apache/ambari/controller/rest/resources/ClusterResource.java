@@ -53,14 +53,13 @@ import org.apache.ambari.controller.Nodes;
 public class ClusterResource {
         
     /** 
-     * Get the information of specified Hadoop cluster. Information includes Cluster definition 
-     * and the cluster state
+     * Get the information of a specified Hadoop Cluster. Information includes Cluster definition 
+     * and the cluster state.
      * 
-     *  @response.representation.200.doc        Get the definition & current state of the specified 
-     *                                          Hadoop cluster
+     *  @response.representation.200.doc        Get the definition & current state of the specified Hadoop cluster
      *  @response.representation.200.mediaType  application/json
      *  @response.representation.404.doc        Specified cluster does not exist
-     *  @response.representation.200.doc.example 
+     *  @response.representation.200.example    ClusterInformation {@link http://www.apple.com/}
         {
            "definition":{
               "@name":"blue.dev.Cluster123",
@@ -118,9 +117,8 @@ public class ClusterResource {
      * @response.representation.200.mediaType   application/json
      * @response.representation.400.doc         Bad request (See "ErrorMessage" in the response
      *                                          http header describing specific error condition).
-     * @response.representgation.404.doc        Cluster does not exist
-     * 
-     * @response.representation.example 
+     * @response.representation.404.doc        Cluster does not exist
+     * @response.representation.200.example 
        {
            "definition":{
               "@name":"blue.dev.Cluster123",
@@ -192,7 +190,7 @@ public class ClusterResource {
     @PUT
     @Consumes({"application/json", "application/xml"})
     @Path(value = "/rename")
-    public void updateClusterDefinition(
+    public void renameCluster(
            @PathParam("clusterName") String clusterName,
            @DefaultValue("") @QueryParam("new_name") String new_name) throws Exception {    
         try {
@@ -246,10 +244,8 @@ public class ClusterResource {
      *                                                  "ATTIC"   : Only cluster definition is available. No nodes are 
      *                                                              reserved for the cluster in this state.
      *  @response.representation.200.mediaType   application/json
-     *  @response.representgation.404.doc        Cluster does not exist
-     *  @response.representation.200.example
-     *  
-        {
+     *  @response.representation.404.doc         Cluster does not exist
+     *  @response.representation.200.example     {
            "state":{
               "@state":"ATTIC",
               "@creationTime":"2011-10-20T11:35:06.687-07:00",
@@ -342,7 +338,13 @@ public class ClusterResource {
                                 @DefaultValue("") @QueryParam("role") String role,
                                 @DefaultValue("") @QueryParam("alive") String alive) throws Exception {    
         try {
-            return Nodes.getInstance().getClusterNodes(clusterName, role, alive);
+            List<Node> list = Nodes.getInstance().getClusterNodes(clusterName, role, alive);
+            
+            if (list.isEmpty()) {
+                String msg = "No nodes found!";
+                throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NO_CONTENT)).get());
+            }
+            return list;
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
@@ -441,7 +443,7 @@ public class ClusterResource {
     @Path(value = "/blueprint")
     @GET
     @Produces({"application/json", "application/xml"})
-    public Blueprint getBlueprint (@PathParam("clusterName") String clusterName,
+    public Blueprint getClusterBlueprint (@PathParam("clusterName") String clusterName,
                                 @DefaultValue("true") @QueryParam("expanded") boolean expanded) throws Exception {    
         try {
             return Clusters.getInstance().getClusterBlueprint(clusterName, expanded);

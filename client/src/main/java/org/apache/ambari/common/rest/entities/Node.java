@@ -66,8 +66,8 @@ public class Node {
   	/*
   	 * Reserving node for cluster is done by associating cluster name w/ node
   	 */
-  	public void reserveNodeForCluster (String clusterID, Boolean agentInstalled) {
-  		this.getNodeState().setClusterID(clusterID);
+  	public void reserveNodeForCluster (String clusterName, Boolean agentInstalled) {
+  		this.getNodeState().setClusterName(clusterName);
   		this.getNodeState().setAgentInstalled(agentInstalled);
   		this.getNodeState().setAllocatedToCluster(true);
   	}
