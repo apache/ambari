@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-100. Fixes the heartbeat to take into account install/uninstall 
+  of components (ddas)
+
   AMBARI-99. Added schema and wadl generation to be part of the build system, 
   and integrate with maven site. (Eric Yang)
 

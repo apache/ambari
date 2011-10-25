@@ -102,4 +102,13 @@ public class AgentRoleState {
 
     }
   }
+  
+  public boolean roleAttributesEqual(Object obj) {
+    AgentRoleState agentObj = (AgentRoleState)obj;
+    return (clusterDefinitionRevision == 
+        agentObj.clusterDefinitionRevision &&
+        agentObj.clusterId.equals(clusterId) && 
+        agentObj.componentName.equals(componentName) &&
+        agentObj.roleName.equals(roleName)); 
+  }
 }
