@@ -29,7 +29,6 @@ import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.controller.Cluster;
-import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.event.EventHandler;
 
 public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {

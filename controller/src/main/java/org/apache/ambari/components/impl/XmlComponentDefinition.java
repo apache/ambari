@@ -199,12 +199,12 @@ public class XmlComponentDefinition extends ComponentPlugin {
   }
   
   @Override
-  public String runPreinstallRole() throws IOException {
+  public String runPreStartRole() throws IOException {
     return preinstallRole;
   }
 
   @Override
-  public Action preinstallAction(String cluster, String role) throws IOException {
+  public Action preStartAction(String cluster, String role) throws IOException {
     if (preinstallCommand == null) {
       return null;
     }

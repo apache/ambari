@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.Nodes;
 import org.apache.ambari.common.rest.entities.agent.Action;
@@ -148,25 +147,9 @@ public class HeartbeatHandler {
               //check whether the agent should start any server
               if (role.shouldStart()) {
                 if (!roleInstalled) {
-                  //send action for creating dir structure
-                  Action action = new Action();
-                  action.setKind(Kind.CREATE_STRUCTURE_ACTION);
-                  fillDetailsAndAddAction(action, allActions, clusterName,
-                      clusterRev, service.getServiceName(), 
-                      role.getRoleName());
-                  
-                  //send action for installing the role
-                  action = plugin.install(cluster.getName(), 
-                      role.getRoleName());
-                  fillDetailsAndAddAction(action, allActions, clusterName,
-                      clusterRev, service.getServiceName(), 
-                      role.getRoleName());
-                  
-                  //send action for configuring
-                  action = plugin.configure(clusterName, role.getRoleName());
-                  fillDetailsAndAddAction(action, allActions, clusterName,
-                      clusterRev, service.getServiceName(), 
-                      role.getRoleName());
+                  createInstallAction(clusterIdAndRev, cluster.getName(), 
+                      service.getServiceName(), role.getRoleName(), plugin,
+                      allActions);
                   continue;
                 }
                 if (role.getRoleName().equals("-client")) { //TODO: have a good place to define this
@@ -201,28 +184,11 @@ public class HeartbeatHandler {
                   //boolean to false ensures that the FSM gets an event (albeit a fake one) 
                   roleServerRunning = false;
                 }
-                if (roleServerRunning) {
-                  //TODO: keep track of retries (via checkActionResults)
-                  addAction(getStopRoleAction(clusterName, 
-                      clusterRev, 
-                      role.getAssociatedService().getServiceName(), 
-                      role.getRoleName()), allActions);
-                }
                 //raise an event to the state machine for a successful 
                 //role-stop instance
                 if (!roleServerRunning && agentRoleStateChanged) {
                   StateMachineInvoker.getAMBARIEventHandler()
                   .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
-                }
-                if (roleInstalled && 
-                    clusterFsm.getClusterState()
-                    .equals(ClusterState.CLUSTER_STATE_ATTIC)) {
-                  Action action = plugin.uninstall(cluster.getName(), 
-                      role.getRoleName());
-                  fillDetailsAndAddAction(action, allActions, clusterName, 
-                      clusterRev, 
-                      role.getAssociatedService().getServiceName(), 
-                      role.getRoleName());
                 }
               }
             }
@@ -240,6 +206,29 @@ public class HeartbeatHandler {
     r.setActions(allActions);
     agentToHeartbeatResponseMap.put(heartbeat.getHostname(), r);
     return r;
+  }
+  
+  private void createInstallAction(ClusterIdAndRev clusterIdAndRev, 
+      String cluster, String component, String role, ComponentPlugin plugin, 
+      List<Action> allActions) throws IOException {
+    String clusterId = clusterIdAndRev.getClusterId();
+    long clusterRev = clusterIdAndRev.getRevision();
+    //action for creating dir structure
+    Action action = new Action();
+    action.setKind(Kind.CREATE_STRUCTURE_ACTION);
+    fillDetailsAndAddAction(action, allActions, clusterId,
+        clusterRev, component, 
+        role);
+    
+    //action for installing the role
+    action = plugin.install(cluster, role);
+    fillDetailsAndAddAction(action, allActions, clusterId,
+        clusterRev, component, role);
+    
+    //action for configuring
+    action = plugin.configure(clusterId, role);
+    fillDetailsAndAddAction(action, allActions, clusterId,
+        clusterRev, component, role);
   }
   
   private void createStopAndUninstallActions(ComponentAndRoleStates componentAndRoleStates, 
@@ -447,7 +436,7 @@ public class HeartbeatHandler {
   
   
   private enum SpecialServiceIDs {
-      SERVICE_AVAILABILITY_CHECK_ID, SERVICE_PREINSTALL_CHECK_ID
+      SERVICE_AVAILABILITY_CHECK_ID, SERVICE_PRESTART_CHECK_ID
   }  
   
   private static class ClusterIdAndRev {
@@ -511,11 +500,11 @@ public class HeartbeatHandler {
   }
   private static String getSpecialActionID(ClusterIdAndRev clusterIdAndRev, 
       ServiceFSM service, boolean availabilityChecker, 
-      boolean preinstallChecker) {
+      boolean prestartCheck) {
     String id = clusterIdAndRev.getClusterId() + clusterIdAndRev.getRevision() 
         + service.getServiceName();
-    if (preinstallChecker) {
-      id += SpecialServiceIDs.SERVICE_PREINSTALL_CHECK_ID.toString();
+    if (prestartCheck) {
+      id += SpecialServiceIDs.SERVICE_PRESTART_CHECK_ID.toString();
     }
     if (availabilityChecker) {
       id += SpecialServiceIDs.SERVICE_AVAILABILITY_CHECK_ID.toString();
@@ -548,7 +537,7 @@ public class HeartbeatHandler {
       if (actionResult.getId().contains(SpecialServiceIDs
           .SERVICE_AVAILABILITY_CHECK_ID.toString())
           || actionResult.getId().contains(SpecialServiceIDs
-              .SERVICE_PREINSTALL_CHECK_ID.toString())) {
+              .SERVICE_PRESTART_CHECK_ID.toString())) {
         installOrStartedComponents.recordActionId(actionResult.getId(),
             actionResult);
       }
@@ -584,7 +573,8 @@ public class HeartbeatHandler {
         ComponentPlugin plugin = 
             cluster.getComponentDefinition(service.getServiceName());
         String role = plugin.runCheckRole();
-        if (installedOrStartedComponents.isRoleInstalled(clusterIdAndRev,role)) {
+        if (installedOrStartedComponents.isRoleInstalled(clusterIdAndRev,
+            role)) {
           Action action = plugin.checkService(cluster.getName(), role);
           fillActionDetails(action, clusterIdAndRev.getClusterId(),
               clusterIdAndRev.getRevision(),service.getServiceName(), role);
@@ -612,15 +602,19 @@ public class HeartbeatHandler {
       } else {
         ComponentPlugin plugin = 
             cluster.getComponentDefinition(service.getServiceName());
-        String role = plugin.runPreinstallRole();
-        if (installedOrStartedComponents.isRoleInstalled(clusterIdAndRev,role)) {
-          Action action = plugin.preinstallAction(cluster.getName(), role);
-          fillActionDetails(action, clusterIdAndRev.getClusterId(),
-              clusterIdAndRev.getRevision(),service.getServiceName(), role);
-          action.setId(id);
-          action.setKind(Action.Kind.RUN_ACTION);
-          addAction(action, allActions);
+        String role = plugin.runPreStartRole();
+        if (!installedOrStartedComponents.isRoleInstalled(clusterIdAndRev,
+            role)) {
+          createInstallAction(clusterIdAndRev, cluster.getName(), 
+              service.getServiceName(), role, plugin,
+              allActions);
         }
+        Action action = plugin.preStartAction(cluster.getName(), role);
+        fillActionDetails(action, clusterIdAndRev.getClusterId(),
+            clusterIdAndRev.getRevision(),service.getServiceName(), role);
+        action.setId(id);
+        action.setKind(Action.Kind.RUN_ACTION);
+        addAction(action, allActions);
       }
     }
   }

@@ -85,7 +85,7 @@ public abstract class ComponentPlugin {
    * @return the role name
    * @throws IOException
    */
-  public abstract String runPreinstallRole() throws IOException;
+  public abstract String runPreStartRole() throws IOException;
 
   /**
    * Get the commands to check whether the service is up
@@ -114,6 +114,6 @@ public abstract class ComponentPlugin {
    * @param cluster the cluster that is being installed
    * @param role the role that will run the action
    */
-  public abstract Action preinstallAction(String cluster, 
+  public abstract Action preStartAction(String cluster, 
                               String role) throws IOException;
 }
