@@ -71,8 +71,8 @@ Cluster Commands
 
   * <<cluster  create>> 
 
-    * It submits the cluster creation request with the Ambari. It may take some time to bring 
-    the cluster to desired state and hence the state should be checked either through list command or user
+    * It submits the cluster creation request to Ambari. It may take some time to bring 
+    the cluster to the desired state and hence the state should be checked either through list command or user
     can optionally wait for cluster to reach the desired goal state. 
 
     * <<Options:>>
@@ -104,13 +104,13 @@ Cluster Commands
 
       * <<-services>> [component-1, component-2, component-3]
 
-        * By default all the components w/ services associated with them will be activated upon cluster activation. 
+        * By default all the components will be activated upon cluster activation. 
         If user specifies specific ones then only they will be activated upon cluster activation
 
       * <<-role>>  rolename=[node_range_exp1, node_range_exp2, …] <<[REPEATABLE]>>
 
-        * One or more -role options can be used to specify the association of nodes to various roles. Any nodes not 
-        explicitly associated with any role, Ambari will associate them to various roles based on node attributes.
+        * One or more -role options can be used to specify the association of nodes to various roles. Nodes not 
+        explicitly associated with any role will be associated with various roles based on node attributes.
 
       * <<-dry_run>>
 
@@ -179,7 +179,7 @@ Cluster Commands
 
   * <<cluster delete>>
 
-    * Delete the cluster. It inactivates the cluster. Controller in the background would free all 
+    * Delete the cluster. It deactivates the cluster. Controller in the background would free all 
     the associated nodes and then remove the cluster definition at the end.
 
     * <<Options:>>
@@ -271,17 +271,17 @@ Blueprint Commands
 
   * <<blueprint list>> 
 
-    * List all the blueprints.
+    * List all the blueprints along with some metadata
 
     * <<Options:>>
 
       * <<-name>> [BLUEPRINT_NAME]
 
-        * Optionally specify the blueprint name to list the specific one.
+        * Optionally specify the blueprint name to list the specific one
 
       * <<-tree>>
 
-        * Optionally list the blueprints with associated blueprints and clusters for each blueprint
+        * Optionally ask for the derivation hierarchy
 
   [] 
 
@@ -297,7 +297,7 @@ Blueprint Commands
 
       * <<-tree>>
 
-        * Optionally list the blueprints with associated blueprints and clusters 
+        * Optionally ask for the derivation hierarchy
 
   []
 
