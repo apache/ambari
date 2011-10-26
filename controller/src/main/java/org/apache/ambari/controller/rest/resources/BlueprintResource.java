@@ -23,7 +23,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -70,7 +69,7 @@ public class BlueprintResource {
     }
     
     /** 
-     * Get a blueprint revisions
+     * Get a blueprint's revisions
      * 
      * @response.representation.200.doc       Get blueprint revisions
      * @response.representation.200.mediaType application/json
@@ -104,6 +103,7 @@ public class BlueprintResource {
      * @response.representation.200.mediaType application/json
      *  
      * @param  blueprintName    Name of the blueprint
+     * @param  revision         Revision of the blueprint
      * @throws Exception        throws Exception (TBD)
      */
     @DELETE
@@ -138,6 +138,7 @@ public class BlueprintResource {
      *                                          exist.    
      * 
      * @param blueprintName Name of the blueprint
+     * @param locationURL   URL pointing to the location of the blueprint
      * @param blueprint     Input blueprint object specifying the blueprint definition
      * @return              Returns the new revision of the blueprint
      * @throws Exception    throws Exception

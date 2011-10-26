@@ -63,7 +63,7 @@ public class ClusterResource {
      *  
      *  @param      clusterName                 Name of the cluster; Each cluster is identified w/ unique name
      *  @return                                 Returns the Cluster Information
-     *  @throws     Exception                   Throws exception (TBD)
+     *  @throws     WebApplicationException     Throws exception (TBD)
      */
     @GET
     @Produces({"application/json", "application/xml"})
@@ -109,6 +109,7 @@ public class ClusterResource {
      * @response.representation.200.example
      * 
      * @param   clusterName                     Name of the cluster
+     * @param   dry_run                         Whether to do a dry run
      * @param   cluster                         Cluster definition to be created new or updated existing one
      *                                          Cluster name can not be updated through this API.
      * @param   dry_run                         Boolean option to specify dry_run. In dry_run, updates to cluster
@@ -247,7 +248,7 @@ public class ClusterResource {
      *  
      *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
      *                      unique name
-     *  @param  roleName    Optionally specify the role name to get the nodes 
+     *  @param  role        Optionally specify the role name to get the nodes 
      *                      associated with the service role
      *  @param  alive       Boolean value (true/false) to specify, if nodes to be 
      *                      returned are alive or dead. if this query parameter is 

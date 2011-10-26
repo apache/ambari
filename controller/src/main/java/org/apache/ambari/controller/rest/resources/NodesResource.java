@@ -28,11 +28,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 
 import org.apache.ambari.common.rest.entities.Node;
-import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.ExceptionResponse;
 import org.apache.ambari.controller.Nodes;
 
-import com.sun.jersey.spi.resource.Singleton;
 
 /** Nodes Resource represents collection of cluster nodes.
  */
@@ -46,7 +44,7 @@ public class NodesResource {
      *  
      *  @param  allocated               Boolean value to specify, if nodes to be returned are allocated/reserved for some cluster (specify null to return both allocated and unallocated nodes)
      *  @param  alive                   Boolean value to specify, if nodes to be returned are alive or dead or both (specify null to return both live and dead nodes) 
-     *  @return                                 List of nodes
+     *  @return                         List of nodes
      *  @throws Exception               throws Exception
      */
     @GET
