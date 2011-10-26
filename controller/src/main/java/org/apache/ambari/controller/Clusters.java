@@ -444,18 +444,18 @@ public class Clusters {
         }
         
         if (cdef.getStackName() == null || cdef.getStackName().equals("")) {
-            String msg = "Cluster blueprint must be specified and must be non-empty string";
+            String msg = "Cluster stack must be specified and must be non-empty string";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
         
         if (cdef.getStackRevision() == null || cdef.getStackRevision().equals("")) {
-            String msg = "Cluster blueprint revision must be specified";
+            String msg = "Cluster stack revision must be specified";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
         
         /*
-         * Check if the cluster blueprint and its parents exist
-         * getStack would throw exception if it does not find the blueprint
+         * Check if the cluster stack and its parents exist
+         * getStack would throw exception if it does not find the stack
          */
         Stack bp = Stacks.getInstance()
                        .getStack(cdef.getStackName(), Integer.parseInt(cdef.getStackRevision()));
@@ -641,7 +641,7 @@ public class Clusters {
     }
 
     /*
-     * Get Cluster blueprint
+     * Get Cluster stack
      */
     public Stack getClusterStack(String clusterName, boolean expanded) throws Exception {
         if (!this.operational_clusters.containsKey(clusterName)) {
@@ -650,15 +650,15 @@ public class Clusters {
         }
         
         Cluster cls = this.operational_clusters.get(clusterName);
-        String blueprintName = cls.getLatestClusterDefinition().getStackName();
-        int blueprintRevision = Integer.parseInt(cls.getLatestClusterDefinition().getStackRevision());
+        String stackName = cls.getLatestClusterDefinition().getStackName();
+        int stackRevision = Integer.parseInt(cls.getLatestClusterDefinition().getStackRevision());
         
         Stack bp;
         if (!expanded) {
-            bp = Stacks.getInstance().getStack(blueprintName, blueprintRevision);
+            bp = Stacks.getInstance().getStack(stackName, stackRevision);
         } else {
-            // TODO: Get the derived/expanded blueprint
-            bp = Stacks.getInstance().getStack(blueprintName, blueprintRevision);
+            // TODO: Get the derived/expanded stack
+            bp = Stacks.getInstance().getStack(stackName, stackRevision);
         }
         return bp;
     }
@@ -802,7 +802,7 @@ public class Clusters {
      */
     public String getDefaultRoleName(String clusterName) throws Exception {
         Cluster c = Clusters.getInstance().getClusterByName(clusterName);
-        // TODO: find the default role from the clsuter blueprint 
+        // TODO: find the default role from the clsuter stack 
         return "slaves-role";
     }
     

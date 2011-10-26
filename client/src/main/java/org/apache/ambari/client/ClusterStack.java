@@ -64,7 +64,7 @@ public class ClusterStack extends Command {
     public void addOptions () {
              
         Option help = new Option( "help", "Help" );
-        Option expanded = new Option( "expanded", "Return expanded version of blueprint inlining parent blueprint" );
+        Option expanded = new Option( "expanded", "Return expanded version of stack inlining parent stack" );
         
         OptionBuilder.withArgName("cluster_name");
         OptionBuilder.isRequired();
@@ -74,7 +74,7 @@ public class ClusterStack extends Command {
         
         OptionBuilder.withArgName("file_path");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "File path to store the blueprint locally on client side");
+        OptionBuilder.withDescription( "File path to store the stack locally on client side");
         Option file = OptionBuilder.create( "file" );
         
         this.options = new Options(); 
@@ -126,16 +126,16 @@ public class ClusterStack extends Command {
          * Update cluster
          */
         ClientResponse response = service
-                .path("clusters/"+clusterName+"/blueprint")
+                .path("clusters/"+clusterName+"/stack")
                 .queryParam("expanded", "true")
                 .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
         if (response.getStatus() != 200) { 
-            System.err.println("Get cluster blueprint command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+            System.err.println("Get cluster stack command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
             System.exit(-1);
         }
         
         /* 
-         * Retrieve the cluster blueprint
+         * Retrieve the cluster stack
          */
         Stack stack = response.getEntity(Stack.class);
         printStack(stack, line.getOptionValue("file"));

@@ -90,11 +90,11 @@ public class ClusterCreate extends Command {
         OptionBuilder.withDescription( "Name of the cluster to be created");
         Option name = OptionBuilder.create( "name" );
         
-        OptionBuilder.withArgName("blueprint_name");
+        OptionBuilder.withArgName("stack_name");
         OptionBuilder.isRequired();
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Name of the cluster blueprint");
-        Option blueprint = OptionBuilder.create( "blueprint" );
+        OptionBuilder.withDescription( "Name of the cluster stack");
+        Option stack = OptionBuilder.create( "stack" );
         
         OptionBuilder.withArgName( "\"node_exp1; node_exp2; ...\"" );
         OptionBuilder.isRequired();
@@ -102,7 +102,7 @@ public class ClusterCreate extends Command {
         OptionBuilder.withDescription(  "List of node range expressions separated by semicolon (;) and contained in double quotes (\"\")" );
         Option nodes = OptionBuilder.create( "nodes" );
         
-        OptionBuilder.withArgName( "blueprint_revision" );
+        OptionBuilder.withArgName( "stack_revision" );
         OptionBuilder.hasArg();
         OptionBuilder.withDescription(  "Stack revision, if not specified latest revision is used" );
         Option revision = OptionBuilder.create( "revision" );
@@ -132,7 +132,7 @@ public class ClusterCreate extends Command {
         options.addOption( wait );   
         options.addOption(dry_run);
         options.addOption( name );
-        options.addOption( blueprint );   
+        options.addOption( stack );   
         options.addOption(revision);
         options.addOption( desc );
         options.addOption( role );
@@ -210,25 +210,25 @@ public class ClusterCreate extends Command {
         // Create Cluster Definition
         ClusterDefinition clsDef = new ClusterDefinition();
         clsDef.setName(line.getOptionValue("name"));
-        clsDef.setStackName(line.getOptionValue("blueprint"));
+        clsDef.setStackName(line.getOptionValue("stack"));
         clsDef.setNodes(line.getOptionValue("nodes"));
         
         clsDef.setGoalState(line.getOptionValue("goalstate"));
         String revision = line.getOptionValue("revision");
         if(revision==null) {
         	revision = "";
-        	ClientResponse response = service.path("blueprints/"+line.getOptionValue("blueprint"))
+        	ClientResponse response = service.path("stacks/"+line.getOptionValue("stack"))
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
             if (response.getStatus() != 404 && response.getStatus() != 200) { 
                 System.err.println("Stack list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
                 System.exit(-1);
             }
             if (response.getStatus() == 404) {
-            	System.err.println("Stack name:" + line.getOptionValue("blueprint") + " does not exist.");
+            	System.err.println("Stack name:" + line.getOptionValue("stack") + " does not exist.");
                 System.exit(-1);
             }
             /* 
-             * Retrieve the blueprint from the response
+             * Retrieve the stack from the response
              */
             Stack stack = response.getEntity(Stack.class);
             revision = stack.getRevision();

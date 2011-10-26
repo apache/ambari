@@ -67,7 +67,7 @@ public class StackAdd extends Command {
     
     public StackAdd (String [] args) throws Exception {  
         /*
-         * Build options for blueprint add
+         * Build options for stack add
          */
         this.args = args;
         addOptions();
@@ -75,7 +75,7 @@ public class StackAdd extends Command {
     
     public void printUsage () {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "ambari blueprint add", this.options);
+        formatter.printHelp( "ambari stack add", this.options);
     }
     
     public void addOptions () {
@@ -85,13 +85,13 @@ public class StackAdd extends Command {
         OptionBuilder.withArgName("name");
         OptionBuilder.isRequired();
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Name of the blueprint");
+        OptionBuilder.withDescription( "Name of the stack");
         Option name = OptionBuilder.create( "name" );
         
         OptionBuilder.withArgName("location");
         OptionBuilder.isRequired();
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Either URL or local file path where blueprint in XML format is available");
+        OptionBuilder.withDescription( "Either URL or local file path where stack in XML format is available");
         Option location = OptionBuilder.create( "location" );
         
         this.options = new Options();
@@ -140,7 +140,7 @@ public class StackAdd extends Command {
         String name = line.getOptionValue("name");
         
         /*
-         * Import blueprint 
+         * Import stack 
          */
         File f = new File(location);
         ClientResponse response = null;
@@ -152,12 +152,12 @@ public class StackAdd extends Command {
                 System.exit(-1);
             }
             Stack bp = new Stack();
-            response = service.path("blueprints/"+name)
+            response = service.path("stacks/"+name)
                     .queryParam("url", location)
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
         } else {
             Stack bp = this.readStackFromXMLFile(f);
-            response = service.path("blueprints/"+name)
+            response = service.path("stacks/"+name)
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
         }     
         

@@ -62,11 +62,11 @@ public abstract class Command {
         OptionBuilder.withDescription( "Name of the cluster to be created");
         Option name = OptionBuilder.create( "name" );
         
-        OptionBuilder.withArgName("blueprint_name");
+        OptionBuilder.withArgName("stack_name");
         OptionBuilder.isRequired();
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Name of the cluster blueprint");
-        Option blueprint = OptionBuilder.create( "blueprint" );
+        OptionBuilder.withDescription( "Name of the cluster stack");
+        Option stack = OptionBuilder.create( "stack" );
         
         OptionBuilder.withArgName( "\"node_exp1; node_exp2; ...\"" );
         OptionBuilder.isRequired();
@@ -74,10 +74,10 @@ public abstract class Command {
         OptionBuilder.withDescription(  "List of node range expressions separated by semicolon (;) and contained in double quotes (\"\")" );
         Option nodes = OptionBuilder.create( "nodes" );
         
-        OptionBuilder.withArgName( "blueprint_revision" );
+        OptionBuilder.withArgName( "stack_revision" );
         OptionBuilder.hasArg();
         OptionBuilder.withDescription(  "Stack revision, if not specified latest revision is used" );
-        Option blueprint_revision = OptionBuilder.create( "revision" );
+        Option stack_revision = OptionBuilder.create( "revision" );
         
         OptionBuilder.withArgName( "description" );
         OptionBuilder.hasArg();
@@ -104,8 +104,8 @@ public abstract class Command {
         options.addOption( wait );   
         options.addOption(dry_run);
         options.addOption( name );
-        options.addOption( blueprint );   
-        options.addOption(blueprint_revision);
+        options.addOption( stack );   
+        options.addOption(stack_revision);
         options.addOption( desc );
         options.addOption( role );
         options.addOption( goalstate );
@@ -158,7 +158,7 @@ public abstract class Command {
             String tab = "    ";
             while (bpInfo.getParentName() != null) {    
                 System.out.println(tab+":-> Name:["+bpInfo.getParentName()+"], Revision:["+bpInfo.getParentRevision()+"]");
-                ClientResponse response = service.path("blueprints/"+bpInfo.getParentName())
+                ClientResponse response = service.path("stacks/"+bpInfo.getParentName())
                         .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
                 if (response.getStatus() != 404 && response.getStatus() != 200) { 
                     System.err.println("Stack list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
@@ -168,7 +168,7 @@ public abstract class Command {
                     System.exit(0);
                 }
                 /* 
-                 * Retrieve the blueprint from the response
+                 * Retrieve the stack from the response
                  * TODO: 
                  */
                 Stack bp = response.getEntity(Stack.class);
@@ -189,7 +189,7 @@ public abstract class Command {
             while (bp.getParentName() != null) {
                 
                 System.out.println(tab+":-> Name:["+bp.getParentName()+"], Revision:["+bp.getParentRevision()+"]");
-                ClientResponse response = service.path("blueprints/"+bp.getParentName())
+                ClientResponse response = service.path("stacks/"+bp.getParentName())
                         .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
                 if (response.getStatus() != 404 && response.getStatus() != 200) { 
                     System.err.println("Stack list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
@@ -199,7 +199,7 @@ public abstract class Command {
                     System.exit(0);
                 }
                 /* 
-                 * Retrieve the blueprint from the response
+                 * Retrieve the stack from the response
                  */
                 bp = response.getEntity(Stack.class);
                 tab = tab+"        ";

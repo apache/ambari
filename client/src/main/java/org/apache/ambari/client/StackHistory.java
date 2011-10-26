@@ -46,7 +46,7 @@ public class StackHistory extends Command {
     String[] args = null;
     Options options = null;
     
-    String urlPath = "/blueprints";
+    String urlPath = "/stacks";
     URL resourceURL = null;
     CommandLine line;
     
@@ -55,7 +55,7 @@ public class StackHistory extends Command {
     
     public StackHistory (String [] args) throws Exception {  
         /*
-         * Build options for blueprint history
+         * Build options for stack history
          */
         this.args = args;
         addOptions();
@@ -64,7 +64,7 @@ public class StackHistory extends Command {
     
     public void printUsage () {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "ambari blueprint history", this.options);
+        formatter.printHelp( "ambari stack history", this.options);
     }
     
     public void addOptions () {
@@ -72,10 +72,10 @@ public class StackHistory extends Command {
         Option help = new Option( "help", "Help" );
         Option tree = new Option( "tree", "tree representation" );
         
-        OptionBuilder.withArgName("blueprint_name");
+        OptionBuilder.withArgName("stack_name");
         OptionBuilder.isRequired();
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Name of the blueprint");
+        OptionBuilder.withDescription( "Name of the stack");
         Option name = OptionBuilder.create( "name" );
         
         this.options = new Options();  
@@ -120,20 +120,20 @@ public class StackHistory extends Command {
         ClientConfig config = new DefaultClientConfig();
         Client client = Client.create(config);
         WebResource service = client.resource(getBaseURI());
-        String blueprintName = line.getOptionValue("name");
+        String stackName = line.getOptionValue("name");
         boolean tree = line.hasOption("tree");
           
         /*
-         * Get blueprint revisions
+         * Get stack revisions
          */
-        ClientResponse response = service.path("blueprints/"+blueprintName+"/revisions").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+        ClientResponse response = service.path("stacks/"+stackName+"/revisions").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
         if (response.getStatus() == 404) { 
-            System.out.println("Stack ["+blueprintName+"] does not exist");
+            System.out.println("Stack ["+stackName+"] does not exist");
             System.exit(-1);
         }
         
         if (response.getStatus() == 204) {
-            System.out.println("No revisions available for Stack ["+blueprintName+"]");
+            System.out.println("No revisions available for Stack ["+stackName+"]");
             System.exit(0);
         }
         
@@ -142,7 +142,7 @@ public class StackHistory extends Command {
             System.exit(-1);
         }
         /* 
-         * Retrieve the blueprint Information list from the response
+         * Retrieve the stack Information list from the response
          */
         List<StackInformation> bpInfos = response.getEntity(new GenericType<List<StackInformation>>(){});
         for (StackInformation bpInfo : bpInfos) {

@@ -52,7 +52,7 @@ public class ActionResult {
   @XmlElement
   private long clusterDefinitionRevision;
   @XmlElement
-  private String bluePrintRevision;
+  private String stackRevision;
 
   public String getClusterId() {
     return clusterId;

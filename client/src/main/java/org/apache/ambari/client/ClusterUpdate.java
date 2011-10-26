@@ -88,17 +88,17 @@ public class ClusterUpdate extends Command {
         OptionBuilder.withDescription( "Name of the cluster to be updated");
         Option name = OptionBuilder.create( "name" );
         
-        OptionBuilder.withArgName("blueprint_name");
+        OptionBuilder.withArgName("stack_name");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Name of the cluster blueprint");
-        Option blueprint = OptionBuilder.create( "blueprint" );
+        OptionBuilder.withDescription( "Name of the cluster stack");
+        Option stack = OptionBuilder.create( "stack" );
         
         OptionBuilder.withArgName( "\"node_exp1; node_exp2; ...\"" );
         OptionBuilder.hasArg();
         OptionBuilder.withDescription(  "List of node range expressions separated by semicolon (;) and contained in double quotes (\"\")" );
         Option nodes = OptionBuilder.create( "nodes" );
         
-        OptionBuilder.withArgName( "blueprint_revision" );
+        OptionBuilder.withArgName( "stack_revision" );
         OptionBuilder.hasArg();
         OptionBuilder.withDescription(  "Stack revision" );
         Option revision = OptionBuilder.create( "revision" );
@@ -128,7 +128,7 @@ public class ClusterUpdate extends Command {
         options.addOption( wait );   
         options.addOption(dry_run);
         options.addOption( name );
-        options.addOption( blueprint );   
+        options.addOption( stack );   
         options.addOption(revision);
         options.addOption( desc );
         options.addOption( role );
@@ -213,7 +213,7 @@ public class ClusterUpdate extends Command {
         // Create Cluster Definition 
         ClusterDefinition clsDef = new ClusterDefinition();
         clsDef.setName(line.getOptionValue("name"));
-        clsDef.setStackName(line.getOptionValue("blueprint"));
+        clsDef.setStackName(line.getOptionValue("stack"));
         clsDef.setNodes(line.getOptionValue("nodes"));
         
         clsDef.setGoalState(line.getOptionValue("goalstate"));

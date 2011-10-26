@@ -49,9 +49,9 @@ public class ClusterDefinition {
     @XmlAttribute
     protected String description = null;
     @XmlAttribute
-    protected String blueprintName = null;
+    protected String stackName = null;
     @XmlAttribute
-    protected String blueprintRevision = null;
+    protected String stackRevision = null;
     @XmlAttribute
     protected String goalState = null;
     @XmlElement
@@ -64,17 +64,17 @@ public class ClusterDefinition {
     
     
     /**
-     * @return the blueprintRevision
+     * @return the stackRevision
      */
     public String getStackRevision() {
-        return blueprintRevision;
+        return stackRevision;
     }
 
     /**
-     * @param blueprintRevision the blueprintRevision to set
+     * @param stackRevision the stackRevision to set
      */
-    public void setStackRevision(String blueprintRevision) {
-        this.blueprintRevision = blueprintRevision;
+    public void setStackRevision(String stackRevision) {
+        this.stackRevision = stackRevision;
     }
 
     /**
@@ -106,17 +106,17 @@ public class ClusterDefinition {
     }
 
     /**
-     * @return the blueprintName
+     * @return the stackName
      */
     public String getStackName() {
-            return blueprintName;
+            return stackName;
     }
 
     /**
-     * @param blueprintName the blueprintName to set
+     * @param stackName the stackName to set
      */
-    public void setStackName(String blueprintName) {
-            this.blueprintName = blueprintName;
+    public void setStackName(String stackName) {
+            this.stackName = stackName;
     }
 
     /**

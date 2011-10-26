@@ -68,7 +68,7 @@ public class StackList extends Command {
     
     public StackList (String [] args) throws Exception {  
         /*
-         * Build options for blueprint add
+         * Build options for stack add
          */
         this.args = args;
         addOptions();
@@ -76,7 +76,7 @@ public class StackList extends Command {
     
     public void printUsage () {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "ambari blueprint list", this.options);
+        formatter.printHelp( "ambari stack list", this.options);
     }
     
     public void addOptions () {
@@ -86,7 +86,7 @@ public class StackList extends Command {
         
         OptionBuilder.withArgName("name");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Name of the blueprint");
+        OptionBuilder.withDescription( "Name of the stack");
         Option name = OptionBuilder.create( "name" );
         
         this.options = new Options();
@@ -135,11 +135,11 @@ public class StackList extends Command {
         boolean tree = line.hasOption("tree");
         
         /*
-         * Get blueprint 
+         * Get stack 
          * TODO: Ignore does not exist case?
          */
         if (name != null) {
-            ClientResponse response = service.path("blueprints/"+name)
+            ClientResponse response = service.path("stacks/"+name)
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
             if (response.getStatus() != 404 && response.getStatus() != 200) { 
                 System.err.println("Stack list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
@@ -149,13 +149,13 @@ public class StackList extends Command {
                 System.exit(0);
             }
             /* 
-             * Retrieve the blueprint from the response
+             * Retrieve the stack from the response
              */
             Stack stack = response.getEntity(Stack.class);
             printStackInformation (service, stack, tree);
            
         } else {
-            ClientResponse response = service.path("blueprints")
+            ClientResponse response = service.path("stacks")
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
             if (response.getStatus() != 200 && response.getStatus() != 204) { 
                 System.err.println("Stack list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
@@ -166,7 +166,7 @@ public class StackList extends Command {
             }
             
             /* 
-             * Retrieve the blueprint Information list from the response
+             * Retrieve the stack Information list from the response
              */
             List<StackInformation> bpInfos = response.getEntity(new GenericType<List<StackInformation>>(){});
             for (StackInformation bpInfo : bpInfos) {

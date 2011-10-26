@@ -67,17 +67,17 @@ public class StackGet extends Command {
     
     public void printUsage () {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "ambari blueprint get", this.options);
+        formatter.printHelp( "ambari stack get", this.options);
     }
     
     public void addOptions () {
              
         Option help = new Option( "help", "Help" );
         
-        OptionBuilder.withArgName("blueprint_name");
+        OptionBuilder.withArgName("stack_name");
         OptionBuilder.isRequired();
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Name of the blueprint");
+        OptionBuilder.withDescription( "Name of the stack");
         Option name = OptionBuilder.create( "name" );
         
         OptionBuilder.withArgName("revision");
@@ -135,19 +135,19 @@ public class StackGet extends Command {
         ClientConfig config = new DefaultClientConfig();
         Client client = Client.create(config);
         WebResource service = client.resource(getBaseURI());
-        String blueprintName = line.getOptionValue("name");
+        String stackName = line.getOptionValue("name");
         String file_path = line.getOptionValue("file");
         
         /*
-         * Get blueprint
+         * Get stack
          */
         ClientResponse response;
         if (line.hasOption("revision")) {
-            response = service.path("blueprints/"+blueprintName)
+            response = service.path("stacks/"+stackName)
                    .queryParam("revision", line.getOptionValue("revision"))
                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
         } else {
-            response = service.path("blueprints/"+blueprintName)
+            response = service.path("stacks/"+stackName)
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
         }        
         if (response.getStatus() != 200) { 

@@ -38,22 +38,22 @@ public class AmbariClient {
         clusterCommands.put("delete", "ClusterDelete");
         clusterCommands.put("list", "ClusterList");
         clusterCommands.put("get", "ClusterGet");
-        clusterCommands.put("blueprint", "ClusterStack");
+        clusterCommands.put("stack", "ClusterStack");
         clusterCommands.put("nodes", "ClusterNodes");
         
         
-        HashMap<String, String> blueprintCommands = new HashMap<String, String>();
-        blueprintCommands.put("list", "StackList");
-        blueprintCommands.put("history", "StackHistory");
-        blueprintCommands.put("add", "StackAdd");
-        blueprintCommands.put("get", "StackGet");
+        HashMap<String, String> stackCommands = new HashMap<String, String>();
+        stackCommands.put("list", "StackList");
+        stackCommands.put("history", "StackHistory");
+        stackCommands.put("add", "StackAdd");
+        stackCommands.put("get", "StackGet");
         
         HashMap<String, String> nodeCommands = new HashMap<String, String>();
         nodeCommands.put("list", "NodeList");
         nodeCommands.put("get", "NodeGet");
         
         commands.put("cluster", clusterCommands);
-        commands.put("blueprint", blueprintCommands);
+        commands.put("stack", stackCommands);
         commands.put("node", nodeCommands);
         
     }
