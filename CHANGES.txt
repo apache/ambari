@@ -2,11 +2,15 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-109. Minor fixes to the CLI documentation. (omalley)
+
   AMBARI-108. Change name blueprint to stack (vgogate)
 
   AMBARI-106. Fixes some javadoc stuff (ddas)
 
-  AMBARI-105. Remove post on clusters resource to create new cluster (instead use put operation on cluster resource along with update cluster) (vgogate)
+  AMBARI-105. Remove post on clusters resource to create new cluster
+  (instead use put operation on cluster resource along with update
+  cluster) (vgogate)
 
   AMBARI-104. Polishes the CLI doc some (ddas)
 
@@ -16,7 +20,8 @@ Release 0.1.0 - unreleased
   AMBARI-102. Reduce heartbeat message content, when installedRoleState
   is empty. (Eric Yang)
 
-  AMBARI-101. Remove clusterID and use cluster name as unique ID for the cluster(vgogate)
+  AMBARI-101. Remove clusterID and use cluster name as unique ID for
+  the cluster(vgogate)
 
   AMBARI-100. Fixes the heartbeat to take into account install/uninstall 
   of components (ddas)
