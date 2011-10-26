@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-108. Change name blueprint to stack (vgogate)
+
   AMBARI-106. Fixes some javadoc stuff (ddas)
 
   AMBARI-105. Remove post on clusters resource to create new cluster (instead use put operation on cluster resource along with update cluster) (vgogate)

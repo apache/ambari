@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
-import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.ClusterState;
@@ -457,15 +457,15 @@ public class Clusters {
          * Check if the cluster blueprint and its parents exist
          * getBlueprint would throw exception if it does not find the blueprint
          */
-        Blueprint bp = Blueprints.getInstance()
-                       .getBlueprint(cdef.getBlueprintName(), Integer.parseInt(cdef.getBlueprintRevision()));
+        Stack bp = Blueprints.getInstance()
+                       .getStack(cdef.getBlueprintName(), Integer.parseInt(cdef.getBlueprintRevision()));
         while (bp.getParentName() != null) {
             if (bp.getParentRevision() == null) {
                 bp = Blueprints.getInstance()
-                    .getBlueprint(bp.getParentName(), -1);
+                    .getStack(bp.getParentName(), -1);
             } else {
                 bp = Blueprints.getInstance()
-                .getBlueprint(bp.getParentName(), Integer.parseInt(bp.getParentRevision()));
+                .getStack(bp.getParentName(), Integer.parseInt(bp.getParentRevision()));
             }
         }
         
@@ -643,7 +643,7 @@ public class Clusters {
     /*
      * Get Cluster blueprint
      */
-    public Blueprint getClusterBlueprint(String clusterName, boolean expanded) throws Exception {
+    public Stack getClusterStack(String clusterName, boolean expanded) throws Exception {
         if (!this.operational_clusters.containsKey(clusterName)) {
             String msg = "Cluster ["+clusterName+"] does not exist";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
@@ -653,12 +653,12 @@ public class Clusters {
         String blueprintName = cls.getLatestClusterDefinition().getBlueprintName();
         int blueprintRevision = Integer.parseInt(cls.getLatestClusterDefinition().getBlueprintRevision());
         
-        Blueprint bp;
+        Stack bp;
         if (!expanded) {
-            bp = Blueprints.getInstance().getBlueprint(blueprintName, blueprintRevision);
+            bp = Blueprints.getInstance().getStack(blueprintName, blueprintRevision);
         } else {
             // TODO: Get the derived/expanded blueprint
-            bp = Blueprints.getInstance().getBlueprint(blueprintName, blueprintRevision);
+            bp = Blueprints.getInstance().getStack(blueprintName, blueprintRevision);
         }
         return bp;
     }

@@ -25,8 +25,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import org.apache.ambari.common.rest.entities.Blueprint;
-import org.apache.ambari.common.rest.entities.BlueprintInformation;
+import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.common.rest.entities.StackInformation;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.Node;
@@ -76,7 +76,7 @@ public abstract class Command {
         
         OptionBuilder.withArgName( "blueprint_revision" );
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(  "Blueprint revision, if not specified latest revision is used" );
+        OptionBuilder.withDescription(  "Stack revision, if not specified latest revision is used" );
         Option blueprint_revision = OptionBuilder.create( "revision" );
         
         OptionBuilder.withArgName( "description" );
@@ -136,21 +136,21 @@ public abstract class Command {
         m.marshal(node, System.out);
     }
     
-    public void printBlueprint(Blueprint blueprint, String file_path) throws Exception {
-        JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Blueprint.class);
+    public void printStack(Stack stack, String file_path) throws Exception {
+        JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Stack.class);
         Marshaller m = jc.createMarshaller();
         m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         if (file_path == null) {
-            m.marshal(blueprint, System.out);
+            m.marshal(stack, System.out);
         } else {
-            m.marshal(blueprint, new File(file_path));
+            m.marshal(stack, new File(file_path));
         }
     }
     
     /*
-     * TODO: Return Blueprint objects instead of BlueprintInformation???
+     * TODO: Return Stack objects instead of StackInformation???
      */
-    public void printBlueprintInformation (WebResource service, BlueprintInformation bpInfo, boolean tree) {
+    public void printStackInformation (WebResource service, StackInformation bpInfo, boolean tree) {
         
         System.out.println("\nName:["+bpInfo.getName()+"], Revision:["+bpInfo.getRevision()+"]");
         
@@ -161,7 +161,7 @@ public abstract class Command {
                 ClientResponse response = service.path("blueprints/"+bpInfo.getParentName())
                         .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
                 if (response.getStatus() != 404 && response.getStatus() != 200) { 
-                    System.err.println("Blueprint list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+                    System.err.println("Stack list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
                     System.exit(-1);
                 }
                 if (response.getStatus() == 404) {
@@ -171,7 +171,7 @@ public abstract class Command {
                  * Retrieve the blueprint from the response
                  * TODO: 
                  */
-                Blueprint bp = response.getEntity(Blueprint.class);
+                Stack bp = response.getEntity(Stack.class);
                 bpInfo.setName(bp.getName());
                 bpInfo.setParentName(bp.getParentName());
                 bpInfo.setRevision(bp.getRevision());
@@ -181,7 +181,7 @@ public abstract class Command {
         } 
     }
     
-    public void printBlueprintInformation (WebResource service, Blueprint bp, boolean tree) {
+    public void printStackInformation (WebResource service, Stack bp, boolean tree) {
         System.out.println("\nName:["+bp.getName()+"], Revision:["+bp.getRevision()+"]");
 
         if (tree) {
@@ -192,7 +192,7 @@ public abstract class Command {
                 ClientResponse response = service.path("blueprints/"+bp.getParentName())
                         .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
                 if (response.getStatus() != 404 && response.getStatus() != 200) { 
-                    System.err.println("Blueprint list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+                    System.err.println("Stack list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
                     System.exit(-1);
                 }
                 if (response.getStatus() == 404) {
@@ -201,7 +201,7 @@ public abstract class Command {
                 /* 
                  * Retrieve the blueprint from the response
                  */
-                bp = response.getEntity(Blueprint.class);
+                bp = response.getEntity(Stack.class);
                 tab = tab+"        ";
             }
         }

@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Component;
@@ -79,7 +79,7 @@ public class Cluster {
       definition = c;
       // find the plugins for the current definition of the cluster
       Blueprints context = Blueprints.getInstance();
-      Blueprint bp = context.getBlueprint(c.getBlueprintName(),
+      Stack bp = context.getStack(c.getBlueprintName(),
                                    Integer.parseInt(c.getBlueprintRevision()));
       
       //while (!bp.getName().equals(bp.getParentName()) || !bp.getRevision().equals(bp.getParentRevision())) {    
@@ -92,7 +92,7 @@ public class Cluster {
         }
         
         // go up to the parent
-        bp = context.getBlueprint(bp.getParentName(), 
+        bp = context.getStack(bp.getParentName(), 
                                   Integer.parseInt(bp.getParentRevision()));
       }
     }

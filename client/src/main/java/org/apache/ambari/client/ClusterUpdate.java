@@ -100,7 +100,7 @@ public class ClusterUpdate extends Command {
         
         OptionBuilder.withArgName( "blueprint_revision" );
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(  "Blueprint revision" );
+        OptionBuilder.withDescription(  "Stack revision" );
         Option revision = OptionBuilder.create( "revision" );
         
         OptionBuilder.withArgName( "description" );

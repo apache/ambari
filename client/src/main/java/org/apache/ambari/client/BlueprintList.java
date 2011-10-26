@@ -32,8 +32,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import org.apache.ambari.common.rest.entities.Blueprint;
-import org.apache.ambari.common.rest.entities.BlueprintInformation;
+import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.common.rest.entities.StackInformation;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.ClusterState;
@@ -142,7 +142,7 @@ public class BlueprintList extends Command {
             ClientResponse response = service.path("blueprints/"+name)
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
             if (response.getStatus() != 404 && response.getStatus() != 200) { 
-                System.err.println("Blueprint list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+                System.err.println("Stack list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
                 System.exit(-1);
             }
             if (response.getStatus() == 404) {
@@ -151,14 +151,14 @@ public class BlueprintList extends Command {
             /* 
              * Retrieve the blueprint from the response
              */
-            Blueprint blueprint = response.getEntity(Blueprint.class);
-            printBlueprintInformation (service, blueprint, tree);
+            Stack stack = response.getEntity(Stack.class);
+            printStackInformation (service, stack, tree);
            
         } else {
             ClientResponse response = service.path("blueprints")
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
             if (response.getStatus() != 200 && response.getStatus() != 204) { 
-                System.err.println("Blueprint list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+                System.err.println("Stack list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
                 System.exit(-1);
             }
             if (response.getStatus() == 204) {
@@ -168,9 +168,9 @@ public class BlueprintList extends Command {
             /* 
              * Retrieve the blueprint Information list from the response
              */
-            List<BlueprintInformation> bpInfos = response.getEntity(new GenericType<List<BlueprintInformation>>(){});
-            for (BlueprintInformation bpInfo : bpInfos) {
-                printBlueprintInformation (service, bpInfo, tree);
+            List<StackInformation> bpInfos = response.getEntity(new GenericType<List<StackInformation>>(){});
+            for (StackInformation bpInfo : bpInfos) {
+                printStackInformation (service, bpInfo, tree);
             }
         }
         

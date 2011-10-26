@@ -29,7 +29,7 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "BlueprintInformation", propOrder = {
+@XmlType(name = "StackInformation", propOrder = {
     "name",
     "revision",
     "parentName",
@@ -38,7 +38,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "component"
 })
 @XmlRootElement
-public class BlueprintInformation {
+public class StackInformation {
 
     @XmlAttribute
     protected String name;

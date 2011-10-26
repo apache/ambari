@@ -22,7 +22,7 @@ import java.net.URL;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
-import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -137,7 +137,7 @@ public class ClusterBlueprint extends Command {
         /* 
          * Retrieve the cluster blueprint
          */
-        Blueprint blueprint = response.getEntity(Blueprint.class);
-        printBlueprint(blueprint, line.getOptionValue("file"));
+        Stack stack = response.getEntity(Stack.class);
+        printStack(stack, line.getOptionValue("file"));
     }
 }

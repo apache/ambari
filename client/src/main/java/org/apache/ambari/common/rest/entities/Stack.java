@@ -35,11 +35,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
- * <p>Java class for BlueprintType complex type.
+ * <p>Java class for Stack type.
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "blueprint", propOrder = {
+@XmlType(name = "stack", propOrder = {
     "name",
     "revision",
     "parentName",
@@ -49,8 +49,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "configuration",
     "components"
 })
-@XmlRootElement(name="blueprint")
-public class Blueprint {
+@XmlRootElement(name="stack")
+public class Stack {
 
     @XmlAttribute
     protected String name;

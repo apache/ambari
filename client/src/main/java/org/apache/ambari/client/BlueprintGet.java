@@ -25,7 +25,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
-import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.ClusterState;
@@ -151,15 +151,15 @@ public class BlueprintGet extends Command {
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
         }        
         if (response.getStatus() != 200) { 
-            System.err.println("Blueprint get command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+            System.err.println("Stack get command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
             System.exit(-1);
         }
         
         /* 
          * Retrieve the cluster Information from the response
          */
-        Blueprint bp = response.getEntity(Blueprint.class);
+        Stack bp = response.getEntity(Stack.class);
         
-        printBlueprint(bp, file_path);
+        printStack(bp, file_path);
     }
 }

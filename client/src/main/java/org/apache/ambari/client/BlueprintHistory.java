@@ -24,7 +24,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
-import org.apache.ambari.common.rest.entities.BlueprintInformation;
+import org.apache.ambari.common.rest.entities.StackInformation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -128,25 +128,25 @@ public class BlueprintHistory extends Command {
          */
         ClientResponse response = service.path("blueprints/"+blueprintName+"/revisions").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
         if (response.getStatus() == 404) { 
-            System.out.println("Blueprint ["+blueprintName+"] does not exist");
+            System.out.println("Stack ["+blueprintName+"] does not exist");
             System.exit(-1);
         }
         
         if (response.getStatus() == 204) {
-            System.out.println("No revisions available for Blueprint ["+blueprintName+"]");
+            System.out.println("No revisions available for Stack ["+blueprintName+"]");
             System.exit(0);
         }
         
         if (response.getStatus() != 200) { 
-            System.err.println("Blueprint history command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+            System.err.println("Stack history command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
             System.exit(-1);
         }
         /* 
          * Retrieve the blueprint Information list from the response
          */
-        List<BlueprintInformation> bpInfos = response.getEntity(new GenericType<List<BlueprintInformation>>(){});
-        for (BlueprintInformation bpInfo : bpInfos) {
-            printBlueprintInformation (service, bpInfo, tree);
+        List<StackInformation> bpInfos = response.getEntity(new GenericType<List<StackInformation>>(){});
+        for (StackInformation bpInfo : bpInfos) {
+            printStackInformation (service, bpInfo, tree);
         }
     }
 }

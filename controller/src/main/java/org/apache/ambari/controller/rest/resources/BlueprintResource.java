@@ -31,8 +31,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
-import org.apache.ambari.common.rest.entities.Blueprint;
-import org.apache.ambari.common.rest.entities.BlueprintInformation;
+import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.common.rest.entities.StackInformation;
 import org.apache.ambari.controller.Blueprints;
 import org.apache.ambari.controller.ExceptionResponse;
 
@@ -40,7 +40,7 @@ import org.apache.ambari.controller.ExceptionResponse;
  *  cluster. Blueprints define a collection of Hadoop components that are
  *  installed together on a cluster and their configuration.
  */
-@Path(value = "/blueprints/{blueprintName}")
+@Path(value = "/stacks/{blueprintName}")
 public class BlueprintResource {
         
     /** 
@@ -57,10 +57,10 @@ public class BlueprintResource {
      */
     @GET
     @Produces({"application/json", "application/xml"})
-    public Blueprint getBlueprint(@PathParam("blueprintName") String blueprintName, 
+    public Stack getStack(@PathParam("blueprintName") String blueprintName, 
                                   @DefaultValue("-1") @QueryParam("revision") String revision) throws Exception {     
         try {
-            return Blueprints.getInstance().getBlueprint(blueprintName, Integer.parseInt(revision));
+            return Blueprints.getInstance().getStack(blueprintName, Integer.parseInt(revision));
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
@@ -82,9 +82,9 @@ public class BlueprintResource {
     @Path(value = "/revisions")
     @GET
     @Produces({"application/json", "application/xml"})
-    public List<BlueprintInformation> getBlueprintRevisions(@PathParam("blueprintName") String blueprintName) throws Exception {     
+    public List<StackInformation> getBlueprintRevisions(@PathParam("blueprintName") String blueprintName) throws Exception {     
         try {
-            List<BlueprintInformation> list = Blueprints.getInstance().getBlueprintRevisions(blueprintName);
+            List<StackInformation> list = Blueprints.getInstance().getBlueprintRevisions(blueprintName);
             if (list.isEmpty()) {
                 throw new WebApplicationException(Response.Status.NO_CONTENT);
             }
@@ -129,7 +129,7 @@ public class BlueprintResource {
      * If named blueprint does not exist already, then it is created with revision zero.
      * If named blueprint exists, then it is updated as new revision.
      * Optional locationURL query parameter can specify the location of the repository of
-     * of blueprints. If specified then blueprint is downloaded from the repository.
+     * of stacks. If specified then blueprint is downloaded from the repository.
      *
      * @response.representation.200.doc         Successfully created the new or updated the existing blueprint.
      * @response.representation.200.mediaType   application/json
@@ -139,20 +139,20 @@ public class BlueprintResource {
      * 
      * @param blueprintName Name of the blueprint
      * @param locationURL   URL pointing to the location of the blueprint
-     * @param blueprint     Input blueprint object specifying the blueprint definition
+     * @param stack     Input blueprint object specifying the blueprint definition
      * @return              Returns the new revision of the blueprint
      * @throws Exception    throws Exception
      */
     @PUT
     @Consumes({"application/json", "application/xml"})
-    public Blueprint updateBlueprint(@PathParam("blueprintName") String blueprintName, 
+    public Stack updateStack(@PathParam("blueprintName") String blueprintName, 
                                      @DefaultValue("") @QueryParam("url") String locationURL,
-                                     Blueprint blueprint) throws Exception {
+                                     Stack stack) throws Exception {
         try {
             if (locationURL == null || locationURL.equals("")) {
-                return Blueprints.getInstance().addBlueprint(blueprint);
+                return Blueprints.getInstance().addStack(stack);
             } else {
-                return Blueprints.getInstance().importDefaultBlueprint (locationURL);
+                return Blueprints.getInstance().importDefaultStack (locationURL);
             }
         }catch (WebApplicationException we) {
             throw we;

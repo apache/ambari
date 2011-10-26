@@ -29,7 +29,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
-import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
@@ -104,7 +104,7 @@ public class ClusterCreate extends Command {
         
         OptionBuilder.withArgName( "blueprint_revision" );
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(  "Blueprint revision, if not specified latest revision is used" );
+        OptionBuilder.withDescription(  "Stack revision, if not specified latest revision is used" );
         Option revision = OptionBuilder.create( "revision" );
         
         OptionBuilder.withArgName( "description" );
@@ -220,18 +220,18 @@ public class ClusterCreate extends Command {
         	ClientResponse response = service.path("blueprints/"+line.getOptionValue("blueprint"))
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
             if (response.getStatus() != 404 && response.getStatus() != 200) { 
-                System.err.println("Blueprint list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+                System.err.println("Stack list command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
                 System.exit(-1);
             }
             if (response.getStatus() == 404) {
-            	System.err.println("Blueprint name:" + line.getOptionValue("blueprint") + " does not exist.");
+            	System.err.println("Stack name:" + line.getOptionValue("blueprint") + " does not exist.");
                 System.exit(-1);
             }
             /* 
              * Retrieve the blueprint from the response
              */
-            Blueprint blueprint = response.getEntity(Blueprint.class);
-            revision = blueprint.getRevision();
+            Stack stack = response.getEntity(Stack.class);
+            revision = stack.getRevision();
         }
         clsDef.setBlueprintRevision(revision);
         clsDef.setActiveServices(splitServices(line.getOptionValue("services")));

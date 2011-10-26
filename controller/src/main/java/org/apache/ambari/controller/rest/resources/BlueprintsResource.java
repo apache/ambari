@@ -32,8 +32,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
-import org.apache.ambari.common.rest.entities.Blueprint;
-import org.apache.ambari.common.rest.entities.BlueprintInformation;
+import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.common.rest.entities.StackInformation;
 import org.apache.ambari.controller.Blueprints;
 import org.apache.ambari.controller.ExceptionResponse;
 import org.codehaus.jettison.json.JSONArray;
@@ -43,23 +43,23 @@ import org.codehaus.jettison.json.JSONArray;
  * cluster. Blueprints define a collection of Hadoop components that are
  * installed together on a cluster and their configuration.
  */
-@Path(value = "/blueprints")
+@Path(value = "/stacks")
 public class BlueprintsResource {
  
     /** 
-     * Get the list of blueprints
+     * Get the list of stacks
      * 
      * @response.representation.200.doc         Successful
      * @response.representation.200.mediaType   application/json
      * @response.representation.204.doc         List is empty.
      *  
-     * @return Returns the list of BlueprintInformation items
+     * @return Returns the list of StackInformation items
      * @throws Exception
      */
     @GET
     @Produces({"application/json", "application/xml"})
-    public List<BlueprintInformation> listBlueprints() throws Exception {
-        List<BlueprintInformation> list;
+    public List<StackInformation> listBlueprints() throws Exception {
+        List<StackInformation> list;
         try {
             list = Blueprints.getInstance().getBlueprintList();
             if (list.isEmpty()) {

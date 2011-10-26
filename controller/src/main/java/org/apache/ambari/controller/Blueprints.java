@@ -38,8 +38,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import org.apache.ambari.common.rest.entities.Blueprint;
-import org.apache.ambari.common.rest.entities.BlueprintInformation;
+import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.common.rest.entities.StackInformation;
 import org.apache.ambari.common.rest.entities.Component;
 import org.apache.ambari.common.rest.entities.Property;
 import org.codehaus.jettison.json.JSONException;
@@ -70,10 +70,10 @@ public class Blueprints {
                 "org/apache/ambari/stacks/" + name + "-" + revision + ".xml";
             InputStream in = 
                 ClassLoader.getSystemResourceAsStream(resourceName);
-            Blueprint bp = (Blueprint) um.unmarshal(in);
+            Stack bp = (Stack) um.unmarshal(in);
             bp.setName(name);
             bp.setRevision(Integer.toString(revision));
-            addBlueprint(bp);
+            addStack(bp);
         } catch (IOException e) {
             Log.warn("Problem loading blueprint " + name + " rev " + revision,
                      e);
@@ -95,35 +95,35 @@ public class Blueprints {
     }
       
     /*
-     * Blueprint name -> {revision -> Blueprint} .
+     * Stack name -> {revision -> Stack} .
      */
-    protected ConcurrentHashMap<String, ConcurrentHashMap<Integer,Blueprint>> blueprints = new ConcurrentHashMap<String,ConcurrentHashMap<Integer,Blueprint>>();
+    protected ConcurrentHashMap<String, ConcurrentHashMap<Integer,Stack>> stacks = new ConcurrentHashMap<String,ConcurrentHashMap<Integer,Stack>>();
     
     
     /*
      * Get blueprint. If revision = -1 then return latest revision
      */
-    public Blueprint getBlueprint(String blueprintName, int revision) throws Exception {
+    public Stack getStack(String blueprintName, int revision) throws Exception {
         /*
          * If revision is -1, then return the latest revision
          */  
-        Blueprint bp = null;
-        if (!this.blueprints.containsKey(blueprintName)) {  
-            String msg = "Blueprint ["+blueprintName+"] is not defined";
+        Stack bp = null;
+        if (!this.stacks.containsKey(blueprintName)) {  
+            String msg = "Stack ["+blueprintName+"] is not defined";
             throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         if (revision == -1) {
-            this.blueprints.get(blueprintName).keySet();
+            this.stacks.get(blueprintName).keySet();
             Integer [] a = new Integer [] {};
-            Integer[] keys = this.blueprints.get(blueprintName).keySet().toArray(a);
+            Integer[] keys = this.stacks.get(blueprintName).keySet().toArray(a);
             Arrays.sort(keys);  
-            bp = this.blueprints.get(blueprintName).get(keys[keys.length-1]);
+            bp = this.stacks.get(blueprintName).get(keys[keys.length-1]);
         } else {
-            if (!this.blueprints.get(blueprintName).containsKey(revision)) {  
-                String msg = "Blueprint ["+blueprintName+"], revision ["+revision+"] does not exist";
+            if (!this.stacks.get(blueprintName).containsKey(revision)) {  
+                String msg = "Stack ["+blueprintName+"], revision ["+revision+"] does not exist";
                 throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
             }
-            bp = this.blueprints.get(blueprintName).get(revision);
+            bp = this.stacks.get(blueprintName).get(revision);
         }
         return bp;  
     }
@@ -131,24 +131,24 @@ public class Blueprints {
     /*
      * Add or update the blueprint
      */
-    public Blueprint addBlueprint(Blueprint bp) throws IOException {
+    public Stack addStack(Stack bp) throws IOException {
         
         /*
          * Validate and set the defaults
          */
-        validateAndSetBlueprintDefaults(bp);
+        validateAndSetStackDefaults(bp);
         
-        if (blueprints.containsKey(bp.getName())) {
-            if (blueprints.get(bp.getName()).containsKey(new Integer(bp.getRevision()))) {
+        if (stacks.containsKey(bp.getName())) {
+            if (stacks.get(bp.getName()).containsKey(new Integer(bp.getRevision()))) {
                 String msg = "Specified blueprint [Name:"+bp.getName()+", Revision: ["+bp.getRevision()+"] already imported";
                 throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             } else {
-                blueprints.get(bp.getName()).put(new Integer(bp.getRevision()), bp);
+                stacks.get(bp.getName()).put(new Integer(bp.getRevision()), bp);
             }
         } else {
-            ConcurrentHashMap<Integer, Blueprint> x = new ConcurrentHashMap<Integer, Blueprint>();
+            ConcurrentHashMap<Integer, Stack> x = new ConcurrentHashMap<Integer, Stack>();
             x.put(new Integer(bp.getRevision()), bp);
-            this.blueprints.put(bp.getName(), x);
+            this.stacks.put(bp.getName(), x);
         }
         
         return bp;
@@ -157,8 +157,8 @@ public class Blueprints {
     /*
      * Import the default blueprint from the URL location
      */
-    public Blueprint importDefaultBlueprint (String locationURL) throws IOException {
-        Blueprint blueprint;
+    public Stack importDefaultStack (String locationURL) throws IOException {
+        Stack stack;
         URL blueprintUrl;
         try {
             blueprintUrl = new URL(locationURL);
@@ -166,12 +166,12 @@ public class Blueprints {
             
             /* JSON FORMAT READER
             ObjectMapper m = new ObjectMapper();
-            blueprint = m.readValue(is, Blueprint.class);
+            blueprint = m.readValue(is, Stack.class);
             */
-            JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Blueprint.class);
+            JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Stack.class);
             Unmarshaller u = jc.createUnmarshaller();
-            blueprint = (Blueprint)u.unmarshal(is);
-            return addBlueprint(blueprint);
+            stack = (Stack)u.unmarshal(is);
+            return addStack(stack);
         } catch (WebApplicationException we) {
             throw we;
         } catch (Exception e) {
@@ -182,44 +182,44 @@ public class Blueprints {
     /*
      * Validate the blueprint before importing into controller
      */
-    public void validateAndSetBlueprintDefaults(Blueprint blueprint) throws IOException {
+    public void validateAndSetStackDefaults(Stack stack) throws IOException {
         
-        if (blueprint.getName() == null || blueprint.getName().equals("")) {
-            String msg = "Blueprint must be associated with non-empty name";
+        if (stack.getName() == null || stack.getName().equals("")) {
+            String msg = "Stack must be associated with non-empty name";
             throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
-        if (blueprint.getRevision() == null || blueprint.getRevision().equals("") ||
-            blueprint.getRevision().equalsIgnoreCase("null")) {
-            blueprint.setRevision("-1");
+        if (stack.getRevision() == null || stack.getRevision().equals("") ||
+            stack.getRevision().equalsIgnoreCase("null")) {
+            stack.setRevision("-1");
         }
-        if (blueprint.getParentName() != null && 
-            (blueprint.getParentName().equals("") || blueprint.getParentName().equalsIgnoreCase("null"))) {
-            blueprint.setParentName(null);
+        if (stack.getParentName() != null && 
+            (stack.getParentName().equals("") || stack.getParentName().equalsIgnoreCase("null"))) {
+            stack.setParentName(null);
         }
-        if (blueprint.getParentRevision() == null || blueprint.getParentRevision().equals("") ||
-            blueprint.getParentRevision().equalsIgnoreCase("null")) {
-            blueprint.setParentRevision("-1");
+        if (stack.getParentRevision() == null || stack.getParentRevision().equals("") ||
+            stack.getParentRevision().equalsIgnoreCase("null")) {
+            stack.setParentRevision("-1");
         }
         /*
          * Set the creation time 
          */
-        blueprint.setCreationTime(new Date());
+        stack.setCreationTime(new Date());
     }
     
     /*
      *  Get the list of blueprint revisions
      */
-    public List<BlueprintInformation> getBlueprintRevisions(String blueprintName) throws Exception {
-        List<BlueprintInformation> list = new ArrayList<BlueprintInformation>();
-        if (!this.blueprints.containsKey(blueprintName)) {
-            String msg = "Blueprint ["+blueprintName+"] does not exist";
+    public List<StackInformation> getBlueprintRevisions(String blueprintName) throws Exception {
+        List<StackInformation> list = new ArrayList<StackInformation>();
+        if (!this.stacks.containsKey(blueprintName)) {
+            String msg = "Stack ["+blueprintName+"] does not exist";
             throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
-        ConcurrentHashMap<Integer, Blueprint> revisions = this.blueprints.get(blueprintName);
+        ConcurrentHashMap<Integer, Stack> revisions = this.stacks.get(blueprintName);
         for (Integer x : revisions.keySet()) {
             // Get the latest blueprint
-            Blueprint bp = revisions.get(x);
-            BlueprintInformation bpInfo = new BlueprintInformation();
+            Stack bp = revisions.get(x);
+            StackInformation bpInfo = new StackInformation();
             // TODO: get the creation time from blueprint
             bpInfo.setCreationTime(bp.getCreationTime());
             bpInfo.setName(bp.getName());
@@ -240,12 +240,12 @@ public class Blueprints {
     /*
      * Return list of blueprint names
      */
-    public List<BlueprintInformation> getBlueprintList() throws Exception {
-        List<BlueprintInformation> list = new ArrayList<BlueprintInformation>();
-        for (String bpName : this.blueprints.keySet()) {
+    public List<StackInformation> getBlueprintList() throws Exception {
+        List<StackInformation> list = new ArrayList<StackInformation>();
+        for (String bpName : this.stacks.keySet()) {
             // Get the latest blueprint
-            Blueprint bp = this.getBlueprint(bpName, -1);
-            BlueprintInformation bpInfo = new BlueprintInformation();
+            Stack bp = this.getStack(bpName, -1);
+            StackInformation bpInfo = new StackInformation();
             // TODO: get the creation and update times from blueprint
             bpInfo.setCreationTime(bp.getCreationTime());
             bpInfo.setName(bp.getName());
@@ -281,27 +281,27 @@ public class Blueprints {
         /*
          * If no cluster is associated then remove the blueprint
          */
-        this.blueprints.get(blueprintName).remove(revision);
-        if (this.blueprints.get(blueprintName).keySet().isEmpty()) {
-            this.blueprints.remove(blueprintName);
+        this.stacks.get(blueprintName).remove(revision);
+        if (this.stacks.get(blueprintName).keySet().isEmpty()) {
+            this.stacks.remove(blueprintName);
         }    
     }
     
     /*
-     * Returns the <key="name-revision", value=""> hash table for cluster referenced blueprints
+     * Returns the <key="name-revision", value=""> hash table for cluster referenced stacks
      */
     public Hashtable<String, String> getClusterReferencedBlueprintsList() throws Exception {
         Hashtable<String, String> clusterBlueprints = new Hashtable<String, String>();
         for (Cluster c : Clusters.getInstance().operational_clusters.values()) {
             String cBPName = c.getLatestClusterDefinition().getBlueprintName();
             String cBPRevision = c.getLatestClusterDefinition().getBlueprintRevision();
-            Blueprint bpx = this.getBlueprint(cBPName, Integer.parseInt(cBPRevision));
+            Stack bpx = this.getStack(cBPName, Integer.parseInt(cBPRevision));
             clusterBlueprints.put(cBPName+"-"+cBPRevision, "");
             while (bpx.getParentName() != null) {
                 if (bpx.getParentRevision() == null) {
-                    bpx = this.getBlueprint(bpx.getParentName(), -1);
+                    bpx = this.getStack(bpx.getParentName(), -1);
                 } else {
-                    bpx = this.getBlueprint(bpx.getParentName(), Integer.parseInt(bpx.getParentRevision()));
+                    bpx = this.getStack(bpx.getParentName(), Integer.parseInt(bpx.getParentRevision()));
                 }
                 clusterBlueprints.put(bpx.getName()+"-"+bpx.getRevision(), "");
             }

@@ -35,7 +35,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 
-import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.Node;
@@ -108,7 +108,7 @@ public class ClusterResource {
      *                                          http header describing specific error condition).
      * @response.representation.200.example
      * 
-     * @param   clusterName                     Name of the cluster
+     * @param   clusterName                     Name of the cluster ZZZZZZZ
      * @param   dry_run                         Whether to do a dry run
      * @param   cluster                         Cluster definition to be created new or updated existing one
      *                                          Cluster name can not be updated through this API.
@@ -291,18 +291,18 @@ public class ClusterResource {
      *                      unique name
      *  @param  expanded    Optionally specify the boolean value to indicate if 
      *                      to retrieved the cluster level blueprint or the fully
-     *                      derived blueprint in-lining the parent blueprints 
+     *                      derived blueprint in-lining the parent stacks 
      *                      associated with the service role
-     *  @return             Blueprint
+     *  @return             Stack
      *  @throws Exception   throws Exception
      */
     @Path(value = "/blueprint")
     @GET
     @Produces({"application/json", "application/xml"})
-    public Blueprint getClusterBlueprint (@PathParam("clusterName") String clusterName,
+    public Stack getClusterStack (@PathParam("clusterName") String clusterName,
                                 @DefaultValue("true") @QueryParam("expanded") boolean expanded) throws Exception {    
         try {
-            return Clusters.getInstance().getClusterBlueprint(clusterName, expanded);
+            return Clusters.getInstance().getClusterStack(clusterName, expanded);
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {

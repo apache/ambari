@@ -32,7 +32,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import org.apache.ambari.common.rest.entities.Blueprint;
+import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.ClusterState;
@@ -151,39 +151,39 @@ public class BlueprintAdd extends Command {
                 System.out.println("Specified location is either a file path that does not exist or a malformed URL");
                 System.exit(-1);
             }
-            Blueprint bp = new Blueprint();
+            Stack bp = new Stack();
             response = service.path("blueprints/"+name)
                     .queryParam("url", location)
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
         } else {
-            Blueprint bp = this.readBlueprintFromXMLFile(f);
+            Stack bp = this.readStackFromXMLFile(f);
             response = service.path("blueprints/"+name)
                     .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
         }     
         
         if (response.getStatus() != 200) { 
-            System.err.println("Blueprint add command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+            System.err.println("Stack add command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
             System.exit(-1);
         }
         
-        Blueprint bp_return = response.getEntity(Blueprint.class);
+        Stack bp_return = response.getEntity(Stack.class);
         
-        System.out.println("Blueprint added.\n");
-        printBlueprint(bp_return, null);
+        System.out.println("Stack added.\n");
+        printStack(bp_return, null);
     }
     
-    public Blueprint readBlueprintFromXMLFile (File f) throws Exception {      
-        JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Blueprint.class);
+    public Stack readStackFromXMLFile (File f) throws Exception {      
+        JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Stack.class);
         Unmarshaller u = jc.createUnmarshaller();
-        Blueprint bp = (Blueprint)u.unmarshal(f);
+        Stack bp = (Stack)u.unmarshal(f);
         return bp;
     }
     
-    public Blueprint readBlueprintFromJSONFile (File f) throws Exception {      
+    public Stack readStackFromJSONFile (File f) throws Exception {      
         FileInputStream fis = new FileInputStream(f);
         ObjectMapper m = new ObjectMapper();
-        Blueprint blueprint = m.readValue(fis, Blueprint.class);
-        return blueprint;
+        Stack stack = m.readValue(fis, Stack.class);
+        return stack;
     }
     
     
