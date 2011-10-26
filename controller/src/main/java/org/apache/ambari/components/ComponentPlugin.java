@@ -19,7 +19,7 @@ package org.apache.ambari.components;
 
 import java.io.IOException;
 
-import org.apache.ambari.common.rest.entities.agent.Action;
+import org.apache.ambari.common.rest.agent.Action;
 
 /**
  * An interface for pluggable component definitions.

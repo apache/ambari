@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.common.rest.entities.agent;
+package org.apache.ambari.common.rest.agent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,21 +25,22 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Actions {
-  public List<Action> actions;
+public class ActionResults {
+  public List<ActionResult> actionResults;
   
-  public List<Action> getActions() {
-    return actions;
+  public List<ActionResult> getActionResults() {
+    return actionResults;
   }
   
-  public void setActions(List<Action> actions) {
-    this.actions = actions;
+  public void setActionResults(List<ActionResult> actionResults) {
+    this.actionResults = actionResults;
   }
   
-  public void add(Action action) {
-    if(this.actions == null) {
-      this.actions = new ArrayList<Action>();
+  public void add(ActionResult actionResult) {
+    if(this.actionResults == null) {
+      this.actionResults = new ArrayList<ActionResult>();
     }
-    this.actions.add(action);
+    this.actionResults.add(actionResult);
   }
+
 }

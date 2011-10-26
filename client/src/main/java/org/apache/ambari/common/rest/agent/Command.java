@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.common.rest.entities.agent;
+package org.apache.ambari.common.rest.agent;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -26,51 +26,50 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * 
- * Data model for Ambari Agent to report the execution result of the command
- * to Ambari controller.
+ * Data model for Ambari Controller to issue command to Ambari Agent.
  *
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
-public class CommandResult {
-  public CommandResult() {
+public class Command {
+  public Command() {
   }
   
-  public CommandResult(int exitCode, String stdout, String stderr) {
-    this.exitCode = exitCode;
-    this.stdout = stdout;
-    this.stderr = stderr;
+  public Command(String user, String script, String[] param) {
+    this.script = script;
+    this.user = user;
+    this.param = param;
   }
   
   @XmlElement
-  private int exitCode;
+  private String script;
   @XmlElement
-  private String stdout;
+  private String[] param;
   @XmlElement
-  private String stderr;
+  private String user;
 
-  public int getExitCode() {
-    return exitCode;
+  public String getScript() {
+    return script;
   }
   
-  public String getStdOut() {
-    return this.stdout;
+  public void setScript(String script) {
+    this.script = script;
+  }
+
+  public String getUser() {
+    return user;
   }
   
-  public String getStdErr() {
-    return this.stderr;
+  public void setUser(String user) {
+    this.user = user;
   }
   
-  public void setExitCode(int exitCode) {
-    this.exitCode = exitCode;
+  public String[] getParam() {
+    return this.param;
   }
   
-  public void setStdOut(String stdout) {
-    this.stdout = stdout;
-  }
-  
-  public void setStdErr(String stderr) {
-    this.stderr = stderr;
+  public void setParam(String[] param) {
+    this.param = param;
   }
 }

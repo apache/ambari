@@ -16,8 +16,8 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlValue;
 
 import org.apache.ambari.common.rest.entities.ComponentDefinition;
-import org.apache.ambari.common.rest.entities.agent.Action;
-import org.apache.ambari.common.rest.entities.agent.Command;
+import org.apache.ambari.common.rest.agent.Action;
+import org.apache.ambari.common.rest.agent.Command;
 import org.apache.ambari.components.ComponentPlugin;
 
 public class XmlComponentDefinition extends ComponentPlugin {

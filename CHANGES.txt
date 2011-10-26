@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-103. Refactor agent entities package to 
+  org.apache.ambari.common.rest.agent. (Eric Yang)
+
   AMBARI-102. Reduce heartbeat message content, when installedRoleState
   is empty. (Eric Yang)
 

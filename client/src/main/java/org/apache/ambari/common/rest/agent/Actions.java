@@ -16,47 +16,17 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.common.rest.entities.agent;
+package org.apache.ambari.common.rest.agent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
-/**
- * 
- * Controller to Agent response data model.
- *
- */
-@XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
-public class ControllerResponse {
-  @XmlElement
-  public short responseId;
-  @XmlElement
-  public String clusterId;
-  @XmlElement
+public class Actions {
   public List<Action> actions;
-
-  public short getResponseId() {
-    return responseId;
-  }
-  
-  public void setResponseId(short responseId) {
-    this.responseId=responseId;
-  }
-  
-  public String getClusterId() {
-    return clusterId;
-  }
-  
-  public void setClusterId(String clusterId) {
-    this.clusterId = clusterId;
-  }
   
   public List<Action> getActions() {
     return actions;
@@ -64,5 +34,12 @@ public class ControllerResponse {
   
   public void setActions(List<Action> actions) {
     this.actions = actions;
+  }
+  
+  public void add(Action action) {
+    if(this.actions == null) {
+      this.actions = new ArrayList<Action>();
+    }
+    this.actions.add(action);
   }
 }

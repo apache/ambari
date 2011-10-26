@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.common.rest.entities.agent;
+package org.apache.ambari.common.rest.agent;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.common.rest.entities.agent;
+package org.apache.ambari.common.rest.agent;
+
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -26,50 +28,41 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * 
- * Data model for Ambari Controller to issue command to Ambari Agent.
+ * Controller to Agent response data model.
  *
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
-public class Command {
-  public Command() {
-  }
-  
-  public Command(String user, String script, String[] param) {
-    this.script = script;
-    this.user = user;
-    this.param = param;
-  }
-  
+public class ControllerResponse {
   @XmlElement
-  private String script;
+  public short responseId;
   @XmlElement
-  private String[] param;
+  public String clusterId;
   @XmlElement
-  private String user;
+  public List<Action> actions;
 
-  public String getScript() {
-    return script;
+  public short getResponseId() {
+    return responseId;
   }
   
-  public void setScript(String script) {
-    this.script = script;
-  }
-
-  public String getUser() {
-    return user;
+  public void setResponseId(short responseId) {
+    this.responseId=responseId;
   }
   
-  public void setUser(String user) {
-    this.user = user;
+  public String getClusterId() {
+    return clusterId;
   }
   
-  public String[] getParam() {
-    return this.param;
+  public void setClusterId(String clusterId) {
+    this.clusterId = clusterId;
   }
   
-  public void setParam(String[] param) {
-    this.param = param;
+  public List<Action> getActions() {
+    return actions;
+  }
+  
+  public void setActions(List<Action> actions) {
+    this.actions = actions;
   }
 }

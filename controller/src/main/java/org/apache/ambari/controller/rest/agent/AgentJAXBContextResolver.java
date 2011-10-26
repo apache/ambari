@@ -28,11 +28,11 @@ import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import javax.xml.bind.JAXBContext;
 import com.sun.jersey.api.json.JSONJAXBContext;
-import org.apache.ambari.common.rest.entities.agent.Command;
-import org.apache.ambari.common.rest.entities.agent.HeartBeat;
-import org.apache.ambari.common.rest.entities.agent.ControllerResponse;
-import org.apache.ambari.common.rest.entities.agent.Action;
-import org.apache.ambari.common.rest.entities.agent.ActionResult;
+import org.apache.ambari.common.rest.agent.Command;
+import org.apache.ambari.common.rest.agent.HeartBeat;
+import org.apache.ambari.common.rest.agent.ControllerResponse;
+import org.apache.ambari.common.rest.agent.Action;
+import org.apache.ambari.common.rest.agent.ActionResult;
 
 @Provider
 public class AgentJAXBContextResolver implements ContextResolver<JAXBContext> {
