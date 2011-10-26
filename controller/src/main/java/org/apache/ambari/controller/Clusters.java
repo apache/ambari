@@ -57,8 +57,8 @@ public class Clusters {
         ClusterDefinition cluster123 = new ClusterDefinition();
         
         cluster123.setName("blue.dev.Cluster123");
-        cluster123.setBlueprintName("cluster123");
-        cluster123.setBlueprintRevision("0");
+        cluster123.setStackName("cluster123");
+        cluster123.setStackRevision("0");
         cluster123.setDescription("cluster123 - development cluster");
         cluster123.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
         List<String> activeServices = new ArrayList<String>();
@@ -95,8 +95,8 @@ public class Clusters {
          */
         ClusterDefinition cluster124 = new ClusterDefinition();
         cluster124.setName("blue.research.Cluster124");
-        cluster124.setBlueprintName("cluster124");
-        cluster124.setBlueprintRevision("0");
+        cluster124.setStackName("cluster124");
+        cluster124.setStackRevision("0");
         cluster124.setDescription("cluster124 - research cluster");
         cluster124.setGoalState(ClusterState.CLUSTER_STATE_INACTIVE);
         activeServices = new ArrayList<String>();
@@ -205,15 +205,15 @@ public class Clusters {
         
         synchronized (cls.getClusterDefinitionRevisionsList()) {
             newcd.setName(clusterName);
-            if (c.getBlueprintName() != null) {
-                newcd.setBlueprintName(c.getBlueprintName());
+            if (c.getStackName() != null) {
+                newcd.setStackName(c.getStackName());
             } else {
-                newcd.setBlueprintName(cls.getLatestClusterDefinition().getBlueprintName());
+                newcd.setStackName(cls.getLatestClusterDefinition().getStackName());
             }
-            if (c.getBlueprintRevision() != null) {
-                newcd.setBlueprintRevision(c.getBlueprintRevision());
+            if (c.getStackRevision() != null) {
+                newcd.setStackRevision(c.getStackRevision());
             } else {
-                newcd.setBlueprintRevision(cls.getLatestClusterDefinition().getBlueprintRevision());
+                newcd.setStackRevision(cls.getLatestClusterDefinition().getStackRevision());
             }
             if (c.getDescription() != null) {
                 newcd.setDescription(c.getDescription());
@@ -443,28 +443,28 @@ public class Clusters {
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
         
-        if (cdef.getBlueprintName() == null || cdef.getBlueprintName().equals("")) {
+        if (cdef.getStackName() == null || cdef.getStackName().equals("")) {
             String msg = "Cluster blueprint must be specified and must be non-empty string";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
         
-        if (cdef.getBlueprintRevision() == null || cdef.getBlueprintRevision().equals("")) {
+        if (cdef.getStackRevision() == null || cdef.getStackRevision().equals("")) {
             String msg = "Cluster blueprint revision must be specified";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
         
         /*
          * Check if the cluster blueprint and its parents exist
-         * getBlueprint would throw exception if it does not find the blueprint
+         * getStack would throw exception if it does not find the blueprint
          */
-        Stack bp = Blueprints.getInstance()
-                       .getStack(cdef.getBlueprintName(), Integer.parseInt(cdef.getBlueprintRevision()));
+        Stack bp = Stacks.getInstance()
+                       .getStack(cdef.getStackName(), Integer.parseInt(cdef.getStackRevision()));
         while (bp.getParentName() != null) {
             if (bp.getParentRevision() == null) {
-                bp = Blueprints.getInstance()
+                bp = Stacks.getInstance()
                     .getStack(bp.getParentName(), -1);
             } else {
-                bp = Blueprints.getInstance()
+                bp = Stacks.getInstance()
                 .getStack(bp.getParentName(), Integer.parseInt(bp.getParentRevision()));
             }
         }
@@ -650,15 +650,15 @@ public class Clusters {
         }
         
         Cluster cls = this.operational_clusters.get(clusterName);
-        String blueprintName = cls.getLatestClusterDefinition().getBlueprintName();
-        int blueprintRevision = Integer.parseInt(cls.getLatestClusterDefinition().getBlueprintRevision());
+        String blueprintName = cls.getLatestClusterDefinition().getStackName();
+        int blueprintRevision = Integer.parseInt(cls.getLatestClusterDefinition().getStackRevision());
         
         Stack bp;
         if (!expanded) {
-            bp = Blueprints.getInstance().getStack(blueprintName, blueprintRevision);
+            bp = Stacks.getInstance().getStack(blueprintName, blueprintRevision);
         } else {
             // TODO: Get the derived/expanded blueprint
-            bp = Blueprints.getInstance().getStack(blueprintName, blueprintRevision);
+            bp = Stacks.getInstance().getStack(blueprintName, blueprintRevision);
         }
         return bp;
     }

@@ -34,17 +34,17 @@ import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.StackInformation;
-import org.apache.ambari.controller.Blueprints;
+import org.apache.ambari.controller.Stacks;
 import org.apache.ambari.controller.ExceptionResponse;
 import org.codehaus.jettison.json.JSONArray;
 
 /** 
- * BlueprintResource represents a Hadoop blueprint to be installed on a 
- * cluster. Blueprints define a collection of Hadoop components that are
+ * StackResource represents a Hadoop blueprint to be installed on a 
+ * cluster. Stacks define a collection of Hadoop components that are
  * installed together on a cluster and their configuration.
  */
 @Path(value = "/stacks")
-public class BlueprintsResource {
+public class StacksResource {
  
     /** 
      * Get the list of stacks
@@ -61,7 +61,7 @@ public class BlueprintsResource {
     public List<StackInformation> listBlueprints() throws Exception {
         List<StackInformation> list;
         try {
-            list = Blueprints.getInstance().getBlueprintList();
+            list = Stacks.getInstance().getStackList();
             if (list.isEmpty()) {
                 throw new WebApplicationException(Response.Status.NO_CONTENT);
             } 

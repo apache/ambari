@@ -33,34 +33,34 @@ import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.StackInformation;
-import org.apache.ambari.controller.Blueprints;
+import org.apache.ambari.controller.Stacks;
 import org.apache.ambari.controller.ExceptionResponse;
 
-/** BlueprintResource represents a Hadoop blueprint to be installed on a 
- *  cluster. Blueprints define a collection of Hadoop components that are
+/** StackResource represents a Hadoop stack to be installed on a 
+ *  cluster. stacks define a collection of Hadoop components that are
  *  installed together on a cluster and their configuration.
  */
-@Path(value = "/stacks/{blueprintName}")
-public class BlueprintResource {
+@Path(value = "/stacks/{stackName}")
+public class StackResource {
         
     /** 
-     * Get a blueprint
+     * Get a stack
      * 
-     * @response.representation.200.doc       Get a blueprint
+     * @response.representation.200.doc       Get a stack
      * @response.representation.200.mediaType application/json
      * @response.representation.200.example
      *  
-     * @param  blueprintName   Name of the blueprint
-     * @param  revision        The optional blueprint revision, if not specified get the latest revision
-     * @return                 blueprint definition
+     * @param  stackName       Name of the stack
+     * @param  revision        The optional stack revision, if not specified get the latest revision
+     * @return                 stack definition
      * @throws Exception       throws Exception (TBD)
      */
     @GET
     @Produces({"application/json", "application/xml"})
-    public Stack getStack(@PathParam("blueprintName") String blueprintName, 
+    public Stack getStack(@PathParam("stackName") String stackName, 
                                   @DefaultValue("-1") @QueryParam("revision") String revision) throws Exception {     
         try {
-            return Blueprints.getInstance().getStack(blueprintName, Integer.parseInt(revision));
+            return Stacks.getInstance().getStack(stackName, Integer.parseInt(revision));
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
@@ -69,22 +69,22 @@ public class BlueprintResource {
     }
     
     /** 
-     * Get a blueprint's revisions
+     * Get a stack's revisions
      * 
-     * @response.representation.200.doc       Get blueprint revisions
+     * @response.representation.200.doc       Get stack revisions
      * @response.representation.200.mediaType application/json
      *  
-     * @param  blueprintName   Name of the blueprint
+     * @param  stackName   Name of the stack
      * 
-     * @return                 List of blueprint revisions
+     * @return                 List of stack revisions
      * @throws Exception       throws Exception (TBD)
      */
     @Path(value = "/revisions")
     @GET
     @Produces({"application/json", "application/xml"})
-    public List<StackInformation> getBlueprintRevisions(@PathParam("blueprintName") String blueprintName) throws Exception {     
+    public List<StackInformation> getstackRevisions(@PathParam("stackName") String stackName) throws Exception {     
         try {
-            List<StackInformation> list = Blueprints.getInstance().getBlueprintRevisions(blueprintName);
+            List<StackInformation> list = Stacks.getInstance().getStackRevisions(stackName);
             if (list.isEmpty()) {
                 throw new WebApplicationException(Response.Status.NO_CONTENT);
             }
@@ -97,25 +97,25 @@ public class BlueprintResource {
     }
     
     /** 
-     * Delete the blueprint
+     * Delete the stack
      * 
-     * @response.representation.200.doc       Delete a blueprint
+     * @response.representation.200.doc       Delete a stack
      * @response.representation.200.mediaType application/json
      *  
-     * @param  blueprintName    Name of the blueprint
-     * @param  revision         Revision of the blueprint
+     * @param  stackName    Name of the stack
+     * @param  revision         Revision of the stack
      * @throws Exception        throws Exception (TBD)
      */
     @DELETE
     @Consumes({"application/json", "application/xml"})
-    public void deleteBlueprint(@PathParam("blueprintName") String blueprintName,
+    public void deletestack(@PathParam("stackName") String stackName,
                                 @DefaultValue("") @QueryParam("revision") String revision ) throws Exception {     
         try {
             if (revision == null || revision.equals("")) {
                 String msg = "Revision number not specified";
                 throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             }
-            Blueprints.getInstance().deleteBlueprint(blueprintName, Integer.parseInt(revision));
+            Stacks.getInstance().deleteStack(stackName, Integer.parseInt(revision));
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
@@ -124,35 +124,35 @@ public class BlueprintResource {
     }
     
     /** 
-     * Create/Update the blueprint.
+     * Create/Update the stack.
      *
-     * If named blueprint does not exist already, then it is created with revision zero.
-     * If named blueprint exists, then it is updated as new revision.
+     * If named stack does not exist already, then it is created with revision zero.
+     * If named stack exists, then it is updated as new revision.
      * Optional locationURL query parameter can specify the location of the repository of
-     * of stacks. If specified then blueprint is downloaded from the repository.
+     * of stacks. If specified then stack is downloaded from the repository.
      *
-     * @response.representation.200.doc         Successfully created the new or updated the existing blueprint.
+     * @response.representation.200.doc         Successfully created the new or updated the existing stack.
      * @response.representation.200.mediaType   application/json
-     * @response.representation.404.doc         Specified blueprint does not exist. In case of creating new one, 
+     * @response.representation.404.doc         Specified stack does not exist. In case of creating new one, 
      *                                          it is not found in repository where in case of update, it does not
      *                                          exist.    
      * 
-     * @param blueprintName Name of the blueprint
-     * @param locationURL   URL pointing to the location of the blueprint
-     * @param stack     Input blueprint object specifying the blueprint definition
-     * @return              Returns the new revision of the blueprint
+     * @param stackName Name of the stack
+     * @param locationURL   URL pointing to the location of the stack
+     * @param stack     Input stack object specifying the stack definition
+     * @return              Returns the new revision of the stack
      * @throws Exception    throws Exception
      */
     @PUT
     @Consumes({"application/json", "application/xml"})
-    public Stack updateStack(@PathParam("blueprintName") String blueprintName, 
+    public Stack updateStack(@PathParam("stackName") String stackName, 
                                      @DefaultValue("") @QueryParam("url") String locationURL,
                                      Stack stack) throws Exception {
         try {
             if (locationURL == null || locationURL.equals("")) {
-                return Blueprints.getInstance().addStack(stack);
+                return Stacks.getInstance().addStack(stack);
             } else {
-                return Blueprints.getInstance().importDefaultStack (locationURL);
+                return Stacks.getInstance().importDefaultStack (locationURL);
             }
         }catch (WebApplicationException we) {
             throw we;

@@ -46,23 +46,23 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.mortbay.log.Log;
 
-public class Blueprints {
+public class Stacks {
 
-    private static Blueprints BlueprintsRef=null;
+    private static Stacks StacksRef=null;
         
-    private Blueprints() {
+    private Stacks() {
       try {
         JAXBContext jaxbContext = 
             JAXBContext.newInstance("org.apache.ambari.common.rest.entities");
-        loadDummyBlueprint(jaxbContext, "hadoop-security", 0);
-        loadDummyBlueprint(jaxbContext, "cluster123", 0);
-        loadDummyBlueprint(jaxbContext, "cluster124", 0);
+        loadDummyStack(jaxbContext, "hadoop-security", 0);
+        loadDummyStack(jaxbContext, "cluster123", 0);
+        loadDummyStack(jaxbContext, "cluster124", 0);
       } catch (JAXBException e) {
         throw new RuntimeException("Can't create jaxb context", e);
       }
     }
     
-    public void loadDummyBlueprint (JAXBContext jaxbContext,
+    public void loadDummyStack (JAXBContext jaxbContext,
                                     String name, int revision) {
         try {
             Unmarshaller um = jaxbContext.createUnmarshaller();
@@ -83,11 +83,11 @@ public class Blueprints {
         }
     }
     
-    public static synchronized Blueprints getInstance() {
-        if(BlueprintsRef == null) {
-            BlueprintsRef = new Blueprints();
+    public static synchronized Stacks getInstance() {
+        if(StacksRef == null) {
+            StacksRef = new Stacks();
         }
-        return BlueprintsRef;
+        return StacksRef;
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -209,7 +209,7 @@ public class Blueprints {
     /*
      *  Get the list of blueprint revisions
      */
-    public List<StackInformation> getBlueprintRevisions(String blueprintName) throws Exception {
+    public List<StackInformation> getStackRevisions(String blueprintName) throws Exception {
         List<StackInformation> list = new ArrayList<StackInformation>();
         if (!this.stacks.containsKey(blueprintName)) {
             String msg = "Stack ["+blueprintName+"] does not exist";
@@ -240,7 +240,7 @@ public class Blueprints {
     /*
      * Return list of blueprint names
      */
-    public List<StackInformation> getBlueprintList() throws Exception {
+    public List<StackInformation> getStackList() throws Exception {
         List<StackInformation> list = new ArrayList<StackInformation>();
         for (String bpName : this.stacks.keySet()) {
             // Get the latest blueprint
@@ -267,12 +267,12 @@ public class Blueprints {
      * Delete the specified version of blueprint
      * TODO: Check if blueprint is associated with any stack... 
      */
-    public void deleteBlueprint(String blueprintName, int revision) throws Exception {
+    public void deleteStack(String blueprintName, int revision) throws Exception {
         
         /*
          * Check if the specified blueprint revision is used in any cluster definition
          */
-        Hashtable<String, String> clusterReferencedBPList = getClusterReferencedBlueprintsList();
+        Hashtable<String, String> clusterReferencedBPList = getClusterReferencedStacksList();
         if (clusterReferencedBPList.containsKey(blueprintName+"-"+revision)) {
             String msg = "One or more clusters are associated with the specified blueprint";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_ACCEPTABLE)).get());
@@ -290,23 +290,23 @@ public class Blueprints {
     /*
      * Returns the <key="name-revision", value=""> hash table for cluster referenced stacks
      */
-    public Hashtable<String, String> getClusterReferencedBlueprintsList() throws Exception {
-        Hashtable<String, String> clusterBlueprints = new Hashtable<String, String>();
+    public Hashtable<String, String> getClusterReferencedStacksList() throws Exception {
+        Hashtable<String, String> clusterStacks = new Hashtable<String, String>();
         for (Cluster c : Clusters.getInstance().operational_clusters.values()) {
-            String cBPName = c.getLatestClusterDefinition().getBlueprintName();
-            String cBPRevision = c.getLatestClusterDefinition().getBlueprintRevision();
+            String cBPName = c.getLatestClusterDefinition().getStackName();
+            String cBPRevision = c.getLatestClusterDefinition().getStackRevision();
             Stack bpx = this.getStack(cBPName, Integer.parseInt(cBPRevision));
-            clusterBlueprints.put(cBPName+"-"+cBPRevision, "");
+            clusterStacks.put(cBPName+"-"+cBPRevision, "");
             while (bpx.getParentName() != null) {
                 if (bpx.getParentRevision() == null) {
                     bpx = this.getStack(bpx.getParentName(), -1);
                 } else {
                     bpx = this.getStack(bpx.getParentName(), Integer.parseInt(bpx.getParentRevision()));
                 }
-                clusterBlueprints.put(bpx.getName()+"-"+bpx.getRevision(), "");
+                clusterStacks.put(bpx.getName()+"-"+bpx.getRevision(), "");
             }
         }
-        return clusterBlueprints;
+        return clusterStacks;
     }
    
     /*

@@ -210,7 +210,7 @@ public class ClusterCreate extends Command {
         // Create Cluster Definition
         ClusterDefinition clsDef = new ClusterDefinition();
         clsDef.setName(line.getOptionValue("name"));
-        clsDef.setBlueprintName(line.getOptionValue("blueprint"));
+        clsDef.setStackName(line.getOptionValue("blueprint"));
         clsDef.setNodes(line.getOptionValue("nodes"));
         
         clsDef.setGoalState(line.getOptionValue("goalstate"));
@@ -233,7 +233,7 @@ public class ClusterCreate extends Command {
             Stack stack = response.getEntity(Stack.class);
             revision = stack.getRevision();
         }
-        clsDef.setBlueprintRevision(revision);
+        clsDef.setStackRevision(revision);
         clsDef.setActiveServices(splitServices(line.getOptionValue("services")));
         clsDef.setDescription(line.getOptionValue("desc"));
         clsDef.setRoleToNodesMap(getRoleToNodesList(line.getOptionProperties("role")));

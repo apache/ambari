@@ -78,9 +78,9 @@ public class Cluster {
       clusterDefinitionRevisionsList.put((long)this.latestRevision, c);
       definition = c;
       // find the plugins for the current definition of the cluster
-      Blueprints context = Blueprints.getInstance();
-      Stack bp = context.getStack(c.getBlueprintName(),
-                                   Integer.parseInt(c.getBlueprintRevision()));
+      Stacks context = Stacks.getInstance();
+      Stack bp = context.getStack(c.getStackName(),
+                                   Integer.parseInt(c.getStackRevision()));
       
       //while (!bp.getName().equals(bp.getParentName()) || !bp.getRevision().equals(bp.getParentRevision())) {    
       while (bp.getParentName() != null) {

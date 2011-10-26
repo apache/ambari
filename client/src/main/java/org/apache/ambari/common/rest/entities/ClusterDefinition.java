@@ -66,14 +66,14 @@ public class ClusterDefinition {
     /**
      * @return the blueprintRevision
      */
-    public String getBlueprintRevision() {
+    public String getStackRevision() {
         return blueprintRevision;
     }
 
     /**
      * @param blueprintRevision the blueprintRevision to set
      */
-    public void setBlueprintRevision(String blueprintRevision) {
+    public void setStackRevision(String blueprintRevision) {
         this.blueprintRevision = blueprintRevision;
     }
 
@@ -108,14 +108,14 @@ public class ClusterDefinition {
     /**
      * @return the blueprintName
      */
-    public String getBlueprintName() {
+    public String getStackName() {
             return blueprintName;
     }
 
     /**
      * @param blueprintName the blueprintName to set
      */
-    public void setBlueprintName(String blueprintName) {
+    public void setStackName(String blueprintName) {
             this.blueprintName = blueprintName;
     }
 
