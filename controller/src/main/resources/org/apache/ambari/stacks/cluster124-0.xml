@@ -1,4 +1,4 @@
-<blueprint parentName="hadoop-security" parentRevision="0">
+<stack parentName="hadoop-security" parentRevision="0">
     <configuration>
         <category name="ambari">
             <property name="data.dirs" value="/grid/*" />
@@ -21,4 +21,4 @@
         </category>
       </configuration>
     </components>
-</blueprint>
+</stack>

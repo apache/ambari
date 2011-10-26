@@ -1,4 +1,4 @@
-<blueprint>
+<stack>
     <repositories kind="TAR">
         <urls>http://www.apache.org/dist/hadoop/common/</urls>
     </repositories>
@@ -156,4 +156,4 @@
            </configuration>
         </roles>
     </components>
-</blueprint>
+</stack>

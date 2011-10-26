@@ -17,7 +17,7 @@
  */
 {
   "description": "alpha cluster",
-  "blueprint": "kryptonite",
+  "stack": "kryptonite",
   "nodes": ["node000-999", "gateway0-1"],
   "goal": "active",
   "services": ["hdfs", "mapreduce"],

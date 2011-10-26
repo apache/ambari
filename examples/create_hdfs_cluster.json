@@ -1,8 +1,8 @@
 {
   "Name":"blue.dev.Cluster125",
   "Description":"cluster125 - development cluster",
-  "BlueprintName":"cluster125-blueprint",
-  "BlueprintRevision":"0",
+  "StackName":"cluster125-stack",
+  "StackRevision":"0",
   "GoalState":"ACTIVE",
   "ActiveServices":["hdfs"],
   "NodeRangeExpressions":["localhost"],
