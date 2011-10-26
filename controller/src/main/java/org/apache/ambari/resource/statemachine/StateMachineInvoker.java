@@ -24,9 +24,12 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.controller.Cluster;
+import org.apache.ambari.controller.HeartbeatHandler;
 import org.apache.ambari.event.AsyncDispatcher;
 import org.apache.ambari.event.Dispatcher;
 import org.apache.ambari.event.EventHandler;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class StateMachineInvoker {
   
@@ -38,7 +41,7 @@ public class StateMachineInvoker {
     dispatcher.register(ServiceEventType.class, new ServiceEventDispatcher());
     dispatcher.register(RoleEventType.class, new RoleEventDispatcher());
   }
-
+  private static Log LOG = LogFactory.getLog(StateMachineInvoker.class);
   public Dispatcher getAMBARIDispatcher() {
     return dispatcher;
   }
@@ -74,12 +77,23 @@ public class StateMachineInvoker {
   private static ConcurrentMap<String, ClusterFSM> clusters = 
       new ConcurrentHashMap<String, ClusterFSM>();
   
-  public static ClusterFSM createCluster(String clusterId, 
-      ClusterDefinition definition, 
+  public static ClusterFSM createCluster(Cluster cluster, long revision, 
       ClusterState state) throws IOException {
-    ClusterImpl clusterFSM = new ClusterImpl(definition, state);
-    clusters.put(clusterId, clusterFSM);
+    ClusterImpl clusterFSM = new ClusterImpl(cluster, revision, state);
+    clusters.put(cluster.getName(), clusterFSM);
     return clusterFSM;
+  }
+  
+  public static void stopCluster(String clusterId) {
+    ClusterFSM clusterFSM = clusters.get(clusterId);
+    clusterFSM.deactivate();
+  }
+  
+  public static void deleteCluster(String clusterId) {
+    ClusterFSM clusterFSM = clusters.get(clusterId);
+    clusterFSM.deactivate();
+    clusterFSM.terminate();
+    clusters.remove(clusterId);
   }
   
   public static ClusterFSM getStateMachineClusterInstance(String clusterId) {

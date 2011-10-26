@@ -277,7 +277,9 @@ public class Clusters {
             */
             if(cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ACTIVE)) {          
                 org.apache.ambari.resource.statemachine.ClusterFSM cs = 
-                    StateMachineInvoker.createCluster(cls.getName(),cdef,cls.getClusterState());
+                    StateMachineInvoker.createCluster(cls,cls.getLatestRevision(),
+                        cls.getClusterState());
+                cs.activate();
             }
         }
         return cdef;

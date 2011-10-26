@@ -34,9 +34,13 @@ import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
 import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
+import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.controller.Cluster;
 import org.apache.ambari.controller.Clusters;
+import org.apache.ambari.controller.HeartbeatHandler;
 import org.apache.ambari.event.EventHandler;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
 
@@ -98,21 +102,21 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
           stateMachine;
   private Lock readLock;
   private Lock writeLock;
-  private ClusterDefinition cluster;
   private Iterator<ServiceFSM> iterator;
   private ClusterState clusterState;
+  private static Log LOG = LogFactory.getLog(ClusterImpl.class);
     
-  public ClusterImpl(ClusterDefinition cluster, ClusterState clusterState) 
+  public ClusterImpl(Cluster cluster, long revision, 
+      ClusterState clusterState) 
       throws IOException {
-    this.cluster = cluster;
     ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     this.readLock = readWriteLock.readLock();
     this.writeLock = readWriteLock.writeLock();
     this.stateMachine = stateMachineFactory.make(this);
     List<ServiceFSM> serviceImpls = new ArrayList<ServiceFSM>();
     for (String service : 
-      cluster.getActiveServices()) {
-      ServiceImpl serviceImpl = new ServiceImpl(this, service);
+      cluster.getClusterDefinition(revision).getActiveServices()) {
+      ServiceImpl serviceImpl = new ServiceImpl(cluster, this, service);
       serviceImpls.add(serviceImpl);
     }
     this.services = serviceImpls;

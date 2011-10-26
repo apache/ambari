@@ -36,7 +36,6 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
   private ServiceState myState;
   private ClusterFSM clusterFsm;
   private ComponentPlugin plugin;
-  private Cluster cluster;
   
   /* The state machine for the service looks like:
    * INACTIVE --S_START--> PRESTART
@@ -115,12 +114,13 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
   private Iterator<RoleFSM> iterator;
   private final String serviceName;
   
-  public ServiceImpl(ClusterFSM cluster, String serviceName) throws IOException {
-    this.clusterFsm = cluster;
+  public ServiceImpl(Cluster cluster, ClusterFSM clusterFsm, String serviceName)
+      throws IOException {
+    this.clusterFsm = clusterFsm;
     this.serviceName = serviceName;
     this.myState = ServiceState.INACTIVE;
     //load plugin and get the roles and create them
-    this.plugin = this.cluster.getComponentDefinition(serviceName);
+    this.plugin = cluster.getComponentDefinition(serviceName);
     String[] roles = this.plugin.getActiveRoles();
     for (String role : roles) {
       RoleImpl roleImpl = new RoleImpl(this, role);

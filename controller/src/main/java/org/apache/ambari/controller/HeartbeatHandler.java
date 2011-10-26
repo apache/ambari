@@ -512,11 +512,14 @@ public class HeartbeatHandler {
     return id;
   }
   
-  private List<Cluster> inspectAgentState(HeartBeat heartbeat, 
+  private void inspectAgentState(HeartBeat heartbeat, 
       ComponentAndRoleStates componentServers)
           throws IOException {
     List<AgentRoleState> agentRoleStates = 
         heartbeat.getInstalledRoleStates();
+    if (agentRoleStates == null) {
+      return;
+    }
     List<Cluster> clustersNodeBelongsTo = new ArrayList<Cluster>();
     for (AgentRoleState agentRoleState : agentRoleStates) {
       componentServers.recordRoleState(heartbeat.getHostname(),agentRoleState);
@@ -525,14 +528,15 @@ public class HeartbeatHandler {
       clustersNodeBelongsTo.add(c);
     }
     checkActionResults(heartbeat, componentServers);
-    return clustersNodeBelongsTo;
   }
   
   private void checkActionResults(HeartBeat heartbeat,
       ComponentAndRoleStates installOrStartedComponents) {
     
     List<ActionResult> actionResults = heartbeat.getActionResults();
-    
+    if (actionResults == null) {
+      return;
+    }
     for (ActionResult actionResult : actionResults) {
       if (actionResult.getId().contains(SpecialServiceIDs
           .SERVICE_AVAILABILITY_CHECK_ID.toString())
