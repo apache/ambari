@@ -26,7 +26,7 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
-import org.apache.ambari.client.ClusterBlueprint;
+import org.apache.ambari.client.ClusterStack;
 import org.apache.ambari.controller.rest.resources.StackResource;
 import org.apache.ambari.controller.rest.resources.StacksResource;
 import org.apache.ambari.controller.rest.resources.ClusterResource;
@@ -87,7 +87,7 @@ public class WadlDocGenerator implements WadlGenerator {
     public void init() throws Exception {
         _delegate.init();
         final ResourceDocType resourceDoc = loadFile( _resourceDocFile, ResourceDocType.class, ResourceDocType.class,
-        		ClusterBlueprint.class);
+        		ClusterStack.class);
         _resourceDoc = new ResourceDocAccessor( resourceDoc );
     }
 

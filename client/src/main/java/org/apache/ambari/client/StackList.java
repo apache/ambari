@@ -56,17 +56,17 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
-public class BlueprintList extends Command {
+public class StackList extends Command {
 
     String[] args = null;
     Options options = null;
    
     CommandLine line;
     
-    public BlueprintList() {
+    public StackList() {
     }
     
-    public BlueprintList (String [] args) throws Exception {  
+    public StackList (String [] args) throws Exception {  
         /*
          * Build options for blueprint add
          */

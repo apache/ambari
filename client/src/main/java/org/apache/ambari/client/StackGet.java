@@ -47,17 +47,17 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
-public class BlueprintGet extends Command {
+public class StackGet extends Command {
 
     String[] args = null;
     Options options = null;
    
     CommandLine line;
     
-    public BlueprintGet() {
+    public StackGet() {
     }
     
-    public BlueprintGet (String [] args) throws Exception {  
+    public StackGet (String [] args) throws Exception {  
         /*
          * Build options for cluster list
          */

@@ -39,7 +39,7 @@ import org.apache.ambari.controller.ExceptionResponse;
 import org.codehaus.jettison.json.JSONArray;
 
 /** 
- * StackResource represents a Hadoop blueprint to be installed on a 
+ * StackResource represents a Hadoop stack to be installed on a 
  * cluster. Stacks define a collection of Hadoop components that are
  * installed together on a cluster and their configuration.
  */
@@ -58,7 +58,7 @@ public class StacksResource {
      */
     @GET
     @Produces({"application/json", "application/xml"})
-    public List<StackInformation> listBlueprints() throws Exception {
+    public List<StackInformation> listStacks() throws Exception {
         List<StackInformation> list;
         try {
             list = Stacks.getInstance().getStackList();

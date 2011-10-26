@@ -17,25 +17,13 @@
  */
 package org.apache.ambari.client;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 
 import org.apache.ambari.common.rest.entities.Stack;
-import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
-import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -44,30 +32,25 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONObject;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
-public class BlueprintAdd extends Command {
+public class ClusterStack extends Command {
 
     String[] args = null;
     Options options = null;
-   
     CommandLine line;
     
-    public BlueprintAdd() {
+    public ClusterStack() {
     }
     
-    public BlueprintAdd (String [] args) throws Exception {  
+    public ClusterStack (String [] args) throws Exception {  
         /*
-         * Build options for blueprint add
+         * Build options for cluster update
          */
         this.args = args;
         addOptions();
@@ -75,28 +58,29 @@ public class BlueprintAdd extends Command {
     
     public void printUsage () {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "ambari blueprint add", this.options);
+        formatter.printHelp( "ambari cluster delete", this.options);
     }
     
     public void addOptions () {
              
         Option help = new Option( "help", "Help" );
+        Option expanded = new Option( "expanded", "Return expanded version of blueprint inlining parent blueprint" );
         
-        OptionBuilder.withArgName("name");
+        OptionBuilder.withArgName("cluster_name");
         OptionBuilder.isRequired();
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Name of the blueprint");
+        OptionBuilder.withDescription( "Name of the cluster");
         Option name = OptionBuilder.create( "name" );
         
-        OptionBuilder.withArgName("location");
-        OptionBuilder.isRequired();
+        OptionBuilder.withArgName("file_path");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Either URL or local file path where blueprint in XML format is available");
-        Option location = OptionBuilder.create( "location" );
+        OptionBuilder.withDescription( "File path to store the blueprint locally on client side");
+        Option file = OptionBuilder.create( "file" );
         
-        this.options = new Options();
-        options.addOption(location);
-        options.addOption(name);
+        this.options = new Options(); 
+        options.addOption( name );
+        options.addOption( file );
+        options.addOption( expanded );
         options.addOption(help);
     }
     
@@ -136,56 +120,24 @@ public class BlueprintAdd extends Command {
         ClientConfig config = new DefaultClientConfig();
         Client client = Client.create(config);
         WebResource service = client.resource(getBaseURI());
-        String location = line.getOptionValue("location");
-        String name = line.getOptionValue("name");
+        String clusterName = line.getOptionValue("name");
         
         /*
-         * Import blueprint 
+         * Update cluster
          */
-        File f = new File(location);
-        ClientResponse response = null;
-        if (!f.exists()) {
-            try {
-                URL urlx = new URL(location);
-            } catch (MalformedURLException x) {
-                System.out.println("Specified location is either a file path that does not exist or a malformed URL");
-                System.exit(-1);
-            }
-            Stack bp = new Stack();
-            response = service.path("blueprints/"+name)
-                    .queryParam("url", location)
-                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
-        } else {
-            Stack bp = this.readStackFromXMLFile(f);
-            response = service.path("blueprints/"+name)
-                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
-        }     
-        
+        ClientResponse response = service
+                .path("clusters/"+clusterName+"/blueprint")
+                .queryParam("expanded", "true")
+                .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
         if (response.getStatus() != 200) { 
-            System.err.println("Stack add command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+            System.err.println("Get cluster blueprint command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
             System.exit(-1);
         }
         
-        Stack bp_return = response.getEntity(Stack.class);
-        
-        System.out.println("Stack added.\n");
-        printStack(bp_return, null);
+        /* 
+         * Retrieve the cluster blueprint
+         */
+        Stack stack = response.getEntity(Stack.class);
+        printStack(stack, line.getOptionValue("file"));
     }
-    
-    public Stack readStackFromXMLFile (File f) throws Exception {      
-        JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Stack.class);
-        Unmarshaller u = jc.createUnmarshaller();
-        Stack bp = (Stack)u.unmarshal(f);
-        return bp;
-    }
-    
-    public Stack readStackFromJSONFile (File f) throws Exception {      
-        FileInputStream fis = new FileInputStream(f);
-        ObjectMapper m = new ObjectMapper();
-        Stack stack = m.readValue(fis, Stack.class);
-        return stack;
-    }
-    
-    
 }
-

@@ -17,14 +17,25 @@
  */
 package org.apache.ambari.client;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 
-import org.apache.ambari.common.rest.entities.StackInformation;
+import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.common.rest.entities.ClusterDefinition;
+import org.apache.ambari.common.rest.entities.ClusterInformation;
+import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -33,6 +44,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -41,46 +55,48 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
-public class BlueprintHistory extends Command {
+public class StackAdd extends Command {
 
     String[] args = null;
     Options options = null;
-    
-    String urlPath = "/blueprints";
-    URL resourceURL = null;
+   
     CommandLine line;
     
-    public BlueprintHistory() {
+    public StackAdd() {
     }
     
-    public BlueprintHistory (String [] args) throws Exception {  
+    public StackAdd (String [] args) throws Exception {  
         /*
-         * Build options for blueprint history
+         * Build options for blueprint add
          */
         this.args = args;
         addOptions();
-        this.resourceURL = new URL (""+this.baseURLString+this.urlPath);
     }
     
     public void printUsage () {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "ambari blueprint history", this.options);
+        formatter.printHelp( "ambari blueprint add", this.options);
     }
     
     public void addOptions () {
              
         Option help = new Option( "help", "Help" );
-        Option tree = new Option( "tree", "tree representation" );
         
-        OptionBuilder.withArgName("blueprint_name");
+        OptionBuilder.withArgName("name");
         OptionBuilder.isRequired();
         OptionBuilder.hasArg();
         OptionBuilder.withDescription( "Name of the blueprint");
         Option name = OptionBuilder.create( "name" );
         
-        this.options = new Options();  
-        options.addOption( name );
-        options.addOption( tree );
+        OptionBuilder.withArgName("location");
+        OptionBuilder.isRequired();
+        OptionBuilder.hasArg();
+        OptionBuilder.withDescription( "Either URL or local file path where blueprint in XML format is available");
+        Option location = OptionBuilder.create( "location" );
+        
+        this.options = new Options();
+        options.addOption(location);
+        options.addOption(name);
         options.addOption(help);
     }
     
@@ -120,33 +136,56 @@ public class BlueprintHistory extends Command {
         ClientConfig config = new DefaultClientConfig();
         Client client = Client.create(config);
         WebResource service = client.resource(getBaseURI());
-        String blueprintName = line.getOptionValue("name");
-        boolean tree = line.hasOption("tree");
-          
-        /*
-         * Get blueprint revisions
-         */
-        ClientResponse response = service.path("blueprints/"+blueprintName+"/revisions").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
-        if (response.getStatus() == 404) { 
-            System.out.println("Stack ["+blueprintName+"] does not exist");
-            System.exit(-1);
-        }
+        String location = line.getOptionValue("location");
+        String name = line.getOptionValue("name");
         
-        if (response.getStatus() == 204) {
-            System.out.println("No revisions available for Stack ["+blueprintName+"]");
-            System.exit(0);
-        }
+        /*
+         * Import blueprint 
+         */
+        File f = new File(location);
+        ClientResponse response = null;
+        if (!f.exists()) {
+            try {
+                URL urlx = new URL(location);
+            } catch (MalformedURLException x) {
+                System.out.println("Specified location is either a file path that does not exist or a malformed URL");
+                System.exit(-1);
+            }
+            Stack bp = new Stack();
+            response = service.path("blueprints/"+name)
+                    .queryParam("url", location)
+                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
+        } else {
+            Stack bp = this.readStackFromXMLFile(f);
+            response = service.path("blueprints/"+name)
+                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
+        }     
         
         if (response.getStatus() != 200) { 
-            System.err.println("Stack history command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
+            System.err.println("Stack add command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
             System.exit(-1);
         }
-        /* 
-         * Retrieve the blueprint Information list from the response
-         */
-        List<StackInformation> bpInfos = response.getEntity(new GenericType<List<StackInformation>>(){});
-        for (StackInformation bpInfo : bpInfos) {
-            printStackInformation (service, bpInfo, tree);
-        }
+        
+        Stack bp_return = response.getEntity(Stack.class);
+        
+        System.out.println("Stack added.\n");
+        printStack(bp_return, null);
     }
+    
+    public Stack readStackFromXMLFile (File f) throws Exception {      
+        JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Stack.class);
+        Unmarshaller u = jc.createUnmarshaller();
+        Stack bp = (Stack)u.unmarshal(f);
+        return bp;
+    }
+    
+    public Stack readStackFromJSONFile (File f) throws Exception {      
+        FileInputStream fis = new FileInputStream(f);
+        ObjectMapper m = new ObjectMapper();
+        Stack stack = m.readValue(fis, Stack.class);
+        return stack;
+    }
+    
+    
 }
+

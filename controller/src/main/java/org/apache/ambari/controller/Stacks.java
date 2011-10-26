@@ -75,10 +75,10 @@ public class Stacks {
             bp.setRevision(Integer.toString(revision));
             addStack(bp);
         } catch (IOException e) {
-            Log.warn("Problem loading blueprint " + name + " rev " + revision,
+            Log.warn("Problem loading stack " + name + " rev " + revision,
                      e);
         } catch (JAXBException e) {
-          Log.warn("Problem loading blueprint " + name + " rev " + revision,
+          Log.warn("Problem loading stack " + name + " rev " + revision,
               e);
         }
     }
@@ -101,35 +101,35 @@ public class Stacks {
     
     
     /*
-     * Get blueprint. If revision = -1 then return latest revision
+     * Get stack. If revision = -1 then return latest revision
      */
-    public Stack getStack(String blueprintName, int revision) throws Exception {
+    public Stack getStack(String stackName, int revision) throws Exception {
         /*
          * If revision is -1, then return the latest revision
          */  
         Stack bp = null;
-        if (!this.stacks.containsKey(blueprintName)) {  
-            String msg = "Stack ["+blueprintName+"] is not defined";
+        if (!this.stacks.containsKey(stackName)) {  
+            String msg = "Stack ["+stackName+"] is not defined";
             throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         if (revision == -1) {
-            this.stacks.get(blueprintName).keySet();
+            this.stacks.get(stackName).keySet();
             Integer [] a = new Integer [] {};
-            Integer[] keys = this.stacks.get(blueprintName).keySet().toArray(a);
+            Integer[] keys = this.stacks.get(stackName).keySet().toArray(a);
             Arrays.sort(keys);  
-            bp = this.stacks.get(blueprintName).get(keys[keys.length-1]);
+            bp = this.stacks.get(stackName).get(keys[keys.length-1]);
         } else {
-            if (!this.stacks.get(blueprintName).containsKey(revision)) {  
-                String msg = "Stack ["+blueprintName+"], revision ["+revision+"] does not exist";
+            if (!this.stacks.get(stackName).containsKey(revision)) {  
+                String msg = "Stack ["+stackName+"], revision ["+revision+"] does not exist";
                 throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
             }
-            bp = this.stacks.get(blueprintName).get(revision);
+            bp = this.stacks.get(stackName).get(revision);
         }
         return bp;  
     }
      
     /*
-     * Add or update the blueprint
+     * Add or update the stack
      */
     public Stack addStack(Stack bp) throws IOException {
         
@@ -140,7 +140,7 @@ public class Stacks {
         
         if (stacks.containsKey(bp.getName())) {
             if (stacks.get(bp.getName()).containsKey(new Integer(bp.getRevision()))) {
-                String msg = "Specified blueprint [Name:"+bp.getName()+", Revision: ["+bp.getRevision()+"] already imported";
+                String msg = "Specified stack [Name:"+bp.getName()+", Revision: ["+bp.getRevision()+"] already imported";
                 throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             } else {
                 stacks.get(bp.getName()).put(new Integer(bp.getRevision()), bp);
@@ -155,18 +155,18 @@ public class Stacks {
     }
     
     /*
-     * Import the default blueprint from the URL location
+     * Import the default stack from the URL location
      */
     public Stack importDefaultStack (String locationURL) throws IOException {
         Stack stack;
-        URL blueprintUrl;
+        URL stackUrl;
         try {
-            blueprintUrl = new URL(locationURL);
-            InputStream is = blueprintUrl.openStream();
+            stackUrl = new URL(locationURL);
+            InputStream is = stackUrl.openStream();
             
             /* JSON FORMAT READER
             ObjectMapper m = new ObjectMapper();
-            blueprint = m.readValue(is, Stack.class);
+            stack = m.readValue(is, Stack.class);
             */
             JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Stack.class);
             Unmarshaller u = jc.createUnmarshaller();
@@ -180,7 +180,7 @@ public class Stacks {
     }
    
     /*
-     * Validate the blueprint before importing into controller
+     * Validate the stack before importing into controller
      */
     public void validateAndSetStackDefaults(Stack stack) throws IOException {
         
@@ -207,20 +207,20 @@ public class Stacks {
     }
     
     /*
-     *  Get the list of blueprint revisions
+     *  Get the list of stack revisions
      */
-    public List<StackInformation> getStackRevisions(String blueprintName) throws Exception {
+    public List<StackInformation> getStackRevisions(String stackName) throws Exception {
         List<StackInformation> list = new ArrayList<StackInformation>();
-        if (!this.stacks.containsKey(blueprintName)) {
-            String msg = "Stack ["+blueprintName+"] does not exist";
+        if (!this.stacks.containsKey(stackName)) {
+            String msg = "Stack ["+stackName+"] does not exist";
             throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
-        ConcurrentHashMap<Integer, Stack> revisions = this.stacks.get(blueprintName);
+        ConcurrentHashMap<Integer, Stack> revisions = this.stacks.get(stackName);
         for (Integer x : revisions.keySet()) {
-            // Get the latest blueprint
+            // Get the latest stack
             Stack bp = revisions.get(x);
             StackInformation bpInfo = new StackInformation();
-            // TODO: get the creation time from blueprint
+            // TODO: get the creation time from stack
             bpInfo.setCreationTime(bp.getCreationTime());
             bpInfo.setName(bp.getName());
             bpInfo.setRevision(bp.getRevision());
@@ -238,15 +238,15 @@ public class Stacks {
     }
     
     /*
-     * Return list of blueprint names
+     * Return list of stack names
      */
     public List<StackInformation> getStackList() throws Exception {
         List<StackInformation> list = new ArrayList<StackInformation>();
         for (String bpName : this.stacks.keySet()) {
-            // Get the latest blueprint
+            // Get the latest stack
             Stack bp = this.getStack(bpName, -1);
             StackInformation bpInfo = new StackInformation();
-            // TODO: get the creation and update times from blueprint
+            // TODO: get the creation and update times from stack
             bpInfo.setCreationTime(bp.getCreationTime());
             bpInfo.setName(bp.getName());
             bpInfo.setRevision(bp.getRevision());
@@ -264,26 +264,26 @@ public class Stacks {
     }
     
     /*
-     * Delete the specified version of blueprint
-     * TODO: Check if blueprint is associated with any stack... 
+     * Delete the specified version of stack
+     * TODO: Check if stack is associated with any stack... 
      */
-    public void deleteStack(String blueprintName, int revision) throws Exception {
+    public void deleteStack(String stackName, int revision) throws Exception {
         
         /*
-         * Check if the specified blueprint revision is used in any cluster definition
+         * Check if the specified stack revision is used in any cluster definition
          */
         Hashtable<String, String> clusterReferencedBPList = getClusterReferencedStacksList();
-        if (clusterReferencedBPList.containsKey(blueprintName+"-"+revision)) {
-            String msg = "One or more clusters are associated with the specified blueprint";
+        if (clusterReferencedBPList.containsKey(stackName+"-"+revision)) {
+            String msg = "One or more clusters are associated with the specified stack";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_ACCEPTABLE)).get());
         }
         
         /*
-         * If no cluster is associated then remove the blueprint
+         * If no cluster is associated then remove the stack
          */
-        this.stacks.get(blueprintName).remove(revision);
-        if (this.stacks.get(blueprintName).keySet().isEmpty()) {
-            this.stacks.remove(blueprintName);
+        this.stacks.get(stackName).remove(revision);
+        if (this.stacks.get(stackName).keySet().isEmpty()) {
+            this.stacks.remove(stackName);
         }    
     }
     

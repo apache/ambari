@@ -80,11 +80,11 @@ public class ClusterResource {
     /** 
      * Add/Update cluster definition. If cluster does not exist it will created.
      *  
-     *  While creating new cluster, cluster definition must specify name, blueprint name 
+     *  While creating new cluster, cluster definition must specify name, stack name 
      *  and nodes associated with the cluster. 
      *  Default values for new cluster definition parameters, if not specified
      *    -- goalstate          = "INACTIVE"  (optionally, it can be set to ACTIVE)
-     *    -- blueprint revision = latest revision
+     *    -- stack revision = latest revision
      *    -- RoleToNodes        = If explicit association is not specified then Ambari
      *                            will determine the optimal role to nodes association. 
      *                            User can view it by running the command in dry_run.
@@ -96,7 +96,7 @@ public class ClusterResource {
      *  
      *  For new cluster to be in active state cluster definition needs to be 
      *  complete & valid e.g. number of nodes associated are sufficient for 
-     *  each role, specified blueprint for cluster configuration should exist 
+     *  each role, specified stack for cluster configuration should exist 
      *  etc. 
      *  
      *  Updating existing cluster definition would require only specific sub elements
@@ -279,9 +279,9 @@ public class ClusterResource {
     }
     
     /** 
-     * Get the blueprint associated with cluster
+     * Get the stack associated with cluster
      *  
-     *  @response.representation.200.doc Get the blueprint associated with cluster
+     *  @response.representation.200.doc Get the stack associated with cluster
      *  @response.representation.200.mediaType   application/json
      *  @response.representgation.404.doc        Cluster does not exist
      *  
@@ -290,13 +290,13 @@ public class ClusterResource {
      *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
      *                      unique name
      *  @param  expanded    Optionally specify the boolean value to indicate if 
-     *                      to retrieved the cluster level blueprint or the fully
-     *                      derived blueprint in-lining the parent stacks 
+     *                      to retrieved the cluster level stack or the fully
+     *                      derived stack in-lining the parent stacks 
      *                      associated with the service role
      *  @return             Stack
      *  @throws Exception   throws Exception
      */
-    @Path(value = "/blueprint")
+    @Path(value = "/stack")
     @GET
     @Produces({"application/json", "application/xml"})
     public Stack getClusterStack (@PathParam("clusterName") String clusterName,
