@@ -78,17 +78,38 @@ public class ClusterResource {
     }
     
     /** 
-     * Update cluster definition.
+     * Add/Update cluster definition. If cluster does not exist it will created.
+     *  
+     *  While creating new cluster, cluster definition must specify name, blueprint name 
+     *  and nodes associated with the cluster. 
+     *  Default values for new cluster definition parameters, if not specified
+     *    -- goalstate          = "INACTIVE"  (optionally, it can be set to ACTIVE)
+     *    -- blueprint revision = latest revision
+     *    -- RoleToNodes        = If explicit association is not specified then Ambari
+     *                            will determine the optimal role to nodes association. 
+     *                            User can view it by running the command in dry_run.
+     *    -- active services    = "ALL" i.e. if not specified all the configured 
+     *                            services will be activated
+     *    -- description        = Default description will be associated
+     *    -- dry_run            = false
+     *  
+     *  
+     *  For new cluster to be in active state cluster definition needs to be 
+     *  complete & valid e.g. number of nodes associated are sufficient for 
+     *  each role, specified blueprint for cluster configuration should exist 
+     *  etc. 
+     *  
+     *  Updating existing cluster definition would require only specific sub elements
+     *  of cluster definition to be specified. 
      * 
-     * @response.representation.200.doc         Returns updated cluster definition.
+     * @response.representation.200.doc         Returns new or updated cluster definition.
      * @response.representation.200.mediaType   application/json
      * @response.representation.400.doc         Bad request (See "ErrorMessage" in the response
      *                                          http header describing specific error condition).
-     * @response.representation.404.doc        Cluster does not exist
      * @response.representation.200.example
      * 
-     * @param   clusterName                     Name of the cluster; Each cluster is identified w/ unique name
-     * @param   cluster                         Cluster definition with only specific sub-elements to be updated.
+     * @param   clusterName                     Name of the cluster
+     * @param   cluster                         Cluster definition to be created new or updated existing one
      *                                          Cluster name can not be updated through this API.
      * @param   dry_run                         Boolean option to specify dry_run. In dry_run, updates to cluster
      *                                          definition are validated but actual updates are not made

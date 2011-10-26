@@ -241,7 +241,7 @@ public class ClusterCreate extends Command {
         /*
          * Create cluster
          */
-        ClientResponse response = service.path("clusters").queryParam("dry_run", dry_run).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, clsDef);
+        ClientResponse response = service.path("clusters/"+line.getOptionValue("name")).queryParam("dry_run", dry_run).accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).put(ClientResponse.class, clsDef);
         if (response.getStatus() != 200) { 
             System.err.println("Cluster create command failed. Reason [Code: <"+response.getStatus()+">, Message: <"+response.getHeaders().getFirst("ErrorMessage")+">]");
             System.exit(-1);

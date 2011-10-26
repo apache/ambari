@@ -79,48 +79,4 @@ public class ClustersResource {
         } 
         return searchResults;
     }
-    
-    /** 
-     * Add new cluster definition.
-     *
-     *  Cluster definition must specify name, blueprint name and nodes associated with
-     *  the cluster. 
-     *  Default values of cluster definition parameters, if not specified
-     *    -- goalstate          = "INACTIVE"  (optionally, it can be set to ACTIVE)
-     *    -- blueprint revision = latest revision
-     *    -- RoleToNodes        = If explicit association is not specified then Ambari
-     *                            will determine the optimal role to nodes association. 
-     *                            User can view it by running the command in dry_run.
-     *    -- active services    = "ALL" i.e. if not specified all the configured 
-     *                            services will be activated
-     *    -- description        = Default description will be associated
-     *    -- dry_run            = false
-     *  
-     *  
-     *  For cluster to be in active state cluster definition needs to be 
-     *  complete & valid e.g. number of nodes associated are sufficient for 
-     *  each role, specified blueprint for cluster configuration should exist 
-     *  etc. 
-     *  
-     *  @request.representation.doc ClusterDefinition object
-     *  @request.representation.example
-     *      
-     *  @param  dry_run   Enable dry run by setting it to true
-     *  @param  cluster   Definition of the cluster to be created 
-     *  @return           Returns the cluster definition 
-     *  @throws Exception Throws exception (TBD)
-     */
-    @POST
-    @Consumes({"application/json"})
-    public ClusterDefinition addCluster(
-            @DefaultValue("false") @QueryParam("dry_run") boolean dry_run,
-            ClusterDefinition cluster) throws Exception {
-        try {
-            return Clusters.getInstance().addCluster(cluster, dry_run);
-        }catch (WebApplicationException we) {
-            throw we;
-        }catch (Exception e) {
-            throw new WebApplicationException((new ExceptionResponse(e)).get());
-        } 
-    }
 }
