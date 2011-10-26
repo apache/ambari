@@ -82,6 +82,12 @@ public class BlueprintAdd extends Command {
              
         Option help = new Option( "help", "Help" );
         
+        OptionBuilder.withArgName("name");
+        OptionBuilder.isRequired();
+        OptionBuilder.hasArg();
+        OptionBuilder.withDescription( "Name of the blueprint");
+        Option name = OptionBuilder.create( "name" );
+        
         OptionBuilder.withArgName("location");
         OptionBuilder.isRequired();
         OptionBuilder.hasArg();
@@ -90,6 +96,7 @@ public class BlueprintAdd extends Command {
         
         this.options = new Options();
         options.addOption(location);
+        options.addOption(name);
         options.addOption(help);
     }
     
@@ -130,6 +137,7 @@ public class BlueprintAdd extends Command {
         Client client = Client.create(config);
         WebResource service = client.resource(getBaseURI());
         String location = line.getOptionValue("location");
+        String name = line.getOptionValue("name");
         
         /*
          * Import blueprint 
@@ -144,13 +152,13 @@ public class BlueprintAdd extends Command {
                 System.exit(-1);
             }
             Blueprint bp = new Blueprint();
-            response = service.path("blueprints")
+            response = service.path("blueprints/"+name)
                     .queryParam("url", location)
-                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).post(ClientResponse.class, bp);
+                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
         } else {
             Blueprint bp = this.readBlueprintFromXMLFile(f);
-            response = service.path("blueprints")
-                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).post(ClientResponse.class, bp);
+            response = service.path("blueprints/"+name)
+                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
         }     
         
         if (response.getStatus() != 200) { 

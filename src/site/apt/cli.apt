@@ -303,11 +303,17 @@ Blueprint Commands
 
   * <<blueprint add>> 
 
-    * Add blueprint to Ambari.
+    * Add or update the blueprint. If blueprint exists, it will be updated to create new revision else 
+    new bluprint is created.
+   
 
     * <<Options:>>
 
-      * <<-location>> [FILE_PATH/URL]
+      * <<-name>> [NAME] <<[REQUIRED]>>
+
+        * Name of the blueprint.
+
+      * <<-location>> [FILE_PATH/URL] <<[REQUIRED]>>
 
         * Specify local file path or the URL from where blueprint (in XML format) is to be imported into Ambari
 

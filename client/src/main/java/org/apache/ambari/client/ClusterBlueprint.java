@@ -43,9 +43,6 @@ public class ClusterBlueprint extends Command {
 
     String[] args = null;
     Options options = null;
-    
-    String urlPath = "/clusters";
-    URL resourceURL = null;
     CommandLine line;
     
     public ClusterBlueprint() {
@@ -57,7 +54,6 @@ public class ClusterBlueprint extends Command {
          */
         this.args = args;
         addOptions();
-        this.resourceURL = new URL (""+this.baseURLString+this.urlPath);
     }
     
     public void printUsage () {

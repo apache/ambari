@@ -47,35 +47,14 @@ import org.codehaus.jettison.json.JSONArray;
 public class BlueprintsResource {
  
     /** 
-     * Creates a new blueprint.
-     *
-     *  If named blueprint does not exists already, then it creates new one i.e. revision zero.
+     * Get the list of blueprints
      * 
-     * @param blueprint  Input blueprint object specifying the blueprint definition
-     * @return Returns the newly created revision of the blueprint
-     * @throws Exception throws Exception
-     */
-    @POST
-    @Consumes ({"application/xml", "application/json"})
-    public Blueprint createBlueprint(@DefaultValue("") @QueryParam("url") String locationURL, Blueprint blueprint) throws Exception {  
-        try {
-            if (locationURL == null || locationURL.equals("")) {
-                return Blueprints.getInstance().addBlueprint(blueprint);
-            } else {
-                return Blueprints.getInstance().importDefaultBlueprint (locationURL);
-            }
-        }catch (WebApplicationException we) {
-            throw we;
-        }catch (Exception e) {
-            throw new WebApplicationException((new ExceptionResponse(e)).get());
-        } 
-    }
-
-    /** 
-     * Get the list of blueprint names
-     * 
-     * @return Returns the list of blueprint names
-     * @throws Exception throws Exception
+     * @response.representation.200.doc         Successful
+     * @response.representation.200.mediaType   application/json
+     * @response.representation.204.doc         List is empty.
+     *  
+     * @return Returns the list of BlueprintInformation items
+     * @throws Exception
      */
     @GET
     @Produces({"application/json", "application/xml"})

@@ -124,11 +124,18 @@ public class BlueprintResource {
     }
     
     /** 
-     * Update a current blueprint.
+     * Create/Update the blueprint.
      *
-     * @response.representation.200.doc       Updates a current blueprint to 
-     *                                        update some of its fields.
-     * @response.representation.200.mediaType application/json
+     * If named blueprint does not exist already, then it is created with revision zero.
+     * If named blueprint exists, then it is updated as new revision.
+     * Optional locationURL query parameter can specify the location of the repository of
+     * of blueprints. If specified then blueprint is downloaded from the repository.
+     *
+     * @response.representation.200.doc         Successfully created the new or updated the existing blueprint.
+     * @response.representation.200.mediaType   application/json
+     * @response.representation.404.doc         Specified blueprint does not exist. In case of creating new one, 
+     *                                          it is not found in repository where in case of update, it does not
+     *                                          exist.    
      * 
      * @param blueprintName Name of the blueprint
      * @param blueprint     Input blueprint object specifying the blueprint definition
@@ -136,9 +143,21 @@ public class BlueprintResource {
      * @throws Exception    throws Exception
      */
     @PUT
-    @Consumes
-    public Blueprint updateBlueprint(@PathParam("blueprintName") String blueprintName, Blueprint blueprint) throws Exception {
-        return null;
+    @Consumes({"application/json", "application/xml"})
+    public Blueprint updateBlueprint(@PathParam("blueprintName") String blueprintName, 
+                                     @DefaultValue("") @QueryParam("url") String locationURL,
+                                     Blueprint blueprint) throws Exception {
+        try {
+            if (locationURL == null || locationURL.equals("")) {
+                return Blueprints.getInstance().addBlueprint(blueprint);
+            } else {
+                return Blueprints.getInstance().importDefaultBlueprint (locationURL);
+            }
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        } 
     }
     
 }
