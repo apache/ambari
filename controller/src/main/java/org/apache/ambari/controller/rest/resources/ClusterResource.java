@@ -49,7 +49,7 @@ import org.apache.ambari.controller.rest.config.Examples;
  * ClusterResource represents a Hadoop Cluster in a data center.
  *  
  */
-@Path(value = "/clusters/{clusterName}")
+@Path(value = "/clusters")
 public class ClusterResource {
         
     /** 
@@ -61,13 +61,14 @@ public class ClusterResource {
      *  @response.representation.200.example    {@link Examples#CLUSTER_INFORMATION}
      *  @response.representation.404.doc        Specified cluster does not exist
      *  
-     *  @param      clusterName                 Name of the cluster; Each cluster is identified w/ unique name
+     *  @param      clusterName                 Name of the cluster AAAA
      *  @return                                 Returns the Cluster Information
      *  @throws     WebApplicationException     Throws exception (TBD)
      */
+    @Path(value = "/{clusterNamez}")
     @GET
     @Produces({"application/json", "application/xml"})
-    public ClusterInformation getClusterDefinition(@PathParam("clusterName") String clusterName) throws WebApplicationException {
+    public ClusterInformation getClusterDefinition(@PathParam("clusterNamez") String clusterName) throws WebApplicationException {
         try {
             return Clusters.getInstance().getClusterInformation(clusterName);
         }catch (WebApplicationException we) {
@@ -109,19 +110,18 @@ public class ClusterResource {
      *                                          http header describing specific error condition).
      * 
      * @param   clusterName                     Name of the cluster
-     * @param   dry_run                         Whether to do a dry run
+     * @param   dry_run                         Run without actual execution
      * @param   cluster                         Cluster definition to be created new or updated existing one
      *                                          Cluster name can not be updated through this API.
-     * @param   dry_run                         Boolean option to specify dry_run. In dry_run, updates to cluster
-     *                                          definition are validated but actual updates are not made
      * @return                                  Returns updated cluster definition
      * @throws  Exception                       throws Exception
      */ 
+    @Path(value = "/{clusterNamey}")
     @PUT
     @Consumes({"application/json", "application/xml"})
     @Produces({"application/json", "application/xml"})
     public ClusterDefinition updateClusterDefinition(
-           @PathParam("clusterName") String clusterName,
+           @PathParam("clusterNamey") String clusterName,
            @DefaultValue("false") @QueryParam("dry_run") boolean dry_run,
            ClusterDefinition cluster) throws Exception {    
         try {
@@ -141,16 +141,16 @@ public class ClusterResource {
      * @response.representation.200.mediaType   application/json
      * @response.representation.400.doc         Bad request (See "ErrorMessage" in the response
      *                                          http header describing specific error condition).
-     * @response.representation.400.doc         Not Acceptable. Cluster is not in ATTIC state.
+     * @response.representation.406.doc         Not Acceptable. Cluster is not in ATTIC state.
      * @response.representation.404.doc         Cluster does not exist
      * 
-     * @param   clusterName                     Existing name of the cluster
+     * @param   clusterName                     Existing name of the cluster  FFFFF
      * @param   new_name                        New name of the cluster
      * @throws  Exception                       throws Exception (TBD)
      */ 
     @PUT
     @Consumes({"application/json", "application/xml"})
-    @Path(value = "/rename")
+    @Path(value = "/{clusterName}/rename")
     public void renameCluster(
            @PathParam("clusterName") String clusterName,
            @DefaultValue("") @QueryParam("new_name") String new_name) throws Exception {    
@@ -176,12 +176,13 @@ public class ClusterResource {
      *                                  nodes are released. All the cluster data 
      *                                  will be lost.
      *  
-     *  @param  clusterName             Name of the cluster; Each cluster is identified w/ unique name
+     *  @param  clusterName             Name of the cluster BBBB
      *  @throws Exception               throws Exception (TBD)
      */
+    @Path(value = "/{clusterNamex}")
     @DELETE
     @Consumes({"application/json", "application/xml"})
-    public void deleteCluster(@PathParam("clusterName") String clusterName) throws Exception {
+    public void deleteCluster(@PathParam("clusterNamex") String clusterName) throws Exception {
         try {
             Clusters.getInstance().deleteCluster(clusterName);
         }catch (WebApplicationException we) {
@@ -208,12 +209,11 @@ public class ClusterResource {
      *  @response.representation.200.example     {@link Examples#CLUSTER_STATE}
      *  @response.representation.404.doc         Cluster does not exist
      *  
-     *  @param  clusterName             Name of the cluster; Each cluster is 
-     *                                  identified w/ unique name
+     *  @param  clusterName             Name of the cluster EEEE
      *  @return                         Returns cluster state object.
      *  @throws Exception               throws Exception (TBD)  
      */
-    @Path(value = "/state")
+    @Path(value = "/{clusterName}/state")
     @GET
     @Produces({"application/json", "application/xml"})
     public ClusterState getClusterState(@PathParam("clusterName") String clusterName) throws Exception {
@@ -241,8 +241,7 @@ public class ClusterResource {
      *  @response.representation.500.doc    Internal Server Error; No nodes are associated with the cluster
      *                                      (See "ErrorMessage" in the response http header describing specific error condition).
      *  
-     *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
-     *                      unique name
+     *  @param  clusterName Name of the cluster CCCC
      *  @param  role        Optionally specify the role name to get the nodes 
      *                      associated with the service role
      *  @param  alive       Boolean value (true/false) to specify, if nodes to be 
@@ -252,7 +251,7 @@ public class ClusterResource {
      *  @return             List of nodes
      *  @throws Exception   throws Exception
      */
-    @Path(value = "/nodes")
+    @Path(value = "/{clusterName}/nodes")
     @GET
     @Produces({"application/json", "application/xml"})
     public List<Node> getNodes (@PathParam("clusterName") String clusterName,
@@ -281,8 +280,7 @@ public class ClusterResource {
      *  @response.representation.200.example {@link Examples#STACK}
      *  @response.representgation.404.doc        Cluster does not exist
      *  
-     *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
-     *                      unique name
+     *  @param  clusterName Name of the cluster DDDD
      *  @param  expanded    Optionally specify the boolean value to indicate if 
      *                      to retrieved the cluster level stack or the fully
      *                      derived stack in-lining the parent stacks 
@@ -290,7 +288,7 @@ public class ClusterResource {
      *  @return             Stack
      *  @throws Exception   throws Exception
      */
-    @Path(value = "/stack")
+    @Path(value = "/{clusterName}/stack")
     @GET
     @Produces({"application/json", "application/xml"})
     public Stack getClusterStack (@PathParam("clusterName") String clusterName,

@@ -26,6 +26,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.controller.ExceptionResponse;
@@ -42,6 +43,11 @@ public class NodesResource {
      *  The "allocated and "alive" are the boolean variables that specify the type of nodes to return based on their state i.e. if they are already allocated to any cluster and live or dead. 
      *  Live nodes are the ones that are consistently heart beating with the controller. If both "allocated" and "alive" are set to NULL then all the nodes are returned.  
      *  
+     * @response.representation.200.doc  Successful. 
+     * @response.representation.200.mediaType application/json
+     * @response.representation.404.doc Node does not exist
+     * @response.representation.200.example
+     * 
      *  @param  allocated               Boolean value to specify, if nodes to be returned are allocated/reserved for some cluster (specify null to return both allocated and unallocated nodes)
      *  @param  alive                   Boolean value to specify, if nodes to be returned are alive or dead or both (specify null to return both live and dead nodes) 
      *  @return                         List of nodes
@@ -50,9 +56,14 @@ public class NodesResource {
     @GET
     @Produces({"application/json", "application/xml"})
     public List<Node> getNodesList (@DefaultValue("") @QueryParam("allocated") String allocated,
-                                @DefaultValue("") @QueryParam("alive") String alive) throws Exception {
+                                    @DefaultValue("") @QueryParam("alive") String alive) throws Exception {
+        List<Node> list;
         try {
-            return Nodes.getInstance().getNodesByState(allocated, alive);
+            list = Nodes.getInstance().getNodesByState(allocated, alive);
+            if (list.isEmpty()) {
+                throw new WebApplicationException(Response.Status.NO_CONTENT);
+            }   
+            return list;
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
@@ -66,6 +77,11 @@ public class NodesResource {
     /** 
      * Get the node information that includes, service states, node attributes etc.
      * 
+     * @response.representation.200.doc  Successful. 
+     * @response.representation.200.mediaType application/json
+     * @response.representation.404.doc Node does not exist
+     * @response.representation.200.example
+     *  
      * @param hostname          Fully qualified hostname
      * @return                  Returns the node information
      * @throws Exception        throws Exception

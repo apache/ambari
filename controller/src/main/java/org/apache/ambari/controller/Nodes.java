@@ -185,9 +185,6 @@ public class Nodes {
             }
         }
         
-        if (list.isEmpty()) {
-            throw new WebApplicationException(Response.Status.NO_CONTENT);
-        }   
         return list;
     }
     

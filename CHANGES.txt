@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-110. Add persistent data store interface (vgogate)
+
   AMBARI-107. Added reporting section to aggregate javadocs. (Eric Yang)
 
   AMBARI-109. Minor fixes to the CLI documentation. (omalley)
