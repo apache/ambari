@@ -378,25 +378,15 @@
             <xsl:otherwise>
                 <xsl:choose>
                     <xsl:when test="node()[1]!=text()">
-<!--                        <xsl:apply-templates select="node()" mode="copy"/> -->
-                        <xsl:call-template name="getExample"/>
+                        <xsl:apply-templates select="node()" mode="copy"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="text()"/>
+                        <xsl:apply-templates select="node()" mode="copy"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:for-each>
-</xsl:template>
-
-<xsl:template name="getExample">
-    <xsl:choose>
-        <xsl:when test="code"><xsl:value-of select="@code"/></xsl:when>
-        <xsl:otherwise>
-            <xsl:apply-templates select="node()" mode="copy"/>
-        </xsl:otherwise>
-    </xsl:choose>
 </xsl:template>
 
 <xsl:template match="html:*" mode="copy">
@@ -561,7 +551,7 @@
             border: 1px solid #DDDDE6;
             padding: .5em;
             margin-bottom: 1em;
-            width: 50em
+            width: 95%
         }
         .methodNameTable {
             width: 100%;

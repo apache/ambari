@@ -51,6 +51,7 @@ public class ClustersResource {
      *         "INACTIVE"      : All the inactive state clusters
      *         "ATTIC"         : All the retired i.e. ATTIC state clusters
      *  @response.representation.200.doc Return ClusterInformation
+     *  @response.representation.200.mediaType application/json
      *  @response.representation.200.example
      *  @response.representation.204.doc No cluster defined
      *  @response.representation.500.doc Internal Server Error

@@ -57,7 +57,7 @@ public class ClusterResource {
      * and the cluster state.
      * 
      *  @response.representation.200.doc        Get the definition & current state of the specified Hadoop cluster
-     *  @response.representation.200.mediaType  application/json application/xml
+     *  @response.representation.200.mediaType  application/json
      *  @response.representation.200.example    {@link Examples#CLUSTER_INFORMATION}
      *  @response.representation.404.doc        Specified cluster does not exist
      *  
@@ -104,11 +104,11 @@ public class ClusterResource {
      * 
      * @response.representation.200.doc         Returns new or updated cluster definition.
      * @response.representation.200.mediaType   application/json
+     * @response.representation.200.example     {@link Examples#CLUSTER_DEFINITION}
      * @response.representation.400.doc         Bad request (See "ErrorMessage" in the response
      *                                          http header describing specific error condition).
-     * @response.representation.200.example
      * 
-     * @param   clusterName                     Name of the cluster ZZZZZZZ
+     * @param   clusterName                     Name of the cluster
      * @param   dry_run                         Whether to do a dry run
      * @param   cluster                         Cluster definition to be created new or updated existing one
      *                                          Cluster name can not be updated through this API.
@@ -139,10 +139,10 @@ public class ClusterResource {
      * @response.representation.200.doc         Rename the cluster. This operation is allowed only
      *                                          when cluster is in ATTIC state
      * @response.representation.200.mediaType   application/json
-     * @response.representgation.404.doc        Cluster does not exist
      * @response.representation.400.doc         Bad request (See "ErrorMessage" in the response
      *                                          http header describing specific error condition).
      * @response.representation.400.doc         Not Acceptable. Cluster is not in ATTIC state.
+     * @response.representation.404.doc         Cluster does not exist
      * 
      * @param   clusterName                     Existing name of the cluster
      * @param   new_name                        New name of the cluster
@@ -205,14 +205,8 @@ public class ClusterResource {
      *                                                  "ATTIC"   : Only cluster definition is available. No nodes are 
      *                                                              reserved for the cluster in this state.
      *  @response.representation.200.mediaType   application/json
+     *  @response.representation.200.example     {@link Examples#CLUSTER_STATE}
      *  @response.representation.404.doc         Cluster does not exist
-     *  @response.representation.200.example     {
-           "state":{
-              "@state":"ATTIC",
-              "@creationTime":"2011-10-20T11:35:06.687-07:00",
-              "@lastUpdateTime":"2011-10-20T11:35:06.687-07:00"
-           }
-        }
      *  
      *  @param  clusterName             Name of the cluster; Each cluster is 
      *                                  identified w/ unique name
@@ -241,10 +235,11 @@ public class ClusterResource {
      *  dead. Live nodes are the ones that are consistently heart beating with 
      *  the controller. If both live and dead nodes need to be returned 
      *  then do not specify the alive query parameter
+     *  @response.representation.200.mediaType application/json
+     *  @response.representation.200.example {@link Examples#NODES}
      *  @response.representation.204.doc    No content; No nodes are associated with the cluster
      *  @response.representation.500.doc    Internal Server Error; No nodes are associated with the cluster
      *                                      (See "ErrorMessage" in the response http header describing specific error condition).
-     *  @response.representation.200.example
      *  
      *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
      *                      unique name
@@ -283,9 +278,8 @@ public class ClusterResource {
      *  
      *  @response.representation.200.doc Get the stack associated with cluster
      *  @response.representation.200.mediaType   application/json
+     *  @response.representation.200.example {@link Examples#STACK}
      *  @response.representgation.404.doc        Cluster does not exist
-     *  
-     *  @response.representation.200.example
      *  
      *  @param  clusterName Name of the cluster; Each cluster is identified w/ 
      *                      unique name

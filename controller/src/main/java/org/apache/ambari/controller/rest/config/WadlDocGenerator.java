@@ -87,7 +87,7 @@ public class WadlDocGenerator implements WadlGenerator {
     public void init() throws Exception {
         _delegate.init();
         final ResourceDocType resourceDoc = loadFile( _resourceDocFile, ResourceDocType.class, ResourceDocType.class,
-        		ClusterStack.class);
+        		Examples.class);
         _resourceDoc = new ResourceDocAccessor( resourceDoc );
     }
 
