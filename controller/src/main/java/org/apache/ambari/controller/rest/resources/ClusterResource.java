@@ -44,7 +44,7 @@ import org.apache.ambari.controller.Cluster;
 import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.ExceptionResponse;
 import org.apache.ambari.controller.Nodes;
-
+import org.apache.ambari.controller.rest.config.Examples;
 /** 
  * ClusterResource represents a Hadoop Cluster in a data center.
  *  
@@ -57,9 +57,9 @@ public class ClusterResource {
      * and the cluster state.
      * 
      *  @response.representation.200.doc        Get the definition & current state of the specified Hadoop cluster
-     *  @response.representation.200.mediaType  application/json
+     *  @response.representation.200.mediaType  application/json application/xml
+     *  @response.representation.200.example    {@link Examples#CLUSTER_INFORMATION}
      *  @response.representation.404.doc        Specified cluster does not exist
-     *  @response.representation.200.example    ClusterInformation
      *  
      *  @param      clusterName                 Name of the cluster; Each cluster is identified w/ unique name
      *  @return                                 Returns the Cluster Information

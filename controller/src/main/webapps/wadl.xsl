@@ -378,7 +378,8 @@
             <xsl:otherwise>
                 <xsl:choose>
                     <xsl:when test="node()[1]!=text()">
-                        <xsl:apply-templates select="node()" mode="copy"/>
+<!--                        <xsl:apply-templates select="node()" mode="copy"/> -->
+                        <xsl:call-template name="getExample"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:value-of select="text()"/>
@@ -387,6 +388,15 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:for-each>
+</xsl:template>
+
+<xsl:template name="getExample">
+    <xsl:choose>
+        <xsl:when test="code"><xsl:value-of select="@code"/></xsl:when>
+        <xsl:otherwise>
+            <xsl:apply-templates select="node()" mode="copy"/>
+        </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
 <xsl:template match="html:*" mode="copy">
