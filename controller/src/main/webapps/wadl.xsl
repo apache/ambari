@@ -375,15 +375,38 @@
                 </xsl:variable>
                 <a href="{$url}"><xsl:value-of select="$url"/></a>
             </xsl:when>
+            <xsl:when test="@title = 'Ambari REST API'">
+<p>
+   Ambari provides rich REST interfaces that allow the creation, 
+   modification, querying, and deletion of stacks and clusters. The
+   primary resources are: 
+   <ul>
+   <li><a href="index.html#Stacks">Stacks</a> - definition of which 
+       components should be deployed and how they should be 
+       <a href="index.html#Configuration">configured</a>.</li>
+   <li><a href="index.html#Clusters">Clusters</a> - combination a stack 
+       and nodes to run Hadoop</li><li>Nodes - the machines managed by 
+       Ambari</li>
+   </ul>
+   Each is represented by a top level resource, which is a container,
+   and nested resources for each instance.
+</p><br/>
+<p>
+   The resources and the entities that are passed to them are defined
+   using JAXB and are represented in either XML or JSON formats
+   depending on the ContentType and Accept HTTP headers. The definition
+   of the types is given in the <a
+   href="apidocs/org/apache/ambari/common/rest/entities/package-summary.html">
+   JavaDoc</a>.
+</p><br/>
+<p>
+   Typical usage would be to create a new stack derived from a pre-defined
+   one and change the neccessary configuration parameters. Then create a
+   cluster based on the stack by assigning nodes and marking it active.
+</p>
+            </xsl:when>
             <xsl:otherwise>
-                <xsl:choose>
-                    <xsl:when test="node()[1]!=text()">
-                        <xsl:apply-templates select="node()" mode="copy"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:apply-templates select="node()" mode="copy"/>
-                    </xsl:otherwise>
-                </xsl:choose>
+               <xsl:apply-templates select="node()" mode="copy"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:for-each>
