@@ -49,7 +49,6 @@ import org.apache.ambari.controller.rest.config.Examples;
  * ClusterResource represents a Hadoop Cluster in a data center.
  *  
  */
-@Path(value = "/clusters")
 public class ClusterResource {
         
     /** 
@@ -65,7 +64,7 @@ public class ClusterResource {
      *  @return                                 Returns the Cluster Information
      *  @throws     WebApplicationException     Throws exception (TBD)
      */
-    @Path(value = "/{clusterNamez}")
+    @Path(value = "/clusters/{clusterNamez}")
     @GET
     @Produces({"application/json", "application/xml"})
     public ClusterInformation getClusterDefinition(@PathParam("clusterNamez") String clusterName) throws WebApplicationException {
@@ -116,7 +115,7 @@ public class ClusterResource {
      * @return                                  Returns updated cluster definition
      * @throws  Exception                       throws Exception
      */ 
-    @Path(value = "/{clusterNamey}")
+    @Path(value = "/clusters/{clusterNamey}")
     @PUT
     @Consumes({"application/json", "application/xml"})
     @Produces({"application/json", "application/xml"})
@@ -150,7 +149,7 @@ public class ClusterResource {
      */ 
     @PUT
     @Consumes({"application/json", "application/xml"})
-    @Path(value = "/{clusterName}/rename")
+    @Path(value = "/clusters/{clusterName}/rename")
     public void renameCluster(
            @PathParam("clusterName") String clusterName,
            @DefaultValue("") @QueryParam("new_name") String new_name) throws Exception {    
@@ -179,7 +178,7 @@ public class ClusterResource {
      *  @param  clusterName             Name of the cluster BBBB
      *  @throws Exception               throws Exception (TBD)
      */
-    @Path(value = "/{clusterNamex}")
+    @Path(value = "/clusters/{clusterNamex}")
     @DELETE
     @Consumes({"application/json", "application/xml"})
     public void deleteCluster(@PathParam("clusterNamex") String clusterName) throws Exception {
@@ -213,7 +212,7 @@ public class ClusterResource {
      *  @return                         Returns cluster state object.
      *  @throws Exception               throws Exception (TBD)  
      */
-    @Path(value = "/{clusterName}/state")
+    @Path(value = "/clusters/{clusterName}/state")
     @GET
     @Produces({"application/json", "application/xml"})
     public ClusterState getClusterState(@PathParam("clusterName") String clusterName) throws Exception {
@@ -251,7 +250,7 @@ public class ClusterResource {
      *  @return             List of nodes
      *  @throws Exception   throws Exception
      */
-    @Path(value = "/{clusterName}/nodes")
+    @Path(value = "/clusters/{clusterName}/nodes")
     @GET
     @Produces({"application/json", "application/xml"})
     public List<Node> getNodes (@PathParam("clusterName") String clusterName,
@@ -288,7 +287,7 @@ public class ClusterResource {
      *  @return             Stack
      *  @throws Exception   throws Exception
      */
-    @Path(value = "/{clusterName}/stack")
+    @Path(value = "/clusters/{clusterName}/stack")
     @GET
     @Produces({"application/json", "application/xml"})
     public Stack getClusterStack (@PathParam("clusterName") String clusterName,

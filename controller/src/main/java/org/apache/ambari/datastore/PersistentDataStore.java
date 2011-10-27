@@ -14,6 +14,11 @@ public interface PersistentDataStore {
      */
     public void initialize () throws Exception;
     
+    /*
+     * Shutdown the data store. It will stop the data store service
+     */
+    public void shutdown () throws Exception;
+    
     /**
      * Persist the cluster definition.
      * 

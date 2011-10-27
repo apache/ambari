@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-112. Fix the url path conflict for /clusters used in both ClustersResource and ClusterResource (vgogate)
+
   AMBARI-111. Minor clean up of site documentation (omalley)
 
   AMBARI-110. Add persistent data store interface (vgogate)

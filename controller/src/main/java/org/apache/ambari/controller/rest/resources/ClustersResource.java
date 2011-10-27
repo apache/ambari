@@ -40,7 +40,6 @@ import javax.ws.rs.core.Response;
 /**
  * Clusters Resource represents the collection of Hadoop clusters in a data center
  */
-@Path(value = "/clusters")
 public class ClustersResource {
     
     /** 
@@ -62,6 +61,7 @@ public class ClustersResource {
      *                     and optional search criteria.
      *  @throws Exception  throws Exception (TBD)
      */
+    @Path(value = "/clusters")
     @GET
     @Produces({"application/json", "application/xml"})
     public List<ClusterInformation> getClusterList (
