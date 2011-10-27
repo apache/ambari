@@ -73,4 +73,125 @@ public class StacksResource {
         } 
     }
     
+    /** 
+     * Get a stack
+     * 
+     * @response.representation.200.doc       Get a stack
+     * @response.representation.200.mediaType application/json
+     * @response.representation.200.example
+     *  
+     * @param  stackName       Name of the stack
+     * @param  revision        The optional stack revision, if not specified get the latest revision
+     * @return                 stack definition
+     * @throws Exception       throws Exception (TBD)
+     */
+    @Path(value = "/{stackNamex}")
+    @GET
+    @Produces({"application/json", "application/xml"})
+    public Stack getStack(@PathParam("stackNamex") String stackName, 
+                                  @DefaultValue("-1") @QueryParam("revision") String revision) throws Exception {     
+        try {
+            return Stacks.getInstance().getStack(stackName, Integer.parseInt(revision));
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        }      
+    }
+    
+    /** 
+     * Get a stack's revisions
+     * 
+     * @response.representation.200.doc       Get stack revisions
+     * @response.representation.200.mediaType application/json
+     *  
+     * @param  stackName   Name of the stack
+     * 
+     * @return                 List of stack revisions
+     * @throws Exception       throws Exception (TBD)
+     */
+    @Path(value = "/{stackName}/revisions")
+    @GET
+    @Produces({"application/json", "application/xml"})
+    public List<StackInformation> getstackRevisions(@PathParam("stackName") String stackName) throws Exception {     
+        try {
+            List<StackInformation> list = Stacks.getInstance().getStackRevisions(stackName);
+            if (list.isEmpty()) {
+                throw new WebApplicationException(Response.Status.NO_CONTENT);
+            }
+            return list;
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        }      
+    }
+    
+    /** 
+     * Delete the stack
+     * 
+     * @response.representation.200.doc       Delete a stack
+     * @response.representation.200.mediaType application/json
+     *  
+     * @param  stackName    Name of the stack
+     * @param  revision         Revision of the stack
+     * @throws Exception        throws Exception (TBD)
+     */
+    @Path(value = "/{stackNamey}")
+    @DELETE
+    @Consumes({"application/json", "application/xml"})
+    public void deletestack(@PathParam("stackNamey") String stackName,
+                                @DefaultValue("") @QueryParam("revision") String revision ) throws Exception {     
+        try {
+            if (revision == null || revision.equals("")) {
+                String msg = "Revision number not specified";
+                throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
+            }
+            Stacks.getInstance().deleteStack(stackName, Integer.parseInt(revision));
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        }    
+    }
+    
+    /** 
+     * Create/Update the stack.
+     *
+     * If named stack does not exist already, then it is created with revision zero.
+     * If named stack exists, then it is updated as new revision.
+     * Optional locationURL query parameter can specify the location of the repository of
+     * of stacks. If specified then stack is downloaded from the repository.
+     *
+     * @response.representation.200.doc         Successfully created the new or updated the existing stack.
+     * @response.representation.200.mediaType   application/json
+     * @response.representation.404.doc         Specified stack does not exist. In case of creating new one, 
+     *                                          it is not found in repository where in case of update, it does not
+     *                                          exist.    
+     * 
+     * @param stackName Name of the stack
+     * @param locationURL   URL pointing to the location of the stack
+     * @param stack     Input stack object specifying the stack definition
+     * @return              Returns the new revision of the stack
+     * @throws Exception    throws Exception
+     */
+    @Path(value = "/{stackNamez}")
+    @PUT
+    @Consumes({"application/json", "application/xml"})
+    public Stack updateStack(@PathParam("stackNamez") String stackName, 
+                                     @DefaultValue("") @QueryParam("url") String locationURL,
+                                     Stack stack) throws Exception {
+        try {
+            if (locationURL == null || locationURL.equals("")) {
+                return Stacks.getInstance().addStack(stack);
+            } else {
+                return Stacks.getInstance().importDefaultStack (locationURL);
+            }
+        }catch (WebApplicationException we) {
+            throw we;
+        }catch (Exception e) {
+            throw new WebApplicationException((new ExceptionResponse(e)).get());
+        } 
+    }
+    
 }

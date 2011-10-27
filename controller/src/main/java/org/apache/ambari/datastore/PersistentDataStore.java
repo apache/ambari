@@ -8,16 +8,11 @@ import org.apache.ambari.common.rest.entities.ClusterState;
 
 public interface PersistentDataStore {
     
-    /*
-     * Initialize the data store i.e. create schema and start the server etc
-     * This API should be idempotent
-     */
-    public void initialize () throws Exception;
     
     /*
      * Shutdown the data store. It will stop the data store service
      */
-    public void shutdown () throws Exception;
+    public void close () throws Exception;
     
     /**
      * Persist the cluster definition.
@@ -38,7 +33,7 @@ public interface PersistentDataStore {
      * Return LinkedHashMap of <Revision, ClusterDefinition>. LinkedHashMap should preserve insertion order
      * 
      */
-    public LinkedHashMap<String, ClusterDefinition> retrieveClusterDefinitionRevisions (boolean ascending) throws Exception;
+    public LinkedHashMap<String, ClusterDefinition> retrieveClusterDefinitions (boolean ascending) throws Exception;
     
     
     /**

@@ -27,9 +27,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.ambari.client.ClusterStack;
-import org.apache.ambari.controller.rest.resources.StackResource;
+
 import org.apache.ambari.controller.rest.resources.StacksResource;
-import org.apache.ambari.controller.rest.resources.ClusterResource;
 import org.apache.ambari.controller.rest.resources.ClustersResource;
 
 import com.sun.jersey.api.model.AbstractMethod;
