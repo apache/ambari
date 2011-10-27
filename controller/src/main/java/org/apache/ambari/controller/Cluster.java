@@ -82,8 +82,7 @@ public class Cluster {
       Stack bp = context.getStack(c.getStackName(),
                                    Integer.parseInt(c.getStackRevision()));
       
-      //while (!bp.getName().equals(bp.getParentName()) || !bp.getRevision().equals(bp.getParentRevision())) {    
-      while (bp.getParentName() != null) {
+      while (bp != null) {
         for(Component comp: bp.getComponents()) {
           String name = comp.getName();
           if (!plugins.containsKey(name) && comp.getDefinition() != null) {
@@ -92,8 +91,12 @@ public class Cluster {
         }
         
         // go up to the parent
-        bp = context.getStack(bp.getParentName(), 
+        if (bp.getParentName() != null) {
+          bp = context.getStack(bp.getParentName(), 
                                   Integer.parseInt(bp.getParentRevision()));
+        } else {
+          bp = null;
+        }
       }
     }
     
