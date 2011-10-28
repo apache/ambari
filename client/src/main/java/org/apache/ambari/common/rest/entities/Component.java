@@ -27,8 +27,7 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for CategoryType complex type.
- * 
+ * Metadata information about a given component.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "CategoryType", propOrder = {

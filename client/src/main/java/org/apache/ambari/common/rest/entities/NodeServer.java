@@ -21,19 +21,18 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-
+/**
+ * The information about a server running on a node, which is included in 
+ * Node.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "NodeServer", propOrder = {
-    "name",
-        "state",
-        "lastStateUpdateTime"
-})
+@XmlType
 public class NodeServer {
 
     public static final String NODE_SERVER_STATE_UP = "UP";
@@ -43,13 +42,13 @@ public class NodeServer {
      * name should be component name : role name
      * TODO : May be we can have component and role as two separate attributes instead of name
      */
-    @XmlElement(name = "Name", required = true)
+    @XmlAttribute(required = true)
     protected String name;
     
-    @XmlElement(name = "State", required = true)
+    @XmlAttribute(required = true)
     protected String state;  // UP/DOWN
     
-    @XmlElement(name = "LastStateUpdateTime", required = true)
+    @XmlAttribute(required = true)
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar lastStateUpdateTime;
         

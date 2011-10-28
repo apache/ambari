@@ -30,18 +30,18 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class ComponentDefinition {
   @XmlAttribute
-  protected String group;
+  protected String provider;
   @XmlAttribute
   protected String definition; 
   @XmlAttribute
   protected String version;
   
   /**
-   * Get the group that published the component definition
-   * @return the group name
+   * Get the provider that published the component definition
+   * @return the provider name
    */
-  public String getGroup() {
-    return group;
+  public String getProvider() {
+    return provider;
   }
   
   /**
@@ -61,11 +61,11 @@ public class ComponentDefinition {
   }
   
   /**
-   * Set the group that published the component definition
-   * @param group
+   * Set the provider that published the component definition
+   * @param provider
    */
-  public void setGroup(String group) {
-    this.group = group;
+  public void setProvider(String provider) {
+    this.provider = provider;
   }
   
   /**
@@ -86,7 +86,7 @@ public class ComponentDefinition {
   
   public String toString() {
     StringBuilder buffer = new StringBuilder();
-    buffer.append(group);
+    buffer.append(provider);
     buffer.append('.');
     buffer.append(definition);
     buffer.append('@');

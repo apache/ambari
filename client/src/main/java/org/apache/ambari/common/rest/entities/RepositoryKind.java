@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * Entity for defining a list of repositories
+ * Entity for defining a list of repositories inside a Stack.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "PackageType", propOrder = {

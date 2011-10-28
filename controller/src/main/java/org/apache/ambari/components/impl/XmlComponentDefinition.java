@@ -296,7 +296,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
   }
 
   private static InputStream getInputStream(ComponentDefinition defn) {
-    String name = defn.getGroup().replace('.', '/') + "/acd/" +
+    String name = defn.getProvider().replace('.', '/') + "/acd/" +
                   defn.getDefinition() + '-' +
                   defn.getVersion() + ".acd";
     InputStream result = ClassLoader.getSystemResourceAsStream(name);
@@ -318,7 +318,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
   public static void main(String[] args) throws Exception {
     ComponentDefinition defn = new ComponentDefinition();
     defn.setDefinition("hadoop-hdfs");
-    defn.setGroup("org.apache.ambari");
+    defn.setProvider("org.apache.ambari");
     defn.setVersion("0.1.0");
     XmlComponentDefinition comp = new XmlComponentDefinition(defn);
     System.out.println(comp.provides);

@@ -24,7 +24,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-
+/**
+ * Details of the configuration for a role inside of a Stack.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "RoleType", propOrder = {
     "name",

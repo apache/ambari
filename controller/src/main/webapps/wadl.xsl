@@ -382,8 +382,17 @@
     </xsl:for-each>
 </xsl:template>
 
+<xsl:template match="a" mode="copy">
+    <xsl:variable name="href" select="@href"/>
+    <a href="{$href}"><xsl:apply-templates select="node()" mode="copy"/></a>
+</xsl:template>
+
 <xsl:template match="b" mode="copy">
   <b><xsl:apply-templates select="node()" mode="copy"/></b>
+</xsl:template>
+
+<xsl:template match="br" mode="copy">
+  <br><xsl:apply-templates select="node()" mode="copy"/></br>
 </xsl:template>
 
 <xsl:template match="p" mode="copy">

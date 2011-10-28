@@ -23,7 +23,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-
+/**
+ * A single key/value pair inside a Configuration.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "Property", propOrder = {
     "name",

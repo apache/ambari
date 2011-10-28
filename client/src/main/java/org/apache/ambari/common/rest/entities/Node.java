@@ -25,8 +25,35 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * <p>Java class for NodeType complex type.
+ * The information about each node.
  * 
+ * <p>
+ * The schema is
+ * <pre>
+ * element Node {
+ *   element nodeAttributes {
+ *     attribute cpuType { text }
+ *     attribute cpuUnits { text }
+ *     attribute cpuCores { text }
+ *     attribute ramInGB { text }
+ *     attribute diskSizeInGB { text }
+ *     attribute diskUnits { text }
+ *   }
+ *   element nodeState {
+ *     attribute lastHeartbeat { text }?
+ *     attribute clusterName { text }?
+ *     attribute agentInstalled { boolean }?
+ *     attribute allocatedToCluster { boolean }?
+ *     element nodeRoleNames { text }*
+ *     element nodeServers {
+ *       attribute name { text }
+ *       attribute state { text }
+ *       attribute lastStateUpdateTime { text }
+ *     }*
+ *   }
+ * }
+ * </pre>
+ * </p>
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "Node", propOrder = {

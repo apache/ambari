@@ -18,12 +18,21 @@
 -->
 
 <body>
+<p>
 This package defines the entities (messages) for Ambari's REST
 interface. The primary two are <a href="Stack.html">Stack</a>, which
 defines what needs to be deployed and how it should be configured,
 and <a href="ClusterDefinition.html">ClusterDefinition</a>, which
-binds a set of nodes to a given stack. These entities are defined
+binds a set of nodes to a given stack.
+</p>
+
+<p>
+These entities are defined
 using JAXB and thus can be represented as either XML or JSON with a
-very simple mapping.
+very simple mapping. Each of the top level entity classes in this package 
+have the
+<a href="http://relaxng.org/compact-tutorial-20030326.html">compact RelaxNG</a>
+schemas for their type.
+</p>
 </body>
 </html>

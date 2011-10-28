@@ -23,6 +23,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
@@ -30,20 +31,18 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-
+/**
+ * Information about the Nodes.
+  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "NodeState", propOrder = {
-    "clusterName",
-    "allocatedToCluster",
-    "lastHeartbeatTime",
-    "agentInstalled",
-    "nodeRoleNames",
+   "nodeRoleNames",
     "nodeServers"
 })
 @XmlRootElement
 public class NodeState {
 
-    @XmlElement
+    @XmlAttribute
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar lastHeartbeatTime;
         
@@ -51,9 +50,24 @@ public class NodeState {
      * Associating the cluster name would reserve the node for a given cluster
      * 
      */
-    @XmlElement
+    @XmlAttribute
     protected String clusterName;
     
+    @XmlAttribute
+    protected Boolean agentInstalled = true;
+
+    @XmlAttribute
+    protected Boolean allocatedToCluster = false;
+        
+    /*
+     * null indicates no roles associated with this node.
+     */
+    @XmlElement
+    protected List<String> nodeRoleNames = null;
+        
+    @XmlElement
+    protected List<NodeServer> nodeServers = new ArrayList<NodeServer>();
+
     /**
      * @return the clusterName
      */
@@ -68,20 +82,6 @@ public class NodeState {
         this.clusterName = clusterName;
     }
 
-    @XmlElement
-    protected Boolean agentInstalled = true;
-
-    @XmlElement
-    protected Boolean allocatedToCluster = false;
-        
-    /*
-     * null indicates no roles associated with this node.
-     */
-    @XmlElement
-    protected List<String> nodeRoleNames = null;
-        
-    @XmlElement
-    protected List<NodeServer> nodeServers = new ArrayList<NodeServer>();
 
     /**
      * @return the nodeRoleNames

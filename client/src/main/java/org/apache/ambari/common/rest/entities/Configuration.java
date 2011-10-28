@@ -28,8 +28,7 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for ConfigurationType complex type.
- *  
+ * The configuration included in a Stack.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "Configuration", propOrder = {

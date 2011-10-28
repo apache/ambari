@@ -28,6 +28,23 @@ import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+/**
+ * Stack metadata information, which is returned when listing stacks.
+ * 
+ * <p>
+ * The schema is:
+ * <pre>
+ * element StackInformation {
+ *   attribute name { text }
+ *   attribute revision { text }
+ *   attribute parentName { text }
+ *   attribute parentRevision { text }
+ *   attribute creationTime { text }
+ *   element component { text }*
+ * }
+ * </pre>
+ * </p>
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "StackInformation", propOrder = {
     "name",

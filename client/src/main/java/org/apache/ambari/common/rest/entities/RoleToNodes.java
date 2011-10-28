@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 
 
 /**
- * <p>Java class for RoleToNodesMapEntryType complex type.
+ * The nodes associated with a role.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class RoleToNodes {

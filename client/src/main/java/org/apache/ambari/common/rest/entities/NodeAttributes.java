@@ -22,8 +22,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 
 /**
- * <p>Java class for NodeMetricsType complex type. 
- * 
+ * The attributes for each machine included in Node.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class NodeAttributes {

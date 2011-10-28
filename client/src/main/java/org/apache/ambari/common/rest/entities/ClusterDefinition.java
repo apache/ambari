@@ -29,7 +29,26 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for ClusterType complex type.
+ * Definition of a cluster.
+ * 
+ * <p>
+ * The schema is:
+ * <pre>
+ * element cluster {
+ *   attribute name { text }?
+ *   attribute description { text }?
+ *   attribute stackName { text }?
+ *   attribute stackRevision { text }?
+ *   attribute goalState { text }?
+ *   attribute nodes { text }?
+ *   element activeServices { text } *
+ *   element roleToNodesMap { 
+ *     attribute role { text }
+ *     attribute node { text }
+ *   } *
+ * }
+ * </pre>
+ * </p>
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -37,7 +56,7 @@ import javax.xml.bind.annotation.XmlType;
     "activeServices",
     "roleToNodesMap"
 })
-@XmlRootElement(name = "Cluster")
+@XmlRootElement(name = "cluster")
 public class ClusterDefinition {
         
     public static final String GOAL_STATE_ACTIVE = "ACTIVE";

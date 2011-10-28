@@ -35,7 +35,55 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
- * <p>Java class for Stack type.
+ * Stack definition.
+ * Stacks include the components to deploy and the configuration for the
+ * cluster.
+ * 
+ * <p>
+ * The schema is:
+ * <pre>
+ * grammar {
+ *   start = element stack {
+ *     attribute name { text }?
+ *     attribute revision { text }?
+ *     attribute parentName { text }?
+ *     attribute parentRevision { text }?
+ *     attribute creationTime { text }?
+ *     element repositories {
+ *       attribute name { text }
+ *       element urls { text }*
+ *     }*
+ *     element configuration { Configuration }?
+ *     element components {
+ *       attribute name { text }
+ *       attribute version { text }?
+ *       attribute architecture { text }?
+ *       attribute provider { text }?
+ *       element definition {
+ *         attribute provider { text }?
+ *         attribute definition { text }?
+ *         attribute version { text }?
+ *       }
+ *       element configuration { Configuration }?
+ *       element roles {
+ *         attribute name { text }
+ *         element configuration { Configuration }?
+ *       }*
+ *     }*
+ *   }
+ *   Configuration = element configuration {
+ *     element category {
+ *       attribute name { text }
+ *       element property {
+ *         attribute name { text }
+ *         attribute value { text }
+ *         attribute force { boolean }?
+ *       }*
+ *     }
+ *   }
+ * }
+ * </pre>
+ * </p>
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)

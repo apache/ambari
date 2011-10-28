@@ -30,8 +30,20 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
- * <p>Java class for ClusterType complex type.
+ * The state of a cluster.
  * 
+ * <p>
+ * The schema looks like:
+ * <pre>
+ * element ClusterState {
+ *   attribute state { text }
+ *   attribute creationTime { text }
+ *   attribute deployTime { text }
+ *   attribute lastUpdateTime { text }
+ *   attribute markForDeletionWhenInAttic { boolean }
+ * }
+ * </pre>
+ * </p>
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement
