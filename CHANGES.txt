@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-115. Fixed connection error handling for agent. (Eric Yang)
+
   AMBARI-114. Fix issues in XMLComponentDefinition (ddas)
 
   AMBARI-112. Fixes the blueprint/stack resolution in the Cluster class

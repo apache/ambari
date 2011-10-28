@@ -83,7 +83,7 @@ class Controller(threading.Thread):
         id=int(data['responseId'])
         self.actionQueue.put(data)
         retry=False
-      except URLError, err:
+      except Exception, err:
         retry=True
         if "code" in err:
           logger.error(err.code)
