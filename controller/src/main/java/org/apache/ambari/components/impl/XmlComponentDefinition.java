@@ -26,7 +26,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
   @XmlType(name = "component", propOrder = {
       "requires",
       "roles",
-      "preinstall",
+      "prestart",
       "install",
       "configure",
       "start",
@@ -44,7 +44,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
     @XmlElement Configure configure;
     @XmlElement Start start;
     @XmlElement Check check;
-    @XmlElement Preinstall preinstall;
+    @XmlElement Prestart prestart;
     @XmlElement Uninstall uninstall;
   }
   
@@ -87,9 +87,9 @@ public class XmlComponentDefinition extends ComponentPlugin {
   }
   
   @XmlAccessorType(XmlAccessType.FIELD)
-  @XmlType(name = "preinstall")
-  public static class Preinstall extends ScriptCommand {
-    @XmlAttribute String runPreinstallOn;
+  @XmlType(name = "prestart")
+  public static class Prestart extends ScriptCommand {
+    @XmlAttribute String runPrestartOn;
   }
   
   @XmlAccessorType(XmlAccessType.FIELD)
@@ -119,9 +119,9 @@ public class XmlComponentDefinition extends ComponentPlugin {
   private final String uninstallCommand;
   private final String uninstallUser;
   private final String checkRole;
-  private final String preinstallRole;
-  private final String preinstallCommand;
-  private final String preinstallUser;
+  private final String prestartRole;
+  private final String prestartCommand;
+  private final String prestartUser;
   private final String checkCommand;
   private final String checkUser;
   
@@ -200,17 +200,17 @@ public class XmlComponentDefinition extends ComponentPlugin {
   
   @Override
   public String runPreStartRole() throws IOException {
-    return preinstallRole;
+    return prestartRole;
   }
 
   @Override
   public Action preStartAction(String cluster, String role) throws IOException {
-    if (preinstallCommand == null) {
+    if (prestartCommand == null) {
       return null;
     }
     Action result = new Action();
     result.kind = Action.Kind.RUN_ACTION;
-    result.command = new Command(preinstallUser, preinstallCommand, 
+    result.command = new Command(prestartUser, prestartCommand, 
                                  new String[]{cluster, role});
     return result; 
   }
@@ -256,7 +256,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
       } else {
         dependencies = new String[component.requires.size()];
         for(Requires r: component.requires) {
-          dependencies[i] = r.name;
+          dependencies[i++] = r.name;
         }
       }
       i = 0;
@@ -265,7 +265,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
       } else {
         roles = new String[component.roles.size()];
         for(Role r: component.roles) {
-          roles[i] = r.name;
+          roles[i++] = r.name;
         }      
       }
       installCommand = getCommand(component.install);
@@ -276,17 +276,17 @@ public class XmlComponentDefinition extends ComponentPlugin {
       startUser = getUser(component.start, component.user);
       checkCommand = getCommand(component.check);
       checkUser = getUser(component.check, component.user);
-      preinstallCommand = getCommand(component.preinstall);
-      preinstallUser = getUser(component.preinstall, component.user);
+      prestartCommand = getCommand(component.prestart);
+      prestartUser = getUser(component.prestart, component.user);
       if (component.check != null) {
         checkRole = component.check.runOn;
       } else {
         checkRole = null;
       }
-      if (component.preinstall != null) {
-        preinstallRole = component.preinstall.runPreinstallOn;
+      if (component.prestart != null) {
+        prestartRole = component.prestart.runPrestartOn;
       } else {
-        preinstallRole = null;
+        prestartRole = null;
       }
       uninstallCommand = getCommand(component.uninstall);
       uninstallUser = getUser(component.uninstall, component.user);
