@@ -39,6 +39,7 @@
       <item name="Download" href="download.html"/>
       <item name="REST API" href="application.html"/>
       <item name="CLI" href="cli.html"/>
+      <item name="Scenarios" href="scenarios.html"/>
     </menu>
 
     <menu ref="reports"/>
