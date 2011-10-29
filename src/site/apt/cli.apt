@@ -54,27 +54,33 @@ Command Line Interface
 
   * <<Cluster commands>>
 
-    * cluster \{create | update | list | get | delete | rename | stack | 
+    * ambari cluster \{create | update | list | get | delete | rename | stack | 
     nodes\}
 
   * <<Stack commands>>
 
-    * stack \{create | update | list | get | delete | history \}
+    * ambari stack \{create | update | list | get | delete | history \}
 
   * <<Node commands>>
 
-    * nodes \{list | get\}
+    * ambari nodes \{list | get\}
+
+  * <<Configuration commands>>
+
+    * ambari configure
+
+    * ambari add-user
 
   * <<Generic commands>>
 
-    * help
+    * ambari help
 
-    * version
+    * ambari version
 
 
 Cluster Commands
 
-  * <<cluster  create>> 
+  * <<ambari cluster  create>> 
 
     * Submit the cluster creation request to Ambari. It may take some
     time to bring the cluster to the desired state and hence the
@@ -136,7 +142,7 @@ Cluster Commands
 
   []
 
-  * <<cluster update>> 
+  * <<ambari cluster update>> 
 
     * It updates the cluster definition. All the options except name
     are OPTIONAL
@@ -182,7 +188,7 @@ Cluster Commands
 
   []
 
-  * <<cluster list>> 
+  * <<ambari cluster list>> 
 
     * List clusters. In a non-verbose mode, list cluster will return
     the list of cluster names.
@@ -201,7 +207,7 @@ Cluster Commands
 
   []
 
-  * <<cluster get>> 
+  * <<ambari cluster get>> 
 
     * Get the detailed cluster information displayed.
 
@@ -213,7 +219,7 @@ Cluster Commands
 
   []
 
-  * <<cluster delete>>
+  * <<ambari cluster delete>>
 
     * Delete the cluster. It deactivates the cluster. Controller in
     the background would free all the associated nodes and then remove
@@ -229,7 +235,7 @@ Cluster Commands
 
   []
 
-  * <<cluster rename>> 
+  * <<ambari cluster rename>> 
 
     * Renames the cluster
 
@@ -241,7 +247,7 @@ Cluster Commands
 
   []
 
-  * <<cluster stack>>
+  * <<ambari cluster stack>>
 
     * It displays the stack associated with the cluster. The
     <<-expand>> option provides the derived stack configuration as
@@ -264,7 +270,7 @@ Cluster Commands
 
   [] 
 
-  * <<cluster nodes>> 
+  * <<ambari cluster nodes>> 
 
     * List the nodes associated with specified cluster
 
@@ -289,7 +295,7 @@ Cluster Commands
 
 Stack Commands
 
-  * <<stack create>> 
+  * <<ambari stack create>> 
 
     * Add or update the stack. If stack exists, it will be
     updated to create new revision else new stack is created.
@@ -308,7 +314,7 @@ Stack Commands
 
   []
 
-  * <<stack update>>
+  * <<ambari stack update>>
 
     * Update the stack. Only the properties set in file will be updated.
 
@@ -325,7 +331,7 @@ Stack Commands
 
   []
 
-  * <<stack list>> 
+  * <<ambari stack list>> 
 
     * List all the stacks. In non-verbose mode, just lists the stacks' names.
 
@@ -346,7 +352,7 @@ Stack Commands
 
   [] 
 
-  * <<stack get>> 
+  * <<ambari stack get>> 
 
     * Get the stack document in JSON format
 
@@ -365,7 +371,7 @@ Stack Commands
 
   []
 
-  * <<stack delete>> 
+  * <<ambari stack delete>> 
 
     * Delete the stack.
 
@@ -377,7 +383,7 @@ Stack Commands
 
   []
 
-  * <<stack history>>
+  * <<ambari stack history>>
 
     * List all the revisions of a specified stack
 
@@ -395,7 +401,7 @@ Stack Commands
 
 Node Commands 
 
-  * <<node list>>
+  * <<ambari node list>>
 
     * Lists the nodes being managed by Ambari. In non-verbose mode, just lists
     the full host names.
@@ -420,7 +426,7 @@ Node Commands
 
   []
 
-  * <<node get>>
+  * <<ambari node get>>
 
     * All of the information about the node is displayed including the
     node name, machine attributes, node state, associated cluster,
@@ -434,14 +440,49 @@ Node Commands
 
   []
 
+Configuration Commands
+
+  * <<ambari configure>>
+
+    * Configures Ambari on this machine by re-writing the configuration file.
+
+    * <<Options:>>
+
+      * <<-agent-password>> [PASSWORD]
+
+        * Set the password for the Ambari agent to authenticate to the 
+          controller.
+
+      * <<-controller>> [MACHINE NAME]
+
+        * Set the machine name for the Ambari controller.
+
+  * <<ambari add-user>>
+
+    * Add a new user as an Ambari administrator.
+
+    * <<Options:>>
+
+      * <<-user>> [USER NAME] [REQUIRED]
+
+        * Add the given username to the database of authorized administrators.
+
+      * <<-kerberos>>
+
+        * The user should authenticate using Kerberos.
+
+      * <<-password>> [PASSWORD]
+
+        * The user should provide the given password when authenticating.
+
 Generic Commands
 
-  * <<help>>
+  * <<ambari help>>
 
     * Provides the CLI help
 
   []
 
-  * <<version>>
+  * <<ambari version>>
 
     * Ambari CLI version
