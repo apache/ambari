@@ -76,6 +76,7 @@ public class AsyncDispatcher implements Dispatcher {
     };
   }
 
+  @Override
   public void start() {
     eventHandlingThread = new Thread(createThread());
     eventHandlingThread.start();

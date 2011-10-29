@@ -40,7 +40,7 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
    *                                --S_START_FAILURE--> FAIL
    * ACTIVE --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
    *                             --S_STOP_FAILURE--> UNCLEAN_STOP
-   * FAIL --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
+   * FAIL --S_STOP--> STOPPING --S_STOP_SUCCESS--> STOPPED
    *                           --S_STOP_FAILURE--> UNCLEAN_STOP
    */
   
@@ -50,6 +50,9 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
          RoleEvent>(RoleState.INACTIVE)
          
          .addTransition(RoleState.INACTIVE, RoleState.STARTING, 
+             RoleEventType.START)
+             
+         .addTransition(RoleState.STOPPED, RoleState.STARTING, 
              RoleEventType.START)
              
          .addTransition(RoleState.STARTING, 
@@ -77,10 +80,10 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
              
          .addTransition(RoleState.FAIL, RoleState.STOPPING, RoleEventType.STOP)
          
-         .addTransition(RoleState.STOPPING, RoleState.INACTIVE, 
+         .addTransition(RoleState.STOPPING, RoleState.STOPPED, 
              RoleEventType.STOP_SUCCESS)
              
-         .addTransition(RoleState.INACTIVE, RoleState.INACTIVE,
+         .addTransition(RoleState.STOPPED, RoleState.STOPPED,
              RoleEventType.STOP_SUCCESS)
              
          .addTransition(RoleState.STOPPING, RoleState.UNCLEAN_STOP, 
@@ -199,7 +202,7 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
 
   @Override
   public boolean shouldStop() {
-    return myState == RoleState.STOPPING || myState == RoleState.INACTIVE;
+    return myState == RoleState.STOPPING || myState == RoleState.STOPPED;
   }
 
   @Override

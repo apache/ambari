@@ -49,7 +49,7 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
    *                                --START_FAILURE from any service--> FAIL
    * ACTIVE --STOP--> STOPPING --STOP_SUCCESS from all services--> INACTIVE
    *                             --STOP_FAILURE from any service--> UNCLEAN_STOP
-   * FAIL --STOP--> STOPPING --STOP_SUCCESS--> INACTIVE
+   * FAIL --STOP--> STOPPING --STOP_SUCCESS--> STOPPED
    *                           --STOP_FAILURE--> UNCLEAN_STOP
    * INACTIVE --RELEASE_NODES--> ATTIC
    * ATTIC --ADD_NODES--> INACTIVE
@@ -83,7 +83,10 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
   .addTransition(ClusterStateFSM.FAIL, ClusterStateFSM.STOPPING, 
       ClusterEventType.STOP)
       
-  .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.INACTIVE, 
+  .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.STOPPED, 
+      ClusterEventType.STOP_SUCCESS)
+      
+  .addTransition(ClusterStateFSM.STOPPED, ClusterStateFSM.STOPPED, 
       ClusterEventType.STOP_SUCCESS)
       
   .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.UNCLEAN_STOP, 
@@ -120,6 +123,7 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
       serviceImpls.add(serviceImpl);
     }
     this.services = serviceImpls;
+    this.clusterState = clusterState;
   }
   
   public ClusterStateFSM getState() {

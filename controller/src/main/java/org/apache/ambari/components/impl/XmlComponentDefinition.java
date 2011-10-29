@@ -89,7 +89,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
   @XmlAccessorType(XmlAccessType.FIELD)
   @XmlType(name = "prestart")
   public static class Prestart extends ScriptCommand {
-    @XmlAttribute String runPrestartOn;
+    @XmlAttribute String runOn;
   }
   
   @XmlAccessorType(XmlAccessType.FIELD)
@@ -284,7 +284,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
         checkRole = null;
       }
       if (component.prestart != null) {
-        prestartRole = component.prestart.runPrestartOn;
+        prestartRole = component.prestart.runOn;
       } else {
         prestartRole = null;
       }

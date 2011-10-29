@@ -33,7 +33,6 @@ import org.apache.ambari.event.EventHandler;
 
 public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
 
-  private ServiceState myState;
   private ClusterFSM clusterFsm;
   private ComponentPlugin plugin;
   
@@ -46,7 +45,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
    * STARTED --S_UNAVAILABLE--> FAIL
    * ACTIVE --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
    *                             --S_STOP_FAILURE--> UNCLEAN_STOP
-   * FAIL --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
+   * FAIL --S_STOP--> STOPPING --S_STOP_SUCCESS--> STOPPED
    *                           --S_STOP_FAILURE--> UNCLEAN_STOP
    */
   
@@ -57,6 +56,9 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
          ServiceEvent>(ServiceState.INACTIVE)
          
          .addTransition(ServiceState.INACTIVE, ServiceState.PRESTART, 
+             ServiceEventType.START)
+             
+         .addTransition(ServiceState.STOPPED, ServiceState.PRESTART, 
              ServiceEventType.START)
              
          .addTransition(ServiceState.PRESTART, ServiceState.FAIL, 
@@ -100,7 +102,10 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
          .addTransition(ServiceState.FAIL, ServiceState.STOPPING, 
              ServiceEventType.STOP)
              
-         .addTransition(ServiceState.STOPPING, ServiceState.INACTIVE, 
+         .addTransition(ServiceState.STOPPING, ServiceState.STOPPED, 
+             ServiceEventType.STOP_SUCCESS)
+             
+         .addTransition(ServiceState.STOPPED, ServiceState.STOPPED, 
              ServiceEventType.STOP_SUCCESS)
              
          .addTransition(ServiceState.STOPPING, ServiceState.UNCLEAN_STOP,
@@ -118,7 +123,6 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
       throws IOException {
     this.clusterFsm = clusterFsm;
     this.serviceName = serviceName;
-    this.myState = ServiceState.INACTIVE;
     //load plugin and get the roles and create them
     this.plugin = cluster.getComponentDefinition(serviceName);
     String[] roles = this.plugin.getActiveRoles();
@@ -293,7 +297,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
 
   @Override
   public boolean isActive() {
-    return myState == ServiceState.ACTIVE;
+    return getServiceState() == ServiceState.ACTIVE;
   }
 
   @Override

@@ -21,10 +21,8 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.controller.Cluster;
-import org.apache.ambari.controller.HeartbeatHandler;
 import org.apache.ambari.event.AsyncDispatcher;
 import org.apache.ambari.event.Dispatcher;
 import org.apache.ambari.event.EventHandler;
@@ -40,6 +38,7 @@ public class StateMachineInvoker {
     dispatcher.register(ClusterEventType.class, new ClusterEventDispatcher());
     dispatcher.register(ServiceEventType.class, new ServiceEventDispatcher());
     dispatcher.register(RoleEventType.class, new RoleEventDispatcher());
+    dispatcher.start();
   }
   private static Log LOG = LogFactory.getLog(StateMachineInvoker.class);
   public Dispatcher getAMBARIDispatcher() {

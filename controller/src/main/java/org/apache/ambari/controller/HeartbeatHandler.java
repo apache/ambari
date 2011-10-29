@@ -20,6 +20,7 @@ package org.apache.ambari.controller;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -77,32 +78,38 @@ public class HeartbeatHandler {
     Nodes.getInstance().checkAndUpdateNode(hostname, heartbeatTime);
 
     List<Action> allActions = new ArrayList<Action>();
-
-    clusterName = Nodes.getInstance().getNode(hostname)
-        .getNodeState().getClusterName();
-    if (clusterName != null) {
-      clusterRev = Clusters.getInstance().
-          getClusterByName(clusterName).getLatestRevision(); 
-    }
     
-    ComponentAndRoleStates componentStates = 
-        new ComponentAndRoleStates();
-    //create some datastructures by looking at agent state
-    inspectAgentState(heartbeat, componentStates);
-    
-    //get the clusters the node belongs to
-    Set<ClusterIdAndRev> clustersNodeBelongsTo = 
-        componentStates.getClustersNodeBelongsTo();
     
     //if the command-execution takes longer than one heartbeat interval
     //the check for idleness will prevent the same node getting the same 
     //command more than once. In the future this could be improved
     //to reflect the command execution state more accurately.
-    if (heartbeat.getIdle()) {  
-      for (ClusterIdAndRev clusterIdAndRev : clustersNodeBelongsTo) {
+    if (heartbeat.getIdle()) {
+      clusterName = Nodes.getInstance().getNode(hostname)
+          .getNodeState().getClusterName();
+      if (clusterName != null) {
+        clusterRev = Clusters.getInstance().
+            getClusterByName(clusterName).getLatestRevision(); 
+      }
+      
+      ComponentAndRoleStates componentStates = 
+          new ComponentAndRoleStates();
+      //create some datastructures by looking at agent state
+      inspectAgentState(heartbeat, componentStates);
+      
+      //get the clusters the node belongs to
+      Set<ClusterNameAndRev> clustersNodeBelongsTo = 
+          componentStates.getClustersNodeBelongsTo();
+      boolean newNode = false;
+      //add the clusters the node *should* belong to
+      if (clusterName != null) {
+        newNode = checkAndAddClusterIds(clustersNodeBelongsTo, clusterName, 
+            clusterRev);
+      }
+      for (ClusterNameAndRev clusterIdAndRev : clustersNodeBelongsTo) {
         //check whether this node is out-of-sync w.r.t what's running &
         //installed, or is it compatible
-        if (!isCompatible(clusterIdAndRev.getClusterId(), 
+        if (!isCompatible(clusterIdAndRev.getClusterName(), 
             clusterIdAndRev.getRevision(), clusterName, clusterRev)) {
           createStopAndUninstallActions(componentStates, allActions, 
               clusterIdAndRev, true);
@@ -110,10 +117,10 @@ public class HeartbeatHandler {
         }
         //get the cluster object corresponding to the clusterId
         Cluster cluster = Clusters.getInstance()
-            .getClusterByName(clusterIdAndRev.getClusterId());
+            .getClusterByName(clusterIdAndRev.getClusterName());
         //get the state machine reference to the cluster
         ClusterFSM clusterFsm = StateMachineInvoker
-            .getStateMachineClusterInstance(clusterIdAndRev.getClusterId());
+            .getStateMachineClusterInstance(clusterIdAndRev.getClusterName());
 
         //the state machine references to the services
         List<ServiceFSM> clusterServices = clusterFsm.getServices();
@@ -127,20 +134,25 @@ public class HeartbeatHandler {
             boolean nodePlayingRole = 
                 nodePlayingRole(hostname, role.getRoleName());
             if (nodePlayingRole) {
-              boolean roleInstalled = componentStates.isInstalled(
-                  clusterIdAndRev,
-                  role.getAssociatedService().getServiceName(), 
-                  role.getRoleName());     
-              boolean roleServerRunning = componentStates.isStarted(
-                  clusterIdAndRev,
-                  role.getAssociatedService().getServiceName(),
-                  role.getRoleName()) 
-                  || componentStates.isStartInProgress(clusterIdAndRev,
-                      role.getAssociatedService().getServiceName(), 
-                      role.getRoleName());
-              boolean agentRoleStateChanged = componentStates.hasStateChanged(
-                  clusterIdAndRev, role.getAssociatedService().getServiceName(), 
-                  role.getRoleName());
+              boolean roleInstalled = false;
+              boolean roleServerRunning = false;
+              boolean agentRoleStateChanged = false;
+              if (!newNode) {
+                componentStates.isInstalled(
+                    clusterIdAndRev,
+                    role.getAssociatedService().getServiceName(), 
+                    role.getRoleName());     
+                roleServerRunning = componentStates.isStarted(
+                    clusterIdAndRev,
+                    role.getAssociatedService().getServiceName(),
+                    role.getRoleName()) 
+                    || componentStates.isStartInProgress(clusterIdAndRev,
+                        role.getAssociatedService().getServiceName(), 
+                        role.getRoleName());
+                agentRoleStateChanged = componentStates.hasStateChanged(
+                    clusterIdAndRev, role.getAssociatedService().getServiceName(), 
+                    role.getRoleName());
+              }
               ComponentPlugin plugin = 
                   cluster.getComponentDefinition(service.getServiceName());
               
@@ -194,8 +206,8 @@ public class HeartbeatHandler {
             }
             //check/create the special component/service-level 
             //actions (like safemode check)
-            checkAndCreateActions(cluster, clusterFsm,clusterIdAndRev, service, heartbeat, 
-                allActions, componentStates);
+            checkAndCreateActions(cluster, clusterFsm,clusterIdAndRev, newNode,
+                service, heartbeat, allActions, componentStates);
           }
         }
         createStopAndUninstallActions(componentStates, allActions, clusterIdAndRev, false);
@@ -208,11 +220,22 @@ public class HeartbeatHandler {
     return r;
   }
   
-  private void createInstallAction(ClusterIdAndRev clusterIdAndRev, 
+  private boolean checkAndAddClusterIds(Set<ClusterNameAndRev> clustersNodeBelongsTo, 
+      String clusterName, long clusterRev) {
+    ClusterNameAndRev clusterNameAndRev = new ClusterNameAndRev(clusterName,
+        clusterRev);
+    if (!clustersNodeBelongsTo.contains(clusterNameAndRev)) {
+      clustersNodeBelongsTo.add(clusterNameAndRev);
+      return true;
+    }
+    return false;
+  }
+  
+  private void createInstallAction(ClusterNameAndRev clusterIdAndRev, 
       String cluster, String component, String role, ComponentPlugin plugin, 
       List<Action> allActions) throws IOException {
-    String clusterId = clusterIdAndRev.getClusterId();
-    long clusterRev = clusterIdAndRev.getRevision();
+    String clusterId = clusterIdAndRev.getClusterName();
+    long clusterRev = clusterIdAndRev.getRevision();   
     //action for creating dir structure
     Action action = new Action();
     action.setKind(Kind.CREATE_STRUCTURE_ACTION);
@@ -232,7 +255,7 @@ public class HeartbeatHandler {
   }
   
   private void createStopAndUninstallActions(ComponentAndRoleStates componentAndRoleStates, 
-      List<Action> allActions, ClusterIdAndRev clusterIdAndRev, boolean forceUninstall) {
+      List<Action> allActions, ClusterNameAndRev clusterIdAndRev, boolean forceUninstall) {
     Map<String, 
         Map<String,RoleStateTracker>>
     entrySet = componentAndRoleStates.getAllRoles(clusterIdAndRev);
@@ -244,22 +267,22 @@ public class HeartbeatHandler {
       for (Map.Entry<String,RoleStateTracker> entryVal : roleSet) {
         String roleName = entryVal.getKey();
         if (forceUninstall) {
-          addAction(getStopRoleAction(clusterIdAndRev.getClusterId(), 
+          addAction(getStopRoleAction(clusterIdAndRev.getClusterName(), 
               clusterIdAndRev.getRevision(), 
               componentName, roleName), allActions);
-          addAction(getUninstallRoleAction(clusterIdAndRev.getClusterId(), 
+          addAction(getUninstallRoleAction(clusterIdAndRev.getClusterName(), 
               clusterIdAndRev.getRevision(), 
               componentName, roleName), allActions);
         } else {
           RoleStateTracker stateTracker = entryVal.getValue();
           if (stateTracker.continueRunning) continue;
 
-          addAction(getStopRoleAction(clusterIdAndRev.getClusterId(), 
+          addAction(getStopRoleAction(clusterIdAndRev.getClusterName(), 
               clusterIdAndRev.getRevision(), 
               componentName, roleName), allActions);
 
           if (stateTracker.uninstall)
-            addAction(getUninstallRoleAction(clusterIdAndRev.getClusterId(), 
+            addAction(getUninstallRoleAction(clusterIdAndRev.getClusterName(), 
                 clusterIdAndRev.getRevision(), 
                 componentName, roleName), allActions);
         }
@@ -268,8 +291,8 @@ public class HeartbeatHandler {
   }
   private static class ComponentAndRoleStates {
     //Convenience class to aid in heartbeat processing
-    private Map<ClusterIdAndRev, Map<String, Map<String, RoleStateTracker>>>
-    componentRoleMap = new HashMap<ClusterIdAndRev, 
+    private Map<ClusterNameAndRev, Map<String, Map<String, RoleStateTracker>>>
+    componentRoleMap = new HashMap<ClusterNameAndRev, 
                            Map<String, Map<String, RoleStateTracker>>>();
     
     private Map<String, ActionResult> actionIds = 
@@ -278,17 +301,17 @@ public class HeartbeatHandler {
     private static Map<String, List<AgentRoleState>> previousStateMap =
         new ConcurrentHashMap<String, List<AgentRoleState>>();
     
-    private Set<ClusterIdAndRev> clusterNodeBelongsTo = 
-        new TreeSet<ClusterIdAndRev>();
+    private Set<ClusterNameAndRev> clusterNodeBelongsTo = 
+        new TreeSet<ClusterNameAndRev>();
     
     Map<String,Map<String,RoleStateTracker>> getAllRoles(
-        ClusterIdAndRev clusterIdAndRev) {
+        ClusterNameAndRev clusterIdAndRev) {
       return componentRoleMap.get(clusterIdAndRev);
     }
     
     void recordRoleState(String host, AgentRoleState state) {
-      ClusterIdAndRev clusterIdAndRev = 
-          new ClusterIdAndRev(state.getClusterId(),
+      ClusterNameAndRev clusterIdAndRev = 
+          new ClusterNameAndRev(state.getClusterId(),
               state.getClusterDefinitionRevision());
       clusterNodeBelongsTo.add(clusterIdAndRev);
       
@@ -319,7 +342,7 @@ public class HeartbeatHandler {
       }
     }
     
-    boolean isRoleInstalled(ClusterIdAndRev clusterIdAndRev, String role) {
+    boolean isRoleInstalled(ClusterNameAndRev clusterIdAndRev, String role) {
       //problematic in the case where role is not unique (like 'client')
       //TODO: no iteration please
       Set<Map.Entry<String, Map<String, RoleStateTracker>>> entrySet = 
@@ -332,7 +355,7 @@ public class HeartbeatHandler {
       return false;
     }
     
-    boolean isStarted(ClusterIdAndRev clusterIdAndRev, String component, 
+    boolean isStarted(ClusterNameAndRev clusterIdAndRev, String component, 
         String role) {
       Map<String,Map<String,RoleStateTracker>> componentsMap = 
           componentRoleMap.get(clusterIdAndRev);
@@ -349,7 +372,7 @@ public class HeartbeatHandler {
       return false;
     }
     
-    boolean isStartInProgress(ClusterIdAndRev clusterIdAndRev, 
+    boolean isStartInProgress(ClusterNameAndRev clusterIdAndRev, 
         String component, String role) {
       Map<String,Map<String,RoleStateTracker>> componentsMap = 
           componentRoleMap.get(clusterIdAndRev);
@@ -367,7 +390,7 @@ public class HeartbeatHandler {
       return false;
     }
     
-    boolean isInstalled(ClusterIdAndRev clusterIdAndRev, 
+    boolean isInstalled(ClusterNameAndRev clusterIdAndRev, 
         String component, String role) {
       Map<String,Map<String,RoleStateTracker>> componentsMap = 
           componentRoleMap.get(clusterIdAndRev);
@@ -388,7 +411,7 @@ public class HeartbeatHandler {
     ActionResult getActionResult(String id) {
       return actionIds.get(id);
     }
-    private void recordState(ClusterIdAndRev clusterIdAndRev, String component,
+    private void recordState(ClusterNameAndRev clusterIdAndRev, String component,
         String roleServer, AgentRoleState state) {
       Map<String, Map<String, RoleStateTracker>> componentMap = null;
       
@@ -414,20 +437,20 @@ public class HeartbeatHandler {
               state.getClusterId(), state.getClusterDefinitionRevision()));
       componentMap.put(component, roleMap);
     }
-    boolean hasStateChanged(ClusterIdAndRev clusterIdAndRev, String component,
+    boolean hasStateChanged(ClusterNameAndRev clusterIdAndRev, String component,
         String roleServer) {
       return componentRoleMap.get(clusterIdAndRev).get(component)
           .get(roleServer).stateChanged;
     }
-    Set<ClusterIdAndRev> getClustersNodeBelongsTo() {
+    Set<ClusterNameAndRev> getClustersNodeBelongsTo() {
       return clusterNodeBelongsTo;
     }
-    private void setStateChanged(ClusterIdAndRev clusterIdAndRev, 
+    private void setStateChanged(ClusterNameAndRev clusterIdAndRev, 
         String component, String roleServer) {
       componentRoleMap.get(clusterIdAndRev).get(component)
          .get(roleServer).stateChanged = true;
     }
-    private void continueRunning(ClusterIdAndRev clusterIdAndRev, 
+    private void continueRunning(ClusterNameAndRev clusterIdAndRev, 
         String component, String roleServer) {
       componentRoleMap.get(clusterIdAndRev).get(component)
          .get(roleServer).continueRunning = true;
@@ -439,22 +462,26 @@ public class HeartbeatHandler {
       SERVICE_AVAILABILITY_CHECK_ID, SERVICE_PRESTART_CHECK_ID
   }  
   
-  private static class ClusterIdAndRev {
-    String clusterId;
+  private static class ClusterNameAndRev implements 
+  Comparable<ClusterNameAndRev> {
+    String clusterName;
     long revision;
-    ClusterIdAndRev(String clusterId, long revision) {
-      this.clusterId = clusterId;
+    ClusterNameAndRev(String clusterName, long revision) {
+      this.clusterName = clusterName;
       this.revision = revision;
     }
-    String getClusterId() {
-      return clusterId;
+    String getClusterName() {
+      return clusterName;
     }
     long getRevision() {
       return revision;
     }
     @Override
     public int hashCode() {
-      return (clusterId + String.valueOf(revision)).hashCode();
+      //note we only consider cluster names (one node can't have
+      //more than one version of components of the same cluster name 
+      //installed)
+      return clusterName.hashCode();
     }
     @Override
     public boolean equals(Object obj) {
@@ -465,8 +492,14 @@ public class HeartbeatHandler {
       if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
-      return this.clusterId.equals(((ClusterIdAndRev)obj).getClusterId()) &&
-          this.clusterId.equals(((ClusterIdAndRev)obj).getRevision());
+      //note we only compare cluster names (one node can't have
+      //more than one version of components of the same cluster name 
+      //installed)
+      return this.clusterName.equals(((ClusterNameAndRev)obj).getClusterName());
+    }
+    @Override
+    public int compareTo(ClusterNameAndRev o) {
+      return o.getClusterName().compareTo(getClusterName());
     }
   }
 
@@ -498,10 +531,10 @@ public class HeartbeatHandler {
     }
     return true;
   }
-  private static String getSpecialActionID(ClusterIdAndRev clusterIdAndRev, 
+  private static String getSpecialActionID(ClusterNameAndRev clusterIdAndRev, 
       ServiceFSM service, boolean availabilityChecker, 
       boolean prestartCheck) {
-    String id = clusterIdAndRev.getClusterId() + clusterIdAndRev.getRevision() 
+    String id = clusterIdAndRev.getClusterName() + clusterIdAndRev.getRevision() 
         + service.getServiceName();
     if (prestartCheck) {
       id += SpecialServiceIDs.SERVICE_PRESTART_CHECK_ID.toString();
@@ -549,10 +582,11 @@ public class HeartbeatHandler {
   }
   
   private void checkAndCreateActions(Cluster cluster,
-      ClusterFSM clusterFsm, ClusterIdAndRev clusterIdAndRev, 
-      ServiceFSM service, HeartBeat heartbeat, List<Action> allActions, 
+      ClusterFSM clusterFsm, ClusterNameAndRev clusterIdAndRev, 
+      boolean newNode, ServiceFSM service, HeartBeat heartbeat, 
+      List<Action> allActions, 
       ComponentAndRoleStates installedOrStartedComponents) 
-          throws IOException {
+          throws Exception {
     //see whether the service is in the STARTED state, and if so,
     //check whether there is any action-result that indicates success
     //of the availability check (safemode, etc.)
@@ -580,7 +614,7 @@ public class HeartbeatHandler {
         if (installedOrStartedComponents.isRoleInstalled(clusterIdAndRev,
             role)) {
           Action action = plugin.checkService(cluster.getName(), role);
-          fillActionDetails(action, clusterIdAndRev.getClusterId(),
+          fillActionDetails(action, clusterIdAndRev.getClusterName(),
               clusterIdAndRev.getRevision(),service.getServiceName(), role);
           action.setId(id);
           action.setKind(Action.Kind.RUN_ACTION);
@@ -607,14 +641,17 @@ public class HeartbeatHandler {
         ComponentPlugin plugin = 
             cluster.getComponentDefinition(service.getServiceName());
         String role = plugin.runPreStartRole();
-        if (!installedOrStartedComponents.isRoleInstalled(clusterIdAndRev,
-            role)) {
-          createInstallAction(clusterIdAndRev, cluster.getName(), 
-              service.getServiceName(), role, plugin,
-              allActions);
+        if (nodePlayingRole(heartbeat.getHostname(), role)) {
+          if (newNode || 
+              !installedOrStartedComponents.isRoleInstalled(clusterIdAndRev,
+              role)) {
+            createInstallAction(clusterIdAndRev, cluster.getName(), 
+                service.getServiceName(), role, plugin,
+                allActions);
+          }
         }
         Action action = plugin.preStartAction(cluster.getName(), role);
-        fillActionDetails(action, clusterIdAndRev.getClusterId(),
+        fillActionDetails(action, clusterIdAndRev.getClusterName(),
             clusterIdAndRev.getRevision(),service.getServiceName(), role);
         action.setId(id);
         action.setKind(Action.Kind.RUN_ACTION);

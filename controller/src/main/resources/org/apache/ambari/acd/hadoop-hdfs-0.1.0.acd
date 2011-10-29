@@ -28,11 +28,15 @@ import sys
 os.execl("stack/bin/hadoop", "stack/bin/hadoop", role)
 ]]>
   </start>
-  <check run_on="namenode" user="${hdfs.user}">
+  <check runOn="namenode" user="${hdfs.user}">
 <![CDATA[
 import os
 
 os.exec('stack/bin/hadoop', 'stack/bin/hadoop', 'dfsadmin', '-get')
 ]]>
   </check>
+
+  <prestart runOn="namenode" user="{hdfs.user}">
+<![CDATA[]]>
+  </prestart>
 </component>
