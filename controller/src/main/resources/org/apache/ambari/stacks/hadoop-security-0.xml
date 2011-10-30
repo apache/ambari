@@ -67,13 +67,11 @@
     </configuration>
     <components architecture="x86_64" name="common" 
                 provider="org.apache.hadoop" version="0.20.205.0">
-        <definition definition="hadoop-common" group="org.apache.ambari" 
-                    version="0.1.0" />
+        <definition definition="hadoop-common" version="0.1.0" provider="org.apache.ambari"/>
     </components>
     <components architecture="x86_64" name="hdfs" 
                 provider="org.apache.hadoop" version="0.20.205.0">
-        <definition definition="hadoop-hdfs" group="org.apache.ambari" 
-                    version="0.1.0" />
+        <definition definition="hadoop-hdfs" version="0.1.0" provider="org.apache.ambari"/>
         <configuration>
            <category name="hadoop-env">
               <property name="HADOOP_LOG_DIR" 
