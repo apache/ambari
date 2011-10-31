@@ -52,6 +52,8 @@ public class Action {
   @XmlElement
   public long clusterDefinitionRevision;
   @XmlElement
+  public String workDirComponent;
+  @XmlElement
   public ConfigFile file;
   
   private static AtomicLong globalId = new AtomicLong();
@@ -107,6 +109,14 @@ public class Action {
   
   public void setRole(String role) {
     this.role = role;
+  }
+  
+  public void setWorkDirectoryComponent(String workDirComponent) {
+    this.workDirComponent = workDirComponent;
+  }
+  
+  public String getWorkDirectoryComponent() {
+    return workDirComponent;
   }
   
   public Signal getSignal() {

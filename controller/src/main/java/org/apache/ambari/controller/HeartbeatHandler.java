@@ -237,7 +237,7 @@ public class HeartbeatHandler {
       Cluster cluster, String component, String role, ComponentPlugin plugin, 
       List<Action> allActions) throws IOException {
     String clusterId = clusterIdAndRev.getClusterName();
-    long clusterRev = clusterIdAndRev.getRevision();   
+    long clusterRev = clusterIdAndRev.getRevision();
     //action for creating dir structure
     Action action = new Action();
     action.setKind(Kind.CREATE_STRUCTURE_ACTION);
@@ -259,9 +259,11 @@ public class HeartbeatHandler {
         clusterRev, component, role);
   }
   
-  private void fillActionsForDependentComponents(ClusterNameAndRev clusterIdAndRev,
+  private void fillActionsForDependentComponents(
+      ClusterNameAndRev clusterIdAndRev,
       Cluster cluster, String reqdComp, 
-      List<Action> allActions) throws IOException {
+      List<Action> allActions) 
+          throws IOException {
     ComponentPlugin reqPlugin = cluster.getComponentDefinition(reqdComp);
     String[] reqdComps = reqPlugin.getRequiredComponents();
     if (reqdComps == null || reqdComps.length == 0) {
@@ -725,6 +727,9 @@ public class HeartbeatHandler {
     action.setClusterDefinitionRevision(clusterDefRev);
     action.setComponent(component);
     action.setRole(role);
+    String workDir = role.equals(component + "-client") ? 
+        (clusterId + "-client") : (clusterId + "-" + role);
+    action.setWorkDirectoryComponent(workDir);
   }
   
   private void fillDetailsAndAddAction(Action action, List<Action> allActions, 
