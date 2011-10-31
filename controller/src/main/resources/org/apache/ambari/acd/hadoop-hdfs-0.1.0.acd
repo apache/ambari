@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <component provides="hdfs" user="root">
-  <requires name="hadoop-common"/>
+  <requires name="common"/>
   <roles name="namenode"/>
   <roles name="secondarynamenode"/>
   <roles name="datanode"/>
@@ -18,6 +18,11 @@ if role == "datanode":
 ambari_component.copyXml('hadoop/hdfs-site', opts)
 ]]>
   </configure>
+  <install>
+<![CDATA[
+print "TO BE DONE"
+]]>
+  </install>
   <start>
 <![CDATA[
 import os

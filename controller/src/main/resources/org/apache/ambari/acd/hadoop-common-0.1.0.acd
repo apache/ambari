@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<component provides="hadoop-common" package="hadoop-${version}.tar.gz"
+<component provides="common" package="hadoop-${version}.tar.gz"
            user="root">
   <configure>
 <![CDATA[

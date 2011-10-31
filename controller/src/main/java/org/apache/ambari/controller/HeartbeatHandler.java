@@ -129,7 +129,6 @@ public class HeartbeatHandler {
         //inspectAgentState, maybe we can avoid the following for loop.
         for (ServiceFSM service : clusterServices) {
           List<RoleFSM> roles = service.getRoles();
-
           for (RoleFSM role : roles) {
             boolean nodePlayingRole = 
                 nodePlayingRole(hostname, role.getRoleName());
@@ -159,12 +158,12 @@ public class HeartbeatHandler {
               //check whether the agent should start any server
               if (role.shouldStart()) {
                 if (!roleInstalled) {
-                  createInstallAction(clusterIdAndRev, cluster.getName(), 
+                  createInstallAction(clusterIdAndRev, cluster, 
                       service.getServiceName(), role.getRoleName(), plugin,
                       allActions);
                   continue;
                 }
-                if (role.getRoleName().equals("-client")) { //TODO: have a good place to define this
+                if (role.getRoleName().contains("-client")) { //TODO: have a good place to define this
                   //Client roles are special cases. They don't have any active servers
                   //but should be considered active when installed. Setting the 
                   //boolean to true ensures that the FSM gets an event (albeit a fake one).
@@ -204,13 +203,16 @@ public class HeartbeatHandler {
                 }
               }
             }
-            //check/create the special component/service-level 
-            //actions (like safemode check)
-            checkAndCreateActions(cluster, clusterFsm,clusterIdAndRev, newNode,
-                service, heartbeat, allActions, componentStates);
           }
+          //check/create the special component/service-level 
+          //actions (like safemode check). Only once per component.
+          checkAndCreateActions(cluster, clusterFsm, clusterIdAndRev, newNode,
+                service, heartbeat, allActions, componentStates);
         }
-        createStopAndUninstallActions(componentStates, allActions, clusterIdAndRev, false);
+        if (!newNode) {
+          createStopAndUninstallActions(componentStates, allActions, 
+              clusterIdAndRev, false);
+        }
       }
     }
     ControllerResponse r = new ControllerResponse();
@@ -232,7 +234,7 @@ public class HeartbeatHandler {
   }
   
   private void createInstallAction(ClusterNameAndRev clusterIdAndRev, 
-      String cluster, String component, String role, ComponentPlugin plugin, 
+      Cluster cluster, String component, String role, ComponentPlugin plugin, 
       List<Action> allActions) throws IOException {
     String clusterId = clusterIdAndRev.getClusterName();
     long clusterRev = clusterIdAndRev.getRevision();   
@@ -240,11 +242,14 @@ public class HeartbeatHandler {
     Action action = new Action();
     action.setKind(Kind.CREATE_STRUCTURE_ACTION);
     fillDetailsAndAddAction(action, allActions, clusterId,
-        clusterRev, component, 
-        role);
+        clusterRev, component, role);
     
     //action for installing the role
-    action = plugin.install(cluster, role);
+    //also, go over all the dependencies and get their client role-install
+    //actions
+    fillActionsForDependentComponents(clusterIdAndRev, cluster, component, 
+        allActions);
+    action = plugin.install(cluster.getName(), role);
     fillDetailsAndAddAction(action, allActions, clusterId,
         clusterRev, component, role);
     
@@ -252,6 +257,26 @@ public class HeartbeatHandler {
     action = plugin.configure(clusterId, role);
     fillDetailsAndAddAction(action, allActions, clusterId,
         clusterRev, component, role);
+  }
+  
+  private void fillActionsForDependentComponents(ClusterNameAndRev clusterIdAndRev,
+      Cluster cluster, String reqdComp, 
+      List<Action> allActions) throws IOException {
+    ComponentPlugin reqPlugin = cluster.getComponentDefinition(reqdComp);
+    String[] reqdComps = reqPlugin.getRequiredComponents();
+    if (reqdComps == null || reqdComps.length == 0) {
+      //TODO: take care of components like Pig. Should Pig also have a client 
+      //role?
+      String clientRole = reqdComp + "-client";
+      Action action = reqPlugin.install(cluster.getName(), clientRole);
+      fillDetailsAndAddAction(action, allActions, cluster.getName(),
+          clusterIdAndRev.getRevision(), reqdComp, clientRole);
+      return;
+    }
+    for (String comp : reqdComps) {
+      fillActionsForDependentComponents(clusterIdAndRev, cluster, comp, 
+          allActions);
+    }
   }
   
   private void createStopAndUninstallActions(ComponentAndRoleStates componentAndRoleStates, 
@@ -645,7 +670,7 @@ public class HeartbeatHandler {
           if (newNode || 
               !installedOrStartedComponents.isRoleInstalled(clusterIdAndRev,
               role)) {
-            createInstallAction(clusterIdAndRev, cluster.getName(), 
+            createInstallAction(clusterIdAndRev, cluster, 
                 service.getServiceName(), role, plugin,
                 allActions);
           }
