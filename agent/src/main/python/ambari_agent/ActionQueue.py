@@ -70,7 +70,11 @@ class ActionQueue(threading.Thread):
                      'DELETE_STRUCTURE_ACTION' : self.deleteStructureAction,
                      'WRITE_FILE_ACTION'       : self.writeFileAction
                    }
-        result = switches.get(action['kind'], self.unknownAction)(action)
+        try:
+          result = switches.get(action['kind'], self.unknownAction)(action)
+        except Exception, err:
+          result = self.genResult(action)
+          result['exitCode']=1
         # Update the result
         r.put(result)
       if not self.stopped():

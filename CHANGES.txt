@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-118. Added safe guard mechanism to prevent agent crash on 
+  faulty action. (Eric Yang)
+
   AMBARI-117. If some install action is sent in a heartbeat response, the
   latter should also include the dependent components' installs. (ddas)
 
