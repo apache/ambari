@@ -73,6 +73,7 @@ class ActionQueue(threading.Thread):
         try:
           result = switches.get(action['kind'], self.unknownAction)(action)
         except Exception, err:
+          logger.info(err)
           result = self.genResult(action)
           result['exitCode']=1
         # Update the result
@@ -103,7 +104,8 @@ class ActionQueue(threading.Thread):
   # track the liveness of the children process
   def startAction(self, action):
     result = self.genResult(action)
-    return self.sh.startProcess(action['clusterId'],
+    return self.sh.startProcess(action['workDirComponent'],
+      action['clusterId'],
       action['clusterDefinitionRevision'],
       action['component'], 
       action['role'], 
@@ -113,7 +115,8 @@ class ActionQueue(threading.Thread):
   # Run stop action, stop a server process.
   def stopAction(self, action):
     result = self.genResult(action)
-    return self.sh.stopProcess(action['clusterId'], 
+    return self.sh.stopProcess(action['workDirComponent'],
+      action['clusterId'], 
       action['clusterDefinitionRevision'],
       action['component'],
       action['role'], 
@@ -127,7 +130,8 @@ class ActionQueue(threading.Thread):
   # Run command action
   def runAction(self, action):
     result = self.genResult(action)
-    return self.sh.runAction(action['clusterId'], 
+    return self.sh.runAction(action['workDirComponent'],
+      action['clusterId'], 
       action['component'],
       action['role'],
       action['user'], 

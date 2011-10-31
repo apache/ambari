@@ -24,7 +24,7 @@ import os, errno
 
 class TestFileUtil(TestCase):
   def test_createStructure(self):
-    action = { 'clusterId' : 'abc', 'role' : 'hdfs' }
+    action = { 'clusterId' : 'abc', 'role' : 'hdfs', 'workDirComponent' : 'abc-hdfs' }
     result = {}
     result = createStructure(action, result)
     self.assertEqual(result['exitCode'], 0, 'Create cluster structure failed.')
@@ -38,14 +38,19 @@ class TestFileUtil(TestCase):
       "path"       : "/tmp/ambari_file_test/_file_write_test",
       "umask"      : 022
     }
-    action = { 'clusterId' : 'abc', 'role' : 'hdfs', 'file' : configFile }
+    action = { 
+      'clusterId' : 'abc', 
+      'role' : 'hdfs', 
+      'workDirComponent' : 'abc-hdfs',
+      'file' : configFile 
+    }
     result = { }
     result = writeFile(action, result)
     self.assertEqual(result['exitCode'], 0, 'WriteFile test with uid/gid failed.')
 
 #  def test_deleteStructure(self):
     result = { }
-    action = { 'clusterId' : 'abc', 'role' : 'hdfs' }
+    action = { 'clusterId' : 'abc', 'role' : 'hdfs', 'workDirComponent' : 'abc-hdfs' }
     result = deleteStructure(action, result)
     self.assertEqual(result['exitCode'], 0, 'Delete cluster structure failed.')
 

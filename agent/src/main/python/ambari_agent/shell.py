@@ -56,7 +56,9 @@ class shellRunner:
     return {'exitCode': code, 'output': out, 'error': err}
 
   # dispatch action types
-  def runAction(self, clusterId, component, role, user, command, cleanUpCommand, result):
+  def runAction(self, workdir, clusterId, component, role, user, command, cleanUpCommand, result):
+    oldDir = os.getcwd()
+    os.chdir(workdir)
     oldUid = os.getuid()
     try:
       user=getpwnam(user)[2]
@@ -99,14 +101,17 @@ class shellRunner:
       result['cleanUpResult'] = cleanUpResult
       os.unlink(tempfilename)
     try:
+      os.chdir(oldDir)
       os.setuid(oldUid)
     except Exception:
-      logger.warn("%s %s %s can not restore user for RUN_ACTION." % (clusterId, component, role))
+      logger.warn("%s %s %s can not restore environment for RUN_ACTION." % (clusterId, component, role))
     return result
 
   # Start a process and presist its state
-  def startProcess(self, clusterId, clusterDefinitionRevision, component, role, script, user, result):
+  def startProcess(self, workdir, clusterId, clusterDefinitionRevision, component, role, script, user, result):
     global serverTracker
+    oldDir = os.getcwd()
+    os.chdir(workdir)
     oldUid = os.getuid()
     try:
       user=getpwnam(user)[2]
@@ -135,14 +140,17 @@ class shellRunner:
         commandResult['exitCode'] = 0
       result['commandResult'] = commandResult
     try:
+      os.chdir(oldDir)
       os.setuid(oldUid)
     except Exception:
-      logger.warn("%s %s %s can not restore user for START_ACTION." % (clusterId, component, role))
+      logger.warn("%s %s %s can not restore environment for START_ACTION." % (clusterId, component, role))
     return result
 
   # Stop a process and remove presisted state
-  def stopProcess(self, clusterId, clusterDefinitionRevision, component, role, sig, result):
+  def stopProcess(self, workdir, clusterId, clusterDefinitionRevision, component, role, sig, result):
     global serverTracker
+    oldDir = os.getcwd()
+    os.chdir(workdir)
     process = clusterId+"/"+clusterDefinitionRevision+"/"+component+"/"+role
     commandResult = {'exitCode': 0}
     if process in serverTracker:
@@ -155,6 +163,10 @@ class shellRunner:
         os.kill(serverTracker[process], signal.SIGKILL)
         del serverTracker[process]
     result['commandResult'] = commandResult
+    try:
+      os.chdir(oldDir)
+    except Exception:
+      logger.warn("%s %s %s can not restore environment for STOP_ACTION." % (clusterId, component, role))
     return result
 
   def getServerTracker(self):

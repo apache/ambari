@@ -78,7 +78,8 @@ def writeFile(action, result):
 
 def createStructure(action, result):
   try:
-    path = AmbariConfig.config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
+    workdir = action['workDirComponent']
+    path = AmbariConfig.config.get('agent','prefix')+"/clusters/"+workdir
     os.makedirs(path+"/stack")
     os.makedirs(path+"/logs")
     os.makedirs(path+"/data")
@@ -92,7 +93,8 @@ def createStructure(action, result):
 
 def deleteStructure(action, result):
   try:
-    path = AmbariConfig.config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
+    workdir = action['workDirComponent']
+    path = AmbariConfig.config.get('agent','prefix')+"/clusters/"+workdir
     if os.path.exists(path):
       shutil.rmtree(path)
     result['exitCode'] = 0

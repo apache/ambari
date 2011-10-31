@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-119. Enhance agent to support workDirComponent. (Eric Yang)
+
   AMBARI-118. Added safe guard mechanism to prevent agent crash on 
   faulty action. (Eric Yang)
 
