@@ -61,7 +61,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *       attribute provider { text }?
  *       element definition {
  *         attribute provider { text }?
- *         attribute definition { text }?
+ *         attribute name { text }?
  *         attribute version { text }?
  *       }
  *       element configuration { Configuration }?
@@ -100,46 +100,67 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @XmlRootElement(name="stack")
 public class Stack {
 
+    /**
+     * The name of the stack.
+     * This is a read-only attribute.
+     */
     @XmlAttribute
     protected String name;
+    /**
+     * This revision of this stack. 
+     * This is a read-only attribute.
+     */
     @XmlAttribute
     protected String revision;
+    
+    /**
+     * The name of the parent stack. Attributes that aren't defined by this
+     * stack are inherited from the parent.
+     */
     @XmlAttribute
     protected String parentName;
+    
+    /**
+     * The revision number of the parent stack.
+     */
     @XmlAttribute
     protected String parentRevision;
     
+    /**
+     * When this revision of the stack was created.
+     * This is a read-only attribute.
+     */
     @XmlAttribute
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar creationTime;
 
+    /**
+     * Information about where to pick up the tarballs/rpms for the components.
+     */
     @XmlElement
     protected List<RepositoryKind> repositories;
     
+    /**
+     * The client configuration.
+     */
     @XmlElement
     protected Configuration configuration;
     
+    /**
+     * The list of components that are included in this stack. This includes
+     * the version of each component and the associated configuration.
+     */
     @XmlElement
     protected List<Component> components;
     
     /**
-     * @return the repositories
-     */
-    public List<RepositoryKind> getRepositories() {
-        return repositories;
-    }
-    /**
-     * @param repositories the repositories to set
-     */
-    public void setRepositories(List<RepositoryKind> repositories) {
-        this.repositories = repositories;
-    }
-    /**
+     * Get the name of the stack.
      * @return the name
      */
     public String getName() {
             return name;
     }
+
     /**
      * @param name the name to set
      */
@@ -160,6 +181,8 @@ public class Stack {
     }
     
     /**
+     * Get the name of the parent stack. Attributes that aren't defined by this
+     * stack are inherited from the parent.
      * @return the parentName
      */
     public String getParentName() {
@@ -183,12 +206,15 @@ public class Stack {
     public void setParentRevision(String parentRevision) {
             this.parentRevision = parentRevision;
     }
+
     /**
+     * Get the list of package repositories that store the rpms and tarballs.
      * @return the packageRepositories
      */
     public List<RepositoryKind> getPackageRepositories() {
             return repositories;
     }
+
     /**
      * @param packageRepositories the packageRepositories to set
      */
@@ -196,24 +222,31 @@ public class Stack {
                     List<RepositoryKind> value) {
             this.repositories = value;
     }
+
     /**
+     * Get the client configuration.
      * @return the configuration
      */
     public Configuration getConfiguration() {
             return configuration;
     }
+
     /**
+     * Set the client configuration.
      * @param configuration the configuration to set
      */
     public void setConfiguration(Configuration configuration) {
             this.configuration = configuration;
     }
+
     /**
+     * Get the list of components for this stack.
      * @return the components
      */
     public List<Component> getComponents() {
             return components;
     }
+
     /**
      * @param components the components to set
      */
@@ -222,11 +255,13 @@ public class Stack {
     }
     
     /**
-     * @return the creationTime
+     * Get the creation time of this stack revision.
+     * @return the creation time
      */
     public XMLGregorianCalendar getCreationTime() {
         return creationTime;
     }
+
     /**
      * @param creationTime the creationTime to set
      */

@@ -28,7 +28,36 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * The configuration included in a Stack.
+ * The configuration included in a Stack. Configurations are a set of categories
+ * that correspond to the different configuration files necessary for running 
+ * Hadoop. The categories other than Ambari come from the components. The
+ * categories for Hadoop, HDFS, MapReduce and Pig are:
+ * <ul>
+ * <li> <b>ambari</b> - the generic properties that affect multiple components
+ * <li> Categories for Hadoop:
+ *    <ul>
+ *    <li> hadoop-env
+ *    <li> common-site
+ *    <li> log4j
+ *    <li> metrics2
+ *    </ul>
+ * <li> Categories for HDFS:
+ *    <ul>
+ *    <li> hdfs-site
+ *    </ul>
+ * <li> Categories for MapReduce:
+ *    <ul>
+ *    <li> mapred-site
+ *    <li> mapred-queue-acl
+ *    <li> task-controller
+ *    <li> capacity-scheduler
+ *    </ul>
+ * <li> Categories for Pig:
+ *    <ul>
+ *    <li> pig-env
+ *    <li> pig-site
+ *    </ul>
+ * </ul>
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "Configuration", propOrder = {

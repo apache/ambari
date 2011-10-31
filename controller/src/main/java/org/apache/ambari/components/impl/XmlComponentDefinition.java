@@ -297,7 +297,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
 
   private static InputStream getInputStream(ComponentDefinition defn) {
     String name = defn.getProvider().replace('.', '/') + "/acd/" +
-                  defn.getDefinition() + '-' +
+                  defn.getName() + '-' +
                   defn.getVersion() + ".acd";
     InputStream result = ClassLoader.getSystemResourceAsStream(name);
     if (result == null) {
@@ -317,12 +317,12 @@ public class XmlComponentDefinition extends ComponentPlugin {
   
   public static void main(String[] args) throws Exception {
     ComponentDefinition defn = new ComponentDefinition();
-    defn.setDefinition("hadoop-hdfs");
+    defn.setName("hadoop-hdfs");
     defn.setProvider("org.apache.ambari");
     defn.setVersion("0.1.0");
     XmlComponentDefinition comp = new XmlComponentDefinition(defn);
     System.out.println(comp.provides);
-    defn.setDefinition("hadoop-common");
+    defn.setName("hadoop-common");
     comp = new XmlComponentDefinition(defn);
     System.out.println(comp.provides);
   }

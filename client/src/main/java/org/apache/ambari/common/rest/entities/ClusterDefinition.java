@@ -63,21 +63,54 @@ public class ClusterDefinition {
     public static final String GOAL_STATE_INACTIVE = "INACTIVE";
     public static final String GOAL_STATE_ATTIC = "ATTIC";
    
+    /**
+     * The name of the cluster.
+     */
     @XmlAttribute
     protected String name = null;
+    
+    /**
+     * A user-facing comment about the cluster about what it is intended for.
+     */
     @XmlAttribute
     protected String description = null;
+    
+    /**
+     * The name of the stack that defines the cluster.
+     */
     @XmlAttribute
     protected String stackName = null;
+    
+    /**
+     * The revision of the stack that this cluster is based on.
+     */
     @XmlAttribute
     protected String stackRevision = null;
+    
+    /**
+     * The goal state of the cluster. Valid states are:
+     * ACTIVE - deploy and start the cluster
+     * INACTIVE - the cluster should be stopped, but the nodes reserved
+     * ATTIC - the cluster's nodes should be released
+     */
     @XmlAttribute
     protected String goalState = null;
+    
+    /**
+     * The list of components that should be running if the cluster is ACTIVE.
+     */
     @XmlElement
     protected List<String> activeServices = null;
+    
+    /**
+     * A node expression giving the entire set of nodes for this cluster.
+     */
     @XmlAttribute
     protected String nodes = null;
 
+    /**
+     * A map from roles to the nodes associated with each role.
+     */
     @XmlElement
     protected List<RoleToNodes> roleToNodesMap = null;
     

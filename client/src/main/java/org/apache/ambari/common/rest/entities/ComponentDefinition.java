@@ -32,7 +32,7 @@ public class ComponentDefinition {
   @XmlAttribute
   protected String provider;
   @XmlAttribute
-  protected String definition; 
+  protected String name; 
   @XmlAttribute
   protected String version;
   
@@ -48,8 +48,8 @@ public class ComponentDefinition {
    * Get the name of the component definition
    * @return the component definition name
    */
-  public String getDefinition() {
-    return definition;
+  public String getName() {
+    return name;
   }
   
   /**
@@ -72,8 +72,8 @@ public class ComponentDefinition {
    * Set the component definition name.
    * @param definition the new name
    */
-  public void setDefinition(String definition) {
-    this.definition = definition;
+  public void setName(String name) {
+    this.name = name;
   }
   
   /**
@@ -88,7 +88,7 @@ public class ComponentDefinition {
     StringBuilder buffer = new StringBuilder();
     buffer.append(provider);
     buffer.append('.');
-    buffer.append(definition);
+    buffer.append(name);
     buffer.append('@');
     buffer.append(version);
     return buffer.toString();

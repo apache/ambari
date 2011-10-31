@@ -38,18 +38,46 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement
 public class Component {
 
+    /**
+     * The name of the component.
+     */
     @XmlAttribute(required = true)
     protected String name;
+    
+    /**
+     * The architecture of the tarball/rpm to install.
+     */
     @XmlAttribute
     protected String architecture;
+    
+    /**
+     * The version of the tarball/rpm to install.
+     */
     @XmlAttribute
     protected String version;
+    
+    /**
+     * The provider of the tarball/rpm to install.
+     */
     @XmlAttribute
     protected String provider;
+    
+    /**
+     * The definition of the component including how to configure and run
+     * the component.
+     */
     @XmlElement
     protected ComponentDefinition definition;
+    
+    /**
+     * The configuration shared between the active roles of the component.
+     */
     @XmlElement
     protected Configuration configuration;
+    
+    /**
+     * Specific configuration for each of the roles.
+     */
     @XmlElement
     protected List<Role> roles;
 
