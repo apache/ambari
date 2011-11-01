@@ -32,12 +32,17 @@ import javax.xml.bind.annotation.XmlType;
  * <pre>
  * element Node {
  *   element nodeAttributes {
- *     attribute cpuType { text }
- *     attribute cpuUnits { text }
- *     attribute cpuCores { text }
  *     attribute ramInGB { text }
- *     attribute diskSizeInGB { text }
- *     attribute diskUnits { text }
+ *     element cpu {
+ *       attribute type { text }
+ *       attribute core { int }
+ *     }
+ *     element network {
+ *       attribute speed { int }
+ *     }
+ *     element disk {
+ *       attribute capacity { long }
+ *     } *
  *   }
  *   element nodeState {
  *     attribute lastHeartbeat { text }?
