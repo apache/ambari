@@ -68,7 +68,7 @@ public class ClustersResource {
      *                     clusters
      *  @return            Returns the list of clusters based on specified state 
      *                     and optional search criteria.
-     *  @throws Exception  throws Exception (TBD)
+     *  @throws Exception  throws Exception 
      */
     @GET
     @Produces({"application/json", "application/xml"})
@@ -99,11 +99,11 @@ public class ClustersResource {
      *  @response.representation.200.example    {@link Examples#CLUSTER_INFORMATION}
      *  @response.representation.404.doc        Specified cluster does not exist
      *  
-     *  @param      clusterName                 Name of the cluster AAAA
+     *  @param      clusterName                 Name of the cluster
      *  @return                                 Returns the Cluster Information
-     *  @throws     WebApplicationException     Throws exception (TBD)
+     *  @throws     WebApplicationException     Throws exception 
      */
-    @Path(value = "/{clusterNamez}")
+    @Path(value = "/{clusterName0}")
     @GET
     @Produces({"application/json", "application/xml"})
     public ClusterInformation getClusterDefinition(@PathParam("clusterNamez") String clusterName) throws WebApplicationException {
@@ -154,7 +154,7 @@ public class ClustersResource {
      * @return                                  Returns updated cluster definition
      * @throws  Exception                       throws Exception
      */ 
-    @Path(value = "/{clusterNamey}")
+    @Path(value = "/{clusterName1}")
     @PUT
     @Consumes({"application/json", "application/xml"})
     @Produces({"application/json", "application/xml"})
@@ -182,9 +182,9 @@ public class ClustersResource {
      * @response.representation.406.doc         Not Acceptable. Cluster is not in ATTIC state.
      * @response.representation.404.doc         Cluster does not exist
      * 
-     * @param   clusterName                     Existing name of the cluster  FFFFF
+     * @param   clusterName                     Existing name of the cluster
      * @param   new_name                        New name of the cluster
-     * @throws  Exception                       throws Exception (TBD)
+     * @throws  Exception                       throws Exception 
      */ 
     @PUT
     @Consumes({"application/json", "application/xml"})
@@ -214,10 +214,10 @@ public class ClustersResource {
      *                                  nodes are released. All the cluster data 
      *                                  will be lost.
      *  
-     *  @param  clusterName             Name of the cluster BBBB
-     *  @throws Exception               throws Exception (TBD)
+     *  @param  clusterName             Name of the cluster
+     *  @throws Exception               throws Exception 
      */
-    @Path(value = "/{clusterNamex}")
+    @Path(value = "/{clusterName2}")
     @DELETE
     @Consumes({"application/json", "application/xml"})
     public void deleteCluster(@PathParam("clusterNamex") String clusterName) throws Exception {
@@ -247,9 +247,9 @@ public class ClustersResource {
      *  @response.representation.200.example     {@link Examples#CLUSTER_STATE}
      *  @response.representation.404.doc         Cluster does not exist
      *  
-     *  @param  clusterName             Name of the cluster EEEE
+     *  @param  clusterName             Name of the cluster
      *  @return                         Returns cluster state object.
-     *  @throws Exception               throws Exception (TBD)  
+     *  @throws Exception               throws Exception   
      */
     @Path(value = "/{clusterName}/state")
     @GET
@@ -279,7 +279,7 @@ public class ClustersResource {
      *  @response.representation.500.doc    Internal Server Error; No nodes are associated with the cluster
      *                                      (See "ErrorMessage" in the response http header describing specific error condition).
      *  
-     *  @param  clusterName Name of the cluster CCCC
+     *  @param  clusterName Name of the cluster
      *  @param  role        Optionally specify the role name to get the nodes 
      *                      associated with the service role
      *  @param  alive       Boolean value (true/false) to specify, if nodes to be 
@@ -318,7 +318,7 @@ public class ClustersResource {
      *  @response.representation.200.example {@link Examples#STACK}
      *  @response.representgation.404.doc        Cluster does not exist
      *  
-     *  @param  clusterName Name of the cluster DDDD
+     *  @param  clusterName Name of the cluster
      *  @param  expanded    Optionally specify the boolean value to indicate if 
      *                      to retrieved the cluster level stack or the fully
      *                      derived stack in-lining the parent stacks 

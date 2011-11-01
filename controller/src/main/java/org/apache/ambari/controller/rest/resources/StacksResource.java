@@ -83,9 +83,9 @@ public class StacksResource {
      * @param  stackName       Name of the stack
      * @param  revision        The optional stack revision, if not specified get the latest revision
      * @return                 stack definition
-     * @throws Exception       throws Exception (TBD)
+     * @throws Exception       throws Exception 
      */
-    @Path(value = "/{stackNamex}")
+    @Path(value = "/{stackName0}")
     @GET
     @Produces({"application/json", "application/xml"})
     public Stack getStack(@PathParam("stackNamex") String stackName, 
@@ -105,10 +105,10 @@ public class StacksResource {
      * @response.representation.200.doc       Get stack revisions
      * @response.representation.200.mediaType application/json
      *  
-     * @param  stackName   Name of the stack
+     * @param  stackName       Name of the stack
      * 
      * @return                 List of stack revisions
-     * @throws Exception       throws Exception (TBD)
+     * @throws Exception       throws Exception
      */
     @Path(value = "/{stackName}/revisions")
     @GET
@@ -137,7 +137,7 @@ public class StacksResource {
      * @param  revision         Revision of the stack
      * @throws Exception        throws Exception (TBD)
      */
-    @Path(value = "/{stackNamey}")
+    @Path(value = "/{stackName1}")
     @DELETE
     @Consumes({"application/json", "application/xml"})
     public void deletestack(@PathParam("stackNamey") String stackName,
@@ -175,7 +175,7 @@ public class StacksResource {
      * @return              Returns the new revision of the stack
      * @throws Exception    throws Exception
      */
-    @Path(value = "/{stackNamez}")
+    @Path(value = "/{stackName2}")
     @PUT
     @Consumes({"application/json", "application/xml"})
     public Stack updateStack(@PathParam("stackNamez") String stackName, 
