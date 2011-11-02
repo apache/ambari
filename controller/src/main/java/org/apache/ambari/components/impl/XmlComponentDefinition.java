@@ -131,6 +131,11 @@ public class XmlComponentDefinition extends ComponentPlugin {
   }
   
   @Override
+  public String getInstallUser() {
+    return installUser;
+  }
+  
+  @Override
   public String getPackage() {
     return pkg;
   }
@@ -152,6 +157,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
     }
     Action result = new Action();
     result.kind = Action.Kind.RUN_ACTION;
+    result.setUser(configureUser);
     result.command = new Command(configureUser, configureCommand, 
                                  new String[]{cluster, role});
     return result;
@@ -164,6 +170,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
     }
     Action result = new Action();
     result.kind = Action.Kind.RUN_ACTION;
+    result.setUser(installUser);
     result.command = new Command(installUser, installCommand, 
                                  new String[]{cluster, role});
     return result;
@@ -176,6 +183,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
     }
     Action result = new Action();
     result.kind = Action.Kind.START_ACTION;
+    result.setUser(startUser);
     result.command = new Command(startUser, startCommand, 
                                  new String[]{cluster, role});
     return result;
@@ -193,6 +201,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
     }
     Action result = new Action();
     result.kind = Action.Kind.RUN_ACTION;
+    result.setUser(checkUser);
     result.command = new Command(checkUser, checkCommand, 
                                  new String[]{cluster, role});
     return result;
@@ -210,6 +219,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
     }
     Action result = new Action();
     result.kind = Action.Kind.RUN_ACTION;
+    result.setUser(prestartUser);
     result.command = new Command(prestartUser, prestartCommand, 
                                  new String[]{cluster, role});
     return result; 
@@ -222,6 +232,7 @@ public class XmlComponentDefinition extends ComponentPlugin {
     }
     Action result = new Action();
     result.kind = Action.Kind.RUN_ACTION;
+    result.setUser(uninstallUser);
     result.command = new Command(uninstallUser, uninstallCommand, 
                                  new String[]{cluster, role});
     return result;

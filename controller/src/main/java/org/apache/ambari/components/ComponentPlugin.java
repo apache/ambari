@@ -28,6 +28,8 @@ public abstract class ComponentPlugin {
   
   public abstract String getProvides();
   
+  public abstract String getInstallUser();
+  
   public abstract String getPackage();
   
   /**

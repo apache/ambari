@@ -20,7 +20,6 @@ package org.apache.ambari.controller;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +34,7 @@ import org.apache.ambari.common.rest.agent.Action;
 import org.apache.ambari.common.rest.agent.Action.Kind;
 import org.apache.ambari.common.rest.agent.ActionResult;
 import org.apache.ambari.common.rest.agent.AgentRoleState;
+import org.apache.ambari.common.rest.agent.Command;
 import org.apache.ambari.common.rest.agent.ControllerResponse;
 import org.apache.ambari.common.rest.agent.HeartBeat;
 import org.apache.ambari.common.rest.agent.Action.Signal;
@@ -241,6 +241,9 @@ public class HeartbeatHandler {
     //action for creating dir structure
     Action action = new Action();
     action.setKind(Kind.CREATE_STRUCTURE_ACTION);
+    action.setUser(plugin.getInstallUser());
+    action.setId(getSpecialActionID(clusterIdAndRev, component, role, 
+        SpecialServiceIDs.CREATE_STRUCTURE_ACTION_ID));
     fillDetailsAndAddAction(action, allActions, clusterId,
         clusterRev, component, role);
     
@@ -486,7 +489,8 @@ public class HeartbeatHandler {
   
   
   private enum SpecialServiceIDs {
-      SERVICE_AVAILABILITY_CHECK_ID, SERVICE_PRESTART_CHECK_ID
+      SERVICE_AVAILABILITY_CHECK_ID, SERVICE_PRESTART_CHECK_ID,
+      CREATE_STRUCTURE_ACTION_ID
   }  
   
   private static class ClusterNameAndRev implements 
@@ -559,16 +563,13 @@ public class HeartbeatHandler {
     return true;
   }
   private static String getSpecialActionID(ClusterNameAndRev clusterIdAndRev, 
-      ServiceFSM service, boolean availabilityChecker, 
-      boolean prestartCheck) {
-    String id = clusterIdAndRev.getClusterName() + clusterIdAndRev.getRevision() 
-        + service.getServiceName();
-    if (prestartCheck) {
-      id += SpecialServiceIDs.SERVICE_PRESTART_CHECK_ID.toString();
+      String component, String role, SpecialServiceIDs serviceId) {
+    String id = clusterIdAndRev.getClusterName() +"-"+ 
+      clusterIdAndRev.getRevision() +"-"+ component + "-";
+    if (role != null) {
+      id += role + "-";
     }
-    if (availabilityChecker) {
-      id += SpecialServiceIDs.SERVICE_AVAILABILITY_CHECK_ID.toString();
-    }
+    id += serviceId.toString();
     return id;
   }
   
@@ -598,13 +599,8 @@ public class HeartbeatHandler {
       return;
     }
     for (ActionResult actionResult : actionResults) {
-      if (actionResult.getId().contains(SpecialServiceIDs
-          .SERVICE_AVAILABILITY_CHECK_ID.toString())
-          || actionResult.getId().contains(SpecialServiceIDs
-              .SERVICE_PRESTART_CHECK_ID.toString())) {
-        installOrStartedComponents.recordActionId(actionResult.getId(),
-            actionResult);
-      }
+      installOrStartedComponents.recordActionId(actionResult.getId(),
+          actionResult);
     }   
   }
   
@@ -618,7 +614,8 @@ public class HeartbeatHandler {
     //check whether there is any action-result that indicates success
     //of the availability check (safemode, etc.)
     if (service.getServiceState() == ServiceState.STARTED) {
-      String id = getSpecialActionID(clusterIdAndRev, service, true, false);
+      String id = getSpecialActionID(clusterIdAndRev, service.getServiceName(), 
+          null, SpecialServiceIDs.SERVICE_AVAILABILITY_CHECK_ID);
       ActionResult result = installedOrStartedComponents.getActionResult(id);
       if (result != null) {
         //this action ran
@@ -651,7 +648,8 @@ public class HeartbeatHandler {
     }
     
     if (service.getServiceState() == ServiceState.PRESTART) {
-      String id = getSpecialActionID(clusterIdAndRev, service, false, true);
+      String id = getSpecialActionID(clusterIdAndRev, service.getServiceName(), 
+          null, SpecialServiceIDs.SERVICE_PRESTART_CHECK_ID);
       ActionResult result = installedOrStartedComponents.getActionResult(id);
       if (result != null) {
         //this action ran
@@ -727,6 +725,7 @@ public class HeartbeatHandler {
     action.setClusterDefinitionRevision(clusterDefRev);
     action.setComponent(component);
     action.setRole(role);
+    action.setCleanUpCommand(new Command("foobar","",new String[]{"foobar"}));//TODO: this needs fixing at some point
     String workDir = role.equals(component + "-client") ? 
         (clusterId + "-client") : (clusterId + "-" + role);
     action.setWorkDirectoryComponent(workDir);
