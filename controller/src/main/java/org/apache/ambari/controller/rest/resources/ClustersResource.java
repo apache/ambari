@@ -17,6 +17,7 @@
 */
 package org.apache.ambari.controller.rest.resources;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
@@ -97,7 +98,7 @@ public class ClustersResource {
      * and the cluster state.
      * 
      *  @response.representation.200.doc        Get the definition & current state of the specified Hadoop cluster
-     *  @response.representation.200.mediaType  application/json
+     *  @response.representation.200.mediaType  application/json application/xml
      *  @response.representation.200.example    {@link Examples#STACK}
      *  @response.representation.404.doc        Specified cluster does not exist
      *  
@@ -144,7 +145,7 @@ public class ClustersResource {
      *  of cluster definition to be specified. 
      * 
      * @response.representation.200.doc         Returns new or updated cluster definition.
-     * @response.representation.200.mediaType   application/json
+     * @response.representation.200.mediaType   application/json application/xml
      * @response.representation.200.example     {@link Examples#CLUSTER_DEFINITION}
      * @response.representation.400.doc         Bad request (See "ErrorMessage" in the response
      *                                          http header describing specific error condition).
@@ -178,7 +179,7 @@ public class ClustersResource {
      * 
      * @response.representation.200.doc         Rename the cluster. This operation is allowed only
      *                                          when cluster is in ATTIC state
-     * @response.representation.200.mediaType   application/json
+     * @response.representation.200.mediaType   application/json application/xml
      * @response.representation.400.doc         Bad request (See "ErrorMessage" in the response
      *                                          http header describing specific error condition).
      * @response.representation.406.doc         Not Acceptable. Cluster is not in ATTIC state.
@@ -191,11 +192,12 @@ public class ClustersResource {
     @PUT
     @Path("{clusterName}/rename")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public void renameCluster(
+    public Response renameCluster(
            @PathParam("clusterName") String clusterName,
            @DefaultValue("") @QueryParam("new_name") String new_name) throws Exception {    
         try {
             Clusters.getInstance().renameCluster(clusterName, new_name);
+            return Response.ok().build();
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
@@ -222,9 +224,10 @@ public class ClustersResource {
     @DELETE
     @Path("{clusterName}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public void deleteCluster(@PathParam("clusterName") String clusterName) throws Exception {
+    public Response deleteCluster(@PathParam("clusterName") String clusterName) throws Exception {
         try {
             Clusters.getInstance().deleteCluster(clusterName);
+            return Response.ok().build();
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {

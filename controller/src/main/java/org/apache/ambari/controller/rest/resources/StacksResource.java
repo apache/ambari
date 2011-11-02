@@ -17,6 +17,7 @@
 */
 package org.apache.ambari.controller.rest.resources;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -143,7 +144,7 @@ public class StacksResource {
     @DELETE
     @Path("{stackName}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public void deletestack(@PathParam("stackName") String stackName,
+    public Response deletestack(@PathParam("stackName") String stackName,
                                 @DefaultValue("") @QueryParam("revision") String revision ) throws Exception {     
         try {
             if (revision == null || revision.equals("")) {
@@ -151,6 +152,7 @@ public class StacksResource {
                 throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             }
             Stacks.getInstance().deleteStack(stackName, Integer.parseInt(revision));
+            return Response.ok().build();
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
