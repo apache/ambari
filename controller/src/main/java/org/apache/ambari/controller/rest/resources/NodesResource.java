@@ -26,16 +26,18 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.controller.ExceptionResponse;
 import org.apache.ambari.controller.Nodes;
+import org.apache.ambari.controller.rest.config.Examples;
 
 
 /** Nodes Resource represents collection of cluster nodes.
  */
-@Path(value = "/nodes")
+@Path("nodes")
 public class NodesResource {
             
     /** Get list of nodes
@@ -43,10 +45,10 @@ public class NodesResource {
      *  The "allocated and "alive" are the boolean variables that specify the type of nodes to return based on their state i.e. if they are already allocated to any cluster and live or dead. 
      *  Live nodes are the ones that are consistently heart beating with the controller. If both "allocated" and "alive" are set to NULL then all the nodes are returned.  
      *  
-     * @response.representation.200.doc  Successful. 
+     * @response.representation.200.doc       Successful. 
      * @response.representation.200.mediaType application/json
-     * @response.representation.404.doc Node does not exist
-     * @response.representation.200.example
+     * @response.representation.404.doc       Node does not exist
+     * @response.representation.200.example   {@link Examples#NODE}
      * 
      *  @param  allocated               Boolean value to specify, if nodes to be returned are allocated/reserved for some cluster (specify null to return both allocated and unallocated nodes)
      *  @param  alive                   Boolean value to specify, if nodes to be returned are alive or dead or both (specify null to return both live and dead nodes) 
@@ -54,7 +56,8 @@ public class NodesResource {
      *  @throws Exception               throws Exception
      */
     @GET
-    @Produces({"application/json", "application/xml"})
+    @Path("")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Node> getNodesList (@DefaultValue("") @QueryParam("allocated") String allocated,
                                     @DefaultValue("") @QueryParam("alive") String alive) throws Exception {
         List<Node> list;
@@ -77,18 +80,18 @@ public class NodesResource {
     /** 
      * Get the node information that includes, service states, node attributes etc.
      * 
-     * @response.representation.200.doc  Successful. 
+     * @response.representation.200.doc       Successful. 
      * @response.representation.200.mediaType application/json
-     * @response.representation.404.doc Node does not exist
-     * @response.representation.200.example
+     * @response.representation.404.doc       Node does not exist
+     * @response.representation.200.example   {@link Examples#NODE}
      *  
      * @param hostname          Fully qualified hostname
      * @return                  Returns the node information
      * @throws Exception        throws Exception
      */
-    @Path(value = "/{hostname}")
     @GET
-    @Produces({"application/json", "application/xml"})
+    @Path("{hostname}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Node getNode (@PathParam("hostname") String hostname) throws Exception {
         try {
             return Nodes.getInstance().getNode(hostname);

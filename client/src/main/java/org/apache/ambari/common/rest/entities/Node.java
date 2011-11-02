@@ -65,7 +65,7 @@ import javax.xml.bind.annotation.XmlType;
     "nodeAttributes",
     "nodeState"
 })
-@XmlRootElement(name = "Nodes")
+@XmlRootElement(name = "Node")
 public class Node {
     
     @XmlAttribute(required = true)

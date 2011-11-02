@@ -42,13 +42,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
 /**
  * Clusters Resource represents the collection of Hadoop clusters in a data center
  */
-@Path(value = "/clusters")
+@Path("clusters")
 public class ClustersResource {
     
     /** 
@@ -58,11 +59,11 @@ public class ClustersResource {
      *         "ACTIVE"        : All the active state clusters
      *         "INACTIVE"      : All the inactive state clusters
      *         "ATTIC"         : All the retired i.e. ATTIC state clusters
-     *  @response.representation.200.doc Return ClusterInformation
-     *  @response.representation.200.mediaType application/json
-     *  @response.representation.200.example
-     *  @response.representation.204.doc No cluster defined
-     *  @response.representation.500.doc Internal Server Error
+     *  @response.representation.200.doc       Return ClusterInformation
+     *  @response.representation.200.mediaType application/json application/xml
+     *  @response.representation.200.example   {@link Examples#CLUSTER_INFORMATION}
+     *  @response.representation.204.doc       No cluster defined
+     *  @response.representation.500.doc       Internal Server Error
      *  @param  state      The state of the cluster
      *  @param  search     Optional search expression to return list of matching 
      *                     clusters
@@ -71,8 +72,9 @@ public class ClustersResource {
      *  @throws Exception  throws Exception 
      */
     @GET
-    @Produces({"application/json", "application/xml"})
-    public List<ClusterInformation> getClusterList (
+    @Path("")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<ClusterInformation> getClusterList(
                                  @DefaultValue("ALL") @QueryParam("state") String state,
                                  @DefaultValue("") @QueryParam("search") String search) throws Exception {
         List<ClusterInformation> searchResults = null;
@@ -96,17 +98,17 @@ public class ClustersResource {
      * 
      *  @response.representation.200.doc        Get the definition & current state of the specified Hadoop cluster
      *  @response.representation.200.mediaType  application/json
-     *  @response.representation.200.example    {@link Examples#CLUSTER_INFORMATION}
+     *  @response.representation.200.example    {@link Examples#STACK}
      *  @response.representation.404.doc        Specified cluster does not exist
      *  
      *  @param      clusterName                 Name of the cluster
      *  @return                                 Returns the Cluster Information
      *  @throws     WebApplicationException     Throws exception 
      */
-    @Path(value = "/{clusterName0}")
     @GET
-    @Produces({"application/json", "application/xml"})
-    public ClusterInformation getClusterDefinition(@PathParam("clusterNamez") String clusterName) throws WebApplicationException {
+    @Path("{clusterName}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public ClusterInformation getClusterDefinition(@PathParam("clusterName") String clusterName) throws WebApplicationException {
         try {
             return Clusters.getInstance().getClusterInformation(clusterName);
         }catch (WebApplicationException we) {
@@ -154,12 +156,12 @@ public class ClustersResource {
      * @return                                  Returns updated cluster definition
      * @throws  Exception                       throws Exception
      */ 
-    @Path(value = "/{clusterName1}")
     @PUT
-    @Consumes({"application/json", "application/xml"})
-    @Produces({"application/json", "application/xml"})
+    @Path("{clusterName}")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public ClusterDefinition updateClusterDefinition(
-           @PathParam("clusterNamey") String clusterName,
+           @PathParam("clusterName") String clusterName,
            @DefaultValue("false") @QueryParam("dry_run") boolean dry_run,
            ClusterDefinition cluster) throws Exception {    
         try {
@@ -187,8 +189,8 @@ public class ClustersResource {
      * @throws  Exception                       throws Exception 
      */ 
     @PUT
-    @Consumes({"application/json", "application/xml"})
-    @Path(value = "/clusters/{clusterName}/rename")
+    @Path("{clusterName}/rename")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public void renameCluster(
            @PathParam("clusterName") String clusterName,
            @DefaultValue("") @QueryParam("new_name") String new_name) throws Exception {    
@@ -215,12 +217,12 @@ public class ClustersResource {
      *                                  will be lost.
      *  
      *  @param  clusterName             Name of the cluster
-     *  @throws Exception               throws Exception 
+     *  @throws Exception               throws Exception
      */
-    @Path(value = "/{clusterName2}")
     @DELETE
-    @Consumes({"application/json", "application/xml"})
-    public void deleteCluster(@PathParam("clusterNamex") String clusterName) throws Exception {
+    @Path("{clusterName}")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public void deleteCluster(@PathParam("clusterName") String clusterName) throws Exception {
         try {
             Clusters.getInstance().deleteCluster(clusterName);
         }catch (WebApplicationException we) {
@@ -251,9 +253,9 @@ public class ClustersResource {
      *  @return                         Returns cluster state object.
      *  @throws Exception               throws Exception   
      */
-    @Path(value = "/{clusterName}/state")
     @GET
-    @Produces({"application/json", "application/xml"})
+    @Path("{clusterName}/state")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public ClusterState getClusterState(@PathParam("clusterName") String clusterName) throws Exception {
         try {
             return Clusters.getInstance().getClusterState(clusterName);
@@ -289,9 +291,9 @@ public class ClustersResource {
      *  @return             List of nodes
      *  @throws Exception   throws Exception
      */
-    @Path(value = "/{clusterName}/nodes")
     @GET
-    @Produces({"application/json", "application/xml"})
+    @Path("{clusterName}/nodes")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Node> getNodes (@PathParam("clusterName") String clusterName,
                                 @DefaultValue("") @QueryParam("role") String role,
                                 @DefaultValue("") @QueryParam("alive") String alive) throws Exception {    
@@ -326,9 +328,9 @@ public class ClustersResource {
      *  @return             Stack
      *  @throws Exception   throws Exception
      */
-    @Path(value = "/{clusterName}/stack")
     @GET
-    @Produces({"application/json", "application/xml"})
+    @Path("{clusterName}/stack")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Stack getClusterStack (@PathParam("clusterName") String clusterName,
                                 @DefaultValue("true") @QueryParam("expanded") boolean expanded) throws Exception {    
         try {

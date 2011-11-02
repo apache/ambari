@@ -23,41 +23,43 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.StackInformation;
 import org.apache.ambari.controller.Stacks;
 import org.apache.ambari.controller.ExceptionResponse;
-import org.codehaus.jettison.json.JSONArray;
+import org.apache.ambari.controller.rest.config.Examples;
 
 /** 
  * StackResource represents a Hadoop stack to be installed on a 
  * cluster. Stacks define a collection of Hadoop components that are
  * installed together on a cluster and their configuration.
  */
-@Path(value = "/stacks")
+@Path("stacks")
 public class StacksResource {
  
     /** 
      * Get the list of stacks
      * 
      * @response.representation.200.doc         Successful
-     * @response.representation.200.mediaType   application/json
+     * @response.representation.200.mediaType   application/json application/xml
+     * @response.representation.200.example     {@link Examples#STACK_INFORMATION}
      * @response.representation.204.doc         List is empty.
      *  
      * @return Returns the list of StackInformation items
      * @throws Exception
      */
     @GET
-    @Produces({"application/json", "application/xml"})
+    @Path("")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<StackInformation> listStacks() throws Exception {
         List<StackInformation> list;
         try {
@@ -77,18 +79,18 @@ public class StacksResource {
      * Get a stack
      * 
      * @response.representation.200.doc       Get a stack
-     * @response.representation.200.mediaType application/json
-     * @response.representation.200.example
+     * @response.representation.200.mediaType application/json application/xml
+     * @response.representation.200.example   {@link Examples#CLUSTER_INFORMATION}
      *  
      * @param  stackName       Name of the stack
      * @param  revision        The optional stack revision, if not specified get the latest revision
      * @return                 stack definition
      * @throws Exception       throws Exception 
      */
-    @Path(value = "/{stackName0}")
     @GET
-    @Produces({"application/json", "application/xml"})
-    public Stack getStack(@PathParam("stackNamex") String stackName, 
+    @Path("{stackName}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Stack getStack(@PathParam("stackName") String stackName, 
                                   @DefaultValue("-1") @QueryParam("revision") String revision) throws Exception {     
         try {
             return Stacks.getInstance().getStack(stackName, Integer.parseInt(revision));
@@ -103,16 +105,17 @@ public class StacksResource {
      * Get a stack's revisions
      * 
      * @response.representation.200.doc       Get stack revisions
-     * @response.representation.200.mediaType application/json
+     * @response.representation.200.mediaType application/json application/xml
+     * @response.representation.200.example   {@link Examples#STACK_INFORMATION}
      *  
      * @param  stackName       Name of the stack
      * 
      * @return                 List of stack revisions
      * @throws Exception       throws Exception
      */
-    @Path(value = "/{stackName}/revisions")
     @GET
-    @Produces({"application/json", "application/xml"})
+    @Path("{stackName}/revisions")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<StackInformation> getstackRevisions(@PathParam("stackName") String stackName) throws Exception {     
         try {
             List<StackInformation> list = Stacks.getInstance().getStackRevisions(stackName);
@@ -131,16 +134,16 @@ public class StacksResource {
      * Delete the stack
      * 
      * @response.representation.200.doc       Delete a stack
-     * @response.representation.200.mediaType application/json
+     * @response.representation.200.mediaType application/json application/xml
      *  
-     * @param  stackName    Name of the stack
+     * @param  stackName        Name of the stack
      * @param  revision         Revision of the stack
      * @throws Exception        throws Exception (TBD)
      */
-    @Path(value = "/{stackName1}")
     @DELETE
-    @Consumes({"application/json", "application/xml"})
-    public void deletestack(@PathParam("stackNamey") String stackName,
+    @Path("{stackName}")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public void deletestack(@PathParam("stackName") String stackName,
                                 @DefaultValue("") @QueryParam("revision") String revision ) throws Exception {     
         try {
             if (revision == null || revision.equals("")) {
@@ -164,21 +167,22 @@ public class StacksResource {
      * of stacks. If specified then stack is downloaded from the repository.
      *
      * @response.representation.200.doc         Successfully created the new or updated the existing stack.
-     * @response.representation.200.mediaType   application/json
+     * @response.representation.200.mediaType   application/json application/xml
+     * @response.representation.200.example     {@link Examples#STACK}
      * @response.representation.404.doc         Specified stack does not exist. In case of creating new one, 
      *                                          it is not found in repository where in case of update, it does not
      *                                          exist.    
      * 
      * @param stackName Name of the stack
      * @param locationURL   URL pointing to the location of the stack
-     * @param stack     Input stack object specifying the stack definition
+     * @param stack         Input stack object specifying the stack definition
      * @return              Returns the new revision of the stack
      * @throws Exception    throws Exception
      */
-    @Path(value = "/{stackName2}")
     @PUT
-    @Consumes({"application/json", "application/xml"})
-    public Stack updateStack(@PathParam("stackNamez") String stackName, 
+    @Path("{stackName}")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Stack updateStack(@PathParam("stackName") String stackName, 
                                      @DefaultValue("") @QueryParam("url") String locationURL,
                                      Stack stack) throws Exception {
         try {

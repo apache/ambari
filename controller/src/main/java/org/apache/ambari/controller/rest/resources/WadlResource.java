@@ -58,6 +58,8 @@ public class WadlResource {
 
     /**
      * Display REST API in human readable format
+     * @response.representation.200.doc       This page.
+     * @response.representation.200.mediaType application/xml
      * @param uriInfo
      * @return WADL XML Representation of REST API
      */

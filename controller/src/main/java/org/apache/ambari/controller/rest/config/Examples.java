@@ -29,6 +29,7 @@ import org.apache.ambari.common.rest.entities.NodeAttributes;
 import org.apache.ambari.common.rest.entities.NodeState;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.common.rest.entities.StackInformation;
 
 public class Examples {
 	public static final ClusterInformation CLUSTER_INFORMATION = new ClusterInformation();
@@ -38,6 +39,8 @@ public class Examples {
     public static final List<RoleToNodes> rnm = new ArrayList<RoleToNodes>();
     public static final List<Node> NODES = new ArrayList<Node>();
     public static final Stack STACK = new Stack();
+    public static final StackInformation STACK_INFORMATION = new StackInformation();
+    public static final Node NODE = new Node();
 	
 	static {
 		CLUSTER_DEFINITION.setName("example-name");
@@ -78,23 +81,28 @@ public class Examples {
 			CLUSTER_STATE.setDeployTime(new Date());
 		} catch (Exception e) {
 		}
-        Node node = new Node();
-        node.setName("localhost");
+        NODE.setName("localhost");
         NodeAttributes nodeAttributes = new NodeAttributes();
         nodeAttributes.setCPUCores((short)1);
         nodeAttributes.setDISKUnits((short)4);
         nodeAttributes.setRAMInGB(6);
-        node.setNodeAttributes(nodeAttributes);
+        NODE.setNodeAttributes(nodeAttributes);
         NodeState nodeState = new NodeState();
         nodeState.setClusterName("cluster-123");
         List<String> roleNames = new ArrayList<String>();
         roleNames.add("jobtracker-role");
         roleNames.add("namenode-role");
         nodeState.setNodeRoleNames(roleNames);
-        node.setNodeState(nodeState);
-        NODES.add(node);
+        NODE.setNodeState(nodeState);
+        NODES.add(NODE);
         
         STACK.setName("stack");
         STACK.setRevision("1");
+        STACK_INFORMATION.setName("HDP");
+        STACK_INFORMATION.setRevision("1");
+        List<String> components = new ArrayList<String>();
+        components.add("hdfs");
+        components.add("mapreduce");
+        STACK_INFORMATION.setComponent(components);
 	}
 }

@@ -2,6 +2,10 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-120. Fixed REST resource annotation bugs. (Eric Yang)
+
+  AMBARI-121. Added examples for returning REST resources. (Eric Yang)
+
   AMBARI-119. Enhance agent to support workDirComponent. (Eric Yang)
 
   AMBARI-118. Added safe guard mechanism to prevent agent crash on 
