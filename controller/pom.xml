@@ -131,7 +131,7 @@
             <configuration>
               <wadlFile>${project.build.outputDirectory}/application.wadl</wadlFile>
               <formatWadlFile>true</formatWadlFile>
-              <baseUri>http://incubator.apache.org/ambari/rest</baseUri>
+              <baseUri>http://ambari.example.com/rest</baseUri>
               <packagesResourceConfig>
                 <param>org.apache.ambari.controller.rest.resources</param>
               </packagesResourceConfig>
