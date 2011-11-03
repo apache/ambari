@@ -113,30 +113,17 @@ public class Controller {
       server.setStopAtShutdown(true);
       
       /*
-       *  Recover controller state before opening up the server to clients
+       * Initialize the resources 
        */
-      Clusters clusterCtx = Clusters.getInstance();
+      Clusters clustersCtx = Clusters.getInstance();
       Stacks stacksCtx = Stacks.getInstance();
       Nodes nodesCtx = Nodes.getInstance();
       
-      for (Cluster cls : clusterCtx.getClustersList("ALL")) {
-          ClusterDefinition cdef = cls.getClusterDefinition(-1);
-          /*
-           * Update cluster nodes reservation. 
-           */
-          if (cdef.getNodes() != null 
-              && !cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
-              clusterCtx.updateClusterNodesReservation (cls.getName(), cdef);
-          }
-          
-          /*
-           * Update the Node to Roles association
-           *
-           */
-          if (!cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
-              clusterCtx.updateNodeToRolesAssociation(cdef.getNodes(), cdef.getRoleToNodes());
-          }
-      }
+      /*
+       *  Recover controller state for Clusters, Stacks and Nodes before 
+       *  opening up the server to clients
+       */
+      clustersCtx.recoverClustersStateAfterRestart();
       
       /*
        * Start the server after controller state is recovered.

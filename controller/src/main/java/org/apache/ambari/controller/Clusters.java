@@ -553,7 +553,7 @@ public class Clusters {
     /*
      * Update the nodes associated with cluster
      */
-    public synchronized void updateClusterNodesReservation (String clusterName, ClusterDefinition clsDef) throws Exception {
+    private synchronized void updateClusterNodesReservation (String clusterName, ClusterDefinition clsDef) throws Exception {
                 
         ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
         List<String> cluster_node_range = new ArrayList<String>();
@@ -654,7 +654,7 @@ public class Clusters {
      * @param roleToNodesList
      * @throws Exception
      */
-    public synchronized void updateNodeToRolesAssociation (String clusterNodes, List<RoleToNodes> roleToNodesList) throws Exception {
+    private synchronized void updateNodeToRolesAssociation (String clusterNodes, List<RoleToNodes> roleToNodesList) throws Exception {
         /*
          * Associate roles list with node
          */
@@ -864,5 +864,30 @@ public class Clusters {
         list.add(st.nextToken());
       }
       return list;
+  }
+  
+  /*
+   * Restart recovery for clusters
+   */
+  public void recoverClustersStateAfterRestart () throws Exception {
+      for (Cluster cls : this.getClustersList("ALL")) {
+          ClusterDefinition cdef = cls.getClusterDefinition(-1);
+          this.validateClusterDefinition (cdef);
+          /*
+           * Update cluster nodes reservation. 
+           */
+          if (cdef.getNodes() != null 
+              && !cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
+              this.updateClusterNodesReservation (cls.getName(), cdef);
+          }
+          
+          /*
+           * Update the Node to Roles association
+           *
+           */
+          if (!cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
+              this.updateNodeToRolesAssociation(cdef.getNodes(), cdef.getRoleToNodes());
+          }
+      }
   }
 }

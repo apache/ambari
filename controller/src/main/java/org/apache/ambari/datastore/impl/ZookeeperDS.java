@@ -45,8 +45,8 @@ public class ZookeeperDS implements PersistentDataStore, Watcher {
             }
             
             while (!this.zkCoonected) {
-                Thread.sleep(5000);
-                System.out.println("Waiting for ZK connection");
+                System.out.println("Waiting for ZK connection!");
+                Thread.sleep(2000);
             }
             
             /*
@@ -130,7 +130,7 @@ public class ZookeeperDS implements PersistentDataStore, Watcher {
 
     @Override
     public synchronized void storeClusterState(String clusterName, ClusterState clsState)
-            throws IOException {
+           throws IOException {
         /*
          * Update the cluster state
          */
