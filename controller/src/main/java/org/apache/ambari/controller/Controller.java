@@ -18,9 +18,13 @@
 
 package org.apache.ambari.controller;
 
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.apache.ambari.common.rest.entities.ClusterDefinition;
+import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.ambari.common.util.DaemonWatcher;
 import org.apache.ambari.common.util.ExceptionUtil;
 
@@ -107,6 +111,36 @@ public class Controller {
 
       root.addHandler(security);
       server.setStopAtShutdown(true);
+      
+      /*
+       *  Recover controller state before opening up the server to clients
+       */
+      Clusters clusterCtx = Clusters.getInstance();
+      Stacks stacksCtx = Stacks.getInstance();
+      Nodes nodesCtx = Nodes.getInstance();
+      
+      for (Cluster cls : clusterCtx.getClustersList("ALL")) {
+          ClusterDefinition cdef = cls.getClusterDefinition(-1);
+          /*
+           * Update cluster nodes reservation. 
+           */
+          if (cdef.getNodes() != null 
+              && !cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
+              clusterCtx.updateClusterNodesReservation (cls.getName(), cdef);
+          }
+          
+          /*
+           * Update the Node to Roles association
+           *
+           */
+          if (!cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
+              clusterCtx.updateNodeToRolesAssociation(cdef.getNodes(), cdef.getRoleToNodes());
+          }
+      }
+      
+      /*
+       * Start the server after controller state is recovered.
+       */
       server.start();
     } catch (Exception e) {
       LOG.error(ExceptionUtil.getStackTrace(e));

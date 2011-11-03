@@ -424,18 +424,24 @@ public class Clusters {
         }
         
         /*
+         * TODO: Derive the role to nodes map based on nodes attributes
+         * then populate the node to roles association.
+         */
+        if (cdef.getRoleToNodes() == null) {
+            List<RoleToNodes> role2NodesList = generateRoleToNodesListBasedOnNodeAttributes (cdef);
+            cdef.setRoleToNodesMap(role2NodesList);
+        }
+        
+        /*
          * If dry run then update roles to nodes map, if not specified explicitly
          * and return
          */
         if (dry_run) {
-            List<RoleToNodes> role2NodesList = generateRoleToNodesListBasedOnNodeAttributes (cdef);
-            cdef.setRoleToNodesMap(role2NodesList);
             return cdef;
         }
         
         /*
          * Persist the new cluster and add entry to cache
-         * TODO: Persist reserved nodes against the cluster & service/role? 
          * 
          */
         Cluster cls = this.addClusterEntry(cdef, clsState);
@@ -449,19 +455,9 @@ public class Clusters {
         }
         
         /*
-         * Update the Node to Roles association, if specified
-         * If role is not explicitly associated w/ any node, then assign it w/ default role
-         * If RoleToNodes list is not specified then derive it based on the node attributes  
+         * Update the Node to Roles association
          */
         if (!cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
-            if (cdef.getRoleToNodes() == null) {
-                /*
-                 * TODO: Derive the role to nodes map based on nodes attributes
-                 * then populate the node to roles association.
-                 */
-                List<RoleToNodes> role2NodesList = generateRoleToNodesListBasedOnNodeAttributes (cdef);
-                cdef.setRoleToNodesMap(role2NodesList);
-            }
             updateNodeToRolesAssociation(cdef.getNodes(), cdef.getRoleToNodes());
         }
         
@@ -557,7 +553,7 @@ public class Clusters {
     /*
      * Update the nodes associated with cluster
      */
-    private synchronized void updateClusterNodesReservation (String clusterName, ClusterDefinition clsDef) throws Exception {
+    public synchronized void updateClusterNodesReservation (String clusterName, ClusterDefinition clsDef) throws Exception {
                 
         ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
         List<String> cluster_node_range = new ArrayList<String>();
@@ -650,7 +646,15 @@ public class Clusters {
         }
     }
     
-    private synchronized void updateNodeToRolesAssociation (String clusterNodes, List<RoleToNodes> roleToNodesList) throws Exception {
+    /**
+     * Update Node to Roles association.  
+     * If role is not explicitly associated w/ any node, then assign it w/ default role
+     * 
+     * @param clusterNodes
+     * @param roleToNodesList
+     * @throws Exception
+     */
+    public synchronized void updateNodeToRolesAssociation (String clusterNodes, List<RoleToNodes> roleToNodesList) throws Exception {
         /*
          * Associate roles list with node
          */
