@@ -17,11 +17,11 @@
  */
 package org.apache.ambari.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.WebApplicationException;
@@ -33,19 +33,22 @@ import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
+import org.apache.ambari.datastore.DataStoreFactory;
+import org.apache.ambari.datastore.PersistentDataStore;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
 import org.apache.ambari.resource.statemachine.StateMachineInvoker;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 public class Clusters {
+    // TODO: replace system.out.print by LOG
     private static Log LOG = LogFactory.getLog(Clusters.class);
     
     /*
      * Operational clusters include both active and inactive clusters
      */
     protected ConcurrentHashMap<String, Cluster> operational_clusters = new ConcurrentHashMap<String, Cluster>();
-    
+    protected PersistentDataStore dataStore = DataStoreFactory.getDataStore(DataStoreFactory.ZOOKEEPER_TYPE);
     
     private static Clusters ClustersTypeRef=null;
         
@@ -129,8 +132,12 @@ public class Clusters {
         cluster124.setRoleToNodesMap(rnm);
         
         try {
-            addCluster(cluster123, false);
-            addCluster(cluster124, false);
+            if (!clusterExists(cluster123.getName())) {
+                addCluster(cluster123, false);
+            }
+            if (!clusterExists(cluster124.getName())) {
+                addCluster(cluster124, false);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -148,13 +155,56 @@ public class Clusters {
     }
 
     /*
+     * Wrapper method over datastore API
+     */
+    public boolean clusterExists(String clusterName) throws IOException {
+        int x = 0;
+        if (!this.operational_clusters.containsKey(clusterName) &&
+            dataStore.clusterExists(clusterName) == false) {
+            return false;
+        }
+        return true;
+    }
+    
+    /* 
+     * Get the cluster by name
+     * Wrapper over datastore API
+     */
+    public synchronized Cluster getClusterByName(String clusterName) throws Exception {
+        if (clusterExists(clusterName)) {
+            if (!this.operational_clusters.containsKey(clusterName)) {
+                Cluster cls = new Cluster(clusterName);
+                cls.init();
+                this.operational_clusters.put(clusterName, cls);
+            }
+            return this.operational_clusters.get(clusterName);
+        } else {
+            return null;
+        }
+    }
+    
+    /*
+     * Purge the cluster entry from memory and the data store
+     */
+    public synchronized void purgeClusterEntry (String clusterName) throws IOException {
+        dataStore.deleteCluster(clusterName);
+        this.operational_clusters.remove(clusterName);
+    }
+    
+    /*
+     * Add Cluster Entry
+     */
+    public synchronized Cluster addClusterEntry (ClusterDefinition cdef, ClusterState cs) throws Exception {
+        Cluster cls = new Cluster (cdef, cs);
+        this.operational_clusters.put(cdef.getName(), cls);
+        return cls;
+    }
+    
+    /*
      * Rename the cluster
      */
-    public void renameCluster(String clusterName, String new_name) throws Exception {
-        /*
-         * 
-         */
-        if (!this.operational_clusters.containsKey(clusterName)) {
+    public synchronized void renameCluster(String clusterName, String new_name) throws Exception {
+        if (!clusterExists(clusterName)) {
             String msg = "Cluster ["+clusterName+"] does not exist";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
@@ -164,155 +214,172 @@ public class Clusters {
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
         }
         
-        synchronized (operational_clusters) {
-            /*
-             * Check if cluster state is ATTAIC, If yes update the name
-             * don't make new revision of cluster definition as it is in ATTIC state
-             */
-            if (!this.operational_clusters.get(clusterName).getClusterState().getState().equals(ClusterState.CLUSTER_STATE_ATTIC)) {
-                String msg = "Cluster state is not ATTIC. Cluster is only allowed to be renamed in ATTIC state";
-                throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_ACCEPTABLE)).get());
-            }
-            
-            Cluster x = this.operational_clusters.get(clusterName);
-            x.getLatestClusterDefinition().setName(new_name);
-            this.operational_clusters.remove(clusterName);
-            this.operational_clusters.put(new_name, x);
+        /*
+         * Check if cluster state is ATTAIC, If yes update the name
+         * don't make new revision of cluster definition as it is in ATTIC state
+         */
+        if (!getClusterByName(clusterName).getClusterState().getState().equals(ClusterState.CLUSTER_STATE_ATTIC)) {
+            String msg = "Cluster state is not ATTIC. Cluster is only allowed to be renamed in ATTIC state";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_ACCEPTABLE)).get());
         }
-     
+        
+        Cluster x = this.getClusterByName(clusterName);
+        ClusterDefinition cdef = x.getClusterDefinition(-1);
+        cdef.setName(new_name);
+        ClusterState cs = x.getClusterState();
+        this.addClusterEntry(cdef, cs);
+        this.purgeClusterEntry(clusterName);
     }
     
     /* 
      * Create/Update cluster definition 
      * TODO: As nodes or role to node association changes, validate key services nodes are not removed
     */
-    public ClusterDefinition updateCluster(String clusterName, ClusterDefinition c, boolean dry_run) throws Exception {
-        
+    public synchronized ClusterDefinition updateCluster(String clusterName, ClusterDefinition c, boolean dry_run) throws Exception {       
         /*
-         * if cluster does not exist create it  
+         * Add new cluster if cluster does not exist
          */
-        synchronized (this.operational_clusters) {
-            if (!this.operational_clusters.containsKey(clusterName)) {
-                return addCluster(c, dry_run);
-            }
+        if (!clusterExists(clusterName)) {
+            return addCluster(c, dry_run);
         }
         
-        Cluster cls = this.operational_clusters.get(clusterName);
         /*
          * Time being we will keep entire updated copy as new revision
          */
+        Cluster cls = getClusterByName(clusterName);
         ClusterDefinition newcd = new ClusterDefinition ();
-        
-        synchronized (cls.getClusterDefinitionRevisionsList()) {
-            newcd.setName(clusterName);
-            if (c.getStackName() != null) {
-                newcd.setStackName(c.getStackName());
-            } else {
-                newcd.setStackName(cls.getLatestClusterDefinition().getStackName());
-            }
-            if (c.getStackRevision() != null) {
-                newcd.setStackRevision(c.getStackRevision());
-            } else {
-                newcd.setStackRevision(cls.getLatestClusterDefinition().getStackRevision());
-            }
-            if (c.getDescription() != null) {
-                newcd.setDescription(c.getDescription());
-            } else {
-                newcd.setDescription(cls.getLatestClusterDefinition().getDescription());
-            }
-            if (c.getGoalState() != null) {
-                newcd.setGoalState(c.getGoalState());
-            } else {
-                newcd.setGoalState(cls.getLatestClusterDefinition().getGoalState());
-            }
-            if (c.getActiveServices() != null) {
-                newcd.setActiveServices(c.getActiveServices());
-            } else {
-                newcd.setActiveServices(cls.getLatestClusterDefinition().getActiveServices());
-            }
-            
-            /*
-             * TODO: What if controller is crashed after updateClusterNodesReservation 
-             * before updating and adding new revision of cluster definition?
-             */
-            boolean updateNodesReservation = false;
-            boolean updateNodeToRolesAssociation = false;
-            if (c.getNodes() != null) {
-                newcd.setNodes(c.getNodes());
-                updateNodesReservation = true;
-                
-            } else {
-                newcd.setNodes(cls.getLatestClusterDefinition().getNodes());
-            }
-            if (c.getRoleToNodes() != null) {
-                newcd.setRoleToNodesMap(c.getRoleToNodes());
-                updateNodeToRolesAssociation = true;
-                
-            }  
-            
-            /*
-             * if Cluster goal state is ATTIC then no need to take any action other than
-             * updating the cluster definition.
-             */
-            if (newcd.getGoalState().equals(ClusterState.CLUSTER_STATE_ATTIC)) {
-                cls.getClusterState().setLastUpdateTime(new Date());
-                cls.addClusterDefinition(newcd);
-                /*
-                 * TODO: Persist the latest cluster definition under new revision
-                 */
-                return cls.getLatestClusterDefinition();
-            }
-            
-            /*
-             * Validate the updated cluster definition
-             */
-            validateClusterDefinition(newcd);
-            
-            /*
-             * TODO: If dry_run then return the newcd at this point
-             */
-            if (dry_run) {
-                System.out.println ("Dry run for update cluster..");
-                return newcd;
-            }
-            
-            /*
-             * Update the nodes reservation and node to roles association 
-             */
-            if (updateNodesReservation) {
-                updateClusterNodesReservation (cls.getName(), c);   
-            }
-            if (updateNodeToRolesAssociation) {
-                updateNodeToRolesAssociation(newcd.getNodes(), c.getRoleToNodes());
-            }
-            
-            /*
-             *  Update the last update time & revision
-             */
-            cls.getClusterState().setLastUpdateTime(new Date());
-            cls.addClusterDefinition(newcd);
-            
-            /*
-             * TODO: Persist the latest cluster definition under new revision
-             */
-            
-            /*
-             * Invoke state machine event
-             */
-            ClusterFSM clusterFSM = StateMachineInvoker.
-                getStateMachineClusterInstance(cls.getName());
-            if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {
-              clusterFSM.activate();
-            } else if(c.getGoalState().
-                equals(ClusterState.CLUSTER_STATE_INACTIVE)) {
-              clusterFSM.deactivate();
-            } else if(c.getGoalState().
-                equals(ClusterState.CLUSTER_STATE_ATTIC)) {
-              clusterFSM.deactivate();
-              clusterFSM.terminate();
-            }
+        newcd.setName(clusterName);
+        if (c.getStackName() != null) {
+            newcd.setStackName(c.getStackName());
+        } else {
+            newcd.setStackName(cls.getClusterDefinition(-1).getStackName());
         }
-        return cls.getLatestClusterDefinition();
+        if (c.getStackRevision() != null) {
+            newcd.setStackRevision(c.getStackRevision());
+        } else {
+            newcd.setStackRevision(cls.getClusterDefinition(-1).getStackRevision());
+        }
+        if (c.getDescription() != null) {
+            newcd.setDescription(c.getDescription());
+        } else {
+            newcd.setDescription(cls.getClusterDefinition(-1).getDescription());
+        }
+        if (c.getGoalState() != null) {
+            newcd.setGoalState(c.getGoalState());
+        } else {
+            newcd.setGoalState(cls.getClusterDefinition(-1).getGoalState());
+        }
+        if (c.getActiveServices() != null) {
+            newcd.setActiveServices(c.getActiveServices());
+        } else {
+            newcd.setActiveServices(cls.getClusterDefinition(-1).getActiveServices());
+        }
+        
+        /*
+         * TODO: What if controller is crashed after updateClusterNodesReservation 
+         * before updating and adding new revision of cluster definition?
+         */
+        boolean updateNodesReservation = false;
+        boolean updateNodeToRolesAssociation = false;
+        if (c.getNodes() != null) {
+            newcd.setNodes(c.getNodes());
+            updateNodesReservation = true;
+            
+        } else {
+            newcd.setNodes(cls.getClusterDefinition(-1).getNodes());
+        }
+        if (c.getRoleToNodes() != null) {
+            newcd.setRoleToNodesMap(c.getRoleToNodes());
+            updateNodeToRolesAssociation = true;
+            
+        }  
+        
+        /*
+         * if Cluster goal state is ATTIC then no need to take any action other than
+         * updating the cluster definition.
+         */
+        if (newcd.getGoalState().equals(ClusterState.CLUSTER_STATE_ATTIC)) {
+            ClusterState cs = cls.getClusterState();
+            cs.setLastUpdateTime(Util.getXMLGregorianCalendar(new Date()));
+            cls.updateClusterDefinition(newcd);
+            cls.updateClusterState(cs);
+            return cls.getClusterDefinition(-1);
+        }
+        
+        /*
+         * Validate the updated cluster definition
+         */
+        validateClusterDefinition(newcd);
+        
+        /*
+         * If dry_run then return the newcd at this point
+         */
+        if (dry_run) {
+            System.out.println ("Dry run for update cluster..");
+            return newcd;
+        }
+        
+        /*
+         *  Udate the new cluster definition
+         */
+        ClusterState cs = cls.getClusterState();
+        cs.setLastUpdateTime(Util.getXMLGregorianCalendar(new Date()));
+        cls.updateClusterDefinition(newcd);
+        cls.updateClusterState(cs);
+        
+        /*
+         * Update the nodes reservation and node to roles association 
+         */
+        if (updateNodesReservation) {
+            updateClusterNodesReservation (cls.getName(), c);   
+        }
+        if (updateNodeToRolesAssociation) {
+            updateNodeToRolesAssociation(newcd.getNodes(), c.getRoleToNodes());
+        }
+        
+        /*
+         * Invoke state machine event
+         */
+        ClusterFSM clusterFSM = StateMachineInvoker.
+            getStateMachineClusterInstance(cls.getName());
+        if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {
+          clusterFSM.activate();
+        } else if(c.getGoalState().
+            equals(ClusterState.CLUSTER_STATE_INACTIVE)) {
+          clusterFSM.deactivate();
+        } else if(c.getGoalState().
+            equals(ClusterState.CLUSTER_STATE_ATTIC)) {
+          clusterFSM.deactivate();
+          clusterFSM.terminate();
+        }
+     
+        return cls.getClusterDefinition(-1);
+    }
+    
+    /*
+     * Add default values for new cluster definition 
+     */
+    private void setNewClusterDefaults(ClusterDefinition cdef) throws Exception {
+        /* 
+         * Populate the input cluster definition w/ default values
+         */
+        if (cdef.getDescription() == null) { cdef.setDescription("Ambari cluster : "+cdef.getName());
+        }
+        if (cdef.getGoalState() == null) { cdef.setGoalState(ClusterDefinition.GOAL_STATE_INACTIVE);
+        }
+        
+        /*
+         * If its new cluster, do not specify the revision, set it to null. A revision number is obtained
+         * after persisting the definition
+         */
+        cdef.setRevision(null);
+        
+        // TODO: Add the list of active services by querying pluging component.
+        if (cdef.getActiveServices() == null) {
+            List<String> services = new ArrayList<String>();
+            services.add("ALL");
+            cdef.setActiveServices(services);
+        }    
     }
     
     /* 
@@ -329,36 +396,32 @@ public class Clusters {
      *       are in UNREGISTERED state).  
      */   
     private ClusterDefinition addCluster(ClusterDefinition cdef, boolean dry_run) throws Exception {
-
+        
         /*
          * TODO: Validate the cluster definition and set the default
+         * 
          */
         validateClusterDefinition(cdef);
         
-        /* 
-         * Check if cluster already exist
+        /*
+         * Add the defaults for optional values, if not set
          */
-        if (operational_clusters.containsKey(cdef.getName())) {
-            String msg = "Cluster ["+cdef.getName()+"] already exists";
-                throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.CONFLICT)).get());
-            }
- 
-            /*
+        setNewClusterDefaults(cdef);
+        
+        /*
          * Create new cluster object
          */
         Date requestTime = new Date();
-        Cluster cls = new Cluster();
+        
         ClusterState clsState = new ClusterState();
-        clsState.setCreationTime(requestTime);
-        clsState.setLastUpdateTime(requestTime);
-        clsState.setDeployTime((Date)null);          
+        clsState.setCreationTime(Util.getXMLGregorianCalendar(requestTime));
+        clsState.setLastUpdateTime(Util.getXMLGregorianCalendar(requestTime));
+        clsState.setDeployTime(Util.getXMLGregorianCalendar((Date)null));          
         if (cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
             clsState.setState(ClusterState.CLUSTER_STATE_ATTIC);
         } else {
             clsState.setState(ClusterDefinition.GOAL_STATE_INACTIVE);
         }
-        cls.addClusterDefinition(cdef);
-        cls.setClusterState(clsState);
         
         /*
          * If dry run then update roles to nodes map, if not specified explicitly
@@ -369,6 +432,13 @@ public class Clusters {
             cdef.setRoleToNodesMap(role2NodesList);
             return cdef;
         }
+        
+        /*
+         * Persist the new cluster and add entry to cache
+         * TODO: Persist reserved nodes against the cluster & service/role? 
+         * 
+         */
+        Cluster cls = this.addClusterEntry(cdef, clsState);
         
         /*
          * Update cluster nodes reservation. 
@@ -396,20 +466,12 @@ public class Clusters {
         }
         
         /*
-         * TODO: Persist the cluster definition to data store as a initial version r0. 
-         *          Persist reserved nodes against the cluster & service/role
-         */
-            
-        // Add the cluster to the list, after definition is persisted
-        this.operational_clusters.put(cdef.getName(), cls);
-        
-        /*
          * Activate the cluster if the goal state is ACTIVE
          * TODO: What to do if activate fails ??? 
         */
         if(cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ACTIVE)) {          
             org.apache.ambari.resource.statemachine.ClusterFSM cs = 
-                StateMachineInvoker.createCluster(cls,cls.getLatestRevision(),
+                StateMachineInvoker.createCluster(cls,cls.getLatestRevisionNumber(),
                     cls.getClusterState());
             cs.activate();
         }
@@ -426,7 +488,7 @@ public class Clusters {
     }
     
     /*
-     * Validates the cluster definition
+     * Validate the cluster definition
      * TODO: Validate each role has enough nodes associated with it. 
      */
     private void validateClusterDefinition (ClusterDefinition cdef) throws Exception {
@@ -469,20 +531,6 @@ public class Clusters {
             }
         }
         
-        /* 
-         * Populate the input cluster definition w/ default values
-         */
-        if (cdef.getDescription() == null) { cdef.setDescription("Ambari cluster : "+cdef.getName());
-        }
-        if (cdef.getGoalState() == null) { cdef.setGoalState(cdef.GOAL_STATE_INACTIVE);
-        }
-        
-        // TODO: Add the list of active services by querying pluging component.
-        if (cdef.getActiveServices() == null) {
-            List<String> services = new ArrayList<String>();
-            services.add("ALL");
-            cdef.setActiveServices(services);
-        }
         
         /*
          * Check if all the nodes explicitly specified in the RoleToNodesMap belong the cluster node range specified 
@@ -517,7 +565,7 @@ public class Clusters {
        
         /*
          * Reserve the nodes as specified in the node range expressions
-         * -- throw exception if any nodes are pre-associated with other cluster
+         * -- throw exception, if any nodes are pre-associated with other cluster
          */    
         List<String> nodes_currently_allocated_to_cluster = new ArrayList<String>();
         for (Node n : Nodes.getInstance().getNodes().values()) {
@@ -593,7 +641,7 @@ public class Clusters {
     }
 
     /*
-     * This function disassociate the node from the cluster. The clsuterID associated w/
+     * This function disassociate all the nodes from the cluster. The clsuterID associated w/
      * cluster will be reset by heart beat when node reports all clean.
      */
     public synchronized void releaseClusterNodes (String clusterName) throws Exception {
@@ -644,14 +692,14 @@ public class Clusters {
      * Get Cluster stack
      */
     public Stack getClusterStack(String clusterName, boolean expanded) throws Exception {
-        if (!this.operational_clusters.containsKey(clusterName)) {
+        if (!this.clusterExists(clusterName)) {
             String msg = "Cluster ["+clusterName+"] does not exist";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         
-        Cluster cls = this.operational_clusters.get(clusterName);
-        String stackName = cls.getLatestClusterDefinition().getStackName();
-        int stackRevision = Integer.parseInt(cls.getLatestClusterDefinition().getStackRevision());
+        Cluster cls = this.getClusterByName(clusterName);
+        String stackName = cls.getClusterDefinition(-1).getStackName();
+        int stackRevision = Integer.parseInt(cls.getClusterDefinition(-1).getStackRevision());
         
         Stack bp;
         if (!expanded) {
@@ -663,70 +711,61 @@ public class Clusters {
         return bp;
     }
     
-
     
     /*
      * Delete Cluster 
-     * Delete operation will bring the cluster to ATTIC state and then remove the
-     * cluster definition from the controller 
-     * When cluster state transitions to ATTIC, it should check if the cluster definition is 
-     * part of tobe_deleted_clusters map and then delete the definition.
-     * TODO: Delete definition from both operational_clusters and operational_clusters_id_name map and to_be_deleted 
-     * clusters list.
+     * Delete operation will mark the cluster to_be_deleted and then set the goal state to ATTIC
+     * Once cluster gets to ATTIC state, background daemon should purge the cluster entry.
      */
-    public void deleteCluster(String clusterName) throws Exception { 
-        synchronized (this.operational_clusters) {
-            for (Cluster cls : this.operational_clusters.values()) {
-                if (cls.getLatestClusterDefinition().getName().equals(clusterName)) {
-                    synchronized (cls) {
-                        ClusterDefinition cdf = new ClusterDefinition();
-                        cdf.setName(clusterName);
-                        cdf.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
-                        updateCluster(clusterName, cdf, false);
-                        /* Update cluster state, mark it "to be deleted" when gets to ATTIC state
-                         * TODO: PERSIST the new flag in the cluster state
-                         */
-                        cls.getClusterState().setMarkForDeletionWhenInAttic(true);          
-                        
-                    }
-                } 
-            }
+    public synchronized void deleteCluster(String clusterName) throws Exception { 
+
+        if (!this.clusterExists(clusterName)) {
+            System.out.println("Cluster ["+clusterName+"] does not exist!");
+            return;
         }
-    }   
-     
-    /* 
-     * Get the cluster by name
-     */
-    public Cluster getClusterByName(String clusterName) {
-        return this.operational_clusters.get(clusterName);
-    }
-    
+        
+        /*
+         * Update the cluster definition with goal state to be ATTIC
+         */
+        Cluster cls = this.getClusterByName(clusterName);   
+        ClusterDefinition cdf = new ClusterDefinition();
+        cdf.setName(clusterName);
+        cdf.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
+        cls.updateClusterDefinition(cdf);
+        
+        /* 
+         * Update cluster state, mark it "to be deleted"
+         */
+        ClusterState cs = cls.getClusterState();
+        cs.setMarkForDeletionWhenInAttic(true); 
+        cls.updateClusterState(cs);
+    }      
     
     /*
      * Get the latest cluster definition
      */
-    public ClusterDefinition getLatestClusterDefinition(String clusterName) {
-        return this.operational_clusters.get(clusterName).getLatestClusterDefinition();
+    public ClusterDefinition getLatestClusterDefinition(String clusterName) throws Exception {
+        return this.getClusterByName(clusterName).getClusterDefinition(-1);
     }
     
     /*
      * Get Cluster Definition given name and revision
      */
-    public ClusterDefinition getClusterDefinition(String clusterName, long revision) {
-        return this.operational_clusters.get(clusterName).getClusterDefinition(revision);
+    public ClusterDefinition getClusterDefinition(String clusterName, int revision) throws Exception {
+        return this.getClusterByName(clusterName).getClusterDefinition(revision);
     }
     
     /* 
      * Get the cluster Information by name
      */
     public ClusterInformation getClusterInformation (String clusterName) throws Exception  {
-        if (!this.operational_clusters.containsKey(clusterName)) {
+        if (!this.clusterExists(clusterName)) {
             String msg = "Cluster ["+clusterName+"] does not exist";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
         ClusterInformation clsInfo = new ClusterInformation();
         clsInfo.setDefinition(this.getLatestClusterDefinition(clusterName));
-        clsInfo.setState(this.operational_clusters.get(clusterName).getClusterState());
+        clsInfo.setState(this.getClusterByName(clusterName).getClusterState());
         return clsInfo;
     }
     
@@ -734,30 +773,32 @@ public class Clusters {
     /* 
      * Get the cluster state
     */
-    public ClusterState getClusterState(String clusterName) throws WebApplicationException {
-        if (!this.operational_clusters.containsKey(clusterName)) {
+    public ClusterState getClusterState(String clusterName) throws Exception {
+        if (!this.clusterExists(clusterName)) {
             String msg = "Cluster ["+clusterName+"] does not exist";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_FOUND)).get());
         }
-        return this.operational_clusters.get(clusterName).getClusterState();
+        return this.getClusterByName(clusterName).getClusterState();
     }
     
     
     /*
      * Get Cluster Information list i.e. cluster definition and cluster state
      */
-    public List<ClusterInformation> getClusterInformationList(String state) {
+    public List<ClusterInformation> getClusterInformationList(String state) throws Exception {
       List<ClusterInformation> list = new ArrayList<ClusterInformation>();
-      for (Cluster cls : this.operational_clusters.values()) {
+      List<String> clusterNames = dataStore.retrieveClusterList();
+      for (String clsName : clusterNames) {
+        Cluster cls = this.getClusterByName(clsName);
         if (state.equals("ALL")) {
           ClusterInformation clsInfo = new ClusterInformation();
-          clsInfo.setDefinition(cls.getLatestClusterDefinition());
+          clsInfo.setDefinition(cls.getClusterDefinition(-1));
           clsInfo.setState(cls.getClusterState());
           list.add(clsInfo);
         } else {
           if (cls.getClusterState().getState().equals(state)) {
               ClusterInformation clsInfo = new ClusterInformation();
-              clsInfo.setDefinition(cls.getLatestClusterDefinition());
+              clsInfo.setDefinition(cls.getClusterDefinition(-1));
               clsInfo.setState(cls.getClusterState());
               list.add(clsInfo);
           }
@@ -770,14 +811,16 @@ public class Clusters {
      * Get the list of clusters
      * TODO: Get the synchronized snapshot of each cluster definition? 
      */
-    public List<Cluster> getClustersList(String state) {
+    public List<Cluster> getClustersList(String state) throws Exception {
         List<Cluster> list = new ArrayList<Cluster>();
-        if (state.equals("ALL")) {
-          list.addAll(this.operational_clusters.values());
-        } else {
-          for (Cluster cls : this.operational_clusters.values()) {
+        List<String> clusterNames = dataStore.retrieveClusterList();
+        for (String clsName : clusterNames) {
+          Cluster cls = this.getClusterByName(clsName);
+          if (state.equals("ALL")) {
+            list.add(cls);
+          } else {
             if (cls.getClusterState().getState().equals(state)) {
-              list.add(cls);
+                list.add(cls);
             }
           }
         }

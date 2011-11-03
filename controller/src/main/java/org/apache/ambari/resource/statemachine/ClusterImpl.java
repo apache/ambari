@@ -109,9 +109,8 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
   private ClusterState clusterState;
   private static Log LOG = LogFactory.getLog(ClusterImpl.class);
     
-  public ClusterImpl(Cluster cluster, long revision, 
-      ClusterState clusterState) 
-      throws IOException {
+  public ClusterImpl(Cluster cluster, int revision, 
+      ClusterState clusterState) throws IOException {
     ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     this.readLock = readWriteLock.readLock();
     this.writeLock = readWriteLock.writeLock();

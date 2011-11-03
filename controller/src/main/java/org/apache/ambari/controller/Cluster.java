@@ -18,6 +18,7 @@
 package org.apache.ambari.controller;
 
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,109 +29,141 @@ import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Component;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.components.impl.XmlComponentDefinition;
+import org.apache.ambari.datastore.DataStoreFactory;
+import org.apache.ambari.datastore.PersistentDataStore;
 
 
 public class Cluster {
         
     /*
+     * Data Store 
+     */
+    private PersistentDataStore dataStore = DataStoreFactory.getDataStore(DataStoreFactory.ZOOKEEPER_TYPE);
+   
+    /*
      * Latest revision of cluster definition
      */
-    private long latestRevision = 0;
+    private String clusterName = null;
+    private int latestRevisionNumber = -1;
+    private ClusterDefinition latestDefinition = null;
     
-    /**
-     * @return the latestRevision
-     */
-    public long getLatestRevision() {
-        return latestRevision;
-    }
-
     /*
      * Map of cluster revision to cluster definition
      */
-    private final Map<Long, ClusterDefinition> clusterDefinitionRevisionsList = 
-        new ConcurrentHashMap<Long, ClusterDefinition>();
-    private ClusterState clusterState;
-    private ClusterDefinition definition;
+    private final Map<Integer, ClusterDefinition> clusterDefinitionRevisionsList = 
+                    new ConcurrentHashMap<Integer, ClusterDefinition>();
     private final Map<String, ComponentPlugin> plugins =
-        new HashMap<String, ComponentPlugin>();
+                  new HashMap<String, ComponentPlugin>();
     
+    
+    public Cluster (String clusterName) {
+        this.clusterName = clusterName;
+    }
+    
+    public Cluster (ClusterDefinition c, ClusterState cs) throws Exception {
+        this.clusterName = c.getName();
+        this.updateClusterDefinition(c);
+        this.updateClusterState(cs);
+    }
+    
+    public synchronized void init () throws Exception {
+        this.latestRevisionNumber = dataStore.retrieveLatestClusterRevisionNumber(clusterName);
+        this.latestDefinition = dataStore.retrieveClusterDefinition(clusterName, this.latestRevisionNumber);
+        loadPlugins(this.latestDefinition);
+        //this.clusterState = dataStore.retrieveClusterState(clusterName);  
+        this.clusterDefinitionRevisionsList.put(this.latestRevisionNumber, this.latestDefinition);
+    }
     
     /**
      * @return the clusterDefinition
      */
-    public synchronized ClusterDefinition getClusterDefinition(long revision) {
-        return clusterDefinitionRevisionsList.get(revision);
+    public synchronized ClusterDefinition getClusterDefinition(int revision) throws IOException {
+        ClusterDefinition cdef = null;
+        if (revision < 0) {
+            cdef = this.latestDefinition;
+        } else {
+            if (!this.clusterDefinitionRevisionsList.containsKey(revision)) {
+                cdef = dataStore.retrieveClusterDefinition(clusterName, revision);
+                if (!this.clusterDefinitionRevisionsList.containsKey(revision)) {
+                    this.clusterDefinitionRevisionsList.put(revision, cdef);
+                }
+            } else {
+                cdef = this.clusterDefinitionRevisionsList.get(revision);
+            }
+        }
+        return cdef;
     }
     
     /**
-     * @return the latest clusterDefinition
+     * @return the latestRevision
      */
-    public synchronized ClusterDefinition getLatestClusterDefinition() {
-        return definition;
+    public int getLatestRevisionNumber() {
+        return this.latestRevisionNumber;
     }
     
     /**
      * @return Add Cluster definition
      */
-    public synchronized 
-    void addClusterDefinition(ClusterDefinition c) throws Exception {
-      this.latestRevision++;
-      clusterDefinitionRevisionsList.put((long)this.latestRevision, c);
-      definition = c;
-      // find the plugins for the current definition of the cluster
-      Stacks context = Stacks.getInstance();
-      Stack bp = context.getStack(c.getStackName(),
-                                   Integer.parseInt(c.getStackRevision()));
+    public synchronized void updateClusterDefinition(ClusterDefinition c) throws Exception {
+      this.latestRevisionNumber = dataStore.storeClusterDefinition(c);
+      this.clusterDefinitionRevisionsList.put(this.latestRevisionNumber, c);
+      this.latestDefinition = c;
       
-      while (bp != null) {
-        for(Component comp: bp.getComponents()) {
-          String name = comp.getName();
-          if (!plugins.containsKey(name) && comp.getDefinition() != null) {
-            plugins.put(name, new XmlComponentDefinition(comp.getDefinition()));
+      // find the plugins for the current definition of the cluster
+      loadPlugins(c);
+    }
+
+    /*
+     * Load plugins for the current definition of the cluster
+     */
+    private void loadPlugins (ClusterDefinition c) throws Exception {
+        
+        Stacks context = Stacks.getInstance();
+        Stack bp = context.getStack(c.getStackName(),
+                                     Integer.parseInt(c.getStackRevision()));
+        
+        while (bp != null) {
+          for(Component comp: bp.getComponents()) {
+            String name = comp.getName();
+            if (!plugins.containsKey(name) && comp.getDefinition() != null) {
+              plugins.put(name, new XmlComponentDefinition(comp.getDefinition()));
+            }
+          }
+          
+          // go up to the parent
+          if (bp.getParentName() != null) {
+            bp = context.getStack(bp.getParentName(), 
+                                    Integer.parseInt(bp.getParentRevision()));
+          } else {
+            bp = null;
           }
         }
-        
-        // go up to the parent
-        if (bp.getParentName() != null) {
-          bp = context.getStack(bp.getParentName(), 
-                                  Integer.parseInt(bp.getParentRevision()));
-        } else {
-          bp = null;
-        }
-      }
     }
     
     /**
-     * @return the clusterDefinitionList
-     */
-    public Map<Long, ClusterDefinition> getClusterDefinitionRevisionsList() {
-        return clusterDefinitionRevisionsList;
-    }
-
-    /**
      * @return the clusterState
      */
-    public ClusterState getClusterState() {
-            return clusterState;
+    public ClusterState getClusterState() throws IOException {
+        return dataStore.retrieveClusterState(this.clusterName);
     }
     
     /**
      * @param clusterState the clusterState to set
      */
-    public void setClusterState(ClusterState clusterState) {
-            this.clusterState = clusterState;
+    public void updateClusterState(ClusterState clusterState) throws IOException {
+        dataStore.storeClusterState(this.clusterName, clusterState);
     }
     
-    public synchronized String getName() {
-      return definition.getName();
+    public String getName() {
+        return this.latestDefinition.getName();
     }
 
     public synchronized Iterable<String> getComponents() {
-      return plugins.keySet();
+        return this.plugins.keySet();
     }
     
     public synchronized 
     ComponentPlugin getComponentDefinition(String component) {
-      return plugins.get(component);
+        return this.plugins.get(component);
     }
 }

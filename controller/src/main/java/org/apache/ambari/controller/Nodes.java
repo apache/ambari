@@ -85,7 +85,7 @@ public class Nodes {
     public List<Node> getClusterNodes (String clusterName, String roleName, String alive) throws Exception {
         
         List<Node> list = new ArrayList<Node>();
-        ClusterDefinition c = Clusters.getInstance().operational_clusters.get(clusterName).getLatestClusterDefinition();
+        ClusterDefinition c = Clusters.getInstance().operational_clusters.get(clusterName).getClusterDefinition(-1);
         if (c.getNodes() == null || c.getNodes().equals("") || Clusters.getInstance().getClusterByName(clusterName).getClusterState().getState().equalsIgnoreCase("ATTIC")) {
             String msg = "No nodes are reserved for the cluster. Typically cluster in ATTIC state does not have any nodes reserved";
             throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NO_CONTENT)).get());

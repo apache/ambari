@@ -3,9 +3,9 @@ package org.apache.ambari.datastore;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
-import org.apache.ambari.common.rest.entities.ClusterState;
 
 public interface PersistentDataStore {
     
@@ -16,10 +16,30 @@ public interface PersistentDataStore {
     public void close () throws IOException;
     
     /**
-     * Persist the cluster definition.
-     * 
-     * Create new cluster entry, if one does not exist already else add new revision to existing cluster
-     * Return the revision number for each newly added cluster definition
+     * Check if cluster exists
+     */
+    public boolean clusterExists(String clusterName) throws IOException;
+    
+    /**
+     * Get Latest cluster Revision Number
+     */
+    public int retrieveLatestClusterRevisionNumber(String clusterName) throws IOException;
+    
+    /**
+     * Store the cluster state
+     */
+    public void storeClusterState (String clusterName, ClusterState clsState) throws IOException;
+    
+    /**
+     * Store the cluster state
+     */
+    public ClusterState retrieveClusterState (String clusterName) throws IOException;
+
+    /**
+     * Store the cluster definition.
+     *
+     * Return the revision number for new or updated cluster definition
+     * If cluster revision is not null then, check if existing revision being updated in the store is same.
      */
     public int storeClusterDefinition (ClusterDefinition clusterDef) throws IOException;
     
@@ -39,10 +59,9 @@ public interface PersistentDataStore {
     }
   
     /**
-     * Retrieve all cluster definitions with their latest revisions
-     * 
+     * Retrieve list of existing cluster names
      */
-    public List<NameRevisionPair> retrieveClusterList () throws IOException;
+    public List<String> retrieveClusterList () throws IOException;
     
     
     /**

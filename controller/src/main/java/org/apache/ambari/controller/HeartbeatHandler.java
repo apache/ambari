@@ -89,7 +89,7 @@ public class HeartbeatHandler {
           .getNodeState().getClusterName();
       if (clusterName != null) {
         clusterRev = Clusters.getInstance().
-            getClusterByName(clusterName).getLatestRevision(); 
+            getClusterByName(clusterName).getLatestRevisionNumber(); 
       }
       
       ComponentAndRoleStates componentStates = 
@@ -576,19 +576,23 @@ public class HeartbeatHandler {
   private void inspectAgentState(HeartBeat heartbeat, 
       ComponentAndRoleStates componentServers)
           throws IOException {
-    List<AgentRoleState> agentRoleStates = 
-        heartbeat.getInstalledRoleStates();
-    if (agentRoleStates == null) {
-      return;
-    }
-    List<Cluster> clustersNodeBelongsTo = new ArrayList<Cluster>();
-    for (AgentRoleState agentRoleState : agentRoleStates) {
-      componentServers.recordRoleState(heartbeat.getHostname(),agentRoleState);
-      Cluster c = Clusters.getInstance().
-          getClusterByName(agentRoleState.getClusterId());
-      clustersNodeBelongsTo.add(c);
-    }
-    checkActionResults(heartbeat, componentServers);
+      try {
+        List<AgentRoleState> agentRoleStates = 
+            heartbeat.getInstalledRoleStates();
+        if (agentRoleStates == null) {
+          return;
+        }
+        List<Cluster> clustersNodeBelongsTo = new ArrayList<Cluster>();
+        for (AgentRoleState agentRoleState : agentRoleStates) {
+          componentServers.recordRoleState(heartbeat.getHostname(),agentRoleState);
+          Cluster c = Clusters.getInstance().
+              getClusterByName(agentRoleState.getClusterId());
+          clustersNodeBelongsTo.add(c);
+        }
+        checkActionResults(heartbeat, componentServers);
+      } catch (Exception e) {
+          throw new IOException (e);
+      }
   }
   
   private void checkActionResults(HeartBeat heartbeat,

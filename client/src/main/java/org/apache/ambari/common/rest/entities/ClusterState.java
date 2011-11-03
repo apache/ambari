@@ -17,17 +17,12 @@
  */
 package org.apache.ambari.common.rest.entities;
 
-import java.util.Date;
-import java.util.GregorianCalendar;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-
 
 /**
  * The state of a cluster.
@@ -106,19 +101,6 @@ public class ClusterState {
     public void setCreationTime(XMLGregorianCalendar creationTime) {
             this.creationTime = creationTime;
     }
-    
-    /**
-     * @param creationTime the creationTime to set
-     */
-    public void setCreationTime(Date creationTime) throws Exception {
-        if (creationTime == null) {
-            this.creationTime = null;
-        } else {
-            GregorianCalendar cal = new GregorianCalendar();
-            cal.setTime(creationTime);
-            this.creationTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-        }
-    }
 
     /**
      * @return the deployTime
@@ -133,19 +115,6 @@ public class ClusterState {
     public void setDeployTime(XMLGregorianCalendar deployTime) {
             this.deployTime = deployTime;
     }
-
-    /**
-     * @param creationTime the creationTime to set
-     */
-    public void setDeployTime(Date deployTime) throws Exception {
-        if (deployTime == null) {
-            this.deployTime = null;
-        } else {
-            GregorianCalendar cal = new GregorianCalendar();
-            cal.setTime(deployTime);
-            this.deployTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-        }
-    }
     
     /**
      * @return the lastUpdateTime
@@ -159,19 +128,6 @@ public class ClusterState {
      */
     public void setLastUpdateTime(XMLGregorianCalendar lastUpdateTime) {
             this.lastUpdateTime = lastUpdateTime;
-    }
-
-    /**
-     * @param creationTime the creationTime to set
-     */
-    public void setLastUpdateTime(Date lastUpdateTime) throws Exception {
-        if (lastUpdateTime == null) {
-            this.lastUpdateTime = null;
-        } else {
-            GregorianCalendar cal = new GregorianCalendar();
-            cal.setTime(lastUpdateTime);
-            this.lastUpdateTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-        }
     }
     
     /**

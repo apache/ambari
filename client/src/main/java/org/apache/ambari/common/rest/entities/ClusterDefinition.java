@@ -70,6 +70,17 @@ public class ClusterDefinition {
     protected String name = null;
     
     /**
+     * Every cluster update creates a new revision and returned through this field. 
+     * This field can be optionally be set durint the update to latest revision 
+     * (currently checked out revision) of the cluster being updated and if so,
+     * Ambari will prevent the update, if the latest revision of the cluster changed 
+     * in the background before update. If not specified update will over-write current
+     * latest revision.
+     */
+    @XmlAttribute
+    protected String revision = null;
+  
+    /**
      * A user-facing comment about the cluster about what it is intended for.
      */
     @XmlAttribute
@@ -115,6 +126,13 @@ public class ClusterDefinition {
     protected List<RoleToNodes> roleToNodesMap = null;
     
     
+    /**
+     * @return the roleToNodesMap
+     */
+    public List<RoleToNodes> getRoleToNodesMap() {
+        return roleToNodesMap;
+    }
+
     /**
      * @return the stackRevision
      */
@@ -226,4 +244,20 @@ public class ClusterDefinition {
     public void setRoleToNodesMap(List<RoleToNodes> roleToNodesMap) {
             this.roleToNodesMap = roleToNodesMap;
     }
+    
+    
+    /**
+     * @return the revision
+     */
+    public String getRevision() {
+        return revision;
+    }
+
+    /**
+     * @param revision the revision to set
+     */
+    public void setRevision(String revision) {
+        this.revision = revision;
+    }
+
 }

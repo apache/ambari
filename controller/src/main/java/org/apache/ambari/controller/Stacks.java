@@ -293,8 +293,8 @@ public class Stacks {
     public Hashtable<String, String> getClusterReferencedStacksList() throws Exception {
         Hashtable<String, String> clusterStacks = new Hashtable<String, String>();
         for (Cluster c : Clusters.getInstance().operational_clusters.values()) {
-            String cBPName = c.getLatestClusterDefinition().getStackName();
-            String cBPRevision = c.getLatestClusterDefinition().getStackRevision();
+            String cBPName = c.getClusterDefinition(-1).getStackName();
+            String cBPRevision = c.getClusterDefinition(-1).getStackRevision();
             Stack bpx = this.getStack(cBPName, Integer.parseInt(cBPRevision));
             clusterStacks.put(cBPName+"-"+cBPRevision, "");
             while (bpx.getParentName() != null) {

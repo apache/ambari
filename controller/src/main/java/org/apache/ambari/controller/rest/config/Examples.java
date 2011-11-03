@@ -29,6 +29,7 @@ import org.apache.ambari.common.rest.entities.NodeAttributes;
 import org.apache.ambari.common.rest.entities.NodeState;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.controller.Util;
 import org.apache.ambari.common.rest.entities.StackInformation;
 
 public class Examples {
@@ -77,8 +78,8 @@ public class Examples {
         
         CLUSTER_STATE.setState("ATTIC");
         try {
-			CLUSTER_STATE.setCreationTime(new Date());
-			CLUSTER_STATE.setDeployTime(new Date());
+			CLUSTER_STATE.setCreationTime(Util.getXMLGregorianCalendar(new Date()));
+			CLUSTER_STATE.setDeployTime(Util.getXMLGregorianCalendar(new Date()));
 		} catch (Exception e) {
 		}
         NODE.setName("localhost");

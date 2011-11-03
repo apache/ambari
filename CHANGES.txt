@@ -2,6 +2,10 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-124. Add Zookeeper Data store and persist the cluster definitions across controller restart (vgogate)
+
+  AMBARI-116. Change the name group to provider in hadoop-security-0.xml stack definition (vgogate)
+
   AMBARI-120. Fixed REST resource annotation bugs. (Eric Yang)
 
   AMBARI-121. Added examples for returning REST resources. (Eric Yang)
