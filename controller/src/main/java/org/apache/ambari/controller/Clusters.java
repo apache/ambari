@@ -340,17 +340,14 @@ public class Clusters {
         /*
          * Invoke state machine event
          */
-        ClusterFSM clusterFSM = StateMachineInvoker.
-            getStateMachineClusterInstance(cls.getName());
         if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {
-          clusterFSM.activate();
+          StateMachineInvoker.startCluster(cls.getName());
         } else if(c.getGoalState().
             equals(ClusterState.CLUSTER_STATE_INACTIVE)) {
-          clusterFSM.deactivate();
+          StateMachineInvoker.stopCluster(cls.getName());
         } else if(c.getGoalState().
             equals(ClusterState.CLUSTER_STATE_ATTIC)) {
-          clusterFSM.deactivate();
-          clusterFSM.terminate();
+          StateMachineInvoker.deleteCluster(cls.getName());
         }
      
         return cls.getClusterDefinition(-1);

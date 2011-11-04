@@ -83,6 +83,11 @@ public class StateMachineInvoker {
     return clusterFSM;
   }
   
+  public static void startCluster(String clusterId) {
+    ClusterFSM clusterFSM = clusters.get(clusterId);
+    clusterFSM.activate();
+  }
+  
   public static void stopCluster(String clusterId) {
     ClusterFSM clusterFSM = clusters.get(clusterId);
     clusterFSM.deactivate();
