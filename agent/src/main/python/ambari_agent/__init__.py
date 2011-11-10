@@ -16,7 +16,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Hadoop Management System Agent
+Ambari Agent
 
 """
 
@@ -28,7 +28,7 @@ __author__ = [
     "Kan Zhang <kanzhangmail@yahoo.com>"
 ]
 __license__ = "Apache License v2.0"
-__contributors__ = "see http://incubator.apache.org/hms/contributors"
+__contributors__ = "see http://incubator.apache.org/ambari/contributors"
 
 import logging
 import logging.handlers

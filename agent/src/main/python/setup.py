@@ -31,7 +31,7 @@ setup(
     entry_points = {
         "console_scripts": [
             "ambari-agent = ambari_agent.main:main",
-            "ambari-torrent-callback = hms_torrent.main:main",
+            "ambari-torrent-callback = ambari_torrent.main:main",
         ],
     }
 )
