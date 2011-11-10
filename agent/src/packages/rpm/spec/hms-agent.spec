@@ -56,7 +56,7 @@ Prefix: %{_conf_dir}
 Prefix: %{_log_dir}
 Prefix: %{_pid_dir}
 Buildroot: %{_build_dir}
-Requires: sh-utils, textutils, /usr/sbin/useradd, /usr/sbin/usermod, /sbin/chkconfig, /sbin/service, transmission-cli, zkpython, zookeeper-lib, BitTorrent-bencode, mimerender, simplejson, mimeparse, web.py, python-setuptools, libevent >= 2.0.10, avahi-tools, python-iniparse
+Requires: sh-utils, textutils, /usr/sbin/useradd, /usr/sbin/usermod, /sbin/chkconfig, /sbin/service, transmission-cli, zkpython, zookeeper-lib, BitTorrent-bencode, mimerender, simplejson, mimeparse, web.py, python-setuptools, libevent >= 2.0.10, avahi-tools, python-iniparse, /sbin/ethtool
 AutoReqProv: no
 Provides: hms-agent
 

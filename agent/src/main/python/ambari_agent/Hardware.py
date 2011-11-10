@@ -62,7 +62,11 @@ class Hardware:
     sh = shellRunner()
     script = [ 'ethtool', 'eth0', '|', 'grep', 'Speed:', '|', 'sed', "'s/\s*Speed:\s*//'", '|', 'sed', "'s/Mb\/s//'" ]
     result = sh.run(script)
-    self.netSpeed = int(result['output'].rstrip())
+    if "ethtool: not found\n" in result['error']:
+      # ethtool not installed, assume a speed of 0Mb/s
+      self.netSpeed = 0
+    else:
+      self.netSpeed = int(result['output'].rstrip())
 
   def ifconfig(self):
     sh = shellRunner()
