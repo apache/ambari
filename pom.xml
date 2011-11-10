@@ -73,29 +73,29 @@
     <mailingLists>
         <mailingList>
             <name>User list</name>
-            <subscribe>mailto:ambari-user-subscribe@incubator.apache.com
+            <subscribe>mailto:ambari-user-subscribe@incubator.apache.org
             </subscribe>
-            <unsubscribe>mailto:ambari-user-unsubscribe@incubator.apache.com
+            <unsubscribe>mailto:ambari-user-unsubscribe@incubator.apache.org
             </unsubscribe>
-            <post>mailto:ambari-user@incubator.apache.com</post>
+            <post>mailto:ambari-user@incubator.apache.org</post>
             <archive></archive>
         </mailingList>
         <mailingList>
             <name>Development list</name>
-            <subscribe>mailto:ambari-dev-subscribe@incubator.apache.com
+            <subscribe>mailto:ambari-dev-subscribe@incubator.apache.org
             </subscribe>
-            <unsubscribe>mailto:ambari-dev-unsubscribe@incubator.apache.com
+            <unsubscribe>mailto:ambari-dev-unsubscribe@incubator.apache.org
             </unsubscribe>
-            <post>mailto:ambari-dev@incubator.apache.com</post>
+            <post>mailto:ambari-dev@incubator.apache.org</post>
             <archive></archive>
         </mailingList>
         <mailingList>
             <name>Commit list</name>
-            <subscribe>mailto:ambari-commits-subscribe@incubator.apache.com
+            <subscribe>mailto:ambari-commits-subscribe@incubator.apache.org
             </subscribe>
-            <unsubscribe>mailto:ambari-commits-unsubscribe@incubator.apache.com
+            <unsubscribe>mailto:ambari-commits-unsubscribe@incubator.apache.org
             </unsubscribe>
-            <post>mailto:ambari-commits@incubator.apache.com</post>
+            <post>mailto:ambari-commits@incubator.apache.org</post>
             <archive></archive>
         </mailingList>
     </mailingLists>
