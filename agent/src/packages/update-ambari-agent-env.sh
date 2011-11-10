@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script configures hms-agent-env.sh and symlinkis directories for 
+# This script configures ambari-agent-env.sh and symlinkis directories for 
 # relocating RPM locations.
 
 usage() {
@@ -27,8 +27,8 @@ usage: $0 <parameters>
   Optional parameters:
      --arch=i386                 OS Architecture
      --bin-dir=PREFIX/bin        Executable directory
-     --conf-dir=/etc/hms         Configuration directory
-     --log-dir=/var/log/hms      Log directory
+     --conf-dir=/etc/ambari         Configuration directory
+     --log-dir=/var/log/ambari      Log directory
      --pid-dir=/var/run          PID file location
   "
   exit 1
@@ -115,15 +115,15 @@ if [ "${UNINSTALL}" -eq "1" ]; then
       rm -f ${BIN_DIR}/${var}
     done
   fi
-  if [ -f /etc/default/hms-agent-env.sh ]; then
-    rm -f /etc/default/hms-agent-env.sh
+  if [ -f /etc/default/ambari-agent-env.sh ]; then
+    rm -f /etc/default/ambari-agent-env.sh
   fi
   if [ "${CONF_DIR}" != "${PREFIX}/conf" ]; then
     rm -f ${PREFIX}/conf
   fi
 
-  rm -f ${PREFIX}/sbin/hms-agent
-  rm -f /etc/init.d/hms-agent
+  rm -f ${PREFIX}/sbin/ambari-agent
+  rm -f /etc/init.d/ambari-agent
 
 else
   # Create symlinks
@@ -136,21 +136,21 @@ else
     ln -sf ${CONF_DIR} ${PREFIX}/conf
   fi
 
-  chmod 755 ${PREFIX}/share/hms/sbin/*
+  chmod 755 ${PREFIX}/share/ambari/sbin/*
 
-  ln -sf ${PREFIX}/sbin/hms-agent /etc/init.d/hms-agent
+  ln -sf ${PREFIX}/sbin/ambari-agent /etc/init.d/ambari-agent
 
-  ln -sf ${CONF_DIR}/hms-agent-env.sh /etc/default/hms-agent-env.sh
+  ln -sf ${CONF_DIR}/ambari-agent-env.sh /etc/default/ambari-agent-env.sh
 
   mkdir -p ${PID_DIR}
   mkdir -p ${LOG_DIR}
 
   TFILE="/tmp/$(basename $0).$$.tmp"
-  grep -v "^export HMS_HOME" ${CONF_DIR}/hms-agent-env.sh | \
-  grep -v "^export HMS_CONF_DIR" | \
-  grep -v "^export HMS_CLASSPATH" | \
-  grep -v "^export HMS_PID_DIR" | \
-  grep -v "^export HMS_LOG_DIR" | \
+  grep -v "^export AMBARI_HOME" ${CONF_DIR}/ambari-agent-env.sh | \
+  grep -v "^export AMBARI_CONF_DIR" | \
+  grep -v "^export AMBARI_CLASSPATH" | \
+  grep -v "^export AMBARI_PID_DIR" | \
+  grep -v "^export AMBARI_LOG_DIR" | \
   grep -v "^export JAVA_HOME" > ${TFILE}
   if [ -z "${JAVA_HOME}" ]; then
     if [ -e /etc/lsb-release ]; then
@@ -162,12 +162,12 @@ else
   if [ "${JAVA_HOME}xxx" != "xxx" ]; then
     echo "export JAVA_HOME=${JAVA_HOME}" >> ${TFILE}
   fi
-  echo "export HMS_IDENT_STRING=\`whoami\`" >> ${TFILE}
-  echo "export HMS_HOME=${PREFIX}/share/hms" >> ${TFILE}
-  echo "export HMS_CONF_DIR=${CONF_DIR}" >> ${TFILE}
-  echo "export HMS_CLASSPATH=${CONF_DIR}:${HADOOP_CONF_DIR}:${HADOOP_JARS}:${ZOOKEEPER_JARS}" >> ${TFILE}
-  echo "export HMS_PID_DIR=${PID_DIR}" >> ${TFILE}
-  echo "export HMS_LOG_DIR=${LOG_DIR}" >> ${TFILE}
-  cp ${TFILE} ${CONF_DIR}/hms-agent-env.sh
+  echo "export AMBARI_IDENT_STRING=\`whoami\`" >> ${TFILE}
+  echo "export AMBARI_HOME=${PREFIX}/share/ambari" >> ${TFILE}
+  echo "export AMBARI_CONF_DIR=${CONF_DIR}" >> ${TFILE}
+  echo "export AMBARI_CLASSPATH=${CONF_DIR}:${HADOOP_CONF_DIR}:${HADOOP_JARS}:${ZOOKEEPER_JARS}" >> ${TFILE}
+  echo "export AMBARI_PID_DIR=${PID_DIR}" >> ${TFILE}
+  echo "export AMBARI_LOG_DIR=${LOG_DIR}" >> ${TFILE}
+  cp ${TFILE} ${CONF_DIR}/ambari-agent-env.sh
   rm -f ${TFILE}
 fi

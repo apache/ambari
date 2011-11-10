@@ -22,7 +22,7 @@
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-agent</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <name>agent</name>
     <description>Ambari Agent</description>
 
@@ -62,7 +62,7 @@
                 <executions>
                     <execution>
                         <configuration>
-                            <executable>python</executable>
+                            <executable>python2.6</executable>
                             <workingDirectory>src/test/python</workingDirectory>
                             <arguments>
                                 <argument>unitTests.py</argument>

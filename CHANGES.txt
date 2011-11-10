@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-129. Rename agent package reference of HMS to Ambari. (Eric Yang)
+
   AMBARI-128. Improved ethtool handling. (Ahmed Fathalla via Eric Yang)
 
   AMBARI-127. Fixed mailing list address. (Ahmed Fathalla via Eric Yang)

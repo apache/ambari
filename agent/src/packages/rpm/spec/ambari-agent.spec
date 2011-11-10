@@ -17,7 +17,7 @@
 # RPM Spec file for HBase version @version@
 #
 
-%define name         hms-agent
+%define name         ambari-agent
 %define version      @version@
 %define release      @package.release@
 
@@ -34,7 +34,7 @@
 %define _man_dir     %{_prefix}/man
 %define _pid_dir     @package.pid.dir@
 %define _sbin_dir    %{_prefix}/sbin
-%define _share_dir   %{_prefix}/share/hms
+%define _share_dir   %{_prefix}/share/ambari
 %define _src_dir     %{_prefix}/src
 %define _var_dir     %{_prefix}/var/lib
 
@@ -44,7 +44,7 @@
 
 Summary: Hadoop Management System Agent
 License: Apache License, Version 2.0
-URL: http://incubator.apache.org/hms
+URL: http://incubator.apache.org/ambari
 Vendor: Apache Software Foundation
 Group: Development/Libraries
 Name: %{name}
@@ -58,10 +58,10 @@ Prefix: %{_pid_dir}
 Buildroot: %{_build_dir}
 Requires: sh-utils, textutils, /usr/sbin/useradd, /usr/sbin/usermod, /sbin/chkconfig, /sbin/service, transmission-cli, zkpython, zookeeper-lib, BitTorrent-bencode, mimerender, simplejson, mimeparse, web.py, python-setuptools, libevent >= 2.0.10, avahi-tools, python-iniparse, /sbin/ethtool
 AutoReqProv: no
-Provides: hms-agent
+Provides: ambari-agent
 
 %description
-Hadoop Management System Agent manage software installation and configuration for Hadoop software stack.
+Ambari Agent manage software installation and configuration for Hadoop software stack.
 
 %prep
 
@@ -85,32 +85,27 @@ mkdir -p ${RPM_BUILD_DIR}%{_log_dir}
 mkdir -p ${RPM_BUILD_DIR}%{_conf_dir}
 mkdir -p ${RPM_BUILD_DIR}/etc/init.d
 
-cp ${RPM_BUILD_DIR}/../../../../src/packages/rpm/init.d/hms-agent ${RPM_BUILD_DIR}/etc/init.d/hms-agent
-chmod 0755 ${RPM_BUILD_DIR}/etc/init.d/hms-agent
+cp ${RPM_BUILD_DIR}/../../../../src/packages/rpm/init.d/ambari-agent ${RPM_BUILD_DIR}/etc/init.d/ambari-agent
+chmod 0755 ${RPM_BUILD_DIR}/etc/init.d/ambari-agent
 
 %preun
-rm -rf /etc/default/hms-agent-env.sh
+rm -rf /etc/default/ambari-agent-env.sh
 
 %pre
+getent group hadoop 2>/dev/null >/dev/null || /usr/sbin/groupadd -g 123 -r hadoop
+/usr/sbin/useradd --comment "Ambari" -u 210 --shell /bin/bash -M -r --groups hadoop --home /home/ambari ambari 2> /dev/null || :
 
 %post
 mkdir -p ${RPM_INSTALL_PREFIX2}
 mkdir -p ${RPM_INSTALL_PREFIX3}
-echo "HMS_LOG_DIR=${RPM_INSTALL_PREFIX2}" > /etc/default/hms-agent-env.sh
-echo "HMS_PID_DIR=${RPM_INSTALL_PREFIX3}" >> /etc/default/hms-agent-env.sh
-mkdir -p /home/hms/var/tmp
-mkdir -p /home/hms/var/cache/downloads
-mkdir -p /home/hms/apps
-
-#${RPM_INSTALL_PREFIX0}/share/hms/sbin/update-hms-agent-env.sh \
-#       --prefix=${RPM_INSTALL_PREFIX0} \
-#       --bin-dir=${RPM_INSTALL_PREFIX0}/bin \
-#       --conf-dir=${RPM_INSTALL_PREFIX1} \
-#       --log-dir=${RPM_INSTALL_PREFIX2} \
-#       --pid-dir=${RPM_INSTALL_PREFIX3}
+echo "AMBARI_LOG_DIR=${RPM_INSTALL_PREFIX2}" > /etc/default/ambari-agent-env.sh
+echo "AMBARI_PID_DIR=${RPM_INSTALL_PREFIX3}" >> /etc/default/ambari-agent-env.sh
+mkdir -p /home/ambari/var/tmp
+mkdir -p /home/ambari/var/cache/downloads
+mkdir -p /home/ambari/apps
 
 %files
 %defattr(-,root,root)
 %{_prefix}
-/etc/init.d/hms-agent
+/etc/init.d/ambari-agent
 %config %{_conf_dir}

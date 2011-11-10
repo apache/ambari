@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/etc/hms/hms-env.sh
+/etc/ambari/ambari-env.sh

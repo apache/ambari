@@ -15,10 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-bash /usr/sbin/update-hms-env.sh \
-  --prefix=/usr \
-  --bin-dir=/usr/bin \
-  --conf-dir=/etc/hms \
-  --log-dir=/var/log/hms \
-  --pid-dir=/var/run/hms
+/usr/sbin/userdel ambari 2> /dev/null >/dev/null
+exit 0
 

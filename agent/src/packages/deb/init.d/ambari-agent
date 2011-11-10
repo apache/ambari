@@ -16,7 +16,7 @@
 # limitations under the License.
 
 ### BEGIN INIT INFO
-# Provides:		hms-agent
+# Provides:		ambari-agent
 # Required-Start:	$remote_fs $syslog
 # Required-Stop:	$remote_fs $syslog
 # Default-Start:	2 3 4 5
@@ -26,12 +26,12 @@
 
 set -e
 
-# /etc/init.d/hms-agent: start and stop the Apache HMS Agent daemon
+# /etc/init.d/ambari-agent: start and stop the Apache HMS Agent daemon
 
 umask 022
 
-if test -f /etc/default/hms-env.sh; then
-    . /etc/default/hms-env.sh
+if test -f /etc/default/ambari-env.sh; then
+    . /etc/default/ambari-env.sh
 fi
 
 . /lib/lsb/init-functions
@@ -42,13 +42,13 @@ run_by_init() {
 }
 
 check_for_no_start() {
-    # forget it if we're trying to start, and /etc/hms/hms-agent_not_to_be_run exists
-    if [ -e /etc/hms/hms-agent_not_to_be_run ]; then 
+    # forget it if we're trying to start, and /etc/ambari/ambari-agent_not_to_be_run exists
+    if [ -e /etc/ambari/ambari-agent_not_to_be_run ]; then 
 	if [ "$1" = log_end_msg ]; then
 	    log_end_msg 0
 	fi
 	if ! run_by_init; then
-	    log_action_msg "Apache HMS Agent not in use (/etc/hms/hms-agent_not_to_be_run)"
+	    log_action_msg "Apache HMS Agent not in use (/etc/ambari/ambari-agent_not_to_be_run)"
 	fi
 	exit 0
     fi
@@ -59,16 +59,16 @@ export PATH="${PATH:+$PATH:}/usr/sbin:/usr/bin"
 case "$1" in
   start)
 	check_for_no_start
-	log_daemon_msg "Starting Apache HMS Agent" "hms-agent"
-	if start-stop-daemon --start --quiet --oknodo --pidfile ${HMS_PID_DIR}/hms-agent.pid -x /usr/bin/hms-agent; then
+	log_daemon_msg "Starting Apache HMS Agent" "ambari-agent"
+	if start-stop-daemon --start --quiet --oknodo --pidfile ${HMS_PID_DIR}/ambari-agent.pid -x /usr/bin/ambari-agent; then
 	    log_end_msg 0
 	else
 	    log_end_msg 1
 	fi
 	;;
   stop)
-	log_daemon_msg "Stopping Apache HMS Agent" "hms-agent"
-	if start-stop-daemon --stop --quiet --oknodo --pidfile ${HMS_PID_DIR}/hms-agent.pid; then
+	log_daemon_msg "Stopping Apache HMS Agent" "ambari-agent"
+	if start-stop-daemon --stop --quiet --oknodo --pidfile ${HMS_PID_DIR}/ambari-agent.pid; then
 	    log_end_msg 0
 	else
 	    log_end_msg 1
@@ -77,10 +77,10 @@ case "$1" in
 
   restart)
 	check_privsep_dir
-	log_daemon_msg "Restarting Apache HMS Agent" "hms-agent"
-	start-stop-daemon --stop --quiet --oknodo --retry 30 --pidfile ${HMS_PID_DIR}/hms-agent.pid
+	log_daemon_msg "Restarting Apache HMS Agent" "ambari-agent"
+	start-stop-daemon --stop --quiet --oknodo --retry 30 --pidfile ${HMS_PID_DIR}/ambari-agent.pid
 	check_for_no_start log_end_msg
-	if start-stop-daemon --start --quiet --oknodo --pidfile ${HMS_PID_DIR}/hms-agent.pid -x /usr/bin/hms-agent; then
+	if start-stop-daemon --start --quiet --oknodo --pidfile ${HMS_PID_DIR}/ambari-agent.pid -x /usr/bin/ambari-agent; then
 	    log_end_msg 0
 	else
 	    log_end_msg 1
@@ -88,11 +88,11 @@ case "$1" in
 	;;
 
   status)
-	status_of_proc -p ${HMS_PID_DIR}/hms-agent.pid /usr/bin/hms-agent hms-agent && exit 0 || exit $?
+	status_of_proc -p ${HMS_PID_DIR}/ambari-agent.pid /usr/bin/ambari-agent ambari-agent && exit 0 || exit $?
 	;;
 
   *)
-	log_action_msg "Usage: /etc/init.d/hms-agent {start|stop|restart|status}"
+	log_action_msg "Usage: /etc/init.d/ambari-agent {start|stop|restart|status}"
 	exit 1
 esac
 

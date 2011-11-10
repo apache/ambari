@@ -22,27 +22,27 @@
 # description: HBase master
 
 source /etc/rc.d/init.d/functions
-source /etc/default/hms-agent-env.sh
+source /etc/default/ambari-env.sh
 
 RETVAL=0
-PIDFILE="${HMS_PID_DIR}/hms-agent.pid"
-desc="HMS agent daemon"
+PIDFILE="${HMS_PID_DIR}/ambari-agent.pid"
+desc="Ambari agent daemon"
 
 start() {
-  echo -n $"Starting $desc (hms-agent): "
-  daemon /usr/bin/hms-agent
+  echo -n $"Starting $desc (ambari-agent): "
+  daemon /usr/bin/ambari-agent
   RETVAL=$?
   echo
-  [ $RETVAL -eq 0 ] && touch /var/lock/subsys/hms-agent
+  [ $RETVAL -eq 0 ] && touch /var/lock/subsys/ambari-agent
   return $RETVAL
 }
 
 stop() {
-  echo -n $"Stopping $desc (hms-agent): "
-  daemon /usr/bin/hms-agent stop
+  echo -n $"Stopping $desc (ambari-agent): "
+  daemon /usr/bin/ambari-agent stop
   RETVAL=$?
   echo
-  [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/hms-agent $PIDFILE
+  [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/ambari-agent $PIDFILE
 }
 
 restart() {
@@ -51,12 +51,12 @@ restart() {
 }
 
 checkstatus(){
-  status -p $PIDFILE hms-agent
+  status -p $PIDFILE ambari-agent
   RETVAL=$?
 }
 
 condrestart(){
-  [ -e /var/lock/subsys/hms-agent ] && restart || :
+  [ -e /var/lock/subsys/ambari-agent ] && restart || :
 }
 
 case "$1" in

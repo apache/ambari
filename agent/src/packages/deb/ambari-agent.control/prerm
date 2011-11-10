@@ -15,6 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/usr/sbin/userdel hms 2> /dev/null >/dev/null
-exit 0
+/etc/init.d/ambari-agent stop 2>/dev/null >/dev/null
+bash /usr/sbin/update-ambari-env.sh \
+  --prefix=/usr \
+  --bin-dir=/usr/bin \
+  --conf-dir=/etc/ambari \
+  --log-dir=/var/log/ambari \
+  --pid-dir=/var/run/ambari \
+  --uninstal
 

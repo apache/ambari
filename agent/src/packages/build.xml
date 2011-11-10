@@ -17,7 +17,7 @@
    limitations under the License.
 -->
 
-<project name="hms agent packaging">
+<project name="Ambari agent packaging">
   <target name="move-tarball">
     <move todir="${project.build.directory}">
       <fileset dir="${project.build.directory}/${final.name}/dist">
@@ -30,13 +30,13 @@
     <taskdef name="deb"
            classname="org.vafer.jdeb.ant.DebAntTask">
     </taskdef>
-    <mkdir dir="${project.build.directory}/deb/hms-agent.control" />
-    <copy todir="${project.build.directory}/deb/hms-agent.control">
-      <fileset dir="${basedir}/src/packages/deb/hms-agent.control">
+    <mkdir dir="${project.build.directory}/deb/ambari-agent.control" />
+    <copy todir="${project.build.directory}/deb/ambari-agent.control">
+      <fileset dir="${basedir}/src/packages/deb/ambari-agent.control">
         <exclude name="control" />
       </fileset>
     </copy>
-    <copy file="src/packages/deb/hms-agent.control/control" todir="${basedir}/target/deb/hms-agent.control">
+    <copy file="src/packages/deb/ambari-agent.control/control" todir="${basedir}/target/deb/ambari-agent.control">
       <filterchain>
         <replacetokens>
           <token key="version" value="${project.version}" />
@@ -49,12 +49,12 @@
       </fileset>
     </path> 
     <property name="source.file" refid="source.id"/>
-    <deb destfile="${project.build.directory}/${artifactId}_${project.version}-${package.release}_${os.arch}.deb" control="${basedir}/target/deb/hms-agent.control">
+    <deb destfile="${project.build.directory}/${artifactId}_${project.version}-${package.release}_${os.arch}.deb" control="${basedir}/target/deb/ambari-agent.control">
       <data src="${source.file}">
         <mapper type="prefix" strip="1" prefix="${package.prefix}" />
         <include name="**" />
       </data>
-      <tarfileset dir="${basedir}/src/packages/deb/init.d" filemode="755" prefix="${package.prefix}/share/hms/sbin">
+      <tarfileset dir="${basedir}/src/packages/deb/init.d" filemode="755" prefix="${package.prefix}/share/ambari/sbin">
         <exclude name=".svn" />
         <include name="**" />
       </tarfileset>
@@ -68,20 +68,22 @@
       </fileset>
     </path> 
     <property name="source.file" refid="source.id"/>
-    <delete dir="${project.build.directory}/rpm/hms/buildroot" />
-    <mkdir dir="${project.build.directory}/rpm/hms/SOURCES" />
-    <mkdir dir="${project.build.directory}/rpm/hms/BUILD" />
-    <mkdir dir="${project.build.directory}/rpm/hms/RPMS" />
-    <mkdir dir="${project.build.directory}/rpm/hms/buildroot" />
-    <copy file="${source.file}" tofile="${project.build.directory}/rpm/hms/SOURCES/${final.name}.tar.gz" />
-    <copy file="src/packages/rpm/spec/hms-agent.spec" todir="target/rpm/hms/SPECS">
+    <echo message="${final.name}.linux*.tar.gz"/>
+    <echo message="${source.file}"/>
+    <delete dir="${project.build.directory}/rpm/ambari/buildroot" />
+    <mkdir dir="${project.build.directory}/rpm/ambari/SOURCES" />
+    <mkdir dir="${project.build.directory}/rpm/ambari/BUILD" />
+    <mkdir dir="${project.build.directory}/rpm/ambari/RPMS" />
+    <mkdir dir="${project.build.directory}/rpm/ambari/buildroot" />
+    <copy file="${source.file}" tofile="${project.build.directory}/rpm/ambari/SOURCES/${final.name}.tar.gz" />
+    <copy file="src/packages/rpm/spec/ambari-agent.spec" todir="target/rpm/ambari/SPECS">
       <filterchain>
         <replacetokens>
           <token key="final.name" value="${final.name}" />
           <token key="version" value="${project.version}" />
           <token key="package.name" value="${source.file}" />
           <token key="package.release" value="${package.release}" />
-          <token key="package.build.dir" value="${project.build.directory}/rpm/hms/BUILD" />
+          <token key="package.build.dir" value="${project.build.directory}/rpm/ambari/BUILD" />
           <token key="package.prefix" value="${package.prefix}" />
           <token key="package.conf.dir" value="${package.conf.dir}" />
           <token key="package.log.dir" value="${package.log.dir}" />
@@ -89,9 +91,9 @@
         </replacetokens>
       </filterchain>
     </copy>
-    <rpm specFile="hms-agent.spec" command="-bb" topDir="${project.build.directory}/rpm/hms" cleanBuildDir="true" failOnError="true"/>
+    <rpm specFile="ambari-agent.spec" command="-bb" topDir="${project.build.directory}/rpm/ambari" cleanBuildDir="true" failOnError="true"/>
     <copy todir="${project.build.directory}" flatten="true">
-      <fileset dir="${project.build.directory}/rpm/hms/RPMS">
+      <fileset dir="${project.build.directory}/rpm/ambari/RPMS">
         <include name="**/*.rpm" />
       </fileset>
     </copy>

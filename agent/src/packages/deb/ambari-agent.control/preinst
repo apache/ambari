@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -12,12 +14,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-Package: hms-agent
-Version: @version@
-Section: misc
-Priority: optional
-Architecture: all
-Depends: python, ethtool
-Maintainer: Apache Software Foundation <hms-dev@incubator.apache.org>
-Description: Hadoop Management System Agent manage software installation and configuration for Hadoop software stack.
-Distribution: development
+
+getent group hadoop 2>/dev/null >/dev/null || /usr/sbin/groupadd -g 123 -r hadoop
+
+/usr/sbin/useradd --comment "Ambari" -u 210 --shell /bin/bash -M -r --groups hadoop --home /home/ambari ambari 2> /dev/null || :
+
