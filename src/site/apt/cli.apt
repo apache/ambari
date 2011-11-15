@@ -71,6 +71,12 @@ Command Line Interface
 
     * ambari add-user
 
+  * <<Server commands>>
+
+    * ambari controller
+
+    * ambari agent
+
   * <<Generic commands>>
 
     * ambari help
@@ -96,9 +102,16 @@ Cluster Commands
 
         * Name of the user defined stack defining cluster configuration
 
-      * <<-stack_revision>> [ STACK REVISION ]
+      * <<-stack_revision>> [ INTEGER ]
 
         * Revision of the stack. If not specified latest one is used.
+
+      * <<-stack-file>> [ FILENAME]
+
+        * Update the stack with the same name as the cluster using the
+        given file and use the updated stack for creating the new
+        cluster. This option is mutually exclusive with <<-stack>> and
+        <<-stack_revision>>
 
       * <<-nodes>> [node_range_exp1, node_range_exp2]  <<[REQUIRED]>>
 
@@ -118,10 +131,10 @@ Cluster Commands
 
         * Default is INACTIVE
 
-      * <<-services>> [component-1, component-2, component-3]
+      * <<-components>> [component-1, component-2, component-3]
 
         * By default all the components will be activated upon cluster
-        activation.  If user specifies specific ones then only they
+        activation.  If user specifies specific ones then only those
         will be activated upon cluster activation
 
       * <<-role>>  rolename=[node_range_exp1, node_range_exp2, …] 
@@ -138,7 +151,8 @@ Cluster Commands
 
       * <<-wait>>
 
-        * Optionally wait for cluster to get to goal state
+        * Optionally wait for cluster to get to goal state. The progress of
+        activating the cluster will be printed to the user.
 
   []
 
@@ -155,15 +169,23 @@ Cluster Commands
 
       * <<-stack>> [ STACK NAME ]   
 
-      * <<-stack_revision>> [ STACK REVISION ]
+      * <<-stack_revision>> [ INTEGER ]
 
         * Revision of the stack. If not specified latest one is used.
 
+      * <<-stack-file>> [ FILENAME]
+
+        * Update the stack with the same name as the cluster using the
+        given file and use the updated stack in the updated
+        cluster. This option is mutually exclusive with <<-stack>> and
+        <<-stack_revision>>
+
       * <<-goalstate>> [ACTIVE/INACTIVE/ATTIC]
 
-      * <<-services>> [component, component, component]    
+      * <<-components>> [component, component, component]    
 
-        * Specify the list of desired active components 
+        * Specify the list of desired active components that will be run
+        when the cluster is active.
 
       * <<-nodes>>  [node_range_exp1, node_range_exp2]
 
@@ -174,7 +196,8 @@ Cluster Commands
       * <<-role>>  rolename=[node_exp1, node_exp2, …]  <<[REPEATABLE]>>
 
         * Change the nodes associated with each role. The nodes will be
-        re-deployed and re-configured appropriately.
+        re-deployed and re-configured appropriately. If nodes are not assigned
+        to a role, Ambari will automatically assign them.
 
       * <<-dry-run>>
 
@@ -184,7 +207,8 @@ Cluster Commands
 
       * <<-wait>>
 
-        * Wait for cluster to get to desired goal state
+        * Wait for cluster to get to desired goal state. The progress of
+        activating the cluster will be printed to the user.
 
   []
 
@@ -231,7 +255,8 @@ Cluster Commands
 
       * <<-wait>>
 
-        * Optionally wait for cluster to be deleted
+        * Optionally wait for cluster to be deleted. The progress of deleting
+        the cluster will be displayed to the user.
 
   []
 
@@ -453,9 +478,9 @@ Configuration Commands
         * Set the password for the Ambari agent to authenticate to the 
           controller.
 
-      * <<-controller>> [MACHINE NAME]
+      * <<-controller>> [CONTROLLER URL]
 
-        * Set the machine name for the Ambari controller.
+        * Set the URL for the Ambari controller REST API.
 
   * <<ambari add-user>>
 
@@ -475,13 +500,35 @@ Configuration Commands
 
         * The user should provide the given password when authenticating.
 
+Server Commands
+
+  * <<ambari controller>>
+
+    * Start the Ambari controller on this machine
+
+    * <<Options:>>
+
+      * <<-autostart>> [BOOLEAN]
+
+        * In addition to starting the server, update the system to
+          (not) restart the controller when the system reboots.
+
+  * <<ambari agent>>
+
+    * Start the Ambari agent on this machine
+
+    * <<Options:>>
+
+      * <<-autostart>> [BOOLEAN]
+
+        * In addition to starting the server, update the system to
+          (not) restart the agent when the system reboots.
+
 Generic Commands
 
   * <<ambari help>>
 
     * Provides the CLI help
-
-  []
 
   * <<ambari version>>
 

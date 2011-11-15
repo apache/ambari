@@ -25,18 +25,21 @@ Ambari Example Scenarios
 $ rpm -i ambari-0.1.0-1.rpm
 $ ambari configure -agent-password my.pw
 $ ambari add-user -user sue -kerberos
-$ ambari controller
+$ ambari -autostart true controller
 -------
 
-  On slaves using pdsh:
+  If you have password-less ssh and pdsh installed, you can install the agents
+  directly on node00 to node99 using:
 
 -------
-$ rpm -i ambari-0.1.0-1.rpm
-$ ambari configure -controller controller.my.domain.com -agent-password my.pw
-$ ambari agent
+$ pdsh -w node00-99 \
+   'rpm -i ambari-0.1.0-1.rpm; \
+    ambari configure -controller controller.my.domain.com \
+           -agent-password my.pw ; \
+    ambari -autostart true agent'
 -------
 
-* Creating a cluster using CLI
+* Creating a simple cluster using CLI
 
   Create file cluster1.json with the specific configuration
   alterations for cluster1.
@@ -48,32 +51,17 @@ $ ambari agent
      {"@name": "ambari",
       "property": [
         {"@name": "data.dirs", "@value": "/data/*"},
-        {"@name": "keytab.dir", "@value": " /etc/security/keytab"},
-        {"@name": "user.realm", "@value": "MY.DOMAIN.COM"}]},
-     {"@name": "hadoop-env",
-      "property": [
-        {"@name": "HADOOP_CLIENT_OPTS",
-         "@value": "-Xmx256m ${HADOOP_CLIENT_OPTS}"}]}]},
- "components": [
-   {"@name":"hdfs",
-    "configuration": {
-      "category": [
-        {"@name": "hadoop-env",
-         property: [
-           {"@name": "HADOOP_NAMENODE_OPTS",
-            "@value": "-Xmx512m -Dsecurity.audit.logger=INFO,DRFAS
-                       -Dhdfs.audit.logger=INFO,DRFAAUDIT"}]}]}}]}
+        {"@name": "user.realm", "@value": "MY.DOMAIN.COM"}]}]}}
 -------
 
-  Run the commands using the CLI and Kerberos authentication. The first command 
-  creates the stack and the second creates a cluster based on that stack using 
-  the machines host00-99.
+  Run the following commands using the CLI.
+  The first command creates the stack and the second
+  creates a cluster based on that stack using the machines host00-99.
 
 -------
-$ ambari stack create -name cluster1 -file cluster1.json
-$ ambari cluster create -name cluster1 -stack cluster1 -nodes host00-99 \
-    -goalstate active -role namenode=host00 -role jobtracker=host01 \
-    -role client=host98-99 -wait
+$ ambari cluster create -name cluster1 -stack-file cluster1.json \
+    -nodes host00-99 -goalstate active -role namenode=host00 \
+    -role jobtracker=host01 -role client=host98-99 -wait
 -------
 
 * Upgrading a cluster using CLI
@@ -91,8 +79,43 @@ $ ambari cluster create -name cluster1 -stack cluster1 -nodes host00-99 \
   for the command to complete.
 
 -------
-$ ambari stack update -name cluster1 -file cluster1-update.json
-$ ambari cluster update -name cluster1 -stack cluster1 -wait
+$ ambari cluster update -name cluster1 -stack-file cluster1-update.json -wait
+-------
+
+* Creating a more complicated cluster using CLI
+
+  If you want to bump up the memory for the clients' JVM to 256MB and the
+  NameNode to 512MB, you can define a cluster like the below:
+
+------
+{"@parentName":"hadoop-security",
+ "configuration": {
+   "category": [
+     {"@name": "ambari",
+      "property": [
+        {"@name": "data.dirs", "@value": "/data/*"},
+        {"@name": "keytab.dir", "@value": " /etc/security/keytab"},
+        {"@name": "user.realm", "@value": "MY.DOMAIN.COM"}]},
+     {"@name": "hadoop-env",
+      "property": [
+        {"@name": "HADOOP_CLIENT_OPTS", "-Xmx256m"}]}]},
+ "components": [
+   {"@name":"hdfs",
+    "configuration": {
+      "category": [
+        {"@name": "hadoop-env",
+         property: [
+           {"@name": "HADOOP_NAMENODE_OPTS",
+            "@value": "-Xmx512m -Dsecurity.audit.logger=INFO,DRFAS
+                       -Dhdfs.audit.logger=INFO,DRFAAUDIT"}]}]}}]}
+------
+
+  And run the command to create the new cluster:
+
+-------
+$ ambari cluster create -name cluster2 -stack-file cluster2.json \
+    -nodes host00-99 -goalstate active -role namenode=host00 \
+    -role jobtracker=host01 -role client=host98-99 -wait
 -------
 
 * Creating a cluster using REST
