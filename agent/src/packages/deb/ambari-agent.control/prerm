@@ -16,7 +16,7 @@
 # limitations under the License.
 
 /etc/init.d/ambari-agent stop 2>/dev/null >/dev/null
-bash /usr/sbin/update-ambari-env.sh \
+bash /usr/sbin/update-ambari-agent-env.sh \
   --prefix=/usr \
   --bin-dir=/usr/bin \
   --conf-dir=/etc/ambari \
