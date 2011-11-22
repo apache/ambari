@@ -137,7 +137,7 @@ public class HeartbeatHandler {
               boolean roleServerRunning = false;
               boolean agentRoleStateChanged = false;
               if (!newNode) {
-                componentStates.isInstalled(
+                roleInstalled = componentStates.isInstalled(
                     clusterIdAndRev,
                     role.getAssociatedService().getServiceName(), 
                     role.getRoleName());     
@@ -158,7 +158,7 @@ public class HeartbeatHandler {
               //check whether the agent should start any server
               if (role.shouldStart()) {
                 if (!roleInstalled) {
-                  createInstallAction(clusterIdAndRev, cluster, 
+                  createDirStructureAction(clusterIdAndRev, cluster, 
                       service.getServiceName(), role.getRoleName(), plugin,
                       allActions);
                   continue;
@@ -233,7 +233,7 @@ public class HeartbeatHandler {
     return false;
   }
   
-  private void createInstallAction(ClusterNameAndRev clusterIdAndRev, 
+  private void createDirStructureAction(ClusterNameAndRev clusterIdAndRev, 
       Cluster cluster, String component, String role, ComponentPlugin plugin, 
       List<Action> allActions) throws IOException {
     String clusterId = clusterIdAndRev.getClusterName();
@@ -246,42 +246,6 @@ public class HeartbeatHandler {
         SpecialServiceIDs.CREATE_STRUCTURE_ACTION_ID));
     fillDetailsAndAddAction(action, allActions, clusterId,
         clusterRev, component, role);
-    
-    //action for installing the role
-    //also, go over all the dependencies and get their client role-install
-    //actions
-    fillActionsForDependentComponents(clusterIdAndRev, cluster, component, 
-        allActions);
-    action = plugin.install(cluster.getName(), role);
-    fillDetailsAndAddAction(action, allActions, clusterId,
-        clusterRev, component, role);
-    
-    //action for configuring
-    action = plugin.configure(clusterId, role);
-    fillDetailsAndAddAction(action, allActions, clusterId,
-        clusterRev, component, role);
-  }
-  
-  private void fillActionsForDependentComponents(
-      ClusterNameAndRev clusterIdAndRev,
-      Cluster cluster, String reqdComp, 
-      List<Action> allActions) 
-          throws IOException {
-    ComponentPlugin reqPlugin = cluster.getComponentDefinition(reqdComp);
-    String[] reqdComps = reqPlugin.getRequiredComponents();
-    if (reqdComps == null || reqdComps.length == 0) {
-      //TODO: take care of components like Pig. Should Pig also have a client 
-      //role?
-      String clientRole = reqdComp + "-client";
-      Action action = reqPlugin.install(cluster.getName(), clientRole);
-      fillDetailsAndAddAction(action, allActions, cluster.getName(),
-          clusterIdAndRev.getRevision(), reqdComp, clientRole);
-      return;
-    }
-    for (String comp : reqdComps) {
-      fillActionsForDependentComponents(clusterIdAndRev, cluster, comp, 
-          allActions);
-    }
   }
   
   private void createStopAndUninstallActions(ComponentAndRoleStates componentAndRoleStates, 
@@ -674,7 +638,7 @@ public class HeartbeatHandler {
           if (newNode || 
               !installedOrStartedComponents.isRoleInstalled(clusterIdAndRev,
               role)) {
-            createInstallAction(clusterIdAndRev, cluster, 
+            createDirStructureAction(clusterIdAndRev, cluster, 
                 service.getServiceName(), role, plugin,
                 allActions);
           }

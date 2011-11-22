@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-135. Simplifies the heartbeat handling to not deal with 
+  install/configure methods on component plugin definitions (ddas)
+
   AMBARI-134. Add Google analytics to the site. (omalley)
 
   AMBARI-132. Fix update agent environment script location. (Ahmed

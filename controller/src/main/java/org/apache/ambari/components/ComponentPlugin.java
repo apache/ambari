@@ -46,23 +46,6 @@ public abstract class ComponentPlugin {
    */
   public abstract String[] getRequiredComponents() throws IOException;
   
-  /**
-   * Get the commands to write the configuration for this component.
-   * @param cluster the cluster that is being configured
-   * @return the commands to run on each node
-   * @throws IOException
-   */
-  public abstract Action configure(String cluster,
-                                   String role) throws IOException;
-  
-  /**
-   * Get the commands to finalize the installation on the machine.
-   * @param cluster the cluster that is being installed
-   * @return the commands to execute
-   * @throws IOException
-   */
-  public abstract Action install(String cluster,
-                                 String role) throws IOException;
   
   /**
    * Get the commands to start a role's server.
@@ -99,16 +82,6 @@ public abstract class ComponentPlugin {
   public abstract Action checkService(String cluster, 
                                       String role) throws IOException;
 
-  /**
-   * Get the commands to run before the software is uninstalled.
-   * @param cluster the cluster that is being uninstalled
-   * @return the commands to execute
-   * @throws IOException
-   */
-  public abstract Action uninstall(String cluster,
-                                   String role
-                                   ) throws IOException;
-  
   /**
    * Get the commands to run to preinstall a component
    * For example, MapReduce needs to have certain directories

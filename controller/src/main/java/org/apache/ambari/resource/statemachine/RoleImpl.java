@@ -29,10 +29,6 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
 
   private RoleState myState;
   private String roleName;
-  protected int totalInstancesRequired;
-  protected int totalRoleInstancesStarted;
-  private int totalRolesFailedToStart;
-  private int totalInstancesDesired;
   private ServiceFSM service;
   
   /* The state machine for the role looks like:
@@ -63,8 +59,8 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
              RoleEventType.START_SUCCESS)
              
          .addTransition(RoleState.STARTING, 
-             EnumSet.of(RoleState.FAIL, RoleState.STARTING),
-             RoleEventType.START_FAILURE, new FailedStartTransition())
+             RoleState.STARTING,
+             RoleEventType.START_FAILURE)
              
          .addTransition(RoleState.FAIL, RoleState.FAIL, 
              RoleEventType.START_FAILURE)
@@ -98,16 +94,9 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
       stateMachine;
   
   public RoleImpl(ServiceFSM service, String roleName) {
-    this(service, roleName, 1, 1);
-  }
-  
-  public RoleImpl(ServiceFSM service, String roleName, 
-      int totalInstancesDesired, int totalInstancesRequired) {
     this.roleName = roleName;
     this.service = service;
     this.myState = RoleState.INACTIVE;
-    this.totalInstancesRequired = totalInstancesRequired;
-    this.totalInstancesDesired = totalInstancesDesired;
     stateMachine = stateMachineFactory.make(this);
   }
   
@@ -141,42 +130,15 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
     @Override
     public RoleState transition(RoleImpl operand, RoleEvent event) {
       ServiceFSM service = operand.getAssociatedService();
-      ++operand.totalRoleInstancesStarted;
-      if (operand.totalInstancesRequired <= operand.totalRoleInstancesStarted){
-        StateMachineInvoker.getAMBARIEventHandler().handle(
-            new ServiceEvent(ServiceEventType.ROLE_STARTED, service, 
-                operand));
-
-        return RoleState.ACTIVE;
-      } else {
-        return RoleState.STARTING;   
-      }
+      StateMachineInvoker.getAMBARIEventHandler().handle(
+          new ServiceEvent(ServiceEventType.ROLE_STARTED, service, 
+              operand));
+      //if one instance of the role starts up fine, we consider the service
+      //as ready for the 'safe-mode' kinds of checks
+      return RoleState.ACTIVE;
     }
   }
   
-  static class FailedStartTransition implements 
-  MultipleArcTransition<RoleImpl, RoleEvent, RoleState>  {
-
-    @Override
-    public RoleState transition(RoleImpl operand, RoleEvent event) {
-      ServiceFSM service = operand.getAssociatedService();
-      ++operand.totalRolesFailedToStart;
-      //if number of remaining instances required to declare a role as 'started'
-      //is more than the total number of available nodes that haven't reported
-      //declare the role failed to start
-      if ((operand.totalInstancesRequired - operand.totalRoleInstancesStarted) 
-          >= (operand.totalInstancesDesired - 
-              (operand.totalRoleInstancesStarted + 
-                  operand.totalRolesFailedToStart))) {
-        StateMachineInvoker.getAMBARIEventHandler().handle(
-            new ServiceEvent(ServiceEventType.START_FAILURE, service, 
-                operand));
-        return RoleState.FAIL;
-      } else {
-        return RoleState.STARTING;   
-      }
-    }
-  }
   
   static class RoleStopTransition implements
   SingleArcTransition<RoleImpl, RoleEvent> {

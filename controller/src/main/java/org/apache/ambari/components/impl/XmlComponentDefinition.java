@@ -151,32 +151,6 @@ public class XmlComponentDefinition extends ComponentPlugin {
   }
 
   @Override
-  public Action configure(String cluster, String role) throws IOException {
-    if (configureCommand == null) {
-      return null;
-    }
-    Action result = new Action();
-    result.kind = Action.Kind.RUN_ACTION;
-    result.setUser(configureUser);
-    result.command = new Command(configureUser, configureCommand, 
-                                 new String[]{cluster, role});
-    return result;
-  }
-
-  @Override
-  public Action install(String cluster, String role) throws IOException {
-    if (installCommand == null) {
-      return null;
-    }
-    Action result = new Action();
-    result.kind = Action.Kind.RUN_ACTION;
-    result.setUser(installUser);
-    result.command = new Command(installUser, installCommand, 
-                                 new String[]{cluster, role});
-    return result;
-  }
-
-  @Override
   public Action startServer(String cluster, String role) throws IOException {
     if (startCommand == null) {
       return null;
@@ -223,19 +197,6 @@ public class XmlComponentDefinition extends ComponentPlugin {
     result.command = new Command(prestartUser, prestartCommand, 
                                  new String[]{cluster, role});
     return result; 
-  }
-
-  @Override
-  public Action uninstall(String cluster, String role) throws IOException {
-    if (uninstallCommand == null) {
-      return null;
-    }
-    Action result = new Action();
-    result.kind = Action.Kind.RUN_ACTION;
-    result.setUser(uninstallUser);
-    result.command = new Command(uninstallUser, uninstallCommand, 
-                                 new String[]{cluster, role});
-    return result;
   }
 
   private static String getCommand(ScriptCommand cmd) {
