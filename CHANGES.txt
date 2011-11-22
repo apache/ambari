@@ -2,7 +2,10 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
-  AMBARI-132. Fix update agent environment script location. (Ahmed Fathalla via Eric Yang)
+  AMBARI-134. Add Google analytics to the site. (omalley)
+
+  AMBARI-132. Fix update agent environment script location. (Ahmed
+  Fathalla via Eric Yang)
 
   AMBARI-131. Fixed post installation script for Ambari Agent. (Eric Yang)
 
@@ -14,11 +17,14 @@ Release 0.1.0 - unreleased
 
   AMBARI-126. Minor fixes to the FSM invocations (ddas)
 
-  AMBARI-125. Recover the the state of existing clusters after controller restart (vgogate)
+  AMBARI-125. Recover the the state of existing clusters after
+  controller restart (vgogate)
 
-  AMBARI-124. Add Zookeeper Data store and persist the cluster definitions across controller restart (vgogate)
+  AMBARI-124. Add Zookeeper Data store and persist the cluster
+  definitions across controller restart (vgogate)
 
-  AMBARI-116. Change the name group to provider in hadoop-security-0.xml stack definition (vgogate)
+  AMBARI-116. Change the name group to provider in
+  hadoop-security-0.xml stack definition (vgogate)
 
   AMBARI-120. Fixed REST resource annotation bugs. (Eric Yang)
 
