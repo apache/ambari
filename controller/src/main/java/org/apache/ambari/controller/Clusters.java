@@ -27,6 +27,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
+import org.apache.ambari.common.rest.entities.Component;
+import org.apache.ambari.common.rest.entities.ConfigurationCategory;
+import org.apache.ambari.common.rest.entities.Property;
+import org.apache.ambari.common.rest.entities.Role;
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
@@ -191,7 +195,7 @@ public class Clusters {
     }
     
     /*
-     * Add Cluster Entry
+     * Add Cluster Entry into data store and memory cache
      */
     public synchronized Cluster addClusterEntry (ClusterDefinition cdef, ClusterState cs) throws Exception {
         Cluster cls = new Cluster (cdef, cs);
@@ -250,15 +254,18 @@ public class Clusters {
         ClusterDefinition newcd = new ClusterDefinition ();
         newcd.setName(clusterName);
         boolean clsDefChanged = false;
+        boolean configChanged = false;
         if (c.getStackName() != null && !c.getStackName().equals(cls.getClusterDefinition(-1).getStackName())) {
             newcd.setStackName(c.getStackName());
             clsDefChanged = true;
+            configChanged = true;
         } else {
             newcd.setStackName(cls.getClusterDefinition(-1).getStackName());
         }
         if (c.getStackRevision() != null && !c.getStackRevision().equals(cls.getClusterDefinition(-1).getStackRevision())) {
             newcd.setStackRevision(c.getStackRevision());
             clsDefChanged = true;
+            configChanged = true;
         } else {
             newcd.setStackRevision(cls.getClusterDefinition(-1).getStackRevision());
         }
@@ -337,12 +344,19 @@ public class Clusters {
         }
         
         /*
-         *  Udate the new cluster definition
+         *  Update the new cluster definition and state
+         *  Generate the config script for puppet
          */
         ClusterState cs = cls.getClusterState();
         cs.setLastUpdateTime(Util.getXMLGregorianCalendar(new Date()));
         cls.updateClusterDefinition(newcd);
         cls.updateClusterState(cs);
+        
+        /*
+        if (configChanged || updateNodeToRolesAssociation || updateNodesReservation) {
+            String puppetConfig = this.getPuppetConfigString (newcd);
+            cls.updatePuppetConfiguration(puppetConfig);
+        }*/
         
         /*
          * Update the nodes reservation and node to roles association 
@@ -353,6 +367,10 @@ public class Clusters {
         if (updateNodeToRolesAssociation) {
             updateNodeToRolesAssociation(newcd.getNodes(), c.getRoleToNodesMap());
         }
+        
+        /*
+         * If configChanged or nodes changed then generate the 
+         */
         
         /*
          * Invoke state machine event
@@ -449,6 +467,10 @@ public class Clusters {
          * 
          */
         Cluster cls = this.addClusterEntry(cdef, clsState);
+        
+        /*
+         * TODO: Create and update the puppet configuration
+         */
         
         /*
          * Update cluster nodes reservation. 
@@ -898,5 +920,33 @@ public class Clusters {
               this.updateNodeToRolesAssociation(cdef.getNodes(), cdef.getRoleToNodesMap());
           }
       }
+  }
+  
+  private String getPuppetConfigString (ClusterDefinition c) throws Exception {
+      Stacks stacksCtx = Stacks.getInstance();
+      Stack stack = stacksCtx.getStack(c.getStackName(), Integer.parseInt(c.getStackRevision()));
+      String config = "";
+      for (Component comp : stack.getComponents()) {
+          for (Role role : comp.getRoles()) {
+              config = config + "\n"+"$"+comp.getName()+"_"+role.getName()+"_conf => { ";
+              for (ConfigurationCategory cat : role.getConfiguration().getCategory()) {
+                   config = config+"\""+cat.getName()+"\" => { ";
+                   for (Property p : cat.getProperty()) {
+                       config = config+p.getName()+" => "+p.getValue()+", ";
+                   }
+                   config = config +" }, \n";
+              }
+              config = config + "} \n";
+          }
+      }
+      
+      for (RoleToNodes roleToNodesEntry : c.getRoleToNodesMap()) {
+          config = config + "$"+roleToNodesEntry.getRoleName()+"_hosts = [";
+          for (String host : this.getHostnamesFromRangeExpressions(roleToNodesEntry.getNodes())) {
+              config = config + "\'"+host+"\',";
+          }
+          config = config + "] \n";
+      }
+      return config;
   }
 }

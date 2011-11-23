@@ -55,6 +55,11 @@ public class Cluster {
     private final Map<String, ComponentPlugin> plugins =
                   new HashMap<String, ComponentPlugin>();
     
+    /*
+     * Store cluster puppet configuration
+     */
+    private final Map<Integer, String> clusterConfigurationRevisionList = new HashMap<Integer, String>();
+    
     
     public Cluster (String clusterName) {
         this.clusterName = clusterName;
@@ -112,6 +117,16 @@ public class Cluster {
       // find the plugins for the current definition of the cluster
       loadPlugins(c);
     }
+    
+    /**
+     * @return Add puppet configuration
+     */
+    public synchronized void updatePuppetConfiguration(String puppetConfig) throws Exception {
+      //this.latestRevisionNumber = dataStore.storeClusterDefinition(c);
+      //this.clusterDefinitionRevisionsList.put(this.latestRevisionNumber, c);
+      //this.latestDefinition = c;
+    }
+
 
     /*
      * Load plugins for the current definition of the cluster
