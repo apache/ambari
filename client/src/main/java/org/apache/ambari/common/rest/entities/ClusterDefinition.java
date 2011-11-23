@@ -31,25 +31,6 @@ import javax.xml.bind.annotation.XmlType;
 /**
  * Definition of a cluster.
  * 
- * <p>
- * The schema is:
- * <pre>
- * element cluster {
- *   attribute name { text }?
- *   attribute description { text }?
- *   attribute stackName { text }?
- *   attribute stackRevision { text }?
- *   attribute goalState { text }?
- *   attribute nodes { text }?
- *   element activeServices { text } *
- *   element roleToNodesMap { 
- *     attribute role { text }
- *     attribute node { text }
- *   } *
- * }
- * </pre>
- * </p>
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ClusterDefinition", propOrder = {
@@ -125,12 +106,19 @@ public class ClusterDefinition {
     @XmlElement
     protected List<RoleToNodes> roleToNodesMap = null;
     
-    
+
     /**
      * @return the roleToNodesMap
      */
     public List<RoleToNodes> getRoleToNodesMap() {
         return roleToNodesMap;
+    }
+
+    /**
+     * @param roleToNodesMap the roleToNodesMap to set
+     */
+    public void setRoleToNodesMap(List<RoleToNodes> roleToNodesMap) {
+        this.roleToNodesMap = roleToNodesMap;
     }
 
     /**
@@ -229,20 +217,6 @@ public class ClusterDefinition {
      */
     public void setNodes(String nodeRangeExpressions) {
             this.nodes = nodeRangeExpressions;
-    }
-
-    /**
-     * @return the roleToNodesMap
-     */
-    public List<RoleToNodes> getRoleToNodes() {
-            return roleToNodesMap;
-    }
-
-    /**
-     * @param roleToNodesMap the roleToNodesMap to set
-     */
-    public void setRoleToNodesMap(List<RoleToNodes> roleToNodesMap) {
-            this.roleToNodesMap = roleToNodesMap;
     }
     
     
