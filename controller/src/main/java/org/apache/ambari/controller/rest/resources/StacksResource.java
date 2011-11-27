@@ -144,14 +144,9 @@ public class StacksResource {
     @DELETE
     @Path("{stackName}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response deletestack(@PathParam("stackName") String stackName,
-                                @DefaultValue("") @QueryParam("revision") String revision ) throws Exception {     
+    public Response deletestack(@PathParam("stackName") String stackName) throws Exception {     
         try {
-            if (revision == null || revision.equals("")) {
-                String msg = "Revision number not specified";
-                throw new WebApplicationException ((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
-            }
-            Stacks.getInstance().deleteStack(stackName, Integer.parseInt(revision));
+            Stacks.getInstance().deleteStack(stackName);
             return Response.ok().build();
         }catch (WebApplicationException we) {
             throw we;
@@ -189,15 +184,14 @@ public class StacksResource {
                                      Stack stack) throws Exception {
         try {
             if (locationURL == null || locationURL.equals("")) {
-                return Stacks.getInstance().addStack(stack);
+                return Stacks.getInstance().addStack(stackName, stack);
             } else {
-                return Stacks.getInstance().importDefaultStack (locationURL);
+                return Stacks.getInstance().importDefaultStack (stackName, locationURL);
             }
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
             throw new WebApplicationException((new ExceptionResponse(e)).get());
         } 
-    }
-    
+    } 
 }

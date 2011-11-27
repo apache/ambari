@@ -134,7 +134,6 @@ public class Clusters {
         rnm.add(rnme);
         
         cluster124.setRoleToNodesMap(rnm);
-        
         try {
             if (!clusterExists(cluster123.getName())) {
                 addCluster(cluster123.getName(), cluster123, false);
@@ -234,6 +233,35 @@ public class Clusters {
         this.purgeClusterEntry(clusterName);
     }
     
+    /*
+     * Delete Cluster 
+     * Delete operation will mark the cluster to_be_deleted and then set the goal state to ATTIC
+     * Once cluster gets to ATTIC state, background daemon should purge the cluster entry.
+     */
+    public synchronized void deleteCluster(String clusterName) throws Exception { 
+    
+        if (!this.clusterExists(clusterName)) {
+            System.out.println("Cluster ["+clusterName+"] does not exist!");
+            return;
+        }
+        
+        /*
+         * Update the cluster definition with goal state to be ATTIC
+         */
+        Cluster cls = this.getClusterByName(clusterName);   
+        ClusterDefinition cdf = new ClusterDefinition();
+        cdf.setName(clusterName);
+        cdf.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
+        cls.updateClusterDefinition(cdf);
+        
+        /* 
+         * Update cluster state, mark it "to be deleted"
+         */
+        ClusterState cs = cls.getClusterState();
+        cs.setMarkForDeletionWhenInAttic(true); 
+        cls.updateClusterState(cs);
+    }
+
     /* 
      * Create/Update cluster definition 
      * TODO: As nodes or role to node association changes, validate key services nodes are not removed
@@ -353,9 +381,11 @@ public class Clusters {
         cls.updateClusterState(cs);
         
         /*
+         * Create Puppet config
+         
         if (configChanged || updateNodeToRolesAssociation || updateNodesReservation) {
             String puppetConfig = this.getPuppetConfigString (newcd);
-            cls.updatePuppetConfiguration(puppetConfig);
+            //cls.updatePuppetConfiguration(puppetConfig);
         }*/
         
         /*
@@ -369,51 +399,19 @@ public class Clusters {
         }
         
         /*
-         * If configChanged or nodes changed then generate the 
-         */
-        
-        /*
          * Invoke state machine event
          */
         if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {
           StateMachineInvoker.startCluster(cls.getName());
-        } else if(c.getGoalState().
-            equals(ClusterState.CLUSTER_STATE_INACTIVE)) {
+        } else if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_INACTIVE)) {
           StateMachineInvoker.stopCluster(cls.getName());
-        } else if(c.getGoalState().
-            equals(ClusterState.CLUSTER_STATE_ATTIC)) {
+        } else if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ATTIC)) {
           StateMachineInvoker.deleteCluster(cls.getName());
         }
-     
+    
         return cls.getClusterDefinition(-1);
     }
-    
-    /*
-     * Add default values for new cluster definition 
-     */
-    private void setNewClusterDefaults(ClusterDefinition cdef) throws Exception {
-        /* 
-         * Populate the input cluster definition w/ default values
-         */
-        if (cdef.getDescription() == null) { cdef.setDescription("Ambari cluster : "+cdef.getName());
-        }
-        if (cdef.getGoalState() == null) { cdef.setGoalState(ClusterDefinition.GOAL_STATE_INACTIVE);
-        }
-        
-        /*
-         * If its new cluster, do not specify the revision, set it to null. A revision number is obtained
-         * after persisting the definition
-         */
-        cdef.setRevision(null);
-        
-        // TODO: Add the list of active services by querying pluging component.
-        if (cdef.getActiveServices() == null) {
-            List<String> services = new ArrayList<String>();
-            services.add("ALL");
-            cdef.setActiveServices(services);
-        }    
-    }
-    
+
     /* 
      * Add new Cluster to cluster list  
      */   
@@ -463,14 +461,18 @@ public class Clusters {
         }
         
         /*
-         * Persist the new cluster and add entry to cache
-         * 
-         */
-        Cluster cls = this.addClusterEntry(cdef, clsState);
+         * TODO: Create and update the puppet configuration
+         
+        String puppetConfig = this.getPuppetConfigString (cdef);
+        System.out.println("==============================");
+        System.out.println(puppetConfig);
+        System.out.println("==============================");
+        */
         
         /*
-         * TODO: Create and update the puppet configuration
+         * Persist the new cluster and add entry to cache
          */
+        Cluster cls = this.addClusterEntry(cdef, clsState);
         
         /*
          * Update cluster nodes reservation. 
@@ -499,13 +501,39 @@ public class Clusters {
             cs.activate();
         }
         return cdef;
-    } 
+    }
+
+    /*
+     * Add default values for new cluster definition 
+     */
+    private void setNewClusterDefaults(ClusterDefinition cdef) throws Exception {
+        /* 
+         * Populate the input cluster definition w/ default values
+         */
+        if (cdef.getDescription() == null) { cdef.setDescription("Ambari cluster : "+cdef.getName());
+        }
+        if (cdef.getGoalState() == null) { cdef.setGoalState(ClusterDefinition.GOAL_STATE_INACTIVE);
+        }
+        
+        /*
+         * If its new cluster, do not specify the revision, set it to null. A revision number is obtained
+         * after persisting the definition
+         */
+        cdef.setRevision(null);
+        
+        // TODO: Add the list of active services by querying pluging component.
+        if (cdef.getActiveServices() == null) {
+            List<String> services = new ArrayList<String>();
+            services.add("ALL");
+            cdef.setActiveServices(services);
+        }    
+    }
     
     /*
      * Create RoleToNodes list based on node attributes
      * TODO: For now just pick some nodes randomly
      */
-    public List<RoleToNodes> generateRoleToNodesListBasedOnNodeAttributes (ClusterDefinition cdef) {
+    private List<RoleToNodes> generateRoleToNodesListBasedOnNodeAttributes (ClusterDefinition cdef) {
         List<RoleToNodes> role2NodesList = new ArrayList<RoleToNodes>();
         return role2NodesList;
     }
@@ -672,7 +700,7 @@ public class Clusters {
      * This function disassociate all the nodes from the cluster. The clsuterID associated w/
      * cluster will be reset by heart beat when node reports all clean.
      */
-    public synchronized void releaseClusterNodes (String clusterName) throws Exception {
+    private synchronized void releaseClusterNodes (String clusterName) throws Exception {
         for (Node clusterNode : Nodes.getInstance().getClusterNodes (clusterName, "", "")) {
             clusterNode.releaseNodeFromCluster();     
         }
@@ -747,35 +775,6 @@ public class Clusters {
         return bp;
     }
     
-    
-    /*
-     * Delete Cluster 
-     * Delete operation will mark the cluster to_be_deleted and then set the goal state to ATTIC
-     * Once cluster gets to ATTIC state, background daemon should purge the cluster entry.
-     */
-    public synchronized void deleteCluster(String clusterName) throws Exception { 
-
-        if (!this.clusterExists(clusterName)) {
-            System.out.println("Cluster ["+clusterName+"] does not exist!");
-            return;
-        }
-        
-        /*
-         * Update the cluster definition with goal state to be ATTIC
-         */
-        Cluster cls = this.getClusterByName(clusterName);   
-        ClusterDefinition cdf = new ClusterDefinition();
-        cdf.setName(clusterName);
-        cdf.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
-        cls.updateClusterDefinition(cdf);
-        
-        /* 
-         * Update cluster state, mark it "to be deleted"
-         */
-        ClusterState cs = cls.getClusterState();
-        cs.setMarkForDeletionWhenInAttic(true); 
-        cls.updateClusterState(cs);
-    }      
     
     /*
      * Get the latest cluster definition
@@ -923,12 +922,13 @@ public class Clusters {
   }
   
   private String getPuppetConfigString (ClusterDefinition c) throws Exception {
+      // TODO: ignore if comps or roles are not present in stack.
       Stacks stacksCtx = Stacks.getInstance();
       Stack stack = stacksCtx.getStack(c.getStackName(), Integer.parseInt(c.getStackRevision()));
-      String config = "";
+      String config = "\n$hadoop_stack_conf = { ";
       for (Component comp : stack.getComponents()) {
           for (Role role : comp.getRoles()) {
-              config = config + "\n"+"$"+comp.getName()+"_"+role.getName()+"_conf => { ";
+              config = config + comp.getName()+"_"+role.getName()+" => { ";
               for (ConfigurationCategory cat : role.getConfiguration().getCategory()) {
                    config = config+"\""+cat.getName()+"\" => { ";
                    for (Property p : cat.getProperty()) {
@@ -936,17 +936,21 @@ public class Clusters {
                    }
                    config = config +" }, \n";
               }
-              config = config + "} \n";
-          }
+              config = config + "}, \n";
+          }   
       }
+      config = config + "} \n";
       
+      config = config + "$role_to_nodes = { ";
       for (RoleToNodes roleToNodesEntry : c.getRoleToNodesMap()) {
-          config = config + "$"+roleToNodesEntry.getRoleName()+"_hosts = [";
+          config = config + roleToNodesEntry.getRoleName()+ " => [";
           for (String host : this.getHostnamesFromRangeExpressions(roleToNodesEntry.getNodes())) {
               config = config + "\'"+host+"\',";
           }
           config = config + "] \n";
       }
+      config = config + "} \n";
+      
       return config;
   }
 }

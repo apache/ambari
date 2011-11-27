@@ -116,6 +116,7 @@ public class Controller {
        *  opening up the server to clients
        */
       clustersCtx.recoverClustersStateAfterRestart();
+      stacksCtx.recoverStacksAfterRestart();
       
       /*
        * Start the server after controller state is recovered.

@@ -74,8 +74,7 @@ public class Cluster {
     public synchronized void init () throws Exception {
         this.latestRevisionNumber = dataStore.retrieveLatestClusterRevisionNumber(clusterName);
         this.latestDefinition = dataStore.retrieveClusterDefinition(clusterName, this.latestRevisionNumber);
-        loadPlugins(this.latestDefinition);
-        //this.clusterState = dataStore.retrieveClusterState(clusterName);  
+        loadPlugins(this.latestDefinition);  
         this.clusterDefinitionRevisionsList.put(this.latestRevisionNumber, this.latestDefinition);
     }
     

@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-138. Implement stack persistence (vgogate)
+
   AMBARI-135. Simplifies the heartbeat handling to not deal with 
   install/configure methods on component plugin definitions (ddas)
 

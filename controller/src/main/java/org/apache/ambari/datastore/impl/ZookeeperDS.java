@@ -2,13 +2,11 @@ package org.apache.ambari.datastore.impl;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.util.JAXBUtil;
-import org.apache.ambari.controller.Stacks;
 import org.apache.ambari.datastore.PersistentDataStore;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -112,6 +110,10 @@ public class ZookeeperDS implements PersistentDataStore, Watcher {
                 String latestRevision = new String (zk.getData(clusterLatestRevisionNumberPath, false, stat));
                 newRev = Integer.parseInt(latestRevision) + 1;
                 clusterRevisionPath = clusterPath + "/" + newRev;
+                /*
+                 * If client passes the revision number of the checked out cluster definition 
+                 * following code checks if you are updating the same version that you checked out.
+                 */
                 if (clusterDef.getRevision() != null) {
                     if (!latestRevision.equals(clusterDef.getRevision())) {
                         throw new IOException ("Latest cluster definition does not match the one client intends to modify!");
@@ -229,92 +231,113 @@ public class ZookeeperDS implements PersistentDataStore, Watcher {
     }
 
     @Override
-    public void purgeClusterDefinitionRevisions(String clusterName,
-            int lessThanRevision) throws IOException {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void updateClusterState(String clusterName, ClusterState newstate)
-            throws IOException {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
     public int storeStack(String stackName, Stack stack) throws IOException {
-        // TODO Auto-generated method stub
-        return 0;
+        try {
+            Stat stat = new Stat();
+            String stackPath = ZOOKEEPER_STACKS_ROOT_PATH+"/"+stackName;
+            int newRev = 0;
+            String stackRevisionPath = stackPath+"/"+newRev;
+            String stackLatestRevisionNumberPath = stackPath+"/latestRevisionNumber";
+            if (zk.exists(stackPath, false) == null) {
+                /* 
+                 * create stack path with revision 0, create stack latest revision node to
+                 * store the latest revision of stack definition.
+                 */
+                createDirectory (stackPath, new byte[0], false);
+                stack.setRevision(new Integer(newRev).toString());
+                createDirectory (stackRevisionPath, JAXBUtil.write(stack), false);
+                createDirectory (stackLatestRevisionNumberPath, (new Integer(newRev)).toString().getBytes(), false);
+            }else {
+                String latestRevision = new String (zk.getData(stackLatestRevisionNumberPath, false, stat));
+                newRev = Integer.parseInt(latestRevision) + 1;
+                stackRevisionPath = stackPath + "/" + newRev;
+                /*
+                 * TODO: like cluster definition client can pass optionally the checked out version number
+                 * Following code checks if you are updating the same version that you checked out.
+                if (stack.getRevision() != null) {
+                    if (!latestRevision.equals(stack.getRevision())) {
+                        throw new IOException ("Latest cluster definition does not match the one client intends to modify!");
+                    }  
+                } */
+                stack.setRevision(new Integer(newRev).toString());
+                createDirectory (stackRevisionPath, JAXBUtil.write(stack), false);
+                zk.setData(stackLatestRevisionNumberPath, (new Integer(newRev)).toString().getBytes(), -1);
+            }
+            return newRev;
+        } catch (KeeperException e) {
+            throw new IOException (e);
+        } catch (InterruptedException e1) {
+            throw new IOException (e1);
+        }
     }
 
     @Override
     public Stack retrieveStack(String stackName, int revision)
             throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+        try {
+            Stat stat = new Stat();
+            String stackRevisionPath;
+            if (revision < 0) {   
+                String stackLatestRevisionNumberPath = ZOOKEEPER_STACKS_ROOT_PATH+"/"+stackName+"/latestRevisionNumber";
+                String latestRevisionNumber = new String (zk.getData(stackLatestRevisionNumberPath, false, stat));
+                stackRevisionPath = ZOOKEEPER_STACKS_ROOT_PATH+"/"+stackName+"/"+latestRevisionNumber;       
+            } else {
+                stackRevisionPath = ZOOKEEPER_STACKS_ROOT_PATH+"/"+stackName+"/"+revision;
+            }
+            Stack stack = JAXBUtil.read(zk.getData(stackRevisionPath, false, stat), Stack.class); 
+            return stack;
+        } catch (Exception e) {
+            throw new IOException (e);
+        }
     }
 
     @Override
-    public List<NameRevisionPair> retrieveStackList() throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+    public List<String> retrieveStackList() throws IOException {
+        try {
+            List<String> children = zk.getChildren(ZOOKEEPER_STACKS_ROOT_PATH, false);
+            return children;
+        } catch (KeeperException e) {
+            throw new IOException (e);
+        } catch (InterruptedException e) {
+            throw new IOException (e);
+        }
+    }
+    
+    @Override
+    public int retrieveLatestStackRevisionNumber(String stackName) throws IOException { 
+        int revisionNumber;
+        try {
+            Stat stat = new Stat();
+            String stackLatestRevisionNumberPath = ZOOKEEPER_STACKS_ROOT_PATH+"/"+stackName+"/latestRevisionNumber";
+            String latestRevisionNumber = new String (zk.getData(stackLatestRevisionNumberPath, false, stat));
+            revisionNumber = Integer.parseInt(latestRevisionNumber);
+        } catch (Exception e) {
+            throw new IOException (e);
+        }
+        return revisionNumber;
     }
 
     @Override
-    public int deleteStack(String stackName) throws IOException {
-        // TODO Auto-generated method stub
-        return 0;
+    public void deleteStack(String stackName) throws IOException {
+        String stackPath = ZOOKEEPER_STACKS_ROOT_PATH+"/"+stackName;
+        List<String> children;
+        try {
+            children = zk.getChildren(stackPath, false);
+            // Delete all the children and then the parent node
+            for (String childPath : children) {
+                try {
+                    zk.delete(childPath, -1);
+                } catch (KeeperException.NoNodeException ke) {
+                } catch (Exception e) { throw new IOException (e); }
+            }
+            zk.delete(stackPath, -1);
+        } catch (KeeperException.NoNodeException ke) {
+            return;
+        } catch (Exception e) {
+            throw new IOException (e);
+        }
     }
 
-    @Override
-    public void deleteStackRevisions(String stackName, int lessThanRevision)
-            throws IOException {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void updateComponentState(String clusterName, String componentName,
-            String state) throws IOException {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public String getComponentState(String clusterName, String componentName)
-            throws IOException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void deleteComponentState(String clusterName, String componentName)
-            throws IOException {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void updateRoleState(String clusterName, String componentName,
-            String roleName, String state) throws IOException {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public String getRoleState(String clusterName, String componentName,
-            String RoleName) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void deleteRoleState(String clusterName, String componentName,
-            String roleName) throws IOException {
-        // TODO Auto-generated method stub
-        
-    }
 
     @Override
     public void process(WatchedEvent event) {

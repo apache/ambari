@@ -49,39 +49,15 @@ public interface PersistentDataStore {
      */
     public ClusterDefinition retrieveClusterDefinition (String clusterName, int revision) throws IOException;
     
-    public static class NameRevisionPair {
-        public String name;
-        public int maxRevision;
-        public NameRevisionPair(String name, int maxRevision) {
-            this.name = name;
-            this.maxRevision = maxRevision;
-        }
-    }
-  
     /**
      * Retrieve list of existing cluster names
      */
     public List<String> retrieveClusterList () throws IOException;
-    
-    
+      
     /**
      * Delete cluster entry
      */
     public void deleteCluster (String clusterName) throws IOException;
-    
-    /**
-     * Delete cluster revision(s) less than specified version number 
-     */
-    public void purgeClusterDefinitionRevisions(String clusterName, int lessThanRevision) throws IOException;
-    
-    /**
-     * Store/update the cluster state
-     * Cluster entry should pre-exist else return error
-     * Cluster state is updated in place i.e. only laster cluster state is preserved
-     * Fields not to be updated should be initialized to null in the ClusterState object
-     */
-    public void updateClusterState (String clusterName, ClusterState newstate) throws IOException;
-    
     
     /**
      * Store the stack configuration.
@@ -97,54 +73,20 @@ public interface PersistentDataStore {
     public Stack retrieveStack (String stackName, int revision) throws IOException;
     
     /**
-     * Retrieve all cluster definitions with their latest revisions
-     * 
+     * Retrieve list of stack names
+     * @return
+     * @throws IOException
      */
-    public List<NameRevisionPair> retrieveStackList () throws IOException;
+    public List<String> retrieveStackList() throws IOException;
+    
+    /**
+     * Get Latest stack Revision Number
+     */
+    public int retrieveLatestStackRevisionNumber(String stackName) throws IOException;
     
     /**
      * Delete stack
      */
-    public int deleteStack(String stackName) throws IOException;
+    public void deleteStack(String stackName) throws IOException;
     
-    /**
-     * Delete stack revision(s) less than specified version number 
-     */
-    public void deleteStackRevisions(String stackName, int lessThanRevision) throws IOException;
-    
-    /**
-     * Update the component state.
-     * If component entry does not exist for given cluster it will be created 
-     */
-    public void updateComponentState (String clusterName, String componentName, String state) throws IOException;
-    
-    /**
-     * Get the component state.
-     * Returns null, if specific component is not associated with the cluster
-     */
-    public String getComponentState (String clusterName, String componentName) throws IOException;
-
-    
-    /**
-     * Delete the component state for specified component 
-     */
-    public void deleteComponentState (String clusterName, String componentName) throws IOException;
- 
-    /**
-     * Update the component role state.
-     * If role entry does not exist for given cluster component it will be created 
-     */
-    public void updateRoleState (String clusterName, String componentName, String roleName, String state) throws IOException;
-    
-    /**
-     * Get the role state.
-     * Returns null, if specific component/role is not associated with the cluster
-     */
-    public String getRoleState (String clusterName, String componentName, String RoleName) throws IOException;
-
-    
-    /**
-     * Delete the role state for specified component 
-     */
-    public void deleteRoleState (String clusterName, String componentName, String roleName) throws IOException;
 }

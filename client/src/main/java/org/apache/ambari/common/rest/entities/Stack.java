@@ -268,22 +268,4 @@ public class Stack {
     public void setCreationTime(XMLGregorianCalendar creationTime) {
         this.creationTime = creationTime;
     }
-    
-    /**
-     * @param creationTime the creationTime to set
-     */
-    public void setCreationTime(Date creationTime) throws IOException {
-        if (creationTime == null) {
-            this.creationTime = null;
-        } else {
-            GregorianCalendar cal = new GregorianCalendar();
-            cal.setTime(creationTime);
-            try {
-              this.creationTime = 
-                  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-            } catch (DatatypeConfigurationException e) {
-              throw new IOException("can't create calendar", e);
-            }
-        }
-    }
 }
