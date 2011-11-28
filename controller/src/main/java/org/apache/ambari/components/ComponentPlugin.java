@@ -28,10 +28,6 @@ public abstract class ComponentPlugin {
   
   public abstract String getProvides();
   
-  public abstract String getInstallUser();
-  
-  public abstract String getPackage();
-  
   /**
    * Get the active roles (ie. with servers) for this component.
    * @return the list of roles in the order that they should be started
@@ -59,18 +55,11 @@ public abstract class ComponentPlugin {
                                      ) throws IOException;
   
   /**
-   * Get the role that should run the check availability command.
+   * Get the role that should run the check service command.
    * @return the role name
    * @throws IOException
    */
   public abstract String runCheckRole() throws IOException;
-
-  /**
-   * Get the role that should run the initialization command.
-   * @return the role name
-   * @throws IOException
-   */
-  public abstract String runPreStartRole() throws IOException;
 
   /**
    * Get the commands to check whether the service is up
@@ -82,6 +71,13 @@ public abstract class ComponentPlugin {
   public abstract Action checkService(String cluster, 
                                       String role) throws IOException;
 
+  /**
+   * Get the role that should run the initialization command.
+   * @return the role name
+   * @throws IOException
+   */
+  public abstract String runPreStartRole() throws IOException;
+  
   /**
    * Get the commands to run to preinstall a component
    * For example, MapReduce needs to have certain directories

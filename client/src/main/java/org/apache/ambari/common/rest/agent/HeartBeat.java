@@ -49,6 +49,8 @@ public class HeartBeat {
   @XmlElement
   private List<AgentRoleState> installedRoleStates;
   @XmlElement
+  private boolean stateChangeStatus;
+  @XmlElement
   private List<ActionResult> actionResults;
   @XmlElement
   private boolean idle;
@@ -85,6 +87,10 @@ public class HeartBeat {
     return installedRoleStates;
   }
   
+  public boolean getStateChangeStatus() {
+    return stateChangeStatus;
+  }
+  
   public void setTimestamp(long timestamp) {
     this.timestamp = timestamp;
   }
@@ -107,5 +113,9 @@ public class HeartBeat {
   
   public void setIdle(boolean idle) {
     this.idle = idle;
+  }
+  
+  public void setStateChangeStatus(boolean stateChangeStatus) {
+    this.stateChangeStatus = stateChangeStatus;
   }
 }

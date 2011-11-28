@@ -777,6 +777,14 @@ public class Clusters {
     
     
     /*
+     * Get the deployment script for this clustername/revision combo
+     */
+    public String getInstallAndConfigureScript(String clusterName,
+        int revision) {
+      return ""; //TODO: fill
+    }
+    
+    /*
      * Get the latest cluster definition
      */
     public ClusterDefinition getLatestClusterDefinition(String clusterName) throws Exception {

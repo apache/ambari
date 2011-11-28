@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<component provides="hdfs" user="root">
+<component provides="hdfs">
   <requires name="common"/>
   <roles name="namenode"/>
   <roles name="secondarynamenode"/>

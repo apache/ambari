@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-140. Refactors the heartbeat handling w.r.t simplification of 
+  state management. (ddas)
+
   AMBARI-138. Implement stack persistence (vgogate)
 
   AMBARI-135. Simplifies the heartbeat handling to not deal with 

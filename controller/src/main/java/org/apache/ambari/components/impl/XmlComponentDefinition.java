@@ -27,25 +27,17 @@ public class XmlComponentDefinition extends ComponentPlugin {
       "requires",
       "roles",
       "prestart",
-      "install",
-      "configure",
       "start",
-      "check",
-      "uninstall"
+      "check"
   })
   @XmlRootElement
   public static class Component {
     @XmlAttribute String provides;
-    @XmlAttribute(name="package") String pkg;
-    @XmlAttribute String user;
     @XmlElement List<Requires> requires;
     @XmlElement List<Role> roles;
-    @XmlElement Install install;
-    @XmlElement Configure configure;
     @XmlElement Start start;
     @XmlElement Check check;
     @XmlElement Prestart prestart;
-    @XmlElement Uninstall uninstall;
   }
   
   @XmlAccessorType
@@ -107,37 +99,20 @@ public class XmlComponentDefinition extends ComponentPlugin {
   }
 
   private final String provides;
-  private final String pkg;
   private final String[] roles;
   private final String[] dependencies;
-  private final String configureCommand;
-  private final String configureUser;
-  private final String installCommand;
-  private final String installUser;
   private final String startCommand;
-  private final String startUser;
-  private final String uninstallCommand;
-  private final String uninstallUser;
+  private final String startUser = "agent";
   private final String checkRole;
   private final String prestartRole;
   private final String prestartCommand;
-  private final String prestartUser;
+  private final String prestartUser = "agent";
   private final String checkCommand;
-  private final String checkUser;
+  private final String checkUser = "agent";
   
   @Override
   public String getProvides() {
     return provides;
-  }
-  
-  @Override
-  public String getInstallUser() {
-    return installUser;
-  }
-  
-  @Override
-  public String getPackage() {
-    return pkg;
   }
 
   @Override
@@ -221,7 +196,6 @@ public class XmlComponentDefinition extends ComponentPlugin {
       um = jaxbContext.createUnmarshaller();
       Component component = (Component) um.unmarshal(in);
       provides = component.provides;
-      pkg = component.pkg;
       int i = 0;
       if (component.requires == null) {
         dependencies = new String[0];
@@ -240,16 +214,9 @@ public class XmlComponentDefinition extends ComponentPlugin {
           roles[i++] = r.name;
         }      
       }
-      installCommand = getCommand(component.install);
-      installUser = getUser(component.install, component.user);
-      configureCommand = getCommand(component.configure);
-      configureUser = getUser(component.configure, component.user);
       startCommand = getCommand(component.start);
-      startUser = getUser(component.start, component.user);
       checkCommand = getCommand(component.check);
-      checkUser = getUser(component.check, component.user);
       prestartCommand = getCommand(component.prestart);
-      prestartUser = getUser(component.prestart, component.user);
       if (component.check != null) {
         checkRole = component.check.runOn;
       } else {
@@ -260,8 +227,6 @@ public class XmlComponentDefinition extends ComponentPlugin {
       } else {
         prestartRole = null;
       }
-      uninstallCommand = getCommand(component.uninstall);
-      uninstallUser = getUser(component.uninstall, component.user);
     } catch (JAXBException e) {
       throw new IOException("Problem parsing component defintion", e);
     }
