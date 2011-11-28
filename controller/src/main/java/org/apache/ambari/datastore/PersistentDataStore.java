@@ -88,5 +88,10 @@ public interface PersistentDataStore {
      * Delete stack
      */
     public void deleteStack(String stackName) throws IOException;
+
+    /**
+     * Check if stack exists
+     */
+    boolean stackExists(String stackName) throws IOException;
     
 }

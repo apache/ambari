@@ -112,7 +112,7 @@ public class Cluster {
       this.latestRevisionNumber = dataStore.storeClusterDefinition(c);
       this.clusterDefinitionRevisionsList.put(this.latestRevisionNumber, c);
       this.latestDefinition = c;
-      
+
       // find the plugins for the current definition of the cluster
       loadPlugins(c);
     }

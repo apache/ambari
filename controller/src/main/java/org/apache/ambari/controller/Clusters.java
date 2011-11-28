@@ -70,7 +70,7 @@ public class Clusters {
         cluster123.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
         List<String> activeServices = new ArrayList<String>();
         activeServices.add("hdfs");
-        activeServices.add("mapred");
+        //activeServices.add("mapred");
         cluster123.setActiveServices(activeServices);
         
         String nodes = "jt-nodex,nn-nodex,hostname-1x,hostname-2x,hostname-3x,"+
@@ -108,7 +108,7 @@ public class Clusters {
         cluster124.setGoalState(ClusterState.CLUSTER_STATE_INACTIVE);
         activeServices = new ArrayList<String>();
         activeServices.add("hdfs");
-        activeServices.add("mapred");
+        //activeServices.add("mapred");
         cluster124.setActiveServices(activeServices);
         
         nodes = "jt-node,nn-node,hostname-1,hostname-2,hostname-3,hostname-4,"+

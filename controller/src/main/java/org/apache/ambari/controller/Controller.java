@@ -112,11 +112,11 @@ public class Controller {
       Nodes nodesCtx = Nodes.getInstance();
       
       /*
-       *  Recover controller state for Clusters, Stacks and Nodes before 
-       *  opening up the server to clients
+       *  Recover controller state before oopening up the server to clients
+       *  Restore stacks before clusters
        */
-      clustersCtx.recoverClustersStateAfterRestart();
       stacksCtx.recoverStacksAfterRestart();
+      clustersCtx.recoverClustersStateAfterRestart();
       
       /*
        * Start the server after controller state is recovered.

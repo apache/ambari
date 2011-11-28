@@ -338,6 +338,17 @@ public class ZookeeperDS implements PersistentDataStore, Watcher {
         }
     }
 
+    @Override
+    public boolean stackExists(String stackName) throws IOException {
+        try {
+            if (zk.exists(ZOOKEEPER_STACKS_ROOT_PATH+"/"+stackName, false) == null) {
+                return false;
+            }
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+        return true;
+    }
 
     @Override
     public void process(WatchedEvent event) {

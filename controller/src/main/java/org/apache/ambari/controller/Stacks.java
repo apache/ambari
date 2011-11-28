@@ -56,9 +56,15 @@ public class Stacks {
       try {
         JAXBContext jaxbContext = 
             JAXBContext.newInstance("org.apache.ambari.common.rest.entities");
-        loadDummyStack(jaxbContext, "hadoop-security", 0);
-        loadDummyStack(jaxbContext, "cluster123", 0);
-        loadDummyStack(jaxbContext, "cluster124", 0);
+        if (!this.dataStore.stackExists("hadoop-security")) {
+            loadDummyStack(jaxbContext, "hadoop-security", 0);
+        }
+        if (!this.dataStore.stackExists("cluster123")) {
+            loadDummyStack(jaxbContext, "cluster123", 0);
+        }
+        if (!this.dataStore.stackExists("cluster124")) {
+            loadDummyStack(jaxbContext, "cluster124", 0);
+        }
         //loadDummyStack(jaxbContext, "puppet1", 0);
       } catch (JAXBException e) {
         throw new RuntimeException("Can't create jaxb context", e);
@@ -111,8 +117,9 @@ public class Stacks {
      * Check if stack exists. Names and latest version number is always 
      * cached in the memory
      */
-    public boolean stackExists(String stackName) {
-        if (!this.stacks.containsKey(stackName)) {  
+    public boolean stackExists(String stackName) throws IOException {
+        if (!this.stacks.containsKey(stackName) &&
+             !this.dataStore.stackExists(stackName)) {  
             return false;
         } 
         return true;
