@@ -52,7 +52,7 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
              RoleEventType.START)
              
          .addTransition(RoleState.STARTING, 
-             EnumSet.of(RoleState.ACTIVE, RoleState.STARTING),
+             RoleState.ACTIVE,
              RoleEventType.START_SUCCESS, new SuccessfulStartTransition())
          
          .addTransition(RoleState.ACTIVE, RoleState.ACTIVE,
@@ -125,17 +125,16 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
   }
   
   static class SuccessfulStartTransition implements 
-  MultipleArcTransition<RoleImpl, RoleEvent, RoleState>  {
+  SingleArcTransition<RoleImpl, RoleEvent>  {
 
     @Override
-    public RoleState transition(RoleImpl operand, RoleEvent event) {
+    public void transition(RoleImpl operand, RoleEvent event) {
       ServiceFSM service = operand.getAssociatedService();
+      //if one instance of the role starts up fine, we consider the service
+      //as ready for the 'safe-mode' kinds of checks
       StateMachineInvoker.getAMBARIEventHandler().handle(
           new ServiceEvent(ServiceEventType.ROLE_STARTED, service, 
               operand));
-      //if one instance of the role starts up fine, we consider the service
-      //as ready for the 'safe-mode' kinds of checks
-      return RoleState.ACTIVE;
     }
   }
   
