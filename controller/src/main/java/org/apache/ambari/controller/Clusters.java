@@ -57,93 +57,6 @@ public class Clusters {
     private static Clusters ClustersTypeRef=null;
         
     private Clusters() {
-        
-        /*
-         * Cluster definition 
-         */
-        ClusterDefinition cluster123 = new ClusterDefinition();
-        
-        cluster123.setName("blue.dev.Cluster123");
-        cluster123.setStackName("cluster123");
-        cluster123.setStackRevision("0");
-        cluster123.setDescription("cluster123 - development cluster");
-        cluster123.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
-        List<String> activeServices = new ArrayList<String>();
-        activeServices.add("hdfs");
-        //activeServices.add("mapred");
-        cluster123.setActiveServices(activeServices);
-        
-        String nodes = "jt-nodex,nn-nodex,hostname-1x,hostname-2x,hostname-3x,"+
-                       "hostname-4x,node-2x,node-3x,node-4x";  
-        cluster123.setNodes(nodes);
-        
-        List<RoleToNodes> rnm = new ArrayList<RoleToNodes>();
-        
-        RoleToNodes rnme = new RoleToNodes();
-        rnme.setRoleName("jobtracker-role");
-        rnme.setNodes("jt-nodex");
-        rnm.add(rnme);
-        
-        rnme = new RoleToNodes();
-        rnme.setRoleName("namenode-role");
-        rnme.setNodes("nn-nodex");
-        rnm.add(rnme);
-        
-        rnme = new RoleToNodes();
-        rnme.setRoleName("slaves-role");
-        rnme.setNodes("hostname-1x,hostname-2x,hostname-3x,"+
-                       "hostname-4x,node-2x,node-3x,node-4x");
-        rnm.add(rnme);
-        
-        cluster123.setRoleToNodesMap(rnm);
-        
-        /*
-         * Cluster definition 
-         */
-        ClusterDefinition cluster124 = new ClusterDefinition();
-        cluster124.setName("blue.research.Cluster124");
-        cluster124.setStackName("cluster124");
-        cluster124.setStackRevision("0");
-        cluster124.setDescription("cluster124 - research cluster");
-        cluster124.setGoalState(ClusterState.CLUSTER_STATE_INACTIVE);
-        activeServices = new ArrayList<String>();
-        activeServices.add("hdfs");
-        //activeServices.add("mapred");
-        cluster124.setActiveServices(activeServices);
-        
-        nodes = "jt-node,nn-node,hostname-1,hostname-2,hostname-3,hostname-4,"+
-                "node-2,node-3,node-4";  
-        cluster124.setNodes(nodes);
-        
-        rnm = new ArrayList<RoleToNodes>();
-        
-        rnme = new RoleToNodes();
-        rnme.setRoleName("jobtracker-role");
-        rnme.setNodes("jt-node");
-        rnm.add(rnme);
-        
-        rnme = new RoleToNodes();
-        rnme.setRoleName("namenode-role");
-        rnme.setNodes("nn-node");
-        rnm.add(rnme);
-        
-        rnme = new RoleToNodes();
-        rnme.setRoleName("slaves-role");
-        rnme.setNodes("hostname-1,hostname-2,hostname-3,hostname-4,"+
-                      "node-2,node-3,node-4");
-        rnm.add(rnme);
-        
-        cluster124.setRoleToNodesMap(rnm);
-        try {
-            if (!clusterExists(cluster123.getName())) {
-                addCluster(cluster123.getName(), cluster123, false);
-            }
-            if (!clusterExists(cluster124.getName())) {
-                addCluster(cluster124.getName(), cluster124, false);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
     
     public static synchronized Clusters getInstance() {
@@ -462,12 +375,12 @@ public class Clusters {
         
         /*
          * TODO: Create and update the puppet configuration
-         
+        */ 
         String puppetConfig = this.getPuppetConfigString (cdef);
         System.out.println("==============================");
         System.out.println(puppetConfig);
         System.out.println("==============================");
-        */
+        
         
         /*
          * Persist the new cluster and add entry to cache
@@ -589,10 +502,40 @@ public class Clusters {
         
         
         /*
-         * Check if all the nodes explicitly specified in the RoleToNodesMap belong the cluster node range specified 
+         * Check if nodes requested for cluster are not already allocated to other clusters
          */
+        ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
         List<String> cluster_node_range = new ArrayList<String>();
         cluster_node_range.addAll(getHostnamesFromRangeExpressions(cdef.getNodes()));
+        List<String> preallocatedhosts = new ArrayList<String>();
+        for (String n : cluster_node_range) {
+            if (all_nodes.containsKey(n) && 
+                    (all_nodes.get(n).getNodeState().getClusterName() != null || 
+                     all_nodes.get(n).getNodeState().getAllocatedToCluster()
+                    )
+                ) {
+                /* 
+                 * Following check is for a very specific case 
+                 * When controller starts w/ no persistent data in data store, it adds default clusters
+                 * and down the road restart recovery code re-validates the cluster definition when
+                 * it finds nodes already allocated. 
+                if (all_nodes.get(n).getNodeState().getClusterName() != null && 
+                    all_nodes.get(n).getNodeState().getClusterName().equals(clusterName)) { 
+                    continue; 
+                } */
+                preallocatedhosts.add(n);
+            }
+        }
+
+        if (!preallocatedhosts.isEmpty()) {
+            String msg = "Some of the nodes specified for the cluster roles are allocated to other cluster: ["+preallocatedhosts+"]";
+            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.CONFLICT)).get());
+        }
+        
+        
+        /*
+         * Check if all the nodes explicitly specified in the RoleToNodesMap belong the cluster node range specified 
+         */
         if (cdef.getRoleToNodesMap() != null) {
             List<String> nodes_specified_using_role_association = new ArrayList<String>();
             for (RoleToNodes e : cdef.getRoleToNodesMap()) {
@@ -608,6 +551,8 @@ public class Clusters {
                 throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.BAD_REQUEST)).get());
             }
         }
+        
+
     }
     
     /*
@@ -934,18 +879,27 @@ public class Clusters {
       Stacks stacksCtx = Stacks.getInstance();
       Stack stack = stacksCtx.getStack(c.getStackName(), Integer.parseInt(c.getStackRevision()));
       String config = "\n$hadoop_stack_conf = { ";
-      for (Component comp : stack.getComponents()) {
-          for (Role role : comp.getRoles()) {
-              config = config + comp.getName()+"_"+role.getName()+" => { ";
-              for (ConfigurationCategory cat : role.getConfiguration().getCategory()) {
-                   config = config+"\""+cat.getName()+"\" => { ";
-                   for (Property p : cat.getProperty()) {
-                       config = config+p.getName()+" => "+p.getValue()+", ";
-                   }
-                   config = config +" }, \n";
+      if (stack.getComponents() != null) {
+          for (Component comp : stack.getComponents()) {
+              if (comp.getRoles() != null) {
+                  for (Role role : comp.getRoles()) {
+                      //config = config + comp.getName()+"_"+role.getName()+" => { ";
+                      config = config+role.getName()+" => { ";
+                      if (role.getConfiguration() != null && role.getConfiguration().getCategory() != null) {
+                          for (ConfigurationCategory cat : role.getConfiguration().getCategory()) {
+                               config = config+"\""+cat.getName()+"\" => { ";
+                               if (cat.getProperty() != null) {
+                                   for (Property p : cat.getProperty()) {
+                                       config = config+p.getName()+" => "+p.getValue()+", ";
+                                   }
+                               }
+                               config = config +" }, \n";
+                          }
+                      }
+                      config = config + "}, \n";
+                  } 
               }
-              config = config + "}, \n";
-          }   
+          }
       }
       config = config + "} \n";
       
@@ -955,7 +909,7 @@ public class Clusters {
           for (String host : this.getHostnamesFromRangeExpressions(roleToNodesEntry.getNodes())) {
               config = config + "\'"+host+"\',";
           }
-          config = config + "] \n";
+          config = config + "], \n";
       }
       config = config + "} \n";
       

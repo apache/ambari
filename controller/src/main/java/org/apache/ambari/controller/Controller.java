@@ -123,7 +123,9 @@ public class Controller {
        */
       server.start();
     } catch (Exception e) {
+      e.printStackTrace();
       LOG.error(ExceptionUtil.getStackTrace(e));
+      
     }
   }
   

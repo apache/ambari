@@ -59,13 +59,6 @@ public class Stacks {
         if (!this.dataStore.stackExists("hadoop-security")) {
             loadDummyStack(jaxbContext, "hadoop-security", 0);
         }
-        if (!this.dataStore.stackExists("cluster123")) {
-            loadDummyStack(jaxbContext, "cluster123", 0);
-        }
-        if (!this.dataStore.stackExists("cluster124")) {
-            loadDummyStack(jaxbContext, "cluster124", 0);
-        }
-        //loadDummyStack(jaxbContext, "puppet1", 0);
       } catch (JAXBException e) {
         throw new RuntimeException("Can't create jaxb context", e);
       } catch (Exception e) {
