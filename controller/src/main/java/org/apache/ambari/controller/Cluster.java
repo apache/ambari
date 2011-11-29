@@ -117,16 +117,6 @@ public class Cluster {
       loadPlugins(c);
     }
     
-    /**
-     * @return Add puppet configuration
-     */
-    public synchronized void updatePuppetConfiguration(String puppetConfig) throws Exception {
-      //this.latestRevisionNumber = dataStore.storeClusterDefinition(c);
-      //this.clusterDefinitionRevisionsList.put(this.latestRevisionNumber, c);
-      //this.latestDefinition = c;
-    }
-
-
     /*
      * Load plugins for the current definition of the cluster
      */

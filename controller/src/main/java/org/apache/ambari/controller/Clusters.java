@@ -295,11 +295,10 @@ public class Clusters {
         
         /*
          * Create Puppet config
-         
         if (configChanged || updateNodeToRolesAssociation || updateNodesReservation) {
             String puppetConfig = this.getPuppetConfigString (newcd);
-            //cls.updatePuppetConfiguration(puppetConfig);
-        }*/
+            cls.updatePuppetConfiguration(puppetConfig);
+        } */
         
         /*
          * Update the nodes reservation and node to roles association 
@@ -310,6 +309,11 @@ public class Clusters {
         if (updateNodeToRolesAssociation) {
             updateNodeToRolesAssociation(newcd.getNodes(), c.getRoleToNodesMap());
         }
+        
+        /*
+         * Print puppet config
+         */
+        System.out.println(getInstallAndConfigureScript(clusterName, -1));
         
         /*
          * Invoke state machine event
@@ -374,15 +378,6 @@ public class Clusters {
         }
         
         /*
-         * TODO: Create and update the puppet configuration
-        */ 
-        String puppetConfig = this.getPuppetConfigString (cdef);
-        System.out.println("==============================");
-        System.out.println(puppetConfig);
-        System.out.println("==============================");
-        
-        
-        /*
          * Persist the new cluster and add entry to cache
          */
         Cluster cls = this.addClusterEntry(cdef, clsState);
@@ -401,6 +396,11 @@ public class Clusters {
         if (!cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
             updateNodeToRolesAssociation(cdef.getNodes(), cdef.getRoleToNodesMap());
         }
+        
+        /*
+         * Print puppet config
+         */
+        System.out.println(getInstallAndConfigureScript(clusterName, -1));
         
         /*
          * Create the cluster object with state machine & 
@@ -719,16 +719,7 @@ public class Clusters {
         }
         return bp;
     }
-    
-    
-    /*
-     * Get the deployment script for this clustername/revision combo
-     */
-    public String getInstallAndConfigureScript(String clusterName,
-        int revision) {
-      return ""; //TODO: fill
-    }
-    
+     
     /*
      * Get the latest cluster definition
      */
@@ -874,7 +865,12 @@ public class Clusters {
       }
   }
   
-  private String getPuppetConfigString (ClusterDefinition c) throws Exception {
+  
+  /*
+   * Get the deployment script for this clustername/revision combo
+   */
+  public String getInstallAndConfigureScript(String clusterName, int revision) throws Exception {
+      ClusterDefinition c = getClusterByName (clusterName).getClusterDefinition(revision);
       // TODO: ignore if comps or roles are not present in stack.
       Stacks stacksCtx = Stacks.getInstance();
       Stack stack = stacksCtx.getStack(c.getStackName(), Integer.parseInt(c.getStackRevision()));
@@ -882,21 +878,36 @@ public class Clusters {
       if (stack.getComponents() != null) {
           for (Component comp : stack.getComponents()) {
               if (comp.getRoles() != null) {
-                  for (Role role : comp.getRoles()) {
+                  for (int k=0; k<comp.getRoles().size(); k++) {
+                      Role role = comp.getRoles().get(k);
                       //config = config + comp.getName()+"_"+role.getName()+" => { ";
                       config = config+role.getName()+" => { ";
                       if (role.getConfiguration() != null && role.getConfiguration().getCategory() != null) {
-                          for (ConfigurationCategory cat : role.getConfiguration().getCategory()) {
-                               config = config+"\""+cat.getName()+"\" => { ";
-                               if (cat.getProperty() != null) {
-                                   for (Property p : cat.getProperty()) {
-                                       config = config+p.getName()+" => "+p.getValue()+", ";
+                          for (int j=0; j<role.getConfiguration().getCategory().size(); j++) {
+                              ConfigurationCategory cat = role.getConfiguration().getCategory().get(j);
+                              config = config+"\""+cat.getName()+"\" => { ";
+                              if (cat.getProperty() != null) {
+                                   for (int i=0; i<cat.getProperty().size(); i++) {
+                                       Property p = cat.getProperty().get(i);
+                                       if (i == cat.getProperty().size()-1) {
+                                           config = config+p.getName()+" => "+p.getValue()+" ";
+                                       } else { 
+                                           config = config+p.getName()+" => "+p.getValue()+", ";
+                                       }
                                    }
                                }
-                               config = config +" }, \n";
+                               if (j == role.getConfiguration().getCategory().size()-1) {
+                                   config = config +" } \n";
+                               } else {
+                                   config = config +" }, \n";
+                               }
                           }
                       }
-                      config = config + "}, \n";
+                      if (k == comp.getRoles().size()-1) {
+                          config = config + "} \n";
+                      } else {
+                          config = config + "}, \n";
+                      }
                   } 
               }
           }
@@ -904,15 +915,25 @@ public class Clusters {
       config = config + "} \n";
       
       config = config + "$role_to_nodes = { ";
-      for (RoleToNodes roleToNodesEntry : c.getRoleToNodesMap()) {
+      for (int i=0; i<c.getRoleToNodesMap().size(); i++) {
+          RoleToNodes roleToNodesEntry = c.getRoleToNodesMap().get(i);
           config = config + roleToNodesEntry.getRoleName()+ " => [";
-          for (String host : this.getHostnamesFromRangeExpressions(roleToNodesEntry.getNodes())) {
-              config = config + "\'"+host+"\',";
+          List<String> host_list = this.getHostnamesFromRangeExpressions(roleToNodesEntry.getNodes());
+          for (int j=0; j<host_list.size(); j++) {
+              String host = host_list.get(j);
+              if (j == host_list.size()-1) {
+                  config = config + "\'"+host+"\'";
+              } else {
+                  config = config + "\'"+host+"\',";
+              }
           }
-          config = config + "], \n";
+          if (i == c.getRoleToNodesMap().size()-1) {
+              config = config + "] \n";
+          } else {
+              config = config + "], \n";
+          }
       }
-      config = config + "} \n";
-      
+      config = config + "} \n";    
       return config;
   }
 }
