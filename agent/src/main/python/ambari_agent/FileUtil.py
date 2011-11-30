@@ -36,11 +36,18 @@ def writeFile(action, result):
   oldCwd = os.getcwd()
   fileInfo = action['file']
   try:
-    path = AmbariConfig.config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
+    if fileInfo['path'].startswith('/'):
+      path = fileInfo['path']
+    else:
+      path = AmbariConfig.config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
     logger.info("path: %s" % path)
     os.chdir(path)
     user=fileInfo['owner']
+    if user is None:
+      user=getpass.getuser()
     group=fileInfo['group']
+    if group is None:
+      group=getpass.getgroup()
     filename=fileInfo['path']
     content=fileInfo['data']
     try:
@@ -50,9 +57,15 @@ def writeFile(action, result):
         group=getgrnam(group)[2]
     except Exception:
       logger.warn("can not find user uid/gid: (%s/%s) for writing %s" % (user, group, filename))
-    permission=int(fileInfo['permission'])
-    umask=int(fileInfo['umask'])
+    if fileInfo['permission'] is not None:
+      permission=int(fileInfo['permission'],8)
+    else:
+      permission=0750
     oldMask = os.umask(0)
+    if fileInfo['umask'] is not None: 
+      umask=int(fileInfo['umask'])
+    else:
+      umask=oldMask 
     os.umask(int(umask))
     prefix = os.path.dirname(filename)
     try:

@@ -17,9 +17,6 @@
 */
 package org.apache.ambari.resource.statemachine;
 
-import java.util.EnumSet;
-
-import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
 import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;

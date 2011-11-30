@@ -16,5 +16,9 @@ public class Util {
         cal.setTime(date);
         return DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);   
     }
+    
+    public static String getInstallAndConfigureCommand() {
+      return "puppet --apply"; //TODO: this needs to be 'pluggable'/configurable
+    }
 
 }

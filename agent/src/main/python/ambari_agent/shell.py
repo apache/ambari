@@ -61,8 +61,9 @@ class shellRunner:
     os.chdir(workdir)
     oldUid = os.getuid()
     try:
-      user=getpwnam(user)[2]
-      os.setuid(user)
+      if user is not None:
+        user=getpwnam(user)[2]
+        os.setuid(user)
     except Exception:
       logger.warn("%s %s %s can not switch user for RUN_ACTION." % (clusterId, component, role))
     code = 0

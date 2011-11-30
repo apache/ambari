@@ -27,8 +27,10 @@ import java.util.Map;
 import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.Nodes;
 import org.apache.ambari.common.rest.agent.Action;
+import org.apache.ambari.common.rest.agent.Action.Kind;
 import org.apache.ambari.common.rest.agent.ActionResult;
 import org.apache.ambari.common.rest.agent.Command;
+import org.apache.ambari.common.rest.agent.ConfigFile;
 import org.apache.ambari.common.rest.agent.ControllerResponse;
 import org.apache.ambari.common.rest.agent.HeartBeat;
 import org.apache.ambari.components.ComponentPlugin;
@@ -81,12 +83,12 @@ public class HeartbeatHandler {
 
       for (ClusterNameAndRev clusterIdAndRev : clustersNodeBelongsTo) {
 
-        String deployScript = 
+        String script = 
             Clusters.getInstance().getInstallAndConfigureScript(clusterName, 
                 clusterRev);
         
         //send the deploy script
-        
+        getInstallAndConfigureAction(script,clusterIdAndRev, allActions);
 
         //get the cluster object corresponding to the clusterId
         Cluster cluster = Clusters.getInstance()
@@ -114,8 +116,8 @@ public class HeartbeatHandler {
                 fillDetailsAndAddAction(action, allActions, clusterName,
                     clusterRev, service.getServiceName(), 
                     role.getRoleName());
-                //check if a start-role was sent previously and the start was
-                //successful
+                //check the expected state of the agent and whether the start
+                //was successful
                 if (wasStartRoleSuccessful(clusterIdAndRev, 
                     role.getRoleName(), response, heartbeat)) {
                   //raise an event to the state machine for a successful 
@@ -148,6 +150,8 @@ public class HeartbeatHandler {
     }
     ControllerResponse r = new ControllerResponse();
     r.setResponseId(responseId);
+    //TODO: need to persist this state (if allActions are different from the 
+    //last allActions)
     r.setActions(allActions);
     agentToHeartbeatResponseMap.put(heartbeat.getHostname(), r);
     return r;
@@ -156,13 +160,13 @@ public class HeartbeatHandler {
   private boolean wasStartRoleSuccessful(ClusterNameAndRev clusterIdAndRev, 
       String roleName, ControllerResponse response, HeartBeat heartbeat) {
     //Check whether the statechange was successful on the agent, and if
-    //the set of commands to the agent included the start-action for the
-    //role in question
+    //the state information sent to the agent in the previous heartbeat
+    //included the start-action for the role in question.
     if (!heartbeat.getStateChangeStatus()) {
       return false;
     }
     List<Action> actions = response.getActions();
-    for (Action action : actions) { //TBD: no iteration for every role
+    for (Action action : actions) { //TBD: no iteration for every invocation of this method
       if (action.kind != Action.Kind.START_ACTION) {
         continue;
       }
@@ -176,11 +180,39 @@ public class HeartbeatHandler {
     return false;
   }
   
+  private void getInstallAndConfigureAction(String script, 
+      ClusterNameAndRev clusterNameRev, List<Action> allActions) {
+    ConfigFile file = new ConfigFile();
+    file.setData(script);
+    //TODO: this should be written in Ambari's scratch space directory
+    file.setPath("/tmp/" + clusterNameRev.getClusterName() 
+        + "_" + clusterNameRev.getRevision());
+    
+    Action action = new Action();
+    action.setFile(file);
+    action.setClusterId(clusterNameRev.getClusterName());
+    action.setClusterDefinitionRevision(clusterNameRev.getRevision());
+    action.setKind(Kind.WRITE_FILE_ACTION);
+    allActions.add(action);
+    
+    action = new Action();
+    action.setClusterId(clusterNameRev.getClusterName());
+    action.setClusterDefinitionRevision(clusterNameRev.getRevision());
+    String deployCmd = Util.getInstallAndConfigureCommand();
+    //TODO: assumption is that the file is passed as an argument
+    //Should generally hold for many install/config systems like Puppet
+    //but is something that needs to be thought about more
+    Command command = new Command(null,deployCmd,new String[]{file.getPath()});
+    action.setCommand(command);
+    action.setKind(Kind.RUN_ACTION);
+    allActions.add(action);
+  }
+  
   private boolean wasStopRoleSuccessful(ClusterNameAndRev clusterIdAndRev, 
       String roleName, ControllerResponse response, HeartBeat heartbeat) {
     //Check whether the statechange was successful on the agent, and if
-    //the set of commands to the agent included the start-action for the
-    //role in question. If the set of commands didn't include the start-action
+    //the state information to the agent included the start-action for the
+    //role in question.If the state information didn't include the start-action
     //command, the controller wants the role stopped
     if (!heartbeat.getStateChangeStatus()) {
       return false;
