@@ -33,22 +33,19 @@ import AmbariConfig
 logger = logging.getLogger()
 
 def writeFile(action, result):
-  oldCwd = os.getcwd()
   fileInfo = action['file']
   try:
-    if fileInfo['path'].startswith('/'):
-      path = fileInfo['path']
-    else:
-      path = AmbariConfig.config.get('agent','prefix')+"/clusters/"+action['clusterId']+"-"+action['role']
+    path = os.path.join(AmbariConfig.config.get('agent','prefix'),
+                        "clusters", 
+                        action['clusterId']+"-"+action['role'])
     logger.info("path: %s" % path)
-    os.chdir(path)
     user=fileInfo['owner']
     if user is None:
       user=getpass.getuser()
     group=fileInfo['group']
     if group is None:
       group=getpass.getgroup()
-    filename=fileInfo['path']
+    filename=os.path.join(path, fileInfo['path'])
     content=fileInfo['data']
     try:
       if isinstance(user, int)!=True:
@@ -58,7 +55,7 @@ def writeFile(action, result):
     except Exception:
       logger.warn("can not find user uid/gid: (%s/%s) for writing %s" % (user, group, filename))
     if fileInfo['permission'] is not None:
-      permission=int(fileInfo['permission'],8)
+      permission=fileInfo['permission']
     else:
       permission=0750
     oldMask = os.umask(0)
@@ -84,15 +81,16 @@ def writeFile(action, result):
     os.umask(oldMask)
     result['exitCode'] = 0
   except Exception, err:
+    traceback.print_exc()
     result['exitCode'] = 1
     result['stderr'] = traceback.format_exc()
-  os.chdir(oldCwd)
   return result
 
 def createStructure(action, result):
   try:
     workdir = action['workDirComponent']
     path = AmbariConfig.config.get('agent','prefix')+"/clusters/"+workdir
+    shutil.rmtree(path, 1)
     os.makedirs(path+"/stack")
     os.makedirs(path+"/logs")
     os.makedirs(path+"/data")
@@ -100,6 +98,7 @@ def createStructure(action, result):
     os.makedirs(path+"/config")
     result['exitCode'] = 0
   except Exception, err:
+    traceback.print_exc()
     result['exitCode'] = 1
     result['stderr'] = traceback.format_exc()
   return result

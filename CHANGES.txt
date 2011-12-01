@@ -2,11 +2,15 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
-  AMBARI-144. Implement getInstallAndConfigureScript for a given revision of cluster definition. (vgogate)
+  AMBARI-146. Fix test case failures in agent's FileUtil. (omalley)
+
+  AMBARI-144. Implement getInstallAndConfigureScript for a given
+  revision of cluster definition. (vgogate)
 
   AMBARI-143. Fixes an annotation issue in HeartBeat class (ddas)
 
-  AMBZRI-142. Add cluster must validate if requested nodes are pre-allocated to any other existing cluster (vgogate)
+  AMBZRI-142. Add cluster must validate if requested nodes are
+  pre-allocated to any other existing cluster (vgogate)
 
   AMBARI-140. Refactors the heartbeat handling w.r.t simplification of 
   state management. (ddas)
