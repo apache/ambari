@@ -27,16 +27,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
-import org.apache.ambari.common.rest.entities.Component;
-import org.apache.ambari.common.rest.entities.ConfigurationCategory;
-import org.apache.ambari.common.rest.entities.Property;
-import org.apache.ambari.common.rest.entities.Role;
-import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.ClusterState;
+import org.apache.ambari.common.rest.entities.Component;
+import org.apache.ambari.common.rest.entities.ConfigurationCategory;
 import org.apache.ambari.common.rest.entities.Node;
+import org.apache.ambari.common.rest.entities.Property;
+import org.apache.ambari.common.rest.entities.Role;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
+import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.datastore.DataStoreFactory;
 import org.apache.ambari.datastore.PersistentDataStore;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
@@ -222,11 +222,11 @@ public class Clusters {
         } else {
             newcd.setGoalState(cls.getClusterDefinition(-1).getGoalState());
         }
-        if (c.getActiveServices() != null && !c.getActiveServices().equals(cls.getClusterDefinition(-1).getActiveServices())) {
-            newcd.setActiveServices(c.getActiveServices());
+        if (c.getEnabledServices() != null && !c.getEnabledServices().equals(cls.getClusterDefinition(-1).getEnabledServices())) {
+            newcd.setEnabledServices(c.getEnabledServices());
             clsDefChanged = true;
         } else {
-            newcd.setActiveServices(cls.getClusterDefinition(-1).getActiveServices());
+            newcd.setEnabledServices(cls.getClusterDefinition(-1).getEnabledServices());
         }
         
         /*
@@ -435,10 +435,10 @@ public class Clusters {
         cdef.setRevision(null);
         
         // TODO: Add the list of active services by querying pluging component.
-        if (cdef.getActiveServices() == null) {
+        if (cdef.getEnabledServices() == null) {
             List<String> services = new ArrayList<String>();
             services.add("ALL");
-            cdef.setActiveServices(services);
+            cdef.setEnabledServices(services);
         }    
     }
     

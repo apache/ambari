@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-145. FSMs are created for only those components that have 
+  active roles (Thejas M Nair via ddas)
+
   AMBARI-146. Fix test case failures in agent's FileUtil. (omalley)
 
   AMBARI-144. Implement getInstallAndConfigureScript for a given

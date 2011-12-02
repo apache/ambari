@@ -52,7 +52,7 @@ public class Examples {
         CLUSTER_DEFINITION.setGoalState(ClusterState.CLUSTER_STATE_ATTIC);
         activeServices.add("hdfs");
         activeServices.add("mapred");
-        CLUSTER_DEFINITION.setActiveServices(activeServices);
+        CLUSTER_DEFINITION.setEnabledServices(activeServices);
         
         String nodes = "jt-nodex,nn-nodex,hostname-1x,hostname-2x,hostname-3x,"+
                        "hostname-4x,node-2x,node-3x,node-4x";  

@@ -234,7 +234,7 @@ public class ClusterCreate extends Command {
             revision = stack.getRevision();
         }
         clsDef.setStackRevision(revision);
-        clsDef.setActiveServices(splitServices(line.getOptionValue("services")));
+        clsDef.setEnabledServices(splitServices(line.getOptionValue("services")));
         clsDef.setDescription(line.getOptionValue("desc"));
         clsDef.setRoleToNodesMap(getRoleToNodesList(line.getOptionProperties("role")));
         

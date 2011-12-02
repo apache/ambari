@@ -218,7 +218,7 @@ public class ClusterUpdate extends Command {
         
         clsDef.setGoalState(line.getOptionValue("goalstate"));
         clsDef.setStackRevision(line.getOptionValue("revision"));
-        clsDef.setActiveServices(splitServices(line.getOptionValue("services")));
+        clsDef.setEnabledServices(splitServices(line.getOptionValue("services")));
         clsDef.setDescription(line.getOptionValue("desc"));
         clsDef.setRoleToNodesMap(getRoleToNodesList(line.getOptionProperties("role")));
         

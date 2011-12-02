@@ -28,7 +28,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
@@ -36,8 +35,6 @@ import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.controller.Cluster;
-import org.apache.ambari.controller.Clusters;
-import org.apache.ambari.controller.HeartbeatHandler;
 import org.apache.ambari.event.EventHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -83,10 +80,10 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
   .addTransition(ClusterStateFSM.FAIL, ClusterStateFSM.STOPPING, 
       ClusterEventType.STOP)
       
-  .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.STOPPED, 
+  .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.INACTIVE, 
       ClusterEventType.STOP_SUCCESS)
       
-  .addTransition(ClusterStateFSM.STOPPED, ClusterStateFSM.STOPPED, 
+  .addTransition(ClusterStateFSM.INACTIVE, ClusterStateFSM.INACTIVE, 
       ClusterEventType.STOP_SUCCESS)
       
   .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.UNCLEAN_STOP, 
@@ -117,14 +114,23 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
     this.stateMachine = stateMachineFactory.make(this);
     List<ServiceFSM> serviceImpls = new ArrayList<ServiceFSM>();
     for (String service : 
-      cluster.getClusterDefinition(revision).getActiveServices()) {
-      ServiceImpl serviceImpl = new ServiceImpl(cluster, this, service);
-      serviceImpls.add(serviceImpl);
+      cluster.getClusterDefinition(revision).getEnabledServices()) {
+      if(hasActiveRoles(cluster, service)){
+        ServiceImpl serviceImpl = new ServiceImpl(cluster, this, service);
+        serviceImpls.add(serviceImpl);
+      }
     }
     this.services = serviceImpls;
     this.clusterState = clusterState;
   }
-  
+
+  private boolean hasActiveRoles(Cluster cluster, String serviceName)
+      throws IOException {
+    ComponentPlugin plugin = cluster.getComponentDefinition(serviceName);
+    String[] roles = plugin.getActiveRoles();
+    return roles.length > 0;
+  }
+
   public ClusterStateFSM getState() {
     return stateMachine.getCurrentState();
   }

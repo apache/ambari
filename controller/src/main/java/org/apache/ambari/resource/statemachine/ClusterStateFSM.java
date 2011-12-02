@@ -18,5 +18,5 @@
 package org.apache.ambari.resource.statemachine;
 
 public enum ClusterStateFSM {
-  INACTIVE, STARTING, ACTIVE, FAIL, ATTIC, STOPPING, UNCLEAN_STOP, STOPPED
+  INACTIVE, STARTING, ACTIVE, FAIL, ATTIC, STOPPING, UNCLEAN_STOP
 }

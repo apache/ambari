@@ -145,7 +145,7 @@ public class ClusterGet extends Command {
             System.out.println("["+clsInfo.getDefinition().getName()+"]\t"+
                                "["+clsInfo.getState().getState()+"]\t"+
                                "["+clsInfo.getState().getCreationTime()+"]\t"+
-                               "["+clsInfo.getDefinition().getActiveServices()+"]\n");
+                               "["+clsInfo.getDefinition().getEnabledServices()+"]\n");
         } else {
             System.out.println("Cluster Information document:\n");
             printClusterInformation(clsInfo);

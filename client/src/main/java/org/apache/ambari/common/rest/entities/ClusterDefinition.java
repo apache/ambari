@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ClusterDefinition", propOrder = {
-    "activeServices",
+    "enabledServices",
     "roleToNodesMap"
 })
 @XmlRootElement(name = "cluster")
@@ -92,7 +92,7 @@ public class ClusterDefinition {
      * The list of components that should be running if the cluster is ACTIVE.
      */
     @XmlElement
-    protected List<String> activeServices = null;
+    protected List<String> enabledServices = null;
     
     /**
      * A node expression giving the entire set of nodes for this cluster.
@@ -192,17 +192,17 @@ public class ClusterDefinition {
     }
 
     /**
-     * @return the activeServices
+     * @return the enabledServices
      */
-    public List<String> getActiveServices() {
-            return activeServices;
+    public List<String> getEnabledServices() {
+            return enabledServices;
     }
 
     /**
-     * @param activeServices the active3Services to set
+     * @param enabledServices the enabledServices to set
      */
-    public void setActiveServices(List<String> activeServices) {
-            this.activeServices = activeServices;
+    public void setEnabledServices(List<String> enabledServices) {
+            this.enabledServices = enabledServices;
     }
 
     /**
