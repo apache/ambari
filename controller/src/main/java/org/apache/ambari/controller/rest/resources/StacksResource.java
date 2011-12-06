@@ -17,7 +17,6 @@
 */
 package org.apache.ambari.controller.rest.resources;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -35,9 +34,12 @@ import javax.ws.rs.core.Response;
 
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.StackInformation;
+import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.Stacks;
 import org.apache.ambari.controller.ExceptionResponse;
 import org.apache.ambari.controller.rest.config.Examples;
+
+import com.google.inject.Inject;
 
 /** 
  * StackResource represents a Hadoop stack to be installed on a 
@@ -47,6 +49,15 @@ import org.apache.ambari.controller.rest.config.Examples;
 @Path("stacks")
 public class StacksResource {
  
+    private static Stacks stacks;
+    private static Clusters clusters;
+    
+    @Inject
+    static void init(Stacks s, Clusters c) {
+      stacks = s;
+      clusters = c;
+    }
+    
     /** 
      * Get the list of stacks
      * 
@@ -64,7 +75,7 @@ public class StacksResource {
     public List<StackInformation> listStacks() throws Exception {
         List<StackInformation> list;
         try {
-            list = Stacks.getInstance().getStackList();
+            list = stacks.getStackList();
             if (list.isEmpty()) {
                 throw new WebApplicationException(Response.Status.NO_CONTENT);
             } 
@@ -94,7 +105,7 @@ public class StacksResource {
     public Stack getStack(@PathParam("stackName") String stackName, 
                                   @DefaultValue("-1") @QueryParam("revision") String revision) throws Exception {     
         try {
-            return Stacks.getInstance().getStack(stackName, Integer.parseInt(revision));
+            return stacks.getStack(stackName, Integer.parseInt(revision));
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
@@ -119,7 +130,7 @@ public class StacksResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<StackInformation> getstackRevisions(@PathParam("stackName") String stackName) throws Exception {     
         try {
-            List<StackInformation> list = Stacks.getInstance().getStackRevisions(stackName);
+            List<StackInformation> list = stacks.getStackRevisions(stackName);
             if (list.isEmpty()) {
                 throw new WebApplicationException(Response.Status.NO_CONTENT);
             }
@@ -146,7 +157,12 @@ public class StacksResource {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response deletestack(@PathParam("stackName") String stackName) throws Exception {     
         try {
-            Stacks.getInstance().deleteStack(stackName);
+            if (clusters.isStackUsed(stackName)) {
+              throw new WebApplicationException(new ExceptionResponse(stackName+ 
+                  " is still used by one or more clusters.",
+                  Response.Status.BAD_REQUEST).get());
+            }
+            stacks.deleteStack(stackName);
             return Response.ok().build();
         }catch (WebApplicationException we) {
             throw we;
@@ -184,9 +200,9 @@ public class StacksResource {
                                      Stack stack) throws Exception {
         try {
             if (locationURL == null || locationURL.equals("")) {
-                return Stacks.getInstance().addStack(stackName, stack);
+                return stacks.addStack(stackName, stack);
             } else {
-                return Stacks.getInstance().importDefaultStack (stackName, locationURL);
+                return stacks.importDefaultStack (stackName, locationURL);
             }
         }catch (WebApplicationException we) {
             throw we;

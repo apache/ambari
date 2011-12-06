@@ -42,6 +42,15 @@ public class Property {
     @XmlAttribute(required = false)
     protected boolean force = false;
 
+    public Property() {
+      // PASS
+    }
+    
+    public Property(String key, String value) {
+      this.name = key;
+      this.value = value;
+    }
+
     /**
      * Gets the value of the name property.
      * 

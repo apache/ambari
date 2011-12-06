@@ -39,9 +39,18 @@ import javax.xml.bind.annotation.XmlType;
 public class ConfigurationCategory {
 
     @XmlAttribute(required = true)
-    protected String name;
+    private String name;
     @XmlElements({@XmlElement})
-    protected List<Property> property;
+    private List<Property> property;
+
+    public ConfigurationCategory() {
+      // PASS
+    }
+    
+    public ConfigurationCategory(String name, List<Property> property) {
+      this.name = name;
+      this.property = property;
+    }
 
     /**
      * Gets the value of the name property.

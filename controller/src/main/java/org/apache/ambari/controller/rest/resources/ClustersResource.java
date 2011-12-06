@@ -17,7 +17,6 @@
 */
 package org.apache.ambari.controller.rest.resources;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
@@ -27,16 +26,14 @@ import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.ExceptionResponse;
-import org.apache.ambari.controller.Nodes;
 import org.apache.ambari.controller.rest.config.Examples;
 
-import com.sun.jersey.spi.resource.Singleton;
+import com.google.inject.Inject;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -52,6 +49,14 @@ import javax.ws.rs.core.Response;
  */
 @Path("clusters")
 public class ClustersResource {
+    
+    private static Clusters clusters;
+    
+    @Inject
+    static void init(Clusters clus) {
+      System.out.println("In ClustersResource init");
+      clusters = clus;
+    }
     
     /** 
      * Get the list of clusters.
@@ -80,7 +85,7 @@ public class ClustersResource {
                                  @DefaultValue("") @QueryParam("search") String search) throws Exception {
         List<ClusterInformation> searchResults = null;
         try {
-            searchResults = Clusters.getInstance().getClusterInformationList(state);
+            searchResults = clusters.getClusterInformationList(state);
             if (searchResults.isEmpty()) {
                 throw new WebApplicationException(Response.Status.NO_CONTENT);
             }   
@@ -111,7 +116,7 @@ public class ClustersResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public ClusterInformation getClusterDefinition(@PathParam("clusterName") String clusterName) throws WebApplicationException {
         try {
-            return Clusters.getInstance().getClusterInformation(clusterName);
+            return clusters.getClusterInformation(clusterName);
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
@@ -166,7 +171,7 @@ public class ClustersResource {
            @DefaultValue("false") @QueryParam("dry_run") boolean dry_run,
            ClusterDefinition cluster) throws Exception {    
         try {
-            return Clusters.getInstance().updateCluster(clusterName, cluster, dry_run);
+            return clusters.updateCluster(clusterName, cluster, dry_run);
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
@@ -196,7 +201,7 @@ public class ClustersResource {
            @PathParam("clusterName") String clusterName,
            @DefaultValue("") @QueryParam("new_name") String new_name) throws Exception {    
         try {
-            Clusters.getInstance().renameCluster(clusterName, new_name);
+            clusters.renameCluster(clusterName, new_name);
             return Response.ok().build();
         }catch (WebApplicationException we) {
             throw we;
@@ -226,7 +231,7 @@ public class ClustersResource {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response deleteCluster(@PathParam("clusterName") String clusterName) throws Exception {
         try {
-            Clusters.getInstance().deleteCluster(clusterName);
+            clusters.deleteCluster(clusterName);
             return Response.ok().build();
         }catch (WebApplicationException we) {
             throw we;
@@ -261,7 +266,7 @@ public class ClustersResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public ClusterState getClusterState(@PathParam("clusterName") String clusterName) throws Exception {
         try {
-            return Clusters.getInstance().getClusterState(clusterName);
+            return clusters.getClusterState(clusterName);
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
@@ -301,7 +306,7 @@ public class ClustersResource {
                                 @DefaultValue("") @QueryParam("role") String role,
                                 @DefaultValue("") @QueryParam("alive") String alive) throws Exception {    
         try {
-            List<Node> list = Nodes.getInstance().getClusterNodes(clusterName, role, alive);
+            List<Node> list = clusters.getClusterNodes(clusterName, role, alive);
             
             if (list.isEmpty()) {
                 String msg = "No nodes found!";
@@ -337,7 +342,7 @@ public class ClustersResource {
     public Stack getClusterStack (@PathParam("clusterName") String clusterName,
                                 @DefaultValue("true") @QueryParam("expanded") boolean expanded) throws Exception {    
         try {
-            return Clusters.getInstance().getClusterStack(clusterName, expanded);
+            return clusters.getClusterStack(clusterName, expanded);
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {

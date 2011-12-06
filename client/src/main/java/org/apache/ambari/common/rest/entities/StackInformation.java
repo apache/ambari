@@ -64,7 +64,7 @@ public class StackInformation {
     @XmlAttribute
     protected String parentName;
     @XmlAttribute
-    protected String parentRevision;
+    protected int parentRevision;
     @XmlElement
     protected List<String> component;
     @XmlAttribute
@@ -122,13 +122,13 @@ public class StackInformation {
     /**
      * @return the parentRevision
      */
-    public String getParentRevision() {
+    public int getParentRevision() {
         return parentRevision;
     }
     /**
      * @param parentRevision the parentRevision to set
      */
-    public void setParentRevision(String parentRevision) {
+    public void setParentRevision(int parentRevision) {
         this.parentRevision = parentRevision;
     }
     

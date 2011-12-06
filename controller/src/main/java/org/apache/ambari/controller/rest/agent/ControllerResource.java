@@ -49,6 +49,8 @@ import org.apache.ambari.controller.HeartbeatHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.inject.Inject;
+
 /** 
  * Controller Resource represents Ambari controller.
  * It provides API for Ambari agents to get the cluster configuration changes
@@ -57,8 +59,14 @@ import org.apache.commons.logging.LogFactory;
  */
 @Path("controller")
 public class ControllerResource {
-  private HeartbeatHandler hh = new HeartbeatHandler();
+  private static HeartbeatHandler hh;
 	private static Log LOG = LogFactory.getLog(ControllerResource.class);
+	
+	@Inject
+	static void setHandler(HeartbeatHandler handler) {
+	  hh = handler;
+	}
+
   /** 
    * Update state of the node (Internal API to be used by Ambari agent).
    *  

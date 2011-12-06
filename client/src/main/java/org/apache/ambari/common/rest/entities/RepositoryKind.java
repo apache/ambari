@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.common.rest.entities;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -38,10 +39,45 @@ import javax.xml.bind.annotation.XmlType;
 public class RepositoryKind {
 
     @XmlAttribute(required = true)
-    protected String kind;
+    private String kind;
     
     @XmlElement(required = true)
-    protected List<String> urls;
+    private List<String> urls;
+
+    public RepositoryKind() {
+      // PASS
+    }
+
+    public RepositoryKind(String name, String... urls) {
+      this.kind = name;
+      this.urls = Arrays.asList(urls);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (this == other) {
+        return true;
+      } else if (other == null || other.getClass() != getClass()) {
+        return false;
+      } else {
+        RepositoryKind repoKind = (RepositoryKind) other;
+        if (!kind.equals(repoKind.kind) || urls.size() != repoKind.urls.size()){
+          return false;
+        } else {
+          for(int i = 0; i < urls.size(); i++) {
+            if (!urls.get(i).equals(repoKind.urls.get(i))) {
+              return false;
+            }
+          }
+          return true;
+        }
+      }
+    }
+
+    @Override
+    public int hashCode() {
+      return kind.hashCode();
+    }
 
     /**
      * Gets the value of the urls property.

@@ -29,12 +29,73 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement
 public class ComponentDefinition {
+
   @XmlAttribute
-  protected String provider;
+  private String provider;
   @XmlAttribute
-  protected String name; 
+  private String name; 
   @XmlAttribute
-  protected String version;
+  private String version;
+  
+  public ComponentDefinition() {
+    // PASS
+  }
+
+  public ComponentDefinition(String name, String provider, String version) {
+    this.name = name;
+    this.provider = provider;
+    this.version = version;
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (other == null || other.getClass() != getClass()) {
+      return false;
+    } else if (other == this) {
+      return true;
+    } else {
+      ComponentDefinition otherDefn = (ComponentDefinition) other;
+      return isStringEqual(name, otherDefn.name) && 
+             isStringEqual(provider, otherDefn.provider) &&
+             isStringEqual(version, otherDefn.version);
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return stringHash(name) + stringHash(version);
+  }
+
+  static int stringHash(String str) {
+    return str != null ? str.hashCode() : 0;
+  }
+
+  static boolean isStringEqual(String left, String right) {
+    if (left == right) {
+      return true;
+    } if (left == null || right == null) {
+      return false;
+    } else {
+      return left.equals(right);
+    }
+  }
+
+  /**
+   * Override this configuration's properties with any corresponding ones
+   * that are set in the other component.
+   * @param other the overriding component
+   */
+  public void mergeInto(ComponentDefinition other) {
+    if (other.provider != null) {
+      this.provider = other.provider;
+    }
+    if (other.name != null) {
+      this.name = other.name;
+    }
+    if (other.version != null) {
+      this.version = other.version;
+    }
+  }
   
   /**
    * Get the provider that published the component definition

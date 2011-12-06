@@ -1,0 +1,8 @@
+<cluster description="Owen's cluster"
+         stackName="cluster123" stackRevision="0"
+         goalState="active" nodes="node00,node01,node02,node03">
+  <activeServices>HDFS</activeServices>
+  <activeServices>MapReduce</activeServices>
+  <roleToNodesMap roleName="namenode" nodes="node00"/>
+  <roleToNodesMap roleName="jobtracker" nodes="node01"/>
+</cluster>

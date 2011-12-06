@@ -26,84 +26,42 @@ import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.StackInformation;
 import org.apache.ambari.common.rest.entities.Component;
 import org.apache.ambari.common.rest.entities.Property;
-import org.apache.ambari.datastore.DataStoreFactory;
 import org.apache.ambari.datastore.PersistentDataStore;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.mortbay.log.Log;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+@Singleton
 public class Stacks {
 
-    private static Stacks StacksRef=null;
-        
-    private Stacks() {
-      try {
-        JAXBContext jaxbContext = 
-            JAXBContext.newInstance("org.apache.ambari.common.rest.entities");
-        if (!this.dataStore.stackExists("hadoop-security")) {
-            loadDummyStack(jaxbContext, "hadoop-security", 0);
-        }
-      } catch (JAXBException e) {
-        throw new RuntimeException("Can't create jaxb context", e);
-      } catch (Exception e) {
-        throw new RuntimeException("Can't create jaxb context", e);
-      }
-    }
-    
-    public void loadDummyStack (JAXBContext jaxbContext,
-                                    String name, int revision) throws Exception {
-        try {
-            Unmarshaller um = jaxbContext.createUnmarshaller();
-            String resourceName =
-                "org/apache/ambari/stacks/" + name + "-" + revision + ".xml";
-            InputStream in = 
-                ClassLoader.getSystemResourceAsStream(resourceName);
-            Stack bp = (Stack) um.unmarshal(in);
-            bp.setName(name);
-            bp.setRevision(Integer.toString(revision));
-            addStack(name, bp);
-        } catch (IOException e) {
-            Log.warn("Problem loading stack " + name + " rev " + revision,
-                     e);
-        } catch (JAXBException e) {
-          Log.warn("Problem loading stack " + name + " rev " + revision,
-              e);
-        }
-    }
-    
-    public static synchronized Stacks getInstance() {
-        if(StacksRef == null) {
-            StacksRef = new Stacks();
-        }
-        return StacksRef;
-    }
+  private final PersistentDataStore dataStore;
 
-    public Object clone() throws CloneNotSupportedException {
-        throw new CloneNotSupportedException();
+    @Inject
+    Stacks(PersistentDataStore dataStore) throws IOException {
+      this.dataStore = dataStore;
+      recoverStacksAfterRestart();
     }
-      
+    
     /*
      * Stack name -> latest revision is always cached for each stack.
      * 
      */
     protected ConcurrentHashMap<String, Integer> stacks = new ConcurrentHashMap<String, Integer>();
-    protected PersistentDataStore dataStore = DataStoreFactory.getDataStore(DataStoreFactory.ZOOKEEPER_TYPE);
     
     
     /*
@@ -125,7 +83,8 @@ public class Stacks {
     /*
      * Get stack. If revision = -1 then return latest revision
      */
-    public Stack getStack(String stackName, int revision) throws Exception {
+    public Stack getStack(String stackName, int revision
+                          ) throws WebApplicationException, IOException {
         
         if (!stackExists(stackName)) {
             String msg = "Stack ["+stackName+"] is not defined";
@@ -206,10 +165,6 @@ public class Stacks {
             (stack.getParentName().equals("") || stack.getParentName().equalsIgnoreCase("null"))) {
             stack.setParentName(null);
         }
-        if (stack.getParentRevision() == null || stack.getParentRevision().equals("") ||
-            stack.getParentRevision().equalsIgnoreCase("null")) {
-            stack.setParentRevision("-1");
-        }
         /*
          * Set the creation time 
          */
@@ -273,51 +228,14 @@ public class Stacks {
     }
     
     /*
-     * Delete the stack including all its versions
+     * Delete the stack including all its versions.
+     * The caller must ensure that no cluster uses this stack.
      */
     public void deleteStack(String stackName) throws Exception {
-        
-        /*
-         * Check if the specified stack is used in any cluster definition
-         */
-        Hashtable<String, String> clusterReferencedStackList = getClusterReferencedStacksList();
-        if (clusterReferencedStackList.containsKey(stackName)) {
-            String msg = "One or more clusters are associated with the specified stack";
-            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NOT_ACCEPTABLE)).get());
-        }
-        
-        /*
-         * If no cluster is associated then remove the stack
-         */
         dataStore.deleteStack(stackName);
         this.stacks.remove(stackName);
     }
     
-    /*
-     * Returns the <key="name", value="revision"> hash table for cluster referenced stacks
-     * This would include any indirectly referenced parent stacks as well
-     */
-    public Hashtable<String, String> getClusterReferencedStacksList() throws Exception {
-        Hashtable<String, String> clusterStacks = new Hashtable<String, String>();
-        List<String> clusterNames = dataStore.retrieveClusterList();
-        for (String clsName : clusterNames) {
-            Cluster c = Clusters.getInstance().getClusterByName(clsName);
-            String cBPName = c.getClusterDefinition(-1).getStackName();
-            String cBPRevision = c.getClusterDefinition(-1).getStackRevision();
-            clusterStacks.put(cBPName, cBPRevision); 
-            Stack bpx = this.getStack(cBPName, Integer.parseInt(cBPRevision));      
-            while (bpx.getParentName() != null) {
-                if (bpx.getParentRevision() == null) {
-                    bpx = this.getStack(bpx.getParentName(), -1);
-                } else {
-                    bpx = this.getStack(bpx.getParentName(), Integer.parseInt(bpx.getParentRevision()));
-                }
-                clusterStacks.put(bpx.getName(), bpx.getRevision());
-            }
-        }
-        return clusterStacks;
-    }
-   
     /*
      * UTIL methods
      */
@@ -349,7 +267,7 @@ public class Stacks {
         }
     }
 
-    public void recoverStacksAfterRestart() throws IOException {
+    private void recoverStacksAfterRestart() throws IOException {
         List<String> stackList = dataStore.retrieveStackList();
         for (String stackName : stackList) {
             this.stacks.put(stackName, dataStore.retrieveLatestStackRevisionNumber(stackName));

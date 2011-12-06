@@ -42,45 +42,89 @@ public class Component {
      * The name of the component.
      */
     @XmlAttribute(required = true)
-    protected String name;
+    private String name;
     
     /**
      * The architecture of the tarball/rpm to install.
      */
     @XmlAttribute
-    protected String architecture;
+    private String architecture;
     
     /**
      * The version of the tarball/rpm to install.
      */
     @XmlAttribute
-    protected String version;
+    private String version;
     
     /**
      * The provider of the tarball/rpm to install.
      */
     @XmlAttribute
-    protected String provider;
+    private String provider;
     
     /**
      * The definition of the component including how to configure and run
      * the component.
      */
     @XmlElement
-    protected ComponentDefinition definition;
+    private ComponentDefinition definition;
     
     /**
      * The configuration shared between the active roles of the component.
      */
     @XmlElement
-    protected Configuration configuration;
+    private Configuration configuration;
     
     /**
      * Specific configuration for each of the roles.
      */
     @XmlElement
-    protected List<Role> roles;
+    private List<Role> roles;
 
+    public Component() {
+      // PASS
+    }
+
+    public Component(String name, String version, String architecture,
+                     String provider, ComponentDefinition definition,
+                     Configuration configuration, List<Role> roles) {
+      this.name = name;
+      this.version = version;
+      this.architecture = architecture;
+      this.provider = provider;
+      this.definition = definition;
+      this.configuration = configuration;
+      this.roles = roles;
+    }
+
+    /**
+     * Shallow copy overriding attributes of a component.
+     * @param other the component to copy
+     */
+    public void mergeInto(Component other) {
+      if (other.architecture != null) {
+        this.architecture = other.architecture;
+      }
+      if (other.configuration != null) {
+        this.configuration = other.configuration;
+      }
+      if (other.definition != null) {
+        this.definition.mergeInto(other.definition);
+      }
+      if (other.name != null) {
+        this.name = other.name;
+      }
+      if (other.provider != null) {
+        this.provider = other.provider;
+      }
+      if (other.roles != null) {
+        this.roles = other.roles;
+      }
+      if (other.version != null) {
+        this.version = other.version;
+      }
+    }
+    
     /**
      * Gets the value of the name property.
      * 

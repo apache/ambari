@@ -20,30 +20,18 @@ package org.apache.ambari.controller;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.Node;
-import org.apache.ambari.common.rest.entities.RoleToNodes;
+import com.google.inject.Singleton;
 
-
+@Singleton
 public class Nodes {
         
     public static final String AGENT_DEPLOYMENT_STATE_TOBE_INSTALLED = "AGENT_TOBE_INSTALLED";
@@ -58,59 +46,8 @@ public class Nodes {
     // node name to Node object hashmap
     protected ConcurrentHashMap<String, Node> nodes = new ConcurrentHashMap<String, Node>();
 
-    private static Nodes NodesTypeRef=null;
-    
-    private Nodes() {}
-        
-    public static synchronized Nodes getInstance() {
-        if(NodesTypeRef == null) {
-            NodesTypeRef = new Nodes();
-        }
-        return NodesTypeRef;
-    }
-
-    public Object clone() throws CloneNotSupportedException {
-            throw new CloneNotSupportedException();
-    }
-       
     public ConcurrentHashMap<String, Node> getNodes () {
         return nodes;
-    }
-    
-    /*
-     * Return the list of nodes associated with cluster given the role name and alive state
-     * If rolename or alive state is not specified (i.e. "") then all the nodes associated
-     * with cluster are returned.
-     */
-    public List<Node> getClusterNodes (String clusterName, String roleName, String alive) throws Exception {
-        
-        List<Node> list = new ArrayList<Node>();
-        ClusterDefinition c = Clusters.getInstance().operational_clusters.get(clusterName).getClusterDefinition(-1);
-        if (c.getNodes() == null || c.getNodes().equals("") || Clusters.getInstance().getClusterByName(clusterName).getClusterState().getState().equalsIgnoreCase("ATTIC")) {
-            String msg = "No nodes are reserved for the cluster. Typically cluster in ATTIC state does not have any nodes reserved";
-            throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.NO_CONTENT)).get());
-        }
-        List<String> hosts = Clusters.getInstance().getHostnamesFromRangeExpressions(c.getNodes());
-        for (String host : hosts) {
-            if (!this.nodes.containsKey(host)) {
-                String msg = "Node ["+host+"] is expected to be registered w/ controller but not locatable";
-                throw new WebApplicationException((new ExceptionResponse(msg, Response.Status.INTERNAL_SERVER_ERROR)).get());
-            }
-            Node n = this.nodes.get(host);
-            if (roleName != null && !roleName.equals("")) {
-                if (!n.getNodeState().getNodeRoleNames().contains(roleName)) { continue; }
-            }
-            
-            // Heart beat is set to epoch during node initialization.
-            GregorianCalendar cal = new GregorianCalendar(); 
-            cal.setTime(new Date());
-            XMLGregorianCalendar curTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-            if (alive.equals("") || (alive.equalsIgnoreCase("true") && getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) < NODE_NOT_RESPONDING_DURATION)
-                || (alive.equals("false") && getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) >= NODE_NOT_RESPONDING_DURATION)) {
-                list.add(this.nodes.get(host));
-            }
-        }
-        return list;
     }
     
     /*
@@ -207,7 +144,7 @@ public class Nodes {
         
         if (node == null) {
             node = new Node(name);
-            Nodes.getInstance().getNodes().put(name, node);
+            getNodes().put(name, node);
         }
         node.getNodeState().setLastHeartbeatTime(hearbeatTime);      
     }
@@ -215,8 +152,11 @@ public class Nodes {
     /*
      * Get time difference
      */
-    public long getTimeDiffInMillis (XMLGregorianCalendar t2, XMLGregorianCalendar t1) throws Exception {
-        return t2.toGregorianCalendar().getTimeInMillis() -  t1.toGregorianCalendar().getTimeInMillis();
+    public static long getTimeDiffInMillis (XMLGregorianCalendar t2, 
+                                            XMLGregorianCalendar t1
+                                            ) throws Exception {
+        return t2.toGregorianCalendar().getTimeInMillis() -  
+            t1.toGregorianCalendar().getTimeInMillis();
     }
     
     public static void main (String args[]) {
@@ -234,7 +174,7 @@ public class Nodes {
            t2g.setTime(new Date());
            t2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(t2g);
            
-           System.out.println("TIME ["+Nodes.getInstance().getTimeDiffInMillis(t2, t1)+"]");
+           System.out.println("TIME ["+Nodes.getTimeDiffInMillis(t2, t1)+"]");
            
            System.out.println("TIME1 ["+t1.toString()+"]");
            System.out.println("TIME2 ["+t2.toString()+"]");

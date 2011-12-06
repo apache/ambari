@@ -20,12 +20,17 @@ package org.apache.ambari.controller;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
@@ -37,13 +42,16 @@ import org.apache.ambari.common.rest.entities.Property;
 import org.apache.ambari.common.rest.entities.Role;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.ambari.common.rest.entities.Stack;
-import org.apache.ambari.datastore.DataStoreFactory;
 import org.apache.ambari.datastore.PersistentDataStore;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
 import org.apache.ambari.resource.statemachine.StateMachineInvoker;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+@Singleton
 public class Clusters {
     // TODO: replace system.out.print by LOG
     private static Log LOG = LogFactory.getLog(Clusters.class);
@@ -52,24 +60,23 @@ public class Clusters {
      * Operational clusters include both active and inactive clusters
      */
     protected ConcurrentHashMap<String, Cluster> operational_clusters = new ConcurrentHashMap<String, Cluster>();
-    protected PersistentDataStore dataStore = DataStoreFactory.getDataStore(DataStoreFactory.ZOOKEEPER_TYPE);
+    private final PersistentDataStore dataStore;
     
-    private static Clusters ClustersTypeRef=null;
+    private final Stacks stacks;
+    private final Nodes nodes;
+    private final ClusterFactory clusterFactory;
         
-    private Clusters() {
+    @Inject
+    private Clusters(Stacks stacks, Nodes nodes, 
+                     PersistentDataStore dataStore,
+                     ClusterFactory clusterFactory) throws Exception {
+      this.stacks = stacks;
+      this.nodes = nodes;
+      this.dataStore = dataStore;
+      this.clusterFactory = clusterFactory;
+      recoverClustersStateAfterRestart();
     }
     
-    public static synchronized Clusters getInstance() {
-        if(ClustersTypeRef == null) {
-                ClustersTypeRef = new Clusters();
-        }
-        return ClustersTypeRef;
-    }
-
-    public Object clone() throws CloneNotSupportedException {
-        throw new CloneNotSupportedException();
-    }
-
     /*
      * Wrapper method over datastore API
      */
@@ -88,7 +95,7 @@ public class Clusters {
     public synchronized Cluster getClusterByName(String clusterName) throws Exception {
         if (clusterExists(clusterName)) {
             if (!this.operational_clusters.containsKey(clusterName)) {
-                Cluster cls = new Cluster(clusterName);
+                Cluster cls = clusterFactory.create(clusterName);
                 cls.init();
                 this.operational_clusters.put(clusterName, cls);
             }
@@ -109,8 +116,9 @@ public class Clusters {
     /*
      * Add Cluster Entry into data store and memory cache
      */
-    public synchronized Cluster addClusterEntry (ClusterDefinition cdef, ClusterState cs) throws Exception {
-        Cluster cls = new Cluster (cdef, cs);
+    public synchronized Cluster addClusterEntry (ClusterDefinition cdef, 
+                                                 ClusterState cs) throws Exception {
+        Cluster cls = clusterFactory.create(cdef, cs);
         this.operational_clusters.put(cdef.getName(), cls);
         return cls;
     }
@@ -488,23 +496,16 @@ public class Clusters {
          * Check if the cluster stack and its parents exist
          * getStack would throw exception if it does not find the stack
          */
-        Stack bp = Stacks.getInstance()
-                       .getStack(cdef.getStackName(), Integer.parseInt(cdef.getStackRevision()));
+        Stack bp = stacks.getStack(cdef.getStackName(), Integer.parseInt(cdef.getStackRevision()));
         while (bp.getParentName() != null) {
-            if (bp.getParentRevision() == null) {
-                bp = Stacks.getInstance()
-                    .getStack(bp.getParentName(), -1);
-            } else {
-                bp = Stacks.getInstance()
-                .getStack(bp.getParentName(), Integer.parseInt(bp.getParentRevision()));
-            }
+            bp = stacks.getStack(bp.getParentName(), bp.getParentRevision());
         }
         
         
         /*
          * Check if nodes requested for cluster are not already allocated to other clusters
          */
-        ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
+        ConcurrentHashMap<String, Node> all_nodes = nodes.getNodes();
         List<String> cluster_node_range = new ArrayList<String>();
         cluster_node_range.addAll(getHostnamesFromRangeExpressions(cdef.getNodes()));
         List<String> preallocatedhosts = new ArrayList<String>();
@@ -560,7 +561,7 @@ public class Clusters {
      */
     private synchronized void updateClusterNodesReservation (String clusterName, ClusterDefinition clsDef) throws Exception {
                 
-        ConcurrentHashMap<String, Node> all_nodes = Nodes.getInstance().getNodes();
+        ConcurrentHashMap<String, Node> all_nodes = nodes.getNodes();
         List<String> cluster_node_range = new ArrayList<String>();
         cluster_node_range.addAll(getHostnamesFromRangeExpressions(clsDef.getNodes()));
        
@@ -569,7 +570,7 @@ public class Clusters {
          * -- throw exception, if any nodes are pre-associated with other cluster
          */    
         List<String> nodes_currently_allocated_to_cluster = new ArrayList<String>();
-        for (Node n : Nodes.getInstance().getNodes().values()) {
+        for (Node n : nodes.getNodes().values()) {
             if ( n.getNodeState().getClusterName() != null &&
                  n.getNodeState().getClusterName().equals(clusterName)) {
                 nodes_currently_allocated_to_cluster.add(n.getName());
@@ -618,8 +619,8 @@ public class Clusters {
                 }    
             } else {
                 Date epoch = new Date(0);
-                Nodes.getInstance().checkAndUpdateNode(node_name, epoch);
-                Node node = Nodes.getInstance().getNode(node_name);
+                nodes.checkAndUpdateNode(node_name, epoch);
+                Node node = nodes.getNode(node_name);
                 /*
                  * TODO: Set agentInstalled = true, unless controller uses SSH to setup the agent
                  */
@@ -641,16 +642,6 @@ public class Clusters {
         }
     }
 
-    /*
-     * This function disassociate all the nodes from the cluster. The clsuterID associated w/
-     * cluster will be reset by heart beat when node reports all clean.
-     */
-    private synchronized void releaseClusterNodes (String clusterName) throws Exception {
-        for (Node clusterNode : Nodes.getInstance().getClusterNodes (clusterName, "", "")) {
-            clusterNode.releaseNodeFromCluster();     
-        }
-    }
-    
     /**
      * Update Node to Roles association.  
      * If role is not explicitly associated w/ any node, then assign it w/ default role
@@ -674,10 +665,10 @@ public class Clusters {
         for (RoleToNodes e : roleToNodesList) {
             List<String> hosts = getHostnamesFromRangeExpressions(e.getNodes());
             for (String host : hosts) {
-              if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
-                Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
+              if (nodes.getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
+                nodes.getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
               } 
-              Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(e.getRoleName());
+              nodes.getNodes().get(host).getNodeState().getNodeRoleNames().add(e.getRoleName());
             }
         }
         
@@ -689,10 +680,10 @@ public class Clusters {
         List<String> specified_node_range = new ArrayList<String>();
         specified_node_range.addAll(getHostnamesFromRangeExpressions(clusterNodes));
         for (String host : specified_node_range) {
-            if (Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
-                Nodes.getInstance().getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
-                String cid = Nodes.getInstance().getNodes().get(host).getNodeState().getClusterName();
-                Nodes.getInstance().getNodes().get(host).getNodeState().getNodeRoleNames().add(getDefaultRoleName(cid));
+            if (nodes.getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
+                nodes.getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
+                String cid = nodes.getNodes().get(host).getNodeState().getClusterName();
+                nodes.getNodes().get(host).getNodeState().getNodeRoleNames().add(getDefaultRoleName(cid));
             } 
         }
     }
@@ -712,10 +703,10 @@ public class Clusters {
         
         Stack bp;
         if (!expanded) {
-            bp = Stacks.getInstance().getStack(stackName, stackRevision);
+            bp = stacks.getStack(stackName, stackRevision);
         } else {
             // TODO: Get the derived/expanded stack
-            bp = Stacks.getInstance().getStack(stackName, stackRevision);
+            bp = stacks.getStack(stackName, stackRevision);
         }
         return bp;
     }
@@ -814,7 +805,7 @@ public class Clusters {
      * Get the list of role names associated with node
      */
     public List<String> getAssociatedRoleNames(String hostname) {
-      return Nodes.getInstance().getNodes().get(hostname).getNodeState().getNodeRoleNames();
+      return nodes.getNodes().get(hostname).getNodeState().getNodeRoleNames();
     }
     
     /*
@@ -823,7 +814,7 @@ public class Clusters {
      *  Throw exception if node is not associated to with any cluster
      */
     public String getDefaultRoleName(String clusterName) throws Exception {
-        Cluster c = Clusters.getInstance().getClusterByName(clusterName);
+        Cluster c = getClusterByName(clusterName);
         // TODO: find the default role from the clsuter stack 
         return "slaves-role";
     }
@@ -844,7 +835,7 @@ public class Clusters {
   /*
    * Restart recovery for clusters
    */
-  public void recoverClustersStateAfterRestart () throws Exception {
+  private void recoverClustersStateAfterRestart () throws Exception {
       for (Cluster cls : this.getClustersList("ALL")) {
           ClusterDefinition cdef = cls.getClusterDefinition(-1);
           this.validateClusterDefinition (cdef.getName(), cdef);
@@ -872,8 +863,7 @@ public class Clusters {
   public String getInstallAndConfigureScript(String clusterName, int revision) throws Exception {
       ClusterDefinition c = getClusterByName (clusterName).getClusterDefinition(revision);
       // TODO: ignore if comps or roles are not present in stack.
-      Stacks stacksCtx = Stacks.getInstance();
-      Stack stack = stacksCtx.getStack(c.getStackName(), Integer.parseInt(c.getStackRevision()));
+      Stack stack = stacks.getStack(c.getStackName(), Integer.parseInt(c.getStackRevision()));
       String config = "\n$hadoop_stack_conf = { ";
       if (stack.getComponents() != null) {
           for (Component comp : stack.getComponents()) {
@@ -935,5 +925,93 @@ public class Clusters {
       }
       config = config + "} \n";    
       return config;
+  }
+
+  /*
+   * Return the list of nodes associated with cluster given the role name and 
+   * alive state. If rolename or alive state is not specified (i.e. "") then all
+   * the nodes associated with cluster are returned.
+   */
+  public List<Node> getClusterNodes (String clusterName, String roleName, 
+                                     String alive) throws Exception {
+      
+      List<Node> list = new ArrayList<Node>();
+      Map<String,Node> nodeMap = nodes.getNodes();
+      ClusterDefinition c = operational_clusters.get(clusterName).
+          getClusterDefinition(-1);
+      if (c.getNodes() == null || c.getNodes().equals("") || 
+          getClusterByName(clusterName).getClusterState().getState().
+            equalsIgnoreCase("ATTIC")) {
+          String msg = "No nodes are reserved for the cluster. Typically" +
+            " cluster in ATTIC state does not have any nodes reserved";
+          throw new WebApplicationException((new ExceptionResponse(msg, 
+              Response.Status.NO_CONTENT)).get());
+      }
+      List<String> hosts = getHostnamesFromRangeExpressions(c.getNodes());
+      for (String host : hosts) {
+          if (!nodeMap.containsKey(host)) {
+              String msg = "Node ["+host+
+                  "] is expected to be registered w/ controller but not "+
+                  "locatable";
+              throw new WebApplicationException((new ExceptionResponse(msg, 
+                  Response.Status.INTERNAL_SERVER_ERROR)).get());
+          }
+          Node n = nodeMap.get(host);
+          if (roleName != null && !roleName.equals("")) {
+              if (!n.getNodeState().getNodeRoleNames().contains(roleName)) { 
+                continue; 
+              }
+          }
+          
+          // Heart beat is set to epoch during node initialization.
+          GregorianCalendar cal = new GregorianCalendar(); 
+          cal.setTime(new Date());
+          XMLGregorianCalendar curTime = 
+              DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+          if (alive.equals("") || (alive.equalsIgnoreCase("true") && 
+              Nodes.getTimeDiffInMillis(curTime, n.getNodeState().
+                  getLastHeartbeatTime()) < Nodes.NODE_NOT_RESPONDING_DURATION)
+              || (alive.equals("false") && 
+                  Nodes.getTimeDiffInMillis(curTime, 
+                      n.getNodeState().getLastHeartbeatTime()) >= 
+                      Nodes.NODE_NOT_RESPONDING_DURATION)) {
+              list.add(nodeMap.get(host));
+          }
+      }
+      return list;
+  }
+  
+  /*
+   * Returns the <key="name", value="revision"> hash table for cluster 
+   * referenced stacks. This would include any indirectly referenced parent 
+   * stacks as well.
+   */
+  public Hashtable<String, String> getClusterReferencedStacksList() 
+        throws Exception {
+      Hashtable<String, String> clusterStacks = new Hashtable<String, String>();
+      List<String> clusterNames = dataStore.retrieveClusterList();
+      for (String clsName : clusterNames) {
+          Cluster c = getClusterByName(clsName);
+          String cBPName = c.getClusterDefinition(-1).getStackName();
+          String cBPRevision = c.getClusterDefinition(-1).getStackRevision();
+          clusterStacks.put(cBPName, cBPRevision); 
+          Stack bpx = stacks.getStack(cBPName, Integer.parseInt(cBPRevision));      
+          while (bpx.getParentName() != null) {
+              bpx = stacks.getStack(bpx.getParentName(), 
+                                    bpx.getParentRevision());
+              clusterStacks.put(bpx.getName(), bpx.getRevision());
+          }
+      }
+      return clusterStacks;
+  }
+ 
+  /**
+   * Is the given stack used in any cluster?
+   * @param stackName the stack to check on
+   * @return is the stack used
+   * @throws Exception
+   */
+  public boolean isStackUsed(String stackName) throws Exception {
+    return getClusterReferencedStacksList().containsKey(stackName);
   }
 }

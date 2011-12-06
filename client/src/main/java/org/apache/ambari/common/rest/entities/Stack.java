@@ -17,9 +17,7 @@
  */
 package org.apache.ambari.common.rest.entities;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -29,8 +27,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 
@@ -124,7 +120,7 @@ public class Stack {
      * The revision number of the parent stack.
      */
     @XmlAttribute
-    protected String parentRevision;
+    protected int parentRevision = -1;
     
     /**
      * When this revision of the stack was created.
@@ -151,8 +147,29 @@ public class Stack {
      * the version of each component and the associated configuration.
      */
     @XmlElement
-    protected List<Component> components;
-    
+    protected List<Component> components = new ArrayList<Component>();
+
+    /**
+     * Create an empty stack
+     */
+    public Stack() {
+    }
+
+    /**
+     * Do a shallow copy of the stack
+     * @param orig the source stack
+     */
+    public Stack(Stack orig) {
+      this.components = orig.components;
+      this.configuration = orig.configuration;
+      this.creationTime = orig.creationTime;
+      this.name = orig.name;
+      this.parentName = orig.parentName;
+      this.parentRevision = orig.parentRevision;
+      this.repositories = orig.repositories;
+      this.revision = orig.revision;
+    }
+
     /**
      * Get the name of the stack.
      * @return the name
@@ -197,13 +214,13 @@ public class Stack {
     /**
      * @return the parentRevision
      */
-    public String getParentRevision() {
+    public int getParentRevision() {
             return parentRevision;
     }
     /**
      * @param parentRevision the parentRevision to set
      */
-    public void setParentRevision(String parentRevision) {
+    public void setParentRevision(int parentRevision) {
             this.parentRevision = parentRevision;
     }
 

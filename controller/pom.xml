@@ -231,6 +231,22 @@
 
     <dependencies>
       <dependency>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>3.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.inject.extensions</groupId>
+        <artifactId>guice-assistedinject</artifactId>
+        <version>3.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>1.8.5</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>org.apache.ambari</groupId>
         <artifactId>ambari-client</artifactId>
         <version>0.1.0-SNAPSHOT</version>
@@ -309,12 +325,6 @@
         <groupId>com.sun.jersey.jersey-test-framework</groupId>
         <artifactId>jersey-test-framework-external</artifactId>
         <version>1.8</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.mockito</groupId>
-        <artifactId>mockito-all</artifactId>
-        <version>1.8.5</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

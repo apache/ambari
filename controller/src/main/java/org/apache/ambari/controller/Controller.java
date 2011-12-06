@@ -35,26 +35,19 @@ import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.resource.Resource;
 import org.mortbay.resource.ResourceCollection;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
+@Singleton
 public class Controller {
   private static Log LOG = LogFactory.getLog(Controller.class);
   public static int CONTROLLER_PORT = 4080;
-  private static Controller instance = new Controller();
   private Server server = null;
   public volatile boolean running = true; // true while controller runs
-  private HeartbeatHandler hbHandler;
-  
-  public static Controller getInstance() {
-    return instance;
-  }
-  
-  public HeartbeatHandler getHeartbeatHandler() {
-    return hbHandler;
-  }
   
   public void run() {
-    hbHandler = new HeartbeatHandler();      
     server = new Server(CONTROLLER_PORT);
 
     try {
@@ -105,20 +98,6 @@ public class Controller {
       server.setStopAtShutdown(true);
       
       /*
-       * Initialize the resources 
-       */
-      Clusters clustersCtx = Clusters.getInstance();
-      Stacks stacksCtx = Stacks.getInstance();
-      Nodes nodesCtx = Nodes.getInstance();
-      
-      /*
-       *  Recover controller state before oopening up the server to clients
-       *  Restore stacks before clusters
-       */
-      stacksCtx.recoverStacksAfterRestart();
-      clustersCtx.recoverClustersStateAfterRestart();
-      
-      /*
        * Start the server after controller state is recovered.
        */
       server.start();
@@ -138,9 +117,10 @@ public class Controller {
   }
 
   public static void main(String[] args) {
+    Injector injector = Guice.createInjector(new ControllerModule());
     DaemonWatcher.createInstance(System.getProperty("PID"), 9100);
     try {
-      Controller controller = Controller.getInstance();
+      Controller controller = injector.getInstance(Controller.class);
       if (controller != null) {
         controller.run();
       }

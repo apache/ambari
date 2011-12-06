@@ -34,12 +34,21 @@ import org.apache.ambari.controller.ExceptionResponse;
 import org.apache.ambari.controller.Nodes;
 import org.apache.ambari.controller.rest.config.Examples;
 
+import com.google.inject.Inject;
+
 
 /** Nodes Resource represents collection of cluster nodes.
  */
 @Path("nodes")
 public class NodesResource {
             
+    private static Nodes nodes;
+    
+    @Inject
+    static void init(Nodes n) {
+      nodes = n;
+    }
+
     /** Get list of nodes
      *
      *  The "allocated and "alive" are the boolean variables that specify the type of nodes to return based on their state i.e. if they are already allocated to any cluster and live or dead. 
@@ -62,7 +71,7 @@ public class NodesResource {
                                     @DefaultValue("") @QueryParam("alive") String alive) throws Exception {
         List<Node> list;
         try {
-            list = Nodes.getInstance().getNodesByState(allocated, alive);
+            list = nodes.getNodesByState(allocated, alive);
             if (list.isEmpty()) {
                 throw new WebApplicationException(Response.Status.NO_CONTENT);
             }   
@@ -94,7 +103,7 @@ public class NodesResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Node getNode (@PathParam("hostname") String hostname) throws Exception {
         try {
-            return Nodes.getInstance().getNode(hostname);
+            return nodes.getNode(hostname);
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {

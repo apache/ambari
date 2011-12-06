@@ -46,18 +46,30 @@ import org.apache.ambari.resource.statemachine.StateMachineInvoker;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+@Singleton
 public class HeartbeatHandler {
   
   private Map<String, ControllerResponse> agentToHeartbeatResponseMap = 
       Collections.synchronizedMap(new HashMap<String, ControllerResponse>());
   
   private static Log LOG = LogFactory.getLog(HeartbeatHandler.class);
+  private final Clusters clusters;
+  private final Nodes nodes;
+  
+  @Inject
+  HeartbeatHandler(Clusters clusters, Nodes nodes) {
+    this.clusters = clusters;
+    this.nodes = nodes;
+  }
   
   public ControllerResponse processHeartBeat(HeartBeat heartbeat) 
       throws Exception {
     String hostname = heartbeat.getHostname();
     Date heartbeatTime = new Date(System.currentTimeMillis());
-    Nodes.getInstance().checkAndUpdateNode(hostname, heartbeatTime);
+    nodes.checkAndUpdateNode(hostname, heartbeatTime);
     
     ControllerResponse response = 
         agentToHeartbeatResponseMap.get(heartbeat.getHostname());
@@ -84,15 +96,14 @@ public class HeartbeatHandler {
       for (ClusterNameAndRev clusterIdAndRev : clustersNodeBelongsTo) {
 
         String script = 
-            Clusters.getInstance().getInstallAndConfigureScript(clusterName, 
+            clusters.getInstallAndConfigureScript(clusterName, 
                 clusterRev);
         
         //send the deploy script
         getInstallAndConfigureAction(script,clusterIdAndRev, allActions);
 
         //get the cluster object corresponding to the clusterId
-        Cluster cluster = Clusters.getInstance()
-            .getClusterByName(clusterName);
+        Cluster cluster = clusters.getClusterByName(clusterName);
         //get the state machine reference to the cluster
         ClusterFSM clusterFsm = StateMachineInvoker
             .getStateMachineClusterInstance(clusterName);
@@ -242,10 +253,10 @@ public class HeartbeatHandler {
   
   private List<ClusterNameAndRev> getClustersNodeBelongsTo(String hostname) 
       throws Exception {
-    String clusterName = Nodes.getInstance().getNode(hostname)
+    String clusterName = nodes.getNode(hostname)
         .getNodeState().getClusterName();
     if (clusterName != null) {
-      int clusterRev = Clusters.getInstance().
+      int clusterRev = clusters.
           getClusterByName(clusterName).getLatestRevisionNumber();
       List<ClusterNameAndRev> l = new ArrayList<ClusterNameAndRev>();
       l.add(new ClusterNameAndRev(clusterName, clusterRev));
@@ -386,8 +397,8 @@ public class HeartbeatHandler {
   private boolean nodePlayingRole(String host, String role) 
       throws Exception {
     //TODO: iteration on every call seems avoidable ..
-    List<String> nodeRoles = Nodes.getInstance()
-                      .getNode(host).getNodeState().getNodeRoleNames();
+    List<String> nodeRoles = nodes.getNode(host).getNodeState().
+        getNodeRoleNames();
     return nodeRoles.contains(role);
   }
   

@@ -40,6 +40,15 @@ public class Role {
     @XmlElement(required = true)
     protected Configuration configuration;
 
+    public Role() {
+      // PASS
+    }
+    
+    public Role(String name, Configuration conf) {
+      this.name = name;
+      this.configuration = conf;
+    }
+
     /**
      * Gets the value of the name property.
      * 
