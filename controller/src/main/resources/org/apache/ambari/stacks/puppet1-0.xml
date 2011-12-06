@@ -7,8 +7,8 @@
         <category name="ambari">
             <property name="ambari_cluster_name" value="IMPLICIT" />   
             <property name="ambari_role_name" value="IMPLICIT" />   
-            <property name="ambari_mapred_jobtracker_host" value="IMPLICIT" />   
-            <property name="ambari_hdfs_namenode_host" value="IMPLICIT" />   
+            <property name="ambari_jobtracker_host" value="IMPLICIT" />   
+            <property name="ambari_namenode_host" value="IMPLICIT" />   
 
             <property name="ambari_namenode_principal" value="nn" />
             <property name="ambari_datanode_principal" value="dn" />
@@ -44,8 +44,8 @@
                 <property name="*mapred.system.dir" value="/mapred/mapredsystem" />  
                 <property name="*mapred.local.dir" value="${ambari_mapred_local_dir}" /> 
                 <property name="mapred.tasktracker.tasks.sleeptime-before-sigkill" value="250" />
-                <property name="*mapred.job.tracker" value="${ambari_mapred_jobtracker_host}:9000" />
-                <property name="*mapred.job.tracker.http.address" value="${ambari_mapred_jobtracker_host}:50030" />
+                <property name="*mapred.job.tracker" value="${ambari_jobtracker_host}:9000" />
+                <property name="*mapred.job.tracker.http.address" value="${ambari_jobtracker_host}:50030" />
                 <property name="mapreduce.cluster.administrators" value="${ambari_mapreduce_user}" />
                 <property name="mapred.map.tasks.speculative.execution" value="false" />
                 <property name="mapred.reduce.tasks.speculative.execution" value="false" />
@@ -74,7 +74,7 @@
                 <property name="mapred.jobtracker.taskScheduler" value="org.apache.hadoop.mapred.CapacityTaskScheduler" />
                 <property name="mapred.queue.names" value="default" />
                 <property name="mapreduce.history.server.embedded" value="false" />
-                <property name="mapreduce.history.server.http.address" value="${ambari_mapred_jobtracker_host}:51111" />
+                <property name="mapreduce.history.server.http.address" value="${ambari_jobtracker_host}:51111" />
                 <property name="mapreduce.jobhistory.kerberos.principal" value="${ambari_jobtracker_principal}/_HOST@${ambari_service_realm}" />
                 <property name="mapreduce.jobhistory.keytab.file" value="/etc/security/keytabs/${ambari_jobtracker_principal}.service.keytab" />
                 <property name="mapred.hosts" value="${ambari_hadoop_conf_dir}/${ambari_cluster_name}/${ambari_role_name}/mapred.include" />
@@ -85,7 +85,7 @@
 
             <category name="core-site">
                 <property name="local.realm" value=${ambari_service_realm} /> 
-                <property name="fs.default.name" value="hdfs://${ambari_hdfs_namenode_host}:8020" />
+                <property name="fs.default.name" value="hdfs://${ambari_namenode_host}:8020" />
                 <property name="fs.trash.interval" value="360" />
                 <property name="hadoop.security.auth_to_local" value="RULE:[1:$1@$0](.*@${ambari_user_realm})s/@.*// RULE:[2:$1@$0](${ambari_jobtracker_principal}@${ambari_service_realm})s/.*/${ambari_mapreduce_user}/ RULE:[2:$1@$0](${ambari.tasktracer.principal}@${ambari_service_realm})s/.*/${ambari_mapreduce_user}/ RULE:[2:$1@$0](${ambari_namenode_principal}@${ambari_service_realm})s/.*/${ambari_hdfs_user}/ RULE:[2:$1@$0](${ambari_datanode_principal}@${ambari_service_realm})s/.*/${ambari_hdfs_user}/ RULE:[2:$1@$0](${ambari_hbasemaster_principal}@${ambari_service_realm})s/.*/${ambari_hbase_user}/ RULE:[2:$1@$0](${ambari_regionserver_principal}@${ambari_service_realm})s/.*/${ambari_hbase_user}/ RULE:[2:$1@$0](${ambari_hcat_principal}@${ambari_service_realm})s/.*/${ambari_hcat_user}/" />
                 <property name="hadoop.security.authentication" value="simple" />
@@ -101,7 +101,7 @@
                 <property name="dfs.safemode.threshold.pct" value="1.0f" />
                 <property name="dfs.datanode.address" value="0.0.0.0:50010" />
                 <property name="dfs.datanode.http.address" value="0.0.0.0:50075" />
-                <property name="*dfs.http.address" value="${ambari_hdfs_namenode_host}:50070" />
+                <property name="*dfs.http.address" value="${ambari_namenode_host}:50070" />
                 <property name="dfs.umaskmode" value="077" />
 
                 <property name="dfs.block.access.token.enable" value="false" />
@@ -119,11 +119,11 @@
 
                 <property name="dfs.secondary.https.port" value="50490" />
                 <property name="dfs.https.port" value="50470" />
-                <property name="dfs.https.address" value="${ambari_hdfs_namenode_host}:50470" />
+                <property name="dfs.https.address" value="${ambari_namenode_host}:50470" />
                 <property name="dfs.datanode.data.dir.perm" value="700" />
                 <property name="dfs.cluster.administrators" value="${ambari_hdfs_user}" />
                 <property name="dfs.permissions.superusergroup" value="${ambari_admin_group}" />
-                <property name="dfs.secondary.http.address" value="${ambari_hdfs_namenode_host}:50090" />
+                <property name="dfs.secondary.http.address" value="${ambari_namenode_host}:50090" />
                 <property name="dfs.hosts" value="${ambari_hadoop_conf_dir}/${ambari_cluster_name}/${ambari_role_name}/dfs.include" />
                 <property name="dfs.hosts.exclude" value="${ambari_hadoop_conf_dir}/${ambari_cluster_name}/${ambari_role_name}/dfs.exclude" />
                 <property name="dfs.webhdfs.enabled" value="true" />
@@ -157,8 +157,8 @@
                 <property name="*mapred.system.dir" value="/mapred/mapredsystem" />  
                 <property name="*mapred.local.dir" value="${ambari_mapred_local_dir}" /> 
                 <property name="mapred.tasktracker.tasks.sleeptime-before-sigkill" value="250" />
-                <property name="*mapred.job.tracker" value="${ambari_mapred_jobtracker_host}:9000" />
-                <property name="*mapred.job.tracker.http.address" value="${ambari_mapred_jobtracker_host}:50030" />
+                <property name="*mapred.job.tracker" value="${ambari_jobtracker_host}:9000" />
+                <property name="*mapred.job.tracker.http.address" value="${ambari_jobtracker_host}:50030" />
                 <property name="mapreduce.cluster.administrators" value="${ambari_mapreduce_user}" />
                 <property name="mapred.map.tasks.speculative.execution" value="false" />
                 <property name="mapred.reduce.tasks.speculative.execution" value="false" />
@@ -187,7 +187,7 @@
                 <property name="mapred.jobtracker.taskScheduler" value="org.apache.hadoop.mapred.CapacityTaskScheduler" />
                 <property name="mapred.queue.names" value="default" />
                 <property name="mapreduce.history.server.embedded" value="false" />
-                <property name="mapreduce.history.server.http.address" value="${ambari_mapred_jobtracker_host}:51111" />
+                <property name="mapreduce.history.server.http.address" value="${ambari_jobtracker_host}:51111" />
                 <property name="mapreduce.jobhistory.kerberos.principal" value="${ambari_jobtracker_principal}/_HOST@${ambari_service_realm}" />
                 <property name="mapreduce.jobhistory.keytab.file" value="/etc/security/keytabs/${ambari_jobtracker_principal}.service.keytab" />
                 <property name="mapred.hosts" value="${ambari_hadoop_conf_dir}/${ambari_cluster_name}/${ambari_role_name}/mapred.include" />
@@ -198,7 +198,7 @@
 
             <category name="core-site">
                 <property name="local.realm" value=${ambari_service_realm} /> 
-                <property name="fs.default.name" value="hdfs://${ambari_hdfs_namenode_host}:8020" />
+                <property name="fs.default.name" value="hdfs://${ambari_namenode_host}:8020" />
                 <property name="fs.trash.interval" value="360" />
                 <property name="hadoop.security.auth_to_local" value="RULE:[1:$1@$0](.*@${ambari_user_realm})s/@.*// RULE:[2:$1@$0](${ambari_jobtracker_principal}@${ambari_service_realm})s/.*/${ambari_mapreduce_user}/ RULE:[2:$1@$0](${ambari.tasktracer.principal}@${ambari_service_realm})s/.*/${ambari_mapreduce_user}/ RULE:[2:$1@$0](${ambari_namenode_principal}@${ambari_service_realm})s/.*/${ambari_hdfs_user}/ RULE:[2:$1@$0](${ambari_datanode_principal}@${ambari_service_realm})s/.*/${ambari_hdfs_user}/ RULE:[2:$1@$0](${ambari_hbasemaster_principal}@${ambari_service_realm})s/.*/${ambari_hbase_user}/ RULE:[2:$1@$0](${ambari_regionserver_principal}@${ambari_service_realm})s/.*/${ambari_hbase_user}/ RULE:[2:$1@$0](${ambari_hcat_principal}@${ambari_service_realm})s/.*/${ambari_hcat_user}/" />
                 <property name="hadoop.security.authentication" value="simple" />
@@ -214,7 +214,7 @@
                 <property name="dfs.safemode.threshold.pct" value="1.0f" />
                 <property name="dfs.datanode.address" value="0.0.0.0:50010" />
                 <property name="dfs.datanode.http.address" value="0.0.0.0:50075" />
-                <property name="*dfs.http.address" value="${ambari_hdfs_namenode_host}:50070" />
+                <property name="*dfs.http.address" value="${ambari_namenode_host}:50070" />
                 <property name="dfs.umaskmode" value="077" />
 
                 <property name="dfs.block.access.token.enable" value="false" />
@@ -232,11 +232,11 @@
 
                 <property name="dfs.secondary.https.port" value="50490" />
                 <property name="dfs.https.port" value="50470" />
-                <property name="dfs.https.address" value="${ambari_hdfs_namenode_host}:50470" />
+                <property name="dfs.https.address" value="${ambari_namenode_host}:50470" />
                 <property name="dfs.datanode.data.dir.perm" value="700" />
                 <property name="dfs.cluster.administrators" value="${ambari_hdfs_user}" />
                 <property name="dfs.permissions.superusergroup" value="${ambari_admin_group}" />
-                <property name="dfs.secondary.http.address" value="${ambari_hdfs_namenode_host}:50090" />
+                <property name="dfs.secondary.http.address" value="${ambari_namenode_host}:50090" />
                 <property name="dfs.hosts" value="${ambari_hadoop_conf_dir}/${ambari_cluster_name}/${ambari_role_name}/dfs.include" />
                 <property name="dfs.hosts.exclude" value="${ambari_hadoop_conf_dir}/${ambari_cluster_name}/${ambari_role_name}/dfs.exclude" />
                 <property name="dfs.webhdfs.enabled" value="true" />
