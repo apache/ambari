@@ -54,7 +54,6 @@ public class ClustersResource {
     
     @Inject
     static void init(Clusters clus) {
-      System.out.println("In ClustersResource init");
       clusters = clus;
     }
     

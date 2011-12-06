@@ -33,7 +33,6 @@ import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.datastore.PersistentDataStore;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
@@ -61,7 +60,6 @@ public class StaticDataStore implements PersistentDataStore {
     }
   }
 
-  @Inject
   StaticDataStore() throws IOException {
     addStackFile("org/apache/ambari/stacks/hadoop-security-0.xml", 
                  "hadoop-security");
