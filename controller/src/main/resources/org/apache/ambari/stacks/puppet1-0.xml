@@ -5,11 +5,6 @@
     </repositories>
     <configuration>
         <category name="ambari">
-            <property name="ambari_cluster_name" value="IMPLICIT" />   
-            <property name="ambari_role_name" value="IMPLICIT" />   
-            <property name="ambari_jobtracker_host" value="IMPLICIT" />   
-            <property name="ambari_namenode_host" value="IMPLICIT" />   
-
             <property name="ambari_namenode_principal" value="nn" />
             <property name="ambari_datanode_principal" value="dn" />
             <property name="ambari_jobtracker_principal" value="jt" />
