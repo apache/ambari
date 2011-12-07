@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
 <stack name="puppet1" revision="0" parentRevision="-1" creationTime="2011-11-23T18:16:39.604-08:00">
+
     <repositories kind="TAR">
         <urls>http://www.apache.org/dist/hadoop/common/</urls>
     </repositories>
+
     <configuration>
         <category name="ambari">
             <property name="ambari_namenode_principal" value="nn" />
@@ -26,10 +29,82 @@
             <property name="ambari_service_realm" value="EXAMPLE.KERBEROS.COM" /> 
             <property name="ambari_hadoop_conf_dir" value="/etc/hadoop/conf"/>
         </category>
+
+        <category name="core-site.xml">
+            <property name="local.realm" value="&lt;%= ambari_service_realm %&gt;" /> 
+            <property name="fs.default.name" value="hdfs://&lt;%= ambari_namenode_host %&gt;:8020" />
+            <property name="fs.trash.interval" value="360" />
+            <property name="hadoop.security.auth_to_local" value="RULE:[1:$1@$0](.*@&lt;%= ambari_user_realm %&gt;)s/@.*// RULE:[2:$1@$0](&lt;%= ambari_jobtracker_principal %&gt;@&lt;%= ambari_service_realm %&gt;)s/.*/&lt;%= ambari_mapreduce_user %&gt;/ RULE:[2:$1@$0](&lt;%= ambari_tasktracker_principal %&gt;@&lt;%= ambari_service_realm %&gt;)s/.*/&lt;%= ambari_mapreduce_user %&gt;/ RULE:[2:$1@$0](&lt;%= ambari_namenode_principal %&gt;@&lt;%= ambari_service_realm %&gt;)s/.*/&lt;%= ambari_hdfs_user %&gt;/ RULE:[2:$1@$0](&lt;%= ambari_datanode_principal %&gt;@&lt;%= ambari_service_realm %&gt;)s/.*/&lt;%= ambari_hdfs_user %&gt;/ RULE:[2:$1@$0](&lt;%= ambari_hbasemaster_principal %&gt;@&lt;%= ambari_service_realm %&gt;)s/.*/&lt;%= ambari_hbase_user %&gt;/ RULE:[2:$1@$0](&lt;%= ambari_regionserver_principal %&gt;@&lt;%= ambari_service_realm %&gt;)s/.*/&lt;%= ambari_hbase_user %&gt;/ RULE:[2:$1@$0](&lt;%= ambari_hcat_principal %&gt;@&lt;%= ambari_service_realm %&gt;)s/.*/&lt;%= ambari_hcat_user %&gt;/" />
+            <property name="hadoop.security.authentication" value="simple" />
+            <property name="hadoop.security.authorization" value="false" />
+            <property name="hadoop.security.groups.cache.secs" value="14400" />
+            <property name="hadoop.kerberos.kinit.command" value="/usr/kerberos/bin/kinit" />
+            <property name="hadoop.http.filter.initializers" value="org.apache.hadoop.http.lib.StaticUserWebFilter" />
+        </category>
+
+        <category name="hdfs-site.xml">
+            <property name="*dfs.name.dir"  value="&lt;%= ambari_dfs_name_dir %&gt;" />
+            <property name="*dfs.data.dir" value="&lt;%= ambari_dfs_data_dir %&gt;" />
+            <property name="dfs.safemode.threshold.pct" value="1.0f" />
+            <property name="dfs.datanode.address" value="0.0.0.0:50010" />
+            <property name="dfs.datanode.http.address" value="0.0.0.0:50075" />
+            <property name="*dfs.http.address" value="&lt;%= ambari_namenode_host %&gt;:50070" />
+            <property name="dfs.umaskmode" value="077" />
+
+            <property name="dfs.block.access.token.enable" value="false" />
+            <property name="dfs.namenode.kerberos.principal" value="&lt;%= ambari_namenode_principal %&gt;/_HOST@&lt;%= ambari_service_realm %&gt;" />
+            <property name="dfs.namenode.kerberos.https.principal" value="host/_HOST@&lt;%= ambari_service_realm %&gt;" />
+            <property name="dfs.secondary.namenode.kerberos.principal" value="&lt;%= ambari_namenode_principal %&gt;/_HOST@&lt;%= ambari_service_realm %&gt;" />
+            <property name="dfs.secondary.namenode.kerberos.https.principal" value="host/_HOST@&lt;%= ambari_service_realm %&gt;" />
+            <property name="dfs.datanode.kerberos.principal" value="&lt;%= ambari_datanode_principal %&gt;/_HOST@&lt;%= ambari_service_realm %&gt;" />
+            <property name="dfs.web.authentication.kerberos.principal" value="HTTP/_HOST@&lt;%= ambari_service_realm %&gt;" />
+
+            <property name="dfs.web.authentication.kerberos.keytab" value="/etc/security/keytabs/&lt;%= ambari_namenode_principal %&gt;.service.keytab" />
+            <property name="dfs.namenode.keytab.file" value="/etc/security/keytabs/&lt;%= ambari_namenode_principal %&gt;.service.keytab" />
+            <property name="dfs.secondary.namenode.keytab.file" value="/etc/security/keytabs/&lt;%= ambari_namenode_principal %&gt;.service.keytab" />
+            <property name="dfs.datanode.keytab.file" value="/etc/security/keytabs/&lt;%= ambari_datanode_principal %&gt;.service.keytab" />
+
+            <property name="dfs.secondary.https.port" value="50490" />
+            <property name="dfs.https.port" value="50470" />
+            <property name="dfs.https.address" value="&lt;%= ambari_namenode_host %&gt;:50470" />
+            <property name="dfs.datanode.data.dir.perm" value="700" />
+            <property name="dfs.cluster.administrators" value="&lt;%= ambari_hdfs_user %&gt;" />
+            <property name="dfs.permissions.superusergroup" value="&lt;%= ambari_admin_group %&gt;" />
+            <property name="dfs.secondary.http.address" value="&lt;%= ambari_namenode_host %&gt;:50090" />
+            <property name="dfs.hosts" value="&lt;%= ambari_hadoop_conf_dir %&gt;/&lt;%= ambari_cluster_name %&gt;/&lt;%= ambari_role_name %&gt;/dfs.include" />
+            <property name="dfs.hosts.exclude" value="&lt;%= ambari_hadoop_conf_dir %&gt;/&lt;%= ambari_cluster_name %&gt;/&lt;%= ambari_role_name %&gt;/dfs.exclude" />
+            <property name="dfs.webhdfs.enabled" value="true" />
+            <property name="dfs.support.append" value="true" />
+        </category>
+
+        <category name="hadoop-env.sh">
+            <property name="JAVA_HOME" value="/usr/jdk1.6.0_27" />
+            <property name="HADOOP_CONF_DIR" value="&lt;%= ambari_hadoop_conf_dir %&gt;/&lt;%= ambari_cluster_name %&gt;/&lt;%= ambari_role_name %&gt;" />   
+            <property name="HADOOP_OPTS" value="-Djava.net.preferIPv4Stack=true $HADOOP_OPTS" />
+            <property name="HADOOP_NAMENODE_OPTS" value="-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT $HADOOP_NAMENODE_OPTS" />
+            <property name="HADOOP_SECONDARYNAMENODE_OPTS" value="-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT $HADOOP_SECONDARYNAMENODE_OPTS" />
+            <property name="HADOOP_JOBTRACKER_OPTS" value="-Dsecurity.audit.logger=INFO,DRFAS -Dmapred.audit.logger=INFO,MRAUDIT -Dhadoop.mapreduce.jobsummary.logger=INFO,JSA $HADOOP_JOBTRACKER_OPTS" />
+            <property name="HADOOP_TASKTRACKER_OPTS" value="-Dsecurity.audit.logger=ERROR,console -Dmapred.audit.logger=ERROR,console $HADOOP_TASKTRACKER_OPTS" />
+            <property name="HADOOP_DATANODE_OPTS" value="-Dsecurity.audit.logger=ERROR,DRFAS $HADOOP_DATANODE_OPTS" />
+            <property name="HADOOP_CLIENT_OPTS" value="-Xmx128m $HADOOP_CLIENT_OPTS" />
+            <property name="HADOOP_SECURE_DN_USER" value="" />
+            <property name="HADOOP_LOG_DIR" value="/var/log/hadoop/$USER" />   
+            <property name="HADOOP_SECURE_DN_LOG_DIR" value="/var/log/hadoop/&lt;%= ambari_hdfs_user %&gt;" /> 
+            <property name="HADOOP_PID_DIR" value="/var/run/hadoop" /> 
+            <property name="HADOOP_SECURE_DN_PID_DIR" value="/var/run/hadoop" /> 
+            <property name="HADOOP_IDENT_STRING" value="&lt;%= ambari_cluster_name %&gt;" />
+        </category>
+
+        <category name="hadoop-metrics2.properties">
+            <property name="*.period" value="60" />
+        </category>
+
     </configuration>
+
     <components name="common" architecture="x86_64" version="0.20.205.0" provider="org.apache.hadoop">
         <definition provider="org.apache.ambari" name="hadoop-common" version="0.1.0"/>
     </components>
+
     <components name="hdfs" architecture="x86_64" version="0.20.205.0" provider="org.apache.hadoop">
         <definition provider="org.apache.ambari" name="hadoop-hdfs" version="0.1.0"/>
         <roles name="namenode">
