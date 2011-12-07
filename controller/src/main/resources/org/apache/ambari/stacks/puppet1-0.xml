@@ -19,7 +19,6 @@
             <property name="ambari_hcat_user" value="hcat" />
             <property name="ambari_admin_group" value="hadoop" />
 
-            <property name="ambari_mapred_local_dir" value="/var/lib/hadoop/mapred1,/var/lib/hadoop/mapred2,/var/lib/hadoop/mapred3" />
             <property name="ambari_dfs_name_dir" value="/var/lib/hadoop/hdfs/namenode,/var/lib/hadoop/hdfs/namenode2,/var/lib/hadoop/hdfs/namenode3" />
             <property name="ambari_dfs_data_dir" value="/var/lib/hadoop/hdfs/datanode,/var/lib/hadoop/hdfs/datanode1,/var/lib/hadoop/hdfs/datanode2" />
 
@@ -35,49 +34,6 @@
         <definition provider="org.apache.ambari" name="hadoop-hdfs" version="0.1.0"/>
         <roles name="namenode">
           <configuration>
-            <category name="mapred-site.xml">
-                <property name="*mapred.system.dir" value="/mapred/mapredsystem" />  
-                <property name="*mapred.local.dir" value="&lt;%= ambari_mapred_local_dir %&gt;" /> 
-                <property name="mapred.tasktracker.tasks.sleeptime-before-sigkill" value="250" />
-                <property name="*mapred.job.tracker" value="&lt;%= ambari_jobtracker_host %&gt;:9000" />
-                <property name="*mapred.job.tracker.http.address" value="&lt;%= ambari_jobtracker_host %&gt;:50030" />
-                <property name="mapreduce.cluster.administrators" value="&lt;%= ambari_mapreduce_user %&gt;" />
-                <property name="mapred.map.tasks.speculative.execution" value="false" />
-                <property name="mapred.reduce.tasks.speculative.execution" value="false" />
-                <property name="mapred.output.compression.type" value="BLOCK" />
-                <property name="jetty.connector" value="org.mortbay.jetty.nio.SelectChannelConnector" />
-                <property name="mapred.task.tracker.task-controller" value="org.apache.hadoop.mapred.DefaultTaskController" />
-                <property name="mapred.child.root.logger" value="INFO,TLA" />
-                <property name="mapred.child.java.opts" value="-server -Xmx640m -Djava.net.preferIPv4Stack=true" />
-                <property name="mapred.child.ulimit" value="8388608" />
-                <property name="mapred.job.tracker.persist.jobstatus.active" value="true" />
-                <property name="mapred.job.tracker.persist.jobstatus.dir" value="file:////var/log/hadoop/&lt;%= ambari_mapreduce_user %&gt;/jobstatus" /> 
-                <property name="mapred.job.tracker.history.completed.location" value="/mapred/history/done" /> 
-                <property name="mapred.heartbeats.in.second" value="200" />
-                <property name="mapreduce.tasktracker.outofband.heartbeat" value="true" />
-                <property name="*mapred.jobtracker.maxtasks.per.job" value="200000" />
-                <property name="mapreduce.jobtracker.kerberos.principal" value="&lt;%= ambari_jobtracker_principal %&gt;/_HOST@&lt;%= ambari_service_realm %&gt;" />
-                <property name="mapreduce.tasktracker.kerberos.principal" value="&lt;%= ambari_tasktracker_principal %&gt;/_HOST@&lt;%= ambari_service_realm %&gt;" />
-                <property name="hadoop.job.history.user.location" value="none" />
-                <property name="mapreduce.jobtracker.keytab.file" value="/etc/security/keytabs/&lt;%= ambari_jobtracker_principal %&gt;.service.keytab" />    
-                <property name="mapreduce.tasktracker.keytab.file" value="/etc/security/keytabs/&lt;%= ambari_tasktracker_principal %&gt;.service.keytab" />  
-                <property name="mapreduce.jobtracker.staging.root.dir" value="/user" />
-                <property name="mapreduce.job.acl-modify-job" value="" />
-                <property name="mapreduce.job.acl-view-job" value="Dr.Who" />
-                <property name="mapreduce.tasktracker.group" value="&lt;%= ambari_admin_group %&gt;" />
-                <property name="mapred.acls.enabled" value="true" />
-                <property name="mapred.jobtracker.taskScheduler" value="org.apache.hadoop.mapred.CapacityTaskScheduler" />
-                <property name="mapred.queue.names" value="default" />
-                <property name="mapreduce.history.server.embedded" value="false" />
-                <property name="mapreduce.history.server.http.address" value="&lt;%= ambari_jobtracker_host %&gt;:51111" />
-                <property name="mapreduce.jobhistory.kerberos.principal" value="&lt;%= ambari_jobtracker_principal %&gt;/_HOST@&lt;%= ambari_service_realm %&gt;" />
-                <property name="mapreduce.jobhistory.keytab.file" value="/etc/security/keytabs/&lt;%= ambari_jobtracker_principal %&gt;.service.keytab" />
-                <property name="mapred.hosts" value="&lt;%= ambari_hadoop_conf_dir %&gt;/&lt;%= ambari_cluster_name %&gt;/&lt;%= ambari_role_name %&gt;/mapred.include" />
-                <property name="mapred.hosts.exclude" value="&lt;%= ambari_hadoop_conf_dir %&gt;/&lt;%= ambari_cluster_name %&gt;/&lt;%= ambari_role_name %&gt;/mapred.exclude" />
-                <property name="mapred.jobtracker.retirejob.check" value="10000" />
-                <property name="mapred.jobtracker.retirejob.interval" value="0" />
-            </category>
-
             <category name="core-site.xml">
                 <property name="local.realm" value="&lt;%= ambari_service_realm %&gt;" /> 
                 <property name="fs.default.name" value="hdfs://&lt;%= ambari_namenode_host %&gt;:8020" />
@@ -148,49 +104,6 @@
         </roles>
         <roles name="datanode">
           <configuration>
-            <category name="mapred-site.xml">
-                <property name="*mapred.system.dir" value="/mapred/mapredsystem" />  
-                <property name="*mapred.local.dir" value="&lt;%= ambari_mapred_local_dir %&gt;" /> 
-                <property name="mapred.tasktracker.tasks.sleeptime-before-sigkill" value="250" />
-                <property name="*mapred.job.tracker" value="&lt;%= ambari_jobtracker_host %&gt;:9000" />
-                <property name="*mapred.job.tracker.http.address" value="&lt;%= ambari_jobtracker_host %&gt;:50030" />
-                <property name="mapreduce.cluster.administrators" value="&lt;%= ambari_mapreduce_user %&gt;" />
-                <property name="mapred.map.tasks.speculative.execution" value="false" />
-                <property name="mapred.reduce.tasks.speculative.execution" value="false" />
-                <property name="mapred.output.compression.type" value="BLOCK" />
-                <property name="jetty.connector" value="org.mortbay.jetty.nio.SelectChannelConnector" />
-                <property name="mapred.task.tracker.task-controller" value="org.apache.hadoop.mapred.DefaultTaskController" />
-                <property name="mapred.child.root.logger" value="INFO,TLA" />
-                <property name="mapred.child.java.opts" value="-server -Xmx640m -Djava.net.preferIPv4Stack=true" />
-                <property name="mapred.child.ulimit" value="8388608" />
-                <property name="mapred.job.tracker.persist.jobstatus.active" value="true" />
-                <property name="mapred.job.tracker.persist.jobstatus.dir" value="file:////var/log/hadoop/&lt;%= ambari_mapreduce_user %&gt;/jobstatus" /> 
-                <property name="mapred.job.tracker.history.completed.location" value="/mapred/history/done" /> 
-                <property name="mapred.heartbeats.in.second" value="200" />
-                <property name="mapreduce.tasktracker.outofband.heartbeat" value="true" />
-                <property name="*mapred.jobtracker.maxtasks.per.job" value="200000" />
-                <property name="mapreduce.jobtracker.kerberos.principal" value="&lt;%= ambari_jobtracker_principal %&gt;/_HOST@&lt;%= ambari_service_realm %&gt;" />
-                <property name="mapreduce.tasktracker.kerberos.principal" value="&lt;%= ambari_tasktracker_principal %&gt;/_HOST@&lt;%= ambari_service_realm %&gt;" />
-                <property name="hadoop.job.history.user.location" value="none" />
-                <property name="mapreduce.jobtracker.keytab.file" value="/etc/security/keytabs/&lt;%= ambari_jobtracker_principal %&gt;.service.keytab" />    
-                <property name="mapreduce.tasktracker.keytab.file" value="/etc/security/keytabs/&lt;%= ambari_tasktracker_principal %&gt;.service.keytab" />  
-                <property name="mapreduce.jobtracker.staging.root.dir" value="/user" />
-                <property name="mapreduce.job.acl-modify-job" value="" />
-                <property name="mapreduce.job.acl-view-job" value="Dr.Who" />
-                <property name="mapreduce.tasktracker.group" value="&lt;%= ambari_admin_group %&gt;" />
-                <property name="mapred.acls.enabled" value="true" />
-                <property name="mapred.jobtracker.taskScheduler" value="org.apache.hadoop.mapred.CapacityTaskScheduler" />
-                <property name="mapred.queue.names" value="default" />
-                <property name="mapreduce.history.server.embedded" value="false" />
-                <property name="mapreduce.history.server.http.address" value="&lt;%= ambari_jobtracker_host %&gt;:51111" />
-                <property name="mapreduce.jobhistory.kerberos.principal" value="&lt;%= ambari_jobtracker_principal %&gt;/_HOST@&lt;%= ambari_service_realm %&gt;" />
-                <property name="mapreduce.jobhistory.keytab.file" value="/etc/security/keytabs/&lt;%= ambari_jobtracker_principal %&gt;.service.keytab" />
-                <property name="mapred.hosts" value="&lt;%= ambari_hadoop_conf_dir %&gt;/&lt;%= ambari_cluster_name %&gt;/&lt;%= ambari_role_name %&gt;/mapred.include" />
-                <property name="mapred.hosts.exclude" value="&lt;%= ambari_hadoop_conf_dir %&gt;/&lt;%= ambari_cluster_name %&gt;/&lt;%= ambari_role_name %&gt;/mapred.exclude" />
-                <property name="mapred.jobtracker.retirejob.check" value="10000" />
-                <property name="mapred.jobtracker.retirejob.interval" value="0" />
-            </category>
-
             <category name="core-site.xml">
                 <property name="local.realm" value="&lt;%= ambari_service_realm %&gt;" /> 
                 <property name="fs.default.name" value="hdfs://&lt;%= ambari_namenode_host %&gt;:8020" />
