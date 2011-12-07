@@ -35,7 +35,7 @@
         <definition provider="org.apache.ambari" name="hadoop-hdfs" version="0.1.0"/>
         <roles name="namenode">
           <configuration>
-            <category name="mapred-site">
+            <category name="mapred-site.xml">
                 <property name="*mapred.system.dir" value="/mapred/mapredsystem" />  
                 <property name="*mapred.local.dir" value="&lt;%= ambari_mapred_local_dir %&gt;" /> 
                 <property name="mapred.tasktracker.tasks.sleeptime-before-sigkill" value="250" />
@@ -78,7 +78,7 @@
                 <property name="mapred.jobtracker.retirejob.interval" value="0" />
             </category>
 
-            <category name="core-site">
+            <category name="core-site.xml">
                 <property name="local.realm" value="&lt;%= ambari_service_realm %&gt;" /> 
                 <property name="fs.default.name" value="hdfs://&lt;%= ambari_namenode_host %&gt;:8020" />
                 <property name="fs.trash.interval" value="360" />
@@ -90,7 +90,7 @@
                 <property name="hadoop.http.filter.initializers" value="org.apache.hadoop.http.lib.StaticUserWebFilter" />
             </category>
 
-            <category name="hdfs-site">
+            <category name="hdfs-site.xml">
                 <property name="*dfs.name.dir"  value="&lt;%= ambari_dfs_name_dir %&gt;" />
                 <property name="*dfs.data.dir" value="&lt;%= ambari_dfs_data_dir %&gt;" />
                 <property name="dfs.safemode.threshold.pct" value="1.0f" />
@@ -124,7 +124,7 @@
                 <property name="dfs.webhdfs.enabled" value="true" />
                 <property name="dfs.support.append" value="true" />
             </category>
-            <category name="hadoop-env">
+            <category name="hadoop-env.sh">
                 <property name="JAVA_HOME" value="/usr/jdk1.6.0_27" />
                 <property name="HADOOP_CONF_DIR" value="&lt;%= ambari_hadoop_conf_dir %&gt;/&lt;%= ambari_cluster_name %&gt;/&lt;%= ambari_role_name %&gt;" />   
                 <property name="HADOOP_OPTS" value="-Djava.net.preferIPv4Stack=true $HADOOP_OPTS" />
@@ -141,14 +141,14 @@
                 <property name="HADOOP_SECURE_DN_PID_DIR" value="/var/run/hadoop" /> 
                 <property name="HADOOP_IDENT_STRING" value="&lt;%= ambari_cluster_name %&gt;" />
             </category>
-            <category name="hadoop_metrics2">
+            <category name="hadoop-metrics2.properties">
                 <property name="*.period" value="60" />
             </category>
           </configuration>
         </roles>
         <roles name="datanode">
           <configuration>
-            <category name="mapred-site">
+            <category name="mapred-site.xml">
                 <property name="*mapred.system.dir" value="/mapred/mapredsystem" />  
                 <property name="*mapred.local.dir" value="&lt;%= ambari_mapred_local_dir %&gt;" /> 
                 <property name="mapred.tasktracker.tasks.sleeptime-before-sigkill" value="250" />
@@ -191,7 +191,7 @@
                 <property name="mapred.jobtracker.retirejob.interval" value="0" />
             </category>
 
-            <category name="core-site">
+            <category name="core-site.xml">
                 <property name="local.realm" value="&lt;%= ambari_service_realm %&gt;" /> 
                 <property name="fs.default.name" value="hdfs://&lt;%= ambari_namenode_host %&gt;:8020" />
                 <property name="fs.trash.interval" value="360" />
@@ -203,7 +203,7 @@
                 <property name="hadoop.http.filter.initializers" value="org.apache.hadoop.http.lib.StaticUserWebFilter" />
             </category>
 
-            <category name="hdfs-site">
+            <category name="hdfs-site.xml">
                 <property name="*dfs.name.dir"  value="&lt;%= ambari_dfs_name_dir %&gt;" />
                 <property name="*dfs.data.dir" value="&lt;%= ambari_dfs_data_dir %&gt;" />
                 <property name="dfs.safemode.threshold.pct" value="1.0f" />
@@ -237,7 +237,7 @@
                 <property name="dfs.webhdfs.enabled" value="true" />
                 <property name="dfs.support.append" value="true" />
             </category>
-            <category name="hadoop-env">
+            <category name="hadoop-env.sh">
                 <property name="JAVA_HOME" value="/usr/jdk1.6.0_27" />
                 <property name="HADOOP_CONF_DIR" value="&lt;%= ambari_hadoop_conf_dir %&gt;/&lt;%= ambari_cluster_name %&gt;/&lt;%= ambari_role_name %&gt;" />   
                 <property name="HADOOP_OPTS" value="-Djava.net.preferIPv4Stack=true $HADOOP_OPTS" />
@@ -254,7 +254,7 @@
                 <property name="HADOOP_SECURE_DN_PID_DIR" value="/var/run/hadoop" /> 
                 <property name="HADOOP_IDENT_STRING" value="&lt;%= ambari_cluster_name %&gt;" />
             </category>
-            <category name="hadoop_metrics2">
+            <category name="hadoop-metrics2.properties">
                 <property name="*.period" value="60" />
             </category>
           </configuration>
