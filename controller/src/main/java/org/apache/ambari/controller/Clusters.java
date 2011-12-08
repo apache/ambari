@@ -48,7 +48,9 @@ import org.apache.ambari.resource.statemachine.StateMachineInvoker;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -65,15 +67,18 @@ public class Clusters {
     private final Stacks stacks;
     private final Nodes nodes;
     private final ClusterFactory clusterFactory;
+    private final StackFlattener flattener;
         
     @Inject
     private Clusters(Stacks stacks, Nodes nodes, 
                      PersistentDataStore dataStore,
-                     ClusterFactory clusterFactory) throws Exception {
+                     ClusterFactory clusterFactory,
+                     StackFlattener flattener) throws Exception {
       this.stacks = stacks;
       this.nodes = nodes;
       this.dataStore = dataStore;
       this.clusterFactory = clusterFactory;
+      this.flattener = flattener;
       recoverClustersStateAfterRestart();
     }
     
@@ -858,13 +863,111 @@ public class Clusters {
   
   
   /*
-   * Get the deployment script for this clustername/revision combo
+   * Get the puppet deployment script for this cluster name/revision combo
    */
   public String getInstallAndConfigureScript(String clusterName, int revision) throws Exception {
+      
       ClusterDefinition c = getClusterByName (clusterName).getClusterDefinition(revision);
-      // TODO: ignore if comps or roles are not present in stack.
-      Stack stack = stacks.getStack(c.getStackName(), Integer.parseInt(c.getStackRevision()));
+      Stack stack = this.flattener.flattenStack(c.getStackName(), Integer.parseInt(c.getStackRevision()));
+      
+      /*
+       * Generate Ambari global variables
+       */
+      String config = getStackGlobalVariablesForPuppet (stack, c);
+      
+      config = config + getStackConfigMapForPuppet (stack);
+      
+      config = config + getRoleToNodesMapForPuppet (c);
+      
+      return config;
+  }
+  
+  private String getStackGlobalVariablesForPuppet (Stack stack, ClusterDefinition c) throws Exception {
+
+      String config = "\n";
+      config = config + "$ambari_cluster_name" + " = " + "\"" + c.getName() + "\"\n";
+      for (RoleToNodes rns : c.getRoleToNodesMap()) {
+          config = config + "$ambari_"+rns.getRoleName()+"_host" + " = " + "\"";
+          List<String> host_list = this.getHostnamesFromRangeExpressions(rns.getNodes());
+          for (int j=0; j<host_list.size(); j++) {
+              String host = host_list.get(j);
+              if (j == host_list.size()-1) {
+                  config = config + host;
+              } else {
+                  config = config +host+", ";
+              }
+          }
+          config = config + "\"\n";
+      }
+      for (ConfigurationCategory cat : stack.getConfiguration().getCategory()) {
+          if(cat.getName().equals("ambari")) {
+              for (Property p : cat.getProperty()) {
+                  config = config + "$"+p.getName() + " = " + "\"" + p.getValue() + "\"\n";
+              }
+              config = config + "\n";
+          }
+      }
+      return config;
+  }
+  
+  private String getRoleToNodesMapForPuppet (ClusterDefinition c) throws Exception {
+      String config = "\n$role_to_nodes = { ";
+      for (int i=0; i<c.getRoleToNodesMap().size(); i++) {
+          RoleToNodes roleToNodesEntry = c.getRoleToNodesMap().get(i);
+          config = config + roleToNodesEntry.getRoleName()+ " => [";
+          List<String> host_list = this.getHostnamesFromRangeExpressions(roleToNodesEntry.getNodes());
+          for (int j=0; j<host_list.size(); j++) {
+              String host = host_list.get(j);
+              if (j == host_list.size()-1) {
+                  config = config + "\'"+host+"\'";
+              } else {
+                  config = config + "\'"+host+"\',";
+              }
+          }
+          if (i == c.getRoleToNodesMap().size()-1) {
+              config = config + "] \n";
+          } else {
+              config = config + "], \n";
+          }
+      }
+      config = config + "} \n"; 
+      return config;
+  }
+  
+  private String getStackConfigMapForPuppet (Stack stack) throws Exception {
       String config = "\n$hadoop_stack_conf = { ";
+      
+      /*
+       * Generate configuration map for client role from top level configuration in the stack
+       */
+      config = config + "client" + " => { "; 
+      if (stack.getConfiguration() != null && stack.getConfiguration().getCategory() != null) {
+          for (int j=0; j<stack.getConfiguration().getCategory().size(); j++) {
+              ConfigurationCategory cat = stack.getConfiguration().getCategory().get(j);
+              if (cat.getName().equals("ambari")) { continue; }
+              config = config+"\""+cat.getName()+"\" => { ";
+              if (cat.getProperty() != null) {
+                   for (int i=0; i<cat.getProperty().size(); i++) {
+                       Property p = cat.getProperty().get(i);
+                       if (i == cat.getProperty().size()-1) {
+                           config = config+ "\"" + p.getName()+"\" => \""+p.getValue()+"\" ";
+                       } else { 
+                           config = config+ "\"" + p.getName()+"\" => \""+p.getValue()+"\", ";
+                       }
+                   }
+               }
+               if (j == stack.getConfiguration().getCategory().size()-1) {
+                   config = config +" } \n";
+               } else {
+                   config = config +" }, \n";
+               }
+          }
+      }
+      config = config + "}, \n";
+     
+      /*
+       * Generate and append configuration map for other roles
+       */
       if (stack.getComponents() != null) {
           for (Component comp : stack.getComponents()) {
               if (comp.getRoles() != null) {
@@ -880,9 +983,9 @@ public class Clusters {
                                    for (int i=0; i<cat.getProperty().size(); i++) {
                                        Property p = cat.getProperty().get(i);
                                        if (i == cat.getProperty().size()-1) {
-                                           config = config+p.getName()+" => "+p.getValue()+" ";
+                                           config = config+ "\"" + p.getName()+"\" => \""+p.getValue()+"\" ";
                                        } else { 
-                                           config = config+p.getName()+" => "+p.getValue()+", ";
+                                           config = config+ "\"" + p.getName()+"\" => \""+p.getValue()+"\", ";
                                        }
                                    }
                                }
@@ -903,27 +1006,6 @@ public class Clusters {
           }
       }
       config = config + "} \n";
-      
-      config = config + "$role_to_nodes = { ";
-      for (int i=0; i<c.getRoleToNodesMap().size(); i++) {
-          RoleToNodes roleToNodesEntry = c.getRoleToNodesMap().get(i);
-          config = config + roleToNodesEntry.getRoleName()+ " => [";
-          List<String> host_list = this.getHostnamesFromRangeExpressions(roleToNodesEntry.getNodes());
-          for (int j=0; j<host_list.size(); j++) {
-              String host = host_list.get(j);
-              if (j == host_list.size()-1) {
-                  config = config + "\'"+host+"\'";
-              } else {
-                  config = config + "\'"+host+"\',";
-              }
-          }
-          if (i == c.getRoleToNodesMap().size()-1) {
-              config = config + "] \n";
-          } else {
-              config = config + "], \n";
-          }
-      }
-      config = config + "} \n";    
       return config;
   }
 

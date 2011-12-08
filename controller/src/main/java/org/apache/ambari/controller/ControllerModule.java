@@ -24,6 +24,7 @@ import org.apache.ambari.controller.rest.resources.NodesResource;
 import org.apache.ambari.controller.rest.resources.StacksResource;
 import org.apache.ambari.datastore.PersistentDataStore;
 import org.apache.ambari.datastore.impl.StaticDataStore;
+import org.apache.ambari.datastore.impl.ZookeeperDS;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
@@ -33,7 +34,7 @@ public class ControllerModule extends AbstractModule {
   @Override
   protected void configure() {
     install(new ComponentModule());
-    bind(PersistentDataStore.class).to(StaticDataStore.class);
+    bind(PersistentDataStore.class).to(ZookeeperDS.class);
     requestStaticInjection(ClustersResource.class,
                            NodesResource.class,
                            StacksResource.class,
