@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-149. Filter the meta ambari category out of the flattened stacks.
+  (omalley)
+
   AMBARI-141. Update the heartbeat on controller/agent (ddas)
 
   AMBARI-147. Create a stack flattener and introduce Guice. (omalley)

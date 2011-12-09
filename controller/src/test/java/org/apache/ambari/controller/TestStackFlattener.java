@@ -178,6 +178,7 @@ public class TestStackFlattener {
                       childHdfsConfig, hdfsRoles));
     Configuration nnConf = new Configuration();
     hdfsRoles.add(new Role("namenode", nnConf));
+    setConfigParam(parentConfiguration, "ambari", "global", "global-value");
     setConfigParam(parentConfiguration, "cat1", "b", "parent");
     setConfigParam(parentConfiguration, "cat1", "a", "a-value");
     setConfigParam(parentConfiguration, "cat2", "b", "cat2-value");
@@ -194,6 +195,7 @@ public class TestStackFlattener {
     assertEquals("a-value", getConfigParam(conf, "cat1", "a"));
     assertEquals("cat2-value", getConfigParam(conf, "cat2", "b"));
     assertEquals("grandchild", getConfigParam(conf, "cat1", "b"));
+    assertEquals("global-value", getConfigParam(conf, "ambari", "global"));
     assertEquals(null, getConfigParam(conf, "cat1", "c"));
     assertEquals(null, getConfigParam(conf, "cat1", "d"));
     Component comp = flat.getComponents().get(0);
@@ -205,6 +207,7 @@ public class TestStackFlattener {
     assertEquals("a-value", getConfigParam(conf, "cat1", "a"));
     assertEquals("cat2-value", getConfigParam(conf, "cat2", "b"));
     assertEquals("grandchild", getConfigParam(conf, "cat1", "b"));
+    assertEquals(null, getConfigParam(conf, "ambari", "global"));
     assertEquals("nn-c", getConfigParam(conf, "cat1", "c"));
     assertEquals("d-value", getConfigParam(conf, "cat1", "d"));
     role = comp.getRoles().get(1);
@@ -213,6 +216,7 @@ public class TestStackFlattener {
     assertEquals("a-value", getConfigParam(conf, "cat1", "a"));
     assertEquals("cat2-value", getConfigParam(conf, "cat2", "b"));
     assertEquals("grandchild", getConfigParam(conf, "cat1", "b"));
+    assertEquals(null, getConfigParam(conf, "ambari", "global"));
     assertEquals(null, getConfigParam(conf, "cat1", "c"));
     assertEquals("d-value", getConfigParam(conf, "cat1", "d"));
   }

@@ -48,8 +48,17 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+/**
+ * This class flattens a stack and its ancestors into a single stack. The 
+ * resulting stack has a client configuration at the top and a fully expanded
+ * configuration for each of the roles. The configuration at the components 
+ * level (other than being pushed down into the appropriate roles) is also
+ * removed. Finally the "ambari" category is removed from the role configs.
+ */
 public class StackFlattener {
 
+  private static final String META_CATEGORY = "ambari";
+  
   private final Stacks stacks;
   private final ComponentPluginFactory plugins;
 
@@ -120,17 +129,25 @@ public class StackFlattener {
     return result;
   }
   
+  /**
+   * Merge the given Configuration into the map that we are building.
+   * @param map the map to update
+   * @param conf the configuration to merge in
+   * @param dropMeta should we drop the meta category
+   */
   private void mergeInConfiguration(Map<String, Map<String, Property>> map,
-                                    Configuration conf) {
+                                    Configuration conf, boolean dropMeta) {
     if (conf != null) {
       for (ConfigurationCategory category: conf.getCategory()) {
-        Map<String, Property> categoryMap = map.get(category.getName());
-        if (categoryMap == null) {
-          categoryMap = new TreeMap<String, Property>();
-          map.put(category.getName(), categoryMap);
-        }
-        for (Property prop: category.getProperty()) {
-          categoryMap.put(prop.getName(), prop);
+        if (!dropMeta || !META_CATEGORY.equals(category.getName())) {
+          Map<String, Property> categoryMap = map.get(category.getName());
+          if (categoryMap == null) {
+            categoryMap = new TreeMap<String, Property>();
+            map.put(category.getName(), categoryMap);
+          }
+          for (Property prop: category.getProperty()) {
+            categoryMap.put(prop.getName(), prop);
+          }
         }
       }
     }
@@ -155,7 +172,7 @@ public class StackFlattener {
     Map<String, Map<String, Property>> newConfig =
         new TreeMap<String, Map<String, Property>>();
     for(Stack stack: stacks) {
-      mergeInConfiguration(newConfig, stack.getConfiguration());
+      mergeInConfiguration(newConfig, stack.getConfiguration(), false);
     }
     return buildConfig(newConfig);
   }
@@ -166,15 +183,15 @@ public class StackFlattener {
     Map<String, Map<String, Property>> newConfig =
         new TreeMap<String, Map<String,Property>>();
     for(Stack stack: stacks) {
-      mergeInConfiguration(newConfig, stack.getConfiguration());
+      mergeInConfiguration(newConfig, stack.getConfiguration(), true);
       for (Component component: stack.getComponents()) {
         if (component.getName().equals(componentName)) {
-          mergeInConfiguration(newConfig, component.getConfiguration());
+          mergeInConfiguration(newConfig, component.getConfiguration(), true);
           List<Role> roleList = component.getRoles();
           if (roleList != null) {
             for (Role role: roleList) {
               if (role.getName().equals(roleName)) {
-                mergeInConfiguration(newConfig, role.getConfiguration());
+                mergeInConfiguration(newConfig, role.getConfiguration(), true);
               }
             }
           }
