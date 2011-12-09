@@ -47,7 +47,14 @@ public class StateMachineInvoker {
   private static Dispatcher dispatcher;
   
   private static Log LOG = LogFactory.getLog(StateMachineInvoker.class);
+  public Dispatcher getAMBARIDispatcher() {
+    return dispatcher;
+  }
   
+  public static void setAMBARIDispatcher(Dispatcher dispatcher1) {
+    dispatcher = dispatcher1;
+  }  
+
   public static EventHandler getAMBARIEventHandler() {
     return dispatcher.getEventHandler();
   }
@@ -115,4 +122,7 @@ public class StateMachineInvoker {
       long clusterDefinitionRev) {
     return clusters.get(clusterId).getClusterState();
   }
+  
+  
+  
 }

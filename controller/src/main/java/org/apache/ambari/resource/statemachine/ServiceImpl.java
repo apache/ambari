@@ -27,26 +27,21 @@ import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
 import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
-import org.apache.ambari.components.ComponentPlugin;
-import org.apache.ambari.controller.Cluster;
 import org.apache.ambari.event.EventHandler;
 
 public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
 
-  private ClusterFSM clusterFsm;
-  private ComponentPlugin plugin;
+  private final ClusterFSM clusterFsm;
   
   /* The state machine for the service looks like:
-   * INACTIVE --S_START--> PRESTART
+   * INACTIVE or FAIL --S_START--> PRESTART
    * PRESTART --S_PRESTART_FAILURE--> FAIL
    * PRESTART --S_PRESTART_SUCCESS--> STARTING --S_START_SUCCESS--> STARTED
    *                                           --S_START_FAILURE--> FAIL
-   * STARTED --S_AVAILABLE--> ACTIVE  (check for things like safemode here)
-   * STARTED --S_UNAVAILABLE--> FAIL
-   * ACTIVE --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
-   *                             --S_STOP_FAILURE--> UNCLEAN_STOP
-   * FAIL --S_STOP--> STOPPING --S_STOP_SUCCESS--> STOPPED
-   *                           --S_STOP_FAILURE--> UNCLEAN_STOP
+   * STARTED --S_AVAILABLE_CHECK_SUCCESS--> ACTIVE  (check for things like safemode here)
+   * STARTED --S_AVAILABLE_CHECK_FAILURE--> FAIL
+   * ACTIVE or FAIL --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
+   *                             --S_STOP_FAILURE--> FAIL
    */
   
   private static final StateMachineFactory 
@@ -55,10 +50,10 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
          = new StateMachineFactory<ServiceImpl, ServiceState, ServiceEventType,
          ServiceEvent>(ServiceState.INACTIVE)
          
-         .addTransition(ServiceState.INACTIVE, ServiceState.PRESTART, 
+          .addTransition(ServiceState.INACTIVE, ServiceState.PRESTART, 
              ServiceEventType.START)
              
-         .addTransition(ServiceState.STOPPED, ServiceState.PRESTART, 
+         .addTransition(ServiceState.FAIL, ServiceState.PRESTART, 
              ServiceEventType.START)
              
          .addTransition(ServiceState.PRESTART, ServiceState.FAIL, 
@@ -66,14 +61,14 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
              
          .addTransition(ServiceState.PRESTART, ServiceState.STARTING, 
              ServiceEventType.PRESTART_SUCCESS, new StartServiceTransition())    
-             
+          
          .addTransition(ServiceState.STARTING, 
              EnumSet.of(ServiceState.STARTED, ServiceState.STARTING), 
-             ServiceEventType.ROLE_STARTED,
+             ServiceEventType.ROLE_START_SUCCESS,
              new RoleStartedTransition())
              
          .addTransition(ServiceState.STARTING, ServiceState.FAIL, 
-             ServiceEventType.START_FAILURE)
+             ServiceEventType.ROLE_START_FAILURE)
              
          .addTransition(ServiceState.STARTED, 
              ServiceState.ACTIVE,
@@ -86,30 +81,24 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
              new UnavailableTransition())
                       
          .addTransition(ServiceState.ACTIVE, ServiceState.ACTIVE, 
-             ServiceEventType.ROLE_STARTED)
+             ServiceEventType.ROLE_START_SUCCESS)
              
          .addTransition(ServiceState.ACTIVE, ServiceState.STOPPING, 
              ServiceEventType.STOP, new StopServiceTransition())
              
          .addTransition(ServiceState.STOPPING, 
              EnumSet.of(ServiceState.INACTIVE, ServiceState.STOPPING),
-             ServiceEventType.STOP_SUCCESS, 
+             ServiceEventType.ROLE_STOP_SUCCESS, 
              new RoleStoppedTransition())
              
-         .addTransition(ServiceState.STOPPING, ServiceState.UNCLEAN_STOP, 
-             ServiceEventType.STOP_FAILURE)
+         .addTransition(ServiceState.STOPPING, ServiceState.FAIL, 
+             ServiceEventType.ROLE_STOP_FAILURE)
              
          .addTransition(ServiceState.FAIL, ServiceState.STOPPING, 
-             ServiceEventType.STOP)
+             ServiceEventType.STOP, new StopServiceTransition())
              
-         .addTransition(ServiceState.STOPPING, ServiceState.STOPPED, 
-             ServiceEventType.STOP_SUCCESS)
-             
-         .addTransition(ServiceState.STOPPED, ServiceState.STOPPED, 
-             ServiceEventType.STOP_SUCCESS)
-             
-         .addTransition(ServiceState.STOPPING, ServiceState.UNCLEAN_STOP,
-             ServiceEventType.STOP_FAILURE)
+         .addTransition(ServiceState.INACTIVE, ServiceState.INACTIVE, 
+             ServiceEventType.ROLE_STOP_SUCCESS)
              
          .installTopology();
   
@@ -118,22 +107,24 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
   private final List<RoleFSM> serviceRoles = new ArrayList<RoleFSM>();
   private Iterator<RoleFSM> iterator;
   private final String serviceName;
-  
-  public ServiceImpl(Cluster cluster, ClusterFSM clusterFsm, String serviceName)
+
+  public ServiceImpl(String[] roles, ClusterFSM clusterFsm, String serviceName)
       throws IOException {
     this.clusterFsm = clusterFsm;
     this.serviceName = serviceName;
-    //load plugin and get the roles and create them
-    this.plugin = cluster.getComponentDefinition(serviceName);
-    String[] roles = this.plugin.getActiveRoles();
-    for (String role : roles) {
-      RoleImpl roleImpl = new RoleImpl(this, role);
-      serviceRoles.add(roleImpl);
-    }
-    
+    setRoles(roles);
     stateMachine = stateMachineFactory.make(this);
   }
     
+  private void setRoles(String[] roles) {
+    serviceRoles.clear();
+    //get the roles for this service
+    for (String role : roles) {
+      RoleImpl roleImpl = new RoleImpl(this, role);
+      serviceRoles.add(roleImpl);
+    }    
+  }
+
   public StateMachine getStateMachine() {
     return stateMachine;
   }
@@ -156,10 +147,6 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
   @Override
   public String getServiceName() {
     return serviceName;
-  }
-  
-  public void addRoles(List<RoleFSM> roles) {
-    this.serviceRoles.addAll(roles);
   }
     
   private RoleFSM getFirstRole() {
@@ -304,4 +291,5 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
   public List<RoleFSM> getRoles() {
     return serviceRoles;
   }
+
 }

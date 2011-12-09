@@ -42,14 +42,10 @@ import org.apache.commons.logging.LogFactory;
 public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
 
   /* The state machine for the cluster looks like:
-   * INACTIVE --START--> STARTING --START_SUCCESS from all services--> ACTIVE
+   * INACTIVE or FAIL --START--> STARTING --START_SUCCESS from all services--> ACTIVE
    *                                --START_FAILURE from any service--> FAIL
-   * ACTIVE --STOP--> STOPPING --STOP_SUCCESS from all services--> INACTIVE
-   *                             --STOP_FAILURE from any service--> UNCLEAN_STOP
-   * FAIL --STOP--> STOPPING --STOP_SUCCESS--> STOPPED
-   *                           --STOP_FAILURE--> UNCLEAN_STOP
-   * INACTIVE --RELEASE_NODES--> ATTIC
-   * ATTIC --ADD_NODES--> INACTIVE
+   * ACTIVE or FAIL --STOP--> STOPPING --STOP_SUCCESS from all services--> INACTIVE
+   *                             --STOP_FAILURE from any service--> FAIL
    */
 
   private static final StateMachineFactory
@@ -58,6 +54,9 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
           ClusterEvent>(ClusterStateFSM.INACTIVE)
   
   .addTransition(ClusterStateFSM.INACTIVE, ClusterStateFSM.STARTING, 
+      ClusterEventType.START, new StartClusterTransition())
+
+  .addTransition(ClusterStateFSM.FAIL, ClusterStateFSM.STARTING, 
       ClusterEventType.START, new StartClusterTransition())
       
   .addTransition(ClusterStateFSM.STARTING, EnumSet.of(ClusterStateFSM.ACTIVE, 
@@ -70,30 +69,18 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
   .addTransition(ClusterStateFSM.ACTIVE, ClusterStateFSM.STOPPING, 
       ClusterEventType.STOP, new StopClusterTransition())
       
+  .addTransition(ClusterStateFSM.FAIL, ClusterStateFSM.STOPPING, 
+      ClusterEventType.STOP, new StopClusterTransition())
+      
   .addTransition(ClusterStateFSM.STOPPING, EnumSet.of(ClusterStateFSM.INACTIVE,
       ClusterStateFSM.STOPPING), ClusterEventType.STOP_SUCCESS,
       new ServiceStoppedTransition())
       
-  .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.UNCLEAN_STOP, 
+  .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.FAIL, 
       ClusterEventType.STOP_FAILURE)
-      
-  .addTransition(ClusterStateFSM.FAIL, ClusterStateFSM.STOPPING, 
-      ClusterEventType.STOP)
-      
-  .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.INACTIVE, 
-      ClusterEventType.STOP_SUCCESS)
       
   .addTransition(ClusterStateFSM.INACTIVE, ClusterStateFSM.INACTIVE, 
       ClusterEventType.STOP_SUCCESS)
-      
-  .addTransition(ClusterStateFSM.STOPPING, ClusterStateFSM.UNCLEAN_STOP, 
-      ClusterEventType.STOP_FAILURE)
-      
-  .addTransition(ClusterStateFSM.INACTIVE, ClusterStateFSM.ATTIC, 
-      ClusterEventType.RELEASE_NODES)
-      
-  .addTransition(ClusterStateFSM.ATTIC, ClusterStateFSM.INACTIVE, 
-      ClusterEventType.ADD_NODES)
       
   .installTopology();
   
@@ -116,7 +103,11 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
     for (String service :
       cluster.getClusterDefinition(revision).getEnabledServices()) {
       if(hasActiveRoles(cluster, service)){
-        ServiceImpl serviceImpl = new ServiceImpl(cluster, this, service);
+        ServiceImpl serviceImpl = new ServiceImpl(
+            cluster.getComponentDefinition(service).getActiveRoles(), 
+            this, 
+            service);
+        
         serviceImpls.add(serviceImpl);
       }
     }

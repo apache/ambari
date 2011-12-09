@@ -17,6 +17,11 @@
  */
 package org.apache.ambari.controller;
 
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,12 +54,6 @@ import org.apache.ambari.resource.statemachine.ServiceEventType;
 import org.apache.ambari.resource.statemachine.ServiceFSM;
 import org.apache.ambari.resource.statemachine.ServiceState;
 import org.apache.ambari.resource.statemachine.StateMachineInvoker;
-
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -206,7 +205,7 @@ public class TestHeartbeat {
     ServiceFSM serviceImpl = clusterImpl.getServices().get(0);
     ((TestServiceImpl)serviceImpl).setServiceState(ServiceState.STARTED);
     c.put("cluster1", clusterImpl);
-    checkSpecialAction(ServiceState.STARTED, ServiceEventType.ROLE_STARTED, 
+    checkSpecialAction(ServiceState.STARTED, ServiceEventType.ROLE_START_SUCCESS, 
         SpecialServiceIDs.SERVICE_AVAILABILITY_CHECK_ID);
   }
   

@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-150. Simplifies states in controller state machine (thejas via ddas)
+
   AMBARI-149. Filter the meta ambari category out of the flattened stacks.
   (omalley)
 
@@ -10,7 +12,7 @@ Release 0.1.0 - unreleased
   AMBARI-147. Create a stack flattener and introduce Guice. (omalley)
 
   AMBARI-145. FSMs are created for only those components that have 
-  active roles (Thejas M Nair via ddas)
+  active roles (thejas via ddas)
 
   AMBARI-146. Fix test case failures in agent's FileUtil. (omalley)
 

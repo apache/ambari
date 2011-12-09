@@ -32,26 +32,21 @@ public enum ServiceEventType {
   STOP,
 
   //Producer: Service
-  START_SUCCESS,
-  
-  //Producer: Service
-  START_FAILURE,
-  
-  //Producer: Service
   AVAILABLE_CHECK_SUCCESS,
   
   //Producer: Service
   AVAILABLE_CHECK_FAILURE,
-  
-  //Producer: Service
-  STOP_SUCCESS,
-  
-  //Producer: Service
-  STOP_FAILURE,
-  
+
   //Producer: Role
-  ROLE_STARTED,
-  
+  ROLE_START_SUCCESS,
+
   //Producer: Role
-  ROLE_STOPPED
+  ROLE_START_FAILURE,
+
+  //Producer: Role
+  ROLE_STOP_SUCCESS,
+
+  //Producer: Role
+  ROLE_STOP_FAILURE
+  
 }

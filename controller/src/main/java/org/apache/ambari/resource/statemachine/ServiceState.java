@@ -18,5 +18,5 @@
 package org.apache.ambari.resource.statemachine;
 
 public enum ServiceState {
-  INACTIVE, PRESTART, STARTING, STARTED, ACTIVE, FAIL, STOPPING, UNCLEAN_STOP, STOPPED
+  INACTIVE, PRESTART, STARTING, STARTED, ACTIVE, FAIL, STOPPING,
 }

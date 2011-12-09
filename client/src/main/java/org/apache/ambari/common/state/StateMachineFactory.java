@@ -439,5 +439,10 @@ final public class StateMachineFactory
           (operand, currentState, eventType, event);
       return currentState;
     }
+
+    @Override
+    public void setCurrentState(STATE state) {
+      currentState = state;
+    }
   }
 }

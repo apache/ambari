@@ -24,30 +24,29 @@ import org.apache.ambari.event.EventHandler;
 
 public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
 
-  private RoleState myState;
-  private String roleName;
-  private ServiceFSM service;
+  private final String roleName;
+  private final ServiceFSM service;
   
   /* The state machine for the role looks like:
-   * INACTIVE --S_START--> STARTING --S_START_SUCCESS--> ACTIVE
+   * (INACTIVE or FAIL) --S_START--> STARTING --S_START_SUCCESS--> ACTIVE
    *                                --S_START_FAILURE--> FAIL
-   * ACTIVE --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
-   *                             --S_STOP_FAILURE--> UNCLEAN_STOP
-   * FAIL --S_STOP--> STOPPING --S_STOP_SUCCESS--> STOPPED
-   *                           --S_STOP_FAILURE--> UNCLEAN_STOP
+   * (ACTIVE or FAIL) --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
+   *                             --S_STOP_FAILURE--> FAIL
    */
   
   private static final StateMachineFactory 
   <RoleImpl, RoleState, RoleEventType, RoleEvent> stateMachineFactory 
          = new StateMachineFactory<RoleImpl, RoleState, RoleEventType, 
          RoleEvent>(RoleState.INACTIVE)
-         
+
+         //START event transitions
          .addTransition(RoleState.INACTIVE, RoleState.STARTING, 
              RoleEventType.START)
              
-         .addTransition(RoleState.STOPPED, RoleState.STARTING, 
+         .addTransition(RoleState.FAIL, RoleState.STARTING, 
              RoleEventType.START)
              
+          //START_SUCCESS event transitions   
          .addTransition(RoleState.STARTING, 
              RoleState.ACTIVE,
              RoleEventType.START_SUCCESS, new SuccessfulStartTransition())
@@ -59,33 +58,25 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
              RoleEventType.START_SUCCESS)
              
          .addTransition(RoleState.STARTING, 
-             RoleState.STARTING,
+             RoleState.FAIL,
              RoleEventType.START_FAILURE)
-             
-         .addTransition(RoleState.FAIL, RoleState.FAIL, 
-             RoleEventType.START_FAILURE)
-             
+
+          //STOP event transitions   
          .addTransition(RoleState.ACTIVE, RoleState.STOPPING, 
              RoleEventType.STOP)
-             
+
+         .addTransition(RoleState.FAIL, RoleState.STOPPING, 
+             RoleEventType.STOP)
+
+          //STOP_SUCCESS event transitions   
          .addTransition(RoleState.STOPPING, RoleState.INACTIVE,
              RoleEventType.STOP_SUCCESS, new RoleStopTransition())
-             
-         .addTransition(RoleState.STOPPING, RoleState.UNCLEAN_STOP,
-             RoleEventType.STOP_FAILURE)
-             
-         .addTransition(RoleState.FAIL, RoleState.STOPPING, RoleEventType.STOP)
-         
-         .addTransition(RoleState.STOPPING, RoleState.STOPPED, 
+
+         .addTransition(RoleState.INACTIVE, RoleState.INACTIVE,
              RoleEventType.STOP_SUCCESS)
              
-         .addTransition(RoleState.STOPPED, RoleState.STOPPED,
-             RoleEventType.STOP_SUCCESS)
-             
-         .addTransition(RoleState.STOPPING, RoleState.UNCLEAN_STOP, 
-             RoleEventType.STOP_FAILURE)
-             
-         .addTransition(RoleState.UNCLEAN_STOP, RoleState.UNCLEAN_STOP,
+          //STOP_FAILURE event transitions                
+         .addTransition(RoleState.STOPPING, RoleState.FAIL,
              RoleEventType.STOP_FAILURE)
              
          .installTopology();
@@ -96,11 +87,10 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
   public RoleImpl(ServiceFSM service, String roleName) {
     this.roleName = roleName;
     this.service = service;
-    this.myState = RoleState.INACTIVE;
     stateMachine = stateMachineFactory.make(this);
   }
   
-  public StateMachine getStateMachine() {
+  StateMachine<RoleState, RoleEventType, RoleEvent> getStateMachine() {
     return stateMachine;
   }
   
@@ -133,11 +123,24 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
       //if one instance of the role starts up fine, we consider the service
       //as ready for the 'safe-mode' kinds of checks
       StateMachineInvoker.getAMBARIEventHandler().handle(
-          new ServiceEvent(ServiceEventType.ROLE_STARTED, service, 
+          new ServiceEvent(ServiceEventType.ROLE_START_SUCCESS, service, 
               operand));
     }
   }
   
+  static class FailedStartTransition implements 
+  SingleArcTransition<RoleImpl, RoleEvent>  {
+
+    @Override
+    public void transition(RoleImpl operand, RoleEvent event) {
+      ServiceFSM service = operand.getAssociatedService();
+      //if one instance of the role starts up fine, we consider the service
+      //as ready for the 'safe-mode' kinds of checks
+      StateMachineInvoker.getAMBARIEventHandler().handle(
+          new ServiceEvent(ServiceEventType.ROLE_START_SUCCESS, service, 
+              operand));
+    }
+  }
   
   static class RoleStopTransition implements
   SingleArcTransition<RoleImpl, RoleEvent> {
@@ -146,7 +149,7 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
     public void transition(RoleImpl operand, RoleEvent event) {
       ServiceFSM service = operand.getAssociatedService();
       StateMachineInvoker.getAMBARIEventHandler().handle(
-          new ServiceEvent(ServiceEventType.ROLE_STOPPED, service,
+          new ServiceEvent(ServiceEventType.ROLE_STOP_SUCCESS, service,
               operand));
     }
   }
@@ -166,7 +169,7 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
   @Override
   public boolean shouldStop() {
     return getRoleState() == RoleState.STOPPING 
-        || getRoleState() == RoleState.STOPPED;
+        || getRoleState() == RoleState.INACTIVE;
   }
 
   @Override
@@ -174,4 +177,5 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
     return getRoleState() == RoleState.STARTING 
         || getRoleState() == RoleState.ACTIVE;
   }
+
 }

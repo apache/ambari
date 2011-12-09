@@ -6,80 +6,104 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
-import org.apache.ambari.components.ComponentPlugin;
+import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.controller.Cluster;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+/**
+ *Test ClusterImpl state transitions
+ */
 public class TestClusterImpl {
-
-  /**
-   * Create cluster with two components, both having active roles.
-   * There should be two component objects in the ClusterImpl created
-   * @throws IOException
-   */
-  @Test
-  public void testClusterImplWithTwoActiveComponents() throws IOException {
-
-    //set component plugin that returns one active role
-    ComponentPlugin pluginWActiveRole = mock(ComponentPlugin.class);
-    String[] servicesWithActive = {"abc"};
-    when(pluginWActiveRole.getActiveRoles()).thenReturn(servicesWithActive);
-
-    ClusterImpl clusterImpl = buildClusterImplWithComponents(pluginWActiveRole, pluginWActiveRole);
-    assertEquals(clusterImpl.getServices().size(), 2, "number of components with active service");     
-
-  }
-  
-  /**
-   * Create cluster with two components, only one of which has active role(s)
-   * There should be only one component object in the ClusterImpl created
-   * @throws IOException
-   */
-  @Test
-  public void testClusterImplWithOneActiveComponents() throws IOException {
-
-    //set component plugin that returns one active role
-    ComponentPlugin pluginWActiveRole = mock(ComponentPlugin.class);
-    String[] servicesWithActive = {"abc"};
-    when(pluginWActiveRole.getActiveRoles()).thenReturn(servicesWithActive);
-
-    //set component plugin that returns NO active roles
-    ComponentPlugin pluginWOActiveRole = mock(ComponentPlugin.class);
-    String[] servicesNoActive = {};
-    when(pluginWOActiveRole.getActiveRoles()).thenReturn(servicesNoActive);
-    
-    ClusterImpl clusterImpl = buildClusterImplWithComponents(pluginWActiveRole, pluginWOActiveRole);
-    assertEquals(clusterImpl.getServices().size(), 1, "number of components with active service");     
-    
-  }
-  
   
 
-  /**
-   * Create a mocked ClusterImpl that has two components, using the ComponentPlugins args 
-   * @param componentPlugin1 - the ComponentPlugin for first component
-   * @param componentPlugin2 - the ComponentPlugin for second component
-   * @return the ClusterImpl 
-   * @throws IOException
-   */
-  private ClusterImpl buildClusterImplWithComponents(
-      ComponentPlugin componentPlugin1, ComponentPlugin componentPlugin2)
-          throws IOException {
-    //set list of components
-    ClusterDefinition cdef = mock(ClusterDefinition.class);
-    when(cdef.getEnabledServices()).thenReturn(Arrays.asList("comp1","comp2"));
-
+  ClusterImpl clusterImpl;
+  ClusterEventType [] startEvents = {
+      ClusterEventType.START, 
+      ClusterEventType.START_SUCCESS,
+  };
+  
+  ClusterStateFSM [] startStates = {
+      ClusterStateFSM.STARTING,
+      ClusterStateFSM.ACTIVE
+  };
+  
+  
+  @BeforeMethod
+  public void setup() throws IOException{
+    StateMachineInvoker.setAMBARIDispatcher(new NoOPDispatcher());
+   
+    ClusterDefinition clusterDef = mock(ClusterDefinition.class);
+    when(clusterDef.getEnabledServices()).thenReturn(new ArrayList<String>());
     Cluster cluster = mock(Cluster.class);
-    when(cluster.getClusterDefinition(anyInt())).thenReturn(cdef);
-
-    when(cluster.getComponentDefinition("comp1")).thenReturn(componentPlugin1);
-    when(cluster.getComponentDefinition("comp2")).thenReturn(componentPlugin2);
-
-    ClusterImpl clusterImpl = new ClusterImpl(cluster, 1, null);
-    return clusterImpl;
+    when(cluster.getClusterDefinition(anyInt())).thenReturn(clusterDef);
+    ClusterState clusterState= new ClusterState();
+    clusterImpl = new ClusterImpl(cluster, 1, clusterState);
+  }
+  
+  /**
+   * Test INACTIVE to ACTIVE transition 
+   * @throws Exception
+   */
+  @Test
+  public void testInactiveToActive() throws Exception{
+    verifyTransitions(ClusterStateFSM.INACTIVE, startEvents, startStates);
   }
 
+ 
+  /**
+   * Test FAIL to ACTIVE transition
+   * @throws Exception
+   */
+  @Test
+  public void testFailToActive() throws Exception{
+    verifyTransitions(ClusterStateFSM.FAIL, startEvents, startStates);
+  }
+  
+  ClusterEventType [] stopEvents = {
+      ClusterEventType.STOP, 
+      ClusterEventType.STOP_SUCCESS,
+  };
+  
+  ClusterStateFSM [] stopStates = {
+      ClusterStateFSM.STOPPING,
+      ClusterStateFSM.INACTIVE
+  };
+  
+  
+  /**
+   * Test ACTIVE to INACTIVE transition
+   * @throws Exception
+   */
+  @Test
+  public void testActivetoInactive() throws Exception{
+    verifyTransitions(ClusterStateFSM.ACTIVE, stopEvents, stopStates);
+  }
+  
+  
+  /**
+   * Test FAIL to INACTIVE transition
+   * @throws Exception
+   */
+  @Test
+  public void testFailtoInactive() throws Exception{
+    verifyTransitions(ClusterStateFSM.FAIL, stopEvents, stopStates);
+  }
+  
+  private void verifyTransitions(ClusterStateFSM startState, ClusterEventType[] ClusterEvents,
+      ClusterStateFSM[] ClusterStateFSMs) {
+    
+    clusterImpl.getStateMachine().setCurrentState(startState);
+    for(int i=0; i < ClusterEvents.length; i++){
+      ClusterEventType rEvent = ClusterEvents[i];
+      clusterImpl.handle(new ClusterEvent(rEvent, clusterImpl));
+      ClusterStateFSM expectedRState = ClusterStateFSMs[i];
+      assertEquals(clusterImpl.getStateMachine().getCurrentState(), expectedRState);
+    }
+    
+  }
+  
 }
