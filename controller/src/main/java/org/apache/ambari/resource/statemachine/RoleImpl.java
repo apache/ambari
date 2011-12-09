@@ -52,6 +52,9 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
              RoleState.ACTIVE,
              RoleEventType.START_SUCCESS, new SuccessfulStartTransition())
          
+         .addTransition(RoleState.STARTING, RoleState.STOPPING, 
+             RoleEventType.STOP)
+             
          .addTransition(RoleState.ACTIVE, RoleState.ACTIVE,
              RoleEventType.START_SUCCESS)
              
@@ -150,21 +153,25 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
 
   @Override
   public void activate() {
-    //load the plugin and get the commands for starting the role
+    StateMachineInvoker.getAMBARIEventHandler()
+       .handle(new RoleEvent(RoleEventType.START, this));
   }
 
   @Override
   public void deactivate() {
-    
+    StateMachineInvoker.getAMBARIEventHandler()
+       .handle(new RoleEvent(RoleEventType.STOP, this));  
   }
 
   @Override
   public boolean shouldStop() {
-    return myState == RoleState.STOPPING || myState == RoleState.STOPPED;
+    return getRoleState() == RoleState.STOPPING 
+        || getRoleState() == RoleState.STOPPED;
   }
 
   @Override
   public boolean shouldStart() {
-    return myState == RoleState.STARTING || myState == RoleState.ACTIVE;
+    return getRoleState() == RoleState.STARTING 
+        || getRoleState() == RoleState.ACTIVE;
   }
 }

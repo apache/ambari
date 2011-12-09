@@ -13,7 +13,7 @@ import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.controller.Cluster;
 import org.testng.annotations.Test;
 
-public class ClusterImplTest {
+public class TestClusterImpl {
 
   /**
    * Create cluster with two components, both having active roles.

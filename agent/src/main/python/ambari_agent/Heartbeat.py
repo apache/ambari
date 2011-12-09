@@ -41,7 +41,8 @@ class Heartbeat:
                   'timestamp'           : timestamp,
                   'hostname'            : socket.gethostname(),
                   'hardwareProfile'     : self.hardware.get(),
-                  'idle'                : self.actionQueue.isIdle()
+                  'idle'                : self.actionQueue.isIdle(),
+                  'installScriptHash'   : self.actionQueue.getInstallScriptHash()
                 }
     if len(queueResult)!=0:
       heartbeat['actionResults'] = queueResult

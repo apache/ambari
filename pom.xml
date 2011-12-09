@@ -295,7 +295,7 @@
               <phase>test</phase>
               <argLine>-Xmx1024m</argLine>
               <includes>
-                <include>**/*Test.java</include>
+                <include>**/Test*.java</include>
               </includes>
               <excludes>
                 <exclude>**/IntegrationTest*.java</exclude>
@@ -443,7 +443,7 @@
                                     <argLine>-Xmx1024m -Djava.library.path=.
                                     </argLine>
                                     <includes>
-                                        <include>**/*Test.java</include>
+                                        <include>**/Test*.java</include>
                                     </includes>
                                     <excludes>
                                         <exclude>**/IntegrationTest.java</exclude>
@@ -477,7 +477,7 @@
                                         <include>**/IntegrationTest*.java</include>
                                     </includes>
                                     <excludes>
-                                        <exclude>**/*Test.java</exclude>
+                                        <exclude>**/Test*.java</exclude>
                                         <exclude>**/PerformanceTest*.java</exclude>
                                     </excludes>
                                     <skipTests>false</skipTests>

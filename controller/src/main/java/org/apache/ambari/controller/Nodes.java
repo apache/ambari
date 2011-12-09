@@ -150,6 +150,14 @@ public class Nodes {
     }
     
     /*
+     * Get the node's roles
+     */
+    public synchronized List<String> getNodeRoles(String host) 
+        throws Exception {
+      return getNode(host).getNodeState().getNodeRoleNames();
+    }
+    
+    /*
      * Get time difference
      */
     public static long getTimeDiffInMillis (XMLGregorianCalendar t2, 

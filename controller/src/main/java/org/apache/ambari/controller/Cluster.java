@@ -132,7 +132,7 @@ public class Cluster {
      * @return the latestRevision
      */
     public int getLatestRevisionNumber() {
-        return this.latestRevisionNumber;
+        return latestRevisionNumber;
     }
     
     /**

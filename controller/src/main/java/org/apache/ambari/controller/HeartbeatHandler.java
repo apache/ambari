@@ -29,6 +29,7 @@ import org.apache.ambari.controller.Nodes;
 import org.apache.ambari.common.rest.agent.Action;
 import org.apache.ambari.common.rest.agent.Action.Kind;
 import org.apache.ambari.common.rest.agent.ActionResult;
+import org.apache.ambari.common.rest.agent.AgentRoleState;
 import org.apache.ambari.common.rest.agent.Command;
 import org.apache.ambari.common.rest.agent.ConfigFile;
 import org.apache.ambari.common.rest.agent.ControllerResponse;
@@ -86,21 +87,33 @@ public class HeartbeatHandler {
     List<Action> allActions = new ArrayList<Action>();
 
     //if the command-execution takes longer than one heartbeat interval
-    //the check for idleness will prevent the same node getting the same 
-    //command more than once. In the future this could be improved
+    //the check for idleness will prevent the same node getting more 
+    //commands. In the future this could be improved
     //to reflect the command execution state more accurately.
     if (heartbeat.getIdle()) {
+      
       List<ClusterNameAndRev> clustersNodeBelongsTo = 
           getClustersNodeBelongsTo(hostname);
+      
+      //TODO: have an API in Clusters that can return a script 
+      //pertaining to all clusters
+      String script = 
+          clusters.getInstallAndConfigureScript(
+              clustersNodeBelongsTo.get(0).getClusterName(), 
+              clustersNodeBelongsTo.get(0).getRevision());
+      if (script == null) {
+        return createResponse(responseId,allActions,heartbeat);
+      }
+      //send the deploy script
+      getInstallAndConfigureAction(script, allActions);
+
+      if (!installAndConfigDone(script,heartbeat)) {
+        return createResponse(responseId,allActions,heartbeat);
+      }
 
       for (ClusterNameAndRev clusterIdAndRev : clustersNodeBelongsTo) {
-
-        String script = 
-            clusters.getInstallAndConfigureScript(clusterName, 
-                clusterRev);
-        
-        //send the deploy script
-        getInstallAndConfigureAction(script,clusterIdAndRev, allActions);
+        clusterName = clusterIdAndRev.getClusterName();
+        clusterRev = clusterIdAndRev.getRevision();
 
         //get the cluster object corresponding to the clusterId
         Cluster cluster = clusters.getClusterByName(clusterName);
@@ -130,7 +143,8 @@ public class HeartbeatHandler {
                 //check the expected state of the agent and whether the start
                 //was successful
                 if (wasStartRoleSuccessful(clusterIdAndRev, 
-                    role.getRoleName(), response, heartbeat)) {
+                    service.getServiceName(), role.getRoleName(), response, 
+                    heartbeat)) {
                   //raise an event to the state machine for a successful 
                   //role-start
                   StateMachineInvoker.getAMBARIEventHandler()
@@ -145,7 +159,8 @@ public class HeartbeatHandler {
                 //raise an event to the state machine for a successful 
                 //role-stop instance
                 if (wasStopRoleSuccessful(clusterIdAndRev, 
-                    role.getRoleName(), response, heartbeat)) {
+                    service.getServiceName(), role.getRoleName(), response, 
+                    heartbeat)) {
                   StateMachineInvoker.getAMBARIEventHandler()
                   .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
                 }
@@ -159,32 +174,42 @@ public class HeartbeatHandler {
         }
       }
     }
+    return createResponse(responseId,allActions,heartbeat);
+  }
+  
+  private ControllerResponse createResponse(short responseId, 
+      List<Action> allActions, HeartBeat heartbeat) {
     ControllerResponse r = new ControllerResponse();
     r.setResponseId(responseId);
-    //TODO: need to persist this state (if allActions are different from the 
-    //last allActions)
     r.setActions(allActions);
     agentToHeartbeatResponseMap.put(heartbeat.getHostname(), r);
     return r;
   }
   
-  private boolean wasStartRoleSuccessful(ClusterNameAndRev clusterIdAndRev, 
-      String roleName, ControllerResponse response, HeartBeat heartbeat) {
-    //Check whether the statechange was successful on the agent, and if
-    //the state information sent to the agent in the previous heartbeat
-    //included the start-action for the role in question.
-    if (!heartbeat.getStateChangeStatus()) {
+  private boolean installAndConfigDone(String script, HeartBeat heartbeat) {
+    if (script == null || heartbeat.getInstallScriptHash() == -1) {
       return false;
     }
-    List<Action> actions = response.getActions();
-    for (Action action : actions) { //TBD: no iteration for every invocation of this method
-      if (action.kind != Action.Kind.START_ACTION) {
-        continue;
-      }
-      if (action.getClusterId().equals(clusterIdAndRev.getClusterName()) && 
-          action.getClusterDefinitionRevision() == 
-          clusterIdAndRev.getRevision() &&
-          action.getRole().equals(roleName)) {
+    if (script.hashCode() == heartbeat.getInstallScriptHash()) {
+      return true;
+    }
+    return false;
+  }
+    
+  private boolean wasStartRoleSuccessful(ClusterNameAndRev clusterIdAndRev, 
+      String component, String roleName, ControllerResponse response, 
+      HeartBeat heartbeat) {
+    List<AgentRoleState> serverStates = heartbeat.getInstalledRoleStates();
+    if (serverStates == null) {
+      return false;
+    }
+
+    //TBD: create a hashmap (don't iterate for every server state)
+    for (AgentRoleState serverState : serverStates) {
+      if (serverState.getClusterId().equals(clusterIdAndRev.getClusterName()) &&
+          serverState.getClusterDefinitionRevision() == clusterIdAndRev.getRevision() &&
+          serverState.getComponentName().equals(component) &&
+          serverState.getRoleName().equals(roleName)) {
         return true;
       }
     }
@@ -192,57 +217,56 @@ public class HeartbeatHandler {
   }
   
   private void getInstallAndConfigureAction(String script, 
-      ClusterNameAndRev clusterNameRev, List<Action> allActions) {
+      List<Action> allActions) {
     ConfigFile file = new ConfigFile();
     file.setData(script);
     //TODO: this should be written in Ambari's scratch space directory
-    file.setPath("/tmp/" + clusterNameRev.getClusterName() 
-        + "_" + clusterNameRev.getRevision());
+    //this file is the complete install/config script. Note that the
+    //script includes install/config snippets for all clusters the 
+    //node belongs to
+    file.setPath("/tmp/ambari_install_script" + script.hashCode());
     
     Action action = new Action();
     action.setFile(file);
-    action.setClusterId(clusterNameRev.getClusterName());
-    action.setClusterDefinitionRevision(clusterNameRev.getRevision());
-    action.setKind(Kind.WRITE_FILE_ACTION);
-    allActions.add(action);
-    
-    action = new Action();
-    action.setClusterId(clusterNameRev.getClusterName());
-    action.setClusterDefinitionRevision(clusterNameRev.getRevision());
+    action.setKind(Kind.INSTALL_AND_CONFIG_ACTION);
     String deployCmd = Util.getInstallAndConfigureCommand();
     //TODO: assumption is that the file is passed as an argument
     //Should generally hold for many install/config systems like Puppet
     //but is something that needs to be thought about more
     Command command = new Command(null,deployCmd,new String[]{file.getPath()});
     action.setCommand(command);
-    action.setKind(Kind.RUN_ACTION);
+    //in the action ID send the hashCode of the script content so that 
+    //the controller can check how the installation went when a heartbeat
+    //response is sent back
+    action.setId(Integer.toString(script.hashCode()));
     allActions.add(action);
   }
   
   private boolean wasStopRoleSuccessful(ClusterNameAndRev clusterIdAndRev, 
-      String roleName, ControllerResponse response, HeartBeat heartbeat) {
-    //Check whether the statechange was successful on the agent, and if
-    //the state information to the agent included the start-action for the
-    //role in question.If the state information didn't include the start-action
-    //command, the controller wants the role stopped
-    if (!heartbeat.getStateChangeStatus()) {
-      return false;
+      String component, String roleName, ControllerResponse response, 
+      HeartBeat heartbeat) {
+    List<AgentRoleState> serverStates = heartbeat.getInstalledRoleStates();
+    if (serverStates == null) {
+      return true;
     }
-    List<Action> actions = response.getActions();
-    for (Action action : actions) {
-      if (action.getClusterId() == clusterIdAndRev.getClusterName() && 
-          action.getClusterDefinitionRevision() == 
-          clusterIdAndRev.getRevision() &&
-          action.getRole().equals(roleName) &&
-          action.kind == Action.Kind.START_ACTION) {
-        return false;
+    boolean stopped = true;
+    //TBD: create a hashmap (don't iterate for every server state)
+    for (AgentRoleState serverState : serverStates) {
+      if (serverState.getClusterId().equals(clusterIdAndRev.getClusterName()) &&
+          serverState.getClusterDefinitionRevision() == clusterIdAndRev.getRevision() &&
+          serverState.getComponentName().equals(component) &&
+          serverState.getRoleName().equals(roleName)) {
+        stopped = false;
       }
     }
-    return true;
+    return stopped;
   }
   
   private ActionResult getActionResult(HeartBeat heartbeat, String id) {
     List<ActionResult> actionResults = heartbeat.getActionResults();
+    if (actionResults == null) {
+      return null;
+    }
     for (ActionResult result : actionResults) {
       if (result.getId().equals(id)) {
         return result;
@@ -265,23 +289,24 @@ public class HeartbeatHandler {
     return new ArrayList<ClusterNameAndRev>(); //empty
   }  
   
-  private enum SpecialServiceIDs {
+  enum SpecialServiceIDs {
       SERVICE_AVAILABILITY_CHECK_ID, SERVICE_PRESTART_CHECK_ID,
       CREATE_STRUCTURE_ACTION_ID
-  }  
+  }
   
-  private static class ClusterNameAndRev implements 
+  
+  static class ClusterNameAndRev implements 
   Comparable<ClusterNameAndRev> {
     String clusterName;
-    long revision;
-    ClusterNameAndRev(String clusterName, long revision) {
+    int revision;
+    ClusterNameAndRev(String clusterName, int revision) {
       this.clusterName = clusterName;
       this.revision = revision;
     }
     String getClusterName() {
       return clusterName;
     }
-    long getRevision() {
+    int getRevision() {
       return revision;
     }
     @Override
@@ -311,7 +336,7 @@ public class HeartbeatHandler {
     }
   }
 
-  private static String getSpecialActionID(ClusterNameAndRev clusterNameAndRev, 
+  static String getSpecialActionID(ClusterNameAndRev clusterNameAndRev, 
       String component, String role, SpecialServiceIDs serviceId) {
     String id = clusterNameAndRev.getClusterName() +"-"+
       clusterNameAndRev.getRevision() +"-"+ component + "-";
@@ -325,34 +350,33 @@ public class HeartbeatHandler {
   private void checkAndCreateActions(Cluster cluster,
       ClusterFSM clusterFsm, ClusterNameAndRev clusterIdAndRev, 
       ServiceFSM service, HeartBeat heartbeat, 
-      List<Action> allActions) 
-          throws Exception {
+      List<Action> allActions) throws Exception {
+    ComponentPlugin plugin = 
+        cluster.getComponentDefinition(service.getServiceName());
     //see whether the service is in the STARTED state, and if so,
     //check whether there is any action-result that indicates success
     //of the availability check (safemode, etc.)
     if (service.getServiceState() == ServiceState.STARTED) {
-      String id = getSpecialActionID(clusterIdAndRev, service.getServiceName(), 
-          null, SpecialServiceIDs.SERVICE_AVAILABILITY_CHECK_ID);
-      ActionResult result = getActionResult(heartbeat, id);
-      if (result != null) {
-        //this action ran
-        //TODO: this needs to be generalized so that it handles the case
-        //where the service is not available for a couple of checkservice
-        //invocations
-        if (result.getCommandResult().getExitCode() == 0) {
-          StateMachineInvoker.getAMBARIEventHandler().handle(
-              new ServiceEvent(ServiceEventType.AVAILABLE_CHECK_SUCCESS,
-                  service));
+      String role = plugin.runCheckRole();  
+      if (nodePlayingRole(heartbeat.getHostname(), role)) {
+        String id = getSpecialActionID(clusterIdAndRev, service.getServiceName(), 
+            role, SpecialServiceIDs.SERVICE_AVAILABILITY_CHECK_ID);
+        ActionResult result = getActionResult(heartbeat, id);
+        if (result != null) {
+          //this action ran
+          //TODO: this needs to be generalized so that it handles the case
+          //where the service is not available for a couple of checkservice
+          //invocations
+          if (result.getCommandResult().getExitCode() == 0) {
+            StateMachineInvoker.getAMBARIEventHandler().handle(
+                new ServiceEvent(ServiceEventType.AVAILABLE_CHECK_SUCCESS,
+                    service));
+          } else {
+            StateMachineInvoker.getAMBARIEventHandler().handle(
+                new ServiceEvent(ServiceEventType.AVAILABLE_CHECK_FAILURE,
+                    service));
+          }
         } else {
-          StateMachineInvoker.getAMBARIEventHandler().handle(
-              new ServiceEvent(ServiceEventType.AVAILABLE_CHECK_FAILURE,
-                  service));
-        }
-      } else {
-        ComponentPlugin plugin = 
-            cluster.getComponentDefinition(service.getServiceName());
-        String role = plugin.runCheckRole();
-        if (nodePlayingRole(heartbeat.getHostname(), role)) {
           Action action = plugin.checkService(cluster.getName(), role);
           fillActionDetails(action, clusterIdAndRev.getClusterName(),
               clusterIdAndRev.getRevision(),service.getServiceName(), role);
@@ -364,25 +388,23 @@ public class HeartbeatHandler {
     }
     
     if (service.getServiceState() == ServiceState.PRESTART) {
-      String id = getSpecialActionID(clusterIdAndRev, service.getServiceName(), 
-          null, SpecialServiceIDs.SERVICE_PRESTART_CHECK_ID);
-      ActionResult result = getActionResult(heartbeat, id);
-      if (result != null) {
-        //this action ran
-        if (result.getCommandResult().getExitCode() == 0) {
-          StateMachineInvoker.getAMBARIEventHandler().handle(
-              new ServiceEvent(ServiceEventType.PRESTART_SUCCESS,
-                  service));
+      String role = plugin.runPreStartRole();
+      if (nodePlayingRole(heartbeat.getHostname(), role)) {
+        String id = getSpecialActionID(clusterIdAndRev, service.getServiceName(), 
+            role, SpecialServiceIDs.SERVICE_PRESTART_CHECK_ID);
+        ActionResult result = getActionResult(heartbeat, id);
+        if (result != null) {
+          //this action ran
+          if (result.getCommandResult().getExitCode() == 0) {
+            StateMachineInvoker.getAMBARIEventHandler().handle(
+                new ServiceEvent(ServiceEventType.PRESTART_SUCCESS,
+                    service));
+          } else {
+            StateMachineInvoker.getAMBARIEventHandler().handle(
+                new ServiceEvent(ServiceEventType.PRESTART_FAILURE,
+                    service));
+          }
         } else {
-          StateMachineInvoker.getAMBARIEventHandler().handle(
-              new ServiceEvent(ServiceEventType.PRESTART_FAILURE,
-                  service));
-        }
-      } else {
-        ComponentPlugin plugin = 
-            cluster.getComponentDefinition(service.getServiceName());
-        String role = plugin.runPreStartRole();
-        if (nodePlayingRole(heartbeat.getHostname(), role)) {
           Action action = plugin.preStartAction(cluster.getName(), role);
           fillActionDetails(action, clusterIdAndRev.getClusterName(),
               clusterIdAndRev.getRevision(),service.getServiceName(), role);
@@ -397,8 +419,7 @@ public class HeartbeatHandler {
   private boolean nodePlayingRole(String host, String role) 
       throws Exception {
     //TODO: iteration on every call seems avoidable ..
-    List<String> nodeRoles = nodes.getNode(host).getNodeState().
-        getNodeRoleNames();
+    List<String> nodeRoles = nodes.getNodeRoles(host);
     return nodeRoles.contains(role);
   }
   

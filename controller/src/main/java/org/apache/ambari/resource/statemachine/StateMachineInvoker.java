@@ -29,22 +29,25 @@ import org.apache.ambari.event.EventHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.inject.Inject;
+
 public class StateMachineInvoker {
   
-  private static Dispatcher dispatcher;
-  
-  static {
-    dispatcher = new AsyncDispatcher();
+  @Inject
+  public static void init(AsyncDispatcher d, 
+      ConcurrentHashMap<String, ClusterFSM> c) {
+    clusters = c;
+    dispatcher = d;
     dispatcher.register(ClusterEventType.class, new ClusterEventDispatcher());
     dispatcher.register(ServiceEventType.class, new ServiceEventDispatcher());
     dispatcher.register(RoleEventType.class, new RoleEventDispatcher());
     dispatcher.start();
   }
+  
+  private static Dispatcher dispatcher;
+  
   private static Log LOG = LogFactory.getLog(StateMachineInvoker.class);
-  public Dispatcher getAMBARIDispatcher() {
-    return dispatcher;
-  }
-
+  
   public static EventHandler getAMBARIEventHandler() {
     return dispatcher.getEventHandler();
   }
@@ -73,8 +76,7 @@ public class StateMachineInvoker {
     }
   }
   
-  private static ConcurrentMap<String, ClusterFSM> clusters = 
-      new ConcurrentHashMap<String, ClusterFSM>();
+  private static ConcurrentMap<String, ClusterFSM> clusters;
   
   public static ClusterFSM createCluster(Cluster cluster, int revision, 
       ClusterState state) throws IOException {
@@ -102,6 +104,11 @@ public class StateMachineInvoker {
   
   public static ClusterFSM getStateMachineClusterInstance(String clusterId) {
     return clusters.get(clusterId);
+  }
+  
+  public static void setStateMachineClusterInstance(String clusterId, 
+      ClusterFSM clusterFsm) {
+    clusters.put(clusterId, clusterFsm);
   }
   
   public static ClusterState getClusterState(String clusterId,

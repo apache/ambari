@@ -22,6 +22,7 @@ import logging
 import logging.handlers
 import Queue
 import threading
+from shell import shellRunner
 from FileUtil import writeFile, createStructure, deleteStructure
 from shell import shellRunner
 import json
@@ -29,6 +30,7 @@ import os
 import time
 
 logger = logging.getLogger()
+installScriptHash = -1
 
 class ActionQueue(threading.Thread):
   global q, r, clusterId, clusterDefinitionRevision
@@ -54,6 +56,26 @@ class ActionQueue(threading.Thread):
   def put(self, response):
     if 'actions' in response:
       actions = response['actions']
+      # for the servers, take a diff of what's running, and what the controller
+      # asked the agent to start. Kill all those servers that the controller
+      # didn't ask us to start
+      sh = shellRunner()
+      runningServers = sh.getServerTracker()
+
+      # get the list of servers the controller wants running
+      serversToRun = {}
+      for action in actions:
+        if action['kind'] == 'START_ACTION':
+          processKey = sh.getServerKey(action['clusterId'],action['clusterDefinitionRevision'],
+            action['component'], action['role'])
+          serversToRun[processKey] = 1
+
+      # create stop actions for the servers that the controller wants stopped
+      for server in runningServers.keys():
+        if server not in serversToRun:
+          sh.stopProcess(server)
+      # now put all the actions in the queue. The ordering is important (we stopped
+      # all unneeded servers first)
       for action in actions:
         q.put(action)
 
@@ -63,12 +85,12 @@ class ActionQueue(threading.Thread):
       while not q.empty():
         action = q.get()
         switches = {
-                     'START_ACTION'            : self.startAction,
-                     'STOP_ACTION'             : self.stopAction,
-                     'RUN_ACTION'              : self.runAction,
-                     'CREATE_STRUCTURE_ACTION' : self.createStructureAction,
-                     'DELETE_STRUCTURE_ACTION' : self.deleteStructureAction,
-                     'WRITE_FILE_ACTION'       : self.writeFileAction
+                     'START_ACTION'              : self.startAction,
+                     'RUN_ACTION'                : self.runAction,
+                     'CREATE_STRUCTURE_ACTION'   : self.createStructureAction,
+                     'DELETE_STRUCTURE_ACTION'   : self.deleteStructureAction,
+                     'WRITE_FILE_ACTION'         : self.writeFileAction,
+                     'INSTALL_AND_CONFIG_ACTION' : self.installAndConfigAction
                    }
         try:
           result = switches.get(action['kind'], self.unknownAction)(action)
@@ -112,20 +134,30 @@ class ActionQueue(threading.Thread):
       action['command'], 
       action['user'], result)
 
-  # Run stop action, stop a server process.
-  def stopAction(self, action):
-    result = self.genResult(action)
-    return self.sh.stopProcess(action['workDirComponent'],
-      action['clusterId'], 
-      action['clusterDefinitionRevision'],
-      action['component'],
-      action['role'], 
-      action['signal'], result)
-
   # Write file action
   def writeFileAction(self, action):
     result = self.genResult(action)
     return writeFile(action, result)
+
+  # Install and configure action
+  def installAndConfigAction(self, action):
+    w = self.writeFileAction(action)
+    commandResult = {}
+    if w['exitCode']!=0:
+      commandResult['output'] = out
+      commandResult['error'] = err
+      commandResult['exitCode'] = exitCode
+      r['commandResult'] = commandResult
+      return r
+    r = self.sh.run(action['command'])
+    if r['exitCode'] != 0:
+      commandResult['output'] = out
+      commandResult['error'] = err
+    else:
+      installScriptHash = action['id'] 
+    commandResult['exitCode'] = r['exitCode']
+    r['commandResult'] = commandResult
+    return r
 
   # Run command action
   def runAction(self, action):
@@ -160,3 +192,6 @@ class ActionQueue(threading.Thread):
   def isIdle(self):
     return q.empty()
 
+  # Get the hash of the script currently used for install/config
+  def getInstallScriptHash(self):
+    return installScriptHash

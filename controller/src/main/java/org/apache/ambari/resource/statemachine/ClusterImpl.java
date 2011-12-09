@@ -106,14 +106,14 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
   private ClusterState clusterState;
   private static Log LOG = LogFactory.getLog(ClusterImpl.class);
     
-  public ClusterImpl(Cluster cluster, int revision, 
+  public ClusterImpl(Cluster cluster, int revision,
       ClusterState clusterState) throws IOException {
     ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     this.readLock = readWriteLock.readLock();
     this.writeLock = readWriteLock.writeLock();
     this.stateMachine = stateMachineFactory.make(this);
     List<ServiceFSM> serviceImpls = new ArrayList<ServiceFSM>();
-    for (String service : 
+    for (String service :
       cluster.getClusterDefinition(revision).getEnabledServices()) {
       if(hasActiveRoles(cluster, service)){
         ServiceImpl serviceImpl = new ServiceImpl(cluster, this, service);
@@ -123,14 +123,14 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
     this.services = serviceImpls;
     this.clusterState = clusterState;
   }
-
-  private boolean hasActiveRoles(Cluster cluster, String serviceName)
+  
+  private static boolean hasActiveRoles(Cluster cluster, String serviceName)
       throws IOException {
     ComponentPlugin plugin = cluster.getComponentDefinition(serviceName);
     String[] roles = plugin.getActiveRoles();
     return roles.length > 0;
   }
-
+  
   public ClusterStateFSM getState() {
     return stateMachine.getCurrentState();
   }
@@ -191,6 +191,7 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
     @Override
     public void transition(ClusterImpl operand, ClusterEvent event) {
       operand.getClusterState().setState(operand.getState().name());
+      //TODO: do it in the reverse order of startup
       ServiceFSM service = operand.getFirstService();
       if (service != null) {
         StateMachineInvoker.getAMBARIEventHandler().handle(

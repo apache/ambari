@@ -121,7 +121,7 @@ class shellRunner:
       logger.warn("%s %s %s can not switch user for START_ACTION." % (clusterId, component, role))
     code = 0
     commandResult = {}
-    process = clusterId+"/"+clusterDefinitionRevision+"/"+component+"/"+role
+    process = self.getServerKey(clusterId,clusterDefinitionRevision,component,role)
     if not process in serverTracker:
       cmd = sys.executable
       tempfilename = tempfile.mktemp()
@@ -148,27 +148,16 @@ class shellRunner:
     return result
 
   # Stop a process and remove presisted state
-  def stopProcess(self, workdir, clusterId, clusterDefinitionRevision, component, role, sig, result):
+  def stopProcess(self, processKey):
     global serverTracker
-    oldDir = os.getcwd()
-    os.chdir(workdir)
-    process = clusterId+"/"+clusterDefinitionRevision+"/"+component+"/"+role
-    commandResult = {'exitCode': 0}
+    keyFragments = processKey.split('/')
+    process = self.getServerKey(keyFragments[0],keyFragments[1],keyFragments[2],keyFragments[3])
     if process in serverTracker:
-      if sig=='TERM':
-        os.kill(serverTracker[process], signal.SIGTERM)
-        # TODO: gracefully check if process is still alive
-        # before remove from serverTracker
-        del serverTracker[process]
-      else:
-        os.kill(serverTracker[process], signal.SIGKILL)
-        del serverTracker[process]
-    result['commandResult'] = commandResult
-    try:
-      os.chdir(oldDir)
-    except Exception:
-      logger.warn("%s %s %s can not restore environment for STOP_ACTION." % (clusterId, component, role))
-    return result
+      os.kill(serverTracker[process], signal.SIGKILL)
+      del serverTracker[process]
 
   def getServerTracker(self):
     return serverTracker
+
+  def getServerKey(self,clusterId, clusterDefinitionRevision, component, role):
+    return clusterId+"/"+clusterDefinitionRevision+"/"+component+"/"+role
