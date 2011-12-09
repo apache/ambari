@@ -23,7 +23,6 @@ import org.apache.ambari.controller.rest.resources.ClustersResource;
 import org.apache.ambari.controller.rest.resources.NodesResource;
 import org.apache.ambari.controller.rest.resources.StacksResource;
 import org.apache.ambari.datastore.PersistentDataStore;
-import org.apache.ambari.datastore.impl.StaticDataStore;
 import org.apache.ambari.datastore.impl.ZookeeperDS;
 
 import com.google.inject.AbstractModule;

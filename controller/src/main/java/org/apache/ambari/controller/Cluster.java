@@ -96,10 +96,7 @@ public class Cluster {
                     ComponentPluginFactory plugin,
                     @Assisted ClusterDefinition c, 
                     @Assisted ClusterState cs) throws Exception {
-        this.flattener = flattener;
-        this.dataStore = dataStore;
-        this.componentPluginFactory = plugin;
-        this.clusterName = c.getName();
+        this(flattener, dataStore, plugin, c.getName());
         this.updateClusterDefinition(c);
         this.updateClusterState(cs);
     }
