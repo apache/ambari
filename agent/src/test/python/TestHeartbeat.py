@@ -32,3 +32,4 @@ class TestHeartbeat(TestCase):
     self.assertEqual(result['hostname'], socket.gethostname(), 'hostname mismatched.')
     self.assertEqual(result['responseId'], 100, 'responseId mismatched.')
     self.assertEqual(result['idle'], True, 'Heartbeat should indicate Agent is idle.')
+    self.assertEqual(result['installScriptHash'], -1, 'installScriptHash should be -1.')
