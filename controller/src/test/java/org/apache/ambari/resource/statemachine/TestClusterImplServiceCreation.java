@@ -78,7 +78,7 @@ public class TestClusterImplServiceCreation {
     when(cluster.getComponentDefinition("comp1")).thenReturn(componentPlugin1);
     when(cluster.getComponentDefinition("comp2")).thenReturn(componentPlugin2);
 
-    ClusterImpl clusterImpl = new ClusterImpl(cluster, 1, null);
+    ClusterImpl clusterImpl = new ClusterImpl(cluster, 1);
     return clusterImpl;
   }
 

@@ -9,10 +9,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
-import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.controller.Cluster;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import com.google.inject.Guice;
 
 /**
  *Test ClusterImpl state transitions
@@ -34,14 +35,12 @@ public class TestClusterImpl {
   
   @BeforeMethod
   public void setup() throws IOException{
-    StateMachineInvoker.setAMBARIDispatcher(new NoOPDispatcher());
-   
+    Guice.createInjector(new TestModule());
     ClusterDefinition clusterDef = mock(ClusterDefinition.class);
     when(clusterDef.getEnabledServices()).thenReturn(new ArrayList<String>());
     Cluster cluster = mock(Cluster.class);
     when(cluster.getClusterDefinition(anyInt())).thenReturn(clusterDef);
-    ClusterState clusterState= new ClusterState();
-    clusterImpl = new ClusterImpl(cluster, 1, clusterState);
+    clusterImpl = new ClusterImpl(cluster, 1);
   }
   
   /**

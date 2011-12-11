@@ -15,16 +15,29 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 package org.apache.ambari.resource.statemachine;
 
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
 
-public interface ClusterFSM {
-  public List<ServiceFSM> getServices();
-  public Map<String, String> getServiceStates();
-  public void terminate();
-  public String getClusterState();
-  public void activate();
-  public void deactivate();
+import org.apache.ambari.controller.Cluster;
+
+import com.google.inject.ImplementedBy;
+
+@ImplementedBy(FSMDriver.class)
+public interface FSMDriverInterface {
+  public ClusterFSM createCluster(Cluster cluster, int revision) 
+      throws IOException;
+  
+  public void startCluster(String clusterId);
+  
+  public void stopCluster(String clusterId);
+  
+  public void deleteCluster(String clusterId);
+  
+  public ClusterFSM getFSMClusterInstance(String clusterId);
+  
+  public String getClusterState(String clusterId,
+      long clusterDefinitionRev);
+
 }

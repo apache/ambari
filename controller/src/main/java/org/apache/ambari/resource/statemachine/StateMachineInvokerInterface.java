@@ -17,14 +17,11 @@
 */
 package org.apache.ambari.resource.statemachine;
 
-import java.util.List;
-import java.util.Map;
+import org.apache.ambari.event.EventHandler;
 
-public interface ClusterFSM {
-  public List<ServiceFSM> getServices();
-  public Map<String, String> getServiceStates();
-  public void terminate();
-  public String getClusterState();
-  public void activate();
-  public void deactivate();
+import com.google.inject.ImplementedBy;
+
+@ImplementedBy(StateMachineInvoker.class)
+public interface StateMachineInvokerInterface {
+  public EventHandler getAMBARIEventHandler();
 }

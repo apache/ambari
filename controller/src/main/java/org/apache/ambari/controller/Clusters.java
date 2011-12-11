@@ -44,13 +44,11 @@ import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.datastore.PersistentDataStore;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
-import org.apache.ambari.resource.statemachine.StateMachineInvoker;
+import org.apache.ambari.resource.statemachine.FSMDriverInterface;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -68,16 +66,19 @@ public class Clusters {
     private final Nodes nodes;
     private final ClusterFactory clusterFactory;
     private final StackFlattener flattener;
+    private final FSMDriverInterface fsmDriver;
         
     @Inject
     private Clusters(Stacks stacks, Nodes nodes, 
                      PersistentDataStore dataStore,
                      ClusterFactory clusterFactory,
-                     StackFlattener flattener) throws Exception {
+                     StackFlattener flattener,
+                     FSMDriverInterface fsmDriver) throws Exception {
       this.stacks = stacks;
       this.nodes = nodes;
       this.dataStore = dataStore;
       this.clusterFactory = clusterFactory;
+      this.fsmDriver = fsmDriver;
       this.flattener = flattener;
       recoverClustersStateAfterRestart();
     }
@@ -332,11 +333,11 @@ public class Clusters {
          * Invoke state machine event
          */
         if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {
-          StateMachineInvoker.startCluster(cls.getName());
+          fsmDriver.startCluster(cls.getName());
         } else if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_INACTIVE)) {
-          StateMachineInvoker.stopCluster(cls.getName());
+          fsmDriver.stopCluster(cls.getName());
         } else if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ATTIC)) {
-          StateMachineInvoker.deleteCluster(cls.getName());
+          fsmDriver.deleteCluster(cls.getName());
         }
     
         return cls.getClusterDefinition(-1);
@@ -421,8 +422,7 @@ public class Clusters {
          * TODO: Make sure createCluster is idempotent (i.e. if object already exists
          * then return success)
         */
-        ClusterFSM cs = StateMachineInvoker.createCluster(cls,cls.getLatestRevisionNumber(),
-                                            cls.getClusterState());
+        ClusterFSM cs = fsmDriver.createCluster(cls,cls.getLatestRevisionNumber());
         if(cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ACTIVE)) {          
             cs.activate();
         }

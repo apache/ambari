@@ -22,11 +22,17 @@ import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
 import org.apache.ambari.event.EventHandler;
 
+import com.google.inject.Inject;
+
 public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
 
   private final String roleName;
   private final ServiceFSM service;
-  
+  private static StateMachineInvokerInterface stateMachineInvoker;
+  @Inject
+  public static void setInvoker(StateMachineInvokerInterface sm) {
+    stateMachineInvoker = sm;
+  }
   /* The state machine for the role looks like:
    * (INACTIVE or FAIL) --S_START--> STARTING --S_START_SUCCESS--> ACTIVE
    *                                --S_START_FAILURE--> FAIL
@@ -122,7 +128,7 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
       ServiceFSM service = operand.getAssociatedService();
       //if one instance of the role starts up fine, we consider the service
       //as ready for the 'safe-mode' kinds of checks
-      StateMachineInvoker.getAMBARIEventHandler().handle(
+      stateMachineInvoker.getAMBARIEventHandler().handle(
           new ServiceEvent(ServiceEventType.ROLE_START_SUCCESS, service, 
               operand));
     }
@@ -136,7 +142,7 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
       ServiceFSM service = operand.getAssociatedService();
       //if one instance of the role starts up fine, we consider the service
       //as ready for the 'safe-mode' kinds of checks
-      StateMachineInvoker.getAMBARIEventHandler().handle(
+      stateMachineInvoker.getAMBARIEventHandler().handle(
           new ServiceEvent(ServiceEventType.ROLE_START_SUCCESS, service, 
               operand));
     }
@@ -148,7 +154,7 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
     @Override
     public void transition(RoleImpl operand, RoleEvent event) {
       ServiceFSM service = operand.getAssociatedService();
-      StateMachineInvoker.getAMBARIEventHandler().handle(
+      stateMachineInvoker.getAMBARIEventHandler().handle(
           new ServiceEvent(ServiceEventType.ROLE_STOP_SUCCESS, service,
               operand));
     }
@@ -156,13 +162,13 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
 
   @Override
   public void activate() {
-    StateMachineInvoker.getAMBARIEventHandler()
+    stateMachineInvoker.getAMBARIEventHandler()
        .handle(new RoleEvent(RoleEventType.START, this));
   }
 
   @Override
   public void deactivate() {
-    StateMachineInvoker.getAMBARIEventHandler()
+    stateMachineInvoker.getAMBARIEventHandler()
        .handle(new RoleEvent(RoleEventType.STOP, this));  
   }
 

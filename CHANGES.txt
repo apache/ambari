@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-148. Refactors StateMachineInvoker (ddas)
+
   AMBARI-151. Fix TestHardware when in offline mode. (omalley)
 
   AMBARI-150. Simplifies states in controller state machine (thejas via ddas)

@@ -29,6 +29,8 @@ import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
 import org.apache.ambari.event.EventHandler;
 
+import com.google.inject.Inject;
+
 public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
 
   private final ClusterFSM clusterFsm;
@@ -43,7 +45,11 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
    * ACTIVE or FAIL --S_STOP--> STOPPING --S_STOP_SUCCESS--> INACTIVE
    *                             --S_STOP_FAILURE--> FAIL
    */
-  
+  private static StateMachineInvokerInterface stateMachineInvoker;
+  @Inject
+  public static void setInvoker(StateMachineInvokerInterface sm) {
+    stateMachineInvoker = sm;
+  }
   private static final StateMachineFactory 
   <ServiceImpl, ServiceState, ServiceEventType, ServiceEvent> 
   stateMachineFactory 
@@ -172,7 +178,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
     public void transition(ServiceImpl operand, ServiceEvent event) {
       RoleFSM firstRole = operand.getFirstRole();
       if (firstRole != null) {
-        StateMachineInvoker.getAMBARIEventHandler().handle(
+        stateMachineInvoker.getAMBARIEventHandler().handle(
                             new RoleEvent(RoleEventType.START, firstRole));
       }
     } 
@@ -188,7 +194,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
         //since we support starting services explicitly (without touching the 
         //associated cluster), we need to check what the cluster state is
         //before sending it any event
-        StateMachineInvoker.getAMBARIEventHandler().handle(
+        stateMachineInvoker.getAMBARIEventHandler().handle(
             new ClusterEvent(ClusterEventType.START_SUCCESS, 
                 operand.getAssociatedCluster()));
       }
@@ -205,7 +211,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
         //since we support starting services explicitly (without touching the 
         //associated cluster), we need to check what the cluster state is
         //before sending it any event
-        StateMachineInvoker.getAMBARIEventHandler().handle(
+        stateMachineInvoker.getAMBARIEventHandler().handle(
             new ClusterEvent(ClusterEventType.START_FAILURE, 
                 operand.getAssociatedCluster()));
       }
@@ -219,7 +225,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
     public void transition(ServiceImpl operand, ServiceEvent event) {
       RoleFSM firstRole = operand.getFirstRole();
       if (firstRole != null) {
-        StateMachineInvoker.getAMBARIEventHandler().handle(
+        stateMachineInvoker.getAMBARIEventHandler().handle(
                             new RoleEvent(RoleEventType.STOP, firstRole));
       }
     }
@@ -234,7 +240,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
       //state, else move to the STARTED state
       RoleFSM role = operand.getNextRole();
       if (role != null) {
-        StateMachineInvoker.getAMBARIEventHandler().handle(new RoleEvent(
+        stateMachineInvoker.getAMBARIEventHandler().handle(new RoleEvent(
             RoleEventType.START, role));
         return ServiceState.STARTING;
       } else {
@@ -252,7 +258,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
       //state, else move to the INACTIVE state
       RoleFSM role = operand.getNextRole();
       if (role != null) {
-        StateMachineInvoker.getAMBARIEventHandler().handle(new RoleEvent(
+        stateMachineInvoker.getAMBARIEventHandler().handle(new RoleEvent(
             RoleEventType.STOP, role));
         return ServiceState.STOPPING;
       } else {
@@ -261,7 +267,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
           //since we support stopping services explicitly (without stopping the 
           //associated cluster), we need to check what the cluster state is
           //before sending it any event
-          StateMachineInvoker.getAMBARIEventHandler().handle(
+          stateMachineInvoker.getAMBARIEventHandler().handle(
               new ClusterEvent(ClusterEventType.STOP_SUCCESS, 
                   operand.getAssociatedCluster()));
         }
@@ -272,13 +278,13 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
 
   @Override
   public void activate() {
-    StateMachineInvoker.getAMBARIEventHandler().handle(
+    stateMachineInvoker.getAMBARIEventHandler().handle(
               new ServiceEvent(ServiceEventType.START, this));
   }
 
   @Override
   public void deactivate() {
-    StateMachineInvoker.getAMBARIEventHandler().handle(
+    stateMachineInvoker.getAMBARIEventHandler().handle(
               new ServiceEvent(ServiceEventType.STOP, this));
   }
 

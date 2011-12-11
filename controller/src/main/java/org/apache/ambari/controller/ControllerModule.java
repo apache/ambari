@@ -22,9 +22,9 @@ import org.apache.ambari.controller.rest.agent.ControllerResource;
 import org.apache.ambari.controller.rest.resources.ClustersResource;
 import org.apache.ambari.controller.rest.resources.NodesResource;
 import org.apache.ambari.controller.rest.resources.StacksResource;
-import org.apache.ambari.datastore.PersistentDataStore;
-import org.apache.ambari.datastore.impl.ZookeeperDS;
-import org.apache.ambari.resource.statemachine.StateMachineInvoker;
+import org.apache.ambari.resource.statemachine.ClusterImpl;
+import org.apache.ambari.resource.statemachine.RoleImpl;
+import org.apache.ambari.resource.statemachine.ServiceImpl;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
@@ -34,12 +34,13 @@ public class ControllerModule extends AbstractModule {
   @Override
   protected void configure() {
     install(new ComponentModule());
-    bind(PersistentDataStore.class).to(ZookeeperDS.class);
     requestStaticInjection(ClustersResource.class,
                            NodesResource.class,
                            StacksResource.class,
                            ControllerResource.class,
-                           StateMachineInvoker.class);
+                           RoleImpl.class,
+                           ServiceImpl.class,
+                           ClusterImpl.class);
     install(new FactoryModuleBuilder()
               .implement(Cluster.class,Cluster.class)
               .build(ClusterFactory.class));

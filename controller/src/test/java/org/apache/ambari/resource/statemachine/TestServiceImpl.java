@@ -10,6 +10,8 @@ import java.util.Arrays;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.google.inject.Guice;
+
 /**
  *
  */
@@ -31,10 +33,9 @@ public class TestServiceImpl {
       ServiceState.ACTIVE
   };
   
-  
   @BeforeMethod
   public void setup() throws IOException{
-    StateMachineInvoker.setAMBARIDispatcher(new NoOPDispatcher());
+    Guice.createInjector(new TestModule());
     String roles[] = {"role1"};
     ClusterImpl clusterImpl = mock(ClusterImpl.class);
     service = new ServiceImpl(roles, clusterImpl, "service1");  

@@ -36,6 +36,7 @@ import org.apache.ambari.common.rest.agent.ControllerResponse;
 import org.apache.ambari.common.rest.agent.HeartBeat;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
+import org.apache.ambari.resource.statemachine.FSMDriverInterface;
 import org.apache.ambari.resource.statemachine.RoleFSM;
 import org.apache.ambari.resource.statemachine.RoleEvent;
 import org.apache.ambari.resource.statemachine.RoleEventType;
@@ -43,7 +44,7 @@ import org.apache.ambari.resource.statemachine.ServiceEvent;
 import org.apache.ambari.resource.statemachine.ServiceEventType;
 import org.apache.ambari.resource.statemachine.ServiceFSM;
 import org.apache.ambari.resource.statemachine.ServiceState;
-import org.apache.ambari.resource.statemachine.StateMachineInvoker;
+import org.apache.ambari.resource.statemachine.StateMachineInvokerInterface;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -59,11 +60,17 @@ public class HeartbeatHandler {
   private static Log LOG = LogFactory.getLog(HeartbeatHandler.class);
   private final Clusters clusters;
   private final Nodes nodes;
-  
+  private StateMachineInvokerInterface stateMachineInvoker;
+  private FSMDriverInterface driver;
+    
   @Inject
-  HeartbeatHandler(Clusters clusters, Nodes nodes) {
+  HeartbeatHandler(Clusters clusters, Nodes nodes, 
+      FSMDriverInterface driver, 
+      StateMachineInvokerInterface stateMachineInvoker) {
     this.clusters = clusters;
     this.nodes = nodes;
+    this.driver = driver;
+    this.stateMachineInvoker = stateMachineInvoker;
   }
   
   public ControllerResponse processHeartBeat(HeartBeat heartbeat) 
@@ -118,8 +125,8 @@ public class HeartbeatHandler {
         //get the cluster object corresponding to the clusterId
         Cluster cluster = clusters.getClusterByName(clusterName);
         //get the state machine reference to the cluster
-        ClusterFSM clusterFsm = StateMachineInvoker
-            .getStateMachineClusterInstance(clusterName);
+        ClusterFSM clusterFsm = 
+            driver.getFSMClusterInstance(clusterName);
 
         //the state machine references to the services
         List<ServiceFSM> clusterServices = clusterFsm.getServices();
@@ -147,7 +154,7 @@ public class HeartbeatHandler {
                     heartbeat)) {
                   //raise an event to the state machine for a successful 
                   //role-start
-                  StateMachineInvoker.getAMBARIEventHandler()
+                  stateMachineInvoker.getAMBARIEventHandler()
                   .handle(new RoleEvent(RoleEventType.START_SUCCESS, role));
                 }
               }
@@ -161,7 +168,7 @@ public class HeartbeatHandler {
                 if (wasStopRoleSuccessful(clusterIdAndRev, 
                     service.getServiceName(), role.getRoleName(), response, 
                     heartbeat)) {
-                  StateMachineInvoker.getAMBARIEventHandler()
+                  stateMachineInvoker.getAMBARIEventHandler()
                   .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
                 }
               }
@@ -368,11 +375,11 @@ public class HeartbeatHandler {
           //where the service is not available for a couple of checkservice
           //invocations
           if (result.getCommandResult().getExitCode() == 0) {
-            StateMachineInvoker.getAMBARIEventHandler().handle(
+            stateMachineInvoker.getAMBARIEventHandler().handle(
                 new ServiceEvent(ServiceEventType.AVAILABLE_CHECK_SUCCESS,
                     service));
           } else {
-            StateMachineInvoker.getAMBARIEventHandler().handle(
+            stateMachineInvoker.getAMBARIEventHandler().handle(
                 new ServiceEvent(ServiceEventType.AVAILABLE_CHECK_FAILURE,
                     service));
           }
@@ -396,11 +403,11 @@ public class HeartbeatHandler {
         if (result != null) {
           //this action ran
           if (result.getCommandResult().getExitCode() == 0) {
-            StateMachineInvoker.getAMBARIEventHandler().handle(
+            stateMachineInvoker.getAMBARIEventHandler().handle(
                 new ServiceEvent(ServiceEventType.PRESTART_SUCCESS,
                     service));
           } else {
-            StateMachineInvoker.getAMBARIEventHandler().handle(
+            stateMachineInvoker.getAMBARIEventHandler().handle(
                 new ServiceEvent(ServiceEventType.PRESTART_FAILURE,
                     service));
           }

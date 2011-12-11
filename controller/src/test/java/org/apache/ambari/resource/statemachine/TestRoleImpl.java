@@ -10,18 +10,18 @@ import org.apache.ambari.common.state.InvalidStateTransitonException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.google.inject.Guice;
+
 
 
 public class TestRoleImpl {
   RoleImpl role;
   
-
   @BeforeMethod
   public void setup(){
-    StateMachineInvoker.setAMBARIDispatcher(new NoOPDispatcher());
+    Guice.createInjector(new TestModule());
     ServiceFSM service = mock(ServiceFSM.class);  
     role = new RoleImpl(service, "role1");
-   
   }
  
   @Test

@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.common.rest.agent.Action;
 import org.apache.ambari.common.rest.agent.Action.Kind;
@@ -42,9 +41,11 @@ import org.apache.ambari.common.rest.entities.NodeState;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.controller.HeartbeatHandler.ClusterNameAndRev;
 import org.apache.ambari.controller.HeartbeatHandler.SpecialServiceIDs;
-import org.apache.ambari.event.AsyncDispatcher;
+import org.apache.ambari.datastore.PersistentDataStore;
+import org.apache.ambari.datastore.impl.StaticDataStore;
 import org.apache.ambari.event.EventHandler;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
+import org.apache.ambari.resource.statemachine.FSMDriverInterface;
 import org.apache.ambari.resource.statemachine.RoleEvent;
 import org.apache.ambari.resource.statemachine.RoleEventType;
 import org.apache.ambari.resource.statemachine.RoleFSM;
@@ -53,10 +54,12 @@ import org.apache.ambari.resource.statemachine.ServiceEvent;
 import org.apache.ambari.resource.statemachine.ServiceEventType;
 import org.apache.ambari.resource.statemachine.ServiceFSM;
 import org.apache.ambari.resource.statemachine.ServiceState;
-import org.apache.ambari.resource.statemachine.StateMachineInvoker;
-import org.testng.annotations.AfterTest;
+import org.apache.ambari.resource.statemachine.StateMachineInvokerInterface;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 public class TestHeartbeat {
   
@@ -67,15 +70,28 @@ public class TestHeartbeat {
   Cluster cluster;
   Nodes nodes;
   Clusters clusters;
+  StateMachineInvokerInterface invoker;
+  FSMDriverInterface driver;
   HeartBeat heartbeat;
   Node node;
+  Injector injector;
   final String script = "script-content";
   final int scriptHash = script.hashCode();
   
-  private static ConcurrentHashMap<String, ClusterFSM> c;
+  class TestModule extends ControllerModule {
+    @Override
+    protected void configure() {
+      super.configure();
+      bind(PersistentDataStore.class).to(StaticDataStore.class);
+      bind(FSMDriverInterface.class).to(TestFSMDriverImpl.class);
+    }
+  }
   
   @BeforeMethod
   public void setup() throws Exception {
+    injector = Guice.createInjector(new TestModule());
+    driver = injector.getInstance(FSMDriverInterface.class);
+    invoker = injector.getInstance(StateMachineInvokerInterface.class);
     plugin = mock(ComponentPlugin.class);
     when(plugin.getActiveRoles()).thenReturn(roles);
     cdef = mock(ClusterDefinition.class);
@@ -114,20 +130,13 @@ public class TestHeartbeat {
     heartbeat.setInstallScriptHash(-1);
     heartbeat.setHostname("localhost");
     heartbeat.setInstalledRoleStates(new ArrayList<AgentRoleState>());
-    StateMachineInvoker.init(new AsyncDispatcher(), 
-        (c=new ConcurrentHashMap<String, ClusterFSM>()));
   }
   
-  @AfterTest
-  public void teardown() {
-    c.clear();
-  }
-
   @Test
   public void testInstall() throws Exception {
     //send a heartbeat and get a response with install/config action
-    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes);
-    
+    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes, 
+        driver, invoker);
     ControllerResponse response = handler.processHeartBeat(heartbeat);
     List<Action> actions = response.getActions();
     assert(actions.size() == 1);
@@ -142,7 +151,7 @@ public class TestHeartbeat {
     TestClusterImpl clusterImpl = new TestClusterImpl(services,roles);
     ((TestRoleImpl)clusterImpl.getServices()
         .get(0).getRoles().get(0)).setShouldStart(true);
-    c.put("cluster1", clusterImpl);
+    updateTestFSMDriverImpl(clusterImpl);
     processHeartbeatAndGetResponse(true);
   }
   
@@ -154,7 +163,7 @@ public class TestHeartbeat {
     TestClusterImpl clusterImpl = new TestClusterImpl(services,roles);
     ((TestRoleImpl)clusterImpl.getServices()
         .get(0).getRoles().get(0)).setShouldStart(false);
-    c.put("cluster1", clusterImpl);
+    updateTestFSMDriverImpl(clusterImpl);
     processHeartbeatAndGetResponse(false);
   }
   
@@ -163,7 +172,7 @@ public class TestHeartbeat {
     //send a heartbeat with some role server start success, 
     //and then the role should be considered active
     TestClusterImpl clusterImpl = new TestClusterImpl(services,roles);
-    c.put("cluster1", clusterImpl);
+    updateTestFSMDriverImpl(clusterImpl);
     RoleFSM roleFsm = clusterImpl.getServices()
         .get(0).getRoles().get(0);
     heartbeat.setInstallScriptHash(scriptHash);
@@ -175,7 +184,8 @@ public class TestHeartbeat {
     roleState.setComponentName("comp1");
     installedRoleStates.add(roleState);
     heartbeat.setInstalledRoleStates(installedRoleStates);
-    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes);
+    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes, 
+        driver, invoker);
     ControllerResponse response = handler.processHeartBeat(heartbeat);
     checkActions(response, true);
     int i = 0;
@@ -194,7 +204,7 @@ public class TestHeartbeat {
     ServiceFSM serviceImpl = clusterImpl.getServices().get(0);
     ((TestRoleImpl)clusterImpl.getServices().get(0).getRoles().get(0)).setShouldStart(false);
     ((TestServiceImpl)serviceImpl).setServiceState(ServiceState.PRESTART);
-    c.put("cluster1", clusterImpl);
+    updateTestFSMDriverImpl(clusterImpl);
     checkSpecialAction(ServiceState.PRESTART, ServiceEventType.START, 
         SpecialServiceIDs.SERVICE_PRESTART_CHECK_ID);
   }
@@ -204,7 +214,7 @@ public class TestHeartbeat {
     TestClusterImpl clusterImpl = new TestClusterImpl(services,roles);
     ServiceFSM serviceImpl = clusterImpl.getServices().get(0);
     ((TestServiceImpl)serviceImpl).setServiceState(ServiceState.STARTED);
-    c.put("cluster1", clusterImpl);
+    updateTestFSMDriverImpl(clusterImpl);
     checkSpecialAction(ServiceState.STARTED, ServiceEventType.ROLE_START_SUCCESS, 
         SpecialServiceIDs.SERVICE_AVAILABILITY_CHECK_ID);
   }
@@ -212,13 +222,13 @@ public class TestHeartbeat {
   @Test
   public void testServiceAvailableEvent() throws Exception {
     TestClusterImpl clusterImpl = new TestClusterImpl(services,roles);
-    c.put("cluster1", clusterImpl);
+    updateTestFSMDriverImpl(clusterImpl);
     heartbeat.setInstallScriptHash(scriptHash);
     ServiceFSM serviceImpl = clusterImpl.getServices().get(0);
     ((TestServiceImpl)serviceImpl).setServiceState(ServiceState.STARTED);
     ActionResult actionResult = new ActionResult();
     actionResult.setKind(Kind.RUN_ACTION);
-    ClusterNameAndRev clusterNameAndRev = new ClusterNameAndRev("cluster1", -1);
+    ClusterNameAndRev clusterNameAndRev = new ClusterNameAndRev("cluster1",-1);
     String checkActionId = HeartbeatHandler.getSpecialActionID(
         clusterNameAndRev, "comp1", "abc", 
         SpecialServiceIDs.SERVICE_AVAILABILITY_CHECK_ID);
@@ -230,7 +240,8 @@ public class TestHeartbeat {
     List<ActionResult> actionResults = new ArrayList<ActionResult>();
     actionResults.add(actionResult);
     heartbeat.setActionResults(actionResults);
-    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes);
+    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes, 
+        driver, invoker);
     handler.processHeartBeat(heartbeat);
     int i = 0;
     while (i++ < 10) {
@@ -245,7 +256,7 @@ public class TestHeartbeat {
   @Test
   public void testServiceReadyToStartEvent() throws Exception {
     TestClusterImpl clusterImpl = new TestClusterImpl(services,roles);
-    c.put("cluster1", clusterImpl);
+    updateTestFSMDriverImpl(clusterImpl);
     heartbeat.setInstallScriptHash(scriptHash);
     ServiceFSM serviceImpl = clusterImpl.getServices().get(0);
     ((TestServiceImpl)serviceImpl).setServiceState(ServiceState.PRESTART);
@@ -263,7 +274,8 @@ public class TestHeartbeat {
     List<ActionResult> actionResults = new ArrayList<ActionResult>();
     actionResults.add(actionResult);
     heartbeat.setActionResults(actionResults);
-    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes);
+    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes, 
+        driver, invoker);
     handler.processHeartBeat(heartbeat);
     int i = 0;
     while (i++ < 10) {
@@ -279,7 +291,8 @@ public class TestHeartbeat {
       ServiceEventType serviceEventType, 
       SpecialServiceIDs serviceId) throws Exception {
     heartbeat.setInstallScriptHash(scriptHash);
-    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes);
+    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes, 
+        driver, invoker);
     ControllerResponse response = handler.processHeartBeat(heartbeat);
     checkActions(response, ServiceState.STARTED == serviceState);
     ClusterNameAndRev clusterNameAndRev = new ClusterNameAndRev("cluster1", -1);
@@ -297,10 +310,15 @@ public class TestHeartbeat {
     assert(found != false);
   }
   
+  private void updateTestFSMDriverImpl(TestClusterImpl clusterImpl) {
+    ((TestFSMDriverImpl)driver).setClusterFsm(clusterImpl);
+  }
+  
   private void processHeartbeatAndGetResponse(boolean shouldFindStart)
       throws Exception {
     heartbeat.setInstallScriptHash(scriptHash);
-    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes);
+    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes, 
+        driver, invoker);
     ControllerResponse response = handler.processHeartBeat(heartbeat);
     checkActions(response, shouldFindStart);
   }
@@ -352,7 +370,7 @@ public class TestHeartbeat {
     }
 
     @Override
-    public ClusterState getClusterState() {
+    public String getClusterState() {
       // TODO Auto-generated method stub
       return null;
     }

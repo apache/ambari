@@ -17,49 +17,33 @@
 */
 package org.apache.ambari.resource.statemachine;
 
-import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import org.apache.ambari.common.rest.entities.ClusterState;
-import org.apache.ambari.controller.Cluster;
 import org.apache.ambari.event.AsyncDispatcher;
 import org.apache.ambari.event.Dispatcher;
 import org.apache.ambari.event.EventHandler;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
-public class StateMachineInvoker {
+@Singleton
+class StateMachineInvoker implements StateMachineInvokerInterface {
+  
+  private Dispatcher dispatcher;
   
   @Inject
-  public static void init(AsyncDispatcher d, 
-      ConcurrentHashMap<String, ClusterFSM> c) {
-    clusters = c;
-    dispatcher = d;
+  StateMachineInvoker() {
+    dispatcher = new AsyncDispatcher();
     dispatcher.register(ClusterEventType.class, new ClusterEventDispatcher());
     dispatcher.register(ServiceEventType.class, new ServiceEventDispatcher());
     dispatcher.register(RoleEventType.class, new RoleEventDispatcher());
     dispatcher.start();
   }
   
-  private static Dispatcher dispatcher;
-  
-  private static Log LOG = LogFactory.getLog(StateMachineInvoker.class);
-  public Dispatcher getAMBARIDispatcher() {
-    return dispatcher;
-  }
-  
-  public static void setAMBARIDispatcher(Dispatcher dispatcher1) {
-    dispatcher = dispatcher1;
-  }  
 
-  public static EventHandler getAMBARIEventHandler() {
+  public EventHandler getAMBARIEventHandler() {
     return dispatcher.getEventHandler();
   }
 
-  public static class ClusterEventDispatcher 
+  private static class ClusterEventDispatcher 
   implements EventHandler<ClusterEvent> {
     @Override
     public void handle(ClusterEvent event) {
@@ -67,7 +51,7 @@ public class StateMachineInvoker {
     }
   }
   
-  public static class ServiceEventDispatcher 
+  private static class ServiceEventDispatcher 
   implements EventHandler<ServiceEvent> {
     @Override
     public void handle(ServiceEvent event) {
@@ -75,54 +59,11 @@ public class StateMachineInvoker {
     }
   }
   
-  public static class RoleEventDispatcher 
+  private static class RoleEventDispatcher 
   implements EventHandler<RoleEvent> {
     @Override
     public void handle(RoleEvent event) {
       ((EventHandler<RoleEvent>)event.getRole()).handle(event);
     }
-  }
-  
-  private static ConcurrentMap<String, ClusterFSM> clusters;
-  
-  public static ClusterFSM createCluster(Cluster cluster, int revision, 
-      ClusterState state) throws IOException {
-    ClusterImpl clusterFSM = new ClusterImpl(cluster, revision, state);
-    clusters.put(cluster.getName(), clusterFSM);
-    return clusterFSM;
-  }
-  
-  public static void startCluster(String clusterId) {
-    ClusterFSM clusterFSM = clusters.get(clusterId);
-    clusterFSM.activate();
-  }
-  
-  public static void stopCluster(String clusterId) {
-    ClusterFSM clusterFSM = clusters.get(clusterId);
-    clusterFSM.deactivate();
-  }
-  
-  public static void deleteCluster(String clusterId) {
-    ClusterFSM clusterFSM = clusters.get(clusterId);
-    clusterFSM.deactivate();
-    clusterFSM.terminate();
-    clusters.remove(clusterId);
-  }
-  
-  public static ClusterFSM getStateMachineClusterInstance(String clusterId) {
-    return clusters.get(clusterId);
-  }
-  
-  public static void setStateMachineClusterInstance(String clusterId, 
-      ClusterFSM clusterFsm) {
-    clusters.put(clusterId, clusterFsm);
-  }
-  
-  public static ClusterState getClusterState(String clusterId,
-      long clusterDefinitionRev) {
-    return clusters.get(clusterId).getClusterState();
-  }
-  
-  
-  
+  }  
 }
