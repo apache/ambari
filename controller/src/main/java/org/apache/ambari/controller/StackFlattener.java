@@ -26,8 +26,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.ws.rs.WebApplicationException;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
 
 import org.apache.ambari.common.rest.entities.Component;
 import org.apache.ambari.common.rest.entities.ComponentDefinition;
@@ -40,9 +38,7 @@ import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.components.ComponentPluginFactory;
 
-import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * This class flattens a stack and its ancestors into a single stack. The 
@@ -246,16 +242,5 @@ public class StackFlattener {
     }
     result.setConfiguration(buildClientConfiguration(stacks));
     return result;
-  }
-
-  public static void main(String[] args) throws Exception {
-    Injector injector = Guice.createInjector(new ControllerModule());
-    JAXBContext jaxbContext = 
-        JAXBContext.newInstance("org.apache.ambari.common.rest.entities");
-    Marshaller marsh = jaxbContext.createMarshaller();
-    StackFlattener flatten = injector.getInstance(StackFlattener.class);
-    Stack stack = flatten.flattenStack(args[0], 0);
-    marsh.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-    marsh.marshal(stack, System.out);
   }
 }
