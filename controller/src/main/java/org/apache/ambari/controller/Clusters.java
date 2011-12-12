@@ -42,7 +42,8 @@ import org.apache.ambari.common.rest.entities.Property;
 import org.apache.ambari.common.rest.entities.Role;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.ambari.common.rest.entities.Stack;
-import org.apache.ambari.datastore.PersistentDataStore;
+import org.apache.ambari.datastore.DataStoreFactory;
+import org.apache.ambari.datastore.DataStore;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
 import org.apache.ambari.resource.statemachine.FSMDriverInterface;
 import org.apache.commons.logging.Log;
@@ -60,7 +61,7 @@ public class Clusters {
      * Operational clusters include both active and inactive clusters
      */
     protected ConcurrentHashMap<String, Cluster> operational_clusters = new ConcurrentHashMap<String, Cluster>();
-    private final PersistentDataStore dataStore;
+    private final DataStore dataStore;
     
     private final Stacks stacks;
     private final Nodes nodes;
@@ -70,13 +71,13 @@ public class Clusters {
         
     @Inject
     private Clusters(Stacks stacks, Nodes nodes, 
-                     PersistentDataStore dataStore,
+                     DataStoreFactory dataStore,
                      ClusterFactory clusterFactory,
                      StackFlattener flattener,
                      FSMDriverInterface fsmDriver) throws Exception {
       this.stacks = stacks;
       this.nodes = nodes;
-      this.dataStore = dataStore;
+      this.dataStore = dataStore.getInstance();
       this.clusterFactory = clusterFactory;
       this.fsmDriver = fsmDriver;
       this.flattener = flattener;

@@ -39,7 +39,8 @@ import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.StackInformation;
 import org.apache.ambari.common.rest.entities.Component;
 import org.apache.ambari.common.rest.entities.Property;
-import org.apache.ambari.datastore.PersistentDataStore;
+import org.apache.ambari.datastore.DataStoreFactory;
+import org.apache.ambari.datastore.DataStore;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -49,11 +50,11 @@ import com.google.inject.Singleton;
 @Singleton
 public class Stacks {
 
-  private final PersistentDataStore dataStore;
+  private final DataStore dataStore;
 
     @Inject
-    Stacks(PersistentDataStore dataStore) throws IOException {
-      this.dataStore = dataStore;
+    Stacks(DataStoreFactory dataStore) throws IOException {
+      this.dataStore = dataStore.getInstance();
       recoverStacksAfterRestart();
     }
     

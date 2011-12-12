@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="ClusterInformation" type="ClusterInformation"/>
+
+  <xs:element name="Node" type="Node"/>
+
+  <xs:element name="Property" type="Property"/>
+
+  <xs:element name="cluster" type="ClusterDefinition"/>
+
+  <xs:element name="clusterState" type="clusterState"/>
+
+  <xs:element name="component" type="CategoryType"/>
+
+  <xs:element name="componentDefinition" type="componentDefinition"/>
+
+  <xs:element name="configuration" type="Configuration"/>
+
+  <xs:element name="configurationCategory" type="ConfigurationCategory"/>
+
+  <xs:element name="nodeState" type="NodeState"/>
+
+  <xs:element name="repositoryKind" type="PackageType"/>
+
+  <xs:element name="role" type="RoleType"/>
+
+  <xs:element name="stack" type="stack"/>
+
+  <xs:element name="stackInformation" type="StackInformation"/>
+
+  <xs:complexType name="ClusterDefinition">
+    <xs:sequence>
+      <xs:element name="activeServices" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="roleToNodesMap" type="roleToNodes" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="revision" type="xs:string"/>
+    <xs:attribute name="description" type="xs:string"/>
+    <xs:attribute name="stackName" type="xs:string"/>
+    <xs:attribute name="stackRevision" type="xs:string"/>
+    <xs:attribute name="goalState" type="xs:string"/>
+    <xs:attribute name="nodes" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="roleToNodes">
+    <xs:sequence/>
+    <xs:attribute name="roleName" type="xs:string" use="required"/>
+    <xs:attribute name="nodes" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="ClusterInformation">
+    <xs:sequence>
+      <xs:element name="definition" type="ClusterDefinition" minOccurs="0"/>
+      <xs:element name="state" type="clusterState" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="clusterState">
+    <xs:sequence/>
+    <xs:attribute name="state" type="xs:string" use="required"/>
+    <xs:attribute name="creationTime" type="xs:dateTime" use="required"/>
+    <xs:attribute name="deployTime" type="xs:dateTime"/>
+    <xs:attribute name="lastUpdateTime" type="xs:dateTime"/>
+    <xs:attribute name="markForDeletionWhenInAttic" type="xs:boolean" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="CategoryType">
+    <xs:sequence>
+      <xs:element name="definition" type="componentDefinition" minOccurs="0"/>
+      <xs:element ref="configuration" minOccurs="0"/>
+      <xs:element name="roles" type="RoleType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="architecture" type="xs:string"/>
+    <xs:attribute name="version" type="xs:string"/>
+    <xs:attribute name="provider" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="componentDefinition">
+    <xs:sequence/>
+    <xs:attribute name="provider" type="xs:string"/>
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="version" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="Configuration">
+    <xs:sequence>
+      <xs:element name="category" type="ConfigurationCategory" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ConfigurationCategory">
+    <xs:sequence>
+      <xs:element name="property" type="Property" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Property">
+    <xs:sequence/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="value" type="xs:string" use="required"/>
+    <xs:attribute name="force" type="xs:boolean" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="RoleType">
+    <xs:sequence>
+      <xs:element ref="configuration"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Node">
+    <xs:sequence>
+      <xs:element name="NodeAttributes" type="nodeAttributes" minOccurs="0"/>
+      <xs:element name="NodeState" type="NodeState"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="nodeAttributes">
+    <xs:sequence/>
+    <xs:attribute name="cpuType" type="xs:string"/>
+    <xs:attribute name="cpuUnits" type="xs:short" use="required"/>
+    <xs:attribute name="cpuCores" type="xs:short" use="required"/>
+    <xs:attribute name="ramInGB" type="xs:long" use="required"/>
+    <xs:attribute name="diskSizeInGB" type="xs:long" use="required"/>
+    <xs:attribute name="diskUnits" type="xs:short" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="NodeState">
+    <xs:sequence>
+      <xs:element name="nodeRoleNames" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="nodeServers" type="nodeServer" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="lastHeartbeatTime" type="xs:dateTime"/>
+    <xs:attribute name="clusterName" type="xs:string"/>
+    <xs:attribute name="agentInstalled" type="xs:boolean"/>
+    <xs:attribute name="allocatedToCluster" type="xs:boolean"/>
+  </xs:complexType>
+
+  <xs:complexType name="nodeServer">
+    <xs:sequence/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="state" type="xs:string" use="required"/>
+    <xs:attribute name="lastStateUpdateTime" type="xs:dateTime" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="PackageType">
+    <xs:sequence>
+      <xs:element name="urls" type="xs:string" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="kind" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="stack">
+    <xs:sequence>
+      <xs:element name="repositories" type="PackageType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element ref="configuration" minOccurs="0"/>
+      <xs:element name="components" type="CategoryType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="revision" type="xs:string"/>
+    <xs:attribute name="parentName" type="xs:string"/>
+    <xs:attribute name="parentRevision" type="xs:string"/>
+    <xs:attribute name="creationTime" type="xs:dateTime"/>
+  </xs:complexType>
+
+  <xs:complexType name="StackInformation">
+    <xs:sequence>
+      <xs:element name="component" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="revision" type="xs:string"/>
+    <xs:attribute name="parentName" type="xs:string"/>
+    <xs:attribute name="parentRevision" type="xs:string"/>
+    <xs:attribute name="creationTime" type="xs:dateTime"/>
+  </xs:complexType>
+</xs:schema>
+

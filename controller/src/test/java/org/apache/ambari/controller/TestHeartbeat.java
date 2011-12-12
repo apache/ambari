@@ -41,8 +41,6 @@ import org.apache.ambari.common.rest.entities.NodeState;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.controller.HeartbeatHandler.ClusterNameAndRev;
 import org.apache.ambari.controller.HeartbeatHandler.SpecialServiceIDs;
-import org.apache.ambari.datastore.PersistentDataStore;
-import org.apache.ambari.datastore.impl.StaticDataStore;
 import org.apache.ambari.event.EventHandler;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
 import org.apache.ambari.resource.statemachine.FSMDriverInterface;
@@ -60,6 +58,7 @@ import org.testng.annotations.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.name.Names;
 
 public class TestHeartbeat {
   
@@ -82,7 +81,7 @@ public class TestHeartbeat {
     @Override
     protected void configure() {
       super.configure();
-      bind(PersistentDataStore.class).to(StaticDataStore.class);
+      bindConstant().annotatedWith(Names.named("data.store")).to("test:/");
       bind(FSMDriverInterface.class).to(TestFSMDriverImpl.class);
     }
   }

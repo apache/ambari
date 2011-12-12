@@ -2,6 +2,10 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-153. Introduce a 'ambari.properties' configuration file that
+  can specify 'data.store' and a url. It defaults to 'zk://localhost:2181/',
+  but can be set to 'test:/' to get the static storage. (omalley)
+
   AMBARI-152. Fixes issues in the shell scripts (ddas)
 
   AMBARI-148. Refactors StateMachineInvoker (ddas)

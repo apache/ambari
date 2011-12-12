@@ -38,6 +38,8 @@ import org.apache.ambari.controller.Clusters;
 import org.apache.ambari.controller.Stacks;
 import org.apache.ambari.controller.ExceptionResponse;
 import org.apache.ambari.controller.rest.config.Examples;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
 
@@ -49,6 +51,7 @@ import com.google.inject.Inject;
 @Path("stacks")
 public class StacksResource {
  
+    private static Log LOG = LogFactory.getLog(StacksResource.class);
     private static Stacks stacks;
     private static Clusters clusters;
     
@@ -83,6 +86,7 @@ public class StacksResource {
         }catch (WebApplicationException we) {
             throw we;
         }catch (Exception e) {
+            LOG.error("Caught error in get stacks", e);
             throw new WebApplicationException((new ExceptionResponse(e)).get());
         } 
     }

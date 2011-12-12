@@ -37,13 +37,9 @@ import org.apache.ambari.common.rest.entities.Property;
 import org.apache.ambari.common.rest.entities.RepositoryKind;
 import org.apache.ambari.common.rest.entities.Role;
 import org.apache.ambari.common.rest.entities.Stack;
-import org.apache.ambari.components.ComponentModule;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.components.ComponentPluginFactory;
-import org.apache.ambari.datastore.PersistentDataStore;
-import org.apache.ambari.datastore.impl.StaticDataStore;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -252,18 +248,8 @@ public class StackFlattener {
     return result;
   }
 
-  private static class TestModule extends AbstractModule {
-
-    @Override
-    protected void configure() {
-      install(new ComponentModule());
-      bind(PersistentDataStore.class).to(StaticDataStore.class);
-    }
-    
-  }
-
   public static void main(String[] args) throws Exception {
-    Injector injector = Guice.createInjector(new TestModule());
+    Injector injector = Guice.createInjector(new ControllerModule());
     JAXBContext jaxbContext = 
         JAXBContext.newInstance("org.apache.ambari.common.rest.entities");
     Marshaller marsh = jaxbContext.createMarshaller();

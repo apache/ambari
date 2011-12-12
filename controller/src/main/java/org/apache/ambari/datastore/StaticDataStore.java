@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.datastore.impl;
+package org.apache.ambari.datastore;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,15 +31,15 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Stack;
-import org.apache.ambari.datastore.PersistentDataStore;
 
 import com.google.inject.Singleton;
+import com.sun.jersey.api.json.JSONJAXBContext;
 
 /**
  * A data store that uses in-memory maps and some preset values for testing.
  */
 @Singleton
-public class StaticDataStore implements PersistentDataStore {
+class StaticDataStore implements DataStore {
 
   private Map<String, List<ClusterDefinition>> clusters = 
       new TreeMap<String, List<ClusterDefinition>>();
@@ -51,10 +51,13 @@ public class StaticDataStore implements PersistentDataStore {
       new TreeMap<String, ClusterState>();
 
   private static final JAXBContext jaxbContext;
+  private static final JAXBContext jsonContext;
   static {
     try {
       jaxbContext = JAXBContext.
           newInstance("org.apache.ambari.common.rest.entities");
+      jsonContext = JSONJAXBContext.newInstance
+          ("org.apache.ambari.common.rest.entities");
     } catch (JAXBException e) {
       throw new RuntimeException("Can't create jaxb context", e);
     }
@@ -65,7 +68,7 @@ public class StaticDataStore implements PersistentDataStore {
                  "hadoop-security");
     addStackFile("org/apache/ambari/stacks/cluster123-0.xml", "cluster123");
     addStackFile("org/apache/ambari/stacks/cluster124-0.xml", "cluster124");
-    addStackFile("org/apache/ambari/stacks/puppet1-0.xml", "puppet1");
+    addStackJsonFile("org/apache/ambari/stacks/puppet1-0.xml", "puppet1");
     addClusterFile("org/apache/ambari/clusters/cluster123.xml", "cluster123");
   }
 
@@ -77,6 +80,21 @@ public class StaticDataStore implements PersistentDataStore {
     }
     try {
       Unmarshaller um = jaxbContext.createUnmarshaller();
+      Stack stack = (Stack) um.unmarshal(in);
+      storeStack(stackName, stack);
+    } catch (JAXBException je) {
+      throw new IOException("Can't parse " + filename, je);
+    }
+  }
+
+  private void addStackJsonFile(String filename, 
+                                String stackName) throws IOException {
+    InputStream in = ClassLoader.getSystemResourceAsStream(filename);
+    if (in == null) {
+      throw new IllegalArgumentException("Can't find resource for " + filename);
+    }
+    try {
+      Unmarshaller um = jsonContext.createUnmarshaller();
       Stack stack = (Stack) um.unmarshal(in);
       storeStack(stackName, stack);
     } catch (JAXBException je) {
@@ -164,14 +182,20 @@ public class StaticDataStore implements PersistentDataStore {
       list = new ArrayList<Stack>();
       stacks.put(stackName, list);
     }
+    int index = list.size();
+    stack.setRevision(Integer.toString(index));
     list.add(stack);
-    return list.size() - 1;
+    return index;
   }
 
   @Override
   public Stack retrieveStack(String stackName, 
                              int revision) throws IOException {
-    return stacks.get(stackName).get(revision);
+    List<Stack> history = stacks.get(stackName);
+    if (revision == -1) {
+      revision = history.size() - 1;
+    }
+    return history.get(revision);
   }
 
   @Override

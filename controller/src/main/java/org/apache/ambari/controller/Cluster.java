@@ -33,7 +33,8 @@ import org.apache.ambari.common.rest.entities.Component;
 import org.apache.ambari.common.rest.entities.Configuration;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.components.ComponentPluginFactory;
-import org.apache.ambari.datastore.PersistentDataStore;
+import org.apache.ambari.datastore.DataStoreFactory;
+import org.apache.ambari.datastore.DataStore;
 
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -44,7 +45,7 @@ public class Cluster {
     /*
      * Data Store 
      */
-    private final PersistentDataStore dataStore;
+    private final DataStore dataStore;
    
     /*
      * Latest revision of cluster definition
@@ -81,18 +82,18 @@ public class Cluster {
 
     @AssistedInject
     public Cluster (StackFlattener flattener,
-                    PersistentDataStore dataStore,
+                    DataStoreFactory dataStore,
                     ComponentPluginFactory plugin,
                     @Assisted String clusterName) {
         this.flattener = flattener;
-        this.dataStore = dataStore;
+        this.dataStore = dataStore.getInstance();
         this.componentPluginFactory = plugin;
         this.clusterName = clusterName;
     }
     
     @AssistedInject
     public Cluster (StackFlattener flattener,
-                    PersistentDataStore dataStore,
+                    DataStoreFactory dataStore,
                     ComponentPluginFactory plugin,
                     @Assisted ClusterDefinition c, 
                     @Assisted ClusterState cs) throws Exception {

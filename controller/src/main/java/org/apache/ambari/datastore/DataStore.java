@@ -23,17 +23,11 @@ import java.util.List;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
-import org.apache.ambari.datastore.impl.StaticDataStore;
-import org.apache.ambari.datastore.impl.ZookeeperDS;
-
-import com.google.inject.ImplementedBy;
 
 /**
  * Abstraction that stores the Ambari state.
  */
-@ImplementedBy(ZookeeperDS.class)
-public interface PersistentDataStore {
-    
+public interface DataStore {
     
     /*
      * Shutdown the data store. It will stop the data store service

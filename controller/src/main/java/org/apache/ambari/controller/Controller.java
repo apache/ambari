@@ -19,11 +19,14 @@
 package org.apache.ambari.controller;
 
 
+import java.io.IOException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.apache.ambari.common.util.DaemonWatcher;
 import org.apache.ambari.common.util.ExceptionUtil;
+import org.apache.ambari.configuration.ConfigurationModule;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.security.Constraint;
 import org.mortbay.jetty.security.ConstraintMapping;
@@ -116,8 +119,9 @@ public class Controller {
     }
   }
 
-  public static void main(String[] args) {
-    Injector injector = Guice.createInjector(new ControllerModule());
+  public static void main(String[] args) throws IOException {
+    Injector injector = Guice.createInjector(new ConfigurationModule(),
+                                             new ControllerModule());
     DaemonWatcher.createInstance(System.getProperty("PID"), 9100);
     try {
       Controller controller = injector.getInstance(Controller.class);
