@@ -78,7 +78,7 @@ fi
 
 COMMON="${AMBARI_HOME}/share/ambari/*:${AMBARI_HOME}/share/ambari/lib/*"
 
-export AMBARI_CORE=${AMBARI_HOME}/ambari-core-${AMBARI_VERSION}.jar
+export AMBARI_CONTROLLER=${AMBARI_HOME}/ambari-controller-${AMBARI_VERSION}.jar
 export AMBARI_AGENT=${AMBARI_HOME}/ambari-agent-${AMBARI_VERSION}.jar
 export CURRENT_DATE=`date +%Y%m%d%H%M`
 

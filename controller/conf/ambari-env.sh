@@ -13,5 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Home
 AMBARI_PID_DIR=/tmp

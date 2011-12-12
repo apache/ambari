@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-152. Fixes issues in the shell scripts (ddas)
+
   AMBARI-148. Refactors StateMachineInvoker (ddas)
 
   AMBARI-151. Fix TestHardware when in offline mode. (omalley)

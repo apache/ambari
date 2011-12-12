@@ -97,7 +97,7 @@ else
     echo
   else 
     # run command
-    RUN="${JAVA_HOME}/bin/java ${JAVA_OPT} -Djava.library.path=${JAVA_LIBRARY_PATH} -DPID=${PID} -DAMBARI_HOME=${AMBARI_HOME} -DAMBARI_CONF_DIR=${AMBARI_CONF_DIR} -DAMBARI_LOG_DIR=${AMBARI_LOG_DIR} -DAMBARI_DATA_DIR=${AMBARI_DATA_DIR} -DAPP=${APP} -Dlog4j.configuration=log4j.properties -classpath ${AMBARI_CONF_DIR}:${CLASSPATH}:${AMBARI_CORE}:${AMBARI_JAR}:${COMMON}:${tools} ${CLASS} $OPTS $@"
+    RUN="${JAVA_HOME}/bin/java ${JAVA_OPT} -Djava.library.path=${JAVA_LIBRARY_PATH} -DPID=${PID} -DAMBARI_HOME=${AMBARI_HOME} -DAMBARI_CONF_DIR=${AMBARI_CONF_DIR} -DAMBARI_LOG_DIR=${AMBARI_LOG_DIR} -DAMBARI_DATA_DIR=${AMBARI_DATA_DIR} -DAPP=${APP} -Dlog4j.configuration=log4j.properties -classpath ${AMBARI_CONF_DIR}:${CLASSPATH}:${AMBARI_CONTROLLER}:${AMBARI_JAR}:${COMMON}:${tools} ${CLASS} $OPTS $@"
     if [ "$BACKGROUND" = "true" ]; then
       exec ${RUN} &
     else
