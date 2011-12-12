@@ -102,15 +102,17 @@ public class HeartbeatHandler {
       List<ClusterNameAndRev> clustersNodeBelongsTo = 
           getClustersNodeBelongsTo(hostname);
       
+      if (clustersNodeBelongsTo.isEmpty()) {
+        return createResponse(responseId, allActions, heartbeat);
+      }
+      
       //TODO: have an API in Clusters that can return a script 
       //pertaining to all clusters
       String script = 
           clusters.getInstallAndConfigureScript(
               clustersNodeBelongsTo.get(0).getClusterName(), 
               clustersNodeBelongsTo.get(0).getRevision());
-      if (script == null) {
-        return createResponse(responseId,allActions,heartbeat);
-      }
+      
       //send the deploy script
       getInstallAndConfigureAction(script, allActions);
 

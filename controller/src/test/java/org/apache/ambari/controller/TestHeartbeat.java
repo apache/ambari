@@ -121,7 +121,7 @@ public class TestHeartbeat {
     when(plugin.preStartAction("cluster1", "abc")).thenReturn(preStartAction);
     Action checkServiceAction = new Action();
     preStartAction.setKind(Kind.RUN_ACTION);
-    when(plugin.checkService("cluster1", "abc")).thenReturn(checkServiceAction);
+    when(plugin.checkService("cluster1","abc")).thenReturn(checkServiceAction);
     nodes = mock(Nodes.class);
     clusters = mock(Clusters.class);
     node = new Node();
@@ -130,8 +130,7 @@ public class TestHeartbeat {
     nodeState.setClusterName("cluster1");
     node.setNodeState(nodeState);
     when(nodes.getNode("localhost")).thenReturn(node);
-    when(nodes.getNodeRoles("localhost"))
-         .thenReturn(Arrays.asList(roles));
+    when(nodes.getNodeRoles("localhost")).thenReturn(Arrays.asList(roles));
     when(clusters.getClusterByName("cluster1")).thenReturn(cluster);
     when(clusters.getInstallAndConfigureScript(anyString(), anyInt()))
         .thenReturn(script);
@@ -140,6 +139,28 @@ public class TestHeartbeat {
     heartbeat.setInstallScriptHash(-1);
     heartbeat.setHostname("localhost");
     heartbeat.setInstalledRoleStates(new ArrayList<AgentRoleState>());
+  }
+  
+  @Test
+  public void testHeartbeatWithNoClusterDefined() throws Exception {
+    //if a node sends a heartbeat when the node doesn't belong to
+    //any cluster, the response should have an empty list of actions
+    Clusters clusters = mock(Clusters.class);
+    when(clusters.getClusterByName("cluster1")).thenReturn(null);
+    Nodes nodes = mock(Nodes.class);
+    clusters = mock(Clusters.class);
+    Node node = new Node();
+    node.setName("localhost");
+    NodeState nodeState = new NodeState();
+    nodeState.setClusterName(null);
+    node.setNodeState(nodeState);
+    when(nodes.getNode("localhost")).thenReturn(node);
+    when(nodes.getNodeRoles("localhost"))
+         .thenReturn(Arrays.asList(roles));
+    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes, 
+        driver, invoker);
+    ControllerResponse response = handler.processHeartBeat(heartbeat);
+    assert (response.getActions().size() == 0);
   }
   
   @Test
