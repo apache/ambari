@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.ambari.common.rest.agent.Action;
 import org.apache.ambari.common.rest.agent.Action.Kind;
@@ -39,6 +40,7 @@ import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.NodeState;
 import org.apache.ambari.components.ComponentPlugin;
+import org.apache.ambari.configuration.Configuration;
 import org.apache.ambari.controller.HeartbeatHandler.ClusterNameAndRev;
 import org.apache.ambari.controller.HeartbeatHandler.SpecialServiceIDs;
 import org.apache.ambari.event.EventHandler;
@@ -58,7 +60,6 @@ import org.testng.annotations.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.name.Names;
 
 public class TestHeartbeat {
   
@@ -77,11 +78,21 @@ public class TestHeartbeat {
   final String script = "script-content";
   final int scriptHash = script.hashCode();
   
-  class TestModule extends ControllerModule {
+  private static class TestConfiguration extends Configuration {
+    TestConfiguration() {
+      super(getProperties());
+    }
+    private static Properties getProperties() {
+      Properties props = new Properties();
+      props.setProperty("data.store", "test:/");
+      return props;
+    }
+  }
+  private static class TestModule extends ControllerModule {
     @Override
     protected void configure() {
       super.configure();
-      bindConstant().annotatedWith(Names.named("data.store")).to("test:/");
+      bind(Configuration.class).to(TestConfiguration.class);
       bind(FSMDriverInterface.class).to(TestFSMDriverImpl.class);
     }
   }

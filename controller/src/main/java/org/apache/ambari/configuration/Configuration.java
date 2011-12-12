@@ -20,29 +20,51 @@ package org.apache.ambari.configuration;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.name.Names;
+import com.google.inject.Inject;
 
 /**
- * Load a given property file into Guice as named properties.
+ * Ambari configuration.
+ * Reads properties from ambari.properties
  */
-public class ConfigurationModule extends AbstractModule {
-
-  private static final Log LOG = LogFactory.getLog(ConfigurationModule.class);
+public class Configuration {
   private static final String AMBARI_CONF_VAR = "AMBARI_CONF_DIR";
   private static final String CONFIG_FILE = "ambari.properties";
-
-  @Override
-  protected void configure() {
-    // set up default properties
+  
+  private static final Log LOG = LogFactory.getLog(Configuration.class);
+  
+  private final URI dataStore;
+  
+  @Inject
+  Configuration() {
+    this(readConfigFile());
+  }
+  
+  protected Configuration(Properties properties) {
+    // get the data store
+    String dataStoreString = properties.getProperty("data.store", 
+                                                    "zk://localhost:2181/");
+    try {
+      dataStore = new URI(dataStoreString);
+    } catch (URISyntaxException e) {
+      throw new IllegalArgumentException("Can't parse data.store: " + 
+                                         dataStoreString, e);
+    }    
+  }
+  
+  /**
+   * Find, read, and parse the configuration file.
+   * @return the properties that were found or empty if no file was found
+   */
+  private static Properties readConfigFile() {
     Properties properties = new Properties();
-    properties.put("data.store", "zk://localhost:2181/");
-    
+
     // get the configuration directory and filename
     String confDir = System.getenv(AMBARI_CONF_VAR);
     if (confDir == null) {
@@ -56,10 +78,17 @@ public class ConfigurationModule extends AbstractModule {
     } catch (FileNotFoundException fnf) {
       LOG.info("No configuration file " + filename + " found.", fnf);
     } catch (IOException ie) {
-      throw new RuntimeException("Can't read configuration file " + filename,
-                                 ie);
+      throw new IllegalArgumentException("Can't read configuration file " + 
+                                         filename, ie);
     }
-    Names.bindProperties(binder(), properties);
+    return properties;  
   }
 
+  /**
+   * Get the URI for the persistent data store.
+   * @return the data store URI
+   */
+  public URI getDataStore() {
+    return dataStore;
+  }
 }

@@ -19,24 +19,18 @@ package org.apache.ambari.datastore;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 
+import org.apache.ambari.configuration.Configuration;
 
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
 
 public class DataStoreFactory {
 
   private final DataStore ds;
   
   @Inject
-  DataStoreFactory(@Named("data.store") String dataStore) throws IOException {
-    URI uri;
-    try {
-      uri = new URI(dataStore);
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException("Bad data store URI: " + dataStore, e);
-    }
+  DataStoreFactory(Configuration conf) throws IOException {
+    URI uri = conf.getDataStore();
     String scheme = uri.getScheme();
     if ("zk".equals(scheme)) {
       String auth = uri.getAuthority();
