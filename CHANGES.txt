@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-154. Exception while starting the controller. Outdated JAXB fields in HeartBeat class (vgogate)
+
   AMBARI-153. Introduce a 'ambari.properties' configuration file that
   can specify 'data.store' and a url. It defaults to 'zk://localhost:2181/',
   but can be set to 'test:/' to get the static storage. (omalley)
