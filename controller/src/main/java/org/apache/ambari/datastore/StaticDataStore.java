@@ -34,6 +34,7 @@ import org.apache.ambari.common.rest.entities.Stack;
 
 import com.google.inject.Singleton;
 import com.sun.jersey.api.json.JSONJAXBContext;
+import com.sun.jersey.api.json.JSONUnmarshaller;
 
 /**
  * A data store that uses in-memory maps and some preset values for testing.
@@ -51,13 +52,13 @@ class StaticDataStore implements DataStore {
       new TreeMap<String, ClusterState>();
 
   private static final JAXBContext jaxbContext;
-  private static final JAXBContext jsonContext;
+  private static final JSONJAXBContext jsonContext;
   static {
     try {
       jaxbContext = JAXBContext.
           newInstance("org.apache.ambari.common.rest.entities");
-      jsonContext = JSONJAXBContext.newInstance
-          ("org.apache.ambari.common.rest.entities");
+      jsonContext = 
+          new JSONJAXBContext("org.apache.ambari.common.rest.entities");
     } catch (JAXBException e) {
       throw new RuntimeException("Can't create jaxb context", e);
     }
@@ -68,7 +69,7 @@ class StaticDataStore implements DataStore {
                  "hadoop-security");
     addStackFile("org/apache/ambari/stacks/cluster123-0.xml", "cluster123");
     addStackFile("org/apache/ambari/stacks/cluster124-0.xml", "cluster124");
-    addStackJsonFile("org/apache/ambari/stacks/puppet1-0.xml", "puppet1");
+    addStackJsonFile("org/apache/ambari/stacks/puppet1-0.json", "puppet1");
     addClusterFile("org/apache/ambari/clusters/cluster123.xml", "cluster123");
   }
 
@@ -94,8 +95,8 @@ class StaticDataStore implements DataStore {
       throw new IllegalArgumentException("Can't find resource for " + filename);
     }
     try {
-      Unmarshaller um = jsonContext.createUnmarshaller();
-      Stack stack = (Stack) um.unmarshal(in);
+      JSONUnmarshaller um = jsonContext.createJSONUnmarshaller();
+      Stack stack = um.unmarshalFromJSON(in, Stack.class);
       storeStack(stackName, stack);
     } catch (JAXBException je) {
       throw new IOException("Can't parse " + filename, je);
