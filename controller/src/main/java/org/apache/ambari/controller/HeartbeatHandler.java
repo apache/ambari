@@ -238,12 +238,6 @@ public class HeartbeatHandler {
     Action action = new Action();
     action.setFile(file);
     action.setKind(Kind.INSTALL_AND_CONFIG_ACTION);
-    String deployCmd = Util.getInstallAndConfigureCommand();
-    //TODO: assumption is that the file is passed as an argument
-    //Should generally hold for many install/config systems like Puppet
-    //but is something that needs to be thought about more
-    Command command = new Command(null,deployCmd,new String[]{file.getPath()});
-    action.setCommand(command);
     //in the action ID send the hashCode of the script content so that 
     //the controller can check how the installation went when a heartbeat
     //response is sent back
