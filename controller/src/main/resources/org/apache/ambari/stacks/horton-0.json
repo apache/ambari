@@ -1,0 +1,29 @@
+{
+  "@name": "horton",
+  "@parentName": "puppet1",
+  "@parentRevision": "0",
+  "configuration": {
+    "category": [
+      {"@name":"ambari",
+       "property":[
+          {"@name": "ambari_user_realm",
+           "@value": "HORTON.YGRIDCORE.NET"}
+        ]
+      }
+    ]
+  },
+  "components": [
+    {"@name": "hdfs",
+     "configuration": {
+       "category": [
+         {"@name":"hdfs-site.xml",
+          "property": [
+            {"@name": "dfs.data.dir",
+             "@value": "/grid/0/ambari/<%= ambari_cluster_name %>/hdfs/data,/grid/1/ambari/<%= ambari_cluster_name %>/hdfs/data,/grid/2/ambari/<%= ambari_cluster_name %>/hdfs/data,/grid/3/ambari/<%= ambari_cluster_name %>/hdfs/data"}
+          ]
+         }
+       ]
+      }
+    }
+ ]
+}
