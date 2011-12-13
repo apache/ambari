@@ -35,7 +35,7 @@ prefix=/tmp/ambari
 
 [puppet]
 prefix=/homes/ddas/puppet
-commandpath='/usr/local/bin/puppet apply --modulepath /home/puppet/puppet-ambari/modules'
+commandpath=/usr/local/bin/puppet apply --modulepath /home/puppet/puppet-ambari/modules
 driver=/home/puppet/puppet-ambari/manifests/site.pp
 
 """

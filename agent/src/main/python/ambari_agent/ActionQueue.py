@@ -19,9 +19,11 @@ limitations under the License.
 '''
 
 import logging
+import traceback
 import logging.handlers
 import Queue
 import threading
+import AmbariConfig
 from shell import shellRunner
 from FileUtil import writeFile, createStructure, deleteStructure, getFilePath, appendToFile
 from shell import shellRunner
@@ -96,10 +98,9 @@ class ActionQueue(threading.Thread):
                      'NO_OP_ACTION'              : self.noOpAction
                    }
         try:
-          print("ACTION KIND")
-          print(action['kind'])
           result = switches.get(action['kind'], self.unknownAction)(action)
         except Exception, err:
+          traceback.print_exc()  
           logger.info(err)
           result = self.genResult(action)
           result['exitCode']=1
@@ -163,24 +164,27 @@ class ActionQueue(threading.Thread):
       commandResult['exitCode'] = w['exitCode']
       r['commandResult'] = commandResult
       return r
-    logger.info("Command to run ")
      
     if 'command' not in action:
       # this is hardcoded to do puppet specific stuff for now
       # append the content of the puppet file to the file written above
       filepath = getFilePath(action,self.getInstallFilename(action['id'])) 
+      logger.debug("FILEPATH : " + filepath)
       p = self.sh.run(['/bin/cat',AmbariConfig.config.get('puppet','driver')])
       if p['exitCode']!=0:
         commandResult['error'] = p['error']
         commandResult['exitCode'] = p['exitCode']
         r['commandResult'] = commandResult
         return r
-      print("The contents of the static file " + p['output'])
+      logger.debug("The contents of the static file " + p['output'])
       appendToFile(p['output'],filepath) 
-      action['command']=[AmbariConfig.config.get('puppet','commandpath'), filepath]
-      print ("PUPPET COMMAND : " + action['command'])
-    logger.info(action['command'])
+      arr = [AmbariConfig.config.get('puppet','commandpath') , filepath]
+      logger.debug(arr)
+      action['command'] = arr
+    logger.debug(action['command'])
     r = self.sh.run(action['command'])
+    logger.debug("PUPPET COMMAND OUTPUT: " + r['output'])
+    logger.debug("PUPPET COMMAND ERROR: " + r['error'])
     if r['exitCode'] != 0:
       commandResult['error'] = r['error']
     else:
