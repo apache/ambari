@@ -219,8 +219,7 @@ public class Stacks {
             bpInfo.setParentRevision(bp.getParentRevision());
             List<String> componentNameVersions = new ArrayList<String>();
             for (Component com : bp.getComponents()) {
-                String comNameVersion = ""+com.getName()+"-"+com.getVersion();
-                componentNameVersions.add(comNameVersion);
+                componentNameVersions.add(com.getName());
             }
             bpInfo.setComponent(componentNameVersions);
             list.add(bpInfo);

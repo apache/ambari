@@ -1,8 +1,5 @@
 {
   "@name":"puppet1",
-  "@revision":"0",
-  "@parentRevision":"-1",
-  "@creationTime":"2011-11-23T18:16:39.604-08:00",
   "repositories":{
     "@kind":"TAR",
     "urls":"http://www.apache.org/dist/hadoop/common/"
@@ -61,24 +58,20 @@
             "@value":"hadoop"
           },
           {
-            "@name":"ambari_dfs_name_dir",
-            "@value":"/var/lib/hadoop/hdfs/namenode,/var/lib/hadoop/hdfs/namenode2,/var/lib/hadoop/hdfs/namenode3"
-          },
-          {
-            "@name":"ambari_dfs_data_dir",
-            "@value":"/var/lib/hadoop/hdfs/datanode,/var/lib/hadoop/hdfs/datanode1,/var/lib/hadoop/hdfs/datanode2"
-          },
-          {
             "@name":"ambari_user_realm",
-            "@value":"EXAMPLE.KERBEROS.COM"
+            "@value":"KERBEROS.EXAMPLE.COM"
           },
           {
             "@name":"ambari_service_realm",
-            "@value":"EXAMPLE.KERBEROS.COM"
+            "@value":"<%= ambari_user_realm %>"
           },
           {
-            "@name":"ambari_hadoop_conf_dir",
-            "@value":"/etc/hadoop/conf"
+            "@name":"ambari_keytab_dir",
+            "@value":"/etc/security/keytabs"
+          },
+          {
+            "@name":"ambari_auth_to_local",
+            "@value":"RULE:[1:$1@$0](.*@<%= ambari_user_realm %>)s/@.*//\nRULE:[2:$1@$0](<%= ambari_jobtracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/\nRULE:[2:$1@$0](<%= ambari_tasktracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/\nRULE:[2:$1@$0](<%= ambari_namenode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/\nRULE:[2:$1@$0](<%= ambari_datanode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/\nRULE:[2:$1@$0](<%= ambari_hbasemaster_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hbase_user %>/\nRULE:[2:$1@$0](<%= ambari_regionserver_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hbase_user %>/\nRULE:[2:$1@$0](<%= ambari_hcat_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hcat_user %>/"
           }
         ]
       },
@@ -86,20 +79,12 @@
         "@name":"core-site.xml",
         "property":[
           {
-            "@name":"local.realm",
-            "@value":"<%= ambari_service_realm %>"
-          },
-          {
             "@name":"fs.default.name",
             "@value":"hdfs://<%= ambari_namenode_host %>:8020"
           },
           {
             "@name":"fs.trash.interval",
             "@value":"360"
-          },
-          {
-            "@name":"hadoop.security.auth_to_local",
-            "@value":"RULE:[1:$1@$0](.*@<%= ambari_user_realm %>)s/@.*// RULE:[2:$1@$0](<%= ambari_jobtracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/ RULE:[2:$1@$0](<%= ambari_tasktracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/ RULE:[2:$1@$0](<%= ambari_namenode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/ RULE:[2:$1@$0](<%= ambari_datanode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/ RULE:[2:$1@$0](<%= ambari_hbasemaster_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hbase_user %>/ RULE:[2:$1@$0](<%= ambari_regionserver_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hbase_user %>/ RULE:[2:$1@$0](<%= ambari_hcat_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hcat_user %>/"
           },
           {
             "@name":"hadoop.security.authentication",
@@ -110,16 +95,8 @@
             "@value":"false"
           },
           {
-            "@name":"hadoop.security.groups.cache.secs",
-            "@value":"14400"
-          },
-          {
             "@name":"hadoop.kerberos.kinit.command",
             "@value":"/usr/kerberos/bin/kinit"
-          },
-          {
-            "@name":"hadoop.http.filter.initializers",
-            "@value":"org.apache.hadoop.http.lib.StaticUserWebFilter"
           }
         ]
       },
@@ -127,27 +104,7 @@
         "@name":"hdfs-site.xml",
         "property":[
           {
-            "@name":"*dfs.name.dir",
-            "@value":"<%= ambari_dfs_name_dir %>"
-          },
-          {
-            "@name":"*dfs.data.dir",
-            "@value":"<%= ambari_dfs_data_dir %>"
-          },
-          {
-            "@name":"dfs.safemode.threshold.pct",
-            "@value":"1.0f"
-          },
-          {
-            "@name":"dfs.datanode.address",
-            "@value":"0.0.0.0:50010"
-          },
-          {
-            "@name":"dfs.datanode.http.address",
-            "@value":"0.0.0.0:50075"
-          },
-          {
-            "@name":"*dfs.http.address",
+            "@name":"dfs.http.address",
             "@value":"<%= ambari_namenode_host %>:50070"
           },
           {
@@ -183,60 +140,12 @@
             "@value":"HTTP/_HOST@<%= ambari_service_realm %>"
           },
           {
-            "@name":"dfs.web.authentication.kerberos.keytab",
-            "@value":"/etc/security/keytabs/<%= ambari_namenode_principal %>.service.keytab"
-          },
-          {
-            "@name":"dfs.namenode.keytab.file",
-            "@value":"/etc/security/keytabs/<%= ambari_namenode_principal %>.service.keytab"
-          },
-          {
-            "@name":"dfs.secondary.namenode.keytab.file",
-            "@value":"/etc/security/keytabs/<%= ambari_namenode_principal %>.service.keytab"
-          },
-          {
-            "@name":"dfs.datanode.keytab.file",
-            "@value":"/etc/security/keytabs/<%= ambari_datanode_principal %>.service.keytab"
-          },
-          {
-            "@name":"dfs.secondary.https.port",
-            "@value":"50490"
-          },
-          {
-            "@name":"dfs.https.port",
-            "@value":"50470"
-          },
-          {
             "@name":"dfs.https.address",
             "@value":"<%= ambari_namenode_host %>:50470"
           },
           {
-            "@name":"dfs.datanode.data.dir.perm",
-            "@value":"700"
-          },
-          {
-            "@name":"dfs.cluster.administrators",
-            "@value":"<%= ambari_hdfs_user %>"
-          },
-          {
-            "@name":"dfs.permissions.superusergroup",
-            "@value":"<%= ambari_admin_group %>"
-          },
-          {
             "@name":"dfs.secondary.http.address",
             "@value":"<%= ambari_namenode_host %>:50090"
-          },
-          {
-            "@name":"dfs.hosts",
-            "@value":"<%= ambari_hadoop_conf_dir %>/<%= ambari_cluster_name %>/<%= ambari_role_name %>/dfs.include"
-          },
-          {
-            "@name":"dfs.hosts.exclude",
-            "@value":"<%= ambari_hadoop_conf_dir %>/<%= ambari_cluster_name %>/<%= ambari_role_name %>/dfs.exclude"
-          },
-          {
-            "@name":"dfs.webhdfs.enabled",
-            "@value":"true"
           },
           {
             "@name":"dfs.support.append",
@@ -249,72 +158,21 @@
         "property":[
           {
             "@name":"JAVA_HOME",
-            "@value":"/usr/jdk1.6.0_27"
+            "@value":"/usr/java/latest"
           },
           {
             "@name":"HADOOP_CONF_DIR",
-            "@value":"<%= ambari_hadoop_conf_dir %>/<%= ambari_cluster_name %>/<%= ambari_role_name %>"
+            "@value":"<%= ambari_role_prefix %>/etc/hadoop"
           },
           {
             "@name":"HADOOP_OPTS",
             "@value":"-Djava.net.preferIPv4Stack=true $HADOOP_OPTS"
           },
           {
-            "@name":"HADOOP_NAMENODE_OPTS",
-            "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT $HADOOP_NAMENODE_OPTS"
-          },
-          {
-            "@name":"HADOOP_SECONDARYNAMENODE_OPTS",
-            "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT $HADOOP_SECONDARYNAMENODE_OPTS"
-          },
-          {
-            "@name":"HADOOP_JOBTRACKER_OPTS",
-            "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dmapred.audit.logger=INFO,MRAUDIT -Dhadoop.mapreduce.jobsummary.logger=INFO,JSA $HADOOP_JOBTRACKER_OPTS"
-          },
-          {
-            "@name":"HADOOP_TASKTRACKER_OPTS",
-            "@value":"-Dsecurity.audit.logger=ERROR,console -Dmapred.audit.logger=ERROR,console $HADOOP_TASKTRACKER_OPTS"
-          },
-          {
-            "@name":"HADOOP_DATANODE_OPTS",
-            "@value":"-Dsecurity.audit.logger=ERROR,DRFAS $HADOOP_DATANODE_OPTS"
-          },
-          {
             "@name":"HADOOP_CLIENT_OPTS",
             "@value":"-Xmx128m $HADOOP_CLIENT_OPTS"
-          },
-          {
-            "@name":"HADOOP_SECURE_DN_USER",
-            "@value":""
-          },
-          {
-            "@name":"HADOOP_LOG_DIR",
-            "@value":"/var/log/hadoop/$USER"
-          },
-          {
-            "@name":"HADOOP_SECURE_DN_LOG_DIR",
-            "@value":"/var/log/hadoop/<%= ambari_hdfs_user %>"
-          },
-          {
-            "@name":"HADOOP_PID_DIR",
-            "@value":"/var/run/hadoop"
-          },
-          {
-            "@name":"HADOOP_SECURE_DN_PID_DIR",
-            "@value":"/var/run/hadoop"
-          },
-          {
-            "@name":"HADOOP_IDENT_STRING",
-            "@value":"<%= ambari_cluster_name %>"
           }
         ]
-      },
-      {
-        "@name":"hadoop-metrics2.properties",
-        "property":{
-          "@name":"*.period",
-          "@value":"60"
-        }
       }
     ]
   },
@@ -332,498 +190,162 @@
     },
     {
       "@name":"hdfs",
-      "@architecture":"x86_64",
-      "@version":"0.20.205.0",
       "@provider":"org.apache.hadoop",
       "definition":{
         "@provider":"org.apache.ambari",
         "@name":"hadoop-hdfs",
         "@version":"0.1.0"
       },
-      "roles":[
-        {
-          "@name":"namenode",
-          "configuration":{
-            "category":[
+      "configuration":{
+        "category":[
+          {
+            "@name":"core-site.xml",
+            "property":[
               {
-                "@name":"core-site.xml",
-                "property":[
-                  {
-                    "@name":"local.realm",
-                    "@value":"<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"fs.default.name",
-                    "@value":"hdfs://<%= ambari_namenode_host %>:8020"
-                  },
-                  {
-                    "@name":"fs.trash.interval",
-                    "@value":"360"
-                  },
-                  {
-                    "@name":"hadoop.security.auth_to_local",
-                    "@value":"RULE:[1:$1@$0](.*@<%= ambari_user_realm %>)s/@.*// RULE:[2:$1@$0](<%= ambari_jobtracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/ RULE:[2:$1@$0](<%= ambari_tasktracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/ RULE:[2:$1@$0](<%= ambari_namenode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/ RULE:[2:$1@$0](<%= ambari_datanode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/ RULE:[2:$1@$0](<%= ambari_hbasemaster_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hbase_user %>/ RULE:[2:$1@$0](<%= ambari_regionserver_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hbase_user %>/ RULE:[2:$1@$0](<%= ambari_hcat_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hcat_user %>/"
-                  },
-                  {
-                    "@name":"hadoop.security.authentication",
-                    "@value":"simple"
-                  },
-                  {
-                    "@name":"hadoop.security.authorization",
-                    "@value":"false"
-                  },
-                  {
-                    "@name":"hadoop.security.groups.cache.secs",
-                    "@value":"14400"
-                  },
-                  {
-                    "@name":"hadoop.kerberos.kinit.command",
-                    "@value":"/usr/kerberos/bin/kinit"
-                  },
-                  {
-                    "@name":"hadoop.http.filter.initializers",
-                    "@value":"org.apache.hadoop.http.lib.StaticUserWebFilter"
-                  }
-                ]
+                "@name":"hadoop.security.auth_to_local",
+                "@value":"<%= ambari_auth_to_local %>"
               },
               {
-                "@name":"hdfs-site.xml",
-                "property":[
-                  {
-                    "@name":"*dfs.name.dir",
-                    "@value":"<%= ambari_dfs_name_dir %>"
-                  },
-                  {
-                    "@name":"*dfs.data.dir",
-                    "@value":"<%= ambari_dfs_data_dir %>"
-                  },
-                  {
-                    "@name":"dfs.safemode.threshold.pct",
-                    "@value":"1.0f"
-                  },
-                  {
-                    "@name":"dfs.datanode.address",
-                    "@value":"0.0.0.0:50010"
-                  },
-                  {
-                    "@name":"dfs.datanode.http.address",
-                    "@value":"0.0.0.0:50075"
-                  },
-                  {
-                    "@name":"*dfs.http.address",
-                    "@value":"<%= ambari_namenode_host %>:50070"
-                  },
-                  {
-                    "@name":"dfs.umaskmode",
-                    "@value":"077"
-                  },
-                  {
-                    "@name":"dfs.block.access.token.enable",
-                    "@value":"false"
-                  },
-                  {
-                    "@name":"dfs.namenode.kerberos.principal",
-                    "@value":"<%= ambari_namenode_principal %>/_HOST@<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"dfs.namenode.kerberos.https.principal",
-                    "@value":"host/_HOST@<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"dfs.secondary.namenode.kerberos.principal",
-                    "@value":"<%= ambari_namenode_principal %>/_HOST@<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"dfs.secondary.namenode.kerberos.https.principal",
-                    "@value":"host/_HOST@<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"dfs.datanode.kerberos.principal",
-                    "@value":"<%= ambari_datanode_principal %>/_HOST@<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"dfs.web.authentication.kerberos.principal",
-                    "@value":"HTTP/_HOST@<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"dfs.web.authentication.kerberos.keytab",
-                    "@value":"/etc/security/keytabs/<%= ambari_namenode_principal %>.service.keytab"
-                  },
-                  {
-                    "@name":"dfs.namenode.keytab.file",
-                    "@value":"/etc/security/keytabs/<%= ambari_namenode_principal %>.service.keytab"
-                  },
-                  {
-                    "@name":"dfs.secondary.namenode.keytab.file",
-                    "@value":"/etc/security/keytabs/<%= ambari_namenode_principal %>.service.keytab"
-                  },
-                  {
-                    "@name":"dfs.datanode.keytab.file",
-                    "@value":"/etc/security/keytabs/<%= ambari_datanode_principal %>.service.keytab"
-                  },
-                  {
-                    "@name":"dfs.secondary.https.port",
-                    "@value":"50490"
-                  },
-                  {
-                    "@name":"dfs.https.port",
-                    "@value":"50470"
-                  },
-                  {
-                    "@name":"dfs.https.address",
-                    "@value":"<%= ambari_namenode_host %>:50470"
-                  },
-                  {
-                    "@name":"dfs.datanode.data.dir.perm",
-                    "@value":"700"
-                  },
-                  {
-                    "@name":"dfs.cluster.administrators",
-                    "@value":"<%= ambari_hdfs_user %>"
-                  },
-                  {
-                    "@name":"dfs.permissions.superusergroup",
-                    "@value":"<%= ambari_admin_group %>"
-                  },
-                  {
-                    "@name":"dfs.secondary.http.address",
-                    "@value":"<%= ambari_namenode_host %>:50090"
-                  },
-                  {
-                    "@name":"dfs.hosts",
-                    "@value":"<%= ambari_hadoop_conf_dir %>/<%= ambari_cluster_name %>/<%= ambari_role_name %>/dfs.include"
-                  },
-                  {
-                    "@name":"dfs.hosts.exclude",
-                    "@value":"<%= ambari_hadoop_conf_dir %>/<%= ambari_cluster_name %>/<%= ambari_role_name %>/dfs.exclude"
-                  },
-                  {
-                    "@name":"dfs.webhdfs.enabled",
-                    "@value":"true"
-                  },
-                  {
-                    "@name":"dfs.support.append",
-                    "@value":"true"
-                  }
-                ]
+                "@name":"hadoop.security.groups.cache.secs",
+                "@value":"14400"
               },
               {
-                "@name":"hadoop-env.sh",
-                "property":[
-                  {
-                    "@name":"JAVA_HOME",
-                    "@value":"/usr/jdk1.6.0_27"
-                  },
-                  {
-                    "@name":"HADOOP_CONF_DIR",
-                    "@value":"<%= ambari_hadoop_conf_dir %>/<%= ambari_cluster_name %>/<%= ambari_role_name %>"
-                  },
-                  {
-                    "@name":"HADOOP_OPTS",
-                    "@value":"-Djava.net.preferIPv4Stack=true $HADOOP_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_NAMENODE_OPTS",
-                    "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT $HADOOP_NAMENODE_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_SECONDARYNAMENODE_OPTS",
-                    "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT $HADOOP_SECONDARYNAMENODE_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_JOBTRACKER_OPTS",
-                    "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dmapred.audit.logger=INFO,MRAUDIT -Dhadoop.mapreduce.jobsummary.logger=INFO,JSA $HADOOP_JOBTRACKER_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_TASKTRACKER_OPTS",
-                    "@value":"-Dsecurity.audit.logger=ERROR,console -Dmapred.audit.logger=ERROR,console $HADOOP_TASKTRACKER_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_DATANODE_OPTS",
-                    "@value":"-Dsecurity.audit.logger=ERROR,DRFAS $HADOOP_DATANODE_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_CLIENT_OPTS",
-                    "@value":"-Xmx128m $HADOOP_CLIENT_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_SECURE_DN_USER",
-                    "@value":""
-                  },
-                  {
-                    "@name":"HADOOP_LOG_DIR",
-                    "@value":"/var/log/hadoop/$USER"
-                  },
-                  {
-                    "@name":"HADOOP_SECURE_DN_LOG_DIR",
-                    "@value":"/var/log/hadoop/<%= ambari_hdfs_user %>"
-                  },
-                  {
-                    "@name":"HADOOP_PID_DIR",
-                    "@value":"/var/run/hadoop"
-                  },
-                  {
-                    "@name":"HADOOP_SECURE_DN_PID_DIR",
-                    "@value":"/var/run/hadoop"
-                  },
-                  {
-                    "@name":"HADOOP_IDENT_STRING",
-                    "@value":"<%= ambari_cluster_name %>"
-                  }
-                ]
-              },
-              {
-                "@name":"hadoop-metrics2.properties",
-                "property":{
-                  "@name":"*.period",
-                  "@value":"60"
-                }
+                "@name":"hadoop.http.filter.initializers",
+                "@value":"org.apache.hadoop.http.lib.StaticUserWebFilter"
               }
             ]
-          }
-        },
-        {
-          "@name":"datanode",
-          "configuration":{
-            "category":[
+          },
+          {
+            "@name":"hdfs-site.xml",
+            "property":[
               {
-                "@name":"core-site.xml",
-                "property":[
-                  {
-                    "@name":"local.realm",
-                    "@value":"<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"fs.default.name",
-                    "@value":"hdfs://<%= ambari_namenode_host %>:8020"
-                  },
-                  {
-                    "@name":"fs.trash.interval",
-                    "@value":"360"
-                  },
-                  {
-                    "@name":"hadoop.security.auth_to_local",
-                    "@value":"RULE:[1:$1@$0](.*@<%= ambari_user_realm %>)s/@.*// RULE:[2:$1@$0](<%= ambari_jobtracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/ RULE:[2:$1@$0](<%= ambari_tasktracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/ RULE:[2:$1@$0](<%= ambari_namenode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/ RULE:[2:$1@$0](<%= ambari_datanode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/ RULE:[2:$1@$0](<%= ambari_hbasemaster_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hbase_user %>/ RULE:[2:$1@$0](<%= ambari_regionserver_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hbase_user %>/ RULE:[2:$1@$0](<%= ambari_hcat_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hcat_user %>/"
-                  },
-                  {
-                    "@name":"hadoop.security.authentication",
-                    "@value":"simple"
-                  },
-                  {
-                    "@name":"hadoop.security.authorization",
-                    "@value":"false"
-                  },
-                  {
-                    "@name":"hadoop.security.groups.cache.secs",
-                    "@value":"14400"
-                  },
-                  {
-                    "@name":"hadoop.kerberos.kinit.command",
-                    "@value":"/usr/kerberos/bin/kinit"
-                  },
-                  {
-                    "@name":"hadoop.http.filter.initializers",
-                    "@value":"org.apache.hadoop.http.lib.StaticUserWebFilter"
-                  }
-                ]
+                "@name":"dfs.name.dir",
+                "@value":"<%= ambari_role_prefix %>/hdfs/name"
               },
               {
-                "@name":"hdfs-site.xml",
-                "property":[
-                  {
-                    "@name":"*dfs.name.dir",
-                    "@value":"<%= ambari_dfs_name_dir %>"
-                  },
-                  {
-                    "@name":"*dfs.data.dir",
-                    "@value":"<%= ambari_dfs_data_dir %>"
-                  },
-                  {
-                    "@name":"dfs.safemode.threshold.pct",
-                    "@value":"1.0f"
-                  },
-                  {
-                    "@name":"dfs.datanode.address",
-                    "@value":"0.0.0.0:50010"
-                  },
-                  {
-                    "@name":"dfs.datanode.http.address",
-                    "@value":"0.0.0.0:50075"
-                  },
-                  {
-                    "@name":"*dfs.http.address",
-                    "@value":"<%= ambari_namenode_host %>:50070"
-                  },
-                  {
-                    "@name":"dfs.umaskmode",
-                    "@value":"077"
-                  },
-                  {
-                    "@name":"dfs.block.access.token.enable",
-                    "@value":"false"
-                  },
-                  {
-                    "@name":"dfs.namenode.kerberos.principal",
-                    "@value":"<%= ambari_namenode_principal %>/_HOST@<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"dfs.namenode.kerberos.https.principal",
-                    "@value":"host/_HOST@<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"dfs.secondary.namenode.kerberos.principal",
-                    "@value":"<%= ambari_namenode_principal %>/_HOST@<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"dfs.secondary.namenode.kerberos.https.principal",
-                    "@value":"host/_HOST@<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"dfs.datanode.kerberos.principal",
-                    "@value":"<%= ambari_datanode_principal %>/_HOST@<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"dfs.web.authentication.kerberos.principal",
-                    "@value":"HTTP/_HOST@<%= ambari_service_realm %>"
-                  },
-                  {
-                    "@name":"dfs.web.authentication.kerberos.keytab",
-                    "@value":"/etc/security/keytabs/<%= ambari_namenode_principal %>.service.keytab"
-                  },
-                  {
-                    "@name":"dfs.namenode.keytab.file",
-                    "@value":"/etc/security/keytabs/<%= ambari_namenode_principal %>.service.keytab"
-                  },
-                  {
-                    "@name":"dfs.secondary.namenode.keytab.file",
-                    "@value":"/etc/security/keytabs/<%= ambari_namenode_principal %>.service.keytab"
-                  },
-                  {
-                    "@name":"dfs.datanode.keytab.file",
-                    "@value":"/etc/security/keytabs/<%= ambari_datanode_principal %>.service.keytab"
-                  },
-                  {
-                    "@name":"dfs.secondary.https.port",
-                    "@value":"50490"
-                  },
-                  {
-                    "@name":"dfs.https.port",
-                    "@value":"50470"
-                  },
-                  {
-                    "@name":"dfs.https.address",
-                    "@value":"<%= ambari_namenode_host %>:50470"
-                  },
-                  {
-                    "@name":"dfs.datanode.data.dir.perm",
-                    "@value":"700"
-                  },
-                  {
-                    "@name":"dfs.cluster.administrators",
-                    "@value":"<%= ambari_hdfs_user %>"
-                  },
-                  {
-                    "@name":"dfs.permissions.superusergroup",
-                    "@value":"<%= ambari_admin_group %>"
-                  },
-                  {
-                    "@name":"dfs.secondary.http.address",
-                    "@value":"<%= ambari_namenode_host %>:50090"
-                  },
-                  {
-                    "@name":"dfs.hosts",
-                    "@value":"<%= ambari_hadoop_conf_dir %>/<%= ambari_cluster_name %>/<%= ambari_role_name %>/dfs.include"
-                  },
-                  {
-                    "@name":"dfs.hosts.exclude",
-                    "@value":"<%= ambari_hadoop_conf_dir %>/<%= ambari_cluster_name %>/<%= ambari_role_name %>/dfs.exclude"
-                  },
-                  {
-                    "@name":"dfs.webhdfs.enabled",
-                    "@value":"true"
-                  },
-                  {
-                    "@name":"dfs.support.append",
-                    "@value":"true"
-                  }
-                ]
+                "@name":"dfs.data.dir",
+                "@value":"<%= ambari_role_prefix %>/hdfs/data"
               },
               {
-                "@name":"hadoop-env.sh",
-                "property":[
-                  {
-                    "@name":"JAVA_HOME",
-                    "@value":"/usr/jdk1.6.0_27"
-                  },
-                  {
-                    "@name":"HADOOP_CONF_DIR",
-                    "@value":"<%= ambari_hadoop_conf_dir %>/<%= ambari_cluster_name %>/<%= ambari_role_name %>"
-                  },
-                  {
-                    "@name":"HADOOP_OPTS",
-                    "@value":"-Djava.net.preferIPv4Stack=true $HADOOP_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_NAMENODE_OPTS",
-                    "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT $HADOOP_NAMENODE_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_SECONDARYNAMENODE_OPTS",
-                    "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT $HADOOP_SECONDARYNAMENODE_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_JOBTRACKER_OPTS",
-                    "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dmapred.audit.logger=INFO,MRAUDIT -Dhadoop.mapreduce.jobsummary.logger=INFO,JSA $HADOOP_JOBTRACKER_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_TASKTRACKER_OPTS",
-                    "@value":"-Dsecurity.audit.logger=ERROR,console -Dmapred.audit.logger=ERROR,console $HADOOP_TASKTRACKER_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_DATANODE_OPTS",
-                    "@value":"-Dsecurity.audit.logger=ERROR,DRFAS $HADOOP_DATANODE_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_CLIENT_OPTS",
-                    "@value":"-Xmx128m $HADOOP_CLIENT_OPTS"
-                  },
-                  {
-                    "@name":"HADOOP_SECURE_DN_USER",
-                    "@value":""
-                  },
-                  {
-                    "@name":"HADOOP_LOG_DIR",
-                    "@value":"/var/log/hadoop/$USER"
-                  },
-                  {
-                    "@name":"HADOOP_SECURE_DN_LOG_DIR",
-                    "@value":"/var/log/hadoop/<%= ambari_hdfs_user %>"
-                  },
-                  {
-                    "@name":"HADOOP_PID_DIR",
-                    "@value":"/var/run/hadoop"
-                  },
-                  {
-                    "@name":"HADOOP_SECURE_DN_PID_DIR",
-                    "@value":"/var/run/hadoop"
-                  },
-                  {
-                    "@name":"HADOOP_IDENT_STRING",
-                    "@value":"<%= ambari_cluster_name %>"
-                  }
-                ]
+                "@name":"dfs.safemode.threshold.pct",
+                "@value":"1.0f"
               },
               {
-                "@name":"hadoop-metrics2.properties",
-                "property":{
-                  "@name":"*.period",
-                  "@value":"60"
-                }
+                "@name":"dfs.datanode.address",
+                "@value":"0.0.0.0:50010"
+              },
+              {
+                "@name":"dfs.datanode.http.address",
+                "@value":"0.0.0.0:50075"
+              },
+              {
+                "@name":"dfs.web.authentication.kerberos.keytab",
+                "@value":"<%= ambari_keytab_dir %>/<%= ambari_namenode_principal =>.service.keytab"
+              },
+              {
+                "@name":"dfs.namenode.keytab.file",
+                "@value":"<%= ambari_keytab_dir %>/<%= ambari_namenode_principal %>.service.keytab"
+              },
+              {
+                "@name":"dfs.secondary.namenode.keytab.file",
+                "@value":"<%= ambari_keytab_dir %>/<%= ambari_namenode_principal %>.service.keytab"
+              },
+              {
+                "@name":"dfs.datanode.keytab.file",
+                "@value":"<%= ambari_keytab_dir %>/<%= ambari_datanode_principal %>.service.keytab"
+              },
+              {
+                "@name":"dfs.secondary.https.port",
+                "@value":"50490"
+              },
+              {
+                "@name":"dfs.https.port",
+                "@value":"50470"
+              },
+              {
+                "@name":"dfs.https.address",
+                "@value":"<%= ambari_namenode_host %>:50470"
+              },
+              {
+                "@name":"dfs.datanode.data.dir.perm",
+                "@value":"700"
+              },
+              {
+                "@name":"dfs.cluster.administrators",
+                "@value":"<%= ambari_hdfs_user %>"
+              },
+              {
+                "@name":"dfs.permissions.superusergroup",
+                "@value":"<%= ambari_admin_group %>"
+              },
+              {
+                "@name":"dfs.secondary.http.address",
+                "@value":"<%= ambari_namenode_host %>:50090"
+              },
+              {
+                "@name":"dfs.hosts",
+                "@value":"<%= ambari_role_prefix %>/etc/hadoop/dfs.include"
+              },
+              {
+                "@name":"dfs.hosts.exclude",
+                "@value":"<%= ambari_role_prefix %>/etc/hadoop/dfs.exclude"
+              },
+              {
+                "@name":"dfs.webhdfs.enabled",
+                "@value":"true"
               }
             ]
+          },
+          {
+            "@name":"hadoop-env.sh",
+            "property":[
+              {
+                "@name":"HADOOP_NAMENODE_OPTS",
+                "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT"
+              },
+              {
+                "@name":"HADOOP_SECONDARYNAMENODE_OPTS",
+                "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT"
+              },
+              {
+                "@name":"HADOOP_DATANODE_OPTS",
+                "@value":"-Dsecurity.audit.logger=ERROR,DRFAS"
+              },
+              {
+                "@name":"HADOOP_SECURE_DN_USER",
+                "@value":""
+              },
+              {
+                "@name":"HADOOP_LOG_DIR",
+                "@value":"<%= ambari_role_prefix %>/logs"
+              },
+              {
+                "@name":"HADOOP_SECURE_DN_LOG_DIR",
+                "@value":"<%= ambari_role_prefix %>/logs/secure"
+              },
+              {
+                "@name":"HADOOP_PID_DIR",
+                "@value":"<%= ambari_role_prefix %>/pids"
+              },
+              {
+                "@name":"HADOOP_SECURE_DN_PID_DIR",
+                "@value":"<%= ambari_role_prefix %>/pids/secure"
+              },
+              {
+                "@name":"HADOOP_IDENT_STRING",
+                "@value":"<%= ambari_cluster_name %>"
+              }
+            ]
+           },
+          {
+            "@name":"hadoop-metrics2.properties",
+            "property":{
+              "@name":"*.period",
+              "@value":"60"
+            }
           }
-        }
-      ]
+        ]
+      }
     }
   ]
 }

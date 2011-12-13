@@ -2,10 +2,13 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
-  AMBARI-155. Heartbeat response to a node should contain an empty list of actions 
-  if node doesn't belong to any cluster presently. (ddas)
+  AMBARI-156. Clean up the puppet example stack. (omalley)
 
-  AMBARI-154. Exception while starting the controller. Outdated JAXB fields in HeartBeat class (vgogate)
+  AMBARI-155. Heartbeat response to a node should contain an empty list of 
+  actions if node doesn't belong to any cluster presently. (ddas)
+
+  AMBARI-154. Exception while starting the controller. Outdated JAXB
+  fields in HeartBeat class (vgogate)
 
   AMBARI-153. Introduce a 'ambari.properties' configuration file that
   can specify 'data.store' and a url. It defaults to 'zk://localhost:2181/',
