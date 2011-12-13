@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,44 +16,51 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.controller.rest.agent;
+package org.apache.ambari.controller.rest.resources;
 
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
+import org.apache.ambari.common.rest.entities.*;
+
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.api.json.JSONJAXBContext;
-import org.apache.ambari.common.rest.agent.*;
 
 @Provider
-public class AgentJAXBContextResolver implements ContextResolver<JAXBContext> {
-  private final JAXBContext context;
-  private static final Class<?>[] types = {
-      Action.class,
-      ActionResult.class,
-      ActionResults.class,
-      AgentRoleState.class,
-      Command.class, 
-      CommandResult.class,
-      ConfigFile.class,
-      ControllerResponse.class,
-      HardwareProfile.class,
-      HeartBeat.class
-      };
+public class ContextProvider implements ContextResolver<JAXBContext> {
 
-  public AgentJAXBContextResolver() throws JAXBException {
+  private final JAXBContext context;
+  private Class<?>[] types = { ClusterDefinition.class,
+                               ClusterInformation.class,
+                               ClusterState.class,
+                               Component.class,
+                               ComponentDefinition.class,
+                               Configuration.class,
+                               ConfigurationCategory.class,
+                               Node.class,
+                               NodeAttributes.class,
+                               NodeServer.class,
+                               NodeState.class,
+                               Property.class,
+                               RepositoryKind.class,
+                               Role.class,
+                               RoleToNodes.class,
+                               Stack.class,
+                               StackInformation.class
+  };
+
+  public ContextProvider() throws JAXBException {
     this.context = new JSONJAXBContext(JSONConfiguration.natural().build(), 
                                        types);
   }
 
   public JAXBContext getContext(Class<?> objectType) {
-    for(Class<?> c : types) {
-      if(c==objectType) {
+    for (Class<?> type : types) {
+      if (type.equals(objectType))
         return context;
-      }
     }
     return null;
-  }
+  } 
 }

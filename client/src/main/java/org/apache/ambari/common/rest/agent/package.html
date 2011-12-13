@@ -1,4 +1,4 @@
-/*
+<!-- 
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -14,32 +14,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
-
-package org.apache.ambari.controller.rest.config;
-
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
-import javax.xml.bind.JAXBContext;
-
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.api.json.JSONJAXBContext;
-
-@Provider
-public class ContextProvider implements ContextResolver<JAXBContext> {
-
-  private JAXBContext context;
-  private Class[] types = { };
-
-  public ContextProvider() throws Exception {
-    this.context = new JSONJAXBContext(JSONConfiguration.natural().build(), types);
-  }
-
-  public JAXBContext getContext(Class<?> objectType) {
-    for (Class type : types) {
-      if (type.equals(objectType))
-        return context;
-    }
-    return null;
-  } 
-}
+ -->
+ <html>
+ <head><title>Ambari Agent-Controller REST entities</title></head>
+ <body>
+ <p>
+ These are the entities that are used for the internal Ambari Agent to 
+ Controller communication.
+ </p>
+ <p>
+ Any new classes that are added, must be manually inserted into 
+ org.apache.ambari.controller.reset.agent.AgentJAXBContextResolver.
+ </p>
+ </body>
+ </html>

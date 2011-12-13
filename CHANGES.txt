@@ -1,6 +1,8 @@
 Ambari Change log
 
 Release 0.1.0 - unreleased
+
+  AMBARI-158. Move the JSON encoding to the natural one. (omalley)
   
   AMBARI-157. Enhances the agent to make it puppet aware (ddas)
 
