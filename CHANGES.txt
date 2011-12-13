@@ -1,6 +1,8 @@
 Ambari Change log
 
 Release 0.1.0 - unreleased
+  
+  AMBARI-157. Enhances the agent to make it puppet aware (ddas)
 
   AMBARI-156. Clean up the puppet example stack. (omalley)
 

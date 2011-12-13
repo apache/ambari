@@ -162,7 +162,7 @@ public class Action {
   public static enum Kind {
     RUN_ACTION, START_ACTION, STOP_ACTION, STATUS_ACTION, 
     CREATE_STRUCTURE_ACTION, DELETE_STRUCTURE_ACTION, WRITE_FILE_ACTION,
-    INSTALL_AND_CONFIG_ACTION;
+    INSTALL_AND_CONFIG_ACTION,NO_OP_ACTION;
     public static class KindAdaptor extends XmlAdapter<String, Kind> {
       @Override
       public String marshal(Kind obj) throws Exception {

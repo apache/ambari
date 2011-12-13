@@ -22,10 +22,13 @@ from unittest import TestCase
 import os, errno
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.AmbariConfig import AmbariConfig
+from ambari_agent.FileUtil import getFilePath
 
 class TestAgentActions(TestCase):
   def test_installAndConfigAction(self):
-    path = "/tmp/ambari_file_test/_file_write_test_1"
+    action={'id' : 'tttt'}
+    actionQueue = ActionQueue(AmbariConfig().getConfig())
+    path = actionQueue.getInstallFilename(action['id'])
     configFile = {
       "data"       : "test",
       "owner"      : os.getuid(),
@@ -39,12 +42,11 @@ class TestAgentActions(TestCase):
     #we just want to ensure that 'ls' can run on the data file (in the actual world
     #this 'ls' would be a puppet or a chef command that would work on a data
     #file
+    path=getFilePath(action,path)
+    print ("path : " + path)
     action = { 
       'id' : 'tttt',
       'kind' : 'INSTALL_AND_CONFIG_ACTION',
-      'clusterId' : 'abc', 
-      'role' : 'namenode', 
-      'component' : 'hdfs', 
       'workDirComponent' : 'abc-hdfs',
       'file' : configFile,
       'clusterDefinitionRevision' : 12,
@@ -53,5 +55,6 @@ class TestAgentActions(TestCase):
     result = { }
     actionQueue = ActionQueue(AmbariConfig().getConfig())
     result = actionQueue.installAndConfigAction(action)
+    print(result)
     self.assertEqual(result['exitCode'], 0, "installAndConfigAction test failed. Returned %d " % result['exitCode'])
     self.assertEqual(result['output'], path + "\n", "installAndConfigAction test failed Returned %s " % result['output'])

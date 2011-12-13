@@ -89,6 +89,7 @@ class Controller(threading.Thread):
           logger.error(err.code)
         else:
           logger.error("Unable to connect to: "+self.url)
+          traceback.print_exc()
       if self.actionQueue.isIdle():
         time.sleep(30)
       else:

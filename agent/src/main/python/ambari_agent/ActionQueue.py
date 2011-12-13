@@ -23,11 +23,12 @@ import logging.handlers
 import Queue
 import threading
 from shell import shellRunner
-from FileUtil import writeFile, createStructure, deleteStructure
+from FileUtil import writeFile, createStructure, deleteStructure, getFilePath, appendToFile
 from shell import shellRunner
 import json
 import os
 import time
+import subprocess
 
 logger = logging.getLogger()
 installScriptHash = -1
@@ -56,6 +57,7 @@ class ActionQueue(threading.Thread):
   def put(self, response):
     if 'actions' in response:
       actions = response['actions']
+      print(actions)
       # for the servers, take a diff of what's running, and what the controller
       # asked the agent to start. Kill all those servers that the controller
       # didn't ask us to start
@@ -90,9 +92,12 @@ class ActionQueue(threading.Thread):
                      'CREATE_STRUCTURE_ACTION'   : self.createStructureAction,
                      'DELETE_STRUCTURE_ACTION'   : self.deleteStructureAction,
                      'WRITE_FILE_ACTION'         : self.writeFileAction,
-                     'INSTALL_AND_CONFIG_ACTION' : self.installAndConfigAction
+                     'INSTALL_AND_CONFIG_ACTION' : self.installAndConfigAction,
+                     'NO_OP_ACTION'              : self.noOpAction
                    }
         try:
+          print("ACTION KIND")
+          print(action['kind'])
           result = switches.get(action['kind'], self.unknownAction)(action)
         except Exception, err:
           logger.info(err)
@@ -112,7 +117,13 @@ class ActionQueue(threading.Thread):
 
   # Generate default action response
   def genResult(self, action):
-    result = { 
+    result={}
+    if (action['kind'] == 'INSTALL_AND_CONFIG_ACTION' or action['kind'] == 'NO_OP_ACTION'):
+      result = {
+               'id'                        : action['id'],
+             }
+    else:
+      result = { 
                'id'                        : action['id'],
                'clusterId'                 : action['clusterId'],
                'kind'                      : action['kind'],
@@ -135,24 +146,43 @@ class ActionQueue(threading.Thread):
       action['user'], result)
 
   # Write file action
-  def writeFileAction(self, action):
+  def writeFileAction(self, action, fileName=""):
     result = self.genResult(action)
-    return writeFile(action, result)
+    return writeFile(action, result, fileName)
+
+  # get the install file
+  def getInstallFilename(self,id):
+    return "ambari-install-file-"+id
 
   # Install and configure action
   def installAndConfigAction(self, action):
-    w = self.writeFileAction(action)
+    w = self.writeFileAction(action,self.getInstallFilename(action['id']))
     commandResult = {}
     if w['exitCode']!=0:
-      commandResult['output'] = out
-      commandResult['error'] = err
-      commandResult['exitCode'] = exitCode
+      commandResult['error'] = w['error'] 
+      commandResult['exitCode'] = w['exitCode']
       r['commandResult'] = commandResult
       return r
+    logger.info("Command to run ")
+     
+    if 'command' not in action:
+      # this is hardcoded to do puppet specific stuff for now
+      # append the content of the puppet file to the file written above
+      filepath = getFilePath(action,self.getInstallFilename(action['id'])) 
+      p = self.sh.run(['/bin/cat',AmbariConfig.config.get('puppet','driver')])
+      if p['exitCode']!=0:
+        commandResult['error'] = p['error']
+        commandResult['exitCode'] = p['exitCode']
+        r['commandResult'] = commandResult
+        return r
+      print("The contents of the static file " + p['output'])
+      appendToFile(p['output'],filepath) 
+      action['command']=[AmbariConfig.config.get('puppet','commandpath'), filepath]
+      print ("PUPPET COMMAND : " + action['command'])
+    logger.info(action['command'])
     r = self.sh.run(action['command'])
     if r['exitCode'] != 0:
-      commandResult['output'] = out
-      commandResult['error'] = err
+      commandResult['error'] = r['error']
     else:
       installScriptHash = action['id'] 
     commandResult['exitCode'] = r['exitCode']
@@ -181,6 +211,10 @@ class ActionQueue(threading.Thread):
     result = self.genResult(action)
     result['exitCode'] = 0
     return deleteStructure(action, result)
+
+  def noOpAction(self, action):
+    r = {'exitCode' : 0 }
+    return r
 
   # Handle unknown action
   def unknownAction(self, action):

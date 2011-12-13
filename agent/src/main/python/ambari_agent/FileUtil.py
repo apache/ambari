@@ -32,20 +32,52 @@ import AmbariConfig
 
 logger = logging.getLogger()
 
-def writeFile(action, result):
+def getFilePath(action, fileName=""):
+  #Change the method signature to take the individual action fields
+  pathComp=""
+  if 'clusterId' in action:
+    pathComp = action['clusterId']
+  if 'role' in action:
+    pathComp = pathComp + "-" + action['role'] 
+  path = os.path.join(AmbariConfig.config.get('agent','prefix'),
+                      "clusters", 
+                      pathComp)
+  fullPathName=""
+  if fileName != "":
+    fullPathName=os.path.join(path, fileName)
+  else:
+    fileInfo = action['file']
+    fullPathName=os.path.join(path, fileInfo['path'])
+  return fullPathName
+  
+def appendToFile(data,absolutePath):
+  f = open(absolutePath, 'w')
+  f.write(data)
+  f.close()
+
+def writeFile(action, result, fileName=""):
   fileInfo = action['file']
+  pathComp=""
+  if 'clusterId' in action:
+    pathComp = action['clusterId']
+  if 'role' in action:
+    pathComp = pathComp + "-" + action['role'] 
   try:
     path = os.path.join(AmbariConfig.config.get('agent','prefix'),
                         "clusters", 
-                        action['clusterId']+"-"+action['role'])
-    logger.info("path: %s" % path)
-    user=fileInfo['owner']
-    if user is None:
-      user=getpass.getuser()
-    group=fileInfo['group']
-    if group is None:
-      group=getpass.getgroup()
-    filename=os.path.join(path, fileInfo['path'])
+                        pathComp)
+    user=getpass.getuser()
+    if 'owner' in fileInfo:
+      user=fileInfo['owner']
+    group=os.getgid()
+    if 'group' in fileInfo:
+      group=fileInfo['group']
+    fullPathName=""
+    if fileName != "":
+      fullPathName=os.path.join(path, fileName)
+    else:
+      fullPathName=os.path.join(path, fileInfo['path'])
+    logger.info("path in writeFile: %s" % fullPathName)
     content=fileInfo['data']
     try:
       if isinstance(user, int)!=True:
@@ -53,18 +85,20 @@ def writeFile(action, result):
       if isinstance(group, int)!=True:
         group=getgrnam(group)[2]
     except Exception:
-      logger.warn("can not find user uid/gid: (%s/%s) for writing %s" % (user, group, filename))
-    if fileInfo['permission'] is not None:
-      permission=fileInfo['permission']
+      logger.warn("can not find user uid/gid: (%s/%s) for writing %s" % (user, group, fullPathName))
+    if 'permission' in fileInfo:
+      if fileInfo['permission'] is not None:
+        permission=fileInfo['permission']
     else:
       permission=0750
     oldMask = os.umask(0)
-    if fileInfo['umask'] is not None: 
-      umask=int(fileInfo['umask'])
+    if 'umask' in fileInfo:
+      if fileInfo['umask'] is not None: 
+        umask=int(fileInfo['umask'])
     else:
       umask=oldMask 
     os.umask(int(umask))
-    prefix = os.path.dirname(filename)
+    prefix = os.path.dirname(fullPathName)
     try:
       os.makedirs(prefix)
     except OSError as err:
@@ -72,12 +106,12 @@ def writeFile(action, result):
         pass
       else:
         raise
-    f = open(filename, 'w')
+    f = open(fullPathName, 'w')
     f.write(content)
     f.close()
     if os.getuid()==0:
-      os.chmod(filename, permission)
-      os.chown(filename, user, group)
+      os.chmod(fullPathName, permission)
+      os.chown(fullPathName, user, group)
     os.umask(oldMask)
     result['exitCode'] = 0
   except Exception, err:

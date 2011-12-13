@@ -170,7 +170,7 @@ public class TestHeartbeat {
         driver, invoker);
     ControllerResponse response = handler.processHeartBeat(heartbeat);
     List<Action> actions = response.getActions();
-    assert(actions.size() == 1);
+    assert(actions.size() == 2);
     assert(actions.get(0).getKind() == Action.Kind.INSTALL_AND_CONFIG_ACTION);
   }
   

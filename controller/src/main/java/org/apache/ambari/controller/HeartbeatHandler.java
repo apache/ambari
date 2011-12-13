@@ -79,11 +79,11 @@ public class HeartbeatHandler {
     Date heartbeatTime = new Date(System.currentTimeMillis());
     nodes.checkAndUpdateNode(hostname, heartbeatTime);
     
-    ControllerResponse response = 
+    ControllerResponse prevResponse = 
         agentToHeartbeatResponseMap.get(heartbeat.getHostname());
-    if (response != null) {
-      if (response.getResponseId() == heartbeat.getResponseId()) {
-        return response; //duplicate heartbeat
+    if (prevResponse != null) {
+      if (prevResponse.getResponseId() != heartbeat.getResponseId()) {
+        return prevResponse; //duplicate heartbeat or the agent restarted
       }
     }
 
@@ -152,7 +152,7 @@ public class HeartbeatHandler {
                 //check the expected state of the agent and whether the start
                 //was successful
                 if (wasStartRoleSuccessful(clusterIdAndRev, 
-                    service.getServiceName(), role.getRoleName(), response, 
+                    service.getServiceName(), role.getRoleName(), prevResponse, 
                     heartbeat)) {
                   //raise an event to the state machine for a successful 
                   //role-start
@@ -168,7 +168,7 @@ public class HeartbeatHandler {
                 //raise an event to the state machine for a successful 
                 //role-stop instance
                 if (wasStopRoleSuccessful(clusterIdAndRev, 
-                    service.getServiceName(), role.getRoleName(), response, 
+                    service.getServiceName(), role.getRoleName(), prevResponse, 
                     heartbeat)) {
                   stateMachineInvoker.getAMBARIEventHandler()
                   .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
@@ -190,6 +190,11 @@ public class HeartbeatHandler {
       List<Action> allActions, HeartBeat heartbeat) {
     ControllerResponse r = new ControllerResponse();
     r.setResponseId(responseId);
+    if (allActions.size() > 0) {//TODO: REMOVE THIS
+      Action a = new Action();
+      a.setKind(Kind.NO_OP_ACTION);
+      allActions.add(a);
+    }
     r.setActions(allActions);
     agentToHeartbeatResponseMap.put(heartbeat.getHostname(), r);
     return r;
@@ -229,11 +234,6 @@ public class HeartbeatHandler {
       List<Action> allActions) {
     ConfigFile file = new ConfigFile();
     file.setData(script);
-    //TODO: this should be written in Ambari's scratch space directory
-    //this file is the complete install/config script. Note that the
-    //script includes install/config snippets for all clusters the 
-    //node belongs to
-    file.setPath("/tmp/ambari_install_script" + script.hashCode());
     
     Action action = new Action();
     action.setFile(file);
