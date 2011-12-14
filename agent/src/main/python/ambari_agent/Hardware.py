@@ -76,7 +76,10 @@ class Hardware:
       # No ethernet detected, detect airport
       script = [ '/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport', '-I', '|', 'grep', 'lastTxRate:', '|', 'sed', "'s/.*: //'", '|', 'sed', "'s/$//'"]
       result = sh.run(script)
-    self.netSpeed = int(result['output'].rstrip())
+    try:
+      self.netSpeed = int(result['output'].rstrip())
+    except Exception:
+      self.netSpeed = 0
 
   def scanOS(self):
     self.arch = platform.processor()
