@@ -19,9 +19,12 @@
 <configuration>
 <% require 'erubis' -%>
 <% conf_category_map.each do |key,value| -%>
-      <property>
-        <name><%= key %></name>
-        <value><%= Erubis::Eruby.new(value).result(binding) %></value>
-      </property>
+  <property>
+    <name><%= key %></name>
+    <% while (value.include? '<%=') do -%>
+    <% value=Erubis::Eruby.new(value).result(binding) -%>
+    <% end -%>
+    <value><%= value %></value>
+  </property>
 <% end -%>
 </configuration>

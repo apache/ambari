@@ -18,5 +18,8 @@
 
 <% require 'erubis' -%>
 <% conf_category_map.each do |key,value| -%>
-export <%= key %>="<%= Erubis::Eruby.new(value).result(binding) %>"
+    <% while (value.include? '<%=') do -%>
+    <% value=Erubis::Eruby.new(value).result(binding) -%>
+    <% end -%>
+export <%= key %>="<%= value %>"
 <% end -%>
