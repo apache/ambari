@@ -240,7 +240,7 @@
               },
               {
                 "@name":"dfs.web.authentication.kerberos.keytab",
-                "@value":"<%= ambari_keytab_dir %>/<%= ambari_namenode_principal =>.service.keytab"
+                "@value":"<%= ambari_keytab_dir %>/<%= ambari_namenode_principal %>.service.keytab"
               },
               {
                 "@name":"dfs.namenode.keytab.file",
