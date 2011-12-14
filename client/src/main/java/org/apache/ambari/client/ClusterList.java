@@ -18,16 +18,12 @@
 package org.apache.ambari.client;
 
 import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
-import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterInformation;
-import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -36,8 +32,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONObject;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;

@@ -18,10 +18,7 @@
 package org.apache.ambari.client;
 
 import java.lang.reflect.Constructor;
-import java.net.ConnectException;
 import java.util.HashMap;
-
-import org.apache.commons.cli.Options;
 
 public class AmbariClient {
 

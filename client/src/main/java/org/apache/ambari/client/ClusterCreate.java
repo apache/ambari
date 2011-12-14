@@ -20,15 +20,11 @@ package org.apache.ambari.client;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;

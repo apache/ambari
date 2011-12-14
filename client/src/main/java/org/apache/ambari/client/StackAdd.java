@@ -19,23 +19,19 @@ package org.apache.ambari.client;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.ambari.common.rest.entities.Stack;
-import org.apache.ambari.common.rest.entities.ClusterDefinition;
-import org.apache.ambari.common.rest.entities.ClusterInformation;
-import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -44,16 +40,14 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONObject;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.json.JSONJAXBContext;
+import com.sun.jersey.api.json.JSONUnmarshaller;
 
 public class StackAdd extends Command {
 
@@ -91,7 +85,7 @@ public class StackAdd extends Command {
         OptionBuilder.withArgName("location");
         OptionBuilder.isRequired();
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription( "Either URL or local file path where stack in XML format is available");
+        OptionBuilder.withDescription( "Either URL or local file path where stack in JSON format is available");
         Option location = OptionBuilder.create( "location" );
         
         this.options = new Options();
@@ -148,17 +142,28 @@ public class StackAdd extends Command {
             try {
                 URL urlx = new URL(location);
             } catch (MalformedURLException x) {
-                System.out.println("Specified location is either a file path that does not exist or a malformed URL");
+                System.out.println("Specified location is either a non-existing file path or a malformed URL");
                 System.exit(-1);
             }
             Stack bp = new Stack();
             response = service.path("stacks/"+name)
                     .queryParam("url", location)
-                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
+                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).put(ClientResponse.class, bp);
         } else {
-            Stack bp = this.readStackFromXMLFile(f);
-            response = service.path("stacks/"+name)
-                    .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
+            Stack bp = null;
+            if (f.getName().endsWith(".json")) {
+                bp = this.readStackFromJSONFile(f);
+                response = service.path("stacks/"+name)
+                        .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).put(ClientResponse.class, bp);
+            } else if (f.getName().endsWith(".xml")) {
+                bp = this.readStackFromXMLFile(f);
+                response = service.path("stacks/"+name)
+                        .accept(MediaType.APPLICATION_XML).type(MediaType.APPLICATION_XML).put(ClientResponse.class, bp);
+            } else {
+                System.out.println("Specified stack file does not end with .json or .xml");
+                System.exit(-1);
+            }
+            
         }     
         
         if (response.getStatus() != 200) { 
@@ -179,13 +184,16 @@ public class StackAdd extends Command {
         return bp;
     }
     
-    public Stack readStackFromJSONFile (File f) throws Exception {      
-        FileInputStream fis = new FileInputStream(f);
-        ObjectMapper m = new ObjectMapper();
-        Stack stack = m.readValue(fis, Stack.class);
-        return stack;
+    public Stack readStackFromJSONFile (File f) throws Exception {   
+        JSONJAXBContext jsonContext = 
+                new JSONJAXBContext("org.apache.ambari.common.rest.entities");
+        InputStream in = new FileInputStream(f.getAbsoluteFile());
+        try {
+          JSONUnmarshaller um = jsonContext.createJSONUnmarshaller();
+          Stack stack = um.unmarshalFromJSON(in, Stack.class);
+          return stack;
+        } catch (JAXBException je) {
+          throw new IOException("Can't parse " + f.getAbsolutePath(), je);
+        }
     }
-    
-    
 }
-

@@ -18,12 +18,10 @@
 package org.apache.ambari.client;
 
 import java.net.URI;
-import java.net.URL;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.ambari.common.rest.entities.Stack;
-import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
