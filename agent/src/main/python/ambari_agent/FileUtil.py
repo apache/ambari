@@ -51,7 +51,7 @@ def getFilePath(action, fileName=""):
   return fullPathName
   
 def appendToFile(data,absolutePath):
-  f = open(absolutePath, 'w')
+  f = open(absolutePath, 'a')
   f.write(data)
   f.close()
 

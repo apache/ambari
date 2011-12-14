@@ -74,7 +74,7 @@ class Controller(threading.Thread):
       try:
         if retry==False:
           data = json.dumps(self.heartbeat.build(id))
-          logger.info(data)
+          logger.debug(data)
         req = urllib2.Request(self.url, data, {'Content-Type': 'application/json'})
         f = urllib2.urlopen(req)
         response = f.read()

@@ -59,7 +59,7 @@ class ActionQueue(threading.Thread):
   def put(self, response):
     if 'actions' in response:
       actions = response['actions']
-      print(actions)
+      logger.debug(actions)
       # for the servers, take a diff of what's running, and what the controller
       # asked the agent to start. Kill all those servers that the controller
       # didn't ask us to start
@@ -157,6 +157,7 @@ class ActionQueue(threading.Thread):
 
   # Install and configure action
   def installAndConfigAction(self, action):
+    global installScriptHash
     w = self.writeFileAction(action,self.getInstallFilename(action['id']))
     commandResult = {}
     if w['exitCode']!=0:
