@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-161. Add puppet module for Hadoop to agent resources (vgogate)
+
   AMBARI-159. Temporarily disabled security (until Ambari upgrades to 
   Python2.7). (ddas)
 
