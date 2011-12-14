@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-159. Temporarily disabled security (until Ambari upgrades to 
+  Python2.7). (ddas)
+
   AMBARI-160. Ambari client add stack command should allow both json and xml (vgogate)
 
   AMBARI-158. Move the JSON encoding to the natural one. (omalley)

@@ -43,7 +43,6 @@ class TestAgentActions(TestCase):
     #this 'ls' would be a puppet or a chef command that would work on a data
     #file
     path=getFilePath(action,path)
-    print ("path : " + path)
     action = { 
       'id' : 'tttt',
       'kind' : 'INSTALL_AND_CONFIG_ACTION',
@@ -55,6 +54,5 @@ class TestAgentActions(TestCase):
     result = { }
     actionQueue = ActionQueue(AmbariConfig().getConfig())
     result = actionQueue.installAndConfigAction(action)
-    print(result)
     self.assertEqual(result['exitCode'], 0, "installAndConfigAction test failed. Returned %d " % result['exitCode'])
     self.assertEqual(result['output'], path + "\n", "installAndConfigAction test failed Returned %s " % result['output'])

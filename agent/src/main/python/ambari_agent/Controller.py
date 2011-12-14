@@ -44,10 +44,11 @@ class Controller(threading.Thread):
     self.safeMode = True
     self.credential = None
     self.config = config
-    if(config.get('controller', 'user')!=None and config.get('controller', 'password')!=None):
-      self.credential = { 'user' : config.get('controller', 'user'),
-                          'password' : config.get('controller', 'password')
-      }
+    #Disabled security until we have fix for AMBARI-157
+    #if(config.get('controller', 'user')!=None and config.get('controller', 'password')!=None):
+    #  self.credential = { 'user' : config.get('controller', 'user'),
+    #                      'password' : config.get('controller', 'password')
+    #  }
     self.url = config.get('controller', 'url') + '/agent/controller/heartbeat/' + socket.gethostname()
 
   def start(self):

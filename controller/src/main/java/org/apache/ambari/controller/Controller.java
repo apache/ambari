@@ -96,7 +96,8 @@ public class Controller {
           System.getenv("AMBARI_CONF_DIR")+"/auth.conf"));
       security.setConstraintMappings(new ConstraintMapping[]{cm});
 
-      root.addHandler(security);
+      //COMMENTED THE FOLLOWING LINE TO WORK AROUND AMBARI-159
+      //root.addHandler(security);
       server.setStopAtShutdown(true);
       
       /*

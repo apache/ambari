@@ -48,7 +48,6 @@ class Heartbeat:
       heartbeat['actionResults'] = queueResult
     if len(installedRoleStates)!=0:
       heartbeat['installedRoleStates'] = installedRoleStates
-    print json.dumps(heartbeat)
     return heartbeat
 
 def main(argv=None):
