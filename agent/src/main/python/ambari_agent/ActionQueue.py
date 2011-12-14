@@ -172,6 +172,7 @@ class ActionQueue(threading.Thread):
       filepath = getFilePath(action,self.getInstallFilename(action['id'])) 
       logger.debug("FILEPATH : " + filepath)
       p = self.sh.run(['/bin/cat',AmbariConfig.config.get('puppet','driver')])
+      r={}
       if p['exitCode']!=0:
         commandResult['error'] = p['error']
         commandResult['exitCode'] = p['exitCode']
