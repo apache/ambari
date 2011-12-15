@@ -158,7 +158,6 @@ class ActionQueue(threading.Thread):
   # Install and configure action
   def installAndConfigAction(self, action):
     global installScriptHash
-    r=self.genResult(action)
     w = self.writeFileAction(action,self.getInstallFilename(action['id']))
     commandResult = {}
     if w['exitCode']!=0:
@@ -185,11 +184,14 @@ class ActionQueue(threading.Thread):
       logger.debug(arr)
       action['command'] = arr
     logger.debug(action['command'])
-    commandResult = self.sh.run(action['command'])
-    logger.debug("PUPPET COMMAND OUTPUT: " + commandResult['output'])
-    logger.debug("PUPPET COMMAND ERROR: " + commandResult['error'])
-    if commandResult['exitCode'] == 0:
+    r = self.sh.run(action['command'])
+    logger.debug("PUPPET COMMAND OUTPUT: " + r['output'])
+    logger.debug("PUPPET COMMAND ERROR: " + r['error'])
+    if r['exitCode'] != 0:
+      commandResult['error'] = r['error']
+    else:
       installScriptHash = action['id'] 
+    commandResult['exitCode'] = r['exitCode']
     r['commandResult'] = commandResult
     return r
 
@@ -217,7 +219,7 @@ class ActionQueue(threading.Thread):
     return deleteStructure(action, result)
 
   def noOpAction(self, action):
-    r = {'id' : action['id']}
+    r = {'exitCode' : 0 }
     return r
 
   # Handle unknown action

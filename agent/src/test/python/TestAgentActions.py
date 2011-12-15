@@ -54,6 +54,5 @@ class TestAgentActions(TestCase):
     result = { }
     actionQueue = ActionQueue(AmbariConfig().getConfig())
     result = actionQueue.installAndConfigAction(action)
-    cmdResult = result['commandResult']
-    self.assertEqual(cmdResult['exitCode'], 0, "installAndConfigAction test failed. Returned %d " % cmdResult['exitCode'])
-    self.assertEqual(cmdResult['output'], path + "\n", "installAndConfigAction test failed Returned %s " % cmdResult['output'])
+    self.assertEqual(result['exitCode'], 0, "installAndConfigAction test failed. Returned %d " % result['exitCode'])
+    self.assertEqual(result['output'], path + "\n", "installAndConfigAction test failed Returned %s " % result['output'])

@@ -81,7 +81,7 @@ public class Controller {
         "org.apache.ambari.controller.rest.config.PrivateWadlGeneratorConfig");
       root.addServlet(agent, "/agent/*");
       agent.setInitOrder(3);
-/*    //COMMENTED THE FOLLOWING LINE TO WORK AROUND AMBARI-159
+
       Constraint constraint = new Constraint();
       constraint.setName(Constraint.__BASIC_AUTH);;
       constraint.setRoles(new String[]{"user","admin","moderator"});
@@ -96,8 +96,8 @@ public class Controller {
           System.getenv("AMBARI_CONF_DIR")+"/auth.conf"));
       security.setConstraintMappings(new ConstraintMapping[]{cm});
 
-      //root.addHandler(security);  
-*/
+      //COMMENTED THE FOLLOWING LINE TO WORK AROUND AMBARI-159
+      //root.addHandler(security);
       server.setStopAtShutdown(true);
       
       /*
