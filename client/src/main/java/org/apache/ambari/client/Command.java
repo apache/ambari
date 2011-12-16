@@ -30,6 +30,8 @@ import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.Node;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.json.JSONJAXBContext;
+import com.sun.jersey.api.json.JSONMarshaller;
 
 public abstract class Command {
     
@@ -113,6 +115,14 @@ public abstract class Command {
         Marshaller m = jc.createMarshaller();
         m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         m.marshal(def, System.out);
+    }
+    
+    public void printClusterDefinitionJSON(ClusterDefinition def) throws Exception {
+        JAXBContext jc = JSONJAXBContext.newInstance(org.apache.ambari.common.rest.entities.ClusterDefinition.class);
+        Marshaller m = jc.createMarshaller(); 
+        JSONMarshaller mx = JSONJAXBContext.getJSONMarshaller(m);
+        mx.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        mx.marshallToJSON(def, System.out);
     }
     
     public void printClusterInformation(ClusterInformation clsInfo) throws Exception {

@@ -93,8 +93,8 @@ class hadoop {
     include common 
 
     $ambari_role_name = "client"
-    $hadoop_conf_dir = "${ambari_role_prefix}/etc/hadoop"
-    file {["${ambari_role_prefix}", "${ambari_role_prefix}/etc", "${ambari_role_prefix}/etc/hadoop"]:
+    $hadoop_conf_dir = "${ambari_role_prefix}/etc/conf"
+    file {["${ambari_role_prefix}", "${ambari_role_prefix}/etc", "${ambari_role_prefix}/etc/conf"]:
       ensure => directory
     }     
     notice ($ambari_role_prefix)

@@ -21,9 +21,9 @@
 <% conf_category_map.each do |key,value| -%>
   <property>
     <name><%= key %></name>
-    <% while (value.include? '<%=') do -%>
-    <% value=Erubis::Eruby.new(value).result(binding) -%>
-    <% end -%>
+<% while (value.include? '<%=') do -%>
+<% value=Erubis::Eruby.new(value).result(binding) -%>
+<% end -%>
     <value><%= value %></value>
   </property>
 <% end -%>
