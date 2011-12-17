@@ -72,7 +72,7 @@
     </components>
     <components architecture="x86_64" name="hdfs" 
                 provider="org.apache.hadoop" version="0.20.205.0">
-        <definition name="hadoop-hdfs" version="0.1.0" 
+        <definition name="hdfs" version="0.1.0" 
                     provider="org.apache.ambari"/>
         <configuration>
            <category name="hadoop-env">

@@ -26,7 +26,11 @@ import org.apache.ambari.common.rest.agent.Action;
  */
 public abstract class ComponentPlugin {
   
-  public abstract String getProvides();
+  /**
+   * Get the name of the component.
+   * @return the name
+   */
+  public abstract String getName();
   
   /**
    * Get the active roles (ie. with servers) for this component.

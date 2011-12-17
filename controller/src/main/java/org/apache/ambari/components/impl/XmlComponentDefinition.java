@@ -49,7 +49,7 @@ class XmlComponentDefinition extends ComponentPlugin {
   })
   @XmlRootElement
   public static class Component {
-    @XmlAttribute String provides;
+    @XmlAttribute String name;
     @XmlElement List<Requires> requires;
     @XmlElement List<Role> roles;
     @XmlElement Start start;
@@ -70,18 +70,7 @@ class XmlComponentDefinition extends ComponentPlugin {
   }
 
   public static class ScriptCommand {
-    @XmlAttribute String user;
     @XmlValue String script;
-  }
-
-  @XmlAccessorType(XmlAccessType.FIELD)
-  @XmlType(name = "install")
-  public static class Install extends ScriptCommand {
-  }
-
-  @XmlAccessorType(XmlAccessType.FIELD)
-  @XmlType(name = "configure")
-  public static class Configure extends ScriptCommand {
   }
 
   @XmlAccessorType(XmlAccessType.FIELD)
@@ -101,11 +90,6 @@ class XmlComponentDefinition extends ComponentPlugin {
     @XmlAttribute String runOn;
   }
   
-  @XmlAccessorType(XmlAccessType.FIELD)
-  @XmlType(name = "uninstall")
-  public static class Uninstall extends ScriptCommand {
-  }
-
   private static final JAXBContext jaxbContext;
   static {
     try {
@@ -115,7 +99,7 @@ class XmlComponentDefinition extends ComponentPlugin {
     }
   }
 
-  private final String provides;
+  private final String name;
   private final String[] roles;
   private final String[] dependencies;
   private final String startCommand;
@@ -128,8 +112,8 @@ class XmlComponentDefinition extends ComponentPlugin {
   private final String checkUser = "agent";
   
   @Override
-  public String getProvides() {
-    return provides;
+  public String getName() {
+    return name;
   }
 
   @Override
@@ -204,7 +188,7 @@ class XmlComponentDefinition extends ComponentPlugin {
     try {
       um = jaxbContext.createUnmarshaller();
       Component component = (Component) um.unmarshal(in);
-      provides = component.provides;
+      name = component.name;
       int i = 0;
       if (component.requires == null) {
         dependencies = new String[0];
@@ -267,9 +251,9 @@ class XmlComponentDefinition extends ComponentPlugin {
     defn.setProvider("org.apache.ambari");
     defn.setVersion("0.1.0");
     XmlComponentDefinition comp = new XmlComponentDefinition(defn);
-    System.out.println(comp.provides);
+    System.out.println(comp.name);
     defn.setName("hadoop-common");
     comp = new XmlComponentDefinition(defn);
-    System.out.println(comp.provides);
+    System.out.println(comp.name);
   }
 }

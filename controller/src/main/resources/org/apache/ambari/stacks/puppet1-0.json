@@ -193,7 +193,7 @@
       "@provider":"org.apache.hadoop",
       "definition":{
         "@provider":"org.apache.ambari",
-        "@name":"hadoop-hdfs",
+        "@name":"hdfs",
         "@version":"0.1.0"
       },
       "configuration":{
