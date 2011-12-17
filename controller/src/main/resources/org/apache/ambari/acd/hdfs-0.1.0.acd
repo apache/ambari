@@ -4,44 +4,33 @@
   <roles name="namenode"/>
   <roles name="secondarynamenode"/>
   <roles name="datanode"/>
-  <configure>
-<![CDATA[
-import ambari_component
-import sys
-
-[pgm, cluster, role] = sys.argv
-
-opts = {}
-if role == "datanode":
-  opts['dfs.data.dir'] = ambari_component.getDataDirs()
-
-ambari_component.copyXml('hadoop/hdfs-site', opts)
-]]>
-  </configure>
-  <install>
-<![CDATA[
-print "TO BE DONE"
-]]>
-  </install>
   <start>
 <![CDATA[
 import os
 import sys
 
 [pgm, cluster, role] = sys.argv
-
-os.execl("stack/bin/hadoop", "stack/bin/hadoop", role)
+os.environ['HADOOP_CONF_DIR']=os.getcwd() + "/etc/hadoop"
+os.execlp("hadoop", "hadoop", role)
 ]]>
   </start>
-  <check runOn="namenode" user="${hdfs.user}">
+  <check runOn="namenode">
 <![CDATA[
 import os
+import sys
 
-os.exec('stack/bin/hadoop', 'stack/bin/hadoop', 'dfsadmin', '-get')
+os.environ['HADOOP_CONF_DIR']=os.getcwd() + "/etc/hadoop"
+sys.exit(os.system('hadoop dfsadmin -safemode get | grep "Safe mode is OFF"'))
+
 ]]>
   </check>
 
-  <prestart runOn="namenode" user="{hdfs.user}">
+  <prestart runOn="namenode">
 <![CDATA[]]>
+import subprocess
+
+proc = subprocess.Popen(['hadoop', 'namenode', '-format'], stdin=subprocess.PIPE)
+proc.communicate('N\n')
+proc.wait()
   </prestart>
 </component>
