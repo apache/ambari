@@ -122,6 +122,7 @@ class ActionQueue(threading.Thread):
     if (action['kind'] == 'INSTALL_AND_CONFIG_ACTION' or action['kind'] == 'NO_OP_ACTION'):
       result = {
                'id'                        : action['id'],
+               'kind'                      : action['kind'],
              }
     else:
       result = { 
@@ -129,7 +130,7 @@ class ActionQueue(threading.Thread):
                'clusterId'                 : action['clusterId'],
                'kind'                      : action['kind'],
                'clusterDefinitionRevision' : action['clusterDefinitionRevision'],
-               'component'                 : action['component'],
+               'componentName'             : action['component'],
                'role'                      : action['role']
              }
     return result
@@ -138,8 +139,7 @@ class ActionQueue(threading.Thread):
   # track the liveness of the children process
   def startAction(self, action):
     result = self.genResult(action)
-    return self.sh.startProcess(action['workDirComponent'],
-      action['clusterId'],
+    return self.sh.startProcess(action['clusterId'],
       action['clusterDefinitionRevision'],
       action['component'], 
       action['role'], 
@@ -195,8 +195,7 @@ class ActionQueue(threading.Thread):
   # Run command action
   def runAction(self, action):
     result = self.genResult(action)
-    return self.sh.runAction(action['workDirComponent'],
-      action['clusterId'], 
+    return self.sh.runAction(action['clusterId'], 
       action['component'],
       action['role'],
       action['user'], 

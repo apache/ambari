@@ -35,7 +35,7 @@ class ServerStatus:
       result = {
                  'clusterId'                 : clusterId,
                  'clusterDefinitionRevision' : clusterDefinitionRevision,
-                 'component'                 : component,
+                 'componentName'             : component,
                  'roleName'                  : role,
                  'serverStatus'              : 'STARTED'
                }

@@ -20,6 +20,7 @@ limitations under the License.
 
 from pwd import getpwnam
 from grp import getgrnam
+import AmbariConfig
 import logging
 import logging.handlers
 import subprocess
@@ -56,9 +57,9 @@ class shellRunner:
     return {'exitCode': code, 'output': out, 'error': err}
 
   # dispatch action types
-  def runAction(self, workdir, clusterId, component, role, user, command, cleanUpCommand, result):
+  def runAction(self, clusterId, component, role, user, command, cleanUpCommand, result):
     oldDir = os.getcwd()
-    os.chdir(workdir)
+    os.chdir(self.getWorkDir(clusterId, role))
     oldUid = os.getuid()
     try:
       if user is not None:
@@ -109,10 +110,10 @@ class shellRunner:
     return result
 
   # Start a process and presist its state
-  def startProcess(self, workdir, clusterId, clusterDefinitionRevision, component, role, script, user, result):
+  def startProcess(self, clusterId, clusterDefinitionRevision, component, role, script, user, result):
     global serverTracker
     oldDir = os.getcwd()
-    os.chdir(workdir)
+    os.chdir(self.getWorkDir(clusterId,role))
     oldUid = os.getuid()
     try:
       user=getpwnam(user)[2]
@@ -160,4 +161,8 @@ class shellRunner:
     return serverTracker
 
   def getServerKey(self,clusterId, clusterDefinitionRevision, component, role):
-    return clusterId+"/"+clusterDefinitionRevision+"/"+component+"/"+role
+    return clusterId+"/"+str(clusterDefinitionRevision)+"/"+component+"/"+role
+
+  def getWorkDir(self, clusterId, role):
+    prefix = AmbariConfig.config.get('stack','installprefix')
+    return str(os.path.join(prefix, clusterId, role))

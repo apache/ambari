@@ -33,6 +33,9 @@ password=controller
 [agent]
 prefix=/tmp/ambari
 
+[stack]
+installprefix=/var/ambari
+
 [puppet]
 prefix=/homes/ddas/puppet
 commandpath=/usr/local/bin/puppet apply --modulepath /home/puppet/puppet-ambari/modules
