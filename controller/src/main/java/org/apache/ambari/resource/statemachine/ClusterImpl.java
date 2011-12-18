@@ -215,7 +215,7 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
     public ClusterStateFSM transition(ClusterImpl operand, ClusterEvent event){
       //check whether all services started, and if not remain in the STARTING
       //state, else move to the ACTIVE state
-      ServiceFSM service = operand.getFirstService();
+      ServiceFSM service = operand.getNextService();
       if (service != null) {
         stateMachineInvoker.getAMBARIEventHandler().handle(new ServiceEvent(
             ServiceEventType.START, service));

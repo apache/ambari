@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -134,14 +135,17 @@ public class HeartbeatHandler {
         List<ServiceFSM> clusterServices = clusterFsm.getServices();
         //go through all the components, and check which role should be started
         for (ServiceFSM service : clusterServices) {
+          ComponentPlugin plugin = 
+              cluster.getComponentDefinition(service.getServiceName());
+          //check whether all the dependent components have started up
+          if (!dependentComponentsActive(plugin, clusterFsm)) {
+            continue;
+          }
           List<RoleFSM> roles = service.getRoles();
           for (RoleFSM role : roles) {
             boolean nodePlayingRole = 
                 nodePlayingRole(hostname, role.getRoleName());
-            if (nodePlayingRole) {
-              ComponentPlugin plugin = 
-                  cluster.getComponentDefinition(service.getServiceName());
-
+            if (nodePlayingRole) {          
               //check whether the agent should start any server
               if (role.shouldStart()) {
                 Action action = 
@@ -184,6 +188,26 @@ public class HeartbeatHandler {
       }
     }
     return createResponse(responseId,allActions,heartbeat);
+  }
+  
+  private boolean dependentComponentsActive(ComponentPlugin plugin, 
+      ClusterFSM cluster) throws IOException {
+    String[] dependents = plugin.getRequiredComponents();
+    if (dependents == null || dependents.length == 0) {
+      return true;
+    }
+    List<ServiceFSM> componentFsms = cluster.getServices();
+    
+    for (ServiceFSM component : componentFsms) {
+      for (String dependent : dependents) {
+        if (component.getServiceName().equals(dependent)) {
+          if (!component.isActive()) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
   }
   
   private ControllerResponse createResponse(short responseId, 

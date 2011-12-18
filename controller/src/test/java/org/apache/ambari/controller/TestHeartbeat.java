@@ -104,6 +104,7 @@ public class TestHeartbeat {
     invoker = injector.getInstance(StateMachineInvokerInterface.class);
     plugin = mock(ComponentPlugin.class);
     when(plugin.getActiveRoles()).thenReturn(roles);
+    when(plugin.getRequiredComponents()).thenReturn(null);
     cdef = mock(ClusterDefinition.class);
     when(cdef.getEnabledServices()).thenReturn(Arrays.asList("comp1"));
     cluster = mock(Cluster.class);
