@@ -15,17 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.resource.statemachine;
 
-import com.google.inject.AbstractModule;
+import org.apache.ambari.event.EventHandler;
 
-class TestModule extends AbstractModule {
+class StateMachineInvokerImplNoOp implements StateMachineInvokerInterface {
+
   @Override
-  protected void configure() {
-    bind(StateMachineInvokerInterface.class)
-    .to(StateMachineInvokerImplNoOp.class);
-    requestStaticInjection(RoleImpl.class, ServiceImpl.class, 
-        ClusterImpl.class);
-  }
+  public EventHandler getAMBARIEventHandler() {
+    return new NoOPDispatcher().getEventHandler();
+  }  
 }

@@ -53,20 +53,26 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
              RoleEventType.START)
              
           //START_SUCCESS event transitions   
-         .addTransition(RoleState.STARTING, 
-             RoleState.ACTIVE,
+          //if one instance of the role starts up fine, we consider the service
+          //as ready for the 'safe-mode' kinds of checks
+         .addTransition(RoleState.STARTING, RoleState.ACTIVE,
              RoleEventType.START_SUCCESS, new SuccessfulStartTransition())
-         
+
+          //TODO: add support notion of quorom of nodes that need to be up
+         .addTransition(RoleState.STARTING, RoleState.FAIL,
+             RoleEventType.START_FAILURE, new FailedStartTransition())
+
+             
          .addTransition(RoleState.STARTING, RoleState.STOPPING, 
              RoleEventType.STOP)
              
          .addTransition(RoleState.ACTIVE, RoleState.ACTIVE,
              RoleEventType.START_SUCCESS)
-             
-         .addTransition(RoleState.STARTING, 
-             RoleState.FAIL,
-             RoleEventType.START_FAILURE)
 
+          //required number of nodes have this role started
+         .addTransition(RoleState.ACTIVE, RoleState.ACTIVE,
+             RoleEventType.START_FAILURE)
+             
           //STOP event transitions   
          .addTransition(RoleState.ACTIVE, RoleState.STOPPING, 
              RoleEventType.STOP)
@@ -76,14 +82,18 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
 
           //STOP_SUCCESS event transitions   
          .addTransition(RoleState.STOPPING, RoleState.INACTIVE,
-             RoleEventType.STOP_SUCCESS, new RoleStopTransition())
+             RoleEventType.STOP_SUCCESS, new SuccessfulStopTransition())
 
          .addTransition(RoleState.INACTIVE, RoleState.INACTIVE,
              RoleEventType.STOP_SUCCESS)
+
+          //enough number of nodes have stopped already
+         .addTransition(RoleState.INACTIVE, RoleState.INACTIVE,
+             RoleEventType.STOP_FAILURE)
              
           //STOP_FAILURE event transitions                
          .addTransition(RoleState.STOPPING, RoleState.FAIL,
-             RoleEventType.STOP_FAILURE)
+             RoleEventType.STOP_FAILURE, new FailedStopTransition())
              
          .installTopology();
   
@@ -120,17 +130,24 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
     return service;
   }
   
-  static class SuccessfulStartTransition implements 
-  SingleArcTransition<RoleImpl, RoleEvent>  {
+  
+  static void sendEventToService(RoleImpl operand, RoleEvent event,
+      ServiceEventType serviceEvent) {
+    ServiceFSM service = operand.getAssociatedService();
+    stateMachineInvoker.getAMBARIEventHandler().handle(
+        new ServiceEvent(serviceEvent, service, 
+            operand));
+  }
+  
+ 
+  static class SuccessfulStartTransition  implements 
+  SingleArcTransition<RoleImpl, RoleEvent> {
 
     @Override
     public void transition(RoleImpl operand, RoleEvent event) {
-      ServiceFSM service = operand.getAssociatedService();
       //if one instance of the role starts up fine, we consider the service
       //as ready for the 'safe-mode' kinds of checks
-      stateMachineInvoker.getAMBARIEventHandler().handle(
-          new ServiceEvent(ServiceEventType.ROLE_START_SUCCESS, service, 
-              operand));
+      sendEventToService(operand, event, ServiceEventType.ROLE_START_SUCCESS);
     }
   }
   
@@ -139,24 +156,26 @@ public class RoleImpl implements RoleFSM, EventHandler<RoleEvent> {
 
     @Override
     public void transition(RoleImpl operand, RoleEvent event) {
-      ServiceFSM service = operand.getAssociatedService();
-      //if one instance of the role starts up fine, we consider the service
-      //as ready for the 'safe-mode' kinds of checks
-      stateMachineInvoker.getAMBARIEventHandler().handle(
-          new ServiceEvent(ServiceEventType.ROLE_START_SUCCESS, service, 
-              operand));
+      //TODO : add support for notion of quorum
+      sendEventToService(operand, event, ServiceEventType.ROLE_START_FAILURE);
     }
   }
   
-  static class RoleStopTransition implements
+  static class SuccessfulStopTransition implements
   SingleArcTransition<RoleImpl, RoleEvent> {
-    
+    //TODO: figure out if we need notion of quorum for stop success
     @Override
     public void transition(RoleImpl operand, RoleEvent event) {
-      ServiceFSM service = operand.getAssociatedService();
-      stateMachineInvoker.getAMBARIEventHandler().handle(
-          new ServiceEvent(ServiceEventType.ROLE_STOP_SUCCESS, service,
-              operand));
+      sendEventToService(operand, event, ServiceEventType.ROLE_STOP_SUCCESS);
+    }
+  }
+  
+  static class FailedStopTransition implements
+  SingleArcTransition<RoleImpl, RoleEvent> {
+    //TODO: figure out if we need notion of quorum for stop success
+    @Override
+    public void transition(RoleImpl operand, RoleEvent event) {
+      sendEventToService(operand, event, ServiceEventType.ROLE_STOP_FAILURE);
     }
   }
 

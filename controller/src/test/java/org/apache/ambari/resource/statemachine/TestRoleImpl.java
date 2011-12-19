@@ -13,7 +13,6 @@ import org.testng.annotations.Test;
 import com.google.inject.Guice;
 
 
-
 public class TestRoleImpl {
   RoleImpl role;
   

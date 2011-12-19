@@ -11,9 +11,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.google.inject.Guice;
-
 /**
- *
+ * Test state transitions within ServiceImpl. Does not test interaction between
+ * roles and service or cluster.
  */
 public class TestServiceImpl {
   

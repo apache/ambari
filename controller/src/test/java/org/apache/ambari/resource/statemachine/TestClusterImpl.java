@@ -14,9 +14,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.google.inject.Guice;
-
 /**
- *Test ClusterImpl state transitions
+ * Test state transitions within ClusterImpl. Does not test interaction between
+ * ClusterFSM and ServiceFSM
+ *
  */
 public class TestClusterImpl {
   

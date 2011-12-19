@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-163. Addresses failure handling in FSM. ((thejas via ddas)
+
   AMBARI-165. Fix the component definition for HDFS. (omalley)
 
   AMBARI-162. Fixed agent unit test failure when ethernet is not in

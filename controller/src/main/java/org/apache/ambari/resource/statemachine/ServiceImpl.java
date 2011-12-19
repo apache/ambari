@@ -63,7 +63,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
              ServiceEventType.START)
              
          .addTransition(ServiceState.PRESTART, ServiceState.FAIL, 
-             ServiceEventType.PRESTART_FAILURE)  
+             ServiceEventType.PRESTART_FAILURE, new StartFailTransition())  
              
          .addTransition(ServiceState.PRESTART, ServiceState.STARTING, 
              ServiceEventType.PRESTART_SUCCESS, new StartServiceTransition())    
@@ -74,17 +74,13 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
              new RoleStartedTransition())
              
          .addTransition(ServiceState.STARTING, ServiceState.FAIL, 
-             ServiceEventType.ROLE_START_FAILURE)
+             ServiceEventType.ROLE_START_FAILURE, new StartFailTransition())
              
-         .addTransition(ServiceState.STARTED, 
-             ServiceState.ACTIVE,
-             ServiceEventType.AVAILABLE_CHECK_SUCCESS,
-             new AvailableTransition())
+         .addTransition(ServiceState.STARTED, ServiceState.ACTIVE,
+             ServiceEventType.AVAILABLE_CHECK_SUCCESS, new AvailableTransition())
          
-         .addTransition(ServiceState.STARTED, 
-             ServiceState.FAIL,
-             ServiceEventType.AVAILABLE_CHECK_FAILURE,
-             new UnavailableTransition())
+         .addTransition(ServiceState.STARTED, ServiceState.FAIL,
+             ServiceEventType.AVAILABLE_CHECK_FAILURE, new StartFailTransition())
                       
          .addTransition(ServiceState.ACTIVE, ServiceState.ACTIVE, 
              ServiceEventType.ROLE_START_SUCCESS)
@@ -94,11 +90,10 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
              
          .addTransition(ServiceState.STOPPING, 
              EnumSet.of(ServiceState.INACTIVE, ServiceState.STOPPING),
-             ServiceEventType.ROLE_STOP_SUCCESS, 
-             new RoleStoppedTransition())
+             ServiceEventType.ROLE_STOP_SUCCESS, new RoleStoppedTransition())
              
          .addTransition(ServiceState.STOPPING, ServiceState.FAIL, 
-             ServiceEventType.ROLE_STOP_FAILURE)
+             ServiceEventType.ROLE_STOP_FAILURE, new StopFailTransition())
              
          .addTransition(ServiceState.FAIL, ServiceState.STOPPING, 
              ServiceEventType.STOP, new StopServiceTransition())
@@ -171,6 +166,11 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
     return null;
   }
 
+  static void sendEventToRole(RoleFSM role, RoleEventType roleEvent) {
+    stateMachineInvoker.getAMBARIEventHandler().handle(
+        new RoleEvent(roleEvent, role));
+  }
+  
   static class StartServiceTransition implements 
   SingleArcTransition<ServiceImpl, ServiceEvent>  {
 
@@ -178,10 +178,14 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
     public void transition(ServiceImpl operand, ServiceEvent event) {
       RoleFSM firstRole = operand.getFirstRole();
       if (firstRole != null) {
-        stateMachineInvoker.getAMBARIEventHandler().handle(
-                            new RoleEvent(RoleEventType.START, firstRole));
+        sendEventToRole(firstRole, RoleEventType.START);
       }
     } 
+  }
+  
+  static void sendEventToCluster(ClusterFSM cluster, ClusterEventType event){
+    stateMachineInvoker.getAMBARIEventHandler().handle(
+        new ClusterEvent(event, cluster));
   }
   
   static class AvailableTransition implements 
@@ -194,39 +198,56 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
         //since we support starting services explicitly (without touching the 
         //associated cluster), we need to check what the cluster state is
         //before sending it any event
-        stateMachineInvoker.getAMBARIEventHandler().handle(
-            new ClusterEvent(ClusterEventType.START_SUCCESS, 
-                operand.getAssociatedCluster()));
+        sendEventToCluster(operand.getAssociatedCluster(), ClusterEventType.START_SUCCESS);
       }
     } 
   }
   
-  static class UnavailableTransition implements 
+  static class FailureTransition implements 
   SingleArcTransition<ServiceImpl, ServiceEvent>  {
 
+    private ClusterStateFSM recievingClusterState;
+    private ClusterEventType clusterEvent;
+    
+    protected FailureTransition(final ClusterStateFSM recievingClusterState,
+        final ClusterEventType clusterEvent){
+      this.recievingClusterState = recievingClusterState;
+      this.clusterEvent = clusterEvent;
+    }
+    
+    
     @Override
     public void transition(ServiceImpl operand, ServiceEvent event) {
       if (((ClusterImpl)operand.getAssociatedCluster()).getState() 
-          == ClusterStateFSM.STARTING) {
-        //since we support starting services explicitly (without touching the 
+          == recievingClusterState) {
+        //since we support starting/stopping services explicitly (without touching the 
         //associated cluster), we need to check what the cluster state is
         //before sending it any event
-        stateMachineInvoker.getAMBARIEventHandler().handle(
-            new ClusterEvent(ClusterEventType.START_FAILURE, 
-                operand.getAssociatedCluster()));
+        sendEventToCluster(operand.getAssociatedCluster(), clusterEvent);
       }
     } 
+  }
+  
+  
+  static class StartFailTransition extends FailureTransition {
+    protected StartFailTransition() {
+      super(ClusterStateFSM.STARTING, ClusterEventType.START_FAILURE);
+    }
+  }
+  
+  static class StopFailTransition extends FailureTransition {
+    protected StopFailTransition() {
+      super(ClusterStateFSM.STOPPING, ClusterEventType.STOP_FAILURE);
+    }
   }
   
   static class StopServiceTransition implements 
   SingleArcTransition<ServiceImpl, ServiceEvent>  {
-    
     @Override
     public void transition(ServiceImpl operand, ServiceEvent event) {
       RoleFSM firstRole = operand.getFirstRole();
-      if (firstRole != null) {
-        stateMachineInvoker.getAMBARIEventHandler().handle(
-                            new RoleEvent(RoleEventType.STOP, firstRole));
+      if (firstRole != null){ 
+        sendEventToRole(firstRole, RoleEventType.STOP);
       }
     }
   }
@@ -240,8 +261,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
       //state, else move to the STARTED state
       RoleFSM role = operand.getNextRole();
       if (role != null) {
-        stateMachineInvoker.getAMBARIEventHandler().handle(new RoleEvent(
-            RoleEventType.START, role));
+        sendEventToRole(role,  RoleEventType.START);
         return ServiceState.STARTING;
       } else {
         return ServiceState.STARTED;
@@ -258,8 +278,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
       //state, else move to the INACTIVE state
       RoleFSM role = operand.getNextRole();
       if (role != null) {
-        stateMachineInvoker.getAMBARIEventHandler().handle(new RoleEvent(
-            RoleEventType.STOP, role));
+        sendEventToRole(role,  RoleEventType.STOP);
         return ServiceState.STOPPING;
       } else {
         if (((ClusterImpl)operand.getAssociatedCluster()).getState() 
@@ -267,9 +286,7 @@ public class ServiceImpl implements ServiceFSM, EventHandler<ServiceEvent> {
           //since we support stopping services explicitly (without stopping the 
           //associated cluster), we need to check what the cluster state is
           //before sending it any event
-          stateMachineInvoker.getAMBARIEventHandler().handle(
-              new ClusterEvent(ClusterEventType.STOP_SUCCESS, 
-                  operand.getAssociatedCluster()));
+          sendEventToCluster(operand.getAssociatedCluster(), ClusterEventType.STOP_SUCCESS);
         }
         return ServiceState.INACTIVE;
       }
