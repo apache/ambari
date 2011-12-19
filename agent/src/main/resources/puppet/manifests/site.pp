@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 stage {"pre": before => Stage["main"]}
 
 yumrepo { "Bigtop":
@@ -30,28 +29,57 @@ package { "jdk":
 node default {
   notice($fqdn)
 
+  /* Assign defaults */
   if !$ambari_stack_install_dir {
     $ambari_stack_install_dir = "/var/ambari/"
   } 
   notice ($ambari_stack_install_dir)
 
-  /* ensure new directories in the path are present */
+  /* Create group and users */
+  group {$ambari_admin_group:
+    ensure => present
+  }
+
+  /*
+   * Create user for HDFS component
+   * TODO: currently uid is auto selected which may cause different uids on each node..
+   *       No home directory specified. Need it? 
+   *       Is user specified per role or per component? 
+   */
+  user {$ambari_hdfs_user:
+    ensure => present,
+    gid => $ambari_admin_group
+  }
+
+  /* 
+   * Ensure cluster directory path is present 
+   * Owned by root up to cluster directory
+   */
   $stack_path = "${ambari_stack_install_dir}/${ambari_cluster_name}"
   $stack_path_intermediate_dirs = dirs_between ($stack_path)
   file {$stack_path_intermediate_dirs:
-    ensure => directory
+    ensure => directory,
+    owner => root,
+    group => $ambari_admin_group,
+    mode => 755
   }
 
   if ($fqdn in $role_to_nodes[namenode]) {
     hadoop::namenode {"namenode":
+        ambari_role_name => "namenode",
         ambari_role_prefix => "${stack_path}/namenode",
+        user => $ambari_hdfs_user,
+        group => $ambari_admin_group
     }
   } 
 
   /* hadoop.security.authentication make global variable */
   if ($fqdn in $role_to_nodes[datanode]) {
     hadoop::datanode {"datanode":
+        ambari_role_name => "datanode",
         ambari_role_prefix => "${stack_path}/datanode",
+        user => $ambari_hdfs_user,
+        group => $ambari_admin_group,
         auth_type => "simple"
     }
   } 

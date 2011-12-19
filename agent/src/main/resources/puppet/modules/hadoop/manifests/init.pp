@@ -29,14 +29,20 @@ class hadoop {
     }
   }
 
-  define datanode ($ambari_role_prefix, $auth_type = "simple") {
+  define datanode ($ambari_role_name = "datanode", 
+                   $ambari_role_prefix, $user = "hdfs", $group = "hdfs", $auth_type = "simple") {
 
     include common 
 
-    $ambari_role_name = "datanode"
+    /*
+     * Create conf directory for datanode 
+     */
     $hadoop_conf_dir = "${ambari_role_prefix}/etc/hadoop"
     file {["${ambari_role_prefix}", "${ambari_role_prefix}/etc", "${ambari_role_prefix}/etc/hadoop"]:
-      ensure => directory
+      ensure => directory,
+      owner => $user,
+      group => $group,
+      mode => 755
     }     
     notice ($ambari_role_prefix)
     notice ($ambari_role_name)
@@ -46,7 +52,10 @@ class hadoop {
     /* Create config files for each category */
     create_config_file {$files:
                            conf_map => $::hadoop_stack_conf[$title],
-                           require => [Package["hadoop"]] 
+                           require => [Package["hadoop"]],
+                           owner => $user,
+                           group => $group,
+                           mode => 644
                        }
 
     package { "hadoop-datanode":
@@ -62,14 +71,17 @@ class hadoop {
     }
   }
 
-  define namenode ($ambari_role_prefix) {
+  define namenode ($ambari_role_name = "namenode", 
+                   $ambari_role_prefix, $user = "hdfs", $group = "hdfs") {
 
     include common
 
-    $ambari_role_name = "namenode"
     $hadoop_conf_dir = "${ambari_role_prefix}/etc/hadoop"
     file {["${ambari_role_prefix}", "${ambari_role_prefix}/etc", "${ambari_role_prefix}/etc/hadoop"]:
-      ensure => directory
+      ensure => directory,
+      owner => $user,
+      group => $group,
+      mode => 755
     }     
     notice ($ambari_role_prefix)
     notice ($ambari_role_name)
@@ -79,7 +91,10 @@ class hadoop {
     /* Create config files for each category */
     create_config_file {$files:
                            conf_map => $::hadoop_stack_conf[$title],
-                           require => [Package["hadoop"]] 
+                           require => [Package["hadoop"]],
+                           owner => $user,
+                           group => $group,
+                           mode => 644
                        }
 
     package { "hadoop-namenode":
@@ -88,14 +103,17 @@ class hadoop {
     }
   }
 
-  define client ($ambari_role_prefix) {
+  define client ($ambari_role_name = "client", $ambari_role_prefix,
+                 $user = "hadoop", $group = "hadoop") {
 
     include common 
 
-    $ambari_role_name = "client"
     $hadoop_conf_dir = "${ambari_role_prefix}/etc/conf"
     file {["${ambari_role_prefix}", "${ambari_role_prefix}/etc", "${ambari_role_prefix}/etc/conf"]:
-      ensure => directory
+      ensure => directory,
+      owner => $user,
+      group => $group,
+      mode => 755
     }     
     notice ($ambari_role_prefix)
     $files = get_files ($hadoop_conf_dir, $::hadoop_stack_conf, $ambari_role_name)
@@ -104,7 +122,10 @@ class hadoop {
     /* Create config files for each category */
     create_config_file {$files:
                            conf_map => $::hadoop_stack_conf[$title],
-                           require => [Package["hadoop"]] 
+                           require => [Package["hadoop"]],
+                           owner => $user,
+                           group => $group,
+                           mode => 644
                        }
 
     package { ["hadoop-doc", "hadoop-source", "hadoop-debuginfo", 
@@ -114,18 +135,24 @@ class hadoop {
     }
   }
 
-  define create_config_file ($conf_map) {
+  define create_config_file ($conf_map, $owner, $group, $mode) {
     $category = get_category_name ($title)
     $conf_category_map = $conf_map[$category]
     if $category == 'hadoop-env.sh' {
       file {"$title":
         ensure => present,
         content => template('hadoop/config_env.erb'),
+        owner => $owner,
+        group => $group,
+        mode => 755
       } 
     } else {
       file {"$title":
         ensure => present,
         content => template('hadoop/config_properties.erb'),
+        owner => $owner,
+        group => $group,
+        mode => $mode
       } 
     }
   }
