@@ -162,7 +162,7 @@
           },
           {
             "@name":"HADOOP_CONF_DIR",
-            "@value":"<%= ambari_role_prefix %>/etc/hadoop"
+            "@value":"<%= ambari_role_prefix %>/etc/conf"
           },
           {
             "@name":"HADOOP_OPTS",
@@ -299,6 +299,10 @@
           {
             "@name":"hadoop-env.sh",
             "property":[
+              {
+                "@name":"HADOOP_CONF_DIR",
+                "@value":"<%= ambari_role_prefix %>/etc/hadoop"
+              },
               {
                 "@name":"HADOOP_NAMENODE_OPTS",
                 "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT"

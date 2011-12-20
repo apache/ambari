@@ -83,6 +83,15 @@ node default {
         auth_type => "simple"
     }
   } 
+
+  if ($fqdn in $role_to_nodes[client]) {
+    hadoop::client {"client":
+        ambari_role_name => "client",
+        ambari_role_prefix => "${stack_path}/client",
+        user => $ambari_hdfs_user,
+        group => $ambari_admin_group
+    }
+  } 
 }
 
 Yumrepo<||> -> Package<||>
