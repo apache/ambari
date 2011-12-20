@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-168. trim the white spaces from host names returned through getHostnamesFromRageExpressions (vgogate)
+
   AMBARI-163. Addresses failure handling in FSM. ((thejas via ddas)
 
   AMBARI-165. Fix the component definition for HDFS. (omalley)

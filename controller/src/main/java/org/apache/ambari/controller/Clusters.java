@@ -833,7 +833,7 @@ public class Clusters {
       List<String> list = new ArrayList<String>();
       StringTokenizer st = new StringTokenizer(nodeRangeExpression, ",");
       while (st.hasMoreTokens()) {
-        list.add(st.nextToken());
+        list.add(st.nextToken().trim());
       }
       return list;
   }
