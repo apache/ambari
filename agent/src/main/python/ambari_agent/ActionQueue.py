@@ -162,7 +162,7 @@ class ActionQueue(threading.Thread):
     w = self.writeFileAction(action,self.getInstallFilename(action['id']))
     commandResult = {}
     if w['exitCode']!=0:
-      commandResult['error'] = w['error'] 
+      commandResult['error'] = w['stderr'] 
       commandResult['exitCode'] = w['exitCode']
       r['commandResult'] = commandResult
       return r

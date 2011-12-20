@@ -28,6 +28,7 @@ import time
 import ConfigParser
 from createDaemon import createDaemon
 from Controller import Controller
+from shell import getTempFiles
 import AmbariConfig
 
 logger = logging.getLogger()
@@ -48,6 +49,15 @@ def signal_handler(signum, frame):
     os.unlink(pidfile)
   except Exception:
     logger.warn("Unable to remove: "+pidfile)
+    traceback.print_exc()
+
+  tempFiles = getTempFiles()
+  for tempFile in tempFiles:
+    try:
+      os.unlink(tempFile)
+    except Exception:
+      traceback.print_exc()
+      logger.warn("Unable to remove: "+tempFile)
   os._exit(0)
 
 def debug(sig, frame):

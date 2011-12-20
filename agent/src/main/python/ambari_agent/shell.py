@@ -28,32 +28,38 @@ import os
 import tempfile
 import signal
 import sys
+import threading
 
 global serverTracker
 serverTracker = {}
 logger = logging.getLogger()
 
+threadLocal = threading.local()
+
+tempFiles = [] 
+def noteTempFile(filename):
+  tempFiles.append(filename)
+
+def getTempFiles():
+  return tempFiles
+
 class shellRunner:
   # Run any command
   def run(self, script, user=None):
-    oldUid = os.getuid()
     try:
       if user!=None:
         user=getpwnam(user)[2]
-        os.setuid(user)
+      else:
+        user = os.getuid()
+      threadLocal.uid = user
     except Exception:
       logger.warn("can not switch user for RUN_COMMAND.")
     code = 0
     cmd = " "
     cmd = cmd.join(script)
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
+    p = subprocess.Popen(cmd, preexec_fn=self.changeUid, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
     out, err = p.communicate()
     code = p.wait()
-    try:
-      if user!=None:
-        os.setuid(oldUid)
-    except Exception:
-      logger.warn("can not restore user for RUN_COMMAND.")
     return {'exitCode': code, 'output': out, 'error': err}
 
   # dispatch action types
@@ -64,7 +70,9 @@ class shellRunner:
     try:
       if user is not None:
         user=getpwnam(user)[2]
-        os.setuid(user)
+      else:
+        user = oldUid
+      threadLocal.uid = user
     except Exception:
       logger.warn("%s %s %s can not switch user for RUN_ACTION." % (clusterId, component, role))
     code = 0
@@ -75,7 +83,7 @@ class shellRunner:
     tmp.close()
     cmd = "%s %s %s" % (cmd, tempfilename, " ".join(command['param']))
     commandResult = {}
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
+    p = subprocess.Popen(cmd, preexec_fn=self.changeUid, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
     out, err = p.communicate()
     code = p.wait()
     if code != 0:
@@ -104,7 +112,6 @@ class shellRunner:
       os.unlink(tempfilename)
     try:
       os.chdir(oldDir)
-      os.setuid(oldUid)
     except Exception:
       logger.warn("%s %s %s can not restore environment for RUN_ACTION." % (clusterId, component, role))
     return result
@@ -116,34 +123,43 @@ class shellRunner:
     os.chdir(self.getWorkDir(clusterId,role))
     oldUid = os.getuid()
     try:
-      user=getpwnam(user)[2]
-      os.setuid(user)
+      if user is not None:
+        user=getpwnam(user)[2]
+      else:
+        user = os.getuid()
+      threadLocal.uid = user
     except Exception:
       logger.warn("%s %s %s can not switch user for START_ACTION." % (clusterId, component, role))
     code = 0
     commandResult = {}
     process = self.getServerKey(clusterId,clusterDefinitionRevision,component,role)
     if not process in serverTracker:
-      cmd = sys.executable
       tempfilename = tempfile.mktemp()
-      tmp = open(tempfilename, 'w')
-      tmp.write(script['script'])
-      tmp.close()
-      cmd = "%s %s %s" % (cmd, tempfilename, " ".join(script['param']))
+      noteTempFile(tempfilename)  
       child_pid = os.fork()
       if child_pid == 0:
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
-        out, err = p.communicate()
-        code = p.wait()
-        os.unlink(tempfilename)
-        serverTracker[process] = None
+        try:
+          signal.signal(signal.SIGINT, SIG_DFL)
+          signal.signal(signal.SIGTERM, SIG_DFL)
+          self.changeUid() 
+          cmd = sys.executable
+          tmp = open(tempfilename, 'w')
+          tmp.write(script['script'])
+          tmp.close()
+          cmd = "%s %s %s" % (cmd, tempfilename, " ".join(script['param']))
+          p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
+          out, err = p.communicate()
+          code = p.wait()
+          os.unlink(tempfilename)
+          os._exit(1)
+        except:
+          os._exit(1)
       else:
         serverTracker[process] = child_pid
         commandResult['exitCode'] = 0
       result['commandResult'] = commandResult
     try:
       os.chdir(oldDir)
-      os.setuid(oldUid)
     except Exception:
       logger.warn("%s %s %s can not restore environment for START_ACTION." % (clusterId, component, role))
     return result
@@ -166,3 +182,9 @@ class shellRunner:
   def getWorkDir(self, clusterId, role):
     prefix = AmbariConfig.config.get('stack','installprefix')
     return str(os.path.join(prefix, clusterId, role))
+
+  def changeUid(self):
+    try:
+      os.setuid(threadLocal.uid)
+    except Exception:
+      logger.warn("can not switch user for running command.")
