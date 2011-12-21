@@ -29,6 +29,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
@@ -255,19 +257,19 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
   }
   
   private void updateClusterState (String x) {
+      
       try {
-          ClusterState cs = this.cls.getClusterState();
-          cs.setLastUpdateTime(Util.getXMLGregorianCalendar(new Date()));
-          cs.setState(x);
-          this.cls.updateClusterState(cs);
-        } catch (Exception e) {
-            /*
-             * TODO: Handle the exception correctly. Should we bring down the controller? 
-             */
-            System.out.println ("Unbale to update/persist the cluster state change. Shutting down the controller!");
-            e.printStackTrace();
-            System.exit(-1);   
-        }
+        ClusterState cs = this.cls.getClusterState();
+        cs.setLastUpdateTime(Util.getXMLGregorianCalendar(new Date()));
+        cs.setState(x);
+        this.cls.updateClusterState(cs);
+      } catch (IOException e) {
+        /*
+         * TODO: Should we bring down the controller? 
+         */
+        System.out.println ("Unbale to update/persist the cluster state change. Shutting down the controller!");
+        e.printStackTrace();
+        System.exit(-1);  
+      }
   }
-
 }

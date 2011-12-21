@@ -3,7 +3,9 @@ package org.apache.ambari.resource.statemachine;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doAnswer;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,6 +13,9 @@ import java.util.ArrayList;
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.controller.Cluster;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -34,14 +39,16 @@ public class TestClusterImpl {
       ClusterStateFSM.ACTIVE
   };
   
+  ClusterState clsState;
+  Cluster cluster;
   
   @BeforeMethod
   public void setup() throws IOException{
     Guice.createInjector(new TestModule());
     ClusterDefinition clusterDef = mock(ClusterDefinition.class);
     when(clusterDef.getEnabledServices()).thenReturn(new ArrayList<String>());
-    Cluster cluster = mock(Cluster.class);
-    ClusterState clsState = mock(ClusterState.class);
+    cluster = mock(Cluster.class);
+    clsState = new ClusterState();
     when(cluster.getClusterDefinition(anyInt())).thenReturn(clusterDef);
     when(cluster.getClusterState()).thenReturn(clsState);
     clusterImpl = new ClusterImpl(cluster, 1);
@@ -53,6 +60,13 @@ public class TestClusterImpl {
    */
   @Test
   public void testInactiveToActive() throws Exception{
+    doAnswer(new Answer<Void>(){
+        public Void answer(InvocationOnMock invocation) throws Throwable {
+            ClusterState cs = (ClusterState)invocation.getArguments()[0];
+            assertTrue(cs.getState().equals(ClusterState.CLUSTER_STATE_ACTIVE));
+            return null;
+        }     
+    }).when(cluster).updateClusterState(clsState);
     verifyTransitions(ClusterStateFSM.INACTIVE, startEvents, startStates);
   }
 
@@ -63,6 +77,13 @@ public class TestClusterImpl {
    */
   @Test
   public void testFailToActive() throws Exception{
+    doAnswer(new Answer<Void>(){
+        public Void answer(InvocationOnMock invocation) throws Throwable {
+            ClusterState cs = (ClusterState)invocation.getArguments()[0];
+            assertTrue(cs.getState().equals(ClusterState.CLUSTER_STATE_ACTIVE));
+            return null;
+        }     
+    }).when(cluster).updateClusterState(clsState);
     verifyTransitions(ClusterStateFSM.FAIL, startEvents, startStates);
   }
   
@@ -83,6 +104,13 @@ public class TestClusterImpl {
    */
   @Test
   public void testActivetoInactive() throws Exception{
+    doAnswer(new Answer<Void>(){
+        public Void answer(InvocationOnMock invocation) throws Throwable {
+            ClusterState cs = (ClusterState)invocation.getArguments()[0];
+            assertTrue(cs.getState().equals(ClusterState.CLUSTER_STATE_INACTIVE));
+            return null;
+        }     
+    }).when(cluster).updateClusterState(clsState);
     verifyTransitions(ClusterStateFSM.ACTIVE, stopEvents, stopStates);
   }
   
@@ -93,6 +121,13 @@ public class TestClusterImpl {
    */
   @Test
   public void testFailtoInactive() throws Exception{
+    doAnswer(new Answer<Void>(){
+        public Void answer(InvocationOnMock invocation) throws Throwable {
+            ClusterState cs = (ClusterState)invocation.getArguments()[0];
+            assertTrue(cs.getState().equals(ClusterState.CLUSTER_STATE_INACTIVE));
+            return null;
+        }     
+    }).when(cluster).updateClusterState(clsState);
     verifyTransitions(ClusterStateFSM.FAIL, stopEvents, stopStates);
   }
   

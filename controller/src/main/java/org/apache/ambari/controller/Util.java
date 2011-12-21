@@ -20,18 +20,24 @@ package org.apache.ambari.controller;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 public class Util {
     
-    public static XMLGregorianCalendar getXMLGregorianCalendar (Date date) throws Exception {
+    public static XMLGregorianCalendar getXMLGregorianCalendar (Date date)  {
         if (date == null) {
             return null;
         }
         GregorianCalendar cal = new GregorianCalendar();
         cal.setTime(date);
-        return DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);   
+        try {
+            return DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);  
+        } catch (NullPointerException ne) {
+        } catch (DatatypeConfigurationException de) {
+        }
+        return null;
     }
     
     public static String getInstallAndConfigureCommand() {
