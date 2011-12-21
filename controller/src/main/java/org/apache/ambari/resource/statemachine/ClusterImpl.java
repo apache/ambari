@@ -19,6 +19,7 @@ package org.apache.ambari.resource.statemachine;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -28,12 +29,14 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.state.MultipleArcTransition;
 import org.apache.ambari.common.state.SingleArcTransition;
 import org.apache.ambari.common.state.StateMachine;
 import org.apache.ambari.common.state.StateMachineFactory;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.controller.Cluster;
+import org.apache.ambari.controller.Util;
 import org.apache.ambari.event.EventHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -86,6 +89,7 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
   .installTopology();
   
   private List<ServiceFSM> services;
+  private Cluster cls;
   private StateMachine<ClusterStateFSM, ClusterEventType, ClusterEvent> 
           stateMachine;
   private Lock readLock;
@@ -114,6 +118,7 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
         serviceImpls.add(serviceImpl);
       }
     }
+    this.cls = cluster;
     this.services = serviceImpls;
   }
   
@@ -204,6 +209,7 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
             ServiceEventType.STOP, service));
         return ClusterStateFSM.STOPPING;
       }
+      operand.updateClusterState(ClusterState.CLUSTER_STATE_INACTIVE);
       return ClusterStateFSM.INACTIVE;
     }
     
@@ -221,6 +227,7 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
             ServiceEventType.START, service));
         return ClusterStateFSM.STARTING;
       }
+      operand.updateClusterState(ClusterState.CLUSTER_STATE_ACTIVE);
       return ClusterStateFSM.ACTIVE;
     }
     
@@ -246,11 +253,21 @@ public class ClusterImpl implements ClusterFSM, EventHandler<ClusterEvent> {
     stateMachineInvoker.getAMBARIEventHandler().handle(
         new ClusterEvent(ClusterEventType.STOP, this));
   }
-
-  @Override
-  public void terminate() {
-    stateMachineInvoker.getAMBARIEventHandler().handle(
-        new ClusterEvent(ClusterEventType.RELEASE_NODES, this));    
+  
+  private void updateClusterState (String x) {
+      try {
+          ClusterState cs = this.cls.getClusterState();
+          cs.setLastUpdateTime(Util.getXMLGregorianCalendar(new Date()));
+          cs.setState(x);
+          this.cls.updateClusterState(cs);
+        } catch (Exception e) {
+            /*
+             * TODO: Handle the exception correctly. Should we bring down the controller? 
+             */
+            System.out.println ("Unbale to update/persist the cluster state change. Shutting down the controller!");
+            e.printStackTrace();
+            System.exit(-1);   
+        }
   }
 
 }

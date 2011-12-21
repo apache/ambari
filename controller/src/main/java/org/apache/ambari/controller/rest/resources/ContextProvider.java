@@ -32,6 +32,8 @@ import com.sun.jersey.api.json.JSONJAXBContext;
 public class ContextProvider implements ContextResolver<JAXBContext> {
 
   private final JAXBContext context;
+  private Class<?>[] types = { };
+  /*
   private Class<?>[] types = { ClusterDefinition.class,
                                ClusterInformation.class,
                                ClusterState.class,
@@ -49,7 +51,7 @@ public class ContextProvider implements ContextResolver<JAXBContext> {
                                RoleToNodes.class,
                                Stack.class,
                                StackInformation.class
-  };
+  }; */
 
   public ContextProvider() throws JAXBException {
     this.context = new JSONJAXBContext(JSONConfiguration.natural().build(), 

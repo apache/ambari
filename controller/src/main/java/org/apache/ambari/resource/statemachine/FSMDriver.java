@@ -53,14 +53,6 @@ public class FSMDriver implements FSMDriverInterface {
     }
   }
   @Override
-  public void deleteCluster(String clusterId) {
-    ClusterFSM clusterFSM = clusters.remove(clusterId);
-    if (clusterFSM != null) { 
-      clusterFSM.deactivate();
-      clusterFSM.terminate();
-    }
-  }
-  @Override
   public String getClusterState(String clusterId,
       long clusterDefinitionRev) {
     ClusterFSM clusterFSM = clusters.get(clusterId);

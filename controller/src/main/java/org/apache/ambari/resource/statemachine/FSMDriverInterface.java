@@ -33,8 +33,6 @@ public interface FSMDriverInterface {
   
   public void stopCluster(String clusterId);
   
-  public void deleteCluster(String clusterId);
-  
   public ClusterFSM getFSMClusterInstance(String clusterId);
   
   public String getClusterState(String clusterId,

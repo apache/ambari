@@ -338,7 +338,7 @@ public class Clusters {
         } else if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_INACTIVE)) {
           fsmDriver.stopCluster(cls.getName());
         } else if(c.getGoalState().equals(ClusterState.CLUSTER_STATE_ATTIC)) {
-          fsmDriver.deleteCluster(cls.getName());
+          fsmDriver.stopCluster(cls.getName());
         }
     
         return cls.getClusterDefinition(-1);

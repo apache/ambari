@@ -23,7 +23,6 @@ import java.util.Map;
 public interface ClusterFSM {
   public List<ServiceFSM> getServices();
   public Map<String, String> getServiceStates();
-  public void terminate();
   public String getClusterState();
   public void activate();
   public void deactivate();

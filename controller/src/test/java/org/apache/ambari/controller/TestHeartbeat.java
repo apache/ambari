@@ -396,12 +396,6 @@ public class TestHeartbeat {
     }
 
     @Override
-    public void terminate() {
-      // TODO Auto-generated method stub
-      
-    }
-
-    @Override
     public String getClusterState() {
       // TODO Auto-generated method stub
       return null;

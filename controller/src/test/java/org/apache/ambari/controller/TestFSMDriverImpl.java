@@ -50,12 +50,6 @@ class TestFSMDriverImpl implements FSMDriverInterface {
   }
 
   @Override
-  public void deleteCluster(String clusterId) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
   public ClusterFSM getFSMClusterInstance(String clusterId) {
     return clusterFsm;
   }
