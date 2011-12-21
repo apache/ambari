@@ -41,6 +41,7 @@ public class TestClusterImpl {
   
   ClusterState clsState;
   Cluster cluster;
+  int numUpdateClusterMethodCalls = 0;
   
   @BeforeMethod
   public void setup() throws IOException{
@@ -52,6 +53,7 @@ public class TestClusterImpl {
     when(cluster.getClusterDefinition(anyInt())).thenReturn(clusterDef);
     when(cluster.getClusterState()).thenReturn(clsState);
     clusterImpl = new ClusterImpl(cluster, 1);
+    numUpdateClusterMethodCalls = 0;
   }
   
   /**
@@ -64,10 +66,12 @@ public class TestClusterImpl {
         public Void answer(InvocationOnMock invocation) throws Throwable {
             ClusterState cs = (ClusterState)invocation.getArguments()[0];
             assertTrue(cs.getState().equals(ClusterState.CLUSTER_STATE_ACTIVE));
+            numUpdateClusterMethodCalls++;
             return null;
         }     
     }).when(cluster).updateClusterState(clsState);
     verifyTransitions(ClusterStateFSM.INACTIVE, startEvents, startStates);
+    assertTrue(numUpdateClusterMethodCalls == 1);
   }
 
  
@@ -81,10 +85,12 @@ public class TestClusterImpl {
         public Void answer(InvocationOnMock invocation) throws Throwable {
             ClusterState cs = (ClusterState)invocation.getArguments()[0];
             assertTrue(cs.getState().equals(ClusterState.CLUSTER_STATE_ACTIVE));
+            numUpdateClusterMethodCalls++;
             return null;
         }     
     }).when(cluster).updateClusterState(clsState);
     verifyTransitions(ClusterStateFSM.FAIL, startEvents, startStates);
+    assertTrue(numUpdateClusterMethodCalls == 1);
   }
   
   ClusterEventType [] stopEvents = {
@@ -108,10 +114,12 @@ public class TestClusterImpl {
         public Void answer(InvocationOnMock invocation) throws Throwable {
             ClusterState cs = (ClusterState)invocation.getArguments()[0];
             assertTrue(cs.getState().equals(ClusterState.CLUSTER_STATE_INACTIVE));
+            numUpdateClusterMethodCalls++;
             return null;
         }     
     }).when(cluster).updateClusterState(clsState);
     verifyTransitions(ClusterStateFSM.ACTIVE, stopEvents, stopStates);
+    assertTrue(numUpdateClusterMethodCalls == 1);
   }
   
   
@@ -125,10 +133,12 @@ public class TestClusterImpl {
         public Void answer(InvocationOnMock invocation) throws Throwable {
             ClusterState cs = (ClusterState)invocation.getArguments()[0];
             assertTrue(cs.getState().equals(ClusterState.CLUSTER_STATE_INACTIVE));
+            numUpdateClusterMethodCalls++;
             return null;
         }     
     }).when(cluster).updateClusterState(clsState);
     verifyTransitions(ClusterStateFSM.FAIL, stopEvents, stopStates);
+    assertTrue(numUpdateClusterMethodCalls == 1);
   }
   
   private void verifyTransitions(ClusterStateFSM startState, ClusterEventType[] ClusterEvents,
