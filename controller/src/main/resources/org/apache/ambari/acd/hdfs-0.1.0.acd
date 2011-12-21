@@ -28,7 +28,9 @@ sys.exit(os.system('hadoop dfsadmin -safemode get | grep "Safe mode is OFF"'))
   <prestart runOn="namenode">
 <![CDATA[]]>
 import subprocess
+import os
 
+os.environ['HADOOP_CONF_DIR']=os.getcwd() + "/etc/hadoop"
 proc = subprocess.Popen(['hadoop', 'namenode', '-format'], stdin=subprocess.PIPE)
 proc.communicate('N\n')
 proc.wait()
