@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.ambari.common.rest.entities.ClusterDefinition;
+import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.controller.Cluster;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -40,7 +41,9 @@ public class TestClusterImpl {
     ClusterDefinition clusterDef = mock(ClusterDefinition.class);
     when(clusterDef.getEnabledServices()).thenReturn(new ArrayList<String>());
     Cluster cluster = mock(Cluster.class);
+    ClusterState clsState = mock(ClusterState.class);
     when(cluster.getClusterDefinition(anyInt())).thenReturn(clusterDef);
+    when(cluster.getClusterState()).thenReturn(clsState);
     clusterImpl = new ClusterImpl(cluster, 1);
   }
   
