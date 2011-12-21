@@ -63,6 +63,8 @@ public class HeartbeatHandler {
   private final Nodes nodes;
   private StateMachineInvokerInterface stateMachineInvoker;
   private FSMDriverInterface driver;
+  
+  static final String DEFAULT_USER = "hdfs"; //TBD: this needs to come from the stack definition or something
     
   @Inject
   HeartbeatHandler(Clusters clusters, Nodes nodes, 
@@ -258,6 +260,7 @@ public class HeartbeatHandler {
       List<Action> allActions) {
     ConfigFile file = new ConfigFile();
     file.setData(script);
+    file.setOwner(DEFAULT_USER);
     
     Action action = new Action();
     action.setFile(file);
@@ -465,6 +468,7 @@ public class HeartbeatHandler {
     action.setClusterDefinitionRevision(clusterDefRev);
     action.setComponent(component);
     action.setRole(role);
+    action.setUser(DEFAULT_USER);
     action.setCleanUpCommand(new Command("foobar","",new String[]{"foobar"}));//TODO: this needs fixing at some point
     String workDir = role.equals(component + "-client") ? 
         (clusterId + "-client") : (clusterId + "-" + role);
