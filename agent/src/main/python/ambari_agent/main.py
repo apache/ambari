@@ -32,6 +32,7 @@ from shell import getTempFiles
 import AmbariConfig
 
 logger = logging.getLogger()
+agentPid = os.getpid()
 
 if 'AMBARI_PID_DIR' in os.environ:
   pidfile = os.environ['AMBARI_PID_DIR'] + "/ambari-agent.pid"
@@ -44,6 +45,10 @@ else:
   logfile = "/var/log/ambari/ambari-agent.log"
 
 def signal_handler(signum, frame):
+  #we want the handler to run only for the agent process and not
+  #for the children (e.g. namenode, etc.)
+  if (os.getpid() != agentPid):
+    os._exit(0)
   logger.info('signal received, exiting.')
   try:
     os.unlink(pidfile)

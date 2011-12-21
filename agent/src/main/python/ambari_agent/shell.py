@@ -139,8 +139,6 @@ class shellRunner:
       child_pid = os.fork()
       if child_pid == 0:
         try:
-          signal.signal(signal.SIGINT, SIG_DFL)
-          signal.signal(signal.SIGTERM, SIG_DFL)
           self.changeUid() 
           cmd = sys.executable
           tmp = open(tempfilename, 'w')
