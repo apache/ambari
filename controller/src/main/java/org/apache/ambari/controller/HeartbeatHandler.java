@@ -61,10 +61,10 @@ public class HeartbeatHandler {
   private static Log LOG = LogFactory.getLog(HeartbeatHandler.class);
   private final Clusters clusters;
   private final Nodes nodes;
-  private StateMachineInvokerInterface stateMachineInvoker;
-  private FSMDriverInterface driver;
+  private final StateMachineInvokerInterface stateMachineInvoker;
+  private final FSMDriverInterface driver;
   
-  static final String DEFAULT_USER = "hdfs"; //TBD: this needs to come from the stack definition or something
+  static final String DEFAULT_USER = "hdfs"; //TODO: this needs to come from the stack definition or something (AMBARI-169)
     
   @Inject
   HeartbeatHandler(Clusters clusters, Nodes nodes, 
@@ -192,6 +192,8 @@ public class HeartbeatHandler {
     return createResponse(responseId,allActions,heartbeat);
   }
   
+  //TODO: this should be moved to the ClusterImpl (a dependency graph 
+  //should be created there)
   private boolean dependentComponentsActive(ComponentPlugin plugin, 
       ClusterFSM cluster) throws IOException {
     String[] dependents = plugin.getRequiredComponents();
@@ -216,7 +218,7 @@ public class HeartbeatHandler {
       List<Action> allActions, HeartBeat heartbeat) {
     ControllerResponse r = new ControllerResponse();
     r.setResponseId(responseId);
-    if (allActions.size() > 0) {//TODO: REMOVE THIS
+    if (allActions.size() > 0) {//TODO: REMOVE THIS (AMBARI-158)
       Action a = new Action();
       a.setKind(Kind.NO_OP_ACTION);
       allActions.add(a);
@@ -260,7 +262,7 @@ public class HeartbeatHandler {
       List<Action> allActions) {
     ConfigFile file = new ConfigFile();
     file.setData(script);
-    file.setOwner(DEFAULT_USER);
+    file.setOwner(DEFAULT_USER); //TODO (AMBARI-169)
     
     Action action = new Action();
     action.setFile(file);
@@ -468,7 +470,7 @@ public class HeartbeatHandler {
     action.setClusterDefinitionRevision(clusterDefRev);
     action.setComponent(component);
     action.setRole(role);
-    action.setUser(DEFAULT_USER);
+    action.setUser(DEFAULT_USER); //TODO (AMBARI-169)
     action.setCleanUpCommand(new Command("foobar","",new String[]{"foobar"}));//TODO: this needs fixing at some point
     String workDir = role.equals(component + "-client") ? 
         (clusterId + "-client") : (clusterId + "-" + role);
@@ -480,5 +482,10 @@ public class HeartbeatHandler {
       long clusterDefRev, String component, String role) {
     fillActionDetails(action, clusterId, clusterDefRev, component, role);
     addAction(action, allActions);
+  }
+  
+  private class ActionTracker {
+    //tracks all actions based on agent hostnames. When the agent returns a response 
+    //note all the failed actionIDs and resend them
   }
 }

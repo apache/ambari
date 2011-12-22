@@ -49,6 +49,8 @@ class ActionQueue(threading.Thread):
     self.config = config
     self.sh = shellRunner()
     self._stop = threading.Event()
+    self.maxRetries = config.get('command', 'maxretries') 
+    self.sleepInterval = config.get('command', 'sleepBetweenRetries')
 
   def stop(self):
     self._stop.set()
@@ -97,13 +99,41 @@ class ActionQueue(threading.Thread):
                      'INSTALL_AND_CONFIG_ACTION' : self.installAndConfigAction,
                      'NO_OP_ACTION'              : self.noOpAction
                    }
-        try:
-          result = switches.get(action['kind'], self.unknownAction)(action)
-        except Exception, err:
-          traceback.print_exc()  
-          logger.info(err)
+        
+        exitCode = 1
+        retryCount = 1
+        while (exitCode != 0 and retryCount <= self.maxRetries):
+          try:
+            result = switches.get(action['kind'], self.unknownAction)(action) 
+            if ('commandResult' in result):
+              commandResult = result['commandResult']
+              exitCode = commandResult['exitCode']
+              if (exitCode == 0):
+                break
+              else:
+                logger.warn(str(action) + " exited with code " + str(exitCode))
+            else:
+              #Really, no commandResult? Is this possible?
+              #TODO: check
+              exitCode = 0
+              break
+          except Exception, err:
+            traceback.print_exc()  
+            logger.warn(err)
+            if ('commandResult' in result):
+              commandResult = result['commandResult']
+              if ('exitCode' in commandResult):
+                exitCode = commandResult['exitCode']
+          #retry in 5 seconds  
+          time.sleep(self.sleepInterval)
+          retryCount += 1
+          
+        if (exitCode != 0):
           result = self.genResult(action)
-          result['exitCode']=1
+          result['exitCode']=exitCode
+          result['retryActionCount'] = retryCount - 1
+        else:
+          result['retryActionCount'] = retryCount
         # Update the result
         r.put(result)
       if not self.stopped():

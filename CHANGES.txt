@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-171. Agents retry failed actions for a configurable number of times
+  after a configurable delay (ddas)
+
   AMBARI-170. Update the cluster state after state machine transitions it to final ACTIVE/INACTIVE state (vgogate)
 
   AMBARI-168. trim the white spaces from host names returned through getHostnamesFromRageExpressions (vgogate)

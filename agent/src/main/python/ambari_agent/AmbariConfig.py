@@ -41,6 +41,10 @@ prefix=/homes/ddas/puppet
 commandpath=/usr/local/bin/puppet apply --modulepath /home/puppet/puppet-ambari/modules
 driver=/home/puppet/puppet-ambari/manifests/site.pp
 
+[command]
+maxretries=2
+sleepBetweenRetries=1
+
 """
 s = StringIO.StringIO(content)
 config.readfp(s)
