@@ -72,10 +72,14 @@ class TestActionQueue(TestCase):
     actionQueue.maxRetries = 2
     actionQueue.sleepInterval = 1
     result = actionQueue.put(response)
-    time.sleep(5)
+    results = actionQueue.result()
+    sleptCount = 1
+    while (len(results) < 2 and sleptCount < 15):
+        time.sleep(1)
+        sleptCount += 1
+        results = actionQueue.result()
     actionQueue.stop()
     actionQueue.join()
-    results = actionQueue.result()
     self.assertEqual(len(results), 2, 'Number of results is not 2.')
     result = results[0]
     maxretries = config.get('command', 'maxretries')
