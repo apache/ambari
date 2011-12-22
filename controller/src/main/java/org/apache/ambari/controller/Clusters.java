@@ -81,7 +81,6 @@ public class Clusters {
       this.clusterFactory = clusterFactory;
       this.fsmDriver = fsmDriver;
       this.flattener = flattener;
-      recoverClustersStateAfterRestart();
     }
     
     /*
@@ -841,7 +840,7 @@ public class Clusters {
   /*
    * Restart recovery for clusters
    */
-  private void recoverClustersStateAfterRestart () throws Exception {
+  void recoverClustersStateAfterRestart () throws Exception {
       for (Cluster cls : this.getClustersList("ALL")) {
           ClusterDefinition cdef = cls.getClusterDefinition(-1);
           this.validateClusterDefinition (cdef.getName(), cdef);

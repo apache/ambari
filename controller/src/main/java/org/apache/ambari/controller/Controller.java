@@ -27,10 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ambari.common.util.DaemonWatcher;
 import org.apache.ambari.common.util.ExceptionUtil;
 import org.mortbay.jetty.Server;
-import org.mortbay.jetty.security.Constraint;
-import org.mortbay.jetty.security.ConstraintMapping;
-import org.mortbay.jetty.security.HashUserRealm;
-import org.mortbay.jetty.security.SecurityHandler;
+
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.DefaultServlet;
 import org.mortbay.jetty.servlet.ServletHolder;
@@ -123,6 +120,8 @@ public class Controller {
     Injector injector = Guice.createInjector(new ControllerModule());
     DaemonWatcher.createInstance(System.getProperty("PID"), 9100);
     try {
+      Clusters clusters = injector.getInstance(Clusters.class);
+      clusters.recoverClustersStateAfterRestart();
       Controller controller = injector.getInstance(Controller.class);
       if (controller != null) {
         controller.run();
