@@ -859,6 +859,18 @@ public class Clusters {
           if (!cdef.getGoalState().equals(ClusterDefinition.GOAL_STATE_ATTIC)) {
               this.updateNodeToRolesAssociation(cdef.getNodes(), cdef.getRoleToNodesMap());
           }
+          
+          /*
+           * Update the state machine
+           */
+          ClusterFSM cs = fsmDriver.createCluster(cls,cls.getLatestRevisionNumber());
+          if (cdef.getGoalState().equals(ClusterState.CLUSTER_STATE_ACTIVE)) {
+              fsmDriver.startCluster(cls.getName());
+          } else if(cdef.getGoalState().equals(ClusterState.CLUSTER_STATE_INACTIVE)) {
+              fsmDriver.stopCluster(cls.getName());
+          } else if(cdef.getGoalState().equals(ClusterState.CLUSTER_STATE_ATTIC)) {
+              fsmDriver.stopCluster(cls.getName());
+          }
       }
   }
   
