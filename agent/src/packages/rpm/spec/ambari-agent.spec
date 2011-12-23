@@ -88,6 +88,8 @@ mkdir -p ${RPM_BUILD_DIR}/etc/init.d
 cp ${RPM_BUILD_DIR}/../../../../src/packages/rpm/init.d/ambari-agent ${RPM_BUILD_DIR}/etc/init.d/ambari-agent
 chmod 0755 ${RPM_BUILD_DIR}/etc/init.d/ambari-agent
 
+cp -a ${RPM_BUILD_DIR}/* ${RPM_BUILD_DIR}/../BUILDROOT
+
 %preun
 rm -rf /etc/default/ambari-agent-env.sh
 

@@ -91,7 +91,7 @@
         </replacetokens>
       </filterchain>
     </copy>
-    <rpm specFile="ambari-agent.spec" command="-bb" topDir="${project.build.directory}/rpm/ambari" cleanBuildDir="true" failOnError="true"/>
+    <rpm specFile="ambari-agent.spec" command="-bb --buildroot=${project.build.directory}/rpm/ambari/BUILDROOT" topDir="${project.build.directory}/rpm/ambari" cleanBuildDir="true" failOnError="true"/>
     <copy todir="${project.build.directory}" flatten="true">
       <fileset dir="${project.build.directory}/rpm/ambari/RPMS">
         <include name="**/*.rpm" />
