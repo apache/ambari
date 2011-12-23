@@ -24,6 +24,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
@@ -49,6 +50,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *       attribute name { text }
  *       element urls { text }*
  *     }*
+ *     element globals {
+ *       element property {
+ *         attribute name { text }
+ *         attribute value { text }
+ *       }*
+ *     } 
  *     element configuration { Configuration }?
  *     element components {
  *       attribute name { text }
@@ -90,6 +97,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "parentRevision",
     "creationTime",
     "repositories",
+    "globals",
     "configuration",
     "components"
 })
@@ -137,6 +145,26 @@ public class Stack {
     protected List<RepositoryKind> repositories;
     
     /**
+     * Stack Golbal variables
+     */
+    @XmlElements({@XmlElement})
+    protected List<KeyValuePair> globals;
+    
+    /**
+     * @return the globals
+     */
+    public List<KeyValuePair> getGlobals() {
+        return globals;
+    }
+
+    /**
+     * @param globals the globals to set
+     */
+    public void setGlobals(List<KeyValuePair> globals) {
+        this.globals = globals;
+    }
+
+    /**
      * The client configuration.
      */
     @XmlElement
@@ -167,6 +195,7 @@ public class Stack {
       this.parentName = orig.parentName;
       this.parentRevision = orig.parentRevision;
       this.repositories = orig.repositories;
+      this.globals = orig.globals;
       this.revision = orig.revision;
     }
 

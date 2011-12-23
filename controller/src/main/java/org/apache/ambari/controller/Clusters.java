@@ -37,6 +37,7 @@ import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Component;
 import org.apache.ambari.common.rest.entities.ConfigurationCategory;
+import org.apache.ambari.common.rest.entities.KeyValuePair;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.Property;
 import org.apache.ambari.common.rest.entities.Role;
@@ -911,14 +912,11 @@ public class Clusters {
           }
           config = config + "\"\n";
       }
-      for (ConfigurationCategory cat : stack.getConfiguration().getCategory()) {
-          if(cat.getName().equals("ambari")) {
-              for (Property p : cat.getProperty()) {
-                  config = config + "$"+p.getName() + " = " + "\"" + p.getValue() + "\"\n";
-              }
-              config = config + "\n";
-          }
+      
+      for (KeyValuePair p : stack.getGlobals()) {
+         config = config + "$"+p.getName() + " = " + "\"" + p.getValue() + "\"\n";
       }
+      config = config + "\n";
       return config;
   }
   

@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-172. Remove the "ambari" category from the configuration element, put it as "globals" elemement in the stack. (vgogate)
+
   AMBARI-171. Agents retry failed actions for a configurable number of times
   after a configurable delay (ddas)
 

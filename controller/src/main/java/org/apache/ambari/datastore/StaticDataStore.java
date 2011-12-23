@@ -65,10 +65,12 @@ class StaticDataStore implements DataStore {
   }
 
   StaticDataStore() throws IOException {
+    /*
     addStackFile("org/apache/ambari/stacks/hadoop-security-0.xml", 
                  "hadoop-security");
     addStackFile("org/apache/ambari/stacks/cluster123-0.xml", "cluster123");
     addStackFile("org/apache/ambari/stacks/cluster124-0.xml", "cluster124");
+    */
     addStackJsonFile("org/apache/ambari/stacks/puppet1-0.json", "puppet1");
     addStackJsonFile("org/apache/ambari/stacks/horton-0.json", "horton");
     addClusterFile("org/apache/ambari/clusters/cluster123.xml", "cluster123");

@@ -4,11 +4,7 @@
     "@kind":"TAR",
     "urls":"http://www.apache.org/dist/hadoop/common/"
   },
-  "configuration":{
-    "category":[
-      {
-        "@name":"ambari",
-        "property":[
+  "globals":[
           {
             "@name":"ambari_namenode_principal",
             "@value":"nn"
@@ -73,8 +69,9 @@
             "@name":"ambari_auth_to_local",
             "@value":"RULE:[1:$1@$0](.*@<%= ambari_user_realm %>)s/@.*//\nRULE:[2:$1@$0](<%= ambari_jobtracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/\nRULE:[2:$1@$0](<%= ambari_tasktracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/\nRULE:[2:$1@$0](<%= ambari_namenode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/\nRULE:[2:$1@$0](<%= ambari_datanode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/\nRULE:[2:$1@$0](<%= ambari_hbasemaster_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hbase_user %>/\nRULE:[2:$1@$0](<%= ambari_regionserver_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hbase_user %>/\nRULE:[2:$1@$0](<%= ambari_hcat_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hcat_user %>/"
           }
-        ]
-      },
+        ],
+  "configuration":{
+    "category":[
       {
         "@name":"core-site.xml",
         "property":[

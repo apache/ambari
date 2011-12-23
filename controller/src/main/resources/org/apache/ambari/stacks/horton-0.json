@@ -2,15 +2,14 @@
   "@name": "horton",
   "@parentName": "puppet1",
   "@parentRevision": "0",
+  "globals":[
+    {
+      "@name":"ambari_user_realm",
+      "@value":"HORTON.YGRIDCORE.NET"
+    }
+  ],
   "configuration": {
-    "category": [
-      {"@name":"ambari",
-       "property":[
-          {"@name": "ambari_user_realm",
-           "@value": "HORTON.YGRIDCORE.NET"}
-        ]
-      }
-    ]
+    "category": []
   },
   "components": [
     {"@name": "hdfs",

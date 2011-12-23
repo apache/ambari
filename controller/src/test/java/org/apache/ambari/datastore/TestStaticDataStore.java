@@ -28,7 +28,7 @@ public class TestStaticDataStore {
   @Test
   public void testGetStack() throws Exception {
     DataStore ds = new StaticDataStore();
-    Stack stack = ds.retrieveStack("hadoop-security", -1);
+    Stack stack = ds.retrieveStack("puppet1", -1);
     assertEquals("can fetch revision -1", "0", stack.getRevision());
   }
 }
