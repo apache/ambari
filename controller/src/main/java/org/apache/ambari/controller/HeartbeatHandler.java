@@ -32,9 +32,11 @@ import org.apache.ambari.common.rest.agent.Action.Kind;
 import org.apache.ambari.common.rest.agent.ActionResult;
 import org.apache.ambari.common.rest.agent.AgentRoleState;
 import org.apache.ambari.common.rest.agent.Command;
+import org.apache.ambari.common.rest.agent.CommandResult;
 import org.apache.ambari.common.rest.agent.ConfigFile;
 import org.apache.ambari.common.rest.agent.ControllerResponse;
 import org.apache.ambari.common.rest.agent.HeartBeat;
+import org.apache.ambari.common.rest.entities.NodeState;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
 import org.apache.ambari.resource.statemachine.FSMDriverInterface;
@@ -82,12 +84,26 @@ public class HeartbeatHandler {
     Date heartbeatTime = new Date(System.currentTimeMillis());
     nodes.checkAndUpdateNode(hostname, heartbeatTime);
     
+    boolean firstContact = heartbeat.getFirstContact();
     ControllerResponse prevResponse = 
         agentToHeartbeatResponseMap.get(heartbeat.getHostname());
+     
+    if (firstContact || prevResponse == null) {
+      //either the controller restarted, or this is a new agent
+      nodes.markNodeHealthy(hostname);
+    }
+    
     if (prevResponse != null) {
       if (prevResponse.getResponseId() != heartbeat.getResponseId()) {
         return prevResponse; //duplicate heartbeat or the agent restarted
       }
+    }
+    
+    List<CommandResult> commandResult;
+    if((commandResult = failedActions(heartbeat))!=null && 
+        !commandResult.isEmpty()) {
+      //mark agent unhealthy
+      nodes.markNodeUnhealthy(hostname, commandResult);
     }
 
     short responseId = (short)(heartbeat.getResponseId() + 1);
@@ -95,6 +111,11 @@ public class HeartbeatHandler {
     int clusterRev = 0;
 
     List<Action> allActions = new ArrayList<Action>();
+
+    if (nodes.getHeathOfNode(hostname) == NodeState.UNHEALTHY) { 
+      //no actions please
+      return createResponse(responseId, allActions, heartbeat);
+    }
 
     //if the command-execution takes longer than one heartbeat interval
     //the check for idleness will prevent the same node getting more 
@@ -484,8 +505,19 @@ public class HeartbeatHandler {
     addAction(action, allActions);
   }
   
-  private class ActionTracker {
-    //tracks all actions based on agent hostnames. When the agent returns a response 
-    //note all the failed actionIDs and resend them
+  private List<CommandResult> failedActions(HeartBeat heartbeat) {
+    // for now, we mark a node unhealthy if there was any action failure at all
+    List<ActionResult> results = heartbeat.getActionResults();
+    if (results == null) {
+      return null;
+    }
+    List<CommandResult> failures = new ArrayList<CommandResult>();
+    for (ActionResult result : results) {
+      if (result.getCommandResult().getExitCode() != 0) {
+        failures.add(result.getCommandResult());
+      }
+    }
+    return failures;
   }
+  
 }

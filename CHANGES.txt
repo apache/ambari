@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-174. Controller marks nodes unhealthy upon command execution failures. Marks them
+  healthy when the corresponding agent is restarted (ddas)
+
   AMBARI-173. Fixed RPM build for OpenSUSE. (Eric Yang)
 
   AMBARI-172. Remove the "ambari" category from the configuration element, put it as "globals" elemement in the stack. (vgogate)

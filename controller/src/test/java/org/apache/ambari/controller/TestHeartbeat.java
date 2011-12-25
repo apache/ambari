@@ -19,14 +19,17 @@ package org.apache.ambari.controller;
 
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doAnswer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 
 import org.apache.ambari.common.rest.agent.Action;
 import org.apache.ambari.common.rest.agent.Action.Kind;
@@ -55,6 +58,8 @@ import org.apache.ambari.resource.statemachine.ServiceEventType;
 import org.apache.ambari.resource.statemachine.ServiceFSM;
 import org.apache.ambari.resource.statemachine.ServiceState;
 import org.apache.ambari.resource.statemachine.StateMachineInvokerInterface;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -132,6 +137,7 @@ public class TestHeartbeat {
     node.setNodeState(nodeState);
     when(nodes.getNode("localhost")).thenReturn(node);
     when(nodes.getNodeRoles("localhost")).thenReturn(Arrays.asList(roles));
+    when(nodes.getHeathOfNode("localhost")).thenReturn(NodeState.HEALTHY);
     when(clusters.getClusterByName("cluster1")).thenReturn(cluster);
     when(clusters.getInstallAndConfigureScript(anyString(), anyInt()))
         .thenReturn(script);
@@ -319,6 +325,134 @@ public class TestHeartbeat {
     assert(serviceImpl.getServiceState() == ServiceState.STARTING);
   }
   
+  @Test
+  public void testAgentMarked() throws Exception {
+    //tests whether Nodes.markNodeUnhealthy and Nodes.markNodeHealthy
+    //are called at expected times
+    CommandResult failedCommandResult = new CommandResult();
+    final String stdout = "FAILED_COMMAND_STDOUT";
+    failedCommandResult.setExitCode(1);
+    failedCommandResult.setStdOut(stdout);
+    CommandResult successCommandResult = new CommandResult();
+    successCommandResult.setExitCode(0);
+    
+    final MarkCallTracker mUnhealthy = new MarkCallTracker();
+    doAnswer(new Answer<Void>() {
+      public Void answer(InvocationOnMock invocation) {
+        mUnhealthy.methodCalled = true;
+        for (Object obj : invocation.getArguments()) {
+          if (String.class.isAssignableFrom(obj.getClass())) {
+            if (((String)obj).equals("localhost")) {
+              mUnhealthy.hostnameMatched = true;
+            }
+          }
+          if (ArrayList.class.isAssignableFrom(obj.getClass())) {
+            List<CommandResult> results = (List<CommandResult>)obj;
+            for (CommandResult result : results) {
+              if (result.getExitCode() == 1) {
+                if (result.getStdOut().equals(stdout)) {
+                  //found the match!
+                  mUnhealthy.stdoutMatched = true;
+                }
+              }
+            }
+          }
+        }
+        return null;
+      }
+    }).when(nodes).markNodeUnhealthy(anyString(), any(List.class));
+    
+    final MarkCallTracker mHealthy = new MarkCallTracker();
+    
+    doAnswer(new Answer<Void>() {
+      public Void answer(InvocationOnMock invocation) {
+        mHealthy.methodCalled = true;
+        for (Object obj : invocation.getArguments()) {
+          if (String.class.isAssignableFrom(obj.getClass())) {
+            if (((String)obj).equals("localhost")) {
+              mHealthy.hostnameMatched = true;
+            }
+          }
+        }
+        return null;
+      }
+    }).when(nodes).markNodeHealthy(anyString());
+    
+    List<ActionResult> actionResults = new ArrayList<ActionResult>();
+    ActionResult failedAction = new ActionResult();
+    failedAction.setCommandResult(failedCommandResult);
+    actionResults.add(failedAction);
+    heartbeat.setActionResults(actionResults);
+    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes, 
+        driver, invoker);
+    
+    mUnhealthy.stdoutMatched = false;
+    mUnhealthy.hostnameMatched = false;
+    mHealthy.methodCalled = false;
+    //now the call to markNodeUnhealthy should happen
+    handler.processHeartBeat(heartbeat);
+    assert(mUnhealthy.stdoutMatched == true 
+       && mUnhealthy.hostnameMatched == true);
+    
+    
+    actionResults = new ArrayList<ActionResult>();
+    ActionResult successAction = new ActionResult();
+    successAction.setCommandResult(successCommandResult);
+    actionResults.add(successAction);
+    heartbeat.setActionResults(actionResults);
+    
+    mUnhealthy.methodCalled = false;
+    mHealthy.methodCalled = false;
+    //now the call to markNodeUnhealthy should not happen
+    //the call to markNodeHealthy should happen
+    handler.processHeartBeat(heartbeat);
+    assert(mUnhealthy.methodCalled == false && mHealthy.methodCalled == false);
+    
+    
+    heartbeat.setFirstContact(true);
+    mHealthy.methodCalled = false;
+    mHealthy.hostnameMatched = false;
+    mUnhealthy.methodCalled = false;
+    //now the call to markNodeHealthy should happen
+    //the call to markNodeUnhealthy should not happen
+    handler.processHeartBeat(heartbeat);
+    assert(mHealthy.methodCalled == true && mHealthy.hostnameMatched == true 
+        && mUnhealthy.methodCalled == false);
+  }
+  
+  @Test
+  public void testActionAssignment() throws Exception {
+    when(nodes.getHeathOfNode("localhost")).thenReturn(NodeState.HEALTHY);
+    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes, 
+        driver, invoker);
+    ControllerResponse resp = handler.processHeartBeat(heartbeat);
+    List<Action> actions = resp.getActions();
+    assert(actions.size() > 0);
+    
+    when(nodes.getHeathOfNode("localhost")).thenReturn(NodeState.UNHEALTHY);
+    handler = new HeartbeatHandler(clusters, nodes, driver, invoker);
+    resp = handler.processHeartBeat(heartbeat);
+    actions = resp.getActions();
+    assert(actions.size() == 0);
+  }
+  
+  @Test
+  public void testResponseIdIncreasing() throws Exception {
+    short responseId = (short)(new Random().nextInt());
+    HeartBeat heartbeat = new HeartBeat();
+    heartbeat.setResponseId(responseId);
+    HeartbeatHandler handler = new HeartbeatHandler(clusters, nodes, 
+        driver, invoker);
+    ControllerResponse resp = handler.processHeartBeat(heartbeat);
+    assert(resp.getResponseId() == (responseId + 1));
+  }
+  
+  static class MarkCallTracker {
+    boolean methodCalled;
+    boolean hostnameMatched;
+    boolean stdoutMatched;
+  }
+
   private void checkSpecialAction(ServiceState serviceState, 
       ServiceEventType serviceEventType, 
       SpecialServiceIDs serviceId) throws Exception {

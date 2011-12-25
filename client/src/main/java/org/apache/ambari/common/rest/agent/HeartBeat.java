@@ -36,7 +36,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {"responseId","timestamp", 
     "hostname", "hardwareProfile", "installedRoleStates", "installScriptHash",
-    "actionResults", "idle"})
+    "actionResults", "firstContact", "idle"})
 public class HeartBeat {
   @XmlElement
   private short responseId = -1;
@@ -52,6 +52,8 @@ public class HeartBeat {
   private int installScriptHash;
   @XmlElement
   private List<ActionResult> actionResults;
+  @XmlElement
+  private boolean firstContact;
   @XmlElement
   private boolean idle;
   
@@ -69,6 +71,10 @@ public class HeartBeat {
   
   public String getHostname() {
     return hostname;
+  }
+  
+  public boolean getFirstContact() {
+    return firstContact;
   }
   
   public boolean getIdle() {
@@ -109,6 +115,10 @@ public class HeartBeat {
   
   public void setInstalledRoleStates(List<AgentRoleState> installedRoleStates) {
     this.installedRoleStates = installedRoleStates;
+  }
+  
+  public void setFirstContact(boolean firstContact) {
+    this.firstContact = firstContact;
   }
   
   public void setIdle(boolean idle) {

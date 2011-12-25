@@ -25,6 +25,7 @@ from ServerStatus import ServerStatus
 import socket
 import time
 
+firstContact = True
 class Heartbeat:
 
   def __init__(self, actionQueue):
@@ -32,22 +33,24 @@ class Heartbeat:
     self.hardware = Hardware()
 
   def build(self, id='-1'):
-    global clusterId, clusterDefinitionRevision
+    global clusterId, clusterDefinitionRevision, firstContact
     serverStatus = ServerStatus()
     timestamp = int(time.time()*1000)
     queueResult = self.actionQueue.result()
     installedRoleStates = serverStatus.build()
-    heartbeat = { 'responseId'          : int(id),
-                  'timestamp'           : timestamp,
-                  'hostname'            : socket.gethostname(),
-                  'hardwareProfile'     : self.hardware.get(),
-                  'idle'                : self.actionQueue.isIdle(),
-                  'installScriptHash'   : self.actionQueue.getInstallScriptHash()
+    heartbeat = { 'responseId'        : int(id),
+                  'timestamp'         : timestamp,
+                  'hostname'          : socket.gethostname(),
+                  'hardwareProfile'   : self.hardware.get(),
+                  'idle'              : self.actionQueue.isIdle(),
+                  'installScriptHash' : self.actionQueue.getInstallScriptHash(),
+                  'firstContact'      : firstContact
                 }
     if len(queueResult)!=0:
       heartbeat['actionResults'] = queueResult
     if len(installedRoleStates)!=0:
       heartbeat['installedRoleStates'] = installedRoleStates
+    firstContact = False
     return heartbeat
 
 def main(argv=None):

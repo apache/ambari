@@ -33,3 +33,6 @@ class TestHeartbeat(TestCase):
     self.assertEqual(result['responseId'], 100, 'responseId mismatched.')
     self.assertEqual(result['idle'], True, 'Heartbeat should indicate Agent is idle.')
     self.assertEqual(result['installScriptHash'], -1, 'installScriptHash should be -1.')
+    self.assertEqual(result['firstContact'], True, 'firstContact should be True.')
+    result = heartbeat.build(101)
+    self.assertEqual(result['firstContact'], False, 'firstContact should be False.')

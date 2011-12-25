@@ -31,13 +31,17 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.ambari.common.rest.agent.CommandResult;
+
 /**
  * Information about the Nodes.
   */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "NodeState", propOrder = {
    "nodeRoleNames",
-    "nodeServers"
+    "nodeServers",
+    "failedCommandStdouts",
+    "failedCommandStderrs"
 })
 @XmlRootElement
 public class NodeState {
@@ -58,6 +62,9 @@ public class NodeState {
 
     @XmlAttribute
     protected Boolean allocatedToCluster = false;
+    
+    @XmlAttribute
+    protected Boolean health = true;
         
     /*
      * null indicates no roles associated with this node.
@@ -67,6 +74,15 @@ public class NodeState {
         
     @XmlElement
     protected List<NodeServer> nodeServers = new ArrayList<NodeServer>();
+    
+    @XmlElement
+    protected List<String> failedCommandStdouts = null;
+    
+    @XmlElement
+    protected List<String> failedCommandStderrs = null;
+    
+    public static final boolean HEALTHY = true;
+    public static final boolean UNHEALTHY = false;
 
     /**
      * @return the clusterName
@@ -124,7 +140,48 @@ public class NodeState {
     public void setAgentInstalled(Boolean agentInstalled) {
             this.agentInstalled = agentInstalled;
     }
+   
+    /**
+     * @return the health
+     */
+    public Boolean getHealth() {
+            return health;
+    }
     
+    /**
+     * @param health (true for healthy)
+     */
+    public void setHealth(Boolean health) {
+            this.health = health;
+    }
+    
+    /**
+     * @param results list of results that failed
+     */
+    public void setFailedCommandResults(List<CommandResult> results) {
+      for (CommandResult r : results) {
+        if (r.getStdErr() != null) {
+          this.failedCommandStderrs.add(r.getStdErr());
+        }
+        if (r.getStdOut() != null) {
+          this.failedCommandStdouts.add(r.getStdOut());
+        }
+      }
+    }
+    
+    /**
+     * @return the stdouts of failed commands
+     */
+    public List<String> getFailedCommandStdouts() {
+      return failedCommandStdouts;
+    }
+    
+    /*
+     * @return the stderrs of failed commands
+     */
+    public List<String> getFailedCommandStderrs() {
+      return failedCommandStderrs;
+    }
     
     /**
      * @return the lastHeartbeatTime

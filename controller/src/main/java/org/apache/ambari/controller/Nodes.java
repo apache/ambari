@@ -28,7 +28,10 @@ import javax.ws.rs.core.Response;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.ambari.common.rest.agent.CommandResult;
 import org.apache.ambari.common.rest.entities.Node;
+import org.apache.ambari.common.rest.entities.NodeState;
+
 import com.google.inject.Singleton;
 
 @Singleton
@@ -140,13 +143,35 @@ public class Nodes {
      * Register new node
      */
     public synchronized void checkAndUpdateNode (String name, Date hearbeatTime) throws Exception {
-        Node node = this.nodes.get(name);
-        
-        if (node == null) {
-            node = new Node(name);
-            getNodes().put(name, node);
-        }
+        Node node = checkAndAddNodes(name);
         node.getNodeState().setLastHeartbeatTime(hearbeatTime);      
+    }
+    
+    /*
+     * Mark a node as unhealthy
+     */
+    public synchronized void markNodeUnhealthy (String name,List<CommandResult>results) 
+        throws Exception {
+        Node node = checkAndAddNodes(name);
+        node.getNodeState().setHealth(NodeState.UNHEALTHY);      
+        node.getNodeState().setFailedCommandResults(results);
+    }
+    
+    /*
+     * Mark a node as healthy
+     */
+    public synchronized void markNodeHealthy (String name) throws Exception {
+        Node node = checkAndAddNodes(name);
+        node.getNodeState().setHealth(NodeState.HEALTHY);  
+        node.getNodeState().setFailedCommandResults(null);
+    }
+    
+    /*
+     * Get the health of the node
+     */
+    public synchronized boolean getHeathOfNode(String name) {
+      Node node = checkAndAddNodes(name);
+      return node.getNodeState().getHealth();
     }
     
     /*
@@ -165,6 +190,16 @@ public class Nodes {
                                             ) throws Exception {
         return t2.toGregorianCalendar().getTimeInMillis() -  
             t1.toGregorianCalendar().getTimeInMillis();
+    }
+    
+    private Node checkAndAddNodes(String name) {
+      Node node = this.nodes.get(name);
+      
+      if (node == null) {
+          node = new Node(name);
+          getNodes().put(name, node);
+      }
+      return node;
     }
     
     public static void main (String args[]) {
