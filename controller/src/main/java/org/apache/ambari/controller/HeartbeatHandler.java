@@ -57,9 +57,6 @@ import com.google.inject.Singleton;
 @Singleton
 public class HeartbeatHandler {
   
-  private Map<String, ControllerResponse> agentToHeartbeatResponseMap = 
-      Collections.synchronizedMap(new HashMap<String, ControllerResponse>());
-  
   private static Log LOG = LogFactory.getLog(HeartbeatHandler.class);
   private final Clusters clusters;
   private final Nodes nodes;
@@ -85,18 +82,10 @@ public class HeartbeatHandler {
     nodes.checkAndUpdateNode(hostname, heartbeatTime);
     
     boolean firstContact = heartbeat.getFirstContact();
-    ControllerResponse prevResponse = 
-        agentToHeartbeatResponseMap.get(heartbeat.getHostname());
      
-    if (firstContact || prevResponse == null) {
-      //either the controller restarted, or this is a new agent
+    if (firstContact) {
+      //this is a new agent
       nodes.markNodeHealthy(hostname);
-    }
-    
-    if (prevResponse != null) {
-      if (prevResponse.getResponseId() != heartbeat.getResponseId()) {
-        return prevResponse; //duplicate heartbeat or the agent restarted
-      }
     }
     
     List<CommandResult> commandResult;
@@ -179,8 +168,7 @@ public class HeartbeatHandler {
                 //check the expected state of the agent and whether the start
                 //was successful
                 if (wasStartRoleSuccessful(clusterIdAndRev, 
-                    service.getServiceName(), role.getRoleName(), prevResponse, 
-                    heartbeat)) {
+                    service.getServiceName(), role.getRoleName(), heartbeat)) {
                   //raise an event to the state machine for a successful 
                   //role-start
                   stateMachineInvoker.getAMBARIEventHandler()
@@ -195,8 +183,7 @@ public class HeartbeatHandler {
                 //raise an event to the state machine for a successful 
                 //role-stop instance
                 if (wasStopRoleSuccessful(clusterIdAndRev, 
-                    service.getServiceName(), role.getRoleName(), prevResponse, 
-                    heartbeat)) {
+                    service.getServiceName(), role.getRoleName(), heartbeat)) {
                   stateMachineInvoker.getAMBARIEventHandler()
                   .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
                 }
@@ -245,7 +232,6 @@ public class HeartbeatHandler {
       allActions.add(a);
     }
     r.setActions(allActions);
-    agentToHeartbeatResponseMap.put(heartbeat.getHostname(), r);
     return r;
   }
   
@@ -260,8 +246,7 @@ public class HeartbeatHandler {
   }
     
   private boolean wasStartRoleSuccessful(ClusterNameAndRev clusterIdAndRev, 
-      String component, String roleName, ControllerResponse response, 
-      HeartBeat heartbeat) {
+      String component, String roleName, HeartBeat heartbeat) {
     List<AgentRoleState> serverStates = heartbeat.getInstalledRoleStates();
     if (serverStates == null) {
       return false;
@@ -296,8 +281,7 @@ public class HeartbeatHandler {
   }
   
   private boolean wasStopRoleSuccessful(ClusterNameAndRev clusterIdAndRev, 
-      String component, String roleName, ControllerResponse response, 
-      HeartBeat heartbeat) {
+      String component, String roleName, HeartBeat heartbeat) {
     List<AgentRoleState> serverStates = heartbeat.getInstalledRoleStates();
     if (serverStates == null) {
       return true;

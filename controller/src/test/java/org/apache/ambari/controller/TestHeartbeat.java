@@ -404,7 +404,7 @@ public class TestHeartbeat {
     mUnhealthy.methodCalled = false;
     mHealthy.methodCalled = false;
     //now the call to markNodeUnhealthy should not happen
-    //the call to markNodeHealthy should happen
+    //the call to markNodeHealthy should not happen too
     handler.processHeartBeat(heartbeat);
     assert(mUnhealthy.methodCalled == false && mHealthy.methodCalled == false);
     

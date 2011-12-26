@@ -64,7 +64,7 @@ public class NodeState {
     protected Boolean allocatedToCluster = false;
     
     @XmlAttribute
-    protected Boolean health = true;
+    protected Boolean health = NodeState.HEALTHY;
         
     /*
      * null indicates no roles associated with this node.
