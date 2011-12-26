@@ -159,6 +159,10 @@ public class NodeState {
      * @param results list of results that failed
      */
     public void setFailedCommandResults(List<CommandResult> results) {
+      if (results == null || results.size() == 0) {
+        this.failedCommandStderrs = null;
+        this.failedCommandStdouts = null;
+      }
       for (CommandResult r : results) {
         if (r.getStdErr() != null) {
           this.failedCommandStderrs.add(r.getStdErr());
