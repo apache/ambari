@@ -162,6 +162,7 @@ public class NodeState {
       if (results == null || results.size() == 0) {
         this.failedCommandStderrs = null;
         this.failedCommandStdouts = null;
+        return;
       }
       for (CommandResult r : results) {
         if (r.getStdErr() != null) {
