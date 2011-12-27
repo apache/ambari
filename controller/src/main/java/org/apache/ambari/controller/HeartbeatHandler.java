@@ -497,7 +497,8 @@ public class HeartbeatHandler {
     }
     List<CommandResult> failures = new ArrayList<CommandResult>();
     for (ActionResult result : results) {
-      if (result.getCommandResult().getExitCode() != 0) {
+      if (result.getCommandResult() != null 
+          && result.getCommandResult().getExitCode() != 0) {
         failures.add(result.getCommandResult());
       }
     }
