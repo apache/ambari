@@ -4,6 +4,12 @@
     "@kind":"TAR",
     "urls":"http://www.apache.org/dist/hadoop/common/"
   },
+  "default_user_group":{
+    "@user":"hadoop",
+    "@userid":"",
+    "@group":"hadoop",
+    "@groupid":""
+  },
   "globals":[
           {
             "@name":"ambari_namenode_principal",
@@ -32,26 +38,6 @@
           {
             "@name":"ambari_hcat_principal",
             "@value":"hcat"
-          },
-          {
-            "@name":"ambari_hdfs_user",
-            "@value":"hdfs"
-          },
-          {
-            "@name":"ambari_mapreduce_user",
-            "@value":"mapred"
-          },
-          {
-            "@name":"ambari_hbase_user",
-            "@value":"hrt_hbase"
-          },
-          {
-            "@name":"ambari_hcat_user",
-            "@value":"hcat"
-          },
-          {
-            "@name":"ambari_admin_group",
-            "@value":"hadoop"
           },
           {
             "@name":"ambari_user_realm",
@@ -94,6 +80,10 @@
           {
             "@name":"hadoop.kerberos.kinit.command",
             "@value":"/usr/kerberos/bin/kinit"
+          },
+          {
+            "@name":"local.realm",
+            "@value":"<%= ambari_user_realm %>"
           }
         ]
       },
@@ -170,6 +160,171 @@
             "@value":"-Xmx128m $HADOOP_CLIENT_OPTS"
           }
         ]
+      },
+      {
+        "@name":"mapred-site.xml",
+        "property":[
+          {
+            "@name":"mapred.tasktracker.tasks.sleeptime-before-sigkill",
+            "@value":"250"
+          },
+          {
+            "@name":"mapred.system.dir",
+            "@value":"/mapred/mapredsystem"
+          },
+          {
+            "@name":"mapred.job.tracker",
+            "@value":"hrt20n24.cc1.ygridcore.net:9000"
+          },
+          {
+            "@name":"mapred.job.tracker.http.address",
+            "@value":"hrt20n24.cc1.ygridcore.net:50030"
+          },
+          {
+            "@name":"mapred.local.dir",
+            "@value":"/var/lib/hadoop/mapred1,/var/lib/hadoop/mapred2,/var/lib/hadoop/mapred3"
+          },
+          {
+            "@name":"mapreduce.cluster.administrators",
+            "@value":"hrt_mr"
+          },
+          {
+            "@name":"mapred.map.tasks.speculative.execution",
+            "@value":"false"
+          },
+          {
+            "@name":"mapred.reduce.tasks.speculative.execution",
+            "@value":"false"
+          },
+          {
+            "@name":"mapred.output.compression.type",
+            "@value":"BLOCK"
+          },
+          {
+            "@name":"jetty.connector",
+            "@value":"org.mortbay.jetty.nio.SelectChannelConnector"
+          },
+          {
+            "@name":"mapred.task.tracker.task-controller",
+            "@value":"org.apache.hadoop.mapred.DefaultTaskController"
+          },
+          {
+            "@name":"mapred.child.root.logger",
+            "@value":"INFO,TLA"
+          },
+          {
+            "@name":"mapred.child.java.opts",
+            "@value":"-server -Xmx640m -Djava.net.preferIPv4Stack=true"
+          },
+          {
+            "@name":"mapred.child.ulimit",
+            "@value":"8388608"
+          },
+          {
+            "@name":"mapred.job.tracker.persist.jobstatus.active",
+            "@value":"true"
+          },
+          {
+            "@name":"mapred.job.tracker.persist.jobstatus.dir",
+            "@value":"file:////var/log/hadoop/hrt_mr/jobstatus"
+          },
+          {
+            "@name":"mapred.job.tracker.history.completed.location",
+            "@value":"/mapred/history/done"
+          },
+          {
+            "@name":"mapred.heartbeats.in.second",
+            "@value":"200"
+          },
+          {
+            "@name":"mapreduce.tasktracker.outofband.heartbeat",
+            "@value":"true"
+          },
+          {
+            "@name":"mapred.jobtracker.maxtasks.per.job",
+            "@value":"200000"
+          },
+          {
+            "@name":"mapreduce.jobtracker.kerberos.principal",
+            "@value":"jt/_HOST@${local.realm}"
+          },
+          {
+            "@name":"mapreduce.tasktracker.kerberos.principal",
+            "@value":"tt/_HOST@${local.realm}"
+          },
+          {
+            "@name":"hadoop.job.history.user.location",
+            "@value":"none"
+          },
+          {
+            "@name":"mapreduce.jobtracker.keytab.file",
+            "@value":"/etc/security/keytabs/jt.service.keytab"
+          },
+          {
+            "@name":"mapreduce.tasktracker.keytab.file",
+            "@value":"/etc/security/keytabs/tt.service.keytab"
+          },
+          {
+            "@name":"mapreduce.jobtracker.staging.root.dir",
+            "@value":"/user"
+          },
+          {
+            "@name":"mapreduce.job.acl-modify-job",
+            "@value":""
+          },
+          {
+            "@name":"mapreduce.job.acl-view-job",
+            "@value":"Dr.Who"
+          },
+          {
+            "@name":"mapreduce.tasktracker.group",
+            "@value":"hadoop"
+          },
+          {
+            "@name":"mapred.acls.enabled",
+            "@value":"true"
+          },
+          {
+            "@name":"mapred.jobtracker.taskScheduler",
+            "@value":"org.apache.hadoop.mapred.CapacityTaskScheduler"
+          },
+          {
+            "@name":"mapred.queue.names",
+            "@value":"default"
+          },
+          {
+            "@name":"mapreduce.history.server.embedded",
+            "@value":"false"
+          },
+          {
+            "@name":"mapreduce.history.server.http.address",
+            "@value":"hrt20n24.cc1.ygridcore.net:51111"
+          },
+          {
+            "@name":"mapreduce.jobhistory.kerberos.principal",
+            "@value":"jt/_HOST@${local.realm}"
+          },
+          {
+            "@name":"mapreduce.jobhistory.keytab.file",
+            "@value":"/etc/security/keytabs/jt.service.keytab"
+          },
+          {
+            "@name":"mapred.hosts",
+            "@value":"/etc/hadoop/mapred.include"
+          },
+          {
+            "@name":"mapred.hosts.exclude",
+            "@value":"/etc/hadoop/mapred.exclude"
+          },
+          {
+            "@name":"mapred.jobtracker.retirejob.check",
+            "@value":"10000"
+          },
+          {
+            "@name":"mapred.jobtracker.retirejob.interval",
+            "@value":"0"
+          }
+        ]
       }
     ]
   },
@@ -183,6 +338,164 @@
         "@provider":"org.apache.ambari",
         "@name":"hadoop-common",
         "@version":"0.1.0"
+      }
+    },
+    {
+      "@name":"mapreduce",
+      "@architecture":"x86_64",
+      "@version":"0.20.205.0",
+      "@provider":"org.apache.hadoop",
+      "definition":{
+        "@provider":"org.apache.ambari",
+        "@name":"mapreduce",
+        "@version":"0.1.0"
+      },
+      "configuration":{
+        "category":[
+          {
+            "@name":"core-site.xml",
+            "property":[
+              {
+                "@name":"hadoop.security.auth_to_local",
+                "@value":"<%= ambari_auth_to_local %>"
+              },
+              {
+                "@name":"hadoop.security.groups.cache.secs",
+                "@value":"14400"
+              },
+              {
+                "@name":"hadoop.http.filter.initializers",
+                "@value":"org.apache.hadoop.http.lib.StaticUserWebFilter"
+              }
+            ]
+          },
+          {
+            "@name":"hadoop-metrics2.properties",
+            "property":{
+              "@name":"*.period",
+              "@value":"60"
+            }
+          },
+          {
+            "@name":"capacity-scheduler.xml",
+            "property":[
+                {
+                  "@name":"mapred.capacity-scheduler.maximum-system-jobs",
+                  "@value":"3000"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.queue.default.capacity",
+                  "@value":"100"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.queue.default.maximum-capacity",
+                  "@value":"-1"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.queue.default.supports-priority",
+                  "@value":"false"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.queue.default.minimum-user-limit-percent",
+                  "@value":"100"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.queue.default.user-limit-factor",
+                  "@value":"1"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.queue.default.maximum-initialized-active-tasks",
+                  "@value":"200000"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.queue.default.maximum-initialized-active-tasks-per-user",
+                  "@value":"100000"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.queue.default.init-accept-jobs-factor",
+                  "@value":"10"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.default-supports-priority",
+                  "@value":"false"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.default-minimum-user-limit-percent",
+                  "@value":"100"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.default-user-limit-factor",
+                  "@value":"1"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.default-maximum-active-tasks-per-queue",
+                  "@value":"200000"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.default-maximum-active-tasks-per-user",
+                  "@value":"100000"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.default-init-accept-jobs-factor",
+                  "@value":"10"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.init-poll-interval",
+                  "@value":"5000"
+                },
+                {
+                  "@name":"mapred.capacity-scheduler.init-worker-threads",
+                  "@value":"5"
+                }
+              ]
+          },
+          {
+            "@name":"taskcontroller.cfg",
+            "property":[
+                {
+                  "@name":"mapreduce.cluster.local.dir",
+                  "@value":"/var/lib/hadoop/mapred1,/var/lib/hadoop/mapred2,/var/lib/hadoop/mapred3"
+                },
+                {
+                  "@name":"mapreduce.tasktracker.group",
+                  "@value":"hadoop"
+                },
+                {
+                  "@name":"hadoop.log.dir",
+                  "@value":"/var/log/hadoop/hrt_mr"
+                }
+              ]
+          },
+          {
+            "@name":"hadoop-env.sh",
+            "property":[
+                {
+                  "@name":"HADOOP_CONF_DIR",
+                  "@value":"<%= ambari_role_prefix %>/etc/hadoop"
+                },
+                {
+                  "@name":"HADOOP_JOBTRACKER_OPTS",
+                  "@value":"-Dsecurity.audit.logger=INFO,DRFAS -Dmapred.audit.logger=INFO,MRAUDIT -Dhadoop.mapreduce.jobsummary.logger=INFO,JSA $HADOOP_JOBTRACKER_OPTS"
+                },
+                {
+                  "@name":"HADOOP_TASKTRACKER_OPTS",
+                  "@value":"-Dsecurity.audit.logger=ERROR,console -Dmapred.audit.logger=ERROR,console $HADOOP_TASKTRACKER_OPTS"
+                },
+                {
+                  "@name":"HADOOP_LOG_DIR",
+                  "@value":"<%= ambari_role_prefix %>/logs"
+                },
+                {
+                  "@name":"HADOOP_PID_DIR",
+                  "@value":"<%= ambari_role_prefix %>/pids"
+                },
+                {
+                  "@name":"HADOOP_IDENT_STRING",
+                  "@value":"<%= ambari_cluster_name %>"
+                }
+            ]
+          }
+        ]
       }
     },
     {
@@ -273,7 +586,7 @@
               },
               {
                 "@name":"dfs.permissions.superusergroup",
-                "@value":"<%= ambari_admin_group %>"
+                "@value":"<%= ambari_hdfs_group %>"
               },
               {
                 "@name":"dfs.secondary.http.address",
@@ -337,7 +650,7 @@
                 "@value":"<%= ambari_cluster_name %>"
               }
             ]
-           },
+          },
           {
             "@name":"hadoop-metrics2.properties",
             "property":{

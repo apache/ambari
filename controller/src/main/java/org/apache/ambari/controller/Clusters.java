@@ -17,10 +17,12 @@
  */
 package org.apache.ambari.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -43,6 +47,7 @@ import org.apache.ambari.common.rest.entities.Property;
 import org.apache.ambari.common.rest.entities.Role;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.common.rest.entities.UserGroup;
 import org.apache.ambari.datastore.DataStoreFactory;
 import org.apache.ambari.datastore.DataStore;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
@@ -875,6 +880,17 @@ public class Clusters {
   }
   
   
+  private void printStack(Stack stack, String file_path) throws Exception {
+      JAXBContext jc = JAXBContext.newInstance(org.apache.ambari.common.rest.entities.Stack.class);
+      Marshaller m = jc.createMarshaller();
+      m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+      if (file_path == null) {
+          m.marshal(stack, System.out);
+      } else {
+          m.marshal(stack, new File(file_path));
+      }
+  }
+  
   /*
    * Get the puppet deployment script for this cluster name/revision combo
    */
@@ -882,6 +898,7 @@ public class Clusters {
       
       ClusterDefinition c = getClusterByName (clusterName).getClusterDefinition(revision);
       Stack stack = this.flattener.flattenStack(c.getStackName(), Integer.parseInt(c.getStackRevision()));
+      printStack(stack, null);
       
       /*
        * Generate Ambari global variables
@@ -890,7 +907,7 @@ public class Clusters {
       
       config = config + getStackConfigMapForPuppet (stack);
       
-      config = config + getRoleToNodesMapForPuppet (c);
+      config = config + getRoleToNodesMapForPuppet (c, stack);
       
       return config;
   }
@@ -899,6 +916,7 @@ public class Clusters {
 
       String config = "\n";
       config = config + "$ambari_cluster_name" + " = " + "\"" + c.getName() + "\"\n";
+      config = config + "\n";
       for (RoleToNodes rns : c.getRoleToNodesMap()) {
           config = config + "$ambari_"+rns.getRoleName()+"_host" + " = " + "\"";
           List<String> host_list = this.getHostnamesFromRangeExpressions(rns.getNodes());
@@ -912,6 +930,26 @@ public class Clusters {
           }
           config = config + "\"\n";
       }
+      config = config + "\n";
+      
+      /*
+       * Get the default user/group and role specific user/group information
+       */
+      config = config + "$ambari_default_user" + " = " + "\"" + stack.getDefault_user_group().getUser()+"\"\n";
+      config = config + "$ambari_default_userid" + " = " + "\"" + stack.getDefault_user_group().getUserid()+"\"\n";
+      config = config + "$ambari_default_group" + " = " + "\"" + stack.getDefault_user_group().getGroup()+"\"\n";
+      config = config + "$ambari_default_groupid" + " = " + "\"" + stack.getDefault_user_group().getGroupid()+"\"\n";
+      for (Component comp : stack.getComponents()) {
+          UserGroup ug = null;
+          if (comp.getUser_group() != null) {
+              ug = comp.getUser_group();
+              config = config + "$ambari_"+comp.getName()+"_user" + " = " + "\"" + ug.getUser()+"\"\n";
+              config = config + "$ambari_"+comp.getName()+"_userid" + " = " + "\"" + ug.getUserid()+"\"\n";
+              config = config + "$ambari_"+comp.getName()+"_group" + " = " + "\"" + ug.getGroup()+"\"\n";
+              config = config + "$ambari_"+comp.getName()+"_groupid" + " = " + "\"" + ug.getGroupid()+"\"\n";
+          }
+      }
+      config = config + "\n";
       
       for (KeyValuePair p : stack.getGlobals()) {
          config = config + "$"+p.getName() + " = " + "\"" + p.getValue() + "\"\n";
@@ -920,10 +958,12 @@ public class Clusters {
       return config;
   }
   
-  private String getRoleToNodesMapForPuppet (ClusterDefinition c) throws Exception {
+  private String getRoleToNodesMapForPuppet (ClusterDefinition c, Stack stack) throws Exception {
+      HashMap<String, String> roles = new HashMap<String, String>();
       String config = "\n$role_to_nodes = { ";
       for (int i=0; i<c.getRoleToNodesMap().size(); i++) {
           RoleToNodes roleToNodesEntry = c.getRoleToNodesMap().get(i);
+          roles.put(roleToNodesEntry.getRoleName(), null);
           config = config + roleToNodesEntry.getRoleName()+ " => [";
           List<String> host_list = this.getHostnamesFromRangeExpressions(roleToNodesEntry.getNodes());
           for (int j=0; j<host_list.size(); j++) {
@@ -934,11 +974,21 @@ public class Clusters {
                   config = config + "\'"+host+"\',";
               }
           }
-          if (i == c.getRoleToNodesMap().size()-1) {
-              config = config + "] \n";
-          } else {
-              config = config + "], \n";
+          config = config + "], \n";
+      }
+      
+      /* 
+       * Add non-specified roles for puppet to work correctly
+       */
+      for (Component comp : stack.getComponents()) {
+          for (Role r : comp.getRoles()) {
+              if (!roles.containsKey(r.getName())) {
+                  config = config + r.getName() + " => [ ], \n";
+              }
           }
+      }
+      if (!roles.containsKey("client")) {
+        config = config + "client" + " => [ ], \n";
       }
       config = config + "} \n"; 
       return config;
@@ -1006,11 +1056,7 @@ public class Clusters {
                                }
                           }
                       }
-                      if (k == comp.getRoles().size()-1) {
-                          config = config + "} \n";
-                      } else {
-                          config = config + "}, \n";
-                      }
+                      config = config + "}, \n";
                   } 
               }
           }

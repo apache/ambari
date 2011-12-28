@@ -29,27 +29,11 @@ package { "jdk":
 node default {
   notice($fqdn)
 
-  /* Assign defaults */
+  /* Assign defaults. Agent is supposed to fill-in this value */
   if !$ambari_stack_install_dir {
     $ambari_stack_install_dir = "/var/ambari/"
   } 
   notice ($ambari_stack_install_dir)
-
-  /* Create group and users */
-  group {$ambari_admin_group:
-    ensure => present
-  }
-
-  /*
-   * Create user for HDFS component
-   * TODO: currently uid is auto selected which may cause different uids on each node..
-   *       No home directory specified. Need it? 
-   *       Is user specified per role or per component? 
-   */
-  user {$ambari_hdfs_user:
-    ensure => present,
-    gid => $ambari_admin_group
-  }
 
   /* 
    * Ensure cluster directory path is present 
@@ -60,36 +44,104 @@ node default {
   file {$stack_path_intermediate_dirs:
     ensure => directory,
     owner => root,
-    group => $ambari_admin_group,
+    group => root,
     mode => 755
   }
 
+  /* 
+   * Create user and groups
+   * TODO: currently uid is auto selected which may cause different uids on each node..
+   */
+  @group {$ambari_default_group:
+    ensure => present
+  }
+  @user {$ambari_default_user:
+    ensure => present,
+    gid => $ambari_default_group,
+    require => Group[$ambari_default_group]
+  }
+
+  if $ambari_hdfs_group {
+    @group {$ambari_hdfs_group:
+      ensure => present
+    }
+  } else {
+    $ambari_hdfs_group = $ambari_default_group
+  }
+
+  if $ambari_hdfs_user {
+    @user {$ambari_hdfs_user:
+      ensure => present,
+      gid => $ambari_hdfs_group,
+      require => Group[$ambari_hdfs_group]
+    }
+  } else {
+    $ambari_hdfs_user = $ambari_default_user
+  }
+
+  if $ambari_mapreduce_group {
+    @group {$ambari_mapreduce_group:
+      ensure => present
+    }
+  } else {
+    $ambari_mapreduce_group = $ambari_default_group
+  }
+
+  if $ambari_mapreduce_user {
+    @user {$ambari_mapreduce_user:
+      ensure => present,
+      gid => $ambari_mapreduce_group,
+      require => Group[$ambari_mapreduce_group]
+    }
+  } else {
+    $ambari_mapreduce_user = $ambari_default_user
+  }
+
   if ($fqdn in $role_to_nodes[namenode]) {
-    hadoop::namenode {"namenode":
+    hadoop::role {"namenode":
         ambari_role_name => "namenode",
         ambari_role_prefix => "${stack_path}/namenode",
         user => $ambari_hdfs_user,
-        group => $ambari_admin_group
+        group => $ambari_hdfs_group
     }
   } 
 
   /* hadoop.security.authentication make global variable */
   if ($fqdn in $role_to_nodes[datanode]) {
-    hadoop::datanode {"datanode":
+    hadoop::role {"datanode":
         ambari_role_name => "datanode",
         ambari_role_prefix => "${stack_path}/datanode",
         user => $ambari_hdfs_user,
-        group => $ambari_admin_group,
+        group => $ambari_hdfs_group,
         auth_type => "simple"
     }
   } 
 
-  if ($fqdn in $role_to_nodes[client]) {
+  if ($fqdn in $role_to_nodes[jobtracker]) {
+    hadoop::role {"jobtracker":
+        ambari_role_name => "jobtracker",
+        ambari_role_prefix => "${stack_path}/jobtracker",
+        user => $ambari_mapreduce_user,
+        group => $ambari_mapreduce_group
+    }
+  } 
+
+  /* hadoop.security.authentication make global variable */
+  if ($fqdn in $role_to_nodes[tasktracker]) {
+    hadoop::role {"tasktracker":
+        ambari_role_name => "tasktracker",
+        ambari_role_prefix => "${stack_path}/tasktracker",
+        user => $ambari_mapreduce_user,
+        group => $ambari_mapreduce_group,
+    }
+  } 
+
+  if ($fqdn in $role_to_nodes['client']) {
     hadoop::client {"client":
         ambari_role_name => "client",
         ambari_role_prefix => "${stack_path}/client",
-        user => $ambari_hdfs_user,
-        group => $ambari_admin_group
+        user => $ambari_default_user,
+        group => $ambari_default_group
     }
   } 
 }

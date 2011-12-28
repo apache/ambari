@@ -97,6 +97,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "parentRevision",
     "creationTime",
     "repositories",
+    "default_user_group",
     "globals",
     "configuration",
     "components"
@@ -144,6 +145,26 @@ public class Stack {
     @XmlElement
     protected List<RepositoryKind> repositories;
     
+    /**
+     * Default user group information
+     */
+    @XmlElement
+    protected UserGroup default_user_group;
+    
+    /**
+     * @return the default_user_group
+     */
+    public UserGroup getDefault_user_group() {
+        return default_user_group;
+    }
+
+    /**
+     * @param default_user_group the default_user_group to set
+     */
+    public void setDefault_user_group(UserGroup default_user_group) {
+        this.default_user_group = default_user_group;
+    }
+
     /**
      * Stack Golbal variables
      */
@@ -197,6 +218,7 @@ public class Stack {
       this.repositories = orig.repositories;
       this.globals = orig.globals;
       this.revision = orig.revision;
+      this.default_user_group = orig.default_user_group;
     }
 
     /**

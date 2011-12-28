@@ -35,6 +35,7 @@ import org.apache.ambari.common.rest.entities.Property;
 import org.apache.ambari.common.rest.entities.RepositoryKind;
 import org.apache.ambari.common.rest.entities.Role;
 import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.common.rest.entities.UserGroup;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.components.ComponentPluginFactory;
 
@@ -54,6 +55,18 @@ public class StackFlattener {
   private final Stacks stacks;
   private final ComponentPluginFactory plugins;
 
+  private UserGroup flattenUserGroup(List<Stack> stacks) {
+      UserGroup default_user_group = null;
+      for(int i=stacks.size()-1; i>=0; --i) {
+          Stack stack = stacks.get(i);
+          default_user_group = stack.getDefault_user_group();
+          if (default_user_group == null) {
+              continue; 
+          }
+      }
+      return default_user_group;
+  }
+  
   private List<RepositoryKind> flattenRepositories(List<Stack> stacks) {
     Map<String, List<String>> repositories = 
         new TreeMap<String, List<String>>();
@@ -235,6 +248,7 @@ public class StackFlattener {
     Stack result = new Stack(stacks.get(stacks.size()-1));
     result.setParentName(null);
     result.setPackageRepositories(flattenRepositories(stacks));
+    result.setDefault_user_group(flattenUserGroup(stacks));
     List<Component> components = new ArrayList<Component>();
     result.setComponents(components);
     for(String componentName: getComponents(stacks)) {

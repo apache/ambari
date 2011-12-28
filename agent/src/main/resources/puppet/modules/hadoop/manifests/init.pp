@@ -21,6 +21,7 @@ class hadoop {
   class common {
     package { "hadoop":
       ensure => latest,
+      require => [Package["jdk"]],
     }
 
     package { "hadoop-native":
@@ -28,11 +29,14 @@ class hadoop {
       require => [Package["hadoop"]],
     }
   }
-
-  define datanode ($ambari_role_name = "datanode", 
-                   $ambari_role_prefix, $user = "hdfs", $group = "hdfs", $auth_type = "simple") {
+  
+  define role ($ambari_role_name = "datanode", 
+               $ambari_role_prefix, $user = "hdfs", $group = "hdfs", $auth_type = "simple") {
 
     include common 
+
+    realize Group[$group]
+    realize User[$user]
 
     /*
      * Create conf directory for datanode 
@@ -58,48 +62,18 @@ class hadoop {
                            mode => 644
                        }
 
-    package { "hadoop-datanode":
+    package { "hadoop-${ambari_role_name}":
       ensure => latest,
-      require => Package["jdk"],
+      require => [Package["hadoop"]],
     }
 
-    if ($auth_type == "kerberos") {
-      package { "hadoop-sbin":
-        ensure => latest,
-        require => [Package["hadoop"]],
+    if ($ambari_role_name == "datanode") {
+      if ($auth_type == "kerberos") {
+        package { "hadoop-sbin":
+          ensure => latest,
+          require => [Package["hadoop"]],
+        }
       }
-    }
-  }
-
-  define namenode ($ambari_role_name = "namenode", 
-                   $ambari_role_prefix, $user = "hdfs", $group = "hdfs") {
-
-    include common
-
-    $hadoop_conf_dir = "${ambari_role_prefix}/etc/hadoop"
-    file {["${ambari_role_prefix}", "${ambari_role_prefix}/etc", "${ambari_role_prefix}/etc/hadoop"]:
-      ensure => directory,
-      owner => $user,
-      group => $group,
-      mode => 755
-    }     
-    notice ($ambari_role_prefix)
-    notice ($ambari_role_name)
-    $files = get_files ($hadoop_conf_dir, $::hadoop_stack_conf, $ambari_role_name)
-    notice($files)
-
-    /* Create config files for each category */
-    create_config_file {$files:
-                           conf_map => $::hadoop_stack_conf[$title],
-                           require => [Package["hadoop"]],
-                           owner => $user,
-                           group => $group,
-                           mode => 644
-                       }
-
-    package { "hadoop-namenode":
-      ensure => latest,
-      require => Package["jdk"],
     }
   }
 
@@ -107,6 +81,9 @@ class hadoop {
                  $user = "hadoop", $group = "hadoop") {
 
     include common 
+
+    realize Group[$group]
+    realize User[$user]
 
     $hadoop_conf_dir = "${ambari_role_prefix}/etc/conf"
     file {["${ambari_role_prefix}", "${ambari_role_prefix}/etc", "${ambari_role_prefix}/etc/conf"]:
@@ -131,7 +108,7 @@ class hadoop {
     package { ["hadoop-doc", "hadoop-source", "hadoop-debuginfo", 
                "hadoop-fuse", "hadoop-libhdfs", "hadoop-pipes"]:
       ensure => latest,
-      require => [Package["jdk"], Package["hadoop"]],  
+      require => [Package["hadoop"]],  
     }
   }
 

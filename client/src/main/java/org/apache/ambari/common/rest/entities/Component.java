@@ -30,8 +30,9 @@ import javax.xml.bind.annotation.XmlType;
  * Metadata information about a given component.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "CategoryType", propOrder = {
+@XmlType(name = "Component", propOrder = {
     "definition",
+    "user_group",
     "configuration",
     "roles"
 })
@@ -70,6 +71,26 @@ public class Component {
     private ComponentDefinition definition;
     
     /**
+     * Component user/group information
+     */
+    @XmlElement
+    private UserGroup user_group;
+    
+    /**
+     * @return the user_group
+     */
+    public UserGroup getUser_group() {
+        return user_group;
+    }
+
+    /**
+     * @param user_group the user_group to set
+     */
+    public void setUser_group(UserGroup user_group) {
+        this.user_group = user_group;
+    }
+
+    /**
      * The configuration shared between the active roles of the component.
      */
     @XmlElement
@@ -87,7 +108,7 @@ public class Component {
 
     public Component(String name, String version, String architecture,
                      String provider, ComponentDefinition definition,
-                     Configuration configuration, List<Role> roles) {
+                     Configuration configuration, List<Role> roles, UserGroup user_group) {
       this.name = name;
       this.version = version;
       this.architecture = architecture;
@@ -95,6 +116,7 @@ public class Component {
       this.definition = definition;
       this.configuration = configuration;
       this.roles = roles;
+      this.user_group = user_group;
     }
 
     /**
@@ -123,6 +145,9 @@ public class Component {
       if (other.version != null) {
         this.version = other.version;
       }
+      if (other.user_group != null) {
+          this.user_group = other.user_group;
+        }
     }
     
     /**

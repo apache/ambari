@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-178. Add support for Map/Reduce component in Ambari stack (vgogate)
+
   AMBARI-176. Adds a first version of MapReduce ACD (ddas)
 
   AMBARI-175. Removes the map from hostnames to heartbeat-responses. (ddas)

@@ -32,6 +32,7 @@ import org.apache.ambari.common.rest.entities.Property;
 import org.apache.ambari.common.rest.entities.RepositoryKind;
 import org.apache.ambari.common.rest.entities.Role;
 import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.common.rest.entities.UserGroup;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.components.ComponentPluginFactory;
 
@@ -87,12 +88,12 @@ public class TestStackFlattener {
                                "org.apache.ambari",
                                new ComponentDefinition("hdfs", 
                                    "org.apache.ambari", "0"), 
-                               new Configuration(), new ArrayList<Role>());
+                               new Configuration(), new ArrayList<Role>(), new UserGroup());
     parentMapreduce = new Component("mapreduce", "0.20.205.0", "i386", 
                                     "org.apache.ambari",
                                     new ComponentDefinition("mapreduce", 
                                                        "org.apache.ambari","0"), 
-                                    new Configuration(), new ArrayList<Role>());
+                                    new Configuration(), new ArrayList<Role>(), new UserGroup());
     List<Component> compList = new ArrayList<Component>();
     parentStack.setComponents(compList);
     compList.add(parentHdfs);
@@ -175,7 +176,7 @@ public class TestStackFlattener {
     Configuration childHdfsConfig = new Configuration();
     childStack.getComponents().add(
         new Component("hdfs", null, null, null, null, 
-                      childHdfsConfig, hdfsRoles));
+                      childHdfsConfig, hdfsRoles, new UserGroup()));
     Configuration nnConf = new Configuration();
     hdfsRoles.add(new Role("namenode", nnConf));
     setConfigParam(parentConfiguration, "ambari", "global", "global-value");
