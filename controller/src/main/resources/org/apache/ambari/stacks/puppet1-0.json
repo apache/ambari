@@ -53,7 +53,7 @@
           },
           {
             "@name":"ambari_auth_to_local",
-            "@value":"RULE:[1:$1@$0](.*@<%= ambari_user_realm %>)s/@.*//\nRULE:[2:$1@$0](<%= ambari_jobtracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/\nRULE:[2:$1@$0](<%= ambari_tasktracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/\nRULE:[2:$1@$0](<%= ambari_namenode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/\nRULE:[2:$1@$0](<%= ambari_datanode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/\nRULE:[2:$1@$0](<%= ambari_hbasemaster_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hbase_user %>/\nRULE:[2:$1@$0](<%= ambari_regionserver_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hbase_user %>/\nRULE:[2:$1@$0](<%= ambari_hcat_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hcat_user %>/"
+            "@value":"RULE:[1:$1@$0](.*@<%= ambari_user_realm %>)s/@.*//\nRULE:[2:$1@$0](<%= ambari_jobtracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/\nRULE:[2:$1@$0](<%= ambari_tasktracker_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_mapreduce_user %>/\nRULE:[2:$1@$0](<%= ambari_namenode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/\nRULE:[2:$1@$0](<%= ambari_datanode_principal %>@<%= ambari_service_realm %>)s/.*/<%= ambari_hdfs_user %>/"
           }
         ],
   "configuration":{
@@ -174,19 +174,19 @@
           },
           {
             "@name":"mapred.job.tracker",
-            "@value":"hrt20n24.cc1.ygridcore.net:9000"
+            "@value":"<%= ambari_jobtracker_host %>:9000"
           },
           {
             "@name":"mapred.job.tracker.http.address",
-            "@value":"hrt20n24.cc1.ygridcore.net:50030"
+            "@value":"<%= ambari_jobtracker_host %>:50030"
           },
           {
             "@name":"mapred.local.dir",
-            "@value":"/var/lib/hadoop/mapred1,/var/lib/hadoop/mapred2,/var/lib/hadoop/mapred3"
+            "@value":"<%= ambari_role_prefix %>/mapred/local"
           },
           {
             "@name":"mapreduce.cluster.administrators",
-            "@value":"hrt_mr"
+            "@value":"<%= ambari_mapreduce_user %>"
           },
           {
             "@name":"mapred.map.tasks.speculative.execution",
@@ -226,7 +226,7 @@
           },
           {
             "@name":"mapred.job.tracker.persist.jobstatus.dir",
-            "@value":"file:////var/log/hadoop/hrt_mr/jobstatus"
+            "@value":"file:///<%= ambari_role_prefix %>/jobstatus/<%= ambari_jobtracker_principal %>"
           },
           {
             "@name":"mapred.job.tracker.history.completed.location",
@@ -246,11 +246,11 @@
           },
           {
             "@name":"mapreduce.jobtracker.kerberos.principal",
-            "@value":"jt/_HOST@${local.realm}"
+            "@value":"<%= ambari_jobtracker_principal %>/_HOST@<%= ambari_service_realm %>"
           },
           {
             "@name":"mapreduce.tasktracker.kerberos.principal",
-            "@value":"tt/_HOST@${local.realm}"
+            "@value":"<%= ambari_tasktracker_principal %>/_HOST@<%= ambari_service_realm %>"
           },
           {
             "@name":"hadoop.job.history.user.location",
@@ -278,7 +278,7 @@
           },
           {
             "@name":"mapreduce.tasktracker.group",
-            "@value":"hadoop"
+            "@value":"<%= ambari_tasktracker_group %>"
           },
           {
             "@name":"mapred.acls.enabled",
@@ -298,11 +298,11 @@
           },
           {
             "@name":"mapreduce.history.server.http.address",
-            "@value":"hrt20n24.cc1.ygridcore.net:51111"
+            "@value":"<%= ambari_jobtracker_host %>:51111"
           },
           {
             "@name":"mapreduce.jobhistory.kerberos.principal",
-            "@value":"jt/_HOST@${local.realm}"
+            "@value":"<%= ambari_jobtracker_principal %>/_HOST@<%= ambari_service_realm %>"
           },
           {
             "@name":"mapreduce.jobhistory.keytab.file",
@@ -310,11 +310,11 @@
           },
           {
             "@name":"mapred.hosts",
-            "@value":"/etc/hadoop/mapred.include"
+            "@value":"<%= ambari_role_prefix %>/etc/hadoop/mapred.include"
           },
           {
             "@name":"mapred.hosts.exclude",
-            "@value":"/etc/hadoop/mapred.exclude"
+            "@value":"<%= ambari_role_prefix %>/etc/hadoop/mapred.exclude"
           },
           {
             "@name":"mapred.jobtracker.retirejob.check",
@@ -454,15 +454,15 @@
             "property":[
                 {
                   "@name":"mapreduce.cluster.local.dir",
-                  "@value":"/var/lib/hadoop/mapred1,/var/lib/hadoop/mapred2,/var/lib/hadoop/mapred3"
+                  "@value":"<%= ambari_role_prefix %>/mapred/local"
                 },
                 {
                   "@name":"mapreduce.tasktracker.group",
-                  "@value":"hadoop"
+                  "@value":"<%= ambari_tasktracker_group %>"
                 },
                 {
                   "@name":"hadoop.log.dir",
-                  "@value":"/var/log/hadoop/hrt_mr"
+                  "@value":"<%= ambari_role_prefix %>/logs"
                 }
               ]
           },
