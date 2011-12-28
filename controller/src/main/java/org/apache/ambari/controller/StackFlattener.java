@@ -255,6 +255,15 @@ public class StackFlattener {
       components.add(flattenComponent(componentName, stacks));
     }
     result.setConfiguration(buildClientConfiguration(stacks));
+    /*
+     * Set the default stack level user/group info, if it is not set 
+     * at the component level.
+     */
+    for (Component comp : components) {
+        if (comp.getUser_group() == null) {
+            comp.setUser_group(result.getDefault_user_group());
+        }
+    }
     return result;
   }
 }
