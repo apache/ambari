@@ -49,53 +49,17 @@ node default {
   }
 
   /* 
-   * Create user and groups
-   * TODO: currently uid is auto selected which may cause different uids on each node..
+   * Define users and groups
    */
-  @group {$ambari_default_group:
-    ensure => present
+  $groups = get_map_keys($unique_groups)
+  hadoop::define_group {$groups:
+    groups_map => $unique_groups
   }
-  @user {$ambari_default_user:
-    ensure => present,
-    gid => $ambari_default_group,
-    require => Group[$ambari_default_group]
-  }
-
-  if $ambari_hdfs_group {
-    @group {$ambari_hdfs_group:
-      ensure => present
-    }
-  } else {
-    $ambari_hdfs_group = $ambari_default_group
+  $users = get_map_keys($unique_users)
+  hadoop::define_user {$users:
+    users_map => $unique_users
   }
 
-  if $ambari_hdfs_user {
-    @user {$ambari_hdfs_user:
-      ensure => present,
-      gid => $ambari_hdfs_group,
-      require => Group[$ambari_hdfs_group]
-    }
-  } else {
-    $ambari_hdfs_user = $ambari_default_user
-  }
-
-  if $ambari_mapreduce_group {
-    @group {$ambari_mapreduce_group:
-      ensure => present
-    }
-  } else {
-    $ambari_mapreduce_group = $ambari_default_group
-  }
-
-  if $ambari_mapreduce_user {
-    @user {$ambari_mapreduce_user:
-      ensure => present,
-      gid => $ambari_mapreduce_group,
-      require => Group[$ambari_mapreduce_group]
-    }
-  } else {
-    $ambari_mapreduce_user = $ambari_default_user
-  }
 
   if ($fqdn in $role_to_nodes[namenode]) {
     hadoop::role {"namenode":

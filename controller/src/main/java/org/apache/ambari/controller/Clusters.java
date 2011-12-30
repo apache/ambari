@@ -934,19 +934,47 @@ public class Clusters {
       
       /*
        * Get the default user/group and role specific user/group information
+       * Find unique users and groups for puppet definition
        */
+      HashMap<String, UserGroup> users = new HashMap<String, UserGroup>();
+      HashMap<String, UserGroup> groups = new HashMap<String, UserGroup>(); 
+      UserGroup dg = stack.getDefault_user_group();
+      users.put(dg.getUser(), dg);
+      groups.put(dg.getGroup(), dg);
+      config = config + "\n$unique_users = { ";
+      config = config + dg.getUser() + " => { \"UID\" => \"" + dg.getUserid() + "\", \"GROUP\" => \"" + dg.getGroup() + "\" }, \n";
+      for (Component comp : stack.getComponents()) {
+          if (comp.getUser_group() != null) {
+              UserGroup ug = comp.getUser_group();
+              if (!users.containsKey(ug.getUser())) {
+                  users.put(ug.getUser(), ug);
+                  config = config + ug.getUser() + " => { \"UID\" => \"" + ug.getUserid() + "\", \"GROUP\" => \"" + ug.getGroup() + "\" }, \n";
+              }
+          }
+      }
+      config = config + "}\n";
+      
+      config = config + "\n$unique_groups = { ";
+      config = config + dg.getGroup() + " => { \"GID\" => \"" + dg.getGroupid() + "\" }, \n";
+      for (Component comp : stack.getComponents()) {
+          if (comp.getUser_group() != null) {
+              UserGroup ug = comp.getUser_group();
+              if (!groups.containsKey(ug.getGroup())) {
+                  groups.put(ug.getGroup(), ug);
+                  config = config + ug.getGroup() + " => { \"GID\" => \"" + ug.getGroupid() + "\" }, \n";
+              }
+          }
+      }
+      config = config + "}\n";
+      
       config = config + "$ambari_default_user" + " = " + "\"" + stack.getDefault_user_group().getUser()+"\"\n";
-      config = config + "$ambari_default_userid" + " = " + "\"" + stack.getDefault_user_group().getUserid()+"\"\n";
       config = config + "$ambari_default_group" + " = " + "\"" + stack.getDefault_user_group().getGroup()+"\"\n";
-      config = config + "$ambari_default_groupid" + " = " + "\"" + stack.getDefault_user_group().getGroupid()+"\"\n";
       for (Component comp : stack.getComponents()) {
           UserGroup ug = null;
           if (comp.getUser_group() != null) {
               ug = comp.getUser_group();
               config = config + "$ambari_"+comp.getName()+"_user" + " = " + "\"" + ug.getUser()+"\"\n";
-              config = config + "$ambari_"+comp.getName()+"_userid" + " = " + "\"" + ug.getUserid()+"\"\n";
               config = config + "$ambari_"+comp.getName()+"_group" + " = " + "\"" + ug.getGroup()+"\"\n";
-              config = config + "$ambari_"+comp.getName()+"_groupid" + " = " + "\"" + ug.getGroupid()+"\"\n";
           }
       }
       config = config + "\n";
@@ -959,6 +987,9 @@ public class Clusters {
   }
   
   private String getRoleToNodesMapForPuppet (ClusterDefinition c, Stack stack) throws Exception {
+      /*
+       * TODO: Add all master host names
+       */
       HashMap<String, String> roles = new HashMap<String, String>();
       String config = "\n$role_to_nodes = { ";
       for (int i=0; i<c.getRoleToNodesMap().size(); i++) {
@@ -1004,7 +1035,6 @@ public class Clusters {
       if (stack.getConfiguration() != null && stack.getConfiguration().getCategory() != null) {
           for (int j=0; j<stack.getConfiguration().getCategory().size(); j++) {
               ConfigurationCategory cat = stack.getConfiguration().getCategory().get(j);
-              if (cat.getName().equals("ambari")) { continue; }
               config = config+"\""+cat.getName()+"\" => { ";
               if (cat.getProperty() != null) {
                    for (int i=0; i<cat.getProperty().size(); i++) {

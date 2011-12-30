@@ -278,7 +278,7 @@
           },
           {
             "@name":"mapreduce.tasktracker.group",
-            "@value":"<%= ambari_tasktracker_group %>"
+            "@value":"<%= ambari_mapreduce_group %>"
           },
           {
             "@name":"mapred.acls.enabled",
@@ -458,7 +458,7 @@
                 },
                 {
                   "@name":"mapreduce.tasktracker.group",
-                  "@value":"<%= ambari_tasktracker_group %>"
+                  "@value":"<%= ambari_mapreduce_group %>"
                 },
                 {
                   "@name":"hadoop.log.dir",

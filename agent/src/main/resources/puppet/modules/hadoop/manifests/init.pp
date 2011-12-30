@@ -112,6 +112,23 @@ class hadoop {
     }
   }
 
+  define define_group ($groups_map) {
+    @group {$title:
+      ensure => present
+    }
+  }
+
+  /*
+   * TODO: currently uid is auto selected which may cause different uids on each node..
+   */
+  define define_user ($users_map) {
+    @user {$title:
+      ensure => present,
+      gid => $users_map[$title]['GROUP'],
+      require => Group[$users_map[$title]['GROUP']]
+    }
+  }
+
   define create_config_file ($conf_map, $owner, $group, $mode) {
     $category = get_category_name ($title)
     $conf_category_map = $conf_map[$category]
