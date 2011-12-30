@@ -917,18 +917,29 @@ public class Clusters {
       String config = "\n";
       config = config + "$ambari_cluster_name" + " = " + "\"" + c.getName() + "\"\n";
       config = config + "\n";
+      /*
+       * TODO: Add all master host names
+      */
+      HashMap<String, String> roles = new HashMap<String, String>();
       for (RoleToNodes rns : c.getRoleToNodesMap()) {
           config = config + "$ambari_"+rns.getRoleName()+"_host" + " = " + "\"";
+          roles.put(rns.getRoleName(), null);
           List<String> host_list = this.getHostnamesFromRangeExpressions(rns.getNodes());
-          for (int j=0; j<host_list.size(); j++) {
-              String host = host_list.get(j);
-              if (j == host_list.size()-1) {
-                  config = config + host;
-              } else {
-                  config = config +host+", ";
+          if (host_list != null && host_list.get(0) != null) {
+            config = config + host_list.get(0);
+          }  
+          config = config + "\"\n";
+      }
+     
+      /* 
+       * Add non-specified roles for puppet to work correctly
+       */
+      for (Component comp : stack.getComponents()) {
+          for (Role r : comp.getRoles()) {
+              if (!roles.containsKey(r.getName())) {
+                  config = config + "$ambari_"+r.getName()+"_host" + " = " + "\"\"\n";
               }
           }
-          config = config + "\"\n";
       }
       config = config + "\n";
       
@@ -987,9 +998,7 @@ public class Clusters {
   }
   
   private String getRoleToNodesMapForPuppet (ClusterDefinition c, Stack stack) throws Exception {
-      /*
-       * TODO: Add all master host names
-       */
+  
       HashMap<String, String> roles = new HashMap<String, String>();
       String config = "\n$role_to_nodes = { ";
       for (int i=0; i<c.getRoleToNodesMap().size(); i++) {
