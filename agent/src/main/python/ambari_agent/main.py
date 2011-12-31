@@ -29,6 +29,7 @@ import ConfigParser
 from createDaemon import createDaemon
 from Controller import Controller
 from shell import getTempFiles
+from shell import killstaleprocesses 
 import AmbariConfig
 
 logger = logging.getLogger()
@@ -58,11 +59,12 @@ def signal_handler(signum, frame):
 
   tempFiles = getTempFiles()
   for tempFile in tempFiles:
-    try:
-      os.unlink(tempFile)
-    except Exception:
-      traceback.print_exc()
-      logger.warn("Unable to remove: "+tempFile)
+    if os.path.exists(tempFile):
+      try:
+        os.unlink(tempFile)
+      except Exception:
+        traceback.print_exc()
+        logger.warn("Unable to remove: "+tempFile)
   os._exit(0)
 
 def debug(sig, frame):
@@ -109,7 +111,8 @@ def main():
     pid = str(os.getpid())
     file(pidfile, 'w').write(pid)
 
-  logger.setLevel(logging.DEBUG)
+
+  logger.setLevel(logging.INFO)
   formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - %(message)s")
   rotateLog = logging.handlers.RotatingFileHandler(logfile, "a", 10000000, 10)
   rotateLog.setFormatter(formatter)
@@ -127,6 +130,7 @@ def main():
   except Exception, err:
     logger.warn(err)
 
+  killstaleprocesses()
   logger.info("Connecting to controller at: "+config.get('controller', 'url'))
 
   # Launch Controller communication

@@ -49,14 +49,18 @@ class ActionQueue(threading.Thread):
     self.config = config
     self.sh = shellRunner()
     self._stop = threading.Event()
-    self.maxRetries = config.get('command', 'maxretries') 
-    self.sleepInterval = config.get('command', 'sleepBetweenRetries')
+    self.maxRetries = config.getint('command', 'maxretries') 
+    self.sleepInterval = config.getint('command', 'sleepBetweenRetries')
 
   def stop(self):
     self._stop.set()
 
   def stopped(self):
     return self._stop.isSet()
+
+  #For unittest
+  def getshellinstance(self):
+    return self.sh
 
   def put(self, response):
     if 'actions' in response:
@@ -201,7 +205,7 @@ class ActionQueue(threading.Thread):
       # this is hardcoded to do puppet specific stuff for now
       # append the content of the puppet file to the file written above
       filepath = getFilePath(action,self.getInstallFilename(action['id'])) 
-      logger.debug("FILEPATH : " + filepath)
+      logger.info("File path for puppet top level script: " + filepath)
       p = self.sh.run(['/bin/cat',AmbariConfig.config.get('puppet','driver')])
       if p['exitCode']!=0:
         commandResult['error'] = p['error']

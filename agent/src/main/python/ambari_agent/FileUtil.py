@@ -77,7 +77,7 @@ def writeFile(action, result, fileName=""):
       fullPathName=os.path.join(path, fileName)
     else:
       fullPathName=os.path.join(path, fileInfo['path'])
-    logger.info("path in writeFile: %s" % fullPathName)
+    logger.debug("path in writeFile: %s" % fullPathName)
     content=fileInfo['data']
     try:
       if isinstance(user, int)!=True:

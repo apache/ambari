@@ -19,10 +19,13 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-import os, errno
+import os, errno, getpass
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.FileUtil import getFilePath
+from ambari_agent import shell
+from ambari_agent.shell import serverTracker
+import time
 
 class TestAgentActions(TestCase):
   def test_installAndConfigAction(self):
@@ -57,3 +60,43 @@ class TestAgentActions(TestCase):
     cmdResult = result['commandResult']
     self.assertEqual(cmdResult['exitCode'], 0, "installAndConfigAction test failed. Returned %d " % cmdResult['exitCode'])
     self.assertEqual(cmdResult['output'], path + "\n", "installAndConfigAction test failed Returned %s " % cmdResult['output'])
+
+  def test_startAndStopAction(self):
+    command = {'script' : 'import os,sys,time\ni = 0\nwhile (i < 1000):\n  print "testhello"\n  sys.stdout.flush()\n  time.sleep(1)\n  i+=1',
+               'param' : ''}
+    action={'id' : 'ttt',
+            'kind' : 'START_ACTION',
+            'clusterId' : 'foobar',
+            'clusterDefinitionRevision' : 1,
+            'component' : 'foocomponent',
+            'role' : 'foorole',
+            'command' : command,
+            'user' : getpass.getuser()
+    }
+    
+    actionQueue = ActionQueue(AmbariConfig().getConfig())
+    result = actionQueue.startAction(action)
+    cmdResult = result['commandResult']
+    self.assertEqual(cmdResult['exitCode'], 0, "starting a process failed")
+    shell = actionQueue.getshellinstance()
+    key = shell.getServerKey(action['clusterId'],action['clusterDefinitionRevision'],
+                       action['component'],action['role'])
+    keyPresent = True
+    if not key in serverTracker:
+      keyPresent = False
+    self.assertEqual(keyPresent, True, "Key not present")
+    plauncher = serverTracker[key]
+    self.assertTrue(plauncher.getpid() > 0, "Pid less than 0!")
+    time.sleep(5)
+    shell.stopProcess(key)
+    keyPresent = False
+    if key in serverTracker:
+      keyPresent = True
+    self.assertEqual(keyPresent, False, "Key present")
+    processexists = True
+    try:
+      os.kill(serverTracker[key].getpid(),0)
+    except:
+      processexists = False
+    self.assertEqual(processexists, False, "Process still exists!")
+    self.assertTrue("testhello" in plauncher.out, "Output doesn't match!")

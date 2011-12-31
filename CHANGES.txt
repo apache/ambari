@@ -2,7 +2,10 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
-  AMBARI-179. Set the component level user/group information in the flattened stack, inherit default user/group information if not set one for component. (vgogate)
+  AMBARI-180. Fixes the agent to do better process management (ddas)
+
+  AMBARI-179. Set the component level user/group information in the flattened stack, 
+  inherit default user/group information if not set one for component. (vgogate)
 
   AMBARI-178. Add support for Map/Reduce component in Ambari stack (vgogate)
 
