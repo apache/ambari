@@ -55,7 +55,6 @@ class Controller(threading.Thread):
     self.actionQueue = ActionQueue(self.config)
     self.actionQueue.start()
     self.heartbeat = Heartbeat(self.actionQueue)
-    logger.info("Controller connection established.")
 
   def __del__(self):
     logger.info("Controller connection disconnected.")
@@ -71,6 +70,7 @@ class Controller(threading.Thread):
       opener = urllib2.build_opener(auth_handler)
       urllib2.install_opener(opener)
     retry=False
+    firstTime=True
     while True:
       try:
         if retry==False:
@@ -83,14 +83,16 @@ class Controller(threading.Thread):
         data = json.loads(response)
         id=int(data['responseId'])
         self.actionQueue.put(data)
+        if retry==True or firstTime==True:
+          logger.info("Controller connection established")
+          firstTime=False
         retry=False
       except Exception, err:
         retry=True
         if "code" in err:
           logger.error(err.code)
         else:
-          logger.error("Unable to connect to: "+self.url)
-          traceback.print_exc()
+          logger.error("Unable to connect to: "+self.url,exc_info=True)
       if self.actionQueue.isIdle():
         time.sleep(30)
       else:
