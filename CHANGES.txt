@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-182. rename controller/src/main/resources/org/apache/ambari/acd/mapred-0.1.0.acd to mapreduce-0.1.0.acd (vgogate)
+
   AMBARI-180. Fixes the agent to do better process management (ddas)
 
   AMBARI-179. Set the component level user/group information in the flattened stack, 
