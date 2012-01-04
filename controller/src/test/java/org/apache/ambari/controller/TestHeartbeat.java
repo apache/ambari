@@ -42,6 +42,9 @@ import org.apache.ambari.common.rest.entities.ClusterDefinition;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.NodeState;
+import org.apache.ambari.common.rest.entities.Stack;
+import org.apache.ambari.common.rest.entities.Component;
+import org.apache.ambari.common.rest.entities.UserGroup;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.configuration.Configuration;
 import org.apache.ambari.controller.HeartbeatHandler.ClusterNameAndRev;
@@ -75,6 +78,9 @@ public class TestHeartbeat {
   Cluster cluster;
   Nodes nodes;
   Clusters clusters;
+  Stack stack;
+  Component component;
+  UserGroup usergroup;
   StateMachineInvokerInterface invoker;
   FSMDriverInterface driver;
   HeartBeat heartbeat;
@@ -141,6 +147,15 @@ public class TestHeartbeat {
     when(clusters.getClusterByName("cluster1")).thenReturn(cluster);
     when(clusters.getInstallAndConfigureScript(anyString(), anyInt()))
         .thenReturn(script);
+    
+    stack = mock(Stack.class);
+    usergroup = mock(UserGroup.class);
+    component = mock (Component.class);
+    when (clusters.getClusterStack("cluster1", true)).thenReturn(stack);
+    when (stack.getComponentByName(anyString())).thenReturn(component);
+    when (component.getUser_group()).thenReturn(usergroup);
+    when (usergroup.getUser()).thenReturn("hadoop");
+
     heartbeat = new HeartBeat();
     heartbeat.setIdle(true);
     heartbeat.setInstallScriptHash(-1);

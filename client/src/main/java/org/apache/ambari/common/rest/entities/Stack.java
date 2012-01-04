@@ -336,4 +336,16 @@ public class Stack {
     public void setCreationTime(XMLGregorianCalendar creationTime) {
         this.creationTime = creationTime;
     }
+    
+    /**
+     * @param componentName 
+     */
+    public Component getComponentByName (String name) {
+        for (Component c : this.components) {
+            if (c.getName().equals(name)) {
+                return c;
+            }
+        }
+        return null;
+    }
 }

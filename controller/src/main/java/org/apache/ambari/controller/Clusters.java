@@ -716,8 +716,7 @@ public class Clusters {
         if (!expanded) {
             bp = stacks.getStack(stackName, stackRevision);
         } else {
-            // TODO: Get the derived/expanded stack
-            bp = stacks.getStack(stackName, stackRevision);
+            bp = this.flattener.flattenStack(stackName, stackRevision);
         }
         return bp;
     }

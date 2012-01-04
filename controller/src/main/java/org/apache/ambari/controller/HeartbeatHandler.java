@@ -37,6 +37,7 @@ import org.apache.ambari.common.rest.agent.ConfigFile;
 import org.apache.ambari.common.rest.agent.ControllerResponse;
 import org.apache.ambari.common.rest.agent.HeartBeat;
 import org.apache.ambari.common.rest.entities.NodeState;
+import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.components.ComponentPlugin;
 import org.apache.ambari.resource.statemachine.ClusterFSM;
 import org.apache.ambari.resource.statemachine.FSMDriverInterface;
@@ -63,7 +64,7 @@ public class HeartbeatHandler {
   private final StateMachineInvokerInterface stateMachineInvoker;
   private final FSMDriverInterface driver;
   
-  static final String DEFAULT_USER = "hdfs"; //TODO: this needs to come from the stack definition or something (AMBARI-169)
+  static final String DEFAULT_USER = "hadoop"; //TODO: this needs to come from the stack definition or something (AMBARI-169)
     
   @Inject
   HeartbeatHandler(Clusters clusters, Nodes nodes, 
@@ -268,7 +269,7 @@ public class HeartbeatHandler {
       List<Action> allActions) {
     ConfigFile file = new ConfigFile();
     file.setData(script);
-    file.setOwner(DEFAULT_USER); //TODO (AMBARI-169)
+    //file.setOwner(DEFAULT_USER); //It should be the user that is running the ambari agent
     
     Action action = new Action();
     action.setFile(file);
@@ -467,15 +468,18 @@ public class HeartbeatHandler {
   }
   
   private void fillActionDetails(Action action, String clusterId, 
-      long clusterDefRev, String component, String role) {
+      long clusterDefRev, String component, String role) throws Exception {
     if (action == null) {
       return;
     }
+    // TODO: Should cluster store the flattened/expanded stack to avoid 
+    // expanding it every time?
+    Stack stack = this.clusters.getClusterStack(clusterId, true);
     action.setClusterId(clusterId);
     action.setClusterDefinitionRevision(clusterDefRev);
     action.setComponent(component);
     action.setRole(role);
-    action.setUser(DEFAULT_USER); //TODO (AMBARI-169)
+    action.setUser(stack.getComponentByName(component).getUser_group().getUser());
     action.setCleanUpCommand(new Command("foobar","",new String[]{"foobar"}));//TODO: this needs fixing at some point
     String workDir = role.equals(component + "-client") ? 
         (clusterId + "-client") : (clusterId + "-" + role);
@@ -484,7 +488,7 @@ public class HeartbeatHandler {
   
   private void fillDetailsAndAddAction(Action action, List<Action> allActions, 
       String clusterId, 
-      long clusterDefRev, String component, String role) {
+      long clusterDefRev, String component, String role) throws Exception {
     fillActionDetails(action, clusterId, clusterDefRev, component, role);
     addAction(action, allActions);
   }
