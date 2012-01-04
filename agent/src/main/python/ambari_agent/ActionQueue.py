@@ -31,6 +31,7 @@ import json
 import os
 import time
 import subprocess
+import copy
 
 logger = logging.getLogger()
 installScriptHash = -1
@@ -107,8 +108,12 @@ class ActionQueue(threading.Thread):
         exitCode = 1
         retryCount = 1
         while (exitCode != 0 and retryCount <= self.maxRetries):
+          result={}
           try:
-            result = switches.get(action['kind'], self.unknownAction)(action) 
+            #pass a copy of action since we don't want anything to change in the 
+            #action dict 
+            actionCopy = copy.copy(action)
+            result = switches.get(action['kind'], self.unknownAction)(actionCopy)
             if ('commandResult' in result):
               commandResult = result['commandResult']
               exitCode = commandResult['exitCode']
@@ -128,12 +133,17 @@ class ActionQueue(threading.Thread):
               commandResult = result['commandResult']
               if ('exitCode' in commandResult):
                 exitCode = commandResult['exitCode']
-          #retry in 5 seconds  
+              else:
+                exitCode = 1
+            else:
+              result['commandResult'] = {'exitCode': 1, 'output':"", 'error':""}
+
+          #retry in some time  
+          logger.warn("Retrying %s in %d seconds" % (str(action),self.sleepInterval))
           time.sleep(self.sleepInterval)
           retryCount += 1
           
         if (exitCode != 0):
-          result = self.genResult(action)
           result['exitCode']=exitCode
           result['retryActionCount'] = retryCount - 1
         else:
