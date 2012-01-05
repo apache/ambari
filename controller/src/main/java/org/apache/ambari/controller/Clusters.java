@@ -897,7 +897,7 @@ public class Clusters {
       
       ClusterDefinition c = getClusterByName (clusterName).getClusterDefinition(revision);
       Stack stack = this.flattener.flattenStack(c.getStackName(), Integer.parseInt(c.getStackRevision()));
-      printStack(stack, null);
+      //printStack(stack, null);
       
       /*
        * Generate Ambari global variables
