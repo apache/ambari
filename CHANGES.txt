@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-184. Ambari client node list command returns multiple entries for same node (vgogate)
+
   AMBARI-183. Pass the appropriate component user to agent as specified in the stack (vgogate)
 
   AMBARI-182. rename controller/src/main/resources/org/apache/ambari/acd/mapred-0.1.0.acd to mapreduce-0.1.0.acd (vgogate)

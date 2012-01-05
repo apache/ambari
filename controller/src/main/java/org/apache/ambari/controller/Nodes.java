@@ -78,49 +78,58 @@ public class Nodes {
         for (Node n : this.nodes.values()) {
             if (allocatedx.equals("") && alivex.equals("")) {
                 list.add(n); 
+                continue;
             }
             if (allocatedx.equals("") && alive) {
                 if (getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) < NODE_NOT_RESPONDING_DURATION) {
                     list.add(n);
+                    continue;
                 }
             }
             if (allocatedx.equals("") && !alive) {        
                 if (getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) >= NODE_NOT_RESPONDING_DURATION) {
                     list.add(n);
+                    continue;
                 }
             }
             if (alivex.equals("") && allocated ) {
                 if (n.getNodeState().getAllocatedToCluster()) {
                     list.add(n);
+                    continue;
                 }
             }
             if (alivex.equals("") && !allocated) {
                 if (!n.getNodeState().getAllocatedToCluster()) {
                     list.add(n);
+                    continue;
                 }
             }
             if (allocated && alive) {
                 if (n.getNodeState().getAllocatedToCluster() && 
                     getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) < NODE_NOT_RESPONDING_DURATION) {
                     list.add(n);
+                    continue;
                 }
             }
             if (allocated && !alive) {
                 if (n.getNodeState().getAllocatedToCluster() && 
                     getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) >= NODE_NOT_RESPONDING_DURATION) {
                     list.add(n);
+                    continue;
                 }
             }
             if (!allocated && alive) {
                 if (!n.getNodeState().getAllocatedToCluster() && 
                     getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) < NODE_NOT_RESPONDING_DURATION) {
                     list.add(n);
+                    continue;
                 }
             }
             if (!allocated && !alive) {
                 if (!n.getNodeState().getAllocatedToCluster() && 
                     getTimeDiffInMillis(curTime, n.getNodeState().getLastHeartbeatTime()) >= NODE_NOT_RESPONDING_DURATION) {
                     list.add(n);
+                    continue;
                 }
             }
         }
