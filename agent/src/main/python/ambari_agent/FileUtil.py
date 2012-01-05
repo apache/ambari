@@ -117,7 +117,7 @@ def writeFile(action, result, fileName=""):
   except Exception, err:
     traceback.print_exc()
     result['exitCode'] = 1
-    result['stderr'] = traceback.format_exc()
+    result['error'] = traceback.format_exc()
   return result
 
 def createStructure(action, result):
@@ -134,7 +134,7 @@ def createStructure(action, result):
   except Exception, err:
     traceback.print_exc()
     result['exitCode'] = 1
-    result['stderr'] = traceback.format_exc()
+    result['error'] = traceback.format_exc()
   return result
 
 def deleteStructure(action, result):
@@ -146,7 +146,7 @@ def deleteStructure(action, result):
     result['exitCode'] = 0
   except Exception, err:
     result['exitCode'] = 1
-    result['stderr'] = traceback.format_exc()
+    result['error'] = traceback.format_exc()
   return result
 
 def main():

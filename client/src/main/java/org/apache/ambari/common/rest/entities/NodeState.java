@@ -165,11 +165,17 @@ public class NodeState {
         return;
       }
       for (CommandResult r : results) {
-        if (r.getStdErr() != null) {
-          this.failedCommandStderrs.add(r.getStdErr());
+        if (r.getError() != null) {
+          if (this.failedCommandStderrs == null) {
+            this.failedCommandStderrs = new ArrayList<String>();
+          }
+          this.failedCommandStderrs.add(r.getError());
         }
-        if (r.getStdOut() != null) {
-          this.failedCommandStdouts.add(r.getStdOut());
+        if (r.getOutput() != null) {
+          if (this.failedCommandStdouts == null) {
+            this.failedCommandStdouts = new ArrayList<String>();
+          }
+          this.failedCommandStdouts.add(r.getOutput());
         }
       }
     }

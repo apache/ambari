@@ -347,7 +347,7 @@ public class TestHeartbeat {
     CommandResult failedCommandResult = new CommandResult();
     final String stdout = "FAILED_COMMAND_STDOUT";
     failedCommandResult.setExitCode(1);
-    failedCommandResult.setStdOut(stdout);
+    failedCommandResult.setOutput(stdout);
     CommandResult successCommandResult = new CommandResult();
     successCommandResult.setExitCode(0);
     
@@ -365,7 +365,7 @@ public class TestHeartbeat {
             List<CommandResult> results = (List<CommandResult>)obj;
             for (CommandResult result : results) {
               if (result.getExitCode() == 1) {
-                if (result.getStdOut().equals(stdout)) {
+                if (result.getOutput().equals(stdout)) {
                   //found the match!
                   mUnhealthy.stdoutMatched = true;
                 }

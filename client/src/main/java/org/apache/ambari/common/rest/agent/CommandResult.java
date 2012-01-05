@@ -37,40 +37,40 @@ public class CommandResult {
   public CommandResult() {
   }
   
-  public CommandResult(int exitCode, String stdout, String stderr) {
+  public CommandResult(int exitCode, String output, String error) {
     this.exitCode = exitCode;
-    this.stdout = stdout;
-    this.stderr = stderr;
+    this.output = output;
+    this.error = error;
   }
   
   @XmlElement
   private int exitCode;
   @XmlElement
-  private String stdout;
+  private String output;
   @XmlElement
-  private String stderr;
+  private String error;
 
   public int getExitCode() {
     return exitCode;
   }
   
-  public String getStdOut() {
-    return this.stdout;
+  public String getOutput() {
+    return this.output;
   }
   
-  public String getStdErr() {
-    return this.stderr;
+  public String getError() {
+    return this.error;
   }
   
   public void setExitCode(int exitCode) {
     this.exitCode = exitCode;
   }
   
-  public void setStdOut(String stdout) {
-    this.stdout = stdout;
+  public void setOutput(String output) {
+    this.output = output;
   }
   
-  public void setStdErr(String stderr) {
-    this.stderr = stderr;
+  public void setError(String error) {
+    this.error = error;
   }
 }
