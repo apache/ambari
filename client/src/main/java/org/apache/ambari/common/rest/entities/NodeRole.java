@@ -33,7 +33,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType
-public class NodeServer {
+public class NodeRole {
 
     public static final String NODE_SERVER_STATE_UP = "UP";
     public static final String NODE_SERVER_STATE_DOWN = "DOWN";
@@ -51,10 +51,17 @@ public class NodeServer {
     @XmlAttribute(required = true)
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar lastStateUpdateTime;
+    
+    public NodeRole () {}
         
     /**
      * 
      */
+    public NodeRole (String name, String state, XMLGregorianCalendar lastStateUpdateTime) {
+        this.name = name;
+        this.state = state;
+        this.lastStateUpdateTime = lastStateUpdateTime;
+    }
     
     /**
      * @return the name

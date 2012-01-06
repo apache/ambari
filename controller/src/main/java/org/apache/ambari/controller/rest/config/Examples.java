@@ -26,6 +26,7 @@ import org.apache.ambari.common.rest.entities.ClusterInformation;
 import org.apache.ambari.common.rest.entities.ClusterState;
 import org.apache.ambari.common.rest.entities.Node;
 import org.apache.ambari.common.rest.entities.NodeAttributes;
+import org.apache.ambari.common.rest.entities.NodeRole;
 import org.apache.ambari.common.rest.entities.NodeState;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
 import org.apache.ambari.common.rest.entities.Stack;
@@ -90,10 +91,11 @@ public class Examples {
         NODE.setNodeAttributes(nodeAttributes);
         NodeState nodeState = new NodeState();
         nodeState.setClusterName("cluster-123");
-        List<String> roleNames = new ArrayList<String>();
-        roleNames.add("jobtracker-role");
-        roleNames.add("namenode-role");
-        nodeState.setNodeRoleNames(roleNames);
+        List<NodeRole> roles = new ArrayList<NodeRole>();
+        NodeRole ns1 = new NodeRole("jobtracker-role", NodeRole.NODE_SERVER_STATE_DOWN, Util.getXMLGregorianCalendar(new Date()));
+        NodeRole ns2 = new NodeRole("namenode-role", NodeRole.NODE_SERVER_STATE_DOWN, Util.getXMLGregorianCalendar(new Date()));
+        roles.add(ns1); roles.add(ns2);
+        nodeState.setNodeRoles(roles);
         NODE.setNodeState(nodeState);
         NODES.add(NODE);
         

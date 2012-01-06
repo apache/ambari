@@ -43,6 +43,7 @@ import org.apache.ambari.common.rest.entities.Component;
 import org.apache.ambari.common.rest.entities.ConfigurationCategory;
 import org.apache.ambari.common.rest.entities.KeyValuePair;
 import org.apache.ambari.common.rest.entities.Node;
+import org.apache.ambari.common.rest.entities.NodeRole;
 import org.apache.ambari.common.rest.entities.Property;
 import org.apache.ambari.common.rest.entities.Role;
 import org.apache.ambari.common.rest.entities.RoleToNodes;
@@ -676,10 +677,8 @@ public class Clusters {
         for (RoleToNodes e : roleToNodesList) {
             List<String> hosts = getHostnamesFromRangeExpressions(e.getNodes());
             for (String host : hosts) {
-              if (nodes.getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
-                nodes.getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
-              } 
-              nodes.getNodes().get(host).getNodeState().getNodeRoleNames().add(e.getRoleName());
+              NodeRole ns = new NodeRole(e.getRoleName(), NodeRole.NODE_SERVER_STATE_DOWN, Util.getXMLGregorianCalendar(new Date()));
+              nodes.getNodes().get(host).getNodeState().updateRoleState(ns);
             }
         }
         
@@ -691,10 +690,10 @@ public class Clusters {
         List<String> specified_node_range = new ArrayList<String>();
         specified_node_range.addAll(getHostnamesFromRangeExpressions(clusterNodes));
         for (String host : specified_node_range) {
-            if (nodes.getNodes().get(host).getNodeState().getNodeRoleNames() == null) {
-                nodes.getNodes().get(host).getNodeState().setNodeRoleNames((new ArrayList<String>()));
+            if (nodes.getNodes().get(host).getNodeState().getNodeRoles() == null) {
                 String cid = nodes.getNodes().get(host).getNodeState().getClusterName();
-                nodes.getNodes().get(host).getNodeState().getNodeRoleNames().add(getDefaultRoleName(cid));
+                NodeRole ns = new NodeRole(getDefaultRoleName(cid), NodeRole.NODE_SERVER_STATE_DOWN, Util.getXMLGregorianCalendar(new Date()) );
+                nodes.getNodes().get(host).getNodeState().updateRoleState(ns);
             } 
         }
     }
@@ -815,7 +814,7 @@ public class Clusters {
      * Get the list of role names associated with node
      */
     public List<String> getAssociatedRoleNames(String hostname) {
-      return nodes.getNodes().get(hostname).getNodeState().getNodeRoleNames();
+      return nodes.getNodes().get(hostname).getNodeState().getNodeRoleNames(null);
     }
     
     /*
@@ -1134,7 +1133,8 @@ public class Clusters {
           }
           Node n = nodeMap.get(host);
           if (roleName != null && !roleName.equals("")) {
-              if (!n.getNodeState().getNodeRoleNames().contains(roleName)) { 
+              if (n.getNodeState().getNodeRoleNames("") == null) { continue; }
+              if (!n.getNodeState().getNodeRoleNames("").contains(roleName)) { 
                 continue; 
               }
           }

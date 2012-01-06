@@ -38,8 +38,7 @@ import org.apache.ambari.common.rest.agent.CommandResult;
   */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "NodeState", propOrder = {
-   "nodeRoleNames",
-    "nodeServers",
+    "nodeRoles",
     "failedCommandStdouts",
     "failedCommandStderrs"
 })
@@ -70,11 +69,8 @@ public class NodeState {
      * null indicates no roles associated with this node.
      */
     @XmlElement
-    protected List<String> nodeRoleNames = null;
+    protected List<NodeRole> nodeRoles = null;
         
-    @XmlElement
-    protected List<NodeServer> nodeServers = new ArrayList<NodeServer>();
-    
     @XmlElement
     protected List<String> failedCommandStdouts = null;
     
@@ -84,6 +80,60 @@ public class NodeState {
     public static final boolean HEALTHY = true;
     public static final boolean UNHEALTHY = false;
 
+    /**
+     * Get Node Roles names 
+     */
+    public List<String> getNodeRoleNames (String activeState) {
+        if (this.getNodeRoles() == null) return null;
+        List<String> rolenames = new ArrayList<String>();
+        for (NodeRole x : this.getNodeRoles()) {
+            if(activeState == null || activeState.equals("")) {
+                rolenames.add(x.getName()); continue;
+            }
+            if (activeState.equals(NodeRole.NODE_SERVER_STATE_DOWN) && x.getState().equals(NodeRole.NODE_SERVER_STATE_DOWN)) {
+                rolenames.add(x.getName()); continue;
+            }
+            if (activeState.equals(NodeRole.NODE_SERVER_STATE_UP) && x.getState().equals(NodeRole.NODE_SERVER_STATE_UP)) {
+                rolenames.add(x.getName()); continue;
+            }
+        }
+        return rolenames;
+    }
+    
+    /**
+     * Update role name. Add if it does not exists in the list
+     */
+    public void updateRoleState(NodeRole role) {
+        if (this.getNodeRoles() == null) {
+            this.setNodeRoles(new ArrayList<NodeRole>());
+        }
+        int i = 0;
+        for (i=0; i<this.getNodeRoles().size(); i++) {
+            if (this.getNodeRoles().get(i).getName().equals(role.getName())) {
+                this.getNodeRoles().remove(i);
+                this.getNodeRoles().add(i, role);
+                return;
+            }
+        }
+        if (i == this.getNodeRoles().size()) {
+            this.getNodeRoles().add(role);
+        }
+    }
+    
+    /**
+     * @return the nodeRoles
+     */
+    public List<NodeRole> getNodeRoles() {
+        return nodeRoles;
+    }
+
+    /**
+     * @param nodeRoles the nodeRoles to set
+     */
+    public void setNodeRoles(List<NodeRole> nodeRoles) {
+        this.nodeRoles = nodeRoles;
+    }
+    
     /**
      * @return the clusterName
      */
@@ -98,20 +148,6 @@ public class NodeState {
         this.clusterName = clusterName;
     }
 
-
-    /**
-     * @return the nodeRoleNames
-     */
-    public List<String> getNodeRoleNames() {
-      return nodeRoleNames;
-    }
-
-    /**
-     * @param nodeRoleNames the nodeRoleNames to set
-     */
-    public void setNodeRoleNames(List<String> nodeRoleNames) {
-      this.nodeRoleNames = nodeRoleNames;
-    }
 
     /**
      * @return the allocatedToCluster
@@ -219,20 +255,6 @@ public class NodeState {
             cal.setTime(lastHeartbeatTime);
             this.lastHeartbeatTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
         }
-    }
-    
-    /**
-     * @return the nodeServers
-     */
-    public List<NodeServer> getNodeServers() {
-            return nodeServers;
-    }
-
-    /**
-     * @param nodeServers the nodeServers to set
-     */
-    public void setNodeServers(List<NodeServer> nodeServers) {
-            this.nodeServers = nodeServers;
     }
 
 }

@@ -36,6 +36,7 @@ import org.apache.ambari.common.rest.agent.CommandResult;
 import org.apache.ambari.common.rest.agent.ConfigFile;
 import org.apache.ambari.common.rest.agent.ControllerResponse;
 import org.apache.ambari.common.rest.agent.HeartBeat;
+import org.apache.ambari.common.rest.entities.NodeRole;
 import org.apache.ambari.common.rest.entities.NodeState;
 import org.apache.ambari.common.rest.entities.Stack;
 import org.apache.ambari.components.ComponentPlugin;
@@ -174,6 +175,9 @@ public class HeartbeatHandler {
                   //role-start
                   stateMachineInvoker.getAMBARIEventHandler()
                   .handle(new RoleEvent(RoleEventType.START_SUCCESS, role));
+                  // Update the node state
+                  NodeRole  rolestate = new NodeRole (role.getRoleName(), NodeRole.NODE_SERVER_STATE_UP, Util.getXMLGregorianCalendar(new Date()));
+                  nodes.getNode(hostname).getNodeState().updateRoleState(rolestate);
                 }
               }
               //check whether the agent should stop any server
@@ -187,6 +191,9 @@ public class HeartbeatHandler {
                     service.getServiceName(), role.getRoleName(), heartbeat)) {
                   stateMachineInvoker.getAMBARIEventHandler()
                   .handle(new RoleEvent(RoleEventType.STOP_SUCCESS, role));
+                  // Update the role state accordingly 
+                  NodeRole  rolestate = new NodeRole (role.getRoleName(), NodeRole.NODE_SERVER_STATE_DOWN, Util.getXMLGregorianCalendar(new Date()));
+                  nodes.getNode(hostname).getNodeState().updateRoleState(rolestate);
                 }
               }
             }

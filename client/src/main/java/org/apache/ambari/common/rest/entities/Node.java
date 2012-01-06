@@ -91,8 +91,7 @@ public class Node {
          * part of heartbeat when node stop services and does clean up.
          */
         this.nodeState.setAllocatedToCluster(false);
-        this.getNodeState().setNodeServers(null);
-        this.getNodeState().setNodeRoleNames(null);
+        this.getNodeState().setNodeRoles(null);
     }
 	
   	/*

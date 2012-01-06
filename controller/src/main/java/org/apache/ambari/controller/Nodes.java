@@ -30,6 +30,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.ambari.common.rest.agent.CommandResult;
 import org.apache.ambari.common.rest.entities.Node;
+import org.apache.ambari.common.rest.entities.NodeRole;
 import org.apache.ambari.common.rest.entities.NodeState;
 
 import com.google.inject.Singleton;
@@ -188,7 +189,7 @@ public class Nodes {
      */
     public synchronized List<String> getNodeRoles(String host) 
         throws Exception {
-      return getNode(host).getNodeState().getNodeRoleNames();
+        return getNode(host).getNodeState().getNodeRoleNames("");
     }
     
     /*

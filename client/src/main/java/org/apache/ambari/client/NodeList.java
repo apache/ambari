@@ -24,6 +24,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.ambari.common.rest.entities.Node;
+import org.apache.ambari.common.rest.entities.NodeRole;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -154,13 +155,14 @@ public class NodeList extends Command {
         List<Node> nodes = response.getEntity(new GenericType<List<Node>>(){});
         
         if (!verbose) {
-            System.out.println("[NAME]\t[LAST HEARTBEAT TIME]\t[NODE_SERVICES]\t[CLUSTER_ID]\n");
+            System.out.println("[NAME]\t[LAST HEARTBEAT TIME]\t[ASSOCIATED_ROLES]\t[ACTIVE_ROLES]\t[CLUSTER_ID]\n");
             for (Node node : nodes ) {
                 String clusterID = "";
                 if (node.getNodeState().getClusterName() != null) clusterID = node.getNodeState().getClusterName();
                 System.out.println("["+node.getName()+"]\t"+
                                    "["+node.getNodeState().getLastHeartbeatTime()+"]\t"+
-                                   "["+node.getNodeState().getNodeServers()+"]\t"+
+                                   "["+node.getNodeState().getNodeRoleNames("")+"]\t"+
+                                   "["+node.getNodeState().getNodeRoleNames(NodeRole.NODE_SERVER_STATE_UP)+"]\t"+
                                    "["+clusterID+"]\n");
             }
         } else {

@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.1.0 - unreleased
 
+  AMBARI-185. Remove NodeServers from NodeState. Instead use NodeRole to keep associated roles to node and their active state. (vgogate)
+
   AMBARI-184. Ambari client node list command returns multiple entries for same node (vgogate)
 
   AMBARI-183. Pass the appropriate component user to agent as specified in the stack (vgogate)
