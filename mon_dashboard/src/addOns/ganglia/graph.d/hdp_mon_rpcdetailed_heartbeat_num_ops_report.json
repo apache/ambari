@@ -1,0 +1,10 @@
+{
+   "report_name" : "rpcdetailed_heartbeat_num_ops_report",
+   "report_type" : "standard",
+   "title" : "Sent Heartbeats",
+   "vertical_label" : "Number Of Heartbeats",
+   "series" : [
+      { "metric": "rpcdetailed.rpcdetailed.sendHeartbeat_num_ops", "color": "ff0000", "label": "Sent Heartbeats", 
+        "line_width": "2", "type": "line" }
+   ]
+}

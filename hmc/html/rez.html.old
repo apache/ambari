@@ -1,0 +1,55 @@
+<html>
+  <head>
+    <title id="pageTitleId">HDP Initialize Cluster</title>
+
+    <link type="text/css" rel="stylesheet" href="../css/common.css" media="screen"/>
+    <link type="text/css" rel="stylesheet" href="../css/common2.css" media="screen"/>
+  </head>
+
+  <body>
+
+    <div name="configureClusterCoreDiv" id="configureClusterCoreDivId" style="display:none">
+
+      <div name="configureClusterInputDiv" id="configureClusterInputDivId">
+        <form id="configureClusterFormId">
+          <fieldset id="configureClusterFieldSetId">
+            <h3> Select Mount Points To Use </h3>
+            <div name="configureClusterMountPointsInputDiv" id="configureClusterMountPointsInputDivId">
+              <p>
+                <label for="customMountPointsId">(Additional) Custom Mount Points</label>
+                <input type="text" name="customMountPoints" id="customMountPointsId" value="" placeholder="Comma-Separated List">
+              </p>
+            </div>  
+            <!-- Additional <div>s for other categories of cluster configuration go here -->
+          </fieldset>
+          <p>
+            <input type="button" name="configureClusterSubmitButton" id="configureClusterSubmitButtonId" value="Configure Cluster">
+          </p>
+        </form>
+      </div>
+
+      <br/>
+
+      <div name="configureClusterDisplayDiv" id="configureClusterDisplayDivId">
+        <fieldset id="configureClusterDisplayFieldSetId">
+        <legend>Effective Config Values</legend>
+          <div name="configureClusterMountPointsDisplayDiv" id="configureClusterMountPointsDisplayDivId">
+          </div>
+        </fieldset>
+      </div>
+    </div>
+
+    <script src="http://yui.yahooapis.com/3.4.1/build/yui/yui-min.js"></script>
+    <script src="../js/rezConfigureCluster.js"></script>
+    <script type="text/javascript">
+    YUI().use("node", "io", "dump", "json", "arraysort", "event", function (Y) { 
+
+        Y.one("#configureClusterCoreDivId").setStyle('display','block');
+
+        renderConfigureCluster(Y, {"mountPoints":["\/grid\/0","\/grid\/1","\/grid\/2","\/grid\/3"],"servicesInfo":[{"keyName":"nameNodeDataDir","displayName":"NameNode Data Directories","maxDirectoriesNeeded":4,"suffix":"hadoop\/hdfs\/namenode"},{"keyName":"dataNodeDataDir","displayName":"DataNode Data Directories","maxDirectoriesNeeded":4,"suffix":"hadoop\/hdfs\/data"},{"keyName":"mapReduceDataDir","displayName":"MapReduce Data Directories","maxDirectoriesNeeded":4,"suffix":"hadoop\/mapred"},{"keyName":"oozieDbDir","displayName":"Oozie DB Directory","maxDirectoriesNeeded":1,"suffix":"hadoop\/oozie"},{"keyName":"zooKeeperDataDir","displayName":"ZooKeeper Data Directory","maxDirectoriesNeeded":1,"suffix":"hadoop\/zookeeper"}]} );
+
+      });
+    </script>
+
+  </body>
+</html> 

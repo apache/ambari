@@ -1,0 +1,130 @@
+//var globalClusterInfo;
+
+function generateServiceMasterOptions (Y, masterHost, allHosts) {
+
+  var generatedOptions = "<option>" + masterHost + "</option>";
+
+  /* The dropdown hosts are allHosts minus masterHost. */
+  Y.Array.each( allHosts, function(host) {
+
+      if( host != masterHost ) {
+        generatedOptions += "<option>" + host + "</option>";
+      }
+    });
+
+  return generatedOptions;
+}
+
+var registeredAssignHostsEventHandlers = false;
+
+function renderAssignHosts (Y, clusterInfo) {
+
+  //globalClusterInfo = clusterInfo;
+  // REZ XXX Remove.
+  //setNavigationContent(Y, "Clusters > New cluster");
+  //activateStage(Y, "#masterHostsSideBarId");
+
+  if( !registeredAssignHostsEventHandlers ) {
+
+    Y.one('#assignHostsSubmitButtonId').on('click', function (e) {
+        e.target.set('disabled', true);
+
+        var selections = Y.all("#assignHostsFieldSetId select");
+
+        var assignHostsRequestData = {};
+
+        selections.each( function(selection) {
+
+          var selectedHostIndex = selection.get('selectedIndex');
+
+          assignHostsRequestData[ selection.get('name') ] = selection.get('options').item(selectedHostIndex).get('text');
+        });
+
+        Y.io("../php/frontend/assignHosts.php?clusterName="+clusterInfo.clusterName, {
+
+            method: 'POST',
+            data: Y.JSON.stringify(assignHostsRequestData),
+            timeout : 10000,
+            on: {
+                  start: function(x, o) {
+                    showLoadingImg(Y);
+                    //waitPanel.show();
+                  },
+                  complete: function(x, o) {
+                    e.target.set('disabled', false);
+                    hideLoadingImg(Y);
+                    //waitPanel.hide();
+                  },
+
+              success: function (x,o) {
+                    e.target.set('disabled', false);
+                    Y.log("RAW JSON DATA: " + o.responseText);
+
+                    // Process the JSON data returned from the server
+                    try {
+                      clusterConfigJson = Y.JSON.parse(o.responseText);
+                    }
+                    catch (e) {
+                      alert("JSON Parse failed!");
+                      return;
+                    }
+
+                    //Y.log("PARSED DATA: " + Y.Lang.dump(clusterConfigJson));
+
+                    if (clusterConfigJson.result != 0) {
+                      // Error!
+                      alert("Got error!" + clusterConfigJson.error);
+                      return;
+                    }
+
+                    clusterConfigJson = clusterConfigJson.response;
+
+                    /* Done with this stage, transition to the next. */
+                    transitionToNextStage( "#assignHostsCoreDivId", assignHostsRequestData,
+                        "#configureClusterCoreDivId", clusterConfigJson, renderConfigureCluster );
+              },
+              failure: function (x,o) {
+                 e.target.set('disabled', false);
+                alert("Async call failed!");
+              }
+            }
+        });
+    });
+
+    registeredAssignHostsEventHandlers = true;
+  }
+
+  var allHosts = Y.Array( clusterInfo.allHosts.sort(Y.ArraySort.compare) );
+  var servicesInfo = Y.Array( clusterInfo.services );
+
+  var serviceMasterHostsMarkup = "";
+
+  /* Given recommendations for all the services, generate serviceMasterHostsMarkup 
+   * to contain only those that are actually enabled for this cluster.
+   */
+  Y.Array.each(servicesInfo, function(serviceInfo) {
+
+    if( serviceInfo.enabled == true ) {
+
+      Y.Array.each(serviceInfo.masters, function(masterInfo) {
+
+        var masterHostName = masterInfo.name;
+        var masterHostNameID = masterHostName + 'Id';
+
+        /* Inefficient, with all the string concatenations, but clear to read. */
+        serviceMasterHostsMarkup += 
+          '<div id="formElement">' + 
+            '<label for=' + masterHostNameID + '>' + 
+              masterInfo.displayName + ' Host' + 
+            '</label>' + 
+            '<select name=' + masterHostName + ' id=' + masterHostNameID + '>' + 
+              generateServiceMasterOptions(Y, masterInfo.hostName, allHosts) + 
+            '</select>' +
+          '</div>';
+      });
+    }
+  });
+
+  /* Link the newly-generated serviceMasterHostsMarkup into the DOM. */
+  Y.one('#assignHostsDynamicRenderDivId').setContent( serviceMasterHostsMarkup );
+}

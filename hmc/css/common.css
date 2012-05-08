@@ -1,0 +1,247 @@
+header, footer, aside, nav, article, section {display: block;}
+header {
+        height:100px;
+        background-color:white;
+        font-size:300%;
+}
+
+body { 
+  font:13px/1.231 Helvetica,Arial,sans-serif;
+  *font-size:small; 
+  margin: 0 auto;
+  min-width: 1024px;
+  font-size: 75%;
+  color: #454545;
+  overflow:auto;
+}
+
+h1 {
+  font-size: 175%; 
+  font-weight: bolder; 
+  text-align: center; 
+}
+
+header img {
+        height:93px;
+        width:241px;
+        float:left;
+}
+#headerText {
+        font-weight:bold;
+        padding:30px 0 0 0;
+}
+
+header, footer {
+      text-align:center;
+      }
+
+a:link {
+  color: blue;
+}
+
+a:visited {
+  color: blue;
+}
+
+input[type="text"], input[type="checkbox"] {
+  /*
+  -webkit-box-shadow:0 0 2px #666 inset;
+  -moz-box-shadow:0 0 2px #666 inset;
+  box-shadow:0 0 2px #666 inset;
+  */
+  border: 1px solid #B2B299;
+  height:25px;
+  line-height:25px;
+  vertical-align: top;
+  horizontal-align: center;
+  /* padding: 5; */
+  text-indent: 5px;
+
+  /*
+  background-color:#F4F4F4;
+  */
+  background-color:white;
+
+  /* Color transition */
+  transition: background-color 1s linear;
+  -moz-transition: background-color 1s linear;    /* FF3.7+ */
+  -o-transition: background-color 1s linear;      /* Opera 10.5 */
+  -webkit-transition: background-color 1s linear; /* Saf3.2+, Chrome */
+}
+
+input[type="text"]:hover, input[type="text"]:focus {
+  background-color:#CBF76F;
+}
+
+select {
+  width:250px;
+  background-color:#DBDBDB;
+}
+
+#blackScreenDivId, #loadingBlackScreenDivId {
+  position:fixed;
+  background-color:black;
+  opacity:0.7;
+  height:100%;
+  width:100%;
+  top:0px;
+  left:0px;
+}
+
+#loadingImgId {
+  /*
+  margin-left: auto;
+  margin-right: auto;
+  */
+  position: fixed; 
+  left: 50%; 
+  top: 50%;
+  width: 100px;
+  height: 100px;
+  margin-top: -50px;
+  margin-left: -50px;
+}
+
+#installationWizardDivId {
+
+ /* The following three lines to auto-adjust height
+  min-height:500px;
+  height:auto !important;
+  height:500px; 
+  */
+
+  /*
+  overflow: auto;
+  */
+  margin-left:auto;
+  margin-right:auto;
+  /*max-height:500px;*/
+  border:1px; /*solid;*/
+  background-color:#FFF;
+  padding:20px;
+  width:1000px;
+}
+
+#installationSideBarDivId {
+  display:block;
+  float:left;
+}
+
+#installationMainFormsDivId {
+  /* border:1px solid; */
+  margin-top: 8px;
+  display:block;
+}
+
+#displayLogsContentDivId {
+  /* scroll box */
+  height: 500px;
+  width: 600px;
+  padding: 5px;
+  background-color: white;
+  overflow: auto;
+}
+
+table {
+  width:80%;
+  margin-left:auto;
+  margin-right:auto;
+  padding-left:20px;
+  font-size:1em;
+  cellspacing:10px;
+  cellpadding:10px;
+  /*
+  background-color:#F4F4F4;
+  */
+  border:1px solid #DBDBDB ;
+
+}
+
+caption {
+  font-weight:bold;
+  font-size:1.3em;
+  padding:10px;
+  color:green;
+}
+
+thead {
+  font-size:1.2em;
+  font-weight:bold;
+  /*
+  */
+  color:white;
+  background-color: #00CC00;
+  /*
+  color: green;
+  background-color: #33CC33;
+  background-color: #DBDBDB;
+  background-color: #BF3030;
+  */
+  border-bottom:1px solid #7A7A7A ;
+}
+
+thead tr {
+}
+
+thead tr:hover {
+}
+
+th {
+  padding:10px;
+}
+
+tr {
+  /* 
+  height:30px;
+  opacity:0.75;
+  */
+
+  /* Color transition */
+  transition: background-color 1s cubic-bezier(.09, .99, .37, .98);
+  -moz-transition: background-color 1s cubic-bezier(.09, .99, .37, .98);    /* FF3.7+ */
+  -o-transition: background-color 1s cubic-bezier(.09, .99, .37, .98) ;      /* Opera 10.5 */
+  -webkit-transition: background-color 1s cubic-bezier(.09, .99, .37, .98) ; /* Saf3.2+, Chrome */
+}
+
+tr:hover {
+  background-color: #DBDBDB;
+  /* 
+  background-color: #33CC33;
+  */
+  height:30px;
+  /* 
+  opacity:1.0;
+  */
+}
+
+td {
+  padding:10px;
+}
+
+.formElement {
+  margin:3px;
+  overflow:auto;
+  border:1px solid #F0F0E8;
+}
+
+.formElement:hover {
+  border:1px solid #B2B299;
+}
+
+.contextualHelp {
+  margin-left:10px;
+  width:300px;
+  display:inline-block;
+  visibility:hidden;
+}
+
+.formElement:hover .contextualHelp {
+  visibility:visible;
+}
+
+.pageSummary {
+  font-weight:bold;
+  margin:5px;
+  margin-bottom:15px;
+  font-size:larger;
+}

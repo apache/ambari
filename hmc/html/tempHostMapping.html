@@ -1,0 +1,124 @@
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="../css/selectHosts.css"/>
+<script src="http://yui.yahooapis.com/3.4.1/build/yui/yui-min.js"></script>
+<script type="text/javascript">
+
+var currentMaster="";
+var nodeGroups = [ "A", "B"];
+var serviceMasters = [ "NameNode", "JobTracker" , "HBaseMaster" ]
+var slotContents = {};
+var serviceLocations = {};
+
+function renderSlots(Y) {
+  for (nodeGroupIndex in nodeGroups) {
+    for (serviceMasterIndex in serviceMasters) {
+      var content= "";
+      var thisId = 'slotForGroup' + nodeGroups[nodeGroupIndex] + serviceMasterIndex;
+      for (master in slotContents[thisId]) {
+        content += master + "<br/>";
+      }
+      Y.one('#' + thisId).setContent(content);
+    }
+  }
+}
+
+YUI().use("node", "io", "dump", "json", "event", "stylesheet", function (Y) {
+
+  ////////////////// Render service links ///////////////////
+  var serviceMastersLinksMarkup ="";
+  for (key in serviceMasters) {
+    serviceMastersLinksMarkup += '<div id="' + serviceMasters[key] + '" class="aServiceMasterLink">' + serviceMasters[key] + '</div><br/>';
+  }
+  Y.one("#serviceMastersLinksDivId").setContent(serviceMastersLinksMarkup);
+  ////////////////// End of rendering service links ////////
+
+  ////////////////// Register click handlers for all masters ///////////////////
+  for (key in serviceMasters) {
+    var serviceLinkId = "#" + serviceMasters[key];
+    Y.one(serviceLinkId).on('click', function(e) {
+      if ( currentMaster != this.get('id')) {
+        activate(Y, this.get('id'));
+      }
+    });
+  }
+  ////////////////// End of registering click handlers for all masters ///////////////////
+
+  ////////////////// Render node groups ////////
+  var nodeGroupsMarkup = '<div id="nodeGroupsTable">';
+  for (nodeGroupIndex in nodeGroups) {
+    nodeGroupsMarkup += '<div id="' + nodeGroups[nodeGroupIndex] + '" class="aNodeGroup"> <p>Node group ' + nodeGroups[nodeGroupIndex] + '</p>';
+    
+    // Number of boxes equal to number of service-masters
+    for (serviceMasterIndex in serviceMasters) {
+      nodeGroupsMarkup += '<div id="slotForGroup' + nodeGroups[nodeGroupIndex] + serviceMasterIndex + '" class="slot"></div>';
+    } 
+    nodeGroupsMarkup += '</div>'; 
+  }
+  nodeGroupsMarkup += '</div>';
+  Y.one("#nodeGroupsDivId").setContent(nodeGroupsMarkup);
+  ////////////////// End of rendering node groups ////////
+
+  // Register click handlers for all node-slots
+  for (nodeGroupIndex in nodeGroups) {
+    for (serviceMasterIndex in serviceMasters) {
+      var slotDivId = '#slotForGroup' + nodeGroups[nodeGroupIndex] + serviceMasterIndex;
+      Y.log("registering for " + slotDivId);
+      Y.one(slotDivId).on('click', function(e) {
+          Y.log("Clicked on " + this.get('id'));
+          //Y.log(currentMaster + " " + nodeGroups[nodeGroupIndex] + " " + serviceMasterIndex);
+          //Y.log('#slotForGroup' + nodeGroups[nodeGroupIndex] + serviceMasterIndex);
+          //Y.one('#slotForGroup' + nodeGroups[nodeGroupIndex] + serviceMasterIndex).setContent("hello");
+          // this.setContent(serviceMasters[currentMaster]);
+          var oldSlotId = serviceLocations[currentMaster];
+          if (oldSlotId != this.get('id')) {
+            delete slotContents[oldSlotId][currentMaster];
+            serviceLocations[currentMaster] = this.get('id');
+            if (slotContents[this.get('id')] === undefined) {
+              slotContents[this.get('id')] = {};
+            }
+            slotContents[this.get('id')][currentMaster] = [currentMaster];
+            renderSlots(Y);
+          }
+    });
+    }
+  }
+
+  ////////////////// Initialize all slots ///////////////////
+  var thisId = 'slotForGroup' + nodeGroups[0] + 0;
+  for (serviceMasterIndex in serviceMasters) {
+    if (slotContents[thisId] === undefined) {
+      slotContents[thisId] = {};
+    }
+    var masterName = serviceMasters[serviceMasterIndex];
+    slotContents[thisId][masterName] = masterName;
+    serviceLocations[masterName] = thisId;
+  }
+  renderSlots(Y);
+  ////////////////// End of initializing all slots ///////////////////
+});
+
+function activate(Y, serviceMaster) {
+  Y.log("Activated " + serviceMaster + " from " + currentMaster);
+  Y.one("#" + serviceMaster).replaceClass("aServiceMasterLink", "aServiceMasterLinkVisited");
+  if (currentMaster != "") {
+    Y.one("#" + currentMaster).replaceClass("aServiceMasterLinkVisited", "aServiceMasterLink");
+  }
+  currentMaster = serviceMaster;
+}
+
+</script>
+</head>
+
+<body>
+<div id="statusDivId">
+</div>
+
+<p>Services, Node Groups</p>
+<div id="serviceMastersLinksDivId">
+</div>
+<div id="nodeGroupsDivId">
+</div>
+
+</body>
+</html>

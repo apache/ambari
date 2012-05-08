@@ -1,0 +1,55 @@
+#/*
+# * Licensed to the Apache Software Foundation (ASF) under one
+# * or more contributor license agreements.  See the NOTICE file
+# * distributed with this work for additional information
+# * regarding copyright ownership.  The ASF licenses this file
+# * to you under the Apache License, Version 2.0 (the
+# * "License"); you may not use this file except in compliance
+# * with the License.  You may obtain a copy of the License at
+# *
+# *     http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# */
+
+hadoop_heap_size=@HDPHadoopHeapSize@
+
+namenode_javaheap=@HDPNameNodeHeapSize@
+fs_inmemory_size=@HDPFSInMemorySize@
+namenode_opt_newsize=@HDPNameNodeOptNewSize@
+
+datanode_du_reserved=@HDPDataNodeDuReserved@
+dt_heapsize=@HDPDataNodeHeapSize@
+
+jtnode_opt_newsize=@HDPJobTrackerOptNewSize@
+jtnode_opt_maxnewsize=@HDPJobTrackerOptMaxNewSize@
+jt_heapsize=@HDPJobTrackerHeapSize@
+
+mapred_map_tasks_max=@HDPMapRedMapTasksMax@
+mapred_red_tasks_max=@HDPMapRedReduceTasksMax@
+mapred_cluster_map_mem_mb=@HDPMapRedClusterMapMemoryMB@
+mapred_cluster_red_mem_mb=@HDPMapRedClusterReduceMemoryMB@
+mapred_cluster_max_map_mem_mb=@HDPMapRedClusterMaxMapMemoryMB@
+mapred_cluster_max_red_mem_mb=@HDPMapRedClusterMaxReduceMemoryMB@
+mapred_job_map_mem_mb=@HDPMapRedJobMapMemoryMB@
+mapred_job_red_mem_mb=@HDPMapRedJobReduceMemoryMB@
+mapred_child_java_opts_sz=@HDPMapRedChildJavaOptsSize@
+io_sort_mb=@HDPIoSortMB@
+io_sort_spill_percent=@HDPIoSortSpillPercent@
+mapreduce_userlog_retainhours=@HDPMapReduceUserLogRetainHours@
+max_tasks_per_job=@HDPMaxTasksPerJob@
+dfs_datanode_failed_volume_tolerated=@HDPDFSDataNodeFailedVolumeTolerated@
+
+#ENTER VALUES FOR zoo.cfg
+tickTime=2000
+initLimit=10
+syncLimit=5
+clientPort=2181
+
+#HBASE MEMORY SETTINGS
+hbase_master_heapsize=@HDPHBaseMasterHeapSize@
+hbase_regionserver_heapsize=@HDPHBaseRegionServerHeapSize@

@@ -1,0 +1,27 @@
+#clustersNavigationLinksDivId {
+  width: 100%;
+  text-align: center;
+  margin: 0px auto;
+  margin-bottom: 8px;
+}
+
+#clustersNavigationLinksListId {
+  margin:0;
+  padding:0;
+  text-align:center;
+  height:50px;
+}
+
+#clustersNavigationLinksListId li {
+  display: inline-block;
+  width: auto;
+  padding: 5px;
+  margin: 2px;
+  cursor: default;
+}
+
+#clustersHostRoleMappingFieldsetId {
+  margin-left: auto;
+  margin-right: auto;
+  width: 300px;
+}

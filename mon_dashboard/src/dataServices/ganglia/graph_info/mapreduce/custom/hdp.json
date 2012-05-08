@@ -1,0 +1,59 @@
+{
+    "Global": [
+        {
+            "description": "Jobs submitted to the JobTracker", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
+            "title": "JobTracker Jobs: Submitted", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_jobs_submitted_report"
+        }, 
+        {
+            "description": "Jobs running on the JobTracker", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
+            "title": "JobTracker Jobs: Running", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_jobs_running_report"
+        }, 
+        {
+            "description": "Jobs completed on the JobTracker, to give a feel for cluster-wide job throughput", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
+            "title": "JobTracker Jobs: Completed", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_jobs_completed_report"
+        }, 
+        {
+            "description": "Jobs failed on the JobTracker, to give a feel for potential cluster-wide problems", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
+            "title": "JobTracker Jobs: Failed", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_jobs_failed_report"
+        }, 
+        {
+            "description": "JobTracker Heartbeats", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
+            "title": "JobTracker Heartbeats", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_heartbeats_report"
+        }, 
+        {
+            "description": "Average wait time for RPC requests to the JobTracker, to give a feel for the JobTracker's responsiveness", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
+            "title": "JobTracker RPC Average Wait Time", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_rpc_queue_time_avg_time_report"
+        }, 
+        {
+            "description": "Average number of RPC operations/second on the JobTracker, to give a feel for the JobTracker's activity", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
+            "title": "JobTracker RPC Num Ops", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_rpc_queue_time_num_ops_report"
+        }, 
+        {
+            "description": "Key Garbage Collection stats for the JobTracker's JVM", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
+            "title": "JobTracker JVM Garbage Collection", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jvm_gc_report"
+        }
+    ]
+}

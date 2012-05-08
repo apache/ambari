@@ -1,0 +1,2 @@
+HDPClusterDeployUser=root
+HDPClusterDeployUserIdentityFile=/var/run/HMCDir/clusters/MyCluster-12345/user-ssh-key

@@ -1,0 +1,267 @@
+span.installationWizardStageNumber {
+  color: rgb(157,157,157);
+  /*
+  color: white;
+  */
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  width: 100%;
+  left: 1px;
+  background-color: transparent;
+  background-image: none;
+  background-repeat: repeat;
+  background-attachment: scroll;
+  background-position: 0% 0%;
+  background-clip: border-box;
+  background-origin: padding-box;
+  background-size: auto auto;
+}
+
+#installationWizardProgressBarDivId {
+  width: 100%;
+  text-align: center;
+  margin: 0px auto;
+  margin-bottom: 8px;
+}
+
+#installationWizardProgressBarListId {
+  margin:0;
+  padding:0;
+  text-align:center;
+  height:50px;
+}
+
+#installationWizardProgressBarListId li {
+  display: inline-block;
+  width: auto;
+  padding: 5px;
+  margin: 2px;
+  cursor: default;
+}
+
+.installationWizardUnvisitedStage, #installationWizardProgressBarListId li.installationWizardUnvisitedStage {
+  background-color: rgb(190,190,190);
+  color: white;
+}
+
+.installationWizardVisitedStage, #installationWizardProgressBarListId li.installationWizardVisitedStage {
+  background-color: grey;
+  color: rgb(50,205,50);
+  padding-top: 6px;
+  padding-bottom: 6px;
+  font-weight:bold;
+  font-size: 12px;
+  border-radius:4px;
+  -moz-border-radius:4px;
+  -webkit-border-radius:4px;
+  cursor: pointer;
+}
+
+.installationWizardCurrentStage, #installationWizardProgressBarListId li.installationWizardCurrentStage {
+  background-color: rgb(50,205,50);
+  color: white;
+  margin: 8px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-weight:bolder;
+  font-size: 14px;
+  -webkit-box-shadow: 3px 3px 3px 4px #ccc;
+  -moz-box-shadow: 3px 3px 3px 4px #ccc;
+  box-shadow: 3px 3px 3px 4px #ccc;
+  border-radius:4px;
+  -moz-border-radius:4px;
+  -webkit-border-radius:4px;
+}
+
+#txnProgressStatesListId li div {
+  height: 2em;
+  color: black;
+  border-style: solid;
+  border-width: 2px;
+
+  background-color:#F0F0E8;
+  /*
+  background-color: #c5c5c5;
+  background-color:white;
+  background-color:#F0F0E8;
+  */
+  text-align: center;
+  margin-bottom: 10px;
+  border-radius:4px;
+  -moz-border-radius:4px;
+  -webkit-border-radius:4px;
+  padding-top: 1em;
+  font-size: larger;
+}
+
+.txnProgressStateDone {
+  border-color: rgb(50,205,50);
+  background-image: url(../images/green_check.png);
+  background-repeat: no-repeat;
+  background-position: 95% center;
+  /*background-size: contain;*/
+  background-size: 24px 24px;
+}
+
+.txnProgressStateInProgress {
+  /*border-color: #FFDF00;*/
+  border-color: #FA6A0C;
+  /*text-decoration: blink;*/
+  /*color: #FFDF00;*/
+  background-image: url(../images/orange-loader.gif);
+  background-repeat: no-repeat;
+  background-position: 95% center;
+  /*background-size: contain;*/
+  background-size: 24px 24px;
+}
+
+.txnProgressStateError {
+  border-color: #F53907;
+  background-image: url(../images/red_cross.png);
+  background-repeat: no-repeat;
+  background-position: 95% center;
+  /*background-size: contain;*/
+  background-size: 24px 24px;
+}
+
+.txnProgressStatePending {
+  border-color: gray;
+  color: gray;
+}
+
+.logEntry {
+  border:1px solid #B2B299 ;
+  background-color:#F0F0E8;
+  margin:30px;
+}
+
+.logEntryHeader {
+  font-weight:bold;
+  font-size:larger;
+  background-color:#B2B299;
+  color:white;
+}
+
+.logEntryBody {
+  padding:5px;
+}
+
+.formStatusBar {
+  width: auto;
+  /*height: 2em;*/
+  border-style: solid;
+  border-width: 2px;
+  border-radius:2px;
+  -moz-border-radius:2px;
+  -webkit-border-radius:2px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  font-size: larger;
+  text-align: center;
+}
+
+.formStatusBarZeroOpacity {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 5s, opacity 3s linear;
+  -moz-transition: visibility 0s 5s, opacity 3s linear;
+}
+
+#txnProgressCoreDivId {
+  width:50%;
+  top:30%; 
+  left:0px;
+  margin-left:25%;
+
+  /* Float above all else*/
+  z-index:15;
+  position:absolute;
+
+  /* Leave some space at the bootom for long progress-lists */
+  padding-bottom:100px;
+}
+
+#txnProgressFieldSetId {
+  width:auto;
+  background-color:white;
+  border-radius:0px 0px 15px 15px;
+}
+
+.statusOk {
+  border-color: rgb(50,205,50);
+/*  color: rgb(50,205,50); */
+  background-color: #85EEA8;
+}
+
+.statusError {
+  border-color: #F53907;
+/*  color: #F53907; */
+  background-color: #F17879;
+}
+
+/* Add a scrollbar only to the body of the YUI Panel, keeping the locations of
+ * the Header and Footer fixed (and always visible).
+ */
+#informationalPanelContainerDivId .yui3-widget-bd {
+  overflow: auto;
+  background-color:#F0F0E8;
+}
+
+#informationalPanelContainerDivId .yui3-widget-hd {
+ /* background-color:#B2B299; */
+  background-color:#33CCFF;
+}
+
+#informationalPanelContainerDivId .yui3-widget-ft {
+  background-color:#F0F0E8;
+}
+
+#informationalPanelContainerDivId .yui3-widget-ft .yui3-button {
+  color:blue;
+  font-weight:normal;
+}
+
+#confirmationDataPanelBodyContent {
+  font-size:larger;
+}
+
+#manageServicesDisplayDepsOnAction {
+  margin-top:30px;
+}
+
+.loadingImg {
+  display: block;
+  margin: auto;
+}
+
+.centered {
+  position: fixed; 
+  left: 50%; 
+  top: 50%;
+}
+
+#configureClusterInputContainerDivId {
+  float:left;
+  width:40%;
+  margin-left: 10%;
+  margin-right:10px;
+}
+
+#configureClusterDisplayDivId {
+  float:left;
+  width:40%;
+  opacity: 0.7;
+  margin-left:10px;
+}
+
+.formInputError, input[type="text"].formInputError {
+  border-color: #F53907;
+  background-color: #F17879;
+}
+
+.formInputErrorReason {
+  display: inline-block;
+  margin-left: 10px;
+  color: red;
+}

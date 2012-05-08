@@ -1,0 +1,379 @@
+# NAGIOS SERVER Check (status log update)
+<%if scope.function_hdp_nagios_members_exist('nagios-server')-%>
+define service {        
+        hostgroup_name          nagios-server        
+        use                     generic-service
+        service_description     NAGIOS::Nagios status log staleness alert
+        check_command           check_nagios!10!/var/nagios/status.dat!/usr/bin/nagios
+        normal_check_interval   5
+        retry_check_interval    0.5
+        max_check_attempts      2
+}
+
+# NAGIOS SERVER HDFS Checks
+define service {
+        hostgroup_name          nagios-server
+        use                     generic-service
+        service_description     HDFS::Percent DataNodes storage full alert
+        check_command           check_aggregate!"DATANODE::Storage full alert"!10%!30%
+        normal_check_interval   2
+        retry_check_interval    1 
+        max_check_attempts      1
+}
+
+define service {
+        hostgroup_name          nagios-server
+        use                     generic-service
+        service_description     HDFS::Percent DataNodes down alert
+        check_command           check_aggregate!"DATANODE::Process down alert"!10%!30%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+
+# NAGIOS SERVER MAPREDUCE Checks
+define service {
+        hostgroup_name          nagios-server
+        use                     generic-service
+        service_description     MAPREDUCE::Percent TaskTrackers down alert
+        check_command           check_aggregate!"TASKTRACKER::Process down alert"!10%!30%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+
+# NAGIOS SERVER ZOOKEEPER Checks
+<%if scope.function_hdp_nagios_members_exist('zookeeper-servers')-%>
+define service {
+        hostgroup_name          nagios-server
+        use                     generic-service
+        service_description     ZOOKEEPER::Percent zookeeper servers down alert
+        check_command           check_aggregate!"ZKSERVERS::ZKSERVERS Process down alert"!35%!70%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+<%end-%>
+
+# NAGIOS SERVER HBASE Checks
+<%if scope.function_hdp_nagios_members_exist('hbasemaster')-%>
+define service {
+        hostgroup_name          nagios-server
+        use                     generic-service
+        service_description     HBASE::Percent region servers down alert
+        check_command           check_aggregate!"REGIONSERVER::Process down alert"!10%!30%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+<%end-%>
+<%end-%>
+
+# GANGLIA SERVER Checks
+<%if scope.function_hdp_nagios_members_exist('ganglia-server')-%>
+define service {
+        hostgroup_name          ganglia-server
+        use                     generic-service
+        service_description     GANGLIA::Ganglia [gmetad] Process down alert
+        check_command           check_tcp!8651!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+
+define service {
+        hostgroup_name          ganglia-server
+        use                     generic-service
+        service_description     GANGLIA::Ganglia collector [gmond] Process down alert for slaves
+        check_command           check_tcp!8660!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+
+define service {
+        hostgroup_name          ganglia-server
+        use                     generic-service
+        service_description     GANGLIA::Ganglia collector [gmond] Process down alert for namenode
+        check_command           check_tcp!8661!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+
+define service {
+        hostgroup_name          ganglia-server
+        use                     generic-service
+        service_description     GANGLIA::Ganglia collector [gmond] Process down alert for jobtracker
+        check_command           check_tcp!8662!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+
+define service {
+        hostgroup_name          ganglia-server
+        use                     generic-service
+        service_description     GANGLIA::Ganglia collector [gmond] Process down alert for hbasemaster
+        check_command           check_tcp!8663!-w 1 -c 1
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+<%end-%>
+
+# HDFS Checks
+<%if scope.function_hdp_nagios_members_exist('namenode')-%>
+define service {
+        hostgroup_name          namenode
+        use                     generic-service
+        service_description     NAMENODE::Namenode Web UI down alert
+        check_command           check_webui!namenode
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          namenode
+        use                     generic-service
+        service_description     NAMENODE::Namenode Edit logs directory status alert
+        check_command           check_name_dir_status!50070
+        normal_check_interval   0.5
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+define service {        
+        hostgroup_name          namenode        
+        use                     generic-service
+        service_description     NAMENODE::Namenode Host CPU utilization alert
+        check_command           check_cpu!200%!250%
+        normal_check_interval   5
+        retry_check_interval    2 
+        max_check_attempts      5
+}
+
+define service {
+        hostgroup_name          namenode
+        use                     generic-service
+        service_description     NAMENODE::Namenode Process down alert
+        check_command           check_tcp!8020!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          namenode
+        use                     generic-service
+        service_description     HDFS::Corrupt/Missing blocks alert
+        check_command           check_hdfs_blocks!50070!0%!0%
+        normal_check_interval   2
+        retry_check_interval    1 
+        max_check_attempts      1
+}
+
+define service {
+        hostgroup_name          namenode
+        use                     generic-service
+        service_description     HDFS::HDFS Capacity utilization alert
+        check_command           check_hdfs_capacity!50070!80%!90%
+        normal_check_interval   10
+        retry_check_interval    1 
+        max_check_attempts      1
+}
+
+define service {
+        hostgroup_name          namenode
+        use                     generic-service
+        service_description     HDFS::Namenode RPC Latency alert
+        check_command           check_rpcq_latency!NameNode!50070!3000!5000
+        normal_check_interval   5
+        retry_check_interval    1 
+        max_check_attempts      5
+}
+<%end-%>
+
+# MAPREDUCE Checks
+<%if scope.function_hdp_nagios_members_exist('jobtracker')-%>
+define service {
+        hostgroup_name          jobtracker
+        use                     generic-service
+        service_description     JOBTRACKER::JobTracker Web UI down alert
+        check_command           check_webui!jobtracker
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          jobtracker
+        use                     generic-service
+        service_description     JOBTRACKER::JobHistory Web UI down alert
+        check_command           check_webui!jobhistory
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          jobtracker
+        use                     generic-service
+        service_description     JOBTRACKER::Jobtracker CPU utilization alert
+        check_command           check_cpu!200%!250%
+        normal_check_interval   5
+        retry_check_interval    2 
+        max_check_attempts      5
+}
+
+define service {
+        hostgroup_name          jobtracker
+        use                     generic-service
+        service_description     JOBTRACKER::Jobtracker Process down alert
+        check_command           check_tcp!50030!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+
+define service {
+        hostgroup_name          jobtracker
+        use                     generic-service
+        service_description     MAPREDUCE::JobTracker RPC Latency alert
+        check_command           check_rpcq_latency!JobTracker!50030!3000!5000
+        normal_check_interval   5
+        retry_check_interval    1 
+        max_check_attempts      5
+}
+<%end-%>
+
+# HDFS::DATANODE Checks
+<%if scope.function_hdp_nagios_members_exist('slaves')-%>
+define service {
+        hostgroup_name          slaves
+        use                     generic-service
+        service_description     DATANODE::Process down alert
+        check_command           check_tcp!50010!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          slaves
+        use                     generic-service
+        service_description     DATANODE::Storage full alert
+        check_command           check_datanode_storage!50075!90%!90%
+        normal_check_interval   5
+        retry_check_interval    1
+        max_check_attempts      2
+}
+
+# MAPREDUCE::TASKTRACKER Checks 
+define service {
+        hostgroup_name          slaves
+        use                     generic-service
+        service_description     TASKTRACKER::Process down alert
+        check_command           check_tcp!50060!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+<%end-%>
+
+<%if scope.function_hdp_nagios_members_exist('region-servers')-%>
+# HBASE::REGIONSERVER Checks
+define service {
+        hostgroup_name          region-servers
+        use                     generic-service
+        service_description     REGIONSERVER::Process down alert
+        check_command           check_tcp!60020!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+<%end-%>
+
+<%if scope.function_hdp_nagios_members_exist('zookeeper-servers')-%>
+# ZOOKEEPER Checks
+define service {
+        hostgroup_name          zookeeper-servers
+        use                     generic-service
+        service_description     ZKSERVERS::ZKSERVERS Process down alert
+        check_command           check_tcp!2181!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+<%end-%>
+
+<%if scope.function_hdp_nagios_members_exist('hbasemaster')-%>
+# HBASE Checks
+define service {
+        hostgroup_name          hbasemaster
+        use                     generic-service
+        service_description     HBASEMASTER::HBase Web UI down alert
+        check_command           check_webui!hbase
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          hbasemaster
+        use                     generic-service
+        service_description     HBASEMASTER::HBaseMaster CPU utilization alert
+        check_command           check_cpu!200%!250%
+        normal_check_interval   5
+        retry_check_interval    2 
+        max_check_attempts      5
+}
+
+define service {
+        hostgroup_name          hbasemaster
+        use                     generic-service
+        service_description     HBASEMASTER::HBaseMaster Process down alert
+        check_command           check_tcp!60000!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+<%end-%>
+
+<%if scope.function_hdp_nagios_members_exist('hiveserver')-%>
+# HIVE Metastore check
+define service {
+        hostgroup_name          hiveserver
+        use                     generic-service
+        service_description     HIVE-METASTORE::HIVE-METASTORE status check alert
+        check_command           check_hive_metastore_status!9083
+        normal_check_interval   0.5
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+<%end-%>
+<%if scope.function_hdp_nagios_members_exist('oozie-server')-%>
+# Oozie check
+define service {
+        hostgroup_name          oozie-server
+        use                     generic-service
+        service_description     OOZIE::Oozie status check alert
+        check_command           check_oozie_status!11000!<%=scope.function_hdp_template_var("java32_home") %>
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+<%end-%>
+<%if scope.function_hdp_nagios_members_exist('templeton-server')-%>
+# Templeton check
+define service {
+        hostgroup_name          templeton-server
+        use                     generic-service
+        service_description     TEMPLETON::Templeton status check alert
+        check_command           check_templeton_status!50111!v1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+<%end-%>

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#puppet_kick_version.txt is expected to be created in the
+#working directory of the master
+if [ -f "/var/lib/puppet/puppet_kick_version.txt" ]
+then
+cat "/var/lib/puppet/puppet_kick_version.txt"
+else
+now=`date "+%Y%m%d%H%M%S"`
+echo "my-version-"$now
+fi

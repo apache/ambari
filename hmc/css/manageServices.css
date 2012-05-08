@@ -1,0 +1,143 @@
+#serviceManagementCoreDivId {
+  width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.serviceManagementGroup {
+  font-size:20px;
+  margin:50px;
+}
+
+.serviceManagementEntry {
+  /* Reznor's
+  margin-top: 8px;
+  margin-bottom: 8px;
+  */
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-style: solid;
+  border-width: 2px;
+  /* Reznor's background-color: #c5c5c5; */
+  background-color:#F0F0E8;
+  border:color:#B2B299;
+  border-radius:4px;
+  -moz-border-radius:4px;
+  -webkit-border-radius:4px;
+}
+
+.serviceManagementEntry:hover {
+  background-color: #B2B299;
+  color: white;
+}
+
+.serviceManagementEntry:hover a {
+  color: white;
+}
+
+.serviceManagementEntryStarted {
+  color: green;
+}
+
+.serviceManagementEntryStopped {
+  color:red;
+}
+
+.serviceManagementEntryInstalled {
+  color: green;
+}
+
+.serviceManagementEntryUninstalled {
+  color:red;
+  opacity: 0.3;
+
+  /* Make links within .serviceManagementEntryUninstalled not look like links. */
+  pointer-events: none;
+  cursor: text;
+}
+
+.serviceManagementEntry a {
+  color: black;
+}
+
+.serviceManagementEntryNameContainer {
+  /* Reznor's
+  font-weight: bold;
+  font-size: 20px;
+  */
+  font-size: 15px;
+}
+
+.serviceManagementEntryName {
+  display:inline-block;
+  border:0px solid black;
+  width:200px;
+ 
+/* Temporarily make links within .serviceManagementEntryName not look like links. */
+  pointer-events: none;
+  text-decoration: none;
+  cursor: text;
+}
+
+
+.serviceManagementEntryStateContainer {
+  display:inline-block;
+  font-size:15px;
+  margin-left:0px;
+  border:0px solid black;
+}
+
+.serviceManagementEntryActionsContainer {
+  float: right;
+}
+
+.serviceManagementEntryAction {
+  background-size: 24px 24px;
+  display: inline-block;
+  height: 24px;
+  width: 24px;
+  margin-left: 7px;
+  margin-right: 7px;
+}
+
+.serviceManagementEntryActionStart {
+  background-image: url(../images/start.png);
+}
+
+.serviceManagementEntryActionStop {
+  background-image: url(../images/stop.png);
+}
+
+.serviceManagementEntryActionReconfigure {
+  background-image: url(../images/reconfigure.png);
+}
+
+#serviceManagementGlobalActionsDivId {
+  width: 316px; 
+  margin-left: auto;
+  margin-right: auto; 
+}
+
+#serviceManagementGlobalActionsDivId button {
+  border-style: solid;
+  border-width: 3px;
+  background-color: #c5c5c5;
+  border-color: #ee5701;
+  border-radius:4px;
+  -moz-border-radius:4px;
+  -webkit-border-radius:4px;
+  padding: 5px;
+  text-align: center;
+  width: 150px;
+  font-weight: bold;
+  font-size: 16px;
+  margin-left: 3px;
+  margin-right: 3px;
+}
+
+#serviceManagementGlobalActionsDivId button:hover {
+  color: white;
+  background-color: gray;
+  cursor: pointer;
+}

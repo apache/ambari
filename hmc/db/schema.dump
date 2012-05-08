@@ -1,0 +1,448 @@
+BEGIN TRANSACTION;
+
+CREATE TABLE  "Clusters" (
+  cluster_name TEXT, -- Cluster name
+  version TEXT, -- version of the hadoop stack installed
+  state TEXT, -- cluster state - installed, config in progress etc
+  PRIMARY KEY (cluster_name)
+);
+
+CREATE TABLE  "Services" (
+  id INTEGER,
+  service_name TEXT, -- Service name
+  description TEXT, -- Service description
+  display_name TEXT, -- Display name
+  attributes BLOB, -- Per-Service attributes stored as a JSON serialized string conforming to
+                   -- the following schema:
+                   --
+                   -- { "runnable": boolean, "mustInstall": boolean, "editable": boolean, "noDisplay": boolean }
+                   --     where:
+                   --
+                   --     "runnable": true for services like Sqoop and Pig that don't have any
+                   --                 running components, and can thus not be started/stopped.
+                   --     "mustInstall": true for services that MUST be installed on a cluster,
+                   --                    with no option for the user to say otherwise.
+                   --     "editable": false for services like ZooKeeper whose selectability
+                   --                 cannot be edited, and is instead controlled completely by
+                   --                 our internal needs.
+                   --     "noDisplay": true for services that shouldn't be displayed in the UI.
+  PRIMARY KEY (id),
+  UNIQUE (service_name)
+);
+
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "HDFS", "HDFS", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": false }', "Apache Hadoop Distributed File System" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "MAPREDUCE", "MapReduce", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": false }', "Apache Hadoop Distributed Processing Framework" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "ZOOKEEPER", "ZooKeeper", '{ "runnable": true, "mustInstall": false, "editable": false, "noDisplay": false }', "Centralized Service for Configuration Management and Distribution Synchronization" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "HBASE", "HBase", '{ "runnable": true, "mustInstall": false, "editable": true, "noDisplay": false }',  "Apache HDFS-based Non-relational Distributed Database" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "PIG", "Pig", '{ "runnable": false, "mustInstall": false, "editable": true, "noDisplay": false }',  "Platform for Analyzing Large Data Sets" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "SQOOP", "Sqoop", '{ "runnable": false, "mustInstall": false, "editable": true, "noDisplay": false }',  "Tool for transferring bulk data between Apache Hadoop and structured datastores such as relational databases" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "OOZIE", "Oozie", '{ "runnable": true, "mustInstall": false, "editable": true, "noDisplay": false }',  "Workflow/Coordination system to manage Apache Hadoop jobs" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "HIVE", "Hive", '{ "runnable": true, "mustInstall": false, "editable": true, "noDisplay": false }',  "Data Warehouse system for Apache Hadoop" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "HCATALOG", "HCatalog", '{ "runnable": false, "mustInstall": false, "editable": true, "noDisplay": false }',  "Table and Storage Management service for data created using Apache Hadoop" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "TEMPLETON", "Templeton", '{ "runnable": true, "mustInstall": false, "editable": true, "noDisplay": false }',  "Webservice APIs for Apache Hadoop" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "DASHBOARD", "Dashboard", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": false }',  "Monitoring Dashboard for HDP" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "NAGIOS", "Nagios", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": false }',  "Nagios-based Monitoring for HDP" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "GANGLIA", "Ganglia", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": false }',  "Ganglia-based Metrics Collection for HDP" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "MISCELLANEOUS", "Miscellaneous", '{ "runnable": false, "mustInstall": true, "editable": false, "noDisplay": true }',  "" );
+
+CREATE TABLE  "ServiceComponents" (
+  service_name TEXT, -- service name
+  component_name TEXT, -- component name
+  display_name TEXT, -- Component display name
+  description TEXT, -- component description
+  attributes BLOB, -- Per-ServiceComponent attributes stored as a JSON serialized string
+                   -- conforming to the following schema:
+                   --
+                   -- { "isMaster": boolean, "isClient": boolean }
+                   --     where:
+                   --
+                   --     "isMaster": true if this component plays the role of a master
+                   --                 for the service.
+                   --     "isClient": true if this component plays the role of a client
+                   --                 for the service.
+  PRIMARY KEY (component_name),
+  FOREIGN KEY (service_name) REFERENCES Services(service_name)
+);
+
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "HDFS", "NAMENODE", "Namenode", '{ "isMaster": true, "isClient": false }', "Master server that manages the file system namespace and regulates access to files by clients" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "HDFS", "SNAMENODE", "Secondary Namenode", '{ "isMaster": true, "isClient": false }', "Helper to the primary NameNode that is responsible for supporting periodic checkpoints of the HDFS metadata" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "HDFS", "DATANODE", "Datanode", '{ "isMaster": false, "isClient": false }', "The slave for HDFS" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "HDFS", "HDFS_CLIENT", "HDFS Client", '{ "isMaster": false, "isClient": true}', "Client component for HDFS" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "MAPREDUCE", "JOBTRACKER", "JobTracker", '{ "isMaster": true, "isClient": false }', "Central Master service that pushes work (MR tasks) out to available TaskTracker nodes in the cluster");
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "MAPREDUCE", "TASKTRACKER", "TaskTracker", '{ "isMaster": false, "isClient": false }', "The slave for MapReduce" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "MAPREDUCE", "MAPREDUCE_CLIENT", "MapReduce Client", '{ "isMaster": false, "isClient": true }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "ZOOKEEPER", "ZOOKEEPER_SERVER", "ZooKeeper Server", '{ "isMaster": true, "isClient": false }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "ZOOKEEPER", "ZOOKEEPER_CLIENT", "ZooKeeper Client", '{ "isMaster": false, "isClient": true }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "HBASE", "HBASE_MASTER", "HBase Master", '{ "isMaster": true, "isClient": false }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "HBASE", "HBASE_REGIONSERVER", "HBase Region Server", '{ "isMaster": false, "isClient": false }', "The slave for HBase" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "HBASE", "HBASE_CLIENT", "HBase Client", '{ "isMaster": false, "isClient": true }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "PIG", "PIG_CLIENT", "Pig Client", '{ "isMaster": false, "isClient": true }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "SQOOP", "SQOOP_CLIENT", "Sqoop Client", '{ "isMaster": false, "isClient": true }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "OOZIE", "OOZIE_SERVER", "Oozie Server", '{ "isMaster": true, "isClient": false }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "OOZIE", "OOZIE_CLIENT", "Oozie Client", '{ "isMaster": false, "isClient": true }',  "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "HIVE", "HIVE_MYSQL", "MySql Server for Hive", '{ "isMaster": false, "isClient": false }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "HIVE", "HIVE_SERVER", "Hive Server", '{ "isMaster": true, "isClient": false }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "HIVE", "HIVE_CLIENT", "Hive Client", '{ "isMaster": false, "isClient": true }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "HCATALOG", "HCATALOG_CLIENT", "HCatalog Client", '{ "isMaster": false, "isClient": true }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "TEMPLETON", "TEMPLETON_SERVER", "Templeton Server", '{ "isMaster": true, "isClient": false }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "TEMPLETON", "TEMPLETON_CLIENT", "Templeton Client", '{ "isMaster": false, "isClient": true }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "DASHBOARD", "DASHBOARD", "Monitoring Dashboard", '{ "isMaster": false, "isClient": false }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "NAGIOS", "NAGIOS_SERVER", "Nagios Server", '{ "isMaster": true, "isClient": false }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "GANGLIA", "GANGLIA_MONITOR_SERVER", "Ganglia Collector", '{ "isMaster": true, "isClient": false }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "GANGLIA", "GANGLIA_MONITOR", "Ganglia Slave", '{ "isMaster": false, "isClient": false }', "" );
+
+CREATE TABLE  "ServiceDependencies" (
+  from_service_name TEXT, -- service A depends on B
+  to_service_name TEXT, -- service B
+  PRIMARY KEY ( from_service_name, to_service_name ),
+  FOREIGN KEY (from_service_name) REFERENCES Services(service_name),
+  FOREIGN KEY (to_service_name) REFERENCES Services(service_name)
+);
+CREATE INDEX  svc_dep_index ON "ServiceDependencies" ( to_service_name );
+
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "MAPREDUCE" , "HDFS" );
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "HBASE" , "ZOOKEEPER" );
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "HBASE" , "HDFS" );
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "OOZIE" , "MAPREDUCE" );
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "HCATALOG" , "HIVE" );
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "HIVE" , "MAPREDUCE" );
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "TEMPLETON" , "MAPREDUCE" );
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "TEMPLETON" , "PIG" );
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "TEMPLETON" , "HIVE" );
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "TEMPLETON" , "HCATALOG" );
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "TEMPLETON" , "ZOOKEEPER" );
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "PIG" , "MAPREDUCE" );
+INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "SQOOP" , "MAPREDUCE" );
+-- todo need to add all dependencies
+
+CREATE TABLE  "ServiceComponentDependencies" (
+  from_component_name TEXT, -- component  A depends on B
+  to_component_name TEXT, -- component B
+  PRIMARY KEY ( from_component_name, to_component_name ),
+  FOREIGN KEY (from_component_name) REFERENCES ServiceComponents(component_name),
+  FOREIGN KEY (to_component_name) REFERENCES ServiceComponents(component_name)
+);
+CREATE INDEX  component_dep_index ON "ServiceComponentDependencies" ( to_component_name );
+
+INSERT OR REPLACE INTO "ServiceComponentDependencies" ( from_component_name, to_component_name ) VALUES ( "DATANODE", "NAMENODE" );
+INSERT OR REPLACE INTO "ServiceComponentDependencies" ( from_component_name, to_component_name ) VALUES ( "SNAMENODE", "NAMENODE" );
+INSERT OR REPLACE INTO "ServiceComponentDependencies" ( from_component_name, to_component_name ) VALUES ( "TASKTRACKER", "JOBTRACKER" );
+
+-- TODO add inserts for dependencies
+
+CREATE TABLE  "ServiceInfo" (
+  cluster_name TEXT, -- foreign-key cluster_name
+  service_name TEXT, -- foreign-key
+  state TEXT, -- current state of the service
+  desired_state TEXT, -- desired state of the service
+  is_enabled BOOL, -- whether service is enabled
+  PRIMARY KEY(cluster_name, service_name),
+  FOREIGN KEY (cluster_name) REFERENCES Clusters(cluster_name),
+  FOREIGN KEY (service_name) REFERENCES Services(service_name)
+);
+
+CREATE TABLE  "ServiceComponentInfo" (
+  cluster_name TEXT, -- foreign-key cluster_name
+  service_name TEXT, -- foreign-key
+  component_name TEXT, -- foreign-key
+  state TEXT, -- current state of the service
+  desired_state TEXT, -- desired state of the service
+  PRIMARY KEY(cluster_name, component_name),
+  FOREIGN KEY (cluster_name) REFERENCES Clusters(cluster_name),
+  FOREIGN KEY (service_name) REFERENCES Services(service_name),
+  FOREIGN KEY (component_name) REFERENCES ServiceComponents(component_name)
+);
+
+CREATE TABLE  ConfigProperties (
+  key TEXT, -- property key
+  default_value TEXT, -- default value
+  display_name TEXT, -- display name
+  description TEXT, -- description
+  service_name TEXT, -- service to which this property belongs to
+  display_type TEXT, -- display type, for frontend (vikram needs it). NODISPLAY for not showing on the frontend and DISPLAY for showing it.
+  display_attributes TEXT, -- display attributes stored as a JSON serialized string
+                   -- conforming to the following schema:
+                   --
+                   -- { "isPassword": boolean, "noDisplay": boolean, "reconfigurable": boolean, "displayType": string }
+                   --     where:
+                   --
+                   --     "isPassword": true if the value is a password field
+                   --     "noDisplay": true if the config is not meant to be displayed
+                   --     "reconfigurable": whether the value can be edited during reconfiguration
+                   --     "displayType": checkbox, multi-button checkbox, etc
+                   --     "displayValues": possible values in case of multi-value selection ( not required for single value which is covered by the default value
+
+  PRIMARY KEY (key) ,
+  FOREIGN KEY (service_name) REFERENCES Services(service_name)
+);
+
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "dfs_name_dir", "", "HDFS Name directories", "Namenode directories for HDFS to store the filesystem image", "HDFS", "TEXT", '{ "isPassword": false, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "dfs_data_dir", "",  "HDFS Data directories", "", "HDFS", "Datanode directories for HDFS to store the data blocks", '{ "isPassword": false, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_local_dir", "", "MapReduce local directories", "Directories for MapReduce to store intermediate data files", "MAPREDUCE", "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "oozie_data_dir", "", "Oozie DB directory", "Data Directory in which the Oozie DB exists", "OOZIE", "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "zk_data_dir", "", "ZooKeeper directory", "Data directory for ZooKeeper", "ZOOKEEPER", "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hive_mysql_host", "", "MySQL host", "MySQL host on which the Hive Metastore is hosted", "HIVE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hive_database_name", "hive", "MySQL Database Name", "MySQL Database name used as the Hive Metastore", "HIVE", "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hive_metastore_user_name", "dbusername", "MySQL user", "MySQL username to use to connect to the MySQL database", "HIVE", "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hive_metastore_user_passwd", "dbpassword", "MySQL Password", "MySQL password to use to connect to the MySQL database", "HIVE", "SECRET", '{ "isPassword": true, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "java32_home", "", "Java 32 bit Home", "Path to 32-bit JAVA_HOME", "MISCELLANEOUS", "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "java64_home", "", "Java 64 bit Home", "Path to 64-bit JAVA_HOME", "MISCELLANEOUS", "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "jdk_location", "", "Jdk Url to Download 32/64 bit", "URL from where the Java JDK binary can be downloaded from", "MISCELLANEOUS", "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hdfs_user", "hdfs", "HDFS User Name", "User to run HDFS as", "HDFS", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_user", "mapred", "MapRed User Name", "User to run MapReduce as", "MAPREDUCE", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "dfs_support_append", "true", "HDFS Append Enabled", "Whether to enable HDFS Append support", "HDFS", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": true, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "dfs_webhdfs_enabled", "false", "HDFS WebHDFS Enabled", "Whether to enable WebHDFS", "HDFS", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": true, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hadoop_logdirprefix", "/var/log/hadoop", "HADOOP Log DIR", "Directory for hadoop log files", "MISCELLANEOUS", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hadoop_piddirprefix", "/var/run/hadoop", "HADOOP PID DIR", "Directory in which the pid files for hadoop processes will be created", "MISCELLANEOUS", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "scheduler_name", "org.apache.hadoop.mapred.CapacityTaskScheduler", "MapReduce Capacity Scheduler", "The scheduler to use for scheduling of MapReduce jobs", "MAPREDUCE", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": true, "displayType": "buttongroup" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hbase_log_dir", "/var/log/hbase", "HBase Log DIR", "Directory for HBASE logs", "HBASE", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hbase_pid_dir", "/var/run/hbase", "HBase PID DIR", "Directory in which the pid files for HBASE processes will be created", "HBASE", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hbase_user", "hbase", "HBase User Name", "User to run HBASE as", "HBASE", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "zk_log_dir", "/var/log/zookeeper", "ZooKeeper Log directory", "Directory for ZooKeeper log files", "ZOOKEEPER", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "zk_pid_dir", "/var/run/zookeeper", "ZooKeeper PID directory", "Directory in which the pid files for zookeeper processes will be created", "ZOOKEEPER", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "zk_user", "zookeeper", "ZooKeeper User", "User to run ZooKeeper as", "ZOOKEEPER", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hcat_logdirprefix", "/var/log/hcatalog", "HCAT Log Dir", "Directory for HCatalog logs", "HCATALOG", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hcat_logdirprefix", "/var/log/hcatalog", "HCAT Log Dir", "Directory in which the pid files for hcatalog processes will be created", "HCATALOG", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hcat_user", "hcat", "HCAT User Name", "User to run HCatalog as", "HCATALOG", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "templeton_user", "templeton", "Templeton User Name", "User to run Templeton as", "TEMPLETON", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "templeton_pid_dir", "/var/run/templeton", "Templeton PID Dir", "Directory in which the pid files for templeton processes will be created", "TEMPLETON", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "templeton_log_dir", "/var/log/templeton", "Templeton Log Dir", "Directory for templeton logs", "TEMPLETON", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "oozie_log_dir", "/var/log/oozie", "Oozie Log Dir", "Directory for oozie logs", "OOZIE", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "oozie_pid_dir", "/var/pid/oozie", "Oozie PID Dir", "Directory in which the pid files for oozie processes will be created", "OOZIE", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "oozie_user", "oozie", "Oozie User Name", "User to run Oozie as", "OOZIE", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+
+-- Configurations for nagios
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "nagios_web_login", "nagiosadmin", "Nagios Admin User", "", "NAGIOS", "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "nagios_web_password", "admin", "Nagios Admin Password", "", "NAGIOS", "SECRET", '{ "isPassword": true, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "nagios_contact", "", "Nagios Admin Contact", "", "NAGIOS", "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+--                                         gsCluster.properties keys
+
+-- maps to hadoop_heap_size in gsCluster.properties in MB
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hadoop_heapsize", "1024", "HADOOP HEAP SIZE", "Java Heap Size for slave daemons", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to namenode_javaheap in gsCluster.properties in MB
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "namenode_heapsize", "1024", "NameNode Heap Size", "Java Heap Size for NameNode", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to fs_inmemory_size in gsCluster.properties in MB
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "fs_inmemory_size", "256", "Merge Mem Size", "Memory allocated for in memory FS",  "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to namenode_opt_newsize in gscluster in MB
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "namenode_opt_newsize", "200", "Max Size of New Gen", "Maximum size for New Generation for java heap size", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to datanode_du_reserved in gscluster in bytes.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "datanode_du_reserved", "1073741824", "Reserved Space for HDFS", "Reserved space in bytes per volume", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to dt_heapsize in gscluster in MB.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "dtnode_heapsize", "1024", "DataNode Heap Size", "Java Heap Size for DataNode", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to jtnode_opt_newsize in gscluster in MB.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "jtnode_opt_newsize", "200", "Default Size of New Gen", "Default size of new gen for jobtracker", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to jtnode_opt_maxnewsize in gscluster in MB
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "jtnode_opt_maxnewsize", "200", "Max Size of New Gen", "Max size of new gen for jobtracker", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to jt_heapsize in gscluster in MB.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "jtnode_heapsize", "1024", "JobTracker Heap Size", "Java Heap  size for jobtracker", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to mapred_map_tasks_max in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_map_tasks_max", "4", "Maximum Number of MapTasks per Node", "The maximum number of map tasks that will be run simultaneously by a task tracker.", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to mapred_red_tasks_max in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_red_tasks_max", "2", "Maximum Number of ReduceTasks per Node", "The maximum number of reduce tasks that will be run simultaneously by a task tracker.", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to mapred_cluster_map_mem_mb in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_cluster_map_mem_mb", "-1", "Virtual Mem for Single Map", "The size, in terms of virtual memory, of a single map slot in the Map-Reduce framework", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to mapred_cluster_red_mem_mb in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_cluster_red_mem_mb", "-1", "Virtual Mem for Single Reduce", "The size, in terms of virtual memory, of a single reduce slot in the Map-Reduce framework", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to mapred_cluster_max_map_mem_mb in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_cluster_max_map_mem_mb", "-1", "Maximum Virtual Mem for Single Map", "The maximum size, in terms of virtual memory, of a single map slot in the Map-Reduce framework", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to mapred_cluster_max_red_mem_mb in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_cluster_max_red_mem_mb", "-1", "Maximum Virtual Mem for Single Reduce", "The maximum size, in terms of virtual memory, of a single reduce slot in the Map-Reduce framework", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to mapred_job_map_mem_mb in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_job_map_mem_mb", "-1", "Virtual Memory for Single Map task for job", "Virtual Memory for Single Map task for a job", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to mapred_job_map_red_mb in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_job_red_mem_mb", "-1", "Virtual Memory for Single Reduce task for job", "Virtual Memory for Single Reduce task for a job", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to mapred_child_java_opts_sz in gscluster in MB.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_child_java_opts_sz", "768", "Java Opts for TT child processes.", "Java opts for the task tracker child processes.", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to io_sort_mb in gscluster in MB
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "io_sort_mb", "200", "Buffer Memory for Sorting in MB", "The total amount of buffer memory to use while sorting files, in megabytes", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to io_sort_spill_percent in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "io_sort_spill_percent", "0.9", "Limit on Buffer", "The soft limit in either the buffer or record collection buffers", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+
+-- maps to mapreduce_userlog_retainhours in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapreduce_userlog_retainhours", "24", "Job Log Retention", "The maximum time, in hours, for which the user-logs are to be retained after the job completion.", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to max_tasks_per_job in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "maxtasks_per_job", "-1", "Max Tasks for a Job", "maximum number of tasks for a single job", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to dfs_datanode_failed_volume_tolerated in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "dfs_datanode_failed_volume_tolerated", "0", "DN Volumes Failure Toleration", "The number of volumes that are allowed to fail before a datanode stops offering service", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to tickTime in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "tickTime", "2000", "Length of Single Tick", "The length of a single tick, which is the basic time unit used by ZooKeeper, as measured in milliseconds", "ZOOKEEPER" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to initLimit in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "initLimit", "10", "Ticks to allow for sync at Init", "Amount of time, in ticks to allow followers to connect and sync to a leader", "ZOOKEEPER" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to syncLimit in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "syncLimit", "5", "Ticks to allow for sync at Runtime", "Amount of time, in ticks to allow followers to connect an", "ZOOKEEPER" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to clientPort in gscluster.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "clientPort", "2181", "Port for Running ZK Server", "Port for running ZK server", "ZOOKEEPER" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+
+-- maps to hbase_master_heapsize in gscluster in MB.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hbase_master_heapsize", "1024", "JVM Heap Size for HBase Master", "JVM heap size for HBase master", "HBASE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+-- maps to hbase_regionserver_heapsize in gscluster in MB.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hbase_regionserver_heapsize", "1024", "JVM Heap Size for HBase Region Servers", "JVM heap size for HBase region servers", "HBASE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "lzo_enabled", "false", "Lzo compression", "Lzo compression enabled", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "snappy_enabled", "true", "Snappy compression", "Snappy compression enabled", "MAPREDUCE" , "NODISPLAY". '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+
+--                                        Done with gsCluster.properties
+
+CREATE TABLE  ServiceConfig (
+  cluster_name TEXT, -- foreign-key cluster_name
+  key TEXT, -- property key
+  value TEXT, -- property value
+  PRIMARY KEY (cluster_name, key),
+  FOREIGN KEY (key) REFERENCES ConfigProperties(key),
+  FOREIGN KEY (cluster_name) REFERENCES Clusters(cluster_name)
+);
+
+CREATE TABLE  "Hosts" (
+  cluster_name TEXT, -- foreign-key cluster_name
+  host_name TEXT,  -- host name
+  ip TEXT,  -- ip
+  total_mem   INTEGER,  -- total mem on host - in bytes
+  cpu_count   INTEGER,  -- cpu count - no. of cores
+  os_arch TEXT, -- os arch - i386, x86_64 etc
+  os_type TEXT, -- os type - searchable - defined set of supported OS types - RHEL5, RHEL6, CENTOS5, SLES, etc.
+  os BLOB, -- os info - type, version etc - uname -a?
+  disks_info BLOB, -- disk capacity json object, keys are mount-points
+  discovery_status TEXT, -- discovery state - if we could connect properly
+  bad_health_reason TEXT, -- failure reason if any
+  attributes BLOB, -- attributes blob to store additional attributes that may be required for the host
+                   -- attributes stored currently:
+                      -- "publicFQDN" => public hostname in case of AWS ( same as hostname in other environments )
+                      -- "privateFQDN" => private hostname in case of AWS ( same as hostname in other environments )
+  PRIMARY KEY(host_name),
+  FOREIGN KEY (cluster_name) REFERENCES Clusters(cluster_name),
+  UNIQUE(ip)
+);
+CREATE INDEX  host_mem_index ON "Hosts" ( total_mem );
+
+CREATE TABLE  "HostRoles" (
+  role_id INTEGER, --autoincrement primary key
+  cluster_name TEXT, --foreign key
+  host_name TEXT, --foreign key
+  component_name TEXT, -- One component of a service running on this host, like DN of HDFS
+  state TEXT, -- current state of the host
+  desired_state TEXT, -- desired state of this host
+  PRIMARY KEY (role_id),
+  UNIQUE (host_name, component_name),
+  FOREIGN KEY (cluster_name) REFERENCES Clusters(cluster_name),
+  FOREIGN KEY (host_name) REFERENCES Hosts(host_name),
+  FOREIGN KEY (component_name) REFERENCES ServiceComponents(component_name)
+);
+
+CREATE TABLE "HostRoleConfig" (
+  cluster_name TEXT, --foreign key
+  host_name TEXT, --foreign key
+  component_name TEXT, -- One component of a service running on this host, like DN of HDFS
+  key TEXT, -- property key
+  value TEXT, -- property value
+  PRIMARY KEY (cluster_name, host_name, component_name, key),
+  FOREIGN KEY (key) REFERENCES ConfigProperties(key),
+  FOREIGN KEY (cluster_name) REFERENCES Clusters(cluster_name),
+  FOREIGN KEY (host_name) REFERENCES Hosts(host_name),
+  FOREIGN KEY (component_name) REFERENCES ServiceComponents(component_name)
+);
+
+CREATE TABLE  "ConfigHistory" (
+  cluster_name TEXT, -- foreign-key cluster_name
+  version INTEGER, -- auto inc version
+  config BLOB, -- config blob
+  change_log BLOB, -- changelog update message for change
+  update_time INTEGER, -- unix time when change was made
+  PRIMARY KEY (version),
+  FOREIGN KEY (cluster_name) REFERENCES Clusters(cluster_name)
+);
+
+CREATE TABLE  "TransactionStatus" (
+  cluster_name TEXT, -- cluster name foreign key
+  txn_id INTEGER, -- primary key auto-increment
+  create_time INTEGER, -- time when txn was created - unix time
+  status_info BLOB, -- blob containing all info pertaining to txn
+  pid_info BLOB, -- blob containing single or list of pids attached to txn
+  PRIMARY KEY (txn_id),
+  FOREIGN KEY (cluster_name) REFERENCES Clusters(cluster_name)
+);
+
+CREATE TABLE  "SubTransactionStatus" (
+  cluster_name TEXT, -- cluster name foreign key
+  txn_id INTEGER, -- txn id foreign key
+  sub_txn_id INTEGER, -- sub txn id
+  parent_sub_txn_id INTEGER, -- parent sub txn id
+  state TEXT, -- state info
+  description TEXT, -- additional description
+  progress TEXT, -- progress status of sub-txn
+  sub_txn_type TEXT, -- at what level is the txn taking place i.e cluster,svc,comp
+  op_status BLOB, -- status of operation - misc. info from puppet
+  PRIMARY KEY (cluster_name, txn_id, sub_txn_id),
+  FOREIGN KEY (txn_id) REFERENCES TransactionStatus(txn_id)
+);
+
+
+COMMIT;

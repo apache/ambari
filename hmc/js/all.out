@@ -1,0 +1,29 @@
+abcd: ssh: abcd: Name or service not known
+pdsh@hrt8n20: abcd: ssh exited with exit code 255
+hrt8n25: Warning: Permanently added 'hrt8n25,98.137.233.229' (RSA) to the list of known hosts.
+hrt8n23: Warning: Permanently added 'hrt8n23,98.137.233.231' (RSA) to the list of known hosts.
+hrt8n24: Warning: Permanently added 'hrt8n24,98.137.233.230' (RSA) to the list of known hosts.
+hrt8n20: Permission denied, please try again.
+hrt8n20: Permission denied, please try again.
+hrt8n20: Permission denied (publickey,gssapi-with-mic,password,hostbased).
+pdsh@hrt8n20: hrt8n20: ssh exited with exit code 255
+hrt8n22: Permission denied, please try again.
+hrt8n22: Permission denied, please try again.
+hrt8n22: Permission denied (publickey,gssapi-with-mic,password,hostbased).
+pdsh@hrt8n20: hrt8n22: ssh exited with exit code 255
+hrt8n23: Permission denied, please try again.
+hrt8n23: Permission denied, please try again.
+hrt8n23: Permission denied (publickey,gssapi-with-mic,password,hostbased).
+pdsh@hrt8n20: hrt8n23: ssh exited with exit code 255
+hrt8n24: Permission denied, please try again.
+hrt8n24: Permission denied, please try again.
+hrt8n24: Permission denied (publickey,gssapi-with-mic,password,hostbased).
+pdsh@hrt8n20: hrt8n24: ssh exited with exit code 255
+hrt8n25: Permission denied, please try again.
+hrt8n25: Permission denied, please try again.
+hrt8n25: Permission denied (publickey,gssapi-with-mic,password,hostbased).
+pdsh@hrt8n20: hrt8n25: ssh exited with exit code 255
+hrt8n21: Permission denied, please try again.
+hrt8n21: Permission denied, please try again.
+hrt8n21: Permission denied (publickey,gssapi-with-mic,password,hostbased).
+pdsh@hrt8n20: hrt8n21: ssh exited with exit code 255

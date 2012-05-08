@@ -1,0 +1,28 @@
+{
+    "Global": [
+        {
+            "description": "Bytes written to and read from HDFS, aggregated across all the DataNodes", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
+            "title": "HDFS I/O", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HDFSSlavesClusterName%&g=hdp_mon_hdfs_io_report"
+        }, 
+        {
+            "description": "Utilized Map slots (occupied + reserved) vs. Total Map slots", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
+            "title": "Map Slot Utilization", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_map_slot_report"
+        }, 
+        {
+            "description": "Utilized Reduce slots (occupied + reserved) vs. Total Reduce slots", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
+            "title": "Reduce Slot Utilization", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_reduce_slot_report"
+        }, 
+        {
+            "description": "Waiting Maps and Reduces, to give a feel for a combined MapReduce backlog", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
+            "title": "MapReduce Backlog", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_mapreduce_report"
+        }
+    ]
+}

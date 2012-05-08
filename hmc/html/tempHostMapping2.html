@@ -1,0 +1,115 @@
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="../css/selectHosts.css"/>
+<script src="http://yui.yahooapis.com/3.4.1/build/yui/yui-min.js"></script>
+<script type="text/javascript">
+
+var currentMaster="";
+var nodeGroups = [ "A", "B"];
+var serviceMasters = [ "NameNode", "JobTracker" , "HBaseMaster" ]
+var slotContents = {};
+var serviceLocations = {};
+
+function renderSlots(Y) {
+  for (nodeGroupIndex in nodeGroups) {
+    for (serviceMasterIndex in serviceMasters) {
+      var content= "";
+      var thisId = 'slotForGroup' + nodeGroups[nodeGroupIndex] + serviceMasterIndex;
+      for (master in slotContents[thisId]) {
+        content += '<div id="' + master + '" class="masterDiv">' + master + "</div>";
+      }
+      Y.one('#' + thisId).setContent(content);
+    }
+  }
+}
+
+YUI().use("node", "io", "dump", "json", "event", 'dd-drop', 'dd-constrain', 'dd-proxy', function (Y) {
+
+  ////////////////// Render node groups ////////
+  var nodeGroupsMarkup = '<div id="nodeGroupsTable">';
+  for (nodeGroupIndex in nodeGroups) {
+    nodeGroupsMarkup += '<div id="' + nodeGroups[nodeGroupIndex] + '" class="aNodeGroup"> <p>Node group ' + nodeGroups[nodeGroupIndex] + '</p>';
+    
+    // Number of boxes equal to number of service-masters
+    for (serviceMasterIndex in serviceMasters) {
+      nodeGroupsMarkup += '<div id="slotForGroup' + nodeGroups[nodeGroupIndex] + serviceMasterIndex + '" class="slot"></div>';
+    } 
+    nodeGroupsMarkup += '</div>'; 
+  }
+  nodeGroupsMarkup += '</div>';
+  Y.one("#nodeGroupsDivId").setContent(nodeGroupsMarkup);
+  ////////////////// End of rendering node groups ////////
+
+  ////////////////// Initialize all slots ///////////////////
+  var thisId = 'slotForGroup' + nodeGroups[0] + 0;
+  for (serviceMasterIndex in serviceMasters) {
+    if (slotContents[thisId] === undefined) {
+      slotContents[thisId] = {};
+    }
+    var masterName = serviceMasters[serviceMasterIndex];
+    slotContents[thisId][masterName] = masterName;
+    serviceLocations[masterName] = thisId;
+  }
+  renderSlots(Y);
+  ////////////////// End of initializing all slots ///////////////////
+
+  for (serviceMasterIndex in serviceMasters) {
+    var dd = new Y.DD.Drag({
+      node: Y.one('#' + serviceMasters[serviceMasterIndex])
+    }).plug(Y.Plugin.DDProxy, {
+       //We don't want the node to move on end drag
+       moveOnEnd: false
+    }).plug(Y.Plugin.DDConstrained, {
+       //Keep it inside the work area
+       constrain2node: '#nodeGroupsTable'
+    });
+    //Prevent the default end event (this moves the node back to its start position)
+     dd.on('drag:end', function(e) {
+        e.preventDefault();
+     });
+     /*
+     dd.on('drag:drophit', function(e) {
+       //If we drop on a target, move to its position
+       var xy = e.drop.get('node').getXY();
+       this.get('node').setXY(xy);
+     });
+     */
+  }
+
+  for (nodeGroupIndex in nodeGroups) {
+    for (serviceMasterIndex in serviceMasters) {
+      var thisId = '#slotForGroup' + nodeGroups[nodeGroupIndex] + serviceMasterIndex;
+      var drop = new Y.DD.Drop({
+        node: thisId
+      });
+      //Listen for a drop:hit on this target
+      drop.on('drop:hit', function(e) {
+        //Now we get the drag instance that triggered the drop hit
+        var draggedItem = e.drag.get('node');
+        var dropPlace = this.get('node');
+        dropPlace.appendChild(draggedItem);
+        serviceLocations[draggedItem.get('id')] = dropPlace.get('id');
+        Y.log("Moved " + draggedItem.get('id') + " to " + dropPlace.get('id'));
+    });
+    }
+  }
+});
+
+function print() {
+  alert("hello");
+}
+
+</script>
+</head>
+
+<body>
+<div id="statusDivId">
+</div>
+
+<p>Services, Node Groups</p>
+<div id="nodeGroupsDivId">
+</div>
+<input type="button" name="selectServiceMastersSubmitButton" id="selectServiceMastersSubmitButtonId" value="Submit" class="submitButton" onclick=print()>
+
+</body>
+</html>

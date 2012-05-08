@@ -1,0 +1,206 @@
+#/*
+# * Licensed to the Apache Software Foundation (ASF) under one
+# * or more contributor license agreements.  See the NOTICE file
+# * distributed with this work for additional information
+# * regarding copyright ownership.  The ASF licenses this file
+# * to you under the Apache License, Version 2.0 (the
+# * "License"); you may not use this file except in compliance
+# * with the License.  You may obtain a copy of the License at
+# *
+# *     http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# */
+
+#========================================================================================================================#
+#======================================== CORE PROPERTIES =====================================#
+#========================================================================================================================#
+
+#============================================================#
+# GENERAL INSTALLER PROPERTIES
+#============================================================#
+#ENTER THE DEPLOY USERNAME FOR TAR INSTALLATION
+deployuser=@HDPDeployUser@
+
+#ENTER THE FULL PATH TO THE INSTALLATION DIRECTORY FOR HDP (For tar installation only)
+installdir=
+
+#ENTER A VALUE FOR 32 BIT javahome AND 64 BIT javahome IF THE NODES HAVE JAVA INSTALLED.
+# ELSE IT WILL BE DEFAULTED TO ${installdir}/jdk1.6.0_26 (for tar install) AND /usr (for rpm install) AND JAVA WILL BE INSTALLED FROM ORACLE SITE
+java32home=
+java64home=
+
+#SUPPORTS ONLY rpm/tar - deb SUPPORT IS WORK IN PROGRESS
+package=rpm
+
+#TAKES yes/no VALUE AND ENABLES SECUIRTY IF SET TO yes. Defaults to no
+# Oozie should be turned off by setting installoozie=no when security=yes
+# Templeton should be turned off by setting installtempleton=no when security=yes
+security=no
+
+#============================================================#
+# HADOOP CONFIGURATION DETAILS
+#============================================================#
+
+#ENTER THE USER THAT HDFS/MAPRED SERVICES SHOULD USE.
+hdfsuser=hdfs
+mapreduser=mapred
+
+#TO ENABLE HBASE APPEND SET enableappend VALUE TO true
+enableappend=true
+
+#TO ENABLE WEBHDFS SET enablewebhdfs TO true
+enablewebhdfs=true
+
+#HADOOP DATA, LOG AND PID DIRECTORIES
+datanode_dir=@HDPDataNodeDataDir@
+namenode_dir=@HDPNameNodeDataDir@
+mapred_dir=@HDPMapReduceLocalDir@
+log_dir=/var/log/hadoop
+pid_dir=/var/run/hadoop
+
+#SCHEDULER TO USE
+taskscheduler="org.apache.hadoop.mapred.CapacityTaskScheduler"
+
+#FULL PATH TO KEYTAB LOCATION FOR HDFS USER - [ REQUIRED WHILE security IS SET TO yes ]
+hdfs_user_keytab="/homes/${hdfsuser}/${hdfsuser}.headless.keytab"
+
+#FULL PATH TO KINIT EXECUTABLE - [ REQUIRED WHILE security IS SET TO yes ]
+kinitpath=/usr/kerberos/bin/kinit
+
+#PATH TO NAMENODE/SNAMENODE/JOBTRACKER/DATANODE/HBASEMASTER/HCATSERVER/TASKTRACKER SERVCE KEYTABS - [ REQUIRED WHILE security IS SET TO yes ]
+keytabdir=/etc/security/keytabs
+
+#KERBEROS REALM FOR SECURED CLUSETR - [ REQUIRED WHILE security IS SET TO yes ]
+realm=EXAMPLE.COM
+
+#SPECIFY FULL PATH TO SSHKEY WHEN PASSWORDLESS REQUIRES A SSHKEY
+sshkey=@HDPSshKey@
+
+#TO ENABLE LZO COMPRESSION
+enablelzo=@HDPEnableLzo@
+
+#TO ENABLE snappy COMPRESSION
+enablesnappy=yes
+
+#============================================================#
+# PIG CONFIGURATION DETAILS
+#============================================================#
+
+#ENTER yes TO INSTALL PIG ; no OTHERWISE ; DEFAULTS TO yes
+installpig=@HDPInstallPig@
+
+#============================================================#
+# HBASE CONFIGURATION DETAILS
+# Hbase requires zookeeper, please enter zookeeper settings
+# defined below.
+#============================================================#
+
+#ENTER yes TO INSTALL HBASE ; no OTHERWISE ; DEFAULTS TO yes
+installhbase=@HDPInstallHBase@
+
+#ENTER THE LOG DIR AND PID DIR LOCATION FOR HBASE
+hbase_log_dir=/var/log/hbase
+hbase_pid_dir=/var/run/hbase
+
+#ENTER THE USER THAT HBASE SERVICES SHOULD USE.
+hbaseuser=hbase
+
+#ENTER true/false TO ENABLE/DISABLE SHORTCIRCUIT READS
+enableshortcircuit=true
+
+#============================================================#
+# ZOOKEEPER CONFIGURATION DETAILS
+# Required by Hbase and Templeton
+#============================================================#
+
+#ENTER THE LOG DIR AND DATA DIR LOCATION FOR ZOOKEEPER
+zk_log_dir=/var/log/zookeeper
+zk_pid_dir=/var/run/zookeeper
+zk_data_dir=@HDPZookeeperDataDir@
+zkuser=zookeeper
+
+#============================================================#
+# HCAT CONFIGURATION DETAILS
+#============================================================#
+
+#ENTER yes TO INSTALL HCAT ; no OTHERWISE ; DEFAULTS TO yes
+installhcat=@HDPInstallHCatalog@
+
+#ENTER THE LOG DIR AND PID DIR LOCATION FOR HCATALOG
+hcat_log_dir=/var/log/hcatalog
+hcat_pid_dir=/var/run/hcatalog
+
+#MYSQL SERVER HOST NAME
+mysqldbhost=@HDPHCatalogMySqlDbHost@
+
+#MYSQL DATABASE NAME, USERNAME AND PASSWORD
+databasename=@HDPHCatalogMySqlDbName@
+mysqldbuser=@HDPHCatalogMySqlDbUser@
+mysqldbpasswd=@HDPHCatalogMySqlDbPassword@
+
+#ENTER THE USER THAT HCAT SERVICE SHOULD USE.
+hcatuser=hcat
+
+#ENTER THE USER WHO SHOULD EXECUTE THE SMOKE TEST
+smoke_test_user="${hdfsuser}"
+#FULL PATH TO KEYTAB LOCATION FOR SMOKE TEST USER - [ REQUIRED WHILE security IS SET TO yes ]
+smoke_test_user_keytab="/homes/${smoke_test_user}/${smoke_test_user}.headless.keytab"
+
+
+#============================================================#
+# TEMPLETON CONFIGURATION DETAILS
+# Requires Hcatalog and Zookeeper installed, please fill
+# appropriate settings.
+#============================================================#
+#ENTER yes TO INSTALL TEMPLETON ; no OTHERWISE ; DEFAULTS TO yes
+installtempleton=@HDPInstallTempleton@
+
+#ENTER THE USER THAT TEMPLETON SERVICE SHOULD USE.
+templetonuser=mapred
+
+#ENTER THE LOG DIR AND PID DIR LOCATION FOR TEMPLETON
+templeton_log_dir=/var/log/templeton
+templeton_pid_dir=/var/run/templeton
+#============================================================#
+# SQOOP CONFIGURATION DETAILS
+#============================================================#
+
+#ENTER yes TO INSTALL SQOOP ; no OTHERWISE ; DEFAULTS TO yes
+installsqoop=@HDPInstallSqoop@
+
+#============================================================#
+# OOZIE CONFIGURATION DETAILS
+#============================================================#
+
+#ENTER yes TO INSTALL OOZIE ; no OTHERWISE ; DEFAULTS TO yes
+installoozie=@HDPInstallOozie@
+
+#ENTER THE LOG DIR, PID DIR and DB DIR LOCATION FOR OOZIE 
+oozie_log_dir=/var/log/oozie
+oozie_pid_dir=/var/run/oozie
+oozie_db_dir=@HDPOozieDbDir@
+
+#ENTER THE USER THAT OOZIE SERVICE SHOULD USE.
+oozieuser=oozie
+
+
+#========================================================================================================================#
+#======================================== UNIVR PROPERTIES =================================#
+#========================================================================================================================#
+
+#============================================================#
+# MONITORING PROPERTIES FOR GANGLIA AND NAGIOS
+#============================================================#
+#TO ENABLE NAGIOS AND GANGLIA INTEGRATION WITH HADOOP
+enablemon=yes
+
+outputlogfile=@HDPGSInstallLogFile@
+
+forceclean=true
+
+statusdumpfile=@HDPGSInstallStatusDumpFile@

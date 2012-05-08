@@ -1,0 +1,249 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+        
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->     
+
+<configuration>
+
+<!--
+    Refer to the oozie-default.xml file for the complete list of
+    Oozie configuration properties and their default values.
+-->
+  <property>
+    <name>oozie.base.url</name>
+    <value>http://<%=scope.function_hdp_host("oozie_server")%>:11000/oozie</value>
+    <description>Base Oozie URL.</description>
+   </property>
+
+  <property>
+    <name>oozie.system.id</name>
+    <value>oozie-${user.name}</value>
+    <description>
+    The Oozie system ID.
+    </description>
+   </property>
+
+   <property>
+     <name>oozie.systemmode</name>
+     <value>NORMAL</value>
+     <description>
+     System mode for  Oozie at startup.
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.AuthorizationService.security.enabled</name>
+     <value>true</value>
+     <description>
+     Specifies whether security (user name/admin role) is enabled or not.
+     If disabled any user can manage Oozie system and manage any job.
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.PurgeService.older.than</name>
+     <value>30</value>
+     <description>
+     Jobs older than this value, in days, will be purged by the PurgeService.
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.PurgeService.purge.interval</name>
+     <value>3600</value>
+     <description>
+     Interval at which the purge service will run, in seconds.
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.CallableQueueService.queue.size</name>
+     <value>1000</value>
+     <description>Max callable queue size</description>
+   </property>
+
+   <property>
+     <name>oozie.service.CallableQueueService.threads</name>
+     <value>10</value>
+     <description>Number of threads used for executing callables</description>
+   </property>
+
+   <property>
+     <name>oozie.service.CallableQueueService.callable.concurrency</name>
+     <value>3</value>
+     <description>
+     Maximum concurrency for a given callable type.
+     Each command is a callable type (submit, start, run, signal, job, jobs, suspend,resume, etc).
+     Each action type is a callable type (Map-Reduce, Pig, SSH, FS, sub-workflow, etc).
+     All commands that use action executors (action-start, action-end, action-kill and action-check) use
+     the action type as the callable type.
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.coord.normal.default.timeout</name>
+     <value>120</value>
+     <description>Default timeout for a coordinator action input check (in minutes) for normal job.
+      -1 means infinite timeout</description>
+   </property>
+
+   <property>
+     <name>oozie.db.schema.name</name>
+     <value>oozie</value>
+     <description>
+      Oozie DataBase Name
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.StoreService.create.db.schema</name>
+     <value>true</value>
+     <description>
+     Creates Oozie DB.
+     If set to true, it creates the DB schema if it does not exist. If the DB schema exists is a NOP.
+     If set to false, it does not create the DB schema. If the DB schema does not exist it fails start up.
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.StoreService.jdbc.driver</name>
+     <value>org.apache.derby.jdbc.EmbeddedDriver</value>
+     <description>
+     JDBC driver class.
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.StoreService.jdbc.url</name>
+     <value>jdbc:derby:<%=scope.function_hdp_template_var("oozie_data_dir")%>/${oozie.db.schema.name}-db;create=true</value>
+     <description>
+     JDBC URL.
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.StoreService.jdbc.username</name>
+     <value>sa</value>
+     <description>
+     DB user name.
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.StoreService.jdbc.password</name>
+     <value> </value>
+     <description>
+     DB user password.
+     IMPORTANT: if password is emtpy leave a 1 space string, the service trims the value,
+      if empty Configuration assumes it is NULL.
+     IMPORTANT: if the StoreServicePasswordService is active, it will reset this value with the value given in
+     the console.
+    </description>
+   </property>
+
+   <property>
+     <name>oozie.service.StoreService.pool.max.active.conn</name>
+     <value>10</value>
+     <description>
+      Max number of connections.
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.HadoopAccessorService.kerberos.enabled</name>
+     <value><%=scope.function_hdp_template_var("oozie_sasl_enabled")%></value>
+     <description>
+     Indicates if Oozie is configured to use Kerberos.
+     </description>
+   </property>
+
+   <property>
+     <name>local.realm</name>
+     <value><%=scope.function_hdp_template_var("realm")%></value>
+     <description>
+     Kerberos Realm used by Oozie and Hadoop. Using 'local.realm' to be aligned with Hadoop configuration
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.HadoopAccessorService.keytab.file</name>
+     <value><%=scope.function_hdp_template_var("keytab_path")%>/oozie.service.keytab</value>
+     <description>
+     Location of the Oozie user keytab file.
+     </description>
+   </property>
+
+   <property>
+     <name>oozie.service.HadoopAccessorService.kerberos.principal</name>
+     <value>oozie/<%=scope.function_hdp_host("oozie_server")%>@<%=scope.function_hdp_host("realm")%></value>
+     <description>
+      Kerberos principal for Oozie service.
+     </description>
+   </property>
+
+    <property>
+      <name>oozie.service.HadoopAccessorService.jobTracker.whitelist</name>
+      <value> </value>
+      <description>
+      Whitelisted job tracker for Oozie service.
+      </description>
+    </property>
+   
+    <property>
+      <name>oozie.authentication.type</name>
+      <value><%=scope.function_hdp_template_var("oozie_security_type")%></value>
+      <description>
+      </description>
+    </property>
+    
+    <property>
+      <name>oozie.authentication.kerberos.principal</name>
+      <value>HTTP/<%=scope.function_hdp_host("oozie_server")%>@<%=scope.function_hdp_host("realm")%></value>
+      <description>
+       Whitelisted job tracker for Oozie service.
+      </description>
+    </property>
+
+    <property>
+      <name>oozie.service.HadoopAccessorService.nameNode.whitelist</name>
+      <value> </value>
+      <description>
+      </description>
+    </property>
+
+    <property>
+      <name>oozie.service.WorkflowAppService.system.libpath</name>
+      <value>/user/${user.name}/share/lib</value>
+      <description>
+      System library path to use for workflow applications.
+      This path is added to workflow application if their job properties sets
+      the property 'oozie.use.system.libpath' to true.
+      </description>
+    </property>
+
+    <property>
+      <name>use.system.libpath.for.mapreduce.and.pig.jobs</name>
+      <value>false</value>
+      <description>
+      If set to true, submissions of MapReduce and Pig jobs will include
+      automatically the system library path, thus not requiring users to
+      specify where the Pig JAR files are. Instead, the ones from the system
+      library path are used.
+      </description>
+    </property>
+</configuration>
+

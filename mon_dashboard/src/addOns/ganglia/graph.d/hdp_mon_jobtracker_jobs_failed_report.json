@@ -1,0 +1,10 @@
+{
+   "report_name" : "jobtracker_jobs_failed_report",
+   "report_type" : "standard",
+   "title" : "Jobs Failed",
+   "vertical_label" : "Number Of Jobs",
+   "series" : [
+      { "metric": "mapred.jobtracker.jobs_failed", "color": "ff0000", "label": "Jobs Failed", 
+        "line_width": "2", "type": "line" }
+   ]
+}

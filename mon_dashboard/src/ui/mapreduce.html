@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Monitoring v1.0</title>
+	<link type="text/css" rel="stylesheet" href="./styles/common.css" media="screen"/>
+	<link type="text/css" rel="stylesheet" href="./libs/jqueryui/css/custom-theme/jquery-ui-1.7.3.custom.css" media="screen"/>
+	<link type="text/css" rel="stylesheet" href="./libs/jqgrid/css/ui.jqgrid.css" media="screen"/>
+	<link type="text/css" rel="stylesheet" href="./libs/jquery.multiselect.css" media="screen"/>
+	<!--[if lt IE 9]><script type="text/javascript" src="./libs/html5shiv/html5shiv.min.js"></script><![endif]-->
+</head>
+<body>
+	<header>
+		<img src="./logo/logo.jpg"/>
+		<section id="headerText">Hortonworks Data Platform</section>
+	</header>
+	
+	<section class="navAndLinks">
+		<nav>
+			<ul>
+				<li><a href="./home.html">Dashboard</a></li>
+				<li><a href="./hdfs.html">HDFS</a></li>
+				<li><a href="./mapreduce.html" class="selectedNavItem">MapReduce</a></li>
+				<li><a id="hbase_link" href="./hbase.html">HBase</a></li>
+			</ul>
+		</nav>
+		
+		<section id="links">
+			<a class="roundedBox" href="http://www.hortonworks.com">Post Feedback</a>
+			<a class="roundedBox" href="http://www.hortonworks.com" target="_blank">Documentation</a>
+			<a id="nagios" class="roundedBox" href="">Nagios</a>
+			<a id="ganglia" class="roundedBox" href="">Ganglia</a>
+		</section>
+		<section class="clear"></section>
+	</section>
+	<section class="clear"></section>
+	
+	<section class="widget roundedBox alertSummaryWidget">
+		<h1 class="title">MapReduce Alerts</h1>
+		
+		<section id="mrSummaryContainer">
+			<table id="alertSummaryTable" class="clusterSummaryGrid">
+				<thead>
+					<tr>
+						<th class="service">Service</th>
+						<th class="state">State</th>
+						<th class="critical">Critical</th>
+						<th class="warning">Warning</th>
+					</tr>
+				</thead>
+				<tbody id="servicesGrid"></tbody>
+			</table>
+			
+			<section id="alerts">
+				<table id="alertsGrid"></table>
+				<section id="pager"></section>
+			</section>
+		</section>
+	</section>
+	
+	<section id="mrSummaryWidget" class="widget roundedBox">
+		<section class="title">MapReduce Summary</section>
+		
+		<section class="textContainer">
+			<table id="mrSummaryGrid1" class="grid">
+				<tbody>
+					<tr><td>Version</td><td></td></tr>
+					<tr><td>Job Tracker</td><td><a></a></td></tr>
+					<tr><td>Job Tracker Uptime</td><td></td></tr>
+					<tr><td>Trackers (live/total)</td><td></td></tr>
+					<tr><td>Trackers (blacklist/graylist/excl.)</td><td></td></tr>
+					<tr><td>Job Tracker Heap (used/max)</td><td></td></tr>
+				</tbody>
+			</table>
+		</section>
+		
+		<section class="textContainer">
+			<table id="mrSummaryGrid2" class="grid">
+				<tbody>
+					<tr><td>Total Slots Capacity (maps/reduces/avg per node)</td><td></td></tr>
+					<tr><td>Total Jobs (submitted/completed)</td><td></td></tr>
+					<tr><td>Current Slot Utilization: Maps (occupied/reserved)</td><td></td></tr>
+					<tr><td>Current Slot Utilization: Reduces (occupied/reserved)</td><td></td></tr>
+					<tr><td>Tasks: Maps (running/waiting)</td><td></td></tr>
+					<tr><td>Tasks: Reduces (running/waiting)</td><td></td></tr>
+				</tbody>
+			</table>
+		</section>
+		
+		<section class="linkContainer">
+			<section>Quick Links:</section>
+			<a id="jt0" href="">JobTracker UI</a>
+			<a id="jt1" href="">Scheduling Info</a>
+			<a id="jt2" href="">Running Jobs</a>
+			<a id="jt3" href="">Retired Jobs</a>
+			<a id="jt4" href="">JobHistory Server</a>
+			<a id="jt5" href="">JobTracker Logs</a>
+		</section>
+		<section class="linkContainer">
+			<section>Advanced Links:</section>
+			<a id="jtJMX" href="">JobTracker JMX</a>
+			<a id="jt6" href="">Thread Stacks</a>
+		</section>
+		<section class="clear"></section>
+	</section>
+	
+	<section class="widget roundedBox graphSummaryWidget">
+		<h1 class="title">Service Graphs</h1>
+		<section id="graphs_hdp" class="graphContainer">
+	 	</section>
+	</section>
+	
+	<section id="graphPopup" class="roundedBox">
+		<span id="close"></span>
+		<img id="popupImg" src=""/>
+		<a id="graphForwardLink" href=""></a>
+	</section>
+	
+	<footer></footer>
+	<script type="text/javascript" src="./libs/jquery-1.7.1.js"></script>
+	<script type="text/javascript" src="./libs/jqueryui/js/jquery-ui-1.7.3.custom.min.js"></script>
+	<script type="text/javascript" src="./libs/jquery.multiselect.js"></script>
+	<script type="text/javascript" src="./libs/jqgrid/js/i18n/grid.locale-en.js"></script>
+	<script type="text/javascript" src="./libs/jqgrid/js/jquery.jqGrid.src.js"></script>
+	<script type="text/javascript" src="./js/common.js"></script>	
+</body>
+</html>

@@ -1,0 +1,31 @@
+<script src="http://yui.yahooapis.com/3.4.1/build/yui/yui-min.js"></script>
+
+<script type="text/javascript">
+
+  /* Loads the next file from the global jsFilesToLoad array (destroying it 
+   * in the process).
+   */
+  function loadNextJsFile() {
+
+    if( jsFilesToLoad.length > 0 ) {
+
+      var dynamicJsScript = document.createElement("script");
+      dynamicJsScript.type = "text/javascript";
+      dynamicJsScript.src = jsFilesToLoad.shift();
+      globalYui.log('Loading ' + dynamicJsScript.src);
+      dynamicJsScript.onload = loadNextJsFile;
+      document.getElementsByTagName("head")[0].appendChild(dynamicJsScript);
+    }
+  }
+
+  var globalYui = YUI().use( 
+    "node", "io", "dump", "json", "panel", "event", "arraysort", 
+    "array-extras", "datasource", "datasource-io", "datasource-jsonschema", 
+    "datasource-polling", "stylesheet", "dd-drop", "dd-constrain",
+    "dd-proxy", function (Y) {
+
+      /* Kick off the sequential loading. */
+      loadNextJsFile();
+
+    });
+</script>

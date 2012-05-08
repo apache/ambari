@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <title id="pageTitleId">Hortonworks Data Platform Portal</title>
+
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.4.1/build/cssreset/cssreset-min.css"> 
+    <link type="text/css" rel="stylesheet" href="../css/common.css" media="screen"/>
+    <link type="text/css" rel="stylesheet" href="../css/common2.css" media="screen"/>
+  </head>
+
+  <body>
+    <header>
+    <img src="./logo.jpg"/>
+    <section id="headerText">Hortonworks Data Platform</section>
+    </header>
+    <hr/>
+
+    <div name="ContentDiv" id="ContentDivId" >
+
+<!--
+<div name="servicesListDiv" id="servicesListDivId">
+  <div>Service Name</div>
+  <div>Status</div>
+</div>
+-->
+
+      <div name="serviceStatusDiv" id="serviceStatusDivId">
+        <p><b>Checking status for all services</b></p>
+         
+      </div>
+
+    </div> <!-- end content div -->
+
+      <script src="http://yui.yahooapis.com/3.4.1/build/yui/yui-min.js"></script>
+      <script src="../js/serviceStatus.js"></script>
+
+      <script type="text/javascript">
+         YUI().use("node", "io", "dump", "json", "arraysort", "event", function (Y) { 
+           getServiceStatus(Y, "MyCluster-12345");
+         });
+      </script>
+  </body>
+  <hr/>
+  <footer></footer>
+</html>
+
