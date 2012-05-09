@@ -48,7 +48,7 @@ cp /etc/puppet/puppet.conf /etc/puppet/master/
 checkLicense() {
   if [ ! -f /var/run/hmc/license ]
   then
-  echo "Do you agree to Oracle's Jave License at"
+  echo "Do you agree to Oracle's Java License at"
   while true; do
     read -p "/usr/share/hmc/licenses/ORACLE_JDK_LICENSE.txt?(y/n)" yn  
     case $yn in
