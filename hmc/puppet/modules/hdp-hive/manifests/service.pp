@@ -15,8 +15,8 @@ class hdp-hive::service(
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
     #TODO: this needs to be fixed
-    $daemon_cmd = undef
-    $no_op_test = undef
+    $daemon_cmd = "ps aux | grep -i [h]ive | awk {'print \$2'} | xargs kill >/dev/null 2>&1"
+    $no_op_test = "ps aux | grep -i [h]ive"
   } else {
     $daemon_cmd = undef
   }
@@ -27,9 +27,16 @@ class hdp-hive::service(
   anchor{'hdp-hive::service::begin':} -> Hdp-hive::Service::Directory<||> -> anchor{'hdp-hive::service::end':}
   
   if ($daemon_cmd != undef) {
-    hdp::exec { $daemon_cmd:
-      command => $daemon_cmd,
-      unless  => $no_op_test
+    if ($ensure == 'running') {
+      hdp::exec { $daemon_cmd:
+        command => $daemon_cmd,
+        unless  => $no_op_test
+      }
+    } elsif ($ensure == 'stopped') {
+      hdp::exec { $daemon_cmd:
+        command => $daemon_cmd,
+        onlyif  => $no_op_test
+      }
     }
     Hdp-hive::Service::Directory<||> -> Hdp::Exec[$daemon_cmd] -> Anchor['hdp-hive::service::end']
   }

@@ -164,6 +164,7 @@ define hdp::exec(
   $command,
   $refreshonly = undef,
   $unless = undef,
+  $onlyif = undef,
   $path = $hdp::params::exec_path,
   $user = undef,
   $creates = undef,
@@ -182,6 +183,7 @@ define hdp::exec(
       wait_time => $initial_wait,
       creates   => $creates,
       unless    => $unless,
+      onlyif    => $onlyif,
       path      => $path
     }
   }
@@ -193,6 +195,7 @@ define hdp::exec(
     user        => $user,
     creates     => $creates,
     unless      => $unless,
+    onlyif      => $onlyif,
     tries       => $tries,
     timeout     => $timeout,
     try_sleep   => $try_sleep,
@@ -211,6 +214,7 @@ define hdp::wait(
   $wait_time,
   $creates = undef,
   $unless = undef,
+  $onlyif = undef,
   $path = undef #used for unless
 )   
 {
@@ -218,6 +222,7 @@ define hdp::wait(
     command => "/bin/sleep ${wait_time}",
     creates => $creates,
     unless  => $unless,
+    onlyif  => $onlyif,
     path    => $path
   } 
 }

@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-191. Implement hive server stopped state (Ramya via vgogate)
+
   AMBARI-195. Fix typo in java license question (Hitesh Shah via vgogate)
 
   AMBARI-187. Syntax error in the puppet manifest in reconfiguration (Jitendra
