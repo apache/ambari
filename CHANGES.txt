@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-199. Remove import of mysql puppet module from manifest (Jitendra via vgogate)
+
   AMBARI-198. Dependency of templeton on hcat client (Jitendra via vgogate)
 
   AMBARI-192. Check for NN safemode during restarts (Ramya via vgogate)

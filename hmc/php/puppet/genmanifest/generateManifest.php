@@ -80,7 +80,6 @@ include "RoleDependencies.php";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-hive/manifests/*.pp" ."\"\n";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-hcat/manifests/*.pp" ."\"\n";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-mysql/manifests/*.pp" ."\"\n";
-     $importString = $importString . "import \"" . $modulesDir . "/mysql/manifests/*.pp" ."\"\n";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-monitor-webserver/manifests/*.pp" ."\"\n";
      return $importString;
    }
