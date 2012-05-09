@@ -76,12 +76,16 @@ class PuppetClassDependencies {
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
     $this->addDependency("hdp-templeton::server", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-pig",
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
+    $this->addDependency("hdp-templeton::server", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-hcat",
+        array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
 
     $this->addDependency("hdp-templeton::server", SERVICE_STATE_RUNNING, "hdp-zookeeper::client",
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
     $this->addDependency("hdp-templeton::server", SERVICE_STATE_RUNNING, "hdp-hadoop::client",
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
     $this->addDependency("hdp-templeton::server", SERVICE_STATE_RUNNING, "hdp-pig",
+        array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
+    $this->addDependency("hdp-templeton::server", SERVICE_STATE_RUNNING, "hdp-hcat",
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
 
     //Ganglia
