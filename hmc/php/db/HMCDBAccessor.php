@@ -950,7 +950,8 @@ class HMCDBAccessor {
    *        )
    *     )
    */
-  public function getAllHostsInfo($clusterName, $filter, $order) {
+  public function getAllHostsInfo($clusterName, $filter = array(),
+      $order = array()) {
     LockAcquire();
     $error = "";
     $query = "SELECT "
