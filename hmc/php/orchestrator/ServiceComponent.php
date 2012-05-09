@@ -244,6 +244,7 @@ class ServiceComponent {
       $opStatus = array ( "nodeReport" =>
           array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
                   "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
+                  "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
                   "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
 
       $this->logger->log_info("Persisting puppet report for starting "
@@ -347,6 +348,7 @@ class ServiceComponent {
       $opStatus = array ( "nodeReport" =>
            array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
                    "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
+                   "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
                    "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
 
       $this->logger->log_info("Persisting puppet report for stopping "

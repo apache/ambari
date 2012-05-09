@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-193. Track nodes that timed out for puppet kicks (Hitesh Shah via
+  vgogate)
+
   AMBARI-190. On a Single Node install, Nagios alert do not take affect until 
   hmc is restarted (Hitesh Shah via vgogate)
 

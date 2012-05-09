@@ -124,6 +124,7 @@ class Cluster {
       $opStatus = array( "nodeReport" =>
           array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
             "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
+            "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
             "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
 
       $this->logger->log_info("Persisting puppet report for uninstall HDP");
@@ -406,6 +407,7 @@ class Cluster {
       $opStatus = array ( "nodeReport" =>
           array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
                   "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
+                  "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
                   "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
 
       $this->logger->log_info("Persisting puppet report for deploying nodes");
@@ -491,6 +493,7 @@ class Cluster {
       $opStatus = array ( "nodeReport" =>
           array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
                   "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
+                  "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
                   "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
 
       $this->logger->log_info("Persisting puppet report for deploying nodes");
@@ -584,6 +587,7 @@ class Cluster {
       $opStatus = array ( "nodeReport" =>
             array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
                     "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
+                    "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
                     "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
 
       $this->logger->log_info("Persisting puppet report for install HDP");
