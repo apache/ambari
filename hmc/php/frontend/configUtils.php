@@ -428,8 +428,9 @@ function validateConfigs($svcConfigs) {
 function handleHiveMysql($clusterName, &$finalProperties,
     $dbAccessor, $logHandle) {
   $services = $dbAccessor->getAllServicesInfo($clusterName);
+  $hostForMysql = $dbAccessor->getHostsForComponent($clusterName, "HIVE_MYSQL");
   if ( ($services["services"]["HIVE"]["isEnabled"] == 1) &&
-      (empty($finalProperties["hive_mysql_host"])) ) {
+      (empty($finalProperties["hive_mysql_host"])) && (empty($hostForMysql["hosts"])) ) {
     $logHandle->log_debug("Hive is enabled but mysql server is not set, set it up on hive server itself");
     $hostComponents = $dbAccessor->getHostsForComponent($clusterName, "HIVE_SERVER");
     $hiveServerHosts = array_keys($hostComponents["hosts"]);

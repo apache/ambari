@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-187. Syntax error in the puppet manifest in reconfiguration (Jitendra
+  Pandey via vgogate)
+
   AMBARI-193. Track nodes that timed out for puppet kicks (Hitesh Shah via
   vgogate)
 
