@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-202. Add check to verify jdk path after install (Ramya via vgogate)
+
   AMBARI-201. reduce db query logging (Hitesh via vgogate)
 
   AMBARI-200. External hostnames should be used for links on dashboard UI (Ramya via vgogate)

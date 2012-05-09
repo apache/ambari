@@ -38,8 +38,12 @@ define hdp::java::package(
     unless  => "test -e ${java_exec}",
     path    => ["/bin","/usr/bin/"]
   }
-  
-  anchor{"hdp::java::package::${name}::begin":} -> Exec["${curl_cmd} ${name}"] ->  Exec["${install_cmd} ${name}"] -> anchor{"hdp::java::package::${name}::end":}
+ 
+  file { "${java_exec}":
+  ensure => present
+  }   
+ 
+  anchor{"hdp::java::package::${name}::begin":} -> Exec["${curl_cmd} ${name}"] ->  Exec["${install_cmd} ${name}"] -> File["${java_exec}"] -> anchor{"hdp::java::package::${name}::end":}
   if ($include_artifact_dir == true) {
     Anchor["hdp::java::package::${name}::begin"] -> Hdp::Artifact_dir["java::package::${name}"] -> Exec["${curl_cmd} ${name}"]
   }
