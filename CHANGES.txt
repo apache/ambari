@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-190. On a Single Node install, Nagios alert do not take affect until 
+  hmc is restarted (Hitesh Shah via vgogate)
+
   AMBARI-189. Make getAllHostsInfo api support optional params ( Hitesh Shah via
   vgogate)
 

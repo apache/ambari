@@ -70,21 +70,33 @@ function renderDeployProgress (deployProgressInfo) {
    */
   globalYui.one('#installationWizardProgressBarDivId').setStyle('display', 'none');
 
+  var hmcRestartMsg = '';
+  if (deployProgressInfo.nagiosGangliaCoHosted != null
+      && deployProgressInfo.nagiosGangliaCoHosted) {
+    hmcRestartMsg = '<strong>Note:</strong> We detected that you need to restart HMC as'
+        + ' Nagios/Ganglia are co-hosted on this server. <br/>Please restart'
+        + ' HMC using \"service hmc restart\" and then head ';
+  } else {
+    hmcRestartMsg = 'May we be so bold as to suggest heading ';
+  }
+
+  hmcRestartMsg += 'on over to the ' +
+      '<a href="javascript:void(null)" id=clustersListLinkId>' +
+        'Cluster information' +
+      '</a>' +
+      ' page?';
+
   var deployProgressStatusMessage = {
 
-    success: 
-      '<p>' +
-        'All done with the deploy! May we be so bold as to suggest heading on over to the ' + 
-        '<a href="javascript:void(null)" id=clustersListLinkId>' + 
-          'Cluster information' +
-        '</a>' +
-        ' page?' +
+    success:
+      '<p style=\"text-align:center\">' +
+        'All done with the deploy! <br/>' + hmcRestartMsg +
       '</p>',
     failure:
       '<p>' +
-        'We made a boo-boo! Take a look at the ' + 
+        'We made a boo-boo! Take a look at the ' +
           '<a href="javascript:void(null)" id=showDeployTxnLogsLinkId>Deploy Logs</a>' +
-        '?' +  
+        '?' +
       '</p>'
   };
 

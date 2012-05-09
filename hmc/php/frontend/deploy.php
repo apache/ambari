@@ -29,11 +29,44 @@ if (!isset($result["txnId"])) {
 
 $txnId = $result["txnId"];
 
+$thisHostName = trim(strtolower(exec('hostname -f')));
+
+$nagiosGangliaCoHosted = FALSE;
+$dbAccessor = new HMCDBAccessor($dbPath);
+
+// check if single node install
+$hostsInfo = $dbAccessor->getAllHostsInfo($clusterName);
+if (isset($hostsInfo["hosts"])
+    && is_array($hostsInfo["hosts"]) && count($hostsInfo["hosts"] == 1)) {
+  $nagiosGangliaCoHosted = TRUE;
+}
+
+// if not single node
+// check if nagios hosted on same server
+if (!$nagiosGangliaCoHosted) {
+  // check if component mapped to this host
+  $hostMap = $dbAccessor->getHostsForComponent($clusterName, "NAGIOS_SERVER");
+  if (isset($hostMap["hosts"][$thisHostName])) {
+    $nagiosGangliaCoHosted = TRUE;
+  }
+}
+
+// if still nothing then check if ganglia server installed on same server
+if (!$nagiosGangliaCoHosted) {
+  // check if component mapped to this host
+  $hostMap = $dbAccessor->getHostsForComponent($clusterName,
+      "GANGLIA_MONITOR_SERVER");
+  if (isset($hostMap["hosts"][$thisHostName])) {
+    $nagiosGangliaCoHosted = TRUE;
+  }
+}
+
 /* Create the output data... */
 $jsonOutput = array(
     'startTime' => $startTime,
     'clusterName' => $clusterName,
-    'txnId' => $txnId );
+    'txnId' => $txnId,
+    'nagiosGangliaCoHosted' => $nagiosGangliaCoHosted);
 
 /* ...and spit it out. */
 header("Content-type: application/json");
