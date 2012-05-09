@@ -21,7 +21,18 @@ define hdp::configfile(
   $nagios_server_host = $hdp::params::nagios_server_host,
   $ganglia_server_host = $hdp::params::ganglia_server_host,
   $dashboard_host = $hdp::params::dashboard_host,
-  $gateway_host = $hdp::params::gateway_host
+  $gateway_host = $hdp::params::gateway_host,
+  $public_namenode_host = $hdp::params::public_namenode_host,
+  $public_snamenode_host = $hdp::params::public_snamenode_host,
+  $public_jtnode_host = $hdp::params::public_jtnode_host,
+  $public_hbase_master_host = $hdp::params::public_hbase_master_host,
+  $public_zookeeper_hosts = $hdp::params::public_zookeeper_hosts,
+  $public_ganglia_server_host = $hdp::params::public_ganglia_server_host,
+  $public_nagios_server_host = $hdp::params::public_nagios_server_host,
+  $public_dashboard_host = $hdp::params::public_dashboard_host,
+  $public_hive_server_host = $hdp::params::public_hive_server_host,
+  $public_oozie_server = $hdp::params::public_oozie_server,
+  $public_templeton_server_host = $hdp::params::public_templeton_server_host
 ) 
 {
 

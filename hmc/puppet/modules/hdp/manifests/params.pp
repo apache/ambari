@@ -17,8 +17,7 @@ class hdp::params()
   $hbase_master_host = hdp_default("hbase_master_host")
   $hbase_rs_hosts = hdp_default("hbase_rs_hosts")
 
-  # $hcat_server_host = hdp_default("hcat_server_host")
-  # $hcat_mysql_host = hdp_default("hcat_mysql_host")
+  $hive_server_host = hdp_default("hive_server_host")
   $oozie_server =  hdp_default("oozie_server")
   $templeton_server_host = hdp_default("templeton_server_host")
   $gateway_host = hdp_default("gateway_host")
@@ -27,7 +26,48 @@ class hdp::params()
   $ganglia_server_host = hdp_default("ganglia_server_host")
   
   $dashboard_host = hdp_default("dashboard_host")
-  
+
+
+  if ($hostAttributes != undef) {
+    notice("I am here")
+    $public_namenode_host = hdp_host_attribute($hostAttributes,"publicfqdn",$namenode_host)
+    $public_snamenode_host = hdp_host_attribute($hostAttributes,"publicfqdn",$snamenode_host)
+    $public_jtnode_host = hdp_host_attribute($hostAttributes,"publicfqdn",$jtnode_host)
+    $public_hbase_master_host = hdp_host_attribute($hostAttributes,"publicfqdn",$hbase_master_host)
+    $public_zookeeper_hosts = hdp_host_attribute($hostAttributes,"publicfqdn",$zookeeper_hosts)
+    $public_ganglia_server_host = hdp_host_attribute($hostAttributes,"publicfqdn",$ganglia_server_host)
+    $public_nagios_server_host = hdp_host_attribute($hostAttributes,"publicfqdn",$nagios_server_host)
+    $public_dashboard_host = hdp_host_attribute($hostAttributes,"publicfqdn",$dashboard_host)
+    $public_hive_server_host = hdp_host_attribute($hostAttributes,"publicfqdn",$hive_server_host)
+    $public_oozie_server = hdp_host_attribute($hostAttributes,"publicfqdn",$oozie_server)
+    $public_templeton_server_host = hdp_host_attribute($hostAttributes,"publicfqdn",$templeton_server_host)
+ 
+notice("$public_namenode_host")
+    #$public_namenode_host = $hostAttributes[$namenode_host]['publicfqdn']
+#    $public_snamenode_host = $hostAttributes[$snamenode_host]['publicfqdn']
+#    $public_jtnode_host = $hostAttributes[$jtnode_host]['publicfqdn']
+#    $public_hbase_master_host = $hostAttributes[$hbase_master_host]['publicfqdn']
+#    $public_ganglia_server_host = $hostAttributes[$ganglia_server_host]['publicfqdn']
+#    $public_nagios_server_host = $hostAttributes[$nagios_server_host]['publicfqdn']
+#    $public_dashboard_host = $hostAttributes[$dashboard_host]['publicfqdn']
+#    $public_hive_server_host = $hostAttributes[$hive_server_host]['publicfqdn']
+#    $public_oozie_server = $hostAttributes[$oozie_server]['publicfqdn']
+#    $public_templeton_server_host = $hostAttributes[$templeton_server_host]['publicfqdn']
+  } else {
+    $public_namenode_host = hdp_default("namenode_host")
+    $public_snamenode_host = hdp_default("snamenode_host")
+    $public_jtnode_host = hdp_default("jtnode_host")
+    $public_hbase_master_host = hdp_default("hbase_master_host")
+    $zookeeper_hosts = hdp_default("zookeeper_hosts")
+    $public_ganglia_server_host = hdp_default("ganglia_server_host")
+    $public_nagios_server_host = hdp_default("nagios_server_host")
+    $public_dashboard_host = hdp_default("dashboard_host")
+    $public_hive_server_host = hdp_default("hive_server_host")
+    $public_oozie_server = hdp_default("oozie_server")
+    $public_templeton_server_host = hdp_default("templeton_server_host")
+  }
+
+
   ############ users
   $user_info = hdp_default("user_info",{})
   #TODO: move rest of users here so can be used globally and also put all in user info
@@ -240,7 +280,6 @@ class hdp::params()
     $zk_smoke_test_script = "/usr/lib/zookeeper/bin/zkCli.sh"
     $update_zk_shell_files = false
 
-    $hive_server_host = hdp_default("hive_server_host")
     $hive_mysql_host = hdp_default("hive_mysql_host")
     $hive_user = hdp_default("hive_user","hive")
 
