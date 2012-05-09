@@ -114,9 +114,9 @@ function validateConfigs($svcConfigs) {
         }
       } else if ($key == "jdk_location") {
         if ($val != "") {
-          if (filter_var($val, FILTER_VALIDATE_URL) === FALSE) {
-            $errors[$key] = array ( "error" => "Invalid url specified");
-          }
+          //if (filter_var($val, FILTER_VALIDATE_URL) === FALSE) {
+          //  $errors[$key] = array ( "error" => "Invalid url specified");
+          //}
         }
       } else if ($key == "hdfs_user") {
         if ($val == "") {

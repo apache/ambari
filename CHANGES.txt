@@ -1,0 +1,7 @@
+Ambari Change log
+
+Release 0.x.x - unreleased
+
+  AMBARI-188. Disable jdk location validation as filter apis not supported in 
+  PHP 5.1. (Hitesh Shah via vgogate)
+  
