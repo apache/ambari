@@ -10,11 +10,12 @@ if (!isset($GLOBALS["HMCLOGGER_TIMEZONE_SET"])) {
  */
 class HMCLogger {
   const ALL = 0;
-  const DEBUG = 1;
-  const INFO = 2;
-  const WARN = 3;
-  const ERROR = 4;
-  const FATAL = 5;
+  const TRACE = 1;
+  const DEBUG = 2;
+  const INFO = 3;
+  const WARN = 4;
+  const ERROR = 5;
+  const FATAL = 6;
   const OFF = 10;
 
   // component to log along with each message
@@ -103,6 +104,15 @@ class HMCLogger {
   public function log_info($msg) {
     if ($this->level <= self::INFO) {
       $this->do_log("INFO", $msg);
+    }
+  }
+
+  /**
+   * Log a message with TRACE level
+   */
+  public function log_trace($msg) {
+    if ($this->level <= self::TRACE) {
+      $this->do_log("TRACE", $msg);
     }
   }
 

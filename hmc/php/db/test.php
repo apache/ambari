@@ -8,7 +8,7 @@ include_once "OrchestratorDB.php";
 include_once "../orchestrator/Service.php";
 include_once "../orchestrator/ServiceComponent.php";
 
-$GLOBALS["HMC_LOG_LEVEL"] = HMCLogger::DEBUG;
+$GLOBALS["HMC_LOG_LEVEL"] = HMCLogger::TRACE;
 $GLOBALS["HMC_LOG_FILE"] = "./hmc.log";
 
 system("rm -rf ./test.db");

@@ -64,7 +64,7 @@ class HMCDBAccessor {
         . $this->dbHandle->quote($state) . " )";
     $response = array ( "clusterName" => $clusterName,
         "result" => 0, "error" => "");
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $ret = $this->dbHandle->exec($query);
     if (FALSE === $ret) {
       $error = $this->getLastDBErrorAsString();
@@ -102,7 +102,7 @@ class HMCDBAccessor {
     }
     $query = "SELECT state FROM Clusters WHERE cluster_name = "
         . $this->dbHandle->quote($clusterName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -119,7 +119,7 @@ class HMCDBAccessor {
       $response["oldClusterState"] = $result[0]["state"];
       $query = "UPDATE Clusters SET state = " . $this->dbHandle->quote($state)
           . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName);
-      $this->logger->log_debug("Running query: $query");
+      $this->logger->log_trace("Running query: $query");
       $ret = $this->dbHandle->exec($query);
       if (FALSE === $ret) {
         $error = $this->getLastDBErrorAsString();
@@ -168,7 +168,7 @@ class HMCDBAccessor {
     LockAcquire();
     $query = "SELECT cluster_name, version, state FROM Clusters";
     $response = array ( "result" => 0, "error" => "");
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -214,7 +214,7 @@ class HMCDBAccessor {
     LockAcquire();
     $response = array ( "result" => 0, "error" => "");
     $query = "SELECT service_name, description, display_name, attributes FROM Services";
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -265,7 +265,7 @@ class HMCDBAccessor {
     $response = array ( "result" => 0, "error" => "");
     $query = "SELECT service_name, component_name, display_name"
         . ", attributes, description FROM ServiceComponents";
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -338,7 +338,7 @@ class HMCDBAccessor {
         . " WHERE ServiceInfo.cluster_name = " . $this->dbHandle->quote($clusterName)
         . " ORDER BY Services.id ";
     $response = array ( "result" => 0, "error" => "");
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -387,8 +387,7 @@ class HMCDBAccessor {
     $response = array ( "result" => 0, "error" => "");
     $response["clusterName"] = $clusterName;
     $response["serviceName"] = $serviceName;
-    $this->logger->log_debug("Running query: $query");
-    $this->logger->log_info("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -441,7 +440,7 @@ class HMCDBAccessor {
     $query = "SELECT desired_state FROM ServiceInfo"
         . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
         . " AND service_name = " . $this->dbHandle->quote($serviceName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -460,7 +459,7 @@ class HMCDBAccessor {
           . $this->dbHandle->quote($desiredState)
           . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
           . " AND service_name = " . $this->dbHandle->quote($serviceName);
-      $this->logger->log_debug("Running query: $query");
+      $this->logger->log_trace("Running query: $query");
       $ret = $this->dbHandle->exec($query);
       if (FALSE === $ret) {
         $error = $this->getLastDBErrorAsString();
@@ -518,7 +517,7 @@ class HMCDBAccessor {
     $query = "SELECT state FROM ServiceInfo"
         . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
         . " AND service_name = " . $this->dbHandle->quote($serviceName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -537,7 +536,7 @@ class HMCDBAccessor {
           . $this->dbHandle->quote($state)
           . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
           . " AND service_name = " . $this->dbHandle->quote($serviceName);
-      $this->logger->log_debug("Running query: $query");
+      $this->logger->log_trace("Running query: $query");
       $ret = $this->dbHandle->exec($query);
       if (FALSE === $ret) {
         $error = $this->getLastDBErrorAsString();
@@ -648,7 +647,7 @@ class HMCDBAccessor {
         . $this->dbHandle->quote($service["desiredState"]) . " , "
         . $service["isEnabled"]
         . " )";
-      $this->logger->log_debug("Running query: $query");
+      $this->logger->log_trace("Running query: $query");
       $ret = $this->dbHandle->exec($query);
       if (FALSE === $ret) {
         $error = $this->getLastDBErrorAsString();
@@ -781,7 +780,7 @@ class HMCDBAccessor {
         . $this->dbHandle->quote($hostInfo["badHealthReason"]) . " , "
         . $this->dbHandle->quote($hostInfo["attributes"])
         . " )  ";
-      $this->logger->log_debug("Running query: $query");
+      $this->logger->log_trace("Running query: $query");
       $ret = $this->dbHandle->exec($query);
       if (FALSE === $ret) {
         $error = $this->getLastDBErrorAsString();
@@ -814,7 +813,7 @@ class HMCDBAccessor {
       $query .= " host_name = " . $this->dbHandle->quote($hostInfo["hostName"]);
     }
     $query .= " ) ";
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -890,7 +889,7 @@ class HMCDBAccessor {
           . $this->dbHandle->quote($hostInfo["badHealthReason"])
           . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
           . " AND host_name = " . $this->dbHandle->quote($hostName);
-      $this->logger->log_debug("Running query: $query");
+      $this->logger->log_trace("Running query: $query");
       $ret = $this->dbHandle->exec($query);
       if (FALSE === $ret) {
         $error = $this->getLastDBErrorAsString();
@@ -989,7 +988,7 @@ class HMCDBAccessor {
     }
 
     $response = array ( "result" => 0, "error" => "");
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -1059,7 +1058,7 @@ class HMCDBAccessor {
         . " FROM Hosts WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
         . " AND host_name = " . $this->dbHandle->quote($hostName);
     $response = array ( "result" => 0, "error" => "");
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -1123,7 +1122,7 @@ class HMCDBAccessor {
         . ", display_type, display_attributes "
         . " FROM ConfigProperties";
     $response = array ( "result" => 0, "error" => "", "configs" => array());
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -1170,7 +1169,7 @@ class HMCDBAccessor {
     $query = "SELECT key, value FROM ServiceConfig "
         . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName);
     $response = array ( "result" => 0, "error" => "");
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -1227,7 +1226,7 @@ class HMCDBAccessor {
         . " ( " . $this->dbHandle->quote($clusterName) . ", "
         . $this->dbHandle->quote($key) . ", "
         . $this->dbHandle->quote($val) . " ) ";
-      $this->logger->log_debug("Running query: $query");
+      $this->logger->log_trace("Running query: $query");
       $ret = $this->dbHandle->exec($query);
       if (FALSE === $ret) {
         $error = $this->getLastDBErrorAsString();
@@ -1301,7 +1300,7 @@ class HMCDBAccessor {
               . $this->dbHandle->quote($hostName) . ", "
               . $this->dbHandle->quote($key) . ", "
               . $this->dbHandle->quote($val) . " ) ";
-          $this->logger->log_debug("Running query: $query");
+          $this->logger->log_trace("Running query: $query");
           $ret = $this->dbHandle->exec($query);
           if (FALSE === $ret) {
             $error = $this->getLastDBErrorAsString();
@@ -1345,7 +1344,7 @@ class HMCDBAccessor {
     }
 
     $response = array ( "result" => 0, "error" => "");
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -1406,7 +1405,7 @@ class HMCDBAccessor {
     $query = "SELECT component_name, display_name, attributes, description"
         . " FROM ServiceComponents WHERE service_name = "
         . $this->dbHandle->quote($serviceName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -1479,7 +1478,7 @@ class HMCDBAccessor {
           . $this->dbHandle->quote($host) . ", "
           . $this->dbHandle->quote($state) . ", "
           . $this->dbHandle->quote($desiredState) . " ) ";
-      $this->logger->log_debug("Running query: $query");
+      $this->logger->log_trace("Running query: $query");
       $ret = $this->dbHandle->exec($query);
       if (FALSE === $ret) {
         $error = $this->getLastDBErrorAsString();
@@ -1532,7 +1531,7 @@ class HMCDBAccessor {
     $query = "SELECT role_id, component_name, host_name, state, desired_state"
         . " FROM HostRoles"
         . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -1588,7 +1587,7 @@ class HMCDBAccessor {
     $query = "SELECT component_name, host_name, state, desired_state "
       . " FROM HostRoles"
       . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -1645,7 +1644,7 @@ class HMCDBAccessor {
     $query = "SELECT host_name, state, desired_state FROM HostRoles"
         . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
         . " AND component_name = " . $this->dbHandle->quote($componentName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -1703,7 +1702,7 @@ class HMCDBAccessor {
       $query .= " host_name = " . $this->dbHandle->quote($host);
     }
     $query .= " ) ";
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $ret = $this->dbHandle->exec($query);
     if (FALSE === $ret) {
       $error = $this->getLastDBErrorAsString();
@@ -1752,7 +1751,7 @@ class HMCDBAccessor {
       $query .= " host_name = " . $this->dbHandle->quote($host);
     }
     $query .= " ) ";
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $ret = $this->dbHandle->exec($query);
     if (FALSE === $ret) {
       $error = $this->getLastDBErrorAsString();
@@ -1784,7 +1783,7 @@ class HMCDBAccessor {
     $response = array ( "result" => 0, "error" => "");
     $query = "SELECT to_service_name FROM ServiceDependencies WHERE "
         . " from_service_name = " . $this->dbHandle->quote($serviceName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -1820,7 +1819,7 @@ class HMCDBAccessor {
     $response = array ( "result" => 0, "error" => "");
     $query = "SELECT from_service_name FROM ServiceDependencies WHERE "
     . " to_service_name = " . $this->dbHandle->quote($serviceName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -1858,7 +1857,7 @@ class HMCDBAccessor {
         . " FROM ServiceComponentDependencies WHERE "
         . " from_component_name = "
         . $this->dbHandle->quote($componentName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -1898,7 +1897,7 @@ class HMCDBAccessor {
         . " FROM ServiceComponentDependencies WHERE "
         . " to_component_name = "
         . $this->dbHandle->quote($componentName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -2007,7 +2006,7 @@ class HMCDBAccessor {
         . $this->dbHandle->quote($comp["state"]) . " , "
         . $this->dbHandle->quote($comp["desiredState"])
         . " )";
-      $this->logger->log_debug("Running query: $query");
+      $this->logger->log_trace("Running query: $query");
       $ret = $this->dbHandle->exec($query);
       if (FALSE === $ret) {
         $error = $this->getLastDBErrorAsString();
@@ -2056,7 +2055,7 @@ class HMCDBAccessor {
     $query = "SELECT service_name, component_name, state, desired_state "
        . " FROM ServiceComponentInfo WHERE "
        . " cluster_name = " . $this->dbHandle->quote($clusterName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -2115,8 +2114,7 @@ class HMCDBAccessor {
         . $this->dbHandle->quote($state)
         . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
         . " AND component_name = " . $this->dbHandle->quote($componentName);
-    $this->logger->log_debug("genericSetServiceComponentState for $componentName");
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $ret = $this->dbHandle->exec($query);
     if (FALSE === $ret) {
       $error = $this->getLastDBErrorAsString();
@@ -2134,7 +2132,7 @@ class HMCDBAccessor {
           . $this->dbHandle->quote($state)
           . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
           . " AND component_name = " . $this->dbHandle->quote($componentName);
-      $this->logger->log_debug("Running query: $query");
+      $this->logger->log_trace("Running query: $query");
       $ret = $this->dbHandle->exec($query);
       if (FALSE === $ret) {
         $error = $this->getLastDBErrorAsString();
@@ -2228,7 +2226,7 @@ class HMCDBAccessor {
         . $this->dbHandle->quote(time()) . " , "
         . $this->dbHandle->quote($statusInfo) . " , "
         . $this->dbHandle->quote($pidInfo) . " ) ";
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $ret = $this->dbHandle->exec($query);
     if (FALSE === $ret) {
       $error = $this->getLastDBErrorAsString();
@@ -2286,7 +2284,7 @@ class HMCDBAccessor {
         . " cluster_name = " . $this->dbHandle->quote($clusterName)
         . " AND txn_id = " . $this->dbHandle->quote($txnId);
     $response = array ( "result" => 0, "error" => "");
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -2330,7 +2328,7 @@ class HMCDBAccessor {
         . $this->dbHandle->quote($pidInfo)
         . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
         . " AND txn_id = " . $this->dbHandle->quote($txnId);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $ret = $this->dbHandle->exec($query);
     if (FALSE === $ret) {
       $error = $this->getLastDBErrorAsString();
@@ -2364,7 +2362,7 @@ class HMCDBAccessor {
         . $this->dbHandle->quote($statusInfo)
         . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
         . " AND txn_id = " . $this->dbHandle->quote($txnId);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $ret = $this->dbHandle->exec($query);
     if (FALSE === $ret) {
       $error = $this->getLastDBErrorAsString();
@@ -2406,7 +2404,7 @@ class HMCDBAccessor {
         . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
         . " AND txn_id = " . $this->dbHandle->quote($txnId)
         . " AND sub_txn_id = " . $this->dbHandle->quote($subTxnId);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -2436,7 +2434,7 @@ class HMCDBAccessor {
         . $this->dbHandle->quote($progress) . " , "
         . $this->dbHandle->quote($subTxnType) . " , "
         . $this->dbHandle->quote($opStatus) . " ) ";
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $ret = $this->dbHandle->exec($query);
     if (FALSE === $ret) {
       $error = $this->getLastDBErrorAsString();
@@ -2484,7 +2482,7 @@ class HMCDBAccessor {
         . ", progress, sub_txn_type, op_status FROM SubTransactionStatus "
         . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
         . " AND txn_id = " . $this->dbHandle->quote($txnId);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -2534,7 +2532,7 @@ class HMCDBAccessor {
        . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
        . " AND txn_id = " . $this->dbHandle->quote($txnId)
        . " AND sub_txn_id = " . $this->dbHandle->quote($subTxnId);
-    $this->logger->log_debug("Running query updateSubTransactionProgress: $query");
+    $this->logger->log_trace("Running query: $query");
     $ret = $this->dbHandle->exec($query);
     if (FALSE === $ret) {
       $error = $this->getLastDBErrorAsString();
@@ -2571,7 +2569,7 @@ class HMCDBAccessor {
        . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
        . " AND txn_id = " . $this->dbHandle->quote($txnId)
        . " AND sub_txn_id = " . $this->dbHandle->quote($subTxnId);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $ret = $this->dbHandle->exec($query);
     if (FALSE === $ret) {
       $error = $this->getLastDBErrorAsString();
@@ -2640,7 +2638,7 @@ class HMCDBAccessor {
       $query .= " HostRoles.host_name = " . $this->dbHandle->quote($hostName);
     }
     $query .= " ) ";
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -2699,7 +2697,7 @@ class HMCDBAccessor {
     $response = array ( "result" => 0, "error" => "");
     $query = "SELECT from_service_name, to_service_name "
         . " FROM ServiceDependencies";
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -2856,7 +2854,7 @@ class HMCDBAccessor {
           $query .= " host_name = " . $this->dbHandle->quote($host);
         }
         $query .= " ) ";
-        $this->logger->log_debug("Running query: $query");
+        $this->logger->log_trace("Running query: $query");
         $ret = $this->dbHandle->exec($query);
         if (FALSE === $ret) {
           $error = $this->getLastDBErrorAsString();
@@ -2984,7 +2982,7 @@ class HMCDBAccessor {
       $query .= " component_name = " . $this->dbHandle->quote($compName);
     }
     $query .= " ) ";
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -3033,7 +3031,7 @@ class HMCDBAccessor {
         $query .= " host_name = " . $this->dbHandle->quote($host);
       }
       $query .= " ) ";
-      $this->logger->log_debug("Running query: $query");
+      $this->logger->log_trace("Running query: $query");
       $ret = $this->dbHandle->exec($query);
       if (FALSE === $ret) {
         $error = $this->getLastDBErrorAsString();
@@ -3107,7 +3105,7 @@ class HMCDBAccessor {
         . ", " . $this->dbHandle->quote($configBlob)
         . ", " . $this->dbHandle->quote($changeLogMsg)
         . ", " . $this->dbHandle->quote($curTime) . " ) ";
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $ret = $this->dbHandle->exec($query);
     if (FALSE === $ret) {
       $error = $this->getLastDBErrorAsString();
@@ -3151,7 +3149,7 @@ class HMCDBAccessor {
         . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
         . " AND version = " . $this->dbHandle->quote($snapshotId);
 
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt === FALSE) {
       $error = $this->getLastDBErrorAsString();
@@ -3182,7 +3180,7 @@ class HMCDBAccessor {
     $response = array ("result" => 0, "error" => "");
     $query = "DELETE from " . $table . " WHERE cluster_name = "
            . $this->dbHandle->quote($clusterName);
-    $this->logger->log_debug("Running query: $query");
+    $this->logger->log_trace("Running query: $query");
     $pdoStmt = $this->dbHandle->query($query);
     if ($pdoStmt == FALSE) {
       $error = $this->getLastDBErrorAsString();
