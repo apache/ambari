@@ -4,6 +4,8 @@ class hdp-hadoop::hdfs::service_check()
   $dir = '/tmp'
   $tmp_file = "${dir}/${unique}"
 
+  $safemode_command = "dfsadmin -safemode get | grep OFF"
+
   $create_dir_cmd = "fs -mkdir ${dir} ; hadoop fs -chmod -R 777 ${dir}"
   $test_dir_exists = "hadoop fs -test -e ${dir}" #TODO: may fix up fact that test needs explicit hadoop while omamnd does not
   $cleanup_cmd = "fs -rm ${tmp_file}"
@@ -13,12 +15,20 @@ class hdp-hadoop::hdfs::service_check()
 
   anchor { 'hdp-hadoop::hdfs::service_check::begin':}
 
+  hdp-hadoop::exec-hadoop { 'hdfs::service_check::check_safemode':
+    command   => $safemode_command,
+    tries     => 40,
+    try_sleep => 15,
+    logoutput => true,
+    require   => Anchor['hdp-hadoop::hdfs::service_check::begin']
+  }
+
   hdp-hadoop::exec-hadoop { 'hdfs::service_check::create_dir':
     command   => $create_dir_cmd,
     unless    => $test_dir_exists,
     tries     => 3,
     try_sleep => 5,
-    require   => Anchor['hdp-hadoop::hdfs::service_check::begin']
+    require   => Hdp-hadoop::Exec-hadoop['hdfs::service_check::check_safemode']
   }
 
   hdp-hadoop::exec-hadoop { 'hdfs::service_check::create_file':
