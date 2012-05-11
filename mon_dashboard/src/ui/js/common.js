@@ -745,12 +745,15 @@
                 // to fix sorting problem on page load
                 $("#alertsGrid").jqGrid().setGridParam({sortorder: 'asc'}).trigger("reloadGrid");
               },
-                            caption: 'Alerts'
+              caption: targetId + " Alerts"
             });
           });
           
           // Clear the grid first
           $("#alertsGrid").clearGridData();
+
+          // Refresh the caption to indicate service name.
+          $("#alertsGrid").jqGrid('setCaption',targetId+" Alerts");
           
           // Populate Alerts Grid
           var flen = filtered.length;

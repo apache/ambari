@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-217. Alert table needs to display service name for context.
+  (vgogate via omalley)
+
   AMBARI-216. Remove sleeps to speed simulations of installs. (Vikram Dixit
   via omalley)
 
