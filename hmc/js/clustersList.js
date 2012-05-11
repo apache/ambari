@@ -66,7 +66,6 @@ function renderClusterList(Y) {
                                      '<label>Actions</label>' +
                                      '<a href="manageServices.php?clusterName=' + clusterName + '" id="existingClusterLinkDivId">[ Manage services ]</a>' +
                                      '<a href="addNodesWizard.php?clusterName=' + clusterName + '">[ Add slave nodes to cluster ]</a>' +
-                                     '<a href="nodesAction.php?clusterName=' + clusterName + '&action="uninstall">[ Wipe off this cluster ]</a>' +
                                    '</div>' +
                                  '</div>';
           }
