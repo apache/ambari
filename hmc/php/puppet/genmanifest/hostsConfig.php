@@ -41,6 +41,7 @@ class HostsConfigManifest {
    }
 
    public static function getHostsAttributesManifest($hostAttributes) {
+     $manifest = "";
      if (empty($hostAttributes["hosts"])) {
        return "";
      }
