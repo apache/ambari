@@ -22,6 +22,10 @@ class hdp-ganglia::monitor_and_server(
     ensure => $service_state
   }
 
+  class { 'hdp-ganglia::service::change_permission':
+    ensure => $service_state
+  }
+
   anchor{'hdp-ganglia::monitor_and_server::begin':} -> Class['hdp-ganglia'] -> Class['hdp-ganglia::server'] ->
-    Class['hdp-ganglia::monitor'] -> Class['hdp-ganglia::service::gmond'] -> anchor{'hdp-ganglia::monitor_and_server::end':}
+    Class['hdp-ganglia::monitor'] -> Class['hdp-ganglia::service::gmond'] -> Class['hdp-ganglia::service::change_permission'] -> anchor{'hdp-ganglia::monitor_and_server::end':}
 }

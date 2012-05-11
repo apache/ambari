@@ -65,8 +65,9 @@ class hdp-ganglia::server::services(
   
     if ($monitor_and_server_single_node == false) {
       class { 'hdp-ganglia::service::gmond': ensure => $service_state}
+      class { 'hdp-ganglia::service::change_permission': ensure => $service_state }
       
-      Anchor['hdp-ganglia::server::services::begin'] -> Class['hdp-ganglia::service::gmond'] -> Class['hdp-ganglia::service::gmetad'] 
+      Anchor['hdp-ganglia::server::services::begin'] -> Class['hdp-ganglia::service::gmond'] -> Class['hdp-ganglia::service::change_permission'] -> Class['hdp-ganglia::service::gmetad'] 
     }
   }
 }

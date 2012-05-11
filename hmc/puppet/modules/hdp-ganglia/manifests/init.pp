@@ -38,6 +38,20 @@ class hdp-ganglia::service::gmond(
   }
 }
 
+class hdp-ganglia::service::change_permission(
+  $ensure
+  )
+{
+  if ($ensure == 'running' or $ensure == 'installed_and_configured') {
+    file { '/var/lib/ganglia/dwoo' :
+      ensure  => directory,
+      recurse => true,
+      mode    => '0777'
+    }
+  }
+}
+
+
 class hdp-ganglia::service::gmetad(
   $ensure
 )

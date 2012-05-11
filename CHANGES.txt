@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-213. Fix directory permissions so that Ganglia graphs render.
+  (ramya via omalley)
+
   AMBARI-210. Remove link for wiping clusters from the hope page. (Vikram Dixit
   via omalley)
 

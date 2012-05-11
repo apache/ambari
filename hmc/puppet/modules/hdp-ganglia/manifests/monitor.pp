@@ -35,6 +35,9 @@ class hdp-ganglia::monitor(
         ensure => $service_state,
         require  => Class['hdp-ganglia::monitor::config-gen']
       }
+      class { 'hdp-ganglia::service::change_permission':
+        ensure => $service_state
+      }
     }
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
