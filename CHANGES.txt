@@ -2,34 +2,36 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
-  AMBARI-202. Add check to verify jdk path after install (Ramya via vgogate)
+  AMBARI-202. Add check to verify jdk path after install (ramya via vgogate)
 
-  AMBARI-201. reduce db query logging (Hitesh via vgogate)
+  AMBARI-201. reduce db query logging (hitesh via vgogate)
 
-  AMBARI-200. External hostnames should be used for links on dashboard UI (Ramya via vgogate)
+  AMBARI-200. External hostnames should be used for links on dashboard
+  UI (ramya via vgogate)
 
-  AMBARI-199. Remove import of mysql puppet module from manifest (Jitendra via vgogate)
+  AMBARI-199. Remove import of mysql puppet module from manifest
+  (jitendra via vgogate)
 
-  AMBARI-198. Dependency of templeton on hcat client (Jitendra via vgogate)
+  AMBARI-198. Dependency of templeton on hcat client (jitendra via vgogate)
 
-  AMBARI-192. Check for NN safemode during restarts (Ramya via vgogate)
+  AMBARI-192. Check for NN safemode during restarts (ramya via vgogate)
 
-  AMBARI-191. Implement hive server stopped state (Ramya via vgogate)
+  AMBARI-191. Implement hive server stopped state (ramya via vgogate)
 
-  AMBARI-195. Fix typo in java license question (Hitesh Shah via vgogate)
+  AMBARI-195. Fix typo in java license question (hitesh via vgogate)
 
-  AMBARI-187. Syntax error in the puppet manifest in reconfiguration (Jitendra
-  Pandey via vgogate)
+  AMBARI-187. Syntax error in the puppet manifest in reconfiguration (jitendra
+  via vgogate)
 
-  AMBARI-193. Track nodes that timed out for puppet kicks (Hitesh Shah via
+  AMBARI-193. Track nodes that timed out for puppet kicks (hitesh via
   vgogate)
 
   AMBARI-190. On a Single Node install, Nagios alert do not take affect until 
-  hmc is restarted (Hitesh Shah via vgogate)
+  hmc is restarted (hitesh via vgogate)
 
-  AMBARI-189. Make getAllHostsInfo api support optional params ( Hitesh Shah via
-  vgogate)
+  AMBARI-189. Make getAllHostsInfo api support optional params (
+  hitesh via vgogate)
 
   AMBARI-188. Disable jdk location validation as filter apis not supported in 
-  PHP 5.1. (Hitesh Shah via vgogate)
+  PHP 5.1. (hitesh via vgogate)
   
