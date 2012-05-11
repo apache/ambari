@@ -39,11 +39,11 @@ define hdp::java::package(
     path    => ["/bin","/usr/bin/"]
   }
  
-  file { "${java_exec}":
+  file { "${java_exec} ${name}":
   ensure => present
   }   
  
-  anchor{"hdp::java::package::${name}::begin":} -> Exec["${curl_cmd} ${name}"] ->  Exec["${install_cmd} ${name}"] -> File["${java_exec}"] -> anchor{"hdp::java::package::${name}::end":}
+  anchor{"hdp::java::package::${name}::begin":} -> Exec["${curl_cmd} ${name}"] ->  Exec["${install_cmd} ${name}"] -> File["${java_exec} ${name}"] -> anchor{"hdp::java::package::${name}::end":}
   if ($include_artifact_dir == true) {
     Anchor["hdp::java::package::${name}::begin"] -> Hdp::Artifact_dir["java::package::${name}"] -> Exec["${curl_cmd} ${name}"]
   }

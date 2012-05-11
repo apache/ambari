@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-203. Fix for duplicate jdk definition (ramya via omalley)
+
   AMBARI-202. Add check to verify jdk path after install (ramya via vgogate)
 
   AMBARI-201. reduce db query logging (hitesh via vgogate)
