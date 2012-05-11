@@ -155,7 +155,8 @@ class SuggestProperties {
     $order = array("sortColumn" => "cpuCount",
         "sortOrder" => "ASC");
 
-    $allHosts = $db->getAllHostsInfo($clusterName, "", $order);
+    $allHosts = $db->getAllHostsInfo($clusterName,
+        array("=" => array ( "discoveryStatus" => "SUCCESS")), $order);
     if ($allHosts["result"] != 0) {
       $result["result"] = $allHosts["result"];
       $result["error"] = $allHosts["error"];
@@ -295,7 +296,8 @@ class SuggestProperties {
     $order = array("sortColumn" => "cpuCount",
             "sortOrder" => "ASC");
 
-    $allHosts = $db->getAllHostsInfo($clusterName, "", $order);
+    $allHosts = $db->getAllHostsInfo($clusterName,
+        array("=" => array ( "discoveryStatus" => "SUCCESS")), $order);
     if ($allHosts["result"] != 0) {
       $result["result"] = $allHosts["result"];
       $result["error"] = $allHosts["error"];

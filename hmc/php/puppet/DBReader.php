@@ -31,9 +31,10 @@ class DBReader {
 
   public function getAllHostAttributes($clusterName) {
     $dbAccessor = new HMCDBAccessor($this->dbPath);
-    $allHostAttributes = $dbAccessor->getAllHostsInfo($clusterName, NULL, NULL);
+    $allHostAttributes = $dbAccessor->getAllHostsInfo($clusterName,
+        array("=" => array ( "discoveryStatus" => "SUCCESS")), array());
     return $allHostAttributes;
-  }  
+  }
 
   public function getHostNames($clusterId) {
     $dbAccessor = new HMCDBAccessor($this->dbPath);

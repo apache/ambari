@@ -34,14 +34,6 @@ $thisHostName = trim(strtolower(exec('hostname -f')));
 $nagiosGangliaCoHosted = FALSE;
 $dbAccessor = new HMCDBAccessor($dbPath);
 
-// check if single node install
-$hostsInfo = $dbAccessor->getAllHostsInfo($clusterName);
-if (isset($hostsInfo["hosts"])
-    && is_array($hostsInfo["hosts"]) && count($hostsInfo["hosts"] == 1)) {
-  $nagiosGangliaCoHosted = TRUE;
-}
-
-// if not single node
 // check if nagios hosted on same server
 if (!$nagiosGangliaCoHosted) {
   // check if component mapped to this host

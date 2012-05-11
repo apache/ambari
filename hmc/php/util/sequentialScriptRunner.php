@@ -146,13 +146,11 @@ $hosts = readHostsFile($readFromFile);
 $hosts = convertToLowerCase($hosts);
 
 $logger->log_debug("The hosts after converting to lower case ".print_r($hosts, true));
-// Only add this host to list if the db does not have that host already. This is assuming
-// the host being in the db means the HMC host has been bootstrapped and discovered.
-$hostsInfoInDB = $dbHandle->getAllHostsInfo($clusterName, "", "");
-$logger->log_info("Host Info in DB ".print_r($hostsInfoInDB, true));
-$hostsInDB = $hostsInfoInDB["hosts"];
-if (sizeof($hostsInDB) == 0) {
-  $logger->log_info("Hosts is empty so adding $thisHostName to the list of hosts");
+// Only add this host to list if the db does not have that host already.
+$checkThisHostInDB = $dbHandle->getHostInfo($clusterName, $thisHostName);
+$logger->log_debug("Host Info in DB ".print_r($checkThisHostInDB, true));
+if ($checkThisHostInDB["result"] != 0) {
+  $logger->log_info($thisHostName . "not found in DB so adding it to the list of hosts");
   $hosts = addThisHostToList($hosts, $logger, $thisHostName, $readFromFile);
 }
 $hosts = convertToLowerCase($hosts);

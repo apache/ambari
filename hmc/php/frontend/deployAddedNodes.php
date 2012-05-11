@@ -55,23 +55,6 @@ $goodHosts = convertToLowerCase($goodHosts);
 
 $logger->log_debug("goodHosts: ".json_encode($goodHosts));
 
-/*
-////// Get info about all nodes from db ////
-$allHostsInfo = $dbHandle->getAllHostsInfo($clusterName, "", "");
-if ($allHostsInfo["result"] != 0 ) {
-  $logger->log_error("Got error while getting allHostsInfo :" .$allHostsInfo["error"]);
-  print json_encode($allHostsInfo);
-  return false;
-}
-
-$goodHosts = array();
-foreach ($allHostsInfo["hosts"] as $hostInfo) {
-  if ($hostInfo["discoveryStatus"] == "SUCCESS") {
-    $goodHosts[] = $hostInfo["hostName"];
-  }
-}
- */
-
 /////// Insert roles for these nodes ////////
 foreach ($components as $componentName) {
   $addHostsToComponentResult = $dbHandle->addHostsToComponent($clusterName, $componentName, $goodHosts, "UNKNOWN", "UNKNOWN");

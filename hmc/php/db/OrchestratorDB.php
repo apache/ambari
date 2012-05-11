@@ -448,7 +448,7 @@ class OrchestratorDB {
    */
   public function getAllNodes() {
     $result = $this->db->getAllHostsInfo($this->clusterName,
-        array(), array());
+        array("=" => array ( "discoveryStatus" => "SUCCESS")), array());
     if ($result === FALSE || $result["result"] != 0
         || !isset($result["hosts"]) || !is_array($result["hosts"])) {
       $this->logger->log_error("Failed to get host list from DB");

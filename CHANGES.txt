@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-209. Node selection should ignore failed nodes. (hitesh via omalley)
+
   AMBARI-213. Fix directory permissions so that Ganglia graphs render.
   (ramya via omalley)
 

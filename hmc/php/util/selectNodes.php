@@ -215,7 +215,8 @@ class SelectNodes {
     $return["error"] = "";
     $this->logger->log_error("All info: ".$clusterName."\n "
         .json_encode($masterToHost));
-    $allHostsDBInfo = $db->getAllHostsInfo($clusterName, "", array());
+    $allHostsDBInfo = $db->getAllHostsInfo($clusterName,
+        array("=" => array ( "discoveryStatus" => "SUCCESS")), array());
     if ($allHostsDBInfo["result"] != 0) {
       $this->logger->log_error("Issue getting all hosts info ".$allHostsDBInfo["error"]);
       $return["result"] = $allHostsDBInfo["result"];
@@ -307,7 +308,8 @@ class SelectNodes {
     $return = array();
     $order = array("sortColumn" => "totalMem",
         "sortOrder" => "DESC");
-    $allHostsDBInfo = $db->getAllHostsInfo($clustername, "", $order);
+    $allHostsDBInfo = $db->getAllHostsInfo($clustername,
+        array("=" => array ( "discoveryStatus" => "SUCCESS")) , $order);
     if ($allHostsDBInfo["result"] != 0) {
       $this->logger->log_error("Issue getting all hosts info ".$allHostsDBInfo["error"]);
       $return["result"] = $allHostsDBInfo["result"];
