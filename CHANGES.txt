@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-208. Support filtering hosts based on discovery status. (hitesh
+  via omalley)
+
   AMBARI-207. Fix for undefined variable manifest. (jitendra via omalley)
 
   AMBARI-204. Use the host that runs Ambari for running slaves & masters.

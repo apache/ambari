@@ -919,7 +919,14 @@ class HMCDBAccessor {
   /**
    * Get information on all hosts
    * @param string $clusterName
-   * @param mixed $filter TBD
+   * @param mixed $filter
+   *   - only supports equal operand
+   *   - only supports discoveryStatus filter
+   *   - array (
+   *      "=" => array ( "discoveryStatus" => "SUCCESS" )
+   *      )
+   *   - format
+   *     "$operand" => array ( "$column1" => "$value1", ... )
    * @param mixed $order order by particular column
    *   - only supports hostName, ip, totalMem, cpuCount, osArch, osType
    *    array (
@@ -959,6 +966,18 @@ class HMCDBAccessor {
         . " discovery_status, bad_health_reason, attributes "
         . " FROM Hosts WHERE cluster_name = "
         . $this->dbHandle->quote($clusterName);
+    if (is_array($filter) && !empty($filter)) {
+      foreach ($filter as $operand => $cols) {
+        if ($operand == "=" || $operand == "!=") {
+          foreach ($cols as $columnName => $value) {
+            if ($columnName == "discoveryStatus") {
+              $query .= " AND discovery_status " . $operand . " "
+                  . $this->dbHandle->quote($value);
+            }
+          }
+        }
+      }
+    }
     $using_sort = FALSE;
     if (isset($order) && is_array($order)
         && isset($order["sortColumn"])) {

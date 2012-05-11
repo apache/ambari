@@ -171,6 +171,20 @@ foreach ($result["hosts"] as $tmpHost) {
   assert(is_array($tmpHost["attributes"]));
 }
 
+print "Test getAllHostsInfo with filter\n";
+$result = $db->getAllHostsInfo($clusterName, array ( "=" => array ( "discoveryStatus" => "error")), "");
+assert($result["result"] == 0);
+assert($result["error"] == "");
+assert(is_array($result) && is_array($result["hosts"])
+       && count($result["hosts"]) == 1);
+assert($result["hosts"][0]["ip"] == "127.0.0.2");
+
+$result = $db->getAllHostsInfo($clusterName, array ( "!=" => array ( "discoveryStatus" => "errorfoo")), "");
+assert($result["result"] == 0);
+assert($result["error"] == "");
+assert(is_array($result) && is_array($result["hosts"])
+       && count($result["hosts"]) == 2);
+
 $result = $db->getAllHostsInfo($clusterName, "", array("sortColumn" => "totalMem", "sortOrder" => "DESC"));
 assert($result["result"] == 0);
 assert($result["error"] == "");
