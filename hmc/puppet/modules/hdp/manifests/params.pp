@@ -117,7 +117,7 @@ notice("$public_namenode_host")
 
   $lzo_tar_name = hdp_default("lzo_tar_name","hadoop-lzo-0.5.0")
   
-  $snappy_so = hdp_default("snappy_so","libsnappy.so.1.1.3")
+  $snappy_so = hdp_default("snappy_so","libsnappy.so")
   #####
  
   #because of Puppet user resource issue make sure that $hadoop_user is different from hadoop_user_group

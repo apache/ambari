@@ -39,7 +39,7 @@ class hdp-templeton::hdfs-directories($service_state)
   hdp-hadoop::hdfs::directory{ '/user/templeton':
     service_state => $service_state,
     owner => $templeton_user,
-    mode  => '770',
+    mode  => '755',
     recursive_chmod => true
   }  
 }
