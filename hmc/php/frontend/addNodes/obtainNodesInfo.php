@@ -20,12 +20,16 @@ function getCommandLine() {
   $freeCmd = "free -m | sed \\\"1 d\\\" | awk '{ print \\\$2 }' | sed -n 1p ;";
   $cpuCmd = "grep -c processor /proc/cpuinfo ;";
   $archCmd = "uname -m ;";
-  $mntPointCmd = "df -lkh | sed \\\"1 d\\\" | grep -vw \\\"/boot\\\" | grep -vw \\\"/dev\/shm\\\" | grep -vw \\\"/home\\\" | grep -vw \/ | awk '{ print \\\$(NF)}' ;";
-  $osTypeCmd = "ls -a /etc/*release | grep -o 'redhat\|Suse' ;";
-  $osInfoCmd = 'cat `ls /etc/*release | grep "redhat\|SuSE"` ;';
+  $mntPointCmd = "df -lkh | sed \\\"1 d\\\" | grep -vw \\\"/boot\\\" | grep -vw \\\"/dev\/shm\\\" | grep -vw \\\"/home\\\" | grep -vw \/ | awk '{ print \\\$(NF)}' ; ";
+  $osTypeCmd = "if [ -f /usr/bin/lsb_release ] ; then lsb_release -si | tr '[:upper:]' '[:lower:]' | cut -d ' ' -f 1; lsb_release -sr | cut -d . -f 1; "
+      . "else cat \\`ls /etc/*release | grep \\\"redhat\|SuSE\\\"\\` | head -1 | awk '{ first=\\\"\\\"; ver=\\\"\\\"; for(i=1; i<=NF; i++) { if ( i == 1 ) print \\\$i; if ( \\\$i ~ /[0-9]+/ ) { print \\\$i; break; } } }' | tr '[:upper:]' '[:lower:]' ; "
+      . "fi ; ";
+  $osInfoCmd = "if [ -f /usr/bin/lsb_release ] ; then lsb_release -sd | tr '\\\"' ' '; "
+      . " else cat \\`ls /etc/*release | grep \\\"redhat\|SuSE\\\"\\` | head -1 ; "
+      . " fi; uname -a ; ";
   $ipCmd = "hostname -i ;";
-  $publicDnsCmd = "curl --connect-timeout 3 -f -s http://169.254.169.254/latest/meta-data/public-hostname && echo \"\" || hostname ;";
-  $privateDnsCmd = "curl --connect-timeout 3 -f -s http://169.254.169.254/latest/meta-data/local-hostname && echo \"\" || hostname ;";
+  $publicDnsCmd = "curl --connect-timeout 3 -f -s http://169.254.169.254/latest/meta-data/public-hostname && echo '' || hostname ;";
+  $privateDnsCmd = "curl --connect-timeout 3 -f -s http://169.254.169.254/latest/meta-data/local-hostname && echo '' || hostname ;";
 
   $cmdLine = $freeCmd.$echoCmd.$cpuCmd.$echoCmd.$archCmd.$echoCmd.$mntPointCmd.$echoCmd.$osTypeCmd.$echoCmd.$osInfoCmd.$echoCmd.$ipCmd.$echoCmd.$publicDnsCmd.$echoCmd.$privateDnsCmd.$echoCmd;
 

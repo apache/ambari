@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-196. Support capturing os information correctly during node 
+  discovery. (hitesh via omalley)
+
   AMBARI-203. Fix for duplicate jdk definition (ramya via omalley)
 
   AMBARI-202. Add check to verify jdk path after install (ramya via vgogate)

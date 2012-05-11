@@ -35,14 +35,16 @@ mkdir($outputDir);
 $allHosts = array();
 $allBadHosts = array();
 
-function updateStatusForNode ($outDir, $nodeName, $status)
+function updateStatusForNode ($outDir, $nodeName, $status, $error = "")
 {
   global $logger;
 
   $outArray = array();
   $doneFileName = $outDir . $nodeName . ".done";
   $outFileName = $outDir . $nodeName . ".out";
-  $logger->log_debug("out file name is $doneFileName");
+  $errFileName = $outDir . $nodeName . ".err";
+
+  $logger->log_debug("done file name is $doneFileName");
   $fd = fopen($doneFileName, "w");
   if ($fd == FALSE) {
     $outArray['success'] = FALSE;
@@ -63,7 +65,7 @@ function updateStatusForNode ($outDir, $nodeName, $status)
   $fd = fopen($outFileName, "w");
   if ($fd == FALSE) {
     $outArray['success'] = FALSE;
-    $outArray['reason'] = "Failed to update out status: $status for node: $nodeName";
+    $outArray['reason'] = "Failed to write out status: $status for node: $nodeName";
     return $outArray;
   }
 
@@ -76,12 +78,30 @@ function updateStatusForNode ($outDir, $nodeName, $status)
   }
   fclose($fd);
 
+  if ($status != 0) {
+    $fd = fopen($errFileName, "w");
+    if ($fd == FALSE) {
+      $outArray['success'] = FALSE;
+      $outArray['reason'] = "Failed to write err info: $error for node: $nodeName";
+      return $outArray;
+    }
+
+    $retval = fwrite($fd, $error);
+    if ($retval == FALSE) {
+      $outArray['success'] = FALSE;
+      $outArray['reason'] = "Failed to write err info: $error for node: $nodeName";
+    } else {
+      $outArray['success'] = TRUE;
+    }
+    fclose($fd);
+  }
+
   return $outArray;
 }
 
-function updateFailedStatusForNode ($outDir, $nodeName)
+function updateFailedStatusForNode ($outDir, $nodeName, $error)
 {
-  return updateStatusForNode($outDir, $nodeName, 255);
+  return updateStatusForNode($outDir, $nodeName, 255, $error);
 }
 
 function updateSuccessStatusForNode ($outDir, $nodeName)
@@ -121,34 +141,38 @@ function populateVal ($line, $count, $arr)
   switch ($count)
   {
   case 0:
-    $arr["totalMem"] = rtrim($line);
+    $arr["totalMem"] = trim($line);
     break;
 
   case 1:
-    $arr["cpuCount"] = rtrim($line);
+    $arr["cpuCount"] = trim($line);
     break;
 
   case 2:
-    $arr["osArch"] = rtrim($line);
+    $arr["osArch"] = trim($line);
     break;
 
   case 3:
-    $arr["disksInfo"][] = rtrim($line);
+    $arr["disksInfo"][] = trim($line);
     break;
 
   case 4:
-    $arr["osType"] = rtrim($line);
+    if (!isset($arr["osType"])) {
+      $arr["osType"] = "";
+    }
+    $arr["osType"] .= trim($line);
     break;
-
   case 5:
     if (!isset($arr["os"])) {
       $arr["os"] = "";
     }
-    $arr["os"] = $arr["os"] . " " . rtrim($line);
+    if ($arr["os"] != "") {
+      $arr["os"] .= ";";
+    }
+    $arr["os"] .= trim($line);
     break;
-
   case 6:
-    $arr["ip"] = rtrim($line);
+    $arr["ip"] = trim($line);
     break;
   case 7:
     if (!isset($arr["attributes"])) {
@@ -193,14 +217,16 @@ if ($dirHandle = opendir($prevOutputDir)) {
         $failedCount += 1;
         $nodeStatus = "FAILED";
         $finalOpStatus = "FAILED";
-        updateFailedStatusForNode($outputDir, $nodeName);
+        updateFailedStatusForNode($outputDir, $nodeName,
+            "Command to discover node information failed, exit_code=" . $doneFileContents);
         $logger->log_debug( "Contents of done file for $clusterName : $doneFileContents");
       }
     } else {
       $failedCount += 1;
       $nodeStatus = "FAILED";
       $finalOpStatus = "FAILED";
-      updateFailedStatusForNode($outputDir, $nodeName);
+      updateFailedStatusForNode($outputDir, $nodeName,
+          "Command to discover node information failed, no exit code found");
       $logger->log_debug("Update failed because file contents of $doneFile is empty");
     }
 
@@ -225,6 +251,8 @@ if ($dirHandle = opendir($prevOutputDir)) {
         $thisHostArray["badHealthReason"] = "No data obtained for host";
         $finalOpStatus = "FAILED";
         $nodeStatus = "FAILED";
+        updateFailedStatusForNode($outputDir, $nodeName,
+            $thisHostArray["badHealthReason"]);
       } else {
         $goodReturnValCount = 0;
         while (!feof($hostOutFd)) {
@@ -238,7 +266,8 @@ if ($dirHandle = opendir($prevOutputDir)) {
             $thisHostArray["badHealthReason"] = getBadNodeReason($goodReturnValCount);
             $finalOpStatus = "FAILED";
             $nodeStatus = "FAILED";
-            updateFailedStatusForNode($outputDir, $nodeName);
+            updateFailedStatusForNode($outputDir, $nodeName,
+                $thisHostArray["badHealthReason"]);
             // write to file if bad so as to be shown as json in frontend.
             array_push($badHostsList, $thisHostArray);
             break;
@@ -247,6 +276,17 @@ if ($dirHandle = opendir($prevOutputDir)) {
           }
         }
         fclose($hostOutFd);
+      }
+
+      if ($nodeStatus == "SUCCESS") {
+        if ($thisHostArray["osType"] != "redhatenterpriseserver5"
+            && $thisHostArray["osType"] != "centos5") {
+          $thisHostArray["badHealthReason"] = "Unsupported OS";
+          $finalOpStatus = "FAILED";
+          $nodeStatus = "FAILED";
+          updateFailedStatusForNode($outputDir, $nodeName,
+              $thisHostArray["badHealthReason"]);
+        }
       }
 
       if ($nodeStatus == "SUCCESS") {
