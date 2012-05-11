@@ -1002,14 +1002,8 @@ class HMCDBAccessor {
     $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
     $response["hosts"] = array();
     $response["clusterName"] = $clusterName;
-    $thostName = exec('hostname -f');
     foreach ($result as $entry) {
       $host = array();
-      if (sizeof($result) != 1) {
-        if ($entry["host_name"] == $thostName) {
-          continue;
-        }
-      }
       $host["hostName"] = $entry["host_name"];
       $host["ip"] = $entry["ip"];
       $host["totalMem"] = $entry["total_mem"];

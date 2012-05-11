@@ -85,7 +85,7 @@ fi
 #TODO clean this up for better fix. For now make sure we stop puppet agent. The issue here is we do not know if we started this puppet agent during our run or not.
 out=`service puppet stop`
 ret=$?
-out=`puppet agent --verbose --confdir=/etc/puppet/agent --listen --runinterval 5 --server $master --report --no-client --waitforcert 10 --debug --logdest=/var/log/puppet_agent.log --httplog /var/log/puppet_agent_http.log --autoflush --pluginsync 2>&1`
+out=`puppet agent --verbose --confdir=/etc/puppet/agent --listen --runinterval 5 --server $master --report --no-client --waitforcert 10 --debug --logdest=/var/log/puppet_agent.log --httplog /var/log/puppet_agent_http.log --autoflush 2>&1`
 ret=$?
 if [[ "$ret" != "0" ]]; then
   echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2

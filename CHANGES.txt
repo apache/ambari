@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-204. Use the host that runs Ambari for running slaves & masters.
+  (mahadev via omalley)
+
   AMBARI-196. Support capturing os information correctly during node 
   discovery. (hitesh via omalley)
 
