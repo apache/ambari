@@ -2,7 +2,7 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
-  AMBARI-206. Fix undefined variable in orchestrator. (hitest via omalley)
+  AMBARI-206. Fix undefined variable in orchestrator. (hitesh via omalley)
 
   AMBARI-208. Support filtering hosts based on discovery status. (hitesh
   via omalley)
