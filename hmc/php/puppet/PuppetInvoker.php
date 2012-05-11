@@ -176,7 +176,7 @@
      *This is public only for testing, don't use this method directly
      */
     public function genKickWait($nodes, $txnId, $clusterId, $hostInfo,
-            $configInfo, $hostRolesStates, $hostAttributes, $manifestDir, $versionFile, 
+            $configInfo, $hostRolesStates, $hostAttributes, $manifestDir, $versionFile,
             $dryRun) {
       $failedNodes = array();
       $kickedNodes = array();
@@ -197,14 +197,16 @@
         return array( "result" => 0 , "error" => "",
             KICKFAILED => array(),
             FAILEDNODES => array(),
-            SUCCESSFULLNODES => array()
+            SUCCESSFULLNODES => array(),
+            TIMEDOUTNODES => array()
         );
       }
       if ($dryRun) {
         return array( "result" => 0 , "error" => "",
             KICKFAILED => array(),
             FAILEDNODES => array(),
-            SUCCESSFULLNODES => $nodes
+            SUCCESSFULLNODES => $nodes,
+            TIMEDOUTNODES => array()
         );
       }
       if (count($kickedNodes) > 0) {
