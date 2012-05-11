@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-216. Remove sleeps to speed simulations of installs. (Vikram Dixit
+  via omalley)
+
   AMBARI-215. Fix description for dfs_data_dir. (hitesh via omalley)
 
   AMBARI-209. Node selection should ignore failed nodes. (hitesh via omalley)

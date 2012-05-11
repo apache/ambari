@@ -15,7 +15,8 @@ $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 
 function getCommandLine() {
   $cmdLine = "hostname ;";
-  $cmdLine = $cmdLine . 'sleep $[ $RANDOM % 5 ]; ';
+  // uncomment following line for demo purposes.
+  // $cmdLine = $cmdLine . 'sleep $[ $RANDOM % 5 ]; ';
   return $cmdLine;
 }
 

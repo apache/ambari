@@ -33,7 +33,8 @@ function getCommandLine() {
 
   $cmdLine = $freeCmd.$echoCmd.$cpuCmd.$echoCmd.$archCmd.$echoCmd.$mntPointCmd.$echoCmd.$osTypeCmd.$echoCmd.$osInfoCmd.$echoCmd.$ipCmd.$echoCmd.$publicDnsCmd.$echoCmd.$privateDnsCmd.$echoCmd;
 
-  $cmdLine = $cmdLine . 'sleep $[ $RANDOM % 5 ]; ';
+  // uncomment following line for demo purposes.
+  // $cmdLine = $cmdLine . 'sleep $[ $RANDOM % 5 ]; ';
   return $cmdLine;
 }
 
