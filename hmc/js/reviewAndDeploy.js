@@ -32,11 +32,26 @@ function renderDeploySummary (deployInfo) {
           continue;
         }
         serviceHasToBeRendered = true;
-        propertySummary += '<label for=' + mPropertiesKey  + 'Id>' + perServiceInfo.properties[mPropertiesKey].displayName + '</label>' +
-                         '<input type=' + convertDisplayType(perServiceInfo.properties[mPropertiesKey].type) + ' name=' + mPropertiesKey + 'Name id=' + mPropertiesKey + 'Id readonly=readonly value=\"' + perServiceInfo.properties[mPropertiesKey].value +'\">';
+
+        readOnlyAttr = 'readonly=readonly';
+        valueAttr = 'value=\"' + perServiceInfo.properties[mPropertiesKey].valu
+        type = convertDisplayType(perServiceInfo.properties[mPropertiesKey].typ
+        if (type == "checkbox") {
+          readOnlyAttr = 'disabled="disabled"';
+          var checkVal = perServiceInfo.properties[mPropertiesKey].value;
+          if (checkVal) {
+            valueAttr = 'checked=yes';
+          }
+          valueAttr = '';
+        }
+
+        propertySummary += '<div class="formElement">' +
+                             '<label for=' + mPropertiesKey  + 'Id>' + perServiceInfo.properties[mPropertiesKey].displayName + '</label>' +
+                             '<input type=' + type + ' name=' + mPropertiesKey + 'Name id=' + mPropertiesKey + 'Id ' + readOnlyAttr + ' ' + valueAttr + '>' +
+                           '</div>';
       }
     }
-    
+
     if (serviceHasToBeRendered) {
       deploySummary += '<fieldset>' + '<legend>' + perServiceInfo.displayName + '</legend>';
       deploySummary += masterSummary;

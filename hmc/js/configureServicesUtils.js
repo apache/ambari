@@ -164,7 +164,7 @@ function generateUserOpts () {
     prop.each(function (proper) {
       var value = globalYui.Lang.trim(proper.get('value'));
       if ((proper.get('type') == "checkbox")) {
-        value = proper.get('checked');
+        value = proper.get('checked').toString();
       }
 
       var keyName = globalYui.Lang.trim(proper.get('id'));
