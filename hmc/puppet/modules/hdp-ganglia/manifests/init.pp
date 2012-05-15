@@ -43,11 +43,10 @@ class hdp-ganglia::service::change_permission(
   )
 {
   if ($ensure == 'running' or $ensure == 'installed_and_configured') {
-    file { '/var/lib/ganglia/dwoo' :
-      ensure  => directory,
-      recurse => true,
-      mode    => '0777'
-    }
+    hdp::directory_recursive_create { '/var/lib/ganglia/dwoo' :
+      ensure => directory,
+      mode => '0777'
+      }
   }
 }
 
