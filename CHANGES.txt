@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-225. Currently we dont have any monitoring alerts setup for secondary namenode (vgogate)
+
   AMBARI-224. sequentialScriptRunner.php logging in a tight loop. (Jitendra Pandey via vgogate)
 
   AMBARI-223. Add troubleshoot link in the Alerts table to provide documentation for debugging/resolving the alerts (vgogate)

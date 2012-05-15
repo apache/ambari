@@ -122,8 +122,20 @@ define service {
 }
 <%end-%>
 
-# HDFS Checks
+<%if scope.function_hdp_nagios_members_exist('snamenode')-%>
+# Secondary namenode checks
+define service {
+        hostgroup_name          snamenode
+        use                     generic-service
+        service_description     NAMENODE::Secondary Namenode Process down
+        check_command           check_tcp!50090!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+<%end-%>
 <%if scope.function_hdp_nagios_members_exist('namenode')-%>
+# HDFS Checks
 define service {
         hostgroup_name          namenode
         use                     generic-service
