@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-236. Increase puppet agent timeout. (Jitendra Pandey via vgogate)
+
   AMBARI-235. Ordering problem when using hdp-ganglia::monitor_and_server (Richard Pelavin by vgogate)
 
   AMBARI-234. Typo in javascript (vikran Dixit via vgogate)
