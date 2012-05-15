@@ -753,7 +753,11 @@
           $("#alertsGrid").clearGridData();
 
           // Refresh the caption to indicate service name.
-          $("#alertsGrid").jqGrid('setCaption',targetId+" Alerts");
+          if(page == "HDFS" || page == "MAPREDUCE" || page == "HBASE"){
+            $("#alertsGrid").jqGrid('setCaption',"Configured Alerts");
+          } else {
+            $("#alertsGrid").jqGrid('setCaption',targetId+" Alerts");
+          }
           
           // Populate Alerts Grid
           var flen = filtered.length;
