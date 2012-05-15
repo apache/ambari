@@ -281,6 +281,11 @@ function hdp_mon_parse_configuration($cfg_json) {
     }
     else {
       $CONFIG["SERVICES"]["OOZIE"] = array();
+      $CONFIG["SERVICES"]["OOZIE"]["OOZIE_HOST"] =
+      $cfg_json["overall"]["services"]["OOZIE"][0]["oozie_host"];
+        
+      $CONFIG["SERVICES"]["OOZIE"]["OOZIE_PORT"] =
+      $cfg_json["overall"]["services"]["OOZIE"][0]["oozie_port"];
     }
   }
   else if ($debug) {

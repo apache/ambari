@@ -551,6 +551,11 @@ function hdp_mon_helper_get_overall_info() {
   $overall = array();
   $overall["ganglia_url"] = hdp_mon_helper_get_ganglia_url();
   $overall["nagios_url"] = hdp_mon_helper_get_nagios_url();
+  if (array_key_exists("OOZIE", $GLOBALS["HDP_MON_CONFIG"]["SERVICES"])){
+    $overall["oozie_url"] = hdp_mon_helper_get_oozie_url();
+  }else {
+    $overall["oozie_url"] = "";
+  }
   $overall["hdfs_installed"] =
       array_key_exists("HDFS", $GLOBALS["HDP_MON_CONFIG"]["SERVICES"]);
   $overall["mapreduce_installed"] =
@@ -567,6 +572,14 @@ function hdp_mon_helper_get_overall_info() {
       array_key_exists("TEMPLETON", $GLOBALS["HDP_MON_CONFIG"]["SERVICES"]);
 
   return $overall;
+}
+
+function hdp_mon_helper_get_oozie_url() {
+  // oozie info
+  $oozie_url =
+      "http://".$GLOBALS["HDP_MON_CONFIG"]["SERVICES"]["OOZIE"]["OOZIE_HOST"]
+      .":".$GLOBALS["HDP_MON_CONFIG"]["SERVICES"]["OOZIE"]["OOZIE_PORT"]."/oozie";
+  return $oozie_url;
 }
 
 function hdp_mon_helper_get_ganglia_url() {

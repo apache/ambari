@@ -531,6 +531,12 @@
     nagios.setAttribute("href", data.nagios_url);
     var ganglia = document.getElementById("ganglia");
     ganglia.setAttribute("href", data.ganglia_url);
+    var oozie = document.getElementById("oozie");
+    if (data.oozie_url != "") {
+      oozie.setAttribute("href", data.oozie_url);
+    } else {
+      oozie.style.display = 'none';
+    }
   };
   
   // Get Graphs for Dashboard page
@@ -754,9 +760,9 @@
 
           // Refresh the caption to indicate service name.
           if(page == "HDFS" || page == "MAPREDUCE" || page == "HBASE"){
-            $("#alertsGrid").jqGrid('setCaption',"Configured Alerts (<a href=\"http://hortonworks.com\">troubleshoot?</a>)");
+            $("#alertsGrid").jqGrid('setCaption',"Configured Alerts (<a href=\"http://hortonworks.com\" target=\"_blank\">troubleshoot?</a>)");
           } else {
-            $("#alertsGrid").jqGrid('setCaption',targetId+" Alerts (<a href=\"http://hortonworks.com\">troubleshoot?</a>)");
+            $("#alertsGrid").jqGrid('setCaption',targetId+" Alerts (<a href=\"http://hortonworks.com\" target=\"_blank\">troubleshoot?</a>)");
           }
           
           // Populate Alerts Grid

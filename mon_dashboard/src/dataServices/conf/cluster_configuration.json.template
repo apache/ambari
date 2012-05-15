@@ -85,7 +85,9 @@
       "OOZIE" : [
         {
           "installed": true,
-          "name": "OOZIE"
+          "name": "OOZIE",
+          "oozie_host": "ooziehost",
+          "oozie_port": 11000
         }
       ]
     }

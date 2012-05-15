@@ -87,7 +87,9 @@
       "OOZIE" : [
         {
           "installed": <%=not scope.function_hdp_no_hosts("public_oozie_host")%>,
-          "name": "OOZIE"
+          "name": "OOZIE",
+          "oozie_host": "<%=scope.function_hdp_host("public_oozie_host")%>",
+          "oozie_port": 11000
         }
       ]
     }
