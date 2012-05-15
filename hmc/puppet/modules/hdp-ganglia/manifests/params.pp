@@ -13,7 +13,7 @@ class hdp-ganglia::params() inherits hdp::params
 
 
   $omit_hbase_master = hdp_default("omit_hbase_master",hdp_is_empty($hdp::params::hbase_master_host))
-  $omit_job_tracker = hdp_default("omit_job_tracker",hdp_is_empty($hdp::params::jtnode_host))
+  $omit_jobtracker = hdp_default("omit_jobtracker",hdp_is_empty($hdp::params::jtnode_host))
   $omit_namenode = hdp_default("omit_namenode",hdp_is_empty($hdp::params::namenode_host))
   $omit_slaves = hdp_default("omit_slaves",hdp_is_empty($hdp::params::slave_hosts))
 }

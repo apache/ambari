@@ -24,7 +24,7 @@ class hdp-ganglia::server(
         ganglia_service => 'gmond'
       }
     }
-    if ($hdp-ganglia::params::omit_job_tracker != true) {
+    if ($hdp-ganglia::params::omit_jobtracker != true) {
       hdp-ganglia::config::generate_server { 'HDPJobTracker':
         ganglia_service => 'gmond'
       }
@@ -56,9 +56,9 @@ class hdp-ganglia::server(
       Class['hdp-ganglia'] -> Class['hdp-ganglia::server::packages']
     }
 
-    Class['hdp-ganglia::server::packages'] -> Class['hdp-ganglia::config'] -> 
-      Hdp-ganglia::Config::Generate_server<||> -> Class['hdp-ganglia::server::services']
-  } else {
+    anchor{'hdp-ganglia::server::begin':} -> Class['hdp-ganglia::server::packages'] -> Class['hdp-ganglia::config'] -> 
+      Hdp-ganglia::Config::Generate_server<||> -> Class['hdp-ganglia::server::services'] -> anchor{'hdp-ganglia::server::end':}
+   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }
 }

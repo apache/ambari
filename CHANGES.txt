@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-235. Ordering problem when using hdp-ganglia::monitor_and_server (Richard Pelavin by vgogate)
+
   AMBARI-234. Typo in javascript (vikran Dixit via vgogate)
 
   AMBARI-233. Add Oozie link to HMC dashboard (vgogate)

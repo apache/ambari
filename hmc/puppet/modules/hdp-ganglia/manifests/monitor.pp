@@ -8,15 +8,17 @@ class hdp-ganglia::monitor(
   if ($service_state == 'no_op') {
   } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {
     if ($monitor_and_server_single_node == false) {
-      include hdp-ganglia #note: includes the common package ganglia-monitor
+      #note: includes the common package ganglia-monitor
+      include hdp-ganglia 
       class { 'hdp-ganglia::config': 
         ganglia_server_host => $ganglia_server_host,
         require             => Class['hdp-ganglia'],
         before              => Class['hdp-ganglia::monitor::config-gen']
       }
     }
-
-    class { 'hdp-ganglia::monitor::config-gen': }
+    anchor {'hdp-ganglia::monitor::begin' : } ->
+    class { 'hdp-ganglia::monitor::config-gen': } ->
+    anchor {'hdp-ganglia::monitor::end' : } 
 
     if ($monitor_and_server_single_node == false) {
       Class['hdp-ganglia'] -> Class['hdp-ganglia::monitor::config-gen']
@@ -41,7 +43,7 @@ class hdp-ganglia::monitor::config-gen()
   if ($hdp-ganglia::params::omit_namenode != true) {
     hdp-ganglia::config::generate_monitor { 'HDPNameNode':}
   }
-  if ($hdp-ganglia::params::omit_job_tracker != true) {
+  if ($hdp-ganglia::params::omit_jobtracker != true) {
     hdp-ganglia::config::generate_monitor { 'HDPJobTracker':}
   }
   if ($hdp-ganglia::params::omit_hbase_master != true) {
