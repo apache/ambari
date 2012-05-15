@@ -109,7 +109,8 @@ class Service {
       $result = $this->db->setServiceState($this, $state);
       if ($result['result'] !== 0) {
         $this->state == State::FAILED;
-        $this->logger->log_error("$this->name - ".State::$STATE[$state] . " dryRun=$dryRun");
+        $this->logger->log_error("Failed to persist state for Service "
+            . "$this->name - ".State::$STATE[$state] . " dryRun=$dryRun");
         $this->db->setServiceState($this, $state);
         return $result;
       }
@@ -301,6 +302,8 @@ class Service {
 
     // Ensure state is INSTALLED or STOPPED
     if ($this->state !== State::INSTALLED
+        && $this->state !== State::STARTING
+        && $this->state !== State::STOPPING
         && $this->state !== State::STOPPED
         && $this->state !== State::FAILED) {
       $this->logger->log_error("Service $this->name is not INSTALLED or STOPPED or FAILED!");
@@ -311,6 +314,7 @@ class Service {
     // Note that we are about to START
     $result = $this->setState(State::STARTING, $transaction, $dryRun, $persistTxn);
     if ($result['result'] !== 0) {
+      $this->setState(State::FAILED, $transaction, $dryRun, $persistTxn);
       return $result;
     }
 
@@ -321,6 +325,7 @@ class Service {
         $cmpResult = $s['result'];
         $cmpErrMsg = $s['error'];
         if ($cmpResult !== 0) {
+          $this->setState(State::FAILED, $transaction, $dryRun, $persistTxn);
           return array("result" => $cmpResult, "error" => "Failed to start $component->name with $cmpResult (\'$cmpErrMsg\')");
         }
       }
@@ -329,6 +334,7 @@ class Service {
     // Done!
     $result = $this->setState(State::STARTED, $transaction, $dryRun, $persistTxn);
     if ($result["result"] != 0) {
+      $this->setState(State::FAILED, $transaction, $dryRun, $persistTxn);
       $this->logger->log_error("Failed to set state to STARTED with " . $result["error"]);
       return $result;
     }
@@ -485,9 +491,12 @@ class Service {
         return array("result" => 0, "error" => "");
       }
 
-      // Only stop if state is STARTED
-      if ($this->state !== State::STARTED) {
-        $this->logger->log_info("Service " . $this->name . " is not STARTED!"
+      // Only stop if state is STARTED/STARTING/STOPPING/FAILED
+      if ($this->state !== State::STARTED
+          && $this->state !== State::STARTING
+          && $this->state !== State::STOPPING
+          && $this->state !== State::FAILED) {
+        $this->logger->log_info("Service " . $this->name . " is not STARTED/STOPPING/FAILED!"
             . "Current state = " . State::$STATE[$this->state]
             . " - STOP is a no-op");
         return array("result" => 0, "error" => "");
@@ -496,6 +505,7 @@ class Service {
       // Note we are about to STOP
       $result = $this->setState(State::STOPPING, $transaction, $dryRun, TRUE);
       if ($result['result'] !== 0) {
+        $this->setState(State::FAILED, $transaction, $dryRun, TRUE);
         return $result;
       }
 
@@ -505,6 +515,7 @@ class Service {
         $cmpResult = $s['result'];
         $cmpErrMsg = $s['error'];
         if ($cmpResult !== 0) {
+          $this->setState(State::FAILED, $transaction, $dryRun, TRUE);
           return array("result" => $cmpResult, "error" => "Failed to stop $component->name with $cmpResult (\'$cmpErrMsg\')");
         }
       }

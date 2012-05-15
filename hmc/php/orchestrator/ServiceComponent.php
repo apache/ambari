@@ -195,12 +195,14 @@ class ServiceComponent {
       return array("result" => 0, "error" => "");
     }
 
-    // Ensure state is INSTALLED or STOPPED
+    // Ensure state is INSTALLED or STOPPED or FAILED
     if ($this->state !== State::INSTALLED
+        && $this->state !== State::STARTING
+        && $this->state !== State::STOPPING
         && $this->state !== State::STOPPED
         && $this->state !== State::FAILED) {
       $this->logger->log_error("ServiceComponent $this->name is not INSTALLED or STOPPED or FAILED!");
-      return array("result" => -1, "error" => "Service $this->name is not INSTALLED or STOPPED or FAILED!");
+      return array("result" => -1, "error" => "ServiceComponent $this->name is not INSTALLED or STOPPED or FAILED!");
     }
 
     // Ensure each dependent component is STARTED
@@ -300,9 +302,12 @@ class ServiceComponent {
       return array("result" => 0, "error" => "");
     }
 
-    // Only stop if state is STARTED
-    if ($this->state !== State::STARTED) {
-      $this->logger->log_error("ServiceComponent $this->name is not STARTED!"
+    // Only stop if state is STARTED/STARTING/STOPPING/FAILED
+    if ($this->state !== State::STARTED
+        && $this->state !== State::STARTING
+        && $this->state !== State::STOPPING
+        && $this->state !== State::FAILED) {
+      $this->logger->log_error("ServiceComponent $this->name is not STARTED/FAILED!"
           . "Current state = " . State::$STATE[$this->state]
           . " - STOP is a no-op");
       return array("result" => 0, "error" => "");
