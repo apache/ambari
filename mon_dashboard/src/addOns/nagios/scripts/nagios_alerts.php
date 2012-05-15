@@ -91,13 +91,13 @@ function hdp_mon_generate_response( $response_data )
   define ("warn", "1");
   define ("critical", "2");
 
-  define ("HDFS_SERVICE_CHECK", "NAMENODE::Namenode Process down alert");
-  define ("MAPREDUCE_SERVICE_CHECK", "JOBTRACKER::Jobtracker Process down alert");
-  define ("HBASE_SERVICE_CHECK", "HBASEMASTER::HBaseMaster Process down alert");
-  define ("ZOOKEEPER_SERVICE_CHECK", "ZOOKEEPER::Percent zookeeper servers down alert");
-  define ("HIVE_METASTORE_SERVICE_CHECK", "HIVE-METASTORE::HIVE-METASTORE status check alert");
-  define ("OOZIE_SERVICE_CHECK", "OOZIE::Oozie status check alert");
-  define ("TEMPLETON_SERVICE_CHECK", "TEMPLETON::Templeton status check alert");
+  define ("HDFS_SERVICE_CHECK", "NAMENODE::Namenode Process down");
+  define ("MAPREDUCE_SERVICE_CHECK", "JOBTRACKER::Jobtracker Process down");
+  define ("HBASE_SERVICE_CHECK", "HBASEMASTER::HBaseMaster Process down");
+  define ("ZOOKEEPER_SERVICE_CHECK", "ZOOKEEPER::Percent zookeeper servers down");
+  define ("HIVE_METASTORE_SERVICE_CHECK", "HIVE-METASTORE::HIVE-METASTORE status check");
+  define ("OOZIE_SERVICE_CHECK", "OOZIE::Oozie status check");
+  define ("TEMPLETON_SERVICE_CHECK", "TEMPLETON::Templeton status check");
 
   $status_file="/var/nagios/status.dat";
   $q1="";
