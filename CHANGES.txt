@@ -2,33 +2,42 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
-  AMBARI-236. Increase puppet agent timeout. (Jitendra Pandey via vgogate)
+  AMBARI-236. Increase puppet agent timeout. (jitendra via vgogate)
 
-  AMBARI-235. Ordering problem when using hdp-ganglia::monitor_and_server (Richard Pelavin by vgogate)
+  AMBARI-235. Ordering problem when using
+  hdp-ganglia::monitor_and_server (Richard Pelavin via vgogate)
 
-  AMBARI-234. Typo in javascript (vikran Dixit via vgogate)
+  AMBARI-234. Typo in javascript (Vikram Dixit via vgogate)
 
   AMBARI-233. Add Oozie link to HMC dashboard (vgogate)
 
-  AMBARI-232. Enable LZO should show checkbox instead of text (by Vikram Dixit via vgogate)
+  AMBARI-232. Enable LZO should show checkbox instead of text (
+  Vikram Dixit via vgogate)
 
-  AMBARI-231. Support hadoop cleanup (by Ramya Sunil via vgogate)
+  AMBARI-231. Support hadoop cleanup (ramya via vgogate)
 
-  AMBARI-228. Ganglia reports on host types not present (Richard Pelavin via vgogate)
+  AMBARI-228. Ganglia reports on host types not present (Richard
+  Pelavin via vgogate)
 
-  AMBARI-227. Invalid parameter ensure in ganglia manifests (Ramya Sunil via vgogate)
+  AMBARI-227. Invalid parameter ensure in ganglia manifests (ramya via vgogate)
 
-  AMBARI-226. Make the daemon names and other field names consistent (Suresh Srinivas via vgogate)
+  AMBARI-226. Make the daemon names and other field names consistent
+  (Suresh Srinivas via vgogate)
 
-  AMBARI-225. Currently we dont have any monitoring alerts setup for secondary namenode (vgogate)
+  AMBARI-225. Currently we dont have any monitoring alerts setup for
+  secondary namenode (vgogate)
 
-  AMBARI-224. sequentialScriptRunner.php logging in a tight loop. (Jitendra Pandey via vgogate)
+  AMBARI-224. sequentialScriptRunner.php logging in a tight
+  loop. (jitendra via vgogate)
 
-  AMBARI-223. Add troubleshoot link in the Alerts table to provide documentation for debugging/resolving the alerts (vgogate)
+  AMBARI-223. Add troubleshoot link in the Alerts table to provide
+  documentation for debugging/resolving the alerts (vgogate)
 
-  AMBARI-222. Remove the word alert from all the Nagios alerts descriptions. (vgogate)
+  AMBARI-222. Remove the word alert from all the Nagios alerts
+  descriptions. (vgogate)
 
-  AMBARI-221. Service fails to set its state to failed if a component fails to be acted upon (Hitesh via vgogate)
+  AMBARI-221. Service fails to set its state to failed if a component
+  fails to be acted upon (hitesh via vgogate)
 
   AMBARI-220. Alerts table semantic difference at different levels (vgogate)
 
