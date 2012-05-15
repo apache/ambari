@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-226. Make the daemon names and other field names consistent (Suresh Srinivas via vgogate)
+
   AMBARI-225. Currently we dont have any monitoring alerts setup for secondary namenode (vgogate)
 
   AMBARI-224. sequentialScriptRunner.php logging in a tight loop. (Jitendra Pandey via vgogate)

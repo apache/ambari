@@ -165,7 +165,7 @@ function getActionDescription($name, $action, $state) {
   } else if ($state == "COMPLETED" || $state =="FAILED") {
     $stateInfo = "has $state";
   }
-  $description = ucwords(strtolower($name)) . " " . strtolower($action) . " " . strtolower($stateInfo);
+  $description = $name . " " . strtolower($action) . " " . strtolower($stateInfo);
   return $description;
 }
 ?>
