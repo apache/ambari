@@ -216,7 +216,7 @@ foreach ($stagesInfo as $stage => $stageInfo) {
   $currentStatus = $allSubTransactionsInfoResult["subTxns"][$mySubTxnId]["opStatus"];
   while ( $currentStatus != $successStatus && $currentStatus != $errorStatus
     && $currentStatus != $totalFailedStatus) {
-//        sleep(1);
+        sleep(1);
 
         $allSubTransactionsInfoResult = $dbHandle->getAllSubTransactionsInfo($clusterName, $orchestratorTxnId);
         if ($allSubTransactionsInfoResult["result"] != 0 ) {
@@ -226,14 +226,14 @@ foreach ($stagesInfo as $stage => $stageInfo) {
         }
         $currentStatus = $allSubTransactionsInfoResult["subTxns"][$mySubTxnId]["opStatus"];
 
-        $logger->log_debug(" sequentialScriptExecutors sub txns  " . json_encode($allSubTransactionsInfoResult));
+        //$logger->log_debug(" sequentialScriptExecutors sub txns  " . json_encode($allSubTransactionsInfoResult));
         if ($currentStatus != $successStatus && $currentStatus != $errorStatus 
         && $currentStatus != $totalFailedStatus) {
           updateProgressForStage($clusterName, $rootTxnId, 
             $orchestratorTxnId, $mySubTxnId, $stage);
         }
 
-        $logger->log_debug("Status we are seeing: " . $currentStatus . " txnId: " . $orchestratorTxnId . " subTxnId " . $mySubTxnId);
+        //$logger->log_debug("Status we are seeing: " . $currentStatus . " txnId: " . $orchestratorTxnId . " subTxnId " . $mySubTxnId);
   }
 
   // Just in case, the command finished too fast and the while loop is skipped.
