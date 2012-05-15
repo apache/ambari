@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-228. Ganglia reports on host types not present (Richard Pelavin via vgogate)
+
   AMBARI-227. Invalid parameter ensure in ganglia manifests (Ramya Sunil via vgogate)
 
   AMBARI-226. Make the daemon names and other field names consistent (Suresh Srinivas via vgogate)

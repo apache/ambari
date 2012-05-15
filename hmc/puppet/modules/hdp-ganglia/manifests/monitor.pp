@@ -1,4 +1,3 @@
-#must be put after monitored components because of use of params::service_exist and component_exists
 class hdp-ganglia::monitor(
   $service_state = $hdp::params::cluster_service_state,
   $ganglia_server_host = undef,
@@ -16,16 +15,6 @@ class hdp-ganglia::monitor(
         before              => Class['hdp-ganglia::monitor::config-gen']
       }
     }
-    #if ($hdp::params::component_exists['hdp-hadoop'] == true) {
-    #  class { 'hdp-hadoop::enable-ganglia':}
-    #}
-    
-    #if ($service_exists['hdp-hbase::master'] == true) {
-    #  class { 'hdp-hbase::master::enable-ganglia': }
-    #}
-    #if ($service_exists['hdp-hbase::regionserver'] == true) {
-    #  class { 'hdp-hbase::regionserver::enable-ganglia': }
-    #}
 
     class { 'hdp-ganglia::monitor::config-gen': }
 
@@ -49,16 +38,16 @@ class hdp-ganglia::monitor::config-gen()
 
   $service_exists = $hdp::params::service_exists
 
-  if ($service_exists['hdp-hadoop::namenode'] == true) {
+  if ($hdp-ganglia::params::omit_namenode != true) {
     hdp-ganglia::config::generate_monitor { 'HDPNameNode':}
   }
-  if ($service_exists['hdp-hadoop::jobtracker'] == true){
+  if ($hdp-ganglia::params::omit_job_tracker != true) {
     hdp-ganglia::config::generate_monitor { 'HDPJobTracker':}
   }
-  if ($service_exists['hdp-hbase::master'] == true) {
+  if ($hdp-ganglia::params::omit_hbase_master != true) {
     hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':}
   }
-  if ($service_exists['hdp-hadoop::datanode'] == true) {
+  if ($hdp-ganglia::params::omit_slaves != true) {
     hdp-ganglia::config::generate_monitor { 'HDPSlaves':}
   }
   Hdp-ganglia::Config::Generate_monitor<||>{

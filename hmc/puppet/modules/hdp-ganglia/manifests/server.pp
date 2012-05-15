@@ -18,9 +18,28 @@ class hdp-ganglia::server(
 
     class { 'hdp-ganglia::config': ganglia_server_host => $hdp::params::host_address }
 
-    hdp-ganglia::config::generate_server { ['HDPHBaseMaster','HDPJobTracker','HDPNameNode','HDPSlaves']:
-      ganglia_service => 'gmond'
+   
+    if ($hdp-ganglia::params::omit_hbase_master != true) {
+      hdp-ganglia::config::generate_server { 'HDPHBaseMaster':
+        ganglia_service => 'gmond'
+      }
     }
+    if ($hdp-ganglia::params::omit_job_tracker != true) {
+      hdp-ganglia::config::generate_server { 'HDPJobTracker':
+        ganglia_service => 'gmond'
+      }
+    }
+    if ($hdp-ganglia::params::omit_namenode != true) {
+      hdp-ganglia::config::generate_server { 'HDPNameNode':
+        ganglia_service => 'gmond'
+      }
+    }
+    if ($hdp-ganglia::params::omit_slaves != true) {
+      hdp-ganglia::config::generate_server { 'HDPSlaves':
+        ganglia_service => 'gmond'
+      }
+    }
+    
     hdp-ganglia::config::generate_server { 'gmetad':
       ganglia_service => 'gmetad'
     }
