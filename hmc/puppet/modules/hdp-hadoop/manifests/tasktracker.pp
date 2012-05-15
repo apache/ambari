@@ -51,11 +51,13 @@ class hdp-hadoop::tasktracker(
 
 define hdp-hadoop::tasktracker::create_local_dirs($service_state)
 {
-  if (($hdp::params::service_exists['hdp-hadoop::jobtracker'] != true) and ($service_state != 'uninstalled')) {
-    $dirs = hdp_array_from_comma_list($name)    
+  if ($hdp::params::service_exists['hdp-hadoop::jobtracker'] != true) {
+    $dirs = hdp_array_from_comma_list($name)
     hdp::directory_recursive_create { $dirs :
       owner => $hdp-hadoop::params::mapred_user,
-      mode => '0755'
+      mode => '0755',
+      service_state => $service_state,
+      force => true
     }
   }
 }

@@ -128,14 +128,28 @@ define hdp::user(
 define hdp::directory(
   $owner = $hdp::params::hadoop_user,
   $group = $hdp::params::hadoop_user_group,
-  $mode  = undef
+  $mode  = undef,
+  $ensure = directory,
+  $force = undef,
+  $service_state = 'running'
   )
 {
+ if (($service_state == 'uninstalled') and ($wipeoff_data == true)) {
   file { $name :
-    ensure => directory,
+    ensure => absent,
     owner  => $owner,
     group  => $group,
-    mode   => $mode
+    mode   => $mode,
+    force  => $force
+   }
+  } elsif ($service_state != 'uninstalled') {
+  file { $name :
+    ensure => present,
+    owner  => $owner,
+    group  => $group,
+    mode   => $mode,
+    force  => $force
+   }
   }
 }
 #TODO: check on -R flag and use of recurse
@@ -143,7 +157,10 @@ define hdp::directory_recursive_create(
   $owner = $hdp::params::hadoop_user,
   $group = $hdp::params::hadoop_user_group,
   $mode = undef,
-  $context_tag = undef
+  $context_tag = undef,
+  $ensure = directory,
+  $force = undef,
+  $service_state = 'running'
   )
 {
   hdp::exec {"mkdir -p ${name}" :
@@ -154,7 +171,10 @@ define hdp::directory_recursive_create(
   hdp::directory { $name :
     owner => $owner,
     group => $group,
-    mode  => $mode
+    mode  => $mode,
+    ensure => $ensure,
+    force => $force,
+    service_state => $service_state
   }
   Hdp::Exec["mkdir -p ${name}"] -> Hdp::Directory[$name]
 }

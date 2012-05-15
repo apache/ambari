@@ -29,7 +29,6 @@ class hdp::params()
 
 
   if ($hostAttributes != undef) {
-    notice("I am here")
     $public_namenode_host = hdp_host_attribute($hostAttributes,"publicfqdn",$namenode_host)
     $public_snamenode_host = hdp_host_attribute($hostAttributes,"publicfqdn",$snamenode_host)
     $public_jtnode_host = hdp_host_attribute($hostAttributes,"publicfqdn",$jtnode_host)
@@ -41,18 +40,6 @@ class hdp::params()
     $public_hive_server_host = hdp_host_attribute($hostAttributes,"publicfqdn",$hive_server_host)
     $public_oozie_server = hdp_host_attribute($hostAttributes,"publicfqdn",$oozie_server)
     $public_templeton_server_host = hdp_host_attribute($hostAttributes,"publicfqdn",$templeton_server_host)
- 
-notice("$public_namenode_host")
-    #$public_namenode_host = $hostAttributes[$namenode_host]['publicfqdn']
-#    $public_snamenode_host = $hostAttributes[$snamenode_host]['publicfqdn']
-#    $public_jtnode_host = $hostAttributes[$jtnode_host]['publicfqdn']
-#    $public_hbase_master_host = $hostAttributes[$hbase_master_host]['publicfqdn']
-#    $public_ganglia_server_host = $hostAttributes[$ganglia_server_host]['publicfqdn']
-#    $public_nagios_server_host = $hostAttributes[$nagios_server_host]['publicfqdn']
-#    $public_dashboard_host = $hostAttributes[$dashboard_host]['publicfqdn']
-#    $public_hive_server_host = $hostAttributes[$hive_server_host]['publicfqdn']
-#    $public_oozie_server = $hostAttributes[$oozie_server]['publicfqdn']
-#    $public_templeton_server_host = $hostAttributes[$templeton_server_host]['publicfqdn']
   } else {
     $public_namenode_host = hdp_default("namenode_host")
     $public_snamenode_host = hdp_default("snamenode_host")
@@ -86,6 +73,8 @@ notice("$public_namenode_host")
   $java32_home = hdp_default("java32_home","/usr/jdk32/jdk1.6.0_26")
   $java64_home = hdp_default("java64_home","/usr/jdk64/jdk1.6.0_26")
   
+  $wipeoff_data =  hdp_default("wipeoff_data",false) 
+
   $jdk_location = hdp_default("jdk_location","http://download.oracle.com/otn-pub/java/jdk/6u26-b03")
   $jdk_bins = hdp_default("jdk_bins",{
     32 => "jdk-6u26-linux-i586.bin",

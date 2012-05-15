@@ -48,11 +48,11 @@ class hdp-hadoop::namenode(
 
 define hdp-hadoop::namenode::create_name_dirs($service_state)
 {
-  if ($service_state != 'uninstalled') {
-    $dirs = hdp_array_from_comma_list($name)
-    hdp::directory_recursive_create { $dirs :
-      owner => $hdp-hadoop::params::hdfs_user,
-      mode => '0755'
-    }
+  $dirs = hdp_array_from_comma_list($name)
+  hdp::directory_recursive_create { $dirs :
+    owner => $hdp-hadoop::params::hdfs_user,
+    mode => '0755',
+    service_state => $service_state,
+    force => true
   }
 }
