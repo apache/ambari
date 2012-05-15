@@ -754,9 +754,9 @@
 
           // Refresh the caption to indicate service name.
           if(page == "HDFS" || page == "MAPREDUCE" || page == "HBASE"){
-            $("#alertsGrid").jqGrid('setCaption',"Configured Alerts");
+            $("#alertsGrid").jqGrid('setCaption',"Configured Alerts (<a href=\"http://hortonworks.com\">troubleshoot?</a>)");
           } else {
-            $("#alertsGrid").jqGrid('setCaption',targetId+" Alerts");
+            $("#alertsGrid").jqGrid('setCaption',targetId+" Alerts (<a href=\"http://hortonworks.com\">troubleshoot?</a>)");
           }
           
           // Populate Alerts Grid
