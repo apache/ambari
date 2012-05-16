@@ -1,6 +1,8 @@
 Ambari Change log
 
 Release 0.x.x - unreleased
+  AMBARI-237. Refactor puppet kick loop to easily change retries and timeouts.
+  (jitendra)
 
   AMBARI-236. Increase puppet agent timeout. (jitendra via vgogate)
 
