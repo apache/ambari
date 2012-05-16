@@ -11,6 +11,7 @@
   define("FAILEDNODES", "failed");
   define("SUCCESSFULLNODES", "success");
   define("TIMEDOUTNODES", "timedoutnodes");
+  define("PREV_KICK_RUNNING", "prev_kick_running");
   class PuppetInvoker {
     private $parallel;
     private $reportDir;
@@ -39,7 +40,7 @@
     }
 
     private function sendKick($nodes, $txnId, &$failedNodes,
-        &$successNodes, $dryRun, $attempt) {
+        &$successNodes, &$prevKickRunningNodes) {
       $cmd = "";
       $cmd = $cmd . "puppet kick ";
       foreach ($nodes as $n) {
@@ -50,62 +51,46 @@
         $p = count($nodes);
       }
       $cmd = $cmd . " --parallel " . $p;
-      $output = "";
-      if ($dryRun) {
-        echo $cmd . "\n";
-      } else {
-        $output = $this->executeAndGetOutput($cmd);
-      }
-      $this->logger->log_debug("Kick command: " . $cmd);
-      $this->logger->log_debug("Kick response begins ===========");
-      $this->logger->log_debug($output);
-      $this->logger->log_debug("Kick response ends ===========");
+      $this->logger->log_trace("Kick command: " . $cmd);
+      $output = $this->executeAndGetOutput($cmd);
+      $this->logger->log_trace("Kick response begins ===========");
+      $this->logger->log_trace($output);
+      $this->logger->log_trace("Kick response ends ===========");
       foreach ($nodes as $kNode) {
         $regExSuccess = "/". $kNode . " .* exit code 0/";
         $regExRunning = "/". $kNode . ".* is already running/";
         if (preg_match($regExSuccess, $output)>0) {
-          $this->logger->log_debug($kNode . " marked kicked");
           $successNodes[] = $kNode;
         } else if (preg_match($regExRunning, $output)>0) {
-          if ($attempt > 1) {
-            $this->logger->log_debug($kNode . "previous kick still running, will continue to wait");
-            $successNodes[] = $kNode;
-          } else {
-            $this->logger->log_debug($kNode . " marked failed");
-            $failedNodes[] = $kNode;
-          }
+          $this->logger->log_debug($kNode . "previous kick still running, will continue to wait");
+          $prevKickRunningNodes[] = $kNode;
         } else {
-          $this->logger->log_debug($kNode . " marked failed");
+          $this->logger->log_debug($kNode . ": Kick failed");
           $failedNodes[] = $kNode;
         }
       }
-      return $output;
     }
 
-    private function kickPuppetAsync($nodes, $txnId, $dryRun, $attempt) {
+    private function kickPuppetAsync($nodes, $txnId, &$kickFailedNodes, &$kickSuccessNodes, 
+        &$prevKickRunningNodes) {
       $nodeListToKick = array();
-      $failedNodes = array();
-      $successNodes = array();
       $index = 0;
       foreach($nodes as $n) {
         if ($index < 10) {
           $nodeListToKick[] = $n;
           $index++;
         } else {
-          $output = $this->sendKick($nodeListToKick, $txnId, $failedNodes,
-              $successNodes, $dryRun, $attempt);
+          $this->sendKick($nodeListToKick, $txnId, $kickFailedNodes,
+              $kickSuccessNodes, $prevKickRunningNodes);
           $nodeListToKick = array();
           $nodeListToKick[] = $n;
           $index = 1;
         }
       }
       if ($index > 0) {
-        $output = $this->sendKick($nodeListToKick, $txnId, $failedNodes,
-            $successNodes, $dryRun, $attempt);
+          $this->sendKick($nodeListToKick, $txnId, $kickFailedNodes,
+            $kickSuccessNodes, $prevKickRunningNodes);
       }
-      $result = array(KICKFAILED => $failedNodes, KICKSENT => $successNodes);
-      $this->logger->log_debug(print_r($result, TRUE));
-      return $result;
     }
 
     private function getInfoFromDb($clusterName, $nodes, $components) {
@@ -120,8 +105,6 @@
     public function kickPuppet($nodes, $txnObj, $clusterName, $nodesComponents) {
       //Get host config from db
       $txnId = $txnObj->toString();
-      $this->logger->log_debug("Installation/Deployment requested for txnId " . $txnId
-          . ", and for nodes " . print_r($nodes, TRUE));
       $components = array_keys($nodesComponents);
       $infoFromDb = $this->getInfoFromDb($clusterName, $nodes, $components);
       $hostInfo = $infoFromDb[0];
@@ -136,8 +119,6 @@
 
     public function kickServiceCheck($serviceCheckNodes, $txnObj, $clusterName) {
       $txnId = $txnObj->toString();
-      $this->logger->log_debug("Service Checks requested for txnId " . $txnId
-          . ", and for nodes " . print_r($serviceCheckNodes, TRUE));
 
       $hostRolesStates = array();
       $roleDependencies = new RoleDependencies();
@@ -172,108 +153,103 @@
       fclose($fh);
     }
 
+    private function createGenKickWaitResponse($kickFailedNodes, $failureResponseNodes, 
+        $timedoutNodes, $successfullNodes, $allNodes) {
+      $result = 0;
+      $error = "";
+      if ( (count($allNodes) > 0) && (count($kickFailedNodes) == count($allNodes)) ) {
+        $result = -1;
+        $error = "All kicks failed";
+      }
+      $failedNodes = array_merge($failureResponseNodes, $timedoutNodes);
+      $response = array (
+        "result" => $result,
+        "error" => $error,
+        KICKFAILED => $kickFailedNodes,
+        FAILEDNODES => $failedNodes,
+        SUCCESSFULLNODES => $successfullNodes,
+        TIMEDOUTNODES => $timedoutNodes
+      );
+      $stringToLog = print_r($response, TRUE);
+      $this->logger->log_info("Response of genKickWait: \n" . $stringToLog);
+      return $response;
+    }
     /**
      *This is public only for testing, don't use this method directly
      */
     public function genKickWait($nodes, $txnId, $clusterId, $hostInfo,
             $configInfo, $hostRolesStates, $hostAttributes, $manifestDir, $versionFile,
             $dryRun) {
-      $failedNodes = array();
+      $kickFailedNodes = array();
+      $failureResponseNodes = array();
       $kickedNodes = array();
-      if (!empty($nodes)) {
-        //Generate manifest
-        $modulesDir = $GLOBALS["puppetModulesDirectory"];
-        ManifestGenerator::generateManifest($manifestDir, $hostInfo,
-            $configInfo, $hostRolesStates, $hostAttributes, $modulesDir);
-
-        //Write version file
-        $this->writeVersionFile($versionFile, $txnId);
-
-        //Send Kick
-        $result = $this->kickPuppetAsync($nodes, $txnId, $dryRun, 1);
-        $failedNodes = $result[KICKFAILED];
-        $kickedNodes = $result[KICKSENT];
-      } else {
-        return array( "result" => 0 , "error" => "",
-            KICKFAILED => array(),
-            FAILEDNODES => array(),
-            SUCCESSFULLNODES => array(),
-            TIMEDOUTNODES => array()
-        );
+      $timedoutNodes = array();
+      $successfullNodes = array();
+     
+      if (empty($nodes)) {
+        return $this->createGenKickWaitResponse($kickFailedNodes, $failureResponseNodes,
+           $timedoutNodes, $successfullNodes, $nodes); 
       }
+
+      //Generate manifest
+      $modulesDir = $GLOBALS["puppetModulesDirectory"];
+      ManifestGenerator::generateManifest($manifestDir, $hostInfo,
+          $configInfo, $hostRolesStates, $hostAttributes, $modulesDir);
+
+      //Write version file
+      $this->writeVersionFile($versionFile, $txnId);
+
       if ($dryRun) {
-        return array( "result" => 0 , "error" => "",
-            KICKFAILED => array(),
-            FAILEDNODES => array(),
-            SUCCESSFULLNODES => $nodes,
-            TIMEDOUTNODES => array()
-        );
+        return $this->createGenKickWaitResponse($kickFailedNodes, $failureResponseNodes,
+           $timedoutNodes, $successfullNodes, $nodes);
       }
-      if (count($kickedNodes) > 0) {
-        //Wait for results
-        $reported = $this->waitForResults($kickedNodes, $txnId);
-        $response =  array (
-            KICKFAILED => $failedNodes,
-            FAILEDNODES => $reported[0],
-            SUCCESSFULLNODES => $reported[1],
-            TIMEDOUTNODES => $reported[2]
-        );
-        $response["result"] = 0;
-        $response["error"] = "";
-      } else {
-        //No point in waiting for results
-        $response =  array (
-            KICKFAILED => $failedNodes,
-            FAILEDNODES => array(),
-            SUCCESSFULLNODES => array(),
-            TIMEDOUTNODES => array()
-        );
-        $response["result"] = -1;
-        $response["error"] = "No node successfully kicked";
-      }
-      $numRekicks = 0;
-      $maxRekicks = 2;
-      while (($numRekicks < $maxRekicks) && (!empty($response[TIMEDOUTNODES]))) {
-        $numRekicks = $numRekicks+1;
-        $this->logger->log_info("Timed out nodes : " . print_r($response[TIMEDOUTNODES], TRUE));
-        $this->logger->log_info("Retrying on timed out nodes\n");
-        $result = $this->kickPuppetAsync($response[TIMEDOUTNODES], $txnId, $dryRun, 2);
-        $kFailedNodes = $result[KICKFAILED];
-        $kickedNodes = $result[KICKSENT];
-        $this->logger->log_info("Attempt " . $numRekicks ." at kick :" . print_r($result, TRUE));
-        $reported = $this->waitForResults($kickedNodes, $txnId);
-        $kickF = array_merge($response[KICKFAILED], $kFailedNodes);
-        $overAllFailed = array();
-        foreach($response[FAILEDNODES] as $fnode) {
-          if (!in_array($fnode, $reported[1])) {
-            $overAllFailed[] = $fnode;
+      $numRekicks = 1;
+      $maxRekicks = 3;
+      $nodesToKick = $nodes;
+      while ($numRekicks <= $maxRekicks && (count($nodesToKick) > 0)) {
+          $newKickedNodes = array();
+          $prevKickRunningNodes = array();
+          $this->logger->log_info("Kick attempt (" . $numRekicks . "/" . $maxRekicks . ")");
+          $result = $this->kickPuppetAsync($nodesToKick, $txnId, $kickFailedNodes, 
+              $newKickedNodes, $prevKickRunningNodes);
+          $kickedNodes = array_merge($kickedNodes, $newKickedNodes);
+          $nodesToWait = array_merge($newKickedNodes, $prevKickRunningNodes);
+          $timedoutNodes = array();
+          $this->waitForResults($nodesToWait, $txnId, $successfullNodes, 
+              $failureResponseNodes, $timedoutNodes);
+          if (count($prevKickRunningNodes) == 0) {
+            $numRekicks = $numRekicks +1;
           }
-        }
-        $overAllSuccess = array_merge($response[SUCCESSFULLNODES], $reported[1]);
-        $response = array (
-            KICKFAILED => $kickF,
-            FAILEDNODES => $overAllFailed,
-            SUCCESSFULLNODES => $overAllSuccess,
-            TIMEDOUTNODES => $reported[2]
-        );
-        $response["result"] = 0;
-        $response["error"] = "";
+          $nodesToKick = $timedoutNodes;
+          sleep(1);
       }
-      $stringToLog = print_r($response, TRUE);
-      $this->logger->log_info("Response of genKickWait: \n" . $stringToLog);
       $sitePPFile = $manifestDir . "/site.pp";
       system("mv " . $sitePPFile . " " . $sitePPFile ."-".$txnId);
-      //Delete version file, it will be generated next time.
+      // Delete version file, it will be generated next time.
       unlink($versionFile);
+      $response = $this->createGenKickWaitResponse($kickFailedNodes, $failureResponseNodes,
+          $timedoutNodes, $successfullNodes, $nodes); 
       return $response;
     }
 
-    private function waitForResults($nodes, $txnId) {
+    private function waitForResults($nodes, $txnId, &$successfullNodes, 
+       &$failureResponseNodes, &$timedoutNodes) {
       $doneNodes = array();
       $startTime = time();
       $this->logger->log_info("Waiting for results from "
           . implode(",", $nodes));
       while (true) {
+        foreach ($nodes as $n) {
+          if (isset($doneNodes[$n])) {
+            continue;
+          }
+          $fileName = $this->getReportFilePattern($n, $txnId);
+          if (file_exists($fileName)) {
+            $doneNodes[$n] = 1;
+          }
+        }
+        $this->logger->log_debug(count($doneNodes) . " out of " . count($nodes) 
+            . " nodes have reported");
         if (count($doneNodes) >= count($nodes)) {
           ##All nodes kicked have reported back
           break;
@@ -282,43 +258,25 @@
         if ($currTime - $startTime > $this->kickTimeout) {
           $this->logger->log_warn("Kick timed out, waited "
                . $this->kickTimeout . " seconds");
-          $this->logger->log_info("Nodes that returned: ". implode(",", $doneNodes));
-          ##Kick Timed out.
           break;
-        }
-        foreach ($nodes as $n) {
-          $fileName = $this->getReportFilePattern($n, $txnId);
-          $this->logger->log_debug("fileName = " . $fileName);
-          if (file_exists($fileName)) {
-            $this->logger->log_debug("Node " . $n . " reported \n");
-            $doneNodes[$n] = 1;
-          }
         }
         sleep(5);
       }
-      $this->logger->log_debug("File reports obtained for " . count($doneNodes)
-          . "/" . count($nodes) . " nodes");
       ##Get result from each node
-      $successNodes = array();
-      $failedNodes = array();
-      $timedOutNodes = array();
       foreach ($nodes as $n) {
         $fileName = $this->getReportFilePattern($n, $txnId);
         if (file_exists($fileName)) {
           $r = file_get_contents($fileName);
           if ((preg_match("/status: changed/", $r) > 0) ||
               (preg_match("/status: unchanged/", $r)) > 0) {
-            $successNodes[] = $n;
+            $successfullNodes[] = $n;
           } else {
-            $failedNodes[] = $n;
+            $failureResponseNodes[] = $n;
           }
         } else {
-          //timed out nodes are considered failed
-          $failedNodes[] = $n;
-          $timedOutNodes[] = $n;
+          $timedoutNodes[] = $n;
         }
       }
-      return array($failedNodes, $successNodes, $timedOutNodes);
     }
 
     /**
