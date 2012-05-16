@@ -307,21 +307,21 @@ td.service, td.state, td.critical, td.warning {
 }
 /* ------------------- PIE charts ------------------- */
 .pieContainer {
-	float:left;
-	width:650px;
-	margin:0 0 0 15px;
+       float:left;
+       width:660px;
+       margin:0 0 0 15px;
 }
 .pieContainer h2 {
-	display:inline-block;
-	margin:8px 0 0;
-	width:325px;
-	text-align:center;
-	font-weight:normal;
+       display:inline-block;
+       margin:8px 0px 0px 50px;
+       width:325px;
+       text-align:left;
+       font-weight:normal;
 }
 .pieBox, .pieChart {
-	float:left;
-	width:325px;
-	height:200px;
+       float:left;
+       width:330px;
+       height:200px;
 }
 /*---------------END PIE containers--------------------*/
 

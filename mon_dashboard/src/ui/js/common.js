@@ -98,42 +98,86 @@
         
         // Grid 1
         var clusterGrid = document.getElementById("clusterSummaryGrid");
-        // Node Count
-        // populated from Nagios
+        if (data.namenode_starttime == undefined) {
+          clusterGrid.style.backgroundColor = "lightgray";
+          //clusterGrid.innerHTML= "HDFS (Down)";
+          document.getElementById("hdfssummarytitle").innerHTML= "HDFS (Down)";
+        }
+
         // NN Uptime
-        var now = new Date(), 
+        if (data.namenode_starttime != undefined) {
+          var now = new Date(), 
           actualTimeInMs = now.setUTCSeconds(0), 
           actualTime = actualTimeInMs.toString().substring(0,10), 
           result = actualTime - data.namenode_starttime;
-        clusterGrid.rows[2].cells[1].innerHTML = a.convertToDDHHMM(result);
+          clusterGrid.rows[1].cells[1].innerHTML = a.convertToDDHHMM(result);
+        }
+
         // HDFS Capacity
-        clusterGrid.rows[3].cells[1].innerHTML = a.convertBytes(data.dfs_used_bytes, 2) + " / " + a.convertBytes(data.dfs_total_bytes, 2);
+        if (data.dfs_used_bytes != undefined) {
+          clusterGrid.rows[2].cells[1].innerHTML = a.convertBytes(data.dfs_used_bytes, 2) + " / " + 
+                                                 a.convertBytes(data.dfs_total_bytes, 2);
+        }
+
         // Live vs dead nodes vs decomm
-        clusterGrid.rows[4].cells[1].innerHTML = '<a href="http://' + data.namenode_addr + '/dfsnodelist.jsp?whatNodes=LIVE">' + data.live_nodes + 
-        '</a>' + ' / ' + '<a href="http://' + data.namenode_addr + '/dfsnodelist.jsp?whatNodes=DEAD">' + data.dead_nodes + 
-        '</a>' + ' / ' + '<a href="http://' + data.namenode_addr + '/dfsnodelist.jsp?whatNodes=DECOMMISSIONING">' + data.decommissioning_nodes + '</a>';
+        if (data.live_nodes != undefined) {
+          clusterGrid.rows[3].cells[1].innerHTML = 
+             '<a href="http://' + data.namenode_addr + '/dfsnodelist.jsp?whatNodes=LIVE">' + data.live_nodes + 
+             '</a>' + ' / ' + '<a href="http://' + data.namenode_addr + '/dfsnodelist.jsp?whatNodes=DEAD">' + 
+             data.dead_nodes + '</a>' + ' / ' + '<a href="http://' + data.namenode_addr + 
+             '/dfsnodelist.jsp?whatNodes=DECOMMISSIONING">' + data.decommissioning_nodes + '</a>';
+        }
+        
         // Under replicated block count
-        clusterGrid.rows[5].cells[1].innerHTML = data.dfs_blocks_underreplicated;
+        clusterGrid.rows[4].cells[1].innerHTML = data.dfs_blocks_underreplicated;
         
         // Grid 2
         var clusterGrid2 = document.getElementById("clusterSummaryGrid2");
+        if (data.jobtracker_starttime == undefined) {
+          clusterGrid2.style.backgroundColor = "lightgray";
+          document.getElementById("mapredsummarytitle").innerHTML= "MapReduce (Down)";
+        }
+
         // JT Uptime
-        var result2 = actualTime - data.jobtracker_starttime;
-        clusterGrid2.rows[1].cells[1].innerHTML = a.convertToDDHHMM(result2);
+        if (data.jobtracker_starttime != undefined) {
+          var result2 = actualTime - data.jobtracker_starttime;
+          clusterGrid2.rows[1].cells[1].innerHTML = a.convertToDDHHMM(result2);
+        }
+
         // Trackers (live/blacklisted)
-        clusterGrid2.rows[2].cells[1].innerHTML = '<a href="http://' + data.jobtracker_addr + '/machines.jsp?type=active">' + data.trackers_live + 
-        '</a>' + ' / ' + '<a href="http://' + data.jobtracker_addr + '/machines.jsp?type=blacklisted">' + data.trackers_blacklisted + '</a>';
+        if (data.trackers_live != undefined) {
+          clusterGrid2.rows[2].cells[1].innerHTML = 
+             '<a href="http://' + data.jobtracker_addr + '/machines.jsp?type=active">' + data.trackers_live + 
+             '</a>' + ' / ' + '<a href="http://' + data.jobtracker_addr + '/machines.jsp?type=blacklisted">' + 
+             data.trackers_blacklisted + '</a>';
+        }
+
         // Running Jobs
-        clusterGrid2.rows[3].cells[1].innerHTML = data.running_jobs + " & " + data.waiting_jobs;
+        if (data.running_jobs != undefined) {
+          clusterGrid2.rows[3].cells[1].innerHTML = data.running_jobs + " & " + data.waiting_jobs;
+        }
         
         // Grid 3
         var clusterGrid3 = document.getElementById("clusterSummaryGrid3");
+        if (data.hbasemaster_starttime == undefined) {
+          clusterGrid3.style.backgroundColor = "lightgray";
+          document.getElementById("hbasesummarytitle").innerHTML= "HBase (Down)";
+        }
+
         // HBase Uptime
-        var result3 = actualTime - data.hbasemaster_starttime;
-        clusterGrid3.rows[1].cells[1].innerHTML = a.convertToDDHHMM(result3);
+        if (data.hbasemaster_starttime != undefined) {
+          var result3 = actualTime - data.hbasemaster_starttime;
+          clusterGrid3.rows[1].cells[1].innerHTML = a.convertToDDHHMM(result3);
+        }
+
         // Region servers
-        clusterGrid3.rows[2].cells[1].innerHTML = '<a href="http://' + data.hbasemaster_addr + '/master-status">' + data.live_regionservers + 
-        '</a>' + ' / ' + '<a href="http://' + data.hbasemaster_addr + '/master-status">' + data.dead_regionservers + '</a>';
+        if (data.live_regionservers != undefined) {
+          clusterGrid3.rows[2].cells[1].innerHTML = 
+              '<a href="http://' + data.hbasemaster_addr + '/master-status">' + data.live_regionservers + 
+              '</a>' + ' / ' + '<a href="http://' + data.hbasemaster_addr + '/master-status">' + 
+              data.dead_regionservers + '</a>';
+        }
+
         // Regions in Transition
         clusterGrid3.rows[3].cells[1].innerHTML = data.regions_in_transition_count;
         
@@ -502,10 +546,16 @@
   // Draw pie chart on Dashboard
   a.drawDiskUtilPieChart = function(clusterData){
     var r = Raphael("pie2"), pie, data = {};
+    if (data.dfs_percent_remaining == undefined) {
+      data = {data:[100],label:{legend:["HDFS Down"], legendpos:"east"}};
+      pie = r.piechart(130, 100, 80, data.data, data.label);
+      pie.attr("fill", "gray");
+      return;
+    }
     if(clusterData.dfs_percent_remaining == 100){
-      data = {data:[100],label:{legend:["%%.%% Up"], legendpos:"east"}};
+      data = {data:[100],label:{legend:["%%.%% Free"], legendpos:"east"}};
     }else if(clusterData.dfs_percent_remaining == 0){
-      data = {data:[100],label:{legend:["%%.%% Down"], legendpos:"east"}};
+      data = {data:[100],label:{legend:["%%.%% Used"], legendpos:"east"}};
     } else {
       data = {data:[100 - clusterData.dfs_percent_remaining, clusterData.dfs_percent_remaining],label:{legend:["%%.%% Used", "%%.%% Free"], legendpos:"east"}};
     }
@@ -515,6 +565,14 @@
   // Draw pie chart on Dashboard
   a.drawNodesUpPieChart = function(response){
     var r = Raphael("pie1"), pie, data = {};
+    if (response.hostcounts.down_hosts == undefined) {
+      data = {data:[100],label:{legend:["Nagios Down"], legendpos:"east"}};
+      pie = r.piechart(130, 100, 80, data.data, data.label);
+      pie.attr("fill", "gray");
+      return;
+    }
+    document.getElementById("nodesud").innerHTML = 
+              "Nodes Up/Down ("+response.hostcounts.up_hosts+"/"+response.hostcounts.down_hosts+")";
     if(response.hostcounts.down_hosts == 0){
       data = {data:[100],label:{legend:["%%.%% Up"], legendpos:"east"}};
     }else if(response.hostcounts.up_hosts == 0){
@@ -524,7 +582,7 @@
     }
     pie = r.piechart(130, 100, 80, data.data, data.label);
   };
-  
+
   // Generate links for Ganglia and Nagios
   a.addLinks = function(data){
     var nagios = document.getElementById("nagios");
@@ -639,13 +697,6 @@
         // In every other case - when you click the summary table to see service-related alerts
         } else if(target){
           targetId = target.parentNode.id;
-        }
-        
-        if(page == "DASHBOARD"){
-          // Populate Server Count from Nagios - Regardless of HBase
-          var clusterGrid = document.getElementById("clusterSummaryGrid"), 
-            total = hostcounts.up_hosts + hostcounts.down_hosts;
-          clusterGrid.rows[1].cells[1].innerHTML = hostcounts.up_hosts + " / " + total;
         }
         
         // If HBase is not installed ...
