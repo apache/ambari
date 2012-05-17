@@ -76,8 +76,8 @@
         <br/>
 
         <div id="serviceManagementGlobalActionsDivId" style="display:none">
-          <button class="btn btn-large" id="serviceManagementGlobalActionsStartAllButtonId" name="startAll" style="margin-right:10px"><i class="icon-play" style="margin-right:10px"></i>Start All</button>
-          <button class="btn btn-large" id="serviceManagementGlobalActionsStopAllButtonId" name="stopAll"><i class="icon-stop" style="margin-right:10px"></i>Stop All</button>
+          <button class="btn btn-large" id="serviceManagementGlobalActionsStartAllButtonId" name="startAll" style="margin-right:10px"><i class="iconic-play" style="margin-right:10px"></i>Start All</button>
+          <button class="btn btn-large" id="serviceManagementGlobalActionsStopAllButtonId" name="stopAll"><i class="iconic-stop" style="margin-right:10px"></i>Stop All</button>
         </div>
 
         <br/>
