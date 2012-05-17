@@ -20,8 +20,7 @@ class hdp-hadoop(
 )
 {
   include hdp-hadoop::params
-
-  $conf_dir = $hdp-hadoop::params::conf_dir
+  $hadoop_config_dir = $hdp-hadoop::params::conf_dir
   $mapred_user = $hdp-hadoop::params::mapred_user  
   $hdfs_user = $hdp-hadoop::params::hdfs_user  
 
@@ -39,15 +38,26 @@ class hdp-hadoop(
     hdp-hadoop::package { 'hadoop':
       ensure => 'uninstalled'
     }
+
+    hdp::directory_recursive_create { $hadoop_config_dir:
+      service_state => $service_state,
+      force => true
+    }
+
+    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> -> Hdp::Directory_recursive_create[$hadoop_config_dir] -> Anchor['hdp-hadoop::end']
   } else {
     
     hdp-hadoop::package { 'hadoop':}
+
+
+    hdp::directory_recursive_create { $hadoop_config_dir:
+      service_state => $service_state,
+      force => true
+    }
  
     hdp::user{ $hdfs_user:}
     hdp::user { $mapred_user:}
 
-    hdp::directory { $conf_dir:}
-  
     $logdirprefix = $hdp-hadoop::params::hadoop_logdirprefix
     hdp::directory_recursive_create { $logdirprefix: 
         owner => 'root'
@@ -73,8 +83,8 @@ class hdp-hadoop(
       owner => $mapred_user
     }
 
-    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|> 
-    -> Hdp::Directory[$conf_dir] -> Hdp-hadoop::Configfile<|tag == 'common'|> -> Anchor['hdp-hadoop::end']
+    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::Directory_recursive_create[$hadoop_config_dir] ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|> 
+    -> Hdp-hadoop::Configfile<|tag == 'common'|> -> Anchor['hdp-hadoop::end']
     Anchor['hdp-hadoop::begin'] -> Hdp::Directory_recursive_create[$logdirprefix] -> Anchor['hdp-hadoop::end']
     Anchor['hdp-hadoop::begin'] -> Hdp::Directory_recursive_create[$piddirprefix] -> Anchor['hdp-hadoop::end']
   }

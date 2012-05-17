@@ -9,13 +9,23 @@ class hdp-dashboard(
       ensure => 'uninstalled',
       size   => 64
     }
+    hdp::directory_recursive_create { $conf_dir :
+      service_state => $service_state,
+      force => true
+    }
+
+    Hdp::Package['dashboard'] -> Hdp::Directory_recursive_create[$conf_dir]
+
    } elsif ($service_state in ['running','installed_and_configured','stopped']) {
       hdp::package { 'dashboard' :
         size => 64
        }
      $conf_dir =  $hdp-dashboard::params::conf_dir
   
-     hdp::directory_recursive_create { $conf_dir: }
+     hdp::directory_recursive_create { $conf_dir :
+       service_state => $service_state,
+       force => true
+     }
  
      hdp-dashboard::configfile { 'cluster_configuration.json' : }
      Hdp-Dashboard::Configfile<||>{dashboard_host => $hdp::params::host_address}

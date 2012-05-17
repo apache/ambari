@@ -5,7 +5,8 @@ class hdp-ganglia(
   include hdp-ganglia::params
   $gmetad_user = $hdp-ganglia::params::gmetad_user
   $gmond_user = $hdp-ganglia::params::gmond_user
-  
+  $ganglia_config_dir = $hdp-ganglia::params::ganglia_shell_cmds_dir
+ 
   user { $gmond_user : shell => '/bin/bash'} #provision for nobody user
   if ( $gmetad_user != $gmond_user) {
     user { $gmetad_user : shell => '/bin/bash'} #provision for nobody user
@@ -17,8 +18,8 @@ class hdp-ganglia(
     }
    } elsif ($service_state in ['running','installed_and_configured','stopped']) {
       hdp::package { 'ganglia-monitor':}
-  } 
 
+  } 
 
   anchor{'hdp-ganglia::begin':} -> User<|title == $gmond_user or title == $gmetad_user|> ->  
     Hdp::Package['ganglia-monitor'] -> anchor{'hdp-ganglia::end':}

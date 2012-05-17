@@ -13,6 +13,13 @@ class hdp-templeton(
       size => 32,
       ensure => 'uninstalled'
     }
+      hdp::directory { $templeton_config_dir:
+        service_state => $service_state,
+        force => true
+      }
+
+     anchor { 'hdp-templeton::begin': } -> Hdp::Package['templeton'] -> Hdp::Directory[$templeton_config_dir] ->  anchor { 'hdp-templeton::end': }
+
   } else {
     hdp::package { 'templeton' :
     size => 32
@@ -22,7 +29,10 @@ class hdp-templeton(
 
     hdp::user{ $templeton_user:}
 
-    hdp::directory { $templeton_config_dir: }
+    hdp::directory { $templeton_config_dir: 
+      service_state => $service_state,
+      force => true
+    }
 
     hdp-templeton::configfile { ['templeton-site.xml','templeton-env.sh']: }
 

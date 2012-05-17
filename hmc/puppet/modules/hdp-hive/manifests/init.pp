@@ -15,6 +15,14 @@ class hdp-hive(
     hdp::package { 'hive' : 
       ensure => 'uninstalled'
     }
+
+    hdp::directory { $hive_config_dir:
+      service_state => $service_state,
+      force => true
+    }
+
+    Anchor['hdp-hive::begin'] -> Hdp::Package['hive'] -> Hdp::Directory[$hive_config_dir] ->  Anchor['hdp-hive::end']
+
   } else {
     hdp::package { 'hive' : }
     if ($server == true ) {
@@ -23,7 +31,10 @@ class hdp-hive(
   
     hdp::user{ $hive_user:}
   
-    hdp::directory { $hive_config_dir: }
+    hdp::directory { $hive_config_dir: 
+      service_state => $service_state,
+      force => true
+    }
 
     hdp-hive::configfile { ['hive-env.sh','hive-site.xml']: }
   

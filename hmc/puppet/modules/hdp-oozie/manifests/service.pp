@@ -47,7 +47,9 @@ define hdp-oozie::service::directory()
 {
   hdp::directory_recursive_create { $name: 
     owner => $hdp-oozie::params::oozie_user,
-    mode => '0755'
+    mode => '0755',
+    service_state => $ensure,
+    force => true
   }
 }
 define hdp-oozie::service::createsymlinks()

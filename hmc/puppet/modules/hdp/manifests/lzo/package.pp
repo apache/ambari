@@ -23,7 +23,7 @@ define hdp::lzo::package::tar()
   $lzo_tar_name = $hdp::params::lzo_tar_name
   $lzo_tar_gz = "${lzo_tar_name}.tar.gz"
   $artifact_dir = $hdp::params::artifact_dir
-  $artifacts_download_url = $hdp::params::artifacts_download_url
+  $artifacts_download_url = $hdp::params::apache_artifacts_download_url
   $lzo_curl_target = "${artifact_dir}/${lzo_tar_gz}"
   $lzo_dir = "${artifact_dir}/${lzo_tar_name}"
   $lzo_jar = "${lzo_tar_name}.jar"

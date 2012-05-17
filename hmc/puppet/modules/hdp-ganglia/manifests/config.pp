@@ -1,4 +1,7 @@
-class hdp-ganglia::config($ganglia_server_host = undef)
+class hdp-ganglia::config(
+  $ganglia_server_host = undef,
+  $service_state = $hdp::params::cluster_service_state
+)
 {
   #TODO: divide into what is needed on server vs what is needed on monitored nodes
   $shell_cmds_dir = $hdp-ganglia::params::ganglia_shell_cmds_dir
@@ -6,20 +9,23 @@ class hdp-ganglia::config($ganglia_server_host = undef)
 
   hdp::directory_recursive_create { $shell_cmds_dir :
     owner => root,
-    group => root
+    group => root,
+    service_state => $service_state,
+    force => true
   } 
+   if ($service_state in ['running','installed_and_configured','stopped']) {
+     hdp-ganglia::config::init_file { ['gmetad','gmond']: }
 
-   hdp-ganglia::config::init_file { ['gmetad','gmond']: }
+     hdp-ganglia::config::shell_file { $shell_files: }                       
 
-   hdp-ganglia::config::shell_file { $shell_files: }                       
-
-   hdp-ganglia::config::file { ['gangliaClusters.conf','gangliaEnv.sh','gangliaLib.sh']: 
-     ganglia_server_host => $ganglia_server_host
-   }
+     hdp-ganglia::config::file { ['gangliaClusters.conf','gangliaEnv.sh','gangliaLib.sh']: 
+       ganglia_server_host => $ganglia_server_host
+     }
  
-   anchor{'hdp-ganglia::config::begin':} -> Hdp::Directory_recursive_create[$shell_cmds_dir] -> Hdp-ganglia::Config::Shell_file<||> -> anchor{'hdp-ganglia::config::end':}
-   Anchor['hdp-ganglia::config::begin'] -> Hdp-ganglia::Config::Init_file<||> -> Anchor['hdp-ganglia::config::end']
-   Anchor['hdp-ganglia::config::begin'] -> Hdp-ganglia::Config::File<||> -> Anchor['hdp-ganglia::config::end']
+     anchor{'hdp-ganglia::config::begin':} -> Hdp::Directory_recursive_create[$shell_cmds_dir] -> Hdp-ganglia::Config::Shell_file<||> -> anchor{'hdp-ganglia::config::end':}
+     Anchor['hdp-ganglia::config::begin'] -> Hdp-ganglia::Config::Init_file<||> -> Anchor['hdp-ganglia::config::end']
+     Anchor['hdp-ganglia::config::begin'] -> Hdp-ganglia::Config::File<||> -> Anchor['hdp-ganglia::config::end']
+  }
 }
 
 define hdp-ganglia::config::shell_file()

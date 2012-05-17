@@ -6,30 +6,40 @@ class hdp-ganglia::monitor(
 ) inherits hdp-ganglia::params
 {
   if ($service_state == 'no_op') {
-  } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {
-    if ($monitor_and_server_single_node == false) {
-      #note: includes the common package ganglia-monitor
-      include hdp-ganglia 
-      class { 'hdp-ganglia::config': 
-        ganglia_server_host => $ganglia_server_host,
-        require             => Class['hdp-ganglia'],
-        before              => Class['hdp-ganglia::monitor::config-gen']
-      }
-    }
-    anchor {'hdp-ganglia::monitor::begin' : } ->
-    class { 'hdp-ganglia::monitor::config-gen': } ->
-    anchor {'hdp-ganglia::monitor::end' : } 
+  } elsif ($service_state in ['uninstalled']) {
 
-    if ($monitor_and_server_single_node == false) {
-      Class['hdp-ganglia'] -> Class['hdp-ganglia::monitor::config-gen']
-      class { 'hdp-ganglia::service::gmond': 
-        ensure => $service_state,
-        require  => Class['hdp-ganglia::monitor::config-gen']
+      if ($monitor_and_server_single_node == false) {
+      #note: includes the common package ganglia-monitor
+      include hdp-ganglia
+      class { 'hdp-ganglia::config':
+        ganglia_server_host => $ganglia_server_host,
+        service_state       => $service_state
       }
+     }
+    } elsif ($service_state in ['running','stopped','installed_and_configured']) {
+        if ($monitor_and_server_single_node == false) {
+        #note: includes the common package ganglia-monitor
+        include hdp-ganglia
+        class { 'hdp-ganglia::config': 
+          ganglia_server_host => $ganglia_server_host,
+          require             => Class['hdp-ganglia'],
+          before              => Class['hdp-ganglia::monitor::config-gen'],
+          service_state       => $service_state
+        }
+      }
+
+      anchor {'hdp-ganglia::monitor::begin' : } -> class { 'hdp-ganglia::monitor::config-gen': } ->  anchor {'hdp-ganglia::monitor::end' : } 
+
+      if ($monitor_and_server_single_node == false) {
+        Class['hdp-ganglia'] -> Class['hdp-ganglia::monitor::config-gen']
+        class { 'hdp-ganglia::service::gmond': 
+          ensure => $service_state,
+          require  => Class['hdp-ganglia::monitor::config-gen']
+        }
+      }
+    } else {
+      hdp_fail("TODO not implemented yet: service_state = ${service_state}")
     }
-  } else {
-    hdp_fail("TODO not implemented yet: service_state = ${service_state}")
-  }
 }
 
 class hdp-ganglia::monitor::config-gen()

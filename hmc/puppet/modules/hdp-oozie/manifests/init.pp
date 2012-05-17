@@ -13,6 +13,21 @@ class hdp-oozie(
     hdp::package { 'oozie-client' : 
       ensure => 'uninstalled'
     }
+    if ($server == true ) {
+      hdp::package { 'oozie-server' :
+        ensure => 'uninstalled'
+      }
+    }
+    hdp::directory { $oozie_config_dir:
+      service_state => $service_state,
+      force => true
+    }
+
+    anchor { 'hdp-oozie::begin': } -> Hdp::Package['oozie-client'] -> Hdp::Directory[$oozie_config_dir] ->  anchor { 'hdp-oozie::end': }
+
+    if ($server == true ) {
+       Hdp::Package['oozie-server'] -> Hdp::Package['oozie-client'] ->  Anchor['hdp-oozie::end']
+     }
   } else {
     hdp::package { 'oozie-client' : }
     if ($server == true ) {
@@ -22,7 +37,10 @@ class hdp-oozie(
 
      hdp::user{ $oozie_user:}
 
-     hdp::directory { $oozie_config_dir: }
+     hdp::directory { $oozie_config_dir: 
+      service_state => $service_state,
+      force => true
+    }
 
      hdp-oozie::configfile { ['oozie-site.xml','oozie-env.sh','oozie-log4j.properties']: }
 

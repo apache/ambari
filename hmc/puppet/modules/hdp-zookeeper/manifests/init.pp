@@ -24,13 +24,29 @@ class hdp-zookeeper(
      hdp::package { 'zookeeper':
        ensure => 'uninstalled'
      }
-     Anchor['hdp-zookeeper::begin'] -> Hdp::Package['zookeeper'] -> Anchor['hdp-zookeeper::end']
+     hdp::directory_recursive_create { $zk_config_dir:
+       service_state => $service_state,
+       force => true
+     }
+
+     if ($type == 'server') {
+        class { 'hdp-zookeeper::service':
+          ensure => $service_state,
+          myid   => $myid
+        }
+       }
+
+     Anchor['hdp-zookeeper::begin'] -> Hdp::Package['zookeeper'] -> Hdp::Directory_recursive_create[$zk_config_dir] -> Class['hdp-zookeeper::service']  -> Anchor['hdp-zookeeper::end']
+
    } else {
      hdp::package { 'zookeeper':}
 
      hdp::user{ $zk_user:}
 
-     hdp::directory { $zk_config_dir: }
+     hdp::directory_recursive_create { $zk_config_dir: 
+      service_state => $service_state,
+      force => true
+     }
 
      hdp-zookeeper::configfile { ['zoo.cfg','zookeeper-env.sh','configuration.xsl','log4j.properties']: }
  
@@ -47,9 +63,9 @@ class hdp-zookeeper(
       }
 
       Anchor['hdp-zookeeper::begin'] -> Hdp::Package['zookeeper'] -> Hdp::User[$zk_user] -> 
-        Hdp::Directory[$zk_config_dir] -> Hdp-zookeeper::Configfile<||> -> Anchor['hdp-zookeeper::end']
+        Hdp::Directory_recursive_create[$zk_config_dir] -> Hdp-zookeeper::Configfile<||> -> Anchor['hdp-zookeeper::end']
       if ($type == 'server') {
-        Hdp::Directory[$zk_config_dir] -> Hdp-zookeeper::Configfile<||> -> Class['hdp-zookeeper::service'] -> Anchor['hdp-zookeeper::end']
+        Hdp::Directory_recursive_create[$zk_config_dir] -> Hdp-zookeeper::Configfile<||> -> Class['hdp-zookeeper::service'] -> Anchor['hdp-zookeeper::end']
       }
       if ($hdp::params::update_zk_shell_files == true) {
         Hdp::Package['zookeeper'] -> Hdp-zookeeper::Shell_file<||> -> Anchor['hdp-zookeeper::end']

@@ -2,13 +2,50 @@ class hdp-nagios::server(
   $service_state = $hdp::params::cluster_service_state
 ) inherits hdp-nagios::params
 {
+
+  $nagios_config_dir = $hdp-nagios::params::conf_dir
+  $plugins_dir = $hdp-nagios::params::plugins_dir
+  $nagios_obj_dir = $hdp-nagios::params::nagios_obj_dir
+
   if ($service_state == 'no_op') {
   } elsif ($service_state in ['uninstalled']) {
     class { 'hdp-nagios::server::packages' : 
       service_state => uninstalled
     }
+
+    hdp::directory { $nagios_config_dir:
+      service_state => $service_state,
+      force => true
+    }
+
+    hdp::directory { $plugins_dir:
+      service_state => $service_state,
+      force => true
+    }
+
+    hdp::directory { $nagios_obj_dir:
+      service_state => $service_state,
+      force => true
+    }
+   Class['hdp-nagios::server::packages'] -> Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory[$nagios_obj_dir]
+
   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
     class { 'hdp-nagios::server::packages' : }
+
+    hdp::directory { $nagios_config_dir:
+      service_state => $service_state,
+      force => true
+    }
+
+    hdp::directory { $plugins_dir:
+      service_state => $service_state,
+      force => true
+    }
+
+    hdp::directory { $nagios_obj_dir:
+      service_state => $service_state,
+      force => true
+    }
 
     class { 'hdp-nagios::server::config': 
       notify => Class['hdp-nagios::server::services']
@@ -18,7 +55,7 @@ class hdp-nagios::server(
 
     class { 'hdp-nagios::server::services': ensure => $service_state}
 
-    Class['hdp-nagios::server::packages'] -> Class['hdp-nagios::server::config'] -> 
+    Class['hdp-nagios::server::packages'] -> Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory[$nagios_obj_dir] -> Class['hdp-nagios::server::config'] -> 
     Class['hdp-nagios::server::web_permisssions'] -> Class['hdp-nagios::server::services']
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")

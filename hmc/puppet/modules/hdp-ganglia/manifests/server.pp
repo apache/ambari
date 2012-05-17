@@ -4,20 +4,44 @@ class hdp-ganglia::server(
   $opts = {}
 ) inherits  hdp-ganglia::params
 {
+  $ganglia_shell_cmds_dir = $hdp-ganglia::params::ganglia_shell_cmds_dir
+  $ganglia_conf_dir = $hdp-ganglia::params::ganglia_conf_dir
+  $ganglia_runtime_dir = $hdp-ganglia::params::ganglia_runtime_dir
+
   if ($service_state == 'no_op') {
   } elsif ($service_state == 'uninstalled') {
     class { 'hdp-ganglia::server::packages':
       ensure => 'uninstalled'
       }
-   } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {
+
+    hdp::directory { $ganglia_shell_cmds_dir:
+      service_state => $service_state,
+      force => true
+    }
+
+    hdp::directory { $ganglia_conf_dir:
+      service_state => $service_state,
+      force => true
+    }
+
+    hdp::directory { $ganglia_runtime_dir:
+      service_state => $service_state,
+      force => true
+    }
+
+    anchor { 'hdp-ganglia::server::begin': } -> Class['hdp-ganglia::server::packages'] -> Hdp::Directory[$ganglia_shell_cmds_dir] ->  Hdp::Directory[$ganglia_conf_dir] -> Hdp::Directory[$ganglia_runtime_dir] -> anchor { 'hdp-ganglia::server::end': }
+
+   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
     if ($monitor_and_server_single_node == false) {
       include hdp-ganglia #note: includes the common package ganglia-monitor
     }
 
     class { 'hdp-ganglia::server::packages': }
 
-    class { 'hdp-ganglia::config': ganglia_server_host => $hdp::params::host_address }
-
+    class { 'hdp-ganglia::config': 
+     ganglia_server_host => $hdp::params::host_address,
+     service_state       => $service_state
+     }
    
     if ($hdp-ganglia::params::omit_hbase_master != true) {
       hdp-ganglia::config::generate_server { 'HDPHBaseMaster':

@@ -4,7 +4,7 @@ class hdp-nagios::server::packages(
 {
   if ($service_state == 'no_op') {
   } elsif ($service_state in ['uninstalled']) {
-     hdp-nagios::server::package { ['nagios-server','nagios-fping','nagios-plugins','nagios-net-snmp-utils','nagios-addons','nagios-php-pecl-json']:
+     hdp-nagios::server::package { ['nagios-server','nagios-fping','nagios-plugins','nagios-net-snmp-utils','nagios-addons']:
     ensure => 'uninstalled'
   }
   } elsif ($service_state in ['running','stopped','installed_and_configured']) {

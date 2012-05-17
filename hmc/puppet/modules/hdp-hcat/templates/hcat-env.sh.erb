@@ -17,7 +17,7 @@
 JAVA_HOME=<%=scope.function_hdp_java_home()%>
 HCAT_PID_DIR=<%=scope.function_hdp_template_var("hcat_pid_dir")%>/
 HCAT_LOG_DIR=<%=scope.function_hdp_template_var("hcat_log_dir")%>/
-HCAT_CONF_DIR=<%=scope.function_hdp_template_var("conf_dir")%>
+HCAT_CONF_DIR=<%=scope.function_hdp_template_var("hcat_conf_dir")%>
 HADOOP_HOME=${HADOOP_HOME:-<%=scope.function_hdp_template_var("::hdp::params::hadoop_home")%>}
 #DBROOT is the path where the connector jars are downloaded
 DBROOT=<%=scope.function_hdp_template_var("hcat_dbroot")%>

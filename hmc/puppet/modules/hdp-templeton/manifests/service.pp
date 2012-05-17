@@ -39,7 +39,9 @@ define hdp-templeton::service::directory()
 {
   hdp::directory_recursive_create { $name: 
     owner => $hdp-templeton::params::templeton_user,
-    mode => '0755'
+    mode => '0755',
+    service_state => $ensure,
+    force => true
   }
 }
 

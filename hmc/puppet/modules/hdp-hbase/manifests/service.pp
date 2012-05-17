@@ -30,13 +30,17 @@ define hdp-hbase::service(
   if ($create_pid_dir == true) {
     hdp::directory_recursive_create { $pid_dir: 
       owner => $user,
-      tag   => $tag
+      tag   => $tag,
+      service_state => $ensure,
+      force => true
     }
   }
   if ($create_log_dir == true) {
     hdp::directory_recursive_create { $hdp-hbase::params::hbase_log_dir: 
       owner => $user,
-      tag   => $tag
+      tag   => $tag,
+      service_state => $ensure,
+      force => true
     }
   }
 

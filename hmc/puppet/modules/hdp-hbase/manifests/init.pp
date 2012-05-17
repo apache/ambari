@@ -16,13 +16,22 @@ class hdp-hbase(
     hdp::package { 'hbase':
       ensure => 'uninstalled'
     }
-    Anchor['hdp-hbase::begin'] -> Hdp::Package['hbase'] -> Anchor['hdp-hbase::end']
+    hdp::directory { $config_dir:
+      service_state => $service_state,
+      force => true
+    }
+
+    Anchor['hdp-hbase::begin'] -> Hdp::Package['hbase'] -> Hdp::Directory[$config_dir] -> Anchor['hdp-hbase::end']
+
   } else {  
     hdp::package { 'hbase': }
   
     hdp::user{ $hbase_user:}
  
-    hdp::directory { $config_dir: }
+    hdp::directory { $config_dir: 
+      service_state => $service_state,
+      force => true
+    }
 
     hdp-hbase::configfile { ['hbase-env.sh','hbase-site.xml','hbase-policy.xml','log4j.properties','hadoop-metrics.properties']: }
     if ($type == 'master') {

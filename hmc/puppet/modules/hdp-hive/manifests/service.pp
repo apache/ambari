@@ -46,7 +46,9 @@ define hdp-hive::service::directory()
 {
   hdp::directory_recursive_create { $name: 
     owner => $hdp::params::hive_user,
-    mode => '0755'
+    mode => '0755',
+    service_state => $ensure,
+    force => true
   }
 }
 

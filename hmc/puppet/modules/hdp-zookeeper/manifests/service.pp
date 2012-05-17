@@ -1,5 +1,5 @@
 class hdp-zookeeper::service(
-  $ensure = 'running',
+  $ensure = $hdp::params::cluster_service_state,
   $myid
 )
 {
@@ -22,22 +22,25 @@ class hdp-zookeeper::service(
   } else {
     $daemon_cmd = undef
   }
-
   hdp::directory_recursive_create { $hdp-zookeeper::params::zk_pid_dir: 
     owner        => $user,
-    context_tag => 'zk_service'
+    context_tag => 'zk_service',
+    service_state => $ensure,
+    force => true
   }
   hdp::directory_recursive_create { $hdp-zookeeper::params::zk_log_dir: 
     owner        => $user,
-    context_tag => 'zk_service'
+    context_tag => 'zk_service',
+    service_state => $ensure,
+    force => true
   }
    hdp::directory_recursive_create { $hdp-zookeeper::params::zk_data_dir: 
     owner        => $user,
-    context_tag => 'zk_service'
+    context_tag => 'zk_service',
+    service_state => $ensure,
+    force => true
   }
   
-  class { 'hdp-zookeeper::set_myid': myid => $myid}
- 
   if ($daemon_cmd != undef) {
     hdp::exec { $daemon_cmd:
       command => $daemon_cmd,
@@ -46,13 +49,18 @@ class hdp-zookeeper::service(
     }
   }
 
-  anchor{'hdp-zookeeper::service::begin':} -> Hdp::Directory_recursive_create<|context_tag == 'zk_service'|> -> 
+  if ($ensure == 'uninstalled') {
+    anchor{'hdp-zookeeper::service::begin':} -> Hdp::Directory_recursive_create<|context_tag == 'zk_service'|> ->  anchor{'hdp-zookeeper::service::end':}
+  } else {
+    class { 'hdp-zookeeper::set_myid': myid => $myid}
+
+    anchor{'hdp-zookeeper::service::begin':} -> Hdp::Directory_recursive_create<|context_tag == 'zk_service'|> -> 
     Class['hdp-zookeeper::set_myid'] -> anchor{'hdp-zookeeper::service::end':}
 
-  if ($daemon_cmd != undef) {
-    Class['hdp-zookeeper::set_myid'] -> Hdp::Exec[$daemon_cmd] -> Anchor['hdp-zookeeper::service::end']
+    if ($daemon_cmd != undef) {
+      Class['hdp-zookeeper::set_myid'] -> Hdp::Exec[$daemon_cmd] -> Anchor['hdp-zookeeper::service::end']
+    }
   }
-
 }
 
 class hdp-zookeeper::set_myid($myid)
