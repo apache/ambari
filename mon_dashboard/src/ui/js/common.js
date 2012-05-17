@@ -589,12 +589,16 @@
     nagios.setAttribute("href", data.nagios_url);
     var ganglia = document.getElementById("ganglia");
     ganglia.setAttribute("href", data.ganglia_url);
-    var oozie = document.getElementById("oozie");
     if (data.oozie_url != "") {
-      oozie.setAttribute("href", data.oozie_url);
-    } else {
-      oozie.style.display = 'none';
-    }
+      var oozie_button = document.createElement("a");
+      oozie_button.setAttribute("id", "oozie");
+      oozie_button.setAttribute("class", "roundedBox");
+      oozie_button.setAttribute("target", "_blank");
+      oozie_button.setAttribute("href", data.oozie_url);
+      oozie_button.innerHTML = "Oozie";
+      var links = document.getElementById("links");
+      links.appendChild(oozie_button);
+    } 
   };
   
   // Get Graphs for Dashboard page

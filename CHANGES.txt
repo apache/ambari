@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-251. Oozie link is not displayed even when Oozie is installed 
+  (vgogate via ramya)
+
   AMBARI-298. The current stage and the next stage are shown at the same time
   during state transition (Yusaku Sako via ramya)
 

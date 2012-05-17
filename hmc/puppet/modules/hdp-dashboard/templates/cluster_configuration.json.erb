@@ -80,15 +80,15 @@
       ],
       "TEMPLETON" : [
         {
-          "installed": <%=not scope.function_hdp_no_hosts("public_templeton_host")%>,
+          "installed": <%=not scope.function_hdp_no_hosts("public_templeton_server_host")%>,
           "name": "TEMPLETON"
         }
       ],
       "OOZIE" : [
         {
-          "installed": <%=not scope.function_hdp_no_hosts("public_oozie_host")%>,
+          "installed": <%=not scope.function_hdp_no_hosts("public_oozie_server")%>,
           "name": "OOZIE",
-          "oozie_host": "<%=scope.function_hdp_host("public_oozie_host")%>",
+          "oozie_host": "<%=scope.function_hdp_host("public_oozie_server")%>",
           "oozie_port": 11000
         }
       ]
