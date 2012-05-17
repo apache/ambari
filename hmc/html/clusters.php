@@ -22,6 +22,8 @@
 
     <div id="contentDivId"> 
 
+      <?php require "./utils.htmli"; ?>
+
       <!-- The Main Event -->
       <div id="clustersCoreDivId">
         <div id="clustersNavigationLinksDivId">
@@ -51,32 +53,7 @@
       </div>
       <!-- End of clustersCoreDivId -->
 
-      <div id="txnProgressCoreDivId" style="display:none">
-
-        <!-- Used to render informational/status messages (error, success reports and such like) -->
-        <div id="txnProgressStatusDivId" class="formStatusBar" style="display:none">
-          <div id="txnProgressStatusMessageDivId"></div>
-          <div id="txnProgressStatusActionsDivId"></div>
-        </div>
-
-        <fieldset id="txnProgressFieldSetId">
-          <div id="txnProgressDynamicRenderDivId"></div>
-        </fieldset>
-      </div>
-      <!-- End of txnProgressCoreDivId -->
-
-      <!-- The mechanism by which we black out the screen and affix the
-           the spotlight on a smaller portion of it. -->
-      <div id="blackScreenDivId" style="display:none"></div>
-      <!-- The image we use to let users know something is loading, and 
-           that they should wait. -->
-      <div id="loadingDivId"> 
-        <div id="loadingBlackScreenDivId"></div>
-        <img id="loadingImgId" src="../images/loadingLarge.gif"/>
-      </div>
-
-      <!-- Placeholder for our informational YUI panel. -->
-      <div id="informationalPanelContainerDivId"></div>
+      <?php require "./txnUtils.htmli"; ?>
 
     </div>
     <!-- End of contentDivId -->

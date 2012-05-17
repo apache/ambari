@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-197. Templatize Standard Helper Components Of Every HTML Page. (Varun Kapoor via jitendra)
+
   AMBARI-229. Remove Navigation Bar (W/ Clusters Link) From InstallationWizard (And Other Entry Points). 
   (Varun Kapoor via jitendra)
 

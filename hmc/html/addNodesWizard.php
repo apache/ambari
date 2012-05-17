@@ -46,11 +46,8 @@
         </div>
         
         <br/>
-                <div id="formStatusDivId" class="formStatusBar" style="display:none">
-          <div id="formStatusCoreDivId" stle="display:none">
-          </div>
-        </div>
 
+        <?php require "./utils.htmli"; ?>
 
         <div name="installationMainFormsDiv" id="installationMainFormsDivId">
          
@@ -106,37 +103,12 @@
                 <input type="button" name="deployAddedNodesSubmitButton" id="deployAddedNodesSubmitButtonId" value="Deploy Nodes" class="submitButton">
                 </p>
               </div>
-                <div name="txnProgressCoreDiv" id="txnProgressCoreDivId" style="display:none">
 
-                   <!-- Used to render informational/status messages (error, success reports and such like) -->
-                <div id="txnProgressStatusDivId" class="formStatusBar" style="display:none">
-                  <div id="txnProgressStatusMessageDivId"></div>
-                  <div id="txnProgressStatusActionsDivId"></div>
-                </div>
- 
-                  <fieldset id="txnProgressFieldSetId">
-               <!--     <legend>Display Progress</legend> -->
-                    <div id="txnProgressDynamicRenderDivId"></div>
-                  </fieldset>
-                </div>
+              <?php require "./txnUtils.htmli"; ?>
 
               </div>
             </div>
             <!-- End of installation Wizard -->
-
-            <!-- The mechanism by which we black out the screen and affix the
-                 the spotlight on a smaller portion of it. -->
-            <div id="blackScreenDivId" style="display:none"></div>
-            <!-- The image we use to let users know something is loading, and 
-                 that they should wait. -->
-            <div id="loadingDivId" style="display:none">
-              <div id="loadingBlackScreenDivId"></div>
-              <img id="loadingImgId" src="../images/loadingLarge.gif"/>
-            </div>
-
-            <!-- Placeholder for our informational YUI panel. -->
-            <div id="informationalPanelContainerDivId">
-            </div>
 
             <hr/>
             <?php require "./footer.html"; ?>
