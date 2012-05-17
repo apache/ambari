@@ -58,6 +58,11 @@ function renderServiceList(responseJson) {
   } 
 
   //            divContent += coreContent + optionalContent + nonSelectableContent;
+   coreContent = '<div>' +
+                  '<label class="checkbox" for="selectAllCheckBoxId" id="labelForSelectAllId">Select all</label>' +
+                  '<input type="checkbox" name="selectAll" id="selectAllCheckBoxId"/>' +
+                '</div>' +
+                coreContent;
   globalYui.one("#selectCoreServicesDynamicRenderDivId").setContent(coreContent);     
   globalYui.one("#selectOptionalServicesDynamicRenderDivId").setContent(optionalContent);
   globalYui.one("#selectNonSelectableServicesDynamicRenderDivId").setContent(nonSelectableContent);
@@ -101,6 +106,42 @@ function generateSelectServiceCheckbox(serviceInfo) {
 }
 
 globalYui.one('#selectServicesCoreDivId').delegate('click', function (e) {
+
+    // Select-all checkbox
+    if (this.get('id') == 'selectAllCheckBoxId') {
+      var node = globalYui.one("#selectAllCheckBoxId");
+      var labelNode = globalYui.one("#labelForSelectAllId");
+      if (node.get('checked')) {
+        labelNode.setContent("Deselect all");
+        setFormStatus("Selected all services", false);
+      } else {
+        labelNode.setContent("Select all");
+        setFormStatus("Deselected all optional services", false);
+      }
+      for (svcName in data['services']) {
+        if (!data['services'][svcName].attributes.noDisplay && !data['services'][svcName].attributes.mustInstall) {
+          var itemId = 'installService' + svcName + 'Id';
+          globalYui.one('#' + itemId).set('checked' , node.get('checked'));
+          // Forget about the history and set refCount explicitly
+          if (node.get('checked')) {
+            data['services'][svcName]['refCount'] = 1;
+          } else {
+            data['services'][svcName]['refCount'] = 0;
+          }
+          if (!data['services'][svcName].attributes.editable) {
+             var nonEditableNode = globalYui.one('#selectServicesEntry' + svcName + 'DivId');
+             if (node.get('checked')) {
+               nonEditableNode.setStyle('display', 'block');
+             } else {
+               nonEditableNode.setStyle('display', 'none');
+             }
+          }
+        }
+      } 
+      return;
+    }
+    //// End of select-all checkbox
+
     // globalYui.log(globalYui.Lang.dump(this));
     var serviceName = this.getAttribute('name');
     var buttonId = 'installService' + serviceName + 'Id';

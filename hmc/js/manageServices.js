@@ -488,7 +488,7 @@ var fetchClusterServicesPollerResponseHandler = {
     }
     if (clientOnlySoftwareMarkup != '') {
       serviceManagementMarkup += '<div class="serviceManagementGroup"> Client-only software: <br/>';
-      serviceManagementGroup += clientOnlySoftwareMarkup;
+      serviceManagementMarkup += clientOnlySoftwareMarkup;
       serviceManagementMarkup += '</div>';
     }
 
