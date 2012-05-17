@@ -66,6 +66,8 @@ class Cluster {
       $this->logger->log_error("Failed to get cluster services.");
       return array("result" => -1, "error" => "Failed to get cluster services from DB.");
     }
+    $n = count($services);
+    $this->logger->log_info("Deploying HDP with $n services.... DryRun=$dryRun");
     $result = $this->_installAllServices($services,
         $transaction->createSubTransaction(), $dryRun);
     if ($result['result'] !== 0) {
@@ -82,7 +84,8 @@ class Cluster {
     return $result;
   }
 
-  private function _uninstallAllServices($services, $transaction, $dryRun) {
+  private function _uninstallAllServices($services, $transaction, $dryRun,
+      $wipeoutData = FALSE) {
     $n = count($services);
     $this->logger->log_info("Uninstalling HDP with $n services.... DryRun=$dryRun");
     $this->setState(State::UNINSTALLING, $transaction, $dryRun);
@@ -115,7 +118,7 @@ class Cluster {
       }
       $nodes = $result["nodes"];
       $result = $this->puppet->kickPuppet($nodes, $transaction, $this->name,
-          $result["componentMapping"]);
+          $result["componentMapping"], array ("wipeoutData" => $wipeoutData));
       $this->logger->log_debug("Puppet kick response for uninstalling "
           . "cluster=" . $this->name
           . ", txn=" . $transaction->toString()
@@ -157,12 +160,13 @@ class Cluster {
    return array("result" => 0, "error" => "");
   }
 
-  private function _uninstallAll($transaction, $dryRun) {
+  private function _uninstallAll($transaction, $dryRun, $wipeoutData = FALSE) {
     $services = $this->db->getClusterServices();
     if ($services == FALSE) {
       $this->logger->log_error("Failed to get cluster services.");
       return array("result" => -1, "error" => "Failed to get cluster services from DB.");
     }
+    $this->logger->log_info("Uninstalling HDP.... DryRun=$dryRun");
     $result = $this->_stopAllServices($services,
         $transaction->createSubTransaction(), $dryRun);
     if ($result['result']  !== 0) {
@@ -170,7 +174,7 @@ class Cluster {
       return $result;
     }
     $result = $this->_uninstallAllServices($services,
-        $transaction->createSubTransaction(), $dryRun);
+        $transaction->createSubTransaction(), $dryRun, $wipeoutData);
     if ($result['result']  !== 0) {
       $this->logger->log_error("Failed to uninstall services.");
       return $result;
@@ -182,16 +186,19 @@ class Cluster {
    * Function to stop & uninstall HDP across the whole cluster
    * @param transaction transactionId for the operation
    */
-  public function uninstallHDP($transaction) {
-    $this->currentAction = "UNINSTALL";
+  public function uninstallHDP($transaction, $wipeoutData = FALSE) {
+    $this->currentAction = "Uninstall";
+    $this->logger->log_info("Uninstalling HDP, wipeoutDataFlag="
+        . $wipeoutData);
 
-    // Don't care about either DB states or error handling
-    $this->_uninstallAll($transaction->createSubTransaction(), TRUE);
+    $this->_uninstallAll($transaction->createSubTransaction(), TRUE,
+        $wipeoutData);
 
     $this->resetSubTxnId();
     $this->db->reset();
 
-    $this->_uninstallAll($transaction->createSubTransaction(), FALSE);
+    return $this->_uninstallAll($transaction->createSubTransaction(), FALSE,
+        $wipeoutData);
   }
 
   /**
@@ -259,7 +266,7 @@ class Cluster {
       return $result;
     }
     $result = $this->_restartDashboardAndNagios($transaction->createSubTransaction(),
-        $dryRun);
+        TRUE);
     if ($result['result'] !== 0) {
       return $result;
     }
@@ -279,7 +286,7 @@ class Cluster {
     }
 
     $result = $this->_restartDashboardAndNagios($transaction->createSubTransaction(),
-        $dryRun);
+        FALSE);
 
     return $result;
   }
@@ -362,7 +369,7 @@ class Cluster {
   }
 
   private function _installNodes($transaction, $hostCompMapping, $dryRun) {
-    $this->logger->log_info("INSTALL NODES dryRun=" . $dryRun);
+    $this->logger->log_info("Installing on nodes dryRun=" . $dryRun);
     $this->currentAction = "InstallNodes";
     $hostsToInstall = array();
     $allHosts = array();
@@ -437,7 +444,7 @@ class Cluster {
   }
 
   private function _startNodes($transaction, $hostCompMapping, $dryRun) {
-    $this->logger->log_info("START NODES dryRun=" . $dryRun);
+    $this->logger->log_info("Starting nodes dryRun=" . $dryRun);
 
     $this->currentAction = "StartNodes";
     $hostsToStart = array();
@@ -628,6 +635,8 @@ class Cluster {
    */
   public function startAllServices($transaction) {
     $services = $this->db->getClusterServices();
+    $n = count($services);
+    $this->logger->log_info("Starting $n services");
     $result = $this->_startAllServices($services, $transaction, TRUE);
     if ($result['result'] !== 0) {
       return $result;
@@ -671,6 +680,8 @@ class Cluster {
    */
   public function stopAllServices($transaction) {
     $services = $this->db->getClusterServices();
+    $n = count($services);
+    $this->logger->log_info("Stopping $n services");
     $result = $this->_stopAllServices($services, $transaction, TRUE);
     if ($result['result'] !== 0) {
       return $result;

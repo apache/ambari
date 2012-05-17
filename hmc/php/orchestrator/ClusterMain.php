@@ -20,7 +20,7 @@ Usage:
   -x/--txn-id             Transaction ID
   -d/--db-path            DB Path
   -a/--action             Action - deploy, deployNode, startAll, stopAll,
-                          uninstallAll, reconfigure
+                          uninstallAll, reconfigure, wipeout
   -s/--service            Service - names of services
   -n/--node               Node - hostname of node to take action on
   -r/--dry-run            Dry-run only
@@ -55,7 +55,8 @@ $ACTIONS = array (
   "uninstallAll",
   "start",
   "stop",
-  "reconfigure"
+  "reconfigure",
+  "wipeout"
 );
 
 function validateAndCreateDBHandle($dbPath) {
@@ -309,7 +310,11 @@ if ($action == "deploy") {
 } else if ($action == "stopAll") {
   $result = $cluster->stopAllServices($transaction);
 } else if ($action == "uninstallAll") {
-  $result = $cluster->uninstallHDP($transaction);
+  $wipeoutData = FALSE;
+  $result = $cluster->uninstallHDP($transaction, $wipeoutData);
+} else if ($action == "wipeout") {
+  $wipeoutData = TRUE;
+  $result = $cluster->uninstallHDP($transaction, $wipeoutData);
 } else if ($action == "start") {
   $result = $cluster->startServices($transaction, $serviceNames);
 } else if ($action == "stop") {

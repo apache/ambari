@@ -300,7 +300,7 @@ class Service {
       return array("result" => 0, "error" => "");
     }
 
-    // Ensure state is INSTALLED or STOPPED
+    // Ensure state is INSTALLED or STOPPED or FAILED
     if ($this->state !== State::INSTALLED
         && $this->state !== State::STARTING
         && $this->state !== State::STOPPING

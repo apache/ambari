@@ -505,15 +505,19 @@ class HMC {
     return $response;
   }
 
-  public function uninstallHDP() {
-    $this->logger->log_debug("Triggering uninstall"
+  public function uninstallHDP($wipeoutData = FALSE) {
+    $this->logger->log_info("Triggering uninstall"
          . ", clusterName=" . $this->clusterName
          );
     $action = "uninstallHDP";
-    $msg = "Uninstalling cluster";
+    $msg = "Uninstalling cluster, wipeout=" . $wipeoutData;
     $args = " -c " . $this->clusterName
-        . " -d " . $this->dbPath
-        . " -a uninstallAll ";
+        . " -d " . $this->dbPath;
+    if (!$wipeoutData) {
+      $args .= " -a uninstallAll ";
+    } else {
+      $args .= " -a wipeout ";
+    }
     return $this->internalTrigger($action, $msg, $args);
   }
 

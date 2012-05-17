@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-241. Support cluster wipeout in orchestrator. (Hitesh via jitendra)
+
   AMBARI-292. HTML being spewed in the Review+Deploy page. (Varun Kapoor via jitendra)
 
   AMBARI-291. Fix yui packaging in the rpm. (jitendra)

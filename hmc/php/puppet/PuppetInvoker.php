@@ -200,6 +200,7 @@
       $this->writeVersionFile($versionFile, $txnId);
 
       if ($dryRun) {
+        $successfullNodes = $nodes;
         return $this->createGenKickWaitResponse($kickFailedNodes, $failureResponseNodes,
            $timedoutNodes, $successfullNodes, $nodes);
       }
