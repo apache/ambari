@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-297. Modal dialog box for showing deploy progress looks broken
+  in Safari (Yusaku Sako via ramya)
+
   AMBARI-244. Implement wipeoff state in puppet (ramya)
 
   AMBARI-246. Add support for parsing yum repo files to understand how to
