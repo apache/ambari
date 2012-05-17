@@ -16,7 +16,86 @@ $clusterName = $_GET['clusterName'];
 $action = $_GET['action'];
 $deployUser = $_POST['ClusterDeployUser'];
 
+$propertiesArr = $dbAccessor->getConfigPropertiesMetaInfo();
+if ($propertiesArr["result"] != 0) {
+  print json_encode(array( "result" => 1, "error" => "Error in config properties meta info"));
+  return;
+}
+
+// Use meta info defaults
+// Override with current svc configs
+// Override with POST params
+
+$repoFilePath = $propertiesArr["configs"]["yum_repo_file"]["value"];
+$hdpArtifactsDownloadUrl = $propertiesArr["configs"]["apache_artifacts_download_url"]["value"];
+$gplArtifactsDownloadUrl = $propertiesArr["configs"]["gpl_artifacts_download_url"]["value"];
+
+$currentConfigs = $dbAccessor->getServiceConfig($clusterName);
+if ($currentConfigs["result"] != 0) {
+  print json_encode(array( "result" => 1, "error" => "Could not get configs from DB"));
+  return;
+}
+
+if (isset($currentConfigs["properties"]["yum_repo_file"])
+    && $currentConfigs["properties"]["yum_repo_file"] != "") {
+  $repoFilePath = $currentConfigs["properties"]["yum_repo_file"];
+}
+
+if (isset($currentConfigs["properties"]["apache_artifacts_download_url"])
+    && $currentConfigs["properties"]["apache_artifacts_download_url"] != "") {
+  $hdpArtifactsDownloadUrl = $currentConfigs["properties"]["apache_artifacts_download_url"];
+}
+
+if (isset($currentConfigs["properties"]["gpl_artifacts_download_url"])
+    && $currentConfigs["properties"]["gpl_artifacts_download_url"] != "") {
+  $gplArtifactsDownloadUrl = $currentConfigs["properties"]["gpl_artifacts_download_url"];
+}
+
+if (isset($_POST['yumRepoFilePath'])
+    && $_POST['yumRepoFilePath'] != "") {
+  $repoFilePath = $_POST['yumRepoFilePath'];
+}
+
+if (isset($_POST['hdpArtifactsDownloadUrl'])
+    && $_POST['hdpArtifactsDownloadUrl'] != "") {
+  $hdpArtifactsDownloadUrl = $_POST['hdpArtifactsDownloadUrl'];
+}
+
+if (isset($_POST['gplArtifactsDownloadUrl'])
+    && $_POST['gplArtifactsDownloadUrl'] != "") {
+  $gplArtifactsDownloadUrl = $_POST['gplArtifactsDownloadUrl'];
+}
+
 header("Content-type: application/json");
+
+if (!file_exists($repoFilePath)) {
+  print (json_encode(array(
+      "result" => 1,
+      "error" => "Invalid repo file path specified"
+  )
+  ));
+  return;
+}
+
+// TODO - error checks for download urls
+/*
+if (parse_url($hdpArtifactsDownloadUrl) === FALSE
+    || parse_url($gplArtifactsDownloadUrl) === FALSE) {
+  print (json_encode(array(
+        "result" => 1,
+        "error" => "Invalid download urls specified")));
+  return;
+}
+*/
+
+$configs =  array ( "yum_repo_file" => $repoFilePath,
+                    "apache_artifacts_download_url" => $hdpArtifactsDownloadUrl,
+                    "gpl_artifacts_download_url" => $gplArtifactsDownloadUrl);
+$dbResponse = $dbAccessor->updateServiceConfigs($clusterName, $configs);
+if ($dbResponse["result"] != 0) {
+  $logger->log_error("Got error while persisting configs: ".$dbResponse["error"]);
+  return $dbResponse;
+}
 
 $stagesFiles = "";
 if ($action == "addNodes") {

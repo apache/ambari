@@ -9,6 +9,7 @@ include_once '../db/HMCDBAccessor.php';
 
 include_once "../util/HMCTxnUtils.php";
 include_once 'commandUtils.php';
+include_once "../util/YumRepoConfigParser.php";
 
   $logger = new HMCLogger("BootStrap");
   $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
@@ -18,24 +19,45 @@ include_once 'commandUtils.php';
     global $logger, $dbAccessoar, $hosts, $readFromFile;
 
     $master=strtolower(exec('hostname -f'));
-    $repo_name = $repo['name'];
-    $repo_desc = $repo['desc'];
-    $repo_url = $repo['url'];
-    $repo_gpgkey = $repo['gpgkeyurl'];
+    $repoFile = $repo['yumRepoFilePath'];
+    $gpgKeyFiles = $repo['gpgKeyFiles'];
+
     exec ("/etc/init.d/iptables stop");
     $logger->log_debug("List of hosts to BootStrap ".json_encode($hosts));
     $logger->log_debug("Run script for pdsh ".$rscript);
     $scpCmd = "scp -o StrictHostKeyChecking=no ";
+
     foreach ($hosts as $host) {
       $host = trim($host);
-      $cmd = "$scpCmd -i $sshkey $rscript $user@$host:/tmp";
-      exec ("$scpCmd -i $sshkey $rscript $user@$host:/tmp");
+
+      $filesToCopy = array_merge ( array ($rscript, $repoFile), $gpgKeyFiles);
+
+      /* Copy puppet run script to all nodes */
+      // Copy repo file to each node
+      // Copy gpg keys to each node
+      if (!empty($filesToCopy)) {
+        $cmd = "$scpCmd -i $sshkey " . implode(" ", $filesToCopy)
+            . " $user@$host:/tmp/ ";
+        $logger->log_debug("Running scp command $cmd");
+        exec($cmd);
+      }
     }
 
-    /* Copy puppet run script to all nodes */
-    $logger->log_debug("/tmp/puppet_agent_install.sh $master $repo_name $repo_desc $repo_url $repo_gpgkey");
+    $remoteRepoFilePath = trim("/tmp/" . basename(trim($repoFile)));
+    $remoteGpgKeyPaths = "";
+    foreach ($gpgKeyFiles as $kFile) {
+      $dFile = trim("/tmp/" . basename(trim($kFile)));
+      if ($remoteGpgKeyPaths != "") {
+        $remoteGpgKeyPaths .= ",";
+      }
+      $remoteGpgKeyPaths .= $dFile;
+    }
 
-    $rcmd = "/tmp/puppet_agent_install.sh $master $repo_name $repo_desc $repo_url $repo_gpgkey";
+    $rcmd = "/tmp/puppet_agent_install.sh --puppet-master=" . $master
+        . " --repo-file=" . $remoteRepoFilePath
+        . " --gpg-key-files=" . $remoteGpgKeyPaths;
+    $logger->log_info("Running $rcmd to bootstrap each node");
+
     runPdsh($clusterName, "bootstrapNodes", $user, $readFromFile, $rcmd);
 
     $result = parseAndUpdateNodeInfo ($clusterName, "bootstrapNodes", $logger);
@@ -79,10 +101,71 @@ $sshkey = getSshKeyFilePath($clusterName);
 $rscript = realpath("../../ShellScripts/puppet_agent_install.sh");
 
 $repository=array();
-$repository['name']="hmc_puppet";
-$repository['desc']="puppetlabs";
-$repository['url']="http://yum.puppetlabs.com/el/5/products/x86_64/";
-$repository['gpgkeyurl']="http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs";
+$configs = $dbAccessor->getServiceConfig($clusterName);
+if ($configs["result"] != 0) {
+  $subTransactionReturnValue = $dbAccessor->updateSubTransactionOpStatus($clusterName, $parentSubTxnId, $mySubTxnId, "TOTALFAILURE");
+  $logger->log_error("Got error when trying to retrieve configs from DB");
+  return;
+}
+
+$repoFile = $configs["properties"]["yum_repo_file"];
+$gpgKeyLocations = getEnabledGpgKeyLocations($repoFile);
+if ($gpgKeyLocations === FALSE) {
+  $subTransactionReturnValue = $dbAccessor->updateSubTransactionOpStatus($clusterName, $parentSubTxnId, $mySubTxnId, "TOTALFAILURE");
+  $logger->log_error("Got error when trying to parse yum repo config");
+  return;
+}
+
+$tmpDir = "/tmp/hmcDownloads-".time()."/";
+$retVal = 0;
+$output = array();
+exec("mkdir -p ".$tmpDir, $output, $retVal);
+if ($retVal != 0) {
+  $subTransactionReturnValue = $dbAccessor->updateSubTransactionOpStatus($clusterName, $parentSubTxnId, $mySubTxnId, "TOTALFAILURE");
+  $logger->log_error("Got error when trying to create tmp download dir"
+      . ", dir=" . $tmpDir . ", output=" . print_r($output, true));
+  return;
+}
+
+$gpgKeyFiles = array();
+
+foreach ($gpgKeyLocations as $repoId => $gpgInfo) {
+  if (!isset($gpgInfo["gpgkey"])) {
+    continue;
+  }
+  $loc = $gpgInfo["gpgkey"];
+  $logger->log_info("Fetching gpg key for $repoId from location $loc");
+  $info = parse_url($loc);
+  if ($info === FALSE || !isset($info["path"])) {
+    $logger->log_error("Skipping invalid url $loc");
+    continue;
+  }
+  $fileName = basename($info["path"]);
+
+  $destFilePath = $tmpDir . "/" . $fileName;
+
+  $fetchCurlCmd = "curl --connect-timeout 30 --fail -s -o "
+      . $destFilePath . " " . $loc;
+
+  $logger->log_info("Fetching gpg key for $repoId from location $loc using "
+      . $fetchCurlCmd);
+
+  $retVal = 0;
+  $output = array();
+  exec($fetchCurlCmd, $output, $retVal);
+
+  if ($retVal != 0) {
+    $subTransactionReturnValue = $dbAccessor->updateSubTransactionOpStatus($clusterName, $parentSubTxnId, $mySubTxnId, "TOTALFAILURE");
+    $logger->log_error("Error when trying to download gpg key using "
+        . $fetchCurlCmd . ", output=" . print_r($output, true));
+    return;
+  }
+  array_push($gpgKeyFiles, $destFilePath);
+}
+
+$repository = array( "yumRepoFilePath" => $repoFile,
+                     "gpgKeyFiles" => $gpgKeyFiles);
+
 $logger->log_debug("BootStrapping with puppet");
 $boot_result = bootstrap($clusterName, $deployUser, $rscript,
                            $sshkey, $repository);

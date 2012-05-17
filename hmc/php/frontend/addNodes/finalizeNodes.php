@@ -157,11 +157,13 @@ function sign_and_verify_agent ($hosts, $logger) {
       }
     } else {
       $logger->log_error("Failed to do puppet kick -ping on host " . $host);
-      $output[$host] =
-          array ( "discoveryStatus" => "FAILED",
+      if (!isset($output[$host])) {
+        $output[$host] =
+            array ( "discoveryStatus" => "FAILED",
                   "badHealthReason" => "Puppet kick failed: "
                       . ", error=" . $err . ", outputLogs="
                       . implode(";", $out_arr));
+      }
       $hostsState[$host] = FALSE;
     }
   }

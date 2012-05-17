@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-271. Support for local yum mirror (Hitesh via ramya)
+ 
   AMBARI-270. Puppet cleanup to define all the users in a common 
   location (ramya)
 

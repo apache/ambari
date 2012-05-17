@@ -3,18 +3,39 @@ InstallationWizard.AddNodes = {
   renderData:
     {},
 
-  render: 
+  render:
     function (addNodesRenderData) {
 
       /* Always update the object's renderData first. */
       InstallationWizard.AddNodes.renderData = addNodesRenderData;
 
-      /* Since this screen is completely statically rendered, nothing else 
-       * needs to be done here. 
+      /* Since this screen is completely statically rendered, nothing else
+       * needs to be done here.
        */
+      if (globalYui.one("#yumMirrorSupportFormButtonId")) {
+        globalYui.one("#yumRepoFilePathId").set('value', '');
+        globalYui.one("#hmcArtifactsDownloadUrlId").set('value', '');
+        globalYui.one("#hmcGplArtifactsDownloadUrlId").set('value', '');
+      }
       globalYui.one("#addNodesCoreDivId").setStyle('display', 'block');
+
+      if (globalYui.one("#yumMirrorSupportFormButtonId") && addNodesRenderData.yumRepo) {
+        globalYui.one("#yumRepoFilePathId").set('value', addNodesRenderData.yumRepo.yumRepoFilePath);
+        globalYui.one("#hmcArtifactsDownloadUrlId").set('value', addNodesRenderData.yumRepo.hdpArtifactsDownloadUrl);
+        globalYui.one("#hmcGplArtifactsDownloadUrlId").set('value', addNodesRenderData.yumRepo.gplArtifactsDownloadUrl);
+      }
     }
 };
+
+if (globalYui.one("#yumMirrorSupportFormButtonId")) {
+  globalYui.one("#yumMirrorSupportFormButtonId").on('click', function(e) {
+    if (globalYui.one("#yumMirrorSupportFormButtonId").get('checked')) {
+      globalYui.one('#yumMirrorSupportFormFieldsId').setStyle('display', 'block');
+    } else {
+      globalYui.one('#yumMirrorSupportFormFieldsId').setStyle('display', 'none');
+    }
+  });
+}
 
 globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
 
@@ -40,7 +61,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
     }
     if (message != '') {
       message += ',';
-    } 
+    }
     message += 'User Identity file not specified';
     globalYui.one("#clusterDeployUserIdentityFileId").addClass('formInputError');
   } else {
@@ -55,7 +76,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
     }
     if (message != '') {
       message += ',';
-    } 
+    }
     message += 'Hosts file not specified';
     globalYui.one("#clusterHostsFileId").addClass('formInputError');
   } else {
@@ -68,6 +89,51 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
     return;
   }
 
+  if (globalYui.one("#yumMirrorSupportFormButtonId")) {
+    if (globalYui.one("#yumMirrorSupportFormButtonId").get('checked')) {
+      // local yum mirror support
+      var repoFile = globalYui.Lang.trim(globalYui.one("#yumRepoFilePathId").get('value'));
+      var artifactsUrl = globalYui.Lang.trim(globalYui.one("#hmcArtifactsDownloadUrlId").get('value'));
+      var gplArtifactsUrl = globalYui.Lang.trim(globalYui.one("#hmcGplArtifactsDownloadUrlId").get('value'));
+
+      if (repoFile = '') {
+        errCount++;
+        if (focusId == '') {
+          focusId = '#yumRepoFilePathId';
+        }
+        if (message != '') {
+          message += ',';
+        }
+        message += 'Yum Repo file not specified';
+        globalYui.one("#yumRepoFilePathId").addClass('formInputError');
+      }
+
+      if (artifactsUrl = '') {
+        errCount++;
+        if (focusId == '') {
+          focusId = '#hmcArtifactsDownloadUrlId';
+        }
+        if (message != '') {
+          message += ',';
+        }
+        message += 'HDP Artifacts Download URL not specified';
+        globalYui.one("#hmcArtifactsDownloadUrlId").addClass('formInputError');
+      }
+
+      if (artifactsUrl = '') {
+        errCount++;
+        if (focusId == '') {
+          focusId = '#hmcGplArtifactsDownloadUrlId';
+        }
+        if (message != '') {
+          message += ',';
+        }
+        message += 'GPL Artifacts Download URL not specified';
+        globalYui.one("#hmcGplArtifactsDownloadUrlId").addClass('formInputError');
+      }
+    }
+  }
+
   clearFormStatus();
 
   showLoadingImg();
@@ -77,19 +143,19 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
 
   var addNodesFilesForm = globalYui.one("#addNodesFilesFormId");
 
-  addNodesFilesForm.set('action', '../php/frontend/addNodes.php?clusterName=' + 
+  addNodesFilesForm.set('action', '../php/frontend/addNodes.php?clusterName=' +
     InstallationWizard.AddNodes.renderData.clusterName + "&freshInstall=" + InstallationWizard.AddNodes.renderData.freshInstall);
 
-  /* Set the target of the first form's upload to be a hidden iframe 
-   * on the page so as not to redirect to the PHP page we're POSTing 
+  /* Set the target of the first form's upload to be a hidden iframe
+   * on the page so as not to redirect to the PHP page we're POSTing
    * to.
    *
-   * See http://www.openjs.com/articles/ajax/ajax_file_upload/ for 
+   * See http://www.openjs.com/articles/ajax/ajax_file_upload/ for
    * more on this.
    */
   addNodesFilesForm.set('target', 'fileUploadTarget');
 
-  /* And then programmatically submit the first of the 2 forms. */ 
+  /* And then programmatically submit the first of the 2 forms. */
   addNodesFilesForm.submit();
   globalYui.log("Files submitted to server.");
 
@@ -102,8 +168,24 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
 
     globalYui.log("File upload finished");
 
+    var repoFile = '';
+    var artifactsUrl = '';
+    var gplArtifactsUrl = '';
+
+    if (globalYui.one("#yumMirrorSupportFormButtonId")) {
+      if (globalYui.one("#yumMirrorSupportFormButtonId").get('checked')) {
+        // local yum mirror support
+        repoFile = globalYui.Lang.trim(globalYui.one("#yumRepoFilePathId").get('value'));
+        artifactsUrl = globalYui.Lang.trim(globalYui.one("#hmcArtifactsDownloadUrlId").get('value'));
+        gplArtifactsUrl = globalYui.Lang.trim(globalYui.one("#hmcGplArtifactsDownloadUrlId").get('value'));
+      }
+    }
+
     var addNodesRequestData = {
-      "ClusterDeployUser" : globalYui.Lang.trim(globalYui.one("#clusterDeployUserId").get('value'))
+      "ClusterDeployUser" : globalYui.Lang.trim(globalYui.one("#clusterDeployUserId").get('value')),
+      "yumRepoFilePath": repoFile,
+      "hdpArtifactsDownloadUrl" : artifactsUrl,
+      "gplArtifactsDownloadUrl": gplArtifactsUrl
     }
 
     // Trigger the execution of setting up nodes
@@ -125,7 +207,7 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
           globalYui.log("PARSED DATA: " + globalYui.Lang.dump(setupNodesJson));
           if (setupNodesJson.result != 0) {
             // Error!
-            alert("Got error!" + setupNodesJson.error); 
+            alert("Got error!" + setupNodesJson.error);
             return;
           }
           setupNodesJson = setupNodesJson.response;

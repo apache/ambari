@@ -19,19 +19,20 @@
 # */
 
 #
-# RPM Spec file for HMC 
+# RPM Spec file for HMC
 #
 
 Summary: HMC
 Name: hmc
 Version: 0.0.1
 URL: http://hortonworks.com
-Release: 2%{?dist} 
+Release: 2%{?dist}
 License: Apache License, Version 2.0
 Vendor: Hortonworks <hmc-dev-group@hortonworks.com>
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
 Source1: hmc.init.in
+Source2: hmc_hdp.repo
 Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
 Requires: php >= 5, sqlite >= 3, php-pdo, php-pecl-json, httpd, puppet = 2.7.9, pdsh, httpd-devel, ruby-devel, rubygems, mod_passenger, mod_ssl
 %define web_prefixdir %{_prefix}/share/hmc
@@ -57,6 +58,7 @@ This package provides a Management Console for Hadoop Cluster.
 %__mkdir -p $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/bin/
+%__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/yum_repo/
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_dir}/
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_dir}/manifests
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/
@@ -80,6 +82,7 @@ This package provides a Management Console for Hadoop Cluster.
 %__cp -f yuiCombinator.php $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf conf $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf puppet/modules $RPM_BUILD_ROOT/%{puppet_dir}
+%__cp -f "%{SOURCE2}" $RPM_BUILD_ROOT/%{web_prefixdir}/yum_repo/
 %__install -D -m0755 puppet/reports/get_revision $RPM_BUILD_ROOT/%{web_prefixdir}/bin
 %__cp -rf puppet/reports/hmcreport.rb $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
 echo "Alias /hdp %{_prefix}/share/hdp" > $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf

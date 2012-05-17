@@ -256,6 +256,11 @@ INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, de
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "nagios_web_password", "admin", "Nagios Admin password", "", "NAGIOS", "SECRET", '{ "isPassword": true, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "nagios_contact", "", "Nagios Admin email", "", "NAGIOS", "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
 
+-- Configuration for local yum mirror support
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "yum_repo_file", "/usr/share/hmc/yum_repo/hmc_hdp.repo", "Path to YUM Repo file", "Path to YUM Repo file", "MISCELLANEOUS", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "apache_artifacts_download_url", "", "Apache Artifacts Download URL", "URL form where to download HDP artifacts", "MISCELLANEOUS", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "gpl_artifacts_download_url", "", "GPL Artifacts Download URL", "URL form where to download GPL artifacts", "MISCELLANEOUS", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+
 --                                         gsCluster.properties keys
 
 -- maps to hadoop_heap_size in gsCluster.properties in MB

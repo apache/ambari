@@ -18,6 +18,15 @@
  * limitations under the License.
  */
 
+/**
+ * Parse repo file and get all enabled gpg keys
+ * @param string $repoFile
+ * @return mixed
+ *   array (
+ *      $currentRepoId = array ( "gpgkey" => $currentGpgLocation),
+ *      ....
+ *      )
+ */
 function getEnabledGpgKeyLocations($repoFile) {
   $logger = new HMCLogger("YumRepoConfigParser");
 
@@ -64,6 +73,8 @@ function getEnabledGpgKeyLocations($repoFile) {
           && (($currentGpgCheck == -1 && $globalGpgCheck == 1)
               || ($currentGpgCheck == 1))) {
         if ($currentGpgLocation != "") {
+          $logger->log_debug("Adding gpgkey $currentGpgLocation for repo"
+              .", id=" . $currentRepoId);
           $response[$currentRepoId] = array ( "gpgkey" => $currentGpgLocation);
         }
       } else if ($currentRepoId != ""
@@ -117,6 +128,5 @@ function getEnabledGpgKeyLocations($repoFile) {
 
   return $response;
 }
-
 
 ?>
