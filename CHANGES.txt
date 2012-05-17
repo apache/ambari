@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-290. Comment in addNodesWizardInit.js. (Varun Kapoor via jitendra)
+
   AMBARI-240. Make All FE Entry Points Hide The Loading Image When They're Ready To Take Input. 
   (Varun Kapoor via jitendra)
 
