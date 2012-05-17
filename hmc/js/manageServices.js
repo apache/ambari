@@ -479,14 +479,18 @@ var fetchClusterServicesPollerResponseHandler = {
     var serviceManagementMarkup = '';
 
     // Separate block for client-only software
-    serviceManagementMarkup += '<div class="serviceManagementGroup"> Client-only software: <br/>';
+    var clientOnlySoftwareMarkup = '';
     for (var serviceName in clusterServices) {
       var serviceInfo = clusterServices[serviceName];
       if (clusterServices.hasOwnProperty(serviceName) && !serviceInfo.attributes.runnable) {
-        serviceManagementMarkup += generateServiceManagementEntryMarkup( serviceName, serviceInfo );
+        clientOnlySoftwareMarkup += generateServiceManagementEntryMarkup( serviceName, serviceInfo );
       }
     }
-    serviceManagementMarkup += '</div>';
+    if (clientOnlySoftwareMarkup != '') {
+      serviceManagementMarkup += '<div class="serviceManagementGroup"> Client-only software: <br/>';
+      serviceManagementGroup += clientOnlySoftwareMarkup;
+      serviceManagementMarkup += '</div>';
+    }
 
     // Real services with server side components
     serviceManagementMarkup += '<div class="serviceManagementGroup"> Long running services: <br/><ul>';

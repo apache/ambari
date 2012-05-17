@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-257. Manage services section will have any empty section when no 
+  client only components installed (Vinod via ramya)
+
   AMBARI-253. Support uninstall state in mysql modules (ramya)
 
   AMBARI-258. Start/Stop service show services that are not dependent on the 
