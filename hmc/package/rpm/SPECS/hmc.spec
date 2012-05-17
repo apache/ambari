@@ -76,6 +76,7 @@ This package provides a Management Console for Hadoop Cluster.
 %__cp -rf js $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf puppet $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf php $RPM_BUILD_ROOT/%{web_prefixdir}/
+%__cp -rf yui-3.4.1 $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf conf $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf puppet/modules $RPM_BUILD_ROOT/%{puppet_dir}
 %__install -D -m0755 puppet/reports/get_revision $RPM_BUILD_ROOT/%{web_prefixdir}/bin
