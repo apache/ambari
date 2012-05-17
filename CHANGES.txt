@@ -1,6 +1,8 @@
 Ambari Change log
 
 Release 0.x.x - unreleased
+ 
+  AMBARI-254. Parameterize zookeeper configs (ramya)
 
   AMBARI-257. Manage services section will have any empty section when no 
   client only components installed (Vinod via ramya)
