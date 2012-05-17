@@ -5,3 +5,5 @@ var addNodesRequestData = {
 };
 
 InstallationWizard.AddNodes.render(addNodesRequestData);
+
+hideLoadingImg();

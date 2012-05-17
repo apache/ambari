@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-240. Make All FE Entry Points Hide The Loading Image When They're Ready To Take Input. 
+  (Varun Kapoor via jitendra)
+
   AMBARI-197. Templatize Standard Helper Components Of Every HTML Page. (Varun Kapoor via jitendra)
 
   AMBARI-229. Remove Navigation Bar (W/ Clusters Link) From InstallationWizard (And Other Entry Points). 

@@ -62,6 +62,8 @@ globalYui.one('#createClusterSubmitButtonId').on('click',function (e) {
       });
 });
 
+/* Signify that the containing application is ready for business. */
+hideLoadingImg();
 
 /* At the end of the installation wizard, we hide 
  * #installationWizardProgressBarDivId, so make sure we explicitly show
