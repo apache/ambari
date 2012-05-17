@@ -34,7 +34,7 @@ class hdp-oozie::server(
 
 class hdp-oozie::hdfs-directories($service_state)
 {
- $oozie_user = $hdp::params::oozie_user
+ $oozie_user = $hdp-oozie::params::oozie_user
   hdp-hadoop::hdfs::directory{ '/user/oozie':
     service_state => $service_state,
     owner => $oozie_user,

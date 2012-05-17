@@ -16,7 +16,6 @@ class hdp-hive::mysql-connector()
   exec{ "unzip hive_mysql_url":
     command => "unzip -o -j ${target}",
     cwd     => $hive_lib,
-    #user    => $hdp::params::hive_user,
     group   => $hdp::params::hadoop_user_group,
     creates => "${hive_lib}/${$zip_name}",
     path    => ["/usr/bin/"]

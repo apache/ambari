@@ -34,7 +34,7 @@ class hdp-templeton::server(
 
 class hdp-templeton::hdfs-directories($service_state)
 {
- $templeton_user = $hdp::params::templeton_user
+ $templeton_user = $hdp-templeton::params::templeton_user
  #TODO: need to make sure that hdfs service is running
   hdp-hadoop::hdfs::directory{ '/user/templeton':
     service_state => $service_state,
@@ -47,7 +47,7 @@ class hdp-templeton::hdfs-directories($service_state)
 
 class hdp-templeton::copy-hdfs-directories($service_state)
 {
- $templeton_user = $hdp::params::templeton_user
+ $templeton_user = $hdp-templeton::params::templeton_user
  $pig_src_tar = "$hdp::params::artifact_dir/pig.tar.gz"
  #TODO: need to make sure that hdfs service is running
   hdp-hadoop::hdfs::copyfromlocal { '/usr/share/templeton/templeton*jar':

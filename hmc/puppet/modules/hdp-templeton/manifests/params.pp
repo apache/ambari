@@ -1,6 +1,6 @@
 class hdp-templeton::params() inherits hdp::params
 {
-  $templeton_user = hdp_default("templeton_user","templeton")
+  $templeton_user = $hdp::params::templeton_user
 
   ###pig and hive tar url connector
   $download_url = $hdp::params::apache_artifacts_download_url

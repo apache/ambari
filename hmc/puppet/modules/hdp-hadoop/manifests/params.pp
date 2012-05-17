@@ -10,8 +10,8 @@ class hdp-hadoop::params(
 
   ####### users
 
-  $mapred_user = hdp_default("mapred_user","mapred")
-  $hdfs_user = hdp_default("hdfs_user","hdfs")
+  $mapred_user = $hdp::params::mapred_user
+  $hdfs_user = $hdp::params::hdfs_user
   
   ### hadoop-env
   

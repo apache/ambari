@@ -1,6 +1,6 @@
 class hdp-oozie::params() inherits hdp::params
 {
-  $oozie_user = hdp_default("oozie_user","oozie")
+  $oozie_user = $hdp::params::oozie_user 
 
   ###ext url
   $download_url = $hdp::params::gpl_artifacts_download_url

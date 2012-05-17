@@ -2,7 +2,10 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
-  AMBARI-270. Specifiy the notification intervals and options for Alerts 
+  AMBARI-270. Puppet cleanup to define all the users in a common 
+  location (ramya)
+
+  AMBARI-269. Specifiy the notification intervals and options for Alerts 
   (vgogate via ramya)
 
   AMBARI-300. Change the status message (success/error) location so that it 

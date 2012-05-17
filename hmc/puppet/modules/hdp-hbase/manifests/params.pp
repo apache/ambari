@@ -2,7 +2,7 @@ class hdp-hbase::params() inherits hdp::params
 {
   
   ####### users
-  $hbase_user = hdp_default("hbase_user","hbase")
+  $hbase_user = $hdp::params::hbase_user
   
   ### hbase-env
   $hadoop_conf_dir = hdp_default("hadoop/hbase-env/hadoop_conf_dir")

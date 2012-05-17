@@ -4,10 +4,10 @@ class hdp-hive::params() inherits hdp::params
   #TODO: will move to globals
   $hive_metastore_user_name = hdp_default("hadoop/hive-site/hive_metastore_user_name","dbusername")
   $hive_metastore_user_passwd = hdp_default("hadoop/hive-site/hive_metastore_user_passwd","dbpassword")
- 
- ####### users
- 
-  
+
+  ### users
+  $hive_user = $hdp::params::hive_user 
+
   ### common
   $hive_metastore_port = hdp_default("hive_metastore_port",9083)
   $hive_lib = hdp_default("hive_lib","/usr/lib/hive/lib/") #TODO: should I remove and just use hive_dbroot
@@ -20,7 +20,6 @@ class hdp-hive::params() inherits hdp::params
   $hive_log_dir = hdp_default("hadoop/hive-env/hive_log_dir","/var/log/hive")
 
   $hive_pid_dir = hdp_default("hadoop/hive-env/hive_pid_dir","/var/run/hive")
-#  $hive_pid_dir = "${hive_piddirprefix}/${hdp::params::hive_user}"
   
   ### hive-site
   $hive_database_name = hdp_default("hadoop/hive-site/hive_database_name","hive")

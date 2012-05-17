@@ -57,13 +57,29 @@ class hdp::params()
 
   ############ users
   $user_info = hdp_default("user_info",{})
-  #TODO: move rest of users here so can be used globally and also put all in user info
-  
-  # $hcat_user = hdp_default("hcat_user","hcat")
+
+  $hdfs_user = hdp_default("hdfs_user","hdfs")
+  $mapred_user = hdp_default("mapred_user","mapred")
+
+  $zk_user = hdp_default("zk_user","zookeeper") 
+  $hbase_user = hdp_default("hbase_user","hbase")
+
+  $hive_user = hdp_default("hive_user","hive")
+  $hcat_user = hdp_default("hcat_user","hcat")
+
   $oozie_user = hdp_default("oozie_user","oozie")
   $templeton_user = hdp_default("templeton_user","templeton")
-  $smokeuser = hdp_default("smokeuser","hrt_qa")
+
+  $gmetad_user = hdp_default("gmetad_user","nobody")
+  $gmond_user = hdp_default("gmond_user","nobody")
+
+  $smokeuser = hdp_default("smokeuser","ambari_qa")
   $smoke_user_group = hdp_default("smoke_user_group","users")
+
+  #because of Puppet user resource issue make sure that $hadoop_user is different from hadoop_user_group
+  $hadoop_user = hdp_default("hadoop_user", "hadoop_deploy")
+  $hadoop_user_group = hdp_default("hadoop_user_group","hadoop")
+
   $ganglia_enabled = hdp_default("ganglia_enabled",true) 
 
   #TODO: either remove or make conditional on ec2
@@ -109,10 +125,6 @@ class hdp::params()
   $snappy_so = hdp_default("snappy_so","libsnappy.so")
   #####
  
-  #because of Puppet user resource issue make sure that $hadoop_user is different from hadoop_user_group
-  $hadoop_user = hdp_default("hadoop_user", "hadoop_deploy")
-  $hadoop_user_group = hdp_default("hadoop_user_group","hadoop")
-
   $exec_path = ["/bin","/usr/bin", "/usr/sbin"]
 
    #### params used on multiple modules
@@ -237,7 +249,6 @@ class hdp::params()
 
     $hcat_server_host = hdp_default("hcat_server_host")
     $hcat_mysql_host = hdp_default("hcat_mysql_host")
-    $hcat_user = hdp_default("hcat_user","hcat")
 
   } elsif ($packages == 'bigtop') {  
     $hdp_yum_repo_base_url =  "${hdp_repo_url}"
@@ -270,11 +281,9 @@ class hdp::params()
     $update_zk_shell_files = false
 
     $hive_mysql_host = hdp_default("hive_mysql_host","localhost")
-    $hive_user = hdp_default("hive_user","hive")
 
     $hcat_server_host = hdp_default("hive_server_host")
     $hcat_mysql_host = hdp_default("hive_mysql_host")
-    $hcat_user = hdp_default("hcat_user","hcat")
 
   }
  

@@ -5,7 +5,7 @@ class hdp-hive(
 {
   include hdp-hive::params
 
-  $hive_user = $hdp::params::hive_user
+  $hive_user = $hdp-hive::params::hive_user
   $hive_config_dir = $hdp-hive::params::hive_conf_dir
 
   anchor { 'hdp-hive::begin': }
@@ -55,7 +55,7 @@ define hdp-hive::configfile(
 {
   hdp::configfile { "${hdp-hive::params::hive_conf_dir}/${name}":
     component        => 'hive',
-    owner            => $hdp::params::hive_user,
+    owner            => $hdp-hive::params::hive_user,
     mode             => $mode,
     hive_server_host => $hive_server_host 
   }

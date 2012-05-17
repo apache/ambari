@@ -34,7 +34,7 @@ class hdp-hive::server(
 
 class hdp-hive::hdfs-directories($service_state)
 {
-  $hive_user = $hdp::params::hive_user
+  $hive_user = $hdp-hive::params::hive_user
  
   hdp-hadoop::hdfs::directory{ '/apps/hive/warehouse':
     service_state   => $service_state,

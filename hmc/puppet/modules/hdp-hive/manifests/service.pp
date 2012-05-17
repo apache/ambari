@@ -4,7 +4,7 @@ class hdp-hive::service(
 {
   include $hdp-hive::params
   
-  $user = $hdp::params::hive_user
+  $user = $hdp-hive::params::hive_user
   $hadoop_home = $hdp::params::hadoop_home
   $hive_log_dir = $hdp-hive::params::hive_log_dir
   $cmd = "env HADOOP_HOME=${hadoop_home} nohup hive --service metastore > ${hive_log_dir}/hive.out 2> ${hive_log_dir}/hive.log &"
@@ -45,7 +45,7 @@ class hdp-hive::service(
 define hdp-hive::service::directory()
 {
   hdp::directory_recursive_create { $name: 
-    owner => $hdp::params::hive_user,
+    owner => $hdp-hive::params::hive_user,
     mode => '0755',
     service_state => $ensure,
     force => true
