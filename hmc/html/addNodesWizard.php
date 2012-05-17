@@ -13,7 +13,7 @@
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./topnav.html"; ?>
+    <?php require "./topnav.htmli"; ?>
 
     <div id="ContentDivId"> 
 
@@ -100,7 +100,7 @@
             <!-- End of installation Wizard -->
 
           </div>
-          <?php require "./footer.html"; ?>
+          <?php require "./footer.htmli"; ?>
 
             <!-- Javascript Scaffolding -->
             <script type="text/javascript">

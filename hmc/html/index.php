@@ -11,7 +11,7 @@
   </head>
 
   <body>
-    <?php require "./topnav.html"; ?>
+    <?php require "./topnav.htmli"; ?>
 
     <div id="ContentDivId" class="yui3-skin-sam"> 
 
@@ -35,6 +35,6 @@
     <script src="../js/utils.js"></script>
     <script src="../js/clustersList.js"></script>
 
-    <?php require "./footer.html"; ?>
+    <?php require "./footer.htmli"; ?>
   </body>
 </html> 

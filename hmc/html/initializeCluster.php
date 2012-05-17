@@ -13,7 +13,7 @@
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./topnav.html"; ?>
+    <?php require "./topnav.htmli"; ?>
 
     <div id="ContentDivId">
 
@@ -253,7 +253,7 @@
             </div>
             <!-- End of installation Wizard -->
     </div>
-            <?php require "./footer.html"; ?>
+            <?php require "./footer.htmli"; ?>
 
             <!-- Javascript Scaffolding -->
             <script type="text/javascript">
@@ -283,8 +283,8 @@
             };
 
             var jsFilesToLoad = [
-				'../js/jquery.min.js',
-				'../js/bootstrap.min.js', 
+                '../js/ext/jquery.min.js',
+                '../js/ext/bootstrap.min.js',
                 '../js/utils.js', 
                 '../js/txnUtils.js',
                 '../js/installationWizard.js',

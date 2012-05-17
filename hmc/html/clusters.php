@@ -9,11 +9,12 @@
     <link type="text/css" rel="stylesheet" href="../css/common2.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common3.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/clusters.css" media="screen"/>
+    <link rel="shortcut icon" href="../images/logo-micro.gif">
     <!-- End CSS -->
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./topnav.html"; ?>
+    <?php require "./topnav.htmli"; ?>
 
     <h1> Cluster <?php echo $_GET['clusterName']; ?> </h1>
 
@@ -57,7 +58,7 @@
     </div>
     <!-- End of contentDivId -->
 
-    <?php require "./footer.html"; ?>
+    <?php require "./footer.htmli"; ?>
 
     <!-- Javascript Scaffolding -->
     <script type="text/javascript">
