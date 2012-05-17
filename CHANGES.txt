@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-264. Nagios Admin Contact should be checked to ensure it is always an 
+  email address (Vinod via ramya)
+
   AMBARI-242. Change code layout to ensure unit tests are not part of final
   built rpm. (Hitesh via ramya)
 

@@ -214,6 +214,8 @@ function validateConfigs($svcConfigs) {
       } else if ($key == "nagios_contact") {
         if ($val == "") {
           $errors[$key] = array ( "error" => "Empty nagios contact specified");
+        } else if (0 == preg_match("/^(\w+((-\w+)|(\w.\w+))*)\@(\w+((\.|-)\w+)*\.\w+$)/",$val)) {
+          $errors[$key] = array ( "error" => "Not a valid email address");
         }
       } else if ($key == "hadoop_heapsize") {
         $check = basicNumericCheck($val, FALSE);
