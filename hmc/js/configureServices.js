@@ -2,7 +2,6 @@ var globalOptionsInfo = null;
            
 globalYui.one('#configureClusterAdvancedSubmitButtonId').on('click',function (e) {
 
-    /*
   var retval = checkPasswordCorrectness();
   if (retval.passwdMatched !== true) {
     setFormStatus(retval.errorString, true, true);
@@ -11,10 +10,8 @@ globalYui.one('#configureClusterAdvancedSubmitButtonId').on('click',function (e)
   }
   cleanupClassesForPasswordErrors();
  
-  var opts = generateUserOpts();
   clearFormStatus();
   clearErrorReasons(opts); 
-     */
   var opts = generateUserOpts();
 
   e.target.set('disabled', true);

@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-262. Init Wizard: Advanced Config validation errors can be bypassed 
+  (Vinod via ramya)
+
   AMBARI-263. Initialization Wizard: Select Disk Mount Points allows the user 
   to continue without any mount points selected (Vinod via ramya) 
 
