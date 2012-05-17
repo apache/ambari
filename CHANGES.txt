@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-296. Update styles on Service Management page (Yusaku Sako via ramya)
+
   AMBARI-264. Nagios Admin Contact should be checked to ensure it is always an 
   email address (Vinod via ramya)
 

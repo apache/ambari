@@ -218,7 +218,7 @@ function serviceManagementActionClickHandler( action, serviceName ) {
   var confirmationDataPanel;
 
   var confirmationDataPanelNoButton = {
-    value: 'Nah, Forget It',
+    value: 'Cancel',
     action: function (e) {
       e.preventDefault();
       destroyInformationalPanel(confirmationDataPanel);
@@ -227,7 +227,7 @@ function serviceManagementActionClickHandler( action, serviceName ) {
   };
 
   var confirmationDataPanelYesPanel = {
-    value: 'Yes, I\'m Super-Duper Sure',
+    value: 'Yes',
     action: function (e) {
       e.preventDefault();
       performServiceManagement( action, serviceName, confirmationDataPanel );
