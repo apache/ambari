@@ -169,6 +169,19 @@ function renderConfigureCluster (clusterConfig) {
 
         e.target.set('disabled', true);
 
+        var itemsExist = false;
+        var selections = globalYui.all("#configureClusterMountPointsDynamicRenderDivId input[type=checkbox]");
+        selections.each( function(selection) {
+          if( selection.get('checked') == true ) {
+            itemsExist = true;
+          }
+        });
+        if (!itemsExist) {
+          alert("Please select one mount point at the least");
+          e.target.set('disabled', false);
+          return;
+        }
+
         /* For now, our cluster config consists solely of the generated service directories. */
         var generatedClusterConfig = generateServiceDirs(globalServicesInfo);
 

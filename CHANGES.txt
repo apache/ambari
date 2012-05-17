@@ -1,7 +1,10 @@
 Ambari Change log
 
 Release 0.x.x - unreleased
- 
+
+  AMBARI-263. Initialization Wizard: Select Disk Mount Points allows the user 
+  to continue without any mount points selected (Vinod via ramya) 
+
   AMBARI-250. Cluster name validation (Vikram Dixit via ramya)
 
   AMBARI-243. Templeton setup fails due to hive download error. (ramya)
