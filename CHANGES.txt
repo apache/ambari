@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-246. Add support for parsing yum repo files to understand how to
+  bootstrap nodes for local yum mirror (Hitesh via ramya)
+
   AMBARI-218. Install Combo-Handler On HMC Webserver To Drastically Speed Up
   Page Load Times (Varun Kapoor via ramya)
 
