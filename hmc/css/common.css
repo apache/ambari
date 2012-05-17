@@ -290,6 +290,13 @@ td {
 	display:block!important;
 }
 
+input.unit-MB,
+input.unit-B,
+input.unit-hours,
+input.unit-ms {
+	width:100px;
+}
+
 .navbar .brand {
     color: #666666;
     display: block;

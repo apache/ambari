@@ -3,12 +3,15 @@
 
 var globalPasswordsArray = [];
 
-function generateDivForService (option, type, service, property) {
-
+function generateDivForService (option, type, service, property, unit) { 
+	
+  var unitString = (unit != null) ? unit : '';
   var retString = '<div class="formElement">' +
     '<label for="' + service + '">' + option['displayName'] + '</label>' +
-    '<input type="' + type + '" id="' + property + '" name="' + service + '" value="' + option['value'] + '">' +
+    //((unitString != '') ? '<div class="input-append">' : '') +
+    '<input class="unit-' + unit + '" type="' + type + '" id="' + property + '" name="' + service + '" value="' + option['value'] + '"> ' + unitString + 
     '<div class="contextualHelp">' + option['description'] + '</div>' +
+    //((unitString != '') ? '</div>' : '') + 
     '<div class="formInputErrorReason" id="' + property + 'ErrorReason' + '"></div>' +
     '</div>';
   if (type == "password") {
@@ -50,7 +53,8 @@ function constructDOM(optionsInfo) {
             continue;
         }
         serviceNeedsRender = true;
-        propertiesRendering += generateDivForService(optionsInfo['services'][servicesKey]["properties"][property], type, servicesKey, property);
+        var unit = optionsInfo['services'][servicesKey]['properties'][property]['unit'];
+        propertiesRendering += generateDivForService(optionsInfo['services'][servicesKey]["properties"][property], type, servicesKey, property, unit);
       }
       if (serviceNeedsRender) {
         optionsSummary += "<fieldset> <legend>" + servicesKey + "</legend>";

@@ -145,6 +145,8 @@ function transitionToNextStage( currentStageDivSelector, currentStageData, newSt
 
   clearFormStatus();
 
+  globalYui.one(currentStageDivSelector).setStyle('display','none');
+  
   /* Render the next stage. */
   newStageRenderFunction(newStageData);
 
@@ -153,7 +155,6 @@ function transitionToNextStage( currentStageDivSelector, currentStageData, newSt
   //// tshooter: No longer doing this given dynamic rendering on stages. Only hide current stage.  
   /* And make it visibly replace the currently showing one. */
   ///// tshooter: commented: swapStageVisibilities(currentStageDivSelector, newStageDivSelector);
-  globalYui.one(currentStageDivSelector).setStyle('display','none');
 
   /* And now, handle the updates to addNodesWizardStages... */
 

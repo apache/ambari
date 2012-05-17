@@ -79,9 +79,9 @@ CREATE TABLE  "ServiceComponents" (
 );
 
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
-  ( "HDFS", "NAMENODE", "Namenode", '{ "isMaster": true, "isClient": false }', "Master server that manages the file system namespace and regulates access to files by clients" );
+  ( "HDFS", "NAMENODE", "NameNode", '{ "isMaster": true, "isClient": false }', "Master server that manages the file system namespace and regulates access to files by clients" );
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
-  ( "HDFS", "SNAMENODE", "Secondary Namenode", '{ "isMaster": true, "isClient": false }', "Helper to the primary NameNode that is responsible for supporting periodic checkpoints of the HDFS metadata" );
+  ( "HDFS", "SNAMENODE", "Secondary NameNode", '{ "isMaster": true, "isClient": false }', "Helper to the primary NameNode that is responsible for supporting periodic checkpoints of the HDFS metadata" );
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
   ( "HDFS", "DATANODE", "Datanode", '{ "isMaster": false, "isClient": false }', "The slave for HDFS" );
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
@@ -211,7 +211,7 @@ CREATE TABLE  ConfigProperties (
                    --     "reconfigurable": whether the value can be edited during reconfiguration
                    --     "displayType": checkbox, multi-button checkbox, etc
                    --     "displayValues": possible values in case of multi-value selection ( not required for single value which is covered by the default value
-
+                   --     "unit": unit to show.  if not used, leave it undefined	
   PRIMARY KEY (key) ,
   FOREIGN KEY (service_name) REFERENCES Services(service_name)
 );
@@ -274,7 +274,7 @@ INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, de
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "datanode_du_reserved", "1073741824", "Reserved space for HDFS", "Reserved space in bytes per volume", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"B" }' );
 
 -- maps to dt_heapsize in gscluster in MB.
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "dtnode_heapsize", "1024", "DataNode Java heap size", "Java Heap Size for DataNode", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"B" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "dtnode_heapsize", "1024", "DataNode Java heap size", "Java Heap Size for DataNode", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"MB" }' );
 
 -- maps to jtnode_opt_newsize in gscluster in MB.
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "jtnode_opt_newsize", "200", "Default Young Generation heap size", "Default size of new gen for jobtracker", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"MB" }' );
@@ -286,10 +286,10 @@ INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, de
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "jtnode_heapsize", "1024", "JobTracker Java heap size", "Java Heap  size for jobtracker", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"MB" }' );
 
 -- maps to mapred_map_tasks_max in gscluster.
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_map_tasks_max", "4", "Maximum number of Map tasks per node", "The maximum number of map tasks that will be run simultaneously by a task tracker.", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_map_tasks_max", "4", "Maximum number of Map tasks per node", "The maximum number of map tasks that will be run simultaneously by a task tracker.", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"" }' );
 
 -- maps to mapred_red_tasks_max in gscluster.
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_red_tasks_max", "2", "Maximum number of Reduce tasks per node", "The maximum number of reduce tasks that will be run simultaneously by a task tracker.", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_red_tasks_max", "2", "Maximum number of Reduce tasks per node", "The maximum number of reduce tasks that will be run simultaneously by a task tracker.", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"" }' );
 
 -- maps to mapred_cluster_map_mem_mb in gscluster.
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_cluster_map_mem_mb", "-1", "Virtual memory for single Map slot", "The size, in terms of virtual memory, of a single map slot in the Map-Reduce framework", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"MB" }' );
@@ -317,29 +317,29 @@ INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, de
 
 
 -- maps to io_sort_spill_percent in gscluster.
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "io_sort_spill_percent", "0.9", "Limit on buffer", "The soft limit in either the buffer or record collection buffers", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "io_sort_spill_percent", "0.9", "Limit on buffer", "The soft limit in either the buffer or record collection buffers", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"" }' );
 
 
 -- maps to mapreduce_userlog_retainhours in gscluster.
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapreduce_userlog_retainhours", "24", "Job log retention", "The maximum time, in hours, for which the user-logs are to be retained after the job completion.", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"h" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapreduce_userlog_retainhours", "24", "Job log retention", "The maximum time, in hours, for which the user-logs are to be retained after the job completion.", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"hours" }' );
 
 -- maps to max_tasks_per_job in gscluster.
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "maxtasks_per_job", "-1", "Maximum tasks for a Job", "maximum number of tasks for a single job", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "maxtasks_per_job", "-1", "Maximum tasks for a Job", "maximum number of tasks for a single job", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"" }' );
 
 -- maps to dfs_datanode_failed_volume_tolerated in gscluster.
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "dfs_datanode_failed_volume_tolerated", "0", "DN volumes failure toleration", "The number of volumes that are allowed to fail before a datanode stops offering service", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "dfs_datanode_failed_volume_tolerated", "0", "DataNode volumes failure toleration", "The number of volumes that are allowed to fail before a datanode stops offering service", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"" }' );
 
 -- maps to tickTime in gscluster.
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "tickTime", "2000", "Length of single tick", "The length of a single tick, which is the basic time unit used by ZooKeeper, as measured in milliseconds", "ZOOKEEPER" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"ms" }' );
 
 -- maps to initLimit in gscluster.
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "initLimit", "10", "Ticks to allow for sync at Init", "Amount of time, in ticks to allow followers to connect and sync to a leader", "ZOOKEEPER" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "initLimit", "10", "Ticks to allow for sync at Init", "Amount of time, in ticks to allow followers to connect and sync to a leader", "ZOOKEEPER" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"" }' );
 
 -- maps to syncLimit in gscluster.
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "syncLimit", "5", "Ticks to allow for sync at Runtime", "Amount of time, in ticks to allow followers to connect an", "ZOOKEEPER" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "syncLimit", "5", "Ticks to allow for sync at Runtime", "Amount of time, in ticks to allow followers to connect an", "ZOOKEEPER" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"" }' );
 
 -- maps to clientPort in gscluster.
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "clientPort", "2181", "Port for running ZK Server", "Port for running ZK server", "ZOOKEEPER" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "clientPort", "2181", "Port for running ZK Server", "Port for running ZK server", "ZOOKEEPER" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"" }' );
 
 
 -- maps to hbase_master_heapsize in gscluster in MB.

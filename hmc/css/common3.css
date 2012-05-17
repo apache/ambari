@@ -273,3 +273,10 @@ span.installationWizardStageNumber {
   margin-left: 10px;
   color: red;
 }
+
+#configureClusterAdvancedDynamicRenderDivId .formInputErrorReason {
+	color: red;
+    display: inline-block;
+    margin-bottom: 20px;
+    margin-left: 320px;
+}
