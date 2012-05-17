@@ -17,13 +17,6 @@
 
     <div name="ContentDiv" id="ContentDivId"> 
 
-      <!-- Navigation bar -->
-      <div name="navigationBarDiv" id="navigationBarDivId">
-        <div name="navigationBarContentDiv" id="navigationBarContentDivId">
-        <a href="index.php">Clusters</a>
-        </div>
-      <hr/>
-      </div>
       <!-- List of clusters
       <div name="clustersListDiv" id="clustersListDivId">
       </div>

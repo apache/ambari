@@ -15,16 +15,6 @@
 
     <div name="ContentDiv" id="ContentDivId" class="yui3-skin-sam"> 
 
-    <!--
-      <!-- Navigation bar -->
-      <!--
-      <div name="navigationBarDiv" id="navigationBarDivId">
-        <div name="navigationBarContentDiv" id="navigationBarContentDivId">
-        Clusters
-        </div>
-      <hr/>
-      </div>
-      -->
       <!-- List of clusters -->
       <div name="clustersListDiv" id="clustersListDivId">
       </div>

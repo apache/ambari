@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-229. Remove Navigation Bar (W/ Clusters Link) From InstallationWizard (And Other Entry Points). 
+  (Varun Kapoor via jitendra)
+
   AMBARI-214. Make HMC Use Local YUI Copy. (Varun Kapoor via jitendra)
 
   AMBARI-239. HDFS utilization pie chart shows gray / HDFS down while HDFS is up and running.
