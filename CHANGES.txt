@@ -1,6 +1,8 @@
 Ambari Change log
 
 Release 0.x.x - unreleased
+ 
+  AMBARI-250. Cluster name validation (Vikram Dixit via ramya)
 
   AMBARI-243. Templeton setup fails due to hive download error. (ramya)
 

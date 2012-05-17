@@ -37,6 +37,12 @@ if (preg_match("/[\s]+/", $clusterName) > 0) {
   print json_encode(array("result" => 1, "error" => "Cluster name cannot contain whitespaces"));
   return;
 }
+
+// do not allow ? ! * + - | " [ ] / ( ) { } ! @ # $ % ^ & * ( ) ' ` ~ , .
+if (preg_match('/(\?|\+|\-|\||\"|\[|\]|\/|\{|\}|\!|\@|\#|\$|\%|\^|\&|\*|\(|\)|\'|\`|\~|\,|\.)/', $clusterName) > 0) {
+  print json_encode(array("result" => 1, "error" => "Cluster name cannot contain special characters"));
+  return;
+}
 // Validate clusterName: TODO; FIXME
 
 // create the lockfile in the clusterDir
