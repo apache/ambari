@@ -1,6 +1,10 @@
 Ambari Change log
 
 Release 0.x.x - unreleased
+
+  AMBARI-239. HDFS utilization pie chart shows gray / HDFS down while HDFS is up and running.
+  (vgogate via jitendra)
+
   AMBARI-238. When namenode process is down info shown is not correct for both HDFS and MR (vgogate)
 
   AMBARI-237. Refactor puppet kick loop to easily change retries and timeouts.
