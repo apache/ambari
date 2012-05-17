@@ -269,7 +269,7 @@ class hdp::params()
     $zk_smoke_test_script = "/usr/lib/zookeeper/bin/zkCli.sh"
     $update_zk_shell_files = false
 
-    $hive_mysql_host = hdp_default("hive_mysql_host")
+    $hive_mysql_host = hdp_default("hive_mysql_host","localhost")
     $hive_user = hdp_default("hive_user","hive")
 
     $hcat_server_host = hdp_default("hive_server_host")

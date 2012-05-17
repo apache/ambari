@@ -4,7 +4,12 @@ class hdp-mysql::server(
 ) inherits  hdp-mysql::params
 { 
   if ($service_state == 'no_op') {
-  } elsif ($service_state in ['running','stopped','installed_and_configured']) {
+  } elsif ($service_state in ['uninstalled']) {  
+      hdp::package { 'mysql' :
+        ensure => 'uninstalled',
+        size   => 32
+      }
+   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
    
     $db_user = $hdp-mysql::params::db_user
     $db_pw = $hdp-mysql::params::db_pw
