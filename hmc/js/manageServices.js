@@ -227,11 +227,12 @@ function serviceManagementActionClickHandler( action, serviceName ) {
   };
 
   var confirmationDataPanelYesPanel = {
-    value: 'Yes',
+    value: 'OK',
     action: function (e) {
       e.preventDefault();
       performServiceManagement( action, serviceName, confirmationDataPanel );
     },
+    classNames: 'yo',
     section: 'footer'
   };
 
@@ -399,14 +400,14 @@ function generateServiceManagementEntryMarkup( serviceName, serviceInfo ) {
               
       generatedServiceManagementEntryMarkup += 
             '<a href="javascript:void(null)" name="start" title="Start" ' +
-               'class="serviceManagementEntryAction serviceManagementEntryActionStart"></a>' +
+               'class="btn serviceManagementEntryAction serviceManagementEntryActionStart"><i class="icon-play"></i></a>' +
             '<a href="javascript:void(null)" name="stop" title="Stop" ' +
-               'class="serviceManagementEntryAction serviceManagementEntryActionStop"></a>';
+               'class="btn serviceManagementEntryAction serviceManagementEntryActionStop"><i class="icon-stop"></i></a>';
     }
 
     generatedServiceManagementEntryMarkup += 
             '<a href="javascript:void(null)" name="reconfigure" title="Reconfigure" ' +
-               'class="serviceManagementEntryAction serviceManagementEntryActionReconfigure"></a>' +
+               'class="btn serviceManagementEntryAction serviceManagementEntryActionReconfigure"><i class="icon-cog"></i></a>' +
           '</div>' +
         '</div>' +
       '</li>';

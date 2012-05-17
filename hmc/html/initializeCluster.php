@@ -172,7 +172,7 @@
 
                 <div class="pageSummary">
                 	<h2>Assign Services to Nodes</h2>
-                	<p>We have categorized the given nodes into Node-groups and also suggested the locations of various service-masters. Drap and drop service-masters that you wish to change. Click on the given links if you wish to change the node assignments.</p>
+                	<p>We have categorized the given nodes into Node-groups and also suggested the locations of various service-masters. Drag and drop service-masters that you wish to change. Click on the given links if you wish to change the node assignments.</p>
                 </div>
                 <div id="serviceMastersLinksDivId">
                 </div>
@@ -185,7 +185,7 @@
               <div name="configureClusterCoreDiv" id="configureClusterCoreDivId" style="display:none">
                 <div class="pageSummary">
                 	<h2>Specify Mount Points</h2>
-                	<p>We found the following mount points on your nodes. Please confirm/modify the mount points to use for the services shown.
+                	<p>We found the following mount points on your nodes. Please confirm/modify the mount points to use for your nodes.
                 </div>
                 
                 <div id="configureClusterInputContainerDivId">
@@ -234,7 +234,8 @@
                 <div name="deployCoreDiv" id="deployCoreDivId" style="display:none">
                   <div class="pageSummary">
                   	<h2>Review and Deploy</h2>
-                  	<p>Please review your settings below, we are ready for a deploy! If you wish to make any changes, you can click on the installation stages above.</p>               
+                  	<p>We are ready to deploy!  Please review your settings below.</p>
+                  	<p>If you wish to make any changes, you can click on any of the installation stages above.  Note that if you do go back to a stage, you will have to go through all the subsequent stages again.</p>               
                   </div>
                   <form id="deployFormId">
                     <fieldset id="deployFieldSetId">

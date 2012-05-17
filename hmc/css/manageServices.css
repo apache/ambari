@@ -72,7 +72,7 @@
 .serviceManagementEntryName {
   display:inline-block;
   border:0px solid black;
-  width:200px;
+  width:180px;
  
 /* Temporarily make links within .serviceManagementEntryName not look like links. */
   pointer-events: none;
@@ -90,27 +90,18 @@
 
 .serviceManagementEntryActionsContainer {
   float: right;
-}
-
-.serviceManagementEntryAction {
-  background-size: 24px 24px;
-  display: inline-block;
-  height: 24px;
-  width: 24px;
-  margin-left: 7px;
-  margin-right: 7px;
+  margin-top:-4px;
 }
 
 .serviceManagementEntryActionStart {
-  background-image: url(../images/start.png);
+	margin-right:4px;
 }
 
 .serviceManagementEntryActionStop {
-  background-image: url(../images/stop.png);
+	margin-right:4px;
 }
 
 .serviceManagementEntryActionReconfigure {
-  background-image: url(../images/reconfigure.png);
 }
 
 #serviceManagementGlobalActionsDivId {
