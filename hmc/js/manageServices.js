@@ -208,7 +208,7 @@ function getServiceConfigurationMarkup( serviceConfigurationData ) {
 
 function serviceManagementActionClickHandler( action, serviceName ) {
 
-  var affectedServices;
+  var affectedServices = [];
 
   var confirmationDataPanelTitle = '';
   var confirmationDataPanelBodyContent = '';
@@ -302,7 +302,19 @@ function serviceManagementActionClickHandler( action, serviceName ) {
     confirmationDataPanelBodyContent = "We are now going to stop all the services in the cluster";
   }
 
+  // Add the list of dependencies
   if(action =='start' || action == 'stop') {
+
+    // Clean up the affected-services list to only include appropriate installed long-running services
+    var deps = affectedServices;
+    affectedServices = [];
+    for (dep in deps) {
+      var svc = deps[dep];
+      if (clusterServices.hasOwnProperty(svc) && (clusterServices[svc].isEnabled == 1) && clusterServices[svc].attributes.runnable ) {
+        affectedServices.push(svc);
+      }
+    }
+
     var dependencyMarkup = "";
     for (affectedSrvc in affectedServices) {
       if (clusterServices[affectedServices[affectedSrvc]].attributes.runnable) {
