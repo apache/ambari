@@ -34,7 +34,7 @@ function renderDeploySummary (deployInfo) {
         serviceHasToBeRendered = true;
 
         readOnlyAttr = 'readonly=readonly';
-        valueAttr = 'value=\"' + perServiceInfo.properties[mPropertiesKey].value;
+        valueAttr = 'value=\"' + perServiceInfo.properties[mPropertiesKey].value + '\"';
         type = convertDisplayType(perServiceInfo.properties[mPropertiesKey].type);
         if (type == "checkbox") {
           readOnlyAttr = 'disabled="disabled"';

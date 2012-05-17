@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-292. HTML being spewed in the Review+Deploy page. (Varun Kapoor via jitendra)
+
   AMBARI-291. Fix yui packaging in the rpm. (jitendra)
 
   AMBARI-290. Comment in addNodesWizardInit.js. (Varun Kapoor via jitendra)
