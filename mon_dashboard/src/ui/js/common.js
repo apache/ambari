@@ -546,7 +546,7 @@
   // Draw pie chart on Dashboard
   a.drawDiskUtilPieChart = function(clusterData){
     var r = Raphael("pie2"), pie, data = {};
-    if (data.dfs_percent_remaining == undefined) {
+    if (clusterData.dfs_percent_remaining == undefined) {
       data = {data:[100],label:{legend:["HDFS Down"], legendpos:"east"}};
       pie = r.piechart(130, 100, 80, data.data, data.label);
       pie.attr("fill", "gray");
