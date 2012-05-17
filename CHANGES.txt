@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-259. add nodes to a cluster gives an option for ganglia and dashboard,
+  these should be on by default (Vinod via ramya)
+
   AMBARI-262. Init Wizard: Advanced Config validation errors can be bypassed 
   (Vinod via ramya)
 

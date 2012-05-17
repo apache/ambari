@@ -51,7 +51,7 @@ INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, desc
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
   ( "TEMPLETON", "Templeton", '{ "runnable": true, "mustInstall": false, "editable": true, "noDisplay": false }',  "Webservice APIs for Apache Hadoop" );
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
-  ( "DASHBOARD", "Dashboard", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": false }',  "Monitoring Dashboard for HDP" );
+  ( "DASHBOARD", "Dashboard", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": true }',  "Monitoring Dashboard for HDP" );
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
   ( "NAGIOS", "Nagios", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": false }',  "Nagios-based Monitoring for HDP" );
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
@@ -347,7 +347,7 @@ INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, de
 -- maps to hbase_regionserver_heapsize in gscluster in MB.
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hbase_regionserver_heapsize", "1024", "JVM Heap Size for HBase Region Servers", "JVM heap size for HBase region servers", "HBASE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
 
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "lzo_enabled", "false", "Lzo compression", "Lzo compression enabled", "MAPREDUCE" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "lzo_enabled", "false", "Lzo compression", "Lzo compression enabled", "MAPREDUCE" , "ONOFF", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text" }' );
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "snappy_enabled", "true", "Snappy compression", "Snappy compression enabled", "MAPREDUCE" , "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
 
 --                                        Done with gsCluster.properties

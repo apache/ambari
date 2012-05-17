@@ -37,7 +37,7 @@ function getServiceComponentListAndRender(clusterName) {
     // At this phase, we do not worry about dependencies because these are
     // just slaves and each slave is independent of the other
     for (serviceName in data['services'])  {
-      if (data['services'][serviceName]['isEnabled'] != "0") {
+      if (data['services'][serviceName]['isEnabled'] != "0" && data['services'][serviceName]['attributes']['noDisplay'] == false) {
         component = data['services'][serviceName]['components'];
         for (componentName in component) {
           if (component[componentName]['isMaster'] == null && 
@@ -48,7 +48,7 @@ function getServiceComponentListAndRender(clusterName) {
                 !component[componentName]['isClient']) {
             divContent += '<li class="selectServicesEntry" name=try>';
             divContent +=   '<label for="install' + serviceName + 'Id">' + component[componentName]['displayName'] + '</label>'
-                        +   '<input type="checkbox" name="' + serviceName + '" id="install' + serviceName + 'Id" value="' + component[componentName]["componentName"] + '"/>'
+                        +   '<input type="checkbox" disabled="disabled" checked="yes" name="' + serviceName + '" id="install' + serviceName + 'Id" value="' + component[componentName]["componentName"] + '"/>'
                         +   '<div class="contextualhelp">' + component[componentName]['description'] + '</div>'
                         + '</li>';
           } else {

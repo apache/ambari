@@ -87,16 +87,7 @@
                 <fieldset>
                   <!--<legend>Select Services</legend>-->
                   <form id="addNodesDataFormId">
-              <div name="selectComponentsDynamicRenderDiv" id="selectComponentsDynamicRenderDivId"></div>
-
-                    <!-- <p>
-                    <label for="installMapReduceId">MapReduce (TASKTRACKER)</label>
-                    <input type="checkbox" name="installMR" id="installMRId" value="installMapReduceValue" disabled="disabled" checked="yes">
-                    </p>
-                    <p>
-                    <label for="installHdfsId">HDFS (DATANODE)</label>
-                    <input type="checkbox" name="installHDFS" id="installHDFSId" value="installHdfsValue" disabled="disabled" checked="yes">
-                    </p> -->
+                    <div name="selectComponentsDynamicRenderDiv" id="selectComponentsDynamicRenderDivId"></div>
                   </form>
                 </fieldset>
                 <button class="btn btn-large" id="deployAddedNodesSubmitButtonId">Deploy Nodes</button>
