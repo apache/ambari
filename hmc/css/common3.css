@@ -150,9 +150,9 @@ span.installationWizardStageNumber {
   padding:5px;
 }
 
-.formStatusBar {
+#txnProgressStatusDivId {
   width: auto;
-  /*height: 2em;*/
+  /-*height: 2em;*-/
   border-style: solid;
   border-width: 2px;
   border-radius:2px;
@@ -162,6 +162,18 @@ span.installationWizardStageNumber {
   padding-bottom: 4px;
   font-size: larger;
   text-align: center;
+  margin-bottom:0;
+}
+
+.formStatusBar {
+    background-color: #FCF8E3;
+    border: 1px solid #FBEED5;
+    border-radius: 4px 4px 4px 4px;
+    color: #C09853;
+    font-size:14px;
+    margin-bottom: 18px;
+    padding: 8px 35px 8px 14px;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .formStatusBarZeroOpacity {
@@ -197,15 +209,15 @@ span.installationWizardStageNumber {
 }
 
 .statusOk {
-  border-color: rgb(50,205,50);
-/*  color: rgb(50,205,50); */
-  background-color: #85EEA8;
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+  color: #468847;
 }
 
 .statusError {
-  border-color: #F53907;
-/*  color: #F53907; */
-  background-color: #F17879;
+    background-color: #F2DEDE;
+    border-color: #EED3D7;
+    color: #B94A48;
 }
 
 /* Add a scrollbar only to the body of the YUI Panel, keeping the locations of

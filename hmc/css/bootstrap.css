@@ -5222,7 +5222,6 @@ button.close {
     content: '\e04a';
     color:red;
     font-size:10px;
-    margin-top:2px;
   }
   .iconic-eject:before {
     content: '\e04b';

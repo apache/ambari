@@ -59,8 +59,8 @@ function renderServiceList(responseJson) {
 
   //            divContent += coreContent + optionalContent + nonSelectableContent;
    coreContent = '<div>' +
-                  '<label class="checkbox" for="selectAllCheckBoxId" id="labelForSelectAllId">Select all</label>' +
-                  '<input type="checkbox" name="selectAll" id="selectAllCheckBoxId"/>' +
+                  '<label class="checkbox" for="selectAllCheckBoxId"><span id="labelForSelectAllId">Select all</span>' +
+                  '<input type="checkbox" name="selectAll" id="selectAllCheckBoxId"/></label>' +
                 '</div>' +
                 coreContent;
   globalYui.one("#selectCoreServicesDynamicRenderDivId").setContent(coreContent);     

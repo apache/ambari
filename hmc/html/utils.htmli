@@ -1,9 +1,3 @@
-<!-- Used to render informational/status messages 
-     (error, success reports and such like) -->
-<div id="formStatusDivId" class="formStatusBar" style="visibility:hidden">
-  DummyPlaceholder
-</div>
-
 <!-- The mechanism by which we black out the screen and affix the
      the spotlight on a smaller portion of it. -->
 <div id="blackScreenDivId" style="display:none"></div>

@@ -226,7 +226,7 @@ td {
 .pageSummary {
   min-height: 20px;
   padding: 19px;
-  margin-bottom: 20px;
+  margin: 30px 0 20px 0;
   background-color: #f5f5f5;
   border: 1px solid #eee;
   border: 1px solid rgba(0, 0, 0, 0.05);
@@ -288,6 +288,10 @@ td {
 
 #deployDynamicRenderDivId input[readonly] {
 	display:block!important;
+}
+
+#labelForSelectAllId {
+	font-size:12px!important;
 }
 
 input.unit-MB,
@@ -378,4 +382,8 @@ a.btn {
   -webkit-border-radius: 0 0 4px 4px;
      -moz-border-radius: 0 0 4px 4px;
           border-radius: 0 0 4px 4px;
+}
+
+.btn-large .iconic-stop:before {
+    margin-top: -1px;
 }

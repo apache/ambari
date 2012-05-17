@@ -175,9 +175,10 @@ function transitionToNextStage( currentStageDivSelector, currentStageData, newSt
 }
 
 function clearFormStatus() {
-  var formStatusDiv = globalYui.one("#formStatusDivId");
+  var formStatusDiv = globalYui.all("#formStatusDivId");
   // formStatusDiv.setContent("");
   formStatusDiv.setStyle("visibility", "hidden");
+  formStatusDiv.setStyle("display", "none");
   formStatusDiv.set('className','');
   formStatusDiv.addClass("formStatusBar");
 }
@@ -189,14 +190,15 @@ function setFormStatus(statusString, isError, noFade) {
   } else {
     formStatusDivCssClass = 'statusOk';
   }
-  var formStatusDiv = globalYui.one("#formStatusDivId");
+  var formStatusDiv = globalYui.all("#formStatusDivId");
   formStatusDiv.setStyle("visibility", "visible");
+  formStatusDiv.setStyle("display", "block");
   formStatusDiv.set('className','');
   formStatusDiv.addClass("formStatusBar");
   formStatusDiv.addClass(formStatusDivCssClass);
   formStatusDiv.setContent(statusString);
   if (!isError && !noFade) {
-    setTimeout(fadeFormStatus, 1000);
+    //setTimeout(fadeFormStatus, 1000);
   }
 }
 

@@ -55,6 +55,8 @@
               We'll use the SSH private key and public key files to perform installation on your nodes.
               <span>The public key that is paired with the private key must already be installed on all the nodes.</span>
             </div>
+            <div id="formStatusDivId" class="formStatusBar" style="display:none">
+            </div>
             <div class="pageContent">
               <div id="addNodesCoreDivId" style="display:block">
                 <fieldset>
@@ -84,6 +86,8 @@
             </div>
 
               <div name="selectServicesCoreDiv" id="selectServicesCoreDivId" style="display:none">
+                <div id="formStatusDivId" class="formStatusBar" style="display:none">
+                </div>
                 <fieldset>
                   <!--<legend>Select Services</legend>-->
                   <form id="addNodesDataFormId">

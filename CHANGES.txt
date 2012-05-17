@@ -2,6 +2,10 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-300. Change the status message (success/error) location so that it 
+  shows below the page summary box, rather than above, more better visibility 
+  (Yusaku Sako via ramya)
+
   AMBARI-255. Rename/Relocate files as appropriate (Varun Kapoor via ramya)
 
   AMBARI-252. Remove Playground files from HMC (Varun Kapoor via ramya)
