@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-242. Change code layout to ensure unit tests are not part of final
+  built rpm. (Hitesh via ramya)
+
   AMBARI-295. Improve the overall look and feel (Yusaku Sako via ramya)
 
   AMBARI-241. Support cluster wipeout in orchestrator. (hitesh via jitendra)
