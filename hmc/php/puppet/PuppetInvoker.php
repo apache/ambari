@@ -102,7 +102,8 @@
        return array($hostInfo, $configInfo, $hostRolesStates, $hostAttributes);
     }
 
-    public function kickPuppet($nodes, $txnObj, $clusterName, $nodesComponents) {
+    public function kickPuppet($nodes, $txnObj, $clusterName, $nodesComponents,
+        $globalOptions) {
       //Get host config from db
       $txnId = $txnObj->toString();
       $components = array_keys($nodesComponents);
@@ -111,6 +112,14 @@
       $configInfo = $infoFromDb[1];
       $hostRolesStates = $infoFromDb[2];
       $hostAttributes = $infoFromDb[3];
+
+      //Treat globalOpts as configs only
+      if (!empty($globalOptions)) {
+        foreach ($globalOptions as $key => $value) {
+          $configInfo[$key] = $value;
+        }
+      }
+       
       $response = $this->genKickWait($nodes, $txnId, $clusterName, $hostInfo,
           $configInfo, $hostRolesStates, $hostAttributes, $GLOBALS["puppetManifestDir"],
           $GLOBALS["puppetKickVersionFile"], $GLOBALS["DRYRUN"]);

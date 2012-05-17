@@ -75,7 +75,8 @@ class HostsConfigManifest {
       }
       $manifest = "$" . $key . " = ";
       if ( ($key == "lzo_enabled") ||
-           ($key == "snappy_enabled") ) {
+           ($key == "snappy_enabled") || 
+           ($key == "wipeoff_data") ) {
         $manifest = $manifest . $value . "\n";
       } else {
         $manifest = $manifest . "\"" .  $value . "\"\n";

@@ -118,7 +118,7 @@ class Cluster {
       }
       $nodes = $result["nodes"];
       $result = $this->puppet->kickPuppet($nodes, $transaction, $this->name,
-          $result["componentMapping"], array ("wipeoutData" => $wipeoutData));
+          $result["componentMapping"], array ("wipeoff_data" => $wipeoutData));
       $this->logger->log_debug("Puppet kick response for uninstalling "
           . "cluster=" . $this->name
           . ", txn=" . $transaction->toString()

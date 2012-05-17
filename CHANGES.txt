@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-245. Support data cleanup if installation fails (Jitendra via ramya)
+
   AMBARI-248. Add yuiCombinator.php to rpm (Jitendra via ramya)
 
   AMBARI-297. Modal dialog box for showing deploy progress looks broken
