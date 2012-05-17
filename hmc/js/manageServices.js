@@ -476,14 +476,14 @@ var fetchClusterServicesPollerResponseHandler = {
     serviceManagementMarkup += '</div>';
 
     // Real services with server side components
-    serviceManagementMarkup += '<div class="serviceManagementGroup"> Long running services: <br/>';
+    serviceManagementMarkup += '<div class="serviceManagementGroup"> Long running services: <br/><ul>';
     for (var serviceName in clusterServices) {
       var serviceInfo = clusterServices[serviceName];
       if (clusterServices.hasOwnProperty(serviceName) && serviceInfo.attributes.runnable) {
         serviceManagementMarkup += generateServiceManagementEntryMarkup( serviceName, serviceInfo );
       }
     }
-    serviceManagementMarkup += '</div>';
+    serviceManagementMarkup += '</ul></div>';
 
     /* Link the newly-generated serviceManagementMarkup into the DOM. */
     globalYui.one("#serviceManagementDynamicRenderDivId").setContent( serviceManagementMarkup );

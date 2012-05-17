@@ -31,7 +31,7 @@ function renderClusterList(Y) {
         var multipleClustersSupported = false;
 
         if (numClusters == 0) {
-          clustersListMarkup = "You don't have any installed cluster.";
+          clustersListMarkup = "";
         } else {
           if (multipleClustersSupported) {
             clustersListMarkup =    "<table>" +
@@ -60,21 +60,29 @@ function renderClusterList(Y) {
                                    '</div>' +
                                    '<div class="formElement">' +
                                      '<label>Monitoring dashboard</label>' +
-                                     '<a href="#">monitoringDashboard.com:4060</a>' +
+                                     '<a href="/hdp/dashboard/ui/home.html">Show Monitoring Dashboard</a>' +
                                    '</div>' +
                                    '<div class="formElement">' +
                                      '<label>Actions</label>' +
-                                     '<a href="manageServices.php?clusterName=' + clusterName + '" id="existingClusterLinkDivId">[ Manage services ]</a>' +
-                                     '<a href="addNodesWizard.php?clusterName=' + clusterName + '">[ Add slave nodes to cluster ]</a>' +
+                                     '<a class="btn" href="manageServices.php?clusterName=' + clusterName + '" id="existingClusterLinkDivId">Manage services</a>' +
+                                     '<a class="btn" style="margin-left:10px" href="addNodesWizard.php?clusterName=' + clusterName + '">Add slave nodes to cluster</a>' +
                                    '</div>' +
                                  '</div>';
           }
         }
 
-        var newClusterLinkHTML = "<br/>Want to create a new cluster? Click <a href='initializeCluster.php' id='newClusterLinkDivId'>here</a> ";
+        var newClusterLinkHTML = "<div class='alert alert-info' style='margin-top:40px;padding:20px'>" +
+        	"<h2 style='margin-bottom:10px'>Welcome to Hortonworks Management Center!</h2>" +
+        	"<p>Hortonworks Management Center makes it really easy for you to install, configure, and manage your Hadoop cluster.</p>" +
+        	"<p>First, we'll walk you through the cluster set up with a 7-step wizard.</p>" +
+        	"<p><span class='label label-info'>Note</span><span style='margin-left:10px;'>Before you proceed, make sure you have performed all the pre-installation steps (REFERENCE MATERIAL HERE).</span></p>" + 
+        	"<a class='btn btn-large' style='margin-top:20px' href='initializeCluster.php'>Let's Get Started!</a>" +
+        	"</div>";
         if (multipleClustersSupported || numClusters == 0) {
           clustersListMarkup += newClusterLinkHTML;
         }
+        
+        // document.location.href = "initializeCluster.php";
 
         Y.one("#clustersListDivId").setContent( clustersListMarkup );
 

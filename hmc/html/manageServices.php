@@ -1,9 +1,10 @@
 <html>
   <head>
-    <title id="pageTitleId">Hortonworks Data Platform Portal</title>
+    <title id="pageTitleId">Hortonworks Management Center</title>
 
     <!-- CSS -->
-    <link type="text/css" rel="stylesheet" href="../yui-3.4.1/build/cssreset/cssreset-min.css"> 
+    <link type="text/css" rel="stylesheet" href="../yui-3.4.1/build/cssreset/cssreset-min.css">
+    <link type="text/css" rel="stylesheet" href="../css/bootstrap.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common2.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common3.css" media="screen"/>
@@ -12,19 +13,9 @@
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./header.html"; ?>
+    <?php require "./topnav.html"; ?>
 
-    <hr/>
-
-    <h1>Service Management for Cluster 
-      <a href="../html/clusters.php?clusterName=<?php echo $_GET['clusterName']; ?>" target="_blank">
-        <?php echo $_GET['clusterName']; ?>
-      </a>
-    </h1>
-
-    <br/>
-
-    <div id="contentDivId"> 
+    <div id="ContentDivId"> 
 
       <?php require "./utils.htmli"; ?>
 
@@ -103,7 +94,6 @@
     </div>
     <!-- End of contentDivId -->
 
-    <hr/>
     <?php require "./footer.html"; ?>
 
     <!-- Javascript Scaffolding -->

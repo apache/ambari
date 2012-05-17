@@ -1,8 +1,9 @@
 <html>
   <head>
-    <title id="pageTitleId">Hortonworks Data Platform Portal</title>
+    <title id="pageTitleId">Hortonworks Management Center</title>
 
     <!-- CSS -->
+    <link type="text/css" rel="stylesheet" href="../css/bootstrap.css" media="screen"/> 
     <link type="text/css" rel="stylesheet" href="../css/common.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common2.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common3.css" media="screen"/>
@@ -10,17 +11,15 @@
   </head>
 
   <body>
-    <?php require "./header.html"; ?>
-    <hr/>
+    <?php require "./topnav.html"; ?>
 
-    <div name="ContentDiv" id="ContentDivId" class="yui3-skin-sam"> 
+    <div id="ContentDivId" class="yui3-skin-sam"> 
 
       <!-- List of clusters -->
-      <div name="clustersListDiv" id="clustersListDivId">
+      <div id="clustersListDivId">
       </div>
-
-        <br/>
-        
+    </div>        
+    
         <!--
         <div name="installationSideBarDiv" id="installationSideBarDivId">
           <div id="createClusterSideBarId">Create cluster</div>
@@ -32,11 +31,10 @@
         </div>
         -->
 
-            <script src="http://yui.yahooapis.com/3.4.1/build/yui/yui-min.js"></script>
-            <script src="../js/utils.js"></script>
-            <script src="../js/clustersList.js"></script>
+    <script src="http://yui.yahooapis.com/3.4.1/build/yui/yui-min.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/clustersList.js"></script>
 
-          </body>
-          <hr/>
-          <?php require "./footer.html"; ?>
-        </html> 
+    <?php require "./footer.html"; ?>
+  </body>
+</html> 

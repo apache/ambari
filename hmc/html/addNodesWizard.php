@@ -1,9 +1,10 @@
 <html>
   <head>
-    <title id="pageTitleId">Hortonworks Data Platform Portal</title>
+    <title id="pageTitleId">Hortonworks Management Center</title>
 
     <!-- CSS -->
-    <link type="text/css" rel="stylesheet" href="../yui-3.4.1/build/cssreset/cssreset-min.css"> 
+    <link type="text/css" rel="stylesheet" href="../yui-3.4.1/build/cssreset/cssreset-min.css">
+	<link type="text/css" rel="stylesheet" href="../css/bootstrap.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common2.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common3.css" media="screen"/>
@@ -12,10 +13,9 @@
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./header.html"; ?>
-    <hr/>
+    <?php require "./topnav.html"; ?>
 
-    <div name="ContentDiv" id="ContentDivId"> 
+    <div id="ContentDivId"> 
 
       <!-- List of clusters
       <div name="clustersListDiv" id="clustersListDivId">
@@ -44,30 +44,33 @@
             </li>
           </ol>
         </div>
-        
+
         <br/>
 
         <?php require "./utils.htmli"; ?>
 
         <div name="installationMainFormsDiv" id="installationMainFormsDivId">
-         
-          <br/>
+            <div class="pageSummary">
+              <h2>Which nodes are you adding to the cluster?</h2>
+              We'll use the SSH private key and public key files to perform installation on your nodes.
+              <span>The public key that is paired with the private key must already be installed on all the nodes.</span>
+            </div>
+            <div class="pageContent">
               <div id="addNodesCoreDivId" style="display:block">
-
                 <fieldset>
                   <form id="addNodesFilesFormId" enctype="multipart/form-data" method="post">
                     <p>
-                    <label for="clusterDeployUserId">Cluster Deploy User</label>
+                    <label for="clusterDeployUserId">SSH Username</label>
                     <input type="text" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">
                     </p>
                     <br/>
                     <p>
-                    <label for="clusterDeployUserIdentityFileId">Cluster Deploy User Identity File</label>
+                    <label for="clusterDeployUserIdentityFileId">SSH Private Key File</label>
                     <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFileId" value="" placeholder="">
                     </p>
                     <br/>
                     <p>
-                    <label for="clusterHostsFileId">Cluster Hosts File</label>
+                    <label for="clusterHostsFileId">SSH Public Key File</label>
                     <input type="file" name="clusterHostsFile" id="clusterHostsFileId" value="" placeholder="">
                     </p>
 
@@ -76,11 +79,9 @@
                     </div>
                   </form>
                 </fieldset>
-                <br/>
-                <p>
-                  <input type="button" id="addNodesSubmitButtonId" value="Add nodes" class="submitButton">
-                </p>
+                <button class="btn btn-large" id="addNodesSubmitButtonId">Add Nodes</button>
               </div>
+            </div>
 
               <div name="selectServicesCoreDiv" id="selectServicesCoreDivId" style="display:none">
                 <fieldset>
@@ -98,10 +99,7 @@
                     </p> -->
                   </form>
                 </fieldset>
-                <br/>
-                <p>
-                <input type="button" name="deployAddedNodesSubmitButton" id="deployAddedNodesSubmitButtonId" value="Deploy Nodes" class="submitButton">
-                </p>
+                <button class="btn btn-large" id="deployAddedNodesSubmitButtonId">Deploy Nodes</button>
               </div>
 
               <?php require "./txnUtils.htmli"; ?>
@@ -110,8 +108,8 @@
             </div>
             <!-- End of installation Wizard -->
 
-            <hr/>
-            <?php require "./footer.html"; ?>
+          </div>
+          <?php require "./footer.html"; ?>
 
             <!-- Javascript Scaffolding -->
             <script type="text/javascript">
@@ -145,5 +143,5 @@
             <?php require "./bootstrapJs.htmli"; ?>
             <!-- End of Javascript Scaffolding -->
 
-          </body>
-        </html> 
+  </body>
+</html> 

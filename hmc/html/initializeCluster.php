@@ -1,21 +1,21 @@
 <html>
   <head>
-    <title id="pageTitleId">Hortonworks Data Platform Portal</title>
+    <title id="pageTitleId">Hortonworks Management Center</title>
 
     <!-- CSS -->
-    <link type="text/css" rel="stylesheet" href="../yui-3.4.1/build/cssreset/cssreset-min.css"> 
+    <link type="text/css" rel="stylesheet" href="../yui-3.4.1/build/cssreset/cssreset-min.css">
+    <link type="text/css" rel="stylesheet" href="../css/bootstrap.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common2.css" media="screen"/>
-    <link type="text/css" rel="stylesheet" href="../css/common3.css" media="screen"/>
+    <link type="text/css" rel="stylesheet" href="../css/common3.css" media="screen"/>    
     <link type="text/css" rel="stylesheet" href="../css/selectHosts.css" media="screen"/>
     <!-- End CSS -->
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./header.html"; ?>
-    <hr/>
+    <?php require "./topnav.html"; ?>
 
-    <div name="ContentDiv" id="ContentDivId"> 
+    <div id="ContentDivId">
 
       <!-- List of clusters
       <div name="clustersListDiv" id="clustersListDivId">
@@ -63,7 +63,7 @@
                 <span class="installationWizardStageNumber">
                   5
                 </span>
-                Select Disk Mount Points
+                Select Mount Points
               </div>
             </li>
             <li id="configureClusterAdvancedStageId" class="installationWizardUnvisitedStage">
@@ -71,7 +71,7 @@
                 <span class="installationWizardStageNumber">
                   6
                 </span>
-                Advanced Configuration
+                Custom Config
               </div>
             </li>
             <li id="deployClusterStageId" class="installationWizardLastStage installationWizardUnvisitedStage">
@@ -85,43 +85,44 @@
           </ol>
         </div>
         
+
         <?php require "./utils.htmli"; ?>
 
-        <div name="installationMainFormsDiv" id="installationMainFormsDivId">
-         
-          <div name ="createClusterCoreDiv" id="createClusterCoreDivId">
-            <form id="createClusterFormId" >
-              <fieldset>
-                <!--<legend>Create Cluster</legend>-->
-                <label for="clusterNameId">Enter a name for your cluster</label>
-                <input type="text" name="clusterName" id="clusterNameId" value="">
-              </fieldset>
-            </form>
-                <br/>
-                <p>
-                <input type="button" name="createClusterSubmitButton" id="createClusterSubmitButtonId" value="Create Cluster" class="submitButton">
-                </p>
+        <div id="installationMainFormsDivId">
+              <div id="createClusterCoreDivId">
+                <div class="pageSummary">
+                  <h2>Let's create a new Hadoop cluster</h2>    
+                </div>
+                <div class="pageContent">       
+                  <form id="createClusterFormId">
+                    <label for="clusterNameId">Name of your new cluster</label>
+                    <input type="text" name="clusterName" id="clusterNameId" placeholder="cluster name" value="">
+                  </form>
+				  <a href="javascript:void 0" class="btn btn-large" id="createClusterSubmitButtonId">Create Cluster</a>
+                </div>
               </div>
-
+          
               <div id="addNodesCoreDivId" style="display:none">
-
-                <fieldset>
+                  
+                  <div class="pageSummary">
+                    <h2>Which nodes are you installing Hadoop on?</h2>
+                    We'll use the SSH private key and public key files to perform installation on your nodes.
+                    <span>The public key that is paired with the private key must already be installed on all the nodes.</span>
+                  </div>
+                  <div class="pageContent">
                   <form id="addNodesFilesFormId" enctype="multipart/form-data" method="post">
-                    <div class="pageSummary">
-                      We need information about the nodes you want to use for installing Hadoop, please provide them below:
-                    </div>
                     <p>
-                    <label for="clusterDeployUserId">Cluster Deploy User</label>
+                    <label for="clusterDeployUserId">SSH Username</label>
                     <input type="text" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">
                     </p>
                     <br/>
                     <p>
-                    <label for="clusterDeployUserIdentityFileId">Cluster Deploy User Identity File</label>
+                    <label for="clusterDeployUserIdentityFileId">SSH Private Key File</label>
                     <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFileId" value="" placeholder="">
                     </p>
                     <br/>
                     <p>
-                    <label for="clusterHostsFileId">Cluster Hosts File</label>
+                    <label for="clusterHostsFileId">Newline-delimited list of node hostnames</label>
                     <input type="file" name="clusterHostsFile" id="clusterHostsFileId" value="" placeholder="">
                     </p>
 
@@ -129,40 +130,38 @@
                       <iframe name="fileUploadTarget" id="fileUploadTargetId" src="about:blank" style="display:none"></iframe>
                     </div>
                   </form>
-                </fieldset>
-                <br/>
-                <p>
-                  <input type="button" id="addNodesSubmitButtonId" value="Add nodes" class="submitButton">
-                </p>
+                  <a href="javascript:void 0" class="btn btn-large" id="addNodesSubmitButtonId">Add Nodes</a>
+                  </div>
               </div>
 
               <div name="selectServicesCoreDiv" id="selectServicesCoreDivId" style="display:none">
-               <fieldset>
-                <div class="pageSummary">Select the list of services below that you wish to install on the cluster. Note that some of them may have dependencies which we will automatically select.</div>
-                <div id="selectCoreServicesListId">
-                  <ul id="selectCoreServicesListUlId">
-                    <div id="selectCoreServicesDynamicRenderDivId">
-                    </div>
-                  </ul>
+                <fieldset>
+                <div class="pageSummary">
+                  <h2>Which services do you want to install?</h2>
+                  <p>We'll automatically take care of dependencies (e.g., HBase requires ZooKeeper, etc.)</p>
+               	</div>
+               	<div class="pageContent">
+                  <div id="selectCoreServicesListId">
+                   <ul id="selectCoreServicesListUlId">
+                      <div id="selectCoreServicesDynamicRenderDivId">
+                      </div>
+                    </ul>
+                  </div>
+                  <div id="selectOptionalServicesListId">
+                    <ul id="selectOptionalServicesListUlId">
+                      <div id="selectOptionalServicesDynamicRenderDivId">
+                      </div>
+                    </ul>
+                  </div>
+                  <div id="selectNonSelectableServicesListId">
+                    <ul id="selectNonSelectableServicesListUlId">
+                      <div id="selectNonSelectableServicesDynamicRenderDivId">
+                      </div>
+                    </ul>
+                  </div>
                 </div>
-                <div id="selectOptionalServicesListId">
-                  <ul id="selectOptionalServicesListUlId">
-                    <div id="selectOptionalServicesDynamicRenderDivId">
-                    </div>
-                  </ul>
-                </div>
-                <div id="selectNonSelectableServicesListId">
-                  <ul id="selectNonSelectableServicesListUlId">
-                    <div id="selectNonSelectableServicesDynamicRenderDivId">
-                    </div>
-                  </ul>
-                </div>
-               </fieldset>
-
-                <br/>
-                <p>
-                  <input type="button" name="selectServicesSubmitButton" id="selectServicesSubmitButtonId" value="Select services" class="submitButton">
-                </p>
+                </fieldset>
+                <a href="javascript:void 0" class="btn btn-large" style="margin:20px 0 0 60px" id="selectServicesSubmitButtonId" class="submitButton">Select Services</a>
 
               </div>
               <!-- End of selectServicesCoreDivId -->
@@ -171,20 +170,26 @@
                 <div id="statusDivId">
                 </div>
 
-                <div class="pageSummary"> We have categorized the given nodes into Node-groups and also suggested the locations of various service-masters. Drap and drop service-masters that you wish to change. Click on the given links if you wish to change the node assignments</div>
+                <div class="pageSummary">
+                	<h2>Assign Services to Nodes</h2>
+                	<p>We have categorized the given nodes into Node-groups and also suggested the locations of various service-masters. Drap and drop service-masters that you wish to change. Click on the given links if you wish to change the node assignments.</p>
+                </div>
                 <div id="serviceMastersLinksDivId">
                 </div>
                 <div id="nodeGroupsCoreDivId">
                 </div>
-                <input type="button" name="selectServiceMastersSubmitButton" id="selectServiceMastersSubmitButtonId" value="Submit" class="submitButton">
+                <a href="javascript:void 0" style="margin:20px" class="btn btn-large" id="selectServiceMastersSubmitButtonId">Submit</a>
 
               </div>
 
               <div name="configureClusterCoreDiv" id="configureClusterCoreDivId" style="display:none">
-
-                <div class="pageSummary">We observed that the following mount points are available on your nodes. Please confirm/modify the list, these mount points will be used for storing data in various services as shown on the right side.</div>
-                <form id="configureClusterFormId">
-                  <div id="configureClusterInputContainerDivId">
+                <div class="pageSummary">
+                	<h2>Specify Mount Points</h2>
+                	<p>We found the following mount points on your nodes. Please confirm/modify the mount points to use for the services shown.
+                </div>
+                
+                <div id="configureClusterInputContainerDivId">
+                  <form id="configureClusterFormId">
                     <div name="configureClusterInputDiv" id="configureClusterInputDivId">
                         <fieldset id="configureClusterInputFieldSetId">
                           <!--<legend>Select mount points</legend>-->
@@ -198,48 +203,47 @@
                           <!-- Additional <div>s for other categories of cluster configuration go here -->
                         </fieldset>
                     </div>
-
-                    <br/>
-
-                    <p>
-                      <input type="button" name="configureClusterSubmitButton" id="configureClusterSubmitButtonId" value="Submit" class="submitButton">
-                    </p>
-                  </div>
-
-                  <div name="configureClusterDisplayDiv" id="configureClusterDisplayDivId">
-                    <fieldset>
-                      <!--<legend>Effective mount points</legend>-->
-                      <div name="configureClusterMountPointsDisplayDiv" id="configureClusterMountPointsDisplayDivId">
-                      </div>
-                    </fieldset>
-                  </div>
+                    <!-- <input type="button" id="configureClusterSubmitButtonId" value="Submit" class="submitButton"> -->
                   </form>
+                  <a href="javascript:void 0" class="btn btn-large" id="configureClusterSubmitButtonId">Submit</a>
+                </div>                                              
+                <div id="configureClusterDisplayDivId" style="display:none">
+                  <fieldset>
+                    <!--<legend>Effective mount points</legend>-->
+                    <div name="configureClusterMountPointsDisplayDiv" id="configureClusterMountPointsDisplayDivId">
+                    </div>
+                  </fieldset>
                 </div>
+              </div>
 
                 <div id="configureClusterAdvancedCoreDivId" style="display:none">
-                  <div class="pageSummary">Edit some/all of the following to affect per-service configuration. We have chimed in with reasonable defaults whereever possible.</div>
+                  <div class="pageSummary">
+                  	<h2>Customize Settings</h2>
+                  	<p>We have come up with reasonable default settings.  Customize as you see fit.</p>
+                  </div>
                   <form id="configureClusterAdvancedFormId">
                     <fieldset id="configureClusterAdvancedFieldSetId">
                       <!--<legend>Advanced configuration</legend>-->
                       <div id="configureClusterAdvancedDynamicRenderDivId"></div>
                     </fieldset>
-                    <p>
-                    <input type="button" name="configureClusterAdvancedSubmitButton" id="configureClusterAdvancedSubmitButtonId" value="Submit" class="submitButton">
-                    </p>
                   </form>
+                  <label></label>
+                  <a href="javascript:void 0" class="btn btn-large" id="configureClusterAdvancedSubmitButtonId">Submit</a>
                 </div>
 
                 <div name="deployCoreDiv" id="deployCoreDivId" style="display:none">
-                  <div class="pageSummary">Please review your settings below, we are ready for a deploy! If you wish to make any changes, you can click on the installation stages above.</div>
+                  <div class="pageSummary">
+                  	<h2>Review and Deploy</h2>
+                  	<p>Please review your settings below, we are ready for a deploy! If you wish to make any changes, you can click on the installation stages above.</p>               
+                  </div>
                   <form id="deployFormId">
                     <fieldset id="deployFieldSetId">
                       <!--<legend>Review your settings</legend>-->
                       <div id="deployDynamicRenderDivId"></div>
-                    </fieldset>
-                    <p>
-                    <input type="button" name="deploySubmitButton" id="deploySubmitButtonId" value="Deploy" class="submitButton">
-                    </p>
+                    </fieldset>                    
                   </form>
+                  <label></label>
+                  <a href="javascript:void 0" class="btn btn-large" id="deploySubmitButtonId" value="Deploy">Deploy</a>
                 </div>
 
                 <?php require "./txnUtils.htmli"; ?>
@@ -247,9 +251,7 @@
               </div>
             </div>
             <!-- End of installation Wizard -->
-
-            <hr/>
-
+    </div>
             <?php require "./footer.html"; ?>
 
             <!-- Javascript Scaffolding -->
@@ -279,7 +281,9 @@
               {}
             };
 
-            var jsFilesToLoad = [ 
+            var jsFilesToLoad = [
+				'../js/jquery.min.js',
+				'../js/bootstrap.min.js', 
                 '../js/utils.js', 
                 '../js/txnUtils.js',
                 '../js/installationWizard.js',
@@ -292,7 +296,7 @@
                 '../js/configureServicesUtils.js',
                 '../js/configureServices.js', 
                 '../js/reviewAndDeploy.js', 
-                '../js/deployProgress.js' 
+                '../js/deployProgress.js'
               ];
             </script>
 

@@ -1,0 +1,39 @@
+<!-- START TOPNAV -->
+    <?php 
+		if (basename($_SERVER['REQUEST_URI']) == 'initializeCluster.php') {
+			$logoUrl = 'javascript:void 0';
+        } else {
+			$logoUrl = '/hmc/html';
+		}
+	?>
+	<div class="navbar  navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container">
+				<img style="float:left;padding-top:5px" src="logo-small.gif">
+				<a class="brand" href="<?php echo $logoUrl ?>">Hortonworks Management Center</a>
+				<?php /*
+				<ul class="nav">
+					<li class="active"><a href="#">Home</a>
+					</li>
+					<li class="dropdown"><a href="#" class="dropdown-toggle"
+						data-toggle="dropdown"> Clusters <b class="caret"></b>
+					</a>
+						<ul class="dropdown-menu">
+							<li><a href="#">Cluster 1</a></li>
+							<li><a href="#">Cluster 2</a></li>
+						</ul>
+					</li>
+					<li><a href="#">Link</a></li>
+					<li><a href="#">Link</a></li>
+					<li>
+						<form class="navbar-search pull-left">
+							<input style="margin-left: 20px" type="text" class="search-query"
+								placeholder="Search">
+						</form>
+					</li>
+				</ul>
+				*/ ?>
+			</div>
+		</div>
+	</div>
+<!-- END TOPNAV -->

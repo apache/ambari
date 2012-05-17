@@ -3,7 +3,8 @@
     <title id="pageTitleId">Hortonworks Data Platform Portal</title>
 
     <!-- CSS -->
-    <link type="text/css" rel="stylesheet" href="../yui-3.4.1/build/cssreset/cssreset-min.css"> 
+    <link type="text/css" rel="stylesheet" href="../yui-3.4.1/build/cssreset/cssreset-min.css">
+    <link type="text/css" rel="stylesheet" href="../css/bootstrap.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common2.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common3.css" media="screen"/>
@@ -12,9 +13,7 @@
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./header.html"; ?>
-
-    <hr/>
+    <?php require "./topnav.html"; ?>
 
     <h1> Cluster <?php echo $_GET['clusterName']; ?> </h1>
 
@@ -58,7 +57,6 @@
     </div>
     <!-- End of contentDivId -->
 
-    <hr/>
     <?php require "./footer.html"; ?>
 
     <!-- Javascript Scaffolding -->
@@ -75,6 +73,5 @@
 
     <?php require "./bootstrapJs.htmli"; ?>
     <!-- End of Javascript Scaffolding -->
-
   </body>
 </html> 

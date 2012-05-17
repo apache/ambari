@@ -63,7 +63,7 @@
 .aNodeGroup {
   /*overflow:auto;*/
   padding:10px;
-  width:40%;
+  width:500px;
   float:left;
 }
 
@@ -101,15 +101,16 @@
 }
 
 .masterDiv {
-  border: 1px solid green;
-  margin: 3px;
-  padding: 3px;
+  border:1px solid green;
+  margin:3px;
+  padding:10px;
   cursor:move;
   /* background-color: #00CC00; */
-  background-color: rgb(50,205,50);
+  background-color:#65B642;
   border-radius:4px 4px 4px 4px;
   color:white;
   font-weight:bold;
+  width:180px;
 }
 
 #selectServiceMastersSubmitButtonId {

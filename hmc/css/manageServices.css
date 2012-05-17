@@ -141,3 +141,9 @@
   background-color: gray;
   cursor: pointer;
 }
+
+ul#serviceManagementListId,
+.serviceManagementGroup ul {
+	list-style:none outside none;
+	margin:0;
+}

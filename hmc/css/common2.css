@@ -18,10 +18,10 @@ fieldset {
 }
 */
 fieldset { 
-  padding: 1em;
-  border:1px solid #B2B299 ;
+  /*padding: 1em;*/
+  /*border:1px solid #B2B299;*/
   /*background-color:#F4F4F4;*/
-  background-color:#F0F0E8;
+  /*background-color:#F0F0E8;*/
 }
 
 legend {
@@ -121,6 +121,7 @@ input[readonly] {
   vertical-align:top;
 }
 
+/*
 label {
   clear:left;
   float:left;
@@ -129,6 +130,7 @@ label {
   padding-top:0.2em;
   text-align:right;
 }
+*/
 
 
 /*

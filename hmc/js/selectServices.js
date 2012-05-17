@@ -74,8 +74,8 @@ function generateSelectServiceCheckbox(serviceInfo) {
       && !serviceInfo.attributes.mustInstall) {
     dContent += ' style="display:none" ';
   }
-  dContent += '><label for="install' + serviceInfo.serviceName + 'Id"'
-      + '>' + serviceInfo.displayName + '</label>'
+  dContent += '><label class="checkbox" for="install' + serviceInfo.serviceName + 'Id"'
+      + '>' + serviceInfo.displayName
       + '<input type="checkbox" name="' + serviceInfo.serviceName + '"'
       + ' id="installService' + serviceInfo.serviceName + 'Id" value="install'
       + serviceInfo.serviceName + 'Value"';
@@ -92,8 +92,8 @@ function generateSelectServiceCheckbox(serviceInfo) {
      }
   }
  
-  dContent += '/>' +
-          '<div class="contextualHelp">' + serviceInfo['description'] + '</div>' +
+  dContent += '/> - <span class="description">' + serviceInfo['description'] + '</span></label>' +
+          //'<div class="description">' + serviceInfo['description'] + '</div>' +
         '</div>';
 
   // globalYui.log("Handling service entry: " + dContent);

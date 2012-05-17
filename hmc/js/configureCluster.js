@@ -208,9 +208,9 @@ function renderConfigureCluster (clusterConfig) {
 
       /* Inefficient, with all the string concatenations, but clear to read. */
       clusterConfigInputMarkup += 
-          '<label for="">' + mountPoint + '</label>' +
+          '<label class="checkbox" for="">' + mountPoint + 
           '<input type=checkbox name=mountPoints id=mountPointsId checked=true value=' + mountPoint + '>' +
-          '<br/>'; 
+          '</label><br/>'; 
     });
 
   /* Link the newly-generated clusterConfigInputMarkup into the DOM. */

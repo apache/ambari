@@ -20,7 +20,6 @@ span.installationWizardStageNumber {
 
 #installationWizardProgressBarDivId {
   width: 100%;
-  text-align: center;
   margin: 0px auto;
   margin-bottom: 8px;
 }
@@ -28,7 +27,6 @@ span.installationWizardStageNumber {
 #installationWizardProgressBarListId {
   margin:0;
   padding:0;
-  text-align:center;
   height:50px;
 }
 
@@ -43,13 +41,16 @@ span.installationWizardStageNumber {
 .installationWizardUnvisitedStage, #installationWizardProgressBarListId li.installationWizardUnvisitedStage {
   background-color: rgb(190,190,190);
   color: white;
+  border-radius:4px;
+  -moz-border-radius:4px;
+  -webkit-border-radius:4px;
+  padding:10px;
 }
 
 .installationWizardVisitedStage, #installationWizardProgressBarListId li.installationWizardVisitedStage {
   background-color: grey;
-  color: rgb(50,205,50);
-  padding-top: 6px;
-  padding-bottom: 6px;
+  color: #fff;
+  padding:10px;
   font-weight:bold;
   font-size: 12px;
   border-radius:4px;
@@ -59,19 +60,20 @@ span.installationWizardStageNumber {
 }
 
 .installationWizardCurrentStage, #installationWizardProgressBarListId li.installationWizardCurrentStage {
-  background-color: rgb(50,205,50);
+  background-color:#65B642;
   color: white;
-  margin: 8px;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  margin:4px;
+  padding:10px;
   font-weight:bolder;
   font-size: 14px;
-  -webkit-box-shadow: 3px 3px 3px 4px #ccc;
-  -moz-box-shadow: 3px 3px 3px 4px #ccc;
-  box-shadow: 3px 3px 3px 4px #ccc;
   border-radius:4px;
   -moz-border-radius:4px;
   -webkit-border-radius:4px;
+}
+
+#txnProgressStatesListId {
+	margin:20px;
+	list-style:none;
 }
 
 #txnProgressStatesListId li div {
@@ -171,7 +173,7 @@ span.installationWizardStageNumber {
 #txnProgressCoreDivId {
   width:50%;
   top:30%; 
-  left:0px;
+  left:0;
   margin-left:25%;
 
   /* Float above all else*/
@@ -180,6 +182,11 @@ span.installationWizardStageNumber {
 
   /* Leave some space at the bootom for long progress-lists */
   padding-bottom:100px;
+}
+
+#txnProgressStatusDivId p {
+	font-size:14px;
+	margin-top:10px;
 }
 
 #txnProgressFieldSetId {
@@ -243,9 +250,9 @@ span.installationWizardStageNumber {
 
 #configureClusterInputContainerDivId {
   float:left;
-  width:40%;
-  margin-left: 10%;
-  margin-right:10px;
+  width:400px;
+  margin-left:40px;
+  margin-right:20px;
 }
 
 #configureClusterDisplayDivId {
@@ -257,7 +264,7 @@ span.installationWizardStageNumber {
 
 .formInputError, input[type="text"].formInputError {
   border-color: #F53907;
-  background-color: #F17879;
+  /*background-color: #F17879;*/
 }
 
 .formInputErrorReason {
