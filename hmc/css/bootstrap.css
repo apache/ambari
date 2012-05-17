@@ -4959,6 +4959,7 @@ button.close {
   }
   .iconic-cog:before {
     content: '\2699';
+    color:#666;
   }
   .iconic-bolt:before {
     content: '\26a1';
