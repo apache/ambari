@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-252. Remove Playground files from HMC (Varun Kapoor via ramya)
+
   AMBARI-266. add select/unselect all buttons to the select services page 
   (Vinod via ramya)
 
