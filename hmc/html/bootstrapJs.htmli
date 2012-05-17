@@ -18,7 +18,13 @@
     }
   }
 
-  var globalYui = YUI().use( 
+  var globalYuiLoaderOptions = {
+    combine: true,
+    comboBase: '../yuiCombinator.php?',
+    root: 'yui-3.4.1/build/'
+  };
+
+  var globalYui = YUI( globalYuiLoaderOptions ).use( 
     "node", "io", "dump", "json", "panel", "event", "arraysort", 
     "array-extras", "datasource", "datasource-io", "datasource-jsonschema", 
     "datasource-polling", "stylesheet", "dd-drop", "dd-constrain",

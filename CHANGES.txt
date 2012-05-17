@@ -2,6 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-218. Install Combo-Handler On HMC Webserver To Drastically Speed Up
+  Page Load Times (Varun Kapoor via ramya)
+
   AMBARI-259. add nodes to a cluster gives an option for ganglia and dashboard,
   these should be on by default (Vinod via ramya)
 
