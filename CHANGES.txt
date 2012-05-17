@@ -2,28 +2,32 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
-  AMBARI-241. Support cluster wipeout in orchestrator. (Hitesh via jitendra)
+  AMBARI-241. Support cluster wipeout in orchestrator. (hitesh via jitendra)
 
-  AMBARI-292. HTML being spewed in the Review+Deploy page. (Varun Kapoor via jitendra)
+  AMBARI-292. HTML being spewed in the Review+Deploy page. (Varun
+  Kapoor via jitendra)
 
   AMBARI-291. Fix yui packaging in the rpm. (jitendra)
 
   AMBARI-290. Comment in addNodesWizardInit.js. (Varun Kapoor via jitendra)
 
-  AMBARI-240. Make All FE Entry Points Hide The Loading Image When They're Ready To Take Input. 
-  (Varun Kapoor via jitendra)
+  AMBARI-240. Make All FE Entry Points Hide The Loading Image When
+  They're Ready To Take Input.  (Varun Kapoor via jitendra)
 
-  AMBARI-197. Templatize Standard Helper Components Of Every HTML Page. (Varun Kapoor via jitendra)
+  AMBARI-197. Templatize Standard Helper Components Of Every HTML
+  Page. (Varun Kapoor via jitendra)
 
-  AMBARI-229. Remove Navigation Bar (W/ Clusters Link) From InstallationWizard (And Other Entry Points). 
-  (Varun Kapoor via jitendra)
+  AMBARI-229. Remove Navigation Bar (W/ Clusters Link) From
+  InstallationWizard (And Other Entry Points).  (Varun Kapoor via
+  jitendra)
 
   AMBARI-214. Make HMC Use Local YUI Copy. (Varun Kapoor via jitendra)
 
-  AMBARI-239. HDFS utilization pie chart shows gray / HDFS down while HDFS is up and running.
-  (vgogate via jitendra)
+  AMBARI-239. HDFS utilization pie chart shows gray / HDFS down while
+  HDFS is up and running.  (vgogate via jitendra)
 
-  AMBARI-238. When namenode process is down info shown is not correct for both HDFS and MR (vgogate)
+  AMBARI-238. When namenode process is down info shown is not correct
+  for both HDFS and MR (vgogate)
 
   AMBARI-237. Refactor puppet kick loop to easily change retries and timeouts.
   (jitendra)
