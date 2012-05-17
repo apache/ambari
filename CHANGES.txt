@@ -1,6 +1,8 @@
 Ambari Change log
 
 Release 0.x.x - unreleased
+
+  AMBARI-256. Update hive config to enable authorization (ramya)
  
   AMBARI-254. Parameterize zookeeper configs (ramya)
 
