@@ -116,3 +116,5 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
     submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
 });
 
+/* Main() */
+hideLoadingImg();

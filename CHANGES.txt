@@ -2,7 +2,9 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
-  AMBARI 280. Cleanup of utilities. (Vikram via hitesh)
+  AMBARI-281. Uninstall should hide loading image at startup. (Vikram via hitesh)
+
+  AMBARI-280. Cleanup of utilities. (Vikram via hitesh)
 
   AMBARI-249. Uninstall support from UI. (Vikram via hitesh)
 
