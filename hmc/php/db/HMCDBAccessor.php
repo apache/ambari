@@ -78,6 +78,45 @@ class HMCDBAccessor {
     LockRelease(); return $response;
   }
 
+  public function getClusterState ($clusterName) {
+    LockAcquire();
+    $response = array ( "clusterName" => $clusterName,
+        "result" => 0, "error" => "");
+    $ret = $this->dbHandle->beginTransaction();
+    if (!$ret) {
+      $error = $this->getLastDBErrorAsString();
+      $response["result"] = 1;
+      $response["error"] = "Failed to start DB transaction, error=".$error;
+      LockRelease(); return $response;
+    }
+    $query = "SELECT state FROM Clusters WHERE cluster_name = "
+        . $this->dbHandle->quote($clusterName);
+    $this->logger->log_trace("Running query: $query");
+    $pdoStmt = $this->dbHandle->query($query);
+    if ($pdoStmt === FALSE) {
+      $error = $this->getLastDBErrorAsString();
+      $this->dbHandle->rollBack();
+      $this->logger->log_error("Error when executing query"
+          . ", query=".$query
+          . ", error=".$error);
+      $response["result"] = 1;
+      $response["error"] = $error;
+      LockRelease(); return $response;
+    }
+    $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
+
+    LockRelease();
+
+    if (isset($result) && is_array($result) && count($result) == 1) {
+      $response[$clusterName] = $result[0]["state"];
+      return $response;
+    }
+
+    $response["result"] = 1;
+    $response["error"] = "Result is not set or not array or count is not 1 ".json_encode($result);
+    return $response;
+  }
+
   /**
    * Update cluster state for a given clusterName
    * @param string $clusterName Cluster Name
