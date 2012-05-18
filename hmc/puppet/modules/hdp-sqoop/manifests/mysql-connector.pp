@@ -18,6 +18,7 @@ class hdp-sqoop::mysql-connector()
   exec{ "unzip sqoop_mysql_url":
     command => "unzip -o -j ${target}",
     cwd     => $sqoop_lib,
+    #user    => $hdp::params::sqoop_user,
     group   => $hdp::params::hadoop_user_group,
     creates => "${sqoop_lib}/${$zip_name}",
     path    => ["/usr/bin/"]

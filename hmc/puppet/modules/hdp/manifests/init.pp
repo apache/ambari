@@ -13,10 +13,6 @@ class hdp()
   }
   Group[$hdp::params::hadoop_user_group] -> Hdp::User[$hdp::params::hadoop_user] 
 
-  class { 'hdp::package::epel_rpm' :}
-
-  class { 'hdp::set_hdp_yum_repo': }
-
   class { 'hdp::snmp': service_state => 'running'}
 
   class { 'hdp::create_smoke_user': }
@@ -42,16 +38,6 @@ class hdp()
     ensure => stopped,
   }
 
-}
-
-class hdp::set_hdp_yum_repo()
-{
-  $repo_target = "/etc/yum.repos.d/${hdp::params::hdp_yum_repo}"
-  hdp::configfile { $repo_target:
-    component => 'base',
-    owner     => 'root',
-    group     => 'root'
-  }
 }
 
 class hdp::create_smoke_user()
@@ -85,17 +71,6 @@ class hdp::set_selinux()
   }
 }
 
-class hdp::package::epel_rpm()
-{
- $epel_url = $hdp::params::epel_url
- $epel_package = regsubst($epel_url,'^.+/(.+)\.noarch\.rpm','\1')
- $cmd = "rpm -Uvh ${epel_url}"
- hdp::exec{ $cmd:
-    command => $cmd,
-    unless => "rpm -qa | grep $epel_package"
-  }
-}
-  
 define hdp::user(
   $gid = $hdp::params::hadoop_user_group,
   $just_validate = undef

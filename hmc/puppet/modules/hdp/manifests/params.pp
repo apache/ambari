@@ -133,12 +133,8 @@ class hdp::params()
   ### artifact dir
   $artifact_dir = hdp_default("artifact_dir","/tmp/HDP-artifacts/")
 
-  #### epel ##
-  $epel_url =  hdp_default("epel_url","http://dl.fedoraproject.org/pub/epel/5/i386/epel-release-5-4.noarch.rpm")
-
   ### artifacts download url ##
-  $hdp_repo_url = hdp_default("hdp_repo_url","")
-  $apache_artifacts_download_url = "${hdp_repo_url}/tars"
+  $apache_artifacts_download_url = hdp_default("apache_artifacts_download_url","")
   $gpl_artifacts_download_url = hdp_default("gpl_artifacts_download_url","") 
 
   ### related to package resources  
@@ -223,10 +219,8 @@ class hdp::params()
 }
   $packages = 'bigtop' 
   if ($packages == 'hdp') {
-    $hdp_yum_repo_base_url =  hdp_default("hdp_yum_repo_base_url","")
     $package_names[hadoop] = { 32 => ['hadoop.i386'], 64 => ['hadoop.x86_64']}
     $mapred_smoke_test_script = "/usr/sbin/hadoop-validate-setup.sh"
-    $hdp_yum_repo = hdp_default("hdp_yum_repo","hdp103.repo")
     $hadoop_bin = "/usr/sbin"
     $hadoop_conf_dir = "/etc/hadoop"
     $zk_conf_dir = "/etc/zookeeper"
@@ -251,13 +245,11 @@ class hdp::params()
     $hcat_mysql_host = hdp_default("hcat_mysql_host")
 
   } elsif ($packages == 'bigtop') {  
-    $hdp_yum_repo_base_url =  "${hdp_repo_url}"
 
     $package_names[hadoop] = {32 => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386','hadoop-datanode','hadoop-jobtracker','hadoop-secondarynamenode','hadoop-tasktracker'], 64 => ['hadoop','hadoop-libhdfs.x86_64','hadoop-native.x86_64','hadoop-pipes.x86_64','hadoop-sbin.x86_64','hadoop-datanode','hadoop-jobtracker','hadoop-secondarynamenode','hadoop-tasktracker']}
     #$package_names[hadoop] = {32 => ['hadoop.i386','hadoop-native.i386'], 64 => ['hadoop.x86_64','hadoop-native.x86_64']}
    
     $mapred_smoke_test_script = "/usr/lib/hadoop/sbin/hadoop-validate-setup.sh"
-    $hdp_yum_repo = hdp_default("hdp_yum_repo","hdp103.repo")
     $hadoop_bin = "/usr/lib/hadoop/bin"
     $hadoop_conf_dir = "/etc/hadoop/conf"
     $zk_conf_dir = "/etc/zookeeper/conf"
