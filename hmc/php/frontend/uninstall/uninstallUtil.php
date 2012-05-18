@@ -21,8 +21,7 @@ function handleUninstallTransaction ($clusterName, $deployUser, $rootTxnId,
     return;
   }
 
-  $hosts = explode(",", $hostsStr);
-  runPdsh($clusterName, $operationName, $deployUser, $hosts, $cmdLine);
+  runPdsh($clusterName, $operationName, $deployUser, $hostsStr, $cmdLine);
 
   $retArr = parseAndUpdateNodeInfo($clusterName, $operationName, $logger);
 

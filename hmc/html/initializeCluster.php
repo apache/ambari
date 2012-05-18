@@ -84,7 +84,6 @@
             </li>
           </ol>
         </div>
-        
 
         <?php require "./utils.htmli"; ?>
 
@@ -296,6 +295,7 @@
             <script type="text/javascript">
 
             var freshInstall = true;
+            var nodesAction = "addNodes";
 
             var InstallationWizard = {
 

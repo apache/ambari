@@ -217,6 +217,9 @@ function convertDisplayType (displayType) {
 
     case "SECRET":
       return "password";
+
+    case "ONOFF":
+      return "checkbox";
     
     default:
       return "text";

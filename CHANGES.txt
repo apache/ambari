@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI 280. Cleanup of utilities. (Vikram via hitesh)
+
   AMBARI-249. Uninstall support from UI. (Vikram via hitesh)
 
   AMBARI-277. API for getting cluster status. (Vikram via hitesh)
