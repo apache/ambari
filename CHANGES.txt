@@ -1,31 +1,39 @@
 Ambari Change log
 
-Release 0.x.x - unreleased
+Note: Committers should be listed using their login and non-committers
+should be listed by their full name. Please keep the file to a max of 80
+characters wide.
 
-  AMBARI-287. Add link to uninstall on index page. (Vikram via hitesh)
+Release 0.1.x - unreleased
 
-  AMBARI-285. Clean up Add Hosts page. (Yusako Sako via hitesh)
+  AMBARI-287. Add link to uninstall on index page. (Vikram Dixit via hitesh)
+
+  AMBARI-285. Clean up Add Hosts page. (Yusaku Sako via hitesh)
 
   AMBARI-284. Define service groups in nagios such that users can more easily
   enable/disable the related alerts. (vgogate via hitesh)
 
-  AMBARI-283. Fixup review and deploy rendering. (Vinod via hitesh)
+  AMBARI-283. Fixup review and deploy rendering. (vinod via hitesh)
 
-  AMBARI-282. Make fetchTxnProgress post processing easier to debug. (Vikram via hitesh)
+  AMBARI-282. Make fetchTxnProgress post processing easier to
+  debug. (Vikram Dixit via hitesh)
 
-  AMBARI-281. Uninstall should hide loading image at startup. (Vikram via hitesh)
+  AMBARI-281. Uninstall should hide loading image at startup. (Vikram
+  Dixit via hitesh)
 
-  AMBARI-280. Cleanup of utilities. (Vikram via hitesh)
+  AMBARI-280. Cleanup of utilities. (Vikram Dixit via hitesh)
 
-  AMBARI-249. Uninstall support from UI. (Vikram via hitesh)
+  AMBARI-249. Uninstall support from UI. (Vikram Dixit via hitesh)
 
-  AMBARI-277. API for getting cluster status. (Vikram via hitesh)
+  AMBARI-277. API for getting cluster status. (Vikram Dixit via hitesh)
 
-  AMBARI-274. Templeton data on hdfs needs to be readable by all users (Ramya via hitesh)
+  AMBARI-274. Templeton data on hdfs needs to be readable by all users
+  (ramya via hitesh)
 
-  AMBARI-272. Remove occurrences of repo_url to support local yum repo (Ramya via hitesh)
+  AMBARI-272. Remove occurrences of repo_url to support local yum repo
+  (ramya via hitesh)
 
-  AMBARI-271. Support for local yum mirror (Hitesh via ramya)
+  AMBARI-271. Support for local yum mirror (hitesh via ramya)
  
   AMBARI-270. Puppet cleanup to define all the users in a common 
   location (ramya)
@@ -42,19 +50,19 @@ Release 0.x.x - unreleased
   AMBARI-252. Remove Playground files from HMC (Varun Kapoor via ramya)
 
   AMBARI-266. add select/unselect all buttons to the select services page 
-  (Vinod via ramya)
+  (vinod via ramya)
 
   AMBARI-256. Update hive config to enable authorization (ramya)
  
   AMBARI-254. Parameterize zookeeper configs (ramya)
 
   AMBARI-257. Manage services section will have any empty section when no 
-  client only components installed (Vinod via ramya)
+  client only components installed (vinod via ramya)
 
   AMBARI-253. Support uninstall state in mysql modules (ramya)
 
   AMBARI-258. Start/Stop service show services that are not dependent on the 
-  service being worked on (Vinod via ramya)
+  service being worked on (vinod via ramya)
 
   AMBARI-251. Oozie link is not displayed even when Oozie is installed 
   (vgogate via ramya)
@@ -62,9 +70,9 @@ Release 0.x.x - unreleased
   AMBARI-298. The current stage and the next stage are shown at the same time
   during state transition (Yusaku Sako via ramya)
 
-  AMBARI-245. Support data cleanup if installation fails (Jitendra via ramya)
+  AMBARI-245. Support data cleanup if installation fails (jitendra via ramya)
 
-  AMBARI-248. Add yuiCombinator.php to rpm (Jitendra via ramya)
+  AMBARI-248. Add yuiCombinator.php to rpm (jitendra via ramya)
 
   AMBARI-297. Modal dialog box for showing deploy progress looks broken
   in Safari (Yusaku Sako via ramya)
@@ -72,19 +80,19 @@ Release 0.x.x - unreleased
   AMBARI-244. Implement wipeoff state in puppet (ramya)
 
   AMBARI-246. Add support for parsing yum repo files to understand how to
-  bootstrap nodes for local yum mirror (Hitesh via ramya)
+  bootstrap nodes for local yum mirror (hitesh via ramya)
 
   AMBARI-218. Install Combo-Handler On HMC Webserver To Drastically Speed Up
   Page Load Times (Varun Kapoor via ramya)
 
   AMBARI-259. add nodes to a cluster gives an option for ganglia and dashboard,
-  these should be on by default (Vinod via ramya)
+  these should be on by default (vinod via ramya)
 
   AMBARI-262. Init Wizard: Advanced Config validation errors can be bypassed 
-  (Vinod via ramya)
+  (vinod via ramya)
 
   AMBARI-263. Initialization Wizard: Select Disk Mount Points allows the user 
-  to continue without any mount points selected (Vinod via ramya) 
+  to continue without any mount points selected (vinod via ramya) 
 
   AMBARI-250. Cluster name validation (Vikram Dixit via ramya)
 
@@ -93,10 +101,10 @@ Release 0.x.x - unreleased
   AMBARI-296. Update styles on Service Management page (Yusaku Sako via ramya)
 
   AMBARI-264. Nagios Admin Contact should be checked to ensure it is always an 
-  email address (Vinod via ramya)
+  email address (vinod via ramya)
 
   AMBARI-242. Change code layout to ensure unit tests are not part of final
-  built rpm. (Hitesh via ramya)
+  built rpm. (hitesh via ramya)
 
   AMBARI-295. Improve the overall look and feel (Yusaku Sako via ramya)
 
