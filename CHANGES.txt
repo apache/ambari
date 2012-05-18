@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-274. Templeton data on hdfs needs to be readable by all users (Ramya via hitesh)
+
   AMBARI-272. Remove occurrences of repo_url to support local yum repo (Ramya via hitesh)
 
   AMBARI-271. Support for local yum mirror (Hitesh via ramya)
