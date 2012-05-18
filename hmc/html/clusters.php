@@ -39,7 +39,7 @@
               </a>
             </li>
             <li class="clustersNavigationLinkEntry">
-              <a href="../html/uninstallCluster.php?clusterName=<?php echo $_GET['clusterName']; ?>">
+              <a href="../html/uninstallWizard.php?clusterName=<?php echo $_GET['clusterName']; ?>">
                 Uninstall
               </a>
             </li>

@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-287. Add link to uninstall on index page. (Vikram via hitesh)
+
   AMBARI-285. Clean up Add Hosts page. (Yusako Sako via hitesh)
 
   AMBARI-284. Define service groups in nagios such that users can more easily

@@ -107,8 +107,10 @@ function deBootStrap ($clusterName, $deployUser, $stageInfo)
 
     $allDone = true;
   }
-
   /////// done monitoring return back to the uninstall
+  
+  // need to cleanup db for this cluster
+  $dbAccessor->deleteCluster($clusterName);
   
   return array('result' => 0);
 }
