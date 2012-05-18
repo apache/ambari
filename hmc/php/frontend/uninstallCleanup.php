@@ -23,7 +23,6 @@ function deBootStrap ($clusterName, $deployUser, $stageInfo)
 
   /////// launch the stages in the background.
   $stagesFile = "./uninstall/stages.php";
-  error_log("ClusterName: ".$clusterName);
   $logger->log_debug("ClusterName: $clusterName\n");
   $logger->log_debug("Deploy User: $deployUser\n");
   $status = "";         
