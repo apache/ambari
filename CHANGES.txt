@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-283. Fixup review and deploy rendering. (Vinod via hitesh)
+
   AMBARI-282. Make fetchTxnProgress post processing easier to debug. (Vikram via hitesh)
 
   AMBARI-281. Uninstall should hide loading image at startup. (Vikram via hitesh)

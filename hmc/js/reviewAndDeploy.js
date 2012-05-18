@@ -17,14 +17,17 @@ function renderDeploySummary (deployInfo) {
           continue;
       }
 
+      // Render all master components
       for (var componentIndex in perServiceInfo.components) {
         if (!perServiceInfo.components[componentIndex].isMaster) {
           continue;
         }
         var component = perServiceInfo.components[componentIndex];
         serviceHasToBeRendered = true;
-        masterSummary += '<label for=' + component.componentName + 'Id>' + component.displayName + '</label>' +
-                         '<input type=text name=' + component.componentName + 'Name id=' + component.componentName + 'Id readonly=readonly value=\"' + component.hostName + '\">';
+        masterSummary += '<div class="formElement">' +
+                           '<label for=' + component.componentName + 'Id>' + component.displayName + '&nbsp; : &nbsp;</label>' +
+                           '<input type=text name=' + component.componentName + 'Name id=' + component.componentName + 'Id readonly=readonly value=\"' + component.hostName + '\">' +
+                         '</div>';
       }
 
       for (var mPropertiesKey in perServiceInfo.properties) {
