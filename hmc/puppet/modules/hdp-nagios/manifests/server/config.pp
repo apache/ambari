@@ -6,6 +6,7 @@ class hdp-nagios::server::config()
   hdp-nagios::server::configfile { 'nagios.cfg': conf_dir => $hdp-nagios::params::conf_dir }
   hdp-nagios::server::configfile { 'hadoop-hosts.cfg': }
   hdp-nagios::server::configfile { 'hadoop-hostgroups.cfg': }
+  hdp-nagios::server::configfile { 'hadoop-servicegroups.cfg': }
   hdp-nagios::server::configfile { 'hadoop-services.cfg': }
   hdp-nagios::server::configfile { 'hadoop-commands.cfg': }
   hdp-nagios::server::configfile { 'contacts.cfg': }

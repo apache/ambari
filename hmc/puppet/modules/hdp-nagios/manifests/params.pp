@@ -11,6 +11,7 @@ class hdp-nagios::params() inherits hdp::params
   $nagios_obj_dir = hdp_default("nagios_obj_dir","/etc/nagios/objects")
   $nagios_host_cfg = hdp_default("nagios_host_cfg","${nagios_obj_dir}/hadoop-hosts.cfg")
   $nagios_hostgroup_cfg = hdp_default("nagios_hostgroup_cfg","${nagios_obj_dir}/hadoop-hostgroups.cfg")
+  $nagios_servicegroup_cfg = hdp_default("nagios_servicegroup_cfg","${nagios_obj_dir}/hadoop-servicegroups.cfg")
   $nagios_service_cfg = hdp_default("nagios_service_cfg","${nagios_obj_dir}/hadoop-services.cfg")
   $nagios_command_cfg = hdp_default("nagios_command_cfg","${nagios_obj_dir}/hadoop-commands.cfg")
   
