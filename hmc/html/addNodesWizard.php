@@ -111,6 +111,7 @@
 
             var freshInstallation = false;
             var clusterName = "<?php echo $_GET['clusterName']; ?>";
+            var nodesAction = "addNodes";
 
             var InstallationWizard = {
 

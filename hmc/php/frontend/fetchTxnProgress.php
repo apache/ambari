@@ -3,11 +3,21 @@
 include_once '../util/Logger.php';
 include_once "../conf/Config.inc";
 include_once "../orchestrator/HMC.php";
+include_once "uninstallCleanup.php";
 
 $dbPath = $GLOBALS["DB_PATH"];
 
 $clusterName = $_GET['clusterName'];
 $txnId = $_GET['txnId'];
+$deployUser = $_GET['deployUser'];
+
+$logger = new HMCLogger("TxnProgress");
+
+$map = array(
+  "HMC::uninstallHDP" => array (
+      "deBootStrap"
+  )
+);
 
 //REZXXX $dummyDeployProgressData = array(
 //REZXXX   // Sample 0
@@ -671,6 +681,30 @@ foreach( $progress['subTxns'] as &$progressSubTxn )
   }
 }
 
+$lastTransaction = $progressSubTxn;
+
+$dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
+
+if (($progress['processRunning'] == FALSE) || ($progress['encounteredError'] == TRUE)) {
+  // get the transaction status info from db
+  $retval = $dbAccessor->getTransactionStatusInfo($clusterName, $txnId);
+  if ($retval["result"] != 0) {
+    $progress['encounteredError'] = TRUE;
+  } else {
+    $statusInfo = json_decode($retval['statusInfo'], true);
+    $logger->log_debug("Status info function ".$statusInfo['function']);
+    // run the next script from the map
+    foreach ($map[$statusInfo['function']] as $postProcessFunc) {
+      $logger->log_debug("Post process function is ".$postProcessFunc);
+      $retval = $postProcessFunc($clusterName,$deployUser, $lastTransaction);
+      if ($retval["result"] != 0) {
+        $progress['encounteredError'] = TRUE;
+        break;
+      }
+    }
+  }
+}
+
 /* Clean up some more remnants that we don't need on the frontend. */
 unset( $progress['result'] );
 unset( $progress['error'] );
@@ -680,6 +714,10 @@ $jsonOutput = array(
     'clusterName' => $clusterName,
     'txnId' => $txnId,
     'progress' => $atLeastOneSubTxnInProgress ? $progress : null );
+
+if ($deployUser != null) {
+    $jsonOutput['deployUser'] = $deployUser;
+}
 
 /* ...and spit it out. */
 header("Content-type: application/json");

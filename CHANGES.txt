@@ -2,6 +2,8 @@ Ambari Change log
 
 Release 0.x.x - unreleased
 
+  AMBARI-249. Uninstall support from UI. (Vikram via hitesh)
+
   AMBARI-277. API for getting cluster status. (Vikram via hitesh)
 
   AMBARI-274. Templeton data on hdfs needs to be readable by all users (Ramya via hitesh)

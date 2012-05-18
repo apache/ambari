@@ -40,6 +40,11 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
   this.txnProgressContext = txnProgressContext;
   this.txnProgressStatusMessage = txnProgressStatusMessage;
   this.txnProgressPostCompletionFixup = txnProgressPostCompletionFixup;
+  var requestStr = '?clusterName=' + this.txnProgressContext.clusterName + '&txnId=' + this.txnProgressContext.txnId;
+
+  if ("deployUser" in this.txnProgressContext) {
+    requestStr += '&deployUser=' + this.txnProgressContext.deployUser;
+  }
 
   var pdpDataSourceContext = {
     source: '../php/frontend/fetchTxnProgress.php',
@@ -48,7 +53,8 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
         progress: 'progress'
       }
     },
-    request: '?clusterName=' + this.txnProgressContext.clusterName + '&txnId=' + this.txnProgressContext.txnId,
+
+    request: requestStr, 
     pollInterval: 3000,
     maxFailedAttempts: 5
   };

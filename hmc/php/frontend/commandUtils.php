@@ -2,6 +2,9 @@
 
 function launchCmd ($cmd)
 {
+
+  global $logger;
+  $logger->log_debug("WCOLL is ".json_encode(getenv("WCOLL")));
   $handle = popen($cmd, "r");
   while (!feof($handle)) {
     $read = fread($handle, 4096);
@@ -70,6 +73,7 @@ function runPdsh($clusterName, $operationName, $deployUser, $hosts, $cmdLine) {
   fclose($sshCmdFileHdl);
   chmod($sshCmdFile, 0555);
 
+  $logger->log_info("Hosts for this operation: ".json_encode($hosts));
   putenv("WCOLL=$hosts");
 
   $pdshCmd = "pdsh -R exec ".$sshCmdFile." %h ";
