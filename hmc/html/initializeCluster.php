@@ -124,32 +124,23 @@
                     </p>
                     <br/>
                     <p>
-                    <label for="clusterHostsFileId">Newline-delimited list of node hostnames</label>
+                    <label for="clusterHostsFileId">Hosts File (newline-delimited list of hostnames)</label>
                     <input type="file" name="clusterHostsFile" id="clusterHostsFileId" value="" placeholder="">
                     </p>
                     <br/>
                     <div id="yumMirrorSupportFormId">
                       <div id="yumMirrorSupportFormButtonWrapperId">
-                        <p>
-                        <label for="yumMirrorSupportFormButtonId">Use local yum mirror instead of HMC defaults?</label>
-                        <input type="checkbox" name="YumMirrorSupportFormButton" id="yumMirrorSupportFormButtonId" value="" placeholder="">
-                        </p>
+                        <label class="checkbox" for="yumMirrorSupportFormButtonId">Use local yum mirror instead of HMC defaults?
+                          <input type="checkbox" name="YumMirrorSupportFormButton" id="yumMirrorSupportFormButtonId" value="" placeholder="">
+                        </label>
                       </div>
                       <div id="yumMirrorSupportFormFieldsId" style="display:none">
-                        <p>
                         <label for="yumRepoFilePathId">YUM Repo File Path</label>
                         <input type="text" name="YumRepoFilePath" id="yumRepoFilePathId" value="" placeholder="">
-                        </p>
-                        <br/>
-                        <p>
-                        <label for="hmcArtifactsDownloadUrlId">URL from where to download Apache Artifacts</label>
+                        <label for="hmcArtifactsDownloadUrlId">Apache Artifacts Download URL</label>
                         <input type="text" name="HmcArtifactsDownloadUrl" id="hmcArtifactsDownloadUrlId" value="" placeholder="">
-                        </p>
-                        <br/>
-                        <p>
-                        <label for="hmcGplArtifactsDownloadUrlId">URL from where to download GPL Artifacts</label>
+                        <label for="hmcGplArtifactsDownloadUrlId">GPL Artifacts Download URL</label>
                         <input type="text" name="HmcGplArtifactsDownloadUrl" id="hmcGplArtifactsDownloadUrlId" value="" placeholder="">
-                        </p>
                       </div>
                     </div>
                     <div id="fileUploadWrapperDivId">

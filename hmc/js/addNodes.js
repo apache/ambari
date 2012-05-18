@@ -47,7 +47,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
   if (userId == '') {
     errCount++;
     focusId = '#clusterDeployUserId';
-    message += 'Cluster Deploy User cannot be empty';
+    message += 'SSH Username cannot be empty';
     globalYui.one("#clusterDeployUserId").addClass('formInputError');
   } else {
     globalYui.one("#clusterDeployUserId").removeClass('formInputError');
@@ -62,7 +62,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
     if (message != '') {
       message += ',';
     }
-    message += 'User Identity file not specified';
+    message += 'SSH Private Key File not specified';
     globalYui.one("#clusterDeployUserIdentityFileId").addClass('formInputError');
   } else {
     globalYui.one("#clusterDeployUserIdentityFileId").removeClass('formInputError');

@@ -387,3 +387,12 @@ a.btn {
 .btn-large .iconic-stop:before {
     margin-top: -1px;
 }
+
+#yumMirrorSupportFormButtonWrapperId {
+	margin-bottom:20px;
+}
+
+#yumMirrorSupportFormFieldsId input[type=text] {
+	width:500px;
+	margin-bottom:20px;
+}
