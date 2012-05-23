@@ -5,6 +5,8 @@ should be listed by their full name. Please keep the file to a max of 80
 characters wide.
 
 Release 0.1.x - unreleased
+  
+  AMBARI-400. Fixes the regionserver opts for GC (ddas)
 
   AMBARI-287. Add link to uninstall on index page. (Vikram Dixit via hitesh)
 
@@ -242,4 +244,3 @@ Release 0.1.x - unreleased
 
   AMBARI-188. Disable jdk location validation as filter apis not supported in 
   PHP 5.1. (hitesh via vgogate)
-  
