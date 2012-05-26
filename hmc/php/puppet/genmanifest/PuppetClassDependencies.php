@@ -61,6 +61,18 @@ class PuppetClassDependencies {
     $this->addDependency("hdp-oozie::server", SERVICE_STATE_RUNNING, "hdp-hadoop::client",
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
 
+    //Hive depends on Hcat
+    $this->addDependency("hdp-hive::server", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-hcat",
+        array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
+    $this->addDependency("hdp-hive::server", SERVICE_STATE_RUNNING, "hdp-hcat",
+        array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
+    $this->addDependency("hdp-hive::client", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-hcat",
+        array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
+
+    //Hive Service Check
+    $this->addDependency("hdp-hive::hive::service_check", SERVICE_STATE_NOT_APPLICABLE, 
+        "hdp-hcat::hcat::service_check", array());
+
     //Pig
     $this->addDependency("hdp-pig", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-hadoop::client",
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
