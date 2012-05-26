@@ -72,7 +72,7 @@
                     </p>
                     <br/>
                     <p>
-                    <label for="clusterHostsFileId">SSH Public Key File</label>
+                    <label for="clusterHostsFileId">Hosts File (newline-delimited list of hostnames)</label>
                     <input type="file" name="clusterHostsFile" id="clusterHostsFileId" value="" placeholder="">
                     </p>
 
