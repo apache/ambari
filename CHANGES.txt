@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
   
+  AMBARI-288. Add description for Nagios config (vgogate)
+
   AMBARI-400. Fixes the regionserver opts for GC (ddas)
 
   AMBARI-287. Add link to uninstall on index page. (Vikram Dixit via hitesh)
