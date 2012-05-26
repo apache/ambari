@@ -156,6 +156,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
   addNodesFilesForm.set('target', 'fileUploadTarget');
 
   /* And then programmatically submit the first of the 2 forms. */
+  doPostUpload = true;
   addNodesFilesForm.submit();
   globalYui.log("Files submitted to server.");
 
@@ -163,11 +164,17 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
 });
 
 var setupNodesJson = "";
+var doPostUpload = false; // this flag is to prevent the #fileUploadTargetId iframe onload event from being invoked on browser back action
 
 globalYui.one("#fileUploadTargetId").on('load', function (e) {
 
+    if (!doPostUpload) {
+  	  return;
+    }
     globalYui.log("File upload finished");
 
+    doPostUpload = false;
+    
     var repoFile = '';
     var artifactsUrl = '';
     var gplArtifactsUrl = '';
@@ -196,6 +203,7 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
       timeout : 10000,
       on: {
         success: function (x,o) {
+          	
           globalYui.log("RAW JSON DATA: " + o.responseText);
           // Process the JSON data returned from the server
           try {

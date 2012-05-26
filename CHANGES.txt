@@ -6,6 +6,10 @@ characters wide.
 
 Release 0.1.x - unreleased
   
+  AMBARI-293. Invoking browser "back" action on any step after the Add 
+              Hosts step in the Cluster Init Wizard launches the host 
+              discovery process again (Yusaku Sako via vgogate)
+
   AMBARI-289. Hive dependency on hcat (jitendra via vgogate)
 
   AMBARI-288. Add description for Nagios config (vgogate)
