@@ -8,9 +8,9 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
     /* Step over any deploy progress states that aren't in the CLUSTER, SERVICE 
      * or SERVICE-SMOKETEST contexts. 
      */
-    if( txnProgressState.subTxnType != 'CLUSTER' && 
-        txnProgressState.subTxnType != 'SERVICE' &&
-        txnProgressState.subTxnType != 'SERVICE-SMOKETEST' ) {
+    if( (txnProgressState.subTxnType != 'CLUSTER') && 
+        (txnProgressState.subTxnType != 'SERVICE') &&
+        (txnProgressState.subTxnType != 'SERVICE-SMOKETEST') ) {
 
       skipIt = true;
     }
@@ -111,10 +111,20 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
             continue;
           }
 
-          /* We only care to process "in-progress" states. */
-          if( presentTxnProgressState.progress == 'IN_PROGRESS' ) {
+          /* We only care to process "in-progress" states.
+           *
+           * However, when a state fails, its progress property is set to
+           * 'FAILED', so check for that as well. Without this, a failed 
+           * state leads to only the previous 'COMPLETED' states being 
+           * rendered (with the 'FAILED' and 'PENDING' states being skipped
+           * over because there's no 'IN_PROGRESS' state) whilst 
+           * #txnProgressStatusDivId shows an overall error (as it rightly 
+           * should) - in short, confusion all around.
+           */
+          if( (presentTxnProgressState.progress == 'IN_PROGRESS') ||
+              (presentTxnProgressState.progress == 'FAILED') ) {
 
-            globalYui.log( 'In progress - ' + progressStateIndex );
+            globalYui.log( 'In-progress/failed - ' + progressStateIndex );
 
             /* Decide upon what CSS class to assign to the currently-in-progress
              * state - if an error was marked as having been encountered, assign
@@ -123,7 +133,14 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
              */
             var currentProgressStateCssClass = 'txnProgressStateInProgress';
 
-            if( txnProgress.encounteredError ) {
+            /* The 2 possible indications of error are:
+             * 
+             * a) presentTxnProgressState.progress is 'IN_PROGRESS' but 
+             *    txnProgress.encounteredError is true.
+             * b) presentTxnProgressState.progress is 'FAILED'.
+             */
+            if( (txnProgress.encounteredError) || 
+                (presentTxnProgressState.progress == 'FAILED') ) {
 
               currentProgressStateCssClass = 'txnProgressStateError';
             }
