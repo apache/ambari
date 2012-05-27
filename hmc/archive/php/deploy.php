@@ -68,7 +68,7 @@ file_put_contents($finalGsInstallerPropsFile, $finalGsInstallerPropsContents);
 /* Dead code 
 // Templated variables
 // All props to be replace eventually. TODO:
-#$varsToBeReplaced = array("@HDPHadoopHeapSize@", "@HDPNameNodeHeapSize@", "@HDPFSInMemorySize@", "@HDPNameNodeOptNewSize@", "@HDPDataNodeDuReserved@", "@HDPDataNodeHeapSize@", "@HDPJobTrackerOptNewSize@", "@HDPJobTrackerOptMaxNewSize@", "@HDPJobTrackerHeapSize@", "@HDPMapRedMapTasksMax@", "@HDPMapRedReduceTasksMax@", "@HDPMapRedClusterMapMemoryMB@", "@HDPMapRedClusterReduceMemoryMB@", "@HDPMapRedClusterMaxMapMemoryMB@", "@HDPMapRedClusterMaxReduceMemoryMB@", "@HDPMapRedJobMapMemoryMB@", "@HDPMapRedJobReduceMemoryMB@", "@HDPMapRedChildJavaOptsSize@", "@HDPIoSortMB@", "@HDPIoSortSpillPercent@", "@HDPMapReduceUserLogRetainHours@", "@HDPMaxTasksPerJob@", "@HDPDFSDataNodeFailedVolumeTolerated@", "@HDPHBaseMasterHeapSize@", "@HDPHBaseRegionServerHeapSize@");
+#$varsToBeReplaced = array("@HDPHadoopHeapSize@", "@HDPNameNodeHeapSize@", "@HDPNameNodeOptNewSize@", "@HDPDataNodeDuReserved@", "@HDPDataNodeHeapSize@", "@HDPJobTrackerOptNewSize@", "@HDPJobTrackerOptMaxNewSize@", "@HDPJobTrackerHeapSize@", "@HDPMapRedMapTasksMax@", "@HDPMapRedReduceTasksMax@", "@HDPMapRedClusterMapMemoryMB@", "@HDPMapRedClusterReduceMemoryMB@", "@HDPMapRedClusterMaxMapMemoryMB@", "@HDPMapRedClusterMaxReduceMemoryMB@", "@HDPMapRedJobMapMemoryMB@", "@HDPMapRedJobReduceMemoryMB@", "@HDPMapRedChildJavaOptsSize@", "@HDPIoSortMB@", "@HDPIoSortSpillPercent@", "@HDPMapReduceUserLogRetainHours@", "@HDPMaxTasksPerJob@", "@HDPDFSDataNodeFailedVolumeTolerated@", "@HDPHBaseMasterHeapSize@", "@HDPHBaseRegionServerHeapSize@");
 #$varsToBeReplaced = array( "@HDPNameNodeHeapSize@", "@HDPJobTrackerHeapSize@", "@HDPHBaseMasterHeapSize@", "@HDPDataNodeHeapSize@", "@HDPHadoopHeapSize@", "@HDPMapRedChildJavaOptsSize@" );
 $valuesToReplaceWith = array($memoryOptionsSuggestions["HDPNameNodeHeapSize"], $memoryOptionsSuggestions["HDPJobTrackerHeapSize"], $memoryOptionsSuggestions["HDPHBaseMasterHeapSize"], $memoryOptionsSuggestions["HDPDataNodeHeapSize"], $memoryOptionsSuggestions["HDPHadoopHeapSize"], $memoryOptionsSuggestions["HDPMapRedChildJavaOptsSize"]);
 // Replace all the tags with correspond values
@@ -88,7 +88,6 @@ $gsClusterProps["@HDPDataNodeHeapSize@"] = $memoryOptionsSuggestions["HDPDataNod
 $gsClusterProps["@HDPHadoopHeapSize@"] = $memoryOptionsSuggestions["HDPHadoopHeapSize"];
 $gsClusterProps["@HDPMapRedChildJavaOptsSize@"] = $memoryOptionsSuggestions["HDPMapRedChildJavaOptsSize"];
 $gsClusterProps["@HDPHBaseRegionServerHeapSize@"] = "1024m";
-$gsClusterProps["@HDPFSInMemorySize@"] = "256";
 $gsClusterProps["@HDPNameNodeOptNewSize@"] = "640m";
 $gsClusterProps["@HDPDataNodeDuReserved@"] = "1073741824";
 $gsClusterProps["@HDPJobTrackerOptNewSize@"] = "200m";

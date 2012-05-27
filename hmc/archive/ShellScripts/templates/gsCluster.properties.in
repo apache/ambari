@@ -19,7 +19,6 @@
 hadoop_heap_size=@HDPHadoopHeapSize@
 
 namenode_javaheap=@HDPNameNodeHeapSize@
-fs_inmemory_size=@HDPFSInMemorySize@
 namenode_opt_newsize=@HDPNameNodeOptNewSize@
 
 datanode_du_reserved=@HDPDataNodeDuReserved@

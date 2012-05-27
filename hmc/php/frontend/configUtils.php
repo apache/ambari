@@ -227,11 +227,6 @@ function validateConfigs($svcConfigs) {
         if ($check["error"] != "") {
           $errors[$key] = $check;
         }
-      } else if ($key == "fs_inmemory_size") {
-        $check = basicNumericCheck($val, FALSE);
-        if ($check["error"] != "") {
-          $errors[$key] = $check;
-        }
       } else if ($key == "namenode_opt_newsize") {
         $check = basicNumericCheck($val, FALSE);
         if ($check["error"] != "") {
@@ -388,7 +383,6 @@ function validateConfigs($svcConfigs) {
       nagios_contact|nagiosadmin@hortonworks.com
       hadoop_heapsize|1024
       namenode_heapsize|1024
-      fs_inmemory_size|256
       namenode_opt_newsize|200
       datanode_du_reserved|1073741824
       dtnode_heapsize|1024

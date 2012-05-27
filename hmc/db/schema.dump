@@ -269,9 +269,6 @@ INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, de
 -- maps to namenode_javaheap in gsCluster.properties in MB
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "namenode_heapsize", "1024", "NameNode maximum Java heap size", "Java Heap Size for NameNode", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"MB" }' );
 
--- maps to fs_inmemory_size in gsCluster.properties in MB
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "fs_inmemory_size", "256", "Merge Mem Size", "Memory allocated for in memory FS",  "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"MB" }' );
-
 -- maps to namenode_opt_newsize in gscluster in MB
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "namenode_opt_newsize", "200", "Hadoop Young Generation heap size", "Maximum size for New Generation for java heap size", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"MB" }' );
 

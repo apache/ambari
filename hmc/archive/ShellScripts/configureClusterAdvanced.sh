@@ -158,7 +158,6 @@ eval "${cmd}";
 read -r -d '' gsClusterConf << EOConf
 s!@HDPHadoopHeapSize@!${HDPHadoopHeapSize}!g
 s!@HDPNameNodeHeapSize@!${HDPNameNodeHeapSize}!g
-s!@HDPFSInMemorySize@!${HDPFSInMemorySize}!g
 s!@HDPNameNodeOptNewSize@!${HDPNameNodeOptNewSize}!g
 s!@HDPDataNodeDuReserved@!${HDPDataNodeDuReserved}!g
 s!@HDPDataNodeHeapSize@!${HDPDataNodeHeapSize}!g
