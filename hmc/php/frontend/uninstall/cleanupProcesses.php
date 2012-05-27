@@ -11,7 +11,7 @@ $logger = new HMCLogger("CleanupProcesses");
 $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 
 function getCommandLine() {
-  $cmdLine = "touch /etc/default/hadoop-env.sh ; killall puppet; killall java; killall jsvc; rm -rf /grid/?/hadoop/*;  rm -rf /var/log/puppet_agent.log; yum erase -y zookeeper* oozie* sqoop* pig* hbase* hadoop* hadoop-conf-pseudo* hdp_mon_dashboard; rm -rf /etc/hadoop/; rm -rf /etc/hbase; rm -rf /etc/oozie; rm -rf /etc/pig; rm -rf /etc/zookeeper; rm -rf /etc/sqoop ; rm -rf /etc/hive ; rm -rf /etc/hcatalog; rm -rf /etc/yum.repos.d/hdp* ; rm -rf /etc/yum.repos.d/cloudera* ; rm -rf /etc/yum.repos.d/cdh* ; rm -rf /var/run/hbase; rm -rf /var/run/zookeeper /var/run/hadoop /var/run/oozie /var/run/templeton /var/run/hive";
+  $cmdLine = "touch /etc/default/hadoop-env.sh ; killall puppet; rm -rf /var/log/puppet_agent.log; rm -rf /etc/yum.repos.d/hdp* ; ";
   $cmdLine = $cmdLine . 'sleep $[ $RANDOM % 5 ]; ';
   return $cmdLine;
 }

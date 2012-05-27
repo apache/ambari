@@ -19,7 +19,7 @@ $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 // status of the completed state
 function deBootStrap ($clusterName, $deployUser, $stageInfo)
 {
-  global $logger, $dbAccessor;
+  global $logger, $dbAccessor, $stagesInfo;
 
   /////// launch the stages in the background.
   $stagesFile = "./uninstall/stages.php";
@@ -56,7 +56,6 @@ function deBootStrap ($clusterName, $deployUser, $stageInfo)
 
   $allDone = false;
   while ($allDone == false) {
-    sleep(2);
     // use the txn id for finding the status to pass back to the user
     // the orchestrator txn id could potentially return an error because
     // there is a potential race condition before the orchestrator txnId has
@@ -69,8 +68,11 @@ function deBootStrap ($clusterName, $deployUser, $stageInfo)
         json_encode($orchestratorTxnId));
       // Check if this should return error FIXME
       // $jsonOutput['encounteredError'] = true;
-      return ($jsonOutput);
+      return (array('result' => 1, 'error' => $orchestratorTxnId['error']));
     }
+    // as soon as DB is read, sleep for 2 seconds because we want to 
+    // avoid continuous polling of the db
+    sleep(2);
 
     //$logger->log_error(" ==== subTxns info is  " . json_encode($orchestratorTxnId));
     $keys = array_keys($orchestratorTxnId['subTxns']);
@@ -95,24 +97,34 @@ function deBootStrap ($clusterName, $deployUser, $stageInfo)
       return ($jsonOutput);
     }
 
-    $jsonOutput['currentProgressStateIndex'] = count($allSubTxns['subTxns']) - 1;
-    if ($jsonOutput['currentProgressStateIndex'] < 0) {
-      $jsonOutput['currentProgressStateIndex'] = 0;
+    $logger->log_debug("allsubtxn count is ".json_encode(count($allSubTxns['subTxns'])));
+    $logger->log_debug("stages count is ".json_encode(count($stagesInfo)));
+    $logger->log_debug("subtxns ".json_encode($allSubTxns));
+    // allDone must be set once the processes launched have completed running
+    if ((count($allSubTxns['subTxns']) == count($stagesInfo))) {
+      $lastTxn = end($allSubTxns['subTxns']);
+      if (($lastTxn['opStatus'] == "SUCCESS")) {
+        $allDone = true;
+        $result = 0;
+        $error = "";
+        // remove the following 2 lines FIXME
+        $error = "Not a failure! LOL";
+        $result = 1;
+      } else if (($lastTxn['opStatus'] == "FAILED") || 
+          ($lastTxn['opStatus'] == "TOTALFAILURE")) {
+        $logger->log_debug("");
+        $allDone = true;
+        $error = json_encode($lastTxn['state']);
+        $result = 1;
+      }
     }
-    $jsonOutput['stateInfo'] = $allSubTxns;
-    // Decode log information store as part of state.
-    foreach ($jsonOutput['stateInfo']['subTxns'] as $subTxnId => $subTxnInfo) {
-      $jsonOutput['stateInfo']['subTxns'][$subTxnId]['state'] = json_decode($jsonOutput['stateInfo']['subTxns'][$subTxnId]['state']);
-    }
-
-    $allDone = true;
   }
   /////// done monitoring return back to the uninstall
   
   // need to cleanup db for this cluster
   $dbAccessor->deleteCluster($clusterName);
   
-  return array('result' => 0);
+  return array('result' => $result, 'error' => $error);
 }
 
 ?>
