@@ -10,12 +10,11 @@ class hdp::params()
   $snamenode_host = hdp_default("snamenode_host")
   $jtnode_host = hdp_default("jtnode_host")
   $slave_hosts = hdp_default("slave_hosts")
-  $rs_hosts = hdp_default("rs_hosts",$slave_hosts) #if rs_hosts not given it is assumed that region servers on same nodes as slaves
   
   $zookeeper_hosts = hdp_default("zookeeper_hosts")
 
   $hbase_master_host = hdp_default("hbase_master_host")
-  $hbase_rs_hosts = hdp_default("hbase_rs_hosts")
+  $hbase_rs_hosts = hdp_default("hbase_rs_hosts",$slave_hosts) #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 
   $hive_server_host = hdp_default("hive_server_host")
   $oozie_server =  hdp_default("oozie_server")

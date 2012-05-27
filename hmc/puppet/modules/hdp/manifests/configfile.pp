@@ -10,7 +10,7 @@ define hdp::configfile(
   $jtnode_host = $hdp::params::jtnode_host,
   $snamenode_host = $hdp::params::snamenode_host,
   $slave_hosts = $hdp::params::slave_hosts,
-  $rs_hosts = $hdp::params::rs_hosts,
+  $hbase_rs_hosts = $hdp::params::hbase_rs_hosts,
   $zookeeper_hosts = $hdp::params::zookeeper_hosts,
   $hbase_master_host = $hdp::params::hbase_master_host,
   $hcat_server_host = $hdp::params::hcat_server_host,
