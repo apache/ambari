@@ -5,6 +5,8 @@ should be listed by their full name. Please keep the file to a max of 80
 characters wide.
 
 Release 0.1.x - unreleased
+
+  AMBARI-301. Uninstall should not stop HMC. (vikram via jitendra)
   
   AMBARI-273. Fix TxnProgressWidget To Show Failed States When No SubTxn Is In Progress (reznor via vgogate)
 
