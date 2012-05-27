@@ -107,9 +107,6 @@ function deBootStrap ($clusterName, $deployUser, $stageInfo)
         $allDone = true;
         $result = 0;
         $error = "";
-        // remove the following 2 lines FIXME
-        $error = "Not a failure! LOL";
-        $result = 1;
       } else if (($lastTxn['opStatus'] == "FAILED") || 
           ($lastTxn['opStatus'] == "TOTALFAILURE")) {
         $logger->log_debug("");
