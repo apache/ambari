@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-278. Update MapReduce parameter configuration description. (suresh via jitendra)
+
   AMBARI-276. Update HDFS parameter configuration description. (suresh via jitendra)
 
   AMBARI-304. Upgrade to yui-3.5.1. (vinod via jitendra)
