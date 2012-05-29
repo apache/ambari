@@ -170,6 +170,40 @@ class SuggestProperties {
       $result["error"] = $allHostsToComponents["error"];
       return $result;
     }
+
+
+    // filter host roles for client-only components
+    $ignoredComponents = array();
+
+    $allComponents = $db->getAllServiceComponentsList();
+    if ($allComponents["result"] == 0) {
+      if (isset($allComponents["services"])
+          && is_array($allComponents["services"])) {
+        foreach ($allComponents["services"] as $svcName => $svcInfo) {
+          if (isset($svcInfo["components"])
+              && is_array($svcInfo["components"])) {
+            foreach ($svcInfo["components"] as $compName => $compInfo) {
+              if (isset($compInfo["isClient"]) && $compInfo["isClient"]) {
+                $ignoredComponents[$compName] = TRUE;
+              } else if ($compName == "GANGLIA_MONITOR") {
+                $ignoredComponents[$compName] = TRUE;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    foreach ($allHostsToComponents["hosts"] as $hostName => $compList) {
+      $newComps = array();
+      foreach ($compList["components"] as $compName) {
+        if (!isset($ignoredComponents[$compName])) {
+          array_push($newComps, $compName);
+        }
+      }
+      $allHostsToComponents["hosts"][$hostName]["components"] = $newComps;
+    }
+
     $result["configs"] = array();
 
     // set the num map/reduce tasks

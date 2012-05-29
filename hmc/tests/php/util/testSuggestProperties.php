@@ -1,11 +1,13 @@
 <?php
 
-include_once '../util/Logger.php';
-include_once '../conf/Config.inc';
-include_once "../util/lock.php";
-include_once '../db/HMCDBAccessor.php';
 
-include_once "SuggestProperties.php";
+
+include_once '../../../php/util/Logger.php';
+include_once '../../../php/conf/Config.inc';
+include_once "../../../php/util/lock.php";
+include_once '../../../php/db/HMCDBAccessor.php';
+
+include_once "../../../php/util/SuggestProperties.php";
 
 $GLOBALS["HMC_LOG_LEVEL"] = HMCLogger::DEBUG;
 $GLOBALS["HMC_LOG_FILE"] = "./hmc.log";
@@ -41,7 +43,7 @@ array (
         "osType" => "RHEL5",
         "os" => "RHEL5 32-bit",
         "disksInfo" => "foo",
-        "discoveryStatus" => "success",
+        "discoveryStatus" => "SUCCESS",
         "badHealthReason" => "no error"
 ),
 array (
@@ -53,7 +55,7 @@ array (
         "osType" => "RHEL6",
         "os" => "RHEL6 64-bit",
         "disksInfo" => "bar",
-        "discoveryStatus" => "success",
+        "discoveryStatus" => "SUCCESS",
         "badHealthReason" => "no error"
 ),
 array (
@@ -65,7 +67,7 @@ array (
         "osType" => "RHEL6",
         "os" => "RHEL6 64-bit",
         "disksInfo" => "bar",
-        "discoveryStatus" => "success",
+        "discoveryStatus" => "SUCCESS",
         "badHealthReason" => "no error"
 ),
 array (
@@ -77,7 +79,7 @@ array (
         "osType" => "RHEL6",
         "os" => "RHEL6 64-bit",
         "disksInfo" => "bar",
-        "discoveryStatus" => "success",
+        "discoveryStatus" => "SUCCESS",
         "badHealthReason" => "no error"
 ),
 array (
@@ -89,7 +91,7 @@ array (
         "osType" => "RHEL6",
         "os" => "RHEL6 64-bit",
         "disksInfo" => "bar",
-        "discoveryStatus" => "success",
+        "discoveryStatus" => "SUCCESS",
         "badHealthReason" => "no error"
 )
 );
@@ -241,8 +243,8 @@ $configs = $result["properties"];
 
 $result = $suggestProperties->verifyProperties($clusterName, $db, $configs);
 assert(is_array($result));
-assert($result["result"] == 0);
-assert($result["error"] == "");
+assert($result["result"] != 0);
+assert($result["error"] != "");
 assert(is_array($result["cfgErrors"]));
 assert(is_array($result["cfgWarnings"]));
 
