@@ -45,9 +45,7 @@ INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, desc
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
   ( "OOZIE", "Oozie", '{ "runnable": true, "mustInstall": false, "editable": true, "noDisplay": false }',  "Workflow/Coordination system to manage Apache Hadoop jobs" );
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
-  ( "HIVE", "Hive", '{ "runnable": true, "mustInstall": false, "editable": true, "noDisplay": false }',  "Data Warehouse system for Apache Hadoop" );
-INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
-  ( "HCATALOG", "HCatalog", '{ "runnable": false, "mustInstall": false, "editable": true, "noDisplay": false }',  "Table and Storage Management service for data created using Apache Hadoop" );
+  ( "HIVE", "Hive and HCatalog", '{ "runnable": true, "mustInstall": false, "editable": true, "noDisplay": false }',  "Hive - Data Warehouse system for Apache Hadoop, HCatalog - Table and Storage Management service for data created using Apache Hadoop" );
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
   ( "TEMPLETON", "Templeton", '{ "runnable": true, "mustInstall": false, "editable": true, "noDisplay": false }',  "Webservice APIs for Apache Hadoop" );
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
@@ -117,8 +115,6 @@ INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, displ
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
   ( "HIVE", "HIVE_CLIENT", "Hive Client", '{ "isMaster": false, "isClient": true }', "" );
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
-  ( "HCATALOG", "HCATALOG_CLIENT", "HCatalog Client", '{ "isMaster": false, "isClient": true }', "" );
-INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
   ( "TEMPLETON", "TEMPLETON_SERVER", "Templeton Server", '{ "isMaster": true, "isClient": false }', "" );
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
   ( "TEMPLETON", "TEMPLETON_CLIENT", "Templeton Client", '{ "isMaster": false, "isClient": true }', "" );
@@ -144,12 +140,10 @@ INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_nam
 INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "HBASE" , "ZOOKEEPER" );
 INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "HBASE" , "HDFS" );
 INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "OOZIE" , "MAPREDUCE" );
-INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "HCATALOG" , "HIVE" );
 INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "HIVE" , "MAPREDUCE" );
 INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "TEMPLETON" , "MAPREDUCE" );
 INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "TEMPLETON" , "PIG" );
 INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "TEMPLETON" , "HIVE" );
-INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "TEMPLETON" , "HCATALOG" );
 INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "TEMPLETON" , "ZOOKEEPER" );
 INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "PIG" , "MAPREDUCE" );
 INSERT OR REPLACE INTO "ServiceDependencies" ( from_service_name, to_service_name ) VALUES ( "SQOOP" , "MAPREDUCE" );
@@ -241,9 +235,9 @@ INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, de
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "zk_log_dir", "/var/log/zookeeper", "ZooKeeper Log directory", "Directory for ZooKeeper log files", "ZOOKEEPER", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "zk_pid_dir", "/var/run/zookeeper", "ZooKeeper PID directory", "Directory in which the pid files for zookeeper processes will be created", "ZOOKEEPER", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "zk_user", "zookeeper", "ZooKeeper User", "User to run ZooKeeper as", "ZOOKEEPER", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hcat_logdirprefix", "/var/log/hcatalog", "HCAT Log Dir", "Directory for HCatalog logs", "HCATALOG", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hcat_logdirprefix", "/var/log/hcatalog", "HCAT Log Dir", "Directory in which the pid files for hcatalog processes will be created", "HCATALOG", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hcat_user", "hcat", "HCAT User Name", "User to run HCatalog as", "HCATALOG", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hcat_logdirprefix", "/var/log/hcatalog", "HCAT Log Dir", "Directory for HCatalog logs", "HIVE", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hcat_logdirprefix", "/var/log/hcatalog", "HCAT Log Dir", "Directory in which the pid files for hcatalog processes will be created", "HIVE", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "hcat_user", "hcat", "HCAT User Name", "User to run HCatalog as", "HIVE", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "templeton_user", "templeton", "Templeton User Name", "User to run Templeton as", "TEMPLETON", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "templeton_pid_dir", "/var/run/templeton", "Templeton PID Dir", "Directory in which the pid files for templeton processes will be created", "TEMPLETON", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "templeton_log_dir", "/var/log/templeton", "Templeton Log Dir", "Directory for templeton logs", "TEMPLETON", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );

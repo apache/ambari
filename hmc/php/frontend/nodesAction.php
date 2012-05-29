@@ -18,6 +18,8 @@ $deployUser = $_POST['ClusterDeployUser'];
 
 $propertiesArr = $dbAccessor->getConfigPropertiesMetaInfo();
 if ($propertiesArr["result"] != 0) {
+  $logger->log_error("Could not get config meta info from DB, error="
+      . $propertiesArr["error"]);
   print json_encode(array( "result" => 1, "error" => "Error in config properties meta info"));
   return;
 }
@@ -32,6 +34,8 @@ $gplArtifactsDownloadUrl = $propertiesArr["configs"]["gpl_artifacts_download_url
 
 $currentConfigs = $dbAccessor->getServiceConfig($clusterName);
 if ($currentConfigs["result"] != 0) {
+  $logger->log_error("Could not get configs from DB, error="
+      . $currentConfigs["error"]);
   print json_encode(array( "result" => 1, "error" => "Could not get configs from DB"));
   return;
 }
@@ -52,23 +56,25 @@ if (isset($currentConfigs["properties"]["gpl_artifacts_download_url"])
 }
 
 if (isset($_POST['yumRepoFilePath'])
-    && $_POST['yumRepoFilePath'] != "") {
-  $repoFilePath = $_POST['yumRepoFilePath'];
+    && trim($_POST['yumRepoFilePath']) != "") {
+  $repoFilePath = trim($_POST['yumRepoFilePath']);
 }
 
 if (isset($_POST['hdpArtifactsDownloadUrl'])
-    && $_POST['hdpArtifactsDownloadUrl'] != "") {
-  $hdpArtifactsDownloadUrl = $_POST['hdpArtifactsDownloadUrl'];
+    && trim($_POST['hdpArtifactsDownloadUrl']) != "") {
+  $hdpArtifactsDownloadUrl = trim($_POST['hdpArtifactsDownloadUrl']);
 }
 
 if (isset($_POST['gplArtifactsDownloadUrl'])
-    && $_POST['gplArtifactsDownloadUrl'] != "") {
-  $gplArtifactsDownloadUrl = $_POST['gplArtifactsDownloadUrl'];
+    && trim($_POST['gplArtifactsDownloadUrl']) != "") {
+  $gplArtifactsDownloadUrl = trim($_POST['gplArtifactsDownloadUrl']);
 }
 
 header("Content-type: application/json");
 
 if (!file_exists($repoFilePath)) {
+  $logger->log_warn("Invalid repo file provided, file does not exist"
+      . ", repoFile=" . $repoFilePath);
   print (json_encode(array(
       "result" => 1,
       "error" => "Invalid repo file path specified"
@@ -81,6 +87,10 @@ if (!file_exists($repoFilePath)) {
 /*
 if (parse_url($hdpArtifactsDownloadUrl) === FALSE
     || parse_url($gplArtifactsDownloadUrl) === FALSE) {
+  $logger->log_warn("Invalid download urls provided, could not parse"
+      . ", hdpArtifactsDownloadUrl=" . $hdpArtifactsDownloadUrl
+      . ", gplArtifactsDownloadUrl=" . $gplArtifactsDownloadUrl);
+
   print (json_encode(array(
         "result" => 1,
         "error" => "Invalid download urls specified")));
