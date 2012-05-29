@@ -107,12 +107,12 @@ $outjson = array(
             "servicesInfo" => array (
                                 "HDFS" => array(
                                              "dfs_name_dir" => array(
-                                                                    "displayName" => "NameNode Data Directories",
+                                                                    "displayName" => "NameNode directories",
                                                                     "maxDirectoriesNeeded" => -1,
                                                                     "suffix" => "hadoop/hdfs/namenode"
                                                                     ),
                                              "dfs_data_dir" => array(
-                                                                    "displayName" => "DataNode Data Directories",
+                                                                    "displayName" => "DataNode directories",
                                                                     "maxDirectoriesNeeded" => -1,
                                                                     "suffix" => "hadoop/hdfs/data"
                                                                     ),
