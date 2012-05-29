@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Uploader</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Uploader</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style>
+#docs-main li {
+    margin: 1ex 0;
+}
+
+li code,
+td code {
+    white-space: nowrap;
+    background: #fcfbfa;
+    border: 1px solid #d0d5ec;
+    padding: 0 3px;
+}
+li code {
+    border-color: #efeeed;
+}
+.yui3-skin-sam table {
+    width: auto;
+}
+.yui3-skin-sam td,
+.yui3-skin-sam th {
+    border: 0 none;
+}
+
+.demo    { width: 40%; }
+.details { width: 60%; }
+.before, .after { width: 47%; }
+.after {
+    margin-left: 5%;
+}
+
+#quickref code em {
+    color: #900;
+}
+#quickref code strong {
+    color: #090;
+}
+#quickref pre.code {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.spendy {
+    color: #b00;
+}
+</style>
+<div class="intro">
+    <p>
+        Uploader has been rebuilt in version 3.5.0, and a number of additional
+        supporting modules (<code>UploaderFlash</code>, <code>UploaderHTML5</code>, <code>Uploader.Queue</code> 
+        and <code>File</code>) have been added.  The new architecture is <strong>not fully 
+        backward-compatible</strong> with versions 3.4.1 and prior.  This guide 
+        is to help answer questions that may come up when upgrading to the latest 
+        version.
+    </p>
+
+    <p>
+        This guide focuses on 3.4.1 API compatibility.  It <strong>does not
+        describe new features added in 3.5.0</strong>.
+        Refer to the updated <a href="index.html">Uploader user guide</a> for
+        that.
+    </p>
+
+    <p>
+        If you are unable to upgrade due to unresolvable issues, you can use the
+        <a href="../uploader-deprecated/index.html"><code>uploader-deprecated</code></a>
+        module, which is equivalent to the 3.4.1 implementation.  But be
+        aware that this module will be removed in a future version of YUI.
+    </p>
+</div>
+
+<h2 id="overview">Overview of API changes from 3.4.1</h2>
+
+<p>
+    The architectural changes resulted in the deprecation, replacement, or
+    removal of some of the attributes, properties, methods and events from
+    3.4.1 version of the Uploader. Here is a quick list of the changes most 
+    likely to affect your upgrade:
+</p>
+
+<h3 id="attribute-changes">Attribute changes</h3>
+<table>
+    <tr>
+        <th>Attribute in 3.4.1</th>
+        <th>Change in 3.5.0</th>
+    </tr>
+    <tr>
+        <td><code>buttonSkin</code></td>
+        <td><strong>No longer exists.</strong> The Uploader in Flash mode is now always rendered
+            as transparent, overlaying a "Select Files" button that can be replaced
+            with any control (with any skin) using the <code>selectFilesButton</code> attribute.
+        </td>
+    </tr>
+    <tr>
+        <td><code>fileFilters</code></td>
+        <td>Only available when the Uploader is in <strong>Flash mode</strong>, and has no effect
+            when the Uploader is in HTML5 mode. If filtering by extension is needed
+            across all Uploader modes, it is best to implement it post-selection,
+            by validating individual elements in the <code>fileList</code>.
+        </td>
+    </tr>
+    <tr>
+        <td><code>log</code></td>
+        <td><strong>No longer exists.</strong> All necessary uploader information is transmitted via
+            events.
+        </td>
+    </tr>
+    <tr>
+        <td><code>multiFiles</code></td>
+        <td>Renamed to <code>multipleFiles</code></td>
+    </tr>
+    <tr>
+        <td><code>transparent</code></td>
+        <td><strong>No longer exists.</strong> The Uploader in Flash mode is now always rendered as 
+            a transparent overlay over a "Select Files" button that can be customized
+            or replaced with any control using the <code>selectFilesButton</code> attribute.</td>
+    </tr>
+</table>
+
+
+<h3 id="method-changes">Method changes</h3>
+<table>
+    <tr>
+        <th>Method in 3.4.1</th>
+        <th>Change in 3.5.0</th>
+    </tr>
+    <tr>
+        <td><code>cancel</code></td>
+        <td><strong>No longer exists</strong> on the Uploader instance. Instead, a <code>cancelUpload()</code> method is present on the instance of Uploader's queue, stored in <code>uploaderInstance.queue</code>.
+            (See the <a href="http://yuilibrary.com/yui/docs/api/classes/Uploader.Queue.html#method_cancelUpload">API Docs</a> for more information).
+        </td>
+    </tr>
+    <tr>
+        <td><code>clearFileList</code></td>
+        <td><strong>No longer exists</strong>. Instead, you can directly manipulate the <code>fileList</code>
+            attribute.</td>
+    </tr>
+    <tr>
+        <td><code>enable</code></td>
+        <td><strong>No longer exists</strong>. Instead, set the <code>enabled</code> attribute to either <code>true</code> or <code>false</code>.</td>
+    </tr>
+    <tr>
+        <td><code>disable</code></td>
+        <td><strong>No longer exists</strong>. Instead, set the <code>enabled</code> attribute to either <code>true</code> or <code>false</code>.</td>
+    </tr>
+    <tr>
+        <td><code>removeFile</code></td>
+        <td><strong>No longer exists</strong>. Instead, you can directly manipulate the <code>fileList</code>
+            attribute.</td>
+    </tr>
+    <tr>
+        <td><code>upload</code></td>
+        <td><strong>The method signature has changed</strong>. The new <code>upload()</code> method takes
+            <code>file</code>, <code>url</code>, and <code>postVars</code> as arguments, where <code>file</code> is a references to an instance
+            of <code>Y.File</code> (can be obtained from the <code>fileList</code> attribute), <code>url</code> is the target URL
+            to upload the file to, and <code>postVars</code> is a set of key-value pairs specifying the variables
+            that should be POSTed along with the file upload. The old <code>method</code> argument has been removed since file upload requests are always POSTed. The old <code>postFileVarName</code> argument has been replaced with an instance-level <code>fileFieldName</code> attribute. (See the <a href="http://yuilibrary.com/yui/docs/api/classes/UploaderFlash.html#method_upload">API Docs</a> for more information).</td>
+    </tr>
+    <tr>
+        <td><code>uploadAll</code></td>
+        <td><strong>The method signature has changed</strong>. The new <code>uploadAll()</code> method takes
+            <code>url</code>, and <code>postVars</code> as arguments, where <code>url</code> is the target URL to upload the files to, and <code>postVars</code> is a set of key-value pairs specifying the variables that should be POSTed along with the file upload. If POST variables need to be specified per file, you can use the <code>postVarsPerFile</code> attribute instead of specifying the third argument. The old <code>method</code> argument has been removed since file upload requests are always POSTed. The old <code>postFileVarName</code> argument has been replaced with an instance-level <code>fileFieldName</code> attribute. (See the <a href="http://yuilibrary.com/yui/docs/api/classes/UploaderFlash.html#method_uploadAll">API Docs</a> for more information).</td>
+    </tr>
+    <tr>
+        <td><code>uploadThese</code></td>
+        <td><strong>The method signature has changed</strong>. The new <code>uploadThese()</code> method takes
+            <code>files</code>, <code>url</code>, and <code>postVars</code> as arguments, where <code>files</code> is an array of <code>Y.File</code> instances (can be obtained as a subset of <code>fileList</code> attribute), <code>url</code> is the target URL to upload the files to, and <code>postVars</code> is a set of key-value pairs specifying the variables that should be POSTed along with the file upload. If POST variables need to be specified per file, you can use the <code>postVarsPerFile</code> attribute instead of specifying the third argument. The old <code>method</code> argument has been removed since file upload requests are always POSTed. The old <code>postFileVarName</code> argument has been replaced with an instance-level <code>fileFieldName</code> attribute. (See the <a href="http://yuilibrary.com/yui/docs/api/classes/UploaderFlash.html#method_uploadThese">API Docs</a> for more information).</td>
+    </tr>
+</table>
+<h2 id="progressive-enhancement">Improved Progressive Enhancement</h2>
+
+The progressive enhancement scenario has been improved in 3.5.0 Uploader. The Uploader now keeps a static <code>TYPE</code> property (<code>Y.Uploader.TYPE</code>), which you can check before creating an instance of Uploader or modifying its configuration settings. We recommend the following pattern for using Uploader on your pages:
+
+<pre class="code prettyprint">if (Y.Uploader.TYPE != &quot;none&quot;) {
+    
+    var uploaderInstance = new Y.Uploader(....); &#x2F;&#x2F; Common configuration settings.
+
+    if (Y.Uploader.TYPE == &quot;html5&quot;) {
+      &#x2F;&#x2F; Additional configuration settings for an HTML5 uploader,
+      &#x2F;&#x2F; e.g. a drag-and-drop area specification, etc.
+    }
+
+    else if (Y.Uploader.TYPE == &quot;flash&quot;) {
+      &#x2F;&#x2F; Flash-specific configuration settings, 
+      &#x2F;&#x2F; e.g. a fileFilters setting, etc.
+   }
+
+   &#x2F;&#x2F; Render the uploader
+   uploaderInstance.render(&quot;#selectFilesButtonContainer&quot;);
+}
+
+else {
+    
+    &#x2F;&#x2F; Don&#x27;t render the uploader and use predefined basic functionality
+    &#x2F;&#x2F; instead (e.g. a simple upload form field).
+
+}</pre>
+
+
+<h2 id="backend-setup">Backend Setup</h2>
+
+The backend requirements for the Flash version of the Uploader have not changed. However, the XMLHttpRequest Level 2 cross-domain request security model is different from that in Flash, and needs a different type of verification from the backend that receives POST requests with uploaded files. See the <a href="index.html#backend-setup">Backend Setup</a> section in the User Guide for more information, or read more about it on the <a href="http://www.html5rocks.com/en/tutorials/cors/#toc-handling-a-not-so-simple-request">HTML5Rocks website.</a>
+
+<h2 id="help-me">What Did We Miss?</h2>
+
+<p>
+    Obviously, there were quite a few changes to Uploader from 3.4.1 to 3.5.0.
+    It's likely that we missed something here.  If you experience trouble with 
+    your upgrade and find this migration guide is missing something important, 
+    please <a href="/projects/yui3/newticket">file a ticket</a> and we'll update 
+    it as soon as possible.
+</p>
+
+<p>
+    Additional resources to help with the upgrade include the <a href="/forum">forums</a>, 
+    and the #yui IRC channel on freenode.net.
+</p>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#overview">Overview of API changes from 3.4.1</a>
+<ul class="toc">
+<li>
+<a href="#attribute-changes">Attribute changes</a>
+</li>
+<li>
+<a href="#method-changes">Method changes</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#progressive-enhancement">Improved Progressive Enhancement</a>
+</li>
+<li>
+<a href="#backend-setup">Backend Setup</a>
+</li>
+<li>
+<a href="#help-me">What Did We Miss?</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="A simple multiple file uploader with progress tracking">
+                                            <a href="uploader-multiple.html">Simple Multiple Files Uploader with Progress Tracking</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="A multiple file uploader with HTML5 Drag-and-Drop Support">
+                                            <a href="uploader-dd.html">Multiple Files Uploader with HTML5 Drag-and-Drop Support</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="A multiple file uploader that submits additional POST vars with each file and receives data from the server">
+                                            <a href="uploader-data.html">Multiple Files Uploader with POST Variables and Server Data Retrieval</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="How to upload a single file, while tracking progress and using a sprite-skinned button">
+                                            <a href="../uploader-deprecated/uploader-simple.html">Simple Uploader with Progress Tracking</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to upload a single file, along with GET and POST Vars Submission and receive data from the server">
+                                            <a href="../uploader-deprecated/uploader-withvars.html">Single File Upload with Additional Data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to upload multiple files with progress tracking and a transparent overlay upload button">
+                                            <a href="../uploader-deprecated/uploader-multiple.html">Multiple Files Upload with Transparent Overlay Button</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

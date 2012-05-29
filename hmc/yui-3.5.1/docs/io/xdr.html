@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Request JSON using Yahoo! Pipes</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Request JSON using Yahoo! Pipes</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style type="text/css" scoped>
+#output li {margin-left:2em;}
+#output { background-color:#FFFFFF; border:1px dotted #666666; padding:1em; margin-top:1em;}
+</style>
+<div class="intro">
+<p>In the example below, IO is employed to make a cross-domain request to <a href="http://pipes.yahoo.com">Yahoo! Pipes</a>.  The output of the Pipe is an RSS-style feed formatted as JSON.  We pass that output to the JSON Utility's <code>parse</code> method for sanitization and then display the contents of the Pipe in a list.</p>
+<p>This example demonstrates how IO can use the Cross-Origin Resource Sharing (http://www.w3.org/TR/cors/) mechanism for making cross-domain requests.</p>
+<p><strong>Please note: </strong> All the browsers listed in the Browser Test Baseline (http://developer.yahoo.com/yui/articles/gbs/) support CORS with the exception of IE 6.0 and IE 7.0, and Webkit on iOS 3.  In addition to browser capability, the requested resource must respond with the proper Access-Control headers for the request to succeed.</p>
+</div>
+<div class="example">
+<button id="pipes">Load RSS news feed from Yahoo! Pipes.</button>
+<div id="output">
+    <ul>
+        <li>Content from Yahoo! Pipes feed will display here.</li>
+    </ul>
+</div>
+
+<script language="javascript">
+YUI({ filter:'raw' }).use("io-xdr", "substitute", "json-parse", "node",
+    function(Y) {
+
+        //Data fetched will be displayed in a UL in the
+        //element #output:
+        var output = Y.one("#output ul");
+
+        //Event handler called when the transaction begins:
+        var handleStart = function(id, a) {
+            Y.log("io:start firing.", "info", "example");
+            output.set("innerHTML", "<li>Loading news stories via Yahoo! Pipes feed...</li>");
+        }
+
+        //Event handler for the success event -- use this handler to write the fetched
+        //RSS items to the page.
+        var handleSuccess = function(id, o, a) {
+
+            //We use JSON.parse to sanitize the JSON (as opposed to simply performing an
+            //JavaScript eval of the data):
+            var oRSS = Y.JSON.parse(o.responseText);
+
+            //From here, we simply access the JSON data from where it's provided
+            //in the Yahoo! Pipes output:
+            if (oRSS && oRSS.count) {
+
+                var s = "<!--begin news stories fetched via Yahoo! Pipes-->",
+                    //t in this case is our simple template; this is fed to
+                    //Y.Lang.substitute as we loop through RSS items:
+                    t = "<li><a href='{link}'>{title}</a>, {pubDate}</li>";
+
+                for (var i=0; i<oRSS.count; i++) {
+                    s += Y.Lang.substitute(t, oRSS.value.items[i]);
+                }
+
+                //Output the string to the page:
+                output.set("innerHTML", s);
+                output.addClass("yui-null");
+
+            } else {
+                //No news stories were found in the feed.
+                var s = "<li>The RSS feed did not return any items.</li>";
+            }
+        }
+
+        //In the event that the HTTP status returned does not resolve to,
+        //HTTP 2xx, a failure is reported and this function is called:
+        var handleFailure = function(id, o, a) {
+            Y.log("ERROR " + id + " " + a, "info", "example");
+        }
+
+        //With all the apparatus in place, we can now configure our
+        //IO call.  The method property is defined, but if omitted,
+        //IO will default to HTTP GET.
+        var cfg = {
+            method: "GET",
+            xdr: {
+                use:'native'
+            },
+            on: {
+                //Our event handlers previously defined:
+                start: handleStart,
+                success: handleSuccess,
+                failure: handleFailure
+            }
+        };
+
+        //Wire the button to a click handler to fire our request each
+        //time the button is clicked:
+        var handleClick = function(o) {
+            Y.log("Click detected; beginning io request to Yahoo! Pipes.", "info", "example");
+	    // Remove the default "X-Requested-With" header as this will
+	    // prevent the request from succeeding; the Pipes 
+	    // resource will not accept user-defined HTTP headers.
+	    Y.io.header('X-Requested-With');
+            var obj = Y.io(
+                //this is a specific Pipes feed, populated with cycling news:
+                "http://pipes.yahooapis.com/pipes/pipe.run?_id=giWz8Vc33BG6rQEQo_NLYQ&_render=json",
+                cfg
+            );
+        }
+
+        //add the click handler to the Load button.
+        Y.on("click", handleClick, "#pipes");
+    }
+);
+</script>
+</div>
+
+<h3 class="first">Implementing a Cross-Domain Request for JSON Data</h3>
+
+<p>In this example, we begin with a YUI instance that loads the <code>io-xdr</code>, <code>json-parse</code>, <code>substitute</code> and <code>node</code> modules. The <code>io-xdr</code> module is the key module. The other modules are used to process and output the results:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F;Create a YUI instance including support for IO and JSON modules:
+YUI().use(&quot;io-xdr&quot;, &quot;substitute&quot;, &quot;json-parse&quot;, &quot;node&quot;, function(Y) {
+    &#x2F;&#x2F; Y is the YUI instance.
+    &#x2F;&#x2F; The rest of the following code is encapsulated in this
+    &#x2F;&#x2F; anonymous function.
+});</pre>
+
+
+<p>We'll also get a Node reference to the container we'll be using to output the data we retrieve:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F;element #output:
+var output = Y.one(&quot;#output ul&quot;);</pre>
+
+
+<p>handleSuccess is the function responsible for handling the response data.  The first thing we do is sanitize the data to ensure we have valid JSON.</p>
+<pre class="code prettyprint">var oRSS = Y.JSON.parse(o.responseText);</pre>
+
+<p>Next, we create a simple markup template and use Y.Lang.substitute to fill in the data, as we iterate through the JSON and output the results.</p>
+<pre class="code prettyprint">&#x2F;&#x2F;From here, we simply access the JSON data from where it&#x27;s provided
+&#x2F;&#x2F;in the Yahoo! Pipes output:
+if (oRSS &amp;&amp; oRSS.count) {
+    var s = &quot;&lt;!--begin news stories fetched via Yahoo! Pipes--&gt;&quot;,
+        &#x2F;&#x2F;t in this case is our simple template; this is fed to
+        &#x2F;&#x2F;Y.Lang.substitute as we loop through RSS items:
+        t = &quot;&lt;li&gt;&lt;a href=&#x27;{link}&#x27;&gt;{title}&lt;&#x2F;a&gt;, {pubDate}&lt;&#x2F;li&gt;&quot;;
+
+    for (var i=0; i&lt;oRSS.count; i++) {
+        s += Y.Lang.substitute(t, oRSS.value.items[i]);
+    }
+
+    &#x2F;&#x2F;Output the string to the page:
+    output.set(&quot;innerHTML&quot;, s);
+    output.addClass(&quot;yui-null&quot;);
+}</pre>
+
+
+<p>Create the configuration object for the cross-domain request, setting up the  event handlers and instructing IO to use the browser's native cross-domain transport.</p>
+
+<pre class="code prettyprint">var cfg = {
+    method: &quot;GET&quot;, &#x2F;&#x2F;If omitted, the default is HTTP GET.
+    xdr: {
+        use:&#x27;native&#x27;&#x2F;&#x2F;For browsers that support CORS.
+    },
+    on: {
+        &#x2F;&#x2F;Our event handlers previously defined:
+        start: handleStart,
+        success: handleSuccess,
+        failure: handleFailure
+    }
+};</pre>
+
+
+<p>Create an event handler that will make the IO call to Yahoo! Pipes when the Load button is clicked:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F;Wire the button to a click handler to fire our request each
+&#x2F;&#x2F;time the button is clicked:
+var handleClick = function(o) {
+    Y.log(&quot;Click detected; beginning io request to Yahoo! Pipes.&quot;, &quot;info&quot;, &quot;example&quot;);
+    &#x2F;&#x2F; Remove the default &quot;X-Requested-With&quot; header as this will
+    &#x2F;&#x2F; prevent the request from succeeding; the Pipes 
+    &#x2F;&#x2F; resource will not accept user-defined HTTP headers.
+    Y.io.header(&#x27;X-Requested-With&#x27;);
+    var obj = Y.io(
+	&#x2F;&#x2F;this is a specific Pipes feed, populated with cycling news:
+	&quot;http:&#x2F;&#x2F;pipes.yahooapis.com&#x2F;pipes&#x2F;pipe.run?_id=giWz8Vc33BG6rQEQo_NLYQ&amp;_render=json&quot;,
+	cfg
+    );
+}
+
+&#x2F;&#x2F;add the click handler to the Load button.
+Y.on(&quot;click&quot;, handleClick, &quot;#pipes&quot;);</pre>
+
+
+<h4>Full Script</h4>
+
+<p>The full script source for this example is as follows:</p>
+
+<pre class="code prettyprint">&lt;button id=&quot;pipes&quot;&gt;Load RSS news feed from Yahoo! Pipes.&lt;&#x2F;button&gt;
+&lt;div id=&quot;output&quot;&gt;
+    &lt;ul&gt;
+        &lt;li&gt;Content from Yahoo! Pipes feed will display here.&lt;&#x2F;li&gt;
+    &lt;&#x2F;ul&gt;
+&lt;&#x2F;div&gt;
+
+&lt;script language=&quot;javascript&quot;&gt;
+YUI({ filter:&#x27;raw&#x27; }).use(&quot;io-xdr&quot;, &quot;substitute&quot;, &quot;json-parse&quot;, &quot;node&quot;,
+    function(Y) {
+
+        &#x2F;&#x2F;Data fetched will be displayed in a UL in the
+        &#x2F;&#x2F;element #output:
+        var output = Y.one(&quot;#output ul&quot;);
+
+        &#x2F;&#x2F;Event handler called when the transaction begins:
+        var handleStart = function(id, a) {
+            Y.log(&quot;io:start firing.&quot;, &quot;info&quot;, &quot;example&quot;);
+            output.set(&quot;innerHTML&quot;, &quot;&lt;li&gt;Loading news stories via Yahoo! Pipes feed...&lt;&#x2F;li&gt;&quot;);
+        }
+
+        &#x2F;&#x2F;Event handler for the success event -- use this handler to write the fetched
+        &#x2F;&#x2F;RSS items to the page.
+        var handleSuccess = function(id, o, a) {
+
+            &#x2F;&#x2F;We use JSON.parse to sanitize the JSON (as opposed to simply performing an
+            &#x2F;&#x2F;JavaScript eval of the data):
+            var oRSS = Y.JSON.parse(o.responseText);
+
+            &#x2F;&#x2F;From here, we simply access the JSON data from where it&#x27;s provided
+            &#x2F;&#x2F;in the Yahoo! Pipes output:
+            if (oRSS &amp;&amp; oRSS.count) {
+
+                var s = &quot;&lt;!--begin news stories fetched via Yahoo! Pipes--&gt;&quot;,
+                    &#x2F;&#x2F;t in this case is our simple template; this is fed to
+                    &#x2F;&#x2F;Y.Lang.substitute as we loop through RSS items:
+                    t = &quot;&lt;li&gt;&lt;a href=&#x27;{link}&#x27;&gt;{title}&lt;&#x2F;a&gt;, {pubDate}&lt;&#x2F;li&gt;&quot;;
+
+                for (var i=0; i&lt;oRSS.count; i++) {
+                    s += Y.Lang.substitute(t, oRSS.value.items[i]);
+                }
+
+                &#x2F;&#x2F;Output the string to the page:
+                output.set(&quot;innerHTML&quot;, s);
+                output.addClass(&quot;yui-null&quot;);
+
+            } else {
+                &#x2F;&#x2F;No news stories were found in the feed.
+                var s = &quot;&lt;li&gt;The RSS feed did not return any items.&lt;&#x2F;li&gt;&quot;;
+            }
+        }
+
+        &#x2F;&#x2F;In the event that the HTTP status returned does not resolve to,
+        &#x2F;&#x2F;HTTP 2xx, a failure is reported and this function is called:
+        var handleFailure = function(id, o, a) {
+            Y.log(&quot;ERROR &quot; + id + &quot; &quot; + a, &quot;info&quot;, &quot;example&quot;);
+        }
+
+        &#x2F;&#x2F;With all the apparatus in place, we can now configure our
+        &#x2F;&#x2F;IO call.  The method property is defined, but if omitted,
+        &#x2F;&#x2F;IO will default to HTTP GET.
+        var cfg = {
+            method: &quot;GET&quot;,
+            xdr: {
+                use:&#x27;native&#x27;
+            },
+            on: {
+                &#x2F;&#x2F;Our event handlers previously defined:
+                start: handleStart,
+                success: handleSuccess,
+                failure: handleFailure
+            }
+        };
+
+        &#x2F;&#x2F;Wire the button to a click handler to fire our request each
+        &#x2F;&#x2F;time the button is clicked:
+        var handleClick = function(o) {
+            Y.log(&quot;Click detected; beginning io request to Yahoo! Pipes.&quot;, &quot;info&quot;, &quot;example&quot;);
+	    &#x2F;&#x2F; Remove the default &quot;X-Requested-With&quot; header as this will
+	    &#x2F;&#x2F; prevent the request from succeeding; the Pipes 
+	    &#x2F;&#x2F; resource will not accept user-defined HTTP headers.
+	    Y.io.header(&#x27;X-Requested-With&#x27;);
+            var obj = Y.io(
+                &#x2F;&#x2F;this is a specific Pipes feed, populated with cycling news:
+                &quot;http:&#x2F;&#x2F;pipes.yahooapis.com&#x2F;pipes&#x2F;pipe.run?_id=giWz8Vc33BG6rQEQo_NLYQ&amp;_render=json&quot;,
+                cfg
+            );
+        }
+
+        &#x2F;&#x2F;add the click handler to the Load button.
+        Y.on(&quot;click&quot;, handleClick, &quot;#pipes&quot;);
+    }
+);
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Use IO to request data over HTTP.">
+                                            <a href="get.html">HTTP GET to request data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to request XML data from a remote web service.">
+                                            <a href="weather.html">Request XML data from Yahoo! Weather</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to make a cross-domain request to Yahoo! Pipes, returning data from disparate sources.">
+                                            <a href="xdr.html">Request JSON using Yahoo! Pipes</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create a simple plugin to retrieve content for the Overlay using the io utility.">
+                                            <a href="../overlay/overlay-io-plugin.html">IO Plugin</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

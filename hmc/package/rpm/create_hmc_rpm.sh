@@ -52,7 +52,7 @@ cp -rf ${BASEDIR}/../../js ${HMC_DIR}
 #cp -rf ${BASEDIR}/../../src/puppet ${HMC_DIR}
 cp -rf ${BASEDIR}/../../puppet ${HMC_DIR}
 cp -rf ${BASEDIR}/../../php ${HMC_DIR}
-cp -rf ${BASEDIR}/../../yui-3.4.1 ${HMC_DIR}
+cp -rf ${BASEDIR}/../../yui-3.5.1 ${HMC_DIR}
 cp -rf ${BASEDIR}/../../conf ${HMC_DIR}
 cp -f ${BASEDIR}/../../yuiCombinator.php ${HMC_DIR}
 TAR_DEST="${BUILD_DIR}/${PKG_NAME}-$VERSION.tar.gz"

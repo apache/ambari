@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Column Sorting</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Column Sorting</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+/* custom styles for this example */
+.dt-example {margin:1em;}
+
+/* css to counter global site css */
+.dt-example th {text-transform:none;}
+.dt-example table {width:auto;}
+.dt-example caption {display:table-caption;}
+.notice {
+    background: #faf3d1;
+    border: 1px solid #eac9a9;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: px;
+    padding: 0 1em;
+    -moz-box-shadow: 0 0 5px #ccc8b3;
+    -webkit-box-shadow: 0 0 5px #ccc8b3;
+    box-shadow: 0 0 5px #ccc8b3;
+    margin-bottom: 1em;
+}
+</style>
+
+<div class="notice">
+    <p>
+        <strong>NOTICE</strong>: This example is for the <strong>deprecated
+        version of DataTable</strong>.  The components referred to here will be
+        removed in future versions of YUI</strong>.  If you are unable to
+        upgrade to <a href="../datatable/index.html">the latest DataTable
+        version</a> due to unresolvable feature conflicts from version 3.4.1 or
+        prior, please <a href="../../../projects/yui3/newticket/">file a
+        ticket</a>.
+    </p>
+</div>
+
+<div class="intro">
+    <p>The <code>Y.Plugin.DataTableSort</code> plugin adds column sorting functionality to a basic DataTable.</p>
+</div>
+
+<div class="example yui3-skin-sam">
+    <div id="sort" class="yui3-skin-sam dt-example"></div>
+
+<div id="presorted" class="yui3-skin-sam dt-example"></div>
+
+<div id="dblclick" class="yui3-skin-sam dt-example"></div>
+
+<script type="text/javascript">
+YUI().use("datatable-sort-deprecated", function (Y) {
+    var cols = [
+        {key:"Company", label:"Click to Sort Column A", sortable:true},
+        {key:"Phone", label:"Not Sortable Column B"},
+        {key:"Contact", label:"Click to Sort Column C", sortable:true}
+    ],
+    dblclickCols = [
+        {key:"Company", label:"Dblclick to Sort A", sortable:true},
+        {key:"Phone", label:"Not Sortable Column B"},
+        {key:"Contact", label:"Dblclick to Sort C", sortable:true}
+    ],
+    data = [
+        {Company:"Company Bee", Phone:"415-555-1234", Contact:"Sally Spencer"},
+        {Company:"Acme Company", Phone:"650-555-4444", Contact:"John Jones"},
+        {Company:"Industrial Industries", Phone:"408-555-5678", Contact:"Robin Smith"}
+    ],
+    presortedData = [
+        {Company:"Acme Company", Phone:"415-555-1234", Contact:"John Jones"},
+        {Company:"Company Bee", Phone:"650-555-4444", Contact:"Sally Spencer"},
+        {Company:"Industrial Industries", Phone:"408-555-5678", Contact:"Robin Smith"}
+    ],
+
+    dt1 = new Y.DataTable.Base({columnset:cols, recordset:data, summary:"Contacts list", caption:"Table with simple column sorting"}).plug(Y.Plugin.DataTableSort).render("#sort"),
+    
+    dt2 = new Y.DataTable.Base({columnset:cols, recordset:presortedData, summary:"Contacts list", caption:"This table loads with presorted data"}).plug(Y.Plugin.DataTableSort, {lastSortedBy:{key:"Company",dir:"asc"}}).render("#presorted"),
+
+    dt3 = new Y.DataTable.Base({columnset:dblclickCols, recordset:data, summary:"Contacts list", caption:"This table sorts on doubleclick"}).plug(Y.Plugin.DataTableSort, {trigger:{selector:"th",event:"dblclick"}, template:"{value}"}).render("#dblclick");
+
+});
+
+</script>
+
+</div>
+
+<h2>Implementing Sortable Columns</h2>
+
+<p>To add column sorting functionality to any DataTable, simply call <code>.plug(Y.Plugin.DataTableSort)</code>. The <code>DataTableSort</code> plugin is available in the<code>datatable-sort-deprecated</code> submodule. To enable sorting, you must define <code>sortable:true</code> in each column definition.</p>
+
+<pre class="code prettyprint">YUI().use(&quot;datatable-sort-deprecated&quot;, function(Y) {
+    var cols = [
+        {key:&quot;Company&quot;, label:&quot;Click to Sort Column A&quot;, sortable:true},
+        {key:&quot;Phone&quot;, label:&quot;Not Sortable Column B&quot;},
+        {key:&quot;Contact&quot;, label:&quot;Click to Sort Column C&quot;, sortable:true}
+    ],
+    data = [
+        {Company:&quot;Company Bee&quot;, Phone:&quot;415-555-1234&quot;, Contact:&quot;Sally Spencer&quot;},
+        {Company:&quot;Acme Company&quot;, Phone:&quot;650-555-4444&quot;, Contact:&quot;John Jones&quot;},
+        {Company:&quot;Industrial Industries&quot;, Phone:&quot;408-555-5678&quot;, Contact:&quot;Robin Smith&quot;}
+    ],
+    table = new Y.DataTable.Base({
+        columnset: cols,
+        recordset: data,
+        summary: &quot;Contacts list&quot;,
+        caption: &quot;Table with simple column sorting&quot;
+    }).plug(Y.Plugin.DataTableSort)
+      .render(&quot;#sort&quot;);
+});</pre>
+
+
+<h6>Pre-sorted Data</h6>
+
+<p>Often data is already sorted when it loads, and we want the data to reverse-sort the first time the user clicks on the column. In that case, define the <code>lastSortedBy</code> value in the DataTableSort plugin to indicate the field that is already sorted and whether it is sorted in "asc" or "desc" order.</p>
+
+<pre class="code prettyprint">YUI().use(&quot;datatable-sort-deprecated&quot;, function(Y) {
+    var cols = [
+        {key:&quot;Company&quot;, label:&quot;Click to Sort Column A&quot;, sortable:true},
+        {key:&quot;Phone&quot;, label:&quot;Not Sortable Column B&quot;},
+        {key:&quot;Contact&quot;, label:&quot;Click to Sort Column C&quot;, sortable:true}
+    ],
+    presortedData = [
+        {Company:&quot;Acme Company&quot;, Phone:&quot;415-555-1234&quot;, Contact:&quot;John Jones&quot;},
+        {Company:&quot;Company Bee&quot;, Phone:&quot;650-555-4444&quot;, Contact:&quot;Sally Spencer&quot;},
+        {Company:&quot;Industrial Industries&quot;, Phone:&quot;408-555-5678&quot;, Contact:&quot;Robin Smith&quot;}
+    ],
+    table = new Y.DataTable.Base({
+        columnset: cols,
+        recordset: presortedData,
+        summary: &quot;Contacts list&quot;,
+        caption: &quot;This table loads with presorted data&quot;
+    }).plug(Y.Plugin.DataTableSort, {
+            lastSortedBy: {
+                key: &quot;Company&quot;,
+                dir: &quot;asc&quot;
+            }
+        })
+      .render(&quot;#presorted&quot;);
+});</pre>
+
+
+<h6>Configurable Trigger</h6>
+
+<p>By default, sorts will be triggered when the user clicks on the TH element
+of a sortable column, which fires a <code>theadCellClick</code> DataTable event. You can
+set this to be any other DataTable custom event by setting the <code>trigger</code>
+attribute in the DataTableSort plugin constructor. Note: Since the <code>trigger</code>
+attribute is <code>initOnly</code>, this value can only be set in the plugin constructor
+and not after the plugin has been instantiated.</p>
+
+<p>A related change worth making is to remove the link from the TH content,
+since the user will not be clicking to sort in this implementation. Simply set
+the <code>template</code> attribute to be the unadorned <code>&quot;{value}&quot;</code> string.</p>
+
+<p><strong>Note:</strong> touch devices don't support the <code>dblclick</code> event, so the last table won't be sortable for all users.  Be mindful of your audience when configuring triggers.</p>
+
+<pre class="code prettyprint">YUI().use(&quot;datatable-sort-deprecated&quot;, function(Y) {
+    var cols = [
+        {key:&quot;Company&quot;, label:&quot;Dblclick to Sort A&quot;, sortable:true},
+        {key:&quot;Phone&quot;, label:&quot;Not Sortable Column B&quot;},
+        {key:&quot;Contact&quot;, label:&quot;Dblclick to Sort C&quot;, sortable:true}
+    ],
+    data = [
+        {Company:&quot;Company Bee&quot;, Phone:&quot;415-555-1234&quot;, Contact:&quot;Sally Spencer&quot;},
+        {Company:&quot;Acme Company&quot;, Phone:&quot;650-555-4444&quot;, Contact:&quot;John Jones&quot;},
+        {Company:&quot;Industrial Industries&quot;, Phone:&quot;408-555-5678&quot;, Contact:&quot;Robin Smith&quot;}
+    ],
+    table = new Y.DataTable.Base({
+        columnset: cols,
+        recordset: data,
+        summary: &quot;Contacts list&quot;,
+        caption: &quot;This table sorts on doubleclick&quot;
+    }).plug(Y.Plugin.DataTableSort, {
+            trigger: &quot;theadCellDblclick&quot;,
+            template: &quot;{value}&quot;
+        })
+      .render(&quot;#dblclick&quot;);
+});</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="This example illustrates simple DataTable use cases.">
+                                            <a href="datatable-basic.html">Basic DataTable</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable loaded with JSON data from a remote webservice via DataSource.Get">
+                                            <a href="datatable-dsget.html">DataTable + DataSource.Get + JSON Data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable loaded with XML data from a remote webservice via DataSource.IO.">
+                                            <a href="datatable-dsio.html">DataTable + DataSource.IO + XML Data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Custom format data for display.">
+                                            <a href="datatable-formatting.html">Formatting Row Data for Display</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable with nested column headers.">
+                                            <a href="datatable-nestedcols.html">Nested Column Headers</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable with column sorting.">
+                                            <a href="datatable-sort.html">Column Sorting</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable with vertical and/or horizontal scrolling rows.">
+                                            <a href="datatable-scroll.html">Scrolling DataTable</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

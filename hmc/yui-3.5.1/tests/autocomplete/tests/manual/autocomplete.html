@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AutoComplete manual test</title>
+    <!-- <link rel="stylesheet" href="../../../../build/cssreset/reset-min.css">
+    <link rel="stylesheet" href="../../../../build/cssbase/base-min.css"> -->
+    <link rel="stylesheet" href="../../../common/tests/assets/test-console.css">
+    <!-- for design iteration -->
+    <!-- <link rel="stylesheet" href="../../assets/autocomplete-list-core.css">
+    <link rel="stylesheet" href="../../assets/skins/sam/autocomplete-list-skin.css"> -->
+    <style>
+    html {
+        background: #fff;
+        color: #333;
+        font-family: Helvetica, sans-serif;
+        font-size: 13px;
+    }
+
+    body { width: 60%; }
+
+    fieldset {
+        border: 1px solid #afafaf;
+        margin-top: 1em;
+    }
+
+    fieldset label { margin-right: 0.5em; }
+
+    #ac-input {
+        margin: 5px 0 10px;
+        width: 300px;
+    }
+
+    #log { margin-top: 4em; }
+
+    /* Scrollable result list */
+    .yui3-aclist-content {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .flickr {
+        height: 32px;
+        overflow: hidden;
+        padding: 2px;
+        text-decoration: none;
+    }
+
+    .flickr img {
+        float: left;
+        height: 32px;
+        margin: 0 4px;
+        width: 32px;
+    }
+
+    .twitter {
+        clear: both;
+        margin: 4px 0;
+        padding: 2px 0;
+    }
+
+    .twitter .hd {
+        float: left;
+    }
+
+    .twitter .bd,
+    .twitter .ft {
+        margin-left: 52px;
+    }
+
+    .twitter .ft {
+        color: #cfcfcf;
+        font-size: 11px;
+    }
+
+    .twitter .photo {
+        height: 48px;
+        margin-top: 3px;
+        width: 48px;
+    }
+
+    .twitter .user { margin-right: 6px; }
+    </style>
+</head>
+<body class="yui3-skin-sam">
+
+<h1>AutoComplete manual test</h1>
+
+<form id="ac-form">
+    <div id="ac">
+        <label for="ac-input">Type things here! Try the name of a US state.</label><br>
+        <input type="text" id="ac-input">
+    </div>
+
+    <fieldset>
+        <legend>Source</legend>
+        <div>
+            <select id="source">
+                <option value="none">None</option>
+                <option value="local" selected>Local (Array)</option>
+                <option value="function">Local (Function)</option>
+                <option value="flickr">Remote (YQL - Flickr)</option>
+                <option value="search">Remote (YQL - Y! Search)</option>
+                <option value="twitter">Remote (JSONP - Twitter Search)</option>
+                <option value="xhr">Remote (XHR)</option>
+                <option value="ds">Remote (DataSource.Get)</option>
+            </select>
+
+            <input type="checkbox" id="enable-cache" value="1" checked="checked">
+            <label for="enable-cache">Enable cache</label>
+        </div>
+    </fieldset>
+
+    <fieldset id="filters">
+        <legend>Result Filters</legend>
+        <div></div>
+    </fieldset>
+
+    <fieldset id="highlighters">
+        <legend>Result Highlighters</legend>
+        <div>
+            <input type="radio" class="highlighter" name="highlighter" id="highlighter_none" value="none" checked="checked">
+            <label for="highlighter_none">None</label>
+        </div>
+    </fieldset>
+
+    <fieldset id="other">
+        <legend>Other Settings</legend>
+        <div>
+            <label for="delimiter">Query delimiter:</label>
+            <input type="text" id="delimiter">
+        </div>
+    </fieldset>
+</form>
+
+<div id="log"></div>
+
+<script src="../assets/test-data.js"></script>
+<script src="../../../../build/yui/yui.js"></script>
+<script>
+var Y = YUI({
+    filter: 'raw',
+    filters: {
+        'autocomplete': 'debug',
+        'autocomplete-base': 'debug',
+        'autocomplete-list': 'debug'
+    },
+
+    useBrowserConsole: false,
+
+    // For design iteration.
+    ignore: [
+        // 'skin-sam-autocomplete',
+        // 'skin-sam-autocomplete-list'
+    ]
+}).use(
+    'autocomplete',
+    'autocomplete-filters',
+    'autocomplete-highlighters',
+    'console-filters',
+    'datasource',
+    'dump',
+    'event-delegate',
+function (Y) {
+
+Y.one('#ac-form').reset();
+
+// -- Console setup ------------------------------------------------------------
+new Y.Console({
+    height: '400px',
+    width: '35%'
+}).plug(Y.Plugin.ConsoleFilters, {}).render('#log');
+
+// -- AutoComplete setup -------------------------------------------------------
+var autoComplete = new Y.AutoComplete({
+    inputNode     : '#ac-input',
+    scrollIntoView: true
+});
+
+// For easier debugging.
+Y.ac = autoComplete;
+
+// -- UI stuff -----------------------------------------------------------------
+var filtersDiv      = Y.one('#filters>div'),
+    highlightersDiv = Y.one('#highlighters>div');
+
+// Create filter checkboxes.
+Y.Object.each(Y.AutoCompleteFilters, function (filter, name) {
+    if (name.indexOf('_') === 0) {
+        return;
+    }
+
+    filtersDiv.append(
+        '<input type="checkbox" class="filter" id="filter_' + name + '" value="' + name + '"' + (name === 'phraseMatch' ? ' checked="checked"' : '') + '>' +
+        '<label for="filter_' + name + '">' + name + '</label>'
+    );
+});
+
+// Create highlighter radio buttons.
+Y.Object.each(Y.AutoCompleteHighlighters, function (highlighter, name) {
+    if (name.indexOf('_') === 0) {
+        return;
+    }
+
+    highlightersDiv.append(
+        '<input type="radio" class="highlighter" name="highlighter" id="highlighter_' + name + '" value="' + name + '"' + (name === 'phraseMatch' ? ' checked="checked"' : '') + '>' +
+        '<label for="highlighter_' + name + '">' + name + '</label>'
+    );
+});
+
+// Handle clicks on datasource radio buttons.
+Y.one('#source').on('change', function (e) {
+    switch (e.target.get('value')) {
+    case 'none':
+        useNone();
+        break;
+
+    case 'local':
+        useLocal();
+        break;
+
+    case 'function':
+        useFunction();
+        break;
+
+    case 'flickr':
+        useFlickr();
+        break;
+
+    case 'search':
+        useSearch();
+        break;
+
+    case 'twitter':
+        useTwitter();
+        break;
+
+    case 'xhr':
+        useXHR();
+        break;
+
+    case 'ds':
+        useDS();
+        break;
+    }
+});
+
+// Handle clicks on options.
+Y.on('click', setCache, '#enable-cache');
+
+// Handle clicks on filters.
+Y.delegate('click', setFilters, '#filters', 'input[type="checkbox"]');
+
+// Handle clicks on highlighters.
+Y.delegate('click', setHighlighter, '#highlighters', 'input[type="radio"]');
+
+// Handle delimiter changes.
+Y.on('change', setDelimiter, '#delimiter');
+
+useLocal();
+setFilters();
+setHighlighter();
+
+autoComplete.render();
+autoComplete.get('inputNode').focus();
+
+// -- UI functions -------------------------------------------------------------
+function flickrFormatter(query, results) {
+    return Y.Array.map(results, function (result) {
+        var imgUrl = Y.Lang.sub('http://farm{farm}.static.flickr.com/{server}/{id}_{secret}_s.jpg', result.raw);
+
+        return '<div class="flickr">' +
+                 '<img src="' + imgUrl + '" alt="thumbnail">' +
+                 '<span class="title">' + result.highlighted + '</span>' +
+               '</div>';
+    });
+}
+
+function twitterFormatter(query, results) {
+    return Y.Array.map(results, function (result) {
+        return Y.Lang.sub(
+            '<div class="twitter" data-tweet-id="{id}">' +
+              '<div class="hd">' +
+                '<img src="{imgurl}" class="photo" alt="Profile photo for {user}">' +
+              '</div>' +
+              '<div class="bd">' +
+                '<strong class="user">{user}</strong>' +
+                '<span class="tweet-text">{text}</span>' +
+              '</div>' +
+              '<div class="ft">' +
+                '{time}' +
+              '</div>' +
+            '</div>'
+        , {
+            id    : result.raw.id,
+            imgurl: result.raw.profile_image_url,
+            text  : result.highlighted,
+            time  : result.raw.created_at,
+            user  : result.raw.from_user
+        });
+    });
+}
+
+function setCache(e) {
+    autoComplete.set('enableCache', e.target.get('checked'));
+}
+
+function setDelimiter(e) {
+    autoComplete.set('queryDelimiter', e.target.get('value'));
+}
+
+function setFilters() {
+    var filters     = [],
+        filterNames = [];
+
+    Y.all('#filters input.filter').each(function (input) {
+        if (input.get('checked')) {
+            filterNames.push(input.get('value'));
+        }
+    });
+
+    Y.Array.each(filterNames, function (name) {
+        filters.push(name);
+    });
+
+    autoComplete.set('resultFilters', filters);
+}
+
+function setHighlighter() {
+    Y.all('#highlighters input.highlighter').some(function (input) {
+        var name;
+
+        if (input.get('checked')) {
+            name = input.get('value');
+            autoComplete.set('resultHighlighter', name === 'none' ? null : name);
+            return true;
+        }
+    });
+}
+
+// -- DataSource functions -----------------------------------------------------
+function useNone() {
+    Y.log('using no source', 'info', 'autocomplete');
+
+    autoComplete.detachAll('test|*');
+
+    autoComplete.setAttrs({
+        maxResults       : 0,
+        requestTemplate  : null,
+        resultFormatter  : null,
+        resultListLocator: null,
+        resultTextLocator: null,
+        source           : null
+    });
+}
+
+function useLocal() {
+    Y.log('using local array source', 'info', 'autocomplete');
+
+    autoComplete.detachAll('test|*');
+
+    autoComplete.setAttrs({
+        maxResults       : 0,
+        requestTemplate  : null,
+        resultFormatter  : null,
+        resultListLocator: null,
+        resultTextLocator: null,
+        source           : ExampleData.arrayStates
+    });
+}
+
+function useFunction() {
+    Y.log('using local function source', 'info', 'autocomplete');
+
+    autoComplete.detachAll('test|*');
+
+    autoComplete.setAttrs({
+        maxResults       : 0,
+        requestTemplate  : null,
+        resultFormatter  : null,
+        resultListLocator: null,
+        resultTextLocator: null,
+        source           : function (query) { return ExampleData.arrayStates; }
+    });
+}
+
+function useFlickr() {
+    Y.log('using remote Flickr YQL source', 'info', 'autocomplete');
+
+    autoComplete.detachAll('test|*');
+
+    autoComplete.setAttrs({
+        maxResults       : 0,
+        requestTemplate  : null,
+        resultFormatter  : flickrFormatter,
+        resultListLocator: null,
+        resultTextLocator: 'title',
+        source           : 'select * from flickr.photos.search where tags="{query}"'
+    });
+}
+
+function useSearch() {
+    Y.log('using remote Y! Search YQL source', 'info', 'autocomplete');
+
+    autoComplete.detachAll('test|*');
+
+    autoComplete.setAttrs({
+        maxResults       : 0,
+        requestTemplate  : null,
+        resultFormatter  : null,
+        resultListLocator: null,
+        resultTextLocator: null,
+        source           : 'select * from search.suggest where query="{query}"',
+        yqlEnv           : 'http://pieisgood.org/yql/tables.env'
+    });
+}
+
+function useTwitter() {
+    Y.log('using remote Twitter JSONP source', 'info', 'autocomplete');
+
+    autoComplete.detachAll('test|*');
+
+    autoComplete.setAttrs({
+        maxResults       : 5,
+        requestTemplate  : null,
+        resultFormatter  : twitterFormatter,
+        resultListLocator: 'results',
+        resultTextLocator: 'text',
+        source           : 'http://search.twitter.com/search.json?q={query}&callback={callback}&rpp={maxResults}&result_type=recent'
+    });
+}
+
+function useXHR() {
+    Y.log('using XHR source', 'info', 'autocomplete');
+
+    autoComplete.detachAll('test|*');
+
+    autoComplete.setAttrs({
+        maxResults       : 5,
+        requestTemplate  : null,
+        resultFormatter  : null,
+        resultListLocator: null,
+        resultTextLocator: null,
+        source           : '../assets/xhr-data.json?query={query}'
+    });
+}
+
+function useDS() {
+    var ds;
+
+    Y.log('using DataSource', 'info', 'autocomplete');
+
+    autoComplete.detachAll('test|*');
+
+    ds = new Y.DataSource.Get({source: 'http://search.twitter.com/searches.json?result_type=recent'});
+
+    autoComplete.setAttrs({
+        maxResults       : 5,
+        requestTemplate  : '&q={query}',
+        resultFormatter  : twitterFormatter,
+
+        resultListLocator: function (response) {
+            return response[0].results;
+        },
+
+        resultTextLocator: 'text',
+        source           : ds
+    });
+}
+
+});
+</script>
+
+</body>
+</html>

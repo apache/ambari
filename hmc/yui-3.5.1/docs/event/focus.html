@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>The focus and blur Event Fix</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>The focus and blur Event Fix</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>The <code>event-focus</code> module supplies a behavior patch for the native
+    <code>focus</code> and <code>blur</code> events to allow them to bubble for event delegation.</p>
+</div>
+
+<h2 id="bubble-time">Bubble time</h2>
+
+<p>Most DOM events bubble.  If, for example, you click on a button in a form,
+the click event will be dispatched to event subscribers on the button, on the
+fieldset, on the form, on the div containing the form, and so on up to the
+<code>document</code>.  You can subscribe to the click event at any level and your
+callback will be executed.  But <code>focus</code> and <code>blur</code> aren't like that.  They are
+only dispatched to subscribers on the element that received or lost focus.</p>
+
+<p>But <a href="delegation.html">we like event delegation</a> so we determined
+a way to synthesize bubbling for <code>focus</code> and <code>blur</code> using <a
+href="http://www.w3.org/TR/DOM-Level-3-Events/#event-flow">capture phase</a>
+subscriptions in non-IE browsers, and proprietary focus-related events in IE
+that do bubble.  The result should be transparent for individual element
+<code>focus</code> and <code>blur</code> subscriptions, but make <code>focus</code> and <code>blur</code> work as you would
+expect when subscribing higher in the document tree.</p>
+
+<pre class="code prettyprint">&lt;ul id=&quot;items&quot;&gt;
+    &lt;li&gt;&lt;input value=&quot;form elements are focusable by default&quot;&gt;&lt;&#x2F;li&gt;
+    &lt;li&gt;&lt;a href=&quot;yahoo.com&quot;&gt;Links are focusable by default&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+    &lt;li tabindex=&quot;2&quot;&gt;Things with &#x60;tabindex&#x60; 0 or higher are made user focusable&lt;&#x2F;li&gt;
+    &lt;li tabindex=&quot;-1&quot;&gt;Things with &#x60;tabindex&#x60; -1 can be focused programatically&lt;&#x2F;li&gt;
+    &lt;li&gt;But by default none of those &#x60;focus&#x60; events will report to #items&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;script&gt;
+YUI().use(&#x27;node-base&#x27;, function (Y) {
+    var items = Y.one(&#x27;#items&#x27;);
+
+    items.on(&#x27;focus&#x27;, function (e) {
+        Y.log(&quot;The list does not have a tabindex, so this will never execute&quot;);
+    });
+
+    Y.use(&#x27;event-focus&#x27;, function () {
+        items.on(&#x27;focus&#x27;, function (e) {
+            Y.log(&quot;But now that event-focus is in place, future &quot; +
+                  &quot;subscriptions like this one will.&quot;);
+
+            &#x2F;&#x2F; e.target received focus
+        });
+    });
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#bubble-time">Bubble time</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Use the Event Utility to attach simple DOM event handlers.">
+                                            <a href="basic-example.html">Simple DOM Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using the synthetic event API to create a DOM event that fires in response to arrow keys being pressed.">
+                                            <a href="synth-example.html">Creating an Arrow Event for DOM Subscription</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Supporting cross-device swipe gestures, using the event-move gesture events">
+                                            <a href="swipe-example.html">Supporting A Swipe Left Gesture</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to extend the base widget class, to create your own Widgets.">
+                                            <a href="../widget/widget-extend.html">Extending the Base Widget Class</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible menu button using the Focus Manager Node Plugin, Event&#x27;s delegation support and mouseenter event, along with the Overlay widget and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-3.html">Accessible Menu Button</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to request data over HTTP.">
+                                            <a href="../io/get.html">HTTP GET to request data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Example Photo Browser application.">
+                                            <a href="../dd/photo-browser.html">Photo Browser</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Portal style example using Drag &amp; Drop Event Bubbling and Animation.">
+                                            <a href="../dd/portal-drag.html">Portal Style Example</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Anim</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Anim</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>The Anim Utility provides the ability to animate changes to style properties. Advanced easing equations are provided for more interesting animated effects.</p>
+    <p><strong>NOTE:</strong> Depending on which features are required, you may want to consider using the <a href="../transition/">Transition Utility</a> as an alternative to Anim.  The Transition Utility isn't as feature rich as Anim, but it leverages native CSS Transitions when possible, provides a smaller payload, and can be hardware-accelerated.</p>
+</div>
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for Anim and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;anim&#x27;, function (Y) {
+    &#x2F;&#x2F; Anim is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+<div>
+    <h3 id="instantiating">Creating an Animation Object</h3>
+
+    <p>Your Animation implementation will consist of one or more instances of the <code>Anim</code>.</p>
+    <p>To create an <code>Anim</code> instance on your page, pass it a configuration object including the <code>node</code> or selector query for the node that you wish to animate and a <code>to</code> containing the properties you wish to animate.</p>
+
+<pre class="code prettyprint">var myAnim = new Y.Anim({
+    node: &#x27;#demo&#x27;,
+    to: {
+        width: 0,
+        height: 0
+    }
+});</pre>
+
+
+    <p>To begin the actual animation, call the <code>run</code> method on your <code>Anim</code> instance.</p>
+
+<pre class="code prettyprint">myAnim.run();</pre>
+
+
+    <p>See <a href="../api/module_anim.html">the API documentation for the Anim object</a> for more information about its methods and properties.</p>
+
+    <h2 id="using">Using Animation</h2>
+			
+    <h3 id="attributes">Accessing Animation Attributes</h3>
+
+    <p>In addition to passing a configuration object to the <code>Anim</code> constructor, you can access the attributes of your <code>Anim</code> instance via the <code>set</code> and <code>get</code> methods.</p>
+
+<pre class="code prettyprint">var myAnim = new Y.Anim({
+    node: &#x27;#demo&#x27;,
+    to: {
+        width: 0,
+        height: 0
+    }
+});</pre>
+
+
+    <h3 id="anim-to">Setting a To Value</h3>
+    <p>A <code>node</code> attribute and a <code>to</code> attribute containing one or more properties to animate are the minimum requirements for running an animation.</p>
+
+    <p>The value of a <code>to</code> can optionally be a function.  If a function is used, it receives the <code>node</code> as its only argument.  The return value of the function becomes the <code>to</code> value for that <code>run</code> of the animation.</p>
+
+<pre class="code prettyprint">var myAnim = new Y.Anim({
+    node: &#x27;#demo&#x27;,
+    to: {
+        width: function(node) {
+            return node.get(&#x27;offsetWidth&#x27;) &#x2F; 2; 
+        },
+        height: 0
+    }
+});</pre>
+
+
+    <h3 id="anim-from">Setting a From Value</h3>
+				
+    <p>Use the optional <code>from</code> attribute to start the animation from a specific value.  When <code>from</code> is omitted, the current value is used.</p>
+
+    <p>Like the <code>to</code> attribute, the value of a <code>from</code> property can optionally be a function.  If a function is used, it receives the <code>node</code> as its only argument.  The return value of the function becomes the <code>from</code> value for that <code>run</code> of the animation.</p>
+
+<pre class="code prettyprint">var myAnim = new Y.Anim({
+    node: &#x27;#demo&#x27;,
+    from: {
+        width: 0,
+        height: function(node) {
+            return node.get(&#x27;winHeight&#x27;);
+        } 
+    },
+
+    to: {
+        width: 0,
+        height: 0
+    }
+});</pre>
+
+
+    <h3 id="anim-events">Listening for Events<a name="events"></a></h3>
+
+    <p>The Animation Utility defines events useful for hooking into the various stages of an animation.  The <code>on</code> method is used to attach event listeners.</p>
+<pre class="code prettyprint">var myAnim = new Y.Anim({
+    node: &#x27;#demo&#x27;,
+    to: {
+        width: 0,
+        height: 0
+    }
+});
+
+myAnim.on(&#x27;end&#x27;, function() {
+    myAnim.get(&#x27;node&#x27;).addClass(&#x27;yui-hidden&#x27;);
+});</pre>
+
+</div>
+
+
+
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+<ul class="toc">
+<li>
+<a href="#instantiating">Creating an Animation Object</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#using">Using Animation</a>
+<ul class="toc">
+<li>
+<a href="#attributes">Accessing Animation Attributes</a>
+</li>
+<li>
+<a href="#anim-to">Setting a To Value</a>
+</li>
+<li>
+<a href="#anim-from">Setting a From Value</a>
+</li>
+<li>
+<a href="#anim-events">Listening for Events<a name="events"></a></a>
+</li>
+</ul>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Creating and using a simple animation.">
+                                            <a href="basic.html">Basic Animation</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The Animation Utility allows you to implement &#x27;easing effects&#x27; &mdash; for example, when an animation gradually slows down as it nears completion, that&#x27;s an easing effect known as &#x27;ease-in&#x27;.  This example shows you how to use easing effects with your animations.">
+                                            <a href="easing.html">Easing Effects</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Color animations can be effective indicators of state during the lifespan of a dynamic page.  This example shows you how to animate color attributes of an element.">
+                                            <a href="colors.html">Animating Colors</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The direction attribute can be used to reverse the animation on alternate iterations.">
+                                            <a href="alt-iterations.html">Alternating Iterations</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example shows you how to animate the xy coordinates of an element.">
+                                            <a href="anim-xy.html">Animating XY Position</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates animating an element along a curved path using bezier control points.">
+                                            <a href="curve.html">Animating Along a Curved Path</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The reverse attribute allows you to change the run direction of an animation.">
+                                            <a href="reverse.html">Reversing an Animation</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to use the end event.">
+                                            <a href="end-event.html">Using the End Event</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create a simple plugin to animate the Overlay&#x27;s movement and visibility.">
+                                            <a href="../overlay/overlay-anim-plugin.html">Animation Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with multiple YUI instances.">
+                                            <a href="../yui/yui-multi.html">Multiple Instances</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to make an animated node a Drop target.">
+                                            <a href="../dd/anim-drop.html">Animated Drop Targets</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

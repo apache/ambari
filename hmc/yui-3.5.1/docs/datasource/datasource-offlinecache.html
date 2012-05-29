@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: DataSource with Offline Cache</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: DataSource with Offline Cache</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+#demo .output {
+    margin-bottom:1em;
+    padding:10px;
+    border:1px solid #D9D9D9;
+}
+#demo .output pre {
+    font-size: 11px;
+}
+#demo .output strong {
+    padding: .25em .4em;
+    background: #333;
+    color: #fff;
+    text-shadow: -1px -1px 1px #000;
+    border-radius: 5px;
+}
+</style>
+
+<div class="intro">
+    <p>The DataSourceCache plugin enables caching on any DataSource to reduce high-latency calls to remote sources and to reduce server load. The plugin can point to <code>Y.OfflineCache</code> to allow cached data to persist across browser sessions in browsers that support <a href="http://dev.w3.org/html5/webstorage/" title="Web Storage">HTML5 localStorage</a>.</p>
+
+</div>
+
+<div class="example yui3-skin-sam">
+    <form id="demo" action="http://search.yahoo.com/search">
+    <h6>Look up github repositories by username (ex. lsmith, davglass, or rgrove):</h6>
+    <input type="input" id="demo_input_query" name="p">
+    <input type="submit" id="demo_query_retrieve" value="Retrieve data">
+    <input type="button" id="demo_cache_clear" value="Clear cache">
+    <div id="demo_output_response" class="output"></div>
+</form>
+
+
+
+<script type="text/javascript">
+YUI().use("json-stringify","node", "datasource-get", "datasource-jsonschema", "cache", "datasource-cache", "datatype-date", function (Y) {
+    var output = Y.one("#demo_output_response"),
+        source = "remote source",
+
+        myDataSource = new Y.DataSource.Get({
+            source:"https://api.github.com/users/",
+            generateRequestCallback: function (guid) {
+                return '/repos?callback=YUI.Env.DataSource.callbacks.' + guid;
+            }
+        }),
+
+        callback = {
+            success: function(e){
+                var when = Y.DataType.Date.format(new Date(), {format:"%F %r"}),
+                    data = Y.JSON.stringify(e.response, null, 2);
+
+                output.setContent(
+                    "<p>[" + when + "] Retrieved from " +
+                    "<strong>" + source + "</strong></p>" +
+                    "<pre>" +
+                        data.replace(/&/g,"&amp;")
+                            .replace(/</g,"&lt;")
+                            .replace(/>/g,"&gt;") +
+                    "</pre>");
+            },
+            failure: function(e){
+                var when = Y.DataType.Date.format(new Date(), {format:"%F %r"}),
+                    message = /fields retrieval/.test(e.error.message) ?
+                        "User not found" : e.error.message;
+
+                output.setContent(
+                    "<p>[" + when + "] Could not retrieve data: " +
+                        "<em>" + message + "</em>" +
+                    "</p>");
+            }
+        };
+
+    myDataSource.plug(Y.Plugin.DataSourceJSONSchema, {
+        schema: {
+            resultListLocator: "data",
+            resultFields: ["name"]
+        }
+    });
+
+    myDataSource.plug(Y.Plugin.DataSourceCache, {
+        cache: Y.CacheOffline,
+        expires: 60000, // 1 min.
+        max:5
+    });
+    myDataSource.cache.on("retrieve", function(){
+        source = "cache";
+    });
+
+    Y.one("#demo_cache_clear").on("click", function(){
+        var when = Y.DataType.Date.format(new Date(), {format:"%F %r"});
+
+        myDataSource.cache.flush();
+        output.setContent("<p>[" + when + "] Cache cleared.</p>");
+    });
+
+    Y.on("submit", function(e){
+        e.halt();
+        var query = encodeURIComponent(
+                        Y.one("#demo_input_query")
+                            .get("value")
+                            .replace(/"/g,'\\"')
+                            .replace(/\W/g, ''));
+
+        if(query) {
+            source = "remote source";
+            myDataSource.sendRequest({
+                request:query,
+                callback:callback
+            });
+        } else {
+            output.setContent("<p>Please enter a query.</p>");
+        }
+    }, "#demo");
+});
+</script>
+
+</div>
+
+<p>Use the <code>plug()</code> method to initialize the DataSourceCache plugin
+and point the configuration value <code>cache</code> to Y.CacheOffline to enable
+offline caching. The configuration value <code>expires</code> can be set to
+change how soon the data expires.</p>
+
+<pre class="code prettyprint">YUI().use(&quot;datasource&quot;, &quot;dataschema&quot;, &quot;cache&quot;, function(Y) {
+    var callback = {
+            success: function (e) { &#x2F;* output to screen *&#x2F; },
+            failure: function (e) { &#x2F;* output to screen *&#x2F; }
+        },
+
+        myDataSource = new Y.DataSource.Get({
+            source: &quot;https:&#x2F;&#x2F;api.github.com&#x2F;users&#x2F;&quot;,
+
+            &#x2F;&#x2F; this is only needed because the query appends the url
+            &#x2F;&#x2F; rather than the url&#x27;s query params
+            generateRequestCallback: function (guid) {
+                return &#x27;&#x2F;repos?callback=YUI.Env.DataSource.callbacks.&#x27; + guid;
+            }
+        }),
+
+    myDataSource.plug(Y.Plugin.DataSourceJSONSchema, {
+        schema: {
+            resultListLocator: &quot;data&quot;,
+            resultFields: [&quot;name&quot;]
+        }
+    });
+
+    &#x2F;&#x2F; Enable offline data caching by pointing to Y.CacheOffline.
+    &#x2F;&#x2F; For demonstration purposes, data is set to expire after 10 seconds
+    myDataSource.plug(Y.Plugin.DataSourceCache, {
+        cache: Y.CacheOffline,
+        expires: 60000, &#x2F;&#x2F; 1 min.
+        max: 5
+    });
+
+    &#x2F;&#x2F; Retrieves from server. Adds to cache
+    myDataSource.sendRequest({
+        request : &quot;lsmith&quot;,
+        callback: callback
+    });
+
+    &#x2F;&#x2F; Retrieves from server. Adds to cache
+    myDataSource.sendRequest({
+        request : &quot;davglass&quot;,
+        callback: callback
+    });
+
+    &#x2F;&#x2F; Retrieves from cache if requested within 5 seconds
+    myDataSource.sendRequest({
+        request : &quot;lsmith&quot;,
+        callback: callback
+    });
+
+    &#x2F;&#x2F; ... wait 60 seconds ...
+
+    &#x2F;&#x2F; Cached data has expired. Retrieves from server. Adds to cache.
+    myDataSource.sendRequest({
+        request : &quot;davglass&quot;,
+        callback: callback
+    });
+});</pre>
+
+
+<h3 id="fullsource">Full Example Source Listing</h3>
+
+<pre class="code prettyprint">&lt;form id=&quot;demo&quot; action=&quot;http:&#x2F;&#x2F;search.yahoo.com&#x2F;search&quot;&gt;
+&lt;h6&gt;Look up github repositories by username (ex. lsmith, davglass, or rgrove):&lt;&#x2F;h6&gt;
+&lt;input type=&quot;input&quot; id=&quot;demo_input_query&quot; name=&quot;p&quot;&gt;
+&lt;input type=&quot;submit&quot; id=&quot;demo_query_retrieve&quot; value=&quot;Retrieve data&quot;&gt;
+&lt;input type=&quot;button&quot; id=&quot;demo_cache_clear&quot; value=&quot;Clear cache&quot;&gt;
+&lt;div id=&quot;demo_output_response&quot; class=&quot;output&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;form&gt;
+
+
+
+&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+YUI().use(&quot;json-stringify&quot;,&quot;node&quot;, &quot;datasource-get&quot;, &quot;datasource-jsonschema&quot;, &quot;cache&quot;, &quot;datasource-cache&quot;, &quot;datatype-date&quot;, function (Y) {
+var output = Y.one(&quot;#demo_output_response&quot;),
+    source = &quot;remote source&quot;,
+
+    myDataSource = new Y.DataSource.Get({
+        source:&quot;https:&#x2F;&#x2F;api.github.com&#x2F;users&#x2F;&quot;,
+        generateRequestCallback: function (guid) {
+            return &#x27;&#x2F;repos?callback=YUI.Env.DataSource.callbacks.&#x27; + guid;
+        }
+    }),
+
+    callback = {
+        success: function(e){
+            var when = Y.DataType.Date.format(new Date(), {format:&quot;%F %r&quot;}),
+                data = Y.JSON.stringify(e.response, null, 2);
+
+            output.setContent(
+                &quot;&lt;p&gt;[&quot; + when + &quot;] Retrieved from &quot; +
+                &quot;&lt;strong&gt;&quot; + source + &quot;&lt;&#x2F;strong&gt;&lt;&#x2F;p&gt;&quot; +
+                &quot;&lt;pre&gt;&quot; +
+                    data.replace(&#x2F;&amp;&#x2F;g,&quot;&amp;amp;&quot;)
+                        .replace(&#x2F;&lt;&#x2F;g,&quot;&amp;lt;&quot;)
+                        .replace(&#x2F;&gt;&#x2F;g,&quot;&amp;gt;&quot;) +
+                &quot;&lt;&#x2F;pre&gt;&quot;);
+        },
+        failure: function(e){
+            var when = Y.DataType.Date.format(new Date(), {format:&quot;%F %r&quot;}),
+                message = &#x2F;fields retrieval&#x2F;.test(e.error.message) ?
+                    &quot;User not found&quot; : e.error.message;
+
+            output.setContent(
+                &quot;&lt;p&gt;[&quot; + when + &quot;] Could not retrieve data: &quot; +
+                    &quot;&lt;em&gt;&quot; + message + &quot;&lt;&#x2F;em&gt;&quot; +
+                &quot;&lt;&#x2F;p&gt;&quot;);
+        }
+    };
+
+myDataSource.plug(Y.Plugin.DataSourceJSONSchema, {
+    schema: {
+        resultListLocator: &quot;data&quot;,
+        resultFields: [&quot;name&quot;]
+    }
+});
+
+myDataSource.plug(Y.Plugin.DataSourceCache, {
+    cache: Y.CacheOffline,
+    expires: 60000, &#x2F;&#x2F; 1 min.
+    max:5
+});
+myDataSource.cache.on(&quot;retrieve&quot;, function(){
+    source = &quot;cache&quot;;
+});
+
+Y.one(&quot;#demo_cache_clear&quot;).on(&quot;click&quot;, function(){
+    var when = Y.DataType.Date.format(new Date(), {format:&quot;%F %r&quot;});
+
+    myDataSource.cache.flush();
+    output.setContent(&quot;&lt;p&gt;[&quot; + when + &quot;] Cache cleared.&lt;&#x2F;p&gt;&quot;);
+});
+
+Y.on(&quot;submit&quot;, function(e){
+    e.halt();
+    var query = encodeURIComponent(
+                    Y.one(&quot;#demo_input_query&quot;)
+                        .get(&quot;value&quot;)
+                        .replace(&#x2F;&quot;&#x2F;g,&#x27;\\&quot;&#x27;)
+                        .replace(&#x2F;\W&#x2F;g, &#x27;&#x27;));
+
+    if(query) {
+        source = &quot;remote source&quot;;
+        myDataSource.sendRequest({
+            request:query,
+            callback:callback
+        });
+    } else {
+        output.setContent(&quot;&lt;p&gt;Please enter a query.&lt;&#x2F;p&gt;&quot;);
+    }
+}, &quot;#demo&quot;);
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="The Local DataSource manages retrieval of in-page data, from JavaScript arrays and objects to DOM elements.">
+                                            <a href="datasource-local.html">DataSource.Local</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The Get DataSource, which manages retrieval of data from remote sources via the Get Utility, can be useful for accessing data from cross-domain servers without the need for a proxy.">
+                                            <a href="datasource-get.html">DataSource.Get</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The IO DataSource manages retrieval of data from remote sources, via the IO Utility.">
+                                            <a href="datasource-io.html">DataSource.IO</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The Function DataSource, which manages retrieval of data from a JavaScript function, provides a highly customizeable mechanism for implementer-defined data retrieval algorithms">
+                                            <a href="datasource-function.html">DataSource.Function</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use the DataSourceCache plugin to enable caching and reduce server calls to remote sources.">
+                                            <a href="datasource-caching.html">DataSource with Caching</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The DataSourceCache plugin supports offline caching so that cached data persists across browser sessions.">
+                                            <a href="datasource-offlinecache.html">DataSource with Offline Cache</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use the Pollable extension to enable polling in your DataSource.">
+                                            <a href="datasource-polling.html">DataSource with Polling</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="How to provide autocomplete suggestions using a DataSource instance.">
+                                            <a href="../autocomplete/ac-datasource.html">Remote Data via DataSource</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

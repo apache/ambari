@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Profiler</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Profiler</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>The YUI Profiler is a simple, non-visual code profiler for JavaScript. Unlike most code profilers, this one
+    allows you to specify exactly what parts of your application to profile. You can also programmatically
+    retrieve profiling information as the application is running, allowing you to create performance tests
+    <a href="../test/index.html">YUI Test</a> or other unit testing frameworks.</p>
+</div>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for Profiler and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;profiler&#x27;, function (Y) {
+    &#x2F;&#x2F; Profiler is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+
+            <h2 id="profilingfunctions">Profiling Functions</h2>
+            <p>The simplest way to use is Profiler is to register a single function for profiling using the <code>registerFunction()</code>
+            method. In order to register a function, it must exist on an object. Since global functions exist on the <code>window</code>
+            object, they can be profiled; functions declared within other functions cannot be profiled unless assigned onto an
+            object. If the function exists globally, then you can just pass in the fully-qualified name of the function:</p>
+
+
+
+<pre class="code prettyprint">&#x2F;&#x2F;global function
+function sayHi(){
+    alert(&quot;hi&quot;);
+}
+
+var myObject = {
+    getName : function(){
+        return &quot;MyObject&quot;;
+    }
+};
+
+&#x2F;&#x2F;create new instance and load profiler
+YUI().use(&quot;profiler&quot;, function(Y){
+
+    &#x2F;&#x2F;register the global function for profiling - pass in window to indicate a global function
+    Y.Profiler.registerFunction(&quot;sayHi&quot;, window);
+
+    &#x2F;&#x2F;register method on a global object - no second argument needed
+    Y.Profiler.registerFunction(&quot;myObject.getName&quot;);
+
+    &#x2F;&#x2F;alternate - providing second argument doesn&#x27;t hurt
+    Y.Profiler.registerFunction(&quot;myObject.getName&quot;, myObject);
+});</pre>
+
+
+
+            <p>In this example, there is a global function <code>sayHi()</code> and a global object <code>myObject</code>. These
+            can both be profiled by calling the <code>registerFunction()</code> method. For <code>sayHi()</code>, the first
+            argument is the name of the function and the second argument is the owner object, <code>window</code>. For the
+            <code>myObject.getName()</code> method, the second argument is not necessary because the first argument contains
+            the fully-qualified name of method. Since <code>myObject</code> exists globally, this string can be evaluated to
+            get all of the information that the Profiler needs.</p>
+            <p>Once a function is registered for profiling, it can be called as usual. The Profiler can then be queried to retrieve
+            information about any of the functions it is profiling. To retrieve information about a particular function, use
+            any of the following methods:</p>
+            <ul>
+                <li><code>getAverage(name)</code> - returns the average amount of time (in milliseconds) that the function takes to complete.</li>
+                <li><code>getCallCount(name)</code> - returns the number of times that the given function was called.</li>
+                <li><code>getMax(name)</code> - returns the maximum amount of time (in milliseconds) that the function takes to complete.</li>
+                <li><code>getMin(name)</code> - returns the minimum amount of time (in milliseconds) that the function takes to complete.</li>
+                <li><code>getReport(name)</code> - returns an object containing all of the profiling information for the function.</li>
+            </ul>
+            <p>Each of these methods accepts a single argument: the name of the function. This is the fully-qualified name
+            that was used with <code>registerFunction()</code>. For example:
+<pre class="code prettyprint">&#x2F;&#x2F;create new instance and load profiler
+YUI().use(&quot;profiler&quot;, function(Y){
+
+    &#x2F;&#x2F;get the average amount of time it took sayHi() to run
+    var average = Y.Profiler.getAverage(&quot;sayHi&quot;);
+
+    &#x2F;&#x2F;get the number of times myObject.getName() was called
+    var callCount = Y.Profiler.getCallCount(&quot;myObject.getName&quot;);
+
+    &#x2F;&#x2F;get the full report for sayHi()
+    var report = Y.Profiler.getReport(&quot;sayHi&quot;);
+});</pre>
+
+
+            <p>When you are done profiling, you can unregister the functions by using <code>unregisterFunction()</code>, which
+            undoes all of the profiling instrumentation and deletes all profiling data about the given function. Always make
+            sure to retrieve the profiling data for functions before calling <code>unregisterFunction()</code>. To unregister
+            a function, just pass in the same name that was passed into <code>registerFunction()</code>; no other information
+            is necessary.</p>
+<pre class="code prettyprint">&#x2F;&#x2F;create new instance and load profiler
+YUI().use(&quot;profiler&quot;, function(Y){
+    &#x2F;&#x2F;unregister sayHi
+    Y.Profiler.unregisterFunction(&quot;sayHi&quot;);
+
+    &#x2F;&#x2F;unregister myObject.getName
+    Y.Profiler.unregisterFunction(&quot;myObject.getName&quot;);
+});</pre>
+
+
+            <h3 id="profiling-anonymous-functions">Profiling Anonymous Functions</h3>
+            Since scripts can consist of methods that aren't accessible via normal means, this represents a distinct challenge to the profiling process. The Profiler doesn't know about any functions that exist in private scopes or that aren't attached to other objects. Even though these can't be profiled automatically, you can use the <code>instrument()</code> method to create a version of any function that contains profiling instrumentation and will be tracked just as any other profiled method. Example:</p>
+<pre class="code prettyprint">&#x2F;&#x2F;create new instance and load profiler
+YUI().use(&quot;profiler&quot;, function(Y){
+
+    &#x2F;&#x2F;create instrumented version of the function
+    var instrumentedFunction = Y.Profiler.instrument(&quot;anonymous1&quot;, function(num1, num2){
+        return num1 + num2;
+    });
+
+    &#x2F;&#x2F;call it
+    instrumentedFunction(5, 10);
+
+    &#x2F;&#x2F;get the report
+    var report = Y.Profiler.getReport(&quot;anonymous1&quot;);
+
+});</pre>
+
+            <p>In this example, the <code>instrument()</code> method is used to create an instrumented version of an anonymous function. This function is given the name "anonymous1" so it can be referenced later. The instrumented function is returned from <code>instrument()</code> and is then called. The report for this function is retrieved using <code>getReport()</code>, just like any other profiled function. While not ideal, the <code>instrument()</code> method is useful if you need finer-grained profiling information.</p>
+
+            <h2 id="profilingconstructors">Profiling Constructors</h2>
+            <p>Profiling constructors is very similar to profiling functions, with the sole exception being the registration
+            of all methods on the prototype for profiling as well. Registering a constructor means that all object instances
+            created via that constructor are being profiled and the results are being aggregated into a single record. For example:</p>
+<pre class="code prettyprint">&#x2F;&#x2F;constructor
+function MyObject(name){
+    this.name = name;
+}
+
+MyObject.prototype.getName = function(){
+    return this.name;
+};
+
+MyObject.prototype.setName = function(name){
+    this.name = name;
+};
+
+&#x2F;&#x2F;create new instance and load profiler
+YUI().use(&quot;profiler&quot;, function(Y){
+    &#x2F;&#x2F;register the constructor
+    Y.Profiler.registerConstructor(&quot;MyObject&quot;, window);
+
+    &#x2F;&#x2F;create some instances
+    var o1 = new MyObject(&quot;Instance 1&quot;);
+    var o2 = new MyObject(&quot;Instance 2&quot;);
+    var o3 = new MyObject(&quot;Instance 3&quot;);
+
+    &#x2F;&#x2F;make some calls
+    var name = o1.getName();
+    o2.setName(&quot;Another name&quot;);
+    o1.setName(&quot;And another name&quot;);
+
+    &#x2F;&#x2F;get the information
+    var constructorCalls = Y.Profiler.getCallCount(&quot;MyObject&quot;); &#x2F;&#x2F;3
+    var getNameCalls = Y.Profiler.getCallCount(&quot;MyObject.prototype.getName&quot;); &#x2F;&#x2F;1
+    var setNameCalls = Y.Profiler.getCallCount(&quot;MyObject.prototype.setName&quot;); &#x2F;&#x2F;2
+});</pre>
+
+
+
+            <p>In this example, there is a global constructor <code>MyObject</code> that has two methods on its
+            prototype. By registering the constructor, three entries are made in profiler, one for <code>MyObject</code>,
+            one for <code>MyObject.prototype.getName</code> and one for <code>MyObject.prototype.setName</code>. When
+            the constructor is used to create new object instances, the profiler automatically takes note and aggregates
+            that information. Even though methods are called on individual instances, the data is still collected into one
+            location.</p>
+            <p><strong>Note:</strong> The Profiler cannot profile methods that are defined inside of the constructor. If
+            you create objects that have methods defined in the constructor, it is better to create the instance and
+            then use <code>registerObject()</code> on the instance.</p>
+            <p>When you are done profiling, you can unregister the constructor by using <code>unregisterConstructor()</code>, which
+            undoes all of the profiling instrumentation and deletes all profiling data about the given constructor and all
+            of its methods. To unregister a constructor, just pass in the same name that was passed into <code>registerConstructor()</code>; no other information
+            is necessary.</p>
+<pre class="code prettyprint">&#x2F;&#x2F;create new instance and load profiler
+var Y = YUI().use(&quot;profiler&quot;, function(Y){
+
+    &#x2F;&#x2F;unregister MyObject
+    Y.Profiler.unregisterConstructor(&quot;MyObject&quot;);
+});</pre>
+
+
+            <h2 id="profilingobjects">Profiling Objects</h2>
+            <p>When an object exists with multiple methods to be profiled, it may be faster to call <code>registerObject()</code>,
+            which registers every method found on the object. This can be especially useful in the case of object literals and
+            inheritance done without using prototypes. The first argument is the name of the object (its name in the profiler)
+            while the second argument is the actual object. Each method is registered as <code>objectName.methodName</code> in
+            the profiler. Example:</p>
+
+
+<pre class="code prettyprint">&#x2F;&#x2F;object
+var obj = {
+
+    add : function (num1, num2) {
+        return num1 + num2;
+    },
+
+    subtract : function (num1, num2){
+        return num1 - num2;
+    }
+};
+
+&#x2F;&#x2F;create new instance and load profiler
+YUI().use(&quot;profiler&quot;, function(Y){
+    &#x2F;&#x2F;register the object
+    Y.Profiler.registerObject(&quot;obj&quot;, obj);
+
+    &#x2F;&#x2F;use the methods
+    var sum = obj.add(5, 10);
+    var diff = obj.subtract(20, 12);
+    var sum2 = obj.add(10, 40);
+
+    &#x2F;&#x2F;get the information
+    var addCalls = Y.Profiler.getCallCount(&quot;obj.add&quot;); &#x2F;&#x2F;2
+    var subtractCalls = Y.Profiler.getCallCount(&quot;obj.subtract&quot;); &#x2F;&#x2F;1
+});</pre>
+
+
+
+            <p>In this example, an object <code>obj</code> contains two methods, <code>add()</code> and <code>subtract()</code>. Both
+            methods are registered when <code>obj</code> is passed into the <code>registerObject()</code> method. Information about
+            the methods is then returned via <code>getCallCount()</code> by passing in the complete method names of <code>obj.add</code>
+            and <code>obj.subtract</code>.</p>
+            <p>When you are done profiling, you can unregister the object by using <code>unregisterObject()</code>, which
+            undoes all of the profiling instrumentation and deletes all profiling data about the given object and all
+            of its methods. To unregister an object, just pass in the same name that was passed into <code>registerObject()</code>; no other information
+            is necessary.</p>
+<pre class="code prettyprint">&#x2F;&#x2F;create new instance and load profiler
+var Y = YUI().use(&quot;profiler&quot;, function(Y){
+
+    &#x2F;&#x2F;unregister MyObject
+    Y.Profiler.unregisterObject(&quot;obj&quot;);
+});</pre>
+
+
+            <h2 id="reportingresults">Reporting Results</h2>
+            <p>If you'd like to get the results of all profiling, the <code>getFullReport()</code> method can be called. This method
+            returns an object containing all of the profiling information for every registered function (the data for each function
+            is destroyed when it's unregistered, so this method should be called before unregistering all functions). The
+            <code>getFullReport()</code> method returns an object in the following format:</p>
+<pre class="code prettyprint">{
+    &quot;function_name1&quot;: {
+        calls : 0,
+        avg : 0,
+        max: 0,
+        min: 0,
+        points : []
+    },
+
+    &quot;function_name2&quot;: {
+        calls : 0,
+        avg : 0,
+        max: 0,
+        min: 0,
+        points : []
+    },
+
+    &quot;function_name3&quot;: {
+        calls : 0,
+        avg : 0,
+        max: 0,
+        min: 0,
+        points : []
+    }
+
+}</pre>
+
+
+            <p>If you'd like to only return profiling information based on certain criteria, you can pass in an optional filter
+            function to <code>getFullReport()</code>. This filter function receives a single argument, which is the report
+            for an individual function. You can use this data to determine which data to include. The function should return
+            true to include the data and false to ignore it. For example, to get a report for functions that were called at
+            least once, the following can be used:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F;create new instance and load profiler
+var Y = YUI().use(&quot;profiler&quot;, function(Y){
+
+    &#x2F;&#x2F;get report
+    var report = Y.Profiler.getFullReport(function(report){
+        return (report.calls &gt; 0);
+    });
+});</pre>
+
+
+            <p>Using a filter produces an object in the same format as when the filter is not provided; the only difference
+            is the set of functions included in the report.</p>
+
+            <h2 id="stopwatch">Stopwatch Functionality</h2>
+            <p>If you want to profile just a specific part of a function, you can do so using the stopwatch functionality that's built into the Profiler. The <code>start()</code> and <code>stop()</code> methods each take a single argument, which is a name that refers to the functionality being profiled. This data is stored in the Profiler along with all other data and can be retrieved using <code>getReport()</code> later on. For example:</p>
+<pre class="code prettyprint">&#x2F;&#x2F;create new instance and load profiler
+var Y = YUI().use(&quot;profiler&quot;, function(Y){
+
+    Y.Profiler.start(&quot;looptime&quot;);
+
+    for (var i=0; i &lt; 100000; i++){
+    }
+
+    Y.Profiler.stop(&quot;looptime&quot;);
+
+    &#x2F;&#x2F;get report
+    var report = Y.Profiler.getReport(&quot;looptime&quot;);
+});</pre>
+
+
+            <p>This code measures how long it takes to complete a loop that increments a single variable 100,000 times. The name of the Profiler entry is "looptime" and is used in both the <code>start()</code> and <code>stop()</code> methods. Once <code>stop()</code> is called, the data is written into the report and can be retrieved via <code>getReport()</code> in the usual way.</p>
+
+            <h2 id="limitations">Known Limitations</h2>
+
+            <p>Since the Profiler works from within JavaScript, there are some limitations:</p>
+            <ul>
+                <li><p>Functions can only be profiled if they're attached to objects.</p></li>
+                <li><p>Functions called recursively using <code>arguments.callee</code> will not be profiled correctly. If possible, avoid
+                    using <code>arguments.callee</code> in favor of the fully-qualified function name.</p></li>
+                <li><p>In order for subclassing using <code>Y.extend()</code> to be profiled correctly, both the superclass constructor
+                    and the subclass constructor must be registered with the Profiler prior to the call.</p></li>
+            </ul>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+</li>
+<li>
+<a href="#profilingfunctions">Profiling Functions</a>
+<ul class="toc">
+<li>
+<a href="#profiling-anonymous-functions">Profiling Anonymous Functions</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#profilingconstructors">Profiling Constructors</a>
+</li>
+<li>
+<a href="#profilingobjects">Profiling Objects</a>
+</li>
+<li>
+<a href="#reportingresults">Reporting Results</a>
+</li>
+<li>
+<a href="#stopwatch">Stopwatch Functionality</a>
+</li>
+<li>
+<a href="#limitations">Known Limitations</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Demonstrates basic usage of the Profiler for profiling functions.">
+                                            <a href="profiler-simple-example.html">Simple Profiling Example</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Demonstrates usage of the Profiler for profiling objects.">
+                                            <a href="profiler-object-example.html">Object Profiling Example</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

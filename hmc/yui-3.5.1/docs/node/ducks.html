@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Using NodeList - Ducks Game</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Using NodeList - Ducks Game</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><link href="../assets/node/node.css" rel="stylesheet" type="text/css">
+<div class="intro">
+    <p>This example demonstrates how to use multiple NodeList features to build a simple game.</p>
+</div>
+
+<div class="example">
+<style>
+.gallery{
+    position: relative;
+    background: url(../assets/node/images/background.png);
+    width: 638px;
+    height: 180px;
+    overflow: hidden;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    -moz-box-shadow: 0 0 45px #000 inset, 3px 0 6px rgba(0,0,0,0.8);
+    -webkit-box-shadow: 0 0 45px #000 inset, 3px 0 6px rgba(0,0,0,0.8);
+    border: 4px solid #637073;
+    cursor: crosshair;
+    margin: 0.5em 0 0.8em;
+}
+
+.water{
+    position: absolute;
+    top: 114px;
+    left: 0;
+    width: 677px;
+    height: 50px;
+}
+
+.water img{
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.water .shadow {
+    left: 8px;
+    opacity: 0.5;
+    filter: alpha(opacity=30);
+}
+
+.duck-row {
+    position: absolute;
+    left: 10px;
+    top: 57px;
+    width: 1340px;
+    padding: 0;
+    margin: 0;
+}
+
+.duck-row li{
+    position: relative;
+    display: inline-block;
+    zoom: 1; *display: inline; /* IE < 8: fake inline-block */
+    width: 133px;
+    height: 70px;
+    margin: 0 -4px 0 0;
+    vertical-align: bottom;
+}
+
+.duck-row li img{
+    position: absolute;
+    bottom: 7px;
+    left: 0;
+}
+
+/* the voice bubble of the ducks */
+.duck-row .squawk {
+    position: absolute;
+    top: -400px;
+    left: 50px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    background-color: #ffe;
+    line-height: 1.2em;
+    border: solid 1px #cc8;
+    -moz-box-shadow: 2px 2px 2px rgba(0,0,0,0.2);
+    -webkit-box-shadow: 2px 2px 2px rgba(0,0,0,0.2);
+}
+
+.duck-row .squawk .text{
+    padding: 0.2em 0.2em;
+    text-indent: 0.2em;
+    overflow: hidden;
+}
+
+.small-squawk-bubble{
+    position: absolute;
+    bottom: -4px;
+    left: -8px;
+    width: 4px;
+    height: 4px;
+    border: solid 1px #cc8;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    background-color: #ffe;
+    font-size: 2px;
+}
+
+#button-reset{
+    margin-right: 2em;
+}
+
+.ducks-remain{
+    font-size: 150%;
+}
+
+#show-attitude{
+    margin-left: 8em;
+}
+</style>
+
+    <div class='gallery'>
+        <ul class="duck-row">
+            <li></li> <!-- each of these will be a duck -->
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+        <div class="water">
+            <img class="shadow" src="../assets/node/images/water-shadow.png"/>
+            <img src="../assets/node/images/water.png"/>
+        </div>
+    </div>
+    <button id="button-reset" class="yui3-button">Reset</button>
+    Ducks remaining: <span class="ducks-remain">10</span>
+    <input type="checkbox" id="show-attitude"/><label for="show-attitude">Show attitude</label>
+
+<script>
+YUI().use('transition', 'button', function (Y) {
+
+    var ducks = Y.all('.duck-row li'),
+        ducksRemaining = 10, // value for UI display
+        squawkTextIndex = 0, // index in the squawkTextArr to use next
+        squawkTextArr = [   // duck comments
+            '#@&~*Q!',
+            'Hey!?',
+            '911 on U!',
+            "U&nbsp;fly's&nbsp;down",
+            'duck&nbsp;pile!',
+            'Ricochets&nbsp;kill!',
+            'how&nbsp;sporting.',
+            "shoe's&nbsp;untied"
+        ];
+
+    // append the same content for each duck <li>
+    ducks.append('<img src="../assets/node/images/duck.png"/><div class="squawk"><div class="text">#@&~*Q!</div><div class="small-squawk-bubble"></div></div>');
+    
+    // give them all the set-up state class
+    ducks.addClass('set-up');
+    
+    // this makes the ducks move from right to left.
+    // When the duck on the far left disappears from view,
+    // it's added to the far right end of the row.
+    var makeDucksSwim = function () {
+        var frontDuck;
+        
+        // move the duck row to the left one duck space over 2 seconds
+        Y.one('.duck-row').transition({
+            easing: 'linear',
+            left: '-119px',
+            duration: 2
+        }, function () { // when the row finishes its right to left transition...
+            // remove the first duck on the left
+            // which has trasitioned out of view
+            frontDuck = Y.one('.duck-row li').remove();
+
+            // append the removed first duck onto the right end
+            Y.one('.duck-row').appendChild(frontDuck);
+
+            // set the position for the next makeDucksSwim()
+            Y.one('.duck-row').setStyle('left', '10px');
+
+            // if there are ducks remaining, make them swim again
+            if (ducksRemaining > 0) {
+                makeDucksSwim();
+            }
+        });       
+    }
+    makeDucksSwim(); // this initializes the ducks swimming
+    
+    // handles a click on a duck
+    var duckClick = function(e) {
+        var squawks;
+        
+        // remove the squawk belonging to the duck that was clicked
+        e.currentTarget.one('.squawk').setStyles({'top': '-400px', 'opacity': '1'});
+        
+        // makes the ducks appear to lay back when clicked
+        e.target.transition({
+            duration: 0.2,
+            height: '3px',
+            width: '133px'
+        });
+        
+        // the clicked duck will no longer have the 'set-up' class/state
+        e.currentTarget.removeClass('set-up');
+        makeDucksSquawk();
+        updateDucksRemaining(); // update the number of ducks still set up
+    };
+    
+    // this makes the duck's squawks show and hide and get various text
+    var makeDucksSquawk = function(){    
+        squawks = Y.all('.duck-row .set-up .squawk'); // a NodeList of the squawks of set-up ducks
+        if (Y.one('#show-attitude')._node.checked) {  // only have ducks squawk if the checkbox is checked
+            // fill voice bubbles with next text string
+            Y.all('.duck-row .set-up .squawk .text').setContent(squawkTextArr[squawkTextIndex]);
+            
+            // increment the index to get the next squawk text
+            squawkTextIndex = (squawkTextIndex += 1) % (squawkTextArr.length);
+            squawks.transition({
+                top: {
+                    delay: 0.5,
+                    value: '0px', // drop squawks into position from hidden 
+                    duration: 0   // instant position change
+                },
+                opacity: { // fade out
+                    delay: 3.0,
+                    duration: 0.3,
+                    value: 0
+                } 
+            }, function(e){
+                // after squawks are faded out,
+                // move them to hidden position and set opacity to 1 again
+                squawks.setStyles({'top': '-400px', 'opacity': '1'});
+            });
+        }
+    }
+    
+    // This resets all ducks, "ducks remaining" counters, and row position
+    // make the duck images full height
+    // start them swimming     
+    var reset = function() {
+        Y.all('.duck-row li img').setStyle('height', '55px');
+        Y.all('.duck-row li').addClass('set-up');
+        updateDucksRemaining();
+        makeDucksSwim();
+    }
+    
+    // counts the ducks remaining, and updates the UI counter display
+    var updateDucksRemaining = function() {
+        ducksRemaining = Y.all('.gallery li.set-up').size();    
+        Y.one('.ducks-remain').setContent(ducksRemaining);    
+    }
+    
+    // listeners
+    Y.one('.duck-row').delegate('click', duckClick, 'li');
+    Y.one('#button-reset').on('click', reset);
+});
+</script>
+
+</div>
+
+
+
+<h2>The HTML</h2>
+<pre class="code prettyprint">&lt;div class=&#x27;gallery&#x27;&gt;
+    &lt;ul class=&quot;duck-row&quot;&gt;
+        &lt;li&gt;&lt;&#x2F;li&gt; &lt;!-- each of these will be a duck --&gt;
+        &lt;li&gt;&lt;&#x2F;li&gt;
+        &lt;li&gt;&lt;&#x2F;li&gt;
+        &lt;li&gt;&lt;&#x2F;li&gt;
+        &lt;li&gt;&lt;&#x2F;li&gt;
+        &lt;li&gt;&lt;&#x2F;li&gt;
+        &lt;li&gt;&lt;&#x2F;li&gt;
+        &lt;li&gt;&lt;&#x2F;li&gt;
+        &lt;li&gt;&lt;&#x2F;li&gt;
+        &lt;li&gt;&lt;&#x2F;li&gt;
+    &lt;&#x2F;ul&gt;
+    &lt;div class=&quot;water&quot;&gt;
+        &lt;img class=&quot;shadow&quot; src=&quot;..&#x2F;assets&#x2F;node&#x2F;images&#x2F;water-shadow.png&quot;&#x2F;&gt;
+        &lt;img src=&quot;..&#x2F;assets&#x2F;node&#x2F;images&#x2F;water.png&quot;&#x2F;&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+&lt;button id=&quot;button-reset&quot; class=&quot;yui3-button&quot;&gt;Reset&lt;&#x2F;button&gt;
+Ducks remaining: &lt;span class=&quot;ducks-remain&quot;&gt;10&lt;&#x2F;span&gt;
+&lt;input type=&quot;checkbox&quot; id=&quot;show-attitude&quot;&#x2F;&gt;&lt;label for=&quot;show-attitude&quot;&gt;Show attitude&lt;&#x2F;label&gt;</pre>
+
+
+<h2>YUI Instance</h2>
+<p>
+The <code>use</code> statement doesn't include <code>node</code> because it's loaded as a requirement of transition.
+</p>
+<pre class="code prettyprint">YUI().use(&#x27;transition&#x27;, &#x27;button&#x27;, function(Y){
+    &#x2F;&#x2F; code goes here
+});</pre>
+
+
+<h2>Setting Vars</h2>
+<p>
+The variable <code>ducks</code> is used for easily manipulating all the ducks at once.
+We'll display various duck comments from the array <code>squawkTextArr</code> on a rotating basis. 
+</p>
+<pre class="code prettyprint">var ducks = Y.all(&#x27;.duck-row li&#x27;),
+    ducksRemaining = 10, &#x2F;&#x2F; value for UI display
+    squawkTextIndex = 0, &#x2F;&#x2F; index in the squawkTextArr to use next
+    squawkTextArr = [   &#x2F;&#x2F; duck comments
+        &#x27;#@&amp;~*Q!&#x27;,
+        &#x27;Hey!?&#x27;,
+        &#x27;911 on U!&#x27;,
+        &quot;U&amp;nbsp;fly&#x27;s&amp;nbsp;down&quot;,
+        &#x27;duck&amp;nbsp;pile!&#x27;,
+        &#x27;Ricochets&amp;nbsp;kill!&#x27;,
+        &#x27;how&amp;nbsp;sporting.&#x27;,
+        &quot;shoe&#x27;s&amp;nbsp;untied&quot;
+    ];</pre>
+
+
+<h2>Initializing the Ducks</h2>
+<p>
+Repetitive markup is added with the <code>.append()</code> method to all the ducks in the <code>NodeList</code>.
+This keeps the original markup simple and clear.
+</p>
+<pre class="code prettyprint">&#x2F;&#x2F; append the same content for each duck &lt;li&gt;
+ducks.append(&#x27;&lt;img src=&quot;..&#x2F;assets&#x2F;node&#x2F;images&#x2F;duck.png&quot;&#x2F;&gt;&lt;div class=&quot;squawk&quot;&gt;&lt;div class=&quot;text&quot;&gt;#@&amp;~*Q!&lt;&#x2F;div&gt;&lt;div class=&quot;small-squawk-bubble&quot;&gt;&lt;&#x2F;div&gt;&lt;&#x2F;div&gt;&#x27;);</pre>
+
+<p>
+All the ducks in the <code>NodeList</code> are given the <code>set-up</code> class with the <code>.addClass()</code> method.
+This class is found on any duck that has the state of being set up, as opposed to being knocked down.
+</p>
+<pre class="code prettyprint">&#x2F;&#x2F; give them all the set-up state class
+ducks.addClass(&#x27;set-up&#x27;);</pre>
+
+<p>
+This state could be a Boolean property, but it's handy as a class, 
+because a <code>NodeList</code> can be made containing the squawks of all "set up" ducks in this way, 
+<code>squawks = Y.all(&#x27;.duck-row .set-up .squawk&#x27;);</code> 
+as we'll see in the <code>makeDucksSquawk</code> function.
+</p>
+
+<h2>Making the Ducks Swim</h2>
+<p>
+This uses <code>transition</code> to make the ducks swim right to left 
+</p>
+<pre class="code prettyprint">&#x2F;&#x2F; this makes the ducks move from right to left.
+&#x2F;&#x2F; When the duck on the far left disappears from view,
+&#x2F;&#x2F; it&#x27;s added to the far right end of the row.
+var makeDucksSwim = function () {
+    var frontDuck;
+    
+    &#x2F;&#x2F; move the duck row to the left one duck space over 2 seconds
+    Y.one(&#x27;.duck-row&#x27;).transition({
+        easing: &#x27;linear&#x27;,
+        left: &#x27;-119px&#x27;,
+        duration: 2
+    }, function () { &#x2F;&#x2F; when the row finishes its right to left transition...
+        &#x2F;&#x2F; remove the first duck on the left
+        &#x2F;&#x2F; which has trasitioned out of view
+        frontDuck = Y.one(&#x27;.duck-row li&#x27;).remove();
+
+        &#x2F;&#x2F; append the removed first duck onto the right end
+        Y.one(&#x27;.duck-row&#x27;).appendChild(frontDuck);
+
+        &#x2F;&#x2F; set the position for the next makeDucksSwim()
+        Y.one(&#x27;.duck-row&#x27;).setStyle(&#x27;left&#x27;, &#x27;10px&#x27;);
+
+        &#x2F;&#x2F; if there are ducks remaining, make them swim again
+        if (ducksRemaining &gt; 0) {
+            makeDucksSwim();
+        }
+    });       
+}
+makeDucksSwim(); &#x2F;&#x2F; this initializes the ducks swimming</pre>
+
+
+<h2>Click Event Handler</h2>
+<p>
+</p>
+<pre class="code prettyprint">&#x2F;&#x2F; handles a click on a duck
+var duckClick = function(e) {
+    var squawks;
+    
+    &#x2F;&#x2F; remove the squawk belonging to the duck that was clicked
+    e.currentTarget.one(&#x27;.squawk&#x27;).setStyles({&#x27;top&#x27;: &#x27;-400px&#x27;, &#x27;opacity&#x27;: &#x27;1&#x27;});
+    
+    &#x2F;&#x2F; makes the ducks appear to lay back when clicked
+    e.target.transition({
+        duration: 0.2,
+        height: &#x27;3px&#x27;,
+        width: &#x27;133px&#x27;
+    });
+    
+    &#x2F;&#x2F; the clicked duck will no longer have the &#x27;set-up&#x27; class&#x2F;state
+    e.currentTarget.removeClass(&#x27;set-up&#x27;);
+    makeDucksSquawk(); &#x2F;&#x2F; makes the ducks squawk
+    updateDucksRemaining(); &#x2F;&#x2F; update the number of ducks still set up
+};</pre>
+
+
+<h2>Squawking Ducks</h2>
+<p>
+</p>
+<pre class="code prettyprint">&#x2F;&#x2F; this makes the duck&#x27;s squawks show and hide and get various text
+var makeDucksSquawk = function(){    
+    squawks = Y.all(&#x27;.duck-row .set-up .squawk&#x27;); &#x2F;&#x2F; a NodeList of the squawks of set-up ducks
+    if (Y.one(&#x27;#show-attitude&#x27;)._node.checked) {  &#x2F;&#x2F; only have ducks squawk if the checkbox is checked
+        &#x2F;&#x2F; fill voice bubbles with next text string
+        Y.all(&#x27;.duck-row .set-up .squawk .text&#x27;).setContent(squawkTextArr[squawkTextIndex]);
+        
+        &#x2F;&#x2F; increment the index to get the next squawk text
+        squawkTextIndex = (squawkTextIndex += 1) % (squawkTextArr.length);
+        squawks.transition({
+            top: {
+                delay: 0.5,
+                value: &#x27;0px&#x27;, &#x2F;&#x2F; drop squawks into position from hidden 
+                duration: 0   &#x2F;&#x2F; instant position change
+            },
+            opacity: { &#x2F;&#x2F; fade out
+                delay: 3.0,
+                duration: 0.3,
+                value: 0
+            } 
+        }, function(e){
+            &#x2F;&#x2F; after squawks are faded out,
+            &#x2F;&#x2F; move them to hidden position and set opacity to 1 again
+            squawks.setStyles({&#x27;top&#x27;: &#x27;-400px&#x27;, &#x27;opacity&#x27;: &#x27;1&#x27;});
+        });
+    }
+}</pre>
+
+
+<h2>Reset and Ducks Remaining</h2>
+<pre class="code prettyprint">&#x2F;&#x2F; This resets all ducks, &quot;ducks remaining&quot; counters, and row position
+&#x2F;&#x2F; make the duck images full height
+&#x2F;&#x2F; start them swimming     
+var reset = function() {
+    Y.all(&#x27;.duck-row li img&#x27;).setStyle(&#x27;height&#x27;, &#x27;55px&#x27;);
+    Y.all(&#x27;.duck-row li&#x27;).addClass(&#x27;set-up&#x27;);
+    updateDucksRemaining();
+    makeDucksSwim();
+}
+
+&#x2F;&#x2F; counts the ducks remaining, and updates the UI counter display
+var updateDucksRemaining = function() {
+    ducksRemaining = Y.all(&#x27;.gallery li.set-up&#x27;).size();    
+    Y.one(&#x27;.ducks-remain&#x27;).setContent(ducksRemaining);    
+}</pre>
+
+<h2>Prefer <code>node.delegate()</code> over <code>nodelist.on()</code></h2>
+
+<p>Sometimes you need to create individual subscriptions for each Node in a 
+NodeList, but usually it's preferable to use 
+<a href="node-evt-delegation.html">event delegation</a> as shown in this example.</p>
+
+<h2>Listeners</h2>
+<p>
+
+</p>
+<pre class="code prettyprint">&#x2F;&#x2F; listeners
+Y.one(&#x27;.duck-row&#x27;).delegate(&#x27;click&#x27;, duckClick, &#x27;li&#x27;);
+Y.one(&#x27;#button-reset&#x27;).on(&#x27;click&#x27;, reset);</pre>
+
+
+<h2>Complete Ducks Example Source</h2>
+<pre class="code prettyprint">&lt;style&gt;
+.gallery{
+    position: relative;
+    background: url(..&#x2F;assets&#x2F;node&#x2F;images&#x2F;background.png);
+    width: 638px;
+    height: 180px;
+    overflow: hidden;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    -moz-box-shadow: 0 0 45px #000 inset, 3px 0 6px rgba(0,0,0,0.8);
+    -webkit-box-shadow: 0 0 45px #000 inset, 3px 0 6px rgba(0,0,0,0.8);
+    border: 4px solid #637073;
+    cursor: crosshair;
+    margin: 0.5em 0 0.8em;
+}
+
+.water{
+    position: absolute;
+    top: 114px;
+    left: 0;
+    width: 677px;
+    height: 50px;
+}
+
+.water img{
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.water .shadow {
+    left: 8px;
+    opacity: 0.5;
+    filter: alpha(opacity=30);
+}
+
+.duck-row {
+    position: absolute;
+    left: 10px;
+    top: 57px;
+    width: 1340px;
+    padding: 0;
+    margin: 0;
+}
+
+.duck-row li{
+    position: relative;
+    display: inline-block;
+    zoom: 1; *display: inline; &#x2F;* IE &lt; 8: fake inline-block *&#x2F;
+    width: 133px;
+    height: 70px;
+    margin: 0 -4px 0 0;
+    vertical-align: bottom;
+}
+
+.duck-row li img{
+    position: absolute;
+    bottom: 7px;
+    left: 0;
+}
+
+&#x2F;* the voice bubble of the ducks *&#x2F;
+.duck-row .squawk {
+    position: absolute;
+    top: -400px;
+    left: 50px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    background-color: #ffe;
+    line-height: 1.2em;
+    border: solid 1px #cc8;
+    -moz-box-shadow: 2px 2px 2px rgba(0,0,0,0.2);
+    -webkit-box-shadow: 2px 2px 2px rgba(0,0,0,0.2);
+}
+
+.duck-row .squawk .text{
+    padding: 0.2em 0.2em;
+    text-indent: 0.2em;
+    overflow: hidden;
+}
+
+.small-squawk-bubble{
+    position: absolute;
+    bottom: -4px;
+    left: -8px;
+    width: 4px;
+    height: 4px;
+    border: solid 1px #cc8;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    background-color: #ffe;
+    font-size: 2px;
+}
+
+#button-reset{
+    margin-right: 2em;
+}
+
+.ducks-remain{
+    font-size: 150%;
+}
+
+#show-attitude{
+    margin-left: 8em;
+}
+&lt;&#x2F;style&gt;
+
+    &lt;div class=&#x27;gallery&#x27;&gt;
+        &lt;ul class=&quot;duck-row&quot;&gt;
+            &lt;li&gt;&lt;&#x2F;li&gt; &lt;!-- each of these will be a duck --&gt;
+            &lt;li&gt;&lt;&#x2F;li&gt;
+            &lt;li&gt;&lt;&#x2F;li&gt;
+            &lt;li&gt;&lt;&#x2F;li&gt;
+            &lt;li&gt;&lt;&#x2F;li&gt;
+            &lt;li&gt;&lt;&#x2F;li&gt;
+            &lt;li&gt;&lt;&#x2F;li&gt;
+            &lt;li&gt;&lt;&#x2F;li&gt;
+            &lt;li&gt;&lt;&#x2F;li&gt;
+            &lt;li&gt;&lt;&#x2F;li&gt;
+        &lt;&#x2F;ul&gt;
+        &lt;div class=&quot;water&quot;&gt;
+            &lt;img class=&quot;shadow&quot; src=&quot;..&#x2F;assets&#x2F;node&#x2F;images&#x2F;water-shadow.png&quot;&#x2F;&gt;
+            &lt;img src=&quot;..&#x2F;assets&#x2F;node&#x2F;images&#x2F;water.png&quot;&#x2F;&gt;
+        &lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+    &lt;button id=&quot;button-reset&quot; class=&quot;yui3-button&quot;&gt;Reset&lt;&#x2F;button&gt;
+    Ducks remaining: &lt;span class=&quot;ducks-remain&quot;&gt;10&lt;&#x2F;span&gt;
+    &lt;input type=&quot;checkbox&quot; id=&quot;show-attitude&quot;&#x2F;&gt;&lt;label for=&quot;show-attitude&quot;&gt;Show attitude&lt;&#x2F;label&gt;
+
+&lt;script&gt;
+YUI().use(&#x27;transition&#x27;, &#x27;button&#x27;, function (Y) {
+
+    var ducks = Y.all(&#x27;.duck-row li&#x27;),
+        ducksRemaining = 10, &#x2F;&#x2F; value for UI display
+        squawkTextIndex = 0, &#x2F;&#x2F; index in the squawkTextArr to use next
+        squawkTextArr = [   &#x2F;&#x2F; duck comments
+            &#x27;#@&amp;~*Q!&#x27;,
+            &#x27;Hey!?&#x27;,
+            &#x27;911 on U!&#x27;,
+            &quot;U&amp;nbsp;fly&#x27;s&amp;nbsp;down&quot;,
+            &#x27;duck&amp;nbsp;pile!&#x27;,
+            &#x27;Ricochets&amp;nbsp;kill!&#x27;,
+            &#x27;how&amp;nbsp;sporting.&#x27;,
+            &quot;shoe&#x27;s&amp;nbsp;untied&quot;
+        ];
+
+    &#x2F;&#x2F; append the same content for each duck &lt;li&gt;
+    ducks.append(&#x27;&lt;img src=&quot;..&#x2F;assets&#x2F;node&#x2F;images&#x2F;duck.png&quot;&#x2F;&gt;&lt;div class=&quot;squawk&quot;&gt;&lt;div class=&quot;text&quot;&gt;#@&amp;~*Q!&lt;&#x2F;div&gt;&lt;div class=&quot;small-squawk-bubble&quot;&gt;&lt;&#x2F;div&gt;&lt;&#x2F;div&gt;&#x27;);
+    
+    &#x2F;&#x2F; give them all the set-up state class
+    ducks.addClass(&#x27;set-up&#x27;);
+    
+    &#x2F;&#x2F; this makes the ducks move from right to left.
+    &#x2F;&#x2F; When the duck on the far left disappears from view,
+    &#x2F;&#x2F; it&#x27;s added to the far right end of the row.
+    var makeDucksSwim = function () {
+        var frontDuck;
+        
+        &#x2F;&#x2F; move the duck row to the left one duck space over 2 seconds
+        Y.one(&#x27;.duck-row&#x27;).transition({
+            easing: &#x27;linear&#x27;,
+            left: &#x27;-119px&#x27;,
+            duration: 2
+        }, function () { &#x2F;&#x2F; when the row finishes its right to left transition...
+            &#x2F;&#x2F; remove the first duck on the left
+            &#x2F;&#x2F; which has trasitioned out of view
+            frontDuck = Y.one(&#x27;.duck-row li&#x27;).remove();
+
+            &#x2F;&#x2F; append the removed first duck onto the right end
+            Y.one(&#x27;.duck-row&#x27;).appendChild(frontDuck);
+
+            &#x2F;&#x2F; set the position for the next makeDucksSwim()
+            Y.one(&#x27;.duck-row&#x27;).setStyle(&#x27;left&#x27;, &#x27;10px&#x27;);
+
+            &#x2F;&#x2F; if there are ducks remaining, make them swim again
+            if (ducksRemaining &gt; 0) {
+                makeDucksSwim();
+            }
+        });       
+    }
+    makeDucksSwim(); &#x2F;&#x2F; this initializes the ducks swimming
+    
+    &#x2F;&#x2F; handles a click on a duck
+    var duckClick = function(e) {
+        var squawks;
+        
+        &#x2F;&#x2F; remove the squawk belonging to the duck that was clicked
+        e.currentTarget.one(&#x27;.squawk&#x27;).setStyles({&#x27;top&#x27;: &#x27;-400px&#x27;, &#x27;opacity&#x27;: &#x27;1&#x27;});
+        
+        &#x2F;&#x2F; makes the ducks appear to lay back when clicked
+        e.target.transition({
+            duration: 0.2,
+            height: &#x27;3px&#x27;,
+            width: &#x27;133px&#x27;
+        });
+        
+        &#x2F;&#x2F; the clicked duck will no longer have the &#x27;set-up&#x27; class&#x2F;state
+        e.currentTarget.removeClass(&#x27;set-up&#x27;);
+        makeDucksSquawk();
+        updateDucksRemaining(); &#x2F;&#x2F; update the number of ducks still set up
+    };
+    
+    &#x2F;&#x2F; this makes the duck&#x27;s squawks show and hide and get various text
+    var makeDucksSquawk = function(){    
+        squawks = Y.all(&#x27;.duck-row .set-up .squawk&#x27;); &#x2F;&#x2F; a NodeList of the squawks of set-up ducks
+        if (Y.one(&#x27;#show-attitude&#x27;)._node.checked) {  &#x2F;&#x2F; only have ducks squawk if the checkbox is checked
+            &#x2F;&#x2F; fill voice bubbles with next text string
+            Y.all(&#x27;.duck-row .set-up .squawk .text&#x27;).setContent(squawkTextArr[squawkTextIndex]);
+            
+            &#x2F;&#x2F; increment the index to get the next squawk text
+            squawkTextIndex = (squawkTextIndex += 1) % (squawkTextArr.length);
+            squawks.transition({
+                top: {
+                    delay: 0.5,
+                    value: &#x27;0px&#x27;, &#x2F;&#x2F; drop squawks into position from hidden 
+                    duration: 0   &#x2F;&#x2F; instant position change
+                },
+                opacity: { &#x2F;&#x2F; fade out
+                    delay: 3.0,
+                    duration: 0.3,
+                    value: 0
+                } 
+            }, function(e){
+                &#x2F;&#x2F; after squawks are faded out,
+                &#x2F;&#x2F; move them to hidden position and set opacity to 1 again
+                squawks.setStyles({&#x27;top&#x27;: &#x27;-400px&#x27;, &#x27;opacity&#x27;: &#x27;1&#x27;});
+            });
+        }
+    }
+    
+    &#x2F;&#x2F; This resets all ducks, &quot;ducks remaining&quot; counters, and row position
+    &#x2F;&#x2F; make the duck images full height
+    &#x2F;&#x2F; start them swimming     
+    var reset = function() {
+        Y.all(&#x27;.duck-row li img&#x27;).setStyle(&#x27;height&#x27;, &#x27;55px&#x27;);
+        Y.all(&#x27;.duck-row li&#x27;).addClass(&#x27;set-up&#x27;);
+        updateDucksRemaining();
+        makeDucksSwim();
+    }
+    
+    &#x2F;&#x2F; counts the ducks remaining, and updates the UI counter display
+    var updateDucksRemaining = function() {
+        ducksRemaining = Y.all(&#x27;.gallery li.set-up&#x27;).size();    
+        Y.one(&#x27;.ducks-remain&#x27;).setContent(ducksRemaining);    
+    }
+    
+    &#x2F;&#x2F; listeners
+    Y.one(&#x27;.duck-row&#x27;).delegate(&#x27;click&#x27;, duckClick, &#x27;li&#x27;);
+    Y.one(&#x27;#button-reset&#x27;).on(&#x27;click&#x27;, reset);
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Using selectors and property accessors with Node.">
+                                            <a href="properties.html">Set and Get Properties</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using DOM methods with Node.">
+                                            <a href="dom-node.html">DOM Methods</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Listening for DOM events with Node instances.">
+                                            <a href="events.html">Handling DOM Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="NodeList provides Node functionality for manipulating multiple nodes at once.">
+                                            <a href="nodelist.html">Using NodeList - Simple</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to use multiple NodeList features to build a simple game.">
+                                            <a href="ducks.html">Using NodeList - Ducks Game</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using a single event listener to handle events on multiple nodes.">
+                                            <a href="node-evt-delegation.html">Delegating Node Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to position an element in page coordinates.">
+                                            <a href="node-xy.html">Node Positioning</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to set styles and get style information.">
+                                            <a href="node-style.html">Node Styling</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to insert content into a Node.">
+                                            <a href="node-insert.html">Adding Node Content</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to show and hide a Node.">
+                                            <a href="node-view.html">Showing and Hiding</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible toolbar using the Focus Manager Node Plugin and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-1.html">Accessible Toolbar</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible menu button using the Focus Manager Node Plugin, Event&#x27;s delegation support and mouseenter event, along with the Overlay widget and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-3.html">Accessible Menu Button</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use the Event Utility to attach simple DOM event handlers.">
+                                            <a href="../event/basic-example.html">Simple DOM Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to request XML data from a remote web service.">
+                                            <a href="../io/weather.html">Request XML data from Yahoo! Weather</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to make a cross-domain request to Yahoo! Pipes, returning data from disparate sources.">
+                                            <a href="../io/xdr.html">Request JSON using Yahoo! Pipes</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Example Photo Browser application.">
+                                            <a href="../dd/photo-browser.html">Photo Browser</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Portal style example using Drag &amp; Drop Event Bubbling and Animation.">
+                                            <a href="../dd/portal-drag.html">Portal Style Example</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>DataTable (deprecated version)</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>DataTable (deprecated version)</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+.notice {
+    background: #faf3d1;
+    border: 1px solid #eac9a9;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: px;
+    padding: 0 1em;
+    -moz-box-shadow: 0 0 5px #ccc8b3;
+    -webkit-box-shadow: 0 0 5px #ccc8b3;
+    box-shadow: 0 0 5px #ccc8b3;
+    margin-bottom: 1em;
+}
+</style>
+<div class="intro component">
+    <p>
+        The DataTable widget is responsible for rendering columnar data into a
+        highly customizable and fully accessible HTML table.  The core
+        functionality of DataTable is to visualize structured data as a table.
+        A variety of Plugins can then be used to add features to the table such
+        as sorting and scrolling.
+    </p>
+</div>
+				
+<div class="notice">
+    <p>
+        <strong>NOTICE</strong>: This component is <strong>deprecated</strong>
+        and will be removed in future versions.  Use
+        <a href="../datatable/index.html">the latest supported version of
+        DataTable</a>.
+    </p>
+
+    <p>
+        This component will be temporarily supported for implementations that
+        have unresolvable issues preventing them from upgrading to the new
+        APIs.  If you find issues while updating to the latest version, please
+        <a href="../../../projects/yui3/newticket/">file a ticket</a>.
+    </p>
+
+    <p>
+        This module is <strong>incompatible</strong> with
+        <a href="../datatable/index.html">the new <code>datatable</code> component
+        suite</a>.  Both use the <code>Y.DataTable</code> namespace.
+    </p>
+
+    <p>
+        Read the <a href="../datatable/migration.html">Migration Guide</a>
+        for help upgrading from version 3.4.1 or prior.
+    </p>
+</div>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for DataTable (deprecated version) and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;datatable-deprecated&#x27;, function (Y) {
+    &#x2F;&#x2F; DataTable (deprecated version) is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+				
+<h2 id="using">Using DataTables</h2>
+
+<h3 id="basics">DataTable basics</h3>
+
+<p>
+    A basic DataTable is comprised of columns and rows. Define the columns you
+    want to display in your DataTable with the <code>columnset</code>
+    attribute. Rows are created for you based on the data you define using the
+    <code>recordset</code> attribute. Under the hood, the DataTable class uses
+    a Columnset instance and a Recordset instance to manage column and row data
+    properties.
+</p>
+                
+<h3 id="columns">Working with columns</h3>
+
+<p>
+    A <code>columnset</code> can be defined with a simple array of
+    <code>keys</code>. As long as these keys exist in your data, DataTable will
+    display these columns of data in the table. Note that your data may contain
+    other columns that are not displayed if they are not defined in the
+    <code>columnset</code> array. A Columnset will be created containing a
+    Column instance for each item in your array, with the <code>key</code>
+    values you provided.
+</p>
+                
+<pre class="code prettyprint">&#x2F;&#x2F; Creates a Columnset with 3 Columns. &quot;cost&quot; is not rendered.
+var cols = [&quot;id&quot;,&quot;name&quot;,&quot;price&quot;];
+
+&#x2F;&#x2F; Columns must match data parameter names
+var data = [
+    {id:&quot;ga-3475&quot;, name:&quot;gadget&quot;, price:&quot;$6.99&quot;, cost:&quot;$5.99&quot;},
+    {id:&quot;sp-9980&quot;, name:&quot;sprocket&quot;, price:&quot;$3.75&quot;, cost:&quot;$3.25&quot;},
+    {id:&quot;wi-0650&quot;, name:&quot;widget&quot;, price:&quot;$4.25&quot;, cost:&quot;$3.75&quot;}
+];
+
+&#x2F;&#x2F; Creates a DataTable with 3 columns and 3 rows
+var table = new Y.DataTable.Base({
+    columnset: cols,
+    recordset: data
+}).render(&quot;#example&quot;);</pre>
+
+
+<p>
+    For greater flexibility, the <code>columnset</code> array accepts
+    configuration objects as well as simple column name strings.  When
+    identifying a column with a configuration object, use the <code>key</code>
+    property to reference the column name string.  Below are a few other
+    available column configurations.
+</p>
+
+<p>
+    Use the <code>label</code> attribute to customize the rendered column
+    header:
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; The label is the text that will be rendered in the table head
+var cols = [
+    { key: &quot;id&quot;, label: &quot;ID&quot; },
+    { key: &quot;name&quot;, label: &quot;Name&quot; },
+    { key: &quot;price&quot;, label: &quot;Price&quot; }
+];</pre>
+
+
+<p>
+    Use the <code>emptyCellValue</code> attribute to provide custom cell content when
+    there is no data for that cell in the <code>Recordset</code> or a <code>formatter</code> returns
+    <code>undefined</code>.  The default <code>emptyCellValue</code> is the empty string <code>&quot;&quot;</code>.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; The label is the text that will be rendered in the table head
+var cols = [
+    { key: &quot;id&quot;, label: &quot;ID&quot; },
+    { key: &quot;name&quot;, label: &quot;Name&quot; },
+    { key: &quot;price&quot;, label: &quot;Price&quot;, emptyCellValue: &quot;&lt;em&gt;FREE!!!&lt;&#x2F;em&gt;&quot; }
+];</pre>
+
+
+<p>
+    Use the <code>abbr</code> attribute to set the screen-reader friendly
+    "abbr" on each TH element:
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; The abbr attribute enhances the screen-reader experience
+var cols = [
+    {
+        key: &quot;mfr-parts-database-id&quot;,
+        label: &quot;Mfr Part ID&quot;,
+        abbr: &quot;ID&quot;
+    },
+    {
+        key: &quot;mfr-parts-database-name&quot;,
+        label: &quot;Mfr Part Name&quot;,
+        abbr: &quot;Name&quot;
+    },
+    {
+        key: &quot;mfr-parts-database-price&quot;,
+        label: &quot;Wholesale Price&quot;,
+        abbr: &quot;Price&quot;
+    }
+];</pre>
+
+
+<p>
+    Use the <code>children</code> attribute to created nested column headers.
+    Parent columns are for display purposes only, not associated with any data,
+    and should not have a <code>key</code> attribute of their own.
+</p>
+
+<pre class="code prettyprint">var nestedCols = [
+    {
+        label: &quot;Train Schedule&quot;,
+        children: [ &#x2F;&#x2F; Use children to define nested relationships
+            { key: &quot;track&quot; },
+            {
+                label: &quot;Route&quot;,
+                children: [
+                    { key: &quot;from&quot; },
+                    { key: &quot;to&quot; }
+                ]
+            }
+        ]
+    }
+];
+
+var data = [
+    { track: &quot;1&quot;, from: &quot;Paris&quot;, to: &quot;Amsterdam&quot; },
+    { track: &quot;2&quot;, from: &quot;Paris&quot;, to: &quot;London&quot; },
+    { track: &quot;3&quot;, from: &quot;Paris&quot;, to: &quot;Zurich&quot; }
+];
+
+var table = new Y.DataTable.Base({
+    columnset: nestedCols,
+    recordset: data,
+    summary: &quot;Train schedule&quot;,
+    caption: &quot;Table with nested column headers&quot;
+}).render(&quot;#nested&quot;);</pre>
+
+
+<h3 id="data">Working with row data</h3>
+				
+<p>
+    Pass an array of data to the <code>recordset</code> attribute, and
+    DataTable will create a <code>Recordset</code> of <code>Record</code>
+    instances to populate the table. Note that you should only define columns
+    for data you want to display -- all other data is not displayed.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Creates a Recordset with 3 records
+var data = [
+    { id: &quot;ga-3475&quot;, name: &quot;gadget&quot;, price: &quot;$6.99&quot;, cost: &quot;$5.99&quot;},
+    { id: &quot;sp-9980&quot;, name: &quot;sprocket&quot;, price: &quot;$3.75&quot;, cost: &quot;$3.25&quot;},
+    { id: &quot;wi-0650&quot;, name: &quot;widget&quot;, price: &quot;$4.25&quot;, cost: &quot;$3.75&quot;}
+];
+
+&#x2F;&#x2F; Creates a DataTable with 3 columns and 3 rows (&quot;cost&quot; is not displayed)
+var table = new Y.DataTable.Base({
+    columnset: [ &quot;id&quot;, &quot;name&quot;, &quot;price&quot; ],
+    recordset: data
+}).render(&quot;#example&quot;);</pre>
+
+
+<p>
+    Data can be stored in one format but be displayed in a different format.
+    For instance, prices can be stored as numbers but be displayed as "$2.99",
+    and birthdays can be stored as date objects but be displayed as
+    "12/9/2009". Simple formatting can be defined with a string template on the
+    column definition.
+</p>
+
+<pre class="code prettyprint">var cols = [ &quot;id&quot;, &quot;name&quot;, { key: &quot;price&quot;, formatter: &quot;\${value}&quot; } ];
+
+var data = [
+    { id: &quot;ga-3475&quot;, name: &quot;gadget&quot;, price: 6.99 },
+    { id: &quot;sp-9980&quot;, name: &quot;sprocket&quot;, price: 3.75 },
+    { id: &quot;wi-0650&quot;, name: &quot;widget&quot;, price: 4.25 }
+];
+
+var table = new Y.DataTable.Base({
+    columnset: cols,
+    recordset: data,
+    caption: &quot;Data formatting with string template&quot;
+}).render(&quot;#template&quot;);</pre>
+
+
+<p>
+    When a calculation is needed, define a custom function that generates
+    markup for the cell. The custom formatter function receives an object with
+    the following properties:
+</p>
+
+<table>
+<thead>
+    <tr>
+        <th>Property</th>
+        <th>Value</th>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+        <td><code>tbody</code></td>
+        <td>The <code>&lt;tbody&gt;</code> node containing the cell.</td>
+    </tr>
+    <tr>
+        <td><code>tr</code></td>
+        <td>The <code>&lt;tr&gt;</code> node containing the cell.</td>
+    </tr>
+    <tr>
+        <td><code>td</code></td>
+        <td>The cell <code>&lt;td&gt;</code> node.  As of 3.4.1, this property
+        is <strong>not provided by default</strong>, but can be generated by the
+        <a href="http://yuilibrary.com/yui/docs/api/classes/DataTable.html#methods_createCell">createCell</a>
+        method.</td>
+    </tr>
+    <tr>
+        <td><code>value</code></td>
+        <td>Usually the value stored in the <code>Record</code> for the column.  This is the default content that will be displayed.</td>
+    </tr>
+    <tr>
+        <td><code>record</code></td>
+        <td>The <code>Record</code> instance containing the data for all cells in the row.</td>
+    </tr>
+    <tr>
+        <td><code>data</code></td>
+        <td>The raw data collection from the <code>Record</code> instance.</td>
+    </tr>
+    <tr>
+        <td><code>rowindex</code></td>
+        <td>The row number of the <code>&lt;tr&gt;</code> node containing the cell (zero based).</td>
+    </tr>
+    <tr>
+        <td><code>column</code></td>
+        <td>The <code>Column</code> instance for the cell's column.</td>
+    </tr>
+    <tr>
+        <td><code>classnames</code></td>
+        <td>The classname corresponding to the ID of the cell's column.</td>
+    </tr>
+    <tr>
+        <td><code>headers</code></td>
+        <td>The Array of IDs from all <code>&lt;th&gt;</code>s corresponding to the cell (mostly relevant to nested headers).</td>
+    </tr>
+</tbody>
+</table>
+
+<pre class="code prettyprint">&#x2F;&#x2F; The custom formatter function recieves an object
+var calculate = function (o) {
+    var cost  = o.record.getValue(&quot;cost&quot;),
+        price = o.record.getValue(&quot;price&quot;);
+
+    return &quot;$&quot; + (price - cost).toFixed(2);
+};
+
+&#x2F;&#x2F; Assign the custom formatter in the column definition
+var cols = [ &quot;id&quot;, &quot;name&quot;, { key: &quot;profit&quot;, formatter: calculate } ];
+
+var data = [
+    { id: &quot;ga-3475&quot;, name: &quot;gadget&quot;, price: 6.99, cost: 4.99 },
+    { id: &quot;sp-9980&quot;, name: &quot;sprocket&quot;, price: 3.75, cost: 2.75 },
+    { id: &quot;wi-0650&quot;, name: &quot;widget&quot;, price: 4.25, cost: 3.25 }
+];
+
+var table = new Y.DataTable.Base({
+    columnset: cols,
+    recordset: data,
+    caption: &quot;Data formatting with custom function&quot;
+}).render(&quot;#function&quot;);</pre>
+
+
+<p>
+    Integrate with the <a href="../datasource/">DataSource</a> data abstraction
+    utility to easily load data from remote sources and implement features such
+    as caching and polling.
+</p>
+
+<pre class="code prettyprint">var cols = [
+    &quot;Title&quot;,
+    &quot;Phone&quot;,
+    { key: &quot;Rating.AverageRating&quot;, label: &quot;Rating&quot; }
+];
+
+var myDataSource = new Y.DataSource.Get({
+    source: &quot;http:&#x2F;&#x2F;query.yahooapis.com&#x2F;v1&#x2F;public&#x2F;yql?&amp;format=json&amp;env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&quot;
+});
+
+myDataSource.plug(Y.Plugin.DataSourceJSONSchema, {
+    schema: {
+        resultListLocator: &quot;query.results.Result&quot;,
+        resultFields: [ &quot;Title&quot;, &quot;Phone&quot;, &quot;Rating.AverageRating&quot; ]
+    }
+}),
+
+var table = new Y.DataTable.Base({
+    columnset: cols,
+    summary: &quot;Pizza places near 98089&quot;
+});
+
+table.plug(Y.Plugin.DataTableDataSource, {
+    datasource: myDataSource
+})
+
+table.render(&quot;#pizza&quot;);
+
+&#x2F;&#x2F; Load the data into the table
+table.datasource.load({
+    request: &quot;&amp;q=select%20*%20from%20local.search%20where%20zip%3D%2794089%27%20and%20query%3D%27pizza%27&quot;
+});
+
+&#x2F;&#x2F; Make another request later
+table.datasource.load({
+    request: &quot;&amp;q=select%20*%20from%20local.search%20where%20zip%3D%2794089%27%20and%20query%3D%27chinese%27&quot;
+});</pre>
+
+
+<p>
+    Enable DataSource caching.
+</p>
+
+<pre class="code prettyprint">var cols = [
+    &quot;Title&quot;,
+    &quot;Phone&quot;,
+    { key: &quot;Rating.AverageRating&quot;, label: &quot;Rating&quot; }
+];
+
+var myDataSource = new Y.DataSource.Get({
+    source: &quot;http:&#x2F;&#x2F;query.yahooapis.com&#x2F;v1&#x2F;public&#x2F;yql?format=json&amp;env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&quot;
+});
+
+myDataSource
+    .plug(Y.Plugin.DataSourceJSONSchema, {
+        schema: {
+            resultListLocator: &quot;query.results.Result&quot;,
+            resultFields: [&quot;Title&quot;, &quot;Phone&quot;, &quot;Rating.AverageRating&quot;]
+        }
+    })
+    .plug(Y.Plugin.DataSourceCache, {
+        max: 3
+    });
+
+var table = new Y.DataTable.Base({
+    columnset: cols,
+    summary: &quot;Pizza places near 98089&quot;,
+    caption: &quot;Table with JSON data from YQL&quot;
+});
+
+table
+    .plug(Y.Plugin.DataTableDataSource, {
+        datasource: myDataSource
+    })
+    .render(&quot;#pizza&quot;);
+
+table.datasource.load({
+    request: &quot;&amp;q=select%20*%20from%20local.search%20where%20zip%3D%2794089%27%20and%20query%3D%27chinese%27&quot;
+});</pre>
+
+
+<p>
+    Enable DataSource polling.
+</p>
+
+<pre class="code prettyprint">var cols = [&quot;Title&quot;, &quot;Phone&quot;, &quot;Rating&quot;];
+
+var myDataSource = new Y.DataSource.IO({
+    source: &quot;&#x2F;path&#x2F;to&#x2F;service.php?&quot;
+});
+
+myDataSource.plug(Y.Plugin.DataSourceXMLSchema, {
+    schema: {
+        resultListLocator: &quot;Result&quot;,
+        resultFields: [
+            { key: &quot;Title&quot;, locator: &quot;*[local-name() =&#x27;Title&#x27;]&quot; },
+            { key: &quot;Phone&quot;, locator: &quot;*[local-name() =&#x27;Phone&#x27;]&quot; },
+            { key: &quot;Rating&quot;, locator: &quot;*[local-name()=&#x27;Rating&#x27;]&#x2F;*[local-name()=&#x27;AverageRating&#x27;]&quot; }
+        ]
+    }
+});
+
+var table = new Y.DataTable.Base({
+    columnset: cols,
+    summary: &quot;Chinese restaurants near 98089&quot;,
+    caption: &quot;Table with XML data from same-domain script&quot;
+});
+
+table
+    .plug(Y.Plugin.DataTableDataSource, {
+        datasource: myDataSource,
+        initialRequest: &quot;zip=94089&amp;query=chinese&quot;
+    })
+    .render(&quot;#chinese&quot;);
+
+myDataSource.setInterval(5000, {
+    request: &quot;zip=94089&amp;query=chinese&quot;,
+    callback: {
+        success: Y.bind(table.datasource.onDataReturnInitializeTable, table.datasource),
+        failure: Y.bind(table.datasource.onDataReturnInitializeTable, table.datasource)
+    }
+});</pre>
+
+
+<h3 id="sorting">Column sorting</h3>
+
+<p>
+    Column sorting functionality for the deprecated version of DataTable can be
+    added with the DataTableSort plugin (provided by the
+    <code>datatable-sort-deprecated</code> module, or in the
+    <code>datatable-deprecated</code> rollup module). Indicate which columns
+    are sortable by setting <code>sortable: true</code> in your column
+    definitions.
+</p>
+
+<pre class="code prettyprint">var cols = [
+    { key: &quot;Company&quot;, sortable: true },
+    { key: &quot;Phone&quot; },
+    { key: &quot;Contact&quot;, sortable: true }
+];
+
+var data = [
+    { Company: &quot;Company Bee&quot;, Phone: &quot;415-555-1234&quot;, Contact: &quot;Sally Spencer&quot;},
+    { Company: &quot;Acme Company&quot;, Phone: &quot;650-555-4444&quot;, Contact: &quot;John Jones&quot;},
+    { Company: &quot;Indutrial Industries&quot;, Phone: &quot;408-555-5678&quot;, Contact: &quot;Robin Smith&quot;}
+];
+
+var table = new Y.DataTable.Base({
+    columnset: cols,
+    recordset: data,
+    summary: &quot;Contacts list&quot;,
+    caption: &quot;Table with simple column sorting&quot;,
+    plugins: [ Y.Plugin.DataTableSort ]
+}).render(&quot;#sort&quot;);</pre>
+
+
+<h3 id="scrolling">Scrolling</h3>
+				
+<p>
+    <strong>Note:</strong> Scrolling is not currently supported on the Android
+    WebKit browser.
+</p>
+
+<p>
+    Scrolling functionality for the deprecated version of DataTable can be added with the DataTableScroll plugin (provided by the <code>datatable-scroll-deprecated</code> module or in the <code>datatable-deprecated</code> rollup module). Horizontal scrolling is enabled by setting a <code>width</code> attribute value; fixed header vertical scrolling is enabled by setting a <code>height</code> attribute value; and xy-scrolling is enabled by setting both <code>width</code> and <code>height</code> values.
+</p>
+
+<pre class="code prettyprint">var cols = [
+    { key: &quot;Company&quot; },
+    { key: &quot;Phone&quot; },
+    { key: &quot;Contact&quot; }
+];
+
+var data = [
+    { Company: &quot;Company Bee&quot;, Phone: &quot;415-555-1234&quot;, Contact: &quot;Sally Spencer&quot;},
+    { Company: &quot;Acme Company&quot;, Phone: &quot;650-555-4444&quot;, Contact: &quot;John Jones&quot;},
+    { Company: &quot;Indutrial Industries&quot;, Phone: &quot;408-555-5678&quot;, Contact: &quot;Robin Smith&quot;}
+];
+
+var table = new Y.DataTable.Base({
+    columnset: cols,
+    recordset: data,
+});
+
+table
+    .plug(Y.Plugin.DataTableScroll, {
+        width: &quot;300px&quot;,
+        height: &quot;200px&quot;
+    })
+    .render(&quot;#scroll&quot;);</pre>
+
+
+<h2 id="knownissues">Known Issues</h2>
+
+<ul>
+    <li>
+        Scrolling is
+        <a href="http://yuilibrary.com/projects/yui3/ticket/2529761">not
+        currently supported on Android</a> WebKit browser.
+    </li>
+    <li>Scrolling DataTable does
+        <a href="http://yuilibrary.com/projects/yui3/ticket/2531047">not appear
+        scrollable</a> in iOS and OS X 10.7 in Safari 5.1+ and Chrome 15+.
+    </li>
+</ul>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+</li>
+<li>
+<a href="#using">Using DataTables</a>
+<ul class="toc">
+<li>
+<a href="#basics">DataTable basics</a>
+</li>
+<li>
+<a href="#columns">Working with columns</a>
+</li>
+<li>
+<a href="#data">Working with row data</a>
+</li>
+<li>
+<a href="#sorting">Column sorting</a>
+</li>
+<li>
+<a href="#scrolling">Scrolling</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#knownissues">Known Issues</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="This example illustrates simple DataTable use cases.">
+                                            <a href="datatable-basic.html">Basic DataTable</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable loaded with JSON data from a remote webservice via DataSource.Get">
+                                            <a href="datatable-dsget.html">DataTable + DataSource.Get + JSON Data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable loaded with XML data from a remote webservice via DataSource.IO.">
+                                            <a href="datatable-dsio.html">DataTable + DataSource.IO + XML Data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Custom format data for display.">
+                                            <a href="datatable-formatting.html">Formatting Row Data for Display</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable with nested column headers.">
+                                            <a href="datatable-nestedcols.html">Nested Column Headers</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable with column sorting.">
+                                            <a href="datatable-sort.html">Column Sorting</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable with vertical and/or horizontal scrolling rows.">
+                                            <a href="datatable-scroll.html">Scrolling DataTable</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

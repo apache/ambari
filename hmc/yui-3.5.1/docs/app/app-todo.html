@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Todo List</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Todo List</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+.scrollable pre {
+    overflow-y: auto;
+    max-height: 40em;
+    -webkit-overflow-scrolling: touch;
+}
+</style>
+
+<div class="intro">
+<p>This example demonstrates how to create a todo list app using the <a href="../model/index.html">Model</a>, <a href="../model-list/index.html">Model List</a>, and <a href="../view/index.html">View</a> components. The example also includes a custom sync layer that stores the todo items in <code>localStorage</code> (in browsers that support it).</p>
+</div>
+
+<div class="example">
+<style scoped>
+#todo-app {
+    margin: 1em;
+    text-align: center;
+}
+
+#todo-list,
+#todo-stats {
+    margin: 1em auto;
+    text-align: left;
+    width: 450px;
+}
+
+#todo-list {
+    list-style: none;
+    padding: 0;
+}
+
+#todo-stats,
+.todo-clear { color: #777; }
+
+.todo-clear { float: right; }
+
+.todo-done .todo-content {
+    color: #666;
+    text-decoration: line-through;
+}
+
+.todo-edit,
+.editing .todo-view { display: none; }
+
+.editing .todo-edit { display: block; }
+
+.todo-input {
+    display: block;
+    font-family: Helvetica, sans-serif;
+    font-size: 20px;
+    line-height: normal;
+    margin: 5px auto 0;
+    padding: 6px;
+    width: 420px;
+}
+
+.todo-item {
+    border-bottom: 1px dotted #cfcfcf;
+    font-size: 20px;
+    padding: 6px;
+    position: relative;
+}
+
+.todo-label {
+    color: #444;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.todo-remaining {
+    color: #333;
+    font-weight: bold;
+}
+
+.todo-remove {
+    position: absolute;
+    right: 0;
+    top: 12px;
+}
+
+.todo-remove-icon {
+    /*
+    Delete icon courtesy of The Noun Project:
+    http://thenounproject.com/noun/delete/
+    */
+    background: url(../assets/app/remove.png) no-repeat;
+    display: block;
+    height: 16px;
+    opacity: 0.6;
+    visibility: hidden;
+    width: 23px;
+}
+
+.todo-remove:hover .todo-remove-icon { opacity: 1.0; }
+
+.todo-hover .todo-remove-icon,
+.todo-remove:focus .todo-remove-icon { visibility: visible; }
+
+.editing .todo-remove-icon { visibility: hidden; }
+</style>
+
+<!-- This is the main container and "shell" for the todo app. -->
+<div id="todo-app">
+    <label class="todo-label" for="new-todo">What do you want to do today?</label>
+    <input type="text" id="new-todo" class="todo-input"
+        placeholder="buy milk">
+
+    <ul id="todo-list"></ul>
+    <div id="todo-stats"></div>
+</div>
+
+<!-- This template HTML will be used to render each todo item. -->
+<script type="text/x-template" id="todo-item-template">
+    <div class="todo-view">
+        <input type="checkbox" class="todo-checkbox" {checked}>
+        <span class="todo-content" tabindex="0">{text}</span>
+    </div>
+
+    <div class="todo-edit">
+        <input type="text" class="todo-input" value="{text}">
+    </div>
+
+    <a href="#" class="todo-remove" title="Remove this task">
+        <span class="todo-remove-icon"></span>
+    </a>
+</script>
+
+<!-- This template HTML will be used to render the statistics at the bottom
+     of the todo list. -->
+<script type="text/x-template" id="todo-stats-template">
+    <span class="todo-count">
+        <span class="todo-remaining">{numRemaining}</span>
+        <span class="todo-remaining-label">{remainingLabel}</span> left.
+    </span>
+
+    <a href="#" class="todo-clear">
+        Clear <span class="todo-done">{numDone}</span>
+        completed <span class="todo-done-label">{doneLabel}</span>
+    </a>
+</script>
+
+<script>
+YUI({filter: 'raw'}).use('event-focus', 'json', 'model', 'model-list', 'view', function (Y) {
+
+var TodoAppView, TodoList, TodoModel, TodoView;
+
+// -- Model --------------------------------------------------------------------
+
+// The TodoModel class extends Y.Model and customizes it to use a localStorage
+// sync provider (the source for that is further below) and to provide
+// attributes and methods useful for todo items.
+
+TodoModel = Y.TodoModel = Y.Base.create('todoModel', Y.Model, [], {
+    // This tells the Model to use a localStorage sync provider (which we'll
+    // create below) to save and load information about a todo item.
+    sync: LocalStorageSync('todo'),
+
+    // This method will toggle the <code>done</code> attribute from <code>true</code> to <code>false</code>, or
+    // vice versa.
+    toggleDone: function () {
+        this.set('done', !this.get('done')).save();
+    }
+}, {
+    ATTRS: {
+        // Indicates whether or not this todo item has been completed.
+        done: {value: false},
+
+        // Contains the text of the todo item.
+        text: {value: ''}
+    }
+});
+
+// -- ModelList ----------------------------------------------------------------
+
+// The TodoList class extends Y.ModelList and customizes it to hold a list of
+// TodoModel instances, and to provide some convenience methods for getting
+// information about the todo items in the list.
+
+TodoList = Y.TodoList = Y.Base.create('todoList', Y.ModelList, [], {
+    // This tells the list that it will hold instances of the TodoModel class.
+    model: TodoModel,
+
+    // This tells the list to use a localStorage sync provider (which we'll
+    // create below) to load the list of todo items.
+    sync: LocalStorageSync('todo'),
+
+    // Returns an array of all models in this list with the <code>done</code> attribute
+    // set to <code>true</code>.
+    done: function () {
+        return this.filter(function (model) {
+            return model.get('done');
+        });
+    },
+
+    // Returns an array of all models in this list with the <code>done</code> attribute
+    // set to <code>false</code>.
+    remaining: function () {
+        return this.filter(function (model) {
+            return !model.get('done');
+        });
+    }
+});
+
+// -- Todo App View ------------------------------------------------------------
+
+// The TodoAppView class extends Y.View and customizes it to represent the
+// main shell of the application, including the new item input field and the
+// list of todo items.
+//
+// This class also takes care of initializing a TodoList instance and creating
+// and rendering a TodoView instance for each todo item when the list is
+// initially loaded or reset.
+
+TodoAppView = Y.TodoAppView = Y.Base.create('todoAppView', Y.View, [], {
+    // This is where we attach DOM events for the view. The <code>events</code> object is a
+    // mapping of selectors to an object containing one or more events to attach
+    // to the node(s) matching each selector.
+    events: {
+        // Handle <enter> keypresses on the "new todo" input field.
+        '#new-todo': {keypress: 'createTodo'},
+
+        // Clear all completed items from the list when the "Clear" link is
+        // clicked.
+        '.todo-clear': {click: 'clearDone'},
+
+        // Add and remove hover states on todo items.
+        '.todo-item': {
+            mouseover: 'hoverOn',
+            mouseout : 'hoverOff'
+        }
+    },
+
+    // The <code>template</code> property is a convenience property for holding a
+    // template for this view. In this case, we'll use it to store the
+    // contents of the #todo-stats-template element, which will serve as the
+    // template for the statistics displayed at the bottom of the list.
+    template: Y.one('#todo-stats-template').getContent(),
+
+    // The initializer runs when a TodoAppView instance is created, and gives
+    // us an opportunity to set up the view.
+    initializer: function () {
+        // Create a new TodoList instance to hold the todo items.
+        var list = this.todoList = new TodoList();
+
+        // Update the display when a new item is added to the list, or when the
+        // entire list is reset.
+        list.after('add', this.add, this);
+        list.after('reset', this.reset, this);
+
+        // Re-render the stats in the footer whenever an item is added, removed
+        // or changed, or when the entire list is reset.
+        list.after(['add', 'reset', 'remove', 'todoModel:doneChange'],
+                this.render, this);
+
+        // Load saved items from localStorage, if available.
+        list.load();
+    },
+
+    // The render function is called whenever a todo item is added, removed, or
+    // changed, thanks to the list event handler we attached in the initializer
+    // above.
+    render: function () {
+        var todoList = this.todoList,
+            stats    = this.get('container').one('#todo-stats'),
+            numRemaining, numDone;
+
+        // If there are no todo items, then clear the stats.
+        if (todoList.isEmpty()) {
+            stats.empty();
+            return this;
+        }
+
+        // Figure out how many todo items are completed and how many remain.
+        numDone      = todoList.done().length;
+        numRemaining = todoList.remaining().length;
+
+        // Update the statistics.
+        stats.setContent(Y.Lang.sub(this.template, {
+            numDone       : numDone,
+            numRemaining  : numRemaining,
+            doneLabel     : numDone === 1 ? 'task' : 'tasks',
+            remainingLabel: numRemaining === 1 ? 'task' : 'tasks'
+        }));
+
+        // If there are no completed todo items, don't show the "Clear
+        // completed items" link.
+        if (!numDone) {
+            stats.one('.todo-clear').remove();
+        }
+
+        return this;
+    },
+
+    // -- Event Handlers -------------------------------------------------------
+
+    // Creates a new TodoView instance and renders it into the list whenever a
+    // todo item is added to the list.
+    add: function (e) {
+        var view = new TodoView({model: e.model});
+
+        this.get('container').one('#todo-list').append(
+            view.render().get('container')
+        );
+    },
+
+    // Removes all finished todo items from the list.
+    clearDone: function (e) {
+        var done = this.todoList.done();
+
+        e.preventDefault();
+
+        // Remove all finished items from the list, but do it silently so as not
+        // to re-render the app view after each item is removed.
+        this.todoList.remove(done, {silent: true});
+
+        // Destroy each removed TodoModel instance.
+        Y.Array.each(done, function (todo) {
+            // Passing {remove: true} to the todo model's <code>destroy()</code> method
+            // tells it to delete itself from localStorage as well.
+            todo.destroy({remove: true});
+        });
+
+        // Finally, re-render the app view.
+        this.render();
+    },
+
+    // Creates a new todo item when the enter key is pressed in the new todo
+    // input field.
+    createTodo: function (e) {
+        var inputNode, value;
+
+        if (e.keyCode === 13) { // enter key
+            inputNode = this.get('inputNode');
+            value     = Y.Lang.trim(inputNode.get('value'));
+
+            if (!value) { return; }
+
+            // This tells the list to create a new TodoModel instance with the
+            // specified text and automatically save it to localStorage in a
+            // single step.
+            this.todoList.create({text: value});
+
+            inputNode.set('value', '');
+        }
+    },
+
+    // Turns off the hover state on a todo item.
+    hoverOff: function (e) {
+        e.currentTarget.removeClass('todo-hover');
+    },
+
+    // Turns on the hover state on a todo item.
+    hoverOn: function (e) {
+        e.currentTarget.addClass('todo-hover');
+    },
+
+    // Creates and renders views for every todo item in the list when the entire
+    // list is reset.
+    reset: function (e) {
+        var fragment = Y.one(Y.config.doc.createDocumentFragment());
+
+        Y.Array.each(e.models, function (model) {
+            var view = new TodoView({model: model});
+            fragment.append(view.render().get('container'));
+        });
+
+        this.get('container').one('#todo-list').setContent(fragment);
+    }
+}, {
+    ATTRS: {
+        // The container node is the wrapper for this view. All the view's
+        // events will be delegated from the container. In this case, the
+        // #todo-app node already exists on the page, so we don't need to create
+        // it.
+        container: {
+            valueFn: function () {
+                return '#todo-app';
+            }
+        },
+
+        // This is a custom attribute that we'll use to hold a reference to the
+        // "new todo" input field.
+        inputNode: {
+            valueFn: function () {
+                return Y.one('#new-todo');
+            }
+        }
+    }
+});
+
+// -- Todo item view -----------------------------------------------------------
+
+// The TodoView class extends Y.View and customizes it to represent the content
+// of a single todo item in the list. It also handles DOM events on the item to
+// allow it to be edited and removed from the list.
+
+TodoView = Y.TodoView = Y.Base.create('todoView', Y.View, [], {
+    // This customizes the HTML used for this view's container node.
+    containerTemplate: '<li class="todo-item"/>',
+
+    // Delegated DOM events to handle this view's interactions.
+    events: {
+        // Toggle the "done" state of this todo item when the checkbox is
+        // clicked.
+        '.todo-checkbox': {click: 'toggleDone'},
+
+        // When the text of this todo item is clicked or focused, switch to edit
+        // mode to allow editing.
+        '.todo-content': {
+            click: 'edit',
+            focus: 'edit'
+        },
+
+        // On the edit field, when enter is pressed or the field loses focus,
+        // save the current value and switch out of edit mode.
+        '.todo-input'   : {
+            blur    : 'save',
+            keypress: 'enter'
+        },
+
+        // When the remove icon is clicked, delete this todo item.
+        '.todo-remove': {click: 'remove'}
+    },
+
+    // The template property holds the contents of the #todo-item-template
+    // element, which will be used as the HTML template for each todo item.
+    template: Y.one('#todo-item-template').getContent(),
+
+    initializer: function () {
+        // The model property is set to a TodoModel instance by TodoAppView when
+        // it instantiates this TodoView.
+        var model = this.get('model');
+
+        // Re-render this view when the model changes, and destroy this view
+        // when the model is destroyed.
+        model.after('change', this.render, this);
+
+        model.after('destroy', function () {
+            this.destroy({remove: true});
+        }, this);
+    },
+
+    render: function () {
+        var container = this.get('container'),
+            model     = this.get('model'),
+            done      = model.get('done');
+
+        container.setContent(Y.Lang.sub(this.template, {
+            checked: done ? 'checked' : '',
+            text   : model.getAsHTML('text')
+        }));
+
+        container[done ? 'addClass' : 'removeClass']('todo-done');
+        this.set('inputNode', container.one('.todo-input'));
+
+        return this;
+    },
+
+    // -- Event Handlers -------------------------------------------------------
+
+    // Toggles this item into edit mode.
+    edit: function () {
+        this.get('container').addClass('editing');
+        this.get('inputNode').focus();
+    },
+
+    // When the enter key is pressed, focus the new todo input field. This
+    // causes a blur event on the current edit field, which calls the save()
+    // handler below.
+    enter: function (e) {
+        if (e.keyCode === 13) { // enter key
+            Y.one('#new-todo').focus();
+        }
+    },
+
+    // Removes this item from the list.
+    remove: function (e) {
+        e.preventDefault();
+
+        this.constructor.superclass.remove.call(this);
+        this.get('model').destroy({'delete': true});
+    },
+
+    // Toggles this item out of edit mode and saves it.
+    save: function () {
+        this.get('container').removeClass('editing');
+        this.get('model').set('text', this.get('inputNode').get('value')).save();
+    },
+
+    // Toggles the <code>done</code> state on this item's model.
+    toggleDone: function () {
+        this.get('model').toggleDone();
+    }
+});
+
+// -- localStorage Sync Implementation -----------------------------------------
+
+// This is a simple factory function that returns a <code>sync()</code> function that can
+// be used as a sync layer for either a Model or a ModelList instance. The
+// TodoModel and TodoList instances above use it to save and load items.
+
+function LocalStorageSync(key) {
+    var localStorage;
+
+    if (!key) {
+        Y.error('No storage key specified.');
+    }
+
+    if (Y.config.win.localStorage) {
+        localStorage = Y.config.win.localStorage;
+    }
+
+    // Try to retrieve existing data from localStorage, if there is any.
+    // Otherwise, initialize <code>data</code> to an empty object.
+    var data = Y.JSON.parse((localStorage && localStorage.getItem(key)) || '{}');
+
+    // Delete a model with the specified id.
+    function destroy(id) {
+        var modelHash;
+
+        if ((modelHash = data[id])) {
+            delete data[id];
+            save();
+        }
+
+        return modelHash;
+    }
+
+    // Generate a unique id to assign to a newly-created model.
+    function generateId() {
+        var id = '',
+            i  = 4;
+
+        while (i--) {
+            id += (((1 + Math.random()) * 0x10000) | 0)
+                    .toString(16).substring(1);
+        }
+
+        return id;
+    }
+
+    // Loads a model with the specified id. This method is a little tricky,
+    // since it handles loading for both individual models and for an entire
+    // model list.
+    //
+    // If an id is specified, then it loads a single model. If no id is
+    // specified then it loads an array of all models. This allows the same sync
+    // layer to be used for both the TodoModel and TodoList classes.
+    function get(id) {
+        return id ? data[id] : Y.Object.values(data);
+    }
+
+    // Saves the entire <code>data</code> object to localStorage.
+    function save() {
+        localStorage && localStorage.setItem(key, Y.JSON.stringify(data));
+    }
+
+    // Sets the id attribute of the specified model (generating a new id if
+    // necessary), then saves it to localStorage.
+    function set(model) {
+        var hash        = model.toJSON(),
+            idAttribute = model.idAttribute;
+
+        if (!Y.Lang.isValue(hash[idAttribute])) {
+            hash[idAttribute] = generateId();
+        }
+
+        data[hash[idAttribute]] = hash;
+        save();
+
+        return hash;
+    }
+
+    // Returns a <code>sync()</code> function that can be used with either a Model or a
+    // ModelList instance.
+    return function (action, options, callback) {
+        // <code>this</code> refers to the Model or ModelList instance to which this sync
+        // method is attached.
+        var isModel = Y.Model && this instanceof Y.Model;
+
+        switch (action) {
+        case 'create': // intentional fallthru
+        case 'update':
+            callback(null, set(this));
+            return;
+
+        case 'read':
+            callback(null, get(isModel && this.get('id')));
+            return;
+
+        case 'delete':
+            callback(null, destroy(isModel && this.get('id')));
+            return;
+        }
+    };
+}
+
+// -- Start your engines! ------------------------------------------------------
+
+// Finally, all we have to do is instantiate a new TodoAppView to set everything
+// in motion and bring our todo list into existence.
+new TodoAppView();
+
+});
+</script>
+
+</div>
+
+<h2 id="disclaimer">Disclaimer</h2>
+
+<p>
+Ironically, this example complexifies a very simple application in order to demonstrate concepts you might actually use to simplify a complex application. In reality, this little todo app is so conceptually simple that it probably doesn't need to be broken into discrete components, but its inherent conceptual simplicity makes it convenient for explaining how models, model lists, and views work.
+</p>
+
+<p>
+In other words, this example is not meant to be a recommendation for how to implement a todo app; it's meant to be a demonstration of how models and views fit together to define application logic. Also, our lawyers advised us that we were legally required to provide a todo example, so we had no choice in the matter. I swear.
+</p>
+
+<p>
+For a slightly more realistic use case demonstrating how the App Framework can make a complex task simpler instead of a simple task more complex, take a look at the <a href="app-contributors.html">GitHub Contributors</a> example.
+</p>
+
+<h2 id="html">HTML</h2>
+
+<p>First we'll create the HTML shell for our todo app.</p>
+
+<pre class="code prettyprint">&lt;div id=&quot;todo-app&quot;&gt;
+    &lt;label class=&quot;todo-label&quot; for=&quot;new-todo&quot;&gt;What do you want to do today?&lt;&#x2F;label&gt;
+    &lt;input type=&quot;text&quot; id=&quot;new-todo&quot; class=&quot;todo-input&quot;
+        placeholder=&quot;buy milk&quot;&gt;
+
+    &lt;ul id=&quot;todo-list&quot;&gt;&lt;&#x2F;ul&gt;
+    &lt;div id=&quot;todo-stats&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;</pre>
+
+
+<p>We'll also add some invisible HTML templates to the page, which will be used to render our views later.</p>
+
+<p>By putting this template HTML inside a <code>&lt;script&gt;</code> element with <code>type=&quot;text&#x2F;x-template&quot;</code>, we ensure that the browser will ignore it because it doesn't recognize the <code>text&#x2F;x-template</code> type. We can then retrieve the contents of the element to get a convenient template string.</p>
+
+<p>This is generally a more maintainable way of embedding templates than storing them in JavaScript strings, but there's no requirement that you use this technique.</p>
+
+<pre class="code prettyprint">&lt;!-- This template HTML will be used to render each todo item. --&gt;
+&lt;script type=&quot;text&#x2F;x-template&quot; id=&quot;todo-item-template&quot;&gt;
+    &lt;div class=&quot;todo-view&quot;&gt;
+        &lt;input type=&quot;checkbox&quot; class=&quot;todo-checkbox&quot; {checked}&gt;
+        &lt;span class=&quot;todo-content&quot; tabindex=&quot;0&quot;&gt;{text}&lt;&#x2F;span&gt;
+    &lt;&#x2F;div&gt;
+
+    &lt;div class=&quot;todo-edit&quot;&gt;
+        &lt;input type=&quot;text&quot; class=&quot;todo-input&quot; value=&quot;{text}&quot;&gt;
+    &lt;&#x2F;div&gt;
+
+    &lt;a href=&quot;#&quot; class=&quot;todo-remove&quot; title=&quot;Remove this task&quot;&gt;
+        &lt;span class=&quot;todo-remove-icon&quot;&gt;&lt;&#x2F;span&gt;
+    &lt;&#x2F;a&gt;
+&lt;&#x2F;script&gt;
+
+&lt;!-- This template HTML will be used to render the statistics at the bottom
+     of the todo list. --&gt;
+&lt;script type=&quot;text&#x2F;x-template&quot; id=&quot;todo-stats-template&quot;&gt;
+    &lt;span class=&quot;todo-count&quot;&gt;
+        &lt;span class=&quot;todo-remaining&quot;&gt;{numRemaining}&lt;&#x2F;span&gt;
+        &lt;span class=&quot;todo-remaining-label&quot;&gt;{remainingLabel}&lt;&#x2F;span&gt; left.
+    &lt;&#x2F;span&gt;
+
+    &lt;a href=&quot;#&quot; class=&quot;todo-clear&quot;&gt;
+        Clear &lt;span class=&quot;todo-done&quot;&gt;{numDone}&lt;&#x2F;span&gt;
+        completed &lt;span class=&quot;todo-done-label&quot;&gt;{doneLabel}&lt;&#x2F;span&gt;
+    &lt;&#x2F;a&gt;
+&lt;&#x2F;script&gt;</pre>
+
+
+<h2 id="css">CSS</h2>
+
+<p>Next, some CSS to make the todo list look pretty.</p>
+
+<div class="scrollable">
+<pre class="code prettyprint">&lt;style scoped&gt;
+#todo-app {
+    margin: 1em;
+    text-align: center;
+}
+
+#todo-list,
+#todo-stats {
+    margin: 1em auto;
+    text-align: left;
+    width: 450px;
+}
+
+#todo-list {
+    list-style: none;
+    padding: 0;
+}
+
+#todo-stats,
+.todo-clear { color: #777; }
+
+.todo-clear { float: right; }
+
+.todo-done .todo-content {
+    color: #666;
+    text-decoration: line-through;
+}
+
+.todo-edit,
+.editing .todo-view { display: none; }
+
+.editing .todo-edit { display: block; }
+
+.todo-input {
+    display: block;
+    font-family: Helvetica, sans-serif;
+    font-size: 20px;
+    line-height: normal;
+    margin: 5px auto 0;
+    padding: 6px;
+    width: 420px;
+}
+
+.todo-item {
+    border-bottom: 1px dotted #cfcfcf;
+    font-size: 20px;
+    padding: 6px;
+    position: relative;
+}
+
+.todo-label {
+    color: #444;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.todo-remaining {
+    color: #333;
+    font-weight: bold;
+}
+
+.todo-remove {
+    position: absolute;
+    right: 0;
+    top: 12px;
+}
+
+.todo-remove-icon {
+    &#x2F;*
+    Delete icon courtesy of The Noun Project:
+    http:&#x2F;&#x2F;thenounproject.com&#x2F;noun&#x2F;delete&#x2F;
+    *&#x2F;
+    background: url(..&#x2F;assets&#x2F;app&#x2F;remove.png) no-repeat;
+    display: block;
+    height: 16px;
+    opacity: 0.6;
+    visibility: hidden;
+    width: 23px;
+}
+
+.todo-remove:hover .todo-remove-icon { opacity: 1.0; }
+
+.todo-hover .todo-remove-icon,
+.todo-remove:focus .todo-remove-icon { visibility: visible; }
+
+.editing .todo-remove-icon { visibility: hidden; }
+&lt;&#x2F;style&gt;</pre>
+
+</div>
+
+<h2 id="javascript">JavaScript</h2>
+
+<p>Our todo app will consist of five main parts:</p>
+
+<ol>
+    <li><p>A <code>TodoModel</code> class, which extends <code>Y.Model</code>. Each instance of this class will represent the data for a single todo item.</p></li>
+    <li><p>A <code>TodoList</code> class, which extends <code>Y.ModelList</code>. There will be a single instance of this class to contain all the <code>TodoModel</code> instances in the todo list.</p></li>
+    <li><p>A <code>TodoAppView</code> class that extends <code>Y.View</code> and acts as a view controller for the entire app.</p></li>
+    <li><p>A <code>TodoView</code> class, which extends <code>Y.View</code>. Each instance of this class will represent the visual content and control the interactions for a single todo item.</p></li>
+    <li><p>A <code>localStorage</code>-based sync layer that will be used by the <code>TodoModel</code> and <code>TodoList</code> classes to save and load todo items using <code>localStorage</code>.</p></li>
+</ol>
+
+<p>All of these things will live inside the following YUI instance:</p>
+
+<pre class="code prettyprint">&lt;!-- Include YUI on the page if you haven&#x27;t already. --&gt;
+&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;
+
+&lt;script&gt;
+YUI().use(&#x27;event-focus&#x27;, &#x27;json&#x27;, &#x27;model&#x27;, &#x27;model-list&#x27;, &#x27;view&#x27;, function (Y) {
+    var TodoAppView, TodoList, TodoModel, TodoView;
+
+    &#x2F;&#x2F; ... Add the code from the following sections here! ...
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<h3 id="todomodel">TodoModel</h3>
+
+<p>The <code>TodoModel</code> class extends <code>Y.Model</code> and customizes it to use a <code>localStorage</code> sync provider (the source for that is in the <a href="#localstoragesync">LocalStorageSync</a> section below) and to provide attributes and methods useful for todo items.</p>
+
+<pre class="code prettyprint">TodoModel = Y.TodoModel = Y.Base.create(&#x27;todoModel&#x27;, Y.Model, [], {
+    &#x2F;&#x2F; This tells the Model to use a localStorage sync provider (which we&#x27;ll
+    &#x2F;&#x2F; create below) to save and load information about a todo item.
+    sync: LocalStorageSync(&#x27;todo&#x27;),
+
+    &#x2F;&#x2F; This method will toggle the &#x60;done&#x60; attribute from &#x60;true&#x60; to &#x60;false&#x60;, or
+    &#x2F;&#x2F; vice versa.
+    toggleDone: function () {
+        this.set(&#x27;done&#x27;, !this.get(&#x27;done&#x27;)).save();
+    }
+}, {
+    ATTRS: {
+        &#x2F;&#x2F; Indicates whether or not this todo item has been completed.
+        done: {value: false},
+
+        &#x2F;&#x2F; Contains the text of the todo item.
+        text: {value: &#x27;&#x27;}
+    }
+});</pre>
+
+
+<h3 id="todolist">TodoList</h3>
+
+<p>The <code>TodoList</code> class extends <code>Y.ModelList</code> and customizes it to hold a list of <code>TodoModel</code> instances, and to provide some convenience methods for getting information about the todo items in the list.</p>
+
+<pre class="code prettyprint">TodoList = Y.TodoList = Y.Base.create(&#x27;todoList&#x27;, Y.ModelList, [], {
+    &#x2F;&#x2F; This tells the list that it will hold instances of the TodoModel class.
+    model: TodoModel,
+
+    &#x2F;&#x2F; This tells the list to use a localStorage sync provider (which we&#x27;ll
+    &#x2F;&#x2F; create below) to load the list of todo items.
+    sync: LocalStorageSync(&#x27;todo&#x27;),
+
+    &#x2F;&#x2F; Returns an array of all models in this list with the &#x60;done&#x60; attribute
+    &#x2F;&#x2F; set to &#x60;true&#x60;.
+    done: function () {
+        return this.filter(function (model) {
+            return model.get(&#x27;done&#x27;);
+        });
+    },
+
+    &#x2F;&#x2F; Returns an array of all models in this list with the &#x60;done&#x60; attribute
+    &#x2F;&#x2F; set to &#x60;false&#x60;.
+    remaining: function () {
+        return this.filter(function (model) {
+            return !model.get(&#x27;done&#x27;);
+        });
+    }
+});</pre>
+
+
+<h3 id="todoappview">TodoAppView</h3>
+
+<p>The <code>TodoAppView</code> class extends <code>Y.View</code> and customizes it to represent the main shell of the application, including the new item input field and the list of todo items.</p>
+
+<p>This class also takes care of initializing a <code>TodoList</code> instance and creating and rendering a <code>TodoView</code> instance for each todo item when the list is initially loaded or reset.</p>
+
+<div class="scrollable">
+<pre class="code prettyprint">TodoAppView = Y.TodoAppView = Y.Base.create(&#x27;todoAppView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; This is where we attach DOM events for the view. The &#x60;events&#x60; object is a
+    &#x2F;&#x2F; mapping of selectors to an object containing one or more events to attach
+    &#x2F;&#x2F; to the node(s) matching each selector.
+    events: {
+        &#x2F;&#x2F; Handle &lt;enter&gt; keypresses on the &quot;new todo&quot; input field.
+        &#x27;#new-todo&#x27;: {keypress: &#x27;createTodo&#x27;},
+
+        &#x2F;&#x2F; Clear all completed items from the list when the &quot;Clear&quot; link is
+        &#x2F;&#x2F; clicked.
+        &#x27;.todo-clear&#x27;: {click: &#x27;clearDone&#x27;},
+
+        &#x2F;&#x2F; Add and remove hover states on todo items.
+        &#x27;.todo-item&#x27;: {
+            mouseover: &#x27;hoverOn&#x27;,
+            mouseout : &#x27;hoverOff&#x27;
+        }
+    },
+
+    &#x2F;&#x2F; The &#x60;template&#x60; property is a convenience property for holding a
+    &#x2F;&#x2F; template for this view. In this case, we&#x27;ll use it to store the
+    &#x2F;&#x2F; contents of the #todo-stats-template element, which will serve as the
+    &#x2F;&#x2F; template for the statistics displayed at the bottom of the list.
+    template: Y.one(&#x27;#todo-stats-template&#x27;).getContent(),
+
+    &#x2F;&#x2F; The initializer runs when a TodoAppView instance is created, and gives
+    &#x2F;&#x2F; us an opportunity to set up the view.
+    initializer: function () {
+        &#x2F;&#x2F; Create a new TodoList instance to hold the todo items.
+        var list = this.todoList = new TodoList();
+
+        &#x2F;&#x2F; Update the display when a new item is added to the list, or when the
+        &#x2F;&#x2F; entire list is reset.
+        list.after(&#x27;add&#x27;, this.add, this);
+        list.after(&#x27;reset&#x27;, this.reset, this);
+
+        &#x2F;&#x2F; Re-render the stats in the footer whenever an item is added, removed
+        &#x2F;&#x2F; or changed, or when the entire list is reset.
+        list.after([&#x27;add&#x27;, &#x27;reset&#x27;, &#x27;remove&#x27;, &#x27;todoModel:doneChange&#x27;],
+                this.render, this);
+
+        &#x2F;&#x2F; Load saved items from localStorage, if available.
+        list.load();
+    },
+
+    &#x2F;&#x2F; The render function is called whenever a todo item is added, removed, or
+    &#x2F;&#x2F; changed, thanks to the list event handler we attached in the initializer
+    &#x2F;&#x2F; above.
+    render: function () {
+        var todoList = this.todoList,
+            stats    = this.get(&#x27;container&#x27;).one(&#x27;#todo-stats&#x27;),
+            numRemaining, numDone;
+
+        &#x2F;&#x2F; If there are no todo items, then clear the stats.
+        if (todoList.isEmpty()) {
+            stats.empty();
+            return this;
+        }
+
+        &#x2F;&#x2F; Figure out how many todo items are completed and how many remain.
+        numDone      = todoList.done().length;
+        numRemaining = todoList.remaining().length;
+
+        &#x2F;&#x2F; Update the statistics.
+        stats.setContent(Y.Lang.sub(this.template, {
+            numDone       : numDone,
+            numRemaining  : numRemaining,
+            doneLabel     : numDone === 1 ? &#x27;task&#x27; : &#x27;tasks&#x27;,
+            remainingLabel: numRemaining === 1 ? &#x27;task&#x27; : &#x27;tasks&#x27;
+        }));
+
+        &#x2F;&#x2F; If there are no completed todo items, don&#x27;t show the &quot;Clear
+        &#x2F;&#x2F; completed items&quot; link.
+        if (!numDone) {
+            stats.one(&#x27;.todo-clear&#x27;).remove();
+        }
+
+        return this;
+    },
+
+    &#x2F;&#x2F; -- Event Handlers -------------------------------------------------------
+
+    &#x2F;&#x2F; Creates a new TodoView instance and renders it into the list whenever a
+    &#x2F;&#x2F; todo item is added to the list.
+    add: function (e) {
+        var view = new TodoView({model: e.model});
+
+        this.get(&#x27;container&#x27;).one(&#x27;#todo-list&#x27;).append(
+            view.render().get(&#x27;container&#x27;)
+        );
+    },
+
+    &#x2F;&#x2F; Removes all finished todo items from the list.
+    clearDone: function (e) {
+        var done = this.todoList.done();
+
+        e.preventDefault();
+
+        &#x2F;&#x2F; Remove all finished items from the list, but do it silently so as not
+        &#x2F;&#x2F; to re-render the app view after each item is removed.
+        this.todoList.remove(done, {silent: true});
+
+        &#x2F;&#x2F; Destroy each removed TodoModel instance.
+        Y.Array.each(done, function (todo) {
+            &#x2F;&#x2F; Passing {remove: true} to the todo model&#x27;s &#x60;destroy()&#x60; method
+            &#x2F;&#x2F; tells it to delete itself from localStorage as well.
+            todo.destroy({remove: true});
+        });
+
+        &#x2F;&#x2F; Finally, re-render the app view.
+        this.render();
+    },
+
+    &#x2F;&#x2F; Creates a new todo item when the enter key is pressed in the new todo
+    &#x2F;&#x2F; input field.
+    createTodo: function (e) {
+        var inputNode, value;
+
+        if (e.keyCode === 13) { &#x2F;&#x2F; enter key
+            inputNode = this.get(&#x27;inputNode&#x27;);
+            value     = Y.Lang.trim(inputNode.get(&#x27;value&#x27;));
+
+            if (!value) { return; }
+
+            &#x2F;&#x2F; This tells the list to create a new TodoModel instance with the
+            &#x2F;&#x2F; specified text and automatically save it to localStorage in a
+            &#x2F;&#x2F; single step.
+            this.todoList.create({text: value});
+
+            inputNode.set(&#x27;value&#x27;, &#x27;&#x27;);
+        }
+    },
+
+    &#x2F;&#x2F; Turns off the hover state on a todo item.
+    hoverOff: function (e) {
+        e.currentTarget.removeClass(&#x27;todo-hover&#x27;);
+    },
+
+    &#x2F;&#x2F; Turns on the hover state on a todo item.
+    hoverOn: function (e) {
+        e.currentTarget.addClass(&#x27;todo-hover&#x27;);
+    },
+
+    &#x2F;&#x2F; Creates and renders views for every todo item in the list when the entire
+    &#x2F;&#x2F; list is reset.
+    reset: function (e) {
+        var fragment = Y.one(Y.config.doc.createDocumentFragment());
+
+        Y.Array.each(e.models, function (model) {
+            var view = new TodoView({model: model});
+            fragment.append(view.render().get(&#x27;container&#x27;));
+        });
+
+        this.get(&#x27;container&#x27;).one(&#x27;#todo-list&#x27;).setContent(fragment);
+    }
+}, {
+    ATTRS: {
+        &#x2F;&#x2F; The container node is the wrapper for this view. All the view&#x27;s
+        &#x2F;&#x2F; events will be delegated from the container. In this case, the
+        &#x2F;&#x2F; #todo-app node already exists on the page, so we don&#x27;t need to create
+        &#x2F;&#x2F; it.
+        container: {
+            valueFn: function () {
+                return &#x27;#todo-app&#x27;;
+            }
+        },
+
+        &#x2F;&#x2F; This is a custom attribute that we&#x27;ll use to hold a reference to the
+        &#x2F;&#x2F; &quot;new todo&quot; input field.
+        inputNode: {
+            valueFn: function () {
+                return Y.one(&#x27;#new-todo&#x27;);
+            }
+        }
+    }
+});</pre>
+
+</div>
+
+<h3 id="todoview">TodoView</h3>
+
+<p>The <code>TodoView</code> class extends <code>Y.View</code> and customizes it to represent the content of a single todo item in the list. It also handles DOM events on the item to allow it to be edited and removed from the list.</p>
+
+<div class="scrollable">
+<pre class="code prettyprint">TodoView = Y.TodoView = Y.Base.create(&#x27;todoView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; This customizes the HTML used for this view&#x27;s container node.
+    containerTemplate: &#x27;&lt;li class=&quot;todo-item&quot;&#x2F;&gt;&#x27;,
+
+    &#x2F;&#x2F; Delegated DOM events to handle this view&#x27;s interactions.
+    events: {
+        &#x2F;&#x2F; Toggle the &quot;done&quot; state of this todo item when the checkbox is
+        &#x2F;&#x2F; clicked.
+        &#x27;.todo-checkbox&#x27;: {click: &#x27;toggleDone&#x27;},
+
+        &#x2F;&#x2F; When the text of this todo item is clicked or focused, switch to edit
+        &#x2F;&#x2F; mode to allow editing.
+        &#x27;.todo-content&#x27;: {
+            click: &#x27;edit&#x27;,
+            focus: &#x27;edit&#x27;
+        },
+
+        &#x2F;&#x2F; On the edit field, when enter is pressed or the field loses focus,
+        &#x2F;&#x2F; save the current value and switch out of edit mode.
+        &#x27;.todo-input&#x27;   : {
+            blur    : &#x27;save&#x27;,
+            keypress: &#x27;enter&#x27;
+        },
+
+        &#x2F;&#x2F; When the remove icon is clicked, delete this todo item.
+        &#x27;.todo-remove&#x27;: {click: &#x27;remove&#x27;}
+    },
+
+    &#x2F;&#x2F; The template property holds the contents of the #todo-item-template
+    &#x2F;&#x2F; element, which will be used as the HTML template for each todo item.
+    template: Y.one(&#x27;#todo-item-template&#x27;).getContent(),
+
+    initializer: function () {
+        &#x2F;&#x2F; The model property is set to a TodoModel instance by TodoAppView when
+        &#x2F;&#x2F; it instantiates this TodoView.
+        var model = this.get(&#x27;model&#x27;);
+
+        &#x2F;&#x2F; Re-render this view when the model changes, and destroy this view
+        &#x2F;&#x2F; when the model is destroyed.
+        model.after(&#x27;change&#x27;, this.render, this);
+
+        model.after(&#x27;destroy&#x27;, function () {
+            this.destroy({remove: true});
+        }, this);
+    },
+
+    render: function () {
+        var container = this.get(&#x27;container&#x27;),
+            model     = this.get(&#x27;model&#x27;),
+            done      = model.get(&#x27;done&#x27;);
+
+        container.setContent(Y.Lang.sub(this.template, {
+            checked: done ? &#x27;checked&#x27; : &#x27;&#x27;,
+            text   : model.getAsHTML(&#x27;text&#x27;)
+        }));
+
+        container[done ? &#x27;addClass&#x27; : &#x27;removeClass&#x27;](&#x27;todo-done&#x27;);
+        this.set(&#x27;inputNode&#x27;, container.one(&#x27;.todo-input&#x27;));
+
+        return this;
+    },
+
+    &#x2F;&#x2F; -- Event Handlers -------------------------------------------------------
+
+    &#x2F;&#x2F; Toggles this item into edit mode.
+    edit: function () {
+        this.get(&#x27;container&#x27;).addClass(&#x27;editing&#x27;);
+        this.get(&#x27;inputNode&#x27;).focus();
+    },
+
+    &#x2F;&#x2F; When the enter key is pressed, focus the new todo input field. This
+    &#x2F;&#x2F; causes a blur event on the current edit field, which calls the save()
+    &#x2F;&#x2F; handler below.
+    enter: function (e) {
+        if (e.keyCode === 13) { &#x2F;&#x2F; enter key
+            Y.one(&#x27;#new-todo&#x27;).focus();
+        }
+    },
+
+    &#x2F;&#x2F; Removes this item from the list.
+    remove: function (e) {
+        e.preventDefault();
+
+        this.constructor.superclass.remove.call(this);
+        this.get(&#x27;model&#x27;).destroy({&#x27;delete&#x27;: true});
+    },
+
+    &#x2F;&#x2F; Toggles this item out of edit mode and saves it.
+    save: function () {
+        this.get(&#x27;container&#x27;).removeClass(&#x27;editing&#x27;);
+        this.get(&#x27;model&#x27;).set(&#x27;text&#x27;, this.get(&#x27;inputNode&#x27;).get(&#x27;value&#x27;)).save();
+    },
+
+    &#x2F;&#x2F; Toggles the &#x60;done&#x60; state on this item&#x27;s model.
+    toggleDone: function () {
+        this.get(&#x27;model&#x27;).toggleDone();
+    }
+});</pre>
+
+</div>
+
+<h3 id="localstoragesync">LocalStorageSync</h3>
+
+<p>This is a simple factory function that returns a <code>sync()</code> function that can be used as a sync layer for either a Model or a ModelList instance. The <code>TodoModel</code> and <code>TodoList</code> instances above use it to save and load items.</p>
+
+<div class="scrollable">
+<pre class="code prettyprint">function LocalStorageSync(key) {
+    var localStorage;
+
+    if (!key) {
+        Y.error(&#x27;No storage key specified.&#x27;);
+    }
+
+    if (Y.config.win.localStorage) {
+        localStorage = Y.config.win.localStorage;
+    }
+
+    &#x2F;&#x2F; Try to retrieve existing data from localStorage, if there is any.
+    &#x2F;&#x2F; Otherwise, initialize &#x60;data&#x60; to an empty object.
+    var data = Y.JSON.parse((localStorage &amp;&amp; localStorage.getItem(key)) || &#x27;{}&#x27;);
+
+    &#x2F;&#x2F; Delete a model with the specified id.
+    function destroy(id) {
+        var modelHash;
+
+        if ((modelHash = data[id])) {
+            delete data[id];
+            save();
+        }
+
+        return modelHash;
+    }
+
+    &#x2F;&#x2F; Generate a unique id to assign to a newly-created model.
+    function generateId() {
+        var id = &#x27;&#x27;,
+            i  = 4;
+
+        while (i--) {
+            id += (((1 + Math.random()) * 0x10000) | 0)
+                    .toString(16).substring(1);
+        }
+
+        return id;
+    }
+
+    &#x2F;&#x2F; Loads a model with the specified id. This method is a little tricky,
+    &#x2F;&#x2F; since it handles loading for both individual models and for an entire
+    &#x2F;&#x2F; model list.
+    &#x2F;&#x2F;
+    &#x2F;&#x2F; If an id is specified, then it loads a single model. If no id is
+    &#x2F;&#x2F; specified then it loads an array of all models. This allows the same sync
+    &#x2F;&#x2F; layer to be used for both the TodoModel and TodoList classes.
+    function get(id) {
+        return id ? data[id] : Y.Object.values(data);
+    }
+
+    &#x2F;&#x2F; Saves the entire &#x60;data&#x60; object to localStorage.
+    function save() {
+        localStorage &amp;&amp; localStorage.setItem(key, Y.JSON.stringify(data));
+    }
+
+    &#x2F;&#x2F; Sets the id attribute of the specified model (generating a new id if
+    &#x2F;&#x2F; necessary), then saves it to localStorage.
+    function set(model) {
+        var hash        = model.toJSON(),
+            idAttribute = model.idAttribute;
+
+        if (!Y.Lang.isValue(hash[idAttribute])) {
+            hash[idAttribute] = generateId();
+        }
+
+        data[hash[idAttribute]] = hash;
+        save();
+
+        return hash;
+    }
+
+    &#x2F;&#x2F; Returns a &#x60;sync()&#x60; function that can be used with either a Model or a
+    &#x2F;&#x2F; ModelList instance.
+    return function (action, options, callback) {
+        &#x2F;&#x2F; &#x60;this&#x60; refers to the Model or ModelList instance to which this sync
+        &#x2F;&#x2F; method is attached.
+        var isModel = Y.Model &amp;&amp; this instanceof Y.Model;
+
+        switch (action) {
+        case &#x27;create&#x27;: &#x2F;&#x2F; intentional fallthru
+        case &#x27;update&#x27;:
+            callback(null, set(this));
+            return;
+
+        case &#x27;read&#x27;:
+            callback(null, get(isModel &amp;&amp; this.get(&#x27;id&#x27;)));
+            return;
+
+        case &#x27;delete&#x27;:
+            callback(null, destroy(isModel &amp;&amp; this.get(&#x27;id&#x27;)));
+            return;
+        }
+    };
+}</pre>
+
+</div>
+
+<h3 id="initializing-the-app">Initializing the App</h3>
+
+<p>Finally, all we have to do is instantiate a new <code>TodoAppView</code> to set everything in motion and bring our todo list into existence.</p>
+
+<pre class="code prettyprint">new TodoAppView();</pre>
+
+
+<h2 id="complete-example-source">Complete Example Source</h2>
+
+<pre class="code prettyprint">&lt;style scoped&gt;
+#todo-app {
+    margin: 1em;
+    text-align: center;
+}
+
+#todo-list,
+#todo-stats {
+    margin: 1em auto;
+    text-align: left;
+    width: 450px;
+}
+
+#todo-list {
+    list-style: none;
+    padding: 0;
+}
+
+#todo-stats,
+.todo-clear { color: #777; }
+
+.todo-clear { float: right; }
+
+.todo-done .todo-content {
+    color: #666;
+    text-decoration: line-through;
+}
+
+.todo-edit,
+.editing .todo-view { display: none; }
+
+.editing .todo-edit { display: block; }
+
+.todo-input {
+    display: block;
+    font-family: Helvetica, sans-serif;
+    font-size: 20px;
+    line-height: normal;
+    margin: 5px auto 0;
+    padding: 6px;
+    width: 420px;
+}
+
+.todo-item {
+    border-bottom: 1px dotted #cfcfcf;
+    font-size: 20px;
+    padding: 6px;
+    position: relative;
+}
+
+.todo-label {
+    color: #444;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.todo-remaining {
+    color: #333;
+    font-weight: bold;
+}
+
+.todo-remove {
+    position: absolute;
+    right: 0;
+    top: 12px;
+}
+
+.todo-remove-icon {
+    &#x2F;*
+    Delete icon courtesy of The Noun Project:
+    http:&#x2F;&#x2F;thenounproject.com&#x2F;noun&#x2F;delete&#x2F;
+    *&#x2F;
+    background: url(..&#x2F;assets&#x2F;app&#x2F;remove.png) no-repeat;
+    display: block;
+    height: 16px;
+    opacity: 0.6;
+    visibility: hidden;
+    width: 23px;
+}
+
+.todo-remove:hover .todo-remove-icon { opacity: 1.0; }
+
+.todo-hover .todo-remove-icon,
+.todo-remove:focus .todo-remove-icon { visibility: visible; }
+
+.editing .todo-remove-icon { visibility: hidden; }
+&lt;&#x2F;style&gt;
+
+&lt;!-- This is the main container and &quot;shell&quot; for the todo app. --&gt;
+&lt;div id=&quot;todo-app&quot;&gt;
+    &lt;label class=&quot;todo-label&quot; for=&quot;new-todo&quot;&gt;What do you want to do today?&lt;&#x2F;label&gt;
+    &lt;input type=&quot;text&quot; id=&quot;new-todo&quot; class=&quot;todo-input&quot;
+        placeholder=&quot;buy milk&quot;&gt;
+
+    &lt;ul id=&quot;todo-list&quot;&gt;&lt;&#x2F;ul&gt;
+    &lt;div id=&quot;todo-stats&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+
+&lt;!-- This template HTML will be used to render each todo item. --&gt;
+&lt;script type=&quot;text&#x2F;x-template&quot; id=&quot;todo-item-template&quot;&gt;
+    &lt;div class=&quot;todo-view&quot;&gt;
+        &lt;input type=&quot;checkbox&quot; class=&quot;todo-checkbox&quot; {checked}&gt;
+        &lt;span class=&quot;todo-content&quot; tabindex=&quot;0&quot;&gt;{text}&lt;&#x2F;span&gt;
+    &lt;&#x2F;div&gt;
+
+    &lt;div class=&quot;todo-edit&quot;&gt;
+        &lt;input type=&quot;text&quot; class=&quot;todo-input&quot; value=&quot;{text}&quot;&gt;
+    &lt;&#x2F;div&gt;
+
+    &lt;a href=&quot;#&quot; class=&quot;todo-remove&quot; title=&quot;Remove this task&quot;&gt;
+        &lt;span class=&quot;todo-remove-icon&quot;&gt;&lt;&#x2F;span&gt;
+    &lt;&#x2F;a&gt;
+&lt;&#x2F;script&gt;
+
+&lt;!-- This template HTML will be used to render the statistics at the bottom
+     of the todo list. --&gt;
+&lt;script type=&quot;text&#x2F;x-template&quot; id=&quot;todo-stats-template&quot;&gt;
+    &lt;span class=&quot;todo-count&quot;&gt;
+        &lt;span class=&quot;todo-remaining&quot;&gt;{numRemaining}&lt;&#x2F;span&gt;
+        &lt;span class=&quot;todo-remaining-label&quot;&gt;{remainingLabel}&lt;&#x2F;span&gt; left.
+    &lt;&#x2F;span&gt;
+
+    &lt;a href=&quot;#&quot; class=&quot;todo-clear&quot;&gt;
+        Clear &lt;span class=&quot;todo-done&quot;&gt;{numDone}&lt;&#x2F;span&gt;
+        completed &lt;span class=&quot;todo-done-label&quot;&gt;{doneLabel}&lt;&#x2F;span&gt;
+    &lt;&#x2F;a&gt;
+&lt;&#x2F;script&gt;
+
+&lt;script&gt;
+YUI({filter: &#x27;raw&#x27;}).use(&#x27;event-focus&#x27;, &#x27;json&#x27;, &#x27;model&#x27;, &#x27;model-list&#x27;, &#x27;view&#x27;, function (Y) {
+
+var TodoAppView, TodoList, TodoModel, TodoView;
+
+&#x2F;&#x2F; -- Model --------------------------------------------------------------------
+
+&#x2F;&#x2F; The TodoModel class extends Y.Model and customizes it to use a localStorage
+&#x2F;&#x2F; sync provider (the source for that is further below) and to provide
+&#x2F;&#x2F; attributes and methods useful for todo items.
+
+TodoModel = Y.TodoModel = Y.Base.create(&#x27;todoModel&#x27;, Y.Model, [], {
+    &#x2F;&#x2F; This tells the Model to use a localStorage sync provider (which we&#x27;ll
+    &#x2F;&#x2F; create below) to save and load information about a todo item.
+    sync: LocalStorageSync(&#x27;todo&#x27;),
+
+    &#x2F;&#x2F; This method will toggle the &#x60;done&#x60; attribute from &#x60;true&#x60; to &#x60;false&#x60;, or
+    &#x2F;&#x2F; vice versa.
+    toggleDone: function () {
+        this.set(&#x27;done&#x27;, !this.get(&#x27;done&#x27;)).save();
+    }
+}, {
+    ATTRS: {
+        &#x2F;&#x2F; Indicates whether or not this todo item has been completed.
+        done: {value: false},
+
+        &#x2F;&#x2F; Contains the text of the todo item.
+        text: {value: &#x27;&#x27;}
+    }
+});
+
+&#x2F;&#x2F; -- ModelList ----------------------------------------------------------------
+
+&#x2F;&#x2F; The TodoList class extends Y.ModelList and customizes it to hold a list of
+&#x2F;&#x2F; TodoModel instances, and to provide some convenience methods for getting
+&#x2F;&#x2F; information about the todo items in the list.
+
+TodoList = Y.TodoList = Y.Base.create(&#x27;todoList&#x27;, Y.ModelList, [], {
+    &#x2F;&#x2F; This tells the list that it will hold instances of the TodoModel class.
+    model: TodoModel,
+
+    &#x2F;&#x2F; This tells the list to use a localStorage sync provider (which we&#x27;ll
+    &#x2F;&#x2F; create below) to load the list of todo items.
+    sync: LocalStorageSync(&#x27;todo&#x27;),
+
+    &#x2F;&#x2F; Returns an array of all models in this list with the &#x60;done&#x60; attribute
+    &#x2F;&#x2F; set to &#x60;true&#x60;.
+    done: function () {
+        return this.filter(function (model) {
+            return model.get(&#x27;done&#x27;);
+        });
+    },
+
+    &#x2F;&#x2F; Returns an array of all models in this list with the &#x60;done&#x60; attribute
+    &#x2F;&#x2F; set to &#x60;false&#x60;.
+    remaining: function () {
+        return this.filter(function (model) {
+            return !model.get(&#x27;done&#x27;);
+        });
+    }
+});
+
+&#x2F;&#x2F; -- Todo App View ------------------------------------------------------------
+
+&#x2F;&#x2F; The TodoAppView class extends Y.View and customizes it to represent the
+&#x2F;&#x2F; main shell of the application, including the new item input field and the
+&#x2F;&#x2F; list of todo items.
+&#x2F;&#x2F;
+&#x2F;&#x2F; This class also takes care of initializing a TodoList instance and creating
+&#x2F;&#x2F; and rendering a TodoView instance for each todo item when the list is
+&#x2F;&#x2F; initially loaded or reset.
+
+TodoAppView = Y.TodoAppView = Y.Base.create(&#x27;todoAppView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; This is where we attach DOM events for the view. The &#x60;events&#x60; object is a
+    &#x2F;&#x2F; mapping of selectors to an object containing one or more events to attach
+    &#x2F;&#x2F; to the node(s) matching each selector.
+    events: {
+        &#x2F;&#x2F; Handle &lt;enter&gt; keypresses on the &quot;new todo&quot; input field.
+        &#x27;#new-todo&#x27;: {keypress: &#x27;createTodo&#x27;},
+
+        &#x2F;&#x2F; Clear all completed items from the list when the &quot;Clear&quot; link is
+        &#x2F;&#x2F; clicked.
+        &#x27;.todo-clear&#x27;: {click: &#x27;clearDone&#x27;},
+
+        &#x2F;&#x2F; Add and remove hover states on todo items.
+        &#x27;.todo-item&#x27;: {
+            mouseover: &#x27;hoverOn&#x27;,
+            mouseout : &#x27;hoverOff&#x27;
+        }
+    },
+
+    &#x2F;&#x2F; The &#x60;template&#x60; property is a convenience property for holding a
+    &#x2F;&#x2F; template for this view. In this case, we&#x27;ll use it to store the
+    &#x2F;&#x2F; contents of the #todo-stats-template element, which will serve as the
+    &#x2F;&#x2F; template for the statistics displayed at the bottom of the list.
+    template: Y.one(&#x27;#todo-stats-template&#x27;).getContent(),
+
+    &#x2F;&#x2F; The initializer runs when a TodoAppView instance is created, and gives
+    &#x2F;&#x2F; us an opportunity to set up the view.
+    initializer: function () {
+        &#x2F;&#x2F; Create a new TodoList instance to hold the todo items.
+        var list = this.todoList = new TodoList();
+
+        &#x2F;&#x2F; Update the display when a new item is added to the list, or when the
+        &#x2F;&#x2F; entire list is reset.
+        list.after(&#x27;add&#x27;, this.add, this);
+        list.after(&#x27;reset&#x27;, this.reset, this);
+
+        &#x2F;&#x2F; Re-render the stats in the footer whenever an item is added, removed
+        &#x2F;&#x2F; or changed, or when the entire list is reset.
+        list.after([&#x27;add&#x27;, &#x27;reset&#x27;, &#x27;remove&#x27;, &#x27;todoModel:doneChange&#x27;],
+                this.render, this);
+
+        &#x2F;&#x2F; Load saved items from localStorage, if available.
+        list.load();
+    },
+
+    &#x2F;&#x2F; The render function is called whenever a todo item is added, removed, or
+    &#x2F;&#x2F; changed, thanks to the list event handler we attached in the initializer
+    &#x2F;&#x2F; above.
+    render: function () {
+        var todoList = this.todoList,
+            stats    = this.get(&#x27;container&#x27;).one(&#x27;#todo-stats&#x27;),
+            numRemaining, numDone;
+
+        &#x2F;&#x2F; If there are no todo items, then clear the stats.
+        if (todoList.isEmpty()) {
+            stats.empty();
+            return this;
+        }
+
+        &#x2F;&#x2F; Figure out how many todo items are completed and how many remain.
+        numDone      = todoList.done().length;
+        numRemaining = todoList.remaining().length;
+
+        &#x2F;&#x2F; Update the statistics.
+        stats.setContent(Y.Lang.sub(this.template, {
+            numDone       : numDone,
+            numRemaining  : numRemaining,
+            doneLabel     : numDone === 1 ? &#x27;task&#x27; : &#x27;tasks&#x27;,
+            remainingLabel: numRemaining === 1 ? &#x27;task&#x27; : &#x27;tasks&#x27;
+        }));
+
+        &#x2F;&#x2F; If there are no completed todo items, don&#x27;t show the &quot;Clear
+        &#x2F;&#x2F; completed items&quot; link.
+        if (!numDone) {
+            stats.one(&#x27;.todo-clear&#x27;).remove();
+        }
+
+        return this;
+    },
+
+    &#x2F;&#x2F; -- Event Handlers -------------------------------------------------------
+
+    &#x2F;&#x2F; Creates a new TodoView instance and renders it into the list whenever a
+    &#x2F;&#x2F; todo item is added to the list.
+    add: function (e) {
+        var view = new TodoView({model: e.model});
+
+        this.get(&#x27;container&#x27;).one(&#x27;#todo-list&#x27;).append(
+            view.render().get(&#x27;container&#x27;)
+        );
+    },
+
+    &#x2F;&#x2F; Removes all finished todo items from the list.
+    clearDone: function (e) {
+        var done = this.todoList.done();
+
+        e.preventDefault();
+
+        &#x2F;&#x2F; Remove all finished items from the list, but do it silently so as not
+        &#x2F;&#x2F; to re-render the app view after each item is removed.
+        this.todoList.remove(done, {silent: true});
+
+        &#x2F;&#x2F; Destroy each removed TodoModel instance.
+        Y.Array.each(done, function (todo) {
+            &#x2F;&#x2F; Passing {remove: true} to the todo model&#x27;s &#x60;destroy()&#x60; method
+            &#x2F;&#x2F; tells it to delete itself from localStorage as well.
+            todo.destroy({remove: true});
+        });
+
+        &#x2F;&#x2F; Finally, re-render the app view.
+        this.render();
+    },
+
+    &#x2F;&#x2F; Creates a new todo item when the enter key is pressed in the new todo
+    &#x2F;&#x2F; input field.
+    createTodo: function (e) {
+        var inputNode, value;
+
+        if (e.keyCode === 13) { &#x2F;&#x2F; enter key
+            inputNode = this.get(&#x27;inputNode&#x27;);
+            value     = Y.Lang.trim(inputNode.get(&#x27;value&#x27;));
+
+            if (!value) { return; }
+
+            &#x2F;&#x2F; This tells the list to create a new TodoModel instance with the
+            &#x2F;&#x2F; specified text and automatically save it to localStorage in a
+            &#x2F;&#x2F; single step.
+            this.todoList.create({text: value});
+
+            inputNode.set(&#x27;value&#x27;, &#x27;&#x27;);
+        }
+    },
+
+    &#x2F;&#x2F; Turns off the hover state on a todo item.
+    hoverOff: function (e) {
+        e.currentTarget.removeClass(&#x27;todo-hover&#x27;);
+    },
+
+    &#x2F;&#x2F; Turns on the hover state on a todo item.
+    hoverOn: function (e) {
+        e.currentTarget.addClass(&#x27;todo-hover&#x27;);
+    },
+
+    &#x2F;&#x2F; Creates and renders views for every todo item in the list when the entire
+    &#x2F;&#x2F; list is reset.
+    reset: function (e) {
+        var fragment = Y.one(Y.config.doc.createDocumentFragment());
+
+        Y.Array.each(e.models, function (model) {
+            var view = new TodoView({model: model});
+            fragment.append(view.render().get(&#x27;container&#x27;));
+        });
+
+        this.get(&#x27;container&#x27;).one(&#x27;#todo-list&#x27;).setContent(fragment);
+    }
+}, {
+    ATTRS: {
+        &#x2F;&#x2F; The container node is the wrapper for this view. All the view&#x27;s
+        &#x2F;&#x2F; events will be delegated from the container. In this case, the
+        &#x2F;&#x2F; #todo-app node already exists on the page, so we don&#x27;t need to create
+        &#x2F;&#x2F; it.
+        container: {
+            valueFn: function () {
+                return &#x27;#todo-app&#x27;;
+            }
+        },
+
+        &#x2F;&#x2F; This is a custom attribute that we&#x27;ll use to hold a reference to the
+        &#x2F;&#x2F; &quot;new todo&quot; input field.
+        inputNode: {
+            valueFn: function () {
+                return Y.one(&#x27;#new-todo&#x27;);
+            }
+        }
+    }
+});
+
+&#x2F;&#x2F; -- Todo item view -----------------------------------------------------------
+
+&#x2F;&#x2F; The TodoView class extends Y.View and customizes it to represent the content
+&#x2F;&#x2F; of a single todo item in the list. It also handles DOM events on the item to
+&#x2F;&#x2F; allow it to be edited and removed from the list.
+
+TodoView = Y.TodoView = Y.Base.create(&#x27;todoView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; This customizes the HTML used for this view&#x27;s container node.
+    containerTemplate: &#x27;&lt;li class=&quot;todo-item&quot;&#x2F;&gt;&#x27;,
+
+    &#x2F;&#x2F; Delegated DOM events to handle this view&#x27;s interactions.
+    events: {
+        &#x2F;&#x2F; Toggle the &quot;done&quot; state of this todo item when the checkbox is
+        &#x2F;&#x2F; clicked.
+        &#x27;.todo-checkbox&#x27;: {click: &#x27;toggleDone&#x27;},
+
+        &#x2F;&#x2F; When the text of this todo item is clicked or focused, switch to edit
+        &#x2F;&#x2F; mode to allow editing.
+        &#x27;.todo-content&#x27;: {
+            click: &#x27;edit&#x27;,
+            focus: &#x27;edit&#x27;
+        },
+
+        &#x2F;&#x2F; On the edit field, when enter is pressed or the field loses focus,
+        &#x2F;&#x2F; save the current value and switch out of edit mode.
+        &#x27;.todo-input&#x27;   : {
+            blur    : &#x27;save&#x27;,
+            keypress: &#x27;enter&#x27;
+        },
+
+        &#x2F;&#x2F; When the remove icon is clicked, delete this todo item.
+        &#x27;.todo-remove&#x27;: {click: &#x27;remove&#x27;}
+    },
+
+    &#x2F;&#x2F; The template property holds the contents of the #todo-item-template
+    &#x2F;&#x2F; element, which will be used as the HTML template for each todo item.
+    template: Y.one(&#x27;#todo-item-template&#x27;).getContent(),
+
+    initializer: function () {
+        &#x2F;&#x2F; The model property is set to a TodoModel instance by TodoAppView when
+        &#x2F;&#x2F; it instantiates this TodoView.
+        var model = this.get(&#x27;model&#x27;);
+
+        &#x2F;&#x2F; Re-render this view when the model changes, and destroy this view
+        &#x2F;&#x2F; when the model is destroyed.
+        model.after(&#x27;change&#x27;, this.render, this);
+
+        model.after(&#x27;destroy&#x27;, function () {
+            this.destroy({remove: true});
+        }, this);
+    },
+
+    render: function () {
+        var container = this.get(&#x27;container&#x27;),
+            model     = this.get(&#x27;model&#x27;),
+            done      = model.get(&#x27;done&#x27;);
+
+        container.setContent(Y.Lang.sub(this.template, {
+            checked: done ? &#x27;checked&#x27; : &#x27;&#x27;,
+            text   : model.getAsHTML(&#x27;text&#x27;)
+        }));
+
+        container[done ? &#x27;addClass&#x27; : &#x27;removeClass&#x27;](&#x27;todo-done&#x27;);
+        this.set(&#x27;inputNode&#x27;, container.one(&#x27;.todo-input&#x27;));
+
+        return this;
+    },
+
+    &#x2F;&#x2F; -- Event Handlers -------------------------------------------------------
+
+    &#x2F;&#x2F; Toggles this item into edit mode.
+    edit: function () {
+        this.get(&#x27;container&#x27;).addClass(&#x27;editing&#x27;);
+        this.get(&#x27;inputNode&#x27;).focus();
+    },
+
+    &#x2F;&#x2F; When the enter key is pressed, focus the new todo input field. This
+    &#x2F;&#x2F; causes a blur event on the current edit field, which calls the save()
+    &#x2F;&#x2F; handler below.
+    enter: function (e) {
+        if (e.keyCode === 13) { &#x2F;&#x2F; enter key
+            Y.one(&#x27;#new-todo&#x27;).focus();
+        }
+    },
+
+    &#x2F;&#x2F; Removes this item from the list.
+    remove: function (e) {
+        e.preventDefault();
+
+        this.constructor.superclass.remove.call(this);
+        this.get(&#x27;model&#x27;).destroy({&#x27;delete&#x27;: true});
+    },
+
+    &#x2F;&#x2F; Toggles this item out of edit mode and saves it.
+    save: function () {
+        this.get(&#x27;container&#x27;).removeClass(&#x27;editing&#x27;);
+        this.get(&#x27;model&#x27;).set(&#x27;text&#x27;, this.get(&#x27;inputNode&#x27;).get(&#x27;value&#x27;)).save();
+    },
+
+    &#x2F;&#x2F; Toggles the &#x60;done&#x60; state on this item&#x27;s model.
+    toggleDone: function () {
+        this.get(&#x27;model&#x27;).toggleDone();
+    }
+});
+
+&#x2F;&#x2F; -- localStorage Sync Implementation -----------------------------------------
+
+&#x2F;&#x2F; This is a simple factory function that returns a &#x60;sync()&#x60; function that can
+&#x2F;&#x2F; be used as a sync layer for either a Model or a ModelList instance. The
+&#x2F;&#x2F; TodoModel and TodoList instances above use it to save and load items.
+
+function LocalStorageSync(key) {
+    var localStorage;
+
+    if (!key) {
+        Y.error(&#x27;No storage key specified.&#x27;);
+    }
+
+    if (Y.config.win.localStorage) {
+        localStorage = Y.config.win.localStorage;
+    }
+
+    &#x2F;&#x2F; Try to retrieve existing data from localStorage, if there is any.
+    &#x2F;&#x2F; Otherwise, initialize &#x60;data&#x60; to an empty object.
+    var data = Y.JSON.parse((localStorage &amp;&amp; localStorage.getItem(key)) || &#x27;{}&#x27;);
+
+    &#x2F;&#x2F; Delete a model with the specified id.
+    function destroy(id) {
+        var modelHash;
+
+        if ((modelHash = data[id])) {
+            delete data[id];
+            save();
+        }
+
+        return modelHash;
+    }
+
+    &#x2F;&#x2F; Generate a unique id to assign to a newly-created model.
+    function generateId() {
+        var id = &#x27;&#x27;,
+            i  = 4;
+
+        while (i--) {
+            id += (((1 + Math.random()) * 0x10000) | 0)
+                    .toString(16).substring(1);
+        }
+
+        return id;
+    }
+
+    &#x2F;&#x2F; Loads a model with the specified id. This method is a little tricky,
+    &#x2F;&#x2F; since it handles loading for both individual models and for an entire
+    &#x2F;&#x2F; model list.
+    &#x2F;&#x2F;
+    &#x2F;&#x2F; If an id is specified, then it loads a single model. If no id is
+    &#x2F;&#x2F; specified then it loads an array of all models. This allows the same sync
+    &#x2F;&#x2F; layer to be used for both the TodoModel and TodoList classes.
+    function get(id) {
+        return id ? data[id] : Y.Object.values(data);
+    }
+
+    &#x2F;&#x2F; Saves the entire &#x60;data&#x60; object to localStorage.
+    function save() {
+        localStorage &amp;&amp; localStorage.setItem(key, Y.JSON.stringify(data));
+    }
+
+    &#x2F;&#x2F; Sets the id attribute of the specified model (generating a new id if
+    &#x2F;&#x2F; necessary), then saves it to localStorage.
+    function set(model) {
+        var hash        = model.toJSON(),
+            idAttribute = model.idAttribute;
+
+        if (!Y.Lang.isValue(hash[idAttribute])) {
+            hash[idAttribute] = generateId();
+        }
+
+        data[hash[idAttribute]] = hash;
+        save();
+
+        return hash;
+    }
+
+    &#x2F;&#x2F; Returns a &#x60;sync()&#x60; function that can be used with either a Model or a
+    &#x2F;&#x2F; ModelList instance.
+    return function (action, options, callback) {
+        &#x2F;&#x2F; &#x60;this&#x60; refers to the Model or ModelList instance to which this sync
+        &#x2F;&#x2F; method is attached.
+        var isModel = Y.Model &amp;&amp; this instanceof Y.Model;
+
+        switch (action) {
+        case &#x27;create&#x27;: &#x2F;&#x2F; intentional fallthru
+        case &#x27;update&#x27;:
+            callback(null, set(this));
+            return;
+
+        case &#x27;read&#x27;:
+            callback(null, get(isModel &amp;&amp; this.get(&#x27;id&#x27;)));
+            return;
+
+        case &#x27;delete&#x27;:
+            callback(null, destroy(isModel &amp;&amp; this.get(&#x27;id&#x27;)));
+            return;
+        }
+    };
+}
+
+&#x2F;&#x2F; -- Start your engines! ------------------------------------------------------
+
+&#x2F;&#x2F; Finally, all we have to do is instantiate a new TodoAppView to set everything
+&#x2F;&#x2F; in motion and bring our todo list into existence.
+new TodoAppView();
+
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#disclaimer">Disclaimer</a>
+</li>
+<li>
+<a href="#html">HTML</a>
+</li>
+<li>
+<a href="#css">CSS</a>
+</li>
+<li>
+<a href="#javascript">JavaScript</a>
+<ul class="toc">
+<li>
+<a href="#todomodel">TodoModel</a>
+</li>
+<li>
+<a href="#todolist">TodoList</a>
+</li>
+<li>
+<a href="#todoappview">TodoAppView</a>
+</li>
+<li>
+<a href="#todoview">TodoView</a>
+</li>
+<li>
+<a href="#localstoragesync">LocalStorageSync</a>
+</li>
+<li>
+<a href="#initializing-the-app">Initializing the App</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#complete-example-source">Complete Example Source</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="A basic todo list built with the Model, Model List, and View components.">
+                                            <a href="app-todo.html">Todo List</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="An application to browse through the contributors of a GitHub project.">
+                                            <a href="app-contributors.html">GitHub Contributors</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

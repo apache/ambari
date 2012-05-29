@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Basic Features of the ImageLoader Utility</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Basic Features of the ImageLoader Utility</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+  <p>
+    Displayed here are some basic triggers of the ImageLoader Utility. 
+    Each image group has an assigned action that will make the group of image(s) appear.
+  </p>
+</div>
+
+<style>  
+  #group1, #group2, #group3, #group4 { border-bottom: dotted 2px #ccc;}
+  .yuiLogo { width:117px; height: 52px; border:1px solid #888; margin:5px;}
+</style>
+
+
+<div id="group1">
+  <h2>Group 1: Two second delay</h2>
+  <p>This will appear two seconds after page-load.</p>
+  <div class='example'>
+    <div class='yuiLogo' id='delay' title='Group 1: 2 sec limit'></div>
+  </div>
+  
+  <h5>HTML</h5>
+<pre class="code prettyprint">&lt;div id=&#x27;delay&#x27; title=&#x27;Group 1: 2 sec limit&#x27;&gt;&lt;&#x2F;div&gt;</pre>
+
+  
+  <h5>JavaScript</h5>
+<pre class="code prettyprint">var delayGroup = new Y.ImgLoadGroup({ timeLimit: 2 });
+delayGroup.registerImage({ domId: &#x27;delay&#x27;, bgUrl: &#x27;..&#x2F;assets&#x2F;imageloader&#x2F;yui-logo.png&#x27;, isPng: true });</pre>
+
+</div>
+
+<div id="group2">
+  <h2>Group 2: Window scroll event</h2>
+  <p>This will appear when the scroll event is fired.</p>
+  <div class='example'>
+  	<div class='yuiLogo' title='Group 2: scroll'>
+  		<img id='scroll' style='visibility:hidden;' />
+  	</div>
+	</div>
+	
+  <h5>HTML</h5>
+<pre class="code prettyprint">&lt;img id=&#x27;scroll&#x27; style=&#x27;visibility:hidden;&#x27; &#x2F;&gt;</pre>
+
+  
+  <h5>JavaScript</h5>
+<pre class="code prettyprint">var scrollGroup = new Y.ImgLoadGroup();
+scrollGroup.registerImage({ domId: &#x27;scroll&#x27;, srcUrl: &#x27;..&#x2F;assets&#x2F;imageloader&#x2F;yui-logo.png&#x27;, isPng: true, setVisible: true });
+scrollGroup.addTrigger(window, &#x27;scroll&#x27;);</pre>
+
+</div>
+
+  <div id="group3">
+    <h2>Group 3: Mouse over</h2>
+    <p>This will appear when you mouse over it.</p>
+    <div class="example">
+      <div class='yuiLogo' id='mouseover' title='Group 3: mouseover'></div>
+    </div>
+    
+    <h5>HTML</h5>
+<pre class="code prettyprint">&lt;div id=&#x27;mouseover&#x27; title=&#x27;Group 3: mouseover&#x27;&gt;&lt;&#x2F;div&gt;</pre>
+
+    
+    <h5>JavaScript</h5>
+<pre class="code prettyprint">var mouseoverGroup = new Y.ImgLoadGroup();
+mouseoverGroup.registerImage({ domId: &#x27;scroll&#x27;, srcUrl: &#x27;..&#x2F;assets&#x2F;imageloader&#x2F;yui-logo.png&#x27;, isPng: true, setVisible: true });
+mouseoverGroup.addTrigger(window, &#x27;scroll&#x27;);</pre>
+
+  </div>
+
+  <div id="group4">
+    <h2>Group 4: Onclick</h2>
+    <p>These will appear when either one is clicked.</p>
+    <div class="example">
+  	  <div class='yuiLogo' id='duo1' title='Group 4: onclick'></div>  
+      <div class='yuiLogo' id='duo2' title='Group 4: onclick'></div>
+    </div>
+    
+    <h5>HTML</h5>
+<pre class="code prettyprint">&lt;div id=&#x27;duo1&#x27; title=&#x27;Group 4: onclick&#x27;&gt;&lt;&#x2F;div&gt;  
+&lt;div id=&#x27;duo2&#x27; title=&#x27;Group 4: onclick&#x27;&gt;&lt;&#x2F;div&gt;</pre>
+
+    
+    <h5>JavaScript</h5>
+<pre class="code prettyprint">var clickGroup = new Y.ImgLoadGroup();
+clickGroup.registerImage({ domId: &#x27;duo1&#x27;, bgUrl: &#x27;..&#x2F;assets&#x2F;imageloader&#x2F;yui-logo.png&#x27;, isPng: true });
+clickGroup.registerImage({ domId: &#x27;duo2&#x27;, bgUrl: &#x27;..&#x2F;assets&#x2F;imageloader&#x2F;yui-logo.png&#x27;, isPng: true });
+clickGroup.addTrigger(&#x27;#duo2&#x27;, &#x27;click&#x27;).addTrigger(&#x27;#duo1&#x27;, &#x27;click&#x27;);</pre>
+
+  </div>
+  
+
+
+<script>
+
+  YUI().use("imageloader", function(Y) {
+  
+  	var delayGroup = new Y.ImgLoadGroup({ timeLimit: 2 });
+  	delayGroup.registerImage({ domId: 'delay', bgUrl: '../assets/imageloader/yui-logo.png', isPng: true });
+
+  	var scrollGroup = new Y.ImgLoadGroup();
+  	scrollGroup.addTrigger(window, 'scroll');
+  	scrollGroup.registerImage({ domId: 'scroll', srcUrl: '../assets/imageloader/yui-logo.png', isPng: true, setVisible: true });
+
+  	var mouseoverGroup = new Y.ImgLoadGroup();
+  	mouseoverGroup.addTrigger('#mouseover', 'mouseover');
+  	mouseoverGroup.registerImage({ domId: 'mouseover', bgUrl: '../assets/imageloader/yui-logo.png', isPng: true });
+
+  	var clickGroup = new Y.ImgLoadGroup();
+  	clickGroup.addTrigger('#duo2', 'click').addTrigger('#duo1', 'click');
+  	clickGroup.registerImage({ domId: 'duo1', bgUrl: '../assets/imageloader/yui-logo.png', isPng: true });
+  	clickGroup.registerImage({ domId: 'duo2', bgUrl: '../assets/imageloader/yui-logo.png', isPng: true });
+
+  });
+
+</script>
+
+<!-- 
+<h2>Basic Features of the ImageLoader Utility</h2>
+
+<p>
+  The ImageLoader Utility allows you to define the conditions under which images are loaded into the page. 
+  This example demonstrates attaching some simple triggers to images to establish this load control.
+</p>
+
+<p>
+  The HTML used for the image needs little to no modification. 
+  Simply make sure the <code>&lt;img&gt;</code> elements have <code>id</code> attributes, eliminate the <code>src</code> attribute 
+  from <code>&lt;img&gt;</code> elements, and optionally set their <code>visibility</code> style to "hidden" .
+  
+<pre class="code prettyprint">&lt;img id=&#x27;image&#x27; style=&#x27;visibility:hidden;&#x27; &#x2F;&gt;</pre>
+
+</p>
+--></div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Demonstrates the basic features and operation of the ImageLoader Utility, deferring the loading of images until specific events happen or specific time limits expire.">
+                                            <a href="basic-features.html">Basic Features of the ImageLoader Utility</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Loading images above the fold immediately while deferring the loading of images below the fold.">
+                                            <a href="below-fold.html">Loading Images Below the Fold</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using CSS class names to target specific images for deferred loading.">
+                                            <a href="imageloader-class-names.html">Using ImageLoader with CSS Class Names</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

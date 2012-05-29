@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Supporting A Swipe Left Gesture</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Supporting A Swipe Left Gesture</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>
+        This example shows how you can support a "swipeleft" gesture, built on
+        top of the synthetic "gesturemove" events, which work not only on touch
+        devices, but also on mouse based input devices.
+    </p>
+</div>
+
+<div class="example newwindow">
+    <a href="swipe-example-content.html" target="_blank" class="button">
+        View Example in New Window
+    </a>
+</div>
+
+<h2>Modules Used</h2>
+
+<p>For the example, the two core modules we'll use are:</p>
+
+<dl>
+    <dt>The <code>event-move</code> module</dt> 
+    <dd>
+        Provides the <code>gesturemovestart</code>, <code>gesturemove</code> and <code>gesturemoveend</code>
+        low-level gesture events. These events are fired whenever the user
+        performs a move gesture (mouse button/finger down, mouse/finger move,
+        mouse button/finger up) with the mouse or their finger.
+    </dd>
+    <dt>The <code>transitions</code> module</dt>
+    <dd>
+        Provides transitions support, leveraging CSS transitions under the hood
+        where supported.
+    </dd>
+</dl>
+
+<p>The YUI use statement for the example is shown below:</p>
+
+<pre class="code prettyprint">YUI().use(&quot;node-base&quot;, &quot;node-event-delegate&quot;, &quot;transition&quot;, &quot;event-move&quot;, function(Y) {
+    ...
+});</pre>
+
+
+<h2>Delegating Gesture Move Events</h2>
+
+<p>
+    The basic idea for the example is to listen for a <code>gesturemovestart</code> on a
+    list item, and when we get one, store its position, and then listen for a
+    gesturemoveend. If the gesturemoveend occurs more than X pixels to the left
+    of the start, then we've identified a "swipeleft" gesture. Future versions
+    of the library will package such logic into a higher level gesture event
+    (ala event-flick).
+</p>
+
+<p>
+    For this example, since we're dealing with a list of items, rather than
+    attach individual listeners to each &#60;li&#62; in the list, we use
+    <code>delegate</code> on the parent &#60;ul&#62; element, which leads to better
+    performance and avoids having to add/remove listeners each time the
+    contents of the list change.  The <code>gesturemovestart</code>, <code>gesturemove</code> and
+    <code>gesturemoveend</code> are synthetic events, and can all be used with <code>delegate</code>,
+    just like any DOM event. 
+</p>
+
+<p>
+    We set up a delegate listener on the &#60;ul&#62; which listens for the
+    <code>gesturemovestart</code> event (<code>gesturemovestart</code> abstracts
+    <code>mousedown</code>/<code>touchstart</code> events under the hood). The delegate listener is
+    set up to be notified when the target of the <code>gesturemovestart</code> is an
+    <code>&lt;li&gt;</code>
+</p>
+
+<pre class="code prettyprint">Y.Node.one(&quot;#swipe&quot;).delegate(&quot;gesturemovestart&quot;, function(e) {
+
+    ...
+
+}, &quot;li&quot;, {  &#x2F;&#x2F; filter for &quot;li&quot;
+    preventDefault:true
+});</pre>
+
+
+<p>
+    The <code>gesturemovestart</code> event supports a configuration object passed as an
+    additional subscription argument, which can be used to set minimum distance
+    and minimum time thresholds at which to fire the start event. The
+    configuration also supports the ability to prevent the default behavior
+    before the minimum time or distance thresholds kick in, which is what we do
+    above by passing <code>preventDefault:true</code>.
+</p>
+
+<p>
+    The advantage of the gesture synthetic events is that the developer can use
+    the same API without having to worry about whether or not the browser
+    platform is touch based or mouse based.
+</p>
+
+<h2>Gesture Move End</h2>
+
+<p>
+    As mentioned above, the <code>gesturemovestart</code> listener is notified whenever a
+    <code>mousedown</code> or <code>touchstart</code> is received on a list item. The listener has
+    access to:
+</p>
+
+<dl>
+    <dt><code>e.currentTarget</code></dt>
+        <dd>The list item targeted.</dd>
+    <dt><code>e.target</code></dt>
+        <dd>
+            The element clicked on (it may be an element inside the targeted
+            list item, the span for example).
+        </dd>
+    <dt><code>e.container</code></dt>
+        <dd>
+            The element to which the delegate listener is attached (the ul in
+            this case).
+        </dd>
+</dl>
+
+<p>
+    The event facade also has the page coordinates for the <code>mousedown</code> or
+    <code>touchstart</code> event. We use the list item's <code>setData</code> method, to store the
+    <code>pageX</code> position for the start event, so we can compare it when we get the
+    <code>gesturemoveend</code> event. This way it's stored on the node instance, and we
+    don't need to pass it along separately to the <code>gesturemoveend</code> event, or
+    store it globally.
+</p> 
+
+<p>
+    <code>getData</code>, <code>setData</code> and <code>clearData</code> are useful methods to store ad-hoc
+    node centric data.
+</p>
+
+<pre class="code prettyprint">Y.Node.one(&quot;#swipe&quot;).delegate(&quot;gesturemovestart&quot;, function(e) {
+
+    var item = e.currentTarget,
+        target = e.target,
+        container = e.container,
+
+    ...
+
+    item.setData(&quot;swipeStart&quot;, e.pageX);
+
+    item.once(&quot;gesturemoveend&quot;, function(e) {
+
+        var swipeStart = item.getData(&quot;swipeStart&quot;),
+            swipeEnd = e.pageX,
+            isSwipeLeft = (swipeStart - swipeEnd) &gt; MIN_SWIPE;
+
+        if (isSwipeLeft) {
+            item.one(&quot;.myapp-delete&quot;).removeClass(&quot;myapp-hidden&quot;);
+        }
+
+    });
+
+    ...
+
+});</pre>
+
+
+<p>
+    When we get the <code>gesturemovestart</code> event, we set up a listener for the
+    <code>gesturemoveend</code> event, so we can determine the end of the gesture, and
+    figure out if the user swiped left. Since we don't want to set up a new
+    listener every time we get a <code>gesturemovestart</code> we use <code>once</code> to set up the
+    <code>gesturemoveend</code> listener. <code>once</code> will detach the listener after it's been
+    invoked. Again, since <code>gesturemoveend</code> is a synthetic event, it works with
+    <code>once</code> just like any other DOM event.
+</p>
+
+<p>
+    In the <code>gesturemoveend</code> listener we check the page position of the event,
+    and if it's far enough to the left of the start position, we display the
+    "Delete" button by removing the hidden class which it contains.
+</p>
+
+<h2>Transitions</h2>
+
+<p>
+    To hide and remove the item when the delete button is pressed, we use the
+    <code>transition</code> method, to animate its opacity and height down to 0. Under the
+    hood transition will use CSS transition support where available (WebKit)
+    and set up timer based animation where not (IE). As with the gesture event
+    support, the developer gets to use the same API without having to worry
+    about the browser environment.
+</p>
+
+<pre class="code prettyprint">item = target.get(&quot;parentNode&quot;);
+
+item.transition({
+    duration:0.3,
+    opacity:0,
+    height:0
+}, function() {
+    this.remove();
+});</pre>
+
+
+<p>
+    The second argument to transition above is a callback function, which is
+    invoked when the transition is complete. We use this support to remove the
+    item from the DOM.
+</p>
+
+<h2>Full Code Listing</h2>
+
+<pre class="code prettyprint">YUI().use(&#x27;node-base&#x27;,&#x27;node-event-delegate&#x27;, &#x27;transition&#x27;, &#x27;event-move&#x27;, function (Y) {
+
+    var MIN_SWIPE = 10;
+
+    Y.all(&quot;.myexample-hidden&quot;).removeClass(&quot;myexample-hidden&quot;);
+
+    Y.one(&quot;#swipe&quot;).delegate(&quot;gesturemovestart&quot;, function(e) {
+
+        var item = e.currentTarget,
+            target = e.target,
+            container = e.container,
+            isDeleteButton = target.hasClass(&quot;myapp-delete&quot;);
+
+        &#x2F;&#x2F; Prevent Text Selection in IE
+        item.once(&quot;selectstart&quot;, function(e) {
+            e.preventDefault();
+        });
+
+        if (!isDeleteButton) {
+
+            container.all(&quot;.myapp-delete&quot;).addClass(&quot;myapp-hidden&quot;);
+
+            item.setData(&quot;swipeStart&quot;, e.pageX);
+
+            item.once(&quot;gesturemoveend&quot;, function(e) {
+
+                var swipeStart = item.getData(&quot;swipeStart&quot;),
+                    swipeEnd = e.pageX,
+                    isSwipeLeft = (swipeStart - swipeEnd) &gt; MIN_SWIPE;
+
+                if (isSwipeLeft) {
+                    item.one(&quot;.myapp-delete&quot;).removeClass(&quot;myapp-hidden&quot;);    
+                }
+
+            });
+        } else {
+            item = target.get(&quot;parentNode&quot;);
+
+            if (item.get(&quot;id&quot;) != &quot;kitkat&quot; || confirm(&quot;Seriously? The KitKats?&quot;)) {
+                item.transition({
+                    duration:0.3,
+                    opacity:0,
+                    height:0
+                }, function() {
+                    this.remove();
+                });
+            }
+        }
+
+    }, &quot;li&quot;, {
+        preventDefault:true
+    });
+});</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Use the Event Utility to attach simple DOM event handlers.">
+                                            <a href="basic-example.html">Simple DOM Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using the synthetic event API to create a DOM event that fires in response to arrow keys being pressed.">
+                                            <a href="synth-example.html">Creating an Arrow Event for DOM Subscription</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Supporting cross-device swipe gestures, using the event-move gesture events">
+                                            <a href="swipe-example.html">Supporting A Swipe Left Gesture</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to extend the base widget class, to create your own Widgets.">
+                                            <a href="../widget/widget-extend.html">Extending the Base Widget Class</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible menu button using the Focus Manager Node Plugin, Event&#x27;s delegation support and mouseenter event, along with the Overlay widget and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-3.html">Accessible Menu Button</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to request data over HTTP.">
+                                            <a href="../io/get.html">HTTP GET to request data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Example Photo Browser application.">
+                                            <a href="../dd/photo-browser.html">Photo Browser</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Portal style example using Drag &amp; Drop Event Bubbling and Animation.">
+                                            <a href="../dd/portal-drag.html">Portal Style Example</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

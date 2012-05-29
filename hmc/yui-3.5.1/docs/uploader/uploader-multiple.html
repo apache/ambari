@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Multiple Files Upload with Transparent Overlay Button</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Multiple Files Upload with Transparent Overlay Button</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+<p>In this example, the Uploader is used to send multiple images or videos to the server and monitor
+   their upload progress with individual counters.</p>
+   
+<p><strong>Please note:</strong> This example will not work when run from a local filesystem because of security restrictions in the transport protocols used. If you’d like to run this example locally, set up a local web server and launch it from there.</p>
+
+<p><strong>Also note:</strong> The uploader is not supported on iOS devices (iPhone and iPad), because they lack file upload capability. This example provides a graceful degradation message for all such systems.</p>
+
+<p><strong>Also note:</strong> The backend script used in these examples does not store any information it receives. Nevertheless, do not submit any sensitive or private data and keep
+your tests to a few small files to avoid overloading the system.</p>
+</div>
+
+<div class="example yui3-skin-sam">
+    <style>
+#filelist {
+    margin-top: 15px;
+}
+
+#uploadFilesButtonContainer, #selectFilesButtonContainer, #overallProgress {
+    display: inline-block;
+}
+
+#overallProgress {
+    float: right;
+}
+</style>
+
+<div id="uploaderContainer"> 
+    <div id="selectFilesButtonContainer">
+    </div> 
+    <div id="uploadFilesButtonContainer">
+      <button type="button" id="uploadFilesButton" 
+              class="yui3-button" style="width:250px; height:35px;">Upload Files</button>
+    </div> 
+    <div id="overallProgress">
+    </div>
+</div> 
+
+<div id="filelist">
+  <table id="filenames">
+    <thead>
+       <tr><th>File name</th><th>File size</th><th>Percent uploaded</th></tr>
+       <tr id="nofiles">
+        <td colspan="3">
+            No files have been selected.
+        </td>
+       </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>  
+</div>
+
+<script>
+
+YUI({filter:"raw"}).use("uploader", function(Y) {
+Y.one("#overallProgress").set("text", "Uploader type: " + Y.Uploader.TYPE);
+   if (Y.Uploader.TYPE != "none" && !Y.UA.ios) { 
+       var uploader = new Y.Uploader({width: "250px", 
+                                      height: "35px", 
+                                      multipleFiles: true,
+                                      swfURL: "../../build/uploader/assets/flashuploader.swf?t=" + Math.random(),
+                                      uploadURL: "http://www.yswfblog.com/upload/simpleupload.php",
+                                      simLimit: 2
+                                     });    
+       var uploadDone = false;
+
+       uploader.render("#selectFilesButtonContainer");
+
+       uploader.after("fileselect", function (event) {
+
+          var fileList = event.fileList;
+          var fileTable = Y.one("#filenames tbody");
+          if (fileList.length > 0 && Y.one("#nofiles")) {
+            Y.one("#nofiles").remove();
+          }
+
+          if (uploadDone) {
+            uploadDone = false;
+            fileTable.setContent("");
+          }
+          
+          Y.each(fileList, function (fileInstance) {
+              fileTable.append("<tr id='" + fileInstance.get("id") + "_row" + "'>" + 
+                                    "<td class='filename'>" + fileInstance.get("name") + "</td>" + 
+                                    "<td class='filesize'>" + fileInstance.get("size") + "</td>" + 
+                                    "<td class='percentdone'>Hasn't started yet</td>"); 
+                             });
+       });
+
+       uploader.on("uploadprogress", function (event) {
+            var fileRow = Y.one("#" + event.file.get("id") + "_row");
+                fileRow.one(".percentdone").set("text", event.percentLoaded + "%");
+       });
+
+       uploader.on("uploadstart", function (event) {
+            uploader.set("enabled", false);
+            Y.one("#uploadFilesButton").addClass("yui3-button-disabled");
+            Y.one("#uploadFilesButton").detach("click");
+       });
+
+       uploader.on("uploadcomplete", function (event) {
+            var fileRow = Y.one("#" + event.file.get("id") + "_row");
+                fileRow.one(".percentdone").set("text", "Finished!");
+       });
+
+       uploader.on("totaluploadprogress", function (event) {
+                Y.one("#overallProgress").setContent("Total uploaded: <strong>" + event.percentLoaded + "%" + "</strong>");
+       });
+
+       uploader.on("alluploadscomplete", function (event) {
+                     uploader.set("enabled", true);
+                     uploader.set("fileList", []);
+                     Y.one("#uploadFilesButton").removeClass("yui3-button-disabled");
+                     Y.one("#uploadFilesButton").on("click", function () {
+                          if (!uploadDone && uploader.get("fileList").length > 0) {
+                             uploader.uploadAll();
+                          }
+                     });
+                     Y.one("#overallProgress").set("text", "Uploads complete!");
+                     uploadDone = true;
+       });
+
+       Y.one("#uploadFilesButton").on("click", function () {
+         if (!uploadDone && uploader.get("fileList").length > 0) {
+            uploader.uploadAll();
+         }
+       });     
+   } 
+   else {
+       Y.one("#uploaderContainer").set("text", "We are sorry, but the uploader technology is not supported" + 
+                                               " on this platform.");
+   }
+
+
+});
+
+</script>
+</div>
+
+<h2>Setting up Uploader UI</h2>
+<p>In this example, the UI for the Uploader consists of two buttons, a label field for displaying the uploader type and the overall upload progress, as well as a table for displaying  information about the upload process per file. We first create the markup for the UI:</p>
+
+<pre class="code prettyprint">&lt;div id=&quot;uploaderContainer&quot;&gt;
+   &lt;div id=&quot;selectFilesButtonContainer&quot;&gt;
+   &lt;&#x2F;div&gt; 
+   &lt;div id=&quot;uploadFilesButtonContainer&quot;&gt;
+     &lt;button type=&quot;button&quot; id=&quot;uploadFilesButton&quot; 
+             class=&quot;yui3-button&quot; style=&quot;width:250px; height:35px;&quot;&gt;Upload Files&lt;&#x2F;button&gt;
+   &lt;&#x2F;div&gt; 
+   &lt;div id=&quot;overallProgress&quot;&gt;
+&lt;&#x2F;div&gt;
+
+&lt;div id=&quot;filelist&quot;&gt;
+  &lt;table id=&quot;filenames&quot;&gt;
+    &lt;thead&gt;
+       &lt;tr&gt;&lt;th&gt;File name&lt;&#x2F;th&gt;&lt;th&gt;File size&lt;&#x2F;th&gt;&lt;th&gt;Percent uploaded&lt;&#x2F;th&gt;&lt;&#x2F;tr&gt;
+       &lt;tr id=&quot;nofiles&quot;&gt;
+        &lt;td colspan=&quot;3&quot;&gt;
+            No files have been selected.
+        &lt;&#x2F;td&gt;
+       &lt;&#x2F;tr&gt;
+    &lt;&#x2F;thead&gt;
+    &lt;tbody&gt;
+    &lt;&#x2F;tbody&gt;
+  &lt;&#x2F;table&gt; 
+&lt;&#x2F;div&gt;</pre>
+
+
+<p>Next, we create, configure and render an instance of the Uploader. Note that we initially check that the <code>Y.Uploader.TYPE</code> property is
+   not set to 'none' and that we are not trying to run the code on an iOS device (where file uploads are not allowed because of a closed file system).
+   Also note that we are setting a fixed width and height on the uploader, which is necessary in order for the Flash overlay to render correctly
+   in browsers where Flash is used:
+</p>
+
+<pre class="code prettyprint">if (Y.Uploader.TYPE != &quot;none&quot; &amp;&amp; !Y.UA.ios) { 
+    var uploader = new Y.Uploader({width: &quot;250px&quot;, 
+                                   height: &quot;35px&quot;, 
+                                   multipleFiles: true,
+                                   swfURL: &quot;..&#x2F;..&#x2F;build&#x2F;uploader&#x2F;assets&#x2F;flashuploader.swf?t=&quot; + Math.random(),
+                                   uploadURL: &quot;http:&#x2F;&#x2F;www.yswfblog.com&#x2F;upload&#x2F;simpleupload.php&quot;,
+                                   simLimit: 2
+                                  });  
+
+    var uploadDone = false;
+
+    uploader.render(&quot;#selectFilesButtonContainer&quot;);
+
+    ...</pre>
+
+
+<h2>Adding Uploader Event Handlers</h2>
+
+<p>We can now add handlers for various uploader events. The first handler is for the <code>fileselect</code> event. In it, we retrieve the list of
+   files selected by the user and populate the table with their names, sizes and a field for reporting the percentage uploaded for each
+   file. The id of each row in the table is prefixed with the unique file id it is associated with, for easy reference later:</p>
+
+<pre class="code prettyprint">uploader.after(&quot;fileselect&quot;, function (event) {
+   var fileList = event.fileList;
+   var fileTable = Y.one(&quot;#filenames tbody&quot;);
+   if (fileList.length &gt; 0 &amp;&amp; Y.one(&quot;#nofiles&quot;)) {
+     Y.one(&quot;#nofiles&quot;).remove();
+
+   if (uploadDone) {
+     uploadDone = false;
+     fileTable.setContent(&quot;&quot;);
+   }
+   
+   Y.each(fileList, function (fileInstance) {
+       fileTable.append(&quot;&lt;tr id=&#x27;&quot; + fileInstance.get(&quot;id&quot;) + &quot;_row&quot; + &quot;&#x27;&gt;&quot; + 
+                             &quot;&lt;td class=&#x27;filename&#x27;&gt;&quot; + fileInstance.get(&quot;name&quot;) + &quot;&lt;&#x2F;td&gt;&quot; + 
+                             &quot;&lt;td class=&#x27;filesize&#x27;&gt;&quot; + fileInstance.get(&quot;size&quot;) + &quot;&lt;&#x2F;td&gt;&quot; + 
+                             &quot;&lt;td class=&#x27;percentdone&#x27;&gt;Hasn&#x27;t started yet&lt;&#x2F;td&gt;&quot;); 
+   });
+});</pre>
+
+<p>For the <code>uploadprogress</code> event, we update the individual file row (using the unique file id prefix to reference each row) with the 
+   <code>percentLoaded</code> property from the event payload.</p>
+
+<pre class="code prettyprint">uploader.on(&quot;uploadprogress&quot;, function (event) {
+     var fileRow = Y.one(&quot;#&quot; + event.file.get(&quot;id&quot;) + &quot;_row&quot;);
+         fileRow.one(&quot;.percentdone&quot;).set(&quot;text&quot;, event.percentLoaded + &quot;%&quot;);
+});</pre>
+
+
+<p>When the upload starts, we disable the uploader and the <code>Upload Files</code> button until the upload process is complete:</p>
+
+<pre class="code prettyprint">uploader.on(&quot;uploadstart&quot;, function (event) {
+     uploader.set(&quot;enabled&quot;, false);
+     Y.one(&quot;#uploadFilesButton&quot;).addClass(&quot;yui3-button-disabled&quot;);
+     Y.one(&quot;#uploadFilesButton&quot;).detach(&quot;click&quot;);
+});</pre>
+
+
+<p>When each individual file upload completes, we update the table row corresponding with the file with the appropriate
+   message:</p>
+
+<pre class="code prettyprint">uploader.on(&quot;uploadcomplete&quot;, function (event) {
+     var fileRow = Y.one(&quot;#&quot; + event.file.get(&quot;id&quot;) + &quot;_row&quot;);
+         fileRow.one(&quot;.percentdone&quot;).set(&quot;text&quot;, &quot;Finished!&quot;);
+});</pre>
+
+
+<p>On <code>totaluploadprogress</code> events, we report the overall upload progress in the top-right message container:</p>
+
+<pre class="code prettyprint">uploader.on(&quot;totaluploadprogress&quot;, function (event) {
+         Y.one(&quot;#overallProgress&quot;).setContent(&quot;Total uploaded: &lt;strong&gt;&quot; + event.percentLoaded + &quot;%&quot; + &quot;&lt;&#x2F;strong&gt;&quot;);
+});</pre>
+
+
+<p>We can listen for the <code>alluploadscomplete</code> event to find out when all uploads have completed, re-enable the uploader and report that information accordingly:</p>
+
+<pre class="code prettyprint">uploader.on(&quot;alluploadscomplete&quot;, function (event) {
+              uploader.set(&quot;enabled&quot;, true);
+              uploader.set(&quot;fileList&quot;, []);
+              Y.one(&quot;#uploadFilesButton&quot;).removeClass(&quot;yui3-button-disabled&quot;);
+              Y.one(&quot;#uploadFilesButton&quot;).on(&quot;click&quot;, function () {
+                 if (!uploadDone &amp;&amp; uploader.get(&quot;fileList&quot;).length &gt; 0) {
+                    console.log(uploader.get(&quot;fileList&quot;).length);
+                    uploader.uploadAll();
+              });
+              Y.one(&quot;#overallProgress&quot;).set(&quot;text&quot;, &quot;Uploads complete!&quot;);
+              uploadDone = true;
+});</pre>
+
+
+<p>Finally, we add the <code>click</code> event listener to the "Upload Files" button to start the file upload process:</p>
+
+<pre class="code prettyprint">Y.one(&quot;#uploadFilesButton&quot;).on(&quot;click&quot;, function () {
+  if (!uploadDone &amp;&amp; uploader.get(&quot;fileList&quot;).length &gt; 0) {
+     console.log(uploader.get(&quot;fileList&quot;).length);
+     uploader.uploadAll();
+  }
+});</pre>
+
+
+<h2>Full Source Code For this Example</h2>
+
+<pre class="code prettyprint">&lt;style&gt;
+#filelist {
+    margin-top: 15px;
+}
+
+#uploadFilesButtonContainer, #selectFilesButtonContainer, #overallProgress {
+    display: inline-block;
+}
+
+#overallProgress {
+    float: right;
+}
+&lt;&#x2F;style&gt;
+
+&lt;div id=&quot;uploaderContainer&quot;&gt; 
+    &lt;div id=&quot;selectFilesButtonContainer&quot;&gt;
+    &lt;&#x2F;div&gt; 
+    &lt;div id=&quot;uploadFilesButtonContainer&quot;&gt;
+      &lt;button type=&quot;button&quot; id=&quot;uploadFilesButton&quot; 
+              class=&quot;yui3-button&quot; style=&quot;width:250px; height:35px;&quot;&gt;Upload Files&lt;&#x2F;button&gt;
+    &lt;&#x2F;div&gt; 
+    &lt;div id=&quot;overallProgress&quot;&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt; 
+
+&lt;div id=&quot;filelist&quot;&gt;
+  &lt;table id=&quot;filenames&quot;&gt;
+    &lt;thead&gt;
+       &lt;tr&gt;&lt;th&gt;File name&lt;&#x2F;th&gt;&lt;th&gt;File size&lt;&#x2F;th&gt;&lt;th&gt;Percent uploaded&lt;&#x2F;th&gt;&lt;&#x2F;tr&gt;
+       &lt;tr id=&quot;nofiles&quot;&gt;
+        &lt;td colspan=&quot;3&quot;&gt;
+            No files have been selected.
+        &lt;&#x2F;td&gt;
+       &lt;&#x2F;tr&gt;
+    &lt;&#x2F;thead&gt;
+    &lt;tbody&gt;
+    &lt;&#x2F;tbody&gt;
+  &lt;&#x2F;table&gt;  
+&lt;&#x2F;div&gt;
+
+&lt;script&gt;
+
+YUI({filter:&quot;raw&quot;}).use(&quot;uploader&quot;, function(Y) {
+Y.one(&quot;#overallProgress&quot;).set(&quot;text&quot;, &quot;Uploader type: &quot; + Y.Uploader.TYPE);
+   if (Y.Uploader.TYPE != &quot;none&quot; &amp;&amp; !Y.UA.ios) { 
+       var uploader = new Y.Uploader({width: &quot;250px&quot;, 
+                                      height: &quot;35px&quot;, 
+                                      multipleFiles: true,
+                                      swfURL: &quot;..&#x2F;..&#x2F;build&#x2F;uploader&#x2F;assets&#x2F;flashuploader.swf?t=&quot; + Math.random(),
+                                      uploadURL: &quot;http:&#x2F;&#x2F;www.yswfblog.com&#x2F;upload&#x2F;simpleupload.php&quot;,
+                                      simLimit: 2
+                                     });    
+       var uploadDone = false;
+
+       uploader.render(&quot;#selectFilesButtonContainer&quot;);
+
+       uploader.after(&quot;fileselect&quot;, function (event) {
+
+          var fileList = event.fileList;
+          var fileTable = Y.one(&quot;#filenames tbody&quot;);
+          if (fileList.length &gt; 0 &amp;&amp; Y.one(&quot;#nofiles&quot;)) {
+            Y.one(&quot;#nofiles&quot;).remove();
+          }
+
+          if (uploadDone) {
+            uploadDone = false;
+            fileTable.setContent(&quot;&quot;);
+          }
+          
+          Y.each(fileList, function (fileInstance) {
+              fileTable.append(&quot;&lt;tr id=&#x27;&quot; + fileInstance.get(&quot;id&quot;) + &quot;_row&quot; + &quot;&#x27;&gt;&quot; + 
+                                    &quot;&lt;td class=&#x27;filename&#x27;&gt;&quot; + fileInstance.get(&quot;name&quot;) + &quot;&lt;&#x2F;td&gt;&quot; + 
+                                    &quot;&lt;td class=&#x27;filesize&#x27;&gt;&quot; + fileInstance.get(&quot;size&quot;) + &quot;&lt;&#x2F;td&gt;&quot; + 
+                                    &quot;&lt;td class=&#x27;percentdone&#x27;&gt;Hasn&#x27;t started yet&lt;&#x2F;td&gt;&quot;); 
+                             });
+       });
+
+       uploader.on(&quot;uploadprogress&quot;, function (event) {
+            var fileRow = Y.one(&quot;#&quot; + event.file.get(&quot;id&quot;) + &quot;_row&quot;);
+                fileRow.one(&quot;.percentdone&quot;).set(&quot;text&quot;, event.percentLoaded + &quot;%&quot;);
+       });
+
+       uploader.on(&quot;uploadstart&quot;, function (event) {
+            uploader.set(&quot;enabled&quot;, false);
+            Y.one(&quot;#uploadFilesButton&quot;).addClass(&quot;yui3-button-disabled&quot;);
+            Y.one(&quot;#uploadFilesButton&quot;).detach(&quot;click&quot;);
+       });
+
+       uploader.on(&quot;uploadcomplete&quot;, function (event) {
+            var fileRow = Y.one(&quot;#&quot; + event.file.get(&quot;id&quot;) + &quot;_row&quot;);
+                fileRow.one(&quot;.percentdone&quot;).set(&quot;text&quot;, &quot;Finished!&quot;);
+       });
+
+       uploader.on(&quot;totaluploadprogress&quot;, function (event) {
+                Y.one(&quot;#overallProgress&quot;).setContent(&quot;Total uploaded: &lt;strong&gt;&quot; + event.percentLoaded + &quot;%&quot; + &quot;&lt;&#x2F;strong&gt;&quot;);
+       });
+
+       uploader.on(&quot;alluploadscomplete&quot;, function (event) {
+                     uploader.set(&quot;enabled&quot;, true);
+                     uploader.set(&quot;fileList&quot;, []);
+                     Y.one(&quot;#uploadFilesButton&quot;).removeClass(&quot;yui3-button-disabled&quot;);
+                     Y.one(&quot;#uploadFilesButton&quot;).on(&quot;click&quot;, function () {
+                          if (!uploadDone &amp;&amp; uploader.get(&quot;fileList&quot;).length &gt; 0) {
+                             uploader.uploadAll();
+                          }
+                     });
+                     Y.one(&quot;#overallProgress&quot;).set(&quot;text&quot;, &quot;Uploads complete!&quot;);
+                     uploadDone = true;
+       });
+
+       Y.one(&quot;#uploadFilesButton&quot;).on(&quot;click&quot;, function () {
+         if (!uploadDone &amp;&amp; uploader.get(&quot;fileList&quot;).length &gt; 0) {
+            uploader.uploadAll();
+         }
+       });     
+   } 
+   else {
+       Y.one(&quot;#uploaderContainer&quot;).set(&quot;text&quot;, &quot;We are sorry, but the uploader technology is not supported&quot; + 
+                                               &quot; on this platform.&quot;);
+   }
+
+
+});
+
+&lt;&#x2F;script&gt;</pre>
+
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="A simple multiple file uploader with progress tracking">
+                                            <a href="uploader-multiple.html">Simple Multiple Files Uploader with Progress Tracking</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="A multiple file uploader with HTML5 Drag-and-Drop Support">
+                                            <a href="uploader-dd.html">Multiple Files Uploader with HTML5 Drag-and-Drop Support</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="A multiple file uploader that submits additional POST vars with each file and receives data from the server">
+                                            <a href="uploader-data.html">Multiple Files Uploader with POST Variables and Server Data Retrieval</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="How to upload a single file, while tracking progress and using a sprite-skinned button">
+                                            <a href="../uploader-deprecated/uploader-simple.html">Simple Uploader with Progress Tracking</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to upload a single file, along with GET and POST Vars Submission and receive data from the server">
+                                            <a href="../uploader-deprecated/uploader-withvars.html">Single File Upload with Additional Data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to upload multiple files with progress tracking and a transparent overlay upload button">
+                                            <a href="../uploader-deprecated/uploader-multiple.html">Multiple Files Upload with Transparent Overlay Button</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

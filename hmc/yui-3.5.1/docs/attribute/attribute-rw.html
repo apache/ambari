@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Read-Only and Write-Once Attributes</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Read-Only and Write-Once Attributes</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style type="text/css" scoped>
+    .example-out .myclass-attrs {
+        font-family:courier;
+        margin-top:2px;
+    }
+
+    .example-out .myclass-title {
+        font-weight:bold;
+        font-family:arial;
+        color:#8dd5e7;
+        margin-top:5px;
+        margin-bottom:3px;
+    }
+
+    .example-out {
+        overflow:auto;
+        border:1px solid #000;
+        color:#ffffff;
+        background-color:#004C6D;
+        margin-top:5px;
+        margin-bottom:20px;
+        height:8em;
+        padding:2px 2px 2px 5px;
+    }
+    
+    #writeInitial label, #writeAgain label, #writeInternally label {
+        font-weight:900;
+    }
+
+    #writeInitial .fooVal, #writeAgain .fooVal, #writeInternally .fooVal {
+        width:9em;
+    }
+
+    #writeInitial .barVal, #writeAgain .barVal, #writeInternally .barVal {
+        width:9em;
+    }
+
+    #writeInitial p, #writeAgain p, #writeInternally p {
+        margin-top:0.2em;
+        margin-bottom:0.2em;
+        color:#004C6D;
+        font-size:108%;
+    }
+</style>
+
+<div class="intro">
+    <p>Attributes can be configured to be <code>readOnly</code>, stopping them from being modified by the end user, or <code>writeOnce</code> allowing them to be set by the end user, but only once. This example demonstrates how to setup attributes for your class as <code>readOnly</code> or <code>writeOnce</code> attributes, and shows how their behavior differs when the end user attempts to set their values.</p>
+</div>
+
+<div class="example">
+    <form id="writeInitial" action="#">
+    <p>Construct o1, setting initial values for both foo and bar in the constructor: </p>
+    <label>foo: <input type="text" value="Initial Foo" class="fooVal"></label>
+    <label>bar: <input type="text" value="Initial Bar" class="barVal"></label>
+    <button type="submit" class="do">Initial Values</button>
+    <div class="example-out"></div>
+</form>
+<form id="writeAgain" action="#">
+    <p>Try setting values again, after they've been set once: </p>
+    <label>foo: <input type="text" value="Set Foo Again" class="fooVal"></label>
+    <label>bar: <input type="text" value="Set Bar Again" class="barVal"></label>
+    <button type="submit" class="do">Set Again</button>
+    <div class="example-out"></div>
+</form>
+<form id="writeInternally" action="#">
+    <p>Call a MyClass method, which sets foo internally (using _set): </p>
+    <label>foo: <input type="text" value="Set Foo Internally" class="fooVal"></label>
+    <button type="submit" class="do">Set Internal</button>
+    <div class="example-out"></div>
+</form>
+
+<script type="text/javascript">
+YUI().use("node", "attribute", "escape", function(Y) {
+
+    // Setup a custom class with attribute support
+    function MyClass(cfg) {
+
+        var attrs = {
+            "foo" : {
+                value: "Default Foo",
+                readOnly: true
+            },
+     
+            "bar" : {
+                value: "Default Bar",
+                writeOnce: true
+            }
+        }
+
+        this.addAttrs(attrs, cfg);
+    }
+
+    MyClass.prototype.doSomething = function(val) {
+        // ... Do something which requires
+        // MyClass to change the value
+        // of foo ...
+
+        // Host code can reset value of 
+        // readOnly attributes interally,
+        // by working with the private _set
+        // property
+
+        this._set("foo", val);
+    };
+
+    Y.augment(MyClass, Y.Attribute);
+
+    function displayValues(o, title, node) {
+        var str = 
+            '<div class="myclass"><div class="myclass-title">' 
+            + title + 
+            '</div><ul class="myclass-attrs"><li>foo (readOnly): ' 
+            + Y.Escape.html(o.get("foo")) 
+            + '</li><li>bar (writeOnce): '
+            + Y.Escape.html(o.get("bar"))
+            + '</li></ul></div>';
+
+        Y.one(node).set("innerHTML", str);
+    }
+
+    var o1;
+
+    Y.on("submit", function(e) {
+
+        e.preventDefault();
+    
+        var fooVal = Y.one("#writeInitial .fooVal").get("value");
+        var barVal = Y.one("#writeInitial .barVal").get("value");
+
+        o1 = new MyClass({
+            foo: fooVal,
+            bar: barVal
+        });
+
+        displayValues(o1, "Attempt to set initial values in constructor", "#writeInitial .example-out");
+
+    }, "#writeInitial");
+
+    Y.on("submit", function(e) {
+
+        e.preventDefault();
+
+        if (o1) {
+            var fooVal = Y.one("#writeAgain .fooVal").get("value");
+            var barVal = Y.one("#writeAgain .barVal").get("value");
+
+            // Attempt to reset values:
+            o1.set("foo", fooVal);
+            o1.set("bar", barVal);
+    
+            displayValues(o1, "Attempt to set values again, using set", "#writeAgain .example-out");
+        }
+
+    }, "#writeAgain");
+
+    Y.on("submit", function(e) {
+
+        e.preventDefault();
+
+        if (o1) {
+            var val = Y.one("#writeInternally .fooVal").get("value");
+            // Call method, which sets foo internally...
+            o1.doSomething(val);
+
+            displayValues(o1, "Set the value of foo (readOnly) internally", "#writeInternally .example-out");
+        }
+
+    }, "#writeInternally");
+});
+</script>
+
+</div>
+
+<h2>ReadOnly And WriteOnce</h2>
+
+<p>Attribute supports the ability to configure attributes to be <code>readOnly</code> or <code>writeOnce</code>. <code>readOnly</code> attributes cannot be set by the end user, either through initial values passed to the constructor, or by invoking the <code>set</code> method. <code>writeOnce</code> attributes on the other hand, can be set by the user, but only once, either during initialization or through a call to <code>set</code>. Once a value is established for a <code>writeOnce</code> attribute, it cannot be reset to another value by the user.</p>
+
+<h2>Configuring ReadOnly And WriteOnce Attributes</h2>
+
+<p>This example sets up a custom class, <code>MyClass</code>, with two attributes, <code>foo</code> and <code>bar</code>. <code>foo</code> is configured to be a <code>readOnly</code> attribute, and <code>bar</code> is configured to be a <code>writeOnce</code> attribute:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Setup a custom class with attribute support
+function MyClass(cfg) {
+
+    &#x2F;&#x2F; Attribute configuration
+    var attrs = {
+        &quot;foo&quot; : {
+            value: &quot;Default Foo&quot;,
+            readOnly: true
+        },
+
+        &quot;bar&quot; : {
+            value: &quot;Default Bar&quot;,
+            writeOnce: true
+        }
+    }
+
+    this.addAttrs(attrs, cfg);
+}</pre>
+
+
+<h2>Attempting To Set Values</h2>
+
+<p>We first attempt to set values for both attributes in the constructor (used to intialize the attributes) and see that only <code>bar</code>, the <code>writeOnce</code> attribute, gets set to the user provided value:</p>
+
+<pre class="code prettyprint">var fooVal = Y.one(&quot;#writeInitial .fooVal&quot;).get(&quot;value&quot;);
+var barVal = Y.one(&quot;#writeInitial .barVal&quot;).get(&quot;value&quot;);
+
+o1 = new MyClass({
+    foo: fooVal,
+    bar: barVal
+});
+
+displayValues(o1, &quot;Attempt to set initial values in constructor&quot;, 
+                &quot;#writeInitial .example-out&quot;);</pre>
+
+
+<p>We then attempt to set values for both attributes again, using <code>set</code>, and see that niether of the values are modified:</p>
+
+<pre class="code prettyprint">var fooVal = Y.one(&quot;#writeAgain .fooVal&quot;).get(&quot;value&quot;);
+var barVal = Y.one(&quot;#writeAgain .barVal&quot;).get(&quot;value&quot;);
+
+&#x2F;&#x2F; Attempt to reset values:
+o1.set(&quot;foo&quot;, fooVal);
+o1.set(&quot;bar&quot;, barVal);
+
+displayValues(o1, &quot;Attempt to set values again, using set&quot;, 
+                &quot;#writeAgain .example-out&quot;);</pre>
+
+
+<h2>Setting The State Of ReadOnly Values Internally</h2>
+
+<p>Although the user cannot update the value of <code>readOnly</code> attributes, it maybe neccessary for the host object to update it's value internally. The example shows how this can be done, using the private <code>_set</code> property on the host:</p>
+
+<pre class="code prettyprint">MyClass.prototype.doSomething = function(val) {
+    &#x2F;&#x2F; ... Do something which requires
+    &#x2F;&#x2F; MyClass to change the value
+    &#x2F;&#x2F; of foo ...
+
+    &#x2F;&#x2F; Host code can reset value of 
+    &#x2F;&#x2F; readOnly attributes interally,
+    &#x2F;&#x2F; by working with the private _set
+    &#x2F;&#x2F; property
+
+    this._set(&quot;foo&quot;, val);
+};
+
+...
+
+var val = Y.one(&quot;#writeInternally .fooVal&quot;).get(&quot;value&quot;);
+
+&#x2F;&#x2F; Call method, which sets foo internally...
+o1.doSomething(val);
+
+displayValues(o1, &quot;Set value of foo (readOnly) interally&quot;, 
+                &quot;#writeInternally .example-out&quot;);</pre>
+
+
+
+<h2>Complete Example Source</h2>
+
+<pre class="code prettyprint">&lt;form id=&quot;writeInitial&quot; action=&quot;#&quot;&gt;
+    &lt;p&gt;Construct o1, setting initial values for both foo and bar in the constructor: &lt;&#x2F;p&gt;
+    &lt;label&gt;foo: &lt;input type=&quot;text&quot; value=&quot;Initial Foo&quot; class=&quot;fooVal&quot;&gt;&lt;&#x2F;label&gt;
+    &lt;label&gt;bar: &lt;input type=&quot;text&quot; value=&quot;Initial Bar&quot; class=&quot;barVal&quot;&gt;&lt;&#x2F;label&gt;
+    &lt;button type=&quot;submit&quot; class=&quot;do&quot;&gt;Initial Values&lt;&#x2F;button&gt;
+    &lt;div class=&quot;example-out&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;form&gt;
+&lt;form id=&quot;writeAgain&quot; action=&quot;#&quot;&gt;
+    &lt;p&gt;Try setting values again, after they&#x27;ve been set once: &lt;&#x2F;p&gt;
+    &lt;label&gt;foo: &lt;input type=&quot;text&quot; value=&quot;Set Foo Again&quot; class=&quot;fooVal&quot;&gt;&lt;&#x2F;label&gt;
+    &lt;label&gt;bar: &lt;input type=&quot;text&quot; value=&quot;Set Bar Again&quot; class=&quot;barVal&quot;&gt;&lt;&#x2F;label&gt;
+    &lt;button type=&quot;submit&quot; class=&quot;do&quot;&gt;Set Again&lt;&#x2F;button&gt;
+    &lt;div class=&quot;example-out&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;form&gt;
+&lt;form id=&quot;writeInternally&quot; action=&quot;#&quot;&gt;
+    &lt;p&gt;Call a MyClass method, which sets foo internally (using _set): &lt;&#x2F;p&gt;
+    &lt;label&gt;foo: &lt;input type=&quot;text&quot; value=&quot;Set Foo Internally&quot; class=&quot;fooVal&quot;&gt;&lt;&#x2F;label&gt;
+    &lt;button type=&quot;submit&quot; class=&quot;do&quot;&gt;Set Internal&lt;&#x2F;button&gt;
+    &lt;div class=&quot;example-out&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;form&gt;
+
+&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+YUI().use(&quot;node&quot;, &quot;attribute&quot;, &quot;escape&quot;, function(Y) {
+
+    &#x2F;&#x2F; Setup a custom class with attribute support
+    function MyClass(cfg) {
+
+        var attrs = {
+            &quot;foo&quot; : {
+                value: &quot;Default Foo&quot;,
+                readOnly: true
+            },
+     
+            &quot;bar&quot; : {
+                value: &quot;Default Bar&quot;,
+                writeOnce: true
+            }
+        }
+
+        this.addAttrs(attrs, cfg);
+    }
+
+    MyClass.prototype.doSomething = function(val) {
+        &#x2F;&#x2F; ... Do something which requires
+        &#x2F;&#x2F; MyClass to change the value
+        &#x2F;&#x2F; of foo ...
+
+        &#x2F;&#x2F; Host code can reset value of 
+        &#x2F;&#x2F; readOnly attributes interally,
+        &#x2F;&#x2F; by working with the private _set
+        &#x2F;&#x2F; property
+
+        this._set(&quot;foo&quot;, val);
+    };
+
+    Y.augment(MyClass, Y.Attribute);
+
+    function displayValues(o, title, node) {
+        var str = 
+            &#x27;&lt;div class=&quot;myclass&quot;&gt;&lt;div class=&quot;myclass-title&quot;&gt;&#x27; 
+            + title + 
+            &#x27;&lt;&#x2F;div&gt;&lt;ul class=&quot;myclass-attrs&quot;&gt;&lt;li&gt;foo (readOnly): &#x27; 
+            + Y.Escape.html(o.get(&quot;foo&quot;)) 
+            + &#x27;&lt;&#x2F;li&gt;&lt;li&gt;bar (writeOnce): &#x27;
+            + Y.Escape.html(o.get(&quot;bar&quot;))
+            + &#x27;&lt;&#x2F;li&gt;&lt;&#x2F;ul&gt;&lt;&#x2F;div&gt;&#x27;;
+
+        Y.one(node).set(&quot;innerHTML&quot;, str);
+    }
+
+    var o1;
+
+    Y.on(&quot;submit&quot;, function(e) {
+
+        e.preventDefault();
+    
+        var fooVal = Y.one(&quot;#writeInitial .fooVal&quot;).get(&quot;value&quot;);
+        var barVal = Y.one(&quot;#writeInitial .barVal&quot;).get(&quot;value&quot;);
+
+        o1 = new MyClass({
+            foo: fooVal,
+            bar: barVal
+        });
+
+        displayValues(o1, &quot;Attempt to set initial values in constructor&quot;, &quot;#writeInitial .example-out&quot;);
+
+    }, &quot;#writeInitial&quot;);
+
+    Y.on(&quot;submit&quot;, function(e) {
+
+        e.preventDefault();
+
+        if (o1) {
+            var fooVal = Y.one(&quot;#writeAgain .fooVal&quot;).get(&quot;value&quot;);
+            var barVal = Y.one(&quot;#writeAgain .barVal&quot;).get(&quot;value&quot;);
+
+            &#x2F;&#x2F; Attempt to reset values:
+            o1.set(&quot;foo&quot;, fooVal);
+            o1.set(&quot;bar&quot;, barVal);
+    
+            displayValues(o1, &quot;Attempt to set values again, using set&quot;, &quot;#writeAgain .example-out&quot;);
+        }
+
+    }, &quot;#writeAgain&quot;);
+
+    Y.on(&quot;submit&quot;, function(e) {
+
+        e.preventDefault();
+
+        if (o1) {
+            var val = Y.one(&quot;#writeInternally .fooVal&quot;).get(&quot;value&quot;);
+            &#x2F;&#x2F; Call method, which sets foo internally...
+            o1.doSomething(val);
+
+            displayValues(o1, &quot;Set the value of foo (readOnly) internally&quot;, &quot;#writeInternally .example-out&quot;);
+        }
+
+    }, &quot;#writeInternally&quot;);
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Use the Attribute API to define, set and get attribute values.">
+                                            <a href="attribute-basic.html">Basic Attribute Configuration</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Configure attributes to be readOnly or writeOnce.">
+                                            <a href="attribute-rw.html">Read-Only and Write-Once Attributes</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to listen for changes in attribute values.">
+                                            <a href="attribute-event.html">Attribute Change Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Create a basic SpeedDater class, with Attribute support.">
+                                            <a href="attribute-basic-speeddate.html">Attribute Based Speed Dating</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Refactors the basic Speed Dating example, to use attribute change events to update rendered elements, and have two instances react to another.">
+                                            <a href="attribute-event-speeddate.html">Attribute Event Based Speed Dating</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Add custom methods to get and set attribute values and provide validation support.">
+                                            <a href="attribute-getset.html">Attribute Getters, Setters and Validators</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

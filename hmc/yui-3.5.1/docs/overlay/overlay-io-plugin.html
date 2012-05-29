@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: IO Plugin</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: IO Plugin</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style type="text/css" scoped>
+/* Overlay Look/Feel */
+.yui3-overlay-content {
+    background-color: #ECEFFB;  
+    border: 1px solid #9EA8C6;
+    border-radius: 3px;
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.25);
+}
+
+.yui3-overlay-content .yui3-widget-hd {
+    background-color: #B6BFDA;  
+    color: #30418C;
+    font-size: 120%;
+    font-weight: bold;
+    padding: 0.2em 0.5em 0.3em;
+    border-radius: 2px 2px 0 0;
+}
+
+.yui3-overlay-content .yui3-widget-bd {
+    padding: 0.4em 0.6em 0.5em;
+}
+
+.yui3-overlay-content .yui3-widget-ft {
+    background-color:#DFE3F5;
+    padding: 0.4em 0.6em 0.5em;
+    border-radius: 0 0 2px 2px;
+}
+
+
+    .yui3-overlay .yui3-widget-bd .yui3-feed-data {
+        text-align:left;
+    }
+
+    .yui3-overlay .yui3-feed-selector .yui3-prompt {
+        font-weight:bold;
+    }
+
+    .yui3-widget-loading .yui3-widget-bd {
+        background: #fff url(../assets/overlay/img/ajax-loader.gif) no-repeat center center;
+        height:40px;
+    }
+
+</style>
+
+<div class="intro">
+    <p>This example shows how you can use Widget's plugin infrastructure to add additional features to an existing widget.</p>
+    <p>We create an IO plugin class for <code>Overlay</code> called <code>StdModIOPlugin</code>. The plugin adds IO capabilities to the Overlay, bound to one of its standard module sections <em>(header, body or footer)</em>.</p>
+</div>
+
+<div class="example">
+    <button type="button" id="show">Show Overlay</button>
+<button type="button" id="hide">Hide Overlay</button>
+
+<script type="text/javascript">
+YUI().use("overlay", "substitute", "json", "gallery-widget-io", "escape", function(Y) {
+
+    /* Setup local variable for Y.WidgetStdMod, since we use it multiple times */
+    var StdMod = Y.WidgetStdMod,
+        transportAvailable = false;
+
+    StdModIO = function(config) {
+        StdModIO.superclass.constructor.apply(this, arguments);
+    };
+
+    Y.extend(StdModIO, Y.Plugin.WidgetIO, {
+        initializer: function() {
+            Y.on('io:xdrReady', function() {
+                transportAvailable = true;
+            });
+
+            Y.io.transport({
+                id:'flash',
+                yid: Y.id,
+                src:'../../build/io-xdr/io.swf?stamp=' + (new Date()).getTime()
+            });
+        },
+
+        setContent: function(content) {
+            var overlay = this.get('host');
+            overlay.setStdModContent(this.get('section'), content);
+        }
+
+    }, {
+        NAME: 'stdModIO',
+        NS: 'io',
+        ATTRS: {
+            section: {
+                value:StdMod.BODY,
+                validator: function(val) {
+                    return (!val || val == StdMod.BODY || val == StdMod.HEADER || val == StdMod.FOOTER);
+                }
+            }
+        }
+    });
+
+    /* The Pipes feed URIs to be used to dispatch io transactions */
+    var pipes = {
+
+        // uri data
+        baseUri : 'http:/'+'/pipes.yahooapis.com/pipes/pipe.run?_id=6b7b2c6a32f5a12e7259c36967052387&_render=json&url=http:/'+'/',
+        feeds : {
+            ynews : {
+                title: 'Yahoo! US News',
+                uri: 'rss.news.yahoo.com/rss/us'
+            },
+            yui : {
+                title: 'YUI Blog',
+                uri: 'feeds.yuiblog.com/YahooUserInterfaceBlog'
+            },
+            slashdot : {
+                title: 'Slashdot',
+                uri: 'rss.slashdot.org/Slashdot/slashdot'
+            },
+            ajaxian: {
+                title: 'Ajaxian',
+                uri: 'feeds.feedburner.com/ajaxian'
+            },
+            daringfireball: {
+                title: 'Daring Fireball',
+                uri: 'daringfireball.net/index.xml'
+            },
+            wiredtech: {
+                title: 'Wire: Tech Biz',
+                uri: 'www.wired.com/rss/techbiz.xml'
+            },
+            techcrunch: {
+                title: 'TechCrunch',
+                uri: 'feedproxy.google.com/Techcrunch'
+            }
+        },
+
+        // The default formatter, responsible for converting the JSON responses recieved,
+        // into HTML, using JSON for the parsing step, and substitute for some basic templating functionality
+        formatter : function (val) {
+            var formatted = "Error parsing feed data";
+            try {
+                var json = Y.JSON.parse(val);
+                if (json && json.count) {
+                    var html = ['<ul class="yui3-feed-data">'];
+                    var linkTemplate = '<li><a href="{link}" target="_blank">{title}</a></li>';
+    
+                    Y.each(json.value.items, function(v, i) {
+                        if (i < 10) {
+                            v.title = Y.Escape.html(v.title);
+                            v.link = Y.Escape.html(v.link);
+                            html.push(Y.substitute(linkTemplate, v));
+                        }
+                    });
+                    html.push("</ul>");
+                    formatted = html.join("");
+                } else {
+                    formatted = "No Data Available";
+                }
+            } catch(e) {
+                formatted = "Error parsing feed data";
+            }
+            return formatted;
+        }
+    };
+
+    /* Helper function, to generate the select dropdown markup from the pipes feed data */
+    function generateHeaderMarkup() {
+        var optTemplate = '<option value="{id}">{title}</option>',
+            html = ['<select id="feedSelector" class="yui3-feed-selector"><option value="-1" class="yui3-prompt">Select a Feed...</option>'];
+
+        Y.Object.each(pipes.feeds, function(v, k, o) {
+            html.push(Y.substitute(optTemplate, {id:k, title:v.title}));
+        });
+        html.push('</select>');
+
+        return html.join("");
+    }
+
+    /* Create a new Overlay instance, with content generated from script */
+    var overlay = new Y.Overlay({
+        width:"40em",
+        visible:false,
+        align: {
+            node:"#show",
+            points: [Y.WidgetPositionAlign.TL, Y.WidgetPositionAlign.BL]
+        },
+        zIndex:10,
+        headerContent: generateHeaderMarkup(),
+        bodyContent: "Feed data will be displayed here"
+    });
+
+    overlay.render();
+    /* 
+     * Add the Standard Module IO Plugin, and configure it to use flash, and a formatter specific
+     * to the pipes response we're expecting from the uri request we'll send out.
+     */
+    overlay.plug(StdModIO, {
+        uri : pipes.baseUri + pipes.feeds["ynews"].uri,
+        cfg:{
+            xdr: {
+                use:'flash'
+            }
+        },
+        formatter: pipes.formatter,
+        loading: '<img class="yui3-loading" width="32px" height="32px" src="../assets/overlay/img/ajax-loader.gif">'
+    });
+
+    Y.on("change", function(e) {
+        var val = this.get("value");
+        if (transportAvailable) {
+            if (val != -1) {
+                overlay.io.set("uri", pipes.baseUri + pipes.feeds[val].uri);
+                overlay.io.refresh();
+            }
+        } else {
+            overlay.io.setContent("Flash doesn't appear to be available. Cross-domain requests to pipes cannot be made without it.");
+        }
+    }, "#feedSelector");
+
+    Y.on("click", function(e) {
+        overlay.show();
+    }, "#show");
+
+    Y.on("click", function(e) {
+        overlay.hide();
+    }, "#hide");
+
+});
+</script>
+
+</div>
+
+<h2>Creating an IO Plugin For Overlay</h2>
+
+<h3>Setting Up The YUI Instance</h3>
+
+<p>For this example, we'll start from the Widget IO plugin (gallery-io-plugin) created in the <a href="../widget/widget-plugin.html">widget plugin example</a>, pull in <code>overlay</code>; <code>json</code> and <code>substitute</code> utility modules 
+and the <code>plugin</code> module. The Widget IO plugin will pull in the dependencies it needs, the main one being <code>io</code> to provide the XHR support. 
+
+The <code>json</code> and <code>substitute</code> modules provide the support we need to parse/transform JSON responses into HTML.The code to set up our sandbox instance is shown below:</p>
+
+<pre class="code prettyprint">YUI({...}).use(&quot;overlay&quot;, &quot;substitute&quot;, &quot;json&quot;, &quot;gallery-io-plugin&quot;, &quot;escape&quot;, function(Y) {
+    &#x2F;&#x2F; We&#x27;ll write our code here, after pulling in the default Overlay widget, 
+    &#x2F;&#x2F; the IO utility, the Plugin.WidgetIO base class along with the 
+    &#x2F;&#x2F; Substitute and JSON utilities
+});</pre>
+
+
+<p>Using the <code>overlay</code> module will also pull down the default CSS required for overlay, on top of which we only need to add our required look/feel CSS for the example.</p>
+
+<h3>StdModIO Class Structure</h3>
+
+<p>The <code>StdModIO</code> class will extend the <code>Plugin.WidgetIO</code> base class.
+Since <code>WidgetIO</code> derives from <code>Pluing.Base</code> and hence <code>Base</code>, we follow the same
+pattern we use for widgets and other utilities which extend Base to setup our new class.</p>
+
+<p>Namely:</p>
+
+<ul>
+    <li>Setting up the default attributes, using the <code>ATTRS</code> property</li>
+    <li>Calling the superclass constructor</li>
+    <li>Setting up the the <code>NAME</code> property</li>
+    <li>Providing prototype implementations for anything we want executed during initialization and destruction using the <code>initializer</code> and <code>destructor</code> lifecycle methods</li>
+</ul>
+
+<p>Additionally, since this is a plugin, we provide a <code>NS</code> property for the class, which defines the property which will refer to the <code>StdModIO</code> instance on the host class (e.g. <code>overlay.io</code> will be an instance of <code>StdModIO</code>)</p>.
+
+<pre class="code prettyprint">StdModIO = function(config) {
+    StdModIO.superclass.constructor.apply(this, arguments);
+};
+
+Y.extend(StdModIO, Y.Plugin.WidgetIO, {
+    initializer: function() {...}
+}, {
+    NAME: &#x27;stdModIO&#x27;,
+    NS: &#x27;io&#x27;,
+    ATTRS: {
+        section: {...}
+    }
+});</pre>
+
+<h3>Plugin Attributes</h3>
+
+<p>The <code>StdModIO</code> is a fairly simple plugin class. It provides
+incremental functionality. It does not need to modify the behavior of any
+methods on the host Overlay instance, or monitor any Overlay events
+(unlike the <a href="overlay-anim-plugin.html">AnimPlugin</a> example).</p>
+
+<p>In terms of code, the attributes for the plugin are set up using the standard
+<code>ATTRS</code> property.  For this example, we will add an attribute called
+<code>section</code> that represents which part of the module (e.g. "header",
+"body", or "footer") will be updated with the returned content.</p>
+
+<pre class="code prettyprint">&#x2F;*
+ * The Standard Module section to which the io plugin instance is bound.
+ * Response data will be used to populate this section, after passing through
+ * the configured formatter.
+ *&#x2F;
+ATTRS: {
+    section: {
+        value:StdMod.BODY,
+        validator: function(val) {
+            return (!val || val == StdMod.BODY 
+                         || val == StdMod.HEADER 
+                         || val == StdMod.FOOTER);
+        }
+    }
+}
+};</pre>
+
+
+<h3>Lifecycle Methods: initializer, destructor</h3>
+
+<p>The base <code>WidgetIO</code> plugin implements the <code>initializer</code>
+and <code>destructor</code> lifecycle methods.  For the purposes of this example,
+we will extend the <code>StdModIO</code> plugin's <code>initializer</code> so that it
+activates the Flash based <a href="../io/index.html#cross-domain-transactions">XDR</a> transport so that the
+plugin is able to dispatch both in-domain and cross-domain requests
+(the transport used for any particular uri is controlled through the plugin's
+<code>cfg</code> attribute).</p>
+
+<pre class="code prettyprint">initializer: function() {
+    &#x2F;&#x2F; We setup a flag, so that we know if 
+    &#x2F;&#x2F; flash is available to make the 
+    &#x2F;&#x2F; XDR request.
+    Y.on(&#x27;io:xdrReady&#x27;, function() {
+        transportAvailable = true;
+    });
+
+    Y.io.transport({
+        id:&#x27;flash&#x27;,
+        yid: Y.id,
+        src:&#x27;..&#x2F;..&#x2F;build&#x2F;io-xdr&#x2F;io.swf?stamp=&#x27; + (new Date()).getTime()
+    });
+}</pre>
+
+
+<h3>Using the Plugin</h3>
+
+<p>All objects derived from <a href="http://yuilibrary.com/yui/docs/api/Base.html">Base</a> are <a href="http://yuilibrary.com/yui/docs/api/Plugin.Host.html">Plugin Hosts</a>. They provide <a href="http://yuilibrary.com/yui/docs/api/Plugin.Host.html#method_plug"><code>plug</code></a> and <a href="http://yuilibrary.com/yui/docs/api/Plugin.Host.html#method_unplug"><code>unplug</code></a> methods to allow users to add/remove plugins to/from existing instances. 
+They also allow the user to specify the set of plugins to be applied to a new instance, along with their configurations, as part of the constructor arguments.</p>
+
+<p>In this example, we'll create a new instance of an Overlay:</p>
+
+<pre class="code prettyprint">&#x2F;* Create a new Overlay instance, with content generated from script *&#x2F;
+var overlay = new Y.Overlay({
+    width:&quot;40em&quot;,
+    visible:false,
+    align: {
+        node:&quot;#show&quot;,
+        points: [Y.WidgetPositionAlign.TL, Y.WidgetPositionAlign.BL]
+    },
+    zIndex:10,
+    headerContent: generateHeaderMarkup(),
+    bodyContent: &quot;Feed data will be displayed here&quot;
+});</pre>
+
+
+<p>And then use the <code>plug</code> method to add the <code>StdModIO</code>, providing it with a configuration to use when sending out io transactions (The <a href="overlay-anim-plugin.html">Animation Plugin</a> example shows how you could do the same thing during construction):</p>
+
+<pre class="code prettyprint">&#x2F;*
+ * Add the Standard Module IO Plugin, and configure it to use flash, 
+ * and a formatter specific to the pipes response we&#x27;re expecting 
+ * from the uri request we&#x27;ll send out.
+ *&#x2F;
+overlay.plug(StdModIO, {
+    uri : pipes.baseUri + pipes.feeds[&quot;ynews&quot;].uri,
+    cfg:{
+        xdr: {
+            use:&#x27;flash&#x27;
+        }
+    },
+    formatter: pipes.formatter,
+    loading: &#x27;&lt;img class=&quot;yui3-loading&quot; width=&quot;32px&quot; height=&quot;32px&quot; src=&quot;..&#x2F;assets&#x2F;overlay&#x2F;img&#x2F;ajax-loader.gif&quot;&gt;&#x27;
+});</pre>
+
+
+<p>For this example, the io plugin is configured to use the <code>flash</code> cross-domain transport, to send out requests to the pipes API for the feed the user selects from the dropdown.</p>
+
+<h3>Getting Feed Data Through Pipes</h3>
+
+<p>We setup an object (<code>pipes</code>) to hold the feed URIs, which can be looked up and passed to the plugin to dispatch requests for new data:</p>
+
+<pre class="code prettyprint">&#x2F;* The Pipes feed URIs to be used to dispatch io transactions *&#x2F;
+
+var pipes = {
+    baseUri : &#x27;http:&#x2F;&#x27;+&#x27;&#x2F;pipes.yahooapis.com&#x2F;pipes&#x2F;pipe.run? \
+               _id=6b7b2c6a32f5a12e7259c36967052387&amp; \
+               _render=json&amp;url=http:&#x2F;&#x27;+&#x27;&#x2F;&#x27;,
+    feeds : {
+        ynews : {
+            title: &#x27;Yahoo! US News&#x27;,
+            uri: &#x27;rss.news.yahoo.com&#x2F;rss&#x2F;us&#x27;
+        },
+        yui : {
+            title: &#x27;YUI Blog&#x27;,
+            uri: &#x27;feeds.yuiblog.com&#x2F;YahooUserInterfaceBlog&#x27;
+        },
+        slashdot : {
+            title: &#x27;Slashdot&#x27;,
+            uri: &#x27;rss.slashdot.org&#x2F;Slashdot&#x2F;slashdot&#x27;
+        },
+        ...
+    },
+
+    ...</pre>
+
+
+<p>The data structure also holds the default formatter (<code>pipes.formatter</code>) required to convert the JSON responses from the above URIs to HTML. The JSON utility is first used to parse the json response string. The resulting object is iterated around, using Y.each, and substitute is used to generate the list markup:</p>
+
+<pre class="code prettyprint">...
+
+&#x2F;&#x2F; The default formatter, responsible for converting the JSON responses received,
+&#x2F;&#x2F; into HTML. JSON is used for the parsing step, and substitute for some basic 
+&#x2F;&#x2F; templating functionality
+
+formatter : function (val) {
+    var formatted = &quot;Error parsing feed data&quot;;
+    try {
+        var json = Y.JSON.parse(val);
+        if (json &amp;&amp; json.count) {
+            var html = [&#x27;&lt;ul class=&quot;yui3-feed-data&quot;&gt;&#x27;];
+            var linkTemplate = 
+                &#x27;&lt;li&gt;&lt;a href=&quot;{link}&quot; target=&quot;_blank&quot;&gt;{title}&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;&#x27;;
+
+            &#x2F;&#x2F; Loop around all the items returned, and feed 
+            &#x2F;&#x2F; them into the template above, using substitute.
+            Y.each(json.value.items, function(v, i) {
+                if (i &lt; 10) {
+                    html.push(Y.substitute(linkTemplate, v));
+                }
+            });
+            html.push(&quot;&lt;&#x2F;ul&gt;&quot;);
+            formatted = html.join(&quot;&quot;);
+        } else {
+            formatted = &quot;No Data Available&quot;;
+        }
+    } catch(e) {
+        formatted = &quot;Error parsing feed data&quot;;
+    }
+    return formatted;
+}</pre>
+
+
+<p>The <code>change</code> handler for the select dropdown binds everything together, taking the currently selected feed, constructing the URI for the feed, setting it on the plugin, and sending out the request:</p>
+
+<pre class="code prettyprint">&#x2F;* Handle select change *&#x2F;
+Y.on(&quot;change&quot;, function(e) {
+    var val = this.get(&quot;value&quot;);
+    if (transportAvailable) {
+        if (val != -1) {
+            overlay.io.set(&quot;uri&quot;, pipes.baseUri + pipes.feeds[val].uri);
+            overlay.io.refresh();
+        }
+    } else {
+        overlay.io.setContent(&quot;Flash doesn&#x27;t appear to be available. Cross-domain requests to pipes cannot be made without it.&quot;);
+    }
+}, &quot;#feedSelector&quot;);</pre>
+
+
+<h2>Complete Example Source</h2>
+<pre class="code prettyprint">&lt;button type=&quot;button&quot; id=&quot;show&quot;&gt;Show Overlay&lt;&#x2F;button&gt;
+&lt;button type=&quot;button&quot; id=&quot;hide&quot;&gt;Hide Overlay&lt;&#x2F;button&gt;
+
+&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+YUI().use(&quot;overlay&quot;, &quot;substitute&quot;, &quot;json&quot;, &quot;gallery-widget-io&quot;, &quot;escape&quot;, function(Y) {
+
+    &#x2F;* Setup local variable for Y.WidgetStdMod, since we use it multiple times *&#x2F;
+    var StdMod = Y.WidgetStdMod,
+        transportAvailable = false;
+
+    StdModIO = function(config) {
+        StdModIO.superclass.constructor.apply(this, arguments);
+    };
+
+    Y.extend(StdModIO, Y.Plugin.WidgetIO, {
+        initializer: function() {
+            Y.on(&#x27;io:xdrReady&#x27;, function() {
+                transportAvailable = true;
+            });
+
+            Y.io.transport({
+                id:&#x27;flash&#x27;,
+                yid: Y.id,
+                src:&#x27;..&#x2F;..&#x2F;build&#x2F;io-xdr&#x2F;io.swf?stamp=&#x27; + (new Date()).getTime()
+            });
+        },
+
+        setContent: function(content) {
+            var overlay = this.get(&#x27;host&#x27;);
+            overlay.setStdModContent(this.get(&#x27;section&#x27;), content);
+        }
+
+    }, {
+        NAME: &#x27;stdModIO&#x27;,
+        NS: &#x27;io&#x27;,
+        ATTRS: {
+            section: {
+                value:StdMod.BODY,
+                validator: function(val) {
+                    return (!val || val == StdMod.BODY || val == StdMod.HEADER || val == StdMod.FOOTER);
+                }
+            }
+        }
+    });
+
+    &#x2F;* The Pipes feed URIs to be used to dispatch io transactions *&#x2F;
+    var pipes = {
+
+        &#x2F;&#x2F; uri data
+        baseUri : &#x27;http:&#x2F;&#x27;+&#x27;&#x2F;pipes.yahooapis.com&#x2F;pipes&#x2F;pipe.run?_id=6b7b2c6a32f5a12e7259c36967052387&amp;_render=json&amp;url=http:&#x2F;&#x27;+&#x27;&#x2F;&#x27;,
+        feeds : {
+            ynews : {
+                title: &#x27;Yahoo! US News&#x27;,
+                uri: &#x27;rss.news.yahoo.com&#x2F;rss&#x2F;us&#x27;
+            },
+            yui : {
+                title: &#x27;YUI Blog&#x27;,
+                uri: &#x27;feeds.yuiblog.com&#x2F;YahooUserInterfaceBlog&#x27;
+            },
+            slashdot : {
+                title: &#x27;Slashdot&#x27;,
+                uri: &#x27;rss.slashdot.org&#x2F;Slashdot&#x2F;slashdot&#x27;
+            },
+            ajaxian: {
+                title: &#x27;Ajaxian&#x27;,
+                uri: &#x27;feeds.feedburner.com&#x2F;ajaxian&#x27;
+            },
+            daringfireball: {
+                title: &#x27;Daring Fireball&#x27;,
+                uri: &#x27;daringfireball.net&#x2F;index.xml&#x27;
+            },
+            wiredtech: {
+                title: &#x27;Wire: Tech Biz&#x27;,
+                uri: &#x27;www.wired.com&#x2F;rss&#x2F;techbiz.xml&#x27;
+            },
+            techcrunch: {
+                title: &#x27;TechCrunch&#x27;,
+                uri: &#x27;feedproxy.google.com&#x2F;Techcrunch&#x27;
+            }
+        },
+
+        &#x2F;&#x2F; The default formatter, responsible for converting the JSON responses recieved,
+        &#x2F;&#x2F; into HTML, using JSON for the parsing step, and substitute for some basic templating functionality
+        formatter : function (val) {
+            var formatted = &quot;Error parsing feed data&quot;;
+            try {
+                var json = Y.JSON.parse(val);
+                if (json &amp;&amp; json.count) {
+                    var html = [&#x27;&lt;ul class=&quot;yui3-feed-data&quot;&gt;&#x27;];
+                    var linkTemplate = &#x27;&lt;li&gt;&lt;a href=&quot;{link}&quot; target=&quot;_blank&quot;&gt;{title}&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;&#x27;;
+    
+                    Y.each(json.value.items, function(v, i) {
+                        if (i &lt; 10) {
+                            v.title = Y.Escape.html(v.title);
+                            v.link = Y.Escape.html(v.link);
+                            html.push(Y.substitute(linkTemplate, v));
+                        }
+                    });
+                    html.push(&quot;&lt;&#x2F;ul&gt;&quot;);
+                    formatted = html.join(&quot;&quot;);
+                } else {
+                    formatted = &quot;No Data Available&quot;;
+                }
+            } catch(e) {
+                formatted = &quot;Error parsing feed data&quot;;
+            }
+            return formatted;
+        }
+    };
+
+    &#x2F;* Helper function, to generate the select dropdown markup from the pipes feed data *&#x2F;
+    function generateHeaderMarkup() {
+        var optTemplate = &#x27;&lt;option value=&quot;{id}&quot;&gt;{title}&lt;&#x2F;option&gt;&#x27;,
+            html = [&#x27;&lt;select id=&quot;feedSelector&quot; class=&quot;yui3-feed-selector&quot;&gt;&lt;option value=&quot;-1&quot; class=&quot;yui3-prompt&quot;&gt;Select a Feed...&lt;&#x2F;option&gt;&#x27;];
+
+        Y.Object.each(pipes.feeds, function(v, k, o) {
+            html.push(Y.substitute(optTemplate, {id:k, title:v.title}));
+        });
+        html.push(&#x27;&lt;&#x2F;select&gt;&#x27;);
+
+        return html.join(&quot;&quot;);
+    }
+
+    &#x2F;* Create a new Overlay instance, with content generated from script *&#x2F;
+    var overlay = new Y.Overlay({
+        width:&quot;40em&quot;,
+        visible:false,
+        align: {
+            node:&quot;#show&quot;,
+            points: [Y.WidgetPositionAlign.TL, Y.WidgetPositionAlign.BL]
+        },
+        zIndex:10,
+        headerContent: generateHeaderMarkup(),
+        bodyContent: &quot;Feed data will be displayed here&quot;
+    });
+
+    overlay.render();
+    &#x2F;* 
+     * Add the Standard Module IO Plugin, and configure it to use flash, and a formatter specific
+     * to the pipes response we&#x27;re expecting from the uri request we&#x27;ll send out.
+     *&#x2F;
+    overlay.plug(StdModIO, {
+        uri : pipes.baseUri + pipes.feeds[&quot;ynews&quot;].uri,
+        cfg:{
+            xdr: {
+                use:&#x27;flash&#x27;
+            }
+        },
+        formatter: pipes.formatter,
+        loading: &#x27;&lt;img class=&quot;yui3-loading&quot; width=&quot;32px&quot; height=&quot;32px&quot; src=&quot;..&#x2F;assets&#x2F;overlay&#x2F;img&#x2F;ajax-loader.gif&quot;&gt;&#x27;
+    });
+
+    Y.on(&quot;change&quot;, function(e) {
+        var val = this.get(&quot;value&quot;);
+        if (transportAvailable) {
+            if (val != -1) {
+                overlay.io.set(&quot;uri&quot;, pipes.baseUri + pipes.feeds[val].uri);
+                overlay.io.refresh();
+            }
+        } else {
+            overlay.io.setContent(&quot;Flash doesn&#x27;t appear to be available. Cross-domain requests to pipes cannot be made without it.&quot;);
+        }
+    }, &quot;#feedSelector&quot;);
+
+    Y.on(&quot;click&quot;, function(e) {
+        overlay.show();
+    }, &quot;#show&quot;);
+
+    Y.on(&quot;click&quot;, function(e) {
+        overlay.hide();
+    }, &quot;#hide&quot;);
+
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Shows how to instantiate a basic Overlay instance, and use the Overlay&#x27;s basic XY positioning support.">
+                                            <a href="overlay-xy.html">Basic XY Positioning</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create a simple tooltip incorporating the overlay shim feature.">
+                                            <a href="overlay-tooltip.html">Simple Tooltip</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to use the Overlay&#x27;s XY alignment support, to align the Overlay relative to another element, or to the viewport.">
+                                            <a href="overlay-align.html">Alignment Support</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to use the Overlay&#x27;s zindex and shim support when positioning Overlays above other elements on the page.">
+                                            <a href="overlay-stack.html">Stack Support</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to modify content in the Overlay&#x27;s header, body and footer sections.">
+                                            <a href="overlay-stdmod.html">Standard Module Support</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to use Overlay&#x27;s constrainment support, to limit the XY value which can be set for an Overlay.">
+                                            <a href="overlay-constrain.html">Constrain Support</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create a simple plugin to retrieve content for the Overlay using the io utility.">
+                                            <a href="overlay-io-plugin.html">IO Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create a simple plugin to animate the Overlay&#x27;s movement and visibility.">
+                                            <a href="overlay-anim-plugin.html">Animation Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible menu button using the Focus Manager Node Plugin, Event&#x27;s delegation support and mouseenter event, along with the Overlay widget and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-3.html">Accessible Menu Button</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use StyleSheet to adjust the CSS rules applying a page theme from user input">
+                                            <a href="../stylesheet/stylesheet-theme.html">Adjusting a Page Theme on the Fly</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Creating an Arrow Event for DOM Subscription</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Creating an Arrow Event for DOM Subscription</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+    #demo {
+        position: relative;
+    }
+    #homebase {
+        margin-left: 100px;
+        position: absolute;
+        left: 0;
+        top: 40px;
+        height: 150px;
+        width: 200px;
+    }
+    .robot {
+        height: 210px;
+        width: 180px;
+        position: absolute;
+        top: 0px;
+        left: 0;
+        outline-style: none;
+        opacity: 0.5;
+        filter: alpha(opacity=50);
+    }
+    .yui3-focused {
+        opacity: 1;
+        z-index: 1;
+        filter: alpha(opacity=100);        
+    }
+    #B {
+        left: 125px;
+    }
+    #demo input {
+        margin-left: 4em;
+    }
+    #demo label {
+        font-size: 87%;
+        color: #555;
+    }
+    #detach {
+        margin-top: 150px;
+    }
+</style>
+
+<div class="intro">
+    <p>
+        This example will illustrate how to use the synthetic event creation
+        API.  We'll create an <code>arrow</code> event that fires in response
+        to the user pressing the arrow keys (up, down, left, right) and adds a
+        <code>direction</code> property to the generated event.
+    </p>
+
+    <p>Subscribing to this new event will look like this:</p>
+<pre class="code prettyprint">node.on(&quot;arrow&quot;, onArrowHandler);</pre>
+
+
+    <p>
+        Support will also be added for delegation, allowing a single subscriber
+        from a node higher up the DOM tree, to listen for the new event
+        emanating from its descendant elements.
+    </p>
+
+<pre class="code prettyprint">containerNode.delegate(&quot;arrow&quot;, onArrowHandler, &quot;.robot&quot;);</pre>
+
+</div>
+
+<div class="example yui3-skin-sam">
+    <div id="demo">
+    <p>Step 1. <button type="button" id="attach" tabindex="1">subscribe</button> to the <code>arrow</code> event.<br>
+    <input type="checkbox" id="delegate" value="1" tabindex="1">
+        <label for="delegate">Use a delegated subscription</label></p>
+    <p>Step 2. Click on a toaster-bot and move it around with the arrow keys.</p>
+
+    <div id="homebase">
+        <img id="A" class="robot" tabindex="3" src="../assets/event/toast-8b-left.png" />
+        <img id="B" class="robot" tabindex="3" src="../assets/event/toast-8b-right.png" />
+    </div>
+
+    <button type="button" id="detach" tabindex="4">Detach subscriptions</button>
+</div>
+
+<script>
+YUI({ filter: 'raw' }).use('node', 'event-synthetic', 'transition', function (Y) {
+    Y.Event.define("arrow", {
+        // Webkit and IE repeat keydown when you hold down arrow keys.
+        // Opera links keypress to page scroll; others keydown.
+        // Firefox prevents page scroll via preventDefault() on either
+        // keydown or keypress.
+        _event: (Y.UA.webkit || Y.UA.ie) ? 'keydown' : 'keypress',
+
+        _keys: {
+            '37': 'left',
+            '38': 'up',
+            '39': 'right',
+            '40': 'down'
+        },
+
+        _keyHandler: function (e, notifier) {
+            if (this._keys[e.keyCode]) {
+                e.direction = this._keys[e.keyCode];
+                notifier.fire(e);
+            }
+        },
+
+        on: function (node, sub, notifier) {
+            sub._detacher = node.on(this._event, this._keyHandler,
+                                    this, notifier);
+        },
+
+        detach: function (node, sub, notifier) {
+            sub._detacher.detach();
+        },
+
+        delegate: function (node, sub, notifier, filter) {
+            sub._delegateDetacher = node.delegate(this._event, this._keyHandler,
+                                                  filter, this, notifier);
+        },
+
+        detachDelegate: function (node, sub, notifier) {
+            sub._delegateDetacher.detach();
+        }
+    });
+
+
+    var robotA = Y.one('#A'),
+        robotB = Y.one('#B'),
+        subs,
+        moving = false;
+
+    robotA.setData('x', parseInt(robotA.getStyle('left'), 10));
+    robotA.setData('y', parseInt(robotA.getStyle('top'), 10));
+    robotB.setData('x', parseInt(robotB.getStyle('left'), 10));
+    robotB.setData('y', parseInt(robotB.getStyle('top'), 10));
+
+    // create variables for image path/filenames
+    // Use 8bit pngs for IE
+    var imgBits = (Y.UA.ie && Y.UA.ie < 9) ? '-8b-' : '-24b-',
+        imgNamePre = '../assets/event/toast' + imgBits,
+
+        imgUp = imgNamePre + 'up.png',
+        imgDown = imgNamePre + 'down.png',
+        imgLeft = imgNamePre + 'left.png',
+        imgRight = imgNamePre + 'right.png';
+
+    Y.one('#A').setAttribute('src', imgLeft);
+    Y.one('#B').setAttribute('src', imgRight);
+
+    function move(e) {
+        // to prevent page scrolling
+        e.preventDefault();
+        if(moving){
+            return; // Don't move during a transition (a move)
+        }else{
+            moving = true; // During moving, block other arrow keys from moving
+        }
+                
+        var xy = this.getData(),
+            imgWidth,
+            imgHeight,
+            // var scale is used to make the image size and distance moved
+            // proportional to the Y position of the image
+            scale = (150 + xy.y) / 150, 
+            moveXDistance = 40,
+            moveYDistance = 20;
+           
+        switch (e.direction) {
+            case 'up':
+                if(xy.y < -100){ 
+                    moving = false;
+                    return; // Stop moving when image gets too small
+                }    
+                xy.y -= Math.round(moveYDistance * scale);
+                e.target.setAttribute('src', imgUp);
+                break;
+            case 'down':  
+                if(xy.y > 90){
+                    moving = false;
+                    return; // Stop moving when image gets too big
+                }    
+                xy.y += Math.round(moveYDistance * scale);
+                e.target.setAttribute('src', imgDown);
+                break;
+            case 'left':
+                xy.x -= Math.round(moveXDistance * scale);
+                e.target.setAttribute('src', imgLeft);
+                break;
+            case 'right':
+                xy.x += Math.round(moveXDistance * scale);
+                e.target.setAttribute('src', imgRight);
+                break;
+        }
+        scale = 150 / (150 - xy.y); // calculate scale with new Y dimentions
+        imgWidth = Math.round(scale * 180) + 'px';
+        imgHeight = Math.round(scale * 210) + 'px';
+        this.transition({
+            top : (xy.y + 'px'),
+            left: (xy.x + 'px'),
+            width: imgWidth,
+            height: imgHeight,
+            duration: .8
+        }, function(){
+            moving = false; // now that move is done, allow arrow keys to move again
+        });
+
+        this.setData('x', xy.x);
+        this.setData('y', xy.y);
+    }
+
+    function detachSubs() {
+        if (subs) {
+            subs.detach();
+            subs = null;
+            Y.all('.robot').removeClass('yui3-focused');
+        }
+    }
+
+    Y.one("#attach").on("click", function (e) {
+        detachSubs();
+
+        if (Y.one("#delegate").get('checked')) {
+            subs = Y.one('#demo').delegate('arrow', move, '.robot');
+        } else {
+            subs = new Y.EventHandle([
+                robotA.on("arrow", move),
+                robotB.on("arrow", move)
+            ]);
+        }
+    });
+
+    Y.one("#detach").on("click", detachSubs);
+    Y.all('.robot').on('focus', function(e){
+        if (subs) {
+            Y.all('.robot').removeClass('yui3-focused');
+            e.target.addClass('yui3-focused');
+        }
+    });
+
+    Y.all('.robot').on('click', function(e){
+        e.target.focus();
+    });
+
+});
+</script>
+
+</div>
+
+<h2><code>on</code>, <code>fire</code>, and <code>detach</code></h2>
+
+<p>
+    The three interesting moments in the lifecycle of a DOM event subscription
+    are
+</p>
+
+<ol>
+    <li>The event is subscribed to</li>
+    <li>The event is fired</li>
+    <li>The event is unsubscribed from</li>
+</ol>
+
+<p>
+    Create a new synthetic DOM event with `Y.Event.define( <em>name</em>,
+    <em>config</em> )`.  Define the implementation logic for the
+    <code>on</code> and <code>detach</code> moments in the configuration.
+    Typically the condition triggering the event firing is set up in the
+    <code>on</code> phase.
+</p>
+
+<pre class="code prettyprint">Y.Event.define(&quot;arrow&quot;, {
+    on: function (node, sub, notifier) {
+        &#x2F;&#x2F; what happens when a subscription is made
+
+        &#x2F;&#x2F; if (condition) {
+            notifier.fire(); &#x2F;&#x2F; subscribers executed
+        &#x2F;&#x2F; }
+    },
+
+    detach: function (node, sub, notifier) {
+        &#x2F;&#x2F; what happens when a subscription is removed
+    }
+});</pre>
+
+
+<p>
+    In the case of arrow handling, the trigger is simply a key event with a
+    <code>keyCode</code> between 37 and 40.  There are a few browser quirks with arrow
+    handling that warrant listening to <code>keydown</code> for some browsers and
+    <code>keypress</code> for others, so we'll take care of that transparently for <code>arrow</code>
+    subscribers.
+</p> 
+
+<pre class="code prettyprint">Y.Event.define(&quot;arrow&quot;, {
+    on: function (node, sub, notifier) {
+        var directions = {
+            37: &#x27;left&#x27;,
+            38: &#x27;up&#x27;,
+            39: &#x27;right&#x27;,
+            40: &#x27;down&#x27;
+        };
+
+        &#x2F;&#x2F; Webkit and IE repeat keydown when you hold down arrow keys.
+        &#x2F;&#x2F; Opera links keypress to page scroll; others keydown.
+        &#x2F;&#x2F; Firefox prevents page scroll via preventDefault() on either
+        &#x2F;&#x2F; keydown or keypress.
+        &#x2F;&#x2F; Bummer to sniff, but can&#x27;t test the repeating behavior, and a
+        &#x2F;&#x2F; feature test for the scrolling would more than double the code size.
+        var eventName = (Y.UA.webkit || Y.UA.ie) ? &#x27;keydown&#x27; : &#x27;keypress&#x27;;
+
+        &#x2F;&#x2F; To make detaching the associated DOM event easy, store the detach
+        &#x2F;&#x2F; handle from the DOM subscription on the synthethic subscription
+        &#x2F;&#x2F; object.
+        sub._detacher = node.on(eventName, function (e) {
+            &#x2F;&#x2F; Only notify subscribers if one of the arrow keys was pressed
+            if (directions[e.keyCode]) {
+                &#x2F;&#x2F; Add the extra property
+                e.direction = directions[e.keyCode];
+
+                &#x2F;&#x2F; Firing the notifier event executes the arrow subscribers
+                &#x2F;&#x2F; Pass along the key event, which will be renamed &quot;arrow&quot;
+                notifier.fire(e);
+            }
+        });
+    },
+
+    detach: function (node, sub, notifier) {
+        &#x2F;&#x2F; Detach the key event subscription using the stored detach handle
+        sub._detacher.detach();
+    }
+} );</pre>
+
+
+<h2>Add Delegation Support</h2>
+<p>
+    Since the <code>arrow</code> event is simply a filtered <code>keydown</code> or <code>keypress</code> event,
+    no special handling needs to be done for delegate subscriptions.  We will
+    extract the key event handler and use it for both <code>on(&quot;arrow&quot;, ...)</code> and
+    <code>delegate(&quot;arrow&quot;, ...)</code> subscriptions.
+</p>
+
+<pre class="code prettyprint">Y.Event.define(&quot;arrow&quot;, {
+    &#x2F;&#x2F; Webkit and IE repeat keydown when you hold down arrow keys.
+    &#x2F;&#x2F; Opera links keypress to page scroll; others keydown.
+    &#x2F;&#x2F; Firefox prevents page scroll via preventDefault() on either
+    &#x2F;&#x2F; keydown or keypress.
+    _event: (Y.UA.webkit || Y.UA.ie) ? &#x27;keydown&#x27; : &#x27;keypress&#x27;,
+
+    _keys: {
+        &#x27;37&#x27;: &#x27;left&#x27;,
+        &#x27;38&#x27;: &#x27;up&#x27;,
+        &#x27;39&#x27;: &#x27;right&#x27;,
+        &#x27;40&#x27;: &#x27;down&#x27;
+    },
+
+    _keyHandler: function (e, notifier) {
+        if (this._keys[e.keyCode]) {
+            e.direction = this._keys[e.keyCode];
+            notifier.fire(e);
+        }
+    },
+
+    on: function (node, sub, notifier) {
+        &#x2F;&#x2F; Use the extended subscription signature to set the &#x27;this&#x27; object
+        &#x2F;&#x2F; in the callback and pass the notifier as a second parameter to
+        &#x2F;&#x2F; _keyHandler
+        sub._detacher = node.on(this._event, this._keyHandler,
+                                this, notifier);
+    },
+
+    detach: function (node, sub, notifier) {
+        sub._detacher.detach();
+    },
+
+    &#x2F;&#x2F; Note the delegate handler receives a fourth parameter, the filter
+    &#x2F;&#x2F; passed (e.g.) container.delegate(&#x27;click&#x27;, callback, &#x27;.HERE&#x27;);
+    &#x2F;&#x2F; The filter could be either a string or a function.
+    delegate: function (node, sub, notifier, filter) {
+        sub._delegateDetacher = node.delegate(this._event, this._keyHandler,
+                                              filter, this, notifier);
+    },
+
+    &#x2F;&#x2F; Delegate uses a separate detach function to facilitate undoing more
+    &#x2F;&#x2F; complex wiring created in the delegate logic above.  Not needed here.
+    detachDelegate: function (node, sub, notifier) {
+        sub._delegateDetacher.detach();
+    }
+});</pre>
+
+
+<h2>Use it</h2>
+<p>
+    Subscribe to the new event or detach the event as you would any other DOM
+    event.
+</p>
+
+<pre class="code prettyprint">function move(e) {
+    &#x2F;&#x2F; to prevent page scrolling
+    e.preventDefault();
+
+    &#x2F;&#x2F; See full code listing to show the data set up
+    var xy = this.getData();
+
+    switch (e.direction) {
+        case &#x27;up&#x27;:    xy.y -= 10; break;
+        case &#x27;down&#x27;:  xy.y += 10; break;
+        case &#x27;left&#x27;:  xy.x -= 10; break;
+        case &#x27;right&#x27;: xy.x += 10; break;
+    }
+
+    this.transition({
+        top : (xy.y + &#x27;px&#x27;),
+        left: (xy.x + &#x27;px&#x27;),
+        duration: .2
+    });
+}
+
+&#x2F;&#x2F; Subscribe using node.on(&quot;arrow&quot;, ...);
+Y.one(&quot;#A&quot;).on(&quot;arrow&quot;, move),
+Y.one(&quot;#B&quot;).on(&quot;arrow&quot;, move)
+
+&#x2F;&#x2F; OR using container.delegate(&quot;arrow&quot;, ...);
+subs = Y.one(&#x27;#demo&#x27;).delegate(&#x27;arrow&#x27;, move, &#x27;.robot&#x27;);</pre>
+
+
+<h2>Bonus Step: to the Gallery!</h2>
+<p>
+    Synthetic events are perfect candidates for Gallery modules.  There are a
+    number already hosted there, and there are plenty of UI interaction
+    patterns that would benefit from being encapsulated in synthetic
+    events.
+</p>
+
+<p>
+    The <code>arrow</code> event in this example is also
+    <a href="http://yuilibrary.com/gallery/show/event-arrow">in the gallery</a>,
+    but with additional functionality.  Check out
+    <a href="https://github.com/lsmith/yui3-gallery/blob/master/build/gallery-event-arrow/gallery-event-arrow-debug.js">its source</a>
+    to see what you can do with synthetic events.
+</p>
+
+<h2>Full Code Listing</h2>
+<pre class="code prettyprint">&lt;div id=&quot;demo&quot;&gt;
+    &lt;p&gt;Step 1. &lt;button type=&quot;button&quot; id=&quot;attach&quot; tabindex=&quot;1&quot;&gt;subscribe&lt;&#x2F;button&gt; to the &lt;code&gt;arrow&lt;&#x2F;code&gt; event.&lt;br&gt;
+    &lt;input type=&quot;checkbox&quot; id=&quot;delegate&quot; value=&quot;1&quot; tabindex=&quot;1&quot;&gt;
+        &lt;label for=&quot;delegate&quot;&gt;Use a delegated subscription&lt;&#x2F;label&gt;&lt;&#x2F;p&gt;
+    &lt;p&gt;Step 2. Click on a toaster-bot and move it around with the arrow keys.&lt;&#x2F;p&gt;
+
+    &lt;div id=&quot;homebase&quot;&gt;
+        &lt;img id=&quot;A&quot; class=&quot;robot&quot; tabindex=&quot;3&quot; src=&quot;..&#x2F;assets&#x2F;event&#x2F;toast-8b-left.png&quot; &#x2F;&gt;
+        &lt;img id=&quot;B&quot; class=&quot;robot&quot; tabindex=&quot;3&quot; src=&quot;..&#x2F;assets&#x2F;event&#x2F;toast-8b-right.png&quot; &#x2F;&gt;
+    &lt;&#x2F;div&gt;
+
+    &lt;button type=&quot;button&quot; id=&quot;detach&quot; tabindex=&quot;4&quot;&gt;Detach subscriptions&lt;&#x2F;button&gt;
+&lt;&#x2F;div&gt;
+
+&lt;script&gt;
+YUI({ filter: &#x27;raw&#x27; }).use(&#x27;node&#x27;, &#x27;event-synthetic&#x27;, &#x27;transition&#x27;, function (Y) {
+    Y.Event.define(&quot;arrow&quot;, {
+        &#x2F;&#x2F; Webkit and IE repeat keydown when you hold down arrow keys.
+        &#x2F;&#x2F; Opera links keypress to page scroll; others keydown.
+        &#x2F;&#x2F; Firefox prevents page scroll via preventDefault() on either
+        &#x2F;&#x2F; keydown or keypress.
+        _event: (Y.UA.webkit || Y.UA.ie) ? &#x27;keydown&#x27; : &#x27;keypress&#x27;,
+
+        _keys: {
+            &#x27;37&#x27;: &#x27;left&#x27;,
+            &#x27;38&#x27;: &#x27;up&#x27;,
+            &#x27;39&#x27;: &#x27;right&#x27;,
+            &#x27;40&#x27;: &#x27;down&#x27;
+        },
+
+        _keyHandler: function (e, notifier) {
+            if (this._keys[e.keyCode]) {
+                e.direction = this._keys[e.keyCode];
+                notifier.fire(e);
+            }
+        },
+
+        on: function (node, sub, notifier) {
+            sub._detacher = node.on(this._event, this._keyHandler,
+                                    this, notifier);
+        },
+
+        detach: function (node, sub, notifier) {
+            sub._detacher.detach();
+        },
+
+        delegate: function (node, sub, notifier, filter) {
+            sub._delegateDetacher = node.delegate(this._event, this._keyHandler,
+                                                  filter, this, notifier);
+        },
+
+        detachDelegate: function (node, sub, notifier) {
+            sub._delegateDetacher.detach();
+        }
+    });
+
+
+    var robotA = Y.one(&#x27;#A&#x27;),
+        robotB = Y.one(&#x27;#B&#x27;),
+        subs,
+        moving = false;
+
+    robotA.setData(&#x27;x&#x27;, parseInt(robotA.getStyle(&#x27;left&#x27;), 10));
+    robotA.setData(&#x27;y&#x27;, parseInt(robotA.getStyle(&#x27;top&#x27;), 10));
+    robotB.setData(&#x27;x&#x27;, parseInt(robotB.getStyle(&#x27;left&#x27;), 10));
+    robotB.setData(&#x27;y&#x27;, parseInt(robotB.getStyle(&#x27;top&#x27;), 10));
+
+    &#x2F;&#x2F; create variables for image path&#x2F;filenames
+    &#x2F;&#x2F; Use 8bit pngs for IE
+    var imgBits = (Y.UA.ie &amp;&amp; Y.UA.ie &lt; 9) ? &#x27;-8b-&#x27; : &#x27;-24b-&#x27;,
+        imgNamePre = &#x27;..&#x2F;assets&#x2F;event&#x2F;toast&#x27; + imgBits,
+
+        imgUp = imgNamePre + &#x27;up.png&#x27;,
+        imgDown = imgNamePre + &#x27;down.png&#x27;,
+        imgLeft = imgNamePre + &#x27;left.png&#x27;,
+        imgRight = imgNamePre + &#x27;right.png&#x27;;
+
+    Y.one(&#x27;#A&#x27;).setAttribute(&#x27;src&#x27;, imgLeft);
+    Y.one(&#x27;#B&#x27;).setAttribute(&#x27;src&#x27;, imgRight);
+
+    function move(e) {
+        &#x2F;&#x2F; to prevent page scrolling
+        e.preventDefault();
+        if(moving){
+            return; &#x2F;&#x2F; Don&#x27;t move during a transition (a move)
+        }else{
+            moving = true; &#x2F;&#x2F; During moving, block other arrow keys from moving
+        }
+                
+        var xy = this.getData(),
+            imgWidth,
+            imgHeight,
+            &#x2F;&#x2F; var scale is used to make the image size and distance moved
+            &#x2F;&#x2F; proportional to the Y position of the image
+            scale = (150 + xy.y) &#x2F; 150, 
+            moveXDistance = 40,
+            moveYDistance = 20;
+           
+        switch (e.direction) {
+            case &#x27;up&#x27;:
+                if(xy.y &lt; -100){ 
+                    moving = false;
+                    return; &#x2F;&#x2F; Stop moving when image gets too small
+                }    
+                xy.y -= Math.round(moveYDistance * scale);
+                e.target.setAttribute(&#x27;src&#x27;, imgUp);
+                break;
+            case &#x27;down&#x27;:  
+                if(xy.y &gt; 90){
+                    moving = false;
+                    return; &#x2F;&#x2F; Stop moving when image gets too big
+                }    
+                xy.y += Math.round(moveYDistance * scale);
+                e.target.setAttribute(&#x27;src&#x27;, imgDown);
+                break;
+            case &#x27;left&#x27;:
+                xy.x -= Math.round(moveXDistance * scale);
+                e.target.setAttribute(&#x27;src&#x27;, imgLeft);
+                break;
+            case &#x27;right&#x27;:
+                xy.x += Math.round(moveXDistance * scale);
+                e.target.setAttribute(&#x27;src&#x27;, imgRight);
+                break;
+        }
+        scale = 150 &#x2F; (150 - xy.y); &#x2F;&#x2F; calculate scale with new Y dimentions
+        imgWidth = Math.round(scale * 180) + &#x27;px&#x27;;
+        imgHeight = Math.round(scale * 210) + &#x27;px&#x27;;
+        this.transition({
+            top : (xy.y + &#x27;px&#x27;),
+            left: (xy.x + &#x27;px&#x27;),
+            width: imgWidth,
+            height: imgHeight,
+            duration: .8
+        }, function(){
+            moving = false; &#x2F;&#x2F; now that move is done, allow arrow keys to move again
+        });
+
+        this.setData(&#x27;x&#x27;, xy.x);
+        this.setData(&#x27;y&#x27;, xy.y);
+    }
+
+    function detachSubs() {
+        if (subs) {
+            subs.detach();
+            subs = null;
+            Y.all(&#x27;.robot&#x27;).removeClass(&#x27;yui3-focused&#x27;);
+        }
+    }
+
+    Y.one(&quot;#attach&quot;).on(&quot;click&quot;, function (e) {
+        detachSubs();
+
+        if (Y.one(&quot;#delegate&quot;).get(&#x27;checked&#x27;)) {
+            subs = Y.one(&#x27;#demo&#x27;).delegate(&#x27;arrow&#x27;, move, &#x27;.robot&#x27;);
+        } else {
+            subs = new Y.EventHandle([
+                robotA.on(&quot;arrow&quot;, move),
+                robotB.on(&quot;arrow&quot;, move)
+            ]);
+        }
+    });
+
+    Y.one(&quot;#detach&quot;).on(&quot;click&quot;, detachSubs);
+    Y.all(&#x27;.robot&#x27;).on(&#x27;focus&#x27;, function(e){
+        if (subs) {
+            Y.all(&#x27;.robot&#x27;).removeClass(&#x27;yui3-focused&#x27;);
+            e.target.addClass(&#x27;yui3-focused&#x27;);
+        }
+    });
+
+    Y.all(&#x27;.robot&#x27;).on(&#x27;click&#x27;, function(e){
+        e.target.focus();
+    });
+
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Use the Event Utility to attach simple DOM event handlers.">
+                                            <a href="basic-example.html">Simple DOM Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using the synthetic event API to create a DOM event that fires in response to arrow keys being pressed.">
+                                            <a href="synth-example.html">Creating an Arrow Event for DOM Subscription</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Supporting cross-device swipe gestures, using the event-move gesture events">
+                                            <a href="swipe-example.html">Supporting A Swipe Left Gesture</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to extend the base widget class, to create your own Widgets.">
+                                            <a href="../widget/widget-extend.html">Extending the Base Widget Class</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible menu button using the Focus Manager Node Plugin, Event&#x27;s delegation support and mouseenter event, along with the Overlay widget and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-3.html">Accessible Menu Button</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to request data over HTTP.">
+                                            <a href="../io/get.html">HTTP GET to request data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Example Photo Browser application.">
+                                            <a href="../dd/photo-browser.html">Photo Browser</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Portal style example using Drag &amp; Drop Event Bubbling and Animation.">
+                                            <a href="../dd/portal-drag.html">Portal Style Example</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

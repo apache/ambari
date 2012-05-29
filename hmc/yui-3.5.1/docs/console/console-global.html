@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Creating a Universal Console</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Creating a Universal Console</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style>
+#yconsole {
+    text-align: right;
+}
+
+#demo .first button {
+    margin-bottom: 2em;
+}
+
+#demo .yui3-console .yui3-console-title {
+    border: 0 none;
+    color: #000;
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0;
+    text-transform: none;
+}
+#demo .yui3-console .yui3-console-entry-meta {
+    margin: 0;
+}
+
+.clr {
+    clear: both;
+}
+</style>
+
+
+<div class="intro">
+    <p>In this example, three YUI instances are created, each binding a button to call <code>Y.log(...)</code>.  Then an additional, separate YUI instance is created that requests only the <code>console</code> module and creates a Console that listens for log events from all three.</p>
+</div>
+
+<div class="example yui3-skin-sam">
+    <div id="demo" class="yui3-skin-sam">
+    <div class="yui3-g">
+        <div class="yui3-u-1-2 first">
+            <h4>YUI #1</h4>
+            <button type="button" id="yui1">Log from YUI instance #1</button>
+
+            <h4>YUI #2</h4>
+            <button type="button" id="yui2">Log from YUI instance #2</button>
+
+            <h4>YUI #3</h4>
+            <button type="button" id="yui3">Log from YUI instance #3</button>
+        </div>
+        <div class="yui3-u-1-2" id="yconsole">
+        </div>
+    </div>
+    <div class="clr"></div>
+</div>
+
+    <script>
+
+// Create the first YUI instance
+YUI().use("node", function (Y) {
+    
+    Y.one( "#yui1" ).on( "click", function () {
+        Y.log( "Message from YUI instance #1" );
+    });
+
+});
+
+// Create the second YUI instance
+YUI().use("node", function (Y) {
+
+    Y.one( "#yui2" ).on( "click", function () {
+        Y.log( "I'm the second YUI instance" );
+    });
+
+});
+
+// Create a third YUI instance
+YUI().use("node", function (Y) {
+
+    Y.one( "#yui3" ).on( "click", function () {
+        Y.log( "And this is #3 YUI" );
+    });
+
+});
+
+// Create a separate YUI instance to listen to all instances' logging
+YUI().use("console", function (Y) {
+
+    // Configure the Console's logSource to Y.Global to make it universal
+    new Y.Console({
+        logSource: Y.Global,
+        style: 'inline',
+        newestOnTop: false
+    }).render( "#yconsole" );
+
+});
+
+</script>
+
+</div>
+
+<h3 class="first">Multiple YUI instances</h3>
+<p>Each YUI instance is its own sandbox.  You can create as many YUI instances on a page as you want or need (though typically one is enough).  The variables, module configurations and instances are kept inside that instance unless you expressly expose them via a global variable.</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Create the first YUI instance
+YUI().use(&quot;node&quot;, function (Y) {
+
+    Y.one( &quot;#yui1&quot; ).on( &quot;click&quot;, function () {
+        Y.log( &quot;Message from YUI instance #1&quot; );
+    });
+
+});
+
+&#x2F;&#x2F; Create the second YUI instance
+YUI().use(&quot;node&quot;, function (Y) {
+
+    Y.one( &quot;#yui2&quot; ).on( &quot;click&quot;, function () {
+        Y.log( &quot;I&#x27;m the second YUI instance&quot; );
+    });
+
+});
+
+&#x2F;&#x2F; Create a third YUI instance
+YUI().use(&quot;node&quot;, function (Y) {
+
+    Y.one( &quot;#yui3&quot; ).on( &quot;click&quot;, function () {
+        Y.log( &quot;And this is #3 YUI&quot; );
+    });
+
+});</pre>
+
+
+<h3>Listening to <code>Y.Global</code></h3>
+<p>To address debugging such an environment, Console can be configured to listen for log messages across all YUI instances by setting the Console instance's <code>logSource</code> configuration to <code>Y.Global</code>.</p>
+
+<p>We'll insert the universal Console into another YUI instance.</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Create a separate YUI instance to listen to all instances&#x27; logging
+YUI().use(&quot;console&quot;, function (Y) {
+
+    &#x2F;&#x2F; Configure the Console&#x27;s logSource to Y.Global to make it universal
+    new Y.Console({
+        logSource: Y.Global,
+        style: &#x27;block&#x27;,
+        newestOnTop: false,
+        width: &quot;250px&quot;
+    }).render( &quot;#yconsole&quot; );
+
+});</pre>
+
+
+<h3>Full Code Listing</h3>
+
+<h4>Markup</h4>
+<pre class="code prettyprint">&lt;div id=&quot;demo&quot; class=&quot;yui3-skin-sam&quot;&gt;
+    &lt;div class=&quot;yui3-g&quot;&gt;
+        &lt;div class=&quot;yui3-u-1-2 first&quot;&gt;
+            &lt;h4&gt;YUI #1&lt;&#x2F;h4&gt;
+            &lt;button type=&quot;button&quot; id=&quot;yui1&quot;&gt;Log from YUI instance #1&lt;&#x2F;button&gt;
+
+            &lt;h4&gt;YUI #2&lt;&#x2F;h4&gt;
+            &lt;button type=&quot;button&quot; id=&quot;yui2&quot;&gt;Log from YUI instance #2&lt;&#x2F;button&gt;
+
+            &lt;h4&gt;YUI #3&lt;&#x2F;h4&gt;
+            &lt;button type=&quot;button&quot; id=&quot;yui3&quot;&gt;Log from YUI instance #3&lt;&#x2F;button&gt;
+        &lt;&#x2F;div&gt;
+        &lt;div class=&quot;yui3-u-1-2&quot; id=&quot;yconsole&quot;&gt;
+        &lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div class=&quot;clr&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;</pre>
+
+
+<h4>JavaScript</h4>
+<pre class="code prettyprint">&lt;script&gt;
+
+&#x2F;&#x2F; Create the first YUI instance
+YUI().use(&quot;node&quot;, function (Y) {
+    
+    Y.one( &quot;#yui1&quot; ).on( &quot;click&quot;, function () {
+        Y.log( &quot;Message from YUI instance #1&quot; );
+    });
+
+});
+
+&#x2F;&#x2F; Create the second YUI instance
+YUI().use(&quot;node&quot;, function (Y) {
+
+    Y.one( &quot;#yui2&quot; ).on( &quot;click&quot;, function () {
+        Y.log( &quot;I&#x27;m the second YUI instance&quot; );
+    });
+
+});
+
+&#x2F;&#x2F; Create a third YUI instance
+YUI().use(&quot;node&quot;, function (Y) {
+
+    Y.one( &quot;#yui3&quot; ).on( &quot;click&quot;, function () {
+        Y.log( &quot;And this is #3 YUI&quot; );
+    });
+
+});
+
+&#x2F;&#x2F; Create a separate YUI instance to listen to all instances&#x27; logging
+YUI().use(&quot;console&quot;, function (Y) {
+
+    &#x2F;&#x2F; Configure the Console&#x27;s logSource to Y.Global to make it universal
+    new Y.Console({
+        logSource: Y.Global,
+        style: &#x27;inline&#x27;,
+        newestOnTop: false
+    }).render( &quot;#yconsole&quot; );
+
+});
+
+&lt;&#x2F;script&gt;</pre>
+
+
+<h4>CSS</h4>
+<pre class="code prettyprint">&lt;style&gt;
+#yconsole {
+    text-align: right;
+}
+
+#demo .first button {
+    margin-bottom: 2em;
+}
+
+#demo .yui3-console .yui3-console-title {
+    border: 0 none;
+    color: #000;
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0;
+    text-transform: none;
+}
+#demo .yui3-console .yui3-console-entry-meta {
+    margin: 0;
+}
+
+.clr {
+    clear: both;
+}
+&lt;&#x2F;style&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="The basics of setting up a Console">
+                                            <a href="console-basic.html">Creating a Console for Debugging</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using your YUI instance configuration to filter which messages are reported in the Console">
+                                            <a href="console-yui-config.html">YUI Configuration to Filter Log Messages</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using the Console&#x27;s logSource attribute to consolidate log messages from multiple YUI instances into one Console">
+                                            <a href="console-global.html">Creating a Universal Console</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Adding the ConsoleFilters plugin to a Console instance for more granular run time log message filtering">
+                                            <a href="../console-filters/console-filters-intro.html">Using the ConsoleFilters Plugin</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

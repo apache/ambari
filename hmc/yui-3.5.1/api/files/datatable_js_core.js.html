@@ -1,0 +1,2949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>datatable&#x2F;js&#x2F;core.js - YUI 3</title>
+    <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.0&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
+    <link rel="stylesheet" href="..&#x2F;assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="..&#x2F;assets/css/main.css" id="site_styles">
+    <script src="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.0&#x2F;build&#x2F;yui&#x2F;yui-min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+
+<div id="doc">
+    <div id="hd" class="yui3-g header">
+        <div class="yui3-u-3-4">
+            
+                <h1><img src="..&#x2F;assets/css/logo.png" title="YUI 3"></h1>
+            
+        </div>
+        <div class="yui3-u-1-4 version">
+            <em>API Docs for: 3.5.1</em>
+        </div>
+    </div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                <div id="api-list">
+    <h2 class="off-left">APIs</h2>
+    <div id="api-tabview" class="tabview">
+        <ul class="tabs">
+            <li><a href="#api-classes">Classes</a></li>
+            <li><a href="#api-modules">Modules</a></li>
+        </ul>
+
+        <div id="api-tabview-filter">
+            <input type="search" id="api-filter" placeholder="Type to filter APIs">
+        </div>
+
+        <div id="api-tabview-panel">
+            <ul id="api-classes" class="apis classes">
+            
+                <li><a href="..&#x2F;classes/Anim.html">Anim</a></li>
+            
+                <li><a href="..&#x2F;classes/App.html">App</a></li>
+            
+                <li><a href="..&#x2F;classes/App.Base.html">App.Base</a></li>
+            
+                <li><a href="..&#x2F;classes/App.Transitions.html">App.Transitions</a></li>
+            
+                <li><a href="..&#x2F;classes/App.TransitionsNative.html">App.TransitionsNative</a></li>
+            
+                <li><a href="..&#x2F;classes/AreaSeries.html">AreaSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/AreaSplineSeries.html">AreaSplineSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/Array.html">Array</a></li>
+            
+                <li><a href="..&#x2F;classes/ArrayList.html">ArrayList</a></li>
+            
+                <li><a href="..&#x2F;classes/ArraySort.html">ArraySort</a></li>
+            
+                <li><a href="..&#x2F;classes/AsyncQueue.html">AsyncQueue</a></li>
+            
+                <li><a href="..&#x2F;classes/Attribute.html">Attribute</a></li>
+            
+                <li><a href="..&#x2F;classes/AttributeCore.html">AttributeCore</a></li>
+            
+                <li><a href="..&#x2F;classes/AttributeEvents.html">AttributeEvents</a></li>
+            
+                <li><a href="..&#x2F;classes/AttributeExtras.html">AttributeExtras</a></li>
+            
+                <li><a href="..&#x2F;classes/AttributeLite.html">AttributeLite</a></li>
+            
+                <li><a href="..&#x2F;classes/AutoComplete.html">AutoComplete</a></li>
+            
+                <li><a href="..&#x2F;classes/AutoCompleteBase.html">AutoCompleteBase</a></li>
+            
+                <li><a href="..&#x2F;classes/AutoCompleteFilters.html">AutoCompleteFilters</a></li>
+            
+                <li><a href="..&#x2F;classes/AutoCompleteHighlighters.html">AutoCompleteHighlighters</a></li>
+            
+                <li><a href="..&#x2F;classes/AutoCompleteList.html">AutoCompleteList</a></li>
+            
+                <li><a href="..&#x2F;classes/Axis.html">Axis</a></li>
+            
+                <li><a href="..&#x2F;classes/AxisType.html">AxisType</a></li>
+            
+                <li><a href="..&#x2F;classes/BarSeries.html">BarSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/Base.html">Base</a></li>
+            
+                <li><a href="..&#x2F;classes/BaseCore.html">BaseCore</a></li>
+            
+                <li><a href="..&#x2F;classes/BottomAxisLayout.html">BottomAxisLayout</a></li>
+            
+                <li><a href="..&#x2F;classes/Button.html">Button</a></li>
+            
+                <li><a href="..&#x2F;classes/ButtonCore.html">ButtonCore</a></li>
+            
+                <li><a href="..&#x2F;classes/ButtonGroup.html">ButtonGroup</a></li>
+            
+                <li><a href="..&#x2F;classes/ButtonPlugin.html">ButtonPlugin</a></li>
+            
+                <li><a href="..&#x2F;classes/Cache.html">Cache</a></li>
+            
+                <li><a href="..&#x2F;classes/CacheOffline.html">CacheOffline</a></li>
+            
+                <li><a href="..&#x2F;classes/Calendar.html">Calendar</a></li>
+            
+                <li><a href="..&#x2F;classes/CalendarBase.html">CalendarBase</a></li>
+            
+                <li><a href="..&#x2F;classes/CanvasCircle.html">CanvasCircle</a></li>
+            
+                <li><a href="..&#x2F;classes/CanvasDrawing.html">CanvasDrawing</a></li>
+            
+                <li><a href="..&#x2F;classes/CanvasEllipse.html">CanvasEllipse</a></li>
+            
+                <li><a href="..&#x2F;classes/CanvasGraphic.html">CanvasGraphic</a></li>
+            
+                <li><a href="..&#x2F;classes/CanvasPath.html">CanvasPath</a></li>
+            
+                <li><a href="..&#x2F;classes/CanvasPieSlice.html">CanvasPieSlice</a></li>
+            
+                <li><a href="..&#x2F;classes/CanvasRect.html">CanvasRect</a></li>
+            
+                <li><a href="..&#x2F;classes/CanvasShape.html">CanvasShape</a></li>
+            
+                <li><a href="..&#x2F;classes/CartesianChart.html">CartesianChart</a></li>
+            
+                <li><a href="..&#x2F;classes/CartesianSeries.html">CartesianSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/CategoryAxis.html">CategoryAxis</a></li>
+            
+                <li><a href="..&#x2F;classes/Chart.html">Chart</a></li>
+            
+                <li><a href="..&#x2F;classes/ChartBase.html">ChartBase</a></li>
+            
+                <li><a href="..&#x2F;classes/ChartLegend.html">ChartLegend</a></li>
+            
+                <li><a href="..&#x2F;classes/Circle.html">Circle</a></li>
+            
+                <li><a href="..&#x2F;classes/ClassNameManager.html">ClassNameManager</a></li>
+            
+                <li><a href="..&#x2F;classes/ClickableRail.html">ClickableRail</a></li>
+            
+                <li><a href="..&#x2F;classes/ColumnSeries.html">ColumnSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/ComboSeries.html">ComboSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/ComboSplineSeries.html">ComboSplineSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/config.html">config</a></li>
+            
+                <li><a href="..&#x2F;classes/Console.html">Console</a></li>
+            
+                <li><a href="..&#x2F;classes/Controller.html">Controller</a></li>
+            
+                <li><a href="..&#x2F;classes/Cookie.html">Cookie</a></li>
+            
+                <li><a href="..&#x2F;classes/CurveUtil.html">CurveUtil</a></li>
+            
+                <li><a href="..&#x2F;classes/CustomEvent.html">CustomEvent</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSchema.Array.html">DataSchema.Array</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSchema.Base.html">DataSchema.Base</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSchema.JSON.html">DataSchema.JSON</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSchema.Text.html">DataSchema.Text</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSchema.XML.html">DataSchema.XML</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSource.Function.html">DataSource.Function</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSource.Get.html">DataSource.Get</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSource.IO.html">DataSource.IO</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSource.Local.html">DataSource.Local</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSourceArraySchema.html">DataSourceArraySchema</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSourceCache.html">DataSourceCache</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSourceCacheExtension.html">DataSourceCacheExtension</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSourceJSONSchema.html">DataSourceJSONSchema</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSourceTextSchema.html">DataSourceTextSchema</a></li>
+            
+                <li><a href="..&#x2F;classes/DataSourceXMLSchema.html">DataSourceXMLSchema</a></li>
+            
+                <li><a href="..&#x2F;classes/DataTable.html">DataTable</a></li>
+            
+                <li><a href="..&#x2F;classes/DataTable.Base.html">DataTable.Base</a></li>
+            
+                <li><a href="..&#x2F;classes/DataTable.BodyView.html">DataTable.BodyView</a></li>
+            
+                <li><a href="..&#x2F;classes/DataTable.ColumnWidths.html">DataTable.ColumnWidths</a></li>
+            
+                <li><a href="..&#x2F;classes/DataTable.Core.html">DataTable.Core</a></li>
+            
+                <li><a href="..&#x2F;classes/DataTable.HeaderView.html">DataTable.HeaderView</a></li>
+            
+                <li><a href="..&#x2F;classes/DataTable.Message.html">DataTable.Message</a></li>
+            
+                <li><a href="..&#x2F;classes/DataTable.Mutable.html">DataTable.Mutable</a></li>
+            
+                <li><a href="..&#x2F;classes/DataTable.Scrollable.html">DataTable.Scrollable</a></li>
+            
+                <li><a href="..&#x2F;classes/DataTable.Sortable.html">DataTable.Sortable</a></li>
+            
+                <li><a href="..&#x2F;classes/DataType.Date.html">DataType.Date</a></li>
+            
+                <li><a href="..&#x2F;classes/DataType.Date.Locale.html">DataType.Date.Locale</a></li>
+            
+                <li><a href="..&#x2F;classes/DataType.Number.html">DataType.Number</a></li>
+            
+                <li><a href="..&#x2F;classes/DataType.XML.html">DataType.XML</a></li>
+            
+                <li><a href="..&#x2F;classes/DD.DDM.html">DD.DDM</a></li>
+            
+                <li><a href="..&#x2F;classes/DD.Delegate.html">DD.Delegate</a></li>
+            
+                <li><a href="..&#x2F;classes/DD.Drag.html">DD.Drag</a></li>
+            
+                <li><a href="..&#x2F;classes/DD.Drop.html">DD.Drop</a></li>
+            
+                <li><a href="..&#x2F;classes/DD.Scroll.html">DD.Scroll</a></li>
+            
+                <li><a href="..&#x2F;classes/Dial.html">Dial</a></li>
+            
+                <li><a href="..&#x2F;classes/Do.html">Do</a></li>
+            
+                <li><a href="..&#x2F;classes/Do.AlterArgs.html">Do.AlterArgs</a></li>
+            
+                <li><a href="..&#x2F;classes/Do.AlterReturn.html">Do.AlterReturn</a></li>
+            
+                <li><a href="..&#x2F;classes/Do.Error.html">Do.Error</a></li>
+            
+                <li><a href="..&#x2F;classes/Do.Halt.html">Do.Halt</a></li>
+            
+                <li><a href="..&#x2F;classes/Do.Method.html">Do.Method</a></li>
+            
+                <li><a href="..&#x2F;classes/Do.Prevent.html">Do.Prevent</a></li>
+            
+                <li><a href="..&#x2F;classes/DOM.html">DOM</a></li>
+            
+                <li><a href="..&#x2F;classes/DOMEventFacade.html">DOMEventFacade</a></li>
+            
+                <li><a href="..&#x2F;classes/Drawing.html">Drawing</a></li>
+            
+                <li><a href="..&#x2F;classes/Easing.html">Easing</a></li>
+            
+                <li><a href="..&#x2F;classes/EditorBase.html">EditorBase</a></li>
+            
+                <li><a href="..&#x2F;classes/EditorSelection.html">EditorSelection</a></li>
+            
+                <li><a href="..&#x2F;classes/Ellipse.html">Ellipse</a></li>
+            
+                <li><a href="..&#x2F;classes/EllipseGroup.html">EllipseGroup</a></li>
+            
+                <li><a href="..&#x2F;classes/Escape.html">Escape</a></li>
+            
+                <li><a href="..&#x2F;classes/Event.html">Event</a></li>
+            
+                <li><a href="..&#x2F;classes/EventFacade.html">EventFacade</a></li>
+            
+                <li><a href="..&#x2F;classes/EventHandle.html">EventHandle</a></li>
+            
+                <li><a href="..&#x2F;classes/EventTarget.html">EventTarget</a></li>
+            
+                <li><a href="..&#x2F;classes/ExecCommand.html">ExecCommand</a></li>
+            
+                <li><a href="..&#x2F;classes/Features.html">Features</a></li>
+            
+                <li><a href="..&#x2F;classes/File.html">File</a></li>
+            
+                <li><a href="..&#x2F;classes/FileFlash.html">FileFlash</a></li>
+            
+                <li><a href="..&#x2F;classes/FileHTML5.html">FileHTML5</a></li>
+            
+                <li><a href="..&#x2F;classes/Fills.html">Fills</a></li>
+            
+                <li><a href="..&#x2F;classes/Frame.html">Frame</a></li>
+            
+                <li><a href="..&#x2F;classes/Get.html">Get</a></li>
+            
+                <li><a href="..&#x2F;classes/Get.Transaction.html">Get.Transaction</a></li>
+            
+                <li><a href="..&#x2F;classes/GetNodeJS.html">GetNodeJS</a></li>
+            
+                <li><a href="..&#x2F;classes/Graph.html">Graph</a></li>
+            
+                <li><a href="..&#x2F;classes/Graphic.html">Graphic</a></li>
+            
+                <li><a href="..&#x2F;classes/GraphicBase.html">GraphicBase</a></li>
+            
+                <li><a href="..&#x2F;classes/Gridlines.html">Gridlines</a></li>
+            
+                <li><a href="..&#x2F;classes/GroupCircle.html">GroupCircle</a></li>
+            
+                <li><a href="..&#x2F;classes/GroupDiamond.html">GroupDiamond</a></li>
+            
+                <li><a href="..&#x2F;classes/GroupRect.html">GroupRect</a></li>
+            
+                <li><a href="..&#x2F;classes/Handlebars.html">Handlebars</a></li>
+            
+                <li><a href="..&#x2F;classes/Highlight.html">Highlight</a></li>
+            
+                <li><a href="..&#x2F;classes/Histogram.html">Histogram</a></li>
+            
+                <li><a href="..&#x2F;classes/HistoryBase.html">HistoryBase</a></li>
+            
+                <li><a href="..&#x2F;classes/HistoryHash.html">HistoryHash</a></li>
+            
+                <li><a href="..&#x2F;classes/HistoryHTML5.html">HistoryHTML5</a></li>
+            
+                <li><a href="..&#x2F;classes/HorizontalLegendLayout.html">HorizontalLegendLayout</a></li>
+            
+                <li><a href="..&#x2F;classes/ImgLoadGroup.html">ImgLoadGroup</a></li>
+            
+                <li><a href="..&#x2F;classes/ImgLoadImgObj.html">ImgLoadImgObj</a></li>
+            
+                <li><a href="..&#x2F;classes/Intl.html">Intl</a></li>
+            
+                <li><a href="..&#x2F;classes/IO.html">IO</a></li>
+            
+                <li><a href="..&#x2F;classes/JSON.html">JSON</a></li>
+            
+                <li><a href="..&#x2F;classes/JSONPRequest.html">JSONPRequest</a></li>
+            
+                <li><a href="..&#x2F;classes/Lang.html">Lang</a></li>
+            
+                <li><a href="..&#x2F;classes/LeftAxisLayout.html">LeftAxisLayout</a></li>
+            
+                <li><a href="..&#x2F;classes/Lines.html">Lines</a></li>
+            
+                <li><a href="..&#x2F;classes/LineSeries.html">LineSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/Loader.html">Loader</a></li>
+            
+                <li><a href="..&#x2F;classes/MarkerSeries.html">MarkerSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/Matrix.html">Matrix</a></li>
+            
+                <li><a href="..&#x2F;classes/Model.html">Model</a></li>
+            
+                <li><a href="..&#x2F;classes/ModelList.html">ModelList</a></li>
+            
+                <li><a href="..&#x2F;classes/Node.html">Node</a></li>
+            
+                <li><a href="..&#x2F;classes/NodeList.html">NodeList</a></li>
+            
+                <li><a href="..&#x2F;classes/NumericAxis.html">NumericAxis</a></li>
+            
+                <li><a href="..&#x2F;classes/Object.html">Object</a></li>
+            
+                <li><a href="..&#x2F;classes/Overlay.html">Overlay</a></li>
+            
+                <li><a href="..&#x2F;classes/Panel.html">Panel</a></li>
+            
+                <li><a href="..&#x2F;classes/Parallel.html">Parallel</a></li>
+            
+                <li><a href="..&#x2F;classes/Path.html">Path</a></li>
+            
+                <li><a href="..&#x2F;classes/PieChart.html">PieChart</a></li>
+            
+                <li><a href="..&#x2F;classes/PieSeries.html">PieSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/Pjax.html">Pjax</a></li>
+            
+                <li><a href="..&#x2F;classes/PjaxBase.html">PjaxBase</a></li>
+            
+                <li><a href="..&#x2F;classes/Plots.html">Plots</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.Align.html">Plugin.Align</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.AutoComplete.html">Plugin.AutoComplete</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.Base.html">Plugin.Base</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.Cache.html">Plugin.Cache</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.CalendarNavigator.html">Plugin.CalendarNavigator</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.ConsoleFilters.html">Plugin.ConsoleFilters</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.CreateLinkBase.html">Plugin.CreateLinkBase</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.DataTableDataSource.html">Plugin.DataTableDataSource</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.DDConstrained.html">Plugin.DDConstrained</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.DDNodeScroll.html">Plugin.DDNodeScroll</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.DDProxy.html">Plugin.DDProxy</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.DDWindowScroll.html">Plugin.DDWindowScroll</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.Drag.html">Plugin.Drag</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.Drop.html">Plugin.Drop</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.EditorBidi.html">Plugin.EditorBidi</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.EditorBR.html">Plugin.EditorBR</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.EditorLists.html">Plugin.EditorLists</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.EditorPara.html">Plugin.EditorPara</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.EditorParaBase.html">Plugin.EditorParaBase</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.EditorParaIE.html">Plugin.EditorParaIE</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.EditorTab.html">Plugin.EditorTab</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.ExecCommand.html">Plugin.ExecCommand</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.Flick.html">Plugin.Flick</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.Host.html">Plugin.Host</a></li>
+            
+                <li><a href="..&#x2F;classes/plugin.NodeFocusManager.html">plugin.NodeFocusManager</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.NodeFX.html">Plugin.NodeFX</a></li>
+            
+                <li><a href="..&#x2F;classes/plugin.NodeMenuNav.html">plugin.NodeMenuNav</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.Pjax.html">Plugin.Pjax</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.Resize.html">Plugin.Resize</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.ResizeConstrained.html">Plugin.ResizeConstrained</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.ResizeProxy.html">Plugin.ResizeProxy</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.ScrollViewList.html">Plugin.ScrollViewList</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.ScrollViewPaginator.html">Plugin.ScrollViewPaginator</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.ScrollViewScrollbars.html">Plugin.ScrollViewScrollbars</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.Shim.html">Plugin.Shim</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.SortScroll.html">Plugin.SortScroll</a></li>
+            
+                <li><a href="..&#x2F;classes/Plugin.WidgetAnim.html">Plugin.WidgetAnim</a></li>
+            
+                <li><a href="..&#x2F;classes/Pollable.html">Pollable</a></li>
+            
+                <li><a href="..&#x2F;classes/Profiler.html">Profiler</a></li>
+            
+                <li><a href="..&#x2F;classes/QueryString.html">QueryString</a></li>
+            
+                <li><a href="..&#x2F;classes/Queue.html">Queue</a></li>
+            
+                <li><a href="..&#x2F;classes/Record.html">Record</a></li>
+            
+                <li><a href="..&#x2F;classes/Recordset.html">Recordset</a></li>
+            
+                <li><a href="..&#x2F;classes/RecordsetFilter.html">RecordsetFilter</a></li>
+            
+                <li><a href="..&#x2F;classes/RecordsetIndexer.html">RecordsetIndexer</a></li>
+            
+                <li><a href="..&#x2F;classes/RecordsetSort.html">RecordsetSort</a></li>
+            
+                <li><a href="..&#x2F;classes/Rect.html">Rect</a></li>
+            
+                <li><a href="..&#x2F;classes/Renderer.html">Renderer</a></li>
+            
+                <li><a href="..&#x2F;classes/Resize.html">Resize</a></li>
+            
+                <li><a href="..&#x2F;classes/RightAxisLayout.html">RightAxisLayout</a></li>
+            
+                <li><a href="..&#x2F;classes/Router.html">Router</a></li>
+            
+                <li><a href="..&#x2F;classes/ScrollView.html">ScrollView</a></li>
+            
+                <li><a href="..&#x2F;classes/Selector.html">Selector</a></li>
+            
+                <li><a href="..&#x2F;classes/Shape.html">Shape</a></li>
+            
+                <li><a href="..&#x2F;classes/ShapeGroup.html">ShapeGroup</a></li>
+            
+                <li><a href="..&#x2F;classes/Slider.html">Slider</a></li>
+            
+                <li><a href="..&#x2F;classes/SliderBase.html">SliderBase</a></li>
+            
+                <li><a href="..&#x2F;classes/SliderValueRange.html">SliderValueRange</a></li>
+            
+                <li><a href="..&#x2F;classes/Sortable.html">Sortable</a></li>
+            
+                <li><a href="..&#x2F;classes/SplineSeries.html">SplineSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/StackedAreaSeries.html">StackedAreaSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/StackedAreaSplineSeries.html">StackedAreaSplineSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/StackedAxis.html">StackedAxis</a></li>
+            
+                <li><a href="..&#x2F;classes/StackedBarSeries.html">StackedBarSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/StackedColumnSeries.html">StackedColumnSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/StackedComboSeries.html">StackedComboSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/StackedComboSplineSeries.html">StackedComboSplineSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/StackedLineSeries.html">StackedLineSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/StackedMarkerSeries.html">StackedMarkerSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/StackedSplineSeries.html">StackedSplineSeries</a></li>
+            
+                <li><a href="..&#x2F;classes/StackingUtil.html">StackingUtil</a></li>
+            
+                <li><a href="..&#x2F;classes/State.html">State</a></li>
+            
+                <li><a href="..&#x2F;classes/StyleSheet.html">StyleSheet</a></li>
+            
+                <li><a href="..&#x2F;classes/Subscriber.html">Subscriber</a></li>
+            
+                <li><a href="..&#x2F;classes/SVGCircle.html">SVGCircle</a></li>
+            
+                <li><a href="..&#x2F;classes/SVGDrawing.html">SVGDrawing</a></li>
+            
+                <li><a href="..&#x2F;classes/SVGEllipse.html">SVGEllipse</a></li>
+            
+                <li><a href="..&#x2F;classes/SVGGraphic.html">SVGGraphic</a></li>
+            
+                <li><a href="..&#x2F;classes/SVGPath.html">SVGPath</a></li>
+            
+                <li><a href="..&#x2F;classes/SVGPieSlice.html">SVGPieSlice</a></li>
+            
+                <li><a href="..&#x2F;classes/SVGRect.html">SVGRect</a></li>
+            
+                <li><a href="..&#x2F;classes/SVGShape.html">SVGShape</a></li>
+            
+                <li><a href="..&#x2F;classes/SWF.html">SWF</a></li>
+            
+                <li><a href="..&#x2F;classes/SWFDetect.html">SWFDetect</a></li>
+            
+                <li><a href="..&#x2F;classes/SyntheticEvent.html">SyntheticEvent</a></li>
+            
+                <li><a href="..&#x2F;classes/SyntheticEvent.Notifier.html">SyntheticEvent.Notifier</a></li>
+            
+                <li><a href="..&#x2F;classes/SynthRegistry.html">SynthRegistry</a></li>
+            
+                <li><a href="..&#x2F;classes/Tab.html">Tab</a></li>
+            
+                <li><a href="..&#x2F;classes/TabView.html">TabView</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.ArrayAssert.html">Test.ArrayAssert</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.Assert.html">Test.Assert</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.AssertionError.html">Test.AssertionError</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.ComparisonFailure.html">Test.ComparisonFailure</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.Console.html">Test.Console</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.CoverageFormat.html">Test.CoverageFormat</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.DateAssert.html">Test.DateAssert</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.EventTarget.html">Test.EventTarget</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.Mock.html">Test.Mock</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.Mock.Value.html">Test.Mock.Value</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.ObjectAssert.html">Test.ObjectAssert</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.Reporter.html">Test.Reporter</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.Results.html">Test.Results</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.Runner.html">Test.Runner</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.ShouldError.html">Test.ShouldError</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.ShouldFail.html">Test.ShouldFail</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.TestCase.html">Test.TestCase</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.TestFormat.html">Test.TestFormat</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.TestNode.html">Test.TestNode</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.TestRunner.html">Test.TestRunner</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.TestSuite.html">Test.TestSuite</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.UnexpectedError.html">Test.UnexpectedError</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.UnexpectedValue.html">Test.UnexpectedValue</a></li>
+            
+                <li><a href="..&#x2F;classes/Test.Wait.html">Test.Wait</a></li>
+            
+                <li><a href="..&#x2F;classes/Text.AccentFold.html">Text.AccentFold</a></li>
+            
+                <li><a href="..&#x2F;classes/Text.WordBreak.html">Text.WordBreak</a></li>
+            
+                <li><a href="..&#x2F;classes/TimeAxis.html">TimeAxis</a></li>
+            
+                <li><a href="..&#x2F;classes/ToggleButton.html">ToggleButton</a></li>
+            
+                <li><a href="..&#x2F;classes/TopAxisLayout.html">TopAxisLayout</a></li>
+            
+                <li><a href="..&#x2F;classes/Transition.html">Transition</a></li>
+            
+                <li><a href="..&#x2F;classes/UA.html">UA</a></li>
+            
+                <li><a href="..&#x2F;classes/Uploader.html">Uploader</a></li>
+            
+                <li><a href="..&#x2F;classes/Uploader.Queue.html">Uploader.Queue</a></li>
+            
+                <li><a href="..&#x2F;classes/UploaderFlash.html">UploaderFlash</a></li>
+            
+                <li><a href="..&#x2F;classes/UploaderHTML5.html">UploaderHTML5</a></li>
+            
+                <li><a href="..&#x2F;classes/ValueChange.html">ValueChange</a></li>
+            
+                <li><a href="..&#x2F;classes/VerticalLegendLayout.html">VerticalLegendLayout</a></li>
+            
+                <li><a href="..&#x2F;classes/View.html">View</a></li>
+            
+                <li><a href="..&#x2F;classes/View.NodeMap.html">View.NodeMap</a></li>
+            
+                <li><a href="..&#x2F;classes/VMLCircle.html">VMLCircle</a></li>
+            
+                <li><a href="..&#x2F;classes/VMLDrawing.html">VMLDrawing</a></li>
+            
+                <li><a href="..&#x2F;classes/VMLEllipse.html">VMLEllipse</a></li>
+            
+                <li><a href="..&#x2F;classes/VMLGraphic.html">VMLGraphic</a></li>
+            
+                <li><a href="..&#x2F;classes/VMLPath.html">VMLPath</a></li>
+            
+                <li><a href="..&#x2F;classes/VMLPieSlice.html">VMLPieSlice</a></li>
+            
+                <li><a href="..&#x2F;classes/VMLRect.html">VMLRect</a></li>
+            
+                <li><a href="..&#x2F;classes/VMLShape.html">VMLShape</a></li>
+            
+                <li><a href="..&#x2F;classes/Widget.html">Widget</a></li>
+            
+                <li><a href="..&#x2F;classes/WidgetAutohide.html">WidgetAutohide</a></li>
+            
+                <li><a href="..&#x2F;classes/WidgetButtons.html">WidgetButtons</a></li>
+            
+                <li><a href="..&#x2F;classes/WidgetChild.html">WidgetChild</a></li>
+            
+                <li><a href="..&#x2F;classes/WidgetModality.html">WidgetModality</a></li>
+            
+                <li><a href="..&#x2F;classes/WidgetParent.html">WidgetParent</a></li>
+            
+                <li><a href="..&#x2F;classes/WidgetPosition.html">WidgetPosition</a></li>
+            
+                <li><a href="..&#x2F;classes/WidgetPositionAlign.html">WidgetPositionAlign</a></li>
+            
+                <li><a href="..&#x2F;classes/WidgetPositionConstrain.html">WidgetPositionConstrain</a></li>
+            
+                <li><a href="..&#x2F;classes/WidgetStack.html">WidgetStack</a></li>
+            
+                <li><a href="..&#x2F;classes/WidgetStdMod.html">WidgetStdMod</a></li>
+            
+                <li><a href="..&#x2F;classes/YQL.html">YQL</a></li>
+            
+                <li><a href="..&#x2F;classes/YQLRequest.html">YQLRequest</a></li>
+            
+                <li><a href="..&#x2F;classes/YUI.html">YUI</a></li>
+            
+                <li><a href="..&#x2F;classes/YUI~substitute.html">YUI~substitute</a></li>
+            
+            </ul>
+
+            <ul id="api-modules" class="apis modules">
+            
+                <li><a href="..&#x2F;modules/align-plugin.html">align-plugin</a></li>
+            
+                <li><a href="..&#x2F;modules/anim.html">anim</a></li>
+            
+                <li><a href="..&#x2F;modules/anim-base.html">anim-base</a></li>
+            
+                <li><a href="..&#x2F;modules/anim-color.html">anim-color</a></li>
+            
+                <li><a href="..&#x2F;modules/anim-curve.html">anim-curve</a></li>
+            
+                <li><a href="..&#x2F;modules/anim-easing.html">anim-easing</a></li>
+            
+                <li><a href="..&#x2F;modules/anim-node-plugin.html">anim-node-plugin</a></li>
+            
+                <li><a href="..&#x2F;modules/anim-scroll.html">anim-scroll</a></li>
+            
+                <li><a href="..&#x2F;modules/anim-shape-transform.html">anim-shape-transform</a></li>
+            
+                <li><a href="..&#x2F;modules/anim-xy.html">anim-xy</a></li>
+            
+                <li><a href="..&#x2F;modules/app.html">app</a></li>
+            
+                <li><a href="..&#x2F;modules/app-base.html">app-base</a></li>
+            
+                <li><a href="..&#x2F;modules/app-transitions.html">app-transitions</a></li>
+            
+                <li><a href="..&#x2F;modules/app-transitions-native.html">app-transitions-native</a></li>
+            
+                <li><a href="..&#x2F;modules/array-extras.html">array-extras</a></li>
+            
+                <li><a href="..&#x2F;modules/array-invoke.html">array-invoke</a></li>
+            
+                <li><a href="..&#x2F;modules/arraylist.html">arraylist</a></li>
+            
+                <li><a href="..&#x2F;modules/arraylist-add.html">arraylist-add</a></li>
+            
+                <li><a href="..&#x2F;modules/arraylist-filter.html">arraylist-filter</a></li>
+            
+                <li><a href="..&#x2F;modules/arraysort.html">arraysort</a></li>
+            
+                <li><a href="..&#x2F;modules/async-queue.html">async-queue</a></li>
+            
+                <li><a href="..&#x2F;modules/attribute.html">attribute</a></li>
+            
+                <li><a href="..&#x2F;modules/attribute-base.html">attribute-base</a></li>
+            
+                <li><a href="..&#x2F;modules/attribute-complex.html">attribute-complex</a></li>
+            
+                <li><a href="..&#x2F;modules/attribute-core.html">attribute-core</a></li>
+            
+                <li><a href="..&#x2F;modules/attribute-events.html">attribute-events</a></li>
+            
+                <li><a href="..&#x2F;modules/attribute-extras.html">attribute-extras</a></li>
+            
+                <li><a href="..&#x2F;modules/autocomplete.html">autocomplete</a></li>
+            
+                <li><a href="..&#x2F;modules/autocomplete-base.html">autocomplete-base</a></li>
+            
+                <li><a href="..&#x2F;modules/autocomplete-filters.html">autocomplete-filters</a></li>
+            
+                <li><a href="..&#x2F;modules/autocomplete-filters-accentfold.html">autocomplete-filters-accentfold</a></li>
+            
+                <li><a href="..&#x2F;modules/autocomplete-highlighters.html">autocomplete-highlighters</a></li>
+            
+                <li><a href="..&#x2F;modules/autocomplete-highlighters-accentfold.html">autocomplete-highlighters-accentfold</a></li>
+            
+                <li><a href="..&#x2F;modules/autocomplete-list.html">autocomplete-list</a></li>
+            
+                <li><a href="..&#x2F;modules/autocomplete-list-keys.html">autocomplete-list-keys</a></li>
+            
+                <li><a href="..&#x2F;modules/autocomplete-plugin.html">autocomplete-plugin</a></li>
+            
+                <li><a href="..&#x2F;modules/autocomplete-sources.html">autocomplete-sources</a></li>
+            
+                <li><a href="..&#x2F;modules/base.html">base</a></li>
+            
+                <li><a href="..&#x2F;modules/base-base.html">base-base</a></li>
+            
+                <li><a href="..&#x2F;modules/base-build.html">base-build</a></li>
+            
+                <li><a href="..&#x2F;modules/base-core.html">base-core</a></li>
+            
+                <li><a href="..&#x2F;modules/base-pluginhost.html">base-pluginhost</a></li>
+            
+                <li><a href="..&#x2F;modules/button.html">button</a></li>
+            
+                <li><a href="..&#x2F;modules/button-core.html">button-core</a></li>
+            
+                <li><a href="..&#x2F;modules/button-group.html">button-group</a></li>
+            
+                <li><a href="..&#x2F;modules/button-plugin.html">button-plugin</a></li>
+            
+                <li><a href="..&#x2F;modules/cache.html">cache</a></li>
+            
+                <li><a href="..&#x2F;modules/cache-base.html">cache-base</a></li>
+            
+                <li><a href="..&#x2F;modules/cache-offline.html">cache-offline</a></li>
+            
+                <li><a href="..&#x2F;modules/cache-plugin.html">cache-plugin</a></li>
+            
+                <li><a href="..&#x2F;modules/calendar.html">calendar</a></li>
+            
+                <li><a href="..&#x2F;modules/calendar-base.html">calendar-base</a></li>
+            
+                <li><a href="..&#x2F;modules/calendarnavigator.html">calendarnavigator</a></li>
+            
+                <li><a href="..&#x2F;modules/charts.html">charts</a></li>
+            
+                <li><a href="..&#x2F;modules/charts-legend.html">charts-legend</a></li>
+            
+                <li><a href="..&#x2F;modules/classnamemanager.html">classnamemanager</a></li>
+            
+                <li><a href="..&#x2F;modules/clickable-rail.html">clickable-rail</a></li>
+            
+                <li><a href="..&#x2F;modules/collection.html">collection</a></li>
+            
+                <li><a href="..&#x2F;modules/console.html">console</a></li>
+            
+                <li><a href="..&#x2F;modules/console-filters.html">console-filters</a></li>
+            
+                <li><a href="..&#x2F;modules/cookie.html">cookie</a></li>
+            
+                <li><a href="..&#x2F;modules/createlink-base.html">createlink-base</a></li>
+            
+                <li><a href="..&#x2F;modules/dataschema.html">dataschema</a></li>
+            
+                <li><a href="..&#x2F;modules/dataschema-array.html">dataschema-array</a></li>
+            
+                <li><a href="..&#x2F;modules/dataschema-base.html">dataschema-base</a></li>
+            
+                <li><a href="..&#x2F;modules/dataschema-json.html">dataschema-json</a></li>
+            
+                <li><a href="..&#x2F;modules/dataschema-text.html">dataschema-text</a></li>
+            
+                <li><a href="..&#x2F;modules/dataschema-xml.html">dataschema-xml</a></li>
+            
+                <li><a href="..&#x2F;modules/datasource.html">datasource</a></li>
+            
+                <li><a href="..&#x2F;modules/datasource-arrayschema.html">datasource-arrayschema</a></li>
+            
+                <li><a href="..&#x2F;modules/datasource-cache.html">datasource-cache</a></li>
+            
+                <li><a href="..&#x2F;modules/datasource-function.html">datasource-function</a></li>
+            
+                <li><a href="..&#x2F;modules/datasource-get.html">datasource-get</a></li>
+            
+                <li><a href="..&#x2F;modules/datasource-io.html">datasource-io</a></li>
+            
+                <li><a href="..&#x2F;modules/datasource-jsonschema.html">datasource-jsonschema</a></li>
+            
+                <li><a href="..&#x2F;modules/datasource-local.html">datasource-local</a></li>
+            
+                <li><a href="..&#x2F;modules/datasource-polling.html">datasource-polling</a></li>
+            
+                <li><a href="..&#x2F;modules/datasource-textschema.html">datasource-textschema</a></li>
+            
+                <li><a href="..&#x2F;modules/datasource-xmlschema.html">datasource-xmlschema</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable.html">datatable</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-base.html">datatable-base</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-base-deprecated.html">datatable-base-deprecated</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-body.html">datatable-body</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-column-widths.html">datatable-column-widths</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-core.html">datatable-core</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-datasource.html">datatable-datasource</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-datasource-deprecated.html">datatable-datasource-deprecated</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-deprecated.html">datatable-deprecated</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-head.html">datatable-head</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-message.html">datatable-message</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-mutable.html">datatable-mutable</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-scroll.html">datatable-scroll</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-scroll-deprecated.html">datatable-scroll-deprecated</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-sort.html">datatable-sort</a></li>
+            
+                <li><a href="..&#x2F;modules/datatable-sort-deprecated.html">datatable-sort-deprecated</a></li>
+            
+                <li><a href="..&#x2F;modules/datatype.html">datatype</a></li>
+            
+                <li><a href="..&#x2F;modules/datatype-date.html">datatype-date</a></li>
+            
+                <li><a href="..&#x2F;modules/datatype-date-format.html">datatype-date-format</a></li>
+            
+                <li><a href="..&#x2F;modules/datatype-date-math.html">datatype-date-math</a></li>
+            
+                <li><a href="..&#x2F;modules/datatype-date-parse.html">datatype-date-parse</a></li>
+            
+                <li><a href="..&#x2F;modules/datatype-number.html">datatype-number</a></li>
+            
+                <li><a href="..&#x2F;modules/datatype-number-format.html">datatype-number-format</a></li>
+            
+                <li><a href="..&#x2F;modules/datatype-number-parse.html">datatype-number-parse</a></li>
+            
+                <li><a href="..&#x2F;modules/datatype-xml.html">datatype-xml</a></li>
+            
+                <li><a href="..&#x2F;modules/datatype-xml-format.html">datatype-xml-format</a></li>
+            
+                <li><a href="..&#x2F;modules/datatype-xml-parse.html">datatype-xml-parse</a></li>
+            
+                <li><a href="..&#x2F;modules/dd.html">dd</a></li>
+            
+                <li><a href="..&#x2F;modules/dd-constrain.html">dd-constrain</a></li>
+            
+                <li><a href="..&#x2F;modules/dd-ddm.html">dd-ddm</a></li>
+            
+                <li><a href="..&#x2F;modules/dd-ddm-base.html">dd-ddm-base</a></li>
+            
+                <li><a href="..&#x2F;modules/dd-ddm-drop.html">dd-ddm-drop</a></li>
+            
+                <li><a href="..&#x2F;modules/dd-delegate.html">dd-delegate</a></li>
+            
+                <li><a href="..&#x2F;modules/dd-drag.html">dd-drag</a></li>
+            
+                <li><a href="..&#x2F;modules/dd-drop.html">dd-drop</a></li>
+            
+                <li><a href="..&#x2F;modules/dd-drop-plugin.html">dd-drop-plugin</a></li>
+            
+                <li><a href="..&#x2F;modules/dd-plugin.html">dd-plugin</a></li>
+            
+                <li><a href="..&#x2F;modules/dd-proxy.html">dd-proxy</a></li>
+            
+                <li><a href="..&#x2F;modules/dd-scroll.html">dd-scroll</a></li>
+            
+                <li><a href="..&#x2F;modules/dial.html">dial</a></li>
+            
+                <li><a href="..&#x2F;modules/dom.html">dom</a></li>
+            
+                <li><a href="..&#x2F;modules/dom-base.html">dom-base</a></li>
+            
+                <li><a href="..&#x2F;modules/dom-screen.html">dom-screen</a></li>
+            
+                <li><a href="..&#x2F;modules/dom-style.html">dom-style</a></li>
+            
+                <li><a href="..&#x2F;modules/dump.html">dump</a></li>
+            
+                <li><a href="..&#x2F;modules/editor.html">editor</a></li>
+            
+                <li><a href="..&#x2F;modules/editor-base.html">editor-base</a></li>
+            
+                <li><a href="..&#x2F;modules/editor-bidi.html">editor-bidi</a></li>
+            
+                <li><a href="..&#x2F;modules/editor-br.html">editor-br</a></li>
+            
+                <li><a href="..&#x2F;modules/editor-lists.html">editor-lists</a></li>
+            
+                <li><a href="..&#x2F;modules/editor-para.html">editor-para</a></li>
+            
+                <li><a href="..&#x2F;modules/editor-para-base.html">editor-para-base</a></li>
+            
+                <li><a href="..&#x2F;modules/editor-para-ie.html">editor-para-ie</a></li>
+            
+                <li><a href="..&#x2F;modules/editor-tab.html">editor-tab</a></li>
+            
+                <li><a href="..&#x2F;modules/escape.html">escape</a></li>
+            
+                <li><a href="..&#x2F;modules/event.html">event</a></li>
+            
+                <li><a href="..&#x2F;modules/event-base.html">event-base</a></li>
+            
+                <li><a href="..&#x2F;modules/event-contextmenu.html">event-contextmenu</a></li>
+            
+                <li><a href="..&#x2F;modules/event-custom.html">event-custom</a></li>
+            
+                <li><a href="..&#x2F;modules/event-custom-base.html">event-custom-base</a></li>
+            
+                <li><a href="..&#x2F;modules/event-custom-complex.html">event-custom-complex</a></li>
+            
+                <li><a href="..&#x2F;modules/event-delegate.html">event-delegate</a></li>
+            
+                <li><a href="..&#x2F;modules/event-flick.html">event-flick</a></li>
+            
+                <li><a href="..&#x2F;modules/event-focus.html">event-focus</a></li>
+            
+                <li><a href="..&#x2F;modules/event-gestures.html">event-gestures</a></li>
+            
+                <li><a href="..&#x2F;modules/event-hover.html">event-hover</a></li>
+            
+                <li><a href="..&#x2F;modules/event-key.html">event-key</a></li>
+            
+                <li><a href="..&#x2F;modules/event-mouseenter.html">event-mouseenter</a></li>
+            
+                <li><a href="..&#x2F;modules/event-mousewheel.html">event-mousewheel</a></li>
+            
+                <li><a href="..&#x2F;modules/event-move.html">event-move</a></li>
+            
+                <li><a href="..&#x2F;modules/event-outside.html">event-outside</a></li>
+            
+                <li><a href="..&#x2F;modules/event-resize.html">event-resize</a></li>
+            
+                <li><a href="..&#x2F;modules/event-simulate.html">event-simulate</a></li>
+            
+                <li><a href="..&#x2F;modules/event-synthetic.html">event-synthetic</a></li>
+            
+                <li><a href="..&#x2F;modules/event-touch.html">event-touch</a></li>
+            
+                <li><a href="..&#x2F;modules/event-valuechange.html">event-valuechange</a></li>
+            
+                <li><a href="..&#x2F;modules/exec-command.html">exec-command</a></li>
+            
+                <li><a href="..&#x2F;modules/features.html">features</a></li>
+            
+                <li><a href="..&#x2F;modules/file.html">file</a></li>
+            
+                <li><a href="..&#x2F;modules/file-flash.html">file-flash</a></li>
+            
+                <li><a href="..&#x2F;modules/file-html5.html">file-html5</a></li>
+            
+                <li><a href="..&#x2F;modules/frame.html">frame</a></li>
+            
+                <li><a href="..&#x2F;modules/get.html">get</a></li>
+            
+                <li><a href="..&#x2F;modules/get-nodejs.html">get-nodejs</a></li>
+            
+                <li><a href="..&#x2F;modules/graphics.html">graphics</a></li>
+            
+                <li><a href="..&#x2F;modules/handlebars.html">handlebars</a></li>
+            
+                <li><a href="..&#x2F;modules/handlebars-base.html">handlebars-base</a></li>
+            
+                <li><a href="..&#x2F;modules/handlebars-compiler.html">handlebars-compiler</a></li>
+            
+                <li><a href="..&#x2F;modules/highlight.html">highlight</a></li>
+            
+                <li><a href="..&#x2F;modules/highlight-accentfold.html">highlight-accentfold</a></li>
+            
+                <li><a href="..&#x2F;modules/highlight-base.html">highlight-base</a></li>
+            
+                <li><a href="..&#x2F;modules/history.html">history</a></li>
+            
+                <li><a href="..&#x2F;modules/history-base.html">history-base</a></li>
+            
+                <li><a href="..&#x2F;modules/history-hash.html">history-hash</a></li>
+            
+                <li><a href="..&#x2F;modules/history-hash-ie.html">history-hash-ie</a></li>
+            
+                <li><a href="..&#x2F;modules/history-html5.html">history-html5</a></li>
+            
+                <li><a href="..&#x2F;modules/imageloader.html">imageloader</a></li>
+            
+                <li><a href="..&#x2F;modules/intl.html">intl</a></li>
+            
+                <li><a href="..&#x2F;modules/io.html">io</a></li>
+            
+                <li><a href="..&#x2F;modules/io-base.html">io-base</a></li>
+            
+                <li><a href="..&#x2F;modules/io-form.html">io-form</a></li>
+            
+                <li><a href="..&#x2F;modules/io-queue.html">io-queue</a></li>
+            
+                <li><a href="..&#x2F;modules/io-upload-iframe.html">io-upload-iframe</a></li>
+            
+                <li><a href="..&#x2F;modules/io-xdr.html">io-xdr</a></li>
+            
+                <li><a href="..&#x2F;modules/json.html">json</a></li>
+            
+                <li><a href="..&#x2F;modules/json-parse.html">json-parse</a></li>
+            
+                <li><a href="..&#x2F;modules/json-stringify.html">json-stringify</a></li>
+            
+                <li><a href="..&#x2F;modules/jsonp.html">jsonp</a></li>
+            
+                <li><a href="..&#x2F;modules/jsonp-url.html">jsonp-url</a></li>
+            
+                <li><a href="..&#x2F;modules/loader.html">loader</a></li>
+            
+                <li><a href="..&#x2F;modules/loader-base.html">loader-base</a></li>
+            
+                <li><a href="..&#x2F;modules/matrix.html">matrix</a></li>
+            
+                <li><a href="..&#x2F;modules/model.html">model</a></li>
+            
+                <li><a href="..&#x2F;modules/model-list.html">model-list</a></li>
+            
+                <li><a href="..&#x2F;modules/node.html">node</a></li>
+            
+                <li><a href="..&#x2F;modules/node-base.html">node-base</a></li>
+            
+                <li><a href="..&#x2F;modules/node-core.html">node-core</a></li>
+            
+                <li><a href="..&#x2F;modules/node-data.html">node-data</a></li>
+            
+                <li><a href="..&#x2F;modules/node-deprecated.html">node-deprecated</a></li>
+            
+                <li><a href="..&#x2F;modules/node-event-delegate.html">node-event-delegate</a></li>
+            
+                <li><a href="..&#x2F;modules/node-event-html5.html">node-event-html5</a></li>
+            
+                <li><a href="..&#x2F;modules/node-event-simulate.html">node-event-simulate</a></li>
+            
+                <li><a href="..&#x2F;modules/node-flick.html">node-flick</a></li>
+            
+                <li><a href="..&#x2F;modules/node-focusmanager.html">node-focusmanager</a></li>
+            
+                <li><a href="..&#x2F;modules/node-load.html">node-load</a></li>
+            
+                <li><a href="..&#x2F;modules/node-menunav.html">node-menunav</a></li>
+            
+                <li><a href="..&#x2F;modules/node-pluginhost.html">node-pluginhost</a></li>
+            
+                <li><a href="..&#x2F;modules/node-screen.html">node-screen</a></li>
+            
+                <li><a href="..&#x2F;modules/node-style.html">node-style</a></li>
+            
+                <li><a href="..&#x2F;modules/oop.html">oop</a></li>
+            
+                <li><a href="..&#x2F;modules/overlay.html">overlay</a></li>
+            
+                <li><a href="..&#x2F;modules/panel.html">panel</a></li>
+            
+                <li><a href="..&#x2F;modules/parallel.html">parallel</a></li>
+            
+                <li><a href="..&#x2F;modules/pjax.html">pjax</a></li>
+            
+                <li><a href="..&#x2F;modules/pjax-base.html">pjax-base</a></li>
+            
+                <li><a href="..&#x2F;modules/pjax-plugin.html">pjax-plugin</a></li>
+            
+                <li><a href="..&#x2F;modules/plugin.html">plugin</a></li>
+            
+                <li><a href="..&#x2F;modules/pluginhost.html">pluginhost</a></li>
+            
+                <li><a href="..&#x2F;modules/pluginhost-base.html">pluginhost-base</a></li>
+            
+                <li><a href="..&#x2F;modules/pluginhost-config.html">pluginhost-config</a></li>
+            
+                <li><a href="..&#x2F;modules/profiler.html">profiler</a></li>
+            
+                <li><a href="..&#x2F;modules/querystring.html">querystring</a></li>
+            
+                <li><a href="..&#x2F;modules/querystring-parse.html">querystring-parse</a></li>
+            
+                <li><a href="..&#x2F;modules/querystring-parse-simple.html">querystring-parse-simple</a></li>
+            
+                <li><a href="..&#x2F;modules/querystring-stringify.html">querystring-stringify</a></li>
+            
+                <li><a href="..&#x2F;modules/querystring-stringify-simple.html">querystring-stringify-simple</a></li>
+            
+                <li><a href="..&#x2F;modules/queue-promote.html">queue-promote</a></li>
+            
+                <li><a href="..&#x2F;modules/range-slider.html">range-slider</a></li>
+            
+                <li><a href="..&#x2F;modules/recordset.html">recordset</a></li>
+            
+                <li><a href="..&#x2F;modules/recordset-base.html">recordset-base</a></li>
+            
+                <li><a href="..&#x2F;modules/recordset-filter.html">recordset-filter</a></li>
+            
+                <li><a href="..&#x2F;modules/recordset-indexer.html">recordset-indexer</a></li>
+            
+                <li><a href="..&#x2F;modules/recordset-sort.html">recordset-sort</a></li>
+            
+                <li><a href="..&#x2F;modules/resize.html">resize</a></li>
+            
+                <li><a href="..&#x2F;modules/resize-contrain.html">resize-contrain</a></li>
+            
+                <li><a href="..&#x2F;modules/resize-plugin.html">resize-plugin</a></li>
+            
+                <li><a href="..&#x2F;modules/resize-proxy.html">resize-proxy</a></li>
+            
+                <li><a href="..&#x2F;modules/rollup.html">rollup</a></li>
+            
+                <li><a href="..&#x2F;modules/router.html">router</a></li>
+            
+                <li><a href="..&#x2F;modules/scrollview.html">scrollview</a></li>
+            
+                <li><a href="..&#x2F;modules/scrollview-base.html">scrollview-base</a></li>
+            
+                <li><a href="..&#x2F;modules/scrollview-base-ie.html">scrollview-base-ie</a></li>
+            
+                <li><a href="..&#x2F;modules/scrollview-list.html">scrollview-list</a></li>
+            
+                <li><a href="..&#x2F;modules/scrollview-paginator.html">scrollview-paginator</a></li>
+            
+                <li><a href="..&#x2F;modules/scrollview-scrollbars.html">scrollview-scrollbars</a></li>
+            
+                <li><a href="..&#x2F;modules/selection.html">selection</a></li>
+            
+                <li><a href="..&#x2F;modules/selector-css2.html">selector-css2</a></li>
+            
+                <li><a href="..&#x2F;modules/selector-css3.html">selector-css3</a></li>
+            
+                <li><a href="..&#x2F;modules/selector-native.html">selector-native</a></li>
+            
+                <li><a href="..&#x2F;modules/shim-plugin.html">shim-plugin</a></li>
+            
+                <li><a href="..&#x2F;modules/slider.html">slider</a></li>
+            
+                <li><a href="..&#x2F;modules/slider-base.html">slider-base</a></li>
+            
+                <li><a href="..&#x2F;modules/slider-value-range.html">slider-value-range</a></li>
+            
+                <li><a href="..&#x2F;modules/sortable.html">sortable</a></li>
+            
+                <li><a href="..&#x2F;modules/sortable-scroll.html">sortable-scroll</a></li>
+            
+                <li><a href="..&#x2F;modules/stylesheet.html">stylesheet</a></li>
+            
+                <li><a href="..&#x2F;modules/substitute.html">substitute</a></li>
+            
+                <li><a href="..&#x2F;modules/swf.html">swf</a></li>
+            
+                <li><a href="..&#x2F;modules/swfdetect.html">swfdetect</a></li>
+            
+                <li><a href="..&#x2F;modules/tabview.html">tabview</a></li>
+            
+                <li><a href="..&#x2F;modules/test.html">test</a></li>
+            
+                <li><a href="..&#x2F;modules/test-console.html">test-console</a></li>
+            
+                <li><a href="..&#x2F;modules/text.html">text</a></li>
+            
+                <li><a href="..&#x2F;modules/text-accentfold.html">text-accentfold</a></li>
+            
+                <li><a href="..&#x2F;modules/text-wordbreak.html">text-wordbreak</a></li>
+            
+                <li><a href="..&#x2F;modules/transition.html">transition</a></li>
+            
+                <li><a href="..&#x2F;modules/uploader.html">uploader</a></li>
+            
+                <li><a href="..&#x2F;modules/uploader-deprecated.html">uploader-deprecated</a></li>
+            
+                <li><a href="..&#x2F;modules/uploader-flash.html">uploader-flash</a></li>
+            
+                <li><a href="..&#x2F;modules/uploader-html5.html">uploader-html5</a></li>
+            
+                <li><a href="..&#x2F;modules/uploader-queue.html">uploader-queue</a></li>
+            
+                <li><a href="..&#x2F;modules/view.html">view</a></li>
+            
+                <li><a href="..&#x2F;modules/view-node-map.html">view-node-map</a></li>
+            
+                <li><a href="..&#x2F;modules/widget.html">widget</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-anim.html">widget-anim</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-autohide.html">widget-autohide</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-base.html">widget-base</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-base-ie.html">widget-base-ie</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-buttons.html">widget-buttons</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-child.html">widget-child</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-htmlparser.html">widget-htmlparser</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-locale.html">widget-locale</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-modality.html">widget-modality</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-parent.html">widget-parent</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-position.html">widget-position</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-position-align.html">widget-position-align</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-position-constrain.html">widget-position-constrain</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-skin.html">widget-skin</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-stack.html">widget-stack</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-stdmod.html">widget-stdmod</a></li>
+            
+                <li><a href="..&#x2F;modules/widget-uievents.html">widget-uievents</a></li>
+            
+                <li><a href="..&#x2F;modules/yql.html">yql</a></li>
+            
+                <li><a href="..&#x2F;modules/yui.html">yui</a></li>
+            
+                <li><a href="..&#x2F;modules/yui-base.html">yui-base</a></li>
+            
+                <li><a href="..&#x2F;modules/yui-later.html">yui-later</a></li>
+            
+                <li><a href="..&#x2F;modules/yui-log.html">yui-log</a></li>
+            
+                <li><a href="..&#x2F;modules/yui-throttle.html">yui-throttle</a></li>
+            
+                <li><a href="..&#x2F;modules/yui3.html">yui3</a></li>
+            
+            </ul>
+        </div>
+    </div>
+</div>
+
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+                <div id="api-options">
+        Show:
+        <label for="api-show-inherited">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+    </div>
+
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+                        <h1 class="file-heading">File: datatable&#x2F;js&#x2F;core.js</h1>
+
+<div class="file">
+    <pre class="code prettyprint linenums">
+&#x2F;**
+The core implementation of the &#x60;DataTable&#x60; and &#x60;DataTable.Base&#x60; Widgets.
+
+@module datatable
+@submodule datatable-core
+@since 3.5.0
+**&#x2F;
+
+var INVALID = Y.Attribute.INVALID_VALUE,
+
+    Lang         = Y.Lang,
+    isFunction   = Lang.isFunction,
+    isObject     = Lang.isObject,
+    isArray      = Lang.isArray,
+    isString     = Lang.isString,
+    isNumber     = Lang.isNumber,
+    fromTemplate = Lang.sub,
+
+    toArray = Y.Array,
+
+    keys = Y.Object.keys,
+
+    Table;
+    
+&#x2F;&#x2F; TODO: add this to Y.Object
+function flatten(o) {
+    var flat = {},
+        key;
+
+    for (key in o) {
+        &#x2F;&#x2F; Not doing a hasOwnProperty check on purpose
+        flat[key] = o[key];
+    }
+
+    return flat;
+}
+
+&#x2F;**
+_API docs for this extension are included in the DataTable class._
+
+Class extension providing the core API and structure for the DataTable Widget.
+
+Use this class extension with Widget or another Base-based superclass to create
+the basic DataTable API and composing class structure.
+
+Notable about this architecture is that rendering and UI event management for
+the header, body, and footer of the table are deferred to configurable classes
+in the &#x60;headerView&#x60;, &#x60;bodyView&#x60;, and &#x60;footerView&#x60; attributes.  In this extension
+they have no default values, requiring implementers to supply their own classes
+to render the table content.
+
+@class DataTable.Core
+@for DataTable
+@since 3.5.0
+**&#x2F;
+Table = Y.namespace(&#x27;DataTable&#x27;).Core = function () {};
+
+Table.ATTRS = {
+    &#x2F;**
+    Columns to include in the rendered table.
+    
+    If omitted, the attributes on the configured &#x60;recordType&#x60; or the first item
+    in the &#x60;data&#x60; collection will be used as a source.
+
+    This attribute takes an array of strings or objects (mixing the two is
+    fine).  Each string or object is considered a column to be rendered.
+    Strings are converted to objects, so &#x60;columns: [&#x27;first&#x27;, &#x27;last&#x27;]&#x60; becomes
+    &#x60;columns: [{ key: &#x27;first&#x27; }, { key: &#x27;last&#x27; }]&#x60;.
+
+    DataTable.Core only concerns itself with a few properties of columns.
+    All other properties are for use by the &#x60;headerView&#x60;, &#x60;bodyView&#x60;,
+    &#x60;footerView&#x60;, and any class extensions or plugins on the final class or
+    instance. See the descriptions of the view classes and feature class
+    extensions and plugins for details on the specific properties they read or
+    add to column definitions.
+
+    The properties that are referenced or assigned are:
+
+    * &#x60;key&#x60; - Used to identify the record field&#x2F;attribute containing content for
+      this column.  Also used to create a default Model if no &#x60;recordType&#x60; or
+      &#x60;data&#x60; are provided during construction.  If &#x60;name&#x60; is not specified, this
+      is assigned to the &#x60;_id&#x60; property (with added incrementer if the key is
+      used by multiple columns).
+    * &#x60;children&#x60; - Traversed to initialize nested column objects
+    * &#x60;name&#x60; - Used in place of, or in addition to, the &#x60;key&#x60;.  Useful for
+      columns that aren&#x27;t bound to a field&#x2F;attribute in the record data.  This
+      is assigned to the &#x60;_id&#x60; property.
+    * &#x60;id&#x60; - For backward compatibility.  Implementers can specify the id of
+      the header cell.  This should be avoided, if possible, to avoid the
+      potential for creating DOM elements with duplicate IDs.
+    * &#x60;field&#x60; - For backward compatibility.  Implementers should use &#x60;name&#x60;.
+    * &#x60;_id&#x60; - Assigned unique-within-this-instance id for a column.  By order
+      of preference, assumes the value of &#x60;name&#x60;, &#x60;key&#x60;, &#x60;id&#x60;, or &#x60;_yuid&#x60;.
+      This is used by the &#x60;bodyView&#x60; and &#x60;headerView&#x60; as well as feature module
+      as a means to identify a specific column without ambiguity (such as
+      multiple columns using the same &#x60;key&#x60;.
+    * &#x60;_yuid&#x60; - Guid stamp assigned to the column object.
+    * &#x60;_parent&#x60; - Assigned to all child columns, referencing their parent
+      column.
+
+    @attribute columns
+    @type {Object[]|String[]}
+    @default (from &#x60;recordType&#x60; ATTRS or first item in the &#x60;data&#x60;)
+    @since 3.5.0
+    **&#x2F;
+    columns: {
+        &#x2F;&#x2F; TODO: change to setter to coerce Columnset?
+        validator: isArray,
+        getter: &#x27;_getColumns&#x27;
+    },
+
+    &#x2F;**
+    Model subclass to use as the &#x60;model&#x60; for the ModelList stored in the &#x60;data&#x60;
+    attribute.
+
+    If not provided, it will try really hard to figure out what to use.  The
+    following attempts will be made to set a default value:
+    
+    1. If the &#x60;data&#x60; attribute is set with a ModelList instance and its &#x60;model&#x60;
+       property is set, that will be used.
+    2. If the &#x60;data&#x60; attribute is set with a ModelList instance, and its
+       &#x60;model&#x60; property is unset, but it is populated, the &#x60;ATTRS&#x60; of the
+       &#x60;constructor of the first item will be used.
+    3. If the &#x60;data&#x60; attribute is set with a non-empty array, a Model subclass
+       will be generated using the keys of the first item as its &#x60;ATTRS&#x60; (see
+       the &#x60;_createRecordClass&#x60; method).
+    4. If the &#x60;columns&#x60; attribute is set, a Model subclass will be generated
+       using the columns defined with a &#x60;key&#x60;. This is least desirable because
+       columns can be duplicated or nested in a way that&#x27;s not parsable.
+    5. If neither &#x60;data&#x60; nor &#x60;columns&#x60; is set or populated, a change event
+       subscriber will listen for the first to be changed and try all over
+       again.
+
+    @attribute recordType
+    @type {Function}
+    @default (see description)
+    @since 3.5.0
+    **&#x2F;
+    recordType: {
+        setter: &#x27;_setRecordType&#x27;,
+        writeOnce: true
+    },
+
+    &#x2F;**
+    The collection of data records to display.  This attribute is a pass
+    through to a &#x60;data&#x60; property, which is a ModelList instance.
+
+    If this attribute is passed a ModelList or subclass, it will be assigned to
+    the property directly.  If an array of objects is passed, a new ModelList
+    will be created using the configured &#x60;recordType&#x60; as its &#x60;model&#x60; property
+    and seeded with the array.
+
+    Retrieving this attribute will return the ModelList stored in the &#x60;data&#x60;
+    property.
+
+    @attribute data
+    @type {ModelList|Object[]}
+    @default &#x60;new ModelList()&#x60;
+    @since 3.5.0
+    **&#x2F;
+    data: {
+        value : [],
+        setter: &#x27;_setData&#x27;,
+        getter: &#x27;_getData&#x27;
+    },
+
+    &#x2F;**
+    The class or object to use for rendering the &#x60;&lt;thead&gt;&#x60; and column headers
+    for the table.  This attribute is responsible for populating the the
+    instance&#x27;s &#x60;head&#x60; property.
+
+    If a class constructor (function) is passed, an instance of that clas will
+    be created at &#x60;render()&#x60; time and assigned to &#x60;this.head&#x60;.  If an object is
+    passed, &#x60;head&#x60; will be set immediately.
+
+    Valid objects or classes will have a &#x60;render()&#x60; method, though it is
+    recommended that they be subclasses of &#x60;Y.Base&#x60; or &#x60;Y.View&#x60;.  If the object
+    or class supports events, its &#x60;addTarget()&#x60; method will be called to bubble
+    its events to this instance.
+
+    The core implementaion does not define a default &#x60;headerView&#x60;.  Classes
+    built from this extension should define a default.
+
+    @attribute headerView
+    @type {Function|Object}
+    @since 3.5.0
+    **&#x2F;
+    headerView: {
+        validator: &#x27;_validateView&#x27;,
+        writeOnce: true
+    },
+
+    &#x2F;**
+    The class or object to use for rendering the &#x60;&lt;tfoot&gt;&#x60; and any relevant
+    content for it.  This attribute is responsible for populating the the
+    instance&#x27;s &#x60;foot&#x60; property.
+
+    If a class constructor (function) is passed, an instance of that clas will
+    be created at &#x60;render()&#x60; time and assigned to &#x60;this.foot&#x60;.  If an object is
+    passed, &#x60;foot&#x60; will be set immediately.
+
+    Valid objects or classes will have a &#x60;render()&#x60; method, though it is
+    recommended that they be subclasses of &#x60;Y.Base&#x60; or &#x60;Y.View&#x60;.  If the object
+    or class supports events, its &#x60;addTarget()&#x60; method will be called to bubble
+    its events to this instance.
+
+    The core implementaion does not define a default &#x60;footerView&#x60;.  Classes
+    built from this extension should define a default if appropriate.
+
+    @attribute footerView
+    @type {Function|Object}
+    @since 3.5.0
+    **&#x2F;
+    footerView: {
+        validator: &#x27;_validateView&#x27;,
+        writeOnce: true
+    },
+
+    &#x2F;**
+    The class or object to use for rendering the &#x60;&lt;tbody&gt;&#x60; or &#x60;&lt;tbody&gt;&#x60;s and
+    all data row content for the table.  This attribute is responsible for
+    populating the the instance&#x27;s &#x60;body&#x60; property.
+
+    If a class constructor (function) is passed, an instance of that clas will
+    be created at &#x60;render()&#x60; time and assigned to &#x60;this.body&#x60;.  If an object is
+    passed, &#x60;body&#x60; will be set immediately.
+
+    Valid objects or classes will have a &#x60;render()&#x60; method, though it is
+    recommended that they be subclasses of &#x60;Y.Base&#x60; or &#x60;Y.View&#x60;.  If the object
+    or class supports events, its &#x60;addTarget()&#x60; method will be called to bubble
+    its events to this instance.
+
+    The core implementaion does not define a default &#x60;bodyView&#x60;.  Classes
+    built from this extension should define a default.
+
+    @attribute bodyView
+    @type {Function|Object}
+    @since 3.5.0
+    **&#x2F;
+    bodyView: {
+        validator: &#x27;_validateView&#x27;,
+        writeOnce: true
+    },
+
+    &#x2F;**
+    Content for the &#x60;&lt;table summary=&quot;ATTRIBUTE VALUE HERE&quot;&gt;&#x60;.  Values assigned
+    to this attribute will be HTML escaped for security.
+
+    @attribute summary
+    @type {String}
+    @default &#x27;&#x27; (empty string)
+    @since 3.5.0
+    **&#x2F;
+    summary: {
+        value: &#x27;&#x27;,
+        &#x2F;&#x2F; For paranoid reasons, the value is escaped on its way in because
+        &#x2F;&#x2F; rendering can be based on string concatenation.
+        setter: Y.Escape.html
+    },
+
+    &#x2F;**
+    HTML content of an optional &#x60;&lt;caption&gt;&#x60; element to appear above the table.
+    Leave this config unset or set to a falsy value to remove the caption.
+
+    @attribute caption
+    @type HTML
+    @default &#x27;&#x27; (empty string)
+    @since 3.5.0
+    **&#x2F;
+    caption: {
+        value: &#x27;&#x27;
+    },
+
+    &#x2F;**
+    Deprecated as of 3.5.0. Passes through to the &#x60;data&#x60; attribute.
+
+    WARNING: &#x60;get(&#x27;recordset&#x27;)&#x60; will NOT return a Recordset instance as of
+    3.5.0.  This is a break in backward compatibility.
+
+    @attribute recordset
+    @type {Object[]|Recordset}
+    @deprecated Use the &#x60;data&#x60; attribute
+    @since 3.5.0
+    **&#x2F;
+    recordset: {
+        setter: &#x27;_setRecordset&#x27;,
+        getter: &#x27;_getRecordset&#x27;,
+        lazyAdd: false
+    },
+
+    &#x2F;**
+    Deprecated as of 3.5.0. Passes through to the &#x60;columns&#x60; attribute.
+
+    If a Columnset object is passed, its raw object and array column data will
+    be extracted for use.
+
+    WARNING: &#x60;get(&#x27;columnset&#x27;)&#x60; will NOT return a Columnset instance as of
+    3.5.0.  This is a break in backward compatibility.
+
+    @attribute columnset
+    @type {Object[]|Columnset}
+    @deprecated Use the &#x60;columns&#x60; attribute
+    @since 3.5.0
+    **&#x2F;
+    columnset: {
+        setter: &#x27;_setColumnset&#x27;,
+        getter: &#x27;_getColumnset&#x27;,
+        lazyAdd: false
+    }
+};
+
+Y.mix(Table.prototype, {
+    &#x2F;&#x2F; -- Instance properties -------------------------------------------------
+
+    &#x2F;**
+    The HTML template used to create the caption Node if the &#x60;caption&#x60;
+    attribute is set.
+
+    @property CAPTION_TEMPLATE
+    @type {HTML}
+    @default &#x27;&lt;caption class=&quot;{className}&quot;&#x2F;&gt;&#x27;
+    @since 3.5.0
+    **&#x2F;
+    CAPTION_TEMPLATE: &#x27;&lt;caption class=&quot;{className}&quot;&#x2F;&gt;&#x27;,
+
+    &#x2F;**
+    The HTML template used to create the table Node.
+
+    @property TABLE_TEMPLATE
+    @type {HTML}
+    @default &#x27;&lt;table cellspacing=&quot;0&quot; class=&quot;{className}&quot;&#x2F;&gt;&#x27;
+    @since 3.5.0
+    **&#x2F;
+    TABLE_TEMPLATE  : &#x27;&lt;table cellspacing=&quot;0&quot; class=&quot;{className}&quot;&#x2F;&gt;&#x27;,
+
+    &#x2F;**
+    HTML template used to create table&#x27;s &#x60;&lt;tbody&gt;&#x60; if configured with a
+    &#x60;bodyView&#x60;.
+
+    @property TBODY_TEMPLATE
+    @type {HTML}
+    @default &#x27;&lt;tbody class=&quot;{className}&quot;&#x2F;&gt;&#x27;
+    @since 3.5.0
+    **&#x2F;
+    TBODY_TEMPLATE: &#x27;&lt;tbody class=&quot;{className}&quot;&#x2F;&gt;&#x27;,
+
+    &#x2F;**
+    Template used to create the table&#x27;s &#x60;&lt;tfoot&gt;&#x60; if configured with a
+    &#x60;footerView&#x60;.
+
+    @property TFOOT_TEMPLATE
+    @type {HTML}
+    @default &#x27;&lt;tfoot class=&quot;{className}&quot;&#x2F;&gt;&#x27;
+    @since 3.5.0
+    **&#x2F;
+    TFOOT_TEMPLATE:
+        &#x27;&lt;tfoot class=&quot;{className}&quot;&#x2F;&gt;&#x27;,
+
+    &#x2F;**
+    Template used to create the table&#x27;s &#x60;&lt;thead&gt;&#x60; if configured with a
+    &#x60;headerView&#x60;.
+
+    @property THEAD_TEMPLATE
+    @type {HTML}
+    @default &#x27;&lt;thead class=&quot;{className}&quot;&#x2F;&gt;&#x27;
+    @since 3.5.0
+    **&#x2F;
+    THEAD_TEMPLATE:
+        &#x27;&lt;thead class=&quot;{className}&quot;&#x2F;&gt;&#x27;,
+
+    &#x2F;**
+    The object or instance of the class assigned to &#x60;bodyView&#x60; that is
+    responsible for rendering and managing the table&#x27;s &#x60;&lt;tbody&gt;&#x60;(s) and its
+    content.
+
+    @property body
+    @type {Object}
+    @default undefined (initially unset)
+    @since 3.5.0
+    **&#x2F;
+    &#x2F;&#x2F;body: null,
+
+    &#x2F;**
+    The object or instance of the class assigned to &#x60;footerView&#x60; that is
+    responsible for rendering and managing the table&#x27;s &#x60;&lt;tfoot&gt;&#x60; and its
+    content.
+
+    @property foot
+    @type {Object}
+    @default undefined (initially unset)
+    @since 3.5.0
+    **&#x2F;
+    &#x2F;&#x2F;foot: null,
+
+    &#x2F;**
+    The object or instance of the class assigned to &#x60;headerView&#x60; that is
+    responsible for rendering and managing the table&#x27;s &#x60;&lt;thead&gt;&#x60; and its
+    content.
+
+    @property head
+    @type {Object}
+    @default undefined (initially unset)
+    @since 3.5.0
+    **&#x2F;
+    &#x2F;&#x2F;head: null,
+
+    &#x2F;**
+    The ModelList that manages the table&#x27;s data.
+
+    @property data
+    @type {ModelList}
+    @default undefined (initially unset)
+    @since 3.5.0
+    **&#x2F;
+    &#x2F;&#x2F;data: null,
+
+    &#x2F;&#x2F; -- Public methods ------------------------------------------------------
+    &#x2F;**
+    Pass through to &#x60;delegate()&#x60; called from the &#x60;contentBox&#x60;.
+
+    @method delegate
+    @param type {String} the event type to delegate
+    @param fn {Function} the callback function to execute.  This function
+                 will be provided the event object for the delegated event.
+    @param spec {String|Function} a selector that must match the target of the
+                 event or a function to test target and its parents for a match
+    @param context {Object} optional argument that specifies what &#x27;this&#x27; refers to
+    @param args* {any} 0..n additional arguments to pass on to the callback
+                 function.  These arguments will be added after the event object.
+    @return {EventHandle} the detach handle
+    @since 3.5.0
+    **&#x2F;
+    delegate: function () {
+        var contentBox = this.get(&#x27;contentBox&#x27;);
+
+        return contentBox.delegate.apply(contentBox, arguments);
+    },
+
+    &#x2F;**
+    Returns the &#x60;&lt;td&gt;&#x60; Node from the given row and column index.  Alternately,
+    the &#x60;seed&#x60; can be a Node.  If so, the nearest ancestor cell is returned.
+    If the &#x60;seed&#x60; is a cell, it is returned.  If there is no cell at the given
+    coordinates, &#x60;null&#x60; is returned.
+
+    Optionally, include an offset array or string to return a cell near the
+    cell identified by the &#x60;seed&#x60;.  The offset can be an array containing the
+    number of rows to shift followed by the number of columns to shift, or one
+    of &quot;above&quot;, &quot;below&quot;, &quot;next&quot;, or &quot;previous&quot;.
+
+    &lt;pre&gt;&lt;code&gt;&#x2F;&#x2F; Previous cell in the previous row
+    var cell = table.getCell(e.target, [-1, -1]);
+
+    &#x2F;&#x2F; Next cell
+    var cell = table.getCell(e.target, &#x27;next&#x27;);
+    var cell = table.getCell(e.taregt, [0, 1];&lt;&#x2F;pre&gt;&lt;&#x2F;code&gt;
+
+    This is actually just a pass through to the &#x60;bodyView&#x60; instance&#x27;s method
+    by the same name.
+
+    @method getCell
+    @param {Number[]|Node} seed Array of row and column indexes, or a Node that
+        is either the cell itself or a descendant of one.
+    @param {Number[]|String} [shift] Offset by which to identify the returned
+        cell Node
+    @return {Node}
+    @since 3.5.0
+    **&#x2F;
+    getCell: function (seed, shift) {
+        return this.body &amp;&amp; this.body.getCell &amp;&amp;
+            this.body.getCell.apply(this.body, arguments);
+    },
+
+    &#x2F;**
+    Gets the column configuration object for the given key, name, or index.  For
+    nested columns, &#x60;name&#x60; can be an array of indexes, each identifying the index
+    of that column in the respective parent&#x27;s &quot;children&quot; array.
+
+    If you pass a column object, it will be returned.
+
+    For columns with keys, you can also fetch the column with
+    &#x60;instance.get(&#x27;columns.foo&#x27;)&#x60;.
+
+    @method getColumn
+    @param {String|Number|Number[]} name Key, &quot;name&quot;, index, or index array to
+                identify the column
+    @return {Object} the column configuration object
+    @since 3.5.0
+    **&#x2F;
+    getColumn: function (name) {
+        var col, columns, i, len, cols;
+
+        if (isObject(name) &amp;&amp; !isArray(name)) {
+            &#x2F;&#x2F; TODO: support getting a column from a DOM node - this will cross
+            &#x2F;&#x2F; the line into the View logic, so it should be relayed
+
+            &#x2F;&#x2F; Assume an object passed in is already a column def
+            col = name;
+        } else {
+            col = this.get(&#x27;columns.&#x27; + name);
+        }
+
+        if (col) {
+            return col;
+        }
+
+        columns = this.get(&#x27;columns&#x27;);
+
+        if (isNumber(name) || isArray(name)) {
+            name = toArray(name);
+            cols = columns;
+
+            for (i = 0, len = name.length - 1; cols &amp;&amp; i &lt; len; ++i) {
+                cols = cols[name[i]] &amp;&amp; cols[name[i]].children;
+            }
+
+            return (cols &amp;&amp; cols[name[i]]) || null;
+        }
+
+        return null;
+    },
+
+    &#x2F;**
+    Returns the Model associated to the record &#x60;id&#x60;, &#x60;clientId&#x60;, or index (not
+    row index).  If none of those yield a Model from the &#x60;data&#x60; ModelList, the
+    arguments will be passed to the &#x60;bodyView&#x60; instance&#x27;s &#x60;getRecord&#x60; method
+    if it has one.
+
+    If no Model can be found, &#x60;null&#x60; is returned.
+
+    @method getRecord
+    @param {Number|String|Node} seed Record &#x60;id&#x60;, &#x60;clientId&#x60;, index, Node, or
+        identifier for a row or child element
+    @return {Model}
+    @since 3.5.0
+    **&#x2F;
+    getRecord: function (seed) {
+        var record = this.data.getById(seed) || this.data.getByClientId(seed);
+
+        if (!record) {
+            if (isNumber(seed)) {
+                record = this.data.item(seed);
+            }
+            
+            if (!record &amp;&amp; this.body &amp;&amp; this.body.getRecord) {
+                record = this.body.getRecord.apply(this.body, arguments);
+            }
+        }
+
+        return record || null;
+    },
+
+    &#x2F;**
+    Returns the &#x60;&lt;tr&gt;&#x60; Node from the given row index, Model, or Model&#x27;s
+    &#x60;clientId&#x60;.  If the rows haven&#x27;t been rendered yet, or if the row can&#x27;t be
+    found by the input, &#x60;null&#x60; is returned.
+
+    This is actually just a pass through to the &#x60;bodyView&#x60; instance&#x27;s method
+    by the same name.
+
+    @method getRow
+    @param {Number|String|Model} id Row index, Model instance, or clientId
+    @return {Node}
+    @since 3.5.0
+    **&#x2F;
+    getRow: function (id) {
+        return this.body &amp;&amp; this.body.getRow &amp;&amp;
+            this.body.getRow.apply(this.body, arguments);
+    },
+
+    &#x2F;**
+    Updates the UI with the current attribute state.  Fires the &#x60;renderHeader&#x60;,
+    &#x60;renderBody&#x60;, and &#x60;renderFooter&#x60; events;
+
+    @method syncUI
+    @since 3.5.0
+    **&#x2F;
+    syncUI: function () {
+        this._uiSetCaption(this.get(&#x27;caption&#x27;));
+        this._uiSetSummary(this.get(&#x27;summary&#x27;));
+
+        if (this.head) {
+            this.fire(&#x27;renderHeader&#x27;, { view: this.head });
+        }
+        if (this.body) {
+            this.fire(&#x27;renderBody&#x27;,   { view: this.body });
+        }
+        if (this.foot) {
+            this.fire(&#x27;renderFooter&#x27;, { view: this.foot });
+        }
+    },
+
+    &#x2F;&#x2F; -- Protected and private properties and methods ------------------------
+
+    &#x2F;**
+    Configuration object passed to the class constructor in &#x60;bodyView&#x60; during
+    render.
+
+    This property is set by the &#x60;_initViewConfig&#x60; method at instantiation.
+
+    @property _bodyConfig
+    @type {Object}
+    @default undefined (initially unset)
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    &#x2F;&#x2F;_bodyConfig: null,
+
+    &#x2F;**
+    A map of column key to column configuration objects parsed from the
+    &#x60;columns&#x60; attribute.
+
+    @property _columnMap
+    @type {Object}
+    @default undefined (initially unset)
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    &#x2F;&#x2F;_columnMap: null,
+
+    &#x2F;**
+    Configuration object passed to the class constructor in &#x60;footerView&#x60; during
+    render.
+
+    This property is set by the &#x60;_initViewConfig&#x60; method at instantiation.
+
+    @property _footerConfig
+    @type {Object}
+    @default undefined (initially unset)
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    &#x2F;&#x2F;_footerConfig: null,
+
+    &#x2F;**
+    Configuration object passed to the class constructor in &#x60;headerView&#x60; during
+    render.
+
+    This property is set by the &#x60;_initViewConfig&#x60; method at instantiation.
+
+    @property _headerConfig
+    @type {Object}
+    @default undefined (initially unset)
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    &#x2F;&#x2F;_headerConfig: null,
+
+    &#x2F;**
+    The Node instance of the table containing the data rows.  This is set when
+    the table is rendered.  It may also be set by progressive enhancement,
+    though this extension does not provide the logic to parse from source.
+
+    @property _tableNode
+    @type {Node}
+    @default undefined (initially unset)
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    &#x2F;&#x2F;_tableNode: null,
+
+    &#x2F;**
+    Configuration object used as the prototype of &#x60;_headerConfig&#x60;,
+    &#x60;_bodyConfig&#x60;, and &#x60;_footerConfig&#x60;. Add properties to this object if you
+    want them in all three of the other config objects.
+
+    This property is set by the &#x60;_initViewConfig&#x60; method at instantiation.
+
+    @property _viewConfig
+    @type {Object}
+    @default undefined (initially unset)
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    &#x2F;&#x2F;_viewConfig: null,
+
+    &#x2F;**
+    Updates the &#x60;_columnMap&#x60; property in response to changes in the &#x60;columns&#x60;
+    attribute.
+
+    @method _afterColumnsChange
+    @param {EventFacade} e The &#x60;columnsChange&#x60; event object
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _afterColumnsChange: function (e) {
+        this._setColumnMap(e.newVal);
+        this._setDisplayColumns(e.newVal);
+    },
+
+    &#x2F;**
+    Updates the &#x60;modelList&#x60; attributes of the rendered views in response to the
+    &#x60;data&#x60; attribute being assigned a new ModelList.
+
+    @method _afterDataChange
+    @param {EventFacade} e the &#x60;dataChange&#x60; event
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _afterDataChange: function (e) {
+        var modelList = e.newVal;
+
+        if (this.head) {
+            this.head.set(&#x27;modelList&#x27;, modelList);
+        }
+        if (this.body) {
+            this.body.set(&#x27;modelList&#x27;, modelList);
+        }
+        if (this.foot) {
+            this.foot.set(&#x27;modelList&#x27;, modelList);
+        }
+    },
+
+    &#x2F;**
+    Subscribes to attribute change events to update the UI.
+
+    @method bindUI
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    bindUI: function () {
+        &#x2F;&#x2F; TODO: handle widget attribute changes
+        this.after(&#x27;dataChange&#x27;, Y.bind(&#x27;_afterDataChange&#x27;, this));
+    },
+
+    &#x2F;**
+    Creates a Model subclass from an array of attribute names or an object of
+    attribute definitions.  This is used to generate a class suitable to
+    represent the data passed to the &#x60;data&#x60; attribute if no &#x60;recordType&#x60; is
+    set.
+
+    @method _createRecordClass
+    @param {String[]|Object} attrs Names assigned to the Model subclass&#x27;s
+                &#x60;ATTRS&#x60; or its entire &#x60;ATTRS&#x60; definition object
+    @return {Model}
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _createRecordClass: function (attrs) {
+        var ATTRS, i, len;
+
+        if (isArray(attrs)) {
+            ATTRS = {};
+
+            for (i = 0, len = attrs.length; i &lt; len; ++i) {
+                ATTRS[attrs[i]] = {};
+            }
+        } else if (isObject(attrs)) {
+            ATTRS = attrs;
+        }
+
+        return Y.Base.create(&#x27;record&#x27;, Y.Model, [], null, { ATTRS: ATTRS });
+    },
+
+    &#x2F;**
+    Creates the &#x60;&lt;table&gt;&#x60;.
+
+    @method _createTable
+    @return {Node} The &#x60;&lt;table&gt;&#x60; node
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _createTable: function () {
+        return Y.Node.create(fromTemplate(this.TABLE_TEMPLATE, {
+            className: this.getClassName(&#x27;table&#x27;)
+        })).empty();
+    },
+
+    &#x2F;**
+    Creates a &#x60;&lt;tbody&gt;&#x60; node from the &#x60;TBODY_TEMPLATE&#x60;.
+
+    @method _createTBody
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _createTBody: function () {
+        return Y.Node.create(fromTemplate(this.TBODY_TEMPLATE, {
+            className: this.getClassName(&#x27;data&#x27;)
+        }));
+    },
+
+    &#x2F;**
+    Creates a &#x60;&lt;tfoot&gt;&#x60; node from the &#x60;TFOOT_TEMPLATE&#x60;.
+
+    @method _createTFoot
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _createTFoot: function () {
+        return Y.Node.create(fromTemplate(this.TFOOT_TEMPLATE, {
+            className: this.getClassName(&#x27;footer&#x27;)
+        }));
+    },
+
+    &#x2F;**
+    Creates a &#x60;&lt;thead&gt;&#x60; node from the &#x60;THEAD_TEMPLATE&#x60;.
+
+    @method _createTHead
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _createTHead: function () {
+        return Y.Node.create(fromTemplate(this.THEAD_TEMPLATE, {
+            className: this.getClassName(&#x27;columns&#x27;)
+        }));
+    },
+
+    &#x2F;**
+    Calls &#x60;render()&#x60; on the &#x60;bodyView&#x60; class instance.
+
+    @method _defRenderBodyFn
+    @param {EventFacade} e The renderBody event
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _defRenderBodyFn: function (e) {
+        e.view.render();
+    },
+
+    &#x2F;**
+    Calls &#x60;render()&#x60; on the &#x60;footerView&#x60; class instance.
+
+    @method _defRenderFooterFn
+    @param {EventFacade} e The renderFooter event
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _defRenderFooterFn: function (e) {
+        e.view.render();
+    },
+
+    &#x2F;**
+    Calls &#x60;render()&#x60; on the &#x60;headerView&#x60; class instance.
+
+    @method _defRenderHeaderFn
+    @param {EventFacade} e The renderHeader event
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _defRenderHeaderFn: function (e) {
+        e.view.render();
+    },
+
+    &#x2F;**
+    Renders the &#x60;&lt;table&gt;&#x60; and, if there are associated Views, the &#x60;&lt;thead&gt;&#x60;,
+    &#x60;&lt;tfoot&gt;&#x60;, and &#x60;&lt;tbody&gt;&#x60; (empty until &#x60;syncUI&#x60;).
+
+    Assigns the generated table nodes to the &#x60;_tableNode&#x60;, &#x60;_theadNode&#x60;,
+    &#x60;_tfootNode&#x60;, and &#x60;_tbodyNode&#x60; properties.  Assigns the instantiated Views
+    to the &#x60;head&#x60;, &#x60;foot&#x60;, and &#x60;body&#x60; properties.
+
+
+    @method _defRenderTableFn
+    @param {EventFacade} e The renderTable event
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _defRenderTableFn: function (e) {
+        var config;
+
+        this._tableNode = this._createTable();
+
+        if (e.headerView) {
+            config = flatten(e.headerConfig || {});
+            config.container = this._theadNode = this._createTHead();
+
+            this.head = new e.headerView(config);
+            this.head.addTarget(this);
+
+            this._tableNode.insertBefore(this._theadNode,
+                this._tableNode.one(&#x27;&gt; tfoot, &gt; tbody&#x27;));
+        }
+
+        if (e.footerView) {
+            config = flatten(e.footerConfig || {});
+            config.container = this._tfootNode = this._createTFoot();
+
+            this.foot = new e.footerView(config);
+            this.foot.addTarget(this);
+
+            this._tableNode.insertBefore(this._tfootNode,
+                this._tableNode.one(&#x27;&gt; tbody&#x27;));
+        }
+
+        if (e.bodyView) {
+            config = flatten(e.bodyConfig || {});
+            config.container = this._tbodyNode = this._createTBody();
+
+            this.body = new e.bodyView(config);
+            this.body.addTarget(this);
+
+            this._tableNode.append(this._tbodyNode);
+        }
+    },
+
+    &#x2F;**
+    Contains column configuration objects for those columns believed to be intended for display in the &#x60;&lt;tbody&gt;&#x60;. Populated by &#x60;_setDisplayColumns&#x60;.
+
+    @property _displayColumns
+    @type {Object[]}
+    @value undefined (initially not set)
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    &#x2F;&#x2F;_displayColumns: null,
+
+    &#x2F;**
+    The getter for the &#x60;columns&#x60; attribute.  Returns the array of column
+    configuration objects if &#x60;instance.get(&#x27;columns&#x27;)&#x60; is called, or the
+    specific column object if &#x60;instance.get(&#x27;columns.columnKey&#x27;)&#x60; is called.
+
+    @method _getColumns
+    @param {Object[]} columns The full array of column objects
+    @param {String} name The attribute name requested
+                         (e.g. &#x27;columns&#x27; or &#x27;columns.foo&#x27;);
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _getColumns: function (columns, name) {
+        &#x2F;&#x2F; Workaround for an attribute oddity (ticket #2529254)
+        &#x2F;&#x2F; getter is expected to return an object if get(&#x27;columns.foo&#x27;) is called.
+        &#x2F;&#x2F; Note &#x27;columns.&#x27; is 8 characters
+        return name.length &gt; 8 ? this._columnMap : columns;
+    },
+
+    &#x2F;**
+    Relays the &#x60;get()&#x60; request for the deprecated &#x60;columnset&#x60; attribute to the
+    &#x60;columns&#x60; attribute.
+
+    THIS BREAKS BACKWARD COMPATIBILITY.  3.4.1 and prior implementations will
+    expect a Columnset instance returned from &#x60;get(&#x27;columnset&#x27;)&#x60;.
+
+    @method _getColumnset
+    @param {Object} ignored The current value stored in the &#x60;columnset&#x60; state
+    @param {String} name The attribute name requested
+                         (e.g. &#x27;columnset&#x27; or &#x27;columnset.foo&#x27;);
+    @deprecated This will be removed with the &#x60;columnset&#x60; attribute in a future
+                version.
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _getColumnset: function (_, name) {
+        return this.get(name.replace(&#x2F;^columnset&#x2F;, &#x27;columns&#x27;));
+    },
+
+    &#x2F;**
+    The getter for the &#x60;data&#x60; attribute.  Returns the ModelList stored in the
+    &#x60;data&#x60; property.  If the ModelList is not yet set, it returns the current
+    raw data (presumably an empty array or &#x60;undefined&#x60;).
+
+    @method _getData
+    @param {Object[]|ModelList} val The current data stored in the attribute
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _getData: function (val) {
+        return this.data || val;
+    },
+
+    &#x2F;**
+    Initializes the &#x60;_columnMap&#x60; property from the configured &#x60;columns&#x60;
+    attribute.  If &#x60;columns&#x60; is not set, but &#x60;recordType&#x60; is, it uses the
+    &#x60;ATTRS&#x60; of that class.  If neither are set, it temporarily falls back to an
+    empty array. &#x60;_initRecordType&#x60; will call back into this method if it finds
+    the &#x60;columnMap&#x60; empty.
+
+    @method _initColumns
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _initColumns: function () {
+        var columns    = this.get(&#x27;columns&#x27;),
+            recordType = this.get(&#x27;recordType&#x27;);
+        
+        &#x2F;&#x2F; Default column definition from the configured recordType
+        if (!columns) {
+            &#x2F;&#x2F; TODO: merge superclass attributes up to Model?
+            columns = (recordType &amp;&amp; recordType.ATTRS) ?
+                      keys(recordType.ATTRS) : [];
+
+            this.set(&#x27;columns&#x27;, columns, { silent: true });
+        }
+
+        this._setColumnMap(columns);
+
+        this._setDisplayColumns(columns);
+    },
+
+    &#x2F;**
+    Initializes the instance&#x27;s &#x60;data&#x60; property from the value of the &#x60;data&#x60;
+    attribute.  If the attribute value is a ModelList, it is assigned directly
+    to &#x60;this.data&#x60;.  If it is an array, a ModelList is created, its &#x60;model&#x60;
+    property is set to the configured &#x60;recordType&#x60; class, and it is seeded with
+    the array data.  This ModelList is then assigned to &#x60;this.data&#x60;.
+
+    @method _initData
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _initData: function () {
+        var data = this.get(&#x27;data&#x27;),
+            recordType, values;
+
+        if (isArray(data)) {
+            recordType = this.get(&#x27;recordType&#x27;);
+
+            values = data;
+            data = new Y.ModelList();
+
+            &#x2F;&#x2F; _initRecordType is run before this, so recordType will be set
+            &#x2F;&#x2F; if the data array had any records.  Otherwise, values is an
+            &#x2F;&#x2F; empty array, so no need to call reset();
+            if (recordType) {
+                data.model = recordType;
+                data.reset(values, { silent: true });
+            }
+
+            &#x2F;&#x2F; Make sure the attribute state object contains the ModelList.
+            &#x2F;&#x2F; TODO: maybe better would be to purge the attribute state value?
+            this.set(&#x27;data&#x27;, data, { silent: true });
+        }
+
+        this.data = data;
+
+        this.data.addTarget(this);
+    },
+
+    &#x2F;**
+    Publishes core events.
+
+    @method _initEvents
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _initEvents: function () {
+        this.publish({
+            &#x2F;&#x2F; Y.bind used to allow late binding for method override support
+            renderTable : {
+                fireOnce: true,
+                defaultFn: Y.bind(&#x27;_defRenderTableFn&#x27;, this)
+            },
+            renderHeader: {
+                defaultFn: Y.bind(&#x27;_defRenderHeaderFn&#x27;, this)
+            },
+            renderBody  : {
+                defaultFn: Y.bind(&#x27;_defRenderBodyFn&#x27;, this)
+            },
+            renderFooter: {
+                defaultFn: Y.bind(&#x27;_defRenderFooterFn&#x27;, this)
+            }
+        });
+    },
+
+    &#x2F;**
+    Initializes the columns, &#x60;recordType&#x60; and data ModelList.
+
+    @method initializer
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    initializer: function () {
+        this._initColumns();
+
+        this._initRecordType();
+
+        this._initData();
+
+        this._initViewConfig();
+
+        this._initEvents();
+
+        this.after(&#x27;columnsChange&#x27;, this._afterColumnsChange);
+
+        &#x2F;&#x2F; FIXME: this needs to be added to Widget._buildCfg.custom
+        this._UI_ATTRS = {
+            BIND: this._UI_ATTRS.BIND.concat([&#x27;caption&#x27;, &#x27;summary&#x27;]),
+            SYNC: this._UI_ATTRS.SYNC.concat([&#x27;caption&#x27;, &#x27;summary&#x27;])
+        };
+    },
+
+    &#x2F;**
+    If the &#x60;recordType&#x60; attribute is not set, this method attempts to set a
+    default value.
+
+    It tries the following methods to determine a default:
+
+    1. If the &#x60;data&#x60; attribute is set with a ModelList with a &#x60;model&#x60; property,
+       that class is used.
+    2. If the &#x60;data&#x60; attribute is set with a non-empty ModelList, the
+       &#x60;constructor&#x60; of the first item is used.
+    3. If the &#x60;data&#x60; attribute is set with a non-empty array and the first item
+       is a Base subclass, its constructor is used.
+    4. If the &#x60;data&#x60; attribute is set with a non-empty array a custom Model
+       subclass is generated using the keys of the first item as its &#x60;ATTRS&#x60;.
+    5. If the &#x60;_columnMap&#x60; property has keys, a custom Model subclass is
+       generated using those keys as its &#x60;ATTRS&#x60;.
+
+    Of none of those are successful, it subscribes to the change events for
+    &#x60;columns&#x60;, &#x60;recordType&#x60;, and &#x60;data&#x60; to try again.
+
+    If defaulting the &#x60;recordType&#x60; and the current &#x60;_columnMap&#x60; property is
+    empty, it will call &#x60;_initColumns&#x60;.
+
+    @method _initRecordType
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _initRecordType: function () {
+        var data, columns, recordType, handle, columnKeys;
+            
+        if (!this.get(&#x27;recordType&#x27;)) {
+            data    = this.get(&#x27;data&#x27;);
+            columns = this._columnMap;
+
+            &#x2F;&#x2F; Use the ModelList&#x27;s specified Model class
+            if (data.model) {
+                recordType = data.model;
+
+            &#x2F;&#x2F; Or if not configured, use the construct of the first Model
+            } else if (data.size &amp;&amp; data.size()) {
+                recordType = data.model = data.item(0).constructor;
+
+            &#x2F;&#x2F; Or if the data is an array, build a class from the first item
+            } else if (isArray(data) &amp;&amp; data.length) {
+                recordType = (data[0].constructor.ATTRS) ?
+                    data[0].constructor :
+                    this._createRecordClass(keys(data[0]));
+
+            &#x2F;&#x2F; Or if the columns were defined, build a class from the keys
+            } else {
+                columnKeys = keys(columns);
+                
+                if (columnKeys.length) {
+                    recordType = this._createRecordClass(columnKeys);
+                }
+            }
+
+            if (recordType) {
+                this.set(&#x27;recordType&#x27;, recordType, { silent: true });
+
+                if (!columns || !columns.length) {
+                    this._initColumns();
+                }
+            } else {
+                &#x2F;&#x2F; FIXME: Edge case race condition with
+                &#x2F;&#x2F; new DT({ on&#x2F;after: { &lt;any of these changes&gt; } }) OR
+                &#x2F;&#x2F; new DT().on( &lt;any of these changes&gt; )
+                &#x2F;&#x2F; where there&#x27;s not enough info to assign this.data.model
+                &#x2F;&#x2F; at construction. The on&#x2F;constructor subscriptions will be
+                &#x2F;&#x2F; executed before this subscription.
+                handle = this.after(
+                    [&#x27;columnsChange&#x27;, &#x27;recordTypeChange&#x27;,&#x27;dataChange&#x27;],
+                    function (e) {
+                        &#x2F;&#x2F; manually batch detach rather than manage separate
+                        &#x2F;&#x2F; subs in case the change was inadequate to populate
+                        &#x2F;&#x2F; recordType. But subs must be detached because the
+                        &#x2F;&#x2F; subscriber recurses to _initRecordType, which would
+                        &#x2F;&#x2F; result in duplicate subs.
+                        handle.detach();
+
+                        if (!this.data.model) {
+                            &#x2F;&#x2F; FIXME: resubscribing if there&#x27;s still not enough
+                            &#x2F;&#x2F; info to populate recordType will place the new
+                            &#x2F;&#x2F; subs later in the callback queue, opening the
+                            &#x2F;&#x2F; race condition even more.
+                            this._initRecordType();
+
+                            &#x2F;&#x2F; If recordType isn&#x27;t set yet, _initRecordType
+                            &#x2F;&#x2F; will have recreated this subscription.
+                            this.data.model = this.get(&#x27;recordType&#x27;);
+                        }
+                    });
+            }
+        }
+    },
+
+    &#x2F;**
+    Initializes the &#x60;_viewConfig&#x60;, &#x60;_headerConfig&#x60;, &#x60;_bodyConfig&#x60;, and
+    &#x60;_footerConfig&#x60; properties with the configuration objects that will be
+    passed to the constructors of the &#x60;headerView&#x60;, &#x60;bodyView&#x60;, and
+    &#x60;footerView&#x60;.
+    
+    Extensions can add to the config objects to deliver custom parameters at
+    view instantiation.  &#x60;_viewConfig&#x60; is used as the prototype of the other
+    three config objects, so properties added here will be inherited by all
+    configs.
+
+    @method _initViewConfig
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _initViewConfig: function () {
+        this._viewConfig = {
+            source   : this,
+            cssPrefix: this._cssPrefix
+        };
+
+        &#x2F;&#x2F; Use prototypal inheritance to share common configs from _viewConfig
+        this._headerConfig = Y.Object(this._viewConfig);
+        this._bodyConfig   = Y.Object(this._viewConfig);
+        this._footerConfig = Y.Object(this._viewConfig);
+    },
+
+    &#x2F;**
+    Iterates the array of column configurations to capture all columns with a
+    &#x60;key&#x60; property.  Columns that are represented as strings will be replaced
+    with objects with the string assigned as the &#x60;key&#x60; property.  If a column
+    has a &#x60;children&#x60; property, it will be iterated, adding any nested column
+    keys to the returned map. There is no limit to the levels of nesting.
+
+    All columns are assigned a &#x60;_yuid&#x60; stamp and &#x60;_id&#x60; property corresponding
+    to the column&#x27;s configured &#x60;name&#x60; or &#x60;key&#x60; property with any spaces
+    replaced with dashes.  If the same &#x60;name&#x60; or &#x60;key&#x60; appears in multiple
+    columns, subsequent appearances will have their &#x60;_id&#x60; appended with an
+    incrementing number (e.g. if column &quot;foo&quot; is included in the &#x60;columns&#x60;
+    attribute twice, the first will get &#x60;_id&#x60; of &quot;foo&quot;, and the second an &#x60;_id&#x60;
+    of &quot;foo1&quot;).  Columns that are children of other columns will have the
+    &#x60;_parent&#x60; property added, assigned the column object to which they belong.
+
+    The result is an object map with column keys as the property name and the
+    corresponding column object as the associated value.
+
+    @method _parseColumns
+    @param {Object[]|String[]} columns The array of column names or
+                configuration objects to scan
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _parseColumns: function (columns) {
+        var map  = {},
+            keys = {};
+        
+        function genId(name) {
+            &#x2F;&#x2F; Sanitize the name for use in generated CSS classes.
+            &#x2F;&#x2F; TODO: is there more to do for other uses of _id?
+            name = name.replace(&#x2F;\s+&#x2F;, &#x27;-&#x27;);
+
+            if (keys[name]) {
+                name += (keys[name]++);
+            } else {
+                keys[name] = 1;
+            }
+
+            return name;
+        }
+
+        function process(cols, parent) {
+            var i, len, col, key, yuid;
+
+            for (i = 0, len = cols.length; i &lt; len; ++i) {
+                col = cols[i];
+
+                if (isString(col)) {
+                    &#x2F;&#x2F; Update the array entry as well, so the attribute state array
+                    &#x2F;&#x2F; contains the same objects.
+                    cols[i] = col = { key: col };
+                }
+
+                yuid = Y.stamp(col);
+
+                &#x2F;&#x2F; For backward compatibility
+                if (!col.id) {
+                    &#x2F;&#x2F; Implementers can shoot themselves in the foot by setting
+                    &#x2F;&#x2F; this config property to a non-unique value
+                    col.id = yuid;
+                }
+                if (col.field) {
+                    &#x2F;&#x2F; Field is now known as &quot;name&quot; to avoid confusion with data
+                    &#x2F;&#x2F; fields or schema.resultFields
+                    col.name = col.field;
+                }
+
+                if (parent) {
+                    col._parent = parent;
+                } else {
+                    delete col._parent;
+                }
+
+                if (isArray(col.children)) {
+                    &#x2F;&#x2F; Allow getColumn for parent columns if they have a name
+                    if (col.name) {
+                        map[genId(col.name)] = col;
+                    }
+
+                    process(col.children, col);
+                } else {
+                    key = col.key;
+
+                    &#x2F;&#x2F; First in wins for multiple columns with the same key
+                    &#x2F;&#x2F; because the first call to genId will return the same key,
+                    &#x2F;&#x2F; which will then be overwritten by the subsequent
+                    &#x2F;&#x2F; same-keyed column.  So table.getColumn(key) would return
+                    &#x2F;&#x2F; the last same-keyed column.
+                    if (key &amp;&amp; !map[key]) {
+                        map[key] = col;
+                    }
+
+                    &#x2F;&#x2F; Unique id based on the column&#x27;s configured name or key,
+                    &#x2F;&#x2F; falling back to the yuid.  Duplicates will have a counter
+                    &#x2F;&#x2F; added to the end.
+                    col._id = genId(col.name || col.key || col.id);
+
+                    &#x2F;&#x2F;TODO: named columns can conflict with keyed columns
+                    map[col._id] = col;
+                }
+            }
+        }
+
+        process(columns);
+
+        return map;
+    },
+
+    &#x2F;**
+    Builds the table and attaches it to the DOM.  This requires the host class
+    to provide a &#x60;contentBox&#x60; attribute.  This is typically provided by Widget.
+
+    @method renderUI
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    renderUI: function () {
+        var contentBox = this.get(&#x27;contentBox&#x27;),
+            table;
+
+        if (contentBox) {
+            &#x2F;&#x2F; _viewConfig is the prototype for _headerConfig et al.
+            this._viewConfig.columns   = this.get(&#x27;columns&#x27;);
+            this._viewConfig.modelList = this.data;
+
+            this.fire(&#x27;renderTable&#x27;, {
+                headerView  : this.get(&#x27;headerView&#x27;),
+                headerConfig: this._headerConfig,
+
+                bodyView    : this.get(&#x27;bodyView&#x27;),
+                bodyConfig  : this._bodyConfig,
+
+                footerView  : this.get(&#x27;footerView&#x27;),
+                footerConfig: this._footerConfig
+            });
+
+            table = this._tableNode;
+
+            if (table) {
+                &#x2F;&#x2F; off DOM or in an existing node attached to a different parentNode
+                if (!table.inDoc() || !table.ancestor().compareTo(contentBox)) {
+                    contentBox.append(table);
+                }
+            } else { Y.log(&#x27;Problem rendering DataTable: table not created&#x27;, &#x27;warn&#x27;, &#x27;datatable&#x27;); &#x2F;&#x2F; On the same line to allow builder to strip the else clause
+            }
+        } else { Y.log(&#x27;Problem rendering DataTable: contentBox not found&#x27;, &#x27;warn&#x27;, &#x27;datatable&#x27;); &#x2F;&#x2F; On the same line to allow builder to strip the else clause
+        }
+    },
+
+    &#x2F;**
+    Assigns the &#x60;_columnMap&#x60; property with the parsed results of the array of
+    column definitions passed.
+
+    @method _setColumnMap
+    @param {Object[]|String[]} columns the raw column configuration objects or
+                                       key names
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _setColumnMap: function (columns) {
+        this._columnMap = this._parseColumns(columns);
+    },
+
+    &#x2F;**
+    Relays attribute assignments of the deprecated &#x60;columnset&#x60; attribute to the
+    &#x60;columns&#x60; attribute.  If a Columnset is object is passed, its basic object
+    structure is mined.
+
+    @method _setColumnset
+    @param {Array|Columnset} val The columnset value to relay
+    @deprecated This will be removed with the deprecated &#x60;columnset&#x60; attribute
+                in a later version.
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _setColumnset: function (val) {
+        if (val &amp;&amp; Y.Columnset &amp;&amp; val instanceof Y.Columnset) {
+            val = val.get(&#x27;definitions&#x27;);
+        }
+
+        this.set(&#x27;columns&#x27;, val);
+
+        return isArray(val) ? val : INVALID;
+    },
+
+    &#x2F;**
+    Accepts an object with &#x60;each&#x60; and &#x60;getAttrs&#x60; (preferably a ModelList or
+    subclass) or an array of data objects.  If an array is passes, it will
+    create a ModelList to wrap the data.  In doing so, it will set the created
+    ModelList&#x27;s &#x60;model&#x60; property to the class in the &#x60;recordType&#x60; attribute,
+    which will be defaulted if not yet set.
+
+    If the &#x60;data&#x60; property is already set with a ModelList, passing an array as
+    the value will call the ModelList&#x27;s &#x60;reset()&#x60; method with that array rather
+    than replacing the stored ModelList wholesale.
+
+    Any non-ModelList-ish and non-array value is invalid.
+
+    @method _setData
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _setData: function (val) {
+        if (val === null) {
+            val = [];
+        }
+
+        if (isArray(val)) {
+            if (this.data) {
+                if (!this.data.model &amp;&amp; val.length) {
+                    &#x2F;&#x2F; FIXME: this should happen only once, but this is a side
+                    &#x2F;&#x2F; effect in the setter.  Bad form, but I need the model set
+                    &#x2F;&#x2F; before calling reset()
+                    this.set(&#x27;recordType&#x27;, keys(val[0]));
+                }
+
+                this.data.reset(val);
+
+                &#x2F;&#x2F; Return the instance ModelList to avoid storing unprocessed
+                &#x2F;&#x2F; data in the state and their vivified Model representations in
+                &#x2F;&#x2F; the instance&#x27;s data property.  Decreases memory consumption.
+                val = this.data;
+            }
+            &#x2F;&#x2F; else pass through the array data, but don&#x27;t assign this.data
+            &#x2F;&#x2F; Let the _initData process clean up.
+        } else if (val &amp;&amp; val.each &amp;&amp; val.getAttrs) {
+            this.data = val;
+            &#x2F;&#x2F; TODO: return true to decrease memory footprint?
+        } else {
+            val = INVALID;
+        }
+
+        return val;
+    },
+
+    &#x2F;**
+    Stores an array of columns intended for display in the &#x60;_displayColumns&#x60;
+    property.  This method assumes that if a column configuration object does
+    not have children, it is a display column.
+
+    @method _setDisplayColumns
+    @param {Object[]} columns Column config array to extract display columns from
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _setDisplayColumns: function (columns) {
+        function extract(cols) {
+            var display = [],
+                i, len, col;
+
+            for (i = 0, len = cols.length; i &lt; len; ++i) {
+                col = cols[i];
+
+                if (col.children) {
+                    display.push.apply(display, extract(col.children));
+                } else {
+                    display.push(col);
+                }
+            }
+
+            return display;
+        }
+
+        this._displayColumns = extract(columns);
+    },
+
+    &#x2F;**
+    Relays the value assigned to the deprecated &#x60;recordset&#x60; attribute to the
+    &#x60;data&#x60; attribute.  If a Recordset instance is passed, the raw object data
+    will be culled from it.
+
+    @method _setRecordset
+    @param {Object[]|Recordset} val The recordset value to relay
+    @deprecated This will be removed with the deprecated &#x60;recordset&#x60; attribute
+                in a later version.
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _setRecordset: function (val) {
+        var data;
+
+        if (val &amp;&amp; Y.Recordset &amp;&amp; val instanceof Y.Recordset) {
+            data = [];
+            val.each(function (record) {
+                data.push(record.get(&#x27;data&#x27;));
+            });
+            val = data;
+        }
+
+        this.set(&#x27;data&#x27;, val);
+
+        return val;
+    },
+
+    &#x2F;**
+    Accepts a Base subclass (preferably a Model subclass). Alternately, it will
+    generate a custom Model subclass from an array of attribute names or an
+    object defining attributes and their respective configurations (it is
+    assigned as the &#x60;ATTRS&#x60; of the new class).
+
+    Any other value is invalid.
+
+    @method _setRecordType
+    @param {Function|String[]|Object} val The Model subclass, array of
+            attribute names, or the &#x60;ATTRS&#x60; definition for a custom model
+            subclass
+    @return {Function} A Base&#x2F;Model subclass
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _setRecordType: function (val) {
+        var modelClass;
+
+        &#x2F;&#x2F; Duck type based on known&#x2F;likely consumed APIs
+        if (isFunction(val) &amp;&amp; val.prototype.set &amp;&amp; val.prototype.getAttrs) {
+            modelClass = val;
+        } else if (isObject(val)) {
+            modelClass = this._createRecordClass(val);
+        }
+
+        return modelClass || INVALID;
+    },
+
+    &#x2F;**
+    Creates, removes, or updates the table&#x27;s &#x60;&lt;caption&gt;&#x60; element per the input
+    value.  Empty values result in the caption being removed.
+
+    @method _uiSetCaption
+    @param {HTML} htmlContent The content to populate the table caption
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _uiSetCaption: function (htmlContent) {
+        var table   = this._tableNode,
+            caption = this._captionNode;
+
+        if (htmlContent) {
+            if (!caption) {
+                this._captionNode = caption = Y.Node.create(
+                    fromTemplate(this.CAPTION_TEMPLATE, {
+                        className: this.getClassName(&#x27;caption&#x27;)
+                    }));
+
+                table.prepend(this._captionNode);
+            }
+
+            caption.setContent(htmlContent);
+
+        } else if (caption) {
+            caption.remove(true);
+
+            delete this._captionNode;
+        }
+    },
+
+    &#x2F;**
+    Updates the table&#x27;s &#x60;summary&#x60; attribute with the input value.
+
+    @method _uiSetSummary
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _uiSetSummary: function (summary) {
+        if (summary) {
+            this._tableNode.setAttribute(&#x27;summary&#x27;, summary);
+        } else {
+            this._tableNode.removeAttribute(&#x27;summary&#x27;);
+        }
+    },
+
+    &#x2F;**
+    Sets the &#x60;boundingBox&#x60; and table width per the input value.
+
+    @method _uiSetWidth
+    @param {Number|String} width The width to make the table
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _uiSetWidth: function (width) {
+        var table = this._tableNode;
+
+        if (isNumber(width)) {
+            &#x2F;&#x2F; DEF_UNIT from Widget
+            width += this.DEF_UNIT;
+        }
+
+        if (isString(width)) {
+            this._uiSetDim(&#x27;width&#x27;, width);
+
+            &#x2F;&#x2F; Table width needs to account for borders
+            table.setStyle(&#x27;width&#x27;, !width ? &#x27;&#x27; :
+                (this.get(&#x27;boundingBox&#x27;).get(&#x27;offsetWidth&#x27;) -
+                 (parseInt(table.getComputedStyle(&#x27;borderLeftWidth&#x27;), 10)|0) -
+                 (parseInt(table.getComputedStyle(&#x27;borderLeftWidth&#x27;), 10)|0)) +
+                 &#x27;px&#x27;);
+
+            table.setStyle(&#x27;width&#x27;, width);
+        }
+    },
+
+    &#x2F;**
+    Verifies the input value is a function with a &#x60;render&#x60; method on its
+    prototype.  &#x60;null&#x60; is also accepted to remove the default View.
+
+    @method _validateView
+    @protected
+    @since 3.5.0
+    **&#x2F;
+    _validateView: function (val) {
+        &#x2F;&#x2F; TODO support View instances?
+        return val === null || (isFunction(val) &amp;&amp; val.prototype.render);
+    }
+});
+
+    </pre>
+</div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="..&#x2F;assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="..&#x2F;assets/js/yui-prettify.js"></script>
+<script src="..&#x2F;assets/../api.js"></script>
+<script src="..&#x2F;assets/js/api-filter.js"></script>
+<script src="..&#x2F;assets/js/api-list.js"></script>
+<script src="..&#x2F;assets/js/api-search.js"></script>
+<script src="..&#x2F;assets/js/apidocs.js"></script>
+</body>
+</html>

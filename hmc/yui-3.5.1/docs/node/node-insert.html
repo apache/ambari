@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Adding Node Content</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Adding Node Content</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><link href="../assets/node/node.css" rel="stylesheet" type="text/css">
+<div class="intro">
+    <p>This example demonstrates how insert content when working with <code>NodeList</code> instances.</p>
+    <p>Clicking a box will update its content.</p>
+</div>
+
+<div class="example">
+<ul id="demo">
+    <li>foo</li>
+    <li>bar</li>
+</ul>
+
+<script type="text/javascript">
+YUI().use('node', function(Y) {
+    var onClick = function(e) {
+        var node = e.currentTarget;
+        node.prepend('<em>prepended</em> &nbsp;'); // added as firstChild 
+        node.append('&nbsp; <em>appended</em>');  // added as lastChild
+        node.insert('&nbsp; <strong>before last child</strong> &nbsp;', node.get('lastChild')); // added before lastChild 
+        node.insert('&nbsp; <strong>before childNodes[1]</strong> &nbsp;', 1); // added before childNodes[1]
+    };
+
+    Y.all('#demo li').on('click', onClick);
+});
+</script>
+
+
+</div>
+
+<h2>Setting up the NodeList</h2>
+<p>First we need some HTML to work with.</p>
+<pre class="code prettyprint">&lt;ul id=&quot;demo&quot;&gt;
+    &lt;li&gt;foo&lt;&#x2F;li&gt;
+    &lt;li&gt;bar&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;</pre>
+
+<h2>Adding Content</h2>
+<p>Next we will add a handler to run when the event is fired. In our handler we will add content to the node.</p>
+<p>Note that the event handler receives an event object with its <code>currentTarget</code> set to the current Node instance, and the actual node clicked as the <code>target</code>.  The context of the handler is the NodeList instance, so <code>this</code> refers to our NodeList instance.</p>
+<p>Note also that <code>prepend</code> inserts content as the <code>firstChild</code> of the Node instance, <code>append</code> inserts content as the <code>lastChild</code>, and <code>insert</code> places content before the specified node or childNode index.</p>
+<pre class="code prettyprint">var onClick = function(e) {
+    var node = e.currentTarget;
+    node.prepend(&#x27;&lt;em&gt;prepended&lt;&#x2F;em&gt; &amp;nbsp;&#x27;); &#x2F;&#x2F; added as firstChild
+    node.append(&#x27;&amp;nbsp; &lt;em&gt;appended&lt;&#x2F;em&gt;&#x27;);  &#x2F;&#x2F; added as lastChild
+    node.insert(&#x27;&amp;nbsp; &lt;strong&gt;before last child&lt;&#x2F;strong&gt; &amp;nbsp;&#x27;, node.get(&#x27;lastChild&#x27;)); &#x2F;&#x2F; added before lastChild
+    node.insert(&#x27;&amp;nbsp; &lt;strong&gt;before childNodes[1]&lt;&#x2F;strong&gt; &amp;nbsp;&#x27;, 1); &#x2F;&#x2F; added before childNodes[1]
+};</pre>
+
+
+<h2>Attaching Events</h2>
+<p>We can assign our handler to all of the items by using the <code>all</code> method to get a <code>NodeList</code> instance and using the <code>on</code> method to subscribe to the event.</p>
+<pre class="code prettyprint">Y.all(&#x27;#demo li&#x27;).on(&#x27;click&#x27;, onClick);</pre>
+
+
+<h2>Complete Example Source</h2>
+<pre class="code prettyprint">&lt;ul id=&quot;demo&quot;&gt;
+    &lt;li&gt;foo&lt;&#x2F;li&gt;
+    &lt;li&gt;bar&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+
+&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+YUI().use(&#x27;node&#x27;, function(Y) {
+    var onClick = function(e) {
+        var node = e.currentTarget;
+        node.prepend(&#x27;&lt;em&gt;prepended&lt;&#x2F;em&gt; &amp;nbsp;&#x27;); &#x2F;&#x2F; added as firstChild 
+        node.append(&#x27;&amp;nbsp; &lt;em&gt;appended&lt;&#x2F;em&gt;&#x27;);  &#x2F;&#x2F; added as lastChild
+        node.insert(&#x27;&amp;nbsp; &lt;strong&gt;before last child&lt;&#x2F;strong&gt; &amp;nbsp;&#x27;, node.get(&#x27;lastChild&#x27;)); &#x2F;&#x2F; added before lastChild 
+        node.insert(&#x27;&amp;nbsp; &lt;strong&gt;before childNodes[1]&lt;&#x2F;strong&gt; &amp;nbsp;&#x27;, 1); &#x2F;&#x2F; added before childNodes[1]
+    };
+
+    Y.all(&#x27;#demo li&#x27;).on(&#x27;click&#x27;, onClick);
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Using selectors and property accessors with Node.">
+                                            <a href="properties.html">Set and Get Properties</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using DOM methods with Node.">
+                                            <a href="dom-node.html">DOM Methods</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Listening for DOM events with Node instances.">
+                                            <a href="events.html">Handling DOM Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="NodeList provides Node functionality for manipulating multiple nodes at once.">
+                                            <a href="nodelist.html">Using NodeList - Simple</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to use multiple NodeList features to build a simple game.">
+                                            <a href="ducks.html">Using NodeList - Ducks Game</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using a single event listener to handle events on multiple nodes.">
+                                            <a href="node-evt-delegation.html">Delegating Node Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to position an element in page coordinates.">
+                                            <a href="node-xy.html">Node Positioning</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to set styles and get style information.">
+                                            <a href="node-style.html">Node Styling</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to insert content into a Node.">
+                                            <a href="node-insert.html">Adding Node Content</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to show and hide a Node.">
+                                            <a href="node-view.html">Showing and Hiding</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible toolbar using the Focus Manager Node Plugin and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-1.html">Accessible Toolbar</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible menu button using the Focus Manager Node Plugin, Event&#x27;s delegation support and mouseenter event, along with the Overlay widget and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-3.html">Accessible Menu Button</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use the Event Utility to attach simple DOM event handlers.">
+                                            <a href="../event/basic-example.html">Simple DOM Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to request XML data from a remote web service.">
+                                            <a href="../io/weather.html">Request XML data from Yahoo! Weather</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to make a cross-domain request to Yahoo! Pipes, returning data from disparate sources.">
+                                            <a href="../io/xdr.html">Request JSON using Yahoo! Pipes</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Example Photo Browser application.">
+                                            <a href="../dd/photo-browser.html">Photo Browser</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Portal style example using Drag &amp; Drop Event Bubbling and Animation.">
+                                            <a href="../dd/portal-drag.html">Portal Style Example</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

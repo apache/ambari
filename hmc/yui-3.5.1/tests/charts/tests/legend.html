@@ -1,0 +1,361 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <style>
+            /*Supplemental: CSS for the YUI distribution*/
+            #custom-doc { width: 95%; min-width: 950px; }
+            #pagetitle {background-image: url(../../assets/bg_hd.gif);}
+            #mychart {
+                padding:10px 10px 10px 10px;
+            }
+        </style>
+        <link rel="stylesheet" type="text/css" href="../../../build/cssfonts/fonts-min.css">
+    </head>		
+<body class="yui3-skin-sam">
+<h3>Unit Tests</h3>
+<div id="mychart"></div>
+<script type="text/javascript" src="../../../build/yui/yui.js"></script>
+<script>            
+YUI({
+    allowRollup: false,
+    filter: (window.location.search.match(/[?&]filter=([^&]+)/) || [])[1] || 'min'
+}).use('charts-legend', 'test', 'console', function (Y) 
+{ 
+    Y.namespace("example.test");
+
+    var suite = new Y.Test.Suite("Y.Charts.Legend"),
+
+    LegendTestTemplate = function(cfg, globalCfg)
+    {
+        var i;
+        LegendTestTemplate.superclass.constructor.apply(this);
+        cfg.width = cfg.width || 400;
+        cfg.height = cfg.height || 300;
+        cfg.categoryKey = "date";
+        this.attrCfg = cfg;
+        for(i in globalCfg)
+        {
+            if(globalCfg.hasOwnProperty(i))
+            {
+                this[i] = globalCfg[i];
+            }
+        }
+    };
+
+    Y.extend(LegendTestTemplate, Y.Test.Case, {
+        setUp: function() {
+            this.chart = new Y.Chart(this.attrCfg);
+        },
+        
+        tearDown: function() {
+            this.chart.destroy(true);
+        }
+    });
+
+    var basicDataValues = [ 
+            {date:"5/1/2010", miscellaneous:2000, expenses:3700, revenue:2200}, 
+            {date:"5/2/2010", miscellaneous:50, expenses:9100, revenue:100}, 
+            {date:"5/3/2010", miscellaneous:400, expenses:1100, revenue:1500}, 
+            {date:"5/4/2010", miscellaneous:200, expenses:1900, revenue:2800}, 
+            {date:"5/5/2010", miscellaneous:5000, expenses:5000, revenue:2650}
+    ],
+    
+    topLegend = function()
+    {
+        return {
+            position: "top",
+            styles: {
+                hAlign: "center"
+            }
+        };
+    },
+    
+    bottomLegend = function()
+    {
+        return {
+            position: "bottom",
+            styles: {
+                hAlign: "center"
+            }
+        };
+    },
+
+    leftLegend = function()
+    {
+        return {
+            position: "left",
+            styles: {
+                vAlign: "middle"
+            }
+        };
+    },
+
+    rightLegend = function()
+    {
+        return {
+            position: "right",
+            styles: {
+                vAlign: "middle"
+            }
+        };
+    },
+
+    testLegend = function()
+    {
+        var assert = Y.Assert,
+            chart = this.chart,
+            legend = chart.get("legend");
+        assert.isTrue(legend instanceof Y.ChartLegend);
+    },
+
+    testLegendPosition = function()
+    {
+        var assert = Y.Assert,
+            chart = this.chart,
+            legend = chart.get("legend");
+        assert.areEqual(legend.get("position"), this.legendPosition);
+    },
+
+    testLegendItemsLength = function()
+    {
+        var assert = Y.Assert,
+            chart = this.chart,
+            legend = chart.get("legend"),
+            chartSC = chart.get("seriesCollection"),
+            legendItems = legend.get("items");
+        assert.areEqual(chartSC.length, legendItems.length);
+    },
+
+    testLegendItemsText = function()
+    {
+        var assert = Y.Assert,
+            chart = this.chart,
+            legend = chart.get("legend"),
+            chartSC = chart.get("seriesCollection"),
+            legendItems = legend.get("items"),
+            i = 0,
+            len = chartSC.length;
+        for(; i < len; ++i)
+        {
+            assert.areEqual(chartSC[i].get("displayName"), legendItems.text);
+        }
+    },
+    
+    NoLegendTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart"
+    }, {
+        name: "No Legend Tests",
+
+        testNoLegend: function()
+        {
+            var assert = Y.Assert,
+                chart = this.chart,
+                legend = chart.get("legend");
+            assert.isUndefined(legend);
+        }
+    }),
+    
+    TopLegendTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: topLegend()
+    }, {
+        name: "Top Legend Test",
+
+        testLegend: testLegend
+    }),
+    
+    RightLegendTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: rightLegend()
+    }, {
+        name: "Right Legend Test",
+
+        testLegend: testLegend
+    }),
+    
+    BottomLegendTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: bottomLegend()
+    }, {
+        name: "Bottom Legend Test",
+
+        testLegend: testLegend
+    }),
+    
+    LeftLegendTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: leftLegend()
+    }, {
+        name: "Left Legend Test",
+
+        testLegend: testLegend
+    }),
+    
+    TopLegendPositionTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: topLegend()
+    }, {
+        name: "Top Legend Position Test",
+
+        legendPosition: "top",
+
+        testLegendPosition: testLegendPosition
+    }),
+    
+    RightLegendPositionTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: rightLegend()
+    }, {
+        name: "Right Legend Position Test",
+
+        legendPosition: "right",
+
+        testLegend: testLegendPosition
+    }),
+    
+    BottomLegendPositionTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: bottomLegend()
+    }, {
+        name: "Bottom Legend Position Test",
+
+        legendPosition: "bottom",
+
+        testLegend: testLegendPosition
+    }),
+    
+    LeftLegendPositionTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: leftLegend()
+    }, {
+        name: "Left Legend Position Test",
+        
+        legendPosition: "left",
+
+        testLegend: testLegendPosition
+    }),
+
+    TopLegendItemsLengthTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: topLegend()
+    }, {
+        name: "Top Legend Items Length Test",
+
+        testLegend: testLegendItemsLength
+    }),
+    
+    RightLegendItemsLengthTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: rightLegend()
+    }, {
+        name: "Right Legend Items Length Test",
+
+        testLegend: testLegendItemsLength
+    }),
+    
+    BottomLegendItemsLengthTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: bottomLegend()
+    }, {
+        name: "Bottom Legend Items Length Test",
+
+        testLegend: testLegendItemsLength
+    }),
+    
+    LeftLegendItemsLengthTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: leftLegend()
+    }, {
+        name: "Left Legend Items Length Test",
+
+        testLegend: testLegendItemsLength
+    }),
+    
+    TopLegendItemsTextTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: topLegend()
+    }, {
+        name: "Top Legend Items Text Test",
+
+        testLegend: testLegendItemsText
+    }),
+    
+    RightLegendItemsTextTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: rightLegend()
+    }, {
+        name: "Right Legend Items Text Test",
+
+        testLegend: testLegendItemsText
+    }),
+    
+    BottomLegendItemsTextTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: bottomLegend()
+    }, {
+        name: "Bottom Legend Items Text Test",
+
+        testLegend: testLegendItemsText
+    }),
+    
+    LeftLegendItemsTextTest = new LegendTestTemplate({
+        dataProvider: basicDataValues,
+        render: "#mychart",
+        legend: leftLegend()
+    }, {
+        name: "Left Legend Items Text Test",
+
+        testLegend: testLegendItemsText
+    });
+    
+    suite.add(NoLegendTest);
+    suite.add(TopLegendTest);
+    suite.add(RightLegendTest);
+    suite.add(BottomLegendTest);
+    suite.add(LeftLegendTest);
+    suite.add(TopLegendPositionTest);
+    suite.add(RightLegendPositionTest);
+    suite.add(BottomLegendPositionTest);
+    suite.add(LeftLegendPositionTest);
+    suite.add(TopLegendItemsLengthTest);
+    suite.add(RightLegendItemsLengthTest);
+    suite.add(BottomLegendItemsLengthTest);
+    suite.add(LeftLegendItemsLengthTest);
+    suite.add(TopLegendItemsTextTest);
+    suite.add(RightLegendItemsTextTest);
+    suite.add(BottomLegendItemsTextTest);
+    suite.add(LeftLegendItemsTextTest);
+
+    //create the console
+    var r = new Y.Console({
+        newestOnTop : false,
+        style: 'block' // to anchor in the example content
+    });
+    
+    r.render('#testLogger');
+
+    //run the tests
+    Y.Test.Runner.setName("Y.Charts.Legend");
+    Y.Test.Runner.add(suite);
+    Y.Test.Runner.run();
+});
+</script>
+</body>
+</html>

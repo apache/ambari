@@ -1,0 +1,3891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: GitHub Contributors</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: GitHub Contributors</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+.scrollable pre {
+    overflow-y: auto;
+    max-height: 40em;
+    -webkit-overflow-scrolling: touch;
+}
+
+.screenshot {
+    display: block;
+    width: 584px;
+    margin: 0 auto;
+}
+</style>
+
+
+<div class="intro">
+
+<p>
+This example demonstrates the powerful navigation and view management features <code>Y.App</code> provides by creating an application to browse through the contributors of GitHub projects.
+</p>
+</div>
+
+
+<section>
+<div class="example">
+    <style scoped>
+/*-- Override Styles ---------------------------------------------------------*/
+
+.example {
+    padding: 0 !important;
+}
+
+/*-- Common Styles -----------------------------------------------------------*/
+
+#github-app h1 {
+    padding: 0;
+}
+
+#github-app .avatar,
+#github-app .avatar img {
+    display: block;
+    width: 76px;
+    height: 76px;
+    border: 0;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+#github-app .avatar {
+    display: inline-block;
+    *display: inline; zoom: 1;
+    height: 76px;
+    padding: 2px;
+}
+#github-app .avatar:hover,
+#github-app .user-avatar {
+    -webkit-box-shadow: 0 0 2px rgba(0,0,0,0.25);
+    -moz-box-shadow: 0 0 2px rgba(0,0,0,0.25);
+    box-shadow: 0 0 2px rgba(0,0,0,0.25);
+}
+
+#github-app .back,
+#github-app .view-on-github {
+    margin-top: 0;
+}
+#github-app .view-on-github {
+    text-align: right;
+}
+
+#github-app .info h1 {
+    margin: 0;
+}
+#github-app .info .user-avatar,
+#github-app .info .user-login,
+#github-app .info .user-name,
+#github-app .info .repo-name {
+    vertical-align: middle;
+}
+#github-app .info .user-avatar {
+    margin-right: 10px;
+}
+#github-app .info .user-name {
+    font-weight: 400;
+}
+
+#github-app .stats ul {
+    margin: 0;
+    padding: 8px;
+    color: #30418C;
+    background: #F0F1F8;
+    border: 1px solid #D4D8EB;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-align: center;
+    list-style: none;
+}
+#github-app .stats b {
+    display: block;
+    font-size: 36px;
+    line-height: 44px;
+}
+
+/*-- HomePage Styles ---------------------------------------------------------*/
+
+#github-app .home-page {
+    padding: 1em;
+}
+#github-app .home-page h1,
+#github-app .home-page p {
+    display: block;
+    text-align: center;
+}
+#github-app .home-page label,
+#github-app .home-page input,
+#github-app .home-page button {
+    font-size: 20px;
+}
+#github-app .home-page label {
+    color: #A6A6A6;
+}
+#github-app .home-page input {
+    display: inline-block;
+    *display: inline; zoom: 1;
+    font-family: Helvetica, sans-serif;
+    line-height: normal;
+    margin: 5px auto 0;
+    padding: 6px;
+    width: 200px;
+    text-align: left;
+}
+
+/*-- UserPage Styles ---------------------------------------------------------*/
+
+#github-app .user-page {
+    padding: 1em;
+}
+#github-app .repos {
+    padding-left: 0;
+    list-style: none;
+    border-top: 1px solid #E5E6F1;
+    margin: 0 -13px;
+}
+#github-app .repo {
+    margin: 1px 0;
+    padding: 0 13px 6px;
+    color: #30418C;
+    background: #F9F9FC;
+    cursor: pointer;
+    border-bottom: 1px solid #E5E6F1;
+}
+#github-app .repo:hover {
+    background: #F1F1F4;
+}
+#github-app .repo-name h3 {
+    margin: 6px 0 0 0;
+}
+#github-app .repo-stats {
+    margin-top: 6px;
+    background: url(../assets/app/arrow.gif) right center no-repeat;
+}
+#github-app .repo-stats ul {
+    list-style: none;
+    padding-left: 0;
+    height: 47px;
+    line-height: 47px;
+}
+#github-app .repo-stats b {
+    display: block;
+}
+#github-app .repo-stats span {
+    display: block;
+    font-size: 11px;
+    color: #B6BCD7;
+    color: rgba(48, 65, 140, 0.40);
+}
+#github-app .repo-stats .repo-watchers,
+#github-app .repo-stats .repo-forks {
+    text-align: center;
+    line-height: 11px;
+    margin-top: 15px;
+}
+#github-app .repo-desc {
+    margin: 10px 20px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #B6BCD7;
+    color: rgba(48, 65, 140, 0.40);
+}
+
+/*-- RepoPage Styles ---------------------------------------------------------*/
+
+#github-app .repo-page {
+    padding: 1em;
+}
+#github-app .contributors {
+    margin-left: -5px;
+    margin-right: -5px;
+    padding-left: 0;
+    list-style: none;
+}
+#github-app .contributor {
+    margin: 5px;
+    display: inline-block;
+    *display: inline; zoom: 1;
+}
+#github-app .contributor .avatar {
+    position: relative;
+    display: block;
+}
+#github-app .contributor .avatar:link,
+#github-app .contributor .avatar:visited,
+#github-app .contributor .avatar:hover,
+#github-app .contributor .avatar:active {
+    text-decoration: none;
+}
+#github-app .contributor-name,
+#github-app .contributor-contributions {
+    position: absolute;
+    left: 0;
+    margin: 2px;
+    padding: 0 4px;
+    width: 68px;
+    font-size: 11px;
+    color: #fff;
+    background: #000;
+    background: rgba(0,0,0, 0.2);
+    text-shadow: 0 1px 0 rgba(0,0,0, 0.4);
+}
+#github-app .contributor-name {
+    bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-border-bottom-right-radius: 3px;
+    -webkit-border-bottom-left-radius: 3px;
+    -moz-border-radius-bottomright: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+#github-app .contributor-contributions {
+    top: 0;
+    -webkit-border-top-left-radius: 3px;
+    -webkit-border-top-right-radius: 3px;
+    -moz-border-radius-topleft: 3px;
+    -moz-border-radius-topright: 3px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+</style>
+
+    
+<!--
+HomePage Template:
+
+Template HTML used by the <code>HomePageView</code> to render the app's home page.
+-->
+<script id="t-home" type="text/x-handlebars-template">
+    <h1>Contributors of GitHub Projects</h1>
+    <p>
+        <input id="github-app-username" type="text" value="{{login}}" placeholder="GitHub Username" />
+        <button class="yui3-button">Show Repos</button>
+    </p>
+    <p>
+        <label for="github-app-username">(e.g. yui, davglass, rgrove)</label>
+    </p>
+</script>
+
+<!--
+User Template:
+
+Template HTML used by the <code>UserPageView</code> to render the header section of a
+user's page in the app; this displays info and stats about the GitHub user.
+-->
+<script id="t-user" type="text/x-handlebars-template">
+    <div class="yui3-g">
+        <p class="back yui3-u-1-2">
+            <a href="#/">« Choose Someone Different</a>
+        </p>
+        <p class="view-on-github yui3-u-1-2">
+            <a href="{{html_url}}">View on GitHub</a>
+        </p>
+    </div>
+
+    <div class="yui3-g">
+        <div class="info yui3-u-2-3">
+            <h1>
+                <span class="avatar user-avatar">
+                    <img src="{{avatar_url}}" alt="{{login}}'s avatar" />
+                </span>
+                <span class="user-login">{{login}}</span>
+            {{#if name}}
+                <span class="user-name">({{name}})</span>
+            {{/if}}
+            </h1>
+        </div>
+        <div class="stats yui3-u-1-3">
+            <ul class="yui3-g">
+                <li class="user-repos yui3-u-1-2">
+                    <b>{{public_repos}}</b> {{public_repos_label}}
+                </li>
+                <li class="user-followers yui3-u-1-2">
+                    <b>{{followers}}</b> {{followers_label}}
+                </li>
+            </ul>
+        </div>
+    </div>
+</script>
+
+<!--
+RepoList Template:
+
+Template HTML used by the <code>UserPageView</code> to render the main section of a user's
+page in the app; this displays the list of project repos for the GitHub user.
+-->
+<script id="t-repo-list" type="text/x-handlebars-template">
+    <h2 class="no-toc">Public Repositories</h2>
+
+    <ul class="repos">
+    {{#each repos}}
+        <li id="{{clientId}}" class="repo yui3-g">
+            <div class="repo-name yui3-u-2-3">
+                <h3 class="no-toc">
+                    <a href="#/github/{{owner.login}}/{{name}}/">{{name}}</a>
+                </h3>
+                <p class="repo-desc">{{description}}</p>
+            </div>
+            <div class="repo-stats yui3-u-1-3">
+                <ul class="yui3-g">
+                    <li class="repo-lang yui3-u-1-3">
+                        <b>{{language}}</b>
+                    </li>
+                    <li class="repo-watchers yui3-u-1-3">
+                        <b>{{watchers}}</b>
+                        <span>{{watchers_label}}</span>
+                    </li>
+                    <li class="repo-forks yui3-u-1-3">
+                    {{#if forks}}
+                        <b>{{forks}}</b>
+                        <span>{{forks_label}}</span>
+                    {{/if}}
+                    </li>
+                </ul>
+            </div>
+        </li>
+    {{/each}}
+    </ul>
+</script>
+
+<!--
+Repo Template:
+
+Template HTML used by the <code>RepoPageView</code> to render the header section of a
+repo page in the app; this displays info and stats about a GitHub user's repo.
+-->
+<script id="t-repo" type="text/x-handlebars-template">
+    <div class="yui3-g">
+        <p class="back yui3-u-1-2">
+            <a href="#/github/{{owner.login}}/">« Select Repository</a>
+        </p>
+        <p class="view-on-github yui3-u-1-2">
+            <a href="{{html_url}}">View on GitHub</a>
+        </p>
+    </div>
+
+    <div class="yui3-g">
+        <div class="info yui3-u-2-3">
+            <h1>
+                <span class="avatar user-avatar">
+                    <img src="{{owner.avatar_url}}" alt="{{owner.login}}'s avatar" />
+                </span>
+                <span class="user-login">{{owner.login}}</span> /
+                <span class="repo-name">{{name}}</span>
+            </h1>
+        </div>
+        <div class="stats yui3-u-1-3">
+            <ul class="yui3-g">
+                <li class="repo-watchers yui3-u-1-2">
+                    <b>{{watchers}}</b> {{watchers_label}}
+                </li>
+                <li class="repo-forks yui3-u-1-2">
+                    <b>{{forks}}</b> {{forks_label}}
+                </li>
+            </ul>
+        </div>
+    </div>
+</script>
+
+<!--
+ContributorList Template:
+
+Template HTML used by the <code>RepoPageView</code> to render the main section of a repo
+page in the app; this displays the list of contributors to the GitHub project.
+-->
+<script id="t-contributor-list" type="text/x-handlebars-template">
+    <h2 class="no-toc">Project Contributors ({{num}})</h2>
+
+    <ul class="contributors">
+    {{#each contributors}}
+        <li class="contributor">
+            <a class="avatar" href="#/github/{{login}}/"
+                    title="{{login}} has {{contributions}} {{contributions_label}}">
+                <img alt="{{login}}'s avatar" src="{{avatar_url}}" />
+                <span class="contributor-name">{{login}}</span>
+                <span class="contributor-contributions">{{contributions}}</span>
+            </a>
+        </li>
+    {{/each}}
+    </ul>
+</script>
+
+    <script>
+YUI().use('app', 'handlebars', 'jsonp', 'cssbutton', function (Y) {
+
+var User, Repo, RepoList, Contributor, ContributorList,
+    UserView, RepoView, RepoListView, ContributorListView,
+    HomePageView, UserPageView, RepoPageView,
+    ContributorsApp;
+
+// -- Utility Functions --------------------------------------------------------
+
+// A helper function used by the Views to create labels for numerical fields
+// which are correctly pluralized, and puts the label back on the <code>data</code> object.
+function addLabel(data, field, label) {
+    var num = data[field];
+    data[field] || (data[field] = '0');
+    data[field + '_label'] = num === 1 ? label : (label + 's');
+}
+
+
+// -- GithubSync ---------------------------------------------------------------
+function GithubSync() {}
+
+GithubSync.API_ORIGIN = 'https://api.github.com';
+
+GithubSync.prototype = {
+    // Intended to be overridden with a GitHub API endpoint URL.
+    githubURL: '/',
+
+    // Can be overridden to customize the actual URL used when making the
+    // request; this way the <code>githubURL</code> can be more of a template, and this
+    // method can substitute place-holders in the template with specific values.
+    buildURL: function () {
+        return this.githubURL;
+    },
+
+    // Provides an implementation for a Model/ModelList's <code>sync()</code> method which
+    // can read data from GitHub's API.
+    sync: function (action, options, callback) {
+        Y.Lang.isFunction(callback) || (callback = function () {});
+
+        // Enforce ready-only constraint.
+        if (action !== 'read') {
+            return callback('Read-only');
+        }
+
+        // Creates the API URL and adds params for 100 items per-page and a
+        // JSONP callback placeholder.
+        var url = this.buildURL() + '?per_page=100&callback={callback}';
+
+        // Performs JSONP request to GitHub's API.
+        Y.jsonp(GithubSync.API_ORIGIN + url, function (res) {
+            var meta = res.meta,
+                data = res.data;
+
+            // Check for a successful response, otherwise return the error
+            // message returned by the GitHub API.
+            if (meta.status >= 200 && meta.status < 300) {
+                callback(null, res);
+            } else {
+                callback(data.message, res);
+            }
+        });
+    },
+
+    // Provides an implementation for a Model/ModelList's <code>parse()</code> method which
+    // simply returns the <code>data</code> object or array from the response JSON.
+    parse: function (res) {
+        return res.data;
+    }
+};
+
+
+// -- User ---------------------------------------------------------------------
+User = Y.Base.create('user', Y.Model, [GithubSync], {
+    githubURL: '/users/{user}',
+
+    buildURL: function () {
+        return Y.Lang.sub(this.githubURL, {
+            user: this.getAsURL('login')
+        });
+    }
+}, {
+    // These attributes correspond to the GitHub user data we care about:
+    // http://developer.github.com/v3/users/
+    ATTRS: {
+        login        : {value: null},
+        name         : {value: null},
+        html_url     : {value: null},
+        avatar_url   : {value: null},
+        public_repos : {value: 0},
+        followers    : {value: 0}
+    }
+});
+
+
+// -- Repo ---------------------------------------------------------------------
+Repo = Y.Base.create('repo', Y.Model, [], {
+    // The <code>id</code> attribute for this Model will be an alias for <code>name</code>.
+    idAttribute: 'name'
+}, {
+    // These attributes correspond to the GitHub repo data we care about:
+    // http://developer.github.com/v3/repos/
+    ATTRS: {
+        name       : {value: null},
+        html_url   : {value: null},
+        description: {value: null},
+        watchers   : {value: 0},
+        forks      : {value: 0},
+        language   : {value: null},
+        owner      : {value: null}
+    }
+});
+
+
+// -- RepoList -----------------------------------------------------------------
+RepoList = Y.Base.create('repoList', Y.ModelList, [GithubSync], {
+    model    : Repo,
+    githubURL: '/users/{user}/repos',
+
+    buildURL: function () {
+        // This list's <code>user</code> is used to build the API URL.
+        return Y.Lang.sub(this.githubURL, {
+            user: this.get('user').getAsURL('login')
+        });
+    },
+
+    // Override the default <code>comparator()</code> so items are sorted by most number of
+    // watchers to least number of watchers.
+    comparator: function (repo) {
+        // Note the minus sign.
+        return -repo.get('watchers');
+    }
+}, {
+    ATTRS: {
+        // A <code>RepoList</code> has a <code>User</code> associated with it, this allows for a
+        // loose-coupling between a user and set of repositories.
+        user: {value: null}
+    }
+});
+
+
+// -- Contributor --------------------------------------------------------------
+Contributor = Y.Base.create('contributor', User, [], {}, {
+    ATTRS: {
+        contributions: {value: 0}
+    }
+});
+
+
+// -- ContributorList ----------------------------------------------------------
+ContributorList = Y.Base.create('contributorList', Y.ModelList, [GithubSync], {
+    model    : Contributor,
+    githubURL: '/repos/{user}/{repo}/contributors',
+
+    buildURL: function () {
+        // This list's <code>repo</code> is used to build the API URL.
+        var repo = this.get('repo');
+
+        return Y.Lang.sub(this.githubURL, {
+            user: repo.getAsURL('owner.login'),
+            repo: repo.getAsURL('name')
+        });
+    },
+
+    // Override the default <code>comparator()</code> so items are sorted by most number of
+    // contributors to least number of contributors.
+    comparator: function (contributor) {
+        // Note the minus sign.
+        return -contributor.get('contributions');
+    }
+}, {
+    ATTRS: {
+        // A <code>ContributorList</code> has a <code>Repo</code> associated with it, this allows for
+        // a loose-coupling between a repo and set of contributors.
+        repo: {value: null}
+    }
+});
+
+
+// -- User View ----------------------------------------------------------------
+UserView = Y.Base.create('userView', Y.View, [], {
+    // Compiles the User Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one('#t-user').getContent()),
+
+    render: function () {
+        // Retrieves all of the model instance's data as a simple JSON struct.
+        var user = this.get('model').toJSON(),
+            content;
+
+        // Add proper pluralized labels for numerical data fields.
+        addLabel(user, 'public_repos', 'Public Repo');
+        addLabel(user, 'followers', 'Follower');
+
+        // Applies the <code>User</code> model data to the User Template and sets the
+        // resulting HTML as the contents of this view's container.
+        content = this.template(user);
+        this.get('container').setContent(content);
+
+        return this;
+    }
+});
+
+
+// -- Repo View ----------------------------------------------------------------
+RepoView = Y.Base.create('repoView', Y.View, [], {
+    // Compiles the Repo Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one('#t-repo').getContent()),
+
+    render: function () {
+        // Retrieves all of the model instance's data as a simple JSON struct.
+        var repo = this.get('model').toJSON(),
+            content;
+
+        // Add proper pluralized labels for numerical data fields.
+        addLabel(repo, 'watchers', 'Watcher');
+        addLabel(repo, 'forks', 'Fork');
+
+        // Applies the <code>Repo</code> model data to the Repo Template and sets the
+        // resulting HTML as the contents of this view's container.
+        content = this.template(repo);
+        this.get('container').setContent(content);
+
+        return this;
+    }
+});
+
+
+// -- RepoList View ------------------------------------------------------------
+RepoListView = Y.Base.create('repoListView', Y.View, [], {
+    // Compiles the RepoList Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one('#t-repo-list').getContent()),
+
+    // Attach DOM events for the view. The <code>events</code> object is a mapping of
+    // selectors to an object containing one or more events to attach to the
+    // node(s) matching each selector.
+    events: {
+        '.repo': {
+            click: 'selectRepo'
+        }
+    },
+
+    initializer: function () {
+        // The <code>selectRepo</code> event is fired when the user chooses a GitHub repo
+        // to view its contributors. This event will bubble up to the
+        // <code>ContributorsApp</code> via the <code>UserPageView</code> view when it is the app's
+        // <code>activeView</code>.
+        this.publish('selectRepo', {preventable: false});
+    },
+
+    render: function () {
+        var repos = this.get('modelList'),
+            reposData, content;
+
+        // Iterates over all <code>Repo</code> models in the list and retrieves each model
+        // instance's data as a simple JSON structs and collects it in an array.
+        reposData = repos.map(function (repo) {
+            var data = repo.toJSON();
+
+            // Add <code>clientId</code> to the data, this is ignored by <code>toJSON()</code>. This
+            // will be used by the template and is an easy way to regain access
+            // to the associated Repo model.
+            data.clientId = repo.get('clientId');
+
+            // Add proper pluralized labels for numerical data fields.
+            addLabel(data, 'watchers', 'Watcher');
+            addLabel(data, 'forks', 'Fork');
+
+            return data;
+        });
+
+        // Applies the <code>RepoList</code> data to the RepoList Template and sets the
+        // resulting HTML as the contents of this view's container.
+        content = this.template({repos: reposData});
+        this.get('container').setContent(content);
+
+        return this;
+    },
+
+    // Called when the user clicks anywhere on a repo line-item in our list
+    // of repos. This will retreive the corresponding Repo model instance
+    // from the RepoList via the <code>clientId</code>.
+    selectRepo: function (e) {
+        // Noop when the element clicked is an anchor, we'll let the link
+        // preform its default action.
+        if (e.target.test('a')) {
+            return;
+        }
+
+        // Because we've rendered our list of repos with the <code>clientId</code> as the
+        // <code>id</code> attribute for each repo node, we can use the client id to
+        // retreive the Repo model instance from the RepoList.
+        var repos = this.get('modelList'),
+            repo  = repos.getByClientId(e.currentTarget.get('id'));
+
+        if (repo) {
+            this.fire('selectRepo', {repo: repo});
+        }
+    }
+});
+
+
+// -- ContributorList View -----------------------------------------------------
+ContributorListView = Y.Base.create('contributorListView', Y.View, [], {
+    // Compiles the ContributorList Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one('#t-contributor-list').getContent()),
+
+    render: function () {
+        var contributors = this.get('modelList'),
+            contributorsData, content;
+
+        // Iterates over all <code>Contributor</code> models in the list and retrieves a
+        // sub-set of each model instance's data as a simple JSON structs and
+        // collects it in an array.
+        contributorsData = contributors.map(function (contributor) {
+            // Only a few of the <code>Contributor</code> data attributes are needed.
+            var data = contributor.getAttrs(['login', 'avatar_url', 'contributions']);
+
+            // Add proper pluralized labels for numerical data fields.
+            addLabel(data, 'contributions', 'Contribution');
+
+            return data;
+        });
+
+        // Applies the <code>ContributorList</code> data to the ContributorList Template
+        // along with the total number of contributors for the repo.
+        content = this.template({
+            num         : contributors.size(),
+            contributors: contributorsData
+        });
+
+        // Sets the resulting HTML from apply the data to the template as the
+        // contents of this view's container.
+        this.get('container').setContent(content);
+
+        return this;
+    }
+});
+
+
+// -- HomePage View ------------------------------------------------------------
+HomePageView = Y.Base.create('homePageView', Y.View, [], {
+    // Compiles the HomePage Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one('#t-home').getContent()),
+
+    // Attach DOM events for the view. The <code>events</code> object is a mapping of
+    // selectors to an object containing one or more events to attach to the
+    // node(s) matching each selector.
+    events: {
+        'button': {
+            click: 'changeUser'
+        },
+
+        'input': {
+            keypress: 'enter'
+        }
+    },
+
+    initializer: function () {
+        // The <code>changeUser</code> event is fired when the user chooses a GitHub user
+        // to start browsing. This event will bubble up to the <code>ContributorsApp</code>
+        // when this view is the app's <code>activeView</code>.
+        this.publish('changeUser', {preventable: false});
+    },
+
+    render: function () {
+        // Retrieves just the <code>login</code> of the <code>User</code> model instance and applies
+        // it to the HomePage Template.
+        var user    = this.get('model'),
+            content = this.template(user.getAttrs(['login']));
+
+        // Adds the "home-page" CSS class to aid styling and sets the resulting
+        // HTML as the contents of this view's container.
+        this.get('container').addClass('home-page').setContent(content);
+
+        return this;
+    },
+
+    // Called when the user clicks the "Show Repos" button. This will retrieve
+    // the GitHub username from the text <code>&lt;input&gt;</code> and fire the <code>changeUser</code>
+    // event, passing on the username to the app.
+    changeUser: function () {
+        var user = this.get('container').one('input').get('value');
+        if (user) {
+            this.fire('changeUser', {user: user});
+        }
+    },
+
+    // Called when the user types inside the text <code>&lt;input&gt;</code>; when the "enter"
+    // key is pressed, this will call the <code>changeUser()</code> method.
+    enter: function (e) {
+        // Check for "enter" keypress.
+        if (e.keyCode === 13) {
+            this.changeUser();
+        }
+    }
+});
+
+
+// -- UserPage View ------------------------------------------------------------
+UserPageView = Y.Base.create('userPageView', Y.View, [], {
+    initializer: function () {
+        var user  = this.get('model'),
+            repos = this.get('modelList');
+
+        // This view serves as a "page"-level view containing two sub-views to
+        // which it delegates rendering and stitches together the resulting UI.
+        // Sub-views are created to render the <code>User</code> and <code>RepoList</code>.
+        this.userView     = new UserView({model: user});
+        this.repoListView = new RepoListView({modelList: repos});
+
+        // This will cause the sub-views' custom events to bubble up to here.
+        this.userView.addTarget(this);
+        this.repoListView.addTarget(this);
+    },
+
+    // This destructor is specified so this view's sub-views can be properly
+    // destroyed and cleaned up.
+    destructor: function () {
+        this.userView.destroy();
+        this.repoListView.destroy();
+
+        delete this.userView;
+        delete this.repoListView;
+    },
+
+    render: function () {
+        // A document fragment is created to hold the resulting HTML created
+        // from rendering the two sub-views.
+        var content = Y.one(Y.config.doc.createDocumentFragment());
+
+        // This renders each of the two sub-views into the document fragment,
+        // then sets the fragment as the contents of this view's container.
+        content.append(this.userView.render().get('container'));
+        content.append(this.repoListView.render().get('container'));
+
+        // Adds the "user-page" CSS class to aid styling and sets the document
+        // fragment containing the two rendered sub-views as the contents of
+        // this view's container.
+        this.get('container').addClass('user-page').setContent(content);
+
+        return this;
+    }
+});
+
+
+// -- RepoPage View ------------------------------------------------------------
+RepoPageView = Y.Base.create('repoPageView', Y.View, [], {
+    initializer: function () {
+        var repo         = this.get('model'),
+            contributors = this.get('modelList');
+
+        // This view serves as a "page"-level view containing two sub-views to
+        // which it delegates rendering and stitches together the resulting UI.
+        // Sub-views are created to render the <code>RepoView</code> and
+        // <code>ContributorListView</code>.
+        this.repoView            = new RepoView({model: repo});
+        this.contributorListView = new ContributorListView({modelList: contributors});
+
+        // This will cause the sub-views' custom events to bubble up to here.
+        this.repoView.addTarget(this);
+        this.contributorListView.addTarget(this);
+    },
+
+    // This destructor is specified so this view's sub-views can be properly
+    // destroyed and cleaned up.
+    destructor: function () {
+        this.repoView.destroy();
+        this.contributorListView.destroy();
+
+        delete this.repoView;
+        delete this.contributorListView;
+    },
+
+    render: function () {
+        // A document fragment is created to hold the resulting HTML created
+        // from rendering the two sub-views.
+        var content = Y.one(Y.config.doc.createDocumentFragment());
+
+        // This renders each of the two sub-views into the document fragment,
+        // then sets the fragment as the contents of this view's container.
+        content.append(this.repoView.render().get('container'));
+        content.append(this.contributorListView.render().get('container'));
+
+        // Adds the "repo-page" CSS class to aid styling and sets the document
+        // fragment containing the two rendered sub-views as the contents of
+        // this view's container.
+        this.get('container').addClass('repo-page').setContent(content);
+
+        return this;
+    }
+});
+
+
+// -- Contributors App ---------------------------------------------------------
+ContributorsApp = Y.Base.create('contributorsApp', Y.App, [], {
+    // This is where we can declare our page-level views and define the
+    // relationship between the "pages" of our application. We can later use the
+    // <code>showView()</code> method to create and display these views.
+    views: {
+        homePage: {
+            type: HomePageView
+        },
+
+        userPage: {
+            type: UserPageView
+        },
+
+        repoPage: {
+            type  : RepoPageView,
+            parent: 'userPage'
+        }
+    },
+
+    initializer: function () {
+        // Here we register a listener for the <code>HomePageView</code>'s <code>changeUser</code>
+        // event. When the <code>HomePageView</code> is the <code>activeView</code>, its events will
+        // bubble up to this app instance.
+        this.on('*:changeUser', this.navigateToUser);
+
+        // Here we register a listener for the <code>RepoListView</code>'s <code>selectRepo</code>
+        // event. The <code>RepoListView</code>'s events bubble up to the <code>UserPageView</code>,
+        // so when it is the <code>activeView</code>, its events will bubble up to this
+        // app instance.
+        this.on('*:selectRepo', this.navigateToRepo);
+
+        // Once our app is ready, we'll either dispatch to our route-handlers if
+        // the current URL matches one of our routes, or we'll simply show the
+        // <code>HomePageView</code>.
+        this.once('ready', function (e) {
+            if (this.hasRoute(this.getPath())) {
+                this.dispatch();
+            } else {
+                this.showHomePage();
+            }
+        });
+    },
+
+    // -- Event Handlers -------------------------------------------------------
+
+    // When called, this will navigate the application to the user-page for the
+    // GitHub username specified on the event facade. This will cause our app to
+    // dispatch to its route-handlers along with updating the URL.
+    navigateToUser: function (e) {
+        var activeView = this.get('activeView');
+
+        // We want to add a history entry for "/" when we're showing the home
+        // page, but the app's current path isn't already "/". This provides
+        // proper back button support and helps get around a side effect of
+        // using hash based URLs in this example.
+        if (activeView instanceof HomePageView && this.getPath() !== '/') {
+            // Adds history entry for "/" so we can get back to the home page
+            // via the back button.
+            this.save('/');
+        }
+
+        this.navigate('/github/' + e.user + '/');
+    },
+
+    // When called, this will navigate the application to the repo-page for the
+    // GitHub repository specified on the event facade. This will cause our app
+    // to dispatch to its route-handlers along with updating the URL.
+    navigateToRepo: function (e) {
+        var repo = e.repo;
+        this.navigate('/github/' + repo.get('owner.login') + '/' + repo.get('name') + '/');
+    },
+
+    // -- Route Handlers -------------------------------------------------------
+
+    // This will be called for all URLs which start with: "/github/:user/"; its
+    // job is to make sure a <code>User</code> model for the specified GitHub username is
+    // fully-loaded and placed on the request object for other route-handlers.
+    handleUser: function (req, res, next) {
+        var username = req.params.user,
+            user     = this.get('user'),
+            self     = this;
+
+        // When the current <code>User</code> model set on the app is new or the specified
+        // GitHub username from the URL is different, a new user model instance
+        // is created, loaded, and set on this app before adding it to the
+        // request object.
+        if (username === user.get('login') && !user.isNew()) {
+            // Places a reference to the user model on the request object before
+            // delegating to the next route-handler.
+            req.user = user;
+            next();
+        } else {
+            // Create a new <code>User</code> model instance using the specified GitHub
+            // username from the URL.
+            user = new User({login: username});
+
+            // Load the user's data from the GitHub API, then sent the user
+            // model on both this app and the request object before delegating
+            // to the next route-handler.
+            user.load(function () {
+                self.set('user', user);
+                req.user = user;
+                next();
+            });
+        }
+    },
+
+    // This will be called for all URLs which start with: "/github/:user/"; its
+    // job is to make sure a fully-loaded <code>RepoList</code> instance is placed on the
+    // request object. It is assumed that <code>handleUser()</code> route-handler has
+    // already placed the <code>User</code> model on the request object.
+    handleRepos: function (req, res, next) {
+        var user  = req.user,
+            repos = this.get('repos');
+
+        // Adds a reference to this app's <code>RepoList</code> to the request object.
+        req.repos = repos;
+
+        // This makes sure the <code>RepoList</code> is loaded for the current user.
+        if (user === repos.get('user')) {
+            next();
+        } else {
+            // A fade transition is preferred when we've switched users, so it
+            // is added to the response object.
+            res.transition = 'fade';
+
+            // Sets the current user model on the <code>RepoList</code> instance and loads
+            // the repos for the given user before continuing.
+            repos.set('user', user).load(function () {
+                next();
+            });
+        }
+    },
+
+    // This will be called for URLs which match: "/github/:user/:repo/"; its job
+    // is to make sure a fully-loaded <code>ContributorList</code> instance is placed on
+    // the request object. It is assumed that the <code>handleUser()</code> and
+    // <code>handleRepos()</code> route-handlers have already placed the <code>User</code> model and
+    // <code>RepoList</code> model-list on the request object.
+    handleRepo: function (req, res, next) {
+        // This uses data from the request object to look for a <code>Repo</code> model
+        // instance in the <code>RepoList</code>.
+        var repoId       = req.params.repo,
+            repos        = req.repos,
+            repo         = repos.getById(repoId),
+            contributors = this.get('contributors');
+
+        // We error-out when the specified repo name does not exist in the list
+        // of repos for the current GitHub user.
+        if (!repo) {
+            return next('GitHub repository was not found.');
+        }
+
+        // Adds a reference to the <code>Repo</code> model and <code>ContributorList</code> to the
+        // request object.
+        req.repo         = repo;
+        req.contributors = contributors;
+
+        // This makes sure the <code>ContributorList</code> is loaded for the current repo.
+        if (repo === contributors.get('repo')) {
+            next();
+        } else {
+            // Sets the current repo model on the <code>ContributorList</code> instance and
+            // loads the contributors before continuing.
+            contributors.set('repo', repo).load(function () {
+                next();
+            });
+        }
+    },
+
+    // This is called when the URL is "/" and will show our app's home page.
+    showHomePage: function (req) {
+        this.showView('homePage', {
+            model: this.get('user')
+        });
+    },
+
+    // This is the final route for "/github/:user/" URLs and will show our app's
+    // user page which lists the user's repos.
+    showUserPage: function (req, res) {
+        this.showView('userPage', {
+            model    : req.user,
+            modelList: req.repos
+        }, {
+            // Overrides the default transition with the preferred one, if set.
+            transition: res.transition
+        });
+    },
+
+    // This is the final route for "/github/:user/:repo/" URLs and will show our
+    // app's repo page which lists the contributors to the repo/project.
+    showRepoPage: function (req, res) {
+        this.showView('repoPage', {
+            model    : req.repo,
+            modelList: req.contributors
+        }, {
+            // Overrides the default transition with the preferred one, if set.
+            transition: res.transition
+        });
+    }
+}, {
+    ATTRS: {
+        // These attributes will be used by the app to hold its current state,
+        // and they will be accessed and modified by our route-handlers.
+        user        : {value: new User()},
+        repos       : {value: new RepoList()},
+        contributors: {value: new ContributorList()},
+
+        // Our app will use more advanced routing features where multiple
+        // route-handlers will be used to fulfill a "request", allowing us to
+        // encapsulate and reuse our data processing logic. Note: the order the
+        // route-handlers are defined in is significant.
+        routes: {
+            value: [
+                {path: '/',                    callback: 'showHomePage'},
+
+                {path: '/github/:user/*',      callback: 'handleUser'},
+                {path: '/github/:user/*',      callback: 'handleRepos'},
+                {path: '/github/:user/',       callback: 'showUserPage'},
+
+                {path: '/github/:user/:repo/', callback: 'handleRepo'},
+                {path: '/github/:user/:repo/', callback: 'showRepoPage'}
+            ]
+        }
+    }
+});
+
+
+// -- Go-go-gadget App! --------------------------------------------------------
+
+// Create and render a new instance of our <code>ContributorsApp</code>!
+new ContributorsApp({
+    // We force this to false for this example app because there is no server.
+    serverRouting: false,
+
+    // Here we set our app's rendering container, and restrict which links on
+    // the page should cause the app to navigate.
+    container   : '#github-app',
+    linkSelector: '#github-app a',
+
+    // Enable view transitions when users are navigating around the app.
+    transitions: true,
+
+    // We'll define the default GitHub user to be "yui".
+    user: new User({login: 'yui'})
+}).render();
+
+});
+</script>
+
+
+    <div id="github-app"></div>
+</div>
+</section>
+
+
+<h2 id="html">HTML</h2>
+
+<p>
+This application starts with a bare container which will be used to define the bounds of the app and provide a place for it to render its contents.
+</p>
+
+<pre class="code prettyprint">&lt;div id=&quot;github-app&quot;&gt;&lt;&#x2F;div&gt;</pre>
+
+
+<h3 id="templates">Templates</h3>
+
+<p>
+This app makes heavy use of <a href="../handlebars/index.html">Handlebars</a> templates to create reusable chunks of HTML which will be used by our views render the different "pages" and sections of our app.
+</p>
+
+<p>
+These templates, while being placed within the markup of the page, are invisible and not rendered by the browser. By putting the templates inside of a <code>&lt;script&gt;</code> elements with <code>type=&quot;text&#x2F;x-handlebars-template&quot;</code>, the browser will ignore its contents (and therefore not try to execute it as a script) because it doesn't recognize the <code>text&#x2F;x-handlebars-template</code> content-type.
+</p>
+
+<p>
+You'll notice all of these <code>&lt;script&gt;</code> elements contain <code>id</code> attributes; this allows us to easily reference a template by-id and retrieve its contents as a string which can by compiled into a Handlebars template function.
+</p>
+
+<p>
+This is generally a more maintainable way of embedding templates than storing them in JavaScript strings, but there's no requirement that you use this technique.
+</p>
+
+<div class="scrollable">
+<pre class="code prettyprint lang-handlebars">&lt;!--
+HomePage Template:
+
+Template HTML used by the &#x60;HomePageView&#x60; to render the app&#x27;s home page.
+--&gt;
+&lt;script id=&quot;t-home&quot; type=&quot;text&#x2F;x-handlebars-template&quot;&gt;
+    &lt;h1&gt;Contributors of GitHub Projects&lt;&#x2F;h1&gt;
+    &lt;p&gt;
+        &lt;input id=&quot;github-app-username&quot; type=&quot;text&quot; value=&quot;{{login}}&quot; placeholder=&quot;GitHub Username&quot; &#x2F;&gt;
+        &lt;button class=&quot;yui3-button&quot;&gt;Show Repos&lt;&#x2F;button&gt;
+    &lt;&#x2F;p&gt;
+    &lt;p&gt;
+        &lt;label for=&quot;github-app-username&quot;&gt;(e.g. yui, davglass, rgrove)&lt;&#x2F;label&gt;
+    &lt;&#x2F;p&gt;
+&lt;&#x2F;script&gt;
+
+&lt;!--
+User Template:
+
+Template HTML used by the &#x60;UserPageView&#x60; to render the header section of a
+user&#x27;s page in the app; this displays info and stats about the GitHub user.
+--&gt;
+&lt;script id=&quot;t-user&quot; type=&quot;text&#x2F;x-handlebars-template&quot;&gt;
+    &lt;div class=&quot;yui3-g&quot;&gt;
+        &lt;p class=&quot;back yui3-u-1-2&quot;&gt;
+            &lt;a href=&quot;#&#x2F;&quot;&gt;« Choose Someone Different&lt;&#x2F;a&gt;
+        &lt;&#x2F;p&gt;
+        &lt;p class=&quot;view-on-github yui3-u-1-2&quot;&gt;
+            &lt;a href=&quot;{{html_url}}&quot;&gt;View on GitHub&lt;&#x2F;a&gt;
+        &lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+
+    &lt;div class=&quot;yui3-g&quot;&gt;
+        &lt;div class=&quot;info yui3-u-2-3&quot;&gt;
+            &lt;h1&gt;
+                &lt;span class=&quot;avatar user-avatar&quot;&gt;
+                    &lt;img src=&quot;{{avatar_url}}&quot; alt=&quot;{{login}}&#x27;s avatar&quot; &#x2F;&gt;
+                &lt;&#x2F;span&gt;
+                &lt;span class=&quot;user-login&quot;&gt;{{login}}&lt;&#x2F;span&gt;
+            {{#if name}}
+                &lt;span class=&quot;user-name&quot;&gt;({{name}})&lt;&#x2F;span&gt;
+            {{&#x2F;if}}
+            &lt;&#x2F;h1&gt;
+        &lt;&#x2F;div&gt;
+        &lt;div class=&quot;stats yui3-u-1-3&quot;&gt;
+            &lt;ul class=&quot;yui3-g&quot;&gt;
+                &lt;li class=&quot;user-repos yui3-u-1-2&quot;&gt;
+                    &lt;b&gt;{{public_repos}}&lt;&#x2F;b&gt; {{public_repos_label}}
+                &lt;&#x2F;li&gt;
+                &lt;li class=&quot;user-followers yui3-u-1-2&quot;&gt;
+                    &lt;b&gt;{{followers}}&lt;&#x2F;b&gt; {{followers_label}}
+                &lt;&#x2F;li&gt;
+            &lt;&#x2F;ul&gt;
+        &lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;script&gt;
+
+&lt;!--
+RepoList Template:
+
+Template HTML used by the &#x60;UserPageView&#x60; to render the main section of a user&#x27;s
+page in the app; this displays the list of project repos for the GitHub user.
+--&gt;
+&lt;script id=&quot;t-repo-list&quot; type=&quot;text&#x2F;x-handlebars-template&quot;&gt;
+    &lt;h2 class=&quot;no-toc&quot;&gt;Public Repositories&lt;&#x2F;h2&gt;
+
+    &lt;ul class=&quot;repos&quot;&gt;
+    {{#each repos}}
+        &lt;li id=&quot;{{clientId}}&quot; class=&quot;repo yui3-g&quot;&gt;
+            &lt;div class=&quot;repo-name yui3-u-2-3&quot;&gt;
+                &lt;h3 class=&quot;no-toc&quot;&gt;
+                    &lt;a href=&quot;#&#x2F;github&#x2F;{{owner.login}}&#x2F;{{name}}&#x2F;&quot;&gt;{{name}}&lt;&#x2F;a&gt;
+                &lt;&#x2F;h3&gt;
+                &lt;p class=&quot;repo-desc&quot;&gt;{{description}}&lt;&#x2F;p&gt;
+            &lt;&#x2F;div&gt;
+            &lt;div class=&quot;repo-stats yui3-u-1-3&quot;&gt;
+                &lt;ul class=&quot;yui3-g&quot;&gt;
+                    &lt;li class=&quot;repo-lang yui3-u-1-3&quot;&gt;
+                        &lt;b&gt;{{language}}&lt;&#x2F;b&gt;
+                    &lt;&#x2F;li&gt;
+                    &lt;li class=&quot;repo-watchers yui3-u-1-3&quot;&gt;
+                        &lt;b&gt;{{watchers}}&lt;&#x2F;b&gt;
+                        &lt;span&gt;{{watchers_label}}&lt;&#x2F;span&gt;
+                    &lt;&#x2F;li&gt;
+                    &lt;li class=&quot;repo-forks yui3-u-1-3&quot;&gt;
+                    {{#if forks}}
+                        &lt;b&gt;{{forks}}&lt;&#x2F;b&gt;
+                        &lt;span&gt;{{forks_label}}&lt;&#x2F;span&gt;
+                    {{&#x2F;if}}
+                    &lt;&#x2F;li&gt;
+                &lt;&#x2F;ul&gt;
+            &lt;&#x2F;div&gt;
+        &lt;&#x2F;li&gt;
+    {{&#x2F;each}}
+    &lt;&#x2F;ul&gt;
+&lt;&#x2F;script&gt;
+
+&lt;!--
+Repo Template:
+
+Template HTML used by the &#x60;RepoPageView&#x60; to render the header section of a
+repo page in the app; this displays info and stats about a GitHub user&#x27;s repo.
+--&gt;
+&lt;script id=&quot;t-repo&quot; type=&quot;text&#x2F;x-handlebars-template&quot;&gt;
+    &lt;div class=&quot;yui3-g&quot;&gt;
+        &lt;p class=&quot;back yui3-u-1-2&quot;&gt;
+            &lt;a href=&quot;#&#x2F;github&#x2F;{{owner.login}}&#x2F;&quot;&gt;« Select Repository&lt;&#x2F;a&gt;
+        &lt;&#x2F;p&gt;
+        &lt;p class=&quot;view-on-github yui3-u-1-2&quot;&gt;
+            &lt;a href=&quot;{{html_url}}&quot;&gt;View on GitHub&lt;&#x2F;a&gt;
+        &lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+
+    &lt;div class=&quot;yui3-g&quot;&gt;
+        &lt;div class=&quot;info yui3-u-2-3&quot;&gt;
+            &lt;h1&gt;
+                &lt;span class=&quot;avatar user-avatar&quot;&gt;
+                    &lt;img src=&quot;{{owner.avatar_url}}&quot; alt=&quot;{{owner.login}}&#x27;s avatar&quot; &#x2F;&gt;
+                &lt;&#x2F;span&gt;
+                &lt;span class=&quot;user-login&quot;&gt;{{owner.login}}&lt;&#x2F;span&gt; &#x2F;
+                &lt;span class=&quot;repo-name&quot;&gt;{{name}}&lt;&#x2F;span&gt;
+            &lt;&#x2F;h1&gt;
+        &lt;&#x2F;div&gt;
+        &lt;div class=&quot;stats yui3-u-1-3&quot;&gt;
+            &lt;ul class=&quot;yui3-g&quot;&gt;
+                &lt;li class=&quot;repo-watchers yui3-u-1-2&quot;&gt;
+                    &lt;b&gt;{{watchers}}&lt;&#x2F;b&gt; {{watchers_label}}
+                &lt;&#x2F;li&gt;
+                &lt;li class=&quot;repo-forks yui3-u-1-2&quot;&gt;
+                    &lt;b&gt;{{forks}}&lt;&#x2F;b&gt; {{forks_label}}
+                &lt;&#x2F;li&gt;
+            &lt;&#x2F;ul&gt;
+        &lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;script&gt;
+
+&lt;!--
+ContributorList Template:
+
+Template HTML used by the &#x60;RepoPageView&#x60; to render the main section of a repo
+page in the app; this displays the list of contributors to the GitHub project.
+--&gt;
+&lt;script id=&quot;t-contributor-list&quot; type=&quot;text&#x2F;x-handlebars-template&quot;&gt;
+    &lt;h2 class=&quot;no-toc&quot;&gt;Project Contributors ({{num}})&lt;&#x2F;h2&gt;
+
+    &lt;ul class=&quot;contributors&quot;&gt;
+    {{#each contributors}}
+        &lt;li class=&quot;contributor&quot;&gt;
+            &lt;a class=&quot;avatar&quot; href=&quot;#&#x2F;github&#x2F;{{login}}&#x2F;&quot;
+                    title=&quot;{{login}} has {{contributions}} {{contributions_label}}&quot;&gt;
+                &lt;img alt=&quot;{{login}}&#x27;s avatar&quot; src=&quot;{{avatar_url}}&quot; &#x2F;&gt;
+                &lt;span class=&quot;contributor-name&quot;&gt;{{login}}&lt;&#x2F;span&gt;
+                &lt;span class=&quot;contributor-contributions&quot;&gt;{{contributions}}&lt;&#x2F;span&gt;
+            &lt;&#x2F;a&gt;
+        &lt;&#x2F;li&gt;
+    {{&#x2F;each}}
+    &lt;&#x2F;ul&gt;
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+
+
+<h2 id="css">CSS</h2>
+
+<p>
+To make our app look nice, we'll add some CSS to style the markup we've setup in our <a href="#templates">templates</a>. We'll also use the excellent <a href="../cssgrids/index.html">CSS Grids</a> in YUI to help us layout the different parts of the app's interface (you might have noticed the references to the CSS Grids classes in our templates).
+</p>
+
+<div class="scrollable">
+<pre class="code prettyprint">&lt;link rel=&quot;stylesheet&quot; href=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;grids-min.css&quot; &#x2F;&gt;
+
+&lt;style scoped&gt;
+&#x2F;*-- Override Styles ---------------------------------------------------------*&#x2F;
+
+.example {
+    padding: 0 !important;
+}
+
+&#x2F;*-- Common Styles -----------------------------------------------------------*&#x2F;
+
+#github-app h1 {
+    padding: 0;
+}
+
+#github-app .avatar,
+#github-app .avatar img {
+    display: block;
+    width: 76px;
+    height: 76px;
+    border: 0;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+#github-app .avatar {
+    display: inline-block;
+    *display: inline; zoom: 1;
+    height: 76px;
+    padding: 2px;
+}
+#github-app .avatar:hover,
+#github-app .user-avatar {
+    -webkit-box-shadow: 0 0 2px rgba(0,0,0,0.25);
+    -moz-box-shadow: 0 0 2px rgba(0,0,0,0.25);
+    box-shadow: 0 0 2px rgba(0,0,0,0.25);
+}
+
+#github-app .back,
+#github-app .view-on-github {
+    margin-top: 0;
+}
+#github-app .view-on-github {
+    text-align: right;
+}
+
+#github-app .info h1 {
+    margin: 0;
+}
+#github-app .info .user-avatar,
+#github-app .info .user-login,
+#github-app .info .user-name,
+#github-app .info .repo-name {
+    vertical-align: middle;
+}
+#github-app .info .user-avatar {
+    margin-right: 10px;
+}
+#github-app .info .user-name {
+    font-weight: 400;
+}
+
+#github-app .stats ul {
+    margin: 0;
+    padding: 8px;
+    color: #30418C;
+    background: #F0F1F8;
+    border: 1px solid #D4D8EB;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-align: center;
+    list-style: none;
+}
+#github-app .stats b {
+    display: block;
+    font-size: 36px;
+    line-height: 44px;
+}
+
+&#x2F;*-- HomePage Styles ---------------------------------------------------------*&#x2F;
+
+#github-app .home-page {
+    padding: 1em;
+}
+#github-app .home-page h1,
+#github-app .home-page p {
+    display: block;
+    text-align: center;
+}
+#github-app .home-page label,
+#github-app .home-page input,
+#github-app .home-page button {
+    font-size: 20px;
+}
+#github-app .home-page label {
+    color: #A6A6A6;
+}
+#github-app .home-page input {
+    display: inline-block;
+    *display: inline; zoom: 1;
+    font-family: Helvetica, sans-serif;
+    line-height: normal;
+    margin: 5px auto 0;
+    padding: 6px;
+    width: 200px;
+    text-align: left;
+}
+
+&#x2F;*-- UserPage Styles ---------------------------------------------------------*&#x2F;
+
+#github-app .user-page {
+    padding: 1em;
+}
+#github-app .repos {
+    padding-left: 0;
+    list-style: none;
+    border-top: 1px solid #E5E6F1;
+    margin: 0 -13px;
+}
+#github-app .repo {
+    margin: 1px 0;
+    padding: 0 13px 6px;
+    color: #30418C;
+    background: #F9F9FC;
+    cursor: pointer;
+    border-bottom: 1px solid #E5E6F1;
+}
+#github-app .repo:hover {
+    background: #F1F1F4;
+}
+#github-app .repo-name h3 {
+    margin: 6px 0 0 0;
+}
+#github-app .repo-stats {
+    margin-top: 6px;
+    background: url(..&#x2F;assets&#x2F;app&#x2F;arrow.gif) right center no-repeat;
+}
+#github-app .repo-stats ul {
+    list-style: none;
+    padding-left: 0;
+    height: 47px;
+    line-height: 47px;
+}
+#github-app .repo-stats b {
+    display: block;
+}
+#github-app .repo-stats span {
+    display: block;
+    font-size: 11px;
+    color: #B6BCD7;
+    color: rgba(48, 65, 140, 0.40);
+}
+#github-app .repo-stats .repo-watchers,
+#github-app .repo-stats .repo-forks {
+    text-align: center;
+    line-height: 11px;
+    margin-top: 15px;
+}
+#github-app .repo-desc {
+    margin: 10px 20px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #B6BCD7;
+    color: rgba(48, 65, 140, 0.40);
+}
+
+&#x2F;*-- RepoPage Styles ---------------------------------------------------------*&#x2F;
+
+#github-app .repo-page {
+    padding: 1em;
+}
+#github-app .contributors {
+    margin-left: -5px;
+    margin-right: -5px;
+    padding-left: 0;
+    list-style: none;
+}
+#github-app .contributor {
+    margin: 5px;
+    display: inline-block;
+    *display: inline; zoom: 1;
+}
+#github-app .contributor .avatar {
+    position: relative;
+    display: block;
+}
+#github-app .contributor .avatar:link,
+#github-app .contributor .avatar:visited,
+#github-app .contributor .avatar:hover,
+#github-app .contributor .avatar:active {
+    text-decoration: none;
+}
+#github-app .contributor-name,
+#github-app .contributor-contributions {
+    position: absolute;
+    left: 0;
+    margin: 2px;
+    padding: 0 4px;
+    width: 68px;
+    font-size: 11px;
+    color: #fff;
+    background: #000;
+    background: rgba(0,0,0, 0.2);
+    text-shadow: 0 1px 0 rgba(0,0,0, 0.4);
+}
+#github-app .contributor-name {
+    bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-border-bottom-right-radius: 3px;
+    -webkit-border-bottom-left-radius: 3px;
+    -moz-border-radius-bottomright: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+#github-app .contributor-contributions {
+    top: 0;
+    -webkit-border-top-left-radius: 3px;
+    -webkit-border-top-right-radius: 3px;
+    -moz-border-radius-topleft: 3px;
+    -moz-border-radius-topright: 3px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+&lt;&#x2F;style&gt;</pre>
+
+</div>
+
+
+<h2 id="javascript">JavaScript</h2>
+
+<p>
+Our GitHub Contributors app will have its code organized into three main areas:
+</p>
+
+<ol>
+    <li>
+        <p>
+        <a href="#models-model-lists">Models &amp; Model Lists</a> which manage, store, and load the data for our application. All the data will be fetched from <a href="http://developer.github.com/v3/">GitHub's API</a>; we'll extract the logic for interacting with the API out into a <a href="#githubsync"><code>GithubSync</code></a> extension so it can be reused.
+        </p>
+    </li>
+    <li>
+        <p>
+        <a href="#views">Views</a> which represent discrete, render-able, pieces of our app's user interface by bringing together our models and model lists with our templates and handling the user interactions that occur within their containment.
+        </p>
+    </li>
+    <li>
+        <p>
+        The <a href="#app">App</a> component, a navigation and view manager, provides a foundation and structure which allows us to declaratively connect the parts of our application together into higher-level "pages" and handles the user navigating between them.
+        </p>
+    </li>
+</ol>
+
+<p>
+All of these things will live inside the following YUI instance:
+</p>
+
+<pre class="code prettyprint">&lt;!-- Include YUI on the page if you haven&#x27;t already. --&gt;
+&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;
+
+&lt;script&gt;
+YUI().use(&#x27;app&#x27;, &#x27;handlebars&#x27;, &#x27;jsonp&#x27;, &#x27;cssbutton&#x27;, function (Y) {
+
+var User, Repo, RepoList, Contributor, ContributorList,
+    UserView, RepoView, RepoListView, ContributorListView,
+    HomePageView, UserPageView, RepoPageView,
+    ContributorsApp;
+
+    &#x2F;&#x2F; ... Add the code from the following sections here! ...
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<h3 id="githubsync">GithubSync</h3>
+
+<p>
+This is an extension that provides a read-only sync implementation for <a href="http://developer.github.com/v3/">GitHub's API</a> which can be mixed-in by a <a href="../model/index.html"><code>Y.Model</code></a> or <a href="../model-list/index.html"><code>Y.ModelList</code></a> subclass. This extension is used by <a href="#user"><code>User</code></a>, <a href="#repolist"><code>RepoList</code></a>, and <a href="#contributorlist"><code>ContributorList</code></a> as we'll see below.
+</p>
+
+<p>
+We have this ability to create mixable feature extensions, like this sync implementation, because <code>Model</code> and <code>ModelList</code> are <a href="../base/index.html#extensions"><code>Y.Base</code></a>-based.
+</p>
+
+<pre class="code prettyprint">function GithubSync() {}
+
+GithubSync.API_ORIGIN = &#x27;https:&#x2F;&#x2F;api.github.com&#x27;;
+
+GithubSync.prototype = {
+    &#x2F;&#x2F; Intended to be overridden with a GitHub API endpoint URL.
+    githubURL: &#x27;&#x2F;&#x27;,
+
+    &#x2F;&#x2F; Can be overridden to customize the actual URL used when making the
+    &#x2F;&#x2F; request; this way the &#x60;githubURL&#x60; can be more of a template, and this
+    &#x2F;&#x2F; method can substitute place-holders in the template with specific values.
+    buildURL: function () {
+        return this.githubURL;
+    },
+
+    &#x2F;&#x2F; Provides an implementation for a Model&#x2F;ModelList&#x27;s &#x60;sync()&#x60; method which
+    &#x2F;&#x2F; can read data from GitHub&#x27;s API.
+    sync: function (action, options, callback) {
+        Y.Lang.isFunction(callback) || (callback = function () {});
+
+        &#x2F;&#x2F; Enforce ready-only constraint.
+        if (action !== &#x27;read&#x27;) {
+            return callback(&#x27;Read-only&#x27;);
+        }
+
+        &#x2F;&#x2F; Creates the API URL and adds params for 100 items per-page and a
+        &#x2F;&#x2F; JSONP callback placeholder.
+        var url = this.buildURL() + &#x27;?per_page=100&amp;callback={callback}&#x27;;
+
+        &#x2F;&#x2F; Performs JSONP request to GitHub&#x27;s API.
+        Y.jsonp(GithubSync.API_ORIGIN + url, function (res) {
+            var meta = res.meta,
+                data = res.data;
+
+            &#x2F;&#x2F; Check for a successful response, otherwise return the error
+            &#x2F;&#x2F; message returned by the GitHub API.
+            if (meta.status &gt;= 200 &amp;&amp; meta.status &lt; 300) {
+                callback(null, res);
+            } else {
+                callback(data.message, res);
+            }
+        });
+    },
+
+    &#x2F;&#x2F; Provides an implementation for a Model&#x2F;ModelList&#x27;s &#x60;parse()&#x60; method which
+    &#x2F;&#x2F; simply returns the &#x60;data&#x60; object or array from the response JSON.
+    parse: function (res) {
+        return res.data;
+    }
+};</pre>
+
+
+<h3 id="models-model-lists">Models &amp; Model Lists</h3>
+
+<p>
+To keep our code organized and maintainable, we want a clear separation of concerns. Let's start by looking at our application from a data-centric point of view. We've already reviewed the <a href="http://developer.github.com/v3/">GitHub API</a> and abstracted-out the communication with the API into a <a href="#githubsync"><code>GithubSync</code></a> extension which we'll mix into certain <a href="../model/index.html">Models</a> and <a href="../model-list/index.html">Model Lists</a> of our app.
+</p>
+
+<p>
+Our app has three main entities: users, repositories, and contributors; all of which clearly fit with our application's features. To model these entities, we'll create the following <code>Y.Model</code> subclasses: <a href="#user"><code>User</code></a>, <a href="#repo"><code>Repo</code></a>, and <a href="#contributor"><code>Contributor</code></a>. We'll also need <code>Y.ModelList</code> subclasses for our <code>Repo</code> and <code>Contributor</code> models: <a href="#repolist"><code>RepoList</code></a>, and <a href="#contributorlist"><code>ContributorList</code></a>.
+</p>
+
+<p>
+Let's look at each of these in detail:
+</p>
+
+<h4 id="user">User</h4>
+
+<p>
+The <code>User</code> model contains only the data attributes from the <a href="http://developer.github.com/v3/users/">GitHub Users API</a> which are relevant to the app. The <a href="#githubsync"><code>GithubSync</code></a> extension is mixed-in and provides the necessary communication with this API.
+</p>
+
+<pre class="code prettyprint">User = Y.Base.create(&#x27;user&#x27;, Y.Model, [GithubSync], {
+    githubURL: &#x27;&#x2F;users&#x2F;{user}&#x27;,
+
+    buildURL: function () {
+        return Y.Lang.sub(this.githubURL, {
+            user: this.getAsURL(&#x27;login&#x27;)
+        });
+    }
+}, {
+    &#x2F;&#x2F; These attributes correspond to the GitHub user data we care about:
+    &#x2F;&#x2F; http:&#x2F;&#x2F;developer.github.com&#x2F;v3&#x2F;users&#x2F;
+    ATTRS: {
+        login        : {value: null},
+        name         : {value: null},
+        html_url     : {value: null},
+        avatar_url   : {value: null},
+        public_repos : {value: 0},
+        followers    : {value: 0}
+    }
+});</pre>
+
+
+<h4 id="repo">Repo</h4>
+
+<p>
+The <code>Repo</code> model contains only the data attributes from the <a href="http://developer.github.com/v3/repos/">GitHub Repos API</a> which are relevant to the app.
+</p>
+
+<pre class="code prettyprint">Repo = Y.Base.create(&#x27;repo&#x27;, Y.Model, [], {
+    &#x2F;&#x2F; The &#x60;id&#x60; attribute for this Model will be an alias for &#x60;name&#x60;.
+    idAttribute: &#x27;name&#x27;
+}, {
+    &#x2F;&#x2F; These attributes correspond to the GitHub repo data we care about:
+    &#x2F;&#x2F; http:&#x2F;&#x2F;developer.github.com&#x2F;v3&#x2F;repos&#x2F;
+    ATTRS: {
+        name       : {value: null},
+        html_url   : {value: null},
+        description: {value: null},
+        watchers   : {value: 0},
+        forks      : {value: 0},
+        language   : {value: null},
+        owner      : {value: null}
+    }
+});</pre>
+
+
+<h4 id="repolist">RepoList</h4>
+
+<p>
+Our app will display a list of <a href="#repo"><code>Repo</code></a>s for a <a href="#user"><code>User</code></a>. The <code>RepoList</code> class will add collection semantics for <code>Repo</code>s by extending <code>Y.ModelList</code>. The <a href="#githubsync"><code>GithubSync</code></a> extension is also mixed-in to provide communication with the <a href="http://developer.github.com/v3/repos/">GitHub Repos API</a>.
+</p>
+
+<pre class="code prettyprint">RepoList = Y.Base.create(&#x27;repoList&#x27;, Y.ModelList, [GithubSync], {
+    model    : Repo,
+    githubURL: &#x27;&#x2F;users&#x2F;{user}&#x2F;repos&#x27;,
+
+    buildURL: function () {
+        &#x2F;&#x2F; This list&#x27;s &#x60;user&#x60; is used to build the API URL.
+        return Y.Lang.sub(this.githubURL, {
+            user: this.get(&#x27;user&#x27;).getAsURL(&#x27;login&#x27;)
+        });
+    },
+
+    &#x2F;&#x2F; Override the default &#x60;comparator()&#x60; so items are sorted by most number of
+    &#x2F;&#x2F; watchers to least number of watchers.
+    comparator: function (repo) {
+        &#x2F;&#x2F; Note the minus sign.
+        return -repo.get(&#x27;watchers&#x27;);
+    }
+}, {
+    ATTRS: {
+        &#x2F;&#x2F; A &#x60;RepoList&#x60; has a &#x60;User&#x60; associated with it, this allows for a
+        &#x2F;&#x2F; loose-coupling between a user and set of repositories.
+        user: {value: null}
+    }
+});</pre>
+
+
+<h4 id="contributor">Contributor</h4>
+
+<p>
+The <code>Contributor</code> model extends the <a href="#user"><code>User</code></a> model and adds one additional data attribute, <code>contributions</code>.
+</p>
+
+<pre class="code prettyprint">Contributor = Y.Base.create(&#x27;contributor&#x27;, User, [], {}, {
+    ATTRS: {
+        contributions: {value: 0}
+    }
+});</pre>
+
+
+<h4 id="contributorlist">ContributorList</h4>
+
+<p>
+Our app will display a list of <a href="#contributor"><code>Contributor</code></a>s for a <a href="#repo"><code>Repo</code></a>. The <code>ContributorList</code> class will add collection semantics for <code>Contributor</code>s by extending <code>Y.ModelList</code>. The <a href="#githubsync"><code>GithubSync</code></a> extension is also mixed-in to provide communication with the <a href="http://developer.github.com/v3/repos/">GitHub Repos API</a>.
+</p>
+
+<pre class="code prettyprint">ContributorList = Y.Base.create(&#x27;contributorList&#x27;, Y.ModelList, [GithubSync], {
+    model    : Contributor,
+    githubURL: &#x27;&#x2F;repos&#x2F;{user}&#x2F;{repo}&#x2F;contributors&#x27;,
+
+    buildURL: function () {
+        &#x2F;&#x2F; This list&#x27;s &#x60;repo&#x60; is used to build the API URL.
+        var repo = this.get(&#x27;repo&#x27;);
+
+        return Y.Lang.sub(this.githubURL, {
+            user: repo.getAsURL(&#x27;owner.login&#x27;),
+            repo: repo.getAsURL(&#x27;name&#x27;)
+        });
+    },
+
+    &#x2F;&#x2F; Override the default &#x60;comparator()&#x60; so items are sorted by most number of
+    &#x2F;&#x2F; contributors to least number of contributors.
+    comparator: function (contributor) {
+        &#x2F;&#x2F; Note the minus sign.
+        return -contributor.get(&#x27;contributions&#x27;);
+    }
+}, {
+    ATTRS: {
+        &#x2F;&#x2F; A &#x60;ContributorList&#x60; has a &#x60;Repo&#x60; associated with it, this allows for
+        &#x2F;&#x2F; a loose-coupling between a repo and set of contributors.
+        repo: {value: null}
+    }
+});</pre>
+
+
+<h3 id="views">Views</h3>
+
+<p>
+We've separated our data-related logic from our presentation by creating our models and model lists; we'll continue this by keeping our presentation-logic separate from our <a href="#templates">templates</a>, and create <a href="../view/index.html">View</a> classes which contain the presentation-related logic that can render a model or model list using a template.
+</p>
+
+<p>
+The data model for our app consists of many numerical values which our views will need to display with labels. Before we dig into the views, let's first create a helper function we can use to add these labels to the data object we pass to our templates:
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; A helper function used by the Views to create labels for numerical fields
+&#x2F;&#x2F; which are correctly pluralized, and puts the label back on the &#x60;data&#x60; object.
+function addLabel(data, field, label) {
+    var num = data[field];
+    data[field] || (data[field] = &#x27;0&#x27;);
+    data[field + &#x27;_label&#x27;] = num === 1 ? label : (label + &#x27;s&#x27;);
+}</pre>
+
+
+<p>
+The views for our app will be pretty trivial; they mainly just prepare the model or model list data and apply it to the corresponding template during rendering. Usually your views would involve handling of DOM events created by user interactions and binding to the model or model list changes so the view can be updated or re-rendered. We'll create the following views by sub-classing <code>Y.View</code>: <a href="#userview"><code>UserView</code></a>, <a href="#repoview"><code>RepoView</code></a>, <a href="#repolistview"><code>RepoListView</code></a>, and <a href="#contributorlistview"><code>ContributorListView</code></a>.
+</p>
+
+<p>
+Let's look at where and how each of the views will be used:
+</p>
+
+<h4 id="userview">UserView</h4>
+
+<p>
+The <code>UserView</code> is responsible for the rendering the info and stats about the currently-selected GitHub user. Using the <a href="#templates">User Template</a> this view renders a <a href="#user"><code>User</code> Model</a> to look like this:
+</p>
+
+<p>
+<img class="screenshot" src="../assets/app/user-view.png" alt="Screenshot of the UserView rendering the yui GitHub User." />
+</p>
+
+<pre class="code prettyprint">UserView = Y.Base.create(&#x27;userView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; Compiles the User Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one(&#x27;#t-user&#x27;).getContent()),
+
+    render: function () {
+        &#x2F;&#x2F; Retrieves all of the model instance&#x27;s data as a simple JSON struct.
+        var user = this.get(&#x27;model&#x27;).toJSON(),
+            content;
+
+        &#x2F;&#x2F; Add proper pluralized labels for numerical data fields.
+        addLabel(user, &#x27;public_repos&#x27;, &#x27;Public Repo&#x27;);
+        addLabel(user, &#x27;followers&#x27;, &#x27;Follower&#x27;);
+
+        &#x2F;&#x2F; Applies the &#x60;User&#x60; model data to the User Template and sets the
+        &#x2F;&#x2F; resulting HTML as the contents of this view&#x27;s container.
+        content = this.template(user);
+        this.get(&#x27;container&#x27;).setContent(content);
+
+        return this;
+    }
+});</pre>
+
+
+<h4 id="repoview">RepoView</h4>
+
+<p>
+The <code>RepoView</code> is responsible for the rendering the info and stats about the currently-selected GitHub repository. Using the <a href="#templates">Repo Template</a> this view renders a <a href="#repo"><code>Repo</code> Model</a> to look like this:
+</p>
+
+<p>
+<img class="screenshot" src="../assets/app/repo-view.png" alt="Screenshot of the RepoView rendering the yui/yui3 GitHub repository." />
+</p>
+
+<pre class="code prettyprint">RepoView = Y.Base.create(&#x27;repoView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; Compiles the Repo Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one(&#x27;#t-repo&#x27;).getContent()),
+
+    render: function () {
+        &#x2F;&#x2F; Retrieves all of the model instance&#x27;s data as a simple JSON struct.
+        var repo = this.get(&#x27;model&#x27;).toJSON(),
+            content;
+
+        &#x2F;&#x2F; Add proper pluralized labels for numerical data fields.
+        addLabel(repo, &#x27;watchers&#x27;, &#x27;Watcher&#x27;);
+        addLabel(repo, &#x27;forks&#x27;, &#x27;Fork&#x27;);
+
+        &#x2F;&#x2F; Applies the &#x60;Repo&#x60; model data to the Repo Template and sets the
+        &#x2F;&#x2F; resulting HTML as the contents of this view&#x27;s container.
+        content = this.template(repo);
+        this.get(&#x27;container&#x27;).setContent(content);
+
+        return this;
+    }
+});</pre>
+
+
+<h4 id="repolistview">RepoListView</h4>
+
+<p>
+The <code>RepoListView</code> is responsible for the rendering a list of repositories/projects for the currently-selected GitHub user. Using the <a href="#templates">RepoList Template</a> this view renders a <a href="#repolist"><code>RepoList</code></a> to look like this:
+</p>
+
+<p>
+<img class="screenshot" src="../assets/app/repo-list-view.png" alt="Screenshot of the RepoListView rendering the GitHub repos for YUI." />
+</p>
+
+<pre class="code prettyprint">RepoListView = Y.Base.create(&#x27;repoListView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; Compiles the RepoList Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one(&#x27;#t-repo-list&#x27;).getContent()),
+
+    &#x2F;&#x2F; Attach DOM events for the view. The &#x60;events&#x60; object is a mapping of
+    &#x2F;&#x2F; selectors to an object containing one or more events to attach to the
+    &#x2F;&#x2F; node(s) matching each selector.
+    events: {
+        &#x27;.repo&#x27;: {
+            click: &#x27;selectRepo&#x27;
+        }
+    },
+
+    initializer: function () {
+        &#x2F;&#x2F; The &#x60;selectRepo&#x60; event is fired when the user chooses a GitHub repo
+        &#x2F;&#x2F; to view its contributors. This event will bubble up to the
+        &#x2F;&#x2F; &#x60;ContributorsApp&#x60; via the &#x60;UserPageView&#x60; view when it is the app&#x27;s
+        &#x2F;&#x2F; &#x60;activeView&#x60;.
+        this.publish(&#x27;selectRepo&#x27;, {preventable: false});
+    },
+
+    render: function () {
+        var repos = this.get(&#x27;modelList&#x27;),
+            reposData, content;
+
+        &#x2F;&#x2F; Iterates over all &#x60;Repo&#x60; models in the list and retrieves each model
+        &#x2F;&#x2F; instance&#x27;s data as a simple JSON structs and collects it in an array.
+        reposData = repos.map(function (repo) {
+            var data = repo.toJSON();
+
+            &#x2F;&#x2F; Add &#x60;clientId&#x60; to the data, this is ignored by &#x60;toJSON()&#x60;. This
+            &#x2F;&#x2F; will be used by the template and is an easy way to regain access
+            &#x2F;&#x2F; to the associated Repo model.
+            data.clientId = repo.get(&#x27;clientId&#x27;);
+
+            &#x2F;&#x2F; Add proper pluralized labels for numerical data fields.
+            addLabel(data, &#x27;watchers&#x27;, &#x27;Watcher&#x27;);
+            addLabel(data, &#x27;forks&#x27;, &#x27;Fork&#x27;);
+
+            return data;
+        });
+
+        &#x2F;&#x2F; Applies the &#x60;RepoList&#x60; data to the RepoList Template and sets the
+        &#x2F;&#x2F; resulting HTML as the contents of this view&#x27;s container.
+        content = this.template({repos: reposData});
+        this.get(&#x27;container&#x27;).setContent(content);
+
+        return this;
+    },
+
+    &#x2F;&#x2F; Called when the user clicks anywhere on a repo line-item in our list
+    &#x2F;&#x2F; of repos. This will retreive the corresponding Repo model instance
+    &#x2F;&#x2F; from the RepoList via the &#x60;clientId&#x60;.
+    selectRepo: function (e) {
+        &#x2F;&#x2F; Noop when the element clicked is an anchor, we&#x27;ll let the link
+        &#x2F;&#x2F; preform its default action.
+        if (e.target.test(&#x27;a&#x27;)) {
+            return;
+        }
+
+        &#x2F;&#x2F; Because we&#x27;ve rendered our list of repos with the &#x60;clientId&#x60; as the
+        &#x2F;&#x2F; &#x60;id&#x60; attribute for each repo node, we can use the client id to
+        &#x2F;&#x2F; retreive the Repo model instance from the RepoList.
+        var repos = this.get(&#x27;modelList&#x27;),
+            repo  = repos.getByClientId(e.currentTarget.get(&#x27;id&#x27;));
+
+        if (repo) {
+            this.fire(&#x27;selectRepo&#x27;, {repo: repo});
+        }
+    }
+});</pre>
+
+
+<h4 id="contributorlistview">ContributorListView</h4>
+
+<p>
+The <code>ContributorListView</code> is responsible for the rendering a list of contributors for the currently-selected GitHub repository/project. Using the <a href="#templates">ContributorList Template</a> this view renders a <a href="#contributorlist"><code>ContributorList</code></a> to look like this:
+</p>
+
+<p>
+<img class="screenshot" src="../assets/app/contributor-list-view.png" alt="Screenshot of the ContributorListView rendering the GitHub contributors to YUI." />
+</p>
+
+<pre class="code prettyprint">ContributorListView = Y.Base.create(&#x27;contributorListView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; Compiles the ContributorList Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one(&#x27;#t-contributor-list&#x27;).getContent()),
+
+    render: function () {
+        var contributors = this.get(&#x27;modelList&#x27;),
+            contributorsData, content;
+
+        &#x2F;&#x2F; Iterates over all &#x60;Contributor&#x60; models in the list and retrieves a
+        &#x2F;&#x2F; sub-set of each model instance&#x27;s data as a simple JSON structs and
+        &#x2F;&#x2F; collects it in an array.
+        contributorsData = contributors.map(function (contributor) {
+            &#x2F;&#x2F; Only a few of the &#x60;Contributor&#x60; data attributes are needed.
+            var data = contributor.getAttrs([&#x27;login&#x27;, &#x27;avatar_url&#x27;, &#x27;contributions&#x27;]);
+
+            &#x2F;&#x2F; Add proper pluralized labels for numerical data fields.
+            addLabel(data, &#x27;contributions&#x27;, &#x27;Contribution&#x27;);
+
+            return data;
+        });
+
+        &#x2F;&#x2F; Applies the &#x60;ContributorList&#x60; data to the ContributorList Template
+        &#x2F;&#x2F; along with the total number of contributors for the repo.
+        content = this.template({
+            num         : contributors.size(),
+            contributors: contributorsData
+        });
+
+        &#x2F;&#x2F; Sets the resulting HTML from apply the data to the template as the
+        &#x2F;&#x2F; contents of this view&#x27;s container.
+        this.get(&#x27;container&#x27;).setContent(content);
+
+        return this;
+    }
+});</pre>
+
+
+<h3 id="app">App</h3>
+
+<p>
+At this point we have the code for our app organized such that our models, views, and templates have distinct boundaries and roles while being loosely-coupled. We have a great separation of concerns, but now we need a way to group these pieces into "pages", create a URL-space for the app, and respond when the user navigates around our app.
+</p>
+
+<p>
+<code>Y.App</code> provides a foundation and structure for creating a top-level application component which is pefect for tying together the parts of an application. We'll create a <code>Y.App</code> subclass that will serve as our navigation and view manager; this is where we'll define our URL-space, handle when the user navigates to those URLs, and respond by fetching the data we need and showing the corresponding page of our app.
+</p>
+
+<p>
+In the section that follow, we'll define our app's URL-space and what data we'll need to respond at each URL, create some page-level views, then implement our <code>Y.App</code> subclass: <a href="#contributorsapp"><code>ContributorsApp</code></a>.
+</p>
+
+<h4 id="page-views">Page Views</h4>
+
+<p>
+We will now group our <a href="#views">Views</a> into "pages" to implement the three main features of our app. We'll combine the views we've already created into composite page-level views: <a href="#homepageview"><code>HomePageView</code></a>, <a href="#userpageview"><code>UserPageView</code></a>, and <a href="#repopageview"><code>RepoPageView</code></a>.
+</p>
+
+<p>
+Let's look at each page view in some detail:
+</p>
+
+<h5 id="homepageview">HomePageView</h5>
+
+<p>
+This view will handle the user interaction of choosing a particular GitHub user by listening for changes to a text input after a username is entered. The view will also fire a <code>changeUser</code> event to which our app can respond.
+</p>
+
+<pre class="code prettyprint">HomePageView = Y.Base.create(&#x27;homePageView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; Compiles the HomePage Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one(&#x27;#t-home&#x27;).getContent()),
+
+    &#x2F;&#x2F; Attach DOM events for the view. The &#x60;events&#x60; object is a mapping of
+    &#x2F;&#x2F; selectors to an object containing one or more events to attach to the
+    &#x2F;&#x2F; node(s) matching each selector.
+    events: {
+        &#x27;button&#x27;: {
+            click: &#x27;changeUser&#x27;
+        },
+
+        &#x27;input&#x27;: {
+            keypress: &#x27;enter&#x27;
+        }
+    },
+
+    initializer: function () {
+        &#x2F;&#x2F; The &#x60;changeUser&#x60; event is fired when the user chooses a GitHub user
+        &#x2F;&#x2F; to start browsing. This event will bubble up to the &#x60;ContributorsApp&#x60;
+        &#x2F;&#x2F; when this view is the app&#x27;s &#x60;activeView&#x60;.
+        this.publish(&#x27;changeUser&#x27;, {preventable: false});
+    },
+
+    render: function () {
+        &#x2F;&#x2F; Retrieves just the &#x60;login&#x60; of the &#x60;User&#x60; model instance and applies
+        &#x2F;&#x2F; it to the HomePage Template.
+        var user    = this.get(&#x27;model&#x27;),
+            content = this.template(user.getAttrs([&#x27;login&#x27;]));
+
+        &#x2F;&#x2F; Adds the &quot;home-page&quot; CSS class to aid styling and sets the resulting
+        &#x2F;&#x2F; HTML as the contents of this view&#x27;s container.
+        this.get(&#x27;container&#x27;).addClass(&#x27;home-page&#x27;).setContent(content);
+
+        return this;
+    },
+
+    &#x2F;&#x2F; Called when the user clicks the &quot;Show Repos&quot; button. This will retrieve
+    &#x2F;&#x2F; the GitHub username from the text &#x60;&lt;input&gt;&#x60; and fire the &#x60;changeUser&#x60;
+    &#x2F;&#x2F; event, passing on the username to the app.
+    changeUser: function () {
+        var user = this.get(&#x27;container&#x27;).one(&#x27;input&#x27;).get(&#x27;value&#x27;);
+        if (user) {
+            this.fire(&#x27;changeUser&#x27;, {user: user});
+        }
+    },
+
+    &#x2F;&#x2F; Called when the user types inside the text &#x60;&lt;input&gt;&#x60;; when the &quot;enter&quot;
+    &#x2F;&#x2F; key is pressed, this will call the &#x60;changeUser()&#x60; method.
+    enter: function (e) {
+        &#x2F;&#x2F; Check for &quot;enter&quot; keypress.
+        if (e.keyCode === 13) {
+            this.changeUser();
+        }
+    }
+});</pre>
+
+
+<h5 id="userpageview">UserPageView</h5>
+
+<p>
+This view is a composite of a <a href="#userview"><code>UserView</code></a> and a <a href="#repolistview"><code>RepoListView</code></a> which will display the information and stats about a GitHub user along with a list of their public repositories/projects.
+</p>
+
+<pre class="code prettyprint">UserPageView = Y.Base.create(&#x27;userPageView&#x27;, Y.View, [], {
+    initializer: function () {
+        var user  = this.get(&#x27;model&#x27;),
+            repos = this.get(&#x27;modelList&#x27;);
+
+        &#x2F;&#x2F; This view serves as a &quot;page&quot;-level view containing two sub-views to
+        &#x2F;&#x2F; which it delegates rendering and stitches together the resulting UI.
+        &#x2F;&#x2F; Sub-views are created to render the &#x60;User&#x60; and &#x60;RepoList&#x60;.
+        this.userView     = new UserView({model: user});
+        this.repoListView = new RepoListView({modelList: repos});
+
+        &#x2F;&#x2F; This will cause the sub-views&#x27; custom events to bubble up to here.
+        this.userView.addTarget(this);
+        this.repoListView.addTarget(this);
+    },
+
+    &#x2F;&#x2F; This destructor is specified so this view&#x27;s sub-views can be properly
+    &#x2F;&#x2F; destroyed and cleaned up.
+    destructor: function () {
+        this.userView.destroy();
+        this.repoListView.destroy();
+
+        delete this.userView;
+        delete this.repoListView;
+    },
+
+    render: function () {
+        &#x2F;&#x2F; A document fragment is created to hold the resulting HTML created
+        &#x2F;&#x2F; from rendering the two sub-views.
+        var content = Y.one(Y.config.doc.createDocumentFragment());
+
+        &#x2F;&#x2F; This renders each of the two sub-views into the document fragment,
+        &#x2F;&#x2F; then sets the fragment as the contents of this view&#x27;s container.
+        content.append(this.userView.render().get(&#x27;container&#x27;));
+        content.append(this.repoListView.render().get(&#x27;container&#x27;));
+
+        &#x2F;&#x2F; Adds the &quot;user-page&quot; CSS class to aid styling and sets the document
+        &#x2F;&#x2F; fragment containing the two rendered sub-views as the contents of
+        &#x2F;&#x2F; this view&#x27;s container.
+        this.get(&#x27;container&#x27;).addClass(&#x27;user-page&#x27;).setContent(content);
+
+        return this;
+    }
+});</pre>
+
+
+<h5 id="repopageview">RepoPageView</h5>
+
+<p>
+This view is a composite of a <a href="#repoview"><code>RepoView</code></a> and a <a href="#contributorlistview"><code>ContributorListView</code></a> which will display the information and stats about a GitHub user's particular repository/project along with a list of all the GitHub users which are contributors to that project.
+</p>
+
+<pre class="code prettyprint">RepoPageView = Y.Base.create(&#x27;repoPageView&#x27;, Y.View, [], {
+    initializer: function () {
+        var repo         = this.get(&#x27;model&#x27;),
+            contributors = this.get(&#x27;modelList&#x27;);
+
+        &#x2F;&#x2F; This view serves as a &quot;page&quot;-level view containing two sub-views to
+        &#x2F;&#x2F; which it delegates rendering and stitches together the resulting UI.
+        &#x2F;&#x2F; Sub-views are created to render the &#x60;RepoView&#x60; and
+        &#x2F;&#x2F; &#x60;ContributorListView&#x60;.
+        this.repoView            = new RepoView({model: repo});
+        this.contributorListView = new ContributorListView({modelList: contributors});
+
+        &#x2F;&#x2F; This will cause the sub-views&#x27; custom events to bubble up to here.
+        this.repoView.addTarget(this);
+        this.contributorListView.addTarget(this);
+    },
+
+    &#x2F;&#x2F; This destructor is specified so this view&#x27;s sub-views can be properly
+    &#x2F;&#x2F; destroyed and cleaned up.
+    destructor: function () {
+        this.repoView.destroy();
+        this.contributorListView.destroy();
+
+        delete this.repoView;
+        delete this.contributorListView;
+    },
+
+    render: function () {
+        &#x2F;&#x2F; A document fragment is created to hold the resulting HTML created
+        &#x2F;&#x2F; from rendering the two sub-views.
+        var content = Y.one(Y.config.doc.createDocumentFragment());
+
+        &#x2F;&#x2F; This renders each of the two sub-views into the document fragment,
+        &#x2F;&#x2F; then sets the fragment as the contents of this view&#x27;s container.
+        content.append(this.repoView.render().get(&#x27;container&#x27;));
+        content.append(this.contributorListView.render().get(&#x27;container&#x27;));
+
+        &#x2F;&#x2F; Adds the &quot;repo-page&quot; CSS class to aid styling and sets the document
+        &#x2F;&#x2F; fragment containing the two rendered sub-views as the contents of
+        &#x2F;&#x2F; this view&#x27;s container.
+        this.get(&#x27;container&#x27;).addClass(&#x27;repo-page&#x27;).setContent(content);
+
+        return this;
+    }
+});</pre>
+
+
+<h4 id="routes">Routes</h4>
+
+<p>
+With our app grouped into three "pages", we need to make these pages accessible via URLs; we'll do this by defining the following routes:
+</p>
+
+<ul>
+    <li>
+        <p>
+        <b><code>&#x2F;</code></b>: Displays the <a href="#homepageview"><code>HomePageView</code></a> and uses the current <a href="#user"><code>User</code></a> model to pre-fill the text input.
+        </p>
+    </li>
+    <li>
+        <p>
+        <b><code>&#x2F;github&#x2F;:user&#x2F;</code></b>: Displays the <a href="#userpageview"><code>UserPageView</code></a> which requires a <a href="#user"><code>User</code></a> model and <a href="#repolist"><code>RepoList</code></a> model list which we'll setup through the following steps:
+        </p>
+
+        <ol>
+            <li>
+            Retrieve the GitHub username from the <code>:user</code> request parameter and create a <code>User</code> model.
+            </li>
+            <li>
+            Load our user model's data from the GitHub API.
+            </li>
+            <li>
+            Assign our fully-loaded user model to a <code>RepoList</code> model list instance.
+            </li>
+            <li>
+            Load our repos model-list to get all our user's <code>Repo</code>s from the GitHub API.
+            </li>
+        </ol>
+    </li>
+    <li>
+        <p>
+        <b><code>&#x2F;github&#x2F;:user&#x2F;:repo&#x2F;</code></b>: Displays the <a href="#repopageview"><code>RepoPageView</code></a> which requires a <a href="#repo"><code>Repo</code></a> model and <a href="#contributorlist"><code>ContributorList</code></a> model list which we'll setup through the following steps (Note: how steps 1–4 are the same as above):
+        </p>
+
+        <ol>
+            <li>
+            Retrieve the GitHub username from the <code>:user</code> request parameter and create a <code>User</code> model.
+            </li>
+            <li>
+            Load our user model's data from the GitHub API.
+            </li>
+            <li>
+            Assign our fully-loaded user model to a <code>RepoList</code> model list instance.
+            </li>
+            <li>
+            Load our repos model-list to get all our user's <code>Repo</code>s from the GitHub API.
+            </li>
+            <li>
+            Retrieve the specific repository name from the <code>:repo</code> request parameter and find the corresponding <code>Repo</code> model in our <code>RepoList</code>.
+            </li>
+            <li>
+            Assign our repo model to a <code>ContributorList</code> model list instance.
+            </li>
+            <li>
+            Load our contributors model-list from the GitHub API to get all of the GitHub users who have contributed to the project.
+            </li>
+        </ol>
+    </li>
+</ul>
+
+<p>
+Notice how our <code>&#x2F;github&#x2F;:user&#x2F;</code> and <code>&#x2F;github&#x2F;:user&#x2F;:repo&#x2F;</code> routes have very similar data requirements, specifically steps 1–4, we can use the routing infrastructure provided by <code>Y.App</code> to chain our route-handlers so they can build on each other.
+</p>
+
+<p>
+Let's see how our page-level views and route-handlers work together by looking at <code>ContributorsApp</code>:
+</p>
+
+<h4 id="contributorsapp">ContributorsApp</h4>
+
+<p>
+Here is our subclass of <code>Y.App</code> where we have defined our three page-level views, our app's URL-space, and our route-handlers. The infrastructure provided by <code>Y.App</code> will take care of managing our page-views and dispatching to our route-handlers as our users navigate through our app.
+</p>
+
+<pre class="code prettyprint">ContributorsApp = Y.Base.create(&#x27;contributorsApp&#x27;, Y.App, [], {
+    &#x2F;&#x2F; This is where we can declare our page-level views and define the
+    &#x2F;&#x2F; relationship between the &quot;pages&quot; of our application. We can later use the
+    &#x2F;&#x2F; &#x60;showView()&#x60; method to create and display these views.
+    views: {
+        homePage: {
+            type: HomePageView
+        },
+
+        userPage: {
+            type: UserPageView
+        },
+
+        repoPage: {
+            type  : RepoPageView,
+            parent: &#x27;userPage&#x27;
+        }
+    },
+
+    initializer: function () {
+        &#x2F;&#x2F; Here we register a listener for the &#x60;HomePageView&#x60;&#x27;s &#x60;changeUser&#x60;
+        &#x2F;&#x2F; event. When the &#x60;HomePageView&#x60; is the &#x60;activeView&#x60;, its events will
+        &#x2F;&#x2F; bubble up to this app instance.
+        this.on(&#x27;*:changeUser&#x27;, this.navigateToUser);
+
+        &#x2F;&#x2F; Here we register a listener for the &#x60;RepoListView&#x60;&#x27;s &#x60;selectRepo&#x60;
+        &#x2F;&#x2F; event. The &#x60;RepoListView&#x60;&#x27;s events bubble up to the &#x60;UserPageView&#x60;,
+        &#x2F;&#x2F; so when it is the &#x60;activeView&#x60;, its events will bubble up to this
+        &#x2F;&#x2F; app instance.
+        this.on(&#x27;*:selectRepo&#x27;, this.navigateToRepo);
+
+        &#x2F;&#x2F; Once our app is ready, we&#x27;ll either dispatch to our route-handlers if
+        &#x2F;&#x2F; the current URL matches one of our routes, or we&#x27;ll simply show the
+        &#x2F;&#x2F; &#x60;HomePageView&#x60;.
+        this.once(&#x27;ready&#x27;, function (e) {
+            if (this.hasRoute(this.getPath())) {
+                this.dispatch();
+            } else {
+                this.showHomePage();
+            }
+        });
+    },
+
+    &#x2F;&#x2F; -- Event Handlers -------------------------------------------------------
+
+    &#x2F;&#x2F; When called, this will navigate the application to the user-page for the
+    &#x2F;&#x2F; GitHub username specified on the event facade. This will cause our app to
+    &#x2F;&#x2F; dispatch to its route-handlers along with updating the URL.
+    navigateToUser: function (e) {
+        var activeView = this.get(&#x27;activeView&#x27;);
+
+        &#x2F;&#x2F; We want to add a history entry for &quot;&#x2F;&quot; when we&#x27;re showing the home
+        &#x2F;&#x2F; page, but the app&#x27;s current path isn&#x27;t already &quot;&#x2F;&quot;. This provides
+        &#x2F;&#x2F; proper back button support and helps get around a side effect of
+        &#x2F;&#x2F; using hash based URLs in this example.
+        if (activeView instanceof HomePageView &amp;&amp; this.getPath() !== &#x27;&#x2F;&#x27;) {
+            &#x2F;&#x2F; Adds history entry for &quot;&#x2F;&quot; so we can get back to the home page
+            &#x2F;&#x2F; via the back button.
+            this.save(&#x27;&#x2F;&#x27;);
+        }
+
+        this.navigate(&#x27;&#x2F;github&#x2F;&#x27; + e.user + &#x27;&#x2F;&#x27;);
+    },
+
+    &#x2F;&#x2F; When called, this will navigate the application to the repo-page for the
+    &#x2F;&#x2F; GitHub repository specified on the event facade. This will cause our app
+    &#x2F;&#x2F; to dispatch to its route-handlers along with updating the URL.
+    navigateToRepo: function (e) {
+        var repo = e.repo;
+        this.navigate(&#x27;&#x2F;github&#x2F;&#x27; + repo.get(&#x27;owner.login&#x27;) + &#x27;&#x2F;&#x27; + repo.get(&#x27;name&#x27;) + &#x27;&#x2F;&#x27;);
+    },
+
+    &#x2F;&#x2F; -- Route Handlers -------------------------------------------------------
+
+    &#x2F;&#x2F; This will be called for all URLs which start with: &quot;&#x2F;github&#x2F;:user&#x2F;&quot;; its
+    &#x2F;&#x2F; job is to make sure a &#x60;User&#x60; model for the specified GitHub username is
+    &#x2F;&#x2F; fully-loaded and placed on the request object for other route-handlers.
+    handleUser: function (req, res, next) {
+        var username = req.params.user,
+            user     = this.get(&#x27;user&#x27;),
+            self     = this;
+
+        &#x2F;&#x2F; When the current &#x60;User&#x60; model set on the app is new or the specified
+        &#x2F;&#x2F; GitHub username from the URL is different, a new user model instance
+        &#x2F;&#x2F; is created, loaded, and set on this app before adding it to the
+        &#x2F;&#x2F; request object.
+        if (username === user.get(&#x27;login&#x27;) &amp;&amp; !user.isNew()) {
+            &#x2F;&#x2F; Places a reference to the user model on the request object before
+            &#x2F;&#x2F; delegating to the next route-handler.
+            req.user = user;
+            next();
+        } else {
+            &#x2F;&#x2F; Create a new &#x60;User&#x60; model instance using the specified GitHub
+            &#x2F;&#x2F; username from the URL.
+            user = new User({login: username});
+
+            &#x2F;&#x2F; Load the user&#x27;s data from the GitHub API, then sent the user
+            &#x2F;&#x2F; model on both this app and the request object before delegating
+            &#x2F;&#x2F; to the next route-handler.
+            user.load(function () {
+                self.set(&#x27;user&#x27;, user);
+                req.user = user;
+                next();
+            });
+        }
+    },
+
+    &#x2F;&#x2F; This will be called for all URLs which start with: &quot;&#x2F;github&#x2F;:user&#x2F;&quot;; its
+    &#x2F;&#x2F; job is to make sure a fully-loaded &#x60;RepoList&#x60; instance is placed on the
+    &#x2F;&#x2F; request object. It is assumed that &#x60;handleUser()&#x60; route-handler has
+    &#x2F;&#x2F; already placed the &#x60;User&#x60; model on the request object.
+    handleRepos: function (req, res, next) {
+        var user  = req.user,
+            repos = this.get(&#x27;repos&#x27;);
+
+        &#x2F;&#x2F; Adds a reference to this app&#x27;s &#x60;RepoList&#x60; to the request object.
+        req.repos = repos;
+
+        &#x2F;&#x2F; This makes sure the &#x60;RepoList&#x60; is loaded for the current user.
+        if (user === repos.get(&#x27;user&#x27;)) {
+            next();
+        } else {
+            &#x2F;&#x2F; A fade transition is preferred when we&#x27;ve switched users, so it
+            &#x2F;&#x2F; is added to the response object.
+            res.transition = &#x27;fade&#x27;;
+
+            &#x2F;&#x2F; Sets the current user model on the &#x60;RepoList&#x60; instance and loads
+            &#x2F;&#x2F; the repos for the given user before continuing.
+            repos.set(&#x27;user&#x27;, user).load(function () {
+                next();
+            });
+        }
+    },
+
+    &#x2F;&#x2F; This will be called for URLs which match: &quot;&#x2F;github&#x2F;:user&#x2F;:repo&#x2F;&quot;; its job
+    &#x2F;&#x2F; is to make sure a fully-loaded &#x60;ContributorList&#x60; instance is placed on
+    &#x2F;&#x2F; the request object. It is assumed that the &#x60;handleUser()&#x60; and
+    &#x2F;&#x2F; &#x60;handleRepos()&#x60; route-handlers have already placed the &#x60;User&#x60; model and
+    &#x2F;&#x2F; &#x60;RepoList&#x60; model-list on the request object.
+    handleRepo: function (req, res, next) {
+        &#x2F;&#x2F; This uses data from the request object to look for a &#x60;Repo&#x60; model
+        &#x2F;&#x2F; instance in the &#x60;RepoList&#x60;.
+        var repoId       = req.params.repo,
+            repos        = req.repos,
+            repo         = repos.getById(repoId),
+            contributors = this.get(&#x27;contributors&#x27;);
+
+        &#x2F;&#x2F; We error-out when the specified repo name does not exist in the list
+        &#x2F;&#x2F; of repos for the current GitHub user.
+        if (!repo) {
+            return next(&#x27;GitHub repository was not found.&#x27;);
+        }
+
+        &#x2F;&#x2F; Adds a reference to the &#x60;Repo&#x60; model and &#x60;ContributorList&#x60; to the
+        &#x2F;&#x2F; request object.
+        req.repo         = repo;
+        req.contributors = contributors;
+
+        &#x2F;&#x2F; This makes sure the &#x60;ContributorList&#x60; is loaded for the current repo.
+        if (repo === contributors.get(&#x27;repo&#x27;)) {
+            next();
+        } else {
+            &#x2F;&#x2F; Sets the current repo model on the &#x60;ContributorList&#x60; instance and
+            &#x2F;&#x2F; loads the contributors before continuing.
+            contributors.set(&#x27;repo&#x27;, repo).load(function () {
+                next();
+            });
+        }
+    },
+
+    &#x2F;&#x2F; This is called when the URL is &quot;&#x2F;&quot; and will show our app&#x27;s home page.
+    showHomePage: function (req) {
+        this.showView(&#x27;homePage&#x27;, {
+            model: this.get(&#x27;user&#x27;)
+        });
+    },
+
+    &#x2F;&#x2F; This is the final route for &quot;&#x2F;github&#x2F;:user&#x2F;&quot; URLs and will show our app&#x27;s
+    &#x2F;&#x2F; user page which lists the user&#x27;s repos.
+    showUserPage: function (req, res) {
+        this.showView(&#x27;userPage&#x27;, {
+            model    : req.user,
+            modelList: req.repos
+        }, {
+            &#x2F;&#x2F; Overrides the default transition with the preferred one, if set.
+            transition: res.transition
+        });
+    },
+
+    &#x2F;&#x2F; This is the final route for &quot;&#x2F;github&#x2F;:user&#x2F;:repo&#x2F;&quot; URLs and will show our
+    &#x2F;&#x2F; app&#x27;s repo page which lists the contributors to the repo&#x2F;project.
+    showRepoPage: function (req, res) {
+        this.showView(&#x27;repoPage&#x27;, {
+            model    : req.repo,
+            modelList: req.contributors
+        }, {
+            &#x2F;&#x2F; Overrides the default transition with the preferred one, if set.
+            transition: res.transition
+        });
+    }
+}, {
+    ATTRS: {
+        &#x2F;&#x2F; These attributes will be used by the app to hold its current state,
+        &#x2F;&#x2F; and they will be accessed and modified by our route-handlers.
+        user        : {value: new User()},
+        repos       : {value: new RepoList()},
+        contributors: {value: new ContributorList()},
+
+        &#x2F;&#x2F; Our app will use more advanced routing features where multiple
+        &#x2F;&#x2F; route-handlers will be used to fulfill a &quot;request&quot;, allowing us to
+        &#x2F;&#x2F; encapsulate and reuse our data processing logic. Note: the order the
+        &#x2F;&#x2F; route-handlers are defined in is significant.
+        routes: {
+            value: [
+                {path: &#x27;&#x2F;&#x27;,                    callback: &#x27;showHomePage&#x27;},
+
+                {path: &#x27;&#x2F;github&#x2F;:user&#x2F;*&#x27;,      callback: &#x27;handleUser&#x27;},
+                {path: &#x27;&#x2F;github&#x2F;:user&#x2F;*&#x27;,      callback: &#x27;handleRepos&#x27;},
+                {path: &#x27;&#x2F;github&#x2F;:user&#x2F;&#x27;,       callback: &#x27;showUserPage&#x27;},
+
+                {path: &#x27;&#x2F;github&#x2F;:user&#x2F;:repo&#x2F;&#x27;, callback: &#x27;handleRepo&#x27;},
+                {path: &#x27;&#x2F;github&#x2F;:user&#x2F;:repo&#x2F;&#x27;, callback: &#x27;showRepoPage&#x27;}
+            ]
+        }
+    }
+});</pre>
+
+
+<h4 id="initializing-the-app">Initializing the App</h4>
+
+<p>
+Finally we can create a new instance of our <code>ContributorsApp</code>, render it to the page, and be good to go!
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Create and render a new instance of our &#x60;ContributorsApp&#x60;!
+new ContributorsApp({
+    &#x2F;&#x2F; We force this to false for this example app because there is no server.
+    serverRouting: false,
+
+    &#x2F;&#x2F; Here we set our app&#x27;s rendering container, and restrict which links on
+    &#x2F;&#x2F; the page should cause the app to navigate.
+    container   : &#x27;#github-app&#x27;,
+    linkSelector: &#x27;#github-app a&#x27;,
+
+    &#x2F;&#x2F; Enable view transitions when users are navigating around the app.
+    transitions: true,
+
+    &#x2F;&#x2F; We&#x27;ll define the default GitHub user to be &quot;yui&quot;.
+    user: new User({login: &#x27;yui&#x27;})
+}).render();</pre>
+
+
+
+<h2 id="complete-example-source">Complete Example Source</h2>
+
+<pre class="code prettyprint">&lt;style scoped&gt;
+&#x2F;*-- Override Styles ---------------------------------------------------------*&#x2F;
+
+.example {
+    padding: 0 !important;
+}
+
+&#x2F;*-- Common Styles -----------------------------------------------------------*&#x2F;
+
+#github-app h1 {
+    padding: 0;
+}
+
+#github-app .avatar,
+#github-app .avatar img {
+    display: block;
+    width: 76px;
+    height: 76px;
+    border: 0;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+#github-app .avatar {
+    display: inline-block;
+    *display: inline; zoom: 1;
+    height: 76px;
+    padding: 2px;
+}
+#github-app .avatar:hover,
+#github-app .user-avatar {
+    -webkit-box-shadow: 0 0 2px rgba(0,0,0,0.25);
+    -moz-box-shadow: 0 0 2px rgba(0,0,0,0.25);
+    box-shadow: 0 0 2px rgba(0,0,0,0.25);
+}
+
+#github-app .back,
+#github-app .view-on-github {
+    margin-top: 0;
+}
+#github-app .view-on-github {
+    text-align: right;
+}
+
+#github-app .info h1 {
+    margin: 0;
+}
+#github-app .info .user-avatar,
+#github-app .info .user-login,
+#github-app .info .user-name,
+#github-app .info .repo-name {
+    vertical-align: middle;
+}
+#github-app .info .user-avatar {
+    margin-right: 10px;
+}
+#github-app .info .user-name {
+    font-weight: 400;
+}
+
+#github-app .stats ul {
+    margin: 0;
+    padding: 8px;
+    color: #30418C;
+    background: #F0F1F8;
+    border: 1px solid #D4D8EB;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-align: center;
+    list-style: none;
+}
+#github-app .stats b {
+    display: block;
+    font-size: 36px;
+    line-height: 44px;
+}
+
+&#x2F;*-- HomePage Styles ---------------------------------------------------------*&#x2F;
+
+#github-app .home-page {
+    padding: 1em;
+}
+#github-app .home-page h1,
+#github-app .home-page p {
+    display: block;
+    text-align: center;
+}
+#github-app .home-page label,
+#github-app .home-page input,
+#github-app .home-page button {
+    font-size: 20px;
+}
+#github-app .home-page label {
+    color: #A6A6A6;
+}
+#github-app .home-page input {
+    display: inline-block;
+    *display: inline; zoom: 1;
+    font-family: Helvetica, sans-serif;
+    line-height: normal;
+    margin: 5px auto 0;
+    padding: 6px;
+    width: 200px;
+    text-align: left;
+}
+
+&#x2F;*-- UserPage Styles ---------------------------------------------------------*&#x2F;
+
+#github-app .user-page {
+    padding: 1em;
+}
+#github-app .repos {
+    padding-left: 0;
+    list-style: none;
+    border-top: 1px solid #E5E6F1;
+    margin: 0 -13px;
+}
+#github-app .repo {
+    margin: 1px 0;
+    padding: 0 13px 6px;
+    color: #30418C;
+    background: #F9F9FC;
+    cursor: pointer;
+    border-bottom: 1px solid #E5E6F1;
+}
+#github-app .repo:hover {
+    background: #F1F1F4;
+}
+#github-app .repo-name h3 {
+    margin: 6px 0 0 0;
+}
+#github-app .repo-stats {
+    margin-top: 6px;
+    background: url(..&#x2F;assets&#x2F;app&#x2F;arrow.gif) right center no-repeat;
+}
+#github-app .repo-stats ul {
+    list-style: none;
+    padding-left: 0;
+    height: 47px;
+    line-height: 47px;
+}
+#github-app .repo-stats b {
+    display: block;
+}
+#github-app .repo-stats span {
+    display: block;
+    font-size: 11px;
+    color: #B6BCD7;
+    color: rgba(48, 65, 140, 0.40);
+}
+#github-app .repo-stats .repo-watchers,
+#github-app .repo-stats .repo-forks {
+    text-align: center;
+    line-height: 11px;
+    margin-top: 15px;
+}
+#github-app .repo-desc {
+    margin: 10px 20px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #B6BCD7;
+    color: rgba(48, 65, 140, 0.40);
+}
+
+&#x2F;*-- RepoPage Styles ---------------------------------------------------------*&#x2F;
+
+#github-app .repo-page {
+    padding: 1em;
+}
+#github-app .contributors {
+    margin-left: -5px;
+    margin-right: -5px;
+    padding-left: 0;
+    list-style: none;
+}
+#github-app .contributor {
+    margin: 5px;
+    display: inline-block;
+    *display: inline; zoom: 1;
+}
+#github-app .contributor .avatar {
+    position: relative;
+    display: block;
+}
+#github-app .contributor .avatar:link,
+#github-app .contributor .avatar:visited,
+#github-app .contributor .avatar:hover,
+#github-app .contributor .avatar:active {
+    text-decoration: none;
+}
+#github-app .contributor-name,
+#github-app .contributor-contributions {
+    position: absolute;
+    left: 0;
+    margin: 2px;
+    padding: 0 4px;
+    width: 68px;
+    font-size: 11px;
+    color: #fff;
+    background: #000;
+    background: rgba(0,0,0, 0.2);
+    text-shadow: 0 1px 0 rgba(0,0,0, 0.4);
+}
+#github-app .contributor-name {
+    bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-border-bottom-right-radius: 3px;
+    -webkit-border-bottom-left-radius: 3px;
+    -moz-border-radius-bottomright: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+#github-app .contributor-contributions {
+    top: 0;
+    -webkit-border-top-left-radius: 3px;
+    -webkit-border-top-right-radius: 3px;
+    -moz-border-radius-topleft: 3px;
+    -moz-border-radius-topright: 3px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+&lt;&#x2F;style&gt;
+
+
+&lt;!--
+HomePage Template:
+
+Template HTML used by the &#x60;HomePageView&#x60; to render the app&#x27;s home page.
+--&gt;
+&lt;script id=&quot;t-home&quot; type=&quot;text&#x2F;x-handlebars-template&quot;&gt;
+    &lt;h1&gt;Contributors of GitHub Projects&lt;&#x2F;h1&gt;
+    &lt;p&gt;
+        &lt;input id=&quot;github-app-username&quot; type=&quot;text&quot; value=&quot;{{login}}&quot; placeholder=&quot;GitHub Username&quot; &#x2F;&gt;
+        &lt;button class=&quot;yui3-button&quot;&gt;Show Repos&lt;&#x2F;button&gt;
+    &lt;&#x2F;p&gt;
+    &lt;p&gt;
+        &lt;label for=&quot;github-app-username&quot;&gt;(e.g. yui, davglass, rgrove)&lt;&#x2F;label&gt;
+    &lt;&#x2F;p&gt;
+&lt;&#x2F;script&gt;
+
+&lt;!--
+User Template:
+
+Template HTML used by the &#x60;UserPageView&#x60; to render the header section of a
+user&#x27;s page in the app; this displays info and stats about the GitHub user.
+--&gt;
+&lt;script id=&quot;t-user&quot; type=&quot;text&#x2F;x-handlebars-template&quot;&gt;
+    &lt;div class=&quot;yui3-g&quot;&gt;
+        &lt;p class=&quot;back yui3-u-1-2&quot;&gt;
+            &lt;a href=&quot;#&#x2F;&quot;&gt;« Choose Someone Different&lt;&#x2F;a&gt;
+        &lt;&#x2F;p&gt;
+        &lt;p class=&quot;view-on-github yui3-u-1-2&quot;&gt;
+            &lt;a href=&quot;{{html_url}}&quot;&gt;View on GitHub&lt;&#x2F;a&gt;
+        &lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+
+    &lt;div class=&quot;yui3-g&quot;&gt;
+        &lt;div class=&quot;info yui3-u-2-3&quot;&gt;
+            &lt;h1&gt;
+                &lt;span class=&quot;avatar user-avatar&quot;&gt;
+                    &lt;img src=&quot;{{avatar_url}}&quot; alt=&quot;{{login}}&#x27;s avatar&quot; &#x2F;&gt;
+                &lt;&#x2F;span&gt;
+                &lt;span class=&quot;user-login&quot;&gt;{{login}}&lt;&#x2F;span&gt;
+            {{#if name}}
+                &lt;span class=&quot;user-name&quot;&gt;({{name}})&lt;&#x2F;span&gt;
+            {{&#x2F;if}}
+            &lt;&#x2F;h1&gt;
+        &lt;&#x2F;div&gt;
+        &lt;div class=&quot;stats yui3-u-1-3&quot;&gt;
+            &lt;ul class=&quot;yui3-g&quot;&gt;
+                &lt;li class=&quot;user-repos yui3-u-1-2&quot;&gt;
+                    &lt;b&gt;{{public_repos}}&lt;&#x2F;b&gt; {{public_repos_label}}
+                &lt;&#x2F;li&gt;
+                &lt;li class=&quot;user-followers yui3-u-1-2&quot;&gt;
+                    &lt;b&gt;{{followers}}&lt;&#x2F;b&gt; {{followers_label}}
+                &lt;&#x2F;li&gt;
+            &lt;&#x2F;ul&gt;
+        &lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;script&gt;
+
+&lt;!--
+RepoList Template:
+
+Template HTML used by the &#x60;UserPageView&#x60; to render the main section of a user&#x27;s
+page in the app; this displays the list of project repos for the GitHub user.
+--&gt;
+&lt;script id=&quot;t-repo-list&quot; type=&quot;text&#x2F;x-handlebars-template&quot;&gt;
+    &lt;h2 class=&quot;no-toc&quot;&gt;Public Repositories&lt;&#x2F;h2&gt;
+
+    &lt;ul class=&quot;repos&quot;&gt;
+    {{#each repos}}
+        &lt;li id=&quot;{{clientId}}&quot; class=&quot;repo yui3-g&quot;&gt;
+            &lt;div class=&quot;repo-name yui3-u-2-3&quot;&gt;
+                &lt;h3 class=&quot;no-toc&quot;&gt;
+                    &lt;a href=&quot;#&#x2F;github&#x2F;{{owner.login}}&#x2F;{{name}}&#x2F;&quot;&gt;{{name}}&lt;&#x2F;a&gt;
+                &lt;&#x2F;h3&gt;
+                &lt;p class=&quot;repo-desc&quot;&gt;{{description}}&lt;&#x2F;p&gt;
+            &lt;&#x2F;div&gt;
+            &lt;div class=&quot;repo-stats yui3-u-1-3&quot;&gt;
+                &lt;ul class=&quot;yui3-g&quot;&gt;
+                    &lt;li class=&quot;repo-lang yui3-u-1-3&quot;&gt;
+                        &lt;b&gt;{{language}}&lt;&#x2F;b&gt;
+                    &lt;&#x2F;li&gt;
+                    &lt;li class=&quot;repo-watchers yui3-u-1-3&quot;&gt;
+                        &lt;b&gt;{{watchers}}&lt;&#x2F;b&gt;
+                        &lt;span&gt;{{watchers_label}}&lt;&#x2F;span&gt;
+                    &lt;&#x2F;li&gt;
+                    &lt;li class=&quot;repo-forks yui3-u-1-3&quot;&gt;
+                    {{#if forks}}
+                        &lt;b&gt;{{forks}}&lt;&#x2F;b&gt;
+                        &lt;span&gt;{{forks_label}}&lt;&#x2F;span&gt;
+                    {{&#x2F;if}}
+                    &lt;&#x2F;li&gt;
+                &lt;&#x2F;ul&gt;
+            &lt;&#x2F;div&gt;
+        &lt;&#x2F;li&gt;
+    {{&#x2F;each}}
+    &lt;&#x2F;ul&gt;
+&lt;&#x2F;script&gt;
+
+&lt;!--
+Repo Template:
+
+Template HTML used by the &#x60;RepoPageView&#x60; to render the header section of a
+repo page in the app; this displays info and stats about a GitHub user&#x27;s repo.
+--&gt;
+&lt;script id=&quot;t-repo&quot; type=&quot;text&#x2F;x-handlebars-template&quot;&gt;
+    &lt;div class=&quot;yui3-g&quot;&gt;
+        &lt;p class=&quot;back yui3-u-1-2&quot;&gt;
+            &lt;a href=&quot;#&#x2F;github&#x2F;{{owner.login}}&#x2F;&quot;&gt;« Select Repository&lt;&#x2F;a&gt;
+        &lt;&#x2F;p&gt;
+        &lt;p class=&quot;view-on-github yui3-u-1-2&quot;&gt;
+            &lt;a href=&quot;{{html_url}}&quot;&gt;View on GitHub&lt;&#x2F;a&gt;
+        &lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+
+    &lt;div class=&quot;yui3-g&quot;&gt;
+        &lt;div class=&quot;info yui3-u-2-3&quot;&gt;
+            &lt;h1&gt;
+                &lt;span class=&quot;avatar user-avatar&quot;&gt;
+                    &lt;img src=&quot;{{owner.avatar_url}}&quot; alt=&quot;{{owner.login}}&#x27;s avatar&quot; &#x2F;&gt;
+                &lt;&#x2F;span&gt;
+                &lt;span class=&quot;user-login&quot;&gt;{{owner.login}}&lt;&#x2F;span&gt; &#x2F;
+                &lt;span class=&quot;repo-name&quot;&gt;{{name}}&lt;&#x2F;span&gt;
+            &lt;&#x2F;h1&gt;
+        &lt;&#x2F;div&gt;
+        &lt;div class=&quot;stats yui3-u-1-3&quot;&gt;
+            &lt;ul class=&quot;yui3-g&quot;&gt;
+                &lt;li class=&quot;repo-watchers yui3-u-1-2&quot;&gt;
+                    &lt;b&gt;{{watchers}}&lt;&#x2F;b&gt; {{watchers_label}}
+                &lt;&#x2F;li&gt;
+                &lt;li class=&quot;repo-forks yui3-u-1-2&quot;&gt;
+                    &lt;b&gt;{{forks}}&lt;&#x2F;b&gt; {{forks_label}}
+                &lt;&#x2F;li&gt;
+            &lt;&#x2F;ul&gt;
+        &lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;script&gt;
+
+&lt;!--
+ContributorList Template:
+
+Template HTML used by the &#x60;RepoPageView&#x60; to render the main section of a repo
+page in the app; this displays the list of contributors to the GitHub project.
+--&gt;
+&lt;script id=&quot;t-contributor-list&quot; type=&quot;text&#x2F;x-handlebars-template&quot;&gt;
+    &lt;h2 class=&quot;no-toc&quot;&gt;Project Contributors ({{num}})&lt;&#x2F;h2&gt;
+
+    &lt;ul class=&quot;contributors&quot;&gt;
+    {{#each contributors}}
+        &lt;li class=&quot;contributor&quot;&gt;
+            &lt;a class=&quot;avatar&quot; href=&quot;#&#x2F;github&#x2F;{{login}}&#x2F;&quot;
+                    title=&quot;{{login}} has {{contributions}} {{contributions_label}}&quot;&gt;
+                &lt;img alt=&quot;{{login}}&#x27;s avatar&quot; src=&quot;{{avatar_url}}&quot; &#x2F;&gt;
+                &lt;span class=&quot;contributor-name&quot;&gt;{{login}}&lt;&#x2F;span&gt;
+                &lt;span class=&quot;contributor-contributions&quot;&gt;{{contributions}}&lt;&#x2F;span&gt;
+            &lt;&#x2F;a&gt;
+        &lt;&#x2F;li&gt;
+    {{&#x2F;each}}
+    &lt;&#x2F;ul&gt;
+&lt;&#x2F;script&gt;
+
+&lt;script&gt;
+YUI().use(&#x27;app&#x27;, &#x27;handlebars&#x27;, &#x27;jsonp&#x27;, &#x27;cssbutton&#x27;, function (Y) {
+
+var User, Repo, RepoList, Contributor, ContributorList,
+    UserView, RepoView, RepoListView, ContributorListView,
+    HomePageView, UserPageView, RepoPageView,
+    ContributorsApp;
+
+&#x2F;&#x2F; -- Utility Functions --------------------------------------------------------
+
+&#x2F;&#x2F; A helper function used by the Views to create labels for numerical fields
+&#x2F;&#x2F; which are correctly pluralized, and puts the label back on the &#x60;data&#x60; object.
+function addLabel(data, field, label) {
+    var num = data[field];
+    data[field] || (data[field] = &#x27;0&#x27;);
+    data[field + &#x27;_label&#x27;] = num === 1 ? label : (label + &#x27;s&#x27;);
+}
+
+
+&#x2F;&#x2F; -- GithubSync ---------------------------------------------------------------
+function GithubSync() {}
+
+GithubSync.API_ORIGIN = &#x27;https:&#x2F;&#x2F;api.github.com&#x27;;
+
+GithubSync.prototype = {
+    &#x2F;&#x2F; Intended to be overridden with a GitHub API endpoint URL.
+    githubURL: &#x27;&#x2F;&#x27;,
+
+    &#x2F;&#x2F; Can be overridden to customize the actual URL used when making the
+    &#x2F;&#x2F; request; this way the &#x60;githubURL&#x60; can be more of a template, and this
+    &#x2F;&#x2F; method can substitute place-holders in the template with specific values.
+    buildURL: function () {
+        return this.githubURL;
+    },
+
+    &#x2F;&#x2F; Provides an implementation for a Model&#x2F;ModelList&#x27;s &#x60;sync()&#x60; method which
+    &#x2F;&#x2F; can read data from GitHub&#x27;s API.
+    sync: function (action, options, callback) {
+        Y.Lang.isFunction(callback) || (callback = function () {});
+
+        &#x2F;&#x2F; Enforce ready-only constraint.
+        if (action !== &#x27;read&#x27;) {
+            return callback(&#x27;Read-only&#x27;);
+        }
+
+        &#x2F;&#x2F; Creates the API URL and adds params for 100 items per-page and a
+        &#x2F;&#x2F; JSONP callback placeholder.
+        var url = this.buildURL() + &#x27;?per_page=100&amp;callback={callback}&#x27;;
+
+        &#x2F;&#x2F; Performs JSONP request to GitHub&#x27;s API.
+        Y.jsonp(GithubSync.API_ORIGIN + url, function (res) {
+            var meta = res.meta,
+                data = res.data;
+
+            &#x2F;&#x2F; Check for a successful response, otherwise return the error
+            &#x2F;&#x2F; message returned by the GitHub API.
+            if (meta.status &gt;= 200 &amp;&amp; meta.status &lt; 300) {
+                callback(null, res);
+            } else {
+                callback(data.message, res);
+            }
+        });
+    },
+
+    &#x2F;&#x2F; Provides an implementation for a Model&#x2F;ModelList&#x27;s &#x60;parse()&#x60; method which
+    &#x2F;&#x2F; simply returns the &#x60;data&#x60; object or array from the response JSON.
+    parse: function (res) {
+        return res.data;
+    }
+};
+
+
+&#x2F;&#x2F; -- User ---------------------------------------------------------------------
+User = Y.Base.create(&#x27;user&#x27;, Y.Model, [GithubSync], {
+    githubURL: &#x27;&#x2F;users&#x2F;{user}&#x27;,
+
+    buildURL: function () {
+        return Y.Lang.sub(this.githubURL, {
+            user: this.getAsURL(&#x27;login&#x27;)
+        });
+    }
+}, {
+    &#x2F;&#x2F; These attributes correspond to the GitHub user data we care about:
+    &#x2F;&#x2F; http:&#x2F;&#x2F;developer.github.com&#x2F;v3&#x2F;users&#x2F;
+    ATTRS: {
+        login        : {value: null},
+        name         : {value: null},
+        html_url     : {value: null},
+        avatar_url   : {value: null},
+        public_repos : {value: 0},
+        followers    : {value: 0}
+    }
+});
+
+
+&#x2F;&#x2F; -- Repo ---------------------------------------------------------------------
+Repo = Y.Base.create(&#x27;repo&#x27;, Y.Model, [], {
+    &#x2F;&#x2F; The &#x60;id&#x60; attribute for this Model will be an alias for &#x60;name&#x60;.
+    idAttribute: &#x27;name&#x27;
+}, {
+    &#x2F;&#x2F; These attributes correspond to the GitHub repo data we care about:
+    &#x2F;&#x2F; http:&#x2F;&#x2F;developer.github.com&#x2F;v3&#x2F;repos&#x2F;
+    ATTRS: {
+        name       : {value: null},
+        html_url   : {value: null},
+        description: {value: null},
+        watchers   : {value: 0},
+        forks      : {value: 0},
+        language   : {value: null},
+        owner      : {value: null}
+    }
+});
+
+
+&#x2F;&#x2F; -- RepoList -----------------------------------------------------------------
+RepoList = Y.Base.create(&#x27;repoList&#x27;, Y.ModelList, [GithubSync], {
+    model    : Repo,
+    githubURL: &#x27;&#x2F;users&#x2F;{user}&#x2F;repos&#x27;,
+
+    buildURL: function () {
+        &#x2F;&#x2F; This list&#x27;s &#x60;user&#x60; is used to build the API URL.
+        return Y.Lang.sub(this.githubURL, {
+            user: this.get(&#x27;user&#x27;).getAsURL(&#x27;login&#x27;)
+        });
+    },
+
+    &#x2F;&#x2F; Override the default &#x60;comparator()&#x60; so items are sorted by most number of
+    &#x2F;&#x2F; watchers to least number of watchers.
+    comparator: function (repo) {
+        &#x2F;&#x2F; Note the minus sign.
+        return -repo.get(&#x27;watchers&#x27;);
+    }
+}, {
+    ATTRS: {
+        &#x2F;&#x2F; A &#x60;RepoList&#x60; has a &#x60;User&#x60; associated with it, this allows for a
+        &#x2F;&#x2F; loose-coupling between a user and set of repositories.
+        user: {value: null}
+    }
+});
+
+
+&#x2F;&#x2F; -- Contributor --------------------------------------------------------------
+Contributor = Y.Base.create(&#x27;contributor&#x27;, User, [], {}, {
+    ATTRS: {
+        contributions: {value: 0}
+    }
+});
+
+
+&#x2F;&#x2F; -- ContributorList ----------------------------------------------------------
+ContributorList = Y.Base.create(&#x27;contributorList&#x27;, Y.ModelList, [GithubSync], {
+    model    : Contributor,
+    githubURL: &#x27;&#x2F;repos&#x2F;{user}&#x2F;{repo}&#x2F;contributors&#x27;,
+
+    buildURL: function () {
+        &#x2F;&#x2F; This list&#x27;s &#x60;repo&#x60; is used to build the API URL.
+        var repo = this.get(&#x27;repo&#x27;);
+
+        return Y.Lang.sub(this.githubURL, {
+            user: repo.getAsURL(&#x27;owner.login&#x27;),
+            repo: repo.getAsURL(&#x27;name&#x27;)
+        });
+    },
+
+    &#x2F;&#x2F; Override the default &#x60;comparator()&#x60; so items are sorted by most number of
+    &#x2F;&#x2F; contributors to least number of contributors.
+    comparator: function (contributor) {
+        &#x2F;&#x2F; Note the minus sign.
+        return -contributor.get(&#x27;contributions&#x27;);
+    }
+}, {
+    ATTRS: {
+        &#x2F;&#x2F; A &#x60;ContributorList&#x60; has a &#x60;Repo&#x60; associated with it, this allows for
+        &#x2F;&#x2F; a loose-coupling between a repo and set of contributors.
+        repo: {value: null}
+    }
+});
+
+
+&#x2F;&#x2F; -- User View ----------------------------------------------------------------
+UserView = Y.Base.create(&#x27;userView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; Compiles the User Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one(&#x27;#t-user&#x27;).getContent()),
+
+    render: function () {
+        &#x2F;&#x2F; Retrieves all of the model instance&#x27;s data as a simple JSON struct.
+        var user = this.get(&#x27;model&#x27;).toJSON(),
+            content;
+
+        &#x2F;&#x2F; Add proper pluralized labels for numerical data fields.
+        addLabel(user, &#x27;public_repos&#x27;, &#x27;Public Repo&#x27;);
+        addLabel(user, &#x27;followers&#x27;, &#x27;Follower&#x27;);
+
+        &#x2F;&#x2F; Applies the &#x60;User&#x60; model data to the User Template and sets the
+        &#x2F;&#x2F; resulting HTML as the contents of this view&#x27;s container.
+        content = this.template(user);
+        this.get(&#x27;container&#x27;).setContent(content);
+
+        return this;
+    }
+});
+
+
+&#x2F;&#x2F; -- Repo View ----------------------------------------------------------------
+RepoView = Y.Base.create(&#x27;repoView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; Compiles the Repo Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one(&#x27;#t-repo&#x27;).getContent()),
+
+    render: function () {
+        &#x2F;&#x2F; Retrieves all of the model instance&#x27;s data as a simple JSON struct.
+        var repo = this.get(&#x27;model&#x27;).toJSON(),
+            content;
+
+        &#x2F;&#x2F; Add proper pluralized labels for numerical data fields.
+        addLabel(repo, &#x27;watchers&#x27;, &#x27;Watcher&#x27;);
+        addLabel(repo, &#x27;forks&#x27;, &#x27;Fork&#x27;);
+
+        &#x2F;&#x2F; Applies the &#x60;Repo&#x60; model data to the Repo Template and sets the
+        &#x2F;&#x2F; resulting HTML as the contents of this view&#x27;s container.
+        content = this.template(repo);
+        this.get(&#x27;container&#x27;).setContent(content);
+
+        return this;
+    }
+});
+
+
+&#x2F;&#x2F; -- RepoList View ------------------------------------------------------------
+RepoListView = Y.Base.create(&#x27;repoListView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; Compiles the RepoList Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one(&#x27;#t-repo-list&#x27;).getContent()),
+
+    &#x2F;&#x2F; Attach DOM events for the view. The &#x60;events&#x60; object is a mapping of
+    &#x2F;&#x2F; selectors to an object containing one or more events to attach to the
+    &#x2F;&#x2F; node(s) matching each selector.
+    events: {
+        &#x27;.repo&#x27;: {
+            click: &#x27;selectRepo&#x27;
+        }
+    },
+
+    initializer: function () {
+        &#x2F;&#x2F; The &#x60;selectRepo&#x60; event is fired when the user chooses a GitHub repo
+        &#x2F;&#x2F; to view its contributors. This event will bubble up to the
+        &#x2F;&#x2F; &#x60;ContributorsApp&#x60; via the &#x60;UserPageView&#x60; view when it is the app&#x27;s
+        &#x2F;&#x2F; &#x60;activeView&#x60;.
+        this.publish(&#x27;selectRepo&#x27;, {preventable: false});
+    },
+
+    render: function () {
+        var repos = this.get(&#x27;modelList&#x27;),
+            reposData, content;
+
+        &#x2F;&#x2F; Iterates over all &#x60;Repo&#x60; models in the list and retrieves each model
+        &#x2F;&#x2F; instance&#x27;s data as a simple JSON structs and collects it in an array.
+        reposData = repos.map(function (repo) {
+            var data = repo.toJSON();
+
+            &#x2F;&#x2F; Add &#x60;clientId&#x60; to the data, this is ignored by &#x60;toJSON()&#x60;. This
+            &#x2F;&#x2F; will be used by the template and is an easy way to regain access
+            &#x2F;&#x2F; to the associated Repo model.
+            data.clientId = repo.get(&#x27;clientId&#x27;);
+
+            &#x2F;&#x2F; Add proper pluralized labels for numerical data fields.
+            addLabel(data, &#x27;watchers&#x27;, &#x27;Watcher&#x27;);
+            addLabel(data, &#x27;forks&#x27;, &#x27;Fork&#x27;);
+
+            return data;
+        });
+
+        &#x2F;&#x2F; Applies the &#x60;RepoList&#x60; data to the RepoList Template and sets the
+        &#x2F;&#x2F; resulting HTML as the contents of this view&#x27;s container.
+        content = this.template({repos: reposData});
+        this.get(&#x27;container&#x27;).setContent(content);
+
+        return this;
+    },
+
+    &#x2F;&#x2F; Called when the user clicks anywhere on a repo line-item in our list
+    &#x2F;&#x2F; of repos. This will retreive the corresponding Repo model instance
+    &#x2F;&#x2F; from the RepoList via the &#x60;clientId&#x60;.
+    selectRepo: function (e) {
+        &#x2F;&#x2F; Noop when the element clicked is an anchor, we&#x27;ll let the link
+        &#x2F;&#x2F; preform its default action.
+        if (e.target.test(&#x27;a&#x27;)) {
+            return;
+        }
+
+        &#x2F;&#x2F; Because we&#x27;ve rendered our list of repos with the &#x60;clientId&#x60; as the
+        &#x2F;&#x2F; &#x60;id&#x60; attribute for each repo node, we can use the client id to
+        &#x2F;&#x2F; retreive the Repo model instance from the RepoList.
+        var repos = this.get(&#x27;modelList&#x27;),
+            repo  = repos.getByClientId(e.currentTarget.get(&#x27;id&#x27;));
+
+        if (repo) {
+            this.fire(&#x27;selectRepo&#x27;, {repo: repo});
+        }
+    }
+});
+
+
+&#x2F;&#x2F; -- ContributorList View -----------------------------------------------------
+ContributorListView = Y.Base.create(&#x27;contributorListView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; Compiles the ContributorList Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one(&#x27;#t-contributor-list&#x27;).getContent()),
+
+    render: function () {
+        var contributors = this.get(&#x27;modelList&#x27;),
+            contributorsData, content;
+
+        &#x2F;&#x2F; Iterates over all &#x60;Contributor&#x60; models in the list and retrieves a
+        &#x2F;&#x2F; sub-set of each model instance&#x27;s data as a simple JSON structs and
+        &#x2F;&#x2F; collects it in an array.
+        contributorsData = contributors.map(function (contributor) {
+            &#x2F;&#x2F; Only a few of the &#x60;Contributor&#x60; data attributes are needed.
+            var data = contributor.getAttrs([&#x27;login&#x27;, &#x27;avatar_url&#x27;, &#x27;contributions&#x27;]);
+
+            &#x2F;&#x2F; Add proper pluralized labels for numerical data fields.
+            addLabel(data, &#x27;contributions&#x27;, &#x27;Contribution&#x27;);
+
+            return data;
+        });
+
+        &#x2F;&#x2F; Applies the &#x60;ContributorList&#x60; data to the ContributorList Template
+        &#x2F;&#x2F; along with the total number of contributors for the repo.
+        content = this.template({
+            num         : contributors.size(),
+            contributors: contributorsData
+        });
+
+        &#x2F;&#x2F; Sets the resulting HTML from apply the data to the template as the
+        &#x2F;&#x2F; contents of this view&#x27;s container.
+        this.get(&#x27;container&#x27;).setContent(content);
+
+        return this;
+    }
+});
+
+
+&#x2F;&#x2F; -- HomePage View ------------------------------------------------------------
+HomePageView = Y.Base.create(&#x27;homePageView&#x27;, Y.View, [], {
+    &#x2F;&#x2F; Compiles the HomePage Template into a reusable Handlebars template.
+    template: Y.Handlebars.compile(Y.one(&#x27;#t-home&#x27;).getContent()),
+
+    &#x2F;&#x2F; Attach DOM events for the view. The &#x60;events&#x60; object is a mapping of
+    &#x2F;&#x2F; selectors to an object containing one or more events to attach to the
+    &#x2F;&#x2F; node(s) matching each selector.
+    events: {
+        &#x27;button&#x27;: {
+            click: &#x27;changeUser&#x27;
+        },
+
+        &#x27;input&#x27;: {
+            keypress: &#x27;enter&#x27;
+        }
+    },
+
+    initializer: function () {
+        &#x2F;&#x2F; The &#x60;changeUser&#x60; event is fired when the user chooses a GitHub user
+        &#x2F;&#x2F; to start browsing. This event will bubble up to the &#x60;ContributorsApp&#x60;
+        &#x2F;&#x2F; when this view is the app&#x27;s &#x60;activeView&#x60;.
+        this.publish(&#x27;changeUser&#x27;, {preventable: false});
+    },
+
+    render: function () {
+        &#x2F;&#x2F; Retrieves just the &#x60;login&#x60; of the &#x60;User&#x60; model instance and applies
+        &#x2F;&#x2F; it to the HomePage Template.
+        var user    = this.get(&#x27;model&#x27;),
+            content = this.template(user.getAttrs([&#x27;login&#x27;]));
+
+        &#x2F;&#x2F; Adds the &quot;home-page&quot; CSS class to aid styling and sets the resulting
+        &#x2F;&#x2F; HTML as the contents of this view&#x27;s container.
+        this.get(&#x27;container&#x27;).addClass(&#x27;home-page&#x27;).setContent(content);
+
+        return this;
+    },
+
+    &#x2F;&#x2F; Called when the user clicks the &quot;Show Repos&quot; button. This will retrieve
+    &#x2F;&#x2F; the GitHub username from the text &#x60;&lt;input&gt;&#x60; and fire the &#x60;changeUser&#x60;
+    &#x2F;&#x2F; event, passing on the username to the app.
+    changeUser: function () {
+        var user = this.get(&#x27;container&#x27;).one(&#x27;input&#x27;).get(&#x27;value&#x27;);
+        if (user) {
+            this.fire(&#x27;changeUser&#x27;, {user: user});
+        }
+    },
+
+    &#x2F;&#x2F; Called when the user types inside the text &#x60;&lt;input&gt;&#x60;; when the &quot;enter&quot;
+    &#x2F;&#x2F; key is pressed, this will call the &#x60;changeUser()&#x60; method.
+    enter: function (e) {
+        &#x2F;&#x2F; Check for &quot;enter&quot; keypress.
+        if (e.keyCode === 13) {
+            this.changeUser();
+        }
+    }
+});
+
+
+&#x2F;&#x2F; -- UserPage View ------------------------------------------------------------
+UserPageView = Y.Base.create(&#x27;userPageView&#x27;, Y.View, [], {
+    initializer: function () {
+        var user  = this.get(&#x27;model&#x27;),
+            repos = this.get(&#x27;modelList&#x27;);
+
+        &#x2F;&#x2F; This view serves as a &quot;page&quot;-level view containing two sub-views to
+        &#x2F;&#x2F; which it delegates rendering and stitches together the resulting UI.
+        &#x2F;&#x2F; Sub-views are created to render the &#x60;User&#x60; and &#x60;RepoList&#x60;.
+        this.userView     = new UserView({model: user});
+        this.repoListView = new RepoListView({modelList: repos});
+
+        &#x2F;&#x2F; This will cause the sub-views&#x27; custom events to bubble up to here.
+        this.userView.addTarget(this);
+        this.repoListView.addTarget(this);
+    },
+
+    &#x2F;&#x2F; This destructor is specified so this view&#x27;s sub-views can be properly
+    &#x2F;&#x2F; destroyed and cleaned up.
+    destructor: function () {
+        this.userView.destroy();
+        this.repoListView.destroy();
+
+        delete this.userView;
+        delete this.repoListView;
+    },
+
+    render: function () {
+        &#x2F;&#x2F; A document fragment is created to hold the resulting HTML created
+        &#x2F;&#x2F; from rendering the two sub-views.
+        var content = Y.one(Y.config.doc.createDocumentFragment());
+
+        &#x2F;&#x2F; This renders each of the two sub-views into the document fragment,
+        &#x2F;&#x2F; then sets the fragment as the contents of this view&#x27;s container.
+        content.append(this.userView.render().get(&#x27;container&#x27;));
+        content.append(this.repoListView.render().get(&#x27;container&#x27;));
+
+        &#x2F;&#x2F; Adds the &quot;user-page&quot; CSS class to aid styling and sets the document
+        &#x2F;&#x2F; fragment containing the two rendered sub-views as the contents of
+        &#x2F;&#x2F; this view&#x27;s container.
+        this.get(&#x27;container&#x27;).addClass(&#x27;user-page&#x27;).setContent(content);
+
+        return this;
+    }
+});
+
+
+&#x2F;&#x2F; -- RepoPage View ------------------------------------------------------------
+RepoPageView = Y.Base.create(&#x27;repoPageView&#x27;, Y.View, [], {
+    initializer: function () {
+        var repo         = this.get(&#x27;model&#x27;),
+            contributors = this.get(&#x27;modelList&#x27;);
+
+        &#x2F;&#x2F; This view serves as a &quot;page&quot;-level view containing two sub-views to
+        &#x2F;&#x2F; which it delegates rendering and stitches together the resulting UI.
+        &#x2F;&#x2F; Sub-views are created to render the &#x60;RepoView&#x60; and
+        &#x2F;&#x2F; &#x60;ContributorListView&#x60;.
+        this.repoView            = new RepoView({model: repo});
+        this.contributorListView = new ContributorListView({modelList: contributors});
+
+        &#x2F;&#x2F; This will cause the sub-views&#x27; custom events to bubble up to here.
+        this.repoView.addTarget(this);
+        this.contributorListView.addTarget(this);
+    },
+
+    &#x2F;&#x2F; This destructor is specified so this view&#x27;s sub-views can be properly
+    &#x2F;&#x2F; destroyed and cleaned up.
+    destructor: function () {
+        this.repoView.destroy();
+        this.contributorListView.destroy();
+
+        delete this.repoView;
+        delete this.contributorListView;
+    },
+
+    render: function () {
+        &#x2F;&#x2F; A document fragment is created to hold the resulting HTML created
+        &#x2F;&#x2F; from rendering the two sub-views.
+        var content = Y.one(Y.config.doc.createDocumentFragment());
+
+        &#x2F;&#x2F; This renders each of the two sub-views into the document fragment,
+        &#x2F;&#x2F; then sets the fragment as the contents of this view&#x27;s container.
+        content.append(this.repoView.render().get(&#x27;container&#x27;));
+        content.append(this.contributorListView.render().get(&#x27;container&#x27;));
+
+        &#x2F;&#x2F; Adds the &quot;repo-page&quot; CSS class to aid styling and sets the document
+        &#x2F;&#x2F; fragment containing the two rendered sub-views as the contents of
+        &#x2F;&#x2F; this view&#x27;s container.
+        this.get(&#x27;container&#x27;).addClass(&#x27;repo-page&#x27;).setContent(content);
+
+        return this;
+    }
+});
+
+
+&#x2F;&#x2F; -- Contributors App ---------------------------------------------------------
+ContributorsApp = Y.Base.create(&#x27;contributorsApp&#x27;, Y.App, [], {
+    &#x2F;&#x2F; This is where we can declare our page-level views and define the
+    &#x2F;&#x2F; relationship between the &quot;pages&quot; of our application. We can later use the
+    &#x2F;&#x2F; &#x60;showView()&#x60; method to create and display these views.
+    views: {
+        homePage: {
+            type: HomePageView
+        },
+
+        userPage: {
+            type: UserPageView
+        },
+
+        repoPage: {
+            type  : RepoPageView,
+            parent: &#x27;userPage&#x27;
+        }
+    },
+
+    initializer: function () {
+        &#x2F;&#x2F; Here we register a listener for the &#x60;HomePageView&#x60;&#x27;s &#x60;changeUser&#x60;
+        &#x2F;&#x2F; event. When the &#x60;HomePageView&#x60; is the &#x60;activeView&#x60;, its events will
+        &#x2F;&#x2F; bubble up to this app instance.
+        this.on(&#x27;*:changeUser&#x27;, this.navigateToUser);
+
+        &#x2F;&#x2F; Here we register a listener for the &#x60;RepoListView&#x60;&#x27;s &#x60;selectRepo&#x60;
+        &#x2F;&#x2F; event. The &#x60;RepoListView&#x60;&#x27;s events bubble up to the &#x60;UserPageView&#x60;,
+        &#x2F;&#x2F; so when it is the &#x60;activeView&#x60;, its events will bubble up to this
+        &#x2F;&#x2F; app instance.
+        this.on(&#x27;*:selectRepo&#x27;, this.navigateToRepo);
+
+        &#x2F;&#x2F; Once our app is ready, we&#x27;ll either dispatch to our route-handlers if
+        &#x2F;&#x2F; the current URL matches one of our routes, or we&#x27;ll simply show the
+        &#x2F;&#x2F; &#x60;HomePageView&#x60;.
+        this.once(&#x27;ready&#x27;, function (e) {
+            if (this.hasRoute(this.getPath())) {
+                this.dispatch();
+            } else {
+                this.showHomePage();
+            }
+        });
+    },
+
+    &#x2F;&#x2F; -- Event Handlers -------------------------------------------------------
+
+    &#x2F;&#x2F; When called, this will navigate the application to the user-page for the
+    &#x2F;&#x2F; GitHub username specified on the event facade. This will cause our app to
+    &#x2F;&#x2F; dispatch to its route-handlers along with updating the URL.
+    navigateToUser: function (e) {
+        var activeView = this.get(&#x27;activeView&#x27;);
+
+        &#x2F;&#x2F; We want to add a history entry for &quot;&#x2F;&quot; when we&#x27;re showing the home
+        &#x2F;&#x2F; page, but the app&#x27;s current path isn&#x27;t already &quot;&#x2F;&quot;. This provides
+        &#x2F;&#x2F; proper back button support and helps get around a side effect of
+        &#x2F;&#x2F; using hash based URLs in this example.
+        if (activeView instanceof HomePageView &amp;&amp; this.getPath() !== &#x27;&#x2F;&#x27;) {
+            &#x2F;&#x2F; Adds history entry for &quot;&#x2F;&quot; so we can get back to the home page
+            &#x2F;&#x2F; via the back button.
+            this.save(&#x27;&#x2F;&#x27;);
+        }
+
+        this.navigate(&#x27;&#x2F;github&#x2F;&#x27; + e.user + &#x27;&#x2F;&#x27;);
+    },
+
+    &#x2F;&#x2F; When called, this will navigate the application to the repo-page for the
+    &#x2F;&#x2F; GitHub repository specified on the event facade. This will cause our app
+    &#x2F;&#x2F; to dispatch to its route-handlers along with updating the URL.
+    navigateToRepo: function (e) {
+        var repo = e.repo;
+        this.navigate(&#x27;&#x2F;github&#x2F;&#x27; + repo.get(&#x27;owner.login&#x27;) + &#x27;&#x2F;&#x27; + repo.get(&#x27;name&#x27;) + &#x27;&#x2F;&#x27;);
+    },
+
+    &#x2F;&#x2F; -- Route Handlers -------------------------------------------------------
+
+    &#x2F;&#x2F; This will be called for all URLs which start with: &quot;&#x2F;github&#x2F;:user&#x2F;&quot;; its
+    &#x2F;&#x2F; job is to make sure a &#x60;User&#x60; model for the specified GitHub username is
+    &#x2F;&#x2F; fully-loaded and placed on the request object for other route-handlers.
+    handleUser: function (req, res, next) {
+        var username = req.params.user,
+            user     = this.get(&#x27;user&#x27;),
+            self     = this;
+
+        &#x2F;&#x2F; When the current &#x60;User&#x60; model set on the app is new or the specified
+        &#x2F;&#x2F; GitHub username from the URL is different, a new user model instance
+        &#x2F;&#x2F; is created, loaded, and set on this app before adding it to the
+        &#x2F;&#x2F; request object.
+        if (username === user.get(&#x27;login&#x27;) &amp;&amp; !user.isNew()) {
+            &#x2F;&#x2F; Places a reference to the user model on the request object before
+            &#x2F;&#x2F; delegating to the next route-handler.
+            req.user = user;
+            next();
+        } else {
+            &#x2F;&#x2F; Create a new &#x60;User&#x60; model instance using the specified GitHub
+            &#x2F;&#x2F; username from the URL.
+            user = new User({login: username});
+
+            &#x2F;&#x2F; Load the user&#x27;s data from the GitHub API, then sent the user
+            &#x2F;&#x2F; model on both this app and the request object before delegating
+            &#x2F;&#x2F; to the next route-handler.
+            user.load(function () {
+                self.set(&#x27;user&#x27;, user);
+                req.user = user;
+                next();
+            });
+        }
+    },
+
+    &#x2F;&#x2F; This will be called for all URLs which start with: &quot;&#x2F;github&#x2F;:user&#x2F;&quot;; its
+    &#x2F;&#x2F; job is to make sure a fully-loaded &#x60;RepoList&#x60; instance is placed on the
+    &#x2F;&#x2F; request object. It is assumed that &#x60;handleUser()&#x60; route-handler has
+    &#x2F;&#x2F; already placed the &#x60;User&#x60; model on the request object.
+    handleRepos: function (req, res, next) {
+        var user  = req.user,
+            repos = this.get(&#x27;repos&#x27;);
+
+        &#x2F;&#x2F; Adds a reference to this app&#x27;s &#x60;RepoList&#x60; to the request object.
+        req.repos = repos;
+
+        &#x2F;&#x2F; This makes sure the &#x60;RepoList&#x60; is loaded for the current user.
+        if (user === repos.get(&#x27;user&#x27;)) {
+            next();
+        } else {
+            &#x2F;&#x2F; A fade transition is preferred when we&#x27;ve switched users, so it
+            &#x2F;&#x2F; is added to the response object.
+            res.transition = &#x27;fade&#x27;;
+
+            &#x2F;&#x2F; Sets the current user model on the &#x60;RepoList&#x60; instance and loads
+            &#x2F;&#x2F; the repos for the given user before continuing.
+            repos.set(&#x27;user&#x27;, user).load(function () {
+                next();
+            });
+        }
+    },
+
+    &#x2F;&#x2F; This will be called for URLs which match: &quot;&#x2F;github&#x2F;:user&#x2F;:repo&#x2F;&quot;; its job
+    &#x2F;&#x2F; is to make sure a fully-loaded &#x60;ContributorList&#x60; instance is placed on
+    &#x2F;&#x2F; the request object. It is assumed that the &#x60;handleUser()&#x60; and
+    &#x2F;&#x2F; &#x60;handleRepos()&#x60; route-handlers have already placed the &#x60;User&#x60; model and
+    &#x2F;&#x2F; &#x60;RepoList&#x60; model-list on the request object.
+    handleRepo: function (req, res, next) {
+        &#x2F;&#x2F; This uses data from the request object to look for a &#x60;Repo&#x60; model
+        &#x2F;&#x2F; instance in the &#x60;RepoList&#x60;.
+        var repoId       = req.params.repo,
+            repos        = req.repos,
+            repo         = repos.getById(repoId),
+            contributors = this.get(&#x27;contributors&#x27;);
+
+        &#x2F;&#x2F; We error-out when the specified repo name does not exist in the list
+        &#x2F;&#x2F; of repos for the current GitHub user.
+        if (!repo) {
+            return next(&#x27;GitHub repository was not found.&#x27;);
+        }
+
+        &#x2F;&#x2F; Adds a reference to the &#x60;Repo&#x60; model and &#x60;ContributorList&#x60; to the
+        &#x2F;&#x2F; request object.
+        req.repo         = repo;
+        req.contributors = contributors;
+
+        &#x2F;&#x2F; This makes sure the &#x60;ContributorList&#x60; is loaded for the current repo.
+        if (repo === contributors.get(&#x27;repo&#x27;)) {
+            next();
+        } else {
+            &#x2F;&#x2F; Sets the current repo model on the &#x60;ContributorList&#x60; instance and
+            &#x2F;&#x2F; loads the contributors before continuing.
+            contributors.set(&#x27;repo&#x27;, repo).load(function () {
+                next();
+            });
+        }
+    },
+
+    &#x2F;&#x2F; This is called when the URL is &quot;&#x2F;&quot; and will show our app&#x27;s home page.
+    showHomePage: function (req) {
+        this.showView(&#x27;homePage&#x27;, {
+            model: this.get(&#x27;user&#x27;)
+        });
+    },
+
+    &#x2F;&#x2F; This is the final route for &quot;&#x2F;github&#x2F;:user&#x2F;&quot; URLs and will show our app&#x27;s
+    &#x2F;&#x2F; user page which lists the user&#x27;s repos.
+    showUserPage: function (req, res) {
+        this.showView(&#x27;userPage&#x27;, {
+            model    : req.user,
+            modelList: req.repos
+        }, {
+            &#x2F;&#x2F; Overrides the default transition with the preferred one, if set.
+            transition: res.transition
+        });
+    },
+
+    &#x2F;&#x2F; This is the final route for &quot;&#x2F;github&#x2F;:user&#x2F;:repo&#x2F;&quot; URLs and will show our
+    &#x2F;&#x2F; app&#x27;s repo page which lists the contributors to the repo&#x2F;project.
+    showRepoPage: function (req, res) {
+        this.showView(&#x27;repoPage&#x27;, {
+            model    : req.repo,
+            modelList: req.contributors
+        }, {
+            &#x2F;&#x2F; Overrides the default transition with the preferred one, if set.
+            transition: res.transition
+        });
+    }
+}, {
+    ATTRS: {
+        &#x2F;&#x2F; These attributes will be used by the app to hold its current state,
+        &#x2F;&#x2F; and they will be accessed and modified by our route-handlers.
+        user        : {value: new User()},
+        repos       : {value: new RepoList()},
+        contributors: {value: new ContributorList()},
+
+        &#x2F;&#x2F; Our app will use more advanced routing features where multiple
+        &#x2F;&#x2F; route-handlers will be used to fulfill a &quot;request&quot;, allowing us to
+        &#x2F;&#x2F; encapsulate and reuse our data processing logic. Note: the order the
+        &#x2F;&#x2F; route-handlers are defined in is significant.
+        routes: {
+            value: [
+                {path: &#x27;&#x2F;&#x27;,                    callback: &#x27;showHomePage&#x27;},
+
+                {path: &#x27;&#x2F;github&#x2F;:user&#x2F;*&#x27;,      callback: &#x27;handleUser&#x27;},
+                {path: &#x27;&#x2F;github&#x2F;:user&#x2F;*&#x27;,      callback: &#x27;handleRepos&#x27;},
+                {path: &#x27;&#x2F;github&#x2F;:user&#x2F;&#x27;,       callback: &#x27;showUserPage&#x27;},
+
+                {path: &#x27;&#x2F;github&#x2F;:user&#x2F;:repo&#x2F;&#x27;, callback: &#x27;handleRepo&#x27;},
+                {path: &#x27;&#x2F;github&#x2F;:user&#x2F;:repo&#x2F;&#x27;, callback: &#x27;showRepoPage&#x27;}
+            ]
+        }
+    }
+});
+
+
+&#x2F;&#x2F; -- Go-go-gadget App! --------------------------------------------------------
+
+&#x2F;&#x2F; Create and render a new instance of our &#x60;ContributorsApp&#x60;!
+new ContributorsApp({
+    &#x2F;&#x2F; We force this to false for this example app because there is no server.
+    serverRouting: false,
+
+    &#x2F;&#x2F; Here we set our app&#x27;s rendering container, and restrict which links on
+    &#x2F;&#x2F; the page should cause the app to navigate.
+    container   : &#x27;#github-app&#x27;,
+    linkSelector: &#x27;#github-app a&#x27;,
+
+    &#x2F;&#x2F; Enable view transitions when users are navigating around the app.
+    transitions: true,
+
+    &#x2F;&#x2F; We&#x27;ll define the default GitHub user to be &quot;yui&quot;.
+    user: new User({login: &#x27;yui&#x27;})
+}).render();
+
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#html">HTML</a>
+<ul class="toc">
+<li>
+<a href="#templates">Templates</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#css">CSS</a>
+</li>
+<li>
+<a href="#javascript">JavaScript</a>
+<ul class="toc">
+<li>
+<a href="#githubsync">GithubSync</a>
+</li>
+<li>
+<a href="#models-model-lists">Models &amp; Model Lists</a>
+<ul class="toc">
+<li>
+<a href="#user">User</a>
+</li>
+<li>
+<a href="#repo">Repo</a>
+</li>
+<li>
+<a href="#repolist">RepoList</a>
+</li>
+<li>
+<a href="#contributor">Contributor</a>
+</li>
+<li>
+<a href="#contributorlist">ContributorList</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#views">Views</a>
+<ul class="toc">
+<li>
+<a href="#userview">UserView</a>
+</li>
+<li>
+<a href="#repoview">RepoView</a>
+</li>
+<li>
+<a href="#repolistview">RepoListView</a>
+</li>
+<li>
+<a href="#contributorlistview">ContributorListView</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#app">App</a>
+<ul class="toc">
+<li>
+<a href="#page-views">Page Views</a>
+<ul class="toc">
+<li>
+<a href="#homepageview">HomePageView</a>
+</li>
+<li>
+<a href="#userpageview">UserPageView</a>
+</li>
+<li>
+<a href="#repopageview">RepoPageView</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#routes">Routes</a>
+</li>
+<li>
+<a href="#contributorsapp">ContributorsApp</a>
+</li>
+<li>
+<a href="#initializing-the-app">Initializing the App</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<a href="#complete-example-source">Complete Example Source</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="A basic todo list built with the Model, Model List, and View components.">
+                                            <a href="app-todo.html">Todo List</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="An application to browse through the contributors of a GitHub project.">
+                                            <a href="app-contributors.html">GitHub Contributors</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

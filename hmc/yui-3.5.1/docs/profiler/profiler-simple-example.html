@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Simple Profiling Example</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Simple Profiling Example</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>This example shows basic usage of the Profiler for profiling a single function. A single function is
+    profiled and all of the information displayed.</p>
+</div>
+
+<!-- <div class="example"> -->
+    <script>
+YUI().use('event', 'profiler', function (Y) {
+
+    Y.namespace("example.profiler");
+
+    //object with method to profile
+    Y.example.profiler.MathHelper = {
+        factorial : function (num){
+            if (num > 1) {
+                return num * Y.example.profiler.MathHelper.factorial(num-1);
+            } else {
+                return 1;
+            }
+        }
+    };
+
+    //register the function
+    Y.Profiler.registerFunction("Y.example.profiler.MathHelper.factorial", Y.example.profiler.MathHelper);
+
+    Y.on("domready", function (){
+
+        Y.example.profiler.MathHelper.factorial(10);
+
+        var calls = Y.Profiler.getCallCount("Y.example.profiler.MathHelper.factorial");
+        var max = Y.Profiler.getMax("Y.example.profiler.MathHelper.factorial");
+        var min = Y.Profiler.getMin("Y.example.profiler.MathHelper.factorial");
+        var avg = Y.Profiler.getAverage("Y.example.profiler.MathHelper.factorial");
+
+        Y.Profiler.unregisterFunction("Y.example.profiler.MathHelper.factorial");
+
+        var msg = "Method Y.example.profiler.MathHelper was run " + calls + "times.\n" +
+                "The average time was " + avg + "ms.\n" +
+                "The max time was " + max + " ms.\n" +
+                "The min time was " + min + " ms.";
+        alert(msg);
+    });
+});
+</script>
+
+<!-- </div> -->
+
+<h2 class="first">Simple Profiling Example</h2>
+
+<p>This example begins by creating a namespace:</p>
+
+<pre class="code prettyprint">Y.namespace(&quot;example.profiler&quot;);</pre>
+
+
+<p>This namespace serves as the core object upon which others will be added (to prevent creating global objects).</p>
+<p>Next, an object is created with a method:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F;object with method to profile
+Y.example.profiler.MathHelper = {
+    factorial : function (num){
+        if (num &gt; 1) {
+            return num * MathHelper.factorial(num-1);
+        } else {
+            return 1;
+        }
+    }
+};</pre>
+
+
+<p>This object, <code>MathHelper</code> contains a single method called <code>factorial()</code> that computes the
+factorial of a given number. Any time <code>factorial()</code> is called, the argument indicates how many times
+the function will be recursively called. For example, <code>factorial(10)</code> results in the funtion being
+called 10 times. This makes it an ideal test case for profiling because the results are so predictable.</p>
+<h3>Registering the function</h3>
+<p>The most important step to profile this function is to call <code>registerFunction()</code> with the fully-qualified
+function name, which is <code>Y.example.profiler.MathHelper</code>, and the object:</p>
+
+<pre class="code prettyprint">Y.Profiler.registerFunction(&quot;Y.example.profiler.MathHelper.factorial&quot;, Y.example.profiler.MathHelper);</pre>
+
+
+<p>Since this function is not fully accessible in the global scope, the owner object must be passed in
+as the second argument.</p>
+
+<h3>Running the example</h3>
+
+<p>With everything setup, the last step is to run the code. This initialization is assigned to take place when the DOM has been loaded
+by using the <code>"domready"</code> custom event:</p>
+
+<pre class="code prettyprint">Y.on(&quot;domready&quot;, function (){
+    Y.example.profiler.MathHelper.factorial(10);
+
+    var calls = Y.Profiler.getCallCount(&quot;Y.example.profiler.MathHelper.factorial&quot;);
+    var max = Y.Profiler.getMax(&quot;Y.example.profiler.MathHelper.factorial&quot;);
+    var min = Y.Profiler.getMin(&quot;Y.example.profiler.MathHelper.factorial&quot;);
+    var avg = Y.Profiler.getAverage(&quot;Y.example.profiler.MathHelper.factorial&quot;);
+
+    Y.Profiler.unregisterFunction(&quot;Y.example.profiler.MathHelper.factorial&quot;);
+
+    var msg = &quot;Method Y.example.profiler.MathHelper was run &quot; + calls + &quot;times.\\n&quot; +
+            &quot;The average time was &quot; + avg + &quot;ms.\\n&quot; +
+            &quot;The max time was &quot; + max + &quot; ms.\\n&quot; +
+            &quot;The min time was &quot; + min + &quot; ms.&quot;;
+    alert(msg);
+});</pre>
+
+
+<p>The code block begins by calling <code>factorial()</code> once, which gets profiled. Then, the information
+about the function can be retrieved from the Profiler. This information is output in an alert,
+displaying the number of times that the function was called along with the minimum, maximum, and average
+running times. Since this is a very simple function, the run times will most likely be 0ms on most machines.</p>
+
+<h2>Complete Example Source</h2>
+
+<pre class="code prettyprint">&lt;script&gt;
+YUI().use(&#x27;event&#x27;, &#x27;profiler&#x27;, function (Y) {
+
+    Y.namespace(&quot;example.profiler&quot;);
+
+    &#x2F;&#x2F;object with method to profile
+    Y.example.profiler.MathHelper = {
+        factorial : function (num){
+            if (num &gt; 1) {
+                return num * Y.example.profiler.MathHelper.factorial(num-1);
+            } else {
+                return 1;
+            }
+        }
+    };
+
+    &#x2F;&#x2F;register the function
+    Y.Profiler.registerFunction(&quot;Y.example.profiler.MathHelper.factorial&quot;, Y.example.profiler.MathHelper);
+
+    Y.on(&quot;domready&quot;, function (){
+
+        Y.example.profiler.MathHelper.factorial(10);
+
+        var calls = Y.Profiler.getCallCount(&quot;Y.example.profiler.MathHelper.factorial&quot;);
+        var max = Y.Profiler.getMax(&quot;Y.example.profiler.MathHelper.factorial&quot;);
+        var min = Y.Profiler.getMin(&quot;Y.example.profiler.MathHelper.factorial&quot;);
+        var avg = Y.Profiler.getAverage(&quot;Y.example.profiler.MathHelper.factorial&quot;);
+
+        Y.Profiler.unregisterFunction(&quot;Y.example.profiler.MathHelper.factorial&quot;);
+
+        var msg = &quot;Method Y.example.profiler.MathHelper was run &quot; + calls + &quot;times.\n&quot; +
+                &quot;The average time was &quot; + avg + &quot;ms.\n&quot; +
+                &quot;The max time was &quot; + max + &quot; ms.\n&quot; +
+                &quot;The min time was &quot; + min + &quot; ms.&quot;;
+        alert(msg);
+    });
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Demonstrates basic usage of the Profiler for profiling functions.">
+                                            <a href="profiler-simple-example.html">Simple Profiling Example</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Demonstrates usage of the Profiler for profiling objects.">
+                                            <a href="profiler-object-example.html">Object Profiling Example</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

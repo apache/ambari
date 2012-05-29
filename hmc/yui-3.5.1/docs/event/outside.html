@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Outside Events</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Outside Events</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>The <code>event-outside</code> module adds a <a href="predefined">suite of
+    events</a> based on activity occuring <em>outside</em> the subscribed
+    elements.  For example, the "clickoutside" event will fire only if a click
+    occurred on an element <em>other than</em> the Node subscribed or one of
+    its descendants.</p>
+
+    <p>The module also adds a <code>Y.Event.defineOutside(...)</code> method to <a
+    href="#defineoutside">create additional outside events</a>.</p>
+
+    <p>This module was contributed by <a
+    href="https://github.com/brettstimmerman">Brett Stimmerman</a>, inspired
+    by <a href="http://benalman.com/projects/jquery-outside-events-plugin/">Ben
+    Alman's Outside Events jQuery plugin</a>.</p>
+</div>
+
+<h2 id="not-me-those-other-elements">Not me. Those other elements</h2>
+
+<p>It's a common UX pattern to close popups or trigger save or cancel actions when users do something in another area of a web page.  This family of events makes setting up that behavior easy.</p>
+
+<pre class="code prettyprint">node.on(&#x27;clickoutside&#x27;, function () {
+    this.hide(&#x27;fadeOut&#x27;);
+});
+
+survey.on(&#x27;keyupoutside&#x27;, heyYoureNotDoneYet);
+
+&#x2F;&#x2F; hide the overlay if the page focus moves somewhere outside the overlay&#x27;s
+&#x2F;&#x2F; content area.
+overlay.get(&#x27;boundingBox&#x27;).on(&#x27;focusoutside&#x27;, overlay.hide, overlay);</pre>
+
+
+<h2 id="how-they-work">How they work</h2>
+
+<p>When an outside event subscription is made on an element, the actual
+subscription created is a <code>document</code> level subscription for the corresponding
+DOM event.  When a triggering event occurs on the page and bubbles up to the
+<code>document</code>, its <code>e.target</code> is compared to the outside event subscriber. If the
+event originated from an element outside the subscriber, the outside event
+subscribers are executed.</p>
+
+<p>An originating target is considered outside the subscriber if it is not the subscriber itself or any of the subscriber's descendants.</p>
+
+<h2 id="predefined"><code>*outside</code></h2>
+
+<p>The naming convention for outside events is <code><em>&lt;event&gt;</em>outside</code>.</p>
+
+<p>The module creates the following events by default:</p>
+
+<style>
+#eventlist {
+    list-style: none;
+    margin: 0 0 0 1em;
+    padding: 0;
+}
+#eventlist ul {
+    list-style: none;
+    margin-left: 0;
+    margin-right: 2em;
+    padding: 0;
+}
+</style>
+<ul class="yui3-g" id="eventlist">
+    <li class="yui3-u">
+        <ul>
+            <li><code><em>mousedown</em>outside</code></li>
+            <li><code><em>mouseup</em>outside</code></li>
+            <li><code><em>mouseover</em>outside</code></li>
+            <li><code><em>mouseout</em>outside</code></li>
+            <li><code><em>mousemove</em>outside</code></li>
+        </ul>
+    </li>
+    <li class="yui3-u">
+        <ul>
+            <li><code><em>click</em>outside</code></li>
+            <li><code><em>dblclick</em>outside</code></li>
+            <li><code><em>keydown</em>outside</code></li>
+            <li><code><em>keyup</em>outside</code></li>
+            <li><code><em>keypress</em>outside</code></li>
+        </ul>
+    </li>
+    <li class="yui3-u">
+        <ul>
+            <li><code><em>focus</em>outside</code></li>
+            <li><code><em>blur</em>outside</code></li>
+            <li><code><em>change</em>outside</code></li>
+            <li><code><em>select</em>outside</code></li>
+            <li><code><em>submit</em>outside</code></li>
+        </ul>
+    </li>
+</ul>
+
+<h2 id="defineoutside">Create more outside events</h2>
+
+<p>Use the module's <code>Y.Event.defineOutside( triggeringEvent, [alternateName] )</code> method to create more outside
+events.</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Create a &#x60;touchstartoutside&#x60; event
+Y.Event.defineOutside(&#x27;touchstart&#x27;);
+
+&#x2F;&#x2F; Create an outside event for another synthetic event and give it
+&#x2F;&#x2F; a different name.
+Y.Event.defineOutside(&#x27;tripleclick&#x27;, &#x27;omgletmeout&#x27;);
+
+&#x2F;&#x2F; would have been tripleclickoutside
+gooeymess.on(&#x27;omgletmeout&#x27;, okYouCanGo);</pre>
+
+
+<h2 id="caveats">Caveats</h2>
+
+<p>Outside events require DOM events to bubble to the <code>document</code> so the following caveats apply to their use:</p>
+
+<ol>
+    <li>
+        Separate subscriptions for the triggering event added to any element
+        below the <code>document</code> will execute before the outside event.
+    </li>
+    <li>
+        If a subcriber from #1 calls <code>e.stopPropagation()</code>, the outside event
+        won't fire.
+    </li>
+    <li>
+        "outside" is determined by DOM hierarchy, not visual placement of an
+        element, so if a child element of the outside subscriber is placed
+        elsewhere on the page, clicking on that child will not trigger the
+        outside event.
+    </li>
+    <li>
+        Some DOM events do not bubble, and some (e.g. <code>submit</code> and <code>reset</code>)
+        bubble only in certain browsers.  Unless a workaround synthetic event
+        such as <a href="focus.html"><code>event-focus</code></a> is in place,
+        outside versions of these events won't fire.
+    </li>
+</ol>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#not-me-those-other-elements">Not me. Those other elements</a>
+</li>
+<li>
+<a href="#how-they-work">How they work</a>
+</li>
+<li>
+<a href="#predefined"><code>*outside</code></a>
+</li>
+<li>
+<a href="#defineoutside">Create more outside events</a>
+</li>
+<li>
+<a href="#caveats">Caveats</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Use the Event Utility to attach simple DOM event handlers.">
+                                            <a href="basic-example.html">Simple DOM Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using the synthetic event API to create a DOM event that fires in response to arrow keys being pressed.">
+                                            <a href="synth-example.html">Creating an Arrow Event for DOM Subscription</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Supporting cross-device swipe gestures, using the event-move gesture events">
+                                            <a href="swipe-example.html">Supporting A Swipe Left Gesture</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to extend the base widget class, to create your own Widgets.">
+                                            <a href="../widget/widget-extend.html">Extending the Base Widget Class</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible menu button using the Focus Manager Node Plugin, Event&#x27;s delegation support and mouseenter event, along with the Overlay widget and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-3.html">Accessible Menu Button</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to request data over HTTP.">
+                                            <a href="../io/get.html">HTTP GET to request data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Example Photo Browser application.">
+                                            <a href="../dd/photo-browser.html">Photo Browser</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Portal style example using Drag &amp; Drop Event Bubbling and Animation.">
+                                            <a href="../dd/portal-drag.html">Portal Style Example</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

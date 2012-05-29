@@ -31,7 +31,7 @@
         </div>
         -->
 
-    <script src="http://yui.yahooapis.com/3.4.1/build/yui/yui-min.js"></script>
+    <script src="http://yui.yahooapis.com/3.5.1/build/yui/yui-min.js"></script>
     <script src="../js/utils.js"></script>
     <script src="../js/clustersList.js"></script>
 

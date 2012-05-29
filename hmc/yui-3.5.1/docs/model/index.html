@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Model</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Model</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+<p>
+Model is a lightweight <a href="../attribute/index.html">Attribute</a>-based data model with methods for getting, setting, validating, and syncing attribute values to a persistence layer or server, as well as events for notifying listeners of model changes.
+</p>
+
+<p>
+The <code>Y.Model</code> class is intended to be extended by a custom class that defines
+custom model attributes, validators, and behaviors.
+</p>
+</div>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for Model and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;model&#x27;, function (Y) {
+    &#x2F;&#x2F; Model is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+
+<h2 id="what-is-a-model">What is a Model?</h2>
+
+<p>
+A model is a class that manages data, state, and behavior associated with an application or a part of an application.
+</p>
+
+<p>
+For example, in a photo gallery, you might use a model to represent each photo. The model would contain information about the image file, a caption, tags, etc., along with methods for working with this data. The model would also be responsible for validating any new data before accepting it.
+</p>
+
+<p>
+While Model may be used as a standalone component, it's common to associate a Model instance with a <a href="../view/index.html">View</a> instance, which is responsible for rendering the visual representation of the data contained in the model and updating that representation when the model changes.
+</p>
+
+<h2 id="using-model">Using Model</h2>
+
+<h3 id="quick-start">Quick Start</h3>
+
+<p>
+The quickest way to get up and running with Model is to create a new instance of the <code>Y.Model</code> class and pass in an object of key/value pairs representing attributes to set (note: creating ad-hoc attributes like this requires YUI 3.5.0 or higher).
+</p>
+
+<p>
+Here's how you might create a simple model representing a delicious pie (imagine you're building an online ordering system for a bakery):
+</p>
+
+<pre class="code prettyprint">var applePie = new Y.Model({
+  slices: 6,       &#x2F;&#x2F; number of slices in this pie
+  type  : &#x27;apple&#x27;  &#x2F;&#x2F; what type of pie this is
+});</pre>
+
+
+<p>
+This creates a new <code>Y.Model</code> instance named <code>applePie</code>, with two attributes: <code>slices</code> and <code>type</code>, in addition to the <a href="#built-in-attributes">built-in attributes</a> <code>id</code> and <code>clientId</code>, which are available on all models.
+</p>
+
+<p>
+Pass the name of an attribute to the model's <code>get()</code> function to get that attribute's value.
+</p>
+
+<pre class="code prettyprint">applePie.get(&#x27;slices&#x27;); &#x2F;&#x2F; =&gt; 6
+applePie.get(&#x27;type&#x27;); &#x2F;&#x2F; =&gt; &quot;apple&quot;</pre>
+
+
+<p>
+To change the value of an attribute, pass its name and new value to <code>set()</code>.
+</p>
+
+<pre class="code prettyprint">applePie.set(&#x27;slices&#x27;, 5); &#x2F;&#x2F; someone ate a slice!</pre>
+
+
+<p>
+Read on to learn how to create custom model subclasses for representing more complex data and logic, or skip ahead to <a href="#model-events">Model Events</a> or <a href="#getting-and-setting-attribute-values">Getting and Setting Attribute Values</a> to learn more about how to take advantage of the useful state management functionality Model provides.
+</p>
+
+<h3 id="extending-ymodel">Extending <code>Y.Model</code></h3>
+
+<p>
+The ability to create ad-hoc models by instantiating <code>Y.Model</code> is convenient, but sometimes it can be useful to create a custom Model subclass by <em>extending</em> <code>Y.Model</code>. This allows you to declare the data attributes your Model class will manage up front, as well as specify default attribute values, helper methods, validators, and (optionally) a sync layer to help your Model class communicate with a storage API or a remote server.
+</p>
+
+<p>
+In this example, we'll create a <code>Y.PieModel</code> class. Each instance of this class will represent a delicious pie, fresh from the oven.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Create a new Y.PieModel class that extends Y.Model.
+Y.PieModel = Y.Base.create(&#x27;pieModel&#x27;, Y.Model, [], {
+  &#x2F;&#x2F; Add prototype methods for your Model here if desired. These methods will be
+  &#x2F;&#x2F; available to all instances of your Model.
+
+  &#x2F;&#x2F; Returns true if all the slices of the pie have been eaten.
+  allGone: function () {
+    return this.get(&#x27;slices&#x27;) === 0;
+  },
+
+  &#x2F;&#x2F; Consumes a slice of pie, or fires an &#x60;error&#x60; event if there are no slices
+  &#x2F;&#x2F; left.
+  eatSlice: function () {
+    if (this.allGone()) {
+      this.fire(&#x27;error&#x27;, {
+        type : &#x27;eat&#x27;,
+        error: &quot;Oh snap! There isn&#x27;t any pie left.&quot;
+      });
+    } else {
+      this.set(&#x27;slices&#x27;, this.get(&#x27;slices&#x27;) - 1);
+      Y.log(&#x27;You just ate a slice of delicious &#x27; + this.get(&#x27;type&#x27;) + &#x27; pie!&#x27;);
+    }
+  }
+}, {
+  ATTRS: {
+    &#x2F;&#x2F; Add custom model attributes here. These attributes will contain your
+    &#x2F;&#x2F; model&#x27;s data. See the docs for Y.Attribute to learn more about defining
+    &#x2F;&#x2F; attributes.
+
+    slices: {
+      value: 6 &#x2F;&#x2F; default value
+    },
+
+    type: {
+      value: &#x27;apple&#x27;
+    }
+  }
+});</pre>
+
+
+<p>
+Now we can create instances of <code>Y.PieModel</code> to represent delicious pies.
+</p>
+
+<p>
+Each instance will have a <code>type</code> attribute containing the type of the pie and a <code>slices</code> attribute containing the number of slices remaining. We can call the <code>allGone()</code> method to check whether there are any slices left, and the <code>eatSlice()</code> method to eat a slice.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Bake a delicious new pecan pie.
+var pecanPie = new Y.PieModel({type: &#x27;pecan&#x27;});
+
+pecanPie.on(&#x27;error&#x27;, function (e) {
+  Y.log(e.error);
+});
+
+pecanPie.eatSlice(); &#x2F;&#x2F; =&gt; &quot;You just ate a slice of delicious pecan pie!&quot;
+Y.log(pecanPie.get(&#x27;slices&#x27;)); &#x2F;&#x2F; =&gt; 5</pre>
+
+
+<p>
+Five slices later, our pie will be all gone. If we try to eat another slice, we'll get an <code>error</code> event.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; 5 slices later...
+pecanPie.eatSlice(); &#x2F;&#x2F; =&gt; &quot;Oh snap! There isn&#x27;t any pie left.&quot;</pre>
+
+
+<h3 id="model-attributes">Model Attributes</h3>
+
+<p>
+A Model's data is represented by <a href="../attribute/index.html">attributes</a>. The Model class provides two built-in attributes, <code>clientId</code> and <code>id</code>. The rest are up to you to define when you extend <code>Y.Model</code>.
+</p>
+
+<h4 id="built-in-attributes">Built-in Attributes</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>Attribute</th>
+      <th>Default Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>clientId</code></td>
+      <td><em>generated id</em></td>
+      <td>
+        <p>
+        An automatically generated client-side only unique ID for identifying model instances that don't yet have an <code>id</code>. The client id is guaranteed to be unique among all models on the current page, but is not unique across pageviews. Client ids are never included in <code>toJSON()</code> output.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>id</code></td>
+      <td><code>null</code></td>
+      <td>
+        <p>
+        A globally unique identifier for the model instance. If this is <code>null</code>, then the model instance is assumed to be "new" (meaning it hasn't yet been saved to a persistence layer). If the model represents data that's stored in a database of some kind, it usually makes sense to use the database's primary key here.
+        </p>
+
+        <p>
+        If your persistence layer uses a primary key with a name other than <code>id</code>, you can override the <code>idAttribute</code> property and set it to the name of your custom id attribute when extending <code>Y.Model</code> (be sure to define a corresponding attribute as well). The <code>id</code> attribute will then act as an alias for your custom id attribute.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="custom-attributes">Custom Attributes</h4>
+
+<p>
+Custom attributes are where all your model's data should live. You define these attributes when you first extend <code>Y.Model</code>. You can set their values by passing a config object into the model's constructor, or by calling the model's <code>set()</code> or <code>setAttrs()</code> methods..
+</p>
+
+<p>
+Attributes can specify default values, getters and setters, validators, and more. For details, see the documentation for the <a href="../attribute/index.html">Attribute</a> component.
+</p>
+
+<h3 id="model-properties">Model Properties</h3>
+
+<p>
+The following properties are available on Model instances. The <code>idAttribute</code> property may be overridden when extending <code>Y.Model</code>; the others are intended to be read-only.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>changed</code></td>
+      <td>Object</td>
+      <td>
+        <p>
+        Hash of attributes that have changed since the last time the model was saved.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>idAttribute</code></td>
+      <td>String</td>
+      <td>
+        <p>
+        Name of the attribute to use as the unique id for the model. Defaults to "id", but you may override this property when extending <code>Y.Model</code> if you want to specify a custom id attribute.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>lastChange</code></td>
+      <td>Object</td>
+      <td>
+        <p>
+        Hash of attributes that were changed in the most recent <code>change</code> event. Each item in this hash is an object with the following properties:
+        </p>
+
+        <dl style="margin-top: 1em;">
+          <dt><strong><code>newVal</code></strong></dt>
+          <dd>
+            <p>
+            The new value of the attribute after it changed.
+            </p>
+          </dd>
+
+          <dt><strong><code>prevVal</code></strong></dt>
+          <dd>
+            <p>
+            The old value of the attribute before it changed.
+            </p>
+          </dd>
+
+          <dt><strong><code>src</code></strong></dt>
+          <dd>
+            <p>
+            The source of the change, or <code>null</code> if no source was specified when the change was made.
+            </p>
+
+            <p>
+            This can be set to any string you want by passing an options object like <code>{src: &#x27;foo&#x27;}</code> to the <code>set()</code> or <code>setAttrs()</code> methods when changing attribute values. Its purpose is to allow you to identify the source of the change later by inspecting the <code>src</code> property associated with an event, so choose a string that has meaning for your particular use case.
+            </p>
+          </dd>
+        </dl>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>lists</code></td>
+      <td>Array</td>
+      <td>
+        <p>
+        Array of <a href="../model-list/index.html">ModelList</a> instances that contain this model.
+        </p>
+
+        <p>
+        This property is updated automatically when the model is added to or removed from a ModelList instance. You shouldn't alter it manually. When working with models in a list, you should always add and remove models using the list's <code>add()</code> and <code>remove()</code> methods.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="model-events">Model Events</h3>
+
+<p>
+Model instances provide the following events:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Event</th>
+      <th>When</th>
+      <th>Payload</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>change</code></td>
+      <td>
+        <p>
+        One or more attributes on the model are changed.
+        </p>
+      </td>
+      <td>
+        <dl>
+          <dt><code>changed</code> (<em>Object</em>)</dt>
+          <dd>
+            <p>
+            Hash of change information for each attribute that changed. Keys are attribute names, values are objects with the following properties:
+            </p>
+
+            <dl style="margin-top: 1em;">
+              <dt><code>newVal</code></dt>
+              <dd>
+                <p>
+                The new value of the attribute after it changed.
+                </p>
+              </dd>
+
+              <dt><code>prevVal</code></dt>
+              <dd>
+                <p>
+                The old value of the attribute before it changed.
+                </p>
+              </dd>
+
+              <dt><code>src</code></dt>
+              <dd>
+                <p>
+                The source of the change, or <code>null</code> if no source was specified when the change was made.
+                </p>
+
+                <p>
+                This can be set to any string you want by passing an options object like <code>{src: &#x27;foo&#x27;}</code> to the <code>set()</code> or <code>setAttrs()</code> methods when changing attribute values. Its purpose is to allow you to identify the source of the change later by inspecting the <code>src</code> property associated with an event, so choose a string that has meaning for your particular use case.
+                </p>
+              </dd>
+            </dl>
+          </dd>
+        </dl>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>error</code></td>
+      <td>
+        <p>
+        An error occurs, such as when the model fails validation or a sync layer response can't be parsed.
+        </p>
+      </td>
+      <td>
+        <dl>
+          <dt><code>error</code></dt>
+          <dd>
+            <p>
+              Error message, object, or exception generated by the error. Calling <code>toString()</code> on this should result in a meaningful error message.
+            </p>
+          </dd>
+
+          <dt><code>src</code></dt>
+          <dd>
+            <p>
+            Source of the error. May be one of the following default sources, or any custom error source used by your Model subclass):
+            </p>
+
+            <dl style="margin-top: 1em;">
+              <dt><code>load</code></dt>
+              <dd>
+                <p>
+                An error loading the model from a sync layer. The sync layer's response (if any) will be provided as the <code>response</code> property on the event facade.
+                </p>
+              </dd>
+
+              <dt><code>parse</code></dt>
+              <dd>
+                <p>
+                An error parsing a response from a sync layer.
+                </p>
+              </dd>
+
+              <dt><code>save</code></dt>
+              <dd>
+                <p>
+                An error saving the model to a sync layer. The sync layer's response (if any) will be provided as the <code>response</code> property on the event facade.
+                </p>
+              </dd>
+
+              <dt><code>validate</code></dt>
+              <dd>
+                <p>
+                The model failed to validate.
+                </p>
+              </dd>
+            </dl>
+          </dd>
+        </dl>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>load</code></td>
+      <td>
+        <p>
+        After model attributes are loaded from a sync layer.
+        </p>
+      </td>
+      <td>
+        <dl>
+          <dt><code>parsed</code></dt>
+          <dd>
+            <p>
+            The parsed version of the sync layer's response to the load request.
+            </p>
+          </dd>
+
+          <dt><code>response</code></dt>
+          <dd>
+            <p>
+            The sync layer's raw, unparsed response to the load request.
+            </p>
+          </dd>
+        </dl>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>save</code></td>
+      <td>
+        <p>
+        After model attributes are saved to a sync layer.
+        </p>
+      </td>
+      <td>
+        <dl>
+          <dt><code>parsed</code></dt>
+          <dd>
+            <p>
+            The parsed version of the sync layer's response to the save request.
+            </p>
+          </dd>
+
+          <dt><code>response</code></dt>
+          <dd>
+            <p>
+            The sync layer's raw, unparsed response to the save request.
+            </p>
+          </dd>
+        </dl>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+A model's events bubble up to any <a href="../model-list/index.html">model lists</a> that the model belongs to. This enables you to use the model list as a central point for handling model value changes and errors.
+</p>
+
+<h4 id="change-events">Change Events</h4>
+
+<p>
+In addition to the master <code>change</code> event, which is fired whenever one or more attributes are changed, there are also change events for each individual attribute.
+</p>
+
+<p>
+Attribute-level change events follow the naming scheme <code><em>name</em>Change</code>, where <em>name</em> is the name of an attribute.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Bake a new pie model.
+var pie = new Y.PieModel();
+
+&#x2F;&#x2F; Listen for all attribute changes.
+pie.on(&#x27;change&#x27;, function (e) {
+  Y.log(&#x27;change fired: &#x27; + Y.Object.keys(e.changed).join(&#x27;, &#x27;));
+});
+
+&#x2F;&#x2F; Listen for changes to the &#x60;slices&#x60; attribute.
+pie.on(&#x27;slicesChange&#x27;, function (e) {
+  Y.log(&#x27;slicesChange fired&#x27;);
+});
+
+&#x2F;&#x2F; Listen for changes to the &#x60;type&#x60; attribute.
+pie.on(&#x27;typeChange&#x27;, function (e) {
+  Y.log(&#x27;typeChange fired&#x27;);
+});
+
+&#x2F;&#x2F; Change multiple attributes at once.
+pie.setAttrs({
+  slices: 3,
+  type  : &#x27;maple custard&#x27;
+});
+
+&#x2F;&#x2F; =&gt; &quot;slicesChange fired&quot;
+&#x2F;&#x2F; =&gt; &quot;typeChange fired&quot;
+&#x2F;&#x2F; =&gt; &quot;change fired: slices, type&quot;</pre>
+
+
+<h4 id="firing-your-own-error-events">Firing Your Own Error Events</h4>
+
+<p>
+In your custom model class, there may be situations beyond just parsing and validating in which an <code>error</code> event would be useful. For example, in the <code>Y.PieModel</code> class, we fire an error when someone tries to eat a slice of pie and there are no slices left.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Consumes a slice of pie, or fires an &#x60;error&#x60; event if there are no slices
+&#x2F;&#x2F; left.
+eatSlice: function () {
+  if (this.allGone()) {
+    this.fire(&#x27;error&#x27;, {
+      type : &#x27;eat&#x27;,
+      error: &quot;Oh snap! There isn&#x27;t any pie left.&quot;
+    });
+  } else {
+    this.set(&#x27;slices&#x27;, this.get(&#x27;slices&#x27;) - 1);
+    Y.log(&#x27;You just ate a slice of delicious &#x27; + this.get(&#x27;type&#x27;) + &#x27; pie!&#x27;);
+  }
+}</pre>
+
+
+<p>
+When firing an error event, set the <code>type</code> property to something that users of your class can use to identify the type of error that has occurred. In the example above, we set it to "eat", because it occurred when the caller tried to eat a slice of pie.
+</p>
+
+<p>
+The <code>error</code> property should be set to an error message, an Error object, or anything else that provides information about the error and has a <code>toString()</code> method that returns an error message string.
+</p>
+
+<h3 id="working-with-model-data">Working with Model Data</h3>
+
+<h4 id="getting-and-setting-attribute-values">Getting and Setting Attribute Values</h4>
+
+<p>
+Model's <code>get()</code> and <code>set()</code> methods are the main ways of interacting with model attributes. Unsurprisingly, they allow you to get and set the value of a single attribute.
+</p>
+
+<pre class="code prettyprint">var pie = new Y.PieModel();
+
+&#x2F;&#x2F; Set the value of the &#x60;type&#x60; attribute.
+pie.set(&#x27;type&#x27;, &#x27;banana cream&#x27;);
+
+&#x2F;&#x2F; Get the value of the &#x60;type&#x60; attribute.
+pie.get(&#x27;type&#x27;); &#x2F;&#x2F; =&gt; &quot;banana cream&quot;</pre>
+
+
+<p>
+Model also provides two convenience methods for getting and escaping an attribute value in a single step. The <code>getAsHTML()</code> method returns an HTML-escaped value, and the <code>getAsURL()</code> method returns a URL-encoded value.
+</p>
+
+<pre class="code prettyprint">pie.set(&#x27;type&#x27;, &#x27;strawberries &amp; cream&#x27;);
+
+pie.getAsHTML(&#x27;type&#x27;); &#x2F;&#x2F; =&gt; &quot;strawberries &amp;amp; cream&quot;
+pie.getAsURL(&#x27;type&#x27;);  &#x2F;&#x2F; =&gt; &quot;strawberries%20%26%20cream&quot;</pre>
+
+
+<p>
+The <code>getAttrs()</code> and <code>setAttrs()</code> methods may be used to get and set multiple attributes at once. <code>getAttrs()</code> returns a hash of all attribute values, while <code>setAttrs()</code> accepts a hash of attribute values. When you set multiple attributes with <code>setAttrs()</code>, it fires only a single change event that contains all the affected attributes..
+</p>
+
+<pre class="code prettyprint">pie.setAttrs({
+  slices: 6,
+  type  : &#x27;marionberry&#x27;
+});
+
+pie.getAttrs();
+&#x2F;&#x2F; =&gt; {
+&#x2F;&#x2F;   clientId: &quot;pieModel_1&quot;,
+&#x2F;&#x2F;   destroyed: false,
+&#x2F;&#x2F;   id: null,
+&#x2F;&#x2F;   initialized: true,
+&#x2F;&#x2F;   slices: 6,
+&#x2F;&#x2F;   type: &quot;marionberry&quot;
+&#x2F;&#x2F; }</pre>
+
+
+<p>
+The <code>destroyed</code> and <code>initialized</code> attributes you see in the sample output above are lifecycle attributes provided by <code>Y.Base</code>, and aren't actually model data.
+</p>
+
+<p>
+To get a slightly more useful representation of model data, use the <code>toJSON()</code> method. The <code>toJSON()</code> method excludes the <code>clientId</code>, <code>destroyed</code>, and <code>initialized</code> attributes, making the resulting object more suitable for serialization and for storing in a persistence layer.
+</p>
+
+<pre class="code prettyprint">pie.toJSON();
+&#x2F;&#x2F; =&gt; {
+&#x2F;&#x2F;   id: null,
+&#x2F;&#x2F;   slices: 6,
+&#x2F;&#x2F;   type: &quot;marionberry&quot;
+&#x2F;&#x2F; }</pre>
+
+
+<p>
+If a custom <code>idAttribute</code> is in use, the <code>toJSON()</code> output will include that id attribute instead of <code>id</code>.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; toJSON() output with a custom id attribute.
+pie.toJSON();
+&#x2F;&#x2F; =&gt; {
+&#x2F;&#x2F;   customId: null,
+&#x2F;&#x2F;   slices: 6,
+&#x2F;&#x2F;   type: &quot;marionberry&quot;
+&#x2F;&#x2F; }</pre>
+
+
+<p>
+If you'd like to customize the serialized representation of your models, you may override the <code>toJSON()</code> method.
+</p>
+
+<p>
+When using the <code>set()</code> and <code>setAttrs()</code> methods, you may pass an optional <code>options</code> argument. If <code>options.silent</code> is <code>true</code>, no <code>change</code> event will be fired.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Set attributes without firing a &#x60;change&#x60; event.
+pie.set(&#x27;slices&#x27;, 0, {silent: true});
+
+pie.setAttrs({
+  slices: 0,
+  type  : &#x27;chocolate cream&#x27;
+}, {silent: true});</pre>
+
+
+<p>
+After making changes to a model's attributes, you may call the <code>undo()</code> method to undo the previous change.
+</p>
+
+<pre class="code prettyprint">var pie = new Y.PieModel({slices: 6});
+
+pie.set(&#x27;slices&#x27;, 5);
+pie.undo();
+pie.get(&#x27;slices&#x27;); &#x2F;&#x2F; =&gt; 6</pre>
+
+
+<p>
+Note that there's only a single level of undo, so it's not possible to revert past the most recent change.
+</p>
+
+<h4 id="validating-changes">Validating Changes</h4>
+
+<p>
+Validating model changes as they occur is a good way to ensure that the data in your models isn't nonsense, especially when dealing with user input.
+</p>
+
+<p>
+There are two ways to validate model attributes. One way is to define an attribute validator function for an individual attribute when you extend <code>Y.Model</code>.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Defining an individual attribute validator.
+Y.PieModel = Y.Base.create(&#x27;pieModel&#x27;, Y.Model, [], {
+  &#x2F;&#x2F; ... prototype methods and properties ...
+}, {
+  ATTRS: {
+    slices: {
+      value: 6,
+      validator: function (value) {
+        return typeof value === &#x27;number&#x27; &amp;&amp; value &gt;= 0 &amp;&amp; value &lt;= 10;
+      }
+    },
+
+    &#x2F;&#x2F; ...
+  }
+});</pre>
+
+
+<p>
+An attribute validator will be called whenever that attribute changes, and can prevent the change from taking effect by returning <code>false</code>. Model <code>error</code> events are not fired when attribute validators fail. For more details on attribute validators, see the <a href="../attribute/index.html">Attribute User Guide</a>.
+</p>
+
+<p>
+The second way to validate changes is to provide a custom <code>validate()</code> method when extending <code>Y.Model</code>. The <code>validate()</code> method will be called automatically when <code>save()</code> is called, and will receive a hash of all the attributes in the model. If the <code>validate()</code> method returns anything other than <code>null</code> or <code>undefined</code>, it will be considered a validation failure, an <code>error</code> event will be fired with the returned value as the error message, and the <code>save()</code> action will be aborted.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Defining a model-wide &#x60;validator()&#x60; method.
+Y.PieModel = Y.Base.create(&#x27;pieModel&#x27;, Y.Model, [], {
+  &#x2F;&#x2F; ... prototype methods and properties ...
+
+  validate: function (attributes) {
+    var slices;
+
+    switch (attributes.type) {
+    case &#x27;rhubarb&#x27;:
+      return &#x27;Eww. No. Not allowed.&#x27;;
+
+    case &#x27;maple custard&#x27;:
+      slices = Y.Lang.isValue(attributes.slices) ?
+          attributes.slices : this.get(&#x27;slices&#x27;);
+
+      if (slices &lt; 10) {
+        return &quot;Making fewer than 10 slices of maple custard pie would be &quot; +
+            &quot;silly, because I&#x27;m just going to eat 8 of them as soon as it&#x27;s &quot; +
+            &quot;out of the oven.&quot;;
+      }
+    }
+  }
+}, {
+  &#x2F;&#x2F; ... attributes ...
+});</pre>
+
+
+<h4 id="loading-and-saving-model-data">Loading and Saving Model Data</h4>
+
+<p>
+Calling a model's <code>load()</code> and <code>save()</code> methods will result in a behind-the-scenes call to the model's <code>sync()</code> method specifying the appropriate action.
+</p>
+
+<p>
+The default <code>sync()</code> method does nothing, but by overriding it and providing your own sync layer, you can make it possible to create, read, update, and delete models from a persistence layer or a server. See <a href="#implementing-a-model-sync-layer">Implementing a Model Sync Layer</a> for more details.
+</p>
+
+<p>
+The <code>load()</code> and <code>save()</code> methods each accept two optional parameters: an options object and a callback function. If provided, the options object will be passed to the sync layer, and the callback will be called after the load or save operation is finished. You may provide neither parameter, or just an options object, or just a callback, although if you provide both an options object and a callback, they need to be in that order.
+</p>
+
+<p>
+The callback function will receive two parameters: an error (this parameter will be <code>null</code> or <code>undefined</code> if the operation was successful) and a response (which is the result of calling the model's <code>parse()</code> method with whatever response the sync layer returned).
+</p>
+
+<p>
+The <code>load()</code> method calls <code>sync()</code> with the <code>read</code> action, and automatically updates the model with the response data (by passing it to <code>parse()</code> and then updating attributes based on the hash that <code>parse()</code> returns) before calling the callback.
+</p>
+
+<pre class="code prettyprint">var pie = new Y.PieModel({id: &#x27;pie123&#x27;});
+
+&#x2F;&#x2F; Load a pie model, passing a callback that will run when the model has
+&#x2F;&#x2F; been loaded.
+pie.load(function (err, response) {
+  if (!err) {
+    &#x2F;&#x2F; Success! The model now contains the loaded data.
+  }
+});</pre>
+
+
+<p>
+The <code>save()</code> method will do one of two things: if the model is new (meaning it doesn't yet have an <code>id</code> value), it will call <code>sync()</code> with the "create" action. If the model is not new, then it will call <code>sync()</code> with the "update" action.
+</p>
+
+<p>
+If the sync layer returns a response, then <code>save()</code> will update the model's attributes with the response data before calling the callback function.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Save a pie model, passing a callback that will run when the model has
+&#x2F;&#x2F; been saved.
+pie.save(function (err, response) {
+  if (!err) {
+    &#x2F;&#x2F; Success! The model has been saved. If the sync layer returned a response,
+    &#x2F;&#x2F; then the model has also been updated with any new data in the response.
+  }
+});</pre>
+
+
+<p>
+In addition to calling the specified callback (if any), the <code>load()</code> and <code>save()</code> methods will fire a <code>load</code> event and a <code>save</code> event respectively on success, or an <code>error</code> event on failure. See <a href="#model-events">Model Events</a> for more details on these events.
+</p>
+
+<p>
+Always use the <code>load()</code> or <code>save()</code> methods rather than calling <code>sync()</code> directly, since this ensures that the sync layer's response is passed through the <code>parse()</code> method and that the model's data is updated if necessary.
+</p>
+
+<h2 id="the-model-lifecycle">The Model Lifecycle</h2>
+
+<p>
+When a model is first created and doesn't yet have an <code>id</code> value, it's considered "new". The <code>isNew()</code> method will tell you whether or not a model is new.
+</p>
+
+<p>
+Once a model has an <code>id</code> value, either because one was manually set or because the model received one when it was loaded or saved, the model is no longer considered new, since it is assumed to exist in a persistence layer or on a server somewhere.
+</p>
+
+<p>
+If a model is new or if any of its attributes have changed since the model was last loaded or saved, the model is considered "modified". The <code>isModified()</code> method will tell you whether or not a model is modified. A successful call to <code>load()</code> or <code>save()</code> will reset a model's "modified" flag.
+</p>
+
+<p>
+Finally, a model's <code>destroy()</code> method can be used to destroy the model instance. Calling <code>destroy()</code> with no arguments will destroy only the local model instance, while calling <code>destroy({remove: true})</code> will both destroy the local model instance and call the sync layer with the "delete" action to delete the model from a persistence layer or server.
+</p>
+
+<p>
+It's not necessary for a model to support all possible sync actions. A model that's used to represent read-only data might use a sync layer that only implements the <code>read</code> action, for instance. In this case, the other actions should simply be no-ops that either call the sync callback immediately, or pass an error to the sync callback indicating that the action isn't supported (depending on your personal preference).
+</p>
+
+<h2 id="implementing-a-model-sync-layer">Implementing a Model Sync Layer</h2>
+
+<p>
+A model's <code>save()</code>, <code>load()</code>, and <code>destroy()</code> methods all internally call the model's <code>sync()</code> method to carry out an action. The default <code>sync()</code> method doesn't actually do anything, but by overriding the <code>sync()</code> method, you can provide a custom sync layer.
+</p>
+
+<p>
+A sync layer might make Ajax requests to a remote server, or it might act as a wrapper around local storage, or any number of other things.
+</p>
+
+<h3 id="the-sync-method">The <code>sync()</code> Method</h3>
+
+<p>
+When the <code>sync()</code> method is called, it receives three arguments:
+</p>
+
+<dl>
+  <dt><strong><code>action</code> (<em>String</em>)</strong></dt>
+  <dd>
+    <p>
+    A string that indicates the intended sync action. May be one of the following values:
+    </p>
+
+    <dl>
+      <dt><strong><code>create</code></strong></dt>
+      <dd>
+        <p>
+        Create a new model record. The "create" action occurs when a model is saved and doesn't yet have an <code>id</code> value.
+        </p>
+      </dd>
+
+      <dt><strong><code>read</code></strong></dt>
+      <dd>
+        <p>
+        Read an existing model record. The record should be identified based on the <code>id</code> attribute of the model.
+        </p>
+      </dd>
+
+      <dt><strong><code>update</code></strong></dt>
+      <dd>
+        <p>
+        Update an existing model record. The "update" action occurs when a model is saved and already has an <code>id</code> value. The record to be updated should be identified based on the <code>id</code> attribute of the model.
+        </p>
+      </dd>
+
+      <dt><strong><code>delete</code></strong></dt>
+      <dd>
+        <p>
+        Delete an existing model record. The record to be deleted should be identified based on the <code>id</code> attribute of the model.
+        </p>
+      </dd>
+    </dl>
+  </dd>
+
+  <dt><strong><code>options</code> (<em>Object</em>)</strong></dt>
+  <dd>
+    <p>
+    A hash containing any options that were passed to the <code>save()</code>, <code>load()</code> or <code>destroy()</code> method. This may be used to pass custom options to a sync layer.
+    </p>
+  </dd>
+
+  <dt><strong><code>callback</code> (<em>Function</em>)</strong></dt>
+  <dd>
+    <p>
+    A callback function that should be called when the sync operation is complete. The callback expects to receive the following arguments:
+    </p>
+
+    <dl>
+      <dt><strong><code>err</code></strong></dt>
+      <dd>
+        <p>
+        Error message or object if an error occured, <code>null</code> or <code>undefined</code> if the operation was successful.
+        </p>
+      </dd>
+
+      <dt><strong><code>response</code></strong></dt>
+      <dd>
+        <p>
+        Response from the persistence layer, if any. This will be passed to the <code>parse()</code> method to be parsed.
+        </p>
+      </dd>
+    </dl>
+  </dd>
+</dl>
+
+<p>
+Implementing a sync layer is as simple as handling the requested sync action and then calling the callback function. Here's a sample sync layer that stores records in local storage (note: this example requires the <code>json-stringify</code> module):
+</p>
+
+<pre class="code prettyprint">Y.PieModel = Y.Base.create(&#x27;pieModel&#x27;, Y.Model, [], {
+  &#x2F;&#x2F; ... prototype methods and properties ...
+
+  &#x2F;&#x2F; Custom sync layer.
+  sync: function (action, options, callback) {
+    var data;
+
+    switch (action) {
+      case &#x27;create&#x27;:
+        data = this.toJSON();
+
+        &#x2F;&#x2F; Use the current timestamp as an id just to simplify the example. In a
+        &#x2F;&#x2F; real sync layer, you&#x27;d want to generate an id that&#x27;s more likely to
+        &#x2F;&#x2F; be globally unique.
+        data.id = Y.Lang.now();
+
+        &#x2F;&#x2F; Store the new record in localStorage, then call the callback.
+        localStorage.setItem(data.id, Y.JSON.stringify(data));
+        callback(null, data);
+        return;
+
+      case &#x27;read&#x27;:
+        &#x2F;&#x2F; Look for an item in localStorage with this model&#x27;s id.
+        data = localStorage.getItem(this.get(&#x27;id&#x27;));
+
+        if (data) {
+          callback(null, data);
+        } else {
+          callback(&#x27;Model not found.&#x27;);
+        }
+
+        return;
+
+      case &#x27;update&#x27;:
+        data = this.toJSON();
+
+        &#x2F;&#x2F; Update the record in localStorage, then call the callback.
+        localStorage.setItem(this.get(&#x27;id&#x27;), Y.JSON.stringify(data));
+        callback(null, data);
+        return;
+
+      case &#x27;delete&#x27;:
+        localStorage.removeItem(this.get(&#x27;id&#x27;));
+        callback();
+        return;
+
+      default:
+        callback(&#x27;Invalid action&#x27;);
+    }
+  }
+}, {
+  &#x2F;&#x2F; ... attributes ...
+});</pre>
+
+
+<h3 id="the-parse-method">The <code>parse()</code> Method</h3>
+
+<p>
+Depending on the kind of response your sync layer returns, you may need to override the <code>parse()</code> method as well. The default <code>parse()</code> implementation knows how to parse JavaScript objects and JSON strings that can be parsed into JavaScript objects representing a hash of attributes. If your response data is in another format, such as a nested JSON response or XML, override the <code>parse()</code> method to provide a custom parser implementation.
+</p>
+
+<p>
+If an error occurs while parsing a response, fire an <code>error</code> event with <code>type</code> "parse".
+</p>
+
+<p>
+This sample demonstrates a custom parser for responses in which the model data is contained in a <code>data</code> property of the response object.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Custom response parser.
+parse: function (response) {
+  if (response.data) {
+    return response.data;
+  }
+
+  this.fire(&#x27;error&#x27;, {
+    type : &#x27;parse&#x27;,
+    error: &#x27;No data in the response.&#x27;
+  });
+}</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+</li>
+<li>
+<a href="#what-is-a-model">What is a Model?</a>
+</li>
+<li>
+<a href="#using-model">Using Model</a>
+<ul class="toc">
+<li>
+<a href="#quick-start">Quick Start</a>
+</li>
+<li>
+<a href="#extending-ymodel">Extending <code>Y.Model</code></a>
+</li>
+<li>
+<a href="#model-attributes">Model Attributes</a>
+<ul class="toc">
+<li>
+<a href="#built-in-attributes">Built-in Attributes</a>
+</li>
+<li>
+<a href="#custom-attributes">Custom Attributes</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#model-properties">Model Properties</a>
+</li>
+<li>
+<a href="#model-events">Model Events</a>
+<ul class="toc">
+<li>
+<a href="#change-events">Change Events</a>
+</li>
+<li>
+<a href="#firing-your-own-error-events">Firing Your Own Error Events</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#working-with-model-data">Working with Model Data</a>
+<ul class="toc">
+<li>
+<a href="#getting-and-setting-attribute-values">Getting and Setting Attribute Values</a>
+</li>
+<li>
+<a href="#validating-changes">Validating Changes</a>
+</li>
+<li>
+<a href="#loading-and-saving-model-data">Loading and Saving Model Data</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<a href="#the-model-lifecycle">The Model Lifecycle</a>
+</li>
+<li>
+<a href="#implementing-a-model-sync-layer">Implementing a Model Sync Layer</a>
+<ul class="toc">
+<li>
+<a href="#the-sync-method">The <code>sync()</code> Method</a>
+</li>
+<li>
+<a href="#the-parse-method">The <code>parse()</code> Method</a>
+</li>
+</ul>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="A basic todo list built with the Model, Model List, and View components.">
+                                            <a href="../app/app-todo.html">Todo List</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="An application to browse through the contributors of a GitHub project.">
+                                            <a href="../app/app-contributors.html">GitHub Contributors</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

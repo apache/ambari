@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Attribute</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Attribute</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><h2 id="attribute-set-flow">Attribute Set Flow</h2>
+ 
+<p>The diagram below shows the order in which attribute setters, validators and change event subscribers are invoked during the set operation:</p>
+
+<p><img src="../assets/attribute/img/attribute-set-flow.png" alt="Flow diagram for the attribute 'set' operation" height="699" width="807"></p>
+
+<p><em>NOTE:</em> Any decision blocks for which an exit path is not explicitly shown will effectively exit the set operation, without storing the new value. These paths are not explicitly shown, in order to avoid clutter.</p>
+
+<p><a href="index.html#attrsetflow">Back to Attribute Documentation</a></p>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#attribute-set-flow">Attribute Set Flow</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Use the Attribute API to define, set and get attribute values.">
+                                            <a href="attribute-basic.html">Basic Attribute Configuration</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Configure attributes to be readOnly or writeOnce.">
+                                            <a href="attribute-rw.html">Read-Only and Write-Once Attributes</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to listen for changes in attribute values.">
+                                            <a href="attribute-event.html">Attribute Change Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Create a basic SpeedDater class, with Attribute support.">
+                                            <a href="attribute-basic-speeddate.html">Attribute Based Speed Dating</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Refactors the basic Speed Dating example, to use attribute change events to update rendered elements, and have two instances react to another.">
+                                            <a href="attribute-event-speeddate.html">Attribute Event Based Speed Dating</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Add custom methods to get and set attribute values and provide validation support.">
+                                            <a href="attribute-getset.html">Attribute Getters, Setters and Validators</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

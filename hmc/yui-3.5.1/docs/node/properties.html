@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Set and Get Properties</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Set and Get Properties</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><link href="../assets/node/node.css" rel="stylesheet" type="text/css">
+<div class="intro">
+    <p>This example demonstrates how to retrieve and use a <code>Node</code> instance 
+    and access DOM properties.</p>
+    <p>Press a button to get or set the <code>offsetWidth</code> of the <code>div</code> 
+    containing the corn image.</p>
+</div>
+
+<div class="example">
+<style>
+.example #corn{
+    position: relative;
+    background: url(../assets/node/images/corn.jpg);
+    width: 232px;
+    height: 181px;
+    -moz-box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.4);
+    -webkit-box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.4);
+    margin: 2px 0 1em;
+    border: none;
+}
+.example #ruler{
+    width: 650px;
+    height: 42px;
+    background: url("../assets/node/images/ruler_ticks.png") repeat-x scroll -1px 24px #DDCEB7;
+}
+.example .yui3-button {
+    margin: 0 0.2em;
+}
+.example .btn-get{
+    margin-left: 4em;
+}
+#input {
+    height: 1.6em;
+    width: 4em;
+}
+#output{
+    position: absolute;
+    top: -40px;
+    width: 100px;
+    height: 40px;
+    right: -50px;
+    text-align: center;
+    cursor: pointer;
+}
+#corn .ruler-marker{
+    position: absolute;
+    top:  -20px;
+    right: 0;
+    height: 30px;
+    border-right: solid 1px #f00;
+}
+</style>
+
+<body>
+    <div id="ruler"></div>
+    <div id="corn">
+        <div class="ruler-marker"></div>                
+        <div id="output">? px</div>
+    </div>
+    <label>Width:</label>
+    <input id="input" size="2" value="550"> px
+    <button class="yui3-button btn-set">Set</button>
+    <button class="yui3-button btn-get">Get</button>
+<script>
+YUI().use('node', 'button', function(Y) {
+    var corn = Y.one('#corn'),
+        input = Y.one('.example #input'),
+        output = Y.one('.example #output');
+
+    var getWidth = function(){
+       var width = corn.get('offsetWidth');
+       output.setContent(width + 'px'); // display width near the get button
+    }
+    
+    Y.one('.example .btn-get').on('click', getWidth);
+    output.on('click', getWidth); // also allows getting width by clicking on ruler width label 
+
+    Y.one('.example .btn-set').on('click', function(e) {
+        var value = input.get('value'),
+            width = corn.get('offsetWidth');
+        if (value == '') {
+            input.set('value', width);
+        } else if (!isNaN(parseInt(value))) { // if the value in the input is a number
+            corn.set('offsetWidth', value);
+            output.setContent('? ' + 'px'); // clear out the width label on the ruler
+        }
+    });
+});
+</script>
+<div style="color:#aaa; display:block; font-size:90%; margin-top:1em;">Image derived from 
+<a href="http://www.flickr.com/photos/29278394@N00/3934433763/" target="_blank">
+"ear of corn"</a>, by normanack</div> 
+</div>
+
+<h2>Setting up the HTML</h2>
+
+<pre class="code prettyprint">&lt;div id=&quot;ruler&quot;&gt;&lt;&#x2F;div&gt;
+&lt;div id=&quot;corn&quot;&gt;
+    &lt;div class=&quot;ruler-marker&quot;&gt;&lt;&#x2F;div&gt;                
+    &lt;div id=&quot;output&quot;&gt;? px&lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+&lt;label&gt;Width:&lt;&#x2F;label&gt;
+&lt;input id=&quot;input&quot; size=&quot;2&quot; value=&quot;550&quot;&gt; px
+&lt;button class=&quot;yui3-button btn-set&quot;&gt;Set&lt;&#x2F;button&gt;
+&lt;button class=&quot;yui3-button btn-get&quot;&gt;Get&lt;&#x2F;button&gt;</pre>
+
+
+<h2>Getting a Node Instance</h2>
+<p>The <code>Y.one</code> method accepts a Selector or HTML element and 
+returns a Node instance.  First we'll set up some variables 
+for the node's representing our HTML.</p>
+
+<pre class="code prettyprint">var corn = Y.one(&#x27;#corn&#x27;),
+    input = Y.one(&#x27;.example #input&#x27;),
+    output = Y.one(&#x27;.example #output&#x27;);</pre>
+
+
+<h2>Accessing Node Properties</h2>
+<p>The properties of a node can be accessed via its <code>set</code> and 
+<code>get</code> methods.</p>
+<p>In most cases, simple type of properties (strings, numbers, Booleans) 
+pass directly to/from the underlying DOM node, however properties representing 
+other DOM nodes return <code>Node</code> or <code>NodeList</code> instances.</p>
+
+<h3>The Get Method</h3>
+<p>We can use the <code>get</code> method to read the <code>offsetWidth</code> of the <code>div</code> 
+containing the corn image, 
+which includes the style width, padding, and border.</p>
+
+<pre class="code prettyprint">width = corn.get(&#x27;offsetWidth&#x27;);</pre>
+
+
+<h3>The Set Method</h3>
+<p>The Set method can be used to set the value of objects
+</p>
+<pre class="code prettyprint">input.set(&#x27;value&#x27;, 237);</pre>
+
+
+<p>The <code>offsetWidth</code> property of an HTML element is read only, however YUI 
+makes this writeable.  This assures that the final <code>offsetWidth</code> 
+matches the value that is set, regardless of borders, padding, or box model.</p>
+
+<pre class="code prettyprint">corn.set(&#x27;offsetWidth&#x27;, value);</pre>
+
+
+<h2>Listening for Node Events</h2>
+<p>We will update the value <code>offsetWidth</code> property of the <code>div</code> 
+containing the corn image when the Set button is pressed. 
+</p>
+
+<pre class="code prettyprint">Y.one(&#x27;.example .btn-set&#x27;).on(&#x27;click&#x27;, function(e) {
+    ...
+    corn.set(&#x27;offsetWidth&#x27;, value);
+    ...
+};</pre>
+
+
+<h2>Complete Example Source</h2>
+<pre class="code prettyprint">&lt;style&gt;
+.example #corn{
+    position: relative;
+    background: url(..&#x2F;assets&#x2F;node&#x2F;images&#x2F;corn.jpg);
+    width: 232px;
+    height: 181px;
+    -moz-box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.4);
+    -webkit-box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.4);
+    margin: 2px 0 1em;
+    border: none;
+}
+.example #ruler{
+    width: 650px;
+    height: 42px;
+    background: url(&quot;..&#x2F;assets&#x2F;node&#x2F;images&#x2F;ruler_ticks.png&quot;) repeat-x scroll -1px 24px #DDCEB7;
+}
+.example .yui3-button {
+    margin: 0 0.2em;
+}
+.example .btn-get{
+    margin-left: 4em;
+}
+#input {
+    height: 1.6em;
+    width: 4em;
+}
+#output{
+    position: absolute;
+    top: -40px;
+    width: 100px;
+    height: 40px;
+    right: -50px;
+    text-align: center;
+    cursor: pointer;
+}
+#corn .ruler-marker{
+    position: absolute;
+    top:  -20px;
+    right: 0;
+    height: 30px;
+    border-right: solid 1px #f00;
+}
+&lt;&#x2F;style&gt;
+
+&lt;body&gt;
+    &lt;div id=&quot;ruler&quot;&gt;&lt;&#x2F;div&gt;
+    &lt;div id=&quot;corn&quot;&gt;
+        &lt;div class=&quot;ruler-marker&quot;&gt;&lt;&#x2F;div&gt;                
+        &lt;div id=&quot;output&quot;&gt;? px&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+    &lt;label&gt;Width:&lt;&#x2F;label&gt;
+    &lt;input id=&quot;input&quot; size=&quot;2&quot; value=&quot;550&quot;&gt; px
+    &lt;button class=&quot;yui3-button btn-set&quot;&gt;Set&lt;&#x2F;button&gt;
+    &lt;button class=&quot;yui3-button btn-get&quot;&gt;Get&lt;&#x2F;button&gt;
+&lt;script&gt;
+YUI().use(&#x27;node&#x27;, &#x27;button&#x27;, function(Y) {
+    var corn = Y.one(&#x27;#corn&#x27;),
+        input = Y.one(&#x27;.example #input&#x27;),
+        output = Y.one(&#x27;.example #output&#x27;);
+
+    var getWidth = function(){
+       var width = corn.get(&#x27;offsetWidth&#x27;);
+       output.setContent(width + &#x27;px&#x27;); &#x2F;&#x2F; display width near the get button
+    }
+    
+    Y.one(&#x27;.example .btn-get&#x27;).on(&#x27;click&#x27;, getWidth);
+    output.on(&#x27;click&#x27;, getWidth); &#x2F;&#x2F; also allows getting width by clicking on ruler width label 
+
+    Y.one(&#x27;.example .btn-set&#x27;).on(&#x27;click&#x27;, function(e) {
+        var value = input.get(&#x27;value&#x27;),
+            width = corn.get(&#x27;offsetWidth&#x27;);
+        if (value == &#x27;&#x27;) {
+            input.set(&#x27;value&#x27;, width);
+        } else if (!isNaN(parseInt(value))) { &#x2F;&#x2F; if the value in the input is a number
+            corn.set(&#x27;offsetWidth&#x27;, value);
+            output.setContent(&#x27;? &#x27; + &#x27;px&#x27;); &#x2F;&#x2F; clear out the width label on the ruler
+        }
+    });
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Using selectors and property accessors with Node.">
+                                            <a href="properties.html">Set and Get Properties</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using DOM methods with Node.">
+                                            <a href="dom-node.html">DOM Methods</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Listening for DOM events with Node instances.">
+                                            <a href="events.html">Handling DOM Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="NodeList provides Node functionality for manipulating multiple nodes at once.">
+                                            <a href="nodelist.html">Using NodeList - Simple</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to use multiple NodeList features to build a simple game.">
+                                            <a href="ducks.html">Using NodeList - Ducks Game</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using a single event listener to handle events on multiple nodes.">
+                                            <a href="node-evt-delegation.html">Delegating Node Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to position an element in page coordinates.">
+                                            <a href="node-xy.html">Node Positioning</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to set styles and get style information.">
+                                            <a href="node-style.html">Node Styling</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to insert content into a Node.">
+                                            <a href="node-insert.html">Adding Node Content</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to show and hide a Node.">
+                                            <a href="node-view.html">Showing and Hiding</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible toolbar using the Focus Manager Node Plugin and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-1.html">Accessible Toolbar</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible menu button using the Focus Manager Node Plugin, Event&#x27;s delegation support and mouseenter event, along with the Overlay widget and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-3.html">Accessible Menu Button</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use the Event Utility to attach simple DOM event handlers.">
+                                            <a href="../event/basic-example.html">Simple DOM Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to request XML data from a remote web service.">
+                                            <a href="../io/weather.html">Request XML data from Yahoo! Weather</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to make a cross-domain request to Yahoo! Pipes, returning data from disparate sources.">
+                                            <a href="../io/xdr.html">Request JSON using Yahoo! Pipes</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Example Photo Browser application.">
+                                            <a href="../dd/photo-browser.html">Photo Browser</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Portal style example using Drag &amp; Drop Event Bubbling and Animation.">
+                                            <a href="../dd/portal-drag.html">Portal Style Example</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

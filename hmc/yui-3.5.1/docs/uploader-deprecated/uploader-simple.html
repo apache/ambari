@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Simple Uploader with Progress Tracking</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Simple Uploader with Progress Tracking</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+<p>This example demonstrates how to use the YUI 3 Uploader to send a single image or video (filtered by file extension) to the server and to monitor the upload progress. The example also shows how to use a custom image skin for the "Browse" button used by the Uploader.</p>
+
+<p><strong>Please note:</strong> This example will not work when run from a local filesystem because Flash only allows ExternalInterface communication with pages loaded from the network. If you’d like to run this example locally, set up a local web server and launch it from there. </p>
+<p><strong>Also note:</strong> The uploader is not supported on iOS devices (iPhone and iPad), because Flash player is not available on that system. This example will not function on such devices.</p>
+</div>
+
+<div class="example yui3-skin-sam">
+    	<style type="text/css">
+		.uploadButton a {
+			display:block;
+			width:100px;
+			height:40px;
+			text-decoration: none;
+		}
+
+		.uploadButton a {
+			background: url("../assets/uploader-deprecated/uploadFileButton.png") 0 0 no-repeat;
+		}
+
+	    .uploadButton a:visited {
+			background-position: 0 0;
+		}
+
+	    .uploadButton a:hover {	
+			background-position: 0 -40px;
+		}
+
+	    .uploadButton a:active {
+			background-position: 0 -80px;
+		}
+	</style>
+
+<div id="selectButton" style="width:100px;height:40px"></div> 
+<div class="uploadButton"><a href="#" id="uploadButtonLink"></a></div>
+
+<div id="filename">
+File selected:
+</div>
+<div id="percent">
+Percent uploaded:
+</div>
+
+<script>
+
+YUI({filter:"raw"}).use('uploader-deprecated', function(Y) {
+
+ 
+var swfURL = ../../build/uploader-deprecated/assets/uploader.swf; 
+
+
+if (Y.UA.ie >= 6) {
+	swfURL += "?t=" + Y.guid();
+}
+
+
+
+var uploader = new Y.Uploader({boundingBox:"#selectButton", 
+							   buttonSkin:"../assets/uploader-deprecated/selectFileButton.png",
+							   transparent: false,
+							   swfURL: swfURL
+							   });
+
+uploader.on("uploaderReady", setupUploader);
+uploader.on("fileselect", fileSelect);
+uploader.on("uploadprogress", updateProgress);
+uploader.on("uploadcomplete", uploadComplete);
+
+Y.one("#uploadButtonLink").on("click", uploadFile);
+
+
+function setupUploader (event) {
+	uploader.set("multiFiles", false);
+	uploader.set("log", true);
+	
+	var fileFilters = new Array({description:"Images", extensions:"*.jpg;*.png;*.gif"},
+	                   {description:"Videos", extensions:"*.avi;*.mov;*.mpg"}); 
+	
+    uploader.set("fileFilters", fileFilters);
+}
+
+
+function fileSelect (event) {
+	var fileData = event.fileList;	
+
+	for (var key in fileData) {
+		var output = "File selected: " + fileData[key].name;
+		Y.one("#filename").setContent(output);
+	}
+}
+
+function updateProgress (event) {
+	Y.one("#percent").setContent("Percent uploaded: " + Math.round((100 * event.bytesLoaded / event.bytesTotal)) + "%");
+}
+
+function uploadComplete (event) {
+	Y.one("#percent").setContent("Upload complete!");
+}
+
+function uploadFile (event) {
+	uploader.uploadAll("http://www.yswfblog.com/upload/upload_simple.php");
+}
+
+
+});
+
+</script>
+</div>
+
+<h2>Set up the Uploader UI</h2>
+
+<p>The Uploader requires that the "Browse" button be implemented as an instance of the Flash Player; all other controls can be regular DOM elements. For this example,  set up a container for the Flash Player and give it the id <code>selectButton</code> and set up a container for the "Upload" button (<code>uploadButton</code>). In addition, set up containers to display the name of the selected file (<code>filename</code>) and the progress of the upload (<code>percent</code>).</p>
+<pre class="code prettyprint">&lt;div id=&quot;selectButton&quot; style=&quot;width:100px;height:40px&quot;&gt;&lt;&#x2F;div&gt; 
+&lt;div class=&quot;uploadButton&quot;&gt;&lt;a href=&quot;#&quot; id=&quot;uploadButtonLink&quot;&gt;&lt;&#x2F;a&gt;&lt;&#x2F;div&gt;
+
+&lt;div id=&quot;filename&quot;&gt;
+File selected:
+&lt;&#x2F;div&gt;
+&lt;div id=&quot;percent&quot;&gt;
+Percent uploaded:
+&lt;&#x2F;div&gt;</pre>
+
+
+<p>In the head section of the example, define custom styles for the <code>uploadButton</code> to give it an image skin that has multiple button states:</p>
+
+<pre class="code prettyprint">&lt;style type=&quot;text&#x2F;css&quot;&gt;
+	.uploadButton a {
+		display:block;
+		width:100px;
+		height:40px;
+		text-decoration: none;
+	}
+
+	.uploadButton a {
+		background: url(&quot;assets&#x2F;uploadFileButton.png&quot;) 0 0 no-repeat;
+	}
+
+    .uploadButton a:visited {
+		background-position: 0 0;
+	}
+
+    .uploadButton a:hover {	
+		background-position: 0 -40px;
+	}
+
+    .uploadButton a:active {
+		background-position: 0 -80px;
+	}
+&lt;&#x2F;style&gt;</pre>
+
+
+<h2>Create a YUI Instance</h2>
+<p>Now that the UI containers and controls are in place, create a YUI instance, using the <code>uploader</code> module, for this example:</p>
+
+<pre class="code prettyprint">YUI().use(&quot;uploader&quot;, function(Y) {
+	&#x2F;&#x2F; Y is the YUI instance.
+	&#x2F;&#x2F; The rest of the code in this tutorial is encapsulated 
+	&#x2F;&#x2F; in this anonymous function.
+} );</pre>
+
+
+<h2>Working around the IE Caching Bug</h2>
+<p>Due to a bug in IE6 through IE8, when a SWF is loaded from local cache (after a page has been reloaded, for example), it's unable to properly communicate with the JavaScript VM. For that reason, specifically for IE,
+we can prevent loading the SWF from cache by appending a random get variable to the SWF URL:</p>
+
+<pre class="code prettyprint">var swfURL = Y.Env.cdn + &quot;uploader&#x2F;assets&#x2F;uploader.swf&quot;;
+
+if (Y.UA.ie &gt;= 6) {
+    swfURL += &quot;?t=&quot; + Y.guid();
+}</pre>
+
+
+<h2>Instantiate the Uploader</h2>
+
+<p>Next, create an instance of an Uploader and configure it. The Uploader only requires the reference to the container in which the "Browse" button should be placed, but in this example an image skin for the button is being used; as result, we need to provide the <code>buttonSkin</code> property with a reference to the image sprite, as well as the <code>transparent</code> Boolean value (this property specifies whether the transparent areas of the image sprite are rendered as such; if no <code>buttonSkin</code> is specified, the entire uploader would render as transparent). Also note that we are including a custom SWF URL, defined in the workaround above (by default, the SWF URL would be as shown above, but unmodified):</p>
+
+<pre class="code prettyprint">var uploader = new Y.Uploader({boundingBox:&quot;#selectButton&quot;, 
+                               buttonSkin:&quot;assets&#x2F;selectFileButton.png&quot;,
+                               transparent: false,
+                               swfURL: swfURL
+                              });</pre>
+
+<h2>Listen for Uploader Events</h2>
+<p>Next, add event handlers to various uploader events and the <code>click</code> handler for the "Upload" button. The <code>uploaderReady</code> event is particularly important because the uploader may not be ready to accept method calls until this event has fired. Therefore, any method calls and property settings for the uploader should be made within the handler for that event:</p>
+<pre class="code prettyprint">uploader.on(&quot;uploaderReady&quot;, setupUploader);
+uploader.on(&quot;fileselect&quot;, fileSelect);
+uploader.on(&quot;uploadprogress&quot;, updateProgress);
+uploader.on(&quot;uploadcomplete&quot;, uploadComplete);
+
+Y.one(&quot;#uploadButtonLink&quot;).on(&quot;click&quot;, uploadFile);</pre>
+
+
+<h2>Set Up the Uploader</h2>
+<p>Once the uploader is ready, and the <code>uploaderReady</code> event is fired, set properties to further configure the Uploader. In particular, set the <code>multiFiles</code> property to restrict user to selecting only a single file, the <code>log</code> property to provide debug information (output only if the computer is running the debug version of the Flash player), and the <code>fileFilters</code> property to filter files in the user's "Browse" dialog:</p>
+
+<pre class="code prettyprint">function setupUploader (event) {
+	uploader.set(&quot;multiFiles&quot;, false);
+	uploader.set(&quot;log&quot;, true);
+	
+	var fileFilters = new Array({description:&quot;Images&quot;, extensions:&quot;*.jpg;*.png;*.gif&quot;},
+	                   {description:&quot;Videos&quot;, extensions:&quot;*.avi;*.mov;*.mpg&quot;}); 
+	
+    uploader.set(&quot;fileFilters&quot;, fileFilters);
+}</pre>
+
+
+<h2>Handler for the <code>fileselect</code> Event</h2>
+
+<p>In the handler for the <code>fileselect</code>, extract the file list from the event payload and display the name of the file. In this particular case, the list should only contain one file name, since the user was restricted to selecting a single file:</p>
+
+<pre class="code prettyprint">function fileSelect (event) {
+	var fileData = event.fileList;	
+
+	for (var key in fileData) {
+		var output = &quot;File selected: &quot; + fileData[key].name;
+		Y.one(&quot;#filename&quot;).setContent(output);
+	}
+}</pre>
+
+
+<h2>Handler for Other Events</h2>
+
+<p>In the <code>uploadprogress</code> handler, update the content of the <code>percent</code> container based on the values provided in the event payload. In the <code>uploadcomplete</code> handler, place the final message into the <code>percent</code> container. Finally, in the <code>click</code> handler, initiate the upload to a specific URL:</p>
+
+<pre class="code prettyprint">function updateProgress (event) {
+	Y.one(&quot;#percent&quot;).setContent(&quot;Percent uploaded: &quot; + Math.round((100 * event.bytesLoaded &#x2F; event.bytesTotal)) + &quot;%&quot;);
+}
+
+function uploadComplete (event) {
+	Y.one(&quot;#percent&quot;).setContent(&quot;Upload complete!&quot;);
+}
+
+function uploadFile (event) {
+	uploader.uploadAll(&quot;http:&#x2F;&#x2F;www.yswfblog.com&#x2F;upload&#x2F;upload_simple.php&quot;);
+}</pre>
+
+
+
+
+<h2>Full Source Code For this Example</h2>
+
+<pre class="code prettyprint">&lt;style type=&quot;text&#x2F;css&quot;&gt;
+
+.progressbars {
+	width:300px;
+}
+
+.yui3-progressbar {
+	margin-bottom:3px;
+	border: 2px solid #c4c4c4;
+	border-radius:5px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius:5px;
+}
+.yui3-progressbar .yui3-progressbar-content {
+	background-color:#fff;
+	position:relative;
+&#x2F;*	width: 200px; *&#x2F;
+}
+.yui3-progressbar .yui3-progressbar-label {
+	position: absolute;
+	top:1px;
+	left:3px;
+	font-size:11px;
+	font-family:Arial,Helvetica,sans-serif;
+}
+.yui3-progressbar .yui3-progressbar-slider {
+	background-color:#e0bb30;
+	height: 15px;
+	line-height: 29px;
+	width: 0;
+}
+
+#selectFilesLink #selectLink,
+#uploadFilesLink #uploadLink {
+    color: #00c;
+    text-decoration: underline;
+}
+&lt;&#x2F;style&gt;
+
+&lt;div id=&quot;uploaderContainer&quot;&gt; 
+	&lt;div id=&quot;uploaderOverlay&quot; style=&quot;position:absolute; z-index:2&quot;&gt;&lt;&#x2F;div&gt; 
+	&lt;div id=&quot;selectFilesLink&quot; style=&quot;z-index:1&quot;&gt;&lt;a id=&quot;selectLink&quot; href=&quot;#&quot;&gt;Select Files&lt;&#x2F;a&gt;&lt;&#x2F;div&gt; 
+&lt;&#x2F;div&gt; 
+&lt;div id=&quot;uploadFilesLink&quot;&gt;&lt;a id=&quot;uploadLink&quot; href=&quot;#&quot;&gt;Upload Files&lt;&#x2F;a&gt;&lt;&#x2F;div&gt;
+
+&lt;div id=&quot;files&quot;&gt;
+  &lt;table id=&quot;filenames&quot; style=&quot;border-width:1px; border-style:solid; padding:5px;&quot;&gt;
+    &lt;thead&gt;
+	   &lt;tr&gt;&lt;th&gt;Filename&lt;&#x2F;th&gt;&lt;th&gt;File size&lt;&#x2F;th&gt;&lt;th&gt;Percent uploaded&lt;&#x2F;th&gt;&lt;&#x2F;tr&gt;
+	&lt;&#x2F;thead&gt;
+	&lt;tbody&gt;
+	&lt;&#x2F;tbody&gt;
+  &lt;&#x2F;table&gt;	
+&lt;&#x2F;div&gt;
+
+&lt;script&gt;
+
+YUI({filter:&quot;raw&quot;, gallery: &#x27;gallery-2011.02.09-21-32&#x27;}).use(&quot;uploader-deprecated&quot;, &#x27;gallery-progress-bar&#x27;, function(Y) {
+	
+var uploader,
+    selectedFiles = {};
+
+function init () {
+var overlayRegion = Y.one(&quot;#selectLink&quot;).get(&#x27;region&#x27;);
+Y.one(&quot;#uploaderOverlay&quot;).set(&quot;offsetWidth&quot;, overlayRegion.width);
+Y.one(&quot;#uploaderOverlay&quot;).set(&quot;offsetHeight&quot;, overlayRegion.height);
+
+
+ 
+var swfURL = ..&#x2F;..&#x2F;build&#x2F;uploader-deprecated&#x2F;assets&#x2F;uploader.swf; 
+
+
+if (Y.UA.ie &gt;= 6) {
+	swfURL += &quot;?t=&quot; + Y.guid();
+}
+
+uploader = new Y.Uploader({boundingBox:&quot;#uploaderOverlay&quot;, 
+                           swfURL: swfURL});	
+
+uploader.on(&quot;uploaderReady&quot;, setupUploader);
+uploader.on(&quot;fileselect&quot;, fileSelect);
+uploader.on(&quot;uploadprogress&quot;, updateProgress);
+uploader.on(&quot;uploadcomplete&quot;, uploadComplete);
+}
+
+Y.on(&quot;domready&quot;, init);
+
+
+function setupUploader (event) {
+	uploader.set(&quot;multiFiles&quot;, true);
+	uploader.set(&quot;simLimit&quot;, 3);
+	uploader.set(&quot;log&quot;, true);
+	
+	var fileFilters = new Array({description:&quot;Images&quot;, extensions:&quot;*.jpg;*.png;*.gif&quot;},
+	                   {description:&quot;Videos&quot;, extensions:&quot;*.avi;*.mov;*.mpg&quot;}); 
+	
+    uploader.set(&quot;fileFilters&quot;, fileFilters); 
+}
+
+function fileSelect (event) {
+	var fileData = event.fileList;	
+    
+	for (var key in fileData) {
+	        if (!selectedFiles[fileData[key].id]) {
+			   var output = &quot;&lt;tr&gt;&lt;td&gt;&quot; + fileData[key].name + &quot;&lt;&#x2F;td&gt;&lt;td&gt;&quot; + 
+			                fileData[key].size + &quot;&lt;&#x2F;td&gt;&lt;td&gt;&lt;div id=&#x27;div_&quot; + 
+			                fileData[key].id + &quot;&#x27; class=&#x27;progressbars&#x27;&gt;&lt;&#x2F;div&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;&quot;;
+			   Y.one(&quot;#filenames tbody&quot;).append(output);
+			  
+			   var progressBar = new Y.ProgressBar({id:&quot;pb_&quot; + fileData[key].id, layout : &#x27;&lt;div class=&quot;{labelClass}&quot;&gt;&lt;&#x2F;div&gt;&lt;div class=&quot;{sliderClass}&quot;&gt;&lt;&#x2F;div&gt;&#x27;});
+			       progressBar.render(&quot;#div_&quot; + fileData[key].id);
+			       progressBar.set(&quot;progress&quot;, 0);
+               
+               selectedFiles[fileData[key].id] = true;
+			}
+	}
+
+}
+
+function updateProgress (event) {
+	var pb = Y.Widget.getByNode(&quot;#pb_&quot; + event.id);
+	pb.set(&quot;progress&quot;, Math.round(100 * event.bytesLoaded &#x2F; event.bytesTotal));
+}
+
+function uploadComplete (event) {
+	var pb = Y.Widget.getByNode(&quot;#pb_&quot; + event.id);
+	pb.set(&quot;progress&quot;, 100);
+}
+
+function uploadFiles (event) {
+	uploader.uploadAll(&quot;http:&#x2F;&#x2F;www.yswfblog.com&#x2F;upload&#x2F;upload_simple.php&quot;);
+}
+
+Y.one(&quot;#uploadFilesLink&quot;).on(&quot;click&quot;, uploadFiles);
+
+});
+
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="How to upload a single file, while tracking progress and using a sprite-skinned button">
+                                            <a href="uploader-simple.html">Simple Uploader with Progress Tracking</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to upload a single file, along with GET and POST Vars Submission and receive data from the server">
+                                            <a href="uploader-withvars.html">Single File Upload with Additional Data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to upload multiple files with progress tracking and a transparent overlay upload button">
+                                            <a href="uploader-multiple.html">Multiple Files Upload with Transparent Overlay Button</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

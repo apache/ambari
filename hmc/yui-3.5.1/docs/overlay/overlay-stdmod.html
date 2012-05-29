@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Standard Module Support</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Standard Module Support</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style type="text/css" scoped>
+/* Hide overlay markup while loading, if js is enabled */
+.yui3-js-enabled .yui3-overlay-loading {
+    top:-1000em;
+    left:-1000em;
+    position:absolute;
+}
+
+/* Overlay Look/Feel */
+.yui3-overlay-content {
+    background-color: #ECEFFB;  
+    border: 1px solid #9EA8C6;
+    border-radius: 3px;
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.25);
+}
+
+.yui3-overlay-content .yui3-widget-hd {
+    background-color: #B6BFDA;  
+    color: #30418C;
+    font-size: 120%;
+    font-weight: bold;
+    padding: 0.2em 0.5em 0.3em;
+    border-radius: 2px 2px 0 0;
+}
+
+.yui3-overlay-content .yui3-widget-bd {
+    padding: 0.4em 0.6em 0.5em;
+}
+
+.yui3-overlay-content .yui3-widget-ft {
+    background-color:#DFE3F5;
+    padding: 0.4em 0.6em 0.5em;
+    border-radius: 0 0 2px 2px;
+}
+
+
+.yui3-overlay-content .yui3-widget-ft {
+    padding: 0.4em 0.6em 0.5em;
+    background-color:#DFE3F5;
+    border-radius: 0 0 2px 2px;
+}
+
+/* Example Layout CSS */
+.overlay-example {
+    padding:5px;
+    zoom:1;
+}
+
+.overlay-example .fields {
+    float:left;
+    width:23em;
+}
+
+.overlay-example .contenttype {
+    margin-bottom:0px;
+    padding-bottom:0px;
+}
+
+.overlay-example .note {
+    margin:0px;
+    padding:0px;
+}
+
+.overlay-example label {
+    display:block;
+    font-weight:bold;
+    margin-bottom:3px
+}
+
+.overlay-example select {
+    width:19em;
+}
+
+.overlay-example textarea {
+    width:19em;
+    height:15em;
+}
+
+.overlay-example .filler {
+    margin-left:24em;
+    margin-top:1em;
+    color:#999;
+}
+
+.overlay-example:after {
+    content:".";
+    display:block;
+    height:0;
+    visibility:hidden;
+    clear:both;
+}
+</style>
+
+<div class="intro">
+    <p>This example shows how you can work either the <code>headerContent, bodyContent, footerContent</code> attributes, to replace content in the Overlay's standard module sections, or use the <code>setStdModContent(section, content, where)</code> method to insert content <em>before</em>, or append it <em>after</em> existing content in the section.</p>
+</div>
+
+<div class="example">
+    <div class="overlay-example" id="overlay-stdmod">
+    <div id="overlay" class="yui3-overlay-loading">
+        <div class="yui3-widget-hd">Overlay Header</div>
+        <div class="yui3-widget-bd">Overlay Body</div>
+        <div class="yui3-widget-ft">Overlay Footer</div>
+    </div>
+
+    <div class="fields">
+        <div>
+            <label for="content">New content:</label>
+            <textarea name="content" id="content"></textarea>
+            <p>
+            <strong>Note:</strong> while <a href="#setting-content">Overlay accepts HTML strings and Nodes</a> as content, for this example, all HTML will be escaped.
+            </p>
+        </div>
+        <p>
+            <label for="section">Section to add content to:</label>
+            <select name="section" id="section">
+                <option value="header">Header</option>
+                <option value="body">Body</option>
+                <option value="footer">Footer</option>
+            </select>
+        </p>
+        <p>
+            <label for="where">Replace, insert before or append after existing content:</label>
+            <select name="where" id="where">
+                <option value="before">Before</option>
+                <option value="after">After</option>
+                <option value="replace">Replace</option>
+            </select>
+        </p>
+        <button type="button" id="setContent">Set Content</button>
+    </div>
+    <div class="filler">
+        Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Sed tellus pede, aliquet vitae, faucibus quis, lobortis non, metus. Pellentesque at metus ac mi condimentum egestas. In vel neque a massa porttitor ultrices. Nunc lorem. Vivamus ullamcorper fringilla tortor. Etiam at nunc pellentesque lectus cursus pretium. Integer velit. In quis nunc eget leo rhoncus scelerisque. In in ante ac ante pharetra vestibulum. Praesent sit amet metus. Nam egestas ipsum. Nulla facilisi. Quisque rhoncus, eros sed convallis faucibus, erat felis pretium nisi, non bibendum magna mauris non metus. Integer mauris eros, volutpat non, pretium vitae, rutrum at, tellus.
+    </div>
+</div>
+
+<script type="text/javascript">
+YUI().use("overlay", "escape", function(Y) {
+
+    var overlay = new Y.Overlay({
+        srcNode:"#overlay",
+        width:"20em",
+        align: {
+            node:"#overlay-stdmod > .filler",
+            points:["tl", "tl"]
+        }
+    });
+    overlay.render();
+
+    var content = Y.one("#content");
+    var where = Y.one("#where");
+    var section = Y.one("#section");
+
+    Y.on("click", function() {
+        var newContent = Y.Escape.html(content.get("value"));
+        overlay.setStdModContent(section.get("value"), newContent, where.get("value"));
+    }, "#setContent");
+});
+</script>
+
+</div>
+
+<h2>Overlay's Standard Module Support</h2>
+
+<h3>Setting Up The YUI Instance</h3>
+
+<p>To create an instance of an Overlay on your page, the only module you need to request is the <code>overlay</code> module. The <code>overlay</code> module will pull in the <code>widget</code>, <code>widget-stack</code>, <code>widget-position</code>, <code>widget-position-align</code>, <code>widget-position-constrain</code> and <code>widget-stdmod</code> extensions it uses.</p>
+
+<pre class="code prettyprint">YUI({...}).use(&quot;overlay&quot;, function(Y) {
+    &#x2F;&#x2F; We&#x27;ll write example code here, where we have a Y.Overlay class available.
+});</pre>
+
+
+<p>Note, using the <code>overlay</code> module, will also pull down the default CSS required for overlay, on top of which we only need to add our required look/feel CSS for the example.</p>
+
+<h3>Creating The Overlay From Markup</h3>
+
+<p>For this example, we'll create the overlay instance from markup which already exists on the page, and is shown below. We mark the existing markup with the <code>yui3-overlay-loading</code> class, so that we can hide it while the rich control is being instantiated:</p>
+
+<pre class="code prettyprint">&lt;div id=&quot;overlay&quot; class=&quot;yui3-overlay-loading&quot;&gt;
+    &lt;div class=&quot;yui3-widget-hd&quot;&gt;Overlay Header&lt;&#x2F;div&gt;
+    &lt;div class=&quot;yui3-widget-bd&quot;&gt;Overlay Body&lt;&#x2F;div&gt;
+    &lt;div class=&quot;yui3-widget-ft&quot;&gt;Overlay Footer&lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;</pre>
+
+
+<h3>Instantiating The Overlay</h3>
+
+<p>To create an overlay instance, we use the overlay constructor <code>Y.Overlay</code>, and pass it the <code>srcNode</code> reference for the existing markup on the page:</p>
+
+<pre class="code prettyprint">var overlay = new Y.Overlay({
+    srcNode:&quot;#overlay&quot;,
+    width:&quot;20em&quot;,
+    align: {
+        node:&quot;#overlay-stdmod &gt; .filler&quot;,
+        points:[&quot;tl&quot;, &quot;tl&quot;]
+    }
+});
+overlay.render();</pre>
+
+
+<p>We also set it's width and align it to the filler paragraph in the example box ("#overlay-stdmod > .filler"). We don't pass any node references to the <code>render</code> method, so the Overlay is rendered in the location of the contentBox provided.</p>
+
+<h3 id="setting-content">Setting Content</h3>
+
+<p>
+The example provides a set of input fields, allowing the user to set content in either of the 3 standard module sections which Overlay supports using Overlay's <code>setStdModContent</code> method.
+The content can either be inserted before, appended after, or replace existing content in the specified section.</p>
+
+<p>
+Additionally the new content can be converted to a node instance before being added to the specified section. Although it has no impact on the example, if the new content is added as a string, innerHTML is used to insert before or append after the existing section content, removing any event listeners which may have been attached to elements inside the section.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Hold onto input field references.
+var content = Y.one(&quot;#content&quot;);
+var where = Y.one(&quot;#where&quot;);
+var section = Y.one(&quot;#section&quot;);
+
+Y.on(&quot;click&quot;, function() {
+
+    &#x2F;&#x2F; New content to be added. For this example, we escape the HTML since it&#x27;s
+    &#x2F;&#x2F; coming from an unknown source, however Overlay accepts HTML strings as
+    &#x2F;&#x2F; content (you should ensure it&#x27;s coming from a trusted source).
+    var newContent = Y.Escape.html(content.get(&quot;value&quot;));
+
+    overlay.setStdModContent(section.get(&quot;value&quot;), newContent, where.get(&quot;value&quot;));
+
+}, &quot;#setContent&quot;);</pre>
+
+
+<h3>CSS: Overlay Look/Feel</h3>
+
+<p>As with the other basic overlay examples, the overlay.css Sam Skin file (build/overlay/assets/skins/sam/overlay.css) provides the default functional CSS for the overlay. Namely the CSS rules to hide the overlay, and position it absolutely. However there's no default out-of-the-box look/feel applied to the Overlay widget.</p>
+
+<p>The example provides it's own look and feel for the Overlay, by defining rules for the content box, header, body and footer sections:</p>
+
+<pre class="code prettyprint">&#x2F;* Hide overlay markup while loading, if js is enabled *&#x2F;
+.yui3-js-enabled .yui3-overlay-loading {
+    top:-1000em;
+    left:-1000em;
+    position:absolute;
+}
+
+&#x2F;* Overlay Look&#x2F;Feel *&#x2F;
+.yui3-overlay-content {
+    background-color: #ECEFFB;  
+    border: 1px solid #9EA8C6;
+    border-radius: 3px;
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.25);
+}
+
+.yui3-overlay-content .yui3-widget-hd {
+    background-color: #B6BFDA;  
+    color: #30418C;
+    font-size: 120%;
+    font-weight: bold;
+    padding: 0.2em 0.5em 0.3em;
+    border-radius: 2px 2px 0 0;
+}
+
+.yui3-overlay-content .yui3-widget-bd {
+    padding: 0.4em 0.6em 0.5em;
+}
+
+.yui3-overlay-content .yui3-widget-ft {
+    background-color:#DFE3F5;
+    padding: 0.4em 0.6em 0.5em;
+    border-radius: 0 0 2px 2px;
+}</pre>
+
+
+<h2>Complete Example Source</h2>
+<pre class="code prettyprint">&lt;div class=&quot;overlay-example&quot; id=&quot;overlay-stdmod&quot;&gt;
+    &lt;div id=&quot;overlay&quot; class=&quot;yui3-overlay-loading&quot;&gt;
+        &lt;div class=&quot;yui3-widget-hd&quot;&gt;Overlay Header&lt;&#x2F;div&gt;
+        &lt;div class=&quot;yui3-widget-bd&quot;&gt;Overlay Body&lt;&#x2F;div&gt;
+        &lt;div class=&quot;yui3-widget-ft&quot;&gt;Overlay Footer&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+
+    &lt;div class=&quot;fields&quot;&gt;
+        &lt;div&gt;
+            &lt;label for=&quot;content&quot;&gt;New content:&lt;&#x2F;label&gt;
+            &lt;textarea name=&quot;content&quot; id=&quot;content&quot;&gt;&lt;&#x2F;textarea&gt;
+            &lt;p&gt;
+            &lt;strong&gt;Note:&lt;&#x2F;strong&gt; while &lt;a href=&quot;#setting-content&quot;&gt;Overlay accepts HTML strings and Nodes&lt;&#x2F;a&gt; as content, for this example, all HTML will be escaped.
+            &lt;&#x2F;p&gt;
+        &lt;&#x2F;div&gt;
+        &lt;p&gt;
+            &lt;label for=&quot;section&quot;&gt;Section to add content to:&lt;&#x2F;label&gt;
+            &lt;select name=&quot;section&quot; id=&quot;section&quot;&gt;
+                &lt;option value=&quot;header&quot;&gt;Header&lt;&#x2F;option&gt;
+                &lt;option value=&quot;body&quot;&gt;Body&lt;&#x2F;option&gt;
+                &lt;option value=&quot;footer&quot;&gt;Footer&lt;&#x2F;option&gt;
+            &lt;&#x2F;select&gt;
+        &lt;&#x2F;p&gt;
+        &lt;p&gt;
+            &lt;label for=&quot;where&quot;&gt;Replace, insert before or append after existing content:&lt;&#x2F;label&gt;
+            &lt;select name=&quot;where&quot; id=&quot;where&quot;&gt;
+                &lt;option value=&quot;before&quot;&gt;Before&lt;&#x2F;option&gt;
+                &lt;option value=&quot;after&quot;&gt;After&lt;&#x2F;option&gt;
+                &lt;option value=&quot;replace&quot;&gt;Replace&lt;&#x2F;option&gt;
+            &lt;&#x2F;select&gt;
+        &lt;&#x2F;p&gt;
+        &lt;button type=&quot;button&quot; id=&quot;setContent&quot;&gt;Set Content&lt;&#x2F;button&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div class=&quot;filler&quot;&gt;
+        Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Sed tellus pede, aliquet vitae, faucibus quis, lobortis non, metus. Pellentesque at metus ac mi condimentum egestas. In vel neque a massa porttitor ultrices. Nunc lorem. Vivamus ullamcorper fringilla tortor. Etiam at nunc pellentesque lectus cursus pretium. Integer velit. In quis nunc eget leo rhoncus scelerisque. In in ante ac ante pharetra vestibulum. Praesent sit amet metus. Nam egestas ipsum. Nulla facilisi. Quisque rhoncus, eros sed convallis faucibus, erat felis pretium nisi, non bibendum magna mauris non metus. Integer mauris eros, volutpat non, pretium vitae, rutrum at, tellus.
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+
+&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+YUI().use(&quot;overlay&quot;, &quot;escape&quot;, function(Y) {
+
+    var overlay = new Y.Overlay({
+        srcNode:&quot;#overlay&quot;,
+        width:&quot;20em&quot;,
+        align: {
+            node:&quot;#overlay-stdmod &gt; .filler&quot;,
+            points:[&quot;tl&quot;, &quot;tl&quot;]
+        }
+    });
+    overlay.render();
+
+    var content = Y.one(&quot;#content&quot;);
+    var where = Y.one(&quot;#where&quot;);
+    var section = Y.one(&quot;#section&quot;);
+
+    Y.on(&quot;click&quot;, function() {
+        var newContent = Y.Escape.html(content.get(&quot;value&quot;));
+        overlay.setStdModContent(section.get(&quot;value&quot;), newContent, where.get(&quot;value&quot;));
+    }, &quot;#setContent&quot;);
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Shows how to instantiate a basic Overlay instance, and use the Overlay&#x27;s basic XY positioning support.">
+                                            <a href="overlay-xy.html">Basic XY Positioning</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create a simple tooltip incorporating the overlay shim feature.">
+                                            <a href="overlay-tooltip.html">Simple Tooltip</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to use the Overlay&#x27;s XY alignment support, to align the Overlay relative to another element, or to the viewport.">
+                                            <a href="overlay-align.html">Alignment Support</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to use the Overlay&#x27;s zindex and shim support when positioning Overlays above other elements on the page.">
+                                            <a href="overlay-stack.html">Stack Support</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to modify content in the Overlay&#x27;s header, body and footer sections.">
+                                            <a href="overlay-stdmod.html">Standard Module Support</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to use Overlay&#x27;s constrainment support, to limit the XY value which can be set for an Overlay.">
+                                            <a href="overlay-constrain.html">Constrain Support</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create a simple plugin to retrieve content for the Overlay using the io utility.">
+                                            <a href="overlay-io-plugin.html">IO Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create a simple plugin to animate the Overlay&#x27;s movement and visibility.">
+                                            <a href="overlay-anim-plugin.html">Animation Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible menu button using the Focus Manager Node Plugin, Event&#x27;s delegation support and mouseenter event, along with the Overlay widget and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-3.html">Accessible Menu Button</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use StyleSheet to adjust the CSS rules applying a page theme from user input">
+                                            <a href="../stylesheet/stylesheet-theme.html">Adjusting a Page Theme on the Fly</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

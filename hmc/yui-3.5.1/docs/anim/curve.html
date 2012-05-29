@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Animating Along a Curved Path</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Animating Along a Curved Path</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>This demonstrates how to animate the position of an element along a <code>curve</code>.</p>
+    <p>Click the button or drag the dots to see the animation. You can use this
+    example as a tool to find the right XY values for start, end, and control points
+    that will give you the right shape path for your own animation on a curve.</p>
+    <p>The curved line shown here between points 0 and 3 is just for preview 
+    purposes, and is not part of animation on a curve. The draggable points 0 - 3
+    are displayed only for UI interactivity.</p>
+</div>
+
+<div class="example">
+<style>
+.example {
+    position: relative;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.example div, .example p, .example span{
+    padding: 0;
+    margin: 0;
+}
+
+#mygraphiccontainer {
+    width: 650px;
+    height: 400px;
+}
+
+.example #demo {
+    position: absolute;
+    left: 92px;
+    top: 103px;
+    background-color: #f00;
+    text-align: center;
+    line-height: 1.5em;
+    border: solid 1px #cc0000;
+    border-radius: 0;
+    -moz-box-shadow: 3px 3px 7px rgba(0,0,0,0.4);
+    -webkit-box-shadow: 3px 3px 7px rgba(0,0,0,0.4);
+    width: 20px;
+    height: 20px;
+}
+
+.dot {
+    position: absolute;
+    color: #396491;
+    font-size: 20px;
+    height: 0;
+    line-height: 12px;
+    opacity: 0.8;
+    width: 0;
+    cursor: move;
+}
+
+.dot .point { 
+    background-color: #000;
+    position: absolute;
+    left: -3px;
+    top: -3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    font-size: 0px;
+}
+
+.number-label {
+    position: absolute;
+    top: -1em;
+    left: -0.9em;
+    width: 1em;
+    height: 1em;    
+    line-height: 1em;
+}
+
+/* Gives the points a larger target area to drag */
+.dot .fat-finger {
+    position: absolute;
+    top: -30px; /* minus half the fat-finger height */
+    left: -30px;
+    width: 60px;
+    height: 60px;
+    -moz-border-radius: 30px;
+    -webkit-border-radius: 30px;
+    border-radius: 30px;
+    background-color: #abc;
+    opacity: 0.3;
+    filter: alpha (opacity = 30);
+}
+
+#dot-3 .fat-finger {
+    background-color: #f80;
+    opacity: 0.4;
+}
+
+#dot-0 .fat-finger {
+    background-color: #8DAA16;
+    opacity: 0.4;
+}
+
+#dot-0, #demo {
+    top: 103px;
+    left: 92px;        
+}
+
+#dot-1 {
+    top: 317px;
+    left: 147px;        
+}
+
+#dot-2 {
+    top: 179px;
+    left: 532px;        
+}
+
+#dot-3 {
+    left: 538px;
+    top: 288px;
+}
+
+#info {
+    position: absolute;
+    width: 450px;
+    height: 15em;
+    right: 1em;
+    top: 1em;
+}
+
+code span {
+    color: #CC3300;
+}
+
+.point {
+    font-size: 24px;
+    left: 5px;
+    position: absolute;
+    top: -5px;
+}
+
+</style>
+<!-- In order for the script to run, this HTML markup must be nested in a <div class="example"> --> 
+    <div id="mygraphiccontainer"></div> <!-- Container for the preview of the curve line -->
+    <div id="info">
+        <button id="btn-animate" class='yui3-button'>Animate On Path</button>
+        <p>To see anim along a path, click the button above, or drag point 0, 1, 2, or 3.</p>
+        <p>The X and Y of point 0 is <code>[<span class="arr0">92,103</span>]</code></p>
+        <p>The X and Y of 1, 2, and 3, are the sub-arrays in array value of "curve:" in the anim.set()</p>
+        <p><code>anim.set('to', {curve: [
+        [<span class="arr1">147,317</span>],
+        [<span class="arr2">532,179</span>],
+        [<span class="arr3">538,288</span>] ]});</code></p>
+    </div>
+    <div id="dot-0" class="dot zero">
+        <div class="point"></div>
+        <div class="fat-finger" title="Drag to change start point"></div> <!-- Gives the points a larger target area to drag -->
+        <div class="number-label">0</div>
+    </div>
+    <div id="dot-1" class="dot one">
+        <div class="point"></div>
+        <div class="fat-finger" title="Drag to change path"></div>
+        <div class="number-label">1</div>
+    </div>
+    <div id="dot-2" class="dot two">
+        <div class="point"></div>
+        <div class="fat-finger" title="Drag to change path"></div>
+        <div class="number-label">2</div>
+    </div>
+    <div id="dot-3" class="dot three">
+        <div class="point"></div>
+        <div class="fat-finger" title="Drag to change end point"></div>
+        <div class="number-label">3</div>
+    </div>
+    <div id="demo">A</div>
+    
+<script>
+YUI().use('anim', 'dd-drag', 'graphics', 'cssbutton', function(Y){
+
+    var mygraphic = new Y.Graphic({render:"#mygraphiccontainer"}),
+        origin = Y.one('.example'), // The XY values for the animation are based on the upper-left corner of this element
+        demoA = Y.one('#demo'), // The animated element
+        dotList = Y.all('.dot');
+        // Draggable points
+        dot0 = Y.one('#dot-0'), dot1 = Y.one('#dot-1'), dot2 = Y.one('#dot-2'), dot3 = Y.one('#dot-3'),
+        
+        // Array of XY arrays of draggable points
+        arrDot = [ 
+            [parseInt(dotList.item(0).getStyle('left'), 10), parseInt(dotList.item(0).getStyle('top'), 10)], 
+            [parseInt(dotList.item(1).getStyle('left'), 10), parseInt(dotList.item(1).getStyle('top'), 10)], 
+            [parseInt(dotList.item(2).getStyle('left'), 10), parseInt(dotList.item(2).getStyle('top'), 10)], 
+            [parseInt(dotList.item(3).getStyle('left'), 10), parseInt(dotList.item(3).getStyle('top'), 10)] 
+        ],
+        
+        // Make points draggable
+        dd0 = new Y.DD.Drag({
+            node: '#dot-0'
+        }),
+        dd1 = new Y.DD.Drag({
+            node: '#dot-1'
+        }),
+        dd2 = new Y.DD.Drag({
+            node: '#dot-2'
+        }),
+        dd3 = new Y.DD.Drag({
+            node: '#dot-3'
+        });
+
+    // Puts current XY values of points into displayed code snippet
+    var updateCodeSnippetValues = function(){
+        Y.one('.arr0').setContent(arrDot[0][0] + ',' + arrDot[0][1]); // Start       
+        Y.one('.arr1').setContent(arrDot[1][0] + ',' + arrDot[1][1]); // Control point 1     
+        Y.one('.arr2').setContent(arrDot[2][0] + ',' + arrDot[2][1]); // Control point 2       
+        Y.one('.arr3').setContent(arrDot[3][0] + ',' + arrDot[3][1]); // End        
+    }
+    
+    /** 
+     * Stops the animation
+     * Updates the array of point XY values      
+     * Updates the curve preview
+     * Updates displayed XY point values in code snippet
+     */
+    var dotDragHandler = function(dot){
+        Y.Anim.stop();
+        arrDot[dotList.indexOf(dot)] = [parseInt(dot.getStyle('left'), 10), parseInt(dot.getStyle('top'), 10)];
+        drawCurve();
+        updateCodeSnippetValues();
+    }
+    
+    dd0.on('drag:drag', function(e){
+        dotDragHandler(this.get('dragNode'));
+    });
+    dd1.on('drag:drag', function(e){
+        dotDragHandler(this.get('dragNode'));
+    });
+    dd2.on('drag:drag', function(e){
+        dotDragHandler(this.get('dragNode'));
+    });
+    dd3.on('drag:drag', function(e){
+        dotDragHandler(this.get('dragNode'));
+    });
+    
+    // button handler
+    Y.one('#btn-animate').on('click', function(){
+        Y.Anim.stop();
+        setTimeout(startAnim, 500);
+    });
+      
+    Y.all('.dot').on('mouseup', function(e){
+        setTimeout(startAnim, 500);
+    });
+
+    // Create the animation instance
+    var anim = new Y.Anim({
+        node: demoA,
+        duration: 1.5,
+        easing: Y.Easing.easeOut
+    });
+    
+    /**
+     * Sets the anim curve values with the XY values from the arrDot array
+     * Adds the origin offset values because anim works off page coordinates
+     */
+    var startAnim = function(e){
+        var oX = origin.getX(),
+            oY = origin.getY();
+        
+        // Reset the animated element to the start position. 
+        // This is needed for running the animation multiple times
+        demoA.setStyles({'left':arrDot[0][0], 'top':arrDot[0][1]});
+        
+        anim.set('to', {
+            curve: [ [(arrDot[1][0] + oX), (arrDot[1][1] + oY)], [ (arrDot[2][0] + oX), (arrDot[2][1] + oY) ], [ (arrDot[3][0] + oX), (arrDot[3][1] + oY) ]  ]
+        });
+        anim.run();
+    };
+    
+    // Adds a YUI Graphics path shape to the Graphics instance mygraphic
+    var animPath = mygraphic.addShape({
+        type: "path",
+        stroke: {
+            weight: 4,
+            color: "#aabbcc"
+        }
+    });
+    
+    // Draw a preview curve with the Graphics animPath shape to match the Anim curve
+    var drawCurve = function(){
+        animPath.clear();
+        animPath.moveTo(arrDot[0][0],arrDot[0][1]);
+        animPath.curveTo(arrDot[1][0],arrDot[1][1],   arrDot[2][0],arrDot[2][1],    arrDot[3][0],arrDot[3][1]);
+        animPath.end();
+    }
+
+    drawCurve(); // Initial drawing of the preview curve
+    updateCodeSnippetValues(); // Initial setting of code snippet XY values
+
+});
+
+</script>
+
+
+</div>
+
+<h2>Setting up the HTML</h2>
+<p>First we add some HTML to animate.</p>
+<pre class="code prettyprint">&lt;div class=&quot;example&quot;&gt;
+    &lt;button id=&quot;btn-animate&quot; class=&#x27;yui3-button&#x27;&gt;Animate On Path&lt;&#x2F;button&gt;
+    &lt;div id=&quot;demo&quot;&gt;A&lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;</pre>
+
+
+<h2>Creating the Anim Instance</h2>
+<p>Now we create an instance of <code>Y.Anim</code>, passing it a configuration object that includes the <code>node</code> we wish to animate.</p>
+
+<pre class="code prettyprint">var demoA = Y.one(&#x27;#demo&#x27;);
+
+var anim = new Y.Anim({
+    node: demoA,
+    duration: 1.5,
+    easing: Y.Easing.easeOut
+});</pre>
+
+
+<h2>Changing Attributes</h2>
+<p>A click handler will set the <code>to</code> value before <code>run</code> is called.</p>
+
+<pre class="code prettyprint">var startAnim = function(e) {
+    anim.set(&#x27;to&#x27;, {
+        curve: [ [x1, y1], [x2, y2], [x3, y3] ] &#x2F;&#x2F; Where 1 and 2 are curve control points, and 3 is the end point.
+    });
+    anim.run();
+};</pre>
+
+
+<h2>Running the Animation</h2>
+<p>If the animation will be run multiple times, you'll need to reset the position of the animated element.</p>
+<p>Finally we add an event handler to run the animation.</p>
+
+<pre class="code prettyprint">var resetToAnimStart = function(){
+	demoA.setStyles({&#x27;left&#x27;: x0, &#x27;top&#x27;: y0}); &#x2F;&#x2F; Where x0, y0 is the animation starting point  
+}
+
+Y.one(&#x27;#btn-animate&#x27;).on(&#x27;click&#x27;, function(){
+	resetToAnimStart();
+	startAnim();
+});</pre>
+
+
+<h2>Complete Example Source</h2>
+<p>The code shown above does the basics. 
+This example however, allows dragging the points, displays xy values for each point
+while you drag, and displays a path preview of the animation using YUI Graphics
+Utility. This adds some complexity.</p>
+<pre class="code prettyprint">&lt;style&gt;
+.example {
+    position: relative;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.example div, .example p, .example span{
+    padding: 0;
+    margin: 0;
+}
+
+#mygraphiccontainer {
+    width: 650px;
+    height: 400px;
+}
+
+.example #demo {
+    position: absolute;
+    left: 92px;
+    top: 103px;
+    background-color: #f00;
+    text-align: center;
+    line-height: 1.5em;
+    border: solid 1px #cc0000;
+    border-radius: 0;
+    -moz-box-shadow: 3px 3px 7px rgba(0,0,0,0.4);
+    -webkit-box-shadow: 3px 3px 7px rgba(0,0,0,0.4);
+    width: 20px;
+    height: 20px;
+}
+
+.dot {
+    position: absolute;
+    color: #396491;
+    font-size: 20px;
+    height: 0;
+    line-height: 12px;
+    opacity: 0.8;
+    width: 0;
+    cursor: move;
+}
+
+.dot .point { 
+    background-color: #000;
+    position: absolute;
+    left: -3px;
+    top: -3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    font-size: 0px;
+}
+
+.number-label {
+    position: absolute;
+    top: -1em;
+    left: -0.9em;
+    width: 1em;
+    height: 1em;    
+    line-height: 1em;
+}
+
+&#x2F;* Gives the points a larger target area to drag *&#x2F;
+.dot .fat-finger {
+    position: absolute;
+    top: -30px; &#x2F;* minus half the fat-finger height *&#x2F;
+    left: -30px;
+    width: 60px;
+    height: 60px;
+    -moz-border-radius: 30px;
+    -webkit-border-radius: 30px;
+    border-radius: 30px;
+    background-color: #abc;
+    opacity: 0.3;
+    filter: alpha (opacity = 30);
+}
+
+#dot-3 .fat-finger {
+    background-color: #f80;
+    opacity: 0.4;
+}
+
+#dot-0 .fat-finger {
+    background-color: #8DAA16;
+    opacity: 0.4;
+}
+
+#dot-0, #demo {
+    top: 103px;
+    left: 92px;        
+}
+
+#dot-1 {
+    top: 317px;
+    left: 147px;        
+}
+
+#dot-2 {
+    top: 179px;
+    left: 532px;        
+}
+
+#dot-3 {
+    left: 538px;
+    top: 288px;
+}
+
+#info {
+    position: absolute;
+    width: 450px;
+    height: 15em;
+    right: 1em;
+    top: 1em;
+}
+
+code span {
+    color: #CC3300;
+}
+
+.point {
+    font-size: 24px;
+    left: 5px;
+    position: absolute;
+    top: -5px;
+}
+
+&lt;&#x2F;style&gt;
+&lt;!-- In order for the script to run, this HTML markup must be nested in a &lt;div class=&quot;example&quot;&gt; --&gt; 
+    &lt;div id=&quot;mygraphiccontainer&quot;&gt;&lt;&#x2F;div&gt; &lt;!-- Container for the preview of the curve line --&gt;
+    &lt;div id=&quot;info&quot;&gt;
+        &lt;button id=&quot;btn-animate&quot; class=&#x27;yui3-button&#x27;&gt;Animate On Path&lt;&#x2F;button&gt;
+        &lt;p&gt;To see anim along a path, click the button above, or drag point 0, 1, 2, or 3.&lt;&#x2F;p&gt;
+        &lt;p&gt;The X and Y of point 0 is &lt;code&gt;[&lt;span class=&quot;arr0&quot;&gt;92,103&lt;&#x2F;span&gt;]&lt;&#x2F;code&gt;&lt;&#x2F;p&gt;
+        &lt;p&gt;The X and Y of 1, 2, and 3, are the sub-arrays in array value of &quot;curve:&quot; in the anim.set()&lt;&#x2F;p&gt;
+        &lt;p&gt;&lt;code&gt;anim.set(&#x27;to&#x27;, {curve: [
+        [&lt;span class=&quot;arr1&quot;&gt;147,317&lt;&#x2F;span&gt;],
+        [&lt;span class=&quot;arr2&quot;&gt;532,179&lt;&#x2F;span&gt;],
+        [&lt;span class=&quot;arr3&quot;&gt;538,288&lt;&#x2F;span&gt;] ]});&lt;&#x2F;code&gt;&lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div id=&quot;dot-0&quot; class=&quot;dot zero&quot;&gt;
+        &lt;div class=&quot;point&quot;&gt;&lt;&#x2F;div&gt;
+        &lt;div class=&quot;fat-finger&quot; title=&quot;Drag to change start point&quot;&gt;&lt;&#x2F;div&gt; &lt;!-- Gives the points a larger target area to drag --&gt;
+        &lt;div class=&quot;number-label&quot;&gt;0&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div id=&quot;dot-1&quot; class=&quot;dot one&quot;&gt;
+        &lt;div class=&quot;point&quot;&gt;&lt;&#x2F;div&gt;
+        &lt;div class=&quot;fat-finger&quot; title=&quot;Drag to change path&quot;&gt;&lt;&#x2F;div&gt;
+        &lt;div class=&quot;number-label&quot;&gt;1&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div id=&quot;dot-2&quot; class=&quot;dot two&quot;&gt;
+        &lt;div class=&quot;point&quot;&gt;&lt;&#x2F;div&gt;
+        &lt;div class=&quot;fat-finger&quot; title=&quot;Drag to change path&quot;&gt;&lt;&#x2F;div&gt;
+        &lt;div class=&quot;number-label&quot;&gt;2&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div id=&quot;dot-3&quot; class=&quot;dot three&quot;&gt;
+        &lt;div class=&quot;point&quot;&gt;&lt;&#x2F;div&gt;
+        &lt;div class=&quot;fat-finger&quot; title=&quot;Drag to change end point&quot;&gt;&lt;&#x2F;div&gt;
+        &lt;div class=&quot;number-label&quot;&gt;3&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div id=&quot;demo&quot;&gt;A&lt;&#x2F;div&gt;
+    
+&lt;script&gt;
+YUI().use(&#x27;anim&#x27;, &#x27;dd-drag&#x27;, &#x27;graphics&#x27;, &#x27;cssbutton&#x27;, function(Y){
+
+    var mygraphic = new Y.Graphic({render:&quot;#mygraphiccontainer&quot;}),
+        origin = Y.one(&#x27;.example&#x27;), &#x2F;&#x2F; The XY values for the animation are based on the upper-left corner of this element
+        demoA = Y.one(&#x27;#demo&#x27;), &#x2F;&#x2F; The animated element
+        dotList = Y.all(&#x27;.dot&#x27;);
+        &#x2F;&#x2F; Draggable points
+        dot0 = Y.one(&#x27;#dot-0&#x27;), dot1 = Y.one(&#x27;#dot-1&#x27;), dot2 = Y.one(&#x27;#dot-2&#x27;), dot3 = Y.one(&#x27;#dot-3&#x27;),
+        
+        &#x2F;&#x2F; Array of XY arrays of draggable points
+        arrDot = [ 
+            [parseInt(dotList.item(0).getStyle(&#x27;left&#x27;), 10), parseInt(dotList.item(0).getStyle(&#x27;top&#x27;), 10)], 
+            [parseInt(dotList.item(1).getStyle(&#x27;left&#x27;), 10), parseInt(dotList.item(1).getStyle(&#x27;top&#x27;), 10)], 
+            [parseInt(dotList.item(2).getStyle(&#x27;left&#x27;), 10), parseInt(dotList.item(2).getStyle(&#x27;top&#x27;), 10)], 
+            [parseInt(dotList.item(3).getStyle(&#x27;left&#x27;), 10), parseInt(dotList.item(3).getStyle(&#x27;top&#x27;), 10)] 
+        ],
+        
+        &#x2F;&#x2F; Make points draggable
+        dd0 = new Y.DD.Drag({
+            node: &#x27;#dot-0&#x27;
+        }),
+        dd1 = new Y.DD.Drag({
+            node: &#x27;#dot-1&#x27;
+        }),
+        dd2 = new Y.DD.Drag({
+            node: &#x27;#dot-2&#x27;
+        }),
+        dd3 = new Y.DD.Drag({
+            node: &#x27;#dot-3&#x27;
+        });
+
+    &#x2F;&#x2F; Puts current XY values of points into displayed code snippet
+    var updateCodeSnippetValues = function(){
+        Y.one(&#x27;.arr0&#x27;).setContent(arrDot[0][0] + &#x27;,&#x27; + arrDot[0][1]); &#x2F;&#x2F; Start       
+        Y.one(&#x27;.arr1&#x27;).setContent(arrDot[1][0] + &#x27;,&#x27; + arrDot[1][1]); &#x2F;&#x2F; Control point 1     
+        Y.one(&#x27;.arr2&#x27;).setContent(arrDot[2][0] + &#x27;,&#x27; + arrDot[2][1]); &#x2F;&#x2F; Control point 2       
+        Y.one(&#x27;.arr3&#x27;).setContent(arrDot[3][0] + &#x27;,&#x27; + arrDot[3][1]); &#x2F;&#x2F; End        
+    }
+    
+    &#x2F;** 
+     * Stops the animation
+     * Updates the array of point XY values      
+     * Updates the curve preview
+     * Updates displayed XY point values in code snippet
+     *&#x2F;
+    var dotDragHandler = function(dot){
+        Y.Anim.stop();
+        arrDot[dotList.indexOf(dot)] = [parseInt(dot.getStyle(&#x27;left&#x27;), 10), parseInt(dot.getStyle(&#x27;top&#x27;), 10)];
+        drawCurve();
+        updateCodeSnippetValues();
+    }
+    
+    dd0.on(&#x27;drag:drag&#x27;, function(e){
+        dotDragHandler(this.get(&#x27;dragNode&#x27;));
+    });
+    dd1.on(&#x27;drag:drag&#x27;, function(e){
+        dotDragHandler(this.get(&#x27;dragNode&#x27;));
+    });
+    dd2.on(&#x27;drag:drag&#x27;, function(e){
+        dotDragHandler(this.get(&#x27;dragNode&#x27;));
+    });
+    dd3.on(&#x27;drag:drag&#x27;, function(e){
+        dotDragHandler(this.get(&#x27;dragNode&#x27;));
+    });
+    
+    &#x2F;&#x2F; button handler
+    Y.one(&#x27;#btn-animate&#x27;).on(&#x27;click&#x27;, function(){
+        Y.Anim.stop();
+        setTimeout(startAnim, 500);
+    });
+      
+    Y.all(&#x27;.dot&#x27;).on(&#x27;mouseup&#x27;, function(e){
+        setTimeout(startAnim, 500);
+    });
+
+    &#x2F;&#x2F; Create the animation instance
+    var anim = new Y.Anim({
+        node: demoA,
+        duration: 1.5,
+        easing: Y.Easing.easeOut
+    });
+    
+    &#x2F;**
+     * Sets the anim curve values with the XY values from the arrDot array
+     * Adds the origin offset values because anim works off page coordinates
+     *&#x2F;
+    var startAnim = function(e){
+        var oX = origin.getX(),
+            oY = origin.getY();
+        
+        &#x2F;&#x2F; Reset the animated element to the start position. 
+        &#x2F;&#x2F; This is needed for running the animation multiple times
+        demoA.setStyles({&#x27;left&#x27;:arrDot[0][0], &#x27;top&#x27;:arrDot[0][1]});
+        
+        anim.set(&#x27;to&#x27;, {
+            curve: [ [(arrDot[1][0] + oX), (arrDot[1][1] + oY)], [ (arrDot[2][0] + oX), (arrDot[2][1] + oY) ], [ (arrDot[3][0] + oX), (arrDot[3][1] + oY) ]  ]
+        });
+        anim.run();
+    };
+    
+    &#x2F;&#x2F; Adds a YUI Graphics path shape to the Graphics instance mygraphic
+    var animPath = mygraphic.addShape({
+        type: &quot;path&quot;,
+        stroke: {
+            weight: 4,
+            color: &quot;#aabbcc&quot;
+        }
+    });
+    
+    &#x2F;&#x2F; Draw a preview curve with the Graphics animPath shape to match the Anim curve
+    var drawCurve = function(){
+        animPath.clear();
+        animPath.moveTo(arrDot[0][0],arrDot[0][1]);
+        animPath.curveTo(arrDot[1][0],arrDot[1][1],   arrDot[2][0],arrDot[2][1],    arrDot[3][0],arrDot[3][1]);
+        animPath.end();
+    }
+
+    drawCurve(); &#x2F;&#x2F; Initial drawing of the preview curve
+    updateCodeSnippetValues(); &#x2F;&#x2F; Initial setting of code snippet XY values
+
+});
+
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Creating and using a simple animation.">
+                                            <a href="basic.html">Basic Animation</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The Animation Utility allows you to implement &#x27;easing effects&#x27; &mdash; for example, when an animation gradually slows down as it nears completion, that&#x27;s an easing effect known as &#x27;ease-in&#x27;.  This example shows you how to use easing effects with your animations.">
+                                            <a href="easing.html">Easing Effects</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Color animations can be effective indicators of state during the lifespan of a dynamic page.  This example shows you how to animate color attributes of an element.">
+                                            <a href="colors.html">Animating Colors</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The direction attribute can be used to reverse the animation on alternate iterations.">
+                                            <a href="alt-iterations.html">Alternating Iterations</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example shows you how to animate the xy coordinates of an element.">
+                                            <a href="anim-xy.html">Animating XY Position</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates animating an element along a curved path using bezier control points.">
+                                            <a href="curve.html">Animating Along a Curved Path</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The reverse attribute allows you to change the run direction of an animation.">
+                                            <a href="reverse.html">Reversing an Animation</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to use the end event.">
+                                            <a href="end-event.html">Using the End Event</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create a simple plugin to animate the Overlay&#x27;s movement and visibility.">
+                                            <a href="../overlay/overlay-anim-plugin.html">Animation Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with multiple YUI instances.">
+                                            <a href="../yui/yui-multi.html">Multiple Instances</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to make an animated node a Drop target.">
+                                            <a href="../dd/anim-drop.html">Animated Drop Targets</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

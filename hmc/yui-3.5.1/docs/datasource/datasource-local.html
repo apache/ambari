@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: DataSource.Local</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: DataSource.Local</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>Use DataSource.Local to manage retrieval of local data, from JavaScript arrays and objects to DOM elements. A <a href="../dataschema/">DataSchema</a> plugin is used to normalize incoming data into a known format for consistency of usage by other components.</p>
+</div>
+
+<div class="example yui3-skin-sam">
+    <style scoped>
+/* custom styles for this example */
+#demo .output {margin-bottom:1em; padding:10px; border:1px solid #D9D9D9;}
+</style>
+
+<form id="demo">
+    <h4>Array</h4>
+    <h6>Data</h6>
+    <pre>
+[
+    {name:"abc",id:123,extra:"foo"},
+    {name:"def",id:456,extra:"bar"},
+    {name:"ghi",id:789,extra:"baz"}
+]
+    </pre>
+
+    <h6>Schema</h6>
+    <pre>
+{
+    resultFields: ["name","id"]
+}
+    </pre>
+
+    <h6>Normalized data</h6>
+    <input type="button" id="demo_array" value="Retrieve data">
+    <div id="demo_output_array" class="output"></div>
+
+    <h4>JSON</h4>
+    <h6>Data</h6>
+    <pre>
+{
+    "profile":{
+        "current":160,
+        "target":150
+    },
+    "reference": [
+        {
+            "category":"exercise",
+            "type":"expenditure",
+            "activities":[
+                {"name":"biking", "calories":550},
+                {"name":"golf", "calories":1000},
+                {"name":"running", "calories":650},
+                {"name":"swimming", "calories":650},
+                {"name":"walking", "calories":225}
+            ]
+        },
+        {
+            "category":"nutrition",
+            "type":"intake",
+            "fruit":[
+                {"name":"apple", "calories":70},
+                {"name":"banana", "calories":70},
+                {"name":"orange", "calories":90},
+            ],
+            "vegetables":[
+                {"name":"baked potato", "calories":150},
+                {"name":"broccoli", "calories":50},
+                {"name":"green beans", "calories":30}
+            ]
+        }
+    ],
+    "program": [
+        {
+            "category":"exercise",
+            "schedule":[
+                {"day":"sunday", "activity":"swimming"},
+                {"day":"monday", "activity":"running"},
+                {"day":"tuesday", "activity":"biking"},
+                {"day":"wednesday", "activity":"running"},
+                {"day":"thursday", "activity":"swimming"},
+                {"day":"friday", "activity":"running"},
+                {"day":"saturday", "activity":"golf"}
+            ]
+        },
+        {
+            "category":"diet",
+            "schedule":[
+            ]
+        }
+    ]
+}
+    </pre>
+
+    <h6>Schema</h6>
+    <pre>
+{
+    resultListLocator: "reference[1].fruit",
+    resultFields: ["name","calories"]
+}
+    </pre>
+
+    <h6>Normalized data</h6>
+    <input type="button" id="demo_json" value="Retrieve data">
+    <div id="demo_output_json" class="output"></div>
+
+    <h4>HTML Table (XML)</h4>
+    <h6>Data</h6>
+    <table id="myTable">
+    <tr>
+        <td>coffee</td>
+        <td>1.25</td>
+    </tr>
+    <tr>
+        <td>juice</td>
+        <td>2.00</td>
+    </tr>
+    <tr>
+        <td>tea</td>
+        <td>1.25</td>
+    </tr>
+    <tr>
+        <td>soda</td>
+        <td>1.00</td>
+    </tr>
+    </table>
+
+    <h6>Schema</h6>
+    <pre>
+{
+    resultListLocator: "tr",
+    resultFields: [{key:"beverage", locator:"td[1]"}, {key:"price", locator:"td[2]"}]
+}
+    </pre>
+
+    <h6>Normalized data</h6>
+    <input type="button" id="demo_table" value="Retrieve data">
+    <div id="demo_output_table" class="output"></div>
+</form>
+
+<script type="text/javascript">
+YUI().use("dump", "node", "datasource-local", "datasource-arrayschema", "datasource-jsonschema", "datasource-xmlschema", function (Y) {
+    var myDataArray = [
+            {name:"abc",id:123,extra:"foo"},
+            {name:"def",id:456,extra:"bar"},
+            {name:"ghi",id:789,extra:"baz"}
+        ],
+        myDataSourceArray = new Y.DataSource.Local({source:myDataArray}),
+        myCallbackArray = {
+            success: function(e){
+                Y.one("#demo_output_array").setContent(Y.dump(e.response));
+            },
+            failure: function(e){
+                Y.one("#demo_output_array").setContent("Could not retrieve data: " + e.error.message);
+            }
+        };
+
+    myDataSourceArray.plug(Y.Plugin.DataSourceArraySchema, {
+        schema: {
+            resultFields: ["name","id"]
+        }
+    });
+
+    Y.on("click", function(e){
+        myDataSourceArray.sendRequest({callback:myCallbackArray});
+    }, "#demo_array");
+
+    var myDataJSON = {"profile":{"current":160,"target":150},"reference": [{"category":"exercise","type":"expenditure","activities":[{"name":"biking", "calories":550},{"name":"golf", "calories":1000},{"name":"running", "calories":650},{"name":"swimming", "calories":650},{"name":"walking", "calories":225}]},{"category":"nutrition","type":"intake","fruit":[{"name":"apple", "calories":70},{"name":"banana", "calories":70},{"name":"orange", "calories":90},],"vegetables":[{"name":"baked potato", "calories":150},{"name":"broccoli", "calories":50},{"name":"green beans", "calories":30}]}],"program": [{"category":"exercise","schedule":[{"day":"sunday", "activity":"swimming"},{"day":"monday", "activity":"running"},{"day":"tuesday", "activity":"biking"},{"day":"wednesday", "activity":"running"},{"day":"thursday", "activity":"swimming"},{"day":"friday", "activity":"running"},{"day":"saturday", "activity":"golf"}]},{"category":"diet","schedule":[]}]},
+        myDataSourceJSON = new Y.DataSource.Local({source:myDataJSON}),
+        myCallbackJSON = {
+            success: function(e){
+                Y.one("#demo_output_json").setContent(Y.dump(e.response));
+            },
+            failure: function(e){
+                Y.one("#demo_output_json").setContent("Could not retrieve data: " + e.error.message);
+            }
+        };
+
+    myDataSourceJSON.plug(Y.Plugin.DataSourceJSONSchema, {
+        schema: {
+            resultListLocator: "reference[1].fruit",
+            resultFields: ["name","calories"]
+        }
+    });
+
+    Y.on("click", function(e){
+        myDataSourceJSON.sendRequest({callback:myCallbackJSON});
+    }, "#demo_json");
+
+
+    var myTable = Y.Node.getDOMNode(Y.one("#myTable")),
+        myDataSourceTable = new Y.DataSource.Local({source:myTable}),
+        myCallbackTable = {
+            success: function(e){
+                Y.one("#demo_output_table").setContent(Y.dump(e.response));
+            },
+            failure: function(e){
+                Y.one("#demo_output_table").setContent("Could not retrieve data: " + e.error.message);
+            }
+        };
+
+    myDataSourceTable.plug(Y.Plugin.DataSourceXMLSchema, {
+        schema: {
+            resultListLocator: "tr",
+            resultFields: [{key:"beverage", locator:"td[1]"}, {key:"price", locator:"td[2]"}]
+        }
+    });
+
+    Y.on("click", function(e){
+        myDataSourceTable.sendRequest({callback:myCallbackTable});
+    }, "#demo_table");
+});
+
+</script>
+
+</div>
+
+<p>If you are working with local array data, use the DataSourceArraySchema plugin to normalize and filter the data into a consistent format:</p>
+
+<pre class="code prettyprint">YUI().use(&quot;datasource-local&quot;, &quot;datasource-arrayschema&quot;, function(Y) {
+    var myData = [
+            {name:&quot;abc&quot;,id:123,extra:&quot;foo&quot;},
+            {name:&quot;def&quot;,id:456,extra:&quot;bar&quot;},
+            {name:&quot;ghi&quot;,id:789,extra:&quot;baz&quot;}
+        ],
+        myDataSource = new Y.DataSource.Local({source:myData}),
+        myCallback = {
+            success: function(e){
+                alert(e.response);
+            },
+            failure: function(e){
+                alert(&quot;Could not retrieve data: &quot; + e.error.message);
+            }
+        };
+
+    myDataSource.plug(Y.Plugin.DataSourceArraySchema, {
+        schema: {
+            resultFields: [&quot;name&quot;,&quot;id&quot;]
+        }
+    });
+
+    myDataSource.sendRequest({callback:myCallback});
+});</pre>
+
+
+<p>Use the DataSourceJSONSchema plugin to normalize JSON data:</p>
+
+<pre class="code prettyprint">YUI().use(&quot;datasource-local&quot;, &quot;datasource-jsonschema&quot;, function(Y) {
+    var myData = {
+        &quot;profile&quot;:{
+            &quot;current&quot;:160,
+            &quot;target&quot;:150
+        },
+        &quot;reference&quot;: [
+            {
+                ...
+            },
+            {
+                &quot;category&quot;:&quot;nutrition&quot;,
+                &quot;type&quot;:&quot;intake&quot;,
+                &quot;fruit&quot;:[
+                    {&quot;name&quot;:&quot;apple&quot;, &quot;calories&quot;:70},
+                    {&quot;name&quot;:&quot;banana&quot;, &quot;calories&quot;:70},
+                    {&quot;name&quot;:&quot;orange&quot;, &quot;calories&quot;:90},
+                ],
+                &quot;vegetables&quot;:[
+                    {&quot;name&quot;:&quot;baked potato&quot;, &quot;calories&quot;:150},
+                    {&quot;name&quot;:&quot;broccoli&quot;, &quot;calories&quot;:50},
+                    {&quot;name&quot;:&quot;green beans&quot;, &quot;calories&quot;:30}
+                ]
+            }
+        ],
+        &quot;program&quot;: [
+            ...
+        ]
+    },
+    myDataSource = new Y.DataSource.Local({source:myData}),
+    myCallback = {
+        success: function(e){
+            alert(e.response);
+        },
+        failure: function(e){
+            alert(&quot;Could not retrieve data: &quot; + e.error.message);
+        }
+    };
+
+    myDataSource.plug(Y.Plugin.DataSourceJSONSchema, {
+        schema: {
+            resultListLocator: &quot;reference[1].fruit&quot;,
+            resultFields: [&quot;name&quot;,&quot;calories&quot;]
+        }
+    });
+
+    myDataSource.sendRequest({callback:myCallback});
+});</pre>
+
+
+<p>You can use the DataSourceXMLSchema plugin to work with DOM elements:</p>
+
+<pre class="code prettyprint">YUI().use(&quot;datasource-local&quot;, &quot;datasource-xmlschema&quot;, function(Y) {
+    var myTable = Y.Node.getDOMNode(Y.one(&quot;#myTable&quot;)),
+        myDataSource = new Y.DataSource.Local({source:myTable}),
+        myCallback = {
+            success: function(e){
+                alert(e.response);
+            },
+            failure: function(e){
+                alert(&quot;Could not retrieve data: &quot; + e.error.message);
+            }
+        };
+
+    myDataSource.plug(Y.Plugin.DataSourceXMLSchema, {
+        schema: {
+            resultListLocator: &quot;tr&quot;,
+            resultFields: [
+                {key:&quot;beverage&quot;, locator:&quot;td[1]&quot;},
+                {key:&quot;price&quot;, locator:&quot;td[2]&quot;}
+            ]
+        }
+    });
+
+    myDataSource.sendRequest({callback:myCallback});
+});</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="The Local DataSource manages retrieval of in-page data, from JavaScript arrays and objects to DOM elements.">
+                                            <a href="datasource-local.html">DataSource.Local</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The Get DataSource, which manages retrieval of data from remote sources via the Get Utility, can be useful for accessing data from cross-domain servers without the need for a proxy.">
+                                            <a href="datasource-get.html">DataSource.Get</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The IO DataSource manages retrieval of data from remote sources, via the IO Utility.">
+                                            <a href="datasource-io.html">DataSource.IO</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The Function DataSource, which manages retrieval of data from a JavaScript function, provides a highly customizeable mechanism for implementer-defined data retrieval algorithms">
+                                            <a href="datasource-function.html">DataSource.Function</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use the DataSourceCache plugin to enable caching and reduce server calls to remote sources.">
+                                            <a href="datasource-caching.html">DataSource with Caching</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The DataSourceCache plugin supports offline caching so that cached data persists across browser sessions.">
+                                            <a href="datasource-offlinecache.html">DataSource with Offline Cache</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use the Pollable extension to enable polling in your DataSource.">
+                                            <a href="datasource-polling.html">DataSource with Polling</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="How to provide autocomplete suggestions using a DataSource instance.">
+                                            <a href="../autocomplete/ac-datasource.html">Remote Data via DataSource</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

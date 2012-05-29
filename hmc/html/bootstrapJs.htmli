@@ -1,4 +1,4 @@
-<script src="../yui-3.4.1/build/yui/yui-min.js"></script>
+<script src="../yui-3.5.1/build/yui/yui-min.js"></script>
 
 <script type="text/javascript">
 
@@ -21,14 +21,14 @@
   var globalYuiLoaderOptions = {
     combine: true,
     comboBase: '../yuiCombinator.php?',
-    root: 'yui-3.4.1/build/'
+    root: 'yui-3.5.1/build/'
   };
 
   var globalYui = YUI( globalYuiLoaderOptions ).use( 
     "node", "io", "dump", "json", "panel", "event", "arraysort", 
     "array-extras", "datasource", "datasource-io", "datasource-jsonschema", 
     "datasource-polling", "stylesheet", "dd-drop", "dd-constrain",
-    "dd-proxy", function (Y) {
+    "dd-proxy", "transition", function (Y) {
 
       /* Kick off the sequential loading. */
       loadNextJsFile();

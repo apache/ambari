@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Check Data Types with &#x60;Lang&#x60;</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Check Data Types with &#x60;Lang&#x60;</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+<p>The YUI Global Object includes several useful type-checking methods in the <code>Lang</code>
+object.  In addition to the <code>&#x27;isXYZ&#x27;</code> type check methods, YUI 3 includes
+<code>Y.Lang.type</code>, which returns a string representing the type of the tested
+object.  Click the "Check" button in each row to evaluate the data.</p>
+
+</div>
+
+<div class="example">
+    <table id="demo">
+    <thead>
+        <tr>
+            <th>Data</th>
+            <th>isObject</th>
+            <th>isArray</th>
+            <th>isFunction</th>
+            <th>type</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>null<code></td>
+            <td colspan="4"><input type="button" name="demo-1" id="demo-1" value="check"/></td>
+        </tr>
+        <tr>
+            <td><code>[] or new Array()</code></td>
+            <td colspan="4"><input type="button" name="demo-2" id="demo-2" value="check"/></td>
+        </tr>
+        <tr>
+            <td><code>{} or new Object()</code></td>
+            <td colspan="4"><input type="button" name="demo-3" id="demo-3" value="check"/></td>
+        </tr>
+        <tr>
+            <td><code>function Foo() {}</code></td>
+            <td colspan="4"><input type="button" name="demo-4" id="demo-4" value="check"/></td>
+        </tr>
+        <tr>
+            <td><code>new Foo()</code></td>
+            <td colspan="4"><input type="button" name="demo-5" id="demo-5" value="check"/></td>
+        </tr>
+    <tbody>
+</table>
+
+<script>
+YUI().use('node', function(Y) {
+    // This method is in the core of the library, so we don't have to use() any
+    // additional modules to access it.  However, this example requires 'node'.
+
+    var checkType = function (val) {
+        return {
+            'object'  : Y.Lang.isObject(val),
+            'array'   : Y.Lang.isArray(val),
+            'function': Y.Lang.isFunction(val),
+            'type'    : Y.Lang.type(val)
+        };
+    };
+
+    var populateRow = function (e, data) {
+        var target = e.target;
+            cell = target.get('parentNode'),
+            row  = cell.get('parentNode');
+
+        row.removeChild(cell);
+
+        var td0 = document.createElement('td'),
+            td1 = td0.cloneNode(false),
+            td2 = td0.cloneNode(false);
+            td3 = td0.cloneNode(false);
+
+        var results = checkType(data);
+
+        td0.appendChild(document.createTextNode(results['object']   ? 'Y' : 'N'));
+        td1.appendChild(document.createTextNode(results['array']    ? 'Y' : 'N'));
+        td2.appendChild(document.createTextNode(results['function'] ? 'Y' : 'N'));
+        td3.appendChild(document.createTextNode(results['type']));
+
+        row.appendChild(td0);
+        row.appendChild(td1);
+        row.appendChild(td2);
+        row.appendChild(td3);
+    };
+
+    var foo = function () {};
+    var f = Y.one('#demo');
+
+    Y.on('click',populateRow, '#demo-1', Y, null);
+    Y.on('click',populateRow, '#demo-2', Y, []);
+    Y.on('click',populateRow, '#demo-3', Y, {});
+    Y.on('click',populateRow, '#demo-4', Y, foo);
+    Y.on('click',populateRow, '#demo-5', Y, new foo());
+
+});
+
+</script>
+
+</div>
+
+<h3>Type Checking with YUI</h3>
+
+<pre class="code prettyprint">YUI().use(&#x27;node&#x27;, function(Y) {
+    &#x2F;&#x2F; This method is in the core of the library, so we don&#x27;t have to use() any
+    &#x2F;&#x2F; additional modules to access it.  However, this example requires &#x27;node&#x27;.</pre>
+
+
+<h3>Checking types</h3>
+<p>In this example, we use a few of the type-checking methods available in
+<code>Lang</code> to test various types of data.</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Test the input using Y.Lang type checking methods
+var checkType = function (val) {
+    return {
+        &#x27;object&#x27;  : Y.Lang.isObject(val),
+        &#x27;array&#x27;   : Y.Lang.isArray(val),
+        &#x27;function&#x27;: Y.Lang.isFunction(val),
+        &#x27;type&#x27;    : Y.Lang.type(val)
+    };
+};</pre>
+
+
+<h3>Full Source</h3>
+
+<pre class="code prettyprint">YUI().use(&#x27;node&#x27;, function(Y) {
+    &#x2F;&#x2F; This method is in the core of the library, so we don&#x27;t have to use() any
+    &#x2F;&#x2F; additional modules to access it.  However, this example requires &#x27;node&#x27;.
+
+    var checkType = function (val) {
+        return {
+            &#x27;object&#x27;  : Y.Lang.isObject(val),
+            &#x27;array&#x27;   : Y.Lang.isArray(val),
+            &#x27;function&#x27;: Y.Lang.isFunction(val),
+            &#x27;type&#x27;    : Y.Lang.type(val)
+        };
+    };
+
+    var populateRow = function (e, data) {
+        var target = e.target;
+            cell = target.get(&#x27;parentNode&#x27;),
+            row  = cell.get(&#x27;parentNode&#x27;);
+
+        row.removeChild(cell);
+
+        var td0 = document.createElement(&#x27;td&#x27;),
+            td1 = td0.cloneNode(false),
+            td2 = td0.cloneNode(false);
+            td3 = td0.cloneNode(false);
+
+        var results = checkType(data);
+
+        td0.appendChild(document.createTextNode(results[&#x27;object&#x27;]   ? &#x27;Y&#x27; : &#x27;N&#x27;));
+        td1.appendChild(document.createTextNode(results[&#x27;array&#x27;]    ? &#x27;Y&#x27; : &#x27;N&#x27;));
+        td2.appendChild(document.createTextNode(results[&#x27;function&#x27;] ? &#x27;Y&#x27; : &#x27;N&#x27;));
+        td3.appendChild(document.createTextNode(results[&#x27;type&#x27;]));
+
+        row.appendChild(td0);
+        row.appendChild(td1);
+        row.appendChild(td2);
+        row.appendChild(td3);
+    };
+
+    var foo = function () {};
+    var f = Y.one(&#x27;#demo&#x27;);
+
+    Y.on(&#x27;click&#x27;,populateRow, &#x27;#demo-1&#x27;, Y, null);
+    Y.on(&#x27;click&#x27;,populateRow, &#x27;#demo-2&#x27;, Y, []);
+    Y.on(&#x27;click&#x27;,populateRow, &#x27;#demo-3&#x27;, Y, {});
+    Y.on(&#x27;click&#x27;,populateRow, &#x27;#demo-4&#x27;, Y, foo);
+    Y.on(&#x27;click&#x27;,populateRow, &#x27;#demo-5&#x27;, Y, new foo());
+
+});</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Setting up a YUI Instance">
+                                            <a href="yui-core.html">YUI Core</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with multiple YUI instances.">
+                                            <a href="yui-multi.html">Multiple Instances</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="On-demand loading of YUI and non-YUI assets">
+                                            <a href="yui-loader-ext.html">YUI Loader - Dynamically Adding YUI and External Modules</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Create Class Hierarchies with &#x60;extend&#x60;">
+                                            <a href="yui-extend.html">Create Class Hierarchies with &#x60;extend&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating a composition-based class structure using &#x60;augment&#x60;">
+                                            <a href="yui-augment.html">Compose Classes of Objects with &#x60;augment&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Add behaviors to objects or static classes with &#x60;mix&#x60;">
+                                            <a href="yui-mix.html">Add Behaviors to Objects with &#x60;mix&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Combine data sets and create shallow copies of objects with &#x60;merge&#x60;">
+                                            <a href="yui-merge.html">Combine Data Sets with &#x60;merge&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Check data types with the &#x60;Lang Utilities&#x60;">
+                                            <a href="yui-isa.html">Check Data Types with &#x60;Lang&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Get information about the current user agent with &#x60;UA&#x60;">
+                                            <a href="yui-ua.html">Browser Detection with &#x60;UA&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with YUI 2 in 3">
+                                            <a href="yui-yui2.html">Working with YUI 2 in 3</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Natively use YUI Gallery Modules">
+                                            <a href="yui-gallery.html">Natively use YUI Gallery Modules</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Programatically use Loader">
+                                            <a href="loader-resolve.html">Programatically use Loader</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Executing functions in parallel">
+                                            <a href="parallel.html">Using Y.Parallel</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

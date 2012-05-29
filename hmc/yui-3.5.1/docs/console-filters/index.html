@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ConsoleFilters Plugin</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>ConsoleFilters Plugin</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro component" style="overflow: hidden; padding-bottom: 1em;">
+    <p>
+        <img src="../assets/console-filters/images/small.png" alt="Screen capture of a Console with the ConsoleFilters plugin" height="203" width="200" style="border: 0 none; margin-left: 2em; float: right;">
+        The Console Filters plugin provides controls for visually filtering <a
+        href="../console/">Console</a> messages by category and source.  The
+        plugin creates two sets of checkboxes in the Console footer, one for
+        known categories, the other for known sources.  Only messages matching
+        a checked category and source will be displayed.
+    </p>
+</div>
+				
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for ConsoleFilters Plugin and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;console-filters&#x27;, function (Y) {
+    &#x2F;&#x2F; ConsoleFilters Plugin is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+				
+<h3 id="sam">Trigger the CSS skin</h3>
+
+<p>
+    For the default &quot;Sam&quot; skin to apply to the Console UI, you'll
+    need to apply the <code>yui-skin-sam</code> class name to an element that
+    is a parent of the element in which the Console lives. You can usually
+    accomplish this simply by putting the class on the
+    <code>&#60;body&#62;</code> tag:
+</p>
+
+<pre class="code prettyprint">&lt;body class=&quot;yui-skin-sam&quot;&gt;</pre>
+
+
+
+<p>
+    For more information on skinning YUI components and making use of default
+    skins, see our <a
+    href="http://developer.yahoo.com/yui/articles/skinning/">Understanding YUI
+    Skins</a> article.
+</p>
+
+<h2 id="using">Using <code>Plugin.ConsoleFilters</code></h2>
+
+<p>
+    The Console Filters plugin adds a set of controls to the Console footer to
+    allow interactive control of which log messages are displayed.  It differs
+    from <a href="../console/#filter">other means of Console filtering</a> by
+    supporting display-only filtering.  Messages that are filtered from view
+    are not destroyed, and can be shown again by changing the filters.
+</p>
+
+<h3 id="plug">Adding and configuring Plugin.ConsoleFilters</h3>
+
+<p>
+    The Console Filters plugin has no required configuration or markup.  All
+    you need to do is plug it into your Console instance and the additional
+    functionality will be available.
+</p>
+
+<pre class="code prettyprint">var yconsole = new Y.Console();
+yconsole.plug(Y.Plugin.ConsoleFilters);
+
+&#x2F;&#x2F; OR
+
+var yconsole = new Y.Console({
+    &#x2F;* any other configuration *&#x2F;
+    plugins: [ Y.Plugin.ConsoleFilters ]
+});</pre>
+
+			
+<h4 id="config">Configuration</h4>
+
+<p>
+    ConsoleFilters manages a <code>category</code> attribute for known
+    categories and a <code>source</code> attribute for known sources.  The
+    value of these attributes is an object literal with an entry for each
+    category or source, respectively, mapping to a boolean indicating whether
+    or not to display associated messages.
+</p>
+
+<p>
+    These attributes will be updated whenever a message with an unknown
+    category or source is received by the Console.  When a new category or
+    source is received, its initial visibility is set according to the value of
+    the <code>defaultVisibility</code> attribute.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Configure the ConsoleFilters to show attribute messages, but default all
+&#x2F;&#x2F; others to hidden.
+var yconsole = new Y.Console({
+    plugins: [ {
+        fn: Y.Plugin.ConsoleFilters,
+        cfg: {
+            defaultVisibility: false,
+            source: {
+                attribute: true
+            }
+        }
+    }]});
+
+&#x2F;&#x2F; OR
+var yconsole = new Y.Console();
+yconsole.plug(Y.Plugin.ConsoleFilters, {
+    defaultVisibility: false,
+    source: {
+        attribute: true
+    }
+});</pre>
+
+
+<h3 id="display">The ConsoleFilters UI</h3>
+
+<p>
+    The Console Filters plugin adds two groups of checkboxes to the Console
+    footer.  The upper set is for known categories; the lower for known
+    sources.
+</p>
+
+<img src="../assets/console-filters/images/console_filters_anatomy.png" alt="Screen capture of a Console footer with checkbox groups identified for categories and sources">
+
+<p>
+    As new categories or sources are received by the Console, corresponding
+    checkboxes are added to the respective group.  You can see this in the <a
+    href="../examples/console/console_filter.html">Using the ConsoleFilters
+    plugin</a> example.
+</p>
+
+<h3 id="controls">Interacting with the Console Filters plugin</h3>
+
+<p>
+    Checking and unchecking the filter checkboxes will cause the Console body
+    to repopulate with only those messages that match both a checked category
+    and a checked source.
+</p>
+
+<p>
+    Typically, interaction with the Console Filters plugin occurs via the UI.
+    However, it does provide an API under the <code>filter</code> namespace on
+    your Console instance.  Through this API you can <code>get</code> or
+    <code>set</code> any of <a href="#plug">the attributes noted above</a> or
+    use the following convenience methods:
+</p>
+                
+<ul>
+    <li><code>hideCategory(cat1, cat2, ...catN)</code></li>
+    <li><code>showCategory(cat1, cat2, ...catN)</code></li>
+    <li><code>hideSource(src1, src2, ...srcN)</code></li>
+    <li><code>showSource(src1, src2, ...srcN)</code></li>
+</ul>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Setting visibility states via the attributes
+yconsole.filter.set(&#x27;source.attribute&#x27;, false);
+yconsole.filter.set(&#x27;source.event&#x27;, false);
+yconsole.filter.set(&#x27;category.info&#x27;, true);
+
+&#x2F;&#x2F; Equivalent operations, using the convenience methods
+yconsole.filter.hideSource(&#x27;attribute&#x27;,&#x27;event&#x27;);
+yconsole.filter.showCategory(&#x27;info&#x27;);</pre>
+
+
+<p>
+    Updating the attributes via <code>set</code> or any of the hide or show
+    methods will check or uncheck the corresponding checkbox in the UI.
+</p>
+
+<h3 id="events">Events</h3>
+
+<p>
+    The Console Filters plugin does not emit any events other than the
+    corresponding change events for its attributes.
+</p>
+
+<ul>
+    <li><code>categoryChange</code></li>
+    <li><code>sourceChange</code></li>
+    <li><code>defaultVisibilityChange</code></li>
+</ul>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+<ul class="toc">
+<li>
+<a href="#sam">Trigger the CSS skin</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#using">Using <code>Plugin.ConsoleFilters</code></a>
+<ul class="toc">
+<li>
+<a href="#plug">Adding and configuring Plugin.ConsoleFilters</a>
+<ul class="toc">
+<li>
+<a href="#config">Configuration</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#display">The ConsoleFilters UI</a>
+</li>
+<li>
+<a href="#controls">Interacting with the Console Filters plugin</a>
+</li>
+<li>
+<a href="#events">Events</a>
+</li>
+</ul>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Adding the ConsoleFilters plugin to a Console instance for more granular run time log message filtering">
+                                            <a href="console-filters-intro.html">Using the ConsoleFilters Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                        <li data-description="The basics of setting up a Console">
+                                            <a href="../console/console-basic.html">Creating a Console for Debugging</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

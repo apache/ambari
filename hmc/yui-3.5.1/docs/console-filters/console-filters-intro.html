@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Using the ConsoleFilters Plugin</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Using the ConsoleFilters Plugin</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+#yconsole {
+    margin: 0 auto 1em;
+}
+
+#demo .yui3-console .yui3-console-title {
+    border: 0 none;
+    color: #000;
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0;
+    text-transform: none;
+}
+#demo .yui3-console .yui3-console-entry-meta {
+    margin: 0;
+}
+</style>
+
+
+<div class="intro">
+    <p>This example illustrates how to use and configure the ConsoleFilters plugin for Console.  The debug versions of YUI module files are used, so standard YUI debugging messages are broadcast to the Console.</p>
+
+    <p>Use the checkboxes in the Console footer to control which messages are displayed or hidden.  Click the &quot;Log a message&quot; button to call <code>Y.log</code> using a custom category and source.</p>
+
+    <p>Note how new filter checkboxes are added when a new category or source are received by the Console, for example when clicking on the &quot;Log a message&quot; button.</p>
+</div>
+
+<div class="example yui3-skin-sam">
+    <div id="demo" class="yui3-skin-sam">
+    <div id="yconsole"></div>
+    <button id="log" type="button">Log a message</button>
+    <button id="toggle_info" type="button">Hide info messages</button>
+</div>
+
+    <script type="text/javascript">
+// Create a YUI instance and request the console module and its dependencies
+YUI({ filter: 'debug' }).use("console-filters", function (Y) {
+
+// create the console instance
+var yconsole = new Y.Console({
+    boundingBox: '#yconsole',
+    height: '400px',
+    width: '450px',
+    newestOnTop: false,
+    style: 'block',
+    plugins: [ Y.Plugin.ConsoleFilters ]
+}).render();
+
+// unknown categories and sources are allowed.
+yconsole.filter.hideCategory('error');
+
+// hide and show methods support N arguments.
+yconsole.filter.hideSource('attribute','widget');
+
+/* Alternately
+var yconsole = new Y.Console({
+    boundingBox: '#console',
+    height: '400px',
+    width: '450px',
+    style: 'block',
+    newestOnTop: false
+}).plug(Y.Plugin.ConsoleFilters, {
+    category: {
+        error: false
+    },
+    source: {
+        attribute: false,
+        widget: false
+    }
+}).render();
+*/
+
+// Broadcast a log message from a button that uses a custom category and source
+Y.on('click', function () {
+    Y.log('Logging a message to the Console','my_stuff','MyApp');
+},'#log');
+
+// It is also possible to set the filter's subattributes directly
+Y.on('click', function () {
+    var current = yconsole.filter.get('category.info');
+
+    yconsole.filter.set('category.info', !current);
+
+    this.set('text', (current ? 'Show' : 'Hide') + ' info messages');
+},'#toggle_info');
+
+});
+</script>
+
+</div>
+
+<h3 class="first">Configure the YUI instance for debug mode</h3>
+<p>Only the <code>&lt;em&gt;module&lt;&#x2F;em&gt;-debug.js</code> versions of module files include log statements, so we'll set up our YUI instance's <code>filter</code> property to &quot;debug&quot;.  We'll also reduce the noise somewhat by specifying a <code>logInclude</code> list.</p>
+
+<pre class="code prettyprint">YUI({filter: &#x27;debug&#x27;,
+    logInclude: {
+        event: true,
+        attribute: true,
+        base: true,
+        widget: true,
+        node: true,
+        MyApp: true  &#x2F;&#x2F; This must be included for the custom source message
+    },
+    timeout: 10000
+}).use(&quot;console-filters&quot;, function (Y) { ... });</pre>
+
+
+<h3>Create the Console and plug in ConsoleFilters</h3>
+<p>All that's left to do now is plugin in the ConsoleFilters plugin.  This can be done in one of a few ways.</p>
+<pre class="code prettyprint">&#x2F;&#x2F; create the console instance
+var yconsole = new Y.Console({
+    boundingBox: &#x27;#console&#x27;,
+    height: &#x27;400px&#x27;,
+    width: &#x27;450px&#x27;,
+    newestOnTop: false,
+    plugins: [ Y.Plugin.ConsoleFilters ]
+}).render();
+
+&#x2F;&#x2F; unknown categories and sources are allowed.
+yconsole.filter.hideCategory(&#x27;error&#x27;);
+
+&#x2F;&#x2F; hide and show methods support N arguments.
+yconsole.filter.hideSource(&#x27;attribute&#x27;,&#x27;widget&#x27;);</pre>
+
+
+<p>Alternatively, you can attach the ConsoleFilters plugin after instantiation.  This version also shows how to apply initial category and source filter states.</p>
+<pre class="code prettyprint">var yconsole = new Y.Console({
+    boundingBox: &#x27;#console&#x27;,
+    height: &#x27;400px&#x27;,
+    width: &#x27;450px&#x27;,
+    newestOnTop: false
+}).plug(Y.Plugin.ConsoleFilters, {
+    category: {
+        error: false
+    },
+    source: {
+        attribute: false,
+        widget: false
+    }
+}).render();
+&lt;&#x2F;script&gt;</pre>
+
+
+<h3>Full Code Listing</h3>
+
+<h4>Markup</h4>
+<pre class="code prettyprint">&lt;div id=&quot;demo&quot; class=&quot;yui3-skin-sam&quot;&gt;
+    &lt;div id=&quot;yconsole&quot;&gt;&lt;&#x2F;div&gt;
+    &lt;button id=&quot;log&quot; type=&quot;button&quot;&gt;Log a message&lt;&#x2F;button&gt;
+    &lt;button id=&quot;toggle_info&quot; type=&quot;button&quot;&gt;Hide info messages&lt;&#x2F;button&gt;
+&lt;&#x2F;div&gt;</pre>
+
+
+<h4>JavaScript</h4>
+<pre class="code prettyprint">&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+&#x2F;&#x2F; Create a YUI instance and request the console module and its dependencies
+YUI({ filter: &#x27;debug&#x27; }).use(&quot;console-filters&quot;, function (Y) {
+
+&#x2F;&#x2F; create the console instance
+var yconsole = new Y.Console({
+    boundingBox: &#x27;#yconsole&#x27;,
+    height: &#x27;400px&#x27;,
+    width: &#x27;450px&#x27;,
+    newestOnTop: false,
+    style: &#x27;block&#x27;,
+    plugins: [ Y.Plugin.ConsoleFilters ]
+}).render();
+
+&#x2F;&#x2F; unknown categories and sources are allowed.
+yconsole.filter.hideCategory(&#x27;error&#x27;);
+
+&#x2F;&#x2F; hide and show methods support N arguments.
+yconsole.filter.hideSource(&#x27;attribute&#x27;,&#x27;widget&#x27;);
+
+&#x2F;* Alternately
+var yconsole = new Y.Console({
+    boundingBox: &#x27;#console&#x27;,
+    height: &#x27;400px&#x27;,
+    width: &#x27;450px&#x27;,
+    style: &#x27;block&#x27;,
+    newestOnTop: false
+}).plug(Y.Plugin.ConsoleFilters, {
+    category: {
+        error: false
+    },
+    source: {
+        attribute: false,
+        widget: false
+    }
+}).render();
+*&#x2F;
+
+&#x2F;&#x2F; Broadcast a log message from a button that uses a custom category and source
+Y.on(&#x27;click&#x27;, function () {
+    Y.log(&#x27;Logging a message to the Console&#x27;,&#x27;my_stuff&#x27;,&#x27;MyApp&#x27;);
+},&#x27;#log&#x27;);
+
+&#x2F;&#x2F; It is also possible to set the filter&#x27;s subattributes directly
+Y.on(&#x27;click&#x27;, function () {
+    var current = yconsole.filter.get(&#x27;category.info&#x27;);
+
+    yconsole.filter.set(&#x27;category.info&#x27;, !current);
+
+    this.set(&#x27;text&#x27;, (current ? &#x27;Show&#x27; : &#x27;Hide&#x27;) + &#x27; info messages&#x27;);
+},&#x27;#toggle_info&#x27;);
+
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<h4>CSS</h4>
+<pre class="code prettyprint">&lt;style scoped&gt;
+#yconsole {
+    margin: 0 auto 1em;
+}
+
+#demo .yui3-console .yui3-console-title {
+    border: 0 none;
+    color: #000;
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0;
+    text-transform: none;
+}
+#demo .yui3-console .yui3-console-entry-meta {
+    margin: 0;
+}
+&lt;&#x2F;style&gt;</pre>
+
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Adding the ConsoleFilters plugin to a Console instance for more granular run time log message filtering">
+                                            <a href="console-filters-intro.html">Using the ConsoleFilters Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                        <li data-description="The basics of setting up a Console">
+                                            <a href="../console/console-basic.html">Creating a Console for Debugging</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

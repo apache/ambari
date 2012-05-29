@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Basic Node Transitions</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Basic Node Transitions</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><link href="../assets/transition/transition.css" rel="stylesheet" type="text/css">
+<div class="intro">
+    <p>The <code>transition</code> method animates the value of each property from the current value to the given value.
+    Click the X to run the animation.</p>
+</div>
+
+<div class="example">
+<div id="demo">
+    <a href="#" title="run the animation"></a>
+</div>
+
+<script type="text/javascript">
+YUI().use('transition', function(Y) {
+    var node = Y.one('#demo');
+
+    node.one('a').on('click', function(e) {
+        e.preventDefault();
+        
+        node.transition({
+            duration: 1, // seconds
+            easing: 'ease-out',
+            height: 0,
+            width: 0,
+            left: '150px',
+            top: '100px',
+            opacity: 0
+        }, function() {
+            this.remove(); 
+        });
+    });
+});
+</script>
+
+</div>
+
+<h2>Using the Transition Method</h2>
+<p>Transition allows you to animate one or more properties from their current value to a given value with the specified duration and easing method.</p>
+
+<pre class="code prettyprint">Y.one(&#x27;#demo&#x27;).transition({
+    duration: 1, &#x2F;&#x2F; seconds
+    easing: &#x27;ease-out&#x27;,
+    height: 0,
+    width: 0,
+    left: &#x27;150px&#x27;,
+    top: &#x27;100px&#x27;,
+    opacity: 0
+});</pre>
+
+
+<h2>Transition with Callback</h2>
+<p>The <code>transition</code> method provides an optional callback argument, which is a function that runs once the transition is completed.  The callback runs only for this transition.</p>
+
+<pre class="code prettyprint">var node = Y.one(&#x27;#demo&#x27;);
+
+node.transition({
+    duration: 1, &#x2F;&#x2F; seconds
+    easing: &#x27;ease-out&#x27;,
+    height: 0,
+    width: 0,
+    left: &#x27;150px&#x27;,
+    top: &#x27;100px&#x27;,
+    opacity: 0
+}, function() {
+    this.remove(); 
+});</pre>
+
+
+<h2>Complete Example Source</h2>
+<pre class="code prettyprint">&lt;div id=&quot;demo&quot;&gt;
+    &lt;a href=&quot;#&quot; title=&quot;run the animation&quot;&gt;&lt;&#x2F;a&gt;
+&lt;&#x2F;div&gt;
+
+&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+YUI().use(&#x27;transition&#x27;, function(Y) {
+    var node = Y.one(&#x27;#demo&#x27;);
+
+    node.one(&#x27;a&#x27;).on(&#x27;click&#x27;, function(e) {
+        e.preventDefault();
+        
+        node.transition({
+            duration: 1, &#x2F;&#x2F; seconds
+            easing: &#x27;ease-out&#x27;,
+            height: 0,
+            width: 0,
+            left: &#x27;150px&#x27;,
+            top: &#x27;100px&#x27;,
+            opacity: 0
+        }, function() {
+            this.remove(); 
+        });
+    });
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Demonstrates the basic usage of Transitions.">
+                                            <a href="transition-basic.html">Basic Node Transitions</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Demonstrates more advanced usage of Transitions.">
+                                            <a href="transition-usage.html">Using Transitions</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Demonstrates how to animate Node&#x27;s show and hide methods.">
+                                            <a href="transition-view.html">Showing and Hiding with Transitions</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create a panel that animates as it is shown and hidden">
+                                            <a href="../panel/panel-animate.html">Creating an Animated Panel</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="NodeList provides Node functionality for manipulating multiple nodes at once.">
+                                            <a href="../node/nodelist.html">Using NodeList - Simple</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to use multiple NodeList features to build a simple game.">
+                                            <a href="../node/ducks.html">Using NodeList - Ducks Game</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example employs AsyncQueue to incrementally construct an application interface; this illustrates the approach you&#x27;d take to allow chunked rendering of the UI in a process-intensive application.">
+                                            <a href="../async-queue/queue-app.html">Building a UI with AsyncQueue</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Create a reusable JSONPRequest object to poll the YUILibrary.com Gallery web service, fetching info on a random Gallery module.">
+                                            <a href="../jsonp/jsonp-gallery.html">Reusing a JSONPRequest Instance to Poll a Remote Server</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

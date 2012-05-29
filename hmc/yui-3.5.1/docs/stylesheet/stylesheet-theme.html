@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Adjusting a Page Theme on the Fly</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Adjusting a Page Theme on the Fly</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>In this example, we'll use a snapshot of the <a href="http://www.w3.org/TR/html401/present/styles.html">W3C HTML 4.01 specification for Style Sheets</a> and add a custom dynamic StyleSheet to apply some color and font size changes.</p>
+
+    <p>A Progressive enhancement strategy is used to extract a static form on the page into a draggable Overlay.  Additionally, one of the form inputs is replaced with a Slider.  Enter any valid CSS color value into the other inputs (e.g. <code>#123456</code>, <code>#135</code>, <code>rgb(0,0,0)</code>, or <code>red</code>).</p>
+</div>
+
+<div class="example newwindow">
+    <a href="stylesheet-theme-example.html" target="_blank" class="button">
+        View Example in New Window
+    </a>
+</div>
+
+<h3 class="first">Full code listing</h3>
+<h4 id="markup">Markup</h4>
+<p>The markup as stated above is a local snapshot of the HTML 4.01 spec, but with the following markup added to the end of the <code>&lt;body&gt;</code> to show a progressive enhancement model.</p>
+
+<pre class="code prettyprint">&lt;div id=&quot;form_container&quot;&gt;
+    &lt;form class=&quot;yui3-widget-bd&quot; id=&quot;theme_form&quot; action=&quot;#&quot; method=&quot;get&quot;&gt;
+        &lt;fieldset&gt;
+            &lt;h3&gt;Update Theme&lt;&#x2F;h3&gt;
+            &lt;label for=&quot;font_size&quot;&gt;Font size:&lt;&#x2F;label&gt;
+            &lt;input type=&quot;text&quot; size=&quot;3&quot; id=&quot;font_size&quot; value=&quot;16px&quot;&gt;
+
+            &lt;label for=&quot;heading_color&quot;&gt;Heading color:&lt;&#x2F;label&gt;
+            &lt;input type=&quot;text&quot; size=&quot;12&quot; id=&quot;heading_color&quot; value=&quot;#005A9C&quot;&gt;
+
+            &lt;label for=&quot;link_hover&quot;&gt;Link hover backgound:&lt;&#x2F;label&gt;
+            &lt;input type=&quot;text&quot; size=&quot;12&quot; id=&quot;link_hover&quot; value=&quot;#ffa&quot;&gt;
+        &lt;&#x2F;fieldset&gt;
+        &lt;input type=&quot;submit&quot;&gt;
+    &lt;&#x2F;form&gt;
+&lt;&#x2F;div&gt;</pre>
+
+
+<h4>JavaScript</h4>
+
+<pre class="code prettyprint">&lt;script src=&quot;..&#x2F;..&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;
+&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance, requiring stylesheet, overlay, slider, and the
+&#x2F;&#x2F; dd-plugin to make the overlay draggable
+YUI().use(&quot;stylesheet&quot;,&quot;overlay&quot;,&quot;slider&quot;,&quot;dd-plugin&quot;, function (Y) {
+
+    var myStyleSheet = new Y.StyleSheet(),
+        overlayContent = Y.one(&#x27;#form_container&#x27;),
+        overlay,
+        slider,
+        slider_container,
+        fontSizeInput,
+
+    &#x2F;&#x2F; Create the Overlay, using the form container as the contentBox.
+    &#x2F;&#x2F; The form is assigned a class yui-widget-bd that will be automatically
+    &#x2F;&#x2F; discovered by Overlay to populate the Overlay&#x27;s body section.
+    &#x2F;&#x2F; The overlay is positioned in the top right corner, but made draggable
+    &#x2F;&#x2F; using Y.Plugin.Drag, provided by the dd-plugin module.
+    overlay = new Y.Overlay({
+        srcNode: overlayContent,
+        alignOn: [],
+        width: &#x27;225px&#x27;,
+        align: { points: [ Y.WidgetPositionAlign.TR, Y.WidgetPositionAlign.TR ] },
+        plugins: [ Y.Plugin.Drag ]
+    }).render();
+
+    &#x2F;&#x2F; Slider needs a parent element to have the sam skin class for UI skinning
+    overlayContent.addClass(&#x27;yui3-skin-sam&#x27;);
+
+    &#x2F;&#x2F; Progressively enhance the font-size input with a Slider
+    fontSizeInput = Y.one(&#x27;#font_size&#x27;);
+    fontSizeInput.set(&#x27;type&#x27;,&#x27;hidden&#x27;);
+    fontSizeInput.get(&#x27;parentNode&#x27;).insertBefore(
+        Y.Node.create(&#x27;6 &lt;span&gt;&lt;&#x2F;span&gt; 36&#x27;),
+        fontSizeInput);
+
+    slider_container = fontSizeInput.previous( &quot;span&quot; );
+
+    &#x2F;&#x2F; Create a Slider to contain font size between 6px and 36px, using the
+    &#x2F;&#x2F; page&#x27;s current font size as the initial value.
+    &#x2F;&#x2F; Set up an event subscriber during construction to update the replaced
+    &#x2F;&#x2F; input field&#x27;s value and apply the change to the StyleSheet
+    slider = new Y.Slider({
+        length: &#x27;100px&#x27;,
+        min: 6,
+        max: 36,
+        value: parseInt(Y.one(&#x27;body&#x27;).getStyle(&#x27;fontSize&#x27;)) || 13,
+        after: {
+            valueChange: function (e) {
+                var size = e.newVal + &#x27;px&#x27;;
+
+                this.thumb.set(&#x27;title&#x27;, size);
+                fontSizeInput.set(&#x27;value&#x27;, size);
+
+                myStyleSheet.set(&#x27;body&#x27;, { fontSize: size });
+            }
+        }
+    }).render( slider_container );
+
+    &#x2F;&#x2F; The color inputs are assigned keyup listeners that will update the
+    &#x2F;&#x2F; StyleSheet if the current input value is a valid CSS color value
+
+    &#x2F;&#x2F; The heading input affects all h1s, h2, and h3s
+    Y.on(&#x27;keyup&#x27;, function (e) {
+        var color = this.get(&#x27;value&#x27;);
+
+        if (isValidColor(color)) {
+            myStyleSheet.set(&#x27;h1, h2, h3&#x27;, { color: color });
+        }
+    }, &#x27;#heading_color&#x27;);
+
+    &#x2F;&#x2F; The link hover affects the background color of links when they are
+    &#x2F;&#x2F; hovered.  There is no way other than via stylesheet modification to
+    &#x2F;&#x2F; change pseudo-class styles.
+    Y.on(&#x27;keyup&#x27;, function (e) {
+        var color = this.get(&#x27;value&#x27;);
+
+        if (isValidColor(color)) {
+            myStyleSheet.set(&#x27;a:hover&#x27;, { backgroundColor: color });
+        }
+    }, &#x27;#link_hover&#x27;);
+
+    &#x2F;&#x2F; Progressive form enhancement complete, now prevent the form from
+    &#x2F;&#x2F; submitting normally.
+    Y.one(&#x27;#theme_form input[type=submit]&#x27;).remove();
+
+    Y.on(&#x27;submit&#x27;, function (e) {
+        e.halt();
+    }, &#x27;#theme_form&#x27;);
+
+	&#x2F;&#x2F; A rudimentary validator to make sure we&#x27;re not trying to set
+	&#x2F;&#x2F; invalid color values in StyleSheet.
+	function isValidColor(v) {
+        return &#x2F;^#[0-9a-f]{3}(?:[0-9a-f]{3})?$&#x2F;i.test(v) ||
+               &#x2F;^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$&#x2F;.test(v) ||
+               &#x2F;^[a-z]{3,}$&#x2F;i.test(v);
+	}
+
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<h4>CSS</h4>
+<p>This is the CSS added to the page to skin the Overlay and its content.</p>
+
+<pre class="code prettyprint">&lt;style&gt;
+&#x2F;* For supporting browsers, the overlay is rendered semi-transparent with
+ * fancy rounded corners *&#x2F;
+.yui3-overlay {
+    background: rgba(128,128,128,0.3);
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    padding: 7px;
+    cursor: move;
+}
+.yui3-overlay-content {
+    background: rgba(205,205,205,0.3);
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    padding: 1px;
+} 
+.yui3-overlay form {
+    background: #f2fbff url(..&#x2F;assets&#x2F;stylesheet&#x2F;gradient-promo.png) repeat-x scroll 0 0;
+    border: 2px solid #fff;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+}
+.yui3-overlay fieldset {
+    border: 1px solid #cde;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    margin: 0;
+    padding: 20px;
+}
+.yui3-overlay h3 {
+    border-bottom: 2px solid #fff;
+    color: #479;
+    background: transparent;
+    margin: 0;
+    font-size: 175%;
+}
+.yui3-overlay label {
+    display: block;
+    margin: 1.3em 0 0.5ex;
+    font-weight: bold;
+    color: #003;
+}
+.yui3-overlay p {
+    margin: 2em 0 0;
+}
+&#x2F;* override the move cursor for the Slider *&#x2F;
+.yui3-overlay .yui3-slider:hover {
+    cursor: default;
+}
+&lt;&#x2F;style&gt;</pre>
+
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Use StyleSheet to adjust the CSS rules applying a page theme from user input">
+                                            <a href="stylesheet-theme.html">Adjusting a Page Theme on the Fly</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Example Photo Browser application.">
+                                            <a href="../dd/photo-browser.html">Photo Browser</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>
