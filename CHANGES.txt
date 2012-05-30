@@ -6,7 +6,9 @@ characters wide.
 
 Release 0.1.x - unreleased
 
-  AMBARI-194. Avoid TxnProgressWidget Getting Stuck In An Infinite Loop (rezno via vgogate)
+  AMBARI-309. Make ManageServices Show Only One Action Per Service (reznor via vgogate)
+
+  AMBARI-194. Avoid TxnProgressWidget Getting Stuck In An Infinite Loop (reznor via vgogate)
 
   AMBARI-308. Externalize message resources; Update styles/messaging on Uninstall Wizard and 
               Add Nodes Wizard (Yusaku via vgogate)

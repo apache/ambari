@@ -20,7 +20,7 @@
   border-style: solid;
   border-width: 2px;
   /* Reznor's background-color: #c5c5c5; */
-  background-color:#F0F0E8;
+  background-color: white;
   border:color:#B2B299;
   border-radius:4px;
   -moz-border-radius:4px;
@@ -28,16 +28,14 @@
 }
 
 .serviceManagementEntry:hover {
-  background-color: #B2B299;
-  color: white;
+  background-color: rgb(240,240,232);
 }
 
 .serviceManagementEntry:hover a {
-  color: white;
 }
 
 .serviceManagementEntryStarted {
-  color: green;
+  color: rgb(50,205,50);
 }
 
 .serviceManagementEntryStopped {
@@ -45,7 +43,7 @@
 }
 
 .serviceManagementEntryInstalled {
-  color: green;
+  color: rgb(50,205,50);
 }
 
 .serviceManagementEntryUninstalled {

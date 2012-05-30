@@ -409,12 +409,30 @@ function generateServiceManagementEntryMarkup( serviceName, serviceInfo ) {
           '<div class="serviceManagementEntryActionsContainer">';
 
     if( serviceAttributes.runnable ) {
-              
+
+      var serviceManagementEntryAnchorName = '';
+      var serviceManagementEntryAnchorTitle = '';
+      var serviceManagementEntryAnchorCssClasses = 'serviceManagementEntryAction btn '; 
+      var serviceManagementEntryIconCssClass = '';
+
+      /* Already-started/stopped services shouldn't allow a start/stop operation on them. */
+      if( serviceInfo.state == 'STOPPED' ) {
+        serviceManagementEntryAnchorName = 'start';
+        serviceManagementEntryAnchorTitle = 'Start';
+        serviceManagementEntryAnchorCssClasses += 'serviceManagementEntryActionStart';
+        serviceManagementEntryIconCssClass = 'iconic-play';
+      } 
+      else if ( serviceInfo.state == 'STARTED' ) {
+        serviceManagementEntryAnchorName = 'stop';
+        serviceManagementEntryAnchorTitle = 'Stop';
+        serviceManagementEntryAnchorCssClasses += 'serviceManagementEntryActionStop';
+        serviceManagementEntryIconCssClass = 'iconic-stop';
+      }
+
       generatedServiceManagementEntryMarkup += 
-            '<a href="javascript:void(null)" name="start" title="Start" ' +
-               'class="btn serviceManagementEntryAction serviceManagementEntryActionStart"><i class="iconic-play"></i></a>' +
-            '<a href="javascript:void(null)" name="stop" title="Stop" ' +
-               'class="btn serviceManagementEntryAction serviceManagementEntryActionStop"><i class="iconic-stop"></i></a>';
+        '<a href="javascript:void(null)" name="' + serviceManagementEntryAnchorName + '" ' +
+        'title="' + serviceManagementEntryAnchorTitle + '" ' +
+        'class="' + serviceManagementEntryAnchorCssClasses + '"><i class="' + serviceManagementEntryIconCssClass + '"></i></a> ';
     }
 
     generatedServiceManagementEntryMarkup += 
