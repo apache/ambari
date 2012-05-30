@@ -133,6 +133,13 @@ span.installationWizardStageNumber {
   color: gray;
 }
 
+.txnNoOpMsg {
+  padding: 4px;
+  font-weight: bolder;
+  font-size: 150%;
+  text-align: center;
+}
+
 .logEntry {
   border:1px solid #B2B299 ;
   background-color:#F0F0E8;
