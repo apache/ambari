@@ -9,8 +9,8 @@
 	<div class="navbar">
 		<div class="navbar-inner">
 			<div class="container">
-				<img style="float:left;padding-top:5px" src="logo-small.gif">
-				<a class="brand" href="<?php echo $logoUrl ?>">Hortonworks Management Center</a>
+				<img style="float:left;padding-top:5px" src="../images/logo-small.gif">
+				<a class="brand" href="<?php echo $logoUrl ?>"><?php echo $RES['app.name'] ?></a>
 				<?php /*
 				<ul class="nav">
 					<li class="active"><a href="#">Home</a>

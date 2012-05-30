@@ -1,6 +1,7 @@
+<?php require_once "./head.inc"; ?>
 <html>
   <head>
-    <title id="pageTitleId">Hortonworks Management Center</title>
+    <title id="pageTitleId"><?php echo $RES['page.title'] ?></title>
 
     <!-- CSS -->
     <link type="text/css" rel="stylesheet" href="../yui-3.5.1/build/cssreset/cssreset-min.css">
@@ -9,6 +10,7 @@
     <link type="text/css" rel="stylesheet" href="../css/common2.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common3.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/selectHosts.css" media="screen"/>
+    <link rel="shortcut icon" href="../images/logo-micro.gif">
     <!-- End CSS -->
   </head>
 
@@ -29,7 +31,7 @@
             <li id="createClusterStageId" class="installationWizardFirstStage installationWizardCurrentStage">
               <div>
                 <span class="installationWizardStageNumber">
-                  1   
+                  1
                 </span>
                 Create Cluster
               </div>
@@ -37,7 +39,7 @@
             <li id="addNodesStageId" class="installationWizardUnvisitedStage">
               <div>
                 <span class="installationWizardStageNumber">
-                  2   
+                  2
                 </span>
                 Add Nodes
               </div>
@@ -45,7 +47,7 @@
             <li id="selectServicesStageId" class="installationWizardUnvisitedStage">
               <div>
                 <span class="installationWizardStageNumber">
-                  3   
+                  3
                 </span>
                 Select Services
               </div>
@@ -53,7 +55,7 @@
             <li id="assignHostsStageId" class="installationWizardUnvisitedStage">
               <div>
                 <span class="installationWizardStageNumber">
-                  4   
+                  4
                 </span>
                 Assign Hosts
               </div>
@@ -90,56 +92,49 @@
         <div id="installationMainFormsDivId">
               <div id="createClusterCoreDivId">
                 <div class="pageSummary">
-                  <h2>Let's create a new Hadoop cluster</h2>    
+                  <h2><?php echo $RES['initWizard.createCluster.pageSummary.header'] ?></h2>
+                  <p><?php echo $RES['initWizard.createCluster.pageSummary.body'] ?></p>
                 </div>
-                <div id="formStatusDivId" class="formStatusBar" style="display:none">
+                <div id="formStatusDivId" class="formStatusBar" style="display:none">					
                 </div>
                 <div class="pageContent">       
                   <form id="createClusterFormId">
-                    <label for="clusterNameId">Name of your new cluster</label>
+                    <label for="clusterNameId"><?php echo $RES['initWizard.createCluster.clusterName.label'] ?></label>
                     <input type="text" name="clusterName" id="clusterNameId" placeholder="cluster name" value="">
                   </form>
-				  <a href="javascript:void 0" class="btn btn-large" id="createClusterSubmitButtonId">Create Cluster</a>
+				  <a href="javascript:void 0" class="btn btn-large" id="createClusterSubmitButtonId"><?php echo $RES['initWizard.createCluster.submit.label'] ?></a>
                 </div>
               </div>
-          
-              <div id="addNodesCoreDivId" style="display:none"> 
+              <div id="addNodesCoreDivId" style="display:none">                  
                   <div class="pageSummary">
-                    <h2>Which nodes are you installing Hadoop on?</h2>
-                    We'll use the SSH private key and public key files to perform installation on your nodes.
-                    <span>The public key that is paired with the private key must already be installed on all the nodes.</span>
+                    <h2><?php echo $RES['initWizard.addNodes.pageSummary.header'] ?></h2>
+                    <?php echo $RES['initWizard.addNodes.pageSummary.body'] ?>
                   </div>
-                  <div id="formStatusDivId" class="alert alert-error" style="display:none">
-                  </div>
+                  <div id="formStatusDivId" class="alert alert-error" style="display:none">					
+                  </div>                  
                   <div class="pageContent">
                   <form id="addNodesFilesFormId" enctype="multipart/form-data" method="post">
-                    <p>
-                    <label for="clusterDeployUserId">SSH Username</label>
+                    <label for="clusterDeployUserId"><?php echo $RES['common.sshUsername.label'] ?></label>
                     <input type="text" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">
-                    </p>
-                    <br/>
-                    <p>
-                    <label for="clusterDeployUserIdentityFileId">SSH Private Key File</label>
+                    <div class="separator"></div>
+                    <label for="clusterDeployUserIdentityFileId"><?php echo $RES['common.sshPrivateKeyFile.label'] ?></label>
                     <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFileId" value="" placeholder="">
-                    </p>
-                    <br/>
-                    <p>
-                    <label for="clusterHostsFileId">Hosts File (newline-delimited list of hostnames)</label>
+                    <div class="separator"></div>
+                    <label for="clusterHostsFileId"><?php echo $RES['common.hostsFile.label'] ?></label>
                     <input type="file" name="clusterHostsFile" id="clusterHostsFileId" value="" placeholder="">
-                    </p>
-                    <br/>
+                    <div class="separator"></div>
                     <div id="yumMirrorSupportFormId">
                       <div id="yumMirrorSupportFormButtonWrapperId">
-                        <label class="checkbox" for="yumMirrorSupportFormButtonId">Use local yum mirror instead of HMC defaults?
+                        <label class="checkbox" for="yumMirrorSupportFormButtonId"><?php echo $RES['initWizard.addNodes.useLocalYum.label'] ?>
                           <input type="checkbox" name="YumMirrorSupportFormButton" id="yumMirrorSupportFormButtonId" value="" placeholder="">
                         </label>
                       </div>
                       <div id="yumMirrorSupportFormFieldsId" style="display:none">
-                        <label for="yumRepoFilePathId">YUM Repo File Path</label>
+                        <label for="yumRepoFilePathId"><?php echo $RES['initWizard.addNodes.yumRepoFilePath.label'] ?></label>
                         <input type="text" name="YumRepoFilePath" id="yumRepoFilePathId" value="" placeholder="">
-                        <label for="hmcArtifactsDownloadUrlId">Apache Artifacts Download URL</label>
+                        <label for="hmcArtifactsDownloadUrlId"><?php echo $RES['initWizard.addNodes.apacheArtifactsDownloadUrl.label'] ?></label>
                         <input type="text" name="HmcArtifactsDownloadUrl" id="hmcArtifactsDownloadUrlId" value="" placeholder="">
-                        <label for="hmcGplArtifactsDownloadUrlId">GPL Artifacts Download URL</label>
+                        <label for="hmcGplArtifactsDownloadUrlId"><?php echo $RES['initWizard.addNodes.gplArtifactsDownloadUrl.label'] ?></label>
                         <input type="text" name="HmcGplArtifactsDownloadUrl" id="hmcGplArtifactsDownloadUrlId" value="" placeholder="">
                       </div>
                     </div>
@@ -147,21 +142,22 @@
                       <iframe name="fileUploadTarget" id="fileUploadTargetId" src="about:blank" style="display:none"></iframe>
                     </div>
                   </form>
-                  <a href="javascript:void 0" class="btn btn-large" id="addNodesSubmitButtonId">Add Nodes</a>
+                  <div class="separator"></div>
+                  <a href="javascript:void 0" class="btn btn-large" id="addNodesSubmitButtonId"><?php echo $RES['initWizard.addNodes.submit.label'] ?></a>
                   </div>
               </div>
 
               <div name="selectServicesCoreDiv" id="selectServicesCoreDivId" style="display:none">
                 <fieldset>
                 <div class="pageSummary">
-                  <h2>Which services do you want to install?</h2>
-                  <p>We'll automatically take care of dependencies (e.g., HBase requires ZooKeeper, etc.)</p>
+                  <h2><?php echo $RES['initWizard.selectServices.pageSummary.header'] ?></h2>
+                  <p><?php echo $RES['initWizard.selectServices.pageSummary.body'] ?></p>
                	</div>
-                       <div style="width:100%;height:40px">
-                  <div id="formStatusDivId" class="formStatusBar" style="display:none">
-                  </div>
+               	<div style="width:100%;height:40px">
+                  <div id="formStatusDivId" class="formStatusBar" style="display:none">					
+                  </div>               
                 </div>
-                       <div class="pageContent" style="margin-top:14px">
+               	<div class="pageContent" style="margin-top:14px">
                   <div id="selectCoreServicesListId">
                    <ul id="selectCoreServicesListUlId">
                       <div id="selectCoreServicesDynamicRenderDivId">
@@ -182,7 +178,7 @@
                   </div>
                 </div>
                 </fieldset>
-                <a href="javascript:void 0" class="btn btn-large" style="margin:20px 0 0 60px" id="selectServicesSubmitButtonId" class="submitButton">Select Services</a>
+                <a href="javascript:void 0" class="btn btn-large" style="margin:20px 0 0 60px" id="selectServicesSubmitButtonId" class="submitButton"><?php echo $RES['initWizard.selectServices.submit.label'] ?></a>
 
               </div>
               <!-- End of selectServicesCoreDivId -->
@@ -191,26 +187,26 @@
                 <div id="statusDivId">
                 </div>
                 <div class="pageSummary">
-                	<h2>Assign Services to Nodes</h2>
-                	<p>We have categorized the given nodes into Node-groups and also suggested the locations of various service-masters. Drag and drop service-masters that you wish to change. Click on the given links if you wish to change the node assignments.</p>
+                  <h2><?php echo $RES['initWizard.assignMasters.pageSummary.header'] ?></h2>
+                  <p><?php echo $RES['initWizard.assignMasters.pageSummary.body'] ?></p>             
                 </div>
-                <div id="formStatusDivId" class="formStatusBar" style="display:none">
-                </div>
+                <div id="formStatusDivId" class="formStatusBar" style="display:none">					
+                </div>               
                 <div id="serviceMastersLinksDivId">
                 </div>
                 <div id="nodeGroupsCoreDivId">
                 </div>
-                <a href="javascript:void 0" style="margin:20px" class="btn btn-large" id="selectServiceMastersSubmitButtonId">Submit</a>
-
+                <a href="javascript:void 0" style="margin:20px" class="btn btn-large" id="selectServiceMastersSubmitButtonId"><?php echo $RES['initWizard.assignMasters.submit.label'] ?></a>
               </div>
 
               <div name="configureClusterCoreDiv" id="configureClusterCoreDivId" style="display:none">
                 <div class="pageSummary">
-                	<h2>Specify Mount Points</h2>
-                	<p>We found the following mount points on your nodes. Please confirm/modify the mount points to use for your nodes.
+                  <h2><?php echo $RES['initWizard.configureCluster.pageSummary.header'] ?></h2>
+                  <p><?php echo $RES['initWizard.configureCluster.pageSummary.body'] ?></p>
                 </div>
-                <div id="formStatusDivId" class="formStatusBar" style="display:none">
+                <div id="formStatusDivId" class="formStatusBar" style="display:none">					
                 </div>
+
                 <div id="configureClusterInputContainerDivId">
                   <form id="configureClusterFormId">
                     <div name="configureClusterInputDiv" id="configureClusterInputDivId">
@@ -219,17 +215,17 @@
                           <div name="configureClusterMountPointsInputDiv" id="configureClusterMountPointsInputDivId">
                             <div id="configureClusterMountPointsDynamicRenderDivId"></div>
                             <p>
-                              <label for="customMountPoints">Custom mount points</label>
+                              <label for="customMountPoints"><?php echo $RES['initWizard.configureCluster.customMountPoints.label'] ?></label>
                               <input type="text" name="customMountPoints" id="customMountPointsId" value="" placeholder="Comma-Separated List">
                             </p>
-                          </div>  
+                          </div>
                           <!-- Additional <div>s for other categories of cluster configuration go here -->
                         </fieldset>
                     </div>
                     <!-- <input type="button" id="configureClusterSubmitButtonId" value="Submit" class="submitButton"> -->
                   </form>
-                  <a href="javascript:void 0" class="btn btn-large" id="configureClusterSubmitButtonId">Submit</a>
-                </div>                                              
+                  <a href="javascript:void 0" class="btn btn-large" id="configureClusterSubmitButtonId"><?php echo $RES['initWizard.configureCluster.submit.label'] ?></a>
+                </div>
                 <div id="configureClusterDisplayDivId" style="display:none">
                   <fieldset>
                     <!--<legend>Effective mount points</legend>-->
@@ -241,11 +237,11 @@
 
                 <div id="configureClusterAdvancedCoreDivId" style="display:none">
                   <div class="pageSummary">
-                  	<h2>Customize Settings</h2>
-                  	<p>We have come up with reasonable default settings.  Customize as you see fit.</p>
+                    <h2><?php echo $RES['initWizard.configureClusterAdvanced.pageSummary.header'] ?></h2>
+                    <p><?php echo $RES['initWizard.configureClusterAdvanced.pageSummary.body'] ?></p>                  
                   </div>
-                  <div id="formStatusDivId" class="formStatusBar" style="display:none">
-                  </div>
+                  <div id="formStatusDivId" class="formStatusBar" style="display:none">					
+                  </div>               
                   <form id="configureClusterAdvancedFormId">
                     <fieldset id="configureClusterAdvancedFieldSetId">
                       <!--<legend>Advanced configuration</legend>-->
@@ -253,25 +249,24 @@
                     </fieldset>
                   </form>
                   <label></label>
-                  <a href="javascript:void 0" class="btn btn-large" id="configureClusterAdvancedSubmitButtonId">Submit</a>
+                  <a href="javascript:void 0" class="btn btn-large" id="configureClusterAdvancedSubmitButtonId"><?php echo $RES['initWizard.configureClusterAdvanced.submit.label'] ?></a>
                 </div>
 
                 <div name="deployCoreDiv" id="deployCoreDivId" style="display:none">
                   <div class="pageSummary">
-                  	<h2>Review and Deploy</h2>
-                  	<p>We are ready to deploy!  Please review your settings below.</p>
-                  	<p>If you wish to make any changes, you can click on any of the installation stages above.  Note that if you do go back to a stage, you will have to go through all the subsequent stages again.</p>               
+                    <h2><?php echo $RES['initWizard.reviewAndDeploy.pageSummary.header'] ?></h2>
+                    <p><?php echo $RES['initWizard.reviewAndDeploy.pageSummary.body'] ?></p>     
                   </div>
-                  <div id="formStatusDivId" class="formStatusBar" style="display:none">
-                  </div>
+                  <div id="formStatusDivId" class="formStatusBar" style="display:none">					
+                  </div>               
                   <form id="deployFormId">
                     <fieldset id="deployFieldSetId">
                       <!--<legend>Review your settings</legend>-->
                       <div id="deployDynamicRenderDivId"></div>
-                    </fieldset>                    
+                    </fieldset>
                   </form>
                   <label></label>
-                  <a href="javascript:void 0" class="btn btn-large" id="deploySubmitButtonId" value="Deploy">Deploy</a>
+                  <a href="javascript:void 0" class="btn btn-large" id="deploySubmitButtonId" value="Deploy"><?php echo $RES['initWizard.reviewAndDeploy.submit.label'] ?></a>
                 </div>
 
                 <?php require "./txnUtils.htmli"; ?>
@@ -290,21 +285,21 @@
 
             var InstallationWizard = {
 
-              CreateCluster: 
+              CreateCluster:
               {},
-              AddNodes: 
+              AddNodes:
               {},
               AddNodesProgress:
               {},
-              SelectServices: 
+              SelectServices:
               {},
-              AssignMasters: 
+              AssignMasters:
               {},
-              ConfigureCluster: 
+              ConfigureCluster:
               {},
-              ConfigureServices: 
+              ConfigureServices:
               {},
-              ReviewAndDeploy: 
+              ReviewAndDeploy:
               {},
               DeployProgress:
               {}
@@ -312,19 +307,19 @@
 
             var jsFilesToLoad = [
                 '../js/ext/jquery.min.js',
-                '../js/ext/bootstrap.min.js',
+                '../js/ext/bootstrap.min.js', 
                 '../js/utils.js', 
                 '../js/txnUtils.js',
                 '../js/installationWizard.js',
-                '../js/createCluster.js', 
-                '../js/addNodes.js', 
-                '../js/addNodesProgress.js', 
-                '../js/selectServices.js', 
-                '../js/assignMasters.js', 
-                '../js/configureCluster.js', 
+                '../js/createCluster.js',
+                '../js/addNodes.js',
+                '../js/addNodesProgress.js',
+                '../js/selectServices.js',
+                '../js/assignMasters.js',
+                '../js/configureCluster.js',
                 '../js/configureServicesUtils.js',
-                '../js/configureServices.js', 
-                '../js/reviewAndDeploy.js', 
+                '../js/configureServices.js',
+                '../js/reviewAndDeploy.js',
                 '../js/deployProgress.js'
               ];
             </script>
@@ -333,4 +328,4 @@
             <!-- End of Javascript Scaffolding -->
 
           </body>
-        </html> 
+        </html>

@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-308. Externalize message resources; Update styles/messaging on Uninstall Wizard and Add Nodes Wizard (Yusaku via vgogate)
+
   AMBARI-306. Ignore client components when calculating memory. (hitesh via jitendra)
 
   AMBARI-305. Combine Hive and HCat into a single service. (hitesh via jitendra)
