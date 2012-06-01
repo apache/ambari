@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-313. Provide a DB cleanup script. Missed script (Hitesh via Vikram)
+
   AMBARI-313. Provide a DB cleanup script. (Hitesh via Vikram)
 
   AMBARI-312. Uninstall's wipe flag should be correctly passed to puppet. (Hitesh via Vikram)
