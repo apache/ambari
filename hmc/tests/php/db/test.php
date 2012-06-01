@@ -1,12 +1,12 @@
 <?php
 
-include_once '../util/Logger.php';
-include_once '../conf/Config.inc';
-include_once "../util/lock.php";
-include_once '../db/HMCDBAccessor.php';
-include_once "OrchestratorDB.php";
-include_once "../orchestrator/Service.php";
-include_once "../orchestrator/ServiceComponent.php";
+include_once '../../../php/util/Logger.php';
+include_once '../../../php/conf/Config.inc';
+include_once "../../../php/util/lock.php";
+include_once '../../../php/db/HMCDBAccessor.php';
+include_once "../../../php/db/OrchestratorDB.php";
+include_once "../../../php/orchestrator/Service.php";
+include_once "../../../php/orchestrator/ServiceComponent.php";
 
 $GLOBALS["HMC_LOG_LEVEL"] = HMCLogger::TRACE;
 $GLOBALS["HMC_LOG_FILE"] = "./hmc.log";
@@ -16,7 +16,7 @@ system("rm -rf ./hmc.log");
 
 assert_options(ASSERT_BAIL, 1);
 
-system("sqlite3 ./test.db < ../../db/schema.dump");
+system("sqlite3 ./test.db < ../../../db/schema.dump");
 
 $dbPath = "./test.db";
 $db = new HMCDBAccessor($dbPath);
