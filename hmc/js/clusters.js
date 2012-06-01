@@ -53,7 +53,7 @@ globalYui.io( "../php/frontend/fetchClusterServices.php?clusterName=" + clusterN
         clusterServicesResponseJson = globalYui.JSON.parse(o.responseText);
       }
       catch (e) {
-        alert("JSON Parse failed!");
+        alert("JSON Parse failed");
         return;
       }
 
@@ -69,14 +69,12 @@ globalYui.io( "../php/frontend/fetchClusterServices.php?clusterName=" + clusterN
 
       }
       else {
-        alert("Zoinks! Fetching Cluster Services failed!");
+        alert("Fetching Cluster Services failed");
       }
     },
     failure: function(x, o) {
-
       hideLoadingImg();
-
-      alert("Async call failed!");
+      alert("Async call failed");
     }
   }
 });

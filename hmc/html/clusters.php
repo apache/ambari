@@ -29,17 +29,17 @@
         <div id="clustersNavigationLinksDivId">
           <ul id="clustersNavigationLinksListId">
             <li class="clustersNavigationLinkEntry">
-              <a href="../../hdp/dashboard/ui/home.html">
-                Monitoring Dashboard
+              <a class="btn" href="../../hdp/dashboard/ui/home.html">
+                Monitoring
               </a>
             </li>
             <li class="clustersNavigationLinkEntry">
-              <a href="../html/manageServices.php?clusterName=<?php echo $_GET['clusterName']; ?>">
-                Start/Stop/Reconfigure Services
+              <a class="btn" href="../html/manageServices.php?clusterName=<?php echo $_GET['clusterName']; ?>">
+                Manage Services
               </a>
             </li>
             <li class="clustersNavigationLinkEntry">
-              <a href="../html/uninstallWizard.php?clusterName=<?php echo $_GET['clusterName']; ?>">
+              <a class="btn" href="../html/uninstallWizard.php?clusterName=<?php echo $_GET['clusterName']; ?>">
                 Uninstall
               </a>
             </li>

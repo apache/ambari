@@ -261,7 +261,7 @@ function serviceManagementActionClickHandler( action, serviceName ) {
        * on the InstallationWizard page.
        */
       confirmationDataPanelBodyContent = 
-        '<div id=formStatusDivId class=formStatusBar style="visibility:hidden">'+
+        '<div id=formStatusDivId class=formStatusBar style="display:none">'+
           'Placeholder' +
         '</div>' +
         '<br/>' +

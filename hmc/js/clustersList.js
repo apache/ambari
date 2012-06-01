@@ -51,7 +51,7 @@ function renderClusterList(Y) {
             clustersListMarkup = '<h3>Cluster information</h3>';
             clustersListMarkup += '<div class="clusterDiv">' +
                                    '<div class="formElement">' +
-                                     '<label>ClusterName</label>' +
+                                     '<label>Cluster Name</label>' +
                                      '<input type=text readonly=readonly value=' + clusterName + '>' +
                                    '</div>' +
                                    '<div class="formElement">' +
@@ -59,33 +59,24 @@ function renderClusterList(Y) {
                                      '<input type=text readonly=readonly value=' + clusterInfo + '>' +
                                    '</div>' +
                                    '<div class="formElement">' +
-                                     '<label>Monitoring dashboard</label>' +
-                                     '<a href="/hdp/dashboard/ui/home.html">Show Monitoring Dashboard</a>' +
-                                   '</div>' +
-                                   '<div class="formElement">' +
-                                     '<label>Actions</label>' +
-                                     '<a class="btn" href="manageServices.php?clusterName=' + clusterName + '" id="existingClusterLinkDivId">Manage services</a>' +
-                                     '<a class="btn" style="margin-left:10px" href="addNodesWizard.php?clusterName=' + clusterName + '">Add slave nodes to cluster</a>' +
-                                     '<a class="btn" style="margin-left:10px" href="uninstallWizard.php?clusterName=' + clusterName + '">Uninstall cluster</a>' +
+                                     '<a class="btn" href="/hdp/dashboard/ui/home.html">Monitoring Dashboard</a>' +
+                                     '<a class="btn" style="margin-left:10px" href="manageServices.php?clusterName=' + clusterName + '" id="existingClusterLinkDivId">Manage Services</a>' +
+                                     '<a class="btn" style="margin-left:10px" href="addNodesWizard.php?clusterName=' + clusterName + '">Add Nodes</a>' +
+                                     '<a class="btn" style="margin-left:10px" href="uninstallWizard.php?clusterName=' + clusterName + '">Uninstall</a>' +
                                    '</div>' +
                                  '</div>';
           }
         }
 
-        var newClusterLinkHTML = "<div class='alert alert-info' style='margin-top:40px;padding:20px'>" +
-        	"<h2 style='margin-bottom:10px'>Welcome to Hortonworks Management Center!</h2>" +
-        	"<p>Hortonworks Management Center makes it really easy for you to install, configure, and manage your Hadoop cluster.</p>" +
-        	"<p>First, we'll walk you through the cluster set up with a 7-step wizard.</p>" +
-        	"<p><span class='label label-info'>Note</span><span style='margin-left:10px;'>Before you proceed, make sure you have performed all the pre-installation steps (REFERENCE MATERIAL HERE).</span></p>" + 
-        	"<a class='btn btn-large' style='margin-top:20px' href='initializeCluster.php'>Let's Get Started!</a>" +
-        	"</div>";
+        var newClusterLinkHTML = "";
         if (multipleClustersSupported || numClusters == 0) {
           clustersListMarkup += newClusterLinkHTML;
+          Y.one("#welcomeDivId").setStyle('display','block');
+          return;
         }
-        
-        // document.location.href = "initializeCluster.php";
 
         Y.one("#clustersListDivId").setContent( clustersListMarkup );
+        Y.one("#clustersListDivId").setStyle('display', 'block');
 
         if (Y.one('#newClusterLinkDivId') != null) {
           Y.one('#newClusterLinkDivId').on('click',function (e) {

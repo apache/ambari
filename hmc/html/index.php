@@ -13,10 +13,12 @@
   <body>
     <?php require "./topnav.htmli"; ?>
 
-    <div id="ContentDivId" class="yui3-skin-sam"> 
-
+    <div id="ContentDivId" class="yui3-skin-sam">
+      <div id="welcomeDivId" style="display:none">
+        <?php require "./welcome.inc" ?>           
+      </div>
       <!-- List of clusters -->
-      <div id="clustersListDivId">
+      <div id="clustersListDivId" style="display:none">
       </div>
     </div>        
     
