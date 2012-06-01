@@ -53,6 +53,12 @@ class SuggestProperties {
     $this->logger->log_info("Component=" . $componentName . " Host="
         . $host." Mem=".$hostMem." numComponents=".$numProcs.
         " perComponentMem=".$normalizedMem);
+
+    if ($normalizedMem < 256) {
+      $this->logger->log_info("Normalizing memory to 256 as min required");
+      $normalizedMem = 256;
+    }
+
     return $normalizedMem;
   }
 
