@@ -18,10 +18,6 @@ if ($allClustersResult["result"] != 0) {
   print(json_encode($allClustersResult));
   return;
 }
-if (!$multipleClustersSupported && count($allClustersResult["clusters"]) != 0 ) {
-  print (json_encode(array( "result" => 1, "error" => "Multiple clusters are not supported and you already have a cluster installed" )));
-  return;
-}
 
 // Read from the input
 $requestdata = file_get_contents('php://input');
@@ -44,6 +40,14 @@ if (preg_match('/(\?|\+|\-|\||\"|\[|\]|\/|\{|\}|\!|\@|\#|\$|\%|\^|\&|\*|\(|\)|\'
   return;
 }
 // Validate clusterName: TODO; FIXME
+
+if (!array_key_exists($clusterName, $allClustersResult["clusters"])) {
+  if (!$multipleClustersSupported && count($allClustersResult["clusters"]) != 0 ) {
+    print (json_encode(array( "result" => 1, "error" => "Multiple clusters are not supported and you already have a cluster installed" )));
+    return;
+  }
+}
+
 
 // create the lockfile in the clusterDir
 $fileHdl = fopen($GLOBALS["HMC_CLUSTER_PATH"]."/lockfile", "w");

@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-323. During any process in the cluster initialization wizard, if the user goes back to the "1 Create Cluster" tab, the user is stuck. (Vikram)
+
   AMBARI-319. Scale puppet master to large number of nodes. (Jitendra via Vikram)
 
   AMBARI-318. Do not install the packages that install init.d scripts (Ramya via Vikram).
