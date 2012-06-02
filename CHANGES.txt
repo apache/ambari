@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-326. Dependencies should be added only during install phase (Jitendra via Vikram)
+
   AMBARI-324. Welcome page missing. (Yusaku via Vikram)
 
   AMBARI-323. During any process in the cluster initialization wizard, if the user goes back to the "1 Create Cluster" tab, the user is stuck. (Vikram)
