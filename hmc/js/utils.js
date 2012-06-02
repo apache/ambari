@@ -50,7 +50,6 @@ function createInformationalPanel( containerNodeId, headerContentString ) {
     headerContent: headerContentString,
     width: 800,
     height: 400,
-    centered: true,
     render: true,
     modal: true,
     zIndex: 100,

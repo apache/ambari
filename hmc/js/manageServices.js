@@ -2,6 +2,286 @@
 var fetchClusterServicesPoller;
 var clusterServices;
 
+// Storing globally for the sake of multiple screens in reconfigure
+var reconfigureServicesData = {};
+var confirmationDataPanelBodyContent = '';
+
+var confirmationDataPanel;
+
+var panelNoButton = {
+  value: 'Cancel',
+  action: function (e) {
+    e.preventDefault();
+    hideAndDestroyPanel();
+  },
+  section: 'footer'
+};
+
+var panelYesButton;
+
+// Only one service can be reconfigured at a time.
+var reconfigLevelOneYesButton;
+var reconfigLevelTwoNoButton;
+
+function showPanel() {
+  showPanel(function() {});
+}
+
+function showPanel(postShowFn) {
+  confirmationDataPanel.set('y', -400);
+  confirmationDataPanel.set('x', (globalYui.one('body').get('region').width - confirmationDataPanel.get('width'))/2);
+  confirmationDataPanel.show();
+  var bb = confirmationDataPanel.get('boundingBox');
+  bb.transition({
+    duration: 0.5,
+    top     : '0px'
+  }, postShowFn);
+}
+
+function hidePanel(postHideFn) {
+  var bb = confirmationDataPanel.get('boundingBox');
+  bb.transition({
+    duration: 0.8,
+    top     : '-' + confirmationDataPanel.get('height') + 'px'
+  }, postHideFn);
+}
+
+function hideAndDestroyPanel() {
+  hidePanel(function() {
+    confirmationDataPanel.hide();
+    destroyInformationalPanel(confirmationDataPanel);
+  });
+}
+
+function getTitleForReconfiguration(serviceName) {
+  return 'Make configuration changes for ' + serviceName ;
+}
+
+function setupReconfigureFirstScreen(serviceName) {
+  var panelTitle = getTitleForReconfiguration(serviceName);
+  confirmationDataPanel.set( 'headerContent', panelTitle);
+  confirmationDataPanel.set( 'bodyContent', confirmationDataPanelBodyContent);
+  // Remove buttons from previous stage
+  confirmationDataPanel.removeButton(0);
+  confirmationDataPanel.removeButton(0);
+  confirmationDataPanel.addButton( panelNoButton );
+  confirmationDataPanel.addButton( reconfigLevelOneYesButton );
+}
+
+function setupReconfigureSecondScreen(serviceName) {
+  var affectedServices = clusterServices[serviceName].dependencies;
+  var dependents = clusterServices[serviceName].dependents;
+  for (dep in dependents) {
+    affectedServices.push(dependents[dep]);
+  }
+  var panelContent = 'Affected services:' + getAffectedDependenciesMarkup(affectedServices, serviceName, 'reconfigure');
+  var panelTitle = 'Review changes to ' + serviceName + '\'s configuration';
+  confirmationDataPanel.set( 'headerContent', panelTitle);
+  confirmationDataPanel.set( 'bodyContent', panelContent);
+  // Remove buttons from previous stage
+  confirmationDataPanel.removeButton(0);
+  confirmationDataPanel.removeButton(0);
+  confirmationDataPanel.addButton( reconfigLevelTwoNoButton );
+  confirmationDataPanel.addButton( panelYesButton );
+}
+
+// Clean up the affected-services list to only include appropriate installed long-running services
+function getAffectedDependenciesMarkup(affectedServices, serviceName, action) {
+
+  var affectedDependenciesMarkup = '';
+
+  var serviceDisplayName = clusterServices[serviceName].displayName;
+
+  var deps = affectedServices;
+  affectedServices = [];
+  for (dep in deps) {
+    var svc = deps[dep];
+    if (clusterServices.hasOwnProperty(svc) && (clusterServices[svc].isEnabled == 1) && clusterServices[svc].attributes.runnable ) {
+      affectedServices.push(svc);
+    }
+  }
+
+  var dependencyMarkup = "";
+  for (affectedSrvc in affectedServices) {
+    if (clusterServices[affectedServices[affectedSrvc]].attributes.runnable) {
+      dependencyMarkup += '<tr><td>' + clusterServices[affectedServices[affectedSrvc]].displayName + '</td><td>' + titleCase(clusterServices[affectedServices[affectedSrvc]].state) + '</td></tr>';
+    }
+  }
+  if (dependencyMarkup != '') {
+    // Add this service at the top of the list
+    dependencyMarkup = '<table><thead><th>Service name</th><th>Current state</th></thead><tr><td>' + serviceDisplayName + '</td><td>' + titleCase(clusterServices[serviceName].state) + '</td></tr>' + dependencyMarkup + '</table>';
+    affectedDependenciesMarkup += 'Including this service and all its recursive dependencies, the following is the list of services that will be affected by ' + action + ' of ' + serviceName + ' :' +
+      '<br/>' +
+      '<div id="manageServicesDisplayDepsOnAction">' +
+      dependencyMarkup +
+      '</div>';
+  }
+  return affectedDependenciesMarkup;
+}
+
+function setupStartServiceScreen(serviceName) {
+  setupStartStopServiceScreen('start', serviceName);
+}
+
+function setupStopServiceScreen(serviceName) {
+  setupStartStopServiceScreen('stop', serviceName);
+}
+
+function setupStartStopServiceScreen(action, serviceName) {
+
+  var serviceDisplayName = clusterServices[serviceName].displayName;
+  var affectedServices;
+  var confirmationDataPanelTitle;
+
+  if ( action == 'start') {
+    confirmationDataPanelTitle = 'Starting ' + serviceDisplayName;
+    confirmationDataPanelBodyContent = "We are now going to start " + serviceDisplayName + "..<br/><br/>";
+    affectedServices = clusterServices[serviceName].dependencies;
+  } else if (action == 'stop') {
+    confirmationDataPanelTitle = 'Stopping ' + serviceDisplayName;
+    confirmationDataPanelBodyContent = "We are now going to stop " + serviceDisplayName + "..<br/><br/>";
+    affectedServices = clusterServices[serviceName].dependents;
+  }
+
+  confirmationDataPanelBodyContent += getAffectedDependenciesMarkup(affectedServices, serviceName, action);
+  confirmationDataPanelBodyContent = '<div id="confirmationDataPanelBodyContent">' + confirmationDataPanelBodyContent + '</div>';
+
+  var confirmationDataPanelWidth = 800;
+  var confirmationDataPanelHeight = 400;
+
+  confirmationDataPanel.set( 'headerContent', confirmationDataPanelTitle);
+  confirmationDataPanel.set( 'bodyContent', confirmationDataPanelBodyContent);
+  confirmationDataPanel.set( 'height', confirmationDataPanelHeight );
+  confirmationDataPanel.set( 'width', confirmationDataPanelWidth );
+
+  confirmationDataPanel.addButton( panelNoButton);
+  confirmationDataPanel.addButton( panelYesButton );
+
+  showPanel();
+}
+
+function setupStartAllServicesScreen() {
+  setupStartStopAllServicesScreen('startAll');
+}
+
+function setupStopAllServicesScreen() {
+  setupStartStopAllServicesScreen('stopAll');
+}
+
+function setupStartStopAllServicesScreen(action) {
+  var confirmationDataPanelTitle;
+  var confirmationDataPanelBodyContent;
+
+  if ( action == 'startAll' ) {
+    confirmationDataPanelTitle = 'Start All Services';
+    confirmationDataPanelBodyContent = "We are now going to start all services in the cluster";
+  } else if ( action == 'stopAll' ) {
+    confirmationDataPanelTitle = 'Stop All Services';
+    confirmationDataPanelBodyContent = "We are now going to stop all the services in the cluster";
+  }
+
+  var confirmationDataPanelWidth = 800;
+  var confirmationDataPanelHeight = 400;
+
+  confirmationDataPanel.set( 'headerContent', confirmationDataPanelTitle);
+  confirmationDataPanel.set( 'bodyContent', confirmationDataPanelBodyContent);
+  confirmationDataPanel.set( 'height', confirmationDataPanelHeight );
+  confirmationDataPanel.set( 'width', confirmationDataPanelWidth );
+
+  confirmationDataPanel.addButton( panelNoButton);
+  confirmationDataPanel.addButton( panelYesButton );
+  showPanel();
+}
+
+function setupReconfigureScreens(serviceName) {
+  // TODO: Needed for others too?
+  /* First, (temporarily) stop any further fetches. */
+  fetchClusterServicesPoller.stop();
+
+  reconfigLevelOneYesButton = {
+    value: 'Submit',
+    action: function (e) {
+      e.preventDefault();
+
+      hidePanel(function() {
+
+        // Store the requestData and the html
+        confirmationDataPanelBodyContent = confirmationDataPanel.get( 'bodyContent' );
+        reconfigureServicesData = generateUserOpts();
+
+        setupReconfigureSecondScreen(serviceName);
+        showPanel();
+      });
+    },
+    classNames: 'yo',
+    section: 'footer'
+  };
+
+  reconfigLevelTwoNoButton = {
+    value: 'Go back and re-edit',
+    action: function (e) {
+      e.preventDefault();
+
+      hidePanel(function() {
+        setupReconfigureFirstScreen(serviceName);
+        showPanel();
+      });
+    },
+    section: 'footer'
+  };
+
+  // Render first with a loading image and then get config items
+  confirmationDataPanelBodyContent = 
+    "<img id=errorInfoPanelLoadingImgId class=loadingImg src=../images/loading.gif />";
+  var confirmationDataPanelWidth = 1000;
+  var confirmationDataPanelHeight = 500;
+  var confirmationDataPanelTitle = getTitleForReconfiguration(serviceName);
+  confirmationDataPanel.set( 'height', confirmationDataPanelHeight );
+  confirmationDataPanel.set( 'width', confirmationDataPanelWidth );
+  confirmationDataPanel.set( 'headerContent', confirmationDataPanelTitle);
+  confirmationDataPanel.set( 'bodyContent', confirmationDataPanelBodyContent );
+  showPanel();
+
+  executeStage( '../php/frontend/fetchClusterServices.php?clusterName=' + clusterName + 
+    '&getConfigs=true&serviceName=' + serviceName, function (serviceConfigurationData) {
+
+    var serviceConfigurationMarkup = constructDOM( serviceConfigurationData );
+
+    if( globalYui.Lang.trim( serviceConfigurationMarkup).length == 0 ) {
+      serviceConfigurationMarkup = '<p>Move along folks, nothing to see here...</p>';
+    }
+    else {
+      /* Augment confirmationDataPanel with the relevant buttons only if there 
+       * is something of value to show. 
+       */
+      confirmationDataPanel.addButton( panelNoButton );
+      confirmationDataPanel.addButton( reconfigLevelOneYesButton );
+    }
+
+    /* XXX Note that this must be kept in-sync with the corresponding markup
+     * on the InstallationWizard page.
+     */
+    confirmationDataPanelBodyContent = 
+      '<div id=formStatusDivId class=formStatusBar style="visibility:hidden">'+
+        'Placeholder' +
+      '</div>' +
+      '<br/>' +
+      '<div id=configureClusterAdvancedCoreDivId>' + 
+        '<form id=configureClusterAdvancedFormId>' +
+          '<fieldset id=configureClusterAdvancedFieldSetId>' +
+            '<div id=configureClusterAdvancedDynamicRenderDivId>' +
+              serviceConfigurationMarkup +
+            '</div>' +
+          '</fieldset>' +
+        '</form>' +
+      '</div>';
+
+    confirmationDataPanelBodyContent = '<div id="confirmationDataPanelBodyContent">' + confirmationDataPanelBodyContent + '</div>';
+
+    confirmationDataPanel.set( 'bodyContent', confirmationDataPanelBodyContent );
+  });
+}
+
 function performServiceManagement( action, serviceName, confirmationDataPanel ) {
 
   /* First, (temporarily) stop any further fetches. */
@@ -13,7 +293,7 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
   };
 
   if( action == "reconfigure" ) {
-    manageServicesRequestData.services = generateUserOpts();
+    manageServicesRequestData.services = reconfigureServicesData;
   }
   else {
     /* Need to explicitly set a key named for serviceName this way because it's
@@ -51,7 +331,7 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
            * failure, we depend on the fact that there'll be errors shown 
            * inside the panel that the user will want/need to interact with.
            */
-          destroyInformationalPanel(confirmationDataPanel);
+          hideAndDestroyPanel();
 
           var manageServicesProgressStatusMessage = {
 
@@ -191,7 +471,18 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
           /* No need to hide confirmationDataPanel here - there are errors 
            * that need to be handled. 
            */
-          handleConfigureServiceErrors( manageServicesResponseJson );
+          if (action == 'reconfigure') {
+
+            hidePanel(function() {
+              setupReconfigureFirstScreen(serviceName);
+              showPanel( function() {
+                handleConfigureServiceErrors( manageServicesResponseJson );
+            });
+          });
+        } else {
+            // Can't do anything for others
+            alert('Got error during ' + action + ' : ' + globalYui.Lang.dump(manageServicesResponseJson));
+          }
         }
       },
       failure: function(x, o) {
@@ -208,25 +499,16 @@ function getServiceConfigurationMarkup( serviceConfigurationData ) {
 
 function serviceManagementActionClickHandler( action, serviceName ) {
 
-  var affectedServices = [];
+  // Reinit the global content
+  confirmationDataPanelBodyContent = '';
 
-  var confirmationDataPanelTitle = '';
-  var confirmationDataPanelBodyContent = '';
-  var confirmationDataPanelWidth = 800;
-  var confirmationDataPanelHeight = 400;
+  var confirmationDataPanelTitle = ''; // Set title later
 
-  var confirmationDataPanel;
+  /* Create the panel that'll display our confirmation/data dialog. */
+  confirmationDataPanel = 
+      createInformationalPanel( '#informationalPanelContainerDivId', confirmationDataPanelTitle );
 
-  var confirmationDataPanelNoButton = {
-    value: 'Cancel',
-    action: function (e) {
-      e.preventDefault();
-      destroyInformationalPanel(confirmationDataPanel);
-    },
-    section: 'footer'
-  };
-
-  var confirmationDataPanelYesPanel = {
+  panelYesButton = {
     value: 'OK',
     action: function (e) {
       e.preventDefault();
@@ -236,122 +518,17 @@ function serviceManagementActionClickHandler( action, serviceName ) {
     section: 'footer'
   };
 
-  if( action == 'reconfigure' ) {
-    confirmationDataPanelTitle = 'Reconfigure ' + serviceName + ' (will stop and start given service and services that depend on it)';
-    confirmationDataPanelBodyContent = 
-      "<img id=errorInfoPanelLoadingImgId class=loadingImg src=../images/loading.gif />";
-
-    executeStage( '../php/frontend/fetchClusterServices.php?clusterName=' + clusterName + 
-      '&getConfigs=true&serviceName=' + serviceName, function (serviceConfigurationData) {
-
-      var serviceConfigurationMarkup = constructDOM( serviceConfigurationData );
-
-      if( globalYui.Lang.trim( serviceConfigurationMarkup).length == 0 ) {
-        serviceConfigurationMarkup = '<p>Move along folks, nothing to see here...</p>';
-      }
-      else {
-        /* Augment confirmationDataPanel with the relevant buttons only if there 
-         * is something of value to show. 
-         */
-        confirmationDataPanel.addButton( confirmationDataPanelNoButton );
-        confirmationDataPanel.addButton( confirmationDataPanelYesPanel );
-      }
-
-      /* XXX Note that this must be kept in-sync with the corresponding markup
-       * on the InstallationWizard page.
-       */
-      confirmationDataPanelBodyContent = 
-        '<div id=formStatusDivId class=formStatusBar style="display:none">'+
-          'Placeholder' +
-        '</div>' +
-        '<br/>' +
-        '<div id=configureClusterAdvancedCoreDivId>' + 
-          '<form id=configureClusterAdvancedFormId>' +
-            '<fieldset id=configureClusterAdvancedFieldSetId>' +
-              '<div id=configureClusterAdvancedDynamicRenderDivId>' +
-                serviceConfigurationMarkup +
-              '</div>' +
-            '</fieldset>' +
-          '</form>' +
-        '</div>';
-
-      confirmationDataPanel.set( 'bodyContent', confirmationDataPanelBodyContent );
-    });
-
-    confirmationDataPanelWidth = 1000;
-    confirmationDataPanelHeight = 500;
+  if ( action == 'start') {
+    setupStartServiceScreen(serviceName);
+  } else if ( action == 'stop') {
+    setupStopServiceScreen(serviceName);
+  } else if( action == 'startAll' ) {
+    setupStartAllServicesScreen();
+  } else if( action == 'stopAll' ) {
+    setupStopAllServicesScreen();
+  } else if( action == 'reconfigure' ) {
+    setupReconfigureScreens(serviceName);
   }
-  else if( action == 'start' ) {
-    var serviceDisplayName = clusterServices[serviceName].displayName;
-    confirmationDataPanelTitle = 'Starting ' + serviceDisplayName;
-    confirmationDataPanelBodyContent = "We are now going to start " + serviceDisplayName + "..<br/><br/>";
-    affectedServices = clusterServices[serviceName].dependencies;
-  }
-  else if( action == 'stop' ) {
-    var serviceDisplayName = clusterServices[serviceName].displayName;
-    confirmationDataPanelTitle = 'Stopping ' + serviceDisplayName;
-    confirmationDataPanelBodyContent = "We are now going to stop " + serviceDisplayName + "..<br/><br/>";
-    affectedServices = clusterServices[serviceName].dependents;
-  }
-  else if( action == 'startAll' ) {
-    confirmationDataPanelTitle = 'Start All Services';
-    confirmationDataPanelBodyContent = "We are now going to start all services in the cluster";
-  }
-  else if( action == 'stopAll' ) {
-    confirmationDataPanelTitle = 'Stop All Services';
-    confirmationDataPanelBodyContent = "We are now going to stop all the services in the cluster";
-  }
-
-  // Add the list of dependencies
-  if(action =='start' || action == 'stop') {
-
-    // Clean up the affected-services list to only include appropriate installed long-running services
-    var deps = affectedServices;
-    affectedServices = [];
-    for (dep in deps) {
-      var svc = deps[dep];
-      if (clusterServices.hasOwnProperty(svc) && (clusterServices[svc].isEnabled == 1) && clusterServices[svc].attributes.runnable ) {
-        affectedServices.push(svc);
-      }
-    }
-
-    var dependencyMarkup = "";
-    for (affectedSrvc in affectedServices) {
-      if (clusterServices[affectedServices[affectedSrvc]].attributes.runnable) {
-        dependencyMarkup += '<tr><td>' + clusterServices[affectedServices[affectedSrvc]].displayName + '</td><td>' + titleCase(clusterServices[affectedServices[affectedSrvc]].state) + '</td></tr>';
-      }
-    }
-    if (dependencyMarkup != '') {
-      // Add this service at the top of the list
-      dependencyMarkup = '<table><thead><th>Service name</th><th>Current state</th></thead><tr><td>' + serviceDisplayName + '</td><td>' + titleCase(clusterServices[serviceName].state) + '</td></tr>' + dependencyMarkup + '</table>';
-      confirmationDataPanelBodyContent += 'Including this service and all its recursive dependencies, the following is the list of services that we will ' + action + ':' +
-        '<br/>' +
-        '<div id="manageServicesDisplayDepsOnAction">' +
-        dependencyMarkup +
-        '</div>';
-    }
-  }
-
-  confirmationDataPanelBodyContent = '<div id="confirmationDataPanelBodyContent">' + confirmationDataPanelBodyContent + '</div>';
-
-  /* Create the panel that'll display our confirmation/data dialog. */
-  confirmationDataPanel = 
-    createInformationalPanel( '#informationalPanelContainerDivId', confirmationDataPanelTitle );
-
-  confirmationDataPanel.set( 'height', confirmationDataPanelHeight );
-  confirmationDataPanel.set( 'width', confirmationDataPanelWidth );
-  confirmationDataPanel.set( 'bodyContent', confirmationDataPanelBodyContent );
-
-  /* Augment confirmationDataPanel with the relevant buttons unconditionally in 
-   * the case of all actions other than "reconfigure" - for "reconfigure", we have 
-   * special logic above. 
-   */
-  if( action != 'reconfigure' ) {
-    confirmationDataPanel.addButton( confirmationDataPanelNoButton );
-    confirmationDataPanel.addButton( confirmationDataPanelYesPanel );
-  }
-
-  confirmationDataPanel.show();
 }
 
 function deduceServiceManagementEntryCssClass( serviceInfo ) {

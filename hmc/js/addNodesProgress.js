@@ -266,6 +266,8 @@ function renderProgress (discoverProgressInfo) {
                                    '</div>' +
                                  '</div>';
                 }
+                // Set centered explicitly
+                errorInfoPanel.set('centered', true);
                 errorInfoPanel.set('bodyContent' , bodyContent);
                 //errorInfoPanel.set( 'bodyContent', '<pre>' + 
                 //  globalYui.JSON.stringify( e.response.meta.stateInfo, null, 4) + '</pre>' );
