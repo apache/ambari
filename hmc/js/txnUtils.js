@@ -63,195 +63,204 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
     success: function (e,pdp) {
 
       /* What we're here to render. */
-      var txnProgressMarkup = '<ul id=txnProgressStatesListId>';
+      var txnProgressMarkup = 
+        '<img id=txnProgressLoadingImgId class=loadingImg src=../images/loading.gif />'; 
 
       var txnProgress = e.response.meta.progress;
 
-      var txnProgressStates = txnProgress.subTxns || [];
-      globalYui.log(globalYui.Lang.dump(txnProgressStates));
+      /* Guard against race conditions where txnProgress is null because the 
+       * txn hasn't had time to be kicked off yet.
+       */
+      if (txnProgress) {
 
-      var progressStateIndex = 0;
+        var txnProgressStates = txnProgress.subTxns || [];
+        globalYui.log(globalYui.Lang.dump(txnProgressStates));
 
-      /* Generate markup for all the "done" states. */
-      for( ; progressStateIndex < txnProgressStates.length; ++progressStateIndex ) {
+        txnProgressMarkup = '<ul id=txnProgressStatesListId>';
 
-        var presentTxnProgressState = txnProgressStates[ progressStateIndex ];
+        var progressStateIndex = 0;
 
-        /* Step over any progress states that don't deserve to be shown. */
-        if( txnProgressStateShouldBeSkipped( presentTxnProgressState ) ) {
-          continue;
+        /* Generate markup for all the "done" states. */
+        for( ; progressStateIndex < txnProgressStates.length; ++progressStateIndex ) {
+
+          var presentTxnProgressState = txnProgressStates[ progressStateIndex ];
+
+          /* Step over any progress states that don't deserve to be shown. */
+          if( txnProgressStateShouldBeSkipped( presentTxnProgressState ) ) {
+            continue;
+          }
+
+          /* The first sign of a state that isn't done, and we're outta here. */
+          if( presentTxnProgressState.progress != 'COMPLETED' ) {
+            break;
+          }
+
+          globalYui.log( 'Done loop - ' + progressStateIndex );
+
+          txnProgressMarkup += generateSingleTxnProgressStateMarkup
+            ( presentTxnProgressState.description, 'txnProgressStateDone' );
+
+            globalYui.log("Currently, markup is:" + txnProgressMarkup );
         }
 
-        /* The first sign of a state that isn't done, and we're outta here. */
-        if( presentTxnProgressState.progress != 'COMPLETED' ) {
-          break;
-        }
+        /* Next, generate markup for the first "in-progress" state. */
+        for( ; progressStateIndex < txnProgressStates.length; ++progressStateIndex ) {
 
-        globalYui.log( 'Done loop - ' + progressStateIndex );
+          var presentTxnProgressState = txnProgressStates[ progressStateIndex ];
 
-        txnProgressMarkup += generateSingleTxnProgressStateMarkup
-          ( presentTxnProgressState.description, 'txnProgressStateDone' );
+          /* Step over any progress states that don't deserve to be shown. */
+          if( txnProgressStateShouldBeSkipped( presentTxnProgressState ) ) {
+            continue;
+          }
 
-          globalYui.log("Currently, markup is:" + txnProgressMarkup );
-      }
-
-      /* Next, generate markup for the first "in-progress" state. */
-      for( ; progressStateIndex < txnProgressStates.length; ++progressStateIndex ) {
-
-        var presentTxnProgressState = txnProgressStates[ progressStateIndex ];
-
-        /* Step over any progress states that don't deserve to be shown. */
-        if( txnProgressStateShouldBeSkipped( presentTxnProgressState ) ) {
-          continue;
-        }
-
-        /* We only care to process "in-progress" states.
-         *
-         * However, when a state fails, its progress property is set to
-         * 'FAILED', so check for that as well. Without this, a failed 
-         * state leads to only the previous 'COMPLETED' states being 
-         * rendered (with the 'FAILED' and 'PENDING' states being skipped
-         * over because there's no 'IN_PROGRESS' state) whilst 
-         * #txnProgressStatusDivId shows an overall error (as it rightly 
-         * should) - in short, confusion all around.
-         */
-        if( (presentTxnProgressState.progress == 'IN_PROGRESS') ||
-            (presentTxnProgressState.progress == 'FAILED') ) {
-
-          globalYui.log( 'In-progress/failed - ' + progressStateIndex );
-
-          /* Decide upon what CSS class to assign to the currently-in-progress
-           * state - if an error was marked as having been encountered, assign
-           * the fitting .txnProgressStateError, else just annoint it with
-           * .txnProgressStateInProgress 
+          /* We only care to process "in-progress" states.
+           *
+           * However, when a state fails, its progress property is set to
+           * 'FAILED', so check for that as well. Without this, a failed 
+           * state leads to only the previous 'COMPLETED' states being 
+           * rendered (with the 'FAILED' and 'PENDING' states being skipped
+           * over because there's no 'IN_PROGRESS' state) whilst 
+           * #txnProgressStatusDivId shows an overall error (as it rightly 
+           * should) - in short, confusion all around.
            */
-          var currentProgressStateCssClass = 'txnProgressStateInProgress';
-
-          /* The 2 possible indications of error are:
-           * 
-           * a) presentTxnProgressState.progress is 'IN_PROGRESS' but 
-           *    txnProgress.encounteredError is true.
-           * b) presentTxnProgressState.progress is 'FAILED'.
-           */
-          if( (txnProgress.encounteredError) || 
+          if( (presentTxnProgressState.progress == 'IN_PROGRESS') ||
               (presentTxnProgressState.progress == 'FAILED') ) {
 
-            currentProgressStateCssClass = 'txnProgressStateError';
+            globalYui.log( 'In-progress/failed - ' + progressStateIndex );
+
+            /* Decide upon what CSS class to assign to the currently-in-progress
+             * state - if an error was marked as having been encountered, assign
+             * the fitting .txnProgressStateError, else just annoint it with
+             * .txnProgressStateInProgress 
+             */
+            var currentProgressStateCssClass = 'txnProgressStateInProgress';
+
+            /* The 2 possible indications of error are:
+             * 
+             * a) presentTxnProgressState.progress is 'IN_PROGRESS' but 
+             *    txnProgress.encounteredError is true.
+             * b) presentTxnProgressState.progress is 'FAILED'.
+             */
+            if( (txnProgress.encounteredError) || 
+                (presentTxnProgressState.progress == 'FAILED') ) {
+
+              currentProgressStateCssClass = 'txnProgressStateError';
+            }
+
+            /* And generate markup for this "in-progress" state. */
+            txnProgressMarkup += generateSingleTxnProgressStateMarkup
+              ( presentTxnProgressState.description, currentProgressStateCssClass );
+
+            /* It's important to manually increment progressStateIndex here, 
+             * to set it up correctly for the upcoming loop.
+             */
+            ++progressStateIndex;
+
+            /* Remember, we only care for the FIRST "in-progress" state.
+             *
+             * Any following "in-progress" states will all be marked as 
+             * "pending", so as to avoid the display from becoming 
+             * disorienting (with multiple states "in-progress").
+             */
+            break;
+          }
+        }
+
+        /* Finally, generate markup for all the "pending" states. */
+        for( ; progressStateIndex < txnProgressStates.length; ++progressStateIndex ) {
+
+          var presentTxnProgressState = txnProgressStates[ progressStateIndex ];
+
+          /* Step over any progress states that don't deserve to be shown. */
+          if( txnProgressStateShouldBeSkipped( presentTxnProgressState ) ) {
+            continue;
           }
 
-          /* And generate markup for this "in-progress" state. */
+          globalYui.log( 'Pending loop - ' + progressStateIndex );
           txnProgressMarkup += generateSingleTxnProgressStateMarkup
-            ( presentTxnProgressState.description, currentProgressStateCssClass );
-
-          /* It's important to manually increment progressStateIndex here, 
-           * to set it up correctly for the upcoming loop.
-           */
-          ++progressStateIndex;
-
-          /* Remember, we only care for the FIRST "in-progress" state.
-           *
-           * Any following "in-progress" states will all be marked as 
-           * "pending", so as to avoid the display from becoming 
-           * disorienting (with multiple states "in-progress").
-           */
-          break;
-        }
-      }
-
-      /* Finally, generate markup for all the "pending" states. */
-      for( ; progressStateIndex < txnProgressStates.length; ++progressStateIndex ) {
-
-        var presentTxnProgressState = txnProgressStates[ progressStateIndex ];
-
-        /* Step over any progress states that don't deserve to be shown. */
-        if( txnProgressStateShouldBeSkipped( presentTxnProgressState ) ) {
-          continue;
+            ( presentTxnProgressState.description, 'txnProgressStatePending' );
         }
 
-        globalYui.log( 'Pending loop - ' + progressStateIndex );
-        txnProgressMarkup += generateSingleTxnProgressStateMarkup
-          ( presentTxnProgressState.description, 'txnProgressStatePending' );
-      }
+        var noNeedForFurtherPolling = false;
+        var txnProgressStatusDivContent = '';
+        var txnProgressStatusDivCssClass = '';
 
-      var noNeedForFurtherPolling = false;
-      var txnProgressStatusDivContent = '';
-      var txnProgressStatusDivCssClass = '';
-
-      /* We can break this polling cycle in one of 2 ways: 
-       * 
-       * 1) If we are explicitly told by the backend that we're done.
-       */
-      if( txnProgress.processRunning == 0 ) {
-
-        noNeedForFurtherPolling = true;
-        /* Be optimistic and assume that no errors were encountered (we'll
-         * get more in touch with reality further below).
+        /* We can break this polling cycle in one of 2 ways: 
+         * 
+         * 1) If we are explicitly told by the backend that we're done.
          */
-        txnProgressStatusDivContent = this.txnProgressStatusMessage.success;
-        txnProgressStatusDivCssClass = 'statusOk';
-      }
-
-      /* 2) If we encounter an error.
-       *
-       * Note how this is placed after the previous check, so as to serve
-       * as an override in case the backend explicitly told us that we're
-       * done, but an error was encountered in that very last progress report.
-       */
-      if( txnProgress.encounteredError ) {
-
-        noNeedForFurtherPolling = true;
-        txnProgressStatusDivContent = this.txnProgressStatusMessage.failure;
-        txnProgressStatusDivCssClass = 'statusError';
-      }
-
-      if( noNeedForFurtherPolling ) {
-
-        /* We've made all the progress we could have, so stop polling. */
-        pdp.stop();
-
-        var txnProgressStatusDiv = globalYui.one('#txnProgressStatusDivId');
-        
-        txnProgressStatusDiv.addClass(txnProgressStatusDivCssClass);
-        txnProgressStatusDiv.one('#txnProgressStatusMessageDivId').setContent(txnProgressStatusDivContent);
-        txnProgressStatusDiv.setStyle('display', 'block');
-
-        /* Run the post-completion fixups. */
-        if( txnProgressStatusDivCssClass == 'statusOk' ) {
-          if( this.txnProgressPostCompletionFixup.success ) {
-            this.txnProgressPostCompletionFixup.success(this);
-          }
-        }
-        else if( txnProgressStatusDivCssClass == 'statusError' ) {
-          if( this.txnProgressPostCompletionFixup.failure ) {
-            this.txnProgressPostCompletionFixup.failure(this);
-          }
-        }
-      }
-
-      txnProgressMarkup += '</ul>';
-
-      /* Make sure we have some progress data to show - if not, 
-       * we'll just show a loading image until this is non-null.
-       *
-       * The additional check for txnProgress.processRunning is to account 
-       * for cases where there are no subTxns (because it's all a no-op at 
-       * the backend) - the loading image should only be shown as long as 
-       * the backend is still working; after that, we should break out of
-       * the loading image loop and let the user know that there was
-       * nothing to be done.
-       */
-      if( txnProgress.subTxns == null ) {
         if( txnProgress.processRunning == 0 ) {
-          txnProgressMarkup = 
-            '<br/>' + 
-            '<div class=txnNoOpMsg>' + 
-              'Nothing to do for this transaction; enjoy the freebie!' +
-            '</div>' + 
-            '<br/>';
-        } 
-        else {
-          txnProgressMarkup = 
-            '<img id=txnProgressLoadingImgId class=loadingImg src=../images/loading.gif />';
+
+          noNeedForFurtherPolling = true;
+          /* Be optimistic and assume that no errors were encountered (we'll
+           * get more in touch with reality further below).
+           */
+          txnProgressStatusDivContent = this.txnProgressStatusMessage.success;
+          txnProgressStatusDivCssClass = 'statusOk';
+        }
+
+        /* 2) If we encounter an error.
+         *
+         * Note how this is placed after the previous check, so as to serve
+         * as an override in case the backend explicitly told us that we're
+         * done, but an error was encountered in that very last progress report.
+         */
+        if( txnProgress.encounteredError ) {
+
+          noNeedForFurtherPolling = true;
+          txnProgressStatusDivContent = this.txnProgressStatusMessage.failure;
+          txnProgressStatusDivCssClass = 'statusError';
+        }
+
+        if( noNeedForFurtherPolling ) {
+
+          /* We've made all the progress we could have, so stop polling. */
+          pdp.stop();
+
+          var txnProgressStatusDiv = globalYui.one('#txnProgressStatusDivId');
+          
+          txnProgressStatusDiv.addClass(txnProgressStatusDivCssClass);
+          txnProgressStatusDiv.one('#txnProgressStatusMessageDivId').setContent(txnProgressStatusDivContent);
+          txnProgressStatusDiv.setStyle('display', 'block');
+
+          /* Run the post-completion fixups. */
+          if( txnProgressStatusDivCssClass == 'statusOk' ) {
+            if( this.txnProgressPostCompletionFixup.success ) {
+              this.txnProgressPostCompletionFixup.success(this);
+            }
+          }
+          else if( txnProgressStatusDivCssClass == 'statusError' ) {
+            if( this.txnProgressPostCompletionFixup.failure ) {
+              this.txnProgressPostCompletionFixup.failure(this);
+            }
+          }
+        }
+
+        txnProgressMarkup += '</ul>';
+
+        /* Make sure we have some progress data to show - if not, 
+         * we'll just show a loading image until this is non-null.
+         *
+         * The additional check for txnProgress.processRunning is to account 
+         * for cases where there are no subTxns (because it's all a no-op at 
+         * the backend) - the loading image should only be shown as long as 
+         * the backend is still working; after that, we should break out of
+         * the loading image loop and let the user know that there was
+         * nothing to be done.
+         */
+        if( txnProgress.subTxns == null ) {
+          if( txnProgress.processRunning == 0 ) {
+            txnProgressMarkup = 
+              '<br/>' + 
+              '<div class=txnNoOpMsg>' + 
+                'Nothing to do for this transaction; enjoy the freebie!' +
+              '</div>' + 
+              '<br/>';
+          } 
+          else {
+            txnProgressMarkup = 
+              '<img id=txnProgressLoadingImgId class=loadingImg src=../images/loading.gif />';
+          }
         }
       }
 
