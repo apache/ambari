@@ -10,7 +10,6 @@
     # Where SSL certificates are kept.
     # The default value is '$confdir/ssl'.
     ssldir = $vardir/ssl
-    pluginsync = true
 
 [agent]
     # The file in which puppetd stores a list of the classes
@@ -24,7 +23,6 @@
     # extension indicating the cache format is added automatically.
     # The default value is '$confdir/localconfig'.
     localconfig = $vardir/localconfig
-    pluginsync = true
 
 [master]
   ssl_client_header=SSL_CLIENT_S_DN
@@ -36,4 +34,4 @@
   debug=true
   logdest=/var/log/puppet_master.log
   autoflush=true
-  pluginsync = true
+  use_cached_catalog = true

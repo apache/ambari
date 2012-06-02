@@ -145,6 +145,15 @@ if [[ "$ret" != "0" ]]; then
   echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
   exit 1
 fi
+
+#Install ruby
+out=`yum install -y ruby-devel rubygems`
+ret=$?
+if [[ "$ret" != "0" ]]; then
+  echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
+  exit 1
+fi
+
 out=`mkdir -p /etc/puppet/agent 2>&1`
 agent_auth_conf="path /run\nauth any\nallow $master\n\npath /\nauth any"
 out=`echo -e $agent_auth_conf > /etc/puppet/agent/auth.conf`
@@ -157,13 +166,22 @@ if [[ "$ret" != "0" ]]; then
   exit 1
 fi
 
+#Download modules and untar
+out=`curl -o /etc/puppet/agent/modules.tgz $master/hmc/modules.tgz && cd /etc/puppet/agent/ &&  tar zxf modules.tgz --strip-components 1 && cd -`
+ret=$?
+if [[ "$ret" != "0" ]]; then
+  echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
+  exit 1
+fi
+out=`rm /etc/puppet/agent/modules.tgz`
+
 #TODO clean this up for better fix. For now make sure we stop puppet agent. The issue here is we do not know if we started this puppet agent during our run or not.
 echo "Stopping puppet agent using service stop command"
 out=`service puppet stop`
 ret=$?
 
 echo "Starting puppet agent for HMC"
-out=`puppet agent --verbose --confdir=/etc/puppet/agent --listen --runinterval 5 --server $master --report --no-client --waitforcert 10 --configtimeout 600 --debug --logdest=/var/log/puppet_agent.log --httplog /var/log/puppet_agent_http.log --autoflush 2>&1`
+out=`puppet agent --verbose --confdir=/etc/puppet/agent --listen --runinterval 5 --server $master --report --no-client --waitforcert 10 --configtimeout 600 --debug --logdest=/var/log/puppet_agent.log --httplog /var/log/puppet_agent_http.log --autoflush --use_cached_catalog 2>&1`
 ret=$?
 if [[ "$ret" != "0" ]]; then
   echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2

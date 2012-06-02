@@ -37,7 +37,7 @@ Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
 Requires: php >= 5, sqlite >= 3, php-pdo, php-pecl-json, httpd, puppet = 2.7.9, pdsh, httpd-devel, ruby-devel, rubygems, mod_passenger, mod_ssl
 %define web_prefixdir %{_prefix}/share/hmc
 %define httpd_confdir %{_sysconfdir}/httpd/conf.d
-%define puppet_dir %{_sysconfdir}/puppet/master
+%define puppet_master_dir %{_sysconfdir}/puppet/master
 %define hmc_passwd_dir %{_sysconfdir}/hmc
 %define hmc_db_dir %{_var}/db/hmc
 %define hmc_run_dir %{_var}/run/hmc
@@ -59,8 +59,9 @@ This package provides a Management Console for Hadoop Cluster.
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/bin/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/yum_repo/
-%__mkdir -p $RPM_BUILD_ROOT/%{puppet_dir}/
-%__mkdir -p $RPM_BUILD_ROOT/%{puppet_dir}/manifests
+%__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/
+%__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/manifests
+%__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/modules/catalog/files
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__install -d "%{buildroot}%{hmc_db_dir}"
 %__install -d "%{buildroot}%{hmc_log_dir}"
@@ -81,10 +82,12 @@ This package provides a Management Console for Hadoop Cluster.
 %__cp -rf yui-3.5.1 $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -f yuiCombinator.php $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf conf $RPM_BUILD_ROOT/%{web_prefixdir}/
-%__cp -rf puppet/modules $RPM_BUILD_ROOT/%{puppet_dir}
+%__cp -rf puppet/manifestloader $RPM_BUILD_ROOT/%{puppet_master_dir}
+%__cp -rf puppet/modules/stdlib $RPM_BUILD_ROOT/%{puppet_master_dir}/modules
 %__cp -f "%{SOURCE2}" $RPM_BUILD_ROOT/%{web_prefixdir}/yum_repo/
 %__install -D -m0755 puppet/reports/get_revision $RPM_BUILD_ROOT/%{web_prefixdir}/bin
 %__cp -rf puppet/reports/hmcreport.rb $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
+%__tar czf $RPM_BUILD_ROOT/%{web_prefixdir}/modules.tgz puppet/modules
 echo "Alias /hdp %{_prefix}/share/hdp" > $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
 %post
 if test X"$RPM_INSTALL_PREFIX0" = X"" ; then
@@ -126,7 +129,7 @@ rm -rf /var/run/hmc/license
 /usr/lib/ruby/site_ruby/1.8/puppet/reports/hmcreport.rb
 %config /etc/init.d/%{name}
 %{hmc_passwd_dir}*
-%{puppet_dir}/*
+%{puppet_master_dir}/*
 %{hmc_db_dir}
 %{hmc_log_dir}
 %{hmc_run_dir}/*

@@ -200,6 +200,9 @@
            $timedoutNodes, $successfullNodes, $nodes); 
       }
 
+      //Add manifest loader
+      copy($GLOBALS["manifestloaderFile"], $GLOBALS["manifestloaderDestinationDir"] . "/site.pp");
+
       //Generate manifest
       $modulesDir = $GLOBALS["puppetModulesDirectory"];
       ManifestGenerator::generateManifest($manifestDir, $hostInfo,

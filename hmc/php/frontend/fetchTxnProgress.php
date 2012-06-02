@@ -685,7 +685,6 @@ $lastTransaction = $progressSubTxn;
 
 $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 
-$logger->log_debug("Process running? ".$progress['processRunning']." encountered error ".$progress['encounteredError']);
 if (($progress['processRunning'] == FALSE) || ($progress['encounteredError'] == TRUE)) {
   // get the transaction status info from db
   $retval = $dbAccessor->getTransactionStatusInfo($clusterName, $txnId);
