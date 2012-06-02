@@ -7,7 +7,7 @@ class hdp-dashboard(
    } elsif ($service_state == 'uninstalled') {
     hdp::package { 'dashboard' :
       ensure => 'uninstalled',
-      java_needed = 'false',
+      java_needed => 'false',
       size   => 64
     }
     hdp::directory_recursive_create { $conf_dir :
@@ -19,7 +19,7 @@ class hdp-dashboard(
 
    } elsif ($service_state in ['running','installed_and_configured','stopped']) {
       hdp::package { 'dashboard' :
-        java_needed = 'false',
+        java_needed => 'false',
         size => 64
        }
      $conf_dir =  $hdp-dashboard::params::conf_dir
