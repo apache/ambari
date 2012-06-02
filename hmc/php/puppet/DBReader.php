@@ -46,7 +46,7 @@ class DBReader {
       }
       foreach($componentInfo["hosts"] as $hostname => $hostInfo) {
         if (!isset($this->hostKeyMap[$componentName])) {
-          $this->logger->log_debug("No puppet handling needed for  component "
+          $this->logger->log_trace("No puppet handling needed for  component "
               . $componentName);
           continue;
         }
@@ -80,7 +80,7 @@ class DBReader {
           $hostRoles[$hostname] = array();
         }
         if (!isset($this->componentToPuppetClassMap[$componentName])) {
-          $this->logger->log_debug("No puppet handling needed for component "
+          $this->logger->log_trace("No puppet handling needed for component "
               . $componentName);
           continue;
         }

@@ -1,12 +1,14 @@
+<?php require_once "./head.inc" ?>
 <html>
   <head>
-    <title id="pageTitleId">Hortonworks Management Center</title>
+    <title id="pageTitleId"><?php echo $RES['page.title'] ?></title>
 
     <!-- CSS -->
     <link type="text/css" rel="stylesheet" href="../css/bootstrap.css" media="screen"/> 
     <link type="text/css" rel="stylesheet" href="../css/common.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common2.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common3.css" media="screen"/>
+    <link rel="shortcut icon" href="../images/logo-micro.gif">
     <!-- End CSS -->
   </head>
 

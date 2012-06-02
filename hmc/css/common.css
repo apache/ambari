@@ -396,3 +396,10 @@ a.btn {
 	width:500px;
 	margin-bottom:20px;
 }
+
+div.separator {
+	margin-bottom:20px;
+}
+#selectServicesCoreDivId ul {
+	list-style:none outside none;
+}

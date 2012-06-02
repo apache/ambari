@@ -43,7 +43,8 @@ $RES['addNodesWizard.selectServices.pageSummary.header']='Which services do you 
 $RES['addNodesWizard.selectServices.pageSummary.body']="Some services are installed by default.";
 $RES['addNodesWizard.selectServices.submit.label']="Deploy";
 $RES['uninstallWizard.pageSummary.header']="Uninstall Cluster";
-$RES['uninstallWizard.pageSummary.body']="<span class='label label-important'>Warning</span>  This will delete all services and data on all of your nodes in the cluster.";
-$RES['uninstallWizard.submit.label']="Uninstall services and data from all nodes";
+$RES['uninstallWizard.pageSummary.body']="<span class='label label-important'>Warning</span>  Proceed with caution!  This will delete all services from all of your nodes in the cluster (and all of your data, if you choose the <i>wipe out</i> option).";
+$RES['uninstallWizard.wipeout.label']="Perform wipe out (delete all data)";
+$RES['uninstallWizard.submit.label']="Uninstall Cluster";
 
 ?>

@@ -24,7 +24,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
   if (userId == '') {
     errCount++;
     focusId = '#clusterDeployUserId';
-    message += 'Cluster Deploy User cannot be empty';
+    message += 'SSH Username cannot be empty';
     globalYui.one("#clusterDeployUserId").addClass('formInputError');
   } else {
     globalYui.one("#clusterDeployUserId").removeClass('formInputError');
@@ -39,7 +39,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
     if (message != '') {
       message += ',';
     } 
-    message += 'User Identity file not specified';
+    message += 'SSH Private Key File not specified';
     globalYui.one("#clusterDeployUserIdentityFileId").addClass('formInputError');
   } else {
     globalYui.one("#clusterDeployUserIdentityFileId").removeClass('formInputError');
@@ -55,7 +55,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
       if (message != '') {
         message += ',';
       } 
-      message += 'Hosts file not specified';
+      message += 'Hosts File not specified';
       globalYui.one("#clusterHostsFileId").addClass('formInputError');
     } else {
       globalYui.one("#clusterHostsFileId").removeClass('formInputError');
@@ -69,6 +69,12 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
   }
 
   clearFormStatus();
+  
+  var doWipeout = globalYui.one('#confirmWipeOutCheckId').get('checked');
+  var warningMessage = doWipeout ? "All your data, in addition to services, will be deleted from all your cluster nodes.  Are you sure you want to proceed?" : "All your services will be deleted from all your cluster nodes.  Your data will not be deleted.  Are you sure you want to proceed?";
+  if (!confirm(warningMessage)) {
+	  return;
+  }
 
   showLoadingImg();
 

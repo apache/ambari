@@ -64,12 +64,6 @@ function renderUninstallProgress (uninstallProgressInfo) {
 
   hideLoadingImg();
 
-  /* At this point, our users are done with the installation wizard
-   * and have asked for a uninstall, so there's no going back - remove
-   * all traces of #installationWizardProgressBarDivId.
-   */
-  globalYui.one('#installationWizardProgressBarDivId').setStyle('display', 'none');
-
   var hmcRestartMsg = '';
   if (uninstallProgressInfo.nagiosGangliaCoHosted != null
       && uninstallProgressInfo.nagiosGangliaCoHosted) {

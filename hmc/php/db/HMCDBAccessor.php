@@ -104,7 +104,7 @@ class HMCDBAccessor {
       LockRelease(); return $response;
     }
     $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
-
+ 
     LockRelease();
 
     if (isset($result) && is_array($result) && count($result) == 1) {

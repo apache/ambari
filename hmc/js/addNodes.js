@@ -60,7 +60,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
       focusId = '#clusterDeployUserIdentityFileId';
     }
     if (message != '') {
-      message += ',';
+      message += '. ';
     }
     message += 'SSH Private Key File not specified';
     globalYui.one("#clusterDeployUserIdentityFileId").addClass('formInputError');
@@ -75,9 +75,9 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
       focusId = '#clusterHostsFileId';
     }
     if (message != '') {
-      message += ',';
+      message += '. ';
     }
-    message += 'Hosts file not specified';
+    message += 'Hosts File not specified';
     globalYui.one("#clusterHostsFileId").addClass('formInputError');
   } else {
     globalYui.one("#clusterHostsFileId").removeClass('formInputError');
@@ -102,7 +102,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
           focusId = '#yumRepoFilePathId';
         }
         if (message != '') {
-          message += ',';
+          message += '. ';
         }
         message += 'Yum Repo file not specified';
         globalYui.one("#yumRepoFilePathId").addClass('formInputError');
@@ -114,7 +114,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
           focusId = '#hmcArtifactsDownloadUrlId';
         }
         if (message != '') {
-          message += ',';
+          message += '. ';
         }
         message += 'HDP Artifacts Download URL not specified';
         globalYui.one("#hmcArtifactsDownloadUrlId").addClass('formInputError');
@@ -126,7 +126,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
           focusId = '#hmcGplArtifactsDownloadUrlId';
         }
         if (message != '') {
-          message += ',';
+          message += '. ';
         }
         message += 'GPL Artifacts Download URL not specified';
         globalYui.one("#hmcGplArtifactsDownloadUrlId").addClass('formInputError');

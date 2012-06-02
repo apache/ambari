@@ -1,6 +1,7 @@
+<?php require_once "./head.inc" ?>
 <html>
   <head>
-    <title id="pageTitleId">Hortonworks Data Platform Portal</title>
+    <title id="pageTitleId"><?php echo $RES['page.title'] ?></title>
 
     <!-- CSS -->
     <link type="text/css" rel="stylesheet" href="../yui-3.5.1/build/cssreset/cssreset-min.css"> 
@@ -20,92 +21,75 @@
     // $clusterName = "m4v1";
     // $clusterState = needWipeOut($clusterName); 
     ?>
-    <hr/>
+    
+    <div id="ContentDivId"> 
 
-    <div name="ContentDiv" id="ContentDivId"> 
-
-      <!-- Installation Wizard -->
-      <div name="installationWizardDiv" id="installationWizardDivId" style="display:block">
-        <div name="installationWizardProgressBarDiv" id="installationWizardProgressBarDivId">
-          <ol id="installationWizardProgressBarListId">
-            <li id="addNodesStageId" class="installationWizardCurrentStage">
-              <div>
-                <span class="installationWizardStageNumber">
-                  1   
-                </span>
-                Wipe out cluster
-              </div>
-            </li>
-          </ol>
-        </div>
-        
-        <br/>
-
+      <!-- Uninstallation Wizard -->
+      <div id="installationWizardDivId" style="display:block">
         <?php require "./utils.htmli"; ?>
-
-        <div name="installationMainFormsDiv" id="installationMainFormsDivId">
-         
-          <br/>
+        <div class="pageSummary">
+          <h2><?php echo $RES['uninstallWizard.pageSummary.header'] ?></h2>
+          <p><?php echo $RES['uninstallWizard.pageSummary.body'] ?></p>
+        </div>
+        <div id="installationMainFormsDivId">    
+          <div id="formStatusDivId" class="alert alert-error" style="display:none">					
+          </div>        
           <div id="addNodesCoreDivId" style="display:block">
             <fieldset>
               <form id="addNodesFilesFormId" enctype="multipart/form-data" method="post">
-              <p>
-              <label for="clusterDeployUserId">Cluster Deploy User</label>
-              <input type="text" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">
-              </p>
-              <br/>
-              <p>
-              <label for="clusterDeployUserIdentityFileId">Cluster Deploy User Identity File</label>
+              <label for="clusterDeployUserId"><?php echo $RES['common.sshUsername.label'] ?></label>
+              <input type="text" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">      
+              <div class="separator"></div>
+              <label for="clusterDeployUserIdentityFileId"><?php echo $RES['common.sshPrivateKeyFile.label'] ?></label>
               <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFileId" value="" placeholder="">
-              </p>
-              <br/>
-              <p>
-              <div name="confirmWipeOutDiv" id="confirmWipeOutDivId">
-                <label for="confirmWipeOutId">Confirm Wipeout(Data will be lost)</label>
-                <input type="checkbox" id="confirmWipeOutCheckId" value="true">
+              <div class="separator"></div>
+              <div id="fileUploadWrapperDivId">
+                <iframe name="fileUploadTarget" id="fileUploadTargetId" src="about:blank" style="display:none"></iframe>
+              </div>              
+              <div class="separator"></div>
+              <div id="confirmWipeOutDivId">
+                <label class="checkbox" for="confirmWipeOutId"><?php echo $RES['uninstallWizard.wipeout.label'] ?>
+                  <input type="checkbox" id="confirmWipeOutCheckId" value="false">
+                </label>
               </div>
+              <div class="separator"></div>
+              <input type="button" class="btn btn-large" id="addNodesSubmitButtonId" value="<?php echo $RES['uninstallWizard.submit.label'] ?>">
+            </fieldset>
+          </div>
 
-                    <div id="fileUploadWrapperDivId">
-                      <iframe name="fileUploadTarget" id="fileUploadTargetId" src="about:blank" style="display:none"></iframe>
-                    </div>
-                  <input type="button" id="addNodesSubmitButtonId" value="Confirm" class="submitButton">
-                </p>
-              </div>
+          <?php require "./txnUtils.htmli"; ?>
 
-              <?php require "./txnUtils.htmli"; ?>
+        </div>
+      </div>
+      <!-- End of Uninstallation Wizard -->
+    </div>            
+    <?php require "./footer.htmli"; ?>
 
-              </div>
-            </div>
-            <!-- End of installation Wizard -->
+    <!-- Javascript Scaffolding -->
+    <script type="text/javascript">
 
-            <hr/>
-            <?php require "./footer.htmli"; ?>
+    var freshInstallation = false;
+    var nodesAction = "uninstall";
+    var clusterName = "<?php echo $_GET['clusterName']; ?>";
 
-            <!-- Javascript Scaffolding -->
-            <script type="text/javascript">
+    var InstallationWizard = {
 
-            var freshInstallation = false;
-            var nodesAction = "uninstall";
-            var clusterName = "<?php echo $_GET['clusterName']; ?>";
+      AddNodes: 
+      {},
+      AddNodesProgress:
+      {}
+    };
 
-            var InstallationWizard = {
+    var jsFilesToLoad = [ 
+        '../js/utils.js', 
+        '../js/txnUtils.js',
+        '../js/uninstall.js', 
+        '../js/uninstallProgress.js', 
+      ];
+    </script>
 
-              AddNodes: 
-              {},
-              AddNodesProgress:
-              {}
-            };
+    <?php require "./bootstrapJs.htmli"; ?>
+    <!-- End of Javascript Scaffolding -->
 
-            var jsFilesToLoad = [ 
-                '../js/utils.js', 
-                '../js/txnUtils.js',
-                '../js/uninstall.js', 
-                '../js/uninstallProgress.js', 
-              ];
-            </script>
-
-            <?php require "./bootstrapJs.htmli"; ?>
-            <!-- End of Javascript Scaffolding -->
-
-          </body>
-        </html> 
+  </body>
+</html> 

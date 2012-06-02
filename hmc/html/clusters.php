@@ -1,6 +1,7 @@
+<?php require_once "./head.inc" ?>
 <html>
   <head>
-    <title id="pageTitleId">Hortonworks Data Platform Portal</title>
+    <title id="pageTitleId"><?php echo $RES['page.title'] ?></title>
 
     <!-- CSS -->
     <link type="text/css" rel="stylesheet" href="../yui-3.5.1/build/cssreset/cssreset-min.css">

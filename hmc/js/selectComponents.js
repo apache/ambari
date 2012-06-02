@@ -47,8 +47,9 @@ function getServiceComponentListAndRender(clusterName) {
           if (!component[componentName]['isMaster'] && 
                 !component[componentName]['isClient']) {
             divContent += '<li class="selectServicesEntry" name=try>';
-            divContent +=   '<label for="install' + serviceName + 'Id">' + component[componentName]['displayName'] + '</label>'
+            divContent +=   '<label class="checkbox" for="install' + serviceName + 'Id">' 
                         +   '<input type="checkbox" disabled="disabled" checked="yes" name="' + serviceName + '" id="install' + serviceName + 'Id" value="' + component[componentName]["componentName"] + '"/>'
+                        + component[componentName]['displayName'] + '</label>'
                         +   '<div class="contextualhelp">' + component[componentName]['description'] + '</div>'
                         + '</li>';
           } else {

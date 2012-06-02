@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-314. Uninstall Wizard prevents the user from proceeding (Yusaku via Vikram)
+
   AMBARI-311. Update HBase configuration description (Suresh via Vikram)
 
   AMBARI-313. Provide a DB cleanup script. Missed script (Hitesh via Vikram)
