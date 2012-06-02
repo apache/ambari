@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-304. Upgrade to yui-3.5.1. Manage Services commit (Vinod via Vikram)
+
   AMBARI-315. reconfig a service should a list of dependent services that will be restarted as a result (Vinod via Vikram).
 
   AMBARI-314. Uninstall Wizard prevents the user from proceeding (Yusaku via Vikram)
