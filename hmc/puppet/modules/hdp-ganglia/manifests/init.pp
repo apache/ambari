@@ -14,10 +14,13 @@ class hdp-ganglia(
   if ($service_state == 'no_op') {
    } elsif ($service_state == 'uninstalled') {
     hdp::package { 'ganglia-monitor' :
+      java_needed = 'false',
       ensure => 'uninstalled'
     }
    } elsif ($service_state in ['running','installed_and_configured','stopped']) {
-      hdp::package { 'ganglia-monitor':}
+      hdp::package { 'ganglia-monitor':
+        java_needed = 'false'
+      }
 
   } 
 

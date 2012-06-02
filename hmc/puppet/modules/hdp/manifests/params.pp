@@ -204,8 +204,8 @@ class hdp::params()
       64 => 'oozie.noarch'
     },
     lzo => {
-      32 => ['lzo.i386','lzo-devel.i386'],
-      64 => ['lzo','lzo-devel']
+      32 => ['lzo','lzo.i386','lzo-devel','lzo-devel.i386'],
+      64 => ['lzo','lzo.i386','lzo-devel','lzo-devel.i386']
     },
     #TODO: make these two consistent on whether case of 64/32 bits
     snappy => {
@@ -245,7 +245,7 @@ class hdp::params()
 
   } elsif ($packages == 'bigtop') {  
 
-    $package_names[hadoop] = {32 => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386','hadoop-datanode','hadoop-jobtracker','hadoop-secondarynamenode','hadoop-tasktracker'], 64 => ['hadoop','hadoop-libhdfs.x86_64','hadoop-native.x86_64','hadoop-pipes.x86_64','hadoop-sbin.x86_64','hadoop-datanode','hadoop-jobtracker','hadoop-secondarynamenode','hadoop-tasktracker']}
+    $package_names[hadoop] = {32 => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386'], 64 => ['hadoop','hadoop-libhdfs.x86_64','hadoop-native.x86_64','hadoop-pipes.x86_64','hadoop-sbin.x86_64']}
     #$package_names[hadoop] = {32 => ['hadoop.i386','hadoop-native.i386'], 64 => ['hadoop.x86_64','hadoop-native.x86_64']}
    
     $mapred_smoke_test_script = "/usr/lib/hadoop/sbin/hadoop-validate-setup.sh"
@@ -261,12 +261,12 @@ class hdp::params()
     $hadoop_jar_location = "/usr/lib/hadoop/"
     $hbase_daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
     $use_32_bits_on_slaves = true
-    $package_names[zookeeper] = {64 => ['zookeeper-server','zookeeper']}
-    $package_names[hbase] = {64 => ['hbase','hbase-doc','hbase-thrift','hbase-rest']}
-    $package_names[sqoop] = {32 => ['sqoop-metastore','sqoop']}
+    $package_names[zookeeper] = {64 => ['zookeeper']}
+    $package_names[hbase] = {64 => ['hbase']}
+    $package_names[sqoop] = {32 => ['sqoop']}
     $package_names[pig] = {32 => ['pig.noarch']}
     $package_names[hcat] = {32 => ['hcatalog']}
-    $package_names[hive] = {64 => ['hive-server','hive','hive-metastore']}
+    $package_names[hive] = {64 => ['hive']}
     $zk_bin = '/usr/lib/zookeeper/bin'
     $zk_smoke_test_script = "/usr/lib/zookeeper/bin/zkCli.sh"
     $update_zk_shell_files = false

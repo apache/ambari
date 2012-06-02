@@ -92,6 +92,7 @@ class hdp-ganglia::server::packages(
 )
 {
   hdp::package { ['ganglia-server','ganglia-gweb','ganglia-hdp-gweb-addons']:
+    java_needed = 'false',
     ensure => $ensure
  } 
 }
