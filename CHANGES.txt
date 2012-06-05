@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-356. Log output to console slows puppet run. (Jitendra via Vikram)
+
   AMBARI-359. invalid parameter java_needed during uninstall (Ramya via Vikram) 
 
   AMBARI-354. hmc rpm on install must backup the database (Suresh via Vikram)
