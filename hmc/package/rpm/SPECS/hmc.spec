@@ -49,7 +49,15 @@ This package provides a Management Console for Hadoop Cluster.
 
 %prep
 %setup -q -n %{name}-%{version}
+
 %build
+
+%pre
+# Make a backup of existing database before installing new package
+if [ -f /var/db/hmc/data/data.db ]; then
+  DATE=`date +%d-%m-%y-%H%M`
+  mv /var/db/hmc/data/data.db /var/db/hmc/data/data.db.$DATE
+fi
 
 %install
 # Flush any old RPM build root
@@ -89,6 +97,7 @@ This package provides a Management Console for Hadoop Cluster.
 %__cp -rf puppet/reports/hmcreport.rb $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
 %__tar czf $RPM_BUILD_ROOT/%{web_prefixdir}/modules.tgz puppet/modules
 echo "Alias /hdp %{_prefix}/share/hdp" > $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
+
 %post
 if test X"$RPM_INSTALL_PREFIX0" = X"" ; then
   RPM_INSTALL_PREFIX0="/usr"
@@ -114,8 +123,8 @@ echo 0 > /selinux/enforce
 htpasswd -mbc /etc/hmc/htpasswd.users hmcadmin hmcadmin
 #chown apache:apache /var/db/hmc/data/data.db
 chown -R puppet:apache /etc/hmc
+
 %postun
-rm -rf /var/db/hmc/data/data.db
 rm -rf /var/run/hmc/clusters/
 rm -rf /var/lib/puppet/reports/*
 rm -rf /var/lib/puppet/puppet_kick_version.txt
