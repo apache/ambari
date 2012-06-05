@@ -12,16 +12,14 @@ class hdp-ganglia(
     user { $gmetad_user : shell => '/bin/bash'} #provision for nobody user
   }
   if ($service_state == 'no_op') {
-   } elsif ($service_state == 'uninstalled') {
+  } elsif ($service_state == 'uninstalled') {
     hdp::package { 'ganglia-monitor' :
-      java_needed => 'false',
       ensure => 'uninstalled'
     }
-   } elsif ($service_state in ['running','installed_and_configured','stopped']) {
-      hdp::package { 'ganglia-monitor':
-        java_needed => 'false'
-      }
-
+  } elsif ($service_state in ['running','installed_and_configured','stopped']) {
+    hdp::package { 'ganglia-monitor':
+      java_needed => false
+    }
   } 
 
   anchor{'hdp-ganglia::begin':} -> User<|title == $gmond_user or title == $gmetad_user|> ->  

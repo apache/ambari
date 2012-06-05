@@ -1,70 +1,72 @@
 class hdp-ganglia::monitor(
   $service_state = $hdp::params::cluster_service_state,
   $ganglia_server_host = undef,
-  $monitor_and_server_single_node = false,
   $opts = {}
 ) inherits hdp-ganglia::params
 {
   if ($service_state == 'no_op') {
   } elsif ($service_state in ['uninstalled']) {
-
-      if ($monitor_and_server_single_node == false) {
-      #note: includes the common package ganglia-monitor
-      include hdp-ganglia
-      class { 'hdp-ganglia::config':
-        ganglia_server_host => $ganglia_server_host,
-        service_state       => $service_state
-      }
-     }
-    } elsif ($service_state in ['running','stopped','installed_and_configured']) {
-        if ($monitor_and_server_single_node == false) {
-        #note: includes the common package ganglia-monitor
-        include hdp-ganglia
-        class { 'hdp-ganglia::config': 
-          ganglia_server_host => $ganglia_server_host,
-          require             => Class['hdp-ganglia'],
-          before              => Class['hdp-ganglia::monitor::config-gen'],
-          service_state       => $service_state
-        }
-      }
-
-      anchor {'hdp-ganglia::monitor::begin' : } -> class { 'hdp-ganglia::monitor::config-gen': } ->  anchor {'hdp-ganglia::monitor::end' : } 
-
-      if ($monitor_and_server_single_node == false) {
-        Class['hdp-ganglia'] -> Class['hdp-ganglia::monitor::config-gen']
-        class { 'hdp-ganglia::service::gmond': 
-          ensure => $service_state,
-          require  => Class['hdp-ganglia::monitor::config-gen']
-        }
-      }
-    } else {
-      hdp_fail("TODO not implemented yet: service_state = ${service_state}")
+    #note: includes the common package ganglia-monitor
+    include hdp-ganglia
+    class { 'hdp-ganglia::config':
+      ganglia_server_host => $ganglia_server_host,
+      service_state       => $service_state
     }
+  } elsif ($service_state in ['running','stopped','installed_and_configured']) {
+    #note: includes the common package ganglia-monitor
+    include hdp-ganglia
+    class { 'hdp-ganglia::config': 
+      ganglia_server_host => $ganglia_server_host,
+      service_state       => $service_state
+    }
+
+    class { 'hdp-ganglia::monitor::config-gen':}
+
+    class { 'hdp-ganglia::service::gmond': 
+      ensure => $service_state
+    }
+
+    Class['hdp-ganglia'] -> Class['hdp-ganglia::config'] -> Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::service::gmond']
+  } else {
+    hdp_fail("TODO not implemented yet: service_state = ${service_state}")
+  }
 }
 
 class hdp-ganglia::monitor::config-gen()
 {
 
+  anchor{'hdp-ganglia::monitor::config-gen::begin':}
+
   #TODO: to get around anchor problems
   Class['hdp-ganglia'] -> Class['hdp-ganglia::monitor::config-gen']
 
-  $service_exists = $hdp::params::service_exists
-
   if ($hdp-ganglia::params::omit_namenode != true) {
-    hdp-ganglia::config::generate_monitor { 'HDPNameNode':}
+    hdp-ganglia::config::generate_monitor { 'HDPNameNode':
+      ganglia_service => 'gmond',
+      require => Anchor['hdp-ganglia::monitor::config-gen::begin'],
+      before  => Anchor['hdp-ganglia::monitor::config-gen::end']
+    }
   }
   if ($hdp-ganglia::params::omit_jobtracker != true) {
-    hdp-ganglia::config::generate_monitor { 'HDPJobTracker':}
+    hdp-ganglia::config::generate_monitor { 'HDPJobTracker':
+      ganglia_service => 'gmond',
+      require => Anchor['hdp-ganglia::monitor::config-gen::begin'],
+      before  => Anchor['hdp-ganglia::monitor::config-gen::end']
+    }
   }
   if ($hdp-ganglia::params::omit_hbase_master != true) {
-    hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':}
+    hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':
+      ganglia_service => 'gmond',
+      require => Anchor['hdp-ganglia::monitor::config-gen::begin'],
+      before  => Anchor['hdp-ganglia::monitor::config-gen::end']
+    }
   }
   if ($hdp-ganglia::params::omit_slaves != true) {
-    hdp-ganglia::config::generate_monitor { 'HDPSlaves':}
-  }
-  Hdp-ganglia::Config::Generate_monitor<||>{
-    ganglia_service => 'gmond'
-  }
-
-  anchor{'hdp-ganglia::monitor::config-gen::begin':} -> Hdp-ganglia::Config::Generate_monitor<||> -> anchor{'hdp-ganglia::monitor::config-gen::end':}
+    hdp-ganglia::config::generate_monitor { 'HDPSlaves':
+      ganglia_service => 'gmond',
+      require => Anchor['hdp-ganglia::monitor::config-gen::begin'],
+      before  => Anchor['hdp-ganglia::monitor::config-gen::end']
+    }
+  }  
+  anchor{'hdp-ganglia::monitor::config-gen::end':}
 }

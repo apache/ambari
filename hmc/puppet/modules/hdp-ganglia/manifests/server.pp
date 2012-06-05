@@ -1,6 +1,5 @@
 class hdp-ganglia::server(
   $service_state = $hdp::params::cluster_service_state,
-  $monitor_and_server_single_node = false,
   $opts = {}
 ) inherits  hdp-ganglia::params
 {
@@ -12,7 +11,7 @@ class hdp-ganglia::server(
   } elsif ($service_state == 'uninstalled') {
     class { 'hdp-ganglia::server::packages':
       ensure => 'uninstalled'
-      }
+    }
 
     hdp::directory { $ganglia_shell_cmds_dir:
       service_state => $service_state,
@@ -29,40 +28,20 @@ class hdp-ganglia::server(
       force => true
     }
 
-    anchor { 'hdp-ganglia::server::begin': } -> Class['hdp-ganglia::server::packages'] -> Hdp::Directory[$ganglia_shell_cmds_dir] ->  Hdp::Directory[$ganglia_conf_dir] -> Hdp::Directory[$ganglia_runtime_dir] -> anchor { 'hdp-ganglia::server::end': }
+    #top level no anchors needed
+    Class['hdp-ganglia::server::packages'] -> Hdp::Directory[$ganglia_shell_cmds_dir] ->  Hdp::Directory[$ganglia_conf_dir] -> Hdp::Directory[$ganglia_runtime_dir]
 
-   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
-    if ($monitor_and_server_single_node == false) {
-      include hdp-ganglia #note: includes the common package ganglia-monitor
-    }
+  } elsif ($service_state in ['running','stopped','installed_and_configured']) {
+    include hdp-ganglia #note: includes the common package ganglia-monitor
 
     class { 'hdp-ganglia::server::packages': }
 
     class { 'hdp-ganglia::config': 
-     ganglia_server_host => $hdp::params::host_address,
-     service_state       => $service_state
-     }
-   
-    if ($hdp-ganglia::params::omit_hbase_master != true) {
-      hdp-ganglia::config::generate_server { 'HDPHBaseMaster':
-        ganglia_service => 'gmond'
-      }
+      ganglia_server_host => $hdp::params::host_address,
+      service_state       => $service_state
     }
-    if ($hdp-ganglia::params::omit_jobtracker != true) {
-      hdp-ganglia::config::generate_server { 'HDPJobTracker':
-        ganglia_service => 'gmond'
-      }
-    }
-    if ($hdp-ganglia::params::omit_namenode != true) {
-      hdp-ganglia::config::generate_server { 'HDPNameNode':
-        ganglia_service => 'gmond'
-      }
-    }
-    if ($hdp-ganglia::params::omit_slaves != true) {
-      hdp-ganglia::config::generate_server { 'HDPSlaves':
-        ganglia_service => 'gmond'
-      }
-    }
+
+    class {'hdp-ganglia::server::config-gen': }   
     
     hdp-ganglia::config::generate_server { 'gmetad':
       ganglia_service => 'gmetad'
@@ -70,18 +49,13 @@ class hdp-ganglia::server(
 
     class { 'hdp-ganglia::server::services' : 
       service_state => $service_state,
-      monitor_and_server_single_node => $monitor_and_server_single_node
+      monitor_and_server_single_node => false
     }
 
-    #TODO: to get around anchor problems
-    Class['hdp-ganglia'] -> Hdp-ganglia::Config::Generate_server<||>
-    
-    if ($monitor_and_server_single_node == false) {
-      Class['hdp-ganglia'] -> Class['hdp-ganglia::server::packages']
-    }
-
-    anchor{'hdp-ganglia::server::begin':} -> Class['hdp-ganglia::server::packages'] -> Class['hdp-ganglia::config'] -> 
-      Hdp-ganglia::Config::Generate_server<||> -> Class['hdp-ganglia::server::services'] -> anchor{'hdp-ganglia::server::end':}
+    #top level no anchors needed
+    Class['hdp-ganglia'] -> Class['hdp-ganglia::server::packages'] -> Class['hdp-ganglia::config'] -> 
+      Class['hdp-ganglia::server::config-gen'] -> Hdp-ganglia::Config::Generate_server['gmetad'] -> 
+      Class['hdp-ganglia::server::services']
    } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }
@@ -92,8 +66,8 @@ class hdp-ganglia::server::packages(
 )
 {
   hdp::package { ['ganglia-server','ganglia-gweb','ganglia-hdp-gweb-addons']:
-    java_needed => 'false',
-    ensure => $ensure
+    ensure      => $ensure,
+    java_needed => false
  } 
 }
 
@@ -114,4 +88,39 @@ class hdp-ganglia::server::services(
       Anchor['hdp-ganglia::server::services::begin'] -> Class['hdp-ganglia::service::gmond'] -> Class['hdp-ganglia::service::change_permission'] -> Class['hdp-ganglia::service::gmetad'] 
     }
   }
+}
+
+class hdp-ganglia::server::config-gen()
+{
+  anchor{'hdp-ganglia::server::config-gen::begin':} 
+
+  if ($hdp-ganglia::params::omit_hbase_master != true) {
+    hdp-ganglia::config::generate_server { 'HDPHBaseMaster':
+      ganglia_service => 'gmond',
+      require => Anchor['hdp-ganglia::server::config-gen::begin'],
+      before  => Anchor['hdp-ganglia::server::config-gen::end']
+    }
+  }
+  if ($hdp-ganglia::params::omit_jobtracker != true) {
+    hdp-ganglia::config::generate_server { 'HDPJobTracker':
+      ganglia_service => 'gmond',
+      require => Anchor['hdp-ganglia::server::config-gen::begin'],
+      before  => Anchor['hdp-ganglia::server::config-gen::end']
+    }
+  }
+  if ($hdp-ganglia::params::omit_namenode != true) {
+    hdp-ganglia::config::generate_server { 'HDPNameNode':
+      ganglia_service => 'gmond',
+      require => Anchor['hdp-ganglia::server::config-gen::begin'],
+      before  => Anchor['hdp-ganglia::server::config-gen::end']
+    }
+  }
+  if ($hdp-ganglia::params::omit_slaves != true) {
+    hdp-ganglia::config::generate_server { 'HDPSlaves':
+      ganglia_service => 'gmond',
+      require => Anchor['hdp-ganglia::server::config-gen::begin'],
+      before  => Anchor['hdp-ganglia::server::config-gen::end']
+    }
+  }
+  anchor{'hdp-ganglia::server::config-gen::end':} 
 }
