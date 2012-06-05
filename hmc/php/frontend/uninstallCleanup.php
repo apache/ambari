@@ -119,7 +119,7 @@ function deBootStrap ($clusterName, $deployUser, $txnId, $progressInfo)
   /////// done monitoring return back to the uninstall
   
   // need to cleanup db for this cluster
-  $dbAccessor->deleteCluster($clusterName);
+  $dbAccessor->cleanupCluster($clusterName);
   
   return array('result' => $result, 'error' => $error);
 }

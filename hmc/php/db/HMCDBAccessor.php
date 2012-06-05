@@ -3277,14 +3277,14 @@ class HMCDBAccessor {
   }
 
   public function cleanupCluster ($clusterName) {
-    $this->deleteClusterTable($clusterName, "SubTransactionStatus");
-    $this->deleteClusterTable($clusterName, "TransactionStatus");
+    $this->deleteClusterTable($clusterName, "Clusters");
+    $this->deleteClusterTable($clusterName, "ServiceComponentInfo");
     $this->cleanupHosts($clusterName);
   }
 
   public function deleteCluster ($clusterName) {
-    $this->deleteClusterTable($clusterName, "Clusters");
-    $this->deleteClusterTable($clusterName, "ServiceComponentInfo");
+    $this->deleteClusterTable($clusterName, "SubTransactionStatus");
+    $this->deleteClusterTable($clusterName, "TransactionStatus");
     $this->cleanupCluster($clusterName);
   }
 }

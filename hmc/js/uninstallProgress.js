@@ -165,12 +165,8 @@ function renderUninstallProgress (uninstallProgressInfo) {
 
           globalYui.one('#txnProgressStatusActionsDivId').setContent(  
             '<a href="javascript:void(null)" id=clustersListLinkId>' + 
-              'Go Manage The Cluster\'s Services' +
+              'Restart the installation wizard' + 
             '</a>' );
-
-          globalYui.one("#restartInstallationWizardLinkId").on( "click", function(e) {
-            window.open( window.location.href );
-          });
 
           globalYui.one("#clustersListLinkId").on( "click", function(e) {
             window.open( generateClustersListUrl(txnProgressWidget.txnProgressContext.clusterName) );

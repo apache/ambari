@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-349. Logging in case of error during uninstall needs to be fixed. (Vikram)
+
   AMBARI-317. Select-all + unselect HBASE removes Zookeeper incorrectly (Vinod via Vikram)
 
   AMBARI-348. Select all services by default (Vinod via Vikram)
