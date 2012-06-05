@@ -19,11 +19,15 @@ function addCommasToInt(num) {
 	return num.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
 }
 
+function getTotalMemForDisplay(totalMem) {
+	return Math.round(totalMem / 102.4)/10 + "GB";
+}
+
 function renderHostsToMasterServices(allHosts, hostsToMasterServices) {
 	var markup = '';
 	for (var host in hostsToMasterServices) {
 		  var hostInfo = getNodeInfo(allHosts, host);
-		  markup += '<div class="hostToMasterServices"><h3>' + host + '<span class="hostInfo">' + addCommasToInt(hostInfo.totalMem) + 'MB RAM, ' + hostInfo.cpuCount + ' cores</span></h3><ul>';
+		  markup += '<div class="hostToMasterServices"><h3>' + host + '<span class="hostInfo">' + getTotalMemForDisplay(hostInfo.totalMem) + ', ' + hostInfo.cpuCount + ' cores</span></h3><ul>';
 		  for (var j in hostsToMasterServices[host]) {
 			  markup += '<li>' + hostsToMasterServices[host][j] + '</li>';
 		  }
@@ -56,14 +60,14 @@ function removeMasterServiceFromHost(masterName, hostName, hostsToMasterServices
 function getMasterHostSelect(masterName, allHosts, chosenHostName) {
 	var chosenHost = getNodeInfo(allHosts, chosenHostName);
 	var markup = '<select name="' + masterName + '">'; 
-	markup += '<option selected="selected" value="' + chosenHost.hostName + '">' + chosenHost.hostName + ' - ' + addCommasToInt(chosenHost.totalMem) + 'MB RAM, ' + chosenHost.cpuCount + ' cores</option>';
+	markup += '<option selected="selected" value="' + chosenHost.hostName + '">' + chosenHost.hostName + ' - ' + getTotalMemForDisplay(chosenHost.totalMem) + ', ' + chosenHost.cpuCount + ' cores</option>';
 	for (var i in allHosts) {
       var host = allHosts[i];
 	  if (host.hostName != chosenHost.hostName) {
-	    markup += '<option value="' + host.hostName + '">' + host.hostName + ' - ' + addCommasToInt(host.totalMem) + 'MB RAM, ' + host.cpuCount + ' cores</option>';
+	    markup += '<option value="' + host.hostName + '">' + host.hostName + ' - ' + getTotalMemForDisplay(host.totalMem) + ', ' + host.cpuCount + ' cores</option>';
 	  }
 	}
-	markup += '</select><input type="hidden" style="display:none" id="' + masterName + 'ChosenHost" value="' + chosenHost.hostName + '">';
+	markup += '</select><div style="clear:both"></div><input type="hidden" style="display:none" id="' + masterName + 'ChosenHost" value="' + chosenHost.hostName + '">';
 	return markup;
 }
 
@@ -159,7 +163,7 @@ function renderAssignHosts(clusterInfo) {
   for (var i in masterServices) {
 	  markup += '<div class="masterServiceSelect"><label><b>'
 	  	+ masterServices[i].displayName
-	    + '</b> assigned to</label>' + getMasterHostSelect(masterServices[i].name, allHosts, masterServices[i].host)
+	    + '</b></label>' + getMasterHostSelect(masterServices[i].name, allHosts, masterServices[i].host)
 		+ '</div>';
 	  if (hostsToMasterServices[masterServices[i].host] == null) {
 		  hostsToMasterServices[masterServices[i].host] = {};

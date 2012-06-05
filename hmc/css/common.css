@@ -215,7 +215,6 @@ td {
   margin-left:10px;
   width:300px;
   display:inline-block;
-  font-style:italic;
   visibility:hidden;
 }
 
@@ -395,10 +394,16 @@ div.separator {
 #masterServices {
 	margin-top:40px;
 }
+
 #masterServices select {
 	width:auto;
+	max-width:330px;
 	background-color:#fff;
 }
+#masterServices a {
+	margin-left:165px;
+}
+
 #masterServices ul {
 	font-size:14px;
 	color:#65B642;
@@ -418,34 +423,41 @@ div.separator {
 	font-size:14px;
 	font-weight:normal;
 }
-#masterServices a {
-	margin-left:20px;
-	margin-top:20px;
-}
-#masterServicesToHosts {
-	margin-left:20px;
-	width:480px;
+
+#masterServicesToHostsContainer {
+	margin:0 10px 40px 0;
+	width:520px;
 	float:left;
 }
+
 .masterServiceSelect {
 	margin-bottom:10px;	
 }
+.masterServiceSelect select {
+	margin-bottom:0;
+}
+
 .masterServiceSelect label {
 	font-size:14px;
+	float:left;
+	width:160px;
+	margin-right:5px;
+	line-height:30px;
+	text-align:right;
 }
 #hostsToMasterServices {
-	width:440px;
+	width:auto;
 	float:left;
 }
 .hostToMasterServices {
     background-color: #F7F7F5;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 2px solid rgba(0, 0, 0, 0.25);
     border-radius: 4px 4px 4px 4px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) inset;
     margin: 0 0 10px;
     min-height: 20px;
     padding: 10px 20px;
-    width:400px;
+    width:360px;
 }
 .hostToMasterServices > h3 {
 	font-size:14px;

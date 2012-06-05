@@ -193,11 +193,13 @@
                 <div id="formStatusDivId" class="formStatusBar" style="display:none">					
                 </div>               
                 <div id="masterServices">
-                  <div id="masterServicesToHosts"></div>
+                  <div id="masterServicesToHostsContainer">
+                    <div id="masterServicesToHosts"></div>
+                    <a href="javascript:void 0" class="btn btn-large" id="selectServiceMastersSubmitButtonId"><?php echo $RES['initWizard.assignMasters.submit.label'] ?></a>
+                  </div>                  
                   <div id="hostsToMasterServices"></div>
                 </div>
                 <div style="clear:both"></div>
-                <a href="javascript:void 0" style="margin:20px" class="btn btn-large" id="selectServiceMastersSubmitButtonId"><?php echo $RES['initWizard.assignMasters.submit.label'] ?></a>
               </div>
 
               <div name="configureClusterCoreDiv" id="configureClusterCoreDivId" style="display:none">
@@ -321,7 +323,7 @@
                 '../js/configureServicesUtils.js',
                 '../js/configureServices.js',
                 '../js/reviewAndDeploy.js',
-                '../js/deployProgress.js'
+                '../js/deployProgress.js'                
               ];
             </script>
 
