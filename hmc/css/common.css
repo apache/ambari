@@ -301,22 +301,6 @@ input.unit-ms {
 	width:100px;
 }
 
-.navbar .brand {
-    color: #666666;
-    display: block;
-    float: left;
-    font-size: 16px;
-    font-weight:normal;
-    line-height: 1;
-    margin-left:0;
-    padding: 14px 10px;
-}
-
-.navbar-inner {
-	background: linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
-	background: -moz-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
-	background: -webkit-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
-}
 
 a.btn {
 	color:#333;
@@ -402,4 +386,116 @@ div.separator {
 }
 #selectServicesCoreDivId ul {
 	list-style:none outside none;
+}
+
+#masterServices {
+	margin-top:40px;
+}
+#masterServices select {
+	width:auto;
+	background-color:#fff;
+}
+#masterServices ul {
+	font-size:14px;
+	color:#65B642;
+	font-weight:bold;
+}
+/*
+#masterServices label {
+	width:240px;
+	float:left;
+	line-height: 28px;
+    margin-right: 10px;
+    text-align: right;
+}
+*/
+#masterServices .hostInfo {
+	margin-left:10px;
+	font-size:14px;
+	font-weight:normal;
+}
+#masterServices a {
+	margin-left:20px;
+}
+#masterServicesToHosts {
+	margin-left:20px;
+	width:480px;
+	float:left;
+}
+.masterServiceSelect {
+	margin-bottom:10px;	
+}
+.masterServiceSelect label {
+	font-size:14px;
+}
+#hostsToMasterServices {
+	width:440px;
+	float:left;
+}
+.hostToMasterServices {
+    background-color: #F7F7F5;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) inset;
+    margin: 0 0 20px;
+    min-height: 20px;
+    padding: 19px;
+    width:400px;
+}
+.hostToMasterServices h3 {
+	font-size:14px;
+}
+
+.navbar .brand {
+    color: #666666;
+    display: block;
+    float: left;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 1;
+    margin-left: 0;
+    margin-right: 40px;
+    margin-top: 3px;
+    padding: 14px 10px;
+}
+
+.navbar-inner {
+	background: linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+	background: -moz-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+	background: -webkit-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+	border-radius:0;
+	border:1px solid #bbb;
+	border-width:0 0 1px 0;
+}
+
+.navbar .nav .active > a, .navbar .nav .active > a:hover {
+    background-color: #999999;
+    color: #FFFFFF;
+    text-decoration: none;
+}
+.navbar .nav > li > a {
+	border-radius:8px;
+	-webkit-border-radius: 8px;
+	-moz-border-radius: 8px;
+    color: #666666;
+    float: none;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 19px;
+    margin: 6px 10px 6px 0;
+    padding: 8px 14px;
+    text-decoration: none;
+    text-shadow: none;
+}
+.navbar .nav > li > a:hover {
+  background-color: transparent;
+  color: #999999;
+  text-decoration: none;
+}
+.navbar .brand {
+	margin-right:40px;
+}
+.navbar #logo {
+	float:left;
+	padding-top:7px;
 }
