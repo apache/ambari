@@ -232,25 +232,16 @@ function selectDelectAll(selectAll) {
   var node = globalYui.one("#selectAllCheckBoxId");
   var labelNode = globalYui.one("#labelForSelectAllId");
   for (svcName in data['services']) {
-    if (!data['services'][svcName].attributes.noDisplay && !data['services'][svcName].attributes.mustInstall) {
+    if (!data['services'][svcName].attributes.noDisplay && !data['services'][svcName].attributes.mustInstall && data['services'][svcName].attributes.editable) {
       var itemId = getButtonId(svcName);
-      globalYui.one('#' + itemId).set('checked' , selectAll);
-      // Forget about the history and set refCount explicitly
-      if (selectAll) {
-        data['services'][svcName]['refCount'] = 1;
-      } else {
-        data['services'][svcName]['refCount'] = 0;
-      }
-      if (!data['services'][svcName].attributes.editable) {
-         var nonEditableNode = globalYui.one('#selectServicesEntry' + svcName + 'DivId');
-         if (selectAll) {
-           nonEditableNode.setStyle('display', 'block');
-         } else {
-           nonEditableNode.setStyle('display', 'none');
-         }
+      if ( selectAll != globalYui.one('#' + itemId).get('checked')) {
+        globalYui.one('#' + itemId).set('checked' , selectAll);
+        setRefCounts(svcName);
       }
     }
   }
+  // All done, update our rendering
+  updateRendering();
 }
 
 globalYui.one('#selectServicesCoreDivId').delegate('click', function (e) {
