@@ -176,6 +176,9 @@ function renderConfigureCluster (clusterConfig) {
             itemsExist = true;
           }
         });
+        if (globalYui.Lang.trim( globalYui.one("#customMountPointsId").get('value') ) != '') {
+          itemsExist = true;
+        }
         if (!itemsExist) {
           alert("Please select one mount point at the least");
           e.target.set('disabled', false);

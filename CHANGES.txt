@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-316. Grid mount points page doesn't let one pass with only a custom mount point (Vinod via Vikram)
+
   AMBARI-343. add option to enable webhdfs (Hitesh via Vikram)
 
   AMBARI-342. Reconfiguration process kicks in even when the user submits without new configs changes (Vinod via Vikram)
