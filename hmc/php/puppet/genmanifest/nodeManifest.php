@@ -186,20 +186,4 @@
     }
   }
 
-/*** TEST CODE ********
-  $nm = new NodeManifest("x.y.z");
-  $nm->setRoleStage("namenode", "1");
-  $nm->setRoleStage("datanode", "2");
-  $nm->setRoleStage("namenode", "3");
-  $nm->setRoleState("namenode", "service_state", "running");
-  $nm->setRoleOpt("namenode", "deploy", "yes");
-  $nm->setRoleOpt("namenode", "deploy", "no");
-  $nm->setRoleOpt("namenode", "wait", "10");
-  $nm->setRoleOpt("datanode", "running", "yes");
-  $nm->setNamenodeRoleState("stopped", 4);
-  $nm->setDatanodeRoleState("running", 5);
-  $ret = $nm->generateNodeManifest();
-  echo "$ret\n";
-***/
-
 ?>

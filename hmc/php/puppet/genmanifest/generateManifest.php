@@ -60,10 +60,91 @@ include "RoleDependencies.php";
            }
          }
        }
+       ManifestGenerator::optimizePackageInstall($n, $nm, $rolesStates, $configInfo, $roleStages);
        $nodeManifestString = $nm->generateNodeManifest();
        fwrite($fh, $nodeManifestString . "\n");
      }
      fclose($fh);
+   }
+
+   static function optimizePackageInstall($node, &$manifestObj, $rolesStatesDs, 
+       $configInfo, $roleStages) {
+     //Figure out the state
+     $serviceState = SERVICE_STATE_INSTALLED_AND_CONFIGURED;
+     foreach ($rolesStatesDs as $r => $stateList) {
+       if ((isset($stateList[SERVICE_STATE_KEY])) &&
+           ($stateList[SERVICE_STATE_KEY] != SERVICE_STATE_NO_OP )) {
+         if ($stateList[SERVICE_STATE_KEY] != SERVICE_STATE_INSTALLED_AND_CONFIGURED) {
+           $serviceState = NULL;
+           break;
+         }
+       }
+     } 
+     if (!isset($serviceState)) {
+       $serviceState = SERVICE_STATE_UNINSTALLED;
+       //See if it is uninstalled
+       foreach ($rolesStatesDs as $r => $stateList) {
+         if ( (isset($stateList[SERVICE_STATE_KEY])) && 
+           ($stateList[SERVICE_STATE_KEY] != SERVICE_STATE_NO_OP )) {
+           if ($stateList[SERVICE_STATE_KEY] != SERVICE_STATE_UNINSTALLED) {
+             $serviceState = NULL;
+             break;
+           }
+         }
+       } 
+     }
+     if (!isset($serviceState)) {
+       //No optimization needed
+       return;
+     }
+     //get list of packages
+     $stages = array();
+     foreach($roleStages as $roleName => $val) {
+        $stages[$val] = $roleName;
+     }
+     ksort($stages, SORT_NUMERIC);
+     $packageList = array();
+     foreach($stages as $theStage => $r) {
+       if (!isset($rolesStatesDs[$r])) {
+         continue;
+       }
+       //Add in the order of the stages
+       $stateList = $rolesStatesDs[$r];
+       if ($stateList[SERVICE_STATE_KEY] != $serviceState) { 
+         continue;
+       }
+       if (isset(self::$rolesToPackageMap[$r])) {
+         $p = self::$rolesToPackageMap[$r];
+         if (!in_array($p, $packageList)) {
+           $packageList[] = $p;
+         }
+       }
+     }
+
+     if (empty($packageList)) {
+       //No packages don't bother
+       return;       
+     }
+
+     //lzo and snappy 
+     $packageList[] = self::$rolesToPackageMap["snappy"];
+     if ($configInfo["lzo_enabled"] == "true") {
+       $packageList[] = self::$rolesToPackageMap["lzo"];
+     }
+
+     $firstP = true;
+     $pList = "\"";
+     foreach ($packageList as $p) {
+       if ($firstP) {
+         $firstP = false;
+       } else {
+         $pList = $pList . " ";
+       }
+       $pList = $pList . $p;
+     }
+     $pList = $pList . "\"";
+     $manifestObj->setRoleState("hdp", SERVICE_STATE_KEY, $serviceState);
+     $manifestObj->setRoleState("hdp", "pre_installed_pkgs", $pList);
    }
 
    private static function getAllImports($modulesDir) {
@@ -75,7 +156,6 @@ include "RoleDependencies.php";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-oozie/manifests/*.pp" ."\"\n";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-pig/manifests/*.pp" ."\"\n";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-sqoop/manifests/*.pp" ."\"\n";
-     #$importString = $importString . "import \"" . $modulesDir . "/hdp-hcat/manifests/*.pp" ."\"\n";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-templeton/manifests/*.pp" ."\"\n";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-hive/manifests/*.pp" ."\"\n";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-hcat/manifests/*.pp" ."\"\n";
@@ -83,6 +163,36 @@ include "RoleDependencies.php";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-monitor-webserver/manifests/*.pp" ."\"\n";
      return $importString;
    }
+
+   private static $rolesToPackageMap = array (
+     "hdp-hadoop::namenode" => "hadoop hadoop-libhdfs.x86_64 hadoop-native.x86_64 hadoop-pipes.x86_64 hadoop-sbin.x86_64",
+     "hdp-hadoop::snamenode" => "hadoop hadoop-libhdfs.x86_64 hadoop-native.x86_64 hadoop-pipes.x86_64 hadoop-sbin.x86_64",
+     "hdp-hadoop::jobtracker" => "hadoop hadoop-libhdfs.x86_64 hadoop-native.x86_64 hadoop-pipes.x86_64 hadoop-sbin.x86_64",
+     "hdp-hadoop::client" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386",
+     "hdp-hadoop::datanode" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386",
+     "hdp-hadoop::tasktracker" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386",
+     "hdp-hadoop::zookeeper" => "zookeeper",
+     "hdp-hadoop::zookeeper::client" => "zookeeper",
+     "hdp-hbase::master" => "hbase",
+     "hdp-hbase::regionserver" => "hbase",
+     "hdp-hbase::client" => "hbase",
+     "hdp-pig" => "pig.noarch",
+     "hdp-sqoop" => "sqoop",
+     "hdp-hive::server" => "hive",
+     "hdp-hive::client" => "hive",
+     "hdp-hcat" => "hcatalog",
+     "hdp-oozie::server" => "oozie.noarch",
+     "hdp-oozie::client" => "oozie-client.noarch",
+     "hdp-mysql::mysql" => "mysql mysql-server",
+     "hdp-templeton::server" => "templeton.i386",
+     "hdp-templeton::client" => "templeton.i386",
+     "lzo" => "lzo lzo.i386 lzo-devel lzo-devel.i386",
+     "snappy" => "snappy snappy-devel",
+     "hdp-ganglia::monitor_and_server" => "ganglia-gmetad-3.2.0 ganglia-gmond-3.2.0 gweb hdp_mon_ganglia_addons",
+     "hdp-ganglia::monitor" => "ganglia-gmond-3.2.0 gweb hdp_mon_ganglia_addons",
+     "hdp-nagios::server" => "hdp_mon_nagios_addons nagios-3.2.3 nagios-plugins-1.4.9 fping net-snmp-utils",
+     "hdp-dashboard" => "hdp_mon_dashboard",
+   );
  }
 
 ?>
