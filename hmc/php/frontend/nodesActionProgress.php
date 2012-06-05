@@ -93,7 +93,7 @@ if ($jsonOutput['currentProgressStateIndex'] < 0) {
 $jsonOutput['stateInfo'] = $allSubTxns;
 // Decode log information store as part of state.
 foreach ($jsonOutput['stateInfo']['subTxns'] as $subTxnId => $subTxnInfo) {
-  $jsonOutput['stateInfo']['subTxns'][$subTxnId]['state'] = json_decode($jsonOutput['stateInfo']['subTxns'][$subTxnId]['state']);
+  $jsonOutput['stateInfo']['subTxns'][$subTxnId]['state'] = json_decode($jsonOutput['stateInfo']['subTxns'][$subTxnId]['state'], true);
 }
 
 print json_encode($jsonOutput);

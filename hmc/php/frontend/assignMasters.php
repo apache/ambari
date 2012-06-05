@@ -6,6 +6,7 @@ include_once 'localDirs.php';
 include_once "../util/lock.php";
 include_once '../db/HMCDBAccessor.php';
 include_once '../util/selectNodes.php';
+include_once '../util/clusterState.php';
 
 $logger = new HMCLogger("AssignHosts");
 $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
@@ -91,7 +92,7 @@ if ($nameNodeInfoResult["result"] != 0 ) {
   return;
 }
 $logger->log_error("All mount points: ".$nameNodeInfoResult["disksInfo"]);
-$AllMountPoints = json_decode($nameNodeInfoResult["disksInfo"]);
+$AllMountPoints = json_decode($nameNodeInfoResult["disksInfo"], true);
 
 // generate the mount points info required by javascript in the next phase
 $propertiesArr = $dbAccessor->getConfigPropertiesMetaInfo();
@@ -141,6 +142,22 @@ $outjson = array(
                                 ),
             );
 
-print(json_encode(array( "result" => 0, "error" => "", "response" => $outjson)));
+// Update the state of the cluster.
+$result = 0;
+$error = "";
+
+$state = "CONFIGURATION_IN_PROGRESS";
+$displayName = "Configuration in progress";
+$context = array (
+  'stage' => "ASSIGN_MASTERS"
+);
+
+$retval = updateClusterState($clusterName, $state, $displayName, $context);
+if ($retval['result'] != 0) {
+  $result = $retval['result'];
+  $error = $retval['error'];
+}
+
+print(json_encode(array( "result" => $result, "error" => $error, "response" => $outjson)));
 
 ?>

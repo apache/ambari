@@ -5,6 +5,7 @@ include_once '../conf/Config.inc';
 include_once 'localDirs.php';
 include_once "../util/lock.php";
 include_once '../db/HMCDBAccessor.php';
+include_once "../util/clusterState.php";
 
 /*
 sleep(3);
@@ -52,8 +53,17 @@ if (move_uploaded_file($_FILES['clusterHostsFile']['tmp_name'], $hostsFileDestin
     //echo "Possible file upload attack!\n";
 }
 
+// Update the state of the cluster.
+$state = "CONFIGURATION_IN_PROGRESS";
+$displayName = "Configuration in progress";
+$context = array (
+  'stage' => "ADD_NODES"
+);
+
+$retval = updateClusterState($clusterName, $state, $displayName, $context);
+
 $outjson = array(
-                  "errorCode"=> 0,
+                  "errorCode"=> $retval['result'],
  //                 "clusterName" => $clusterName,
  //                 "finalDestination" => $identityFileDestination,
  //                 "fileToBeMoved" => $_FILES['clusterDeployUserIdentityFile']['tmp_name'],

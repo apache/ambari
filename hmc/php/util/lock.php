@@ -12,8 +12,13 @@ function LockAcquire() {
   $fileHdl = fopen($lockFile, "r");
   $GLOBALS['fileHdl'] = $fileHdl;
   $retval = flock($fileHdl, LOCK_EX);
-//  $logger->log_debug("Acquired Lock Status for Process: "
-//    . json_encode(posix_getpid()). " : ". json_encode($retval));
+  /* Uncomment for debugging purposes
+  $e = new Exception;
+  $logger->log_debug("Acquired Lock Status for Process: "
+    . json_encode(posix_getpid()). " : ". json_encode($retval) . " backtrace: ".
+  $e->getTraceAsString());
+  unset($e);
+   */
   return;
 }
 
@@ -24,8 +29,13 @@ function LockRelease() {
 //    . json_encode(posix_getpid()));
   $fileHdl = $GLOBALS['fileHdl'];
   $retval = flock($fileHdl, LOCK_UN);
-//  $logger->log_debug("Released Lock Status for Process: "
-//    . json_encode(posix_getpid()). " : ". json_encode($retval));
+  /* Uncomment for debugging purposes
+  $e = new Exception;
+  $logger->log_debug("Released Lock Status for Process: "
+  . json_encode(posix_getpid()). " : ". json_encode($retval) . " backtrace: ".
+  $e->getTraceAsString());
+  unset($e);
+   */
 }
 
 ?>

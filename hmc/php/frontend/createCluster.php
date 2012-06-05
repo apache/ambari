@@ -5,6 +5,7 @@ include_once '../conf/Config.inc';
 include_once './localDirs.php';
 include_once "../util/lock.php";
 include_once '../db/HMCDBAccessor.php';
+include_once '../util/clusterState.php';
 
 header("Content-type: application/json");
 
@@ -133,9 +134,25 @@ if ($propertiesArr["result"] != 0) {
   return;
 }
 
+$result = 0;
+$error = "";
+
+$state = "CONFIGURATION_IN_PROGRESS";
+$displayName = "Configuration in progress";
+$context = array (
+  'stage' => "CREATE_CLUSTER"
+);
+
+// update state of the cluster to be configuration in progress
+$retval = updateClusterState($clusterName, $state, $displayName, $context);
+if ($retval['result'] != 0) {
+  $result = $retval['result'];
+  $error = $retval['error'];
+}
+
 $output = array(
-                 "result" => 0,
-                 "error" => "",
+                 "result" => $result,
+                 "error" => $error,
                  "response" => array(
                                  "clusterName" => $response["clusterName"],
                                  "yumRepo" => array (

@@ -17,7 +17,7 @@ $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 // and poll for completion.
 // upon completion, does the nodesActionProgress piece to update
 // status of the completed state
-function deBootStrap ($clusterName, $deployUser, $stageInfo)
+function deBootStrap ($clusterName, $deployUser, $txnId, $progressInfo)
 {
   global $logger, $dbAccessor, $stagesInfo;
 

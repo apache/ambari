@@ -7,6 +7,7 @@ include_once "../util/lock.php";
 include_once '../db/HMCDBAccessor.php';
 
 include_once 'commandUtils.php';
+include_once '../util/clusterState.php';
 include_once "../util/HMCTxnUtils.php";
 
 $logger = new HMCLogger("setupNodes");
@@ -155,9 +156,27 @@ if ($execBackgroundResult == FALSE) {
   return;
 }
 
+$result = 0;
+$error = "";
+
+$state = "CONFIGURATION_IN_PROGRESS";
+$displayName = "Configuration in progress";
+
+$context = array (
+  'stage' => "ADD_NODES",
+  'txnId' => $rootTxnId
+);
+
+// update state of the cluster to be configuration in progress
+$retval = updateClusterState($clusterName, $state, $displayName, $context);
+if ($retval['result'] != 0) {
+  $result = $retval['result'];
+  $error = $retval['error'];
+}
+
 print (json_encode(array(
-  "result" => 0,
-  "error" => "",
+  "result" => $result,
+  "error" => $error,
   "response" => array(
     "clusterName" => $clusterName,
     "txnId" => $rootTxnId,

@@ -4,6 +4,7 @@ include_once '../util/Logger.php';
 include_once "../conf/Config.inc";
 include_once "../orchestrator/HMC.php";
 include_once "uninstallCleanup.php";
+include_once "deployPostProcess.php";
 
 $dbPath = $GLOBALS["DB_PATH"];
 
@@ -16,6 +17,10 @@ $logger = new HMCLogger("TxnProgress");
 $map = array(
   "HMC::uninstallHDP" => array (
       "deBootStrap"
+  ),
+
+  "HMC::deployHDP" => array (
+      "deployPostProcess"
   )
 );
 
@@ -696,7 +701,7 @@ if (($progress['processRunning'] == FALSE) || ($progress['encounteredError'] == 
     // run the next script from the map
     foreach ($map[$statusInfo['function']] as $postProcessFunc) {
       $logger->log_debug("Post process function is ".$postProcessFunc);
-      $retval = $postProcessFunc($clusterName,$deployUser, $lastTransaction);
+      $retval = $postProcessFunc($clusterName, $deployUser, $txnId, $progress);
       if ($retval["result"] != 0) {
         $progress['encounteredError'] = TRUE;
         break;

@@ -5,7 +5,7 @@ include_once '../conf/Config.inc';
 include_once 'localDirs.php';
 include_once "../util/lock.php";
 include_once '../db/HMCDBAccessor.php';
-
+include_once "../util/clusterState.php";
 include_once '../util/selectNodes.php';
 // include_once 'install_puppet.php';
 
@@ -153,5 +153,21 @@ foreach($allServicesArray["services"] as $service) {
 }
 //////////////////// End of populate service masters for the UI ///////////////////////////
 
-print (json_encode(array("result" => 0, "error" => 0, "response" => $jsonOutput)));
+// Update the state of the cluster.
+$result = 0;
+$error = "";
+
+$state = "CONFIGURATION_IN_PROGRESS";
+$displayName = "Configuration in progress";
+$context = array (
+  'stage' => "SELECT_SERVICES"
+);
+
+$retval = updateClusterState($clusterName, $state, $displayName, $context);
+if ($retval['result'] != 0) {
+  $result = $retval['result'];
+  $error = $retval['error'];
+}
+
+print (json_encode(array("result" => $result, "error" => $error, "response" => $jsonOutput)));
 ?>

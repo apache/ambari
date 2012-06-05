@@ -6,6 +6,7 @@ include_once 'localDirs.php';
 include_once "../util/lock.php";
 include_once '../db/HMCDBAccessor.php';
 include_once '../util/suggestProperties.php';
+include_once '../util/clusterState.php';
 
 $logger = new HMCLogger("ConfigureCluster");
 $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
@@ -40,6 +41,22 @@ if ($ret["result"] != 0) {
 $jsonOutput = array();
 $jsonOutput["clusterName"] = $clusterName;
 
-print(json_encode(array("result" => 0, "error" => "", "response" => $jsonOutput)));
+// Update the state of the cluster.
+$result = 0;
+$error = "";
+
+$state = "CONFIGURATION_IN_PROGRESS";
+$displayName = "Configuration in progress";
+$context = array (
+  'stage' => "CONFIGURE_CLUSTER"
+);
+
+$retval = updateClusterState($clusterName, $state, $displayName, $context);
+if ($retval['result'] != 0) {
+  $result = $retval['result'];
+  $error = $retval['error'];
+}
+
+print(json_encode(array("result" => $result, "error" => $error, "response" => $jsonOutput)));
 
 ?>
