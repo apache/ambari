@@ -89,7 +89,13 @@ $jsonOutput["allHosts"] = array();
  * FIXME need to get all hosts from select Nodes script
  */
 $allHostsInfo = $dbAccessor->getAllHostsInfo($clusterName,
-    array("=" => array ( "discoveryStatus" => "SUCCESS")), array());
+  array("=" => array ( "discoveryStatus" => "SUCCESS")),
+  array(
+    array("sortColumn" => "totalMem", "sortOrder" => "DESC"),
+    array("sortColumn" => "cpuCount", "sortOrder" => "DESC"),
+    array("sortColumn" => "hostName", "sortOrder" => "ASC")
+  )
+);
 if ($allHostsInfo["result"] != 0 ) {
   $logger->log_error("Got error while getting hostsInfo ".$allHostsInfo["error"]);
   print json_encode($allHostsInfo);

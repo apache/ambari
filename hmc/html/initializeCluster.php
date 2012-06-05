@@ -192,10 +192,11 @@
                 </div>
                 <div id="formStatusDivId" class="formStatusBar" style="display:none">					
                 </div>               
-                <div id="serviceMastersLinksDivId">
+                <div id="masterServices">
+                  <div id="masterServicesToHosts"></div>
+                  <div id="hostsToMasterServices"></div>
                 </div>
-                <div id="nodeGroupsCoreDivId">
-                </div>
+                <div style="clear:both"></div>
                 <a href="javascript:void 0" style="margin:20px" class="btn btn-large" id="selectServiceMastersSubmitButtonId"><?php echo $RES['initWizard.assignMasters.submit.label'] ?></a>
               </div>
 

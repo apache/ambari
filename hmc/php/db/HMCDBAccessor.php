@@ -971,6 +971,9 @@ class HMCDBAccessor {
    *      "sortColumn" => "totalMem",
    *      "sortOrder" => "ASC/DESC"
    *      )
+   *   - optionally, an array of [ "sortColumn" => $sortColumn, "sortOrder" => $sortOrder]
+   *     can be used
+   *      
    * @return mixed
    *   array (
    *       "result" => 0,
@@ -1017,30 +1020,46 @@ class HMCDBAccessor {
       }
     }
     $using_sort = FALSE;
-    if (isset($order) && is_array($order)
-        && isset($order["sortColumn"])) {
-      $using_sort = TRUE;
-      $query .= " ORDER BY ";
-      if ($order["sortColumn"] == "hostName") {
-        $query .= "host_name";
+    if (isset($order) && is_array($order)) {
+      if (sizeof($order) > 0) {
+        $query .= " ORDER BY ";
+        $using_sort = TRUE;
       }
-      else if ($order["sortColumn"] == "ip") {
-        $query .= "ip";
-      }
-      else if ($order["sortColumn"] == "totalMem") {
-        $query .= "total_mem";
-      }
-      else if ($order["sortColumn"] == "cpuCount") {
-        $query .= "cpu_count";
-      }
-      else if ($order["sortColumn"] == "osArch") {
-        $query .= "os_arch";
-      }
-      else if ($order["sortColumn"] == "osType") {
-        $query .= "os_type";
-      }
-      if (isset($order["sortOrder"])) {
-        $query .= " ".$order["sortOrder"];
+      while (sizeof($order) > 0) {
+        // is it an array of arrays, for an array of sortColumn and sortOrder?        
+        if (is_array($order[0])) {
+          $this->logger->log_debug('yo');
+          $orderItem = array_shift($order);
+        } else {
+          $orderItem["sortColumn"] = array_shift($order);
+          $orderItem["sortOrder"] = array_shift($order);
+        }
+        if (isset($orderItem["sortColumn"])) {
+          if ($orderItem["sortColumn"] == "hostName") {
+            $query .= "host_name";
+          }
+          else if ($orderItem["sortColumn"] == "ip") {
+            $query .= "ip";
+          }
+          else if ($orderItem["sortColumn"] == "totalMem") {
+            $query .= "total_mem";
+          }
+          else if ($orderItem["sortColumn"] == "cpuCount") {
+            $query .= "cpu_count";
+          }
+          else if ($orderItem["sortColumn"] == "osArch") {
+            $query .= "os_arch";
+          }
+          else if ($orderItem["sortColumn"] == "osType") {
+            $query .= "os_type";
+          }
+          if (isset($orderItem["sortOrder"])) {
+            $query .= " ".$orderItem["sortOrder"];
+            if (sizeof($order) > 0) { 
+              $query .= ',';
+            }
+          }
+        }
       }
     }
 
