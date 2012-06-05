@@ -570,7 +570,7 @@ class Cluster {
       $result = $this->installService($svcTxnMap[$service->name], $service, $dryRun);
       if ($result['result'] !== 0) {
         $this->setState(State::FAILED, $transaction, $dryRun);
-        $service->setState(State::FAILED, $svcTxnMap[$service->name], $dryRun, TRUE);
+        $service->setState(State::FAILED, $svcTxnMap[$service->name], $dryRun, FALSE);
         return $result;
       }
     }
@@ -583,7 +583,7 @@ class Cluster {
         $this->logger->log_error("Installing HDP failed with:  " . $result['error']);
         $this->setState(State::FAILED, $transaction, $dryRun);
         foreach ($services as $service) {
-          $service->setState(State::FAILED, $svcTxnMap[$service->name], $dryRun, TRUE);
+          $service->setState(State::FAILED, $svcTxnMap[$service->name], $dryRun, FALSE);
         }
         return $result;
       }
@@ -611,7 +611,7 @@ class Cluster {
         $this->logger->log_error("Installing HDP failed with:  " . $result['error']);
         $this->setState(State::FAILED, $transaction, $dryRun);
         foreach ($services as $service) {
-          $service->setState(State::FAILED, $svcTxnMap[$service->name], $dryRun, TRUE);
+          $service->setState(State::FAILED, $svcTxnMap[$service->name], $dryRun, FALSE);
         }
         return $result;
       }
@@ -621,7 +621,7 @@ class Cluster {
         $this->logger->log_error("Puppet kick failed, no successful nodes");
         $this->setState(State::FAILED, $transaction, $dryRun);
         foreach ($services as $service) {
-          $service->setState(State::FAILED, $svcTxnMap[$service->name], $dryRun, TRUE);
+          $service->setState(State::FAILED, $svcTxnMap[$service->name], $dryRun, FALSE);
         }
         return array ( "result" => -3,
                        "error" => "Puppet kick failed on all nodes");

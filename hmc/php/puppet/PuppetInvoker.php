@@ -103,7 +103,7 @@
     }
 
     public function kickPuppet($nodes, $txnObj, $clusterName, $nodesComponents,
-        $globalOptions) {
+        $globalOptions = array()) {
       //Get host config from db
       $txnId = $txnObj->toString();
       $components = array_keys($nodesComponents);
