@@ -24,23 +24,49 @@
   };
   
   // Create "global" variables
-  var clickedRow, page, urls = [], graphs = [], previous, 
+  var clickedRow, page, urls = [], graphs = [], previous, to, in_refresh_page = false,
     collection, collection2, context, alertParam = "all", 
     alerts, hostcounts, hbase_installed, hbase_link, hbase, 
-    firstService, graphCounter = 0, errorFlag = false, errors = [],
+    firstService, graphCounter = 0, errorFlag = false, errors = [], auto_refresh = false,
     gangliaErrorCount = 0;
   
   // on document ready
   $(document).ready(function(){
-    a.detectPage();
-    a.setParams();
-    a.createGraphs();
-    a.getClusterInfo();
+    self.clearTimeout(to);
+    a.refreshPage();
     a.setEventDelegation();
-    a.getNagiosURL();
     a.errorHandler();
   });
   
+  a.autoRefresh = function() {
+    if (document.getElementById("autorefresh").checked == true) {
+      auto_refresh = true;
+      a.refreshPage();
+    } else {
+      auto_refresh = false;
+    }
+  };
+
+  a.refreshPage = function(){
+    if (in_refresh_page) {
+      if (auto_refresh) {
+        to = self.setTimeout(function() { a.refreshPage(); }, 60000);
+      }
+      return;
+    } else {
+      in_refresh_page = true;
+    }
+    a.detectPage();
+    a.setParams();
+    a.getClusterInfo();
+    a.createGraphs();
+    a.getNagiosURL();
+    if (auto_refresh) {
+      to = self.setTimeout(function() { a.refreshPage(); }, 60000);
+    }
+    in_refresh_page = false;
+  };
+
   // Detect which page we are looking at
   a.detectPage = function(){
     var Path = window.location.pathname,
@@ -545,6 +571,7 @@
   
   // Draw pie chart on Dashboard
   a.drawDiskUtilPieChart = function(clusterData){
+    $('#pie2').html('');
     var r = Raphael("pie2"), pie, data = {};
     if (clusterData.dfs_percent_remaining == undefined) {
       data = {data:[100],label:{legend:["HDFS Down"], legendpos:"east"}};
@@ -564,6 +591,7 @@
   
   // Draw pie chart on Dashboard
   a.drawNodesUpPieChart = function(response){
+    $('#pie1').html('');
     var r = Raphael("pie1"), pie, data = {};
     if (response.hostcounts.down_hosts == undefined) {
       data = {data:[100],label:{legend:["Nagios Down"], legendpos:"east"}};
@@ -596,15 +624,16 @@
       oozie_button.setAttribute("target", "_blank");
       oozie_button.setAttribute("href", data.oozie_url);
       oozie_button.innerHTML = "Oozie";
-      var links = document.getElementById("links");
-      links.appendChild(oozie_button);
+      var oozie_link = document.getElementById("oozie");
+      oozie_link.parentNode.replaceChild(oozie_button, oozie_link);
+      //links.appendChild(oozie_button);
     } 
   };
   
   // Get Graphs for Dashboard page
   a.getGraphs = function(dashGraph){
     $.getJSON(dashGraph.url, function(data){
-      a.drawGraphs(data, dashGraph.target);
+      a.drawGraphs(dashGraph, data);
     })
     .error(function(error){
       errorFlag = true;
@@ -616,58 +645,31 @@
   };
   
   // Draw Ganglia Graphs
-  a.drawGraphs = function(data, target){
+  a.drawGraphs = function(dashGraph, data){
     var graphs = data.Global;
-    for (var m=0; m<graphs.length; m++){
-      var $link = $('<a/>', {
-        href: graphs[m].link,
-          id: 'link'+graphCounter
-      }).addClass("hiddenLink");
-      var $img = $('<img/>', {
-          title: graphs[m].description,
-          alt: graphs[m].description,
-          src: graphs[m].url,
-          id: graphCounter
-        }).click(function(e){
-        a.showGraphPopup(e);
-        }).addClass("imgLink");
-      $(target).append($img);
-      $(target).append($link);
-      graphCounter++;
-    }
+    var images = $(dashGraph.target).find('img');
+    var timestamp = new Date().getTime();
+    images.each(function(i) {
+      $(this).attr('title', graphs[i].description);
+      $(this).attr('alt', graphs[i].description);
+      $(this).attr('src', graphs[i].url + "&timestamp=" + timestamp);
+      $(this).parent().attr('href', graphs[i].link);
+      $(this).click(function() { a.showGraphPopup($(this)); return false; } );
+    });
   };
   
   // Show Ganglia graph in a popup
-  a.showGraphPopup = function(e){
-    if(!e){
-      if(window.event){
-        // IE 8 & under
-        e = window.event;
-      }
-    }
-    var target;
-    if(e.target){
-      target = e.target; 
-    } else if(e.srcElement) {
-      target = e.srcElement;
-    }
-    var parent = target.parentNode, 
-      popup = document.getElementById("graphPopup"), 
-      src = $(target).attr("src");
-    $("#graphPopup #popupImg").attr("src", src);
-    var href = $("#link" + target.id).attr("href");
-    var $link = $("#graphPopup #graphForwardLink");
-    $link.attr("href", href);
-    $link.html("Link to Cluster Graphs");
-    popup.style.display = "block";
+  a.showGraphPopup = function(image) {
+    $("#graphPopup #popupImg").attr("src", image.attr('src'));
+    var link = $("#graphPopup #graphForwardLink");
+    link.attr("href", image.parent().attr('href'));
+    link.html("Link to Cluster Graphs");
+    $("#graphPopup").show();
   };
-  
+
   // Hide Ganglia graph form popup
   a.hideGraphPopup = function(){
-    var popup = document.getElementById("graphPopup");
-    $("#graphPopup #popupImg").attr("src","");
-    $("#graphPopup #graphForwardLink").attr("href", "");
-    popup.style.display = "none";
+    $("#graphPopup").hide();
   }
   
   // Get Alerts for Dashboard page

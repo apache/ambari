@@ -181,11 +181,14 @@ nav li a:link, nav li a:visited {
     padding:5px 10px;
 }
 .title {
-	float:left;
-	margin:0 5px;
-	width:100%;
-	font-size:150%;
-	font-weight:normal;
+        margin:0 5px;
+        font-size:150%;
+        font-weight:normal;
+}
+.checkbox {
+        float:right;
+        margin:0 5px;
+        font-weight:normal;
 }
 #clusterTitle {
 	width:200px;

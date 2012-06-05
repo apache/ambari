@@ -47,13 +47,15 @@
       <a class="roundedBox" href="http://docs.hortonworks.com" target="_blank">Documentation</a>
       <a id="nagios" class="roundedBox" href="" target="_blank">Nagios</a>
       <a id="ganglia" class="roundedBox" href="" target="_blank">Ganglia</a>
+      <a id="oozie" class="hiddenLink" href="" target="_blank">Oozie</a>
     </section>
     <section class="clear"></section>
   </section>
   <section class="clear"></section>
   
   <section class="widget roundedBox alertSummaryWidget">
-    <h1 class="title">Services</h1>
+    <h1 style="float:left" class="title">Services</h1>
+    <form class="checkbox"><input type="checkbox" id="autorefresh" onclick="a.autoRefresh()" /> Auto Refresh</form>
     
     <section id="clusterSummaryContainer">
       <table id="alertSummaryTable" class="clusterSummaryGrid">
@@ -131,13 +133,15 @@
   <section class="widget roundedBox graphSummaryWidget">
     <h1 class="title">Service Graphs</h1>
     <section id="graphs_hdp" class="graphContainer">
-     </section>
+      <a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a>
+    </section>
   </section>
   
   <section class="widget roundedBox graphSummaryWidget">
     <h1 class="title" title="Master servers are not included in the aggregation">Aggregated Server Utilization</h1>
     <section id="graphs_all" class="graphContainer">
-     </section>
+      <a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a>
+    </section>
   </section>
   
   <section id="graphPopup" class="roundedBox">
