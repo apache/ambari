@@ -25,6 +25,7 @@ define hdp::snappy::package::ln()
     $ln_cmd = "mkdir -p $so_target_dir; ln -sf ${so_src} ${so_target}"
     hdp::exec{ "hdp::snappy::package::ln ${name}":
       command => $ln_cmd,
+      unless  => "test -f ${so_target}",
       creates => $so_target
     }
   }

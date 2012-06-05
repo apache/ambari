@@ -1,4 +1,7 @@
-class hdp()
+class hdp(
+  $service_state = undef,
+  $pre_installed_pkgs = undef
+)
 {
   import 'params.pp'
   include hdp::params
@@ -12,22 +15,30 @@ class hdp()
     gid => $hdp::params::hadoop_user_group
   }
   Group[$hdp::params::hadoop_user_group] -> Hdp::User[$hdp::params::hadoop_user] 
-
   class { 'hdp::snmp': service_state => 'running'}
 
   class { 'hdp::create_smoke_user': }
 
+  if ($pre_installed_pkgs != undef) {
+    class { 'hdp::pre_install_pkgs': }
+  }
+
   #turns off selinux
   class { 'hdp::set_selinux': }
 
-  if ($hdp::params::lzo_enabled == true) {
-    @hdp::lzo::package{ 32:}
-    @hdp::lzo::package{ 64:}
-    hdp::artifact_dir { 'hdp::lzo::package::tar':}
+  if ($service_state != 'uninstalled') {
+    if ($hdp::params::lzo_enabled == true) {
+      @hdp::lzo::package{ 32:}
+      @hdp::lzo::package{ 64:}
+      hdp::artifact_dir { 'hdp::lzo::package::tar':}
+    }
   }
+
   #TODO: treat consistently 
-  if ($hdp::params::snappy_enabled == true) {
-    include hdp::snappy::package
+  if ($service_state != 'uninstalled') {
+    if ($hdp::params::snappy_enabled == true) {
+      include hdp::snappy::package
+    }
   }
 
   Hdp::Package<|title == 'hadoop 32'|> ->   Hdp::Package<|title == 'hbase'|>
@@ -38,6 +49,19 @@ class hdp()
     ensure => stopped,
   }
 
+}
+
+class hdp::pre_install_pkgs
+{
+  if ($service_state == 'installed_and_configured') {
+    hdp::exec{ 'yum install $pre_installed_pkgs':
+       command => "yum install -y $pre_installed_pkgs"
+    }
+  } elsif ($service_state == 'uninstalled') {
+    hdp::exec{ 'yum erase $pre_installed_pkgs':
+       command => "yum erase -y $pre_installed_pkgs"
+    }
+  }
 }
 
 class hdp::create_smoke_user()

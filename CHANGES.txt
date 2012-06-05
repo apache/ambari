@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-341. Batch yum commands (Ramya via Vikram)
+
   AMBARI-338. Cluster status update needs to happen for all stages of installation wizard. (Vikram)
 
   AMBARI-330. Provide a way to resume if browser crashes/is closed during the deploy-in-progress (Varun via Vikram)
