@@ -113,57 +113,57 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
             continue;
           }
 
-          /* We only care to process "in-progress" states.
+          /* The first state that shouldn't be skipped is marked as being
+           * "in-progress", even if presentTxnProgressState.progress is
+           * not explicitly set to "IN_PROGRESS".
            *
-           * However, when a state fails, its progress property is set to
-           * 'FAILED', so check for that as well. Without this, a failed 
-           * state leads to only the previous 'COMPLETED' states being 
-           * rendered (with the 'FAILED' and 'PENDING' states being skipped
-           * over because there's no 'IN_PROGRESS' state) whilst 
-           * #txnProgressStatusDivId shows an overall error (as it rightly 
-           * should) - in short, confusion all around.
+           * This is to take care of race conditions where the poll to the 
+           * backend is made at a time when the previous state has 
+           * "COMPLETED" but the next state hasn't been started yet (which
+           * means it's "PENDING") - if we were explicitly looking for
+           * "IN_PROGRESS", there'd be nothing to show in this loop and it
+           * would run to the end of txnProgressStates hunting for that
+           * elusive "IN_PROGRESS", thus not even showing any of the 
+           * "PENDING" states, causing a momentary jitter in the rendering
+           * (see AMBARI-344 for an example).
            */
-          if( (presentTxnProgressState.progress == 'IN_PROGRESS') ||
+          globalYui.log( 'In-progress/failed - ' + progressStateIndex );
+
+          /* Decide upon what CSS class to assign to the currently-in-progress
+           * state - if an error was marked as having been encountered, assign
+           * the fitting .txnProgressStateError, else just annoint it with
+           * .txnProgressStateInProgress 
+           */
+          var currentProgressStateCssClass = 'txnProgressStateInProgress';
+
+          /* The 2 possible indications of error are:
+           * 
+           * a) presentTxnProgressState.progress is 'IN_PROGRESS' but 
+           *    txnProgress.encounteredError is true.
+           * b) presentTxnProgressState.progress is 'FAILED'.
+           */
+          if( (txnProgress.encounteredError) || 
               (presentTxnProgressState.progress == 'FAILED') ) {
 
-            globalYui.log( 'In-progress/failed - ' + progressStateIndex );
-
-            /* Decide upon what CSS class to assign to the currently-in-progress
-             * state - if an error was marked as having been encountered, assign
-             * the fitting .txnProgressStateError, else just annoint it with
-             * .txnProgressStateInProgress 
-             */
-            var currentProgressStateCssClass = 'txnProgressStateInProgress';
-
-            /* The 2 possible indications of error are:
-             * 
-             * a) presentTxnProgressState.progress is 'IN_PROGRESS' but 
-             *    txnProgress.encounteredError is true.
-             * b) presentTxnProgressState.progress is 'FAILED'.
-             */
-            if( (txnProgress.encounteredError) || 
-                (presentTxnProgressState.progress == 'FAILED') ) {
-
-              currentProgressStateCssClass = 'txnProgressStateError';
-            }
-
-            /* And generate markup for this "in-progress" state. */
-            txnProgressMarkup += generateSingleTxnProgressStateMarkup
-              ( presentTxnProgressState.description, currentProgressStateCssClass );
-
-            /* It's important to manually increment progressStateIndex here, 
-             * to set it up correctly for the upcoming loop.
-             */
-            ++progressStateIndex;
-
-            /* Remember, we only care for the FIRST "in-progress" state.
-             *
-             * Any following "in-progress" states will all be marked as 
-             * "pending", so as to avoid the display from becoming 
-             * disorienting (with multiple states "in-progress").
-             */
-            break;
+            currentProgressStateCssClass = 'txnProgressStateError';
           }
+
+          /* And generate markup for this "in-progress" state. */
+          txnProgressMarkup += generateSingleTxnProgressStateMarkup
+            ( presentTxnProgressState.description, currentProgressStateCssClass );
+
+          /* It's important to manually increment progressStateIndex here, 
+           * to set it up correctly for the upcoming loop.
+           */
+          ++progressStateIndex;
+
+          /* Remember, we only care for the FIRST "in-progress" state.
+           *
+           * Any following "in-progress" states will all be marked as 
+           * "pending", so as to avoid the display from becoming 
+           * disorienting (with multiple states "in-progress").
+           */
+          break;
         }
 
         /* Finally, generate markup for all the "pending" states. */
