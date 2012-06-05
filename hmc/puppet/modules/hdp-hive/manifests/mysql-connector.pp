@@ -10,6 +10,7 @@ class hdp-hive::mysql-connector()
   
   exec{ "curl hive_mysql_url":
     command => "mkdir -p ${artifact_dir} ; curl -f --retry 10 ${url} -o ${target} ",
+    unless  => "test -f ${hive_lib}/${$zip_name}",
     creates => $target,
     path    => ["/bin","/usr/bin/"]
   }
@@ -17,6 +18,7 @@ class hdp-hive::mysql-connector()
     command => "unzip -o -j ${target}",
     cwd     => $hive_lib,
     group   => $hdp::params::hadoop_user_group,
+    unless  => "test -f ${hive_lib}/${$zip_name}",
     creates => "${hive_lib}/${$zip_name}",
     path    => ["/usr/bin/"]
   }

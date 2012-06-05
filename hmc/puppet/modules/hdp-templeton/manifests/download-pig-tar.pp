@@ -9,6 +9,7 @@ class hdp-templeton::download-pig-tar()
   exec{ "curl ${url}":
     command => "mkdir -p ${artifact_dir} ; curl -f --retry 10  ${url} -o ${target} ",
     creates => $target,
+    unless  => "test -f ${target}",
     path    => ["/bin","/usr/bin/"]
   }
 }
