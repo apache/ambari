@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-348. Select all services by default (Vinod via Vikram)
+
   AMBARI-247. Replace index.php with clusters.php (Varun via Vikram)
 
   AMBARI-347. Redo master service assignment page (Yusaku via Vikram)

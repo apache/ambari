@@ -11,6 +11,7 @@ InstallationWizard.SelectServices = {
 };
 
 var data;
+var allBoxesSelected = true;
 
 function renderServiceList(responseJson) {
   data = responseJson;
@@ -67,8 +68,12 @@ function renderServiceList(responseJson) {
   globalYui.one("#selectOptionalServicesDynamicRenderDivId").setContent(optionalContent);
   globalYui.one("#selectNonSelectableServicesDynamicRenderDivId").setContent(nonSelectableContent);
   globalYui.one('#selectServicesCoreDivId').setStyle("display", "block");
-}
 
+  // For now, we want all services to be enabled by default
+  selectDelectAll(true);
+  displayStatusOnSelectDeselectAll(true, false);
+  globalYui.one("#selectAllCheckBoxId").set('checked', true);
+}
 
 function generateSelectServiceCheckbox(serviceInfo) {
 
@@ -105,46 +110,164 @@ function generateSelectServiceCheckbox(serviceInfo) {
   return dContent;
 }
 
+function getButtonId(serviceName) {
+  return 'installService' + serviceName + 'Id';
+}
+
+function setRefCounts(serviceName) {
+
+  var buttonId = getButtonId(serviceName);
+
+  // Set the refCount for 'this' service
+  if (!globalYui.one('#' + buttonId).get('checked')) {
+     data['services'][serviceName]['refCount'] = 0;
+  } else if (data['services'][serviceName]['refCount'] == 0) {
+     data['services'][serviceName]['refCount'] = 1;
+  }
+
+  // Set the refCounts for 'this' service's dependencies
+  var selectYes = true;
+  if (!globalYui.one('#' + buttonId).get('checked')) {
+     selectYes = false;
+  }
+  for (var i = 0; i < data['services'][serviceName]['dependencies'].length; i++) {
+     var serviceDep = data['services'][serviceName]['dependencies'][i];
+     if (selectYes) {
+        data['services'][serviceDep]['refCount']++;
+     } else {
+        data['services'][serviceDep]['refCount']--;
+        if (data['services'][serviceDep]['refCount'] < 0) {
+           data['services'][serviceDep]['refCount'] = 0;
+        }
+     }
+  }
+}
+
+function displayStatusOnSuccess(serviceName) {
+
+  var buttonId = getButtonId(serviceName);
+
+  var selectYes = true;
+  if (!globalYui.one('#' + buttonId).get('checked')) {
+     selectYes = false;
+  }
+
+  var statusString = "Selected " + data['services'][serviceName].displayName + " for installation. ";
+  if (!globalYui.one('#' + buttonId).get('checked')) {
+     statusString = "Deselected " + data['services'][serviceName].displayName + " and all its dependencies.";
+  }
+  // Generate the status string for dependencies
+  var dependencies = "";
+  for (var i = 0; i < data['services'][serviceName]['dependencies'].length; i++) {
+     var serviceDep = data['services'][serviceName]['dependencies'][i];
+     if (selectYes) {
+        if (!data['services'][serviceDep].attributes.mustInstall) {
+          dependencies += data['services'][serviceDep].displayName + " ";
+        }
+     }
+  }
+  if(selectYes) {
+    if(dependencies != "") {
+      statusString += "Also added  " + dependencies + " as dependencies.";
+    }
+  }
+  setFormStatus(statusString, false);
+}
+
+function updateRendering() {
+
+  var currentAllBoxesSelected = true;
+
+  for (svcName in data['services']) {
+
+     if (data['services'][svcName].attributes.noDisplay) {
+       continue;
+     }
+
+     // globalYui.log('Svc ref count : ' + svcName + ' : ' + data['services'][svcName]['refCount']);
+
+     var itemId = getButtonId(svcName);
+     if (data['services'][svcName].attributes.mustInstall ||
+         data['services'][svcName]['refCount'] > 0) {
+        globalYui.one('#' + itemId).set('checked' ,'yes');
+        if (!data['services'][svcName].attributes.editable) {
+           var divId = 'selectServicesEntry' + svcName + 'DivId';
+           globalYui.one('#' + divId).setStyle('display', '');
+        }
+     } else {
+        currentAllBoxesSelected = false;
+        globalYui.one('#' + itemId).set('checked' ,'');
+        if (!data['services'][svcName].attributes.editable) {
+           var divId = 'selectServicesEntry' + svcName + 'DivId';
+           globalYui.one('#' + divId).setStyle('display', 'none');
+        }
+     }
+  }
+
+  if (allBoxesSelected != currentAllBoxesSelected) {
+    allBoxesSelected = currentAllBoxesSelected;
+    // Update the selectAll button
+    globalYui.one("#selectAllCheckBoxId").set('checked', allBoxesSelected);
+    displayStatusOnSelectDeselectAll(allBoxesSelected, false);
+  }
+}
+
+function displayStatusOnSelectDeselectAll(selectAll, setFormStatusAlso) {
+  var labelNode = globalYui.one("#labelForSelectAllId");
+  if (selectAll) {
+    labelNode.setContent("Deselect all");
+  } else {
+    labelNode.setContent("Select all");
+  }
+  if (setFormStatusAlso) {
+    if (selectAll) {
+      setFormStatus("Selected all services", false);
+  } else {
+    setFormStatus("Deselected all optional services", false);
+  }
+  }
+}
+
+function selectDelectAll(selectAll) {
+  var node = globalYui.one("#selectAllCheckBoxId");
+  var labelNode = globalYui.one("#labelForSelectAllId");
+  for (svcName in data['services']) {
+    if (!data['services'][svcName].attributes.noDisplay && !data['services'][svcName].attributes.mustInstall) {
+      var itemId = getButtonId(svcName);
+      globalYui.one('#' + itemId).set('checked' , selectAll);
+      // Forget about the history and set refCount explicitly
+      if (selectAll) {
+        data['services'][svcName]['refCount'] = 1;
+      } else {
+        data['services'][svcName]['refCount'] = 0;
+      }
+      if (!data['services'][svcName].attributes.editable) {
+         var nonEditableNode = globalYui.one('#selectServicesEntry' + svcName + 'DivId');
+         if (selectAll) {
+           nonEditableNode.setStyle('display', 'block');
+         } else {
+           nonEditableNode.setStyle('display', 'none');
+         }
+      }
+    }
+  }
+}
+
 globalYui.one('#selectServicesCoreDivId').delegate('click', function (e) {
 
     // Select-all checkbox
     if (this.get('id') == 'selectAllCheckBoxId') {
       var node = globalYui.one("#selectAllCheckBoxId");
-      var labelNode = globalYui.one("#labelForSelectAllId");
-      if (node.get('checked')) {
-        labelNode.setContent("Deselect all");
-        setFormStatus("Selected all services", false);
-      } else {
-        labelNode.setContent("Select all");
-        setFormStatus("Deselected all optional services", false);
-      }
-      for (svcName in data['services']) {
-        if (!data['services'][svcName].attributes.noDisplay && !data['services'][svcName].attributes.mustInstall) {
-          var itemId = 'installService' + svcName + 'Id';
-          globalYui.one('#' + itemId).set('checked' , node.get('checked'));
-          // Forget about the history and set refCount explicitly
-          if (node.get('checked')) {
-            data['services'][svcName]['refCount'] = 1;
-          } else {
-            data['services'][svcName]['refCount'] = 0;
-          }
-          if (!data['services'][svcName].attributes.editable) {
-             var nonEditableNode = globalYui.one('#selectServicesEntry' + svcName + 'DivId');
-             if (node.get('checked')) {
-               nonEditableNode.setStyle('display', 'block');
-             } else {
-               nonEditableNode.setStyle('display', 'none');
-             }
-          }
-        }
-      } 
+      var selectAll = node.get('checked');
+      selectDelectAll(selectAll);
+      displayStatusOnSelectDeselectAll(selectAll, true);
       return;
     }
     //// End of select-all checkbox
 
     // globalYui.log(globalYui.Lang.dump(this));
     var serviceName = this.getAttribute('name');
-    var buttonId = 'installService' + serviceName + 'Id';
+    var buttonId = getButtonId(serviceName);
 
     // Deselecting an already selected service
     if (!globalYui.one('#' + buttonId).get('checked')) {
@@ -163,66 +286,18 @@ globalYui.one('#selectServicesCoreDivId').delegate('click', function (e) {
         globalYui.one('#' + buttonId).set('checked', 'yes');
         return;
       }
+
+      // Some things are deselected, so update the selectAll button
+      globalYui.one("#selectAllCheckBoxId").set('checked', false);
     }
 
-    var selectYes = true;
-    var statusString = "Selected " + data['services'][serviceName].displayName + " for installation. ";
-    if (!globalYui.one('#' + buttonId).get('checked')) {
-       selectYes = false;
-       statusString = "Deselected " + data['services'][serviceName].displayName + " and all its dependencies.";
-       data['services'][serviceName]['refCount'] = 0;
-    } else if (data['services'][serviceName]['refCount'] == 0) {
-       data['services'][serviceName]['refCount'] = 1;
-    }
+    setRefCounts(serviceName);
 
-    // globalYui.log('selectYes: ' + selectYes);
-    // globalYui.log('serviceName: ' + serviceName);
+    // Display status as to what we have done now.
+    displayStatusOnSuccess(serviceName);
 
-    var dependencies = "";
-    for (var i = 0; i < data['services'][serviceName]['dependencies'].length; i++) {
-       var serviceDep = data['services'][serviceName]['dependencies'][i];
-       if (selectYes) {
-          data['services'][serviceDep]['refCount']++;
-          if (!data['services'][serviceDep].attributes.mustInstall) {
-            dependencies += data['services'][serviceDep].displayName + " ";
-          }
-       } else {
-          data['services'][serviceDep]['refCount']--;
-          if (data['services'][serviceDep]['refCount'] < 0) {
-             data['services'][serviceDep]['refCount'] = 0;
-          }
-       }
-    }
-    if(selectYes) {
-      if(dependencies != "") {
-        statusString += "Also added  " + dependencies + " as dependencies.";
-      }
-    }
-    setFormStatus(statusString, false);
-
-    for (svcName in data['services']) {
-       if (data['services'][svcName].attributes.noDisplay) {
-         continue;
-       }
-
-       // globalYui.log('Svc ref count : ' + svcName + ' : ' + data['services'][svcName]['refCount']);
-     
-       var itemId = 'installService' + svcName + 'Id';
-       if (data['services'][svcName].attributes.mustInstall ||
-           data['services'][svcName]['refCount'] > 0) {
-          globalYui.one('#' + itemId).set('checked' ,'yes');
-          if (!data['services'][svcName].attributes.editable) {
-             var divId = 'selectServicesEntry' + svcName + 'DivId';
-             globalYui.one('#' + divId).setStyle('display', '');
-          }
-       } else {
-          globalYui.one('#' + itemId).set('checked' ,'');
-          if (!data['services'][svcName].attributes.editable) {
-             var divId = 'selectServicesEntry' + svcName + 'DivId';
-             globalYui.one('#' + divId).setStyle('display', 'none');
-          }
-       }
-    }
+    // All done, update our rendering
+    updateRendering();
 
 //}, 'li.selectServicesEntry');
 }, 'input[type=checkbox]');
