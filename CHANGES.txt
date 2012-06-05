@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  Jitendra's commit. AMBARI-518. Junk code in manifestloader site.pp. (Jitendra via Vikram)
+
   AMBARI-331. Make txnUtils immune to backend race conditions (Varun via Vikram)
 
   AMBARI-327. Fix syntax error in monitoring modules (Ramya via Vikram)

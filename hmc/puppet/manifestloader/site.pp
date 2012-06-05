@@ -36,8 +36,7 @@ class manifestloader () {
 }
 
 node default {
- #stage{1 :}
- include manifestloader
- #class {'manifestloader': stage => 1}
+ stage{1 :}
+ class {'manifestloader': stage => 1}
 }
 
