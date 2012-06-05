@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-345. Make TxnProgressWidget More Robust In The Face Of Un-Ready Txn Stages (Varun via Vikram)
+
   AMBARI-346. user should not be allowed to change the paths to various directories on the advance config page (Hitesh via Vikram)
 
   AMBARI-316. Grid mount points page doesn't let one pass with only a custom mount point (Vinod via Vikram)

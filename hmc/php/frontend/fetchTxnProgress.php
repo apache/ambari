@@ -688,6 +688,13 @@ foreach( $progress['subTxns'] as &$progressSubTxn )
 
 $lastTransaction = $progressSubTxn;
 
+/* If at least one subTxn isn't in progress, signal to the frontend that 
+ * there's nothing worthy for it to process yet. 
+ */
+if (!$atLeastOneSubTxnInProgress) {
+  $progress['subTxns'] = null;
+}
+
 $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 
 if (($progress['processRunning'] == FALSE) || ($progress['encounteredError'] == TRUE)) {
@@ -718,7 +725,7 @@ unset( $progress['error'] );
 $jsonOutput = array(
     'clusterName' => $clusterName,
     'txnId' => $txnId,
-    'progress' => $atLeastOneSubTxnInProgress ? $progress : null );
+    'progress' => $progress );
 
 if ($deployUser != null) {
     $jsonOutput['deployUser'] = $deployUser;
