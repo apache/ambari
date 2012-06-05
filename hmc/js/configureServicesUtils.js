@@ -3,15 +3,26 @@
 
 var globalPasswordsArray = [];
 
-function generateDivForService (option, type, service, property, unit) { 
+function generateDivForService (option, type, service, property, unit, displayAttributes) {
 	
   var unitString = (unit != null) ? unit : '';
+  var readOnlyFlag= false;
+  if (displayAttributes != null && displayAttributes.editable != null
+      && !displayAttributes.editable) {
+    readOnlyFlag = true;
+  }
+
   var retString = '<div class="formElement">' +
     '<label for="' + service + '">' + option['displayName'] + '</label>' +
     //((unitString != '') ? '<div class="input-append">' : '') +
-    '<input class="unit-' + unit + '" type="' + type + '" id="' + property + '" name="' + service + '" value="' + option['value'] + '"> ' + unitString + 
+    '<input class="unit-' + unit + '" type="' + type + '" id="' + property + '" name="' + service + '" value="' + option['value'] + '"';
+  if (readOnlyFlag) {
+    retString += ' readonly="readonly" ';
+  }
+
+  retString += '> ' + unitString +
     '<div class="contextualHelp">' + option['description'] + '</div>' +
-    //((unitString != '') ? '</div>' : '') + 
+    //((unitString != '') ? '</div>' : '') +
     '<div class="formInputErrorReason" id="' + property + 'ErrorReason' + '"></div>' +
     '</div>';
   if (type == "password") {
@@ -24,7 +35,7 @@ function generateDivForService (option, type, service, property, unit) {
 
     /// Put it in the global passwd array
     globalPasswordsArray[globalPasswordsArray.length] = {
-      "passwordDivId"     : property, 
+      "passwordDivId"     : property,
       "verificationDivId" : property + 'SecretService'
     };
     globalYui.log("Global Passwords Array: " + globalYui.Lang.dump(globalPasswordsArray));
@@ -34,10 +45,10 @@ function generateDivForService (option, type, service, property, unit) {
 }
 
 function constructDOM(optionsInfo) {
-  /* Reset globalPasswordsArray at the beginning of each render cycle to 
+  /* Reset globalPasswordsArray at the beginning of each render cycle to
    * avoid using stale data from the last run - this isn't a problem on the
-   * Configure Services page, but it bites us on the Manage Services page 
-   * there is re-use of this module of code within the same JS memory. 
+   * Configure Services page, but it bites us on the Manage Services page
+   * there is re-use of this module of code within the same JS memory.
    */
   globalPasswordsArray = [];
   var optionsSummary = "";
@@ -54,7 +65,12 @@ function constructDOM(optionsInfo) {
         }
         serviceNeedsRender = true;
         var unit = optionsInfo['services'][servicesKey]['properties'][property]['unit'];
-        propertiesRendering += generateDivForService(optionsInfo['services'][servicesKey]["properties"][property], type, servicesKey, property, unit);
+        var displayAttributes = null;
+        if (optionsInfo['services'][servicesKey]['properties'][property]['displayAttributes']) {
+           displayAttributes = optionsInfo['services'][servicesKey]['properties'][property]['displayAttributes'];
+        }
+
+        propertiesRendering += generateDivForService(optionsInfo['services'][servicesKey]["properties"][property], type, servicesKey, property, unit, displayAttributes);
       }
       if (serviceNeedsRender) {
         optionsSummary += "<fieldset> <legend>" + servicesKey + "</legend>";
@@ -138,7 +154,7 @@ function checkPasswordCorrectness () {
   errString += "</ul>";
 
   retArray = {
-    "passwdMatched" : passwdMatch, 
+    "passwdMatched" : passwdMatch,
     "focusOn"       : focusId,
     "errorCount"    : errCount,
     "errorString"   : errString
@@ -156,7 +172,7 @@ function generateUserOpts () {
     return {};
   }
   cleanupClassesForPasswordErrors();
- 
+
   var desiredOptions = {};
 
   var temp = globalYui.all("#configureClusterAdvancedDynamicRenderDivId div[name=configureClusterAdvancedPerServiceDiv]");
@@ -183,11 +199,11 @@ function generateUserOpts () {
     };
 
   });
-  
+
 //  globalYui.log("Final Options: " + globalYui.Lang.dump(desiredOptions));
-  
+
   clearFormStatus();
-  clearErrorReasons(desiredOptions); 
+  clearErrorReasons(desiredOptions);
 
   return desiredOptions;
 }
@@ -202,7 +218,7 @@ function handleConfigureServiceErrors(errorResponse) {
     globalYui.log('Setting content ' + errorReason + ' for div ' + elemReason);
     globalYui.one('#' + elemReason).setContent(errorReason);
   }
-  document.getElementById('formStatusDivId').scrollIntoView()    
+  document.getElementById('formStatusDivId').scrollIntoView()
 }
 
 /////////////////// End of submitting related functions /////////////////////////////
