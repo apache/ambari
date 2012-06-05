@@ -62,10 +62,10 @@
         if (preg_match($regExSuccess, $output)>0) {
           $successNodes[] = $kNode;
         } else if (preg_match($regExRunning, $output)>0) {
-          $this->logger->log_debug($kNode . "previous kick still running, will continue to wait");
+          $this->logger->log_info($kNode . "previous kick still running, will continue to wait");
           $prevKickRunningNodes[] = $kNode;
         } else {
-          $this->logger->log_debug($kNode . ": Kick failed");
+          $this->logger->log_info($kNode . ": Kick failed");
           $failedNodes[] = $kNode;
         }
       }
@@ -261,7 +261,7 @@
             $doneNodes[$n] = 1;
           }
         }
-        $this->logger->log_debug(count($doneNodes) . " out of " . count($nodes) 
+        $this->logger->log_info(count($doneNodes) . " out of " . count($nodes) 
             . " nodes have reported");
         if (count($doneNodes) >= count($nodes)) {
           ##All nodes kicked have reported back
