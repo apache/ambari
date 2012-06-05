@@ -1,21 +1,57 @@
-function renderClusterList(Y) {
-  Y.io("../php/frontend/listClusters.php", {
+function generateClusterHostRoleMappingMarkup( clusterServices ) {
+
+  var clusterHostRoleMappingMarkup = 
+  '<fieldset id=clustersHostRoleMappingFieldsetId>' +
+    '<legend>' +
+      'Locations Of Service Masters' + 
+    '</legend>';
+
+  for (var serviceName in clusterServices) {
+    if (clusterServices.hasOwnProperty(serviceName)) {
+
+      if (clusterServices[serviceName].isEnabled == "1" && 
+          clusterServices[serviceName].attributes.runnable &&
+          !clusterServices[serviceName].attributes.noDisplay) {
+
+        globalYui.Array.each( clusterServices[serviceName].components, function (serviceComponent) {
+          
+          if (serviceComponent.isMaster) {
+            clusterHostRoleMappingMarkup += 
+              '<div class=formElement>' + 
+                '<label>' + serviceComponent.displayName + ': ' + '</label>' + 
+                serviceComponent.hostName +
+              '</div>' + 
+              '<br/>';
+          }
+        });
+      }
+    }
+  }
+
+  clusterHostRoleMappingMarkup += 
+  '</fieldset>';
+
+  return clusterHostRoleMappingMarkup;
+}
+
+function renderClusterList() {
+  globalYui.io("../php/frontend/listClusters.php", {
     method: 'GET',
     timeout : 10000,
     on: {
       success: function (x,o) {
-        Y.log("RAW JSON DATA: " + o.responseText);
+        globalYui.log("RAW JSON DATA: " + o.responseText);
 
         // Process the JSON data returned from the server
         try {
-          clusterListInfoJson = Y.JSON.parse(o.responseText);
+          clusterListInfoJson = globalYui.JSON.parse(o.responseText);
         }
         catch (e) {
           alert("JSON Parse failed!");
           return;
         }
         
-        Y.log("PARSED DATA: " + Y.Lang.dump(clusterListInfoJson));
+        globalYui.log("PARSED DATA: " + globalYui.Lang.dump(clusterListInfoJson));
 
         if (clusterListInfoJson.result != 0) {
           // Error!
@@ -46,17 +82,18 @@ function renderClusterList(Y) {
             var clusterName; var clusterInfo;
             for (clusterId in clusterListInfoJson) {
               clusterName = clusterId;
-              clusterInfo = clusterListInfoJson[clusterName];
+              clusterInfo = globalYui.JSON.parse(clusterListInfoJson[clusterName]);
+              globalYui.log( "Cluster Info: " + globalYui.Lang.dump(clusterInfo.displayName));
             }
             clustersListMarkup = '<h3>Cluster information</h3>';
             clustersListMarkup += '<div class="clusterDiv">' +
                                    '<div class="formElement">' +
                                      '<label>Cluster Name</label>' +
-                                     '<input type=text readonly=readonly value=' + clusterName + '>' +
+                                     '<input type=text readonly=readonly value="' + clusterName + '">' +
                                    '</div>' +
                                    '<div class="formElement">' +
                                      '<label>State</label>' +
-                                     '<input type=text readonly=readonly value=' + clusterInfo + '>' +
+                                     '<input type=text readonly=readonly value="' + clusterInfo['displayName'] + '">' +
                                    '</div>' +
                                    '<div class="formElement">' +
                                      '<a class="btn" href="/hdp/dashboard/ui/home.html">Monitoring Dashboard</a>' +
@@ -71,34 +108,77 @@ function renderClusterList(Y) {
         var newClusterLinkHTML = "";
         if (multipleClustersSupported || numClusters == 0) {
           clustersListMarkup += newClusterLinkHTML;
-          Y.one("#welcomeDivId").setStyle('display','block');
+          globalYui.one("#welcomeDivId").setStyle('display','block');
           return;
         }
 
-        Y.one("#clustersListDivId").setContent( clustersListMarkup );
-        Y.one("#clustersListDivId").setStyle('display', 'block');
+        /* Beginning of adding Role Topology information. */
+        globalYui.io( "../php/frontend/fetchClusterServices.php?clusterName=" + clusterName + "&getConfigs=true&getComponents=true", {
+          timeout: 10000,
+          on: {
+            success: function(x1, o1) {
 
-        if (Y.one('#newClusterLinkDivId') != null) {
-          Y.one('#newClusterLinkDivId').on('click',function (e) {
+              hideLoadingImg();
+
+              globalYui.log("RAW JSON DATA: " + o1.responseText);
+
+              var clusterServicesResponseJson;
+
+              try {
+                clusterServicesResponseJson = globalYui.JSON.parse(o1.responseText);
+              }
+              catch (e) {
+                alert("JSON Parse failed");
+                return;
+              }
+
+              globalYui.log(globalYui.Lang.dump(clusterServicesResponseJson));
+
+              /* Check that clusterServicesResponseJson actually indicates success. */
+              if( clusterServicesResponseJson.result == 0 ) {
+                
+                var clusterServices = clusterServicesResponseJson.response.services;
+
+                /* Link the newly-generated markup into the DOM. */
+                globalYui.one("#clusterHostRoleMappingDynamicRenderDivId").setContent
+                  ( generateClusterHostRoleMappingMarkup(clusterServices) );
+              }
+              else {
+                alert("Fetching Cluster Services failed");
+              }
+            },
+            failure: function(x1, o1) {
+              hideLoadingImg();
+              alert("Async call failed");
+            }
+          }
+        });
+        /* End of adding Role Topology information. */
+
+        globalYui.one("#clustersListDivId").setContent( clustersListMarkup );
+        globalYui.one("#clustersListDivId").setStyle('display', 'block');
+
+        if (globalYui.one('#newClusterLinkDivId') != null) {
+          globalYui.one('#newClusterLinkDivId').on('click',function (e) {
             /* Done with this stage, hide it. */
-            Y.one("#clustersListDivId").setStyle('display','none');
-            // Y.one("#installationWizardDivId").setStyle('display','block');
+            globalYui.one("#clustersListDivId").setStyle('display','none');
+            // globalYui.one("#installationWizardDivId").setStyle('display','block');
         });
         }
 
         if(numClusters !=0) {
-          Y.one('#existingClusterLinkDivId').on('click',function (e) {
+          globalYui.one('#existingClusterLinkDivId').on('click',function (e) {
 
             e.target.set('disabled', true);
 
             /* Done with this stage, hide it. */
-            Y.one("#clustersListDivId").setStyle('display','none');
+            globalYui.one("#clustersListDivId").setStyle('display','none');
 
             /* Render the next stage. */
-            getServicesStatus(Y, clusterId);
+            getServicesStatus(globalYui, clusterId);
 
             /* Show off our rendering. */
-            Y.one("#displayServiceStatusCoreDivId").setStyle('display','block');
+            globalYui.one("#displayServiceStatusCoreDivId").setStyle('display','block');
           });
        }
 
@@ -111,12 +191,6 @@ function renderClusterList(Y) {
   });
 }
 
-// Create business logic in a YUI sandbox using the 'io' and 'json' modules
-YUI().use("node", "io", "dump", "json", "arraysort", "panel", function (Y) {
 
-  Y.log( Y.one("#pageTitleId").get('innerHTML') );
-
-  // Y.one('#createClusterSubmitButtonId').on('click',function (e) {
-    renderClusterList(Y);
-
-});
+/* Main() */
+renderClusterList();
