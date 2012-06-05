@@ -9,6 +9,7 @@ include_once "../orchestrator/HMC.php";
 include_once "../db/OrchestratorDB.php";
 include_once "../puppet/DBReader.php";
 include_once "../puppet/PuppetInvoker.php";
+include_once "../util/clusterState.php";
 
 $dbPath = $GLOBALS["DB_PATH"];
 $clusterName = $_GET['clusterName'];
@@ -16,23 +17,69 @@ $clusterName = $_GET['clusterName'];
 $startTime = time();
 $hmc = new HMC($dbPath, $clusterName);
 
-$result = $hmc->deployHDP();
-if ($result["result"] != 0) {
-  print json_encode($result);
+/* For returning in our JSON at the very end. */
+$result = 0;
+$error = "";
+
+$txnId = -1;
+
+$dbAccessor = new HMCDBAccessor($dbPath);
+$clusterStateResponse = $dbAccessor->getClusterState($clusterName);
+
+if ($clusterStateResponse['result'] != 0) {
+  print json_encode($clusterStateResponse);
   return;
 }
 
-if (!isset($result["txnId"])) {
-  print json_encode ( array("result" => 1, "error" => "Could not obtain txn info for triggered command"));
-  return;
-}
+$clusterState = json_decode($clusterStateResponse['state'], true);
 
-$txnId = $result["txnId"];
+/* Run an actual deploy only if this cluster has passed the stage of 
+ * configuring its services (which means the next thing to do is to
+ * kick off the deploy). 
+ */
+if (($clusterState['state'] == 'CONFIGURATION_IN_PROGRESS') && 
+    ($clusterState['context']['stage'] == 'CONFIGURE_SERVICES')) {
+
+  $deployResult = $hmc->deployHDP();
+  if ($deployResult["result"] != 0) {
+    print json_encode($deployResult);
+    return;
+  }
+
+  if (!isset($deployResult["txnId"])) {
+    print json_encode ( array("result" => 1, "error" => "Could not obtain txn info for triggered command"));
+    return;
+  }
+
+  $txnId = $deployResult["txnId"];
+
+  /* (And when we kick off the deploy is the only time to update the state of the cluster) */
+  $state = "DEPLOYMENT_IN_PROGRESS";
+  $displayName = "Deployment in progress";
+  $context = array (
+    'txnId' => $txnId
+  );
+
+  $retval = updateClusterState($clusterName, $state, $displayName, $context);
+  if ($retval['result'] != 0) {
+    $result = $retval['result'];
+    $error = $retval['error'];
+  }
+}
+/* In case the deploy is already running or has ended, just return the txnId 
+ * from the DB instead of kicking off a fresh deploy - this is so we can use
+ * this entrypoint to show the cluster's deploy progress at any time in the
+ * future, not just during a live deploy. 
+ */
+elseif (($clusterState['state'] == 'DEPLOYMENT_IN_PROGRESS') ||
+        ($clusterState['state'] == 'DEPLOYED')) {
+
+  $txnId = $clusterState['context']['txnId'];
+}
 
 $thisHostName = trim(strtolower(exec('hostname -f')));
 
 $nagiosGangliaCoHosted = FALSE;
-$dbAccessor = new HMCDBAccessor($dbPath);
 
 // check if nagios hosted on same server
 if (!$nagiosGangliaCoHosted) {
@@ -63,6 +110,6 @@ $jsonOutput = array(
 /* ...and spit it out. */
 header("Content-type: application/json");
 
-print (json_encode(array("result" => 0, "error" => 0, "response" => $jsonOutput)));
+print (json_encode(array("result" => $result, "error" => $error, "response" => $jsonOutput)));
 
 ?>

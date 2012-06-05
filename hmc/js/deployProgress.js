@@ -68,7 +68,15 @@ function renderDeployProgress (deployProgressInfo) {
    * and have asked for a deploy, so there's no going back - remove
    * all traces of #installationWizardProgressBarDivId.
    */
-  globalYui.one('#installationWizardProgressBarDivId').setStyle('display', 'none');
+  var installationWizardProgressBarDiv = globalYui.one('#installationWizardProgressBarDivId');
+
+  /* But be safe and perform this removal only if #installationWizardProgressBarDivId 
+   * actually exists on the page - this .js file is now being used in more 
+   * than one place, so this robustness is needed.
+   */
+  if (installationWizardProgressBarDiv) {
+    installationWizardProgressBarDiv.setStyle('display', 'none')
+  }
 
   var hmcRestartMsg = '';
   if (deployProgressInfo.nagiosGangliaCoHosted != null

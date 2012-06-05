@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-330. Provide a way to resume if browser crashes/is closed during the deploy-in-progress (Varun via Vikram)
+
   AMBARI-320. Reconfiguring a stopped service starts it incorrectly (Hitesh via Vikram)
 
   AMBARI-340. Info logs for PuppetInvoker (Jitendra via Vikram)
