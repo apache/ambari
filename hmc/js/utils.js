@@ -160,16 +160,18 @@ function transitionToNextStage( currentStageDivSelector, currentStageData, newSt
   /* There can be only one 'current' stage at a time. */
   var currentStage = globalYui.one('.installationWizardCurrentStage');
 
-  var nextStage = null;
+  if ( currentStage ) {
+    var nextStage = null;
 
-  /* Check to make sure we haven't reached the last stage. */
-  if( nextStage = currentStage.next('.installationWizardUnvisitedStage') ) {
+    /* Check to make sure we haven't reached the last stage. */
+    if( nextStage = currentStage.next('.installationWizardUnvisitedStage') ) {
 
-    /* Mark this up-until-now 'current' stage as 'visited'. */
-    currentStage.replaceClass( 'installationWizardCurrentStage', 'installationWizardVisitedStage' );
+      /* Mark this up-until-now 'current' stage as 'visited'. */
+      currentStage.replaceClass( 'installationWizardCurrentStage', 'installationWizardVisitedStage' );
 
-    /* Mark the stage after that as the new 'current' stage. */
-    nextStage.replaceClass( 'installationWizardUnvisitedStage', 'installationWizardCurrentStage' );
+      /* Mark the stage after that as the new 'current' stage. */
+      nextStage.replaceClass( 'installationWizardUnvisitedStage', 'installationWizardCurrentStage' );
+    }
   }
 }
 
