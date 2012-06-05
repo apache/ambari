@@ -3,7 +3,8 @@ var fetchClusterServicesPoller;
 var clusterServices;
 
 // Storing globally for the sake of multiple screens in reconfigure
-var reconfigureServicesData = {};
+var localReconfigureServiceData = {};
+var remoteReconfigureServiceData = {};
 var confirmationDataPanelBodyContent = '';
 
 var confirmationDataPanel;
@@ -203,12 +204,25 @@ function setupReconfigureScreens(serviceName) {
     action: function (e) {
       e.preventDefault();
 
+      localReconfigureServiceData = generateUserOpts();
+      var remoteProps = remoteReconfigureServiceData.services[serviceName].properties;
+      var localProps = localReconfigureServiceData[serviceName].properties;
+      var allEqual = true;
+      for (key in localProps) {
+        var remoteValue = remoteProps[key].value;
+        var localValue = localProps[key]["value"];
+        if ( localValue != remoteValue) {
+          allEqual = false;
+        }
+      }
+      if (allEqual) {
+        alert("You haven't made any changes");
+        return;
+      }
       hidePanel(function() {
 
         // Store the requestData and the html
         confirmationDataPanelBodyContent = confirmationDataPanel.get( 'bodyContent' );
-        reconfigureServicesData = generateUserOpts();
-
         setupReconfigureSecondScreen(serviceName);
         showPanel();
       });
@@ -244,6 +258,9 @@ function setupReconfigureScreens(serviceName) {
 
   executeStage( '../php/frontend/fetchClusterServices.php?clusterName=' + clusterName + 
     '&getConfigs=true&serviceName=' + serviceName, function (serviceConfigurationData) {
+
+    // Store the remote data
+    remoteReconfigureServiceData = serviceConfigurationData;
 
     var serviceConfigurationMarkup = constructDOM( serviceConfigurationData );
 
@@ -293,7 +310,7 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
   };
 
   if( action == "reconfigure" ) {
-    manageServicesRequestData.services = reconfigureServicesData;
+    manageServicesRequestData.services = localReconfigureServiceData;
   }
   else {
     /* Need to explicitly set a key named for serviceName this way because it's
