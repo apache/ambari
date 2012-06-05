@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-320. Reconfiguring a stopped service starts it incorrectly (Hitesh via Vikram)
+
   AMBARI-340. Info logs for PuppetInvoker (Jitendra via Vikram)
 
   AMBARI-337. Parallelize puppet kick --ping during bootstrap (Hitesh via Vikram)

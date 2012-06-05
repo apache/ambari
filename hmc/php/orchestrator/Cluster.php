@@ -803,6 +803,7 @@ class Cluster {
   private function _reconfigureServices($transaction, $serviceNames, $dryRun) {
     $serviceList = implode($serviceNames, ",");
     $this->currentAction = "Reconfigure";
+
     $this->logger->log_debug("reconfigureServices for ($serviceList) DRYRUN=$dryRun");
     $result = $this->getServices($serviceNames);
     if ($result["result"] != 0) {
@@ -811,6 +812,13 @@ class Cluster {
     }
 
     $services = $result["services"];
+
+    $svcsToStart = array();
+    foreach ($services as $svcObj) {
+      if ($svcObj->state == STATE::STARTED || $svcObj->state == STATE::STARTING) {
+        array_push($svcsToStart, $svcObj->name);
+      }
+    }
 
     // get all dependents recursively for all the services that will be
     // reconfigured
@@ -823,12 +831,11 @@ class Cluster {
       $dependents = array_merge($dependents, $svcDeps);
     }
     $dependents = array_unique($dependents);
-    $depsToStart = array();
     foreach ($dependents as $serviceName) {
       $svc = $this->db->getService($serviceName);
       if ($svc !== FALSE) {
         if ($svc->state == STATE::STARTED || $svc->state == STATE::STARTING) {
-          array_push($depsToStart, $serviceName);
+          array_push($svcsToStart, $serviceName);
         }
       }
     }
@@ -860,19 +867,14 @@ class Cluster {
       return $result;
     }
 
-    // Start the services
-    $this->logger->log_debug("reconfigureServices: Starting services ($serviceList) dryRun=$dryRun");
-    foreach ($services as $service) {
-      $result = $this->startService($transaction->createSubTransaction(), $service, $dryRun);
-      if ($result['result'] !== 0) {
-        $this->logger->log_error("Failed to start service $service->name with " . $result["error"]);
-        return $result;
-      }
-    }
+    $serviceToStartList = implode(",", $svcsToStart);
 
-    // Start any dependent services which were in a started state initially
-    // that would have been stopped as a result of reconfiguring a dependency
-    foreach ($depsToStart as $serviceName) {
+    // Start the services
+    $this->logger->log_debug("reconfigureServices: Starting services ($serviceToStartList) dryRun=$dryRun");
+
+    // Start all services and dependents which were in a started state initially
+    // that would have been stopped as a result of reconfiguration
+    foreach ($svcsToStart as $serviceName) {
       $service = $this->db->getService($serviceName);
       $result = $this->startService($transaction->createSubTransaction(), $service, $dryRun);
       if ($result['result'] !== 0) {
