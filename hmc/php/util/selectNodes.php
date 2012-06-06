@@ -288,11 +288,15 @@ class SelectNodes {
     }
     /** make sure ganglia is added to all the masters **/
     $this->logger->log_debug("Host for Gangalia Master $gangliaMaster");
-    foreach($masterToHost as $componentName=>$hostName) {
-      if ($hostName != $gangliaMaster) {
-        $this->logger->log_debug("Adding host $hostName for GANGLIA_MONITOR");
-        $db->addHostsToComponent($clusterName, "GANGLIA_MONITOR", array($hostName), "ASSIGNED", "");
+    foreach($masterToHost as $componentName=>$hostNames) {
+      $masterHosts = array();
+      foreach($hostNames as $hostName) {
+        if ($hostName != $gangliaMaster) {
+          array_push($masterHosts, $hostName);
+          $this->logger->log_debug("Adding host $hostName for GANGLIA_MONITOR");
+        }
       }
+      $db->addHostsToComponent($clusterName, "GANGLIA_MONITOR", $masterHosts, "ASSIGNED", "");
     }
     // add DASHBOARD component
     $dashhostName = strtolower(exec('hostname -f'));
