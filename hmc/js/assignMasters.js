@@ -37,10 +37,23 @@ function renderHostsToMasterServices(allHosts, hostsToMasterServices) {
 }
 
 function addMasterServiceToHost(masterName, hostName, hostsToMasterServices, masterServices) {
+  // enforce constraints on what services can be co-hosted (unless those suggestions were made by the server initially)
+  // we currently disallow:
+  // 1. namenode and secondary namenode to be on the same server
+
+  if (hostsToMasterServices[hostName] != null) {
+    for (var service in hostsToMasterServices[hostName]) {
+      if (masterName == 'NAMENODE' && service == 'SNAMENODE' || masterName == 'SNAMENODE' && service == 'NAMENODE') {
+        alert('NameNode and Secondary NameNode cannot be hosted on the same host.');
+        return false;
+      }
+    }
+  }
 	if (hostsToMasterServices[hostName] == null) {
 		hostsToMasterServices[hostName] = {};
 	}
 	hostsToMasterServices[hostName][masterName] = masterServices[masterName].displayName;
+	return true;
 }
 
 function removeMasterServiceFromHost(masterName, hostName, hostsToMasterServices) {
@@ -180,10 +193,11 @@ function renderAssignHosts(clusterInfo) {
 	  // masterServices[masterName] = $(this).val();
 	  var prevChosenHost = $('#' + masterName + 'ChosenHost').val();
 	  var newChosenHost = $(this).val();
-	  removeMasterServiceFromHost(masterName, prevChosenHost, hostsToMasterServices);
-	  addMasterServiceToHost(masterName, newChosenHost, hostsToMasterServices, masterServices);
-	  renderHostsToMasterServices(allHosts, hostsToMasterServices);
-	  $('#' + masterName + 'ChosenHost').val(newChosenHost);
+	  if (addMasterServiceToHost(masterName, newChosenHost, hostsToMasterServices, masterServices)) {
+	    removeMasterServiceFromHost(masterName, prevChosenHost, hostsToMasterServices);
+	    renderHostsToMasterServices(allHosts, hostsToMasterServices);
+	    $('#' + masterName + 'ChosenHost').val(newChosenHost);
+	  }
   });
   
 }

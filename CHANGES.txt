@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-388. Prevent the user from assigning NameNode and Secondary NameNode services on the same host (Yusaku via Vikram)
+
   AMBARI-386. On Single Node install when install all the components the recommended num for Map/Reduce Tasks is too high (Hitesh via Vikram)
 
   AMBARI-279. On the mount points page show info on what the mount points are being used for (Yusaku via Vikram)
