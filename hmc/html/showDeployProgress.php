@@ -29,7 +29,7 @@
     <!-- Javascript Scaffolding -->
     <script type="text/javascript">
       /* Minimal data required to bootstrap clusters.js. */
-      var clusterName = '<?php echo $_GET['clusterName']; ?>';
+      var clusterName = '<?php echo $clusterName; ?>';
 
       var jsFilesToLoad = [ 
         '../js/utils.js',

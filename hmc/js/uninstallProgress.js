@@ -69,28 +69,27 @@ function renderUninstallProgress (uninstallProgressInfo) {
       && uninstallProgressInfo.nagiosGangliaCoHosted) {
     hmcRestartMsg = '<strong>Note:</strong> We detected that you need to restart HMC as'
         + ' Nagios/Ganglia are co-hosted on this server. <br/>Please restart'
-        + ' HMC using \"service hmc restart\" and then head ';
+        + ' HMC using \"service hmc restart\". ';
   } else {
-    hmcRestartMsg = 'May we be so bold as to suggest heading ';
+    hmcRestartMsg = '';
   }
 
-  hmcRestartMsg += 'on over to the ' +
+  hmcRestartMsg += '' +
       '<a href="javascript:void(null)" id=clustersListLinkId>' +
-        'Cluster information' +
-      '</a>' +
-      ' page?';
+        'Continue' +
+      '</a>';
 
   var uninstallProgressStatusMessage = {
 
     success:
       '<p style=\"text-align:center\">' +
-        'All done with the uninstall! <br/>' + hmcRestartMsg +
+        'Uninstalled the cluster successfully.<br/>' + hmcRestartMsg +
       '</p>',
     failure:
       '<p>' +
-        'We made a boo-boo! Take a look at the ' +
+        'There was a problem with uninstall.  Take a look at ' +
           '<a href="javascript:void(null)" id=showUninstallTxnLogsLinkId>Uninstall Logs</a>' +
-        '?' +
+        ' to see what might have happened.' +
       '</p>'
   };
 
@@ -157,7 +156,7 @@ function renderUninstallProgress (uninstallProgressInfo) {
        * the contents inside errorInfoPanel (and make it visible). 
        */
       globalYui.one("#showUninstallTxnLogsLinkId").on( "click", function(e) {
-
+        errorInfoPanel.set( 'centered', true);
         errorInfoPanel.set( 'bodyContent', errorInfoPanelBodyContent );
         errorInfoPanel.show();
 
@@ -169,7 +168,7 @@ function renderUninstallProgress (uninstallProgressInfo) {
             '</a>' );
 
           globalYui.one("#clustersListLinkId").on( "click", function(e) {
-            window.open( generateClustersListUrl(txnProgressWidget.txnProgressContext.clusterName) );
+            document.location.href = generateClustersListUrl(txnProgressWidget.txnProgressContext.clusterName);
           });
 
           firstTimeShowingErrorInfoPanel = false;

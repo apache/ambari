@@ -1,29 +1,19 @@
 <!-- START TOPNAV -->
-    <?php 
-		if (basename($_SERVER['REQUEST_URI']) == 'initializeCluster.php') {
-			$logoUrl = '/hmc/html';
-		}
+ <?php 
+    $homeUrl = '/hmc/html';
 	?>
 	<div class="navbar">
 		<div class="navbar-inner">
 			<div class="container">
-				<a href="<?php echo $logoUrl ?>"><img id="logo" src="../images/logo-small.gif"></a>
-				<a class="brand" href="<?php echo $logoUrl ?>"><?php echo $RES['app.name'] ?></a>
-				<?php if ($clusterState == 'OPERATIONAL') { ?> 
+				<a href="<?php echo $homeUrl ?>"><img id="logo" src="../images/logo-small.gif"></a>
+				<a class="brand" href="<?php echo $homeUrl ?>"><?php echo $RES['app.name'] ?></a>
+				<?php if (isset($clusterState) && $clusterState == 'OPERATIONAL') { ?> 
 				<ul class="nav">
-					<li class="active"><a href="/hmc/html">Cluster Management</a>
+					<li class="active"><a href="<?php echo $homeUrl ?>">Cluster Management</a>
 					</li>
 					<li><a href="/hdp/dashboard/ui/home.html">Monitoring</a></li>
+        </ul>					
 				<?php } ?>
-				<?php /*
-					<li>
-						<form class="navbar-search pull-left">
-							<input style="margin-left: 20px" type="text" class="search-query"
-								placeholder="Search">
-						</form>
-					</li>
-				*/ ?>
-				</ul>
 			</div>
 		</div>
 	</div>

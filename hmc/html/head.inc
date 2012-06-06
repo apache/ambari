@@ -37,6 +37,7 @@ if (sizeof($clusters) == 0) {
   $clusterState = 'NOT_CONFIGURED';
 } else {
   foreach ($clusters as $cluster) {
+    $clusterName = $cluster['clusterName'];
     $state = json_decode($cluster['state'], true);    
     $logger->log_trace('cluster state='.print_r($state,1));
     switch ($state['state']) {
@@ -53,7 +54,6 @@ if (sizeof($clusters) == 0) {
         break;
       case 'CONFIGURATION_IN_PROGRESS':
         if ($requestPage != 'reinstall.php' && $requestPage != 'initializeCluster.php') {
-          $targetPage = 'reinstall.php';
           eval(redirectToPage($requestPage, 'reinstall.php'));
           exit;
         }
@@ -61,11 +61,9 @@ if (sizeof($clusters) == 0) {
         break;      
       case 'DEPLOYMENT_IN_PROGRESS':
         if ($requestPage != 'showDeployProgress.php') {
-          $targetPage = 'showDeployProgress.php?clusterName=' . $cluster['clusterName'];
-          $_GET['clusterName'] = $cluster['clusterName'];
           eval(redirectToPage($requestPage, 'showDeployProgress.php'));
           exit;
-        }          
+        }     
         $clusterState = 'DEPLOYMENT_IN_PROGRESS';
         break;
     } 
