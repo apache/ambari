@@ -39,6 +39,9 @@ function sign_and_verify_agent ($hosts, $logger) {
     $hostsState[$host] = FALSE;
   }
 
+  $logger->log_info("Starting sign/verify puppet agent for " . $totalCnt
+      . " nodes, hosts=" . implode(",", $origHosts));
+
   $signed_hosts = array();
   $logger->log_info("Getting puppet master list to find all signed agents");
   $cmd = "puppet cert --confdir=/etc/puppet/master list --all | grep \"^+ \"";
@@ -289,6 +292,11 @@ function sign_and_verify_agent ($hosts, $logger) {
           "badHealthReason" => "");
     }
   }
+
+  $logger->log_info("Completed sign/verify puppet agent for "
+     . count($response) . " nodes"
+     . ", result=" . print_r($response, true));
+
   return $response;
 }
 

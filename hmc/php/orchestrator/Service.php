@@ -63,6 +63,10 @@ class Service {
   // whether all components are clients only or not
   private $isClientOnly;
 
+  // Set state whether smoke tests are required to be run for client-only services
+  // For client-components set smoke tests to be run only when install is done
+  private $runClientSmokeTest;
+
   function __construct($clusterName, $serviceName, $serviceState,
       $odb, $puppet) {
     $this->name = $serviceName;
@@ -74,6 +78,7 @@ class Service {
     $this->logger->log_debug("Service: $serviceName, $serviceState, $clusterName");
     $this->currentAction = "";
     $this->isClientOnly = NULL;
+    $this->runClientSmokeTest = FALSE;
   }
 
   /**
@@ -174,6 +179,10 @@ class Service {
    */
   public function install($transaction, $dryRun) {
     $this->currentAction = "INSTALL";
+
+    // set flag to ensure smoke tests are run for client-only services
+    // as we just installed or re-configured something
+    $this->runClientSmokeTest = TRUE;
 
     // Check if it's already INSTALLED or STARTED
     if ($this->state === State::INSTALLED ||
@@ -374,6 +383,14 @@ class Service {
   public function smoke($transaction, $dryRun) {
     $this->currentAction = "SMOKETEST";
 
+    $this->checkIsClientOnly();
+    if ($this->isClientOnly
+        && !$this->runClientSmokeTest) {
+      $this->logger->log_info("Skipping client-only service smoke tests"
+          . " as nothing installed in this cycle");
+      return array("result" => 0, "error" => "");
+    }
+
     $result = $this->db->getServiceClientNode($this->name);
     if ($result == FALSE || $result["result"] != 0) {
       $this->logger->log_error("Failed to access db to get service-client node for $this->name");
@@ -400,7 +417,6 @@ class Service {
       return $result;
     }
 
-    $this->checkIsClientOnly();
 
     if (!$this->isClientOnly) {
       // Check if it's already STARTED

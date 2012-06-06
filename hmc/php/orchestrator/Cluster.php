@@ -800,6 +800,16 @@ class Cluster {
     return array("result" => 0, "error" => "", "services" => $services);
   }
 
+  private function getUniqueServices($services) {
+    $uniques = array();
+
+    foreach ($services as $service) {
+      $uniques[$service->name] = $service;
+    }
+
+    return array_values($uniques);
+  }
+
   private function _reconfigureServices($transaction, $serviceNames, $dryRun) {
     $serviceList = implode($serviceNames, ",");
     $this->currentAction = "Reconfigure";
@@ -834,11 +844,14 @@ class Cluster {
     foreach ($dependents as $serviceName) {
       $svc = $this->db->getService($serviceName);
       if ($svc !== FALSE) {
+        array_push($services, $svc);
         if ($svc->state == STATE::STARTED || $svc->state == STATE::STARTING) {
           array_push($svcsToStart, $serviceName);
         }
       }
     }
+
+    $services = $this->getUniqueServices($services);
 
     // HACK!!!!! restart nagios everytime a service is reconfigured as
     // nagios runs checks on almost all services
