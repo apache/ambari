@@ -8,6 +8,7 @@
     <link type="text/css" rel="stylesheet" href="../css/common.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common2.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common3.css" media="screen"/>
+    <link type="text/css" rel="stylesheet" href="../css/clusters.css" media="screen"/>
     <link rel="shortcut icon" href="../images/logo-micro.gif">
     <!-- End CSS -->
   </head>
@@ -26,7 +27,14 @@
       <div id="clustersListDivId" style="display:none">
       </div>
 
-      <div id="clusterHostRoleMappingDynamicRenderDivId">
+      <div id="clusterHostRoleMappingDivId" style="display:none">
+        <h2>Service Mapping</h2>
+        <div class="serviceLegend">
+          <span class="masterLegend">Master Service</span><span class="clientLegend">Client Service</span>
+        </div>
+        <div style="clear:both"></div>
+        <div id="clusterHostRoleMappingDynamicRenderDivId">
+        </div>      
       </div>
 
     </div>        

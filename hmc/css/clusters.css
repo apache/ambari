@@ -25,3 +25,13 @@
   margin-right: auto;
   width: 300px;
 }
+
+#clusterHostRoleMappingDivId {
+  margin-top:40px;
+}
+
+#clusterHostRoleMappingDivId h2 {
+  font-size:16px;
+  float:left;
+  margin-bottom:10px;
+}

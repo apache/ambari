@@ -1,7 +1,5 @@
-function generateClusterMastersHostRoleMappingMarkup( clusterServices ) {
-
-  var clusterMastersHostRoleMappingMarkup = '';
-
+function populateHostToMasterRoleMapping(clusterServices, hostMap) {
+  
   for (var serviceName in clusterServices) {
     if (clusterServices.hasOwnProperty(serviceName)) {
 
@@ -10,26 +8,22 @@ function generateClusterMastersHostRoleMappingMarkup( clusterServices ) {
           !clusterServices[serviceName].attributes.noDisplay) {
 
         globalYui.Array.each( clusterServices[serviceName].components, function (serviceComponent) {
-          
           if (serviceComponent.isMaster) {
-            clusterMastersHostRoleMappingMarkup += 
-              '<div class=formElement>' + 
-                '<label>' + serviceComponent.displayName + ': ' + '</label>' + 
-                serviceComponent.hostName +
-              '</div>' + 
-              '<br/>';
+            // just add the client to the hostname object
+            if ( !( serviceComponent.hostName in hostMap ) ) {
+              hostMap[serviceComponent.hostName] = new Array();
+              hostMap[serviceComponent.hostName].push({ serviceName: serviceComponent.displayName, isMaster: true });
+            } else {
+              hostMap[serviceComponent.hostName].push({ serviceName: serviceComponent.displayName, isMaster: true});
+            }
           }
         });
       }
     }
   }
-
-  return clusterMastersHostRoleMappingMarkup;
 }
 
-function generateClusterClientsHostRoleMappingMarkup( clusterServices ) {
-
-  var finalHostMap = {};
+function populateHostToClientRoleMapping(clusterServices, hostMap) {
 
   for (var serviceName in clusterServices) {
     if (clusterServices.hasOwnProperty(serviceName)) {
@@ -39,50 +33,39 @@ function generateClusterClientsHostRoleMappingMarkup( clusterServices ) {
 
         globalYui.Array.each( clusterServices[serviceName].components, function (serviceComponent) {          
           if (serviceComponent.isClient) {
-            globalYui.log("Final host array is " + globalYui.Lang.dump(finalHostMap));
             // just add the client to the hostname object
-            if ( !( serviceComponent.hostName in finalHostMap ) ) {
-              finalHostMap[serviceComponent.hostName] = new Array();
-              finalHostMap[serviceComponent.hostName].push(serviceComponent.displayName);
+            if ( !( serviceComponent.hostName in hostMap ) ) {
+              hostMap[serviceComponent.hostName] = new Array();
+              hostMap[serviceComponent.hostName].push({ serviceName: serviceComponent.displayName, isMaster: false });
             } else {
-              finalHostMap[serviceComponent.hostName].push(serviceComponent.displayName);
+              hostMap[serviceComponent.hostName].push({ serviceName: serviceComponent.displayName, isMaster: false });
             }
           }
         });
       }
     }
   }
-
-  markup = '<div>';
-  for (var hostName in finalHostMap) {
-    markup += '<div class="hostToClientServices"><h3>' + hostName + '</h3>' + '<ul>';
-    for (var service in finalHostMap[hostName]) {
-	  markup += '<li>' + finalHostMap[hostName][service] + '</li>';
-  	}
-  }
-  markup += '</ul><div style="clear:both"></div></div>';
-
-  return markup;
 }
 
-function generateClusterHostRoleMappingMarkup( clusterServices ) {
+function generateHostRoleMappingMarkup( clusterServices ) {
 
-  var clusterHostRoleMappingMarkup = 
-  '<fieldset id=clusterMastersHostRoleMappingFieldsetId>' +
-    '<legend>' +
-      'Locations Of Service Masters' + 
-    '</legend>' + 
-    generateClusterMastersHostRoleMappingMarkup(clusterServices) + 
-  '</fieldset>' + 
-  '<br/>' +
-  '<fieldset id=clusterClientsHostRoleMappingFieldsetId>' +
-    '<legend>' +
-      'Locations Of Service Clients' + 
-    '</legend>' + 
-    generateClusterClientsHostRoleMappingMarkup(clusterServices) + 
-  '</fieldset>';
+  var hostMap = {};
+  var markup = '';
+  
+  populateHostToMasterRoleMapping(clusterServices, hostMap); 
+  populateHostToClientRoleMapping(clusterServices, hostMap);
+  
+  markup = '<div>';
+  for (var hostName in hostMap) {
+    markup += '<div class="hostToServices"><h3>' + hostName + '</h3>' + '<ul>';
+    for (var service in hostMap[hostName]) {
+      markup += '<li class="' + ((hostMap[hostName][service].isMaster) ? 'master' : 'client') + '">' + hostMap[hostName][service].serviceName + '</li>';
+    }
+    markup += '</ul><div style="clear:both"></div></div>';
+  }
+  markup += '</div>';
 
-  return clusterHostRoleMappingMarkup;
+  return markup;
 }
 
 function renderClusterList() {
@@ -158,8 +141,7 @@ function renderClusterList() {
 
         var newClusterLinkHTML = "";
         if (multipleClustersSupported || numClusters == 0) {
-          clustersListMarkup += newClusterLinkHTML;
-          globalYui.one("#welcomeDivId").setStyle('display','block');
+          // document.location.href = "/hmc/html/welcome.php";
           return;
         }
 
@@ -191,8 +173,9 @@ function renderClusterList() {
                 var clusterServices = clusterServicesResponseJson.response.services;
 
                 /* Link the newly-generated markup into the DOM. */
-                globalYui.one("#clusterHostRoleMappingDynamicRenderDivId").setContent
-                  ( generateClusterHostRoleMappingMarkup(clusterServices) );
+                globalYui.one("#clusterHostRoleMappingDynamicRenderDivId").setContent(
+                    generateHostRoleMappingMarkup(clusterServices) );
+                globalYui.one("#clusterHostRoleMappingDivId").show();
               }
               else {
                 alert("Fetching Cluster Services failed");

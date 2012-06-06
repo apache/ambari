@@ -281,6 +281,10 @@ div.formElement {
 	font-size:12px;
 }
 
+.formElement input {
+  vertical-align:top; 
+}
+
 #configureClusterAdvancedCoreDivId label,
 #deployDynamicRenderDivId label,
 #deployCoreDivId label {
@@ -288,7 +292,7 @@ div.formElement {
 	width:300px;
 	text-align:right;
 	margin-right:20px;
-	padding-top:8px;
+	padding-top:4px;
 }
 
 #deployDynamicRenderDivId input[readonly] {
@@ -446,7 +450,7 @@ div.separator {
 	width:auto;
 	float:left;
 }
-.hostToMasterServices, .hostToClientServices {
+.hostToMasterServices, .hostToServices {
     background-color: #F7F7F5;
     border: 2px solid rgba(0, 0, 0, 0.25);
     border-radius: 4px 4px 4px 4px;
@@ -456,23 +460,23 @@ div.separator {
     padding: 10px 20px;
     width:360px;
 }
-.hostToClientServices {
-	width:90%;
+.hostToServices {
+	width:50%;
 }
-.hostToMasterServices > h3, .hostToClientServices > h3 {
+.hostToMasterServices > h3, .hostToServices > h3 {
 	font-size:14px;
 	margin-bottom:4px!important;
 	line-height:14px;
 }
-.hostToMasterServices ul, .hostToClientServices ul {
+.hostToMasterServices ul, .hostToServices ul {
 	margin-left:0;
 	margin-bottom:0;
 	list-style:none;
 }
-.hostToMasterServices ul:after, .hostToClientServices ul:after {
+.hostToMasterServices ul:after, .hostToServices ul:after {
 	clear:both;
 }
-.hostToMasterServices li, .hostToClientServices li {
+.hostToMasterServices li, .hostToServices li, .masterLegend, .clientLegend {
 	float:left;
 	background-color:#65B642;
 	padding:4px 6px;
@@ -482,6 +486,13 @@ div.separator {
 	border-radius:4px;
 	-webkit-border-radius:4px;
 	-moz-border-radius:4px;
+}
+.hostToServices li.client, .clientLegend {
+  background-color:#0088CC;
+}
+.serviceLegend {
+  float:left;
+  margin-left:20px;
 }
 .navbar .brand {
     color: #666666;
