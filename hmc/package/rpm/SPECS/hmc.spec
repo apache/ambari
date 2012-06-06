@@ -133,6 +133,7 @@ rm -rf /var/lib/puppet/reports/*
 rm -rf /var/lib/puppet/puppet_kick_version.txt
 rm -rf /etc/puppet/master
 rm -rf /var/run/hmc/license
+rm -rf /var/run/hmc/puppetmaster.boot
 
 %files
 %defattr(-,root,root)
