@@ -40,28 +40,28 @@ class hdp-ganglia::monitor::config-gen()
   #TODO: to get around anchor problems
   Class['hdp-ganglia'] -> Class['hdp-ganglia::monitor::config-gen']
 
-  if ($hdp-ganglia::params::omit_namenode != true) {
+  if ($hdp-ganglia::params::nomit_namenode == true) {
     hdp-ganglia::config::generate_monitor { 'HDPNameNode':
       ganglia_service => 'gmond',
       require => Anchor['hdp-ganglia::monitor::config-gen::begin'],
       before  => Anchor['hdp-ganglia::monitor::config-gen::end']
     }
   }
-  if ($hdp-ganglia::params::omit_jobtracker != true) {
+  if ($hdp-ganglia::params::nomit_jobtracker == true) {
     hdp-ganglia::config::generate_monitor { 'HDPJobTracker':
       ganglia_service => 'gmond',
       require => Anchor['hdp-ganglia::monitor::config-gen::begin'],
       before  => Anchor['hdp-ganglia::monitor::config-gen::end']
     }
   }
-  if ($hdp-ganglia::params::omit_hbase_master != true) {
+  if ($hdp-ganglia::params::nomit_hbase_master == true) {
     hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':
       ganglia_service => 'gmond',
       require => Anchor['hdp-ganglia::monitor::config-gen::begin'],
       before  => Anchor['hdp-ganglia::monitor::config-gen::end']
     }
   }
-  if ($hdp-ganglia::params::omit_slaves != true) {
+  if ($hdp-ganglia::params::nomit_slaves == true) {
     hdp-ganglia::config::generate_monitor { 'HDPSlaves':
       ganglia_service => 'gmond',
       require => Anchor['hdp-ganglia::monitor::config-gen::begin'],

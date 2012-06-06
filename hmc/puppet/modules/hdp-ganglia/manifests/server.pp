@@ -94,28 +94,28 @@ class hdp-ganglia::server::config-gen()
 {
   anchor{'hdp-ganglia::server::config-gen::begin':} 
 
-  if ($hdp-ganglia::params::omit_hbase_master != true) {
+  if ($hdp-ganglia::params::nomit_hbase_master == true) {
     hdp-ganglia::config::generate_server { 'HDPHBaseMaster':
       ganglia_service => 'gmond',
       require => Anchor['hdp-ganglia::server::config-gen::begin'],
       before  => Anchor['hdp-ganglia::server::config-gen::end']
     }
   }
-  if ($hdp-ganglia::params::omit_jobtracker != true) {
+  if ($hdp-ganglia::params::nomit_jobtracker == true) {
     hdp-ganglia::config::generate_server { 'HDPJobTracker':
       ganglia_service => 'gmond',
       require => Anchor['hdp-ganglia::server::config-gen::begin'],
       before  => Anchor['hdp-ganglia::server::config-gen::end']
     }
   }
-  if ($hdp-ganglia::params::omit_namenode != true) {
+  if ($hdp-ganglia::params::nomit_namenode == true) {
     hdp-ganglia::config::generate_server { 'HDPNameNode':
       ganglia_service => 'gmond',
       require => Anchor['hdp-ganglia::server::config-gen::begin'],
       before  => Anchor['hdp-ganglia::server::config-gen::end']
     }
   }
-  if ($hdp-ganglia::params::omit_slaves != true) {
+  if ($hdp-ganglia::params::nomit_slaves == true) {
     hdp-ganglia::config::generate_server { 'HDPSlaves':
       ganglia_service => 'gmond',
       require => Anchor['hdp-ganglia::server::config-gen::begin'],

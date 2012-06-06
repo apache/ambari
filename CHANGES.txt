@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-408. HDPJobTracker cluster in ganglia has multiple nodes (Suhas via Vikram)
+
   AMBARI-426. Reinstall of cluster after failure to install results in failure (Ramya via Vikram)
 
   AMBARI-427. Class not found Class['hdp-zookeeper::service'] during uninstall (Ramya via Vikram)
