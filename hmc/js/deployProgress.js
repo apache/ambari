@@ -123,7 +123,7 @@ function renderDeployProgress (deployProgressInfo) {
           '</a>'
       );          
       globalYui.one("#restartInstallationWizardLinkId").on( "click", function(e) {
-        document.location.href = 'reinstall.php';
+        document.location.href = 'installFailed.php';
       });
       globalYui.one('#txnProgressStatusActionsDivId').setStyle('display','block');
 

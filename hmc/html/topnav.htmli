@@ -1,10 +1,6 @@
 <!-- START TOPNAV -->
     <?php 
 		if (basename($_SERVER['REQUEST_URI']) == 'initializeCluster.php') {
-			$isInitWizard = true;
-			$logoUrl = 'javascript:void 0';
-        } else {
-        	$isInitWizard = false;
 			$logoUrl = '/hmc/html';
 		}
 	?>
@@ -13,7 +9,7 @@
 			<div class="container">
 				<a href="<?php echo $logoUrl ?>"><img id="logo" src="../images/logo-small.gif"></a>
 				<a class="brand" href="<?php echo $logoUrl ?>"><?php echo $RES['app.name'] ?></a>
-				<?php if (!$isInitWizard) { ?> 
+				<?php if ($clusterState == 'OPERATIONAL') { ?> 
 				<ul class="nav">
 					<li class="active"><a href="/hmc/html">Cluster Management</a>
 					</li>

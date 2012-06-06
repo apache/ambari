@@ -3,9 +3,15 @@ $RES['app.name']="Hortonworks Management Center";
 $RES['page.title']="Hortonworks Management Center";
 $RES['page.footer.body']="Hortonworks &copy; 2012";
 $RES['welcome.header']="Welcome to Hortonworks Management Center!";
-$RES['welcome.body']="<p>Hortonworks Management Center makes it really easy for you to install, configure, and manage your Hadoop cluster.</p><p>First, we'll walk you through the cluster set up with a 7-step wizard.</p>";
+$RES['welcome.body']="<p>Hortonworks Management Center makes it really easy for you to install, configure, and manage your Hadoop cluster.</p><p>First, we'll walk you through setting up your cluster with a 7-step wizard.</p>";
 $RES['welcome.note']="Before you proceed, make sure you have performed all the pre-installation steps (REFERENCE MATERIAL HERE).";
 $RES['welcome.submit.label']="Let's get started!";
+$RES['installFailed.header']="Cluster installation failed";
+$RES['installFailed.body']="Cluster installation failed.  To continue, you will need to uninstall the cluster first and re-install the cluster.";
+$RES['installFailed.submit.label']="Start the uninstall process";
+$RES['reinstall.header']="You have not set up a cluster yet.";
+$RES['reinstall.body']="We'll walk you through setting up your cluster with a 7-step wizard.";
+$RES['reinstall.submit.label']="Let's get started!";
 $RES['common.sshUsername.label']="SSH Username";
 $RES['common.sshPrivateKeyFile.label']="SSH Private Key File";
 $RES['common.hostsFile.label']="Hosts File (newline-delimited list of hostnames)";
@@ -41,11 +47,11 @@ $RES['addNodesWizard.addNodes.pageSummary.header']="Which nodes are you adding t
 $RES['addNodesWizard.addNodes.pageSummary.body']="We'll use the SSH private key and a file containing a list of hostnames to perform installation on your nodes.  The public key that is paired with the private key must already be installed on all the nodes.";
 $RES['addNodesWizard.addNodes.submit.label']="Add Nodes";
 $RES['addNodesWizard.selectServices.pageSummary.header']='Which services do you want to install?';
-$RES['addNodesWizard.selectServices.pageSummary.body']="Some services are installed by default.";
+$RES['addNodesWizard.selectServices.pageSummary.body']="Some services will be installed by default.";
 $RES['addNodesWizard.selectServices.submit.label']="Deploy";
 $RES['uninstallWizard.pageSummary.header']="Uninstall Cluster";
 $RES['uninstallWizard.pageSummary.body']="<span class='label label-important'>Warning</span>  Proceed with caution!  This will delete all services from all of your nodes in the cluster (and all of your data, if you choose the <i>wipe out</i> option).";
 $RES['uninstallWizard.wipeout.label']="Perform wipe out (delete all data)";
 $RES['uninstallWizard.submit.label']="Uninstall Cluster";
-
+$RES['initWizard.configureClusterAdvanced.validation.error']="We've encountered invalid settings.";
 ?>

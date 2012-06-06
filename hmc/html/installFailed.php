@@ -18,9 +18,9 @@
     <div id="ContentDivId"> 
       <div class="container">
         <div class="alert alert-important" style="margin-top:40px;padding:20px">
-          <h2 style="margin-bottom:10px"><?php echo $RES['reinstall.header'] ?></h2>
-          <p><?php echo $RES['reinstall.body'] ?></p>
-          <a class='btn btn-large' style='margin-top:20px' href='initializeCluster.php'><?php echo $RES['reinstall.submit.label'] ?></a>
+          <h2 style="margin-bottom:10px"><?php echo $RES['installFailed.header'] ?></h2>
+          <p><?php echo $RES['installFailed.body'] ?></p>
+          <a class='btn btn-large' style='margin-top:20px' href='uninstallWizard.php'><?php echo $RES['installFailed.submit.label'] ?></a>
         </div>
       </div>
     </div>

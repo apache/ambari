@@ -6,21 +6,35 @@ require_once "../php/util/lock.php";
 require_once '../php/db/HMCDBAccessor.php';
 require_once "../php/util/clusterState.php";
 
+/* 
+ * due to the way include files are scoped,
+ * we return the string to be eval'd, rather than
+ * executing them.
+ */
+function redirectToPage($requestPage, $targetPage) {
+  // if the page is index.php or the root app directory, don't redirect... simply include
+  if ($requestPage != 'index.php' && $requestPage != 'html') {
+    return "header('Location: /hmc/html/$targetPage');";
+  } else {
+    return "require('$targetPage');";
+  }
+}
+
 $logger = new HMCLogger("Interceptor");
 $db = new HMCDBAccessor($GLOBALS["DB_PATH"]);
+$appDir = "/hmc/html";
 
 $res = $db->getAllClusters();
 $clusters = $res['clusters'];
-$baseUrl = basename(preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']));
-$logger->log_trace('basename='.$baseUrl);
-$appDir = "/hmc/html";
+$requestPage = basename(preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']));
+$logger->log_trace('requestPage='.$requestPage);
 
-$logger->log_trace('basename='.$baseUrl);
 if (sizeof($clusters) == 0) {
-  if ($baseUrl != 'welcome.php' && $baseUrl != 'initializeCluster.php') {
-    header("Location: $appDir/welcome.php");
-    return;
+  if ($requestPage != 'welcome.php' && $requestPage != 'initializeCluster.php') {
+    eval(redirectToPage($requestPage, 'welcome.php'));
+    exit;
   }
+  $clusterState = 'NOT_CONFIGURED';
 } else {
   foreach ($clusters as $cluster) {
     $state = json_decode($cluster['state'], true);    
@@ -28,23 +42,31 @@ if (sizeof($clusters) == 0) {
     switch ($state['state']) {
       case 'DEPLOYED':
         if ($state['context']['status']) {
-          return;
+          $clusterState = 'OPERATIONAL';
         } else {
-          if ($baseUrl != "reinstall.php" && $baseUrl != "uninstallWizard.php") {
-            header("Location: $appDir/reinstall.php");
-            return;
+          if ($requestPage != 'installFailed.php' && $requestPage != 'uninstallWizard.php') {
+            eval(redirectToPage($requestPage, 'installFailed.php'));
+            exit; 
           }
+          $clusterState = 'DEPLOY_FAILED';            
         }
         break;
       case 'CONFIGURATION_IN_PROGRESS':
-        if ($baseUrl != 'initializeCluster.php') {
-          header("Location: $appDir/initializeCluster.php");
+        if ($requestPage != 'reinstall.php' && $requestPage != 'initializeCluster.php') {
+          $targetPage = 'reinstall.php';
+          eval(redirectToPage($requestPage, 'reinstall.php'));
+          exit;
         }
+        $clusterState = 'CONFIGURATION_IN_PROGRESS';
         break;      
       case 'DEPLOYMENT_IN_PROGRESS':
-        if ($baseUrl != 'showDeployProgress.php') {
-          header("Location: $appDir/showDeployProgress.php?clusterName=" . $cluster['clusterName']);          
-        }
+        if ($requestPage != 'showDeployProgress.php') {
+          $targetPage = 'showDeployProgress.php?clusterName=' . $cluster['clusterName'];
+          $_GET['clusterName'] = $cluster['clusterName'];
+          eval(redirectToPage($requestPage, 'showDeployProgress.php'));
+          exit;
+        }          
+        $clusterState = 'DEPLOYMENT_IN_PROGRESS';
         break;
     } 
   }  
