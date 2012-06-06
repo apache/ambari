@@ -166,15 +166,6 @@ if [[ "$ret" != "0" ]]; then
   exit 1
 fi
 
-#Download modules and untar
-out=`curl -o /etc/puppet/agent/modules.tgz $master/hmc/modules.tgz && cd /etc/puppet/agent/ &&  tar zxf modules.tgz --strip-components 1 && cd -`
-ret=$?
-if [[ "$ret" != "0" ]]; then
-  echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
-  exit 1
-fi
-out=`rm /etc/puppet/agent/modules.tgz`
-
 #TODO clean this up for better fix. For now make sure we stop puppet agent. The issue here is we do not know if we started this puppet agent during our run or not.
 echo "Stopping puppet agent using service stop command"
 out=`service puppet stop`

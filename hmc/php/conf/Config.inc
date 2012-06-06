@@ -9,12 +9,12 @@ $GLOBALS["CLUSTERMAIN_PATH"] = $INSTALL_ROOT . "/php/orchestrator/ClusterMain.ph
 $GLOBALS["DB_PATH"] = "/var/db/hmc/data/data.db";
 
 $GLOBALS["puppetMaxParallelKicks"] = 10;
-$GLOBALS["puppetManifestDir"] = "/etc/puppet/master/modules/catalog/files/";
+$GLOBALS["puppetMasterModulesDirectory"] = "/etc/puppet/master/modules";
 $GLOBALS["puppetKickVersionFile"] = "/var/lib/puppet/puppet_kick_version.txt";
 $GLOBALS["puppetReportsDir"] = "/var/lib/puppet/reports";
 $GLOBALS["puppetKickTimeout"] = 120;
-$GLOBALS["puppetModulesDirectory"] = "/etc/puppet/agent/modules";
-$GLOBALS["manifestloaderFile"] = "/etc/puppet/master/manifestloader/site.pp";
+$GLOBALS["puppetAgentModulesDirectory"] = "/etc/puppet/agent/modules";
+$GLOBALS["manifestloaderDir"] = "/etc/puppet/master/manifestloader";
 $GLOBALS["manifestloaderDestinationDir"] = "/etc/puppet/master/manifests";
 $GLOBALS["puppet_install"] = "/usr/share/hmc/ShellScripts/puppet_agent_install.sh";
 $GLOBALS["DRYRUN"] = FALSE;

@@ -69,7 +69,6 @@ fi
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/yum_repo/
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/manifests
-%__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/modules/catalog/files
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__install -d "%{buildroot}%{hmc_db_dir}"
 %__install -d "%{buildroot}%{hmc_log_dir}"
@@ -92,11 +91,11 @@ fi
 %__cp -f yuiCombinator.php $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf conf $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf puppet/manifestloader $RPM_BUILD_ROOT/%{puppet_master_dir}
-%__cp -rf puppet/modules/stdlib $RPM_BUILD_ROOT/%{puppet_master_dir}/modules
+%__cp -rf puppet/modules $RPM_BUILD_ROOT/%{puppet_master_dir}
+%__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/modules/catalog/files
 %__cp -f "%{SOURCE2}" $RPM_BUILD_ROOT/%{web_prefixdir}/yum_repo/
 %__install -D -m0755 puppet/reports/get_revision $RPM_BUILD_ROOT/%{web_prefixdir}/bin
 %__cp -rf puppet/reports/hmcreport.rb $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
-%__tar czf $RPM_BUILD_ROOT/%{web_prefixdir}/modules.tgz puppet/modules
 echo "Alias /hdp %{_prefix}/share/hdp" > $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
 
 %post

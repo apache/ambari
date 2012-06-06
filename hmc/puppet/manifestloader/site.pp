@@ -1,14 +1,14 @@
 class manifestloader () {
-    file { '/etc/puppet/agent/site.pp':
+    file { '/etc/puppet/agent/modules.tgz':
       ensure => present,
-      source => "puppet:///modules/catalog/site.pp",  
+      source => "puppet:///modules/catalog/modules.tgz",  
       mode => '0755',
     }
 
-    exec {'rm_puppet_apply_log':
-      command   => "rm -f /var/log/puppet_apply.log",
-      path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-    }
+    exec { 'untar_modules':
+      command => "rm -rf /etc/puppet/agent/modules ; tar zxf /etc/puppet/agent/modules.tgz -C /etc/puppet/agent/ --strip-components 3",
+      path    => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+    } 
 
     exec { 'puppet_apply':
       command   => "sh /etc/puppet/agent/modules/puppetApply.sh",
@@ -17,7 +17,7 @@ class manifestloader () {
       logoutput => "true"
     }
 
-    File['/etc/puppet/agent/site.pp'] -> Exec['rm_puppet_apply_log'] -> Exec['puppet_apply']
+    File['/etc/puppet/agent/modules.tgz'] -> Exec['untar_modules'] -> Exec['puppet_apply']
 }
 
 node default {

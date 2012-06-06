@@ -41,22 +41,33 @@
 
     private function sendKick($nodes, $txnId, &$failedNodes,
         &$successNodes, &$prevKickRunningNodes) {
-      $cmd = "";
-      $cmd = $cmd . "puppet kick ";
-      foreach ($nodes as $n) {
-        $cmd = $cmd . " --host " . $n;
+      //Some nodes may already be done in the meanwhile
+      $doneNodes = array();
+      $this->checkForReportFiles($nodes, $txnId, $doneNodes);
+      if (count($doneNodes) < count($nodes)) {
+        $cmd = "";
+        $cmd = $cmd . "puppet kick ";
+        foreach ($nodes as $n) {
+          $cmd = $cmd . " --host " . $n;
+        }
+        $p = 10;
+        if (count($nodes) < $p) {
+          $p = count($nodes);
+        }
+        $cmd = $cmd . " --parallel " . $p;
+        $this->logger->log_trace("Kick command: " . $cmd);
+        $output = $this->executeAndGetOutput($cmd);
+        $this->logger->log_trace("Kick response begins ===========");
+        $this->logger->log_trace($output);
+        $this->logger->log_trace("Kick response ends ===========");
       }
-      $p = 10;
-      if (count($nodes) < $p) {
-        $p = count($nodes);
-      }
-      $cmd = $cmd . " --parallel " . $p;
-      $this->logger->log_trace("Kick command: " . $cmd);
-      $output = $this->executeAndGetOutput($cmd);
-      $this->logger->log_trace("Kick response begins ===========");
-      $this->logger->log_trace($output);
-      $this->logger->log_trace("Kick response ends ===========");
       foreach ($nodes as $kNode) {
+        if (isset($doneNodes[$kNode])) {
+          $this->logger->log_debug($kNode . "previous kick has returned, no need to kick again");
+          //Mark as previous kick running, reports will be discovered in waitForResults.
+          $prevKickRunningNodes[] = $kNode;
+          continue;
+        }
         $regExSuccess = "/". $kNode . " .* exit code 0/";
         $regExRunning = "/". $kNode . ".* is already running/";
         if (preg_match($regExSuccess, $output)>0) {
@@ -120,8 +131,9 @@
         }
       }
        
+      $manifestDir = $GLOBALS["puppetMasterModulesDirectory"] . "/catalog/files";
       $response = $this->genKickWait($nodes, $txnId, $clusterName, $hostInfo,
-          $configInfo, $hostRolesStates, $hostAttributes, $GLOBALS["puppetManifestDir"],
+          $configInfo, $hostRolesStates, $hostAttributes, $manifestDir,
           $GLOBALS["puppetKickVersionFile"], $GLOBALS["DRYRUN"]);
       return $response;
     }
@@ -150,8 +162,9 @@
       $hostInfo = $dbReader->getHostNames($clusterName);
       $configInfo = $dbReader->getAllConfigs($clusterName);
       $hostAttributes = $dbReader->getAllHostAttributes($clusterName);
+      $manifestDir = $GLOBALS["puppetMasterModulesDirectory"] . "/catalog/files";
       $response = $this->genKickWait($nodesToKick, $txnId, $clusterName, $hostInfo,
-          $configInfo, $hostRolesStates, $hostAttributes, $GLOBALS["puppetManifestDir"],
+          $configInfo, $hostRolesStates, $hostAttributes, $manifestDir,
           $GLOBALS["puppetKickVersionFile"], $GLOBALS["DRYRUN"]);
       return $response;
     }
@@ -201,12 +214,24 @@
       }
 
       //Add manifest loader
-      copy($GLOBALS["manifestloaderFile"], $GLOBALS["manifestloaderDestinationDir"] . "/site.pp");
+      copy($GLOBALS["manifestloaderDir"] . "/site.pp", $GLOBALS["manifestloaderDestinationDir"] . "/site.pp");
 
       //Generate manifest
-      $modulesDir = $GLOBALS["puppetModulesDirectory"];
+      $agentModulesDir = $GLOBALS["puppetAgentModulesDirectory"];
       ManifestGenerator::generateManifest($manifestDir, $hostInfo,
-          $configInfo, $hostRolesStates, $hostAttributes, $modulesDir);
+          $configInfo, $hostRolesStates, $hostAttributes, $agentModulesDir);
+
+      //Tar the modules and catalog
+      $tarCmd = "tar zcf ". $GLOBALS["manifestloaderDir"] . "/modules.tgz" . " " .  $GLOBALS["puppetMasterModulesDirectory"];
+      $this->logger->log_info($tarCmd);
+      exec($tarCmd);
+      $tarLocation = $GLOBALS["puppetMasterModulesDirectory"] . "/catalog/files" ;
+      $removeOldTar = "rm -f " . $tarLocation . "/modules.tgz";
+      $this->logger->log_info($removeOldTar);
+      exec($removeOldTar);
+      $placeNewTarCmd = "mv " . $GLOBALS["manifestloaderDir"] . "/modules.tgz" . " " . $tarLocation;
+      $this->logger->log_info($placeNewTarCmd);
+      exec($placeNewTarCmd);
 
       //Write version file
       $this->writeVersionFile($versionFile, $txnId);
@@ -237,12 +262,24 @@
           sleep(1);
       }
       $sitePPFile = $manifestDir . "/site.pp";
-      system("mv " . $sitePPFile . " " . $sitePPFile ."-".$txnId);
+      system("mv " . $sitePPFile . " " . $GLOBALS["manifestloaderDir"] . "/site.pp-" . $txnId);
       // Delete version file, it will be generated next time.
       unlink($versionFile);
       $response = $this->createGenKickWaitResponse($kickFailedNodes, $failureResponseNodes,
           $timedoutNodes, $successfullNodes, $nodes); 
       return $response;
+    }
+    
+    private function checkForReportFiles($nodes, $txnId, &$doneNodes) {
+      foreach ($nodes as $n) {
+        if (isset($doneNodes[$n])) {
+          continue;
+        }
+        $fileName = $this->getReportFilePattern($n, $txnId);
+        if (file_exists($fileName)) {
+          $doneNodes[$n] = 1;
+        }
+      }
     }
 
     private function waitForResults($nodes, $txnId, &$successfullNodes, 
@@ -252,15 +289,7 @@
       $this->logger->log_info("Waiting for results from "
           . implode(",", $nodes));
       while (true) {
-        foreach ($nodes as $n) {
-          if (isset($doneNodes[$n])) {
-            continue;
-          }
-          $fileName = $this->getReportFilePattern($n, $txnId);
-          if (file_exists($fileName)) {
-            $doneNodes[$n] = 1;
-          }
-        }
+        $this->checkForReportFiles($nodes, $txnId, $doneNodes);
         $this->logger->log_info(count($doneNodes) . " out of " . count($nodes) 
             . " nodes have reported");
         if (count($doneNodes) >= count($nodes)) {
