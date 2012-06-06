@@ -141,7 +141,7 @@ function renderClusterList() {
 
         var newClusterLinkHTML = "";
         if (multipleClustersSupported || numClusters == 0) {
-          // document.location.href = "/hmc/html/welcome.php";
+          document.location.href = "/hmc/html/welcome.php";
           return;
         }
 
