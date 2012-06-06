@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-397. Clean up descriptions and titles of mapreduce memory related configs (Vinod via Vikram)
+
   AMBARI-396. Add nodes fails in assign masters because of closure issues (Vikram)
 
   AMBARI-395. Ganglia server should not run gmond. (Mahadev via Vikram)
