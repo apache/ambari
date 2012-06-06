@@ -44,6 +44,15 @@ if ($freshInstall) {
 // Read from the input
 $deployUser = $_POST['ClusterDeployUser'];
 
+/////// Remove the cluster directory before copying the files
+$clusterDir = getClusterDir($clusterName);
+rrmdir($clusterDir);
+if (!is_dir($clusterDir) && !mkdir($clusterDir, 0700, true)) {
+  print json_encode(array( "result" => 1, "error" => 'Failed to create directory...'));
+  return;
+}
+////// end of directory removal
+
 $identityFileDestination = getSshKeyFilePath($clusterName);
 $hostsFileDestination = getHostsFilePath($clusterName);
 

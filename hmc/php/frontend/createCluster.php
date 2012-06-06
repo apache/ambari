@@ -122,13 +122,6 @@ if ($result["result"] != 0 ) {
 }
 // end of populating the ServiceComponentInfo table
 
-$clusterDir = getClusterDir($clusterName);
-rrmdir($clusterDir);
-if (!is_dir($clusterDir) && !mkdir($clusterDir, 0700, true)) {
-  print json_encode(array( "result" => 1, "error" => 'Failed to create directory...'));
-  return;
-}
-
 $propertiesArr = $dbAccessor->getConfigPropertiesMetaInfo();
 if ($propertiesArr["result"] != 0) {
   print json_encode(array( "result" => 1, "error" => "Error in config properties meta info"));

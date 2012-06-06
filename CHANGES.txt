@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-410. Need to move the creation of cluster directory for hosting the key file and the nodes file to add nodes. (Vikram)
+
   AMBARI-408. HDPJobTracker cluster in ganglia has multiple nodes (Suhas via Vikram)
 
   AMBARI-426. Reinstall of cluster after failure to install results in failure (Ramya via Vikram)
