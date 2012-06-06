@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-265. Reconfig page close button (x) is not visible (Vinod via Vikram)
+
   AMBARI-357. Redesign master service assignment page so that it takes up less vertical space (Yusaku via Vikram)
 
   AMBARI-356. Log output to console slows puppet run. (Jitendra via Vikram)

@@ -73,9 +73,17 @@ function createInformationalPanel( containerNodeId, headerContentString ) {
       fontSize: '150%'
     });
 
-    globalYui.StyleSheet('KewlApp').set( '.yui3-skin-sam .yui3-panel-content .yui3-button-icon', {
-      backgroundColor: 'white',
-      border: 'medium solid gray'
+    globalYui.StyleSheet('KewlApp').set( '.yui3-skin-sam .yui3-panel .yui3-widget-hd .yui3-button-close', {
+        border: 'medium solid gray',
+        backgroundColor: 'white',
+        height: '17px',
+        width: '20px',
+    });
+
+    // Temporary fix to a yui bug
+    globalYui.StyleSheet('KewlApp').set( '.yui3-skin-sam .yui3-panel .yui3-widget-hd .yui3-button-close:before', {
+        content: 'url(../yui-3.5.1/build/assets/skins/sam/sprite_icons.png)',
+        backgroundImage: 'url(../yui-3.5.1/build/assets/skins/sam/sprite_icons.png)',
     });
 
     globalYui.StyleSheet('KewlApp').set( '.yui3-skin-sam .yui3-panel-content .yui3-widget-ft', {
