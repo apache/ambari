@@ -3265,6 +3265,24 @@ class HMCDBAccessor {
     LockRelease(); return $response;
   }
 
+  private function deleteAllInTable ($table) {
+    LockAcquire();
+    $response = array ("result" => 0, "error" => "");
+    $query = "DELETE from " . $table;
+    $this->logger->log_trace("Running query: $query");
+    $pdoStmt = $this->dbHandle->query($query);
+    if ($pdoStmt == FALSE) {
+      $error = $this->getLastDBErrorAsString();
+      $this->logger->log_error("Error when executing query"
+          . ", query=".$query
+          . ", error=".$error);
+      $response["result"] = 1;
+      $response["error"] = $error;
+      LockRelease(); return $response;
+    }
+    LockRelease(); return $response;
+  }
+
   public function cleanupServices($clusterName) {
     $this->deleteClusterTable($clusterName, "ServiceConfig");
     $this->deleteClusterTable($clusterName, "ServiceInfo");
@@ -3277,7 +3295,7 @@ class HMCDBAccessor {
   }
 
   public function cleanupCluster ($clusterName) {
-    $this->deleteClusterTable($clusterName, "Clusters");
+    $this->deleteAllInTable("Clusters");
     $this->deleteClusterTable($clusterName, "ServiceComponentInfo");
     $this->cleanupHosts($clusterName);
   }
