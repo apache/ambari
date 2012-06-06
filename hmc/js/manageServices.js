@@ -616,19 +616,38 @@ function generateServiceManagementEntryMarkup( serviceName, serviceInfo ) {
         serviceManagementEntryAnchorCssClasses += 'serviceManagementEntryActionStop';
         serviceManagementEntryIconCssClass = 'iconic-stop';
       }
-
+      else if ( serviceInfo.state == 'STOPPING') {
+        serviceManagementEntryAnchorName = 'start';
+        serviceManagementEntryAnchorTitle = 'Start';
+        serviceManagementEntryAnchorCssClasses += 'serviceManagementEntryActionStart disabled';
+        serviceManagementEntryIconCssClass = 'iconic-start disabled';
+      }
+      else if ( serviceInfo.state == 'STARTING') {
+        serviceManagementEntryAnchorName = 'stop';
+        serviceManagementEntryAnchorTitle = 'Stop';
+        serviceManagementEntryAnchorCssClasses += 'serviceManagementEntryActionStop disabled';
+        serviceManagementEntryIconCssClass = 'iconic-stop disabled';
+      }
+      
       generatedServiceManagementEntryMarkup += 
         '<a href="javascript:void(null)" name="' + serviceManagementEntryAnchorName + '" ' +
         'title="' + serviceManagementEntryAnchorTitle + '" ' +
         'class="' + serviceManagementEntryAnchorCssClasses + '"><i class="' + serviceManagementEntryIconCssClass + '"></i></a> ';
     }
 
-    generatedServiceManagementEntryMarkup += 
-            '<a href="javascript:void(null)" name="reconfigure" title="Reconfigure" ' +
-               'class="btn serviceManagementEntryAction serviceManagementEntryActionReconfigure"><i class="iconic-cog"></i></a>' +
+    var notReconfigurable = [ 'PIG', 'SQOOP', 'OOZIE', 'TEMPLETON', 'GANGLIA' ];
+    var reconfigureClass;
+    if (globalYui.Array.indexOf(notReconfigurable, serviceName) >= 0) {
+      reconfigureClass = 'serviceManagementEntryActionReconfigure disabled';
+    } else {
+      reconfigureClass = 'serviceManagementEntryActionReconfigure';
+    }
+  
+    generatedServiceManagementEntryMarkup += '<a href="javascript:void(null)" name="reconfigure" title="Reconfigure" ' +
+              'class="btn serviceManagementEntryAction ' + reconfigureClass + '"><i class="iconic-cog"></i></a>' +
+            '</div>' +
           '</div>' +
-        '</div>' +
-      '</li>';
+        '</li>';
   }
 
   return generatedServiceManagementEntryMarkup;

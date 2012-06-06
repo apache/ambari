@@ -122,8 +122,13 @@ a.serviceManagementEntryName {
 }
 
 .serviceManagementEntryActionReconfigure {
-	 width:20px;
+  width:20px;
 }
+
+.serviceManagementEntryActionReconfigure.disabled {
+  visibility:hidden;
+}
+
 
 #serviceManagementGlobalActionsDivId {
 	margin-top:40px;
