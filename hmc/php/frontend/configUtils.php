@@ -89,10 +89,14 @@ function validateConfigs($svcConfigs) {
       } else if ($key == "hive_database_name") {
         if ($val == "") {
           $errors[$key] = array ( "error" => "Database name cannot be empty");
+        } else if (preg_match("/^\w+$/", $val) == 0) {
+          $errors[$key] = array ( "error" => "Database name should only contain alphanumeric characters");
         }
       } else if ($key == "hive_metastore_user_name") {
         if ($val == "") {
           $errors[$key] = array ( "error" => "Database user name cannot be empty");
+        } else if (preg_match("/^\w+$/", $val) == 0) {
+          $errors[$key] = array ( "error" => "Database user name should only contain alphanumeric characters");
         }
       } else if ($key == "hive_metastore_user_passwd") {
         if ($val == "") {
