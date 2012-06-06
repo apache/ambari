@@ -9,12 +9,15 @@ function populateHostToMasterRoleMapping(clusterServices, hostMap) {
 
         globalYui.Array.each( clusterServices[serviceName].components, function (serviceComponent) {
           if (serviceComponent.isMaster) {
-            // just add the client to the hostname object
-            if ( !( serviceComponent.hostName in hostMap ) ) {
-              hostMap[serviceComponent.hostName] = new Array();
-              hostMap[serviceComponent.hostName].push({ serviceName: serviceComponent.displayName, isMaster: true });
-            } else {
-              hostMap[serviceComponent.hostName].push({ serviceName: serviceComponent.displayName, isMaster: true});
+            // just add the master to the hostname object
+            for (var i in serviceComponent.hostNames) {
+              var hostName = serviceComponent.hostNames[i];
+              if ( !( hostName in hostMap ) ) {
+                hostMap[hostName] = new Array();
+                hostMap[hostName].push({ serviceName: serviceComponent.displayName, isMaster: true });
+              } else {
+                hostMap[hostName].push({ serviceName: serviceComponent.displayName, isMaster: true });
+              }
             }
           }
         });
@@ -34,11 +37,14 @@ function populateHostToClientRoleMapping(clusterServices, hostMap) {
         globalYui.Array.each( clusterServices[serviceName].components, function (serviceComponent) {          
           if (serviceComponent.isClient) {
             // just add the client to the hostname object
-            if ( !( serviceComponent.hostName in hostMap ) ) {
-              hostMap[serviceComponent.hostName] = new Array();
-              hostMap[serviceComponent.hostName].push({ serviceName: serviceComponent.displayName, isMaster: false });
-            } else {
-              hostMap[serviceComponent.hostName].push({ serviceName: serviceComponent.displayName, isMaster: false });
+            for (var i in serviceComponent.hostNames) {
+              var hostName = serviceComponent.hostNames[i];
+              if ( !( hostName in hostMap ) ) {
+                hostMap[hostName] = new Array();
+                hostMap[hostName].push({ serviceName: serviceComponent.displayName, isMaster: false });
+              } else {
+                hostMap[hostName].push({ serviceName: serviceComponent.displayName, isMaster: false });
+              }
             }
           }
         });
