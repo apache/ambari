@@ -213,6 +213,37 @@ function renderProgress (discoverProgressInfo) {
             '</a>' 
           '</p>';
           installationStatusDivCssClass = 'statusError';
+          var linkInfo = '<a href="javascript:void(null)"' +
+          'id="errorBackNavLinkId">Back to Add Nodes</a>';
+          if (totalFailure == false) {
+            linkInfo += ' <a href=' + 
+            '"javascript:void(null)" id="errorFwdNavLinkId" style="margin-left:20px">Ignore and Continue</a>';
+          }
+  
+          globalYui.one("#txnProgressStatusActionsDivId").setContent(linkInfo);
+
+          // now can add the on-click feature for the links
+          globalYui.one("#errorBackNavLinkId").on( "click", function(e) {
+            cleanUpTxnProgress();
+            errorInfoPanel.destroy();
+            // give cleanup option
+            // cleanupInstall();
+            globalYui.one("#txnProgressStatusActionsDivId").setContent("");
+            globalYui.one('#txnProgressCoreDivId').setStyle('display', 'none');
+            globalYui.one("#addNodesCoreDivId").setStyle('display', 'block');
+           });
+
+          if (totalFailure == false) {
+            globalYui.one("#errorFwdNavLinkId").on( "click", function(e) {
+              cleanUpTxnProgress();
+              errorInfoPanel.destroy();
+              //REZYYY globalYui.one("#progressErrorInfoNavigateDivId").setContent("");
+              globalYui.one("#txnProgressStatusActionsDivId").setContent("");
+              transitionToNextStage( "#txnProgressCoreDivId", discoverProgressInfo, 
+                "#selectServicesCoreDivId", discoverProgressInfo, renderSelectServicesBlock);
+            });
+          }
+
         } else {
           installationStatusDivContent =             
           '<p>' +
@@ -271,39 +302,6 @@ function renderProgress (discoverProgressInfo) {
                 //errorInfoPanel.set( 'bodyContent', '<pre>' + 
                 //  globalYui.JSON.stringify( e.response.meta.stateInfo, null, 4) + '</pre>' );
                 errorInfoPanel.show();
-                var linkInfo = '<a href="javascript:void(null)"' +
-                  'id="errorBackNavLinkId">Back to Add Nodes</a>';
-                if (totalFailure == false) {
-                  linkInfo += ' <a href=' + 
-                  '"javascript:void(null)" id="errorFwdNavLinkId" style="margin-left:20px">Ignore and Continue</a>';
-                }
-
-                  //REZYYY globalYui.one("#progressErrorInfoNavigateDivId").setContent(linkInfo);
-                  globalYui.one("#txnProgressStatusActionsDivId").setContent(linkInfo);
-
-                  // now can add the on-click feature for the links
-                  globalYui.one("#errorBackNavLinkId").on( "click", function(e) {
-                    cleanUpTxnProgress();
-                    errorInfoPanel.destroy();
-                    // give cleanup option
-                    // cleanupInstall();
-                    //REZYYY globalYui.one("#progressErrorInfoNavigateDivId").setContent("");
-                    globalYui.one("#txnProgressStatusActionsDivId").setContent("");
-                    globalYui.one('#txnProgressCoreDivId').setStyle('display', 'none');
-                    globalYui.one("#addNodesCoreDivId").setStyle('display', 'block');
-                   });
-
-                  if (totalFailure == false) {
-                    globalYui.one("#errorFwdNavLinkId").on( "click", function(e) {
-                      cleanUpTxnProgress();
-                      errorInfoPanel.destroy();
-                      //REZYYY globalYui.one("#progressErrorInfoNavigateDivId").setContent("");
-                      globalYui.one("#txnProgressStatusActionsDivId").setContent("");
-                      transitionToNextStage( "#txnProgressCoreDivId", discoverProgressInfo, 
-                        "#selectServicesCoreDivId", discoverProgressInfo, renderSelectServicesBlock);
-                    });
-                  }
-
                 //REZYYY globalYui.one("#progressErrorInfoNavigateDivId").setStyle( 'display', 'block' );
             });
           } else {

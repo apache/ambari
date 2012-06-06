@@ -117,6 +117,15 @@ function renderDeployProgress (deployProgressInfo) {
     },
 
     failure: function( txnProgressWidget ) {
+      globalYui.one('#txnProgressStatusActionsDivId').setContent(  
+          '<a href="javascript:void(null)" id=restartInstallationWizardLinkId>' + 
+            'Reinstall Cluster' +
+          '</a>'
+      );          
+      globalYui.one("#restartInstallationWizardLinkId").on( "click", function(e) {
+        document.location.href = 'reinstall.php';
+      });
+      globalYui.one('#txnProgressStatusActionsDivId').setStyle('display','block');
 
       /* Create the panel that'll display our error info. */
       var errorInfoPanel = 
@@ -164,8 +173,6 @@ function renderDeployProgress (deployProgressInfo) {
         }
       });
 
-      var firstTimeShowingErrorInfoPanel = true;
-
       /* Register a click-handler for #showDeployTxnLogsLinkId to render 
        * the contents inside errorInfoPanel (and make it visible). 
        */
@@ -174,24 +181,12 @@ function renderDeployProgress (deployProgressInfo) {
         errorInfoPanel.set( 'bodyContent', errorInfoPanelBodyContent );
         errorInfoPanel.show();
 
-        if( firstTimeShowingErrorInfoPanel ) {
-          globalYui.one('#txnProgressStatusActionsDivId').setContent(  
-              '<a href="javascript:void(null)" id=restartInstallationWizardLinkId>' + 
-                'Reinstall Cluster' +
-              '</a>'
-          );          
-          globalYui.one("#restartInstallationWizardLinkId").on( "click", function(e) {
-            document.location.href = 'reinstall.php';
-          });
-          
-          firstTimeShowingErrorInfoPanel = false;
-        }
       });
     }
   };
 
   var deployProgressWidget = new TxnProgressWidget
     ( deployProgressInfo, deployProgressStatusMessage, deployProgressPostCompletionFixup );
-
+  
   deployProgressWidget.show();
 } 
