@@ -404,11 +404,6 @@ div.separator {
 	margin-left:165px;
 }
 
-#masterServices ul {
-	font-size:14px;
-	color:#65B642;
-	font-weight:bold;
-}
 /*
 #masterServices label {
 	width:240px;
@@ -449,7 +444,7 @@ div.separator {
 	width:auto;
 	float:left;
 }
-.hostToMasterServices {
+.hostToMasterServices, .hostToClientServices {
     background-color: #F7F7F5;
     border: 2px solid rgba(0, 0, 0, 0.25);
     border-radius: 4px 4px 4px 4px;
@@ -459,21 +454,23 @@ div.separator {
     padding: 10px 20px;
     width:360px;
 }
-.hostToMasterServices > h3 {
+.hostToClientServices {
+	width:90%;
+}
+.hostToMasterServices > h3, .hostToClientServices > h3 {
 	font-size:14px;
 	margin-bottom:4px!important;
 	line-height:14px;
 }
-.hostToMasterServices ul {
+.hostToMasterServices ul, .hostToClientServices ul {
 	margin-left:0;
 	margin-bottom:0;
-	font-size:10px;
 	list-style:none;
 }
-.hostToMasterServices ul:after {
+.hostToMasterServices ul:after, .hostToClientServices ul:after {
 	clear:both;
 }
-.hostToMasterServices li {
+.hostToMasterServices li, .hostToClientServices li {
 	float:left;
 	background-color:#65B642;
 	padding:4px 6px;

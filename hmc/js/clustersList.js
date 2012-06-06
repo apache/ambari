@@ -29,10 +29,8 @@ function generateClusterMastersHostRoleMappingMarkup( clusterServices ) {
 
 function generateClusterClientsHostRoleMappingMarkup( clusterServices ) {
 
-  var clusterClientsHostRoleMappingMarkup = '';
   var finalHostMap = {};
 
-  /*
   for (var serviceName in clusterServices) {
     if (clusterServices.hasOwnProperty(serviceName)) {
 
@@ -54,17 +52,24 @@ function generateClusterClientsHostRoleMappingMarkup( clusterServices ) {
               // FIXME fails to push display name to this array
               globalYui.log("Service component array has " + globalYui.Lang.dump(finalHostMap[serviceComponent.hostName]) + " YYY: " + serviceComponent.hostname);
               globalYui.log("ZZZ is " + globalYui.Lang.dump(finalHostMap));
-              finalHostMap[serviceComponent.hostname].push(serviceComponent.displayName);
+              finalHostMap[serviceComponent.hostName].push(serviceComponent.displayName);
             }
           }
-
         });
       }
     }
   }
-  */
 
-  return clusterClientsHostRoleMappingMarkup;
+  markup = '<div>';
+  for (var hostName in finalHostMap) {
+    markup += '<div class="hostToClientServices"><h3>' + hostName + '</h3>' + '<ul>';
+    for (var service in finalHostMap[hostName]) {
+	  markup += '<li>' + finalHostMap[hostName][service] + '</li>';
+  	}
+  }
+  markup += '</ul><div style="clear:both"></div></div>';
+
+  return markup;
 }
 
 function generateClusterHostRoleMappingMarkup( clusterServices ) {
