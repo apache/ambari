@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-367. Make users enter hive configs instead of using defaults (Hitesh via Vikram)
+
   AMBARI-364. Retry puppet kick --ping on bootstrap to handle intermittent failures (Hitesh via Vikram)
 
   AMBARI-370. Uninstall needs to clear Puppet directories (Vikram)
