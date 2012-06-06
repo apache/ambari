@@ -60,11 +60,15 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
   };
 
   var pdpResponseHandler = {
-    success: function (e,pdp) {
+    success: function (e, pdp) {
 
       /* What we're here to render. */
       var txnProgressMarkup = 
         '<img id=txnProgressLoadingImgId class=loadingImg src=../images/loading.gif />'; 
+
+      var noNeedForFurtherPolling = false;
+      var txnProgressStatusDivContent = '';
+      var txnProgressStatusDivCssClass = '';
 
       var txnProgress = e.response.meta.progress;
 
@@ -72,6 +76,16 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
        * txn hasn't had time to be kicked off yet.
        */
       if (txnProgress) {
+
+        /* The first time we get back meaningful progress data, pause the 
+         * automatic polling to avoid race conditions where response N+1 
+         * is made (and returns with fresh data) while request N hasn't 
+         * yet been fully processed.
+         *
+         * We'll unpause at the end, after we've performed the rendering
+         * of the updated states.
+         */
+        pdp.pause();
 
         var txnProgressStates = txnProgress.subTxns || [];
         globalYui.log(globalYui.Lang.dump(txnProgressStates));
@@ -181,9 +195,32 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
             ( presentTxnProgressState.description, 'txnProgressStatePending' );
         }
 
-        var noNeedForFurtherPolling = false;
-        var txnProgressStatusDivContent = '';
-        var txnProgressStatusDivCssClass = '';
+        txnProgressMarkup += '</ul>';
+
+        /* Make sure we have some progress data to show - if not, 
+         * we'll just show a loading image until this is non-null.
+         *
+         * The additional check for txnProgress.processRunning is to account 
+         * for cases where there are no subTxns (because it's all a no-op at 
+         * the backend) - the loading image should only be shown as long as 
+         * the backend is still working; after that, we should break out of
+         * the loading image loop and let the user know that there was
+         * nothing to be done.
+         */
+        if( txnProgress.subTxns == null ) {
+          if( txnProgress.processRunning == 0 ) {
+            txnProgressMarkup = 
+              '<br/>' + 
+              '<div class=txnNoOpMsg>' + 
+                'Nothing to do for this transaction; enjoy the freebie!' +
+              '</div>' + 
+              '<br/>';
+          } 
+          else {
+            txnProgressMarkup = 
+              '<img id=txnProgressLoadingImgId class=loadingImg src=../images/loading.gif />';
+          }
+        }
 
         /* We can break this polling cycle in one of 2 ways: 
          * 
@@ -211,61 +248,44 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
           txnProgressStatusDivContent = this.txnProgressStatusMessage.failure;
           txnProgressStatusDivCssClass = 'statusError';
         }
+      }
 
-        if( noNeedForFurtherPolling ) {
+      /* Render txnProgressMarkup before making any decisions about the
+       * future state of pdp. 
+       */
+      globalYui.log('About to generate markup: ' + txnProgressMarkup);
+      globalYui.one('#txnProgressDynamicRenderDivId').setContent( txnProgressMarkup );
 
-          /* We've made all the progress we could have, so stop polling. */
-          pdp.stop();
+      /* And before checking out, decide whether we're done with this txn 
+       * or whether any more polling is required.
+       */
+      if (noNeedForFurtherPolling) {
 
-          var txnProgressStatusDiv = globalYui.one('#txnProgressStatusDivId');
-          
-          txnProgressStatusDiv.addClass(txnProgressStatusDivCssClass);
-          txnProgressStatusDiv.one('#txnProgressStatusMessageDivId').setContent(txnProgressStatusDivContent);
-          txnProgressStatusDiv.setStyle('display', 'block');
+        /* We've made all the progress we could have, so stop polling. */
+        pdp.stop();
 
-          /* Run the post-completion fixups. */
-          if( txnProgressStatusDivCssClass == 'statusOk' ) {
-            if( this.txnProgressPostCompletionFixup.success ) {
-              this.txnProgressPostCompletionFixup.success(this);
-            }
-          }
-          else if( txnProgressStatusDivCssClass == 'statusError' ) {
-            if( this.txnProgressPostCompletionFixup.failure ) {
-              this.txnProgressPostCompletionFixup.failure(this);
-            }
+        var txnProgressStatusDiv = globalYui.one('#txnProgressStatusDivId');
+        
+        txnProgressStatusDiv.addClass(txnProgressStatusDivCssClass);
+        txnProgressStatusDiv.one('#txnProgressStatusMessageDivId').setContent(txnProgressStatusDivContent);
+        txnProgressStatusDiv.setStyle('display', 'block');
+
+        /* Run the post-completion fixups. */
+        if (txnProgressStatusDivCssClass == 'statusOk') {
+          if (this.txnProgressPostCompletionFixup.success) {
+            this.txnProgressPostCompletionFixup.success(this);
           }
         }
-
-        txnProgressMarkup += '</ul>';
-
-        /* Make sure we have some progress data to show - if not, 
-         * we'll just show a loading image until this is non-null.
-         *
-         * The additional check for txnProgress.processRunning is to account 
-         * for cases where there are no subTxns (because it's all a no-op at 
-         * the backend) - the loading image should only be shown as long as 
-         * the backend is still working; after that, we should break out of
-         * the loading image loop and let the user know that there was
-         * nothing to be done.
-         */
-        if( txnProgress.subTxns == null ) {
-          if( txnProgress.processRunning == 0 ) {
-            txnProgressMarkup = 
-              '<br/>' + 
-              '<div class=txnNoOpMsg>' + 
-                'Nothing to do for this transaction; enjoy the freebie!' +
-              '</div>' + 
-              '<br/>';
-          } 
-          else {
-            txnProgressMarkup = 
-              '<img id=txnProgressLoadingImgId class=loadingImg src=../images/loading.gif />';
+        else if (txnProgressStatusDivCssClass == 'statusError') {
+          if (this.txnProgressPostCompletionFixup.failure) {
+            this.txnProgressPostCompletionFixup.failure(this);
           }
         }
       }
-
-      globalYui.log('About to generate markup: ' + txnProgressMarkup);
-      globalYui.one('#txnProgressDynamicRenderDivId').setContent( txnProgressMarkup );
+      else {
+        /* There's still more progress to be made, so unpause. */
+        pdp.unPause();
+      }
 
     }.bind(this),
 

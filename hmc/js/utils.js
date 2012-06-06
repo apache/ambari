@@ -350,6 +350,9 @@ function PeriodicDataPoller( dataSourceContext, responseHandler ) {
 
   this.responseHandler = responseHandler;
 
+  /* Of course, we're not paused when we start off. */
+  this.paused = false;
+
   this.dataSource = new globalYui.DataSource.IO ({
     source: this.dataSourceContext.source
   });
@@ -367,28 +370,37 @@ function PeriodicDataPoller( dataSourceContext, responseHandler ) {
     request: this.dataSourceContext.request,
     callback: {
       success: function (e) {
-        /* Reset our failure count every time we succeed. */
-        this.dataSourcePollFailureCount = 0;
 
-        /* Invoke user-pluggable code. */
-        if( this.responseHandler.success ) {
-          this.responseHandler.success( e, this );
+        /* Avoid race conditions in JS by not processing incoming responses 
+         * from the backend if the PDP is paused (which is our signal that
+         * a previous response is still in the middle of being processed). 
+         */
+        if( !(this.isPaused()) ) {
+          /* Reset our failure count every time we succeed. */
+          this.dataSourcePollFailureCount = 0;
+
+          /* Invoke user-pluggable code. */
+          if( this.responseHandler.success ) {
+            this.responseHandler.success( e, this );
+          }
         }
-
       }.bind(this),
 
       failure: function (e) {
-        ++this.dataSourcePollFailureCount;
 
-        if( this.dataSourcePollFailureCount > this.dataSourceContext.maxFailedAttempts ) {
+        if( !(this.isPaused()) ) {
+          ++this.dataSourcePollFailureCount;
 
-          /* Invoke user-pluggable code. */
-          if( this.responseHandler.failure ) {
-            this.responseHandler.failure( e, this );
+          if( this.dataSourcePollFailureCount > this.dataSourceContext.maxFailedAttempts ) {
+
+            /* Invoke user-pluggable code. */
+            if( this.responseHandler.failure ) {
+              this.responseHandler.failure( e, this );
+            }
+
+            /* No point making any more attempts. */
+            this.stop();
           }
-
-          /* No point making any more attempts. */
-          this.stop();
         }
       }.bind(this)
     }
@@ -398,13 +410,51 @@ function PeriodicDataPoller( dataSourceContext, responseHandler ) {
 /* Start polling. */
 PeriodicDataPoller.prototype.start = function() {
 
-  this.dataSourcePollHandle = this.dataSource.setInterval( this.dataSourceContext.pollInterval, this.dataSourcePollRequestContext );
+  this.dataSourcePollHandle = this.dataSource.setInterval
+    ( this.dataSourceContext.pollInterval, this.dataSourcePollRequestContext );
 }
 
 /* Stop polling. */
 PeriodicDataPoller.prototype.stop = function() {
 
+  /* Always unPause() during stop(), so the next start() won't be neutered. */
+  this.unPause();
   this.dataSource.clearInterval( this.dataSourcePollHandle );
+}
+
+/* When the PDP is paused, the polling continues on its regular fixed 
+ * interval, but this.responseHandler is not invoked, thus avoiding
+ * a race condition (at least) in JS.
+ *
+ * TODO XXX Improve upon this to not even make calls to the backend
+ * while not losing our periodicity.
+ */
+PeriodicDataPoller.prototype.pause = function() {
+
+  this.paused = true;
+}
+
+PeriodicDataPoller.prototype.unPause = function() {
+
+  this.paused = false;
+}
+
+PeriodicDataPoller.prototype.isPaused = function() {
+
+  return this.paused;
+}
+
+/* Perform a one-time poll. 
+ *
+ * Meant to be used when the polling is not at a set frequency (as with the 
+ * start()/stop() pair), and is instead meant to be under explicit 
+ * control of the application. 
+ */
+PeriodicDataPoller.prototype.pollOnce = function() {
+
+  globalYui.io(this.dataSourceContext.source + this.dataSourcePollRequestContext.request, {
+    on: this.dataSourcePollRequestContext.callback
+  });
 }
 
 function titleCase(word){
