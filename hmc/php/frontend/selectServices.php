@@ -147,14 +147,12 @@ foreach($allServicesArray["services"] as $service) {
     }
     $thisMaster = array();
     $hosts = $suggestedNodes["mastersToHosts"][$componentName]["hostNames"];
-    foreach ($hosts as $host) { 
-      $thisMaster["name"] = $component["componentName"];
-      $thisMaster["displayName"] = $component["displayName"];
-      $thisMaster["description"] = $component["description"];
-      $thisMaster["hostName"] =
-            $host;
-      array_push($thisService["masters"], $thisMaster);
-    }
+    $thisMaster["name"] = $component["componentName"];
+    $thisMaster["displayName"] = $component["displayName"];
+    $thisMaster["description"] = $component["description"];
+    $thisMaster["hostNames"] =
+          $hosts;
+    array_push($thisService["masters"], $thisMaster);
   }
   array_push($jsonOutput["services"], $thisService);
 }

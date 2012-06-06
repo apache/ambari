@@ -40,7 +40,7 @@ if ($allServicesComponents["result"] != 0 ) {
   return;
 }
 
-$suggestedNodes = $selectNodes->updateDBWithRoles($clusterName,
+$suggestedNodes = $selectNodes->updateDBWithRoles($clusterName, 
                                                   $dbAccessor,
                                                   $componentsToHosts
                                                 );
@@ -85,7 +85,7 @@ $dbAccessor->addHostsToComponent($clusterName, "TASKTRACKER",
 // choose the name node as the canary host.
 $nameNodeHost = $componentsToHosts["NAMENODE"];
 $AllMountPoints = array();
-$nameNodeInfoResult = $dbAccessor->getHostInfo($clusterName, $nameNodeHost);
+$nameNodeInfoResult = $dbAccessor->getHostInfo($clusterName, $nameNodeHost[0]);
 if ($nameNodeInfoResult["result"] != 0 ) {
   $logger->log_error("Got error while getting canary host info ".$nameNodeInfoResult["error"]);
   print json_encode($nameNodeInfoResult);

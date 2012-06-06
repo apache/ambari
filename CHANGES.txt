@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-390. Handle multiple ZooKeeper service masters in Assign Masters page (Yusaku via Vikram)
+
   AMBARI-389. Do not allow invalid chars for database name and user name for hive (Hitesh via Vikram)
 
   AMBARI-388. Prevent the user from assigning NameNode and Secondary NameNode services on the same host (Yusaku via Vikram)

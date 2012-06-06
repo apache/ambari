@@ -266,9 +266,9 @@ class SelectNodes {
     $services_tmp = $servicesDBInfo["services"];
     $services = $this->filterEnabledServices($services_tmp);
     $allHosts = $this->convertHostInfoToList($allHosts_t);
-    foreach($masterToHost as $componentName=>$hostName) {
+    foreach($masterToHost as $componentName=>$hostNames) {
       $this->logger->log_debug("For cluster  $clusterName setting $componentName to host $hostName");
-      $db->addHostsToComponent($clusterName, $componentName, array($hostName), "ASSIGNED", "");
+      $db->addHostsToComponent($clusterName, $componentName, $hostNames, "ASSIGNED", "");
       if ($componentName == "GANGLIA_MONITOR_SERVER") {
         $gangliaMaster = $hostName;
       }
@@ -420,7 +420,7 @@ class SelectNodes {
       $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[1]);
       $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[2]);
       $result = $this->addGangliaServer($result, $allHostsInfoExHMC[$monitorIndex]);
-      $result = $this->addNagiosServer($result, $allHostsInfo[$monitorIndex]);
+      $result = $this->addNagiosServer($result, $allHostsInfoExHMC[$monitorIndex]);
       return $result;
     }
     if ( $numNodes > 30) {

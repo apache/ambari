@@ -39,12 +39,17 @@ function renderHostsToMasterServices(allHosts, hostsToMasterServices) {
 function addMasterServiceToHost(masterName, hostName, hostsToMasterServices, masterServices) {
   // enforce constraints on what services can be co-hosted (unless those suggestions were made by the server initially)
   // we currently disallow:
-  // 1. namenode and secondary namenode to be on the same server
+  // 1. namenode and secondary namenode to be on the same host
+  // 2. more than one zookeeper server to be on the same host
 
   if (hostsToMasterServices[hostName] != null) {
     for (var service in hostsToMasterServices[hostName]) {
       if (masterName == 'NAMENODE' && service == 'SNAMENODE' || masterName == 'SNAMENODE' && service == 'NAMENODE') {
         alert('NameNode and Secondary NameNode cannot be hosted on the same host.');
+        return false;
+      }
+      if (masterName.indexOf('ZOOKEEPER') == 0 && service.indexOf('ZOOKEEPER') == 0) {
+        alert('You cannot put more than one ZooKeeper Server on the same host.');
         return false;
       }
     }
@@ -94,9 +99,20 @@ function renderAssignHosts(clusterInfo) {
     globalYui.one('#selectServiceMastersSubmitButtonId').on('click', function (e) {
       e.target.set('disabled', true);
 
-      var assignHostsRequestData = {};
+      var assignHostsRequestData = {};      
       for (var masterName in masterServices) {
-        assignHostsRequestData[masterName] = $('select[name=' + masterName + ']').val();
+        var hostName = $('select[name=' + masterName + ']').val();
+        if (masterName.indexOf("ZOOKEEPER_SERVER") == 0) {
+          if (assignHostsRequestData['ZOOKEEPER_SERVER'] == null) {
+            assignHostsRequestData['ZOOKEEPER_SERVER'] = [];
+          }
+          assignHostsRequestData['ZOOKEEPER_SERVER'].push(hostName);          
+        } else {
+          if (assignHostsRequestData[masterName] == null) {
+            assignHostsRequestData[masterName] = [];
+          }
+          assignHostsRequestData[masterName].push(hostName);
+        }
         // globalYui.log("Assignment for " + masterName + " is " + assignHostsRequestData[masterName]);
       };
 
@@ -158,15 +174,24 @@ function renderAssignHosts(clusterInfo) {
 
   globalYui.Array.each(servicesInfo, function(serviceInfo) {
     if( serviceInfo.enabled == true ) {
+      var zkIndex = 1;
       globalYui.Array.each(serviceInfo.masters, function(masterInfo) {
-        var masterHostInfo = {
-          'name' : masterInfo.name,
-          'displayName' : masterInfo.displayName,
-          'host' : masterInfo.hostName
-        };
+                
+        for (var i in masterInfo.hostNames) {
+          var masterHostInfo = {
+              'name' : masterInfo.name,
+              'displayName' : masterInfo.displayName,
+              'host' : masterInfo.hostNames[i]
+          };
+          // there could be multiple zookeepers
+          if (masterInfo.name == 'ZOOKEEPER_SERVER') {
+            masterHostInfo.name = 'ZOOKEEPER_SERVER_' + zkIndex;
+            masterHostInfo.displayName = masterHostInfo.displayName + ' ' + zkIndex;
+            zkIndex++;
+          }
 
-        masterServices[masterInfo.name] = masterHostInfo;
-
+          masterServices[masterHostInfo.name] = masterHostInfo;
+        }
       });
     }
   });
@@ -188,7 +213,12 @@ function renderAssignHosts(clusterInfo) {
   
   renderHostsToMasterServices(allHosts, hostsToMasterServices);
   
-  $('select').change(function() {
+  // prevValue is used to undo user selection in case we prevent the user from assigning a service
+  var prevValue = '';
+  
+  $('select').click(function() {
+    prevValue = $(this).val();
+  }).change(function(event) {
 	  var masterName = $(this).attr('name');
 	  // masterServices[masterName] = $(this).val();
 	  var prevChosenHost = $('#' + masterName + 'ChosenHost').val();
@@ -196,7 +226,9 @@ function renderAssignHosts(clusterInfo) {
 	  if (addMasterServiceToHost(masterName, newChosenHost, hostsToMasterServices, masterServices)) {
 	    removeMasterServiceFromHost(masterName, prevChosenHost, hostsToMasterServices);
 	    renderHostsToMasterServices(allHosts, hostsToMasterServices);
-	    $('#' + masterName + 'ChosenHost').val(newChosenHost);
+	    $('#' + masterName + 'ChosenHost').val(newChosenHost); 
+	  } else {
+	    $(this).val(prevValue);
 	  }
   });
   
