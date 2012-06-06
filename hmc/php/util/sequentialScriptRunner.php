@@ -19,13 +19,13 @@ include_once '../util/util.php';
 $logger = new HMCLogger("sequentialScriptExecutor");
 $dbHandle = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 
-function updateProgressForStage($clusterName, $rootTxnId, $orchestratorTxnId, $mySubTxnId, $operationName) {
+function updateProgressForStage($clusterName, $rootTxnId, $orchestratorTxnId,
+    $mySubTxnId, $operationName, $numTotalNodes) {
   global $logger, $dbHandle, $stagesInfo;
 
   $clusterDir = getClusterDir($clusterName);
   $commandOutputDir = $clusterDir . $operationName . "/";
 
-  $numTotalNodes = 0;
   $numNodesFailed = 0;
   $numNodesSucceeded = 0;
   $additionalInfo = array();
@@ -42,7 +42,6 @@ function updateProgressForStage($clusterName, $rootTxnId, $orchestratorTxnId, $m
       }
       $nodeName = basename($entry, ".out");
 
-      $numTotalNodes++;
       $doneFile = $commandOutputDir . $nodeName . ".done";
       if (file_exists($doneFile)) {
         // Read the contents of the done-file
@@ -180,7 +179,8 @@ foreach ($stagesInfo as $stage => $stageInfo) {
     return;
   }
   // If the host list is empty, say because of failures in previous stage, no point carrying it on..
-  if (count($hosts) == 0) {
+  $hostCount = count($hosts);
+  if ($hostCount == 0) {
     $logger->log_info("Skipping stage " . $stage . " as no valid hosts available");
     continue; // so that all stages can get marked as failures
   }
@@ -227,17 +227,17 @@ foreach ($stagesInfo as $stage => $stageInfo) {
         $currentStatus = $allSubTransactionsInfoResult["subTxns"][$mySubTxnId]["opStatus"];
 
         //$logger->log_debug(" sequentialScriptExecutors sub txns  " . json_encode($allSubTransactionsInfoResult));
-        if ($currentStatus != $successStatus && $currentStatus != $errorStatus 
-        && $currentStatus != $totalFailedStatus) {
-          updateProgressForStage($clusterName, $rootTxnId, 
-            $orchestratorTxnId, $mySubTxnId, $stage);
+        if ($currentStatus != $successStatus && $currentStatus != $errorStatus
+            && $currentStatus != $totalFailedStatus) {
+          updateProgressForStage($clusterName, $rootTxnId,
+            $orchestratorTxnId, $mySubTxnId, $stage, $hostCount);
         }
 
         //$logger->log_debug("Status we are seeing: " . $currentStatus . " txnId: " . $orchestratorTxnId . " subTxnId " . $mySubTxnId);
   }
 
   // Just in case, the command finished too fast and the while loop is skipped.
-  updateProgressForStage($clusterName, $rootTxnId, $orchestratorTxnId, $mySubTxnId, $stage);
+  updateProgressForStage($clusterName, $rootTxnId, $orchestratorTxnId, $mySubTxnId, $stage, $hostCount);
   $logger->log_debug("Came out of the launch for stage " . $currentStage . "\n");
   unset($subTxn);
 
