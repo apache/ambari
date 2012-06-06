@@ -30,8 +30,12 @@ function updateProgressForStage($clusterName, $rootTxnId, $orchestratorTxnId,
   $numNodesSucceeded = 0;
   $additionalInfo = array();
 
+  $foundDir = FALSE;
   if (is_dir($commandOutputDir) && $dirHandle = opendir($commandOutputDir)) {
-    $logger->log_debug($commandOutputDir . " exists finally ");
+    if (!$foundDir) {
+      $logger->log_debug($commandOutputDir . " exists finally ");
+    }
+    $foundDir = TRUE;
     while (false !== ($entry = readdir($dirHandle))) {
       if ($entry == "." || $entry == "..") {
         continue;

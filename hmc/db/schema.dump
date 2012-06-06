@@ -268,7 +268,7 @@ INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, de
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "namenode_opt_newsize", "200", "NameNode new generation size", "Default size of Java new generation for NameNode (Java option -XX:NewSize)", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"MB" }' );
 
 -- maps to datanode_du_reserved in gscluster in bytes.
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "datanode_du_reserved", "1073741824", "Reserved space for HDFS", "Reserved space in bytes per volume", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"B" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "datanode_du_reserved", "1", "Reserved space for HDFS", "Reserved space in GB per volume", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"GB" }' );
 
 -- maps to dt_heapsize in gscluster in MB.
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "dtnode_heapsize", "1024", "DataNode maximum Java heap size", "Maximum Java heap size for DataNode (Java option -Xmx)", "HDFS" , "", '{ "isPassword": false, "noDisplay": false, "reconfigurable": true, "displayType": "text", "unit":"MB" }' );

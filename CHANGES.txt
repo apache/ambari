@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-529. Fix Advanced Config: HDFS reserved space is in bytes. Too many bytes to count. (Hitesh via Vikram)
+
   AMBARI-530. HMC UI shows undefined for nodes after single node install (Yusaku via Vikram)
 
   AMBARI-532. add ganglia monitor to all masters (Mahadev via Vikram)
