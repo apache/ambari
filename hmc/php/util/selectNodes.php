@@ -125,7 +125,7 @@ class SelectNodes {
     if (array_key_exists("ZOOKEEPER", $serviceInfo)) { 
       if (array_key_exists("ZOOKEEPER_SERVER", $result["mastersToHosts"])) {
         array_push($result["mastersToHosts"]["ZOOKEEPER_SERVER"]["hostNames"],
-          $hostInfo["hostName"]);
+            $hostInfo["hostName"]);
       } else {
         $result["mastersToHosts"]["ZOOKEEPER_SERVER"] = $this->createHostMap($hostInfo);
       }
@@ -272,8 +272,20 @@ class SelectNodes {
       if ($componentName == "GANGLIA_MONITOR_SERVER") {
         $gangliaMaster = $hostName;
       }
+      if ($componentName == "ZOOKEEPER_SERVER") { 
+        $sizeHosts = sizeof($hostNames);
+        if ($sizeHosts == 1) {
+          $hostConfig = array ( "ZOOKEEPER_SERVER" => array( $hostNames[0] => array ( "myid" => 1 )));
+          $db->updateHostRoleConfigs($clusterName, $hostConfig);
+        } else {
+          $hostConfig = array( "ZOOKEEPER_SERVER" => array() );
+          for ($i=0; $i < 3; $i++) {
+            $hostConfig["ZOOKEEPER_SERVER"][$hostNames[$i]] = array ( "myid" => $i+1 );
+          }
+          $db->updateHostRoleConfigs($clusterName, $hostConfig);
+        }
+      }
     }
-
     /** make sure ganglia is added to all the masters **/
     $this->logger->log_debug("Host for Gangalia Master $gangliaMaster");
     foreach($masterToHost as $componentName=>$hostName) {
