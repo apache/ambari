@@ -494,6 +494,9 @@ div.separator {
   float:left;
   margin-left:20px;
 }
+.navbar {
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
 .navbar .brand {
     color: #666666;
     display: block;

@@ -19,18 +19,29 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<title>Monitoring v1.0</title>
+	<title></title>
 	<link type="text/css" rel="stylesheet" href="./styles/common.css" media="screen"/>
 	<link type="text/css" rel="stylesheet" href="./libs/jqueryui/css/custom-theme/jquery-ui-1.7.3.custom.css" media="screen"/>
 	<link type="text/css" rel="stylesheet" href="./libs/jqgrid/css/ui.jqgrid.css" media="screen"/>
 	<link type="text/css" rel="stylesheet" href="./libs/jquery.multiselect.css" media="screen"/>
 	<!--[if lt IE 9]><script type="text/javascript" src="./libs/html5shiv/html5shiv.min.js"></script><![endif]-->
+	<link rel="shortcut icon" href="/hmc/images/logo-micro.gif"/>
 </head>
 <body>
-	<header>
-		<img src="./logo/logo.jpg"/>
-		<section id="headerText">Hortonworks Data Platform</section>
-	</header>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <a href="/hmc/html"><img id="logo" href="/hmc/html"></a>
+        <a id="brand" class="brand" href="/hmc/html"></a>				
+        <ul class="nav">
+          <li><a href="/hmc/html">Cluster Management</a></li>
+          <li class="active"><a href="/hdp/dashboard/ui/home.html">Monitoring</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+	<div class="container">
 	
 	<section class="navAndLinks">
 		<nav>
@@ -130,12 +141,13 @@
 		<a id="graphForwardLink" href=""></a>
 	</section>
 	
-	<footer>Hortonworks &copy; 2012</footer>
-	<script type="text/javascript" src="./libs/jquery-1.7.1.js"></script>
-	<script type="text/javascript" src="./libs/jqueryui/js/jquery-ui-1.7.3.custom.min.js"></script>
-	<script type="text/javascript" src="./libs/jquery.multiselect.js"></script>
-	<script type="text/javascript" src="./libs/jqgrid/js/i18n/grid.locale-en.js"></script>
-	<script type="text/javascript" src="./libs/jqgrid/js/jquery.jqGrid.src.js"></script>
-	<script type="text/javascript" src="./js/common.js"></script>	
+	<footer id="footer"></footer>
+</div>
+<script type="text/javascript" src="./libs/jquery-1.7.1.js"></script>
+<script type="text/javascript" src="./libs/jqueryui/js/jquery-ui-1.7.3.custom.min.js"></script>
+<script type="text/javascript" src="./libs/jquery.multiselect.js"></script>
+<script type="text/javascript" src="./libs/jqgrid/js/i18n/grid.locale-en.js"></script>
+<script type="text/javascript" src="./libs/jqgrid/js/jquery.jqGrid.src.js"></script>
+<script type="text/javascript" src="./js/common.js"></script>	
 </body>
 </html>

@@ -32,6 +32,9 @@
   
   // on document ready
   $(document).ready(function(){
+    document.title = 'Hortonworks Management Center';
+    $('#brand').html('Hortonworks Management Center');
+    $('#footer').html('Hortonworks &copy 2012');
     self.clearTimeout(to);
     a.refreshPage();
     a.setEventDelegation();

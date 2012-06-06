@@ -43,10 +43,15 @@ h1.pageTitle {
 	display:inline;
 	font-size:13px;
 }
-header, footer {
+footer {
+	text-align:left;
+	padding:40px 10px;
+	color:#454545;
+}
+header {
 	width:1045px;
-	margin:0 10px;
-	text-align:center;
+	margin:20px 10px;
+	text-align:left;
 }
 header {
 	height:100px;
@@ -184,6 +189,7 @@ nav li a:link, nav li a:visited {
         margin:0 5px;
         font-size:150%;
         font-weight:normal;
+	line-height:normal;
 }
 .checkbox {
         float:right;
@@ -410,4 +416,90 @@ section.row > section {
 }
 .hiddenLink {
 	display:none;
+}
+.container {
+	width:980px;
+	margin:0 auto;
+}
+.container:after {
+	clear:both;
+	content:"";
+	display:table;
+}
+.navbar {
+	font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+	margin-bottom:30px
+}
+.navbar .brand {
+    color: #666666;
+    display: block;
+    float: left;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 1;
+    margin-left: 0;
+    margin-right: 40px;
+    margin-top: 3px;
+    padding: 14px 10px;
+    text-decoration: none;
+    width:280px;
+}
+
+.navbar-inner {
+	background: linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+	background: -moz-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+	background: -webkit-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+	border-radius:0;
+	border:1px solid #bbb;
+	border-width:0 0 1px 0;
+	min-height:40px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 -1px 0 rgba(0, 0, 0, 0.1) inset;
+}
+.navbar .nav {
+	display:block;
+	float:left;
+	left:0;
+	margin:0 10px 0 0;
+	position:relative;
+}
+.navbar .nav .active > a, .navbar .nav .active > a:hover {
+    background-color: #999999;
+    color: #FFFFFF;
+    text-decoration: none;
+}
+.navbar ul {
+	margin:0;
+	padding:0;
+}
+.navbar .nav > li {
+	float:left;
+	display:block;
+}
+.navbar .nav > li > a {
+	border-radius:8px;
+	-webkit-border-radius: 8px;
+	-moz-border-radius: 8px;
+	color: #666666;
+	float: none;
+	font-size: 13px;
+	font-weight: bold;
+	line-height: 19px;
+	margin: 6px 10px 6px 0;
+	padding: 8px 14px;
+	text-decoration: none;
+	text-shadow: none;
+	display: block;
+	float: left;
+}
+.navbar .nav > li > a:hover {
+	background-color: transparent;
+	color: #999999;
+	text-decoration: none;
+}
+.navbar .brand {
+	margin-right:40px;
+}
+.navbar #logo {
+	float:left;
+	padding-top:7px;
 }
