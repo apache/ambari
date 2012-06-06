@@ -207,19 +207,18 @@ function renderProgress (discoverProgressInfo) {
         if (overallFail == true) {
           installationStatusDivContent = 
           '<p>' +
-            'We found a few rebellious nodes! Take a look at the ' +
+            'An error was encountered with some of the nodes.  ' +
             '<a href="javascript:void(null)" id=errorInfoLinkId>' +
-            'Error Logs' +
-            '</a>' +
-            '?' +   
+            'Take a look at the logs to see what happened.' +
+            '</a>' 
           '</p>';
           installationStatusDivCssClass = 'statusError';
         } else {
           installationStatusDivContent =             
           '<p>' +
-            'All done with discovering nodes. ' +
+            'Finished node discovery and preparation. ' +
             '<a href="javascript:void(null)" id=successInfoLinkId>' +
-              'Great!' +
+              'Proceed to Select Services' +
             '</a>' +
           '</p>';
           installationStatusDivCssClass = 'statusOk';
@@ -242,7 +241,7 @@ function renderProgress (discoverProgressInfo) {
             /* Create the panel that'll display our error info. */
             var errorInfoPanel = 
               createInformationalPanel( '#informationalPanelContainerDivId',
-                'Logs for the nodes\' initialization process.' );
+                'Node Discovery and Preparation Logs' );
 
               globalYui.one("#errorInfoLinkId").on( "click", function(err) {
                 var bodyContent = "";
@@ -273,10 +272,10 @@ function renderProgress (discoverProgressInfo) {
                 //  globalYui.JSON.stringify( e.response.meta.stateInfo, null, 4) + '</pre>' );
                 errorInfoPanel.show();
                 var linkInfo = '<a href="javascript:void(null)"' +
-                  'id=errorBackNavLinkId>Back</a>';
+                  'id="errorBackNavLinkId">Back to Add Nodes</a>';
                 if (totalFailure == false) {
                   linkInfo += ' <a href=' + 
-                  '"javascript:void(null)" id=errorFwdNavLinkId>Continue</a>';
+                  '"javascript:void(null)" id="errorFwdNavLinkId" style="margin-left:20px">Ignore and Continue</a>';
                 }
 
                   //REZYYY globalYui.one("#progressErrorInfoNavigateDivId").setContent(linkInfo);

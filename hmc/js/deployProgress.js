@@ -83,28 +83,27 @@ function renderDeployProgress (deployProgressInfo) {
       && deployProgressInfo.nagiosGangliaCoHosted) {
     hmcRestartMsg = '<strong>Note:</strong> We detected that you need to restart HMC as'
         + ' Nagios/Ganglia are co-hosted on this server. <br/>Please restart'
-        + ' HMC using \"service hmc restart\" and then head ';
+        + ' HMC using \"service hmc restart\".  After that is done, ';
   } else {
-    hmcRestartMsg = 'May we be so bold as to suggest heading ';
+    hmcRestartMsg = 'Please ';
   }
 
-  hmcRestartMsg += 'on over to the ' +
-      '<a href="javascript:void(null)" id=clustersListLinkId>' +
-        'Cluster information' +
-      '</a>' +
-      ' page?';
+  hmcRestartMsg += 
+      '<a href="javascript:void(null)" id="clustersListLinkId">' +
+        'click here to start managing your cluster.' +
+      '</a>';
 
   var deployProgressStatusMessage = {
 
     success:
       '<p style=\"text-align:center\">' +
-        'All done with the deploy! <br/>' + hmcRestartMsg +
+        'Your cluster is ready! <br/>' + hmcRestartMsg +
       '</p>',
     failure:
       '<p>' +
-        'We made a boo-boo! Take a look at the ' +
-          '<a href="javascript:void(null)" id=showDeployTxnLogsLinkId>Deploy Logs</a>' +
-        '?' +
+        'Failed to finish setting up the cluster. ' +
+          '<a href="javascript:void(null)" id="showDeployTxnLogsLinkId">Take a look at the deploy logs</a>' +
+        ' to find out what might have gone wrong.' +
       '</p>'
   };
 
@@ -113,7 +112,7 @@ function renderDeployProgress (deployProgressInfo) {
     success: function( txnProgressWidget ) {
 
       globalYui.one("#clustersListLinkId").on( "click", function(e) {
-        window.open( generateClustersListUrl(txnProgressWidget.txnProgressContext.clusterName) );
+        document.location.href = generateClustersListUrl(txnProgressWidget.txnProgressContext.clusterName);
       });
     },
 
@@ -176,24 +175,15 @@ function renderDeployProgress (deployProgressInfo) {
         errorInfoPanel.show();
 
         if( firstTimeShowingErrorInfoPanel ) {
-
           globalYui.one('#txnProgressStatusActionsDivId').setContent(  
-            '<a href="javascript:void(null)" id=restartInstallationWizardLinkId>' + 
-              'Restart The Installation Wizard' +
-            '</a>' + 
-            '&nbsp; &nbsp; &nbsp;' + 
-            '<a href="javascript:void(null)" id=clustersListLinkId>' + 
-              'Go Manage The Cluster\'s Services' +
-            '</a>' );
-
+              '<a href="javascript:void(null)" id=restartInstallationWizardLinkId>' + 
+                'Reinstall Cluster' +
+              '</a>'
+          );          
           globalYui.one("#restartInstallationWizardLinkId").on( "click", function(e) {
-            window.open( window.location.href );
+            document.location.href = 'reinstall.php';
           });
-
-          globalYui.one("#clustersListLinkId").on( "click", function(e) {
-            window.open( generateClustersListUrl(txnProgressWidget.txnProgressContext.clusterName) );
-          });
-
+          
           firstTimeShowingErrorInfoPanel = false;
         }
       });
