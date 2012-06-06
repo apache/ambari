@@ -107,12 +107,22 @@ class PuppetClassDependencies {
     $this->addDependency("hdp-ganglia::monitor_and_server", SERVICE_STATE_RUNNING, "hdp-monitor-webserver", array());
 
     //Nagios
+    $this->addDependency("hdp-nagios::server", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-oozie::client",
+        array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
+    $this->addDependency("hdp-nagios::server", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-hcat",
+        array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
+    $this->addDependency("hdp-nagios::server", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-hive::client",
+        array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
+
+    $this->addDependency("hdp-nagios::server", SERVICE_STATE_RUNNING, "hdp-oozie::client",
+        array("service_state" => SERVICE_STATE_NO_OP));
+    $this->addDependency("hdp-nagios::server", SERVICE_STATE_RUNNING, "hdp-hcat",
+        array("service_state" => SERVICE_STATE_NO_OP));
+    $this->addDependency("hdp-nagios::server", SERVICE_STATE_RUNNING, "hdp-hive::client",
+        array("service_state" => SERVICE_STATE_NO_OP));
+
     $this->addDependency("hdp-nagios::server", SERVICE_STATE_RUNNING, "hdp-nagios::nagios::service_check", array());
     $this->addDependency("hdp-nagios::server", SERVICE_STATE_RUNNING, "hdp-monitor-webserver", array());
-    $this->addDependency("hdp-nagios::server", SERVICE_STATE_RUNNING, "hdp-oozie::client",
-        array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
-    $this->addDependency("hdp-nagios::server", SERVICE_STATE_RUNNING, "hdp-hcat",
-        array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
 
     //Dashboard
     $this->addDependency("hdp-dashboard", SERVICE_STATE_RUNNING, "hdp-dashboard::dashboard::service_check", array());

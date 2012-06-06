@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-372. Hive metastore nagios check is broken. (Jitendra via Vikram)
+
   AMBARI-373. Create RPM fails as fonts files are not copied over. (Mahadev via Vikram)
 
   AMBARI-371. Mysql packages not being sent during install and uninstall (Jitendra via Vikram)
