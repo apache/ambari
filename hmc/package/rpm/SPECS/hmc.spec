@@ -111,6 +111,8 @@ chown -R puppet:apache /var/log/hmc
 chown -R puppet:apache /etc/puppet
 mkdir -p /etc/puppet/rack/public
 mkdir -p /etc/puppet/rack/tmp
+touch /var/run/hmc/lockfile
+chown puppet:apache /var/run/hmc/lockfile
 cp /usr/share/puppet/ext/rack/files/config.ru /etc/puppet/rack
 chown puppet /etc/puppet/rack/config.ru
 
