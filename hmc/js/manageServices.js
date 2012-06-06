@@ -291,7 +291,6 @@ function setupReconfigureScreens(serviceName) {
     confirmationDataPanelBodyContent = '<div id="confirmationDataPanelBodyContent">' + confirmationDataPanelBodyContent + '</div>';
 
     confirmationDataPanel.set( 'bodyContent', confirmationDataPanelBodyContent );
-    postDOMRendering(serviceConfigurationData);
   });
 }
 

@@ -3,70 +3,21 @@
 
 var globalPasswordsArray = [];
 
-var globalOptionsInfo = null;
-
-function setRenderingForNestedProps(service, property, isMetaPropEnabled) {
-  var displayAttributes = globalOptionsInfo['services'][service]['properties'][property]['displayAttributes'];
-
-  var styleForEnabledConfigs = 'block';
-  var styleForDisabledConfigs = 'none';
-  if (!isMetaPropEnabled) {
-    styleForEnabledConfigs = 'none';
-    styleForDisabledConfigs = 'block';
-  }
-
-  var configsWhenItIsEnabled = globalYui.JSON.parse(displayAttributes.childConfigsOnMetaPropEnabled);
-  for (index in configsWhenItIsEnabled) {
-    globalYui.one('#' + configsWhenItIsEnabled[index]).setStyle('display', styleForEnabledConfigs);
-  }
-
-  var configsWhenItIsDisabled = globalYui.JSON.parse(displayAttributes.childConfigsOnMetaPropDisabled);
-  for (index in configsWhenItIsDisabled) {
-    globalYui.one('#' + configsWhenItIsDisabled[index]).setStyle('display', styleForDisabledConfigs);
-  }
-}
-
-function generateDivForService (optionsInfo, service, property, renderLevel) {
-
-//  globalYui.log(" === for " + service + "." + property );
-	var option = optionsInfo['services'][service]["properties"][property];
-
-  var type = convertDisplayType(optionsInfo['services'][service]['properties'][property]['type']);
-  if (type == "NODISPLAY") {
-    return '';
-  }
-
-  var displayAttributes = null;
-  if (optionsInfo['services'][service]['properties'][property]['displayAttributes']) {
-    displayAttributes = optionsInfo['services'][service]['properties'][property]['displayAttributes'];
-  }
-
-  var unit = optionsInfo['services'][service]['properties'][property]['unit'];
+function generateDivForService (option, type, service, property, unit, displayAttributes) {
+	
   var unitString = (unit != null) ? unit : '';
-
   var readOnlyFlag= false;
   if (displayAttributes != null && displayAttributes.editable != null
       && !displayAttributes.editable) {
     readOnlyFlag = true;
   }
 
-  var divId = property;
-  if (displayAttributes != null && displayAttributes.hasOwnProperty("isMetaProperty") && displayAttributes["isMetaProperty"] == "true") {
-    divId = 'formElement-' + service + '-' + property;
-  }
-
-  var retString = '<div class="formElement" id="' + divId + '">' +
+  var retString = '<div class="formElement">' +
     '<label for="' + service + '">' + option['displayName'] + '</label>' +
     //((unitString != '') ? '<div class="input-append">' : '') +
-    '<input class="unit-' + unit + '" type="' + type + '" id="' + divId + '" name="' + service + '" value="' + option['value'] + '"';
+    '<input class="unit-' + unit + '" type="' + type + '" id="' + property + '" name="' + service + '" value="' + option['value'] + '"';
   if (readOnlyFlag) {
     retString += ' readonly="readonly" ';
-  }
-
-  if ( option.type == 'ONOFF') {
-    if ( option.value == "checked") {
-      retString += ' checked=true';
-    }
   }
 
   retString += '> ' + unitString +
@@ -75,9 +26,9 @@ function generateDivForService (optionsInfo, service, property, renderLevel) {
     '<div class="formInputErrorReason" id="' + property + 'ErrorReason' + '"></div>' +
     '</div>';
   if (type == "password") {
-    retString += '<div class="formElement" id="' + divId + '">' +
+    retString += '<div class="formElement">' +
       '<label for="' + service + '"> Retype ' + option['displayName'] + '</label>' +
-      '<input type="' + type + '" id="' + divId + 'SecretService" name="' + service + '" value="' + option['value'] + '">' +
+      '<input type="' + type + '" id="' + property + 'SecretService" name="' + service + '" value="' + option['value'] + '">' +
       '<div class="contextualHelp">' + option['description'] + '</div>' +
       '<div class="formInputErrorReason" id="' + property + 'SecretServiceErrorReason' + '" ></div>' +
       '</div>';
@@ -90,66 +41,7 @@ function generateDivForService (optionsInfo, service, property, renderLevel) {
     globalYui.log("Global Passwords Array: " + globalYui.Lang.dump(globalPasswordsArray));
 
   }
-
-  if (displayAttributes != null) {
-    if(displayAttributes.hasOwnProperty("isMetaProperty") && displayAttributes["isMetaProperty"] == "true") {
-
-      // This is a meta-property
-      var metaPropsRetString = retString;
-
-      var configsWhenItIsEnabled = globalYui.JSON.parse(displayAttributes.childConfigsOnMetaPropEnabled);
-      for (index in configsWhenItIsEnabled) {
-        metaPropsRetString += generateDivForService(optionsInfo, service, configsWhenItIsEnabled[index], 2);
-      }
-
-      var configsWhenItIsDisabled = globalYui.JSON.parse(displayAttributes.childConfigsOnMetaPropDisabled);
-      for (index in configsWhenItIsDisabled) {
-        metaPropsRetString += generateDivForService(optionsInfo, service, configsWhenItIsEnabled[index], 2);
-      }
-
-      return metaPropsRetString;
-    } else if (renderLevel == 1 && displayAttributes.hasOwnProperty("metaProperty")) {
-      // This is not a top-level property and will be taken care of by its parent, so ignore it at renderLevel 1
-      return '';
-    }
-  }
-
   return retString;
-}
-
-// TO Add click-handlers etc.
-function postDOMRendering(optionsInfo) {
-  for (servicesKey in optionsInfo['services']) {
-    if (optionsInfo['services'][servicesKey]["isEnabled"] == true) {
-      for (property in optionsInfo['services'][servicesKey]["properties"]) {
-
-	      var option = optionsInfo['services'][servicesKey]["properties"][property];
-
-        var displayAttributes = null;
-        if (option['displayAttributes']) {
-          displayAttributes = option['displayAttributes'];
-          if(displayAttributes.hasOwnProperty("isMetaProperty") && displayAttributes["isMetaProperty"] == "true") {
-
-            // This is a meta-property
-            if (option.value == "checked") {
-              setRenderingForNestedProps(servicesKey, property, true);
-            } else {
-              setRenderingForNestedProps(servicesKey, property, false);
-            }
-
-            // Add clickhandlers
-            var metaNode = globalYui.one('#formElement-' + servicesKey + '-' + property);
-            metaNode.delegate('click', function (e) {
-              var splits = e.target.get('id').split("-");
-              var serviceOfThisProp = splits[1];
-              var propertyName = splits[2];
-              setRenderingForNestedProps(serviceOfThisProp, propertyName, e.target.get('checked'));
-          }, 'input[type=checkbox]');
-          }
-        }
-      }
-    }
-  }
 }
 
 function constructDOM(optionsInfo) {
@@ -164,11 +56,21 @@ function constructDOM(optionsInfo) {
     if (optionsInfo['services'][servicesKey]["isEnabled"] == true) {
       var serviceNeedsRender = false;
       var propertiesRendering = "";
-      globalOptionsInfo = optionsInfo;
       for (property in optionsInfo['services'][servicesKey]["properties"]) {
         // service has configs, so needs render
+        var type = convertDisplayType(optionsInfo['services'][servicesKey]['properties'][property]['type']);
+//      globalYui.log("TYPE: " + type + "Property: " + property);
+        if (type == "NODISPLAY") {
+            continue;
+        }
         serviceNeedsRender = true;
-        propertiesRendering += generateDivForService(optionsInfo, servicesKey, property, 1);
+        var unit = optionsInfo['services'][servicesKey]['properties'][property]['unit'];
+        var displayAttributes = null;
+        if (optionsInfo['services'][servicesKey]['properties'][property]['displayAttributes']) {
+           displayAttributes = optionsInfo['services'][servicesKey]['properties'][property]['displayAttributes'];
+        }
+
+        propertiesRendering += generateDivForService(optionsInfo['services'][servicesKey]["properties"][property], type, servicesKey, property, unit, displayAttributes);
       }
       if (serviceNeedsRender) {
         optionsSummary += "<fieldset> <legend>" + servicesKey + "</legend>";
