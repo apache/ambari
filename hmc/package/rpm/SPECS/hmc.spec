@@ -79,6 +79,7 @@ fi
 %__mkdir -p $RPM_BUILD_ROOT/%{hmc_passwd_dir}
 %__mkdir -p $RPM_BUILD_ROOT/%{httpd_confdir}/
 %__cp -rf css $RPM_BUILD_ROOT/%{web_prefixdir}/
+%__cp -rf fonts $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf licenses $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf db $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf html $RPM_BUILD_ROOT/%{web_prefixdir}/
