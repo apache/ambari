@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-378. Getting a 404 after clicking on reinstall when the install fails (Yusaku via Vikram)
+
   AMBARI-376. Show welcome page when no clusters are set up (Yusaku via Vikram)
 
   AMBARI-374. Modify the cluster info page to show host-to-service mapping for both master services and client services using color-coding (Yusaku via Vikram)
