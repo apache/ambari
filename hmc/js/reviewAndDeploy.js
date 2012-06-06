@@ -26,7 +26,7 @@ function renderDeploySummary (deployInfo) {
         serviceHasToBeRendered = true;
         masterSummary += '<div class="formElement">' +
                            '<label for=' + component.componentName + 'Id>' + component.displayName + '&nbsp; : &nbsp;</label>' +
-                           '<input type=text name=' + component.componentName + 'Name id=' + component.componentName + 'Id readonly=readonly value=\"' + component.hostName + '\">' +
+                           '<input type=text name=' + component.componentName + 'Name id=' + component.componentName + 'Id readonly=readonly value=\"' + component.hostNames.join(',') + '\">' +
                          '</div>';
       }
 

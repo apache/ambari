@@ -52,7 +52,7 @@ function getAllComponentsForService ($serviceName)
         return;
       }
       $allHosts = array_keys($hostsForComponentDBResult["hosts"]);
-      $component["hostName"] = $allHosts[0];
+      $component["hostNames"] = $allHosts;
       array_push($returnComponentsArray, $component);
     }
   } else {
