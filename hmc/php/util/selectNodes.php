@@ -31,7 +31,7 @@ class SelectNodes {
   /** Helper function for creating an array for hostName and totalMem
    */
   function createHostMap($hostInfo) {
-    $result = array("hostName" => $hostInfo["hostName"], "totalMem" => $hostInfo["totalMem"]);
+    $result = array("hostNames" => array($hostInfo["hostName"]));
     return $result;
   }
   /** Return only the enabled services.
@@ -122,10 +122,17 @@ class SelectNodes {
    * Helper function to add ZooKeeper master server.
    */
   function addZooKeeperServer($serviceInfo, $result, $hostInfo) {
-    $result["mastersToHosts"]["ZOOKEEPER_SERVER"] = $this->createHostMap($hostInfo);
+    if (array_key_exists("ZOOKEEPER", $serviceInfo)) { 
+      if (array_key_exists("ZOOKEEPER_SERVER", $result["mastersToHosts"])) {
+        array_push($result["mastersToHosts"]["ZOOKEEPER_SERVER"]["hostNames"],
+          $hostInfo["hostName"]);
+      } else {
+        $result["mastersToHosts"]["ZOOKEEPER_SERVER"] = $this->createHostMap($hostInfo);
+      }
+    }
     return $result;
   }
-  
+
   /**
    * Helper function to add Ganglia master server.
    */
@@ -133,7 +140,7 @@ class SelectNodes {
     $result["mastersToHosts"]["GANGLIA_MONITOR_SERVER"] = $this->createHostMap($hostInfo);
     return $result;
   }
-  
+
   /**
    * Helper function to add Nagios server.
    */
@@ -141,7 +148,7 @@ class SelectNodes {
     $result["mastersToHosts"]["NAGIOS_SERVER"] = $this->createHostMap($hostInfo);
     return $result;
   }
-  
+
   /**
    * Adds all the slaves to the hostlist given whats enabled
    */
@@ -260,10 +267,8 @@ class SelectNodes {
     $services = $this->filterEnabledServices($services_tmp);
     $allHosts = $this->convertHostInfoToList($allHosts_t);
     foreach($masterToHost as $componentName=>$hostName) {
-      if ($componentName != "ZOOKEEPER_SERVER") {
-        $this->logger->log_debug("For cluster  $clusterName setting $componentName to host $hostName");
-        $db->addHostsToComponent($clusterName, $componentName, array($hostName), "ASSIGNED", "");
-      }
+      $this->logger->log_debug("For cluster  $clusterName setting $componentName to host $hostName");
+      $db->addHostsToComponent($clusterName, $componentName, array($hostName), "ASSIGNED", "");
       if ($componentName == "GANGLIA_MONITOR_SERVER") {
         $gangliaMaster = $hostName;
       }
@@ -282,23 +287,6 @@ class SelectNodes {
     $db->addHostsToComponent($clusterName, "DASHBOARD" , array($dashhostName), "ASSIGNED", "");
 
     $slaveList = $this->getSlaveList($allHosts, $masterToHost, $services);
-    if (array_key_exists("ZOOKEEPER", $services)) {
-      if (sizeof($slaveList) < 3)  {
-        $this->logger->log_debug("Assigning ZOOKEEPER to Host ".array($slaveList[0]));
-        $db->addHostsToComponent($clusterName, "ZOOKEEPER_SERVER", array($slaveList[0]), "ASSIGNED", "");
-        $hostConfig = array ( "ZOOKEEPER_SERVER" => array( $slaveList[0] => array ( "myid" => 1 ) ) );
-        $db->updateHostRoleConfigs($clusterName, $hostConfig);
-      }
-      else {
-        $hostConfig = array( "ZOOKEEPER_SERVER" => array() );
-        for ($i=0; $i < 3; $i++) {
-          $hostConfig["ZOOKEEPER_SERVER"][$slaveList[$i]] = array ( "myid" => $i+1 );
-          $this->logger->log_debug("Assigning ZOOKEEPER to Host ".array($slaveList[$i]));
-          $db->addHostsToComponent($clusterName, "ZOOKEEPER_SERVER", array($slaveList[$i]), "ASSIGNED", "");
-        }
-        $db->updateHostRoleConfigs($clusterName, $hostConfig);
-      }
-    }
     $this->logger->log_info("Slave List \n".print_r($slaveList, true));
     $this->addSlaves($db, $slaveList, $clusterName, $services, $gangliaMaster);
     /* pick a node for gateway */
@@ -311,6 +299,18 @@ class SelectNodes {
       }
     }
     return;
+  }
+
+  function excludeHMCHost($allHostsInfo) {
+    $result = array();
+    $hmcHostName = trim(strtolower(exec('hostname -f')));
+    foreach($allHostsInfo as $hostInfo) {
+      if ($hostInfo["hostName"] != $hmcHostName) {
+        array_push($result, $hostInfo);
+      }
+    }
+    $this->logger->log_debug("Excluding hmc host \n".print_r($result, true));
+    return $result;
   }
 
   /**
@@ -334,7 +334,7 @@ class SelectNodes {
         array("sortColumn" => "totalMem", "sortOrder" => "DESC"),
         array("sortColumn" => "cpuCount", "sortOrder" => "DESC"),
         array("sortColumn" => "hostName", "sortOrder" => "ASC"),
-    );
+        );
     $allHostsDBInfo = $db->getAllHostsInfo($clustername,
         array("=" => array ( "discoveryStatus" => "SUCCESS")) , $order);
     if ($allHostsDBInfo["result"] != 0) {
@@ -364,6 +364,7 @@ class SelectNodes {
     //$thisHostName = trim(strtolower(exec('hostname -f')));
     //$monitorIndex = ($thisHostName != $allHostsInfo[0]['hostName']) ? 0 : 1;
     $monitorIndex = 0;
+    $allHostsInfoExHMC = $this->excludeHMCHost($allHostsInfo);
     $this->logger->log_debug('num nodes='.$numNodes);  
     if ( $numNodes == 1 ) {
       $result = $this->addNameNode($services, $result, $allHostsInfo[0]);
@@ -378,6 +379,19 @@ class SelectNodes {
       $result = $this->addNagiosServer($result, $allHostsInfo[0]);
       return $result;
     }
+    if ( $numNodes < 3) {
+      $result = $this->addNameNode($services, $result, $allHostsInfo[0]);
+      $result = $this->addSNameNode($services, $result, $allHostsInfo[1]);
+      $result = $this->addJobTracker($services, $result, $allHostsInfo[1]);
+      $result = $this->addHBaseMaster($services, $result, $allHostsInfo[0]);
+      $result = $this->addOozieServer($services, $result, $allHostsInfo[1]);
+      $result = $this->addHiveServer($services, $result, $allHostsInfo[1]);
+      $result = $this->addTempletonServer($services, $result, $allHostsInfo[1]);
+      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[0]);
+      $result = $this->addGangliaServer($result, $allHostsInfoExHMC[$monitorIndex]);
+      $result = $this->addNagiosServer($result, $allHostsInfoExHMC[$monitorIndex]); 
+      return $result;
+    }
     if ( $numNodes <= 5) {
       $result = $this->addNameNode($services, $result, $allHostsInfo[0]);
       $result = $this->addSNameNode($services, $result, $allHostsInfo[1]);
@@ -387,10 +401,13 @@ class SelectNodes {
       $result = $this->addHiveServer($services, $result, $allHostsInfo[1]);
       $result = $this->addTempletonServer($services, $result, $allHostsInfo[1]);
       $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[0]);
-      $result = $this->addGangliaServer($result, $allHostsInfo[$monitorIndex]);
-      $result = $this->addNagiosServer($result, $allHostsInfo[$monitorIndex]); 
+      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[1]);
+      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[2]);
+      $result = $this->addGangliaServer($result, $allHostsInfoExHMC[$monitorIndex]);
+      $result = $this->addNagiosServer($result, $allHostsInfoExHMC[$monitorIndex]); 
       return $result;
     }
+
     if ( $numNodes <= 30) {
       $result = $this->addNameNode($services, $result, $allHostsInfo[0]);
       $result = $this->addSNameNode($services, $result, $allHostsInfo[1]);
@@ -400,7 +417,9 @@ class SelectNodes {
       $result = $this->addHiveServer($services, $result, $allHostsInfo[2]);
       $result = $this->addTempletonServer($services, $result, $allHostsInfo[2]);
       $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[0]);
-      $result = $this->addGangliaServer($result, $allHostsInfo[$monitorIndex]);
+      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[1]);
+      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[2]);
+      $result = $this->addGangliaServer($result, $allHostsInfoExHMC[$monitorIndex]);
       $result = $this->addNagiosServer($result, $allHostsInfo[$monitorIndex]);
       return $result;
     }
@@ -413,8 +432,10 @@ class SelectNodes {
       $result = $this->addHiveServer($services, $result, $allHostsInfo[4]);
       $result = $this->addTempletonServer($services, $result, $allHostsInfo[4]);
       $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[0]);
-      $result = $this->addGangliaServer($result, $allHostsInfo[$monitorIndex]);
-      $result = $this->addNagiosServer($result, $allHostsInfo[$monitorIndex]);
+      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[1]);
+      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[2]);
+      $result = $this->addGangliaServer($result, $allHostsInfoExHMC[$monitorIndex]);
+      $result = $this->addNagiosServer($result, $allHostsInfoExHMC[$monitorIndex]);
       return $result;
     }
   }

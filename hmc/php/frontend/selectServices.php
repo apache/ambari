@@ -146,15 +146,16 @@ foreach($allServicesArray["services"] as $service) {
       continue;
     }
     $thisMaster = array();
-    $thisMaster["name"] = $component["componentName"];
-    $thisMaster["displayName"] = $component["displayName"];
-    $thisMaster["description"] = $component["description"];
-    $thisMaster["hostName"] =
-            $suggestedNodes["mastersToHosts"][$componentName]["hostName"];
-            $suggestedNodes["mastersToHosts"][$componentName]["totalMem"];
-    array_push($thisService["masters"], $thisMaster);
+    $hosts = $suggestedNodes["mastersToHosts"][$componentName]["hostNames"];
+    foreach ($hosts as $host) { 
+      $thisMaster["name"] = $component["componentName"];
+      $thisMaster["displayName"] = $component["displayName"];
+      $thisMaster["description"] = $component["description"];
+      $thisMaster["hostName"] =
+            $host;
+      array_push($thisService["masters"], $thisMaster);
+    }
   }
-
   array_push($jsonOutput["services"], $thisService);
 }
 //////////////////// End of populate service masters for the UI ///////////////////////////
