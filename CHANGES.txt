@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-398. if hbase is not installed, nagios sends alerts for "ganglia collector for hbasemaster" being down (Suhas via Vikram)
+
   AMBARI-397. Clean up descriptions and titles of mapreduce memory related configs (Vinod via Vikram)
 
   AMBARI-396. Add nodes fails in assign masters because of closure issues (Vikram)
