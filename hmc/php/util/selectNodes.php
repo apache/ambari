@@ -270,7 +270,7 @@ class SelectNodes {
       $this->logger->log_debug("For cluster  $clusterName setting $componentName to host $hostName");
       $db->addHostsToComponent($clusterName, $componentName, $hostNames, "ASSIGNED", "");
       if ($componentName == "GANGLIA_MONITOR_SERVER") {
-        $gangliaMaster = $hostName;
+        $gangliaMaster = $hostNames[0];
       }
       if ($componentName == "ZOOKEEPER_SERVER") { 
         $sizeHosts = sizeof($hostNames);
