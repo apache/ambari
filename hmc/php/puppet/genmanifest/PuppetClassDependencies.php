@@ -45,6 +45,11 @@ class PuppetClassDependencies {
     $this->addDependency("hdp-hbase::master", SERVICE_STATE_RUNNING, "hdp-hadoop::client",
         array("service_state" => SERVICE_STATE_NO_OP));
 
+    $this->addDependency("hdp-hbase::master", SERVICE_STATE_UNINSTALLED, "hdp-zookeeper::client",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
+    $this->addDependency("hdp-hbase::master", SERVICE_STATE_UNINSTALLED, "hdp-hadoop::client",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
+
     $this->addDependency("hdp-hbase::regionserver", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-zookeeper::client",
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
     $this->addDependency("hdp-hbase::regionserver", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-hadoop::client",
@@ -55,19 +60,31 @@ class PuppetClassDependencies {
     $this->addDependency("hdp-hbase::regionserver", SERVICE_STATE_RUNNING, "hdp-hadoop::client",
         array("service_state" => SERVICE_STATE_NO_OP));
 
+    $this->addDependency("hdp-hbase::regionserver", SERVICE_STATE_UNINSTALLED, "hdp-zookeeper::client",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
+    $this->addDependency("hdp-hbase::regionserver", SERVICE_STATE_UNINSTALLED, "hdp-hadoop::client",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
+
     //Oozie
     $this->addDependency("hdp-oozie::server", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-hadoop::client",
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
     $this->addDependency("hdp-oozie::server", SERVICE_STATE_RUNNING, "hdp-hadoop::client",
         array("service_state" => SERVICE_STATE_NO_OP));
+    $this->addDependency("hdp-oozie::server", SERVICE_STATE_UNINSTALLED, "hdp-hadoop::client",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
 
     //Hive depends on Hcat
     $this->addDependency("hdp-hive::server", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-hcat",
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
     $this->addDependency("hdp-hive::server", SERVICE_STATE_RUNNING, "hdp-hcat",
         array("service_state" => SERVICE_STATE_NO_OP));
+    $this->addDependency("hdp-hive::server", SERVICE_STATE_UNINSTALLED, "hdp-hcat",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
+
     $this->addDependency("hdp-hive::client", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-hcat",
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
+    $this->addDependency("hdp-hive::client", SERVICE_STATE_UNINSTALLED, "hdp-hcat",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
 
     //Hive Service Check
     $this->addDependency("hdp-hive::hive::service_check", SERVICE_STATE_NOT_APPLICABLE, 
@@ -77,9 +94,15 @@ class PuppetClassDependencies {
     $this->addDependency("hdp-pig", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-hadoop::client",
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
 
+    $this->addDependency("hdp-pig", SERVICE_STATE_UNINSTALLED, "hdp-hadoop::client",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
+
     //Sqoop
     $this->addDependency("hdp-sqoop", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-hadoop::client",
         array("service_state" => SERVICE_STATE_INSTALLED_AND_CONFIGURED));
+
+    $this->addDependency("hdp-sqoop", SERVICE_STATE_UNINSTALLED, "hdp-hadoop::client",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
 
     //Templeton
     $this->addDependency("hdp-templeton::server", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-zookeeper::client",
@@ -99,6 +122,15 @@ class PuppetClassDependencies {
         array("service_state" => SERVICE_STATE_NO_OP));
     $this->addDependency("hdp-templeton::server", SERVICE_STATE_RUNNING, "hdp-hcat",
         array("service_state" => SERVICE_STATE_NO_OP));
+
+    $this->addDependency("hdp-templeton::server", SERVICE_STATE_UNINSTALLED, "hdp-zookeeper::client",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
+    $this->addDependency("hdp-templeton::server", SERVICE_STATE_UNINSTALLED, "hdp-hadoop::client",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
+    $this->addDependency("hdp-templeton::server", SERVICE_STATE_UNINSTALLED, "hdp-pig",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
+    $this->addDependency("hdp-templeton::server", SERVICE_STATE_UNINSTALLED, "hdp-hcat",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
 
     //Ganglia
     $this->addDependency("hdp-ganglia::monitor", SERVICE_STATE_RUNNING, "hdp-ganglia::hdp-gmond::service_check", array());
@@ -120,6 +152,13 @@ class PuppetClassDependencies {
         array("service_state" => SERVICE_STATE_NO_OP));
     $this->addDependency("hdp-nagios::server", SERVICE_STATE_RUNNING, "hdp-hive::client",
         array("service_state" => SERVICE_STATE_NO_OP));
+
+    $this->addDependency("hdp-nagios::server", SERVICE_STATE_UNINSTALLED, "hdp-oozie::client",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
+    $this->addDependency("hdp-nagios::server", SERVICE_STATE_UNINSTALLED, "hdp-hcat",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
+    $this->addDependency("hdp-nagios::server", SERVICE_STATE_UNINSTALLED, "hdp-hive::client",
+        array("service_state" => SERVICE_STATE_UNINSTALLED));
 
     $this->addDependency("hdp-nagios::server", SERVICE_STATE_RUNNING, "hdp-nagios::nagios::service_check", array());
     $this->addDependency("hdp-nagios::server", SERVICE_STATE_RUNNING, "hdp-monitor-webserver", array());

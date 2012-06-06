@@ -11,7 +11,7 @@ $logger = new HMCLogger("CleanupProcesses");
 $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 
 function getCommandLine() {
-  $cmdLine = " killall puppet ; rm -rf /var/lib/puppet/ssl ; ";
+  $cmdLine = " killall puppet ; ";
   return $cmdLine;
 }
 

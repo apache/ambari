@@ -41,10 +41,9 @@ include "RoleDependencies.php";
                  $serviceState);
          foreach ($hostLevelDependencies as $depRole => $rstates) {
            $roleList[] = $depRole;
-           foreach ($rstates as $k => $v) {
-             //Assuming no conflicting states
-             $rolesStates[$depRole][$k] = $v;
-           }
+           //The state could be conflicting, pick the appropriate state
+           //e.g. a dependency shows up with two different service states
+           ManifestGenerator::resolveDepRoleStates($depRole, $rstates, $rolesStates);
          }
        }
        $roleList = array_unique($roleList);
@@ -67,7 +66,44 @@ include "RoleDependencies.php";
      fclose($fh);
    }
 
-   static function optimizePackageInstall($node, &$manifestObj, $rolesStatesDs, 
+   private static function priorityState($u, $v) {
+     $order = array (
+       SERVICE_STATE_NOT_APPLICABLE => 0,
+       SERVICE_STATE_UNINSTALLED => 1,
+       SERVICE_STATE_STOPPED => 2,
+       SERVICE_STATE_NO_OP => 3,
+       SERVICE_STATE_INSTALLED_AND_CONFIGURED => 4,
+       SERVICE_STATE_RUNNING => 5
+     );
+
+     if (!isset($v)) {
+       return $u;
+     } else if (!isset($u)) {
+       return $v;
+     } else if ($order[$u] > $order[$v]) {
+       return $u;
+     } else {
+       return $v;
+     }
+   }
+
+   private static function resolveDepRoleStates($depRole, $rstates, &$rolesStates) {
+     foreach ($rstates as $k => $v) {
+       if ($k == SERVICE_STATE_KEY) {
+         $alreadySetSvcState = NULL;
+         if (isset($rolesStates[$depRole][$k])) {
+           $alreadySetSvcState = $rolesStates[$depRole][$k]; 
+         }
+         $rolesStates[$depRole][$k] = 
+             ManifestGenerator::priorityState($v, $alreadySetSvcState);
+       } else {
+         //Assume no conflicts for this key
+         $rolesStates[$depRole][$k] = $v;
+       }
+     }
+   }
+
+   private static function optimizePackageInstall($node, &$manifestObj, $rolesStatesDs, 
        $configInfo, $roleStages) {
      //Figure out the state
      $serviceState = SERVICE_STATE_INSTALLED_AND_CONFIGURED;
@@ -171,8 +207,8 @@ include "RoleDependencies.php";
      "hdp-hadoop::client" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386",
      "hdp-hadoop::datanode" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386",
      "hdp-hadoop::tasktracker" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386",
-     "hdp-hadoop::zookeeper" => "zookeeper",
-     "hdp-hadoop::zookeeper::client" => "zookeeper",
+     "hdp-zookeeper" => "zookeeper",
+     "hdp-zookeeper::client" => "zookeeper",
      "hdp-hbase::master" => "hbase",
      "hdp-hbase::regionserver" => "hbase",
      "hdp-hbase::client" => "hbase",
