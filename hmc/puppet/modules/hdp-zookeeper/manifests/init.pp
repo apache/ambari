@@ -36,8 +36,11 @@ class hdp-zookeeper(
         }
        }
 
-     Anchor['hdp-zookeeper::begin'] -> Hdp::Package['zookeeper'] -> Hdp::Directory_recursive_create[$zk_config_dir] -> Class['hdp-zookeeper::service']  -> Anchor['hdp-zookeeper::end']
-
+     if ($type == 'server') {
+       Anchor['hdp-zookeeper::begin'] -> Hdp::Package['zookeeper'] -> Hdp::Directory_recursive_create[$zk_config_dir] -> Class['hdp-zookeeper::service']  -> Anchor['hdp-zookeeper::end']
+     } else {
+       Anchor['hdp-zookeeper::begin'] -> Hdp::Package['zookeeper'] -> Hdp::Directory_recursive_create[$zk_config_dir] -> Anchor['hdp-zookeeper::end']
+     }
    } else {
      hdp::package { 'zookeeper':}
 
