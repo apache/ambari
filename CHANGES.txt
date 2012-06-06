@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-406. Monitoring dashboard does not show ZK service state correctly (Ramya via Vikram)
+
   AMBARI-321. Multiple ZK nodes not displayed on review-page (Yusaku via Vikram)
 
   AMBARI-405. Clean up messages for service management reconfiguration popup (Yusaku via Vikram)
