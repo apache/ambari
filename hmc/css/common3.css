@@ -231,26 +231,140 @@ span.installationWizardStageNumber {
  * the Header and Footer fixed (and always visible).
  */
 #informationalPanelContainerDivId .yui3-widget-bd {
-  overflow: auto;
-  background-color:#F0F0E8;
+    max-height:400px;
+    min-height:100px;
+    padding:15px;
+    overflow-x:hidden;
+    overflow-y:auto;
 }
 
 #informationalPanelContainerDivId .yui3-widget-hd {
- /* background-color:#B2B299; */
-  background-color:#33CCFF;
+	background: #f0f0f0;
+    border-bottom: 1px solid #DDDDDD;
+    box-shadow: 0 1px 0 #FFFFFF inset;
+    border-radius:6px 6px 0 0;
+    padding: 9px 15px;
+    font-size: 18px;
+    line-height: 27px;
+    color:#333333;
+    font-weight:bold;
 }
 
 #informationalPanelContainerDivId .yui3-widget-ft {
-  background-color:#F0F0E8;
+	background-color: #F5F5F5;
+	border-radius: 0 0 6px 6px;
+	border-top: 1px solid #DDDDDD;
+	box-shadow: 0 1px 0 #FFFFFF inset;
+	margin-bottom: 0;
+	padding: 14px 15px 15px;
+	text-align: right;
 }
 
 #informationalPanelContainerDivId .yui3-widget-ft .yui3-button {
-  color:blue;
-  font-weight:normal;
+    -moz-border-bottom-colors: none;
+    -moz-border-image: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    background-color: #F5F5F5;
+    background-image: -ms-linear-gradient(top, white, #E6E6E6);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(white),
+     to(#E6E6E6) );
+    background-image: -webkit-linear-gradient(top, white, #E6E6E6);
+    background-image: -o-linear-gradient(top, white, #E6E6E6);
+    background-image: linear-gradient(top, white, #E6E6E6);
+    background-image: -moz-linear-gradient(top, white, #E6E6E6);
+    background-repeat: repeat-x;
+    border-color: #CCCCCC #CCCCCC #B3B3B3;
+    border-radius: 4px 4px 4px 4px;
+    border-style: solid;
+    border-width: 1px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 1px 2px rgba(0, 0, 0, 0.05);
+    color: #333333;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 13px;
+    line-height: 18px;
+    margin-bottom: 0;
+    padding: 4px 10px;
+    text-align: center;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+    vertical-align: middle;
+}
+
+#informationalPanelContainerDivId .yui3-widget-ft .yui3-button:hover {
+  color: #333333;
+  text-decoration: none;
+  background-color: #e6e6e6;
+  *background-color: #d9d9d9;
+  /* Buttons in IE7 don't get borders, so darken on hover */
+
+  background-position: 0 -15px;
+  -webkit-transition: background-position 0.1s linear;
+  -moz-transition: background-position 0.1s linear;
+  -ms-transition: background-position 0.1s linear;
+  -o-transition: background-position 0.1s linear;
+  transition: background-position 0.1s linear;
+}
+
+#informationalPanelContainerDivId .yui3-widget-ft .yui3-button:active {
+  background-color: #e6e6e6;
+  background-color: #d9d9d9 \9;
+  background-image: none;
+  outline: 0;
+  -webkit-box-shadow: inset 0 2px 4px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.05);
+  -moz-box-shadow: inset 0 2px 4px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.05);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.05);
+}
+
+#informationalPanelContainerDivId .yui3-widget-ft .okButton {
+  color: #FFFFFF;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  background-color: #5bb75b;
+  background-image: -moz-linear-gradient(top, #62c462, #51a351);
+  background-image: -ms-linear-gradient(top, #62c462, #51a351);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#62c462), to(#51a351));
+  background-image: -webkit-linear-gradient(top, #62c462, #51a351);
+  background-image: -o-linear-gradient(top, #62c462, #51a351);
+  background-image: linear-gradient(top, #62c462, #51a351);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#62c462', endColorstr='#51a351', GradientType=0);
+  border-color: #51a351 #51a351 #387038;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  *background-color: #51a351;
+  /* Darken IE7 buttons by default so they stand out more given they won't have borders */
+
+  filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+}
+
+#informationalPanelContainerDivId .yui3-widget-ft .okButton:hover,
+#informationalPanelContainerDivId .yui3-widget-ft .okButton:active {
+  color: #FFFFFF;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  background-color: #51a351;
+  *background-color: #499249;
+}
+
+#informationalPanelContainerDivId .yui3-panel-content {
+	box-shadow:none;
+	border:none;	
+	border-radius:6px;
+}
+
+#informationalPanelContainerDivId .yui3-widget-content-expanded {
+	height:auto;
+}
+
+#informationalPanelContainerDivId .yui3-widget-mask {
+	opacity:0.7;
+}
+
+.yui3-panel:focus {
+  outline:0 none;
 }
 
 #confirmationDataPanelBodyContent {
-  font-size:larger;
+  font-size:13px;
 }
 
 #manageServicesDisplayDepsOnAction {

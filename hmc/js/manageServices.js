@@ -29,22 +29,18 @@ function showPanel() {
 }
 
 function showPanel(postShowFn) {
-  confirmationDataPanel.set('y', -400);
+  confirmationDataPanel.set('y', 200);
   confirmationDataPanel.set('x', (globalYui.one('body').get('region').width - confirmationDataPanel.get('width'))/2);
   confirmationDataPanel.show();
-  var bb = confirmationDataPanel.get('boundingBox');
-  bb.transition({
-    duration: 0.5,
-    top     : '0px'
-  }, postShowFn);
+  if (postShowFn != null) {
+    postShowFn.call();
+  }
 }
 
 function hidePanel(postHideFn) {
-  var bb = confirmationDataPanel.get('boundingBox');
-  bb.transition({
-    duration: 0.8,
-    top     : '-' + confirmationDataPanel.get('height') + 'px'
-  }, postHideFn);
+  if (postHideFn != null) {
+    postHideFn.call();
+  }
 }
 
 function hideAndDestroyPanel() {
@@ -136,11 +132,11 @@ function setupStartStopServiceScreen(action, serviceName) {
 
   if ( action == 'start') {
     confirmationDataPanelTitle = 'Starting ' + serviceDisplayName;
-    confirmationDataPanelBodyContent = "We are now going to start " + serviceDisplayName + "..<br/><br/>";
+    confirmationDataPanelBodyContent = "We are now going to start " + serviceDisplayName + "...<br/><br/>";
     affectedServices = clusterServices[serviceName].dependencies;
   } else if (action == 'stop') {
     confirmationDataPanelTitle = 'Stopping ' + serviceDisplayName;
-    confirmationDataPanelBodyContent = "We are now going to stop " + serviceDisplayName + "..<br/><br/>";
+    confirmationDataPanelBodyContent = "We are now going to stop " + serviceDisplayName + "...<br/><br/>";
     affectedServices = clusterServices[serviceName].dependents;
   }
 
@@ -200,7 +196,7 @@ function setupReconfigureScreens(serviceName) {
   fetchClusterServicesPoller.stop();
 
   reconfigLevelOneYesButton = {
-    value: 'Submit',
+    value: 'Apply Changes',
     action: function (e) {
       e.preventDefault();
 
@@ -227,7 +223,7 @@ function setupReconfigureScreens(serviceName) {
         showPanel();
       });
     },
-    classNames: 'yo',
+    classNames: 'okButton',
     section: 'footer'
   };
 
@@ -279,10 +275,9 @@ function setupReconfigureScreens(serviceName) {
      * on the InstallationWizard page.
      */
     confirmationDataPanelBodyContent = 
-      '<div id=formStatusDivId class=formStatusBar style="visibility:hidden">'+
+      '<div id=formStatusDivId class=formStatusBar style="display:none">'+
         'Placeholder' +
       '</div>' +
-      '<br/>' +
       '<div id=configureClusterAdvancedCoreDivId>' + 
         '<form id=configureClusterAdvancedFormId>' +
           '<fieldset id=configureClusterAdvancedFieldSetId>' +
@@ -531,7 +526,7 @@ function serviceManagementActionClickHandler( action, serviceName ) {
       e.preventDefault();
       performServiceManagement( action, serviceName, confirmationDataPanel );
     },
-    classNames: 'yo',
+    classNames: 'okButton',
     section: 'footer'
   };
 
@@ -610,7 +605,7 @@ function generateServiceManagementEntryMarkup( serviceName, serviceInfo ) {
       var serviceManagementEntryIconCssClass = '';
 
       /* Already-started/stopped services shouldn't allow a start/stop operation on them. */
-      if( serviceInfo.state == 'STOPPED' ) {
+      if( serviceInfo.state == 'STOPPED' || serviceInfo.state == 'FAILED') {
         serviceManagementEntryAnchorName = 'start';
         serviceManagementEntryAnchorTitle = 'Start';
         serviceManagementEntryAnchorCssClasses += 'serviceManagementEntryActionStart';
@@ -699,13 +694,13 @@ var fetchClusterServicesPollerResponseHandler = {
       }
     }
     if (clientOnlySoftwareMarkup != '') {
-      serviceManagementMarkup += '<div class="serviceManagementGroup"> Client-only software: <br/>';
+      serviceManagementMarkup += '<div class="serviceManagementGroup"><h2>Client-only software</h2><ul>';
       serviceManagementMarkup += clientOnlySoftwareMarkup;
       serviceManagementMarkup += '</div>';
     }
 
     // Real services with server side components
-    serviceManagementMarkup += '<div class="serviceManagementGroup"> Long running services: <br/><ul>';
+    serviceManagementMarkup += '<div class="serviceManagementGroup"><h2>Long-running services</h2><ul>';
     for (var serviceName in clusterServices) {
       var serviceInfo = clusterServices[serviceName];
       if (clusterServices.hasOwnProperty(serviceName) && serviceInfo.attributes.runnable) {

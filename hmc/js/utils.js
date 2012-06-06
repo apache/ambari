@@ -40,10 +40,6 @@ function createInformationalPanel( containerNodeId, headerContentString ) {
   }
 
   globalYui.one( containerNodeId ).append('<div id="informationalPanelInnerContainerDivId"></div>');
-
-  globalYui.one( '#informationalPanelInnerContainerDivId' ).append( '<div class="yui3-widget-hd"></div>' );
-  globalYui.one( '#informationalPanelInnerContainerDivId' ).append( '<div class="yui3-widget-bd"></div>' );
-  globalYui.one( '#informationalPanelInnerContainerDivId' ).append( '<div class="yui3-widget-ft"></div>' );
               
   var newPanel = new globalYui.Panel({
     srcNode: '#informationalPanelInnerContainerDivId', 
@@ -66,6 +62,7 @@ function createInformationalPanel( containerNodeId, headerContentString ) {
      * overrides any static CSS we might have had, so adding our overrides
      * at runtime (*after* globalYui.Panel) is the only way out.
      */
+	/*
     globalYui.StyleSheet('KewlApp').set( '.yui3-skin-sam .yui3-panel-content .yui3-widget-hd', {
       background: 'rgb(50,185,50)',
       textAlign: 'center',
@@ -79,13 +76,14 @@ function createInformationalPanel( containerNodeId, headerContentString ) {
         height: '17px',
         width: '20px',
     });
-
+    */	
+	  
     // Temporary fix to a yui bug
     globalYui.StyleSheet('KewlApp').set( '.yui3-skin-sam .yui3-panel .yui3-widget-hd .yui3-button-close:before', {
         content: 'url(../yui-3.5.1/build/assets/skins/sam/sprite_icons.png)',
         backgroundImage: 'url(../yui-3.5.1/build/assets/skins/sam/sprite_icons.png)',
     });
-
+    /*
     globalYui.StyleSheet('KewlApp').set( '.yui3-skin-sam .yui3-panel-content .yui3-widget-ft', {
       background: 'rgb(50,185,50)',
     });
@@ -100,6 +98,7 @@ function createInformationalPanel( containerNodeId, headerContentString ) {
       background: 'none',
       border: '0px'
     });
+    */
 
     customizedYuiPanelCss = true;
   }

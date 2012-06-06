@@ -215,6 +215,7 @@ td {
   margin-left:10px;
   width:300px;
   display:inline-block;
+  font-size:12px;
   visibility:hidden;
 }
 
@@ -277,6 +278,7 @@ td {
 
 div.formElement {
 	clear:both;
+	font-size:12px;
 }
 
 #configureClusterAdvancedCoreDivId label,

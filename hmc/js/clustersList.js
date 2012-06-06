@@ -37,21 +37,14 @@ function generateClusterClientsHostRoleMappingMarkup( clusterServices ) {
       if (clusterServices[serviceName].isEnabled == "1" && 
           !clusterServices[serviceName].attributes.noDisplay) {
 
-        globalYui.Array.each( clusterServices[serviceName].components, function (serviceComponent) {
-          
-          globalYui.log("AAA is " + serviceComponent.hostname);
-          globalYui.log("BBB is " + globalYui.Lang.dump(serviceComponent));
+        globalYui.Array.each( clusterServices[serviceName].components, function (serviceComponent) {          
           if (serviceComponent.isClient) {
             globalYui.log("Final host array is " + globalYui.Lang.dump(finalHostMap));
             // just add the client to the hostname object
             if ( !( serviceComponent.hostName in finalHostMap ) ) {
               finalHostMap[serviceComponent.hostName] = new Array();
               finalHostMap[serviceComponent.hostName].push(serviceComponent.displayName);
-              globalYui.log("XXX is " + globalYui.Lang.dump(finalHostMap));
             } else {
-              // FIXME fails to push display name to this array
-              globalYui.log("Service component array has " + globalYui.Lang.dump(finalHostMap[serviceComponent.hostName]) + " YYY: " + serviceComponent.hostname);
-              globalYui.log("ZZZ is " + globalYui.Lang.dump(finalHostMap));
               finalHostMap[serviceComponent.hostName].push(serviceComponent.displayName);
             }
           }
