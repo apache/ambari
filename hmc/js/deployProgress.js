@@ -177,7 +177,7 @@ function renderDeployProgress (deployProgressInfo) {
        * the contents inside errorInfoPanel (and make it visible). 
        */
       globalYui.one("#showDeployTxnLogsLinkId").on( "click", function(e) {
-
+        errorInfoPanel.set('centered', true);
         errorInfoPanel.set( 'bodyContent', errorInfoPanelBodyContent );
         errorInfoPanel.show();
 
