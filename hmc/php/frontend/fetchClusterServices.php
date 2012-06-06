@@ -45,16 +45,14 @@ function getAllComponentsForService ($serviceName)
   $componentResult = $dbAccessor->getAllServiceComponents($serviceName);
   if ($componentResult["result"] == 0) {
     foreach($componentResult["components"] as $componentName => $component) {
-      if($component["isMaster"] == 1) {
-        $hostsForComponentDBResult = $dbAccessor->getHostsForComponent($clusterName, $componentName);
-        if ($hostsForComponentDBResult["result"] != 0 ) {
-          $logger->log_error("Got error while getting hosts for component ".$hostsForComponentDBResult["error"]);
-          print json_encode($hostsForComponentDBResult);
-          return;
-        }
-        $allHosts = array_keys($hostsForComponentDBResult["hosts"]);
-        $component["hostName"] = $allHosts[0];
+      $hostsForComponentDBResult = $dbAccessor->getHostsForComponent($clusterName, $componentName);
+      if ($hostsForComponentDBResult["result"] != 0 ) {
+        $logger->log_error("Got error while getting hosts for component ".$hostsForComponentDBResult["error"]);
+        print json_encode($hostsForComponentDBResult);
+        return;
       }
+      $allHosts = array_keys($hostsForComponentDBResult["hosts"]);
+      $component["hostName"] = $allHosts[0];
       array_push($returnComponentsArray, $component);
     }
   } else {

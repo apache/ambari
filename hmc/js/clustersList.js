@@ -1,10 +1,6 @@
-function generateClusterHostRoleMappingMarkup( clusterServices ) {
+function generateClusterMastersHostRoleMappingMarkup( clusterServices ) {
 
-  var clusterHostRoleMappingMarkup = 
-  '<fieldset id=clustersHostRoleMappingFieldsetId>' +
-    '<legend>' +
-      'Locations Of Service Masters' + 
-    '</legend>';
+  var clusterMastersHostRoleMappingMarkup = '';
 
   for (var serviceName in clusterServices) {
     if (clusterServices.hasOwnProperty(serviceName)) {
@@ -16,7 +12,7 @@ function generateClusterHostRoleMappingMarkup( clusterServices ) {
         globalYui.Array.each( clusterServices[serviceName].components, function (serviceComponent) {
           
           if (serviceComponent.isMaster) {
-            clusterHostRoleMappingMarkup += 
+            clusterMastersHostRoleMappingMarkup += 
               '<div class=formElement>' + 
                 '<label>' + serviceComponent.displayName + ': ' + '</label>' + 
                 serviceComponent.hostName +
@@ -28,7 +24,64 @@ function generateClusterHostRoleMappingMarkup( clusterServices ) {
     }
   }
 
-  clusterHostRoleMappingMarkup += 
+  return clusterMastersHostRoleMappingMarkup;
+}
+
+function generateClusterClientsHostRoleMappingMarkup( clusterServices ) {
+
+  var clusterClientsHostRoleMappingMarkup = '';
+  var finalHostMap = {};
+
+  /*
+  for (var serviceName in clusterServices) {
+    if (clusterServices.hasOwnProperty(serviceName)) {
+
+      if (clusterServices[serviceName].isEnabled == "1" && 
+          !clusterServices[serviceName].attributes.noDisplay) {
+
+        globalYui.Array.each( clusterServices[serviceName].components, function (serviceComponent) {
+          
+          globalYui.log("AAA is " + serviceComponent.hostname);
+          globalYui.log("BBB is " + globalYui.Lang.dump(serviceComponent));
+          if (serviceComponent.isClient) {
+            globalYui.log("Final host array is " + globalYui.Lang.dump(finalHostMap));
+            // just add the client to the hostname object
+            if ( !( serviceComponent.hostName in finalHostMap ) ) {
+              finalHostMap[serviceComponent.hostName] = new Array();
+              finalHostMap[serviceComponent.hostName].push(serviceComponent.displayName);
+              globalYui.log("XXX is " + globalYui.Lang.dump(finalHostMap));
+            } else {
+              // FIXME fails to push display name to this array
+              globalYui.log("Service component array has " + globalYui.Lang.dump(finalHostMap[serviceComponent.hostName]) + " YYY: " + serviceComponent.hostname);
+              globalYui.log("ZZZ is " + globalYui.Lang.dump(finalHostMap));
+              finalHostMap[serviceComponent.hostname].push(serviceComponent.displayName);
+            }
+          }
+
+        });
+      }
+    }
+  }
+  */
+
+  return clusterClientsHostRoleMappingMarkup;
+}
+
+function generateClusterHostRoleMappingMarkup( clusterServices ) {
+
+  var clusterHostRoleMappingMarkup = 
+  '<fieldset id=clusterMastersHostRoleMappingFieldsetId>' +
+    '<legend>' +
+      'Locations Of Service Masters' + 
+    '</legend>' + 
+    generateClusterMastersHostRoleMappingMarkup(clusterServices) + 
+  '</fieldset>' + 
+  '<br/>' +
+  '<fieldset id=clusterClientsHostRoleMappingFieldsetId>' +
+    '<legend>' +
+      'Locations Of Service Clients' + 
+    '</legend>' + 
+    generateClusterClientsHostRoleMappingMarkup(clusterServices) + 
   '</fieldset>';
 
   return clusterHostRoleMappingMarkup;
