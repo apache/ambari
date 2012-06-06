@@ -349,18 +349,17 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
 
             success:
               '<p>' +
-                'Yabba Dabba Doo! Manage services ' + 
+                'Successfully completed the operation. ' + 
                   '<a href="javascript:void(null)" id=closeManageServicesProgressWidgetLinkId>' + 
-                    'even harder' +
-                  '</a>' + 
-                '?' +
+                    'Continue' +
+                  '</a>' +
               '</p>',
 
             failure: 
               '<p>' + 
-                'Scooby Doo, where are you? Perhaps in the ' +
-                  '<a href="javascript:void(null)" id=showManageServicesTxnLogsLinkId>Operation Logs</a>' +
-                '?' +
+                'Failed to complete the operation.  Please ' +
+                  '<a href="javascript:void(null)" id=showManageServicesTxnLogsLinkId>take a look at Operation Logs</a>' +
+                ' to see what might have gone wrong.' +
               '</p>'
           };
 
@@ -586,7 +585,7 @@ function generateServiceManagementEntryMarkup( serviceName, serviceInfo ) {
     generatedServiceManagementEntryMarkup += 
 
       '<li class="serviceManagementEntry '+ serviceManagementEntryCssClass + '">' + 
-        '<div>' + 
+        '<div id="serviceManagementFor' + serviceName + '">' + 
           '<span class="serviceManagementEntryNameContainer">' +
             '<a href="javascript:void(null)" name="' + serviceName + '" class="serviceManagementEntryName">' + 
               serviceInfo.displayName +
