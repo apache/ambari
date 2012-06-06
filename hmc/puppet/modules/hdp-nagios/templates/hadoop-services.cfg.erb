@@ -9,6 +9,17 @@ define service {
 }
 
 define service {        
+        hostgroup_name          all-servers
+        use                     hadoop-service
+        service_description     PUPPET::Puppet agent down
+        servicegroups           PUPPET
+        check_command           check_puppet_agent_status
+        normal_check_interval   0.25
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+
+define service {        
         hostgroup_name          nagios-server        
         use                     hadoop-service
         service_description     NAGIOS::Nagios status log staleness
