@@ -25,7 +25,6 @@ class PuppetClassDependencies {
     $this->hostLevelDependencies = array();
 
     //HDFS
-    $this->addDependency("hdp-hadoop::namenode", SERVICE_STATE_RUNNING, "hdp-hadoop::namenode", array("format" => "true"));
     $this->addDependency("hdp-hadoop::namenode", SERVICE_STATE_RUNNING, "hdp-hadoop::namenode::service_check", array());
 
     //MapReduce
