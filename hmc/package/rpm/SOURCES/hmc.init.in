@@ -20,7 +20,7 @@
 # */
 
 #
-# RPM Init file for HMC 
+# RPM Init file for HMC
 #
 
 PATH=/usr/bin:/sbin:/bin:/usr/sbin
@@ -48,97 +48,183 @@ cp /etc/puppet/puppet.conf /etc/puppet/master/
 checkLicense() {
   if [ ! -f /var/run/hmc/license ]
   then
-  echo "Do you agree to Oracle's Java License at"
-  while true; do
-    read -p "/usr/share/hmc/licenses/ORACLE_JDK_LICENSE.txt?(y/n)" yn  
-    case $yn in
-       [Yy]* ) touch /var/run/hmc/license; break;;
-       [Nn]* ) echo "Exiting"; exit 0;;
-       * ) echo "Please answer yes or no.";;
-     esac
-  done
+    echo "Do you agree to Oracle's Java License at"
+    while true; do
+      read -p "/usr/share/hmc/licenses/ORACLE_JDK_LICENSE.txt?(y/n)" yn
+      case $yn in
+        [Yy]* ) touch /var/run/hmc/license; break;;
+        [Nn]* ) echo "Exiting"; exit 0;;
+        * ) echo "Please answer yes or no.";;
+      esac
+    done
   fi
 }
+
+downloadJDK() {
+  jdk64="jdk-6u26-linux-x64.bin"
+  jdk32="jdk-6u26-linux-i586.bin"
+
+  echo "Downloading JDK binaries. This may take a few minutes"
+
+  echo "Downloading 64-bit JDK binaries"
+  curl --connect-timeout 10 -f -L --output /var/run/hmc/downloads/${jdk64}.tmp "https://s3.amazonaws.com/dev.hortonworks.com/ARTIFACTS/jdk-6u26-linux-x64.bin"
+  ret=$?
+  if [[ "$ret" != "0" ]]; then
+    echo "Failed to download 64-bit JDK"
+    return 1
+  fi
+
+  curl --connect-timeout 10 -f -L --output /var/run/hmc/downloads/${jdk64}.md5.tmp "https://s3.amazonaws.com/dev.hortonworks.com/ARTIFACTS/jdk-6u26-linux-x64.bin.md5"
+  ret=$?
+  if [[ "$ret" != "0" ]]; then
+    echo "Failed to download 64-bit JDK md5"
+    return 1
+  fi
+
+  echo "Downloading 32-bit JDK binaries"
+  curl --connect-timeout 10 -f -L --output /var/run/hmc/downloads/${jdk32}.tmp "https://s3.amazonaws.com/dev.hortonworks.com/ARTIFACTS/jdk-6u26-linux-i586.bin"
+  ret=$?
+  if [[ "$ret" != "0" ]]; then
+    echo "Failed to download 32-bit JDK"
+    return 1
+  fi
+
+  curl --connect-timeout 10 -f -L --output /var/run/hmc/downloads/${jdk32}.md5.tmp "https://s3.amazonaws.com/dev.hortonworks.com/ARTIFACTS/jdk-6u26-linux-i586.bin.md5"
+  ret=$?
+  if [[ "$ret" != "0" ]]; then
+    echo "Failed to download 32-bit JDK md5"
+    return 1
+  fi
+
+  md5Str=`cat /var/run/hmc/downloads/${jdk64}.md5.tmp`
+  echo "${md5Str}  /var/run/hmc/downloads/${jdk64}.tmp" > /var/run/hmc/downloads/${jdk64}.md5
+
+  md5sum --status --check /var/run/hmc/downloads/${jdk64}.md5
+  ret=$?
+  if [[ "$ret" != "0" ]]; then
+    echo "Failed to match md5 checksum for 64-bit JDK"
+    return 1
+  fi
+
+  md5Str=`cat /var/run/hmc/downloads/${jdk32}.md5.tmp`
+  echo "${md5Str}  /var/run/hmc/downloads/${jdk32}.tmp" > /var/run/hmc/downloads/${jdk32}.md5
+
+  md5sum --status --check /var/run/hmc/downloads/${jdk32}.md5
+  ret=$?
+  if [[ "$ret" != "0" ]]; then
+    echo "Failed to match md5 checksum for 32-bit JDK"
+    return 1
+  fi
+
+  cp -f /var/run/hmc/downloads/${jdk64}.tmp /var/run/hmc/downloads/${jdk64}
+  cp -f /var/run/hmc/downloads/${jdk32}.tmp /var/run/hmc/downloads/${jdk32}
+  return 0
+}
+
+bootPuppet() {
+ if [[ ! -f /var/run/hmc/puppetmaster.boot ]]; then
+   daemon  $daemonopts $puppetd  ${PUPPET_OPTS} ${PUPPET_EXTRA_OPTS}
+   killproc puppet
+   touch /var/run/hmc/puppetmaster.boot
+ fi
+}
+    
 
 checkJDK() {
   jdk64="jdk-6u26-linux-x64.bin"
   jdk32="jdk-6u26-linux-i586.bin"
 
-  if [ ! -f /var/run/hmc/downloads/$jdk64 ]
-  then
-    echo "Please download jdk" $jdk64 "from Oracle to /var/run/hmc/downloads/"
-    exit 1
+  checkLicense
+
+  if [[ ! -f /var/run/hmc/downloads/$jdk64 || ! -f /var/run/hmc/downloads/$jdk32 ]]; then
+    while true; do
+      read -p "Would you like us to download the JDK binaries for you?(y/n)" dyn
+      case $dyn in
+        [Yy]* )
+               downloadJDK
+               ret=$?
+               if [[ "$ret" != "0" ]]; then
+                 echo -n "Failed to download JDK correctly"
+               fi
+               cleanupFiles="/var/run/hmc/downloads/${jdk64}.tmp /var/run/hmc/downloads/${jdk64}.md5 /var/run/hmc/downloads/${jdk64}.md5.tmp /var/run/hmc/downloads/${jdk32}.tmp /var/run/hmc/downloads/${jdk32}.md5 /var/run/hmc/downloads/${jdk32}.md5.tmp"
+               rm -f ${cleanupFiles}
+               break
+               ;;
+        [Nn]* ) break;;
+        * ) echo "Please answer yes or no.";;
+      esac
+    done
   fi
-  if [ ! -f /var/run/hmc/downloads/$jdk32 ]
-  then
-    echo "Please download jdk" $jdk32 "from Oracle to /var/run/hmc/downloads/"
+
+
+  if [[ ! -f /var/run/hmc/downloads/$jdk64 || ! -f /var/run/hmc/downloads/$jdk32 ]]; then
+    echo "Please download $jdk64 and $jdk32 from Oracle to /var/run/hmc/downloads/"
     exit 1
   fi
 
   mkdir -p /var/www/html/downloads
   cp /var/run/hmc/downloads/* /var/www/html/downloads/
-  checkLicense
 }
 
 PUPPET_OPTS="master --confdir=/etc/puppet/master --verbose --config_version=/usr/share/hmc/bin/get_revision --reports hmcreport --debug --logdest=/var/log/puppet_master.log --autoflush"
+
 case "$1" in
     start)
-  checkJDK
-  daemon  $daemonopts $puppetd  ${PUPPET_OPTS} ${PUPPET_EXTRA_OPTS}
-  killproc puppet
-	echo  "Starting HMC Installer "
-  /etc/init.d/httpd start
-  RETVAL=$?
-	if [ $RETVAL = 0 ]; then
+      checkJDK
+      bootPuppet
+      echo "Starting HMC Installer "
+      /etc/init.d/httpd start
+      RETVAL=$?
+	  if [ $RETVAL = 0 ]; then
 	    echo -n "Starting HMC"
-	else
+	  else
 	    echo -n "Failed to start HMC"
-	fi
-	echo
-	;;
+	  fi
+	  echo 
+	  ;;
     stop)
-	echo  "Shutting down HMC "
-  /etc/init.d/httpd stop
-	RETVAL=$?
-  if [ $RETVAL = 0 ]; then
-     echo -n "Stopped HMC"
-  else
-     echo -n "Failed to stop HMC"
-  fi
-  echo 
-	;;
+	  echo "Shutting down HMC "
+      /etc/init.d/httpd stop
+	  RETVAL=$?
+      if [ $RETVAL = 0 ]; then
+        echo -n "Stopped HMC"
+      else
+       echo -n "Failed to stop HMC"
+      fi
+      echo 
+	  ;;
     try-restart|condrestart)
-	if test "$1" = "condrestart"; then
+	  if test "$1" = "condrestart"; then
 		echo "${attn} Use try-restart ${done}(LSB)${attn} rather than condrestart ${warn}(RH)${norm}"
-	fi
-	$0 status
-	if test $? = 0; then
+	  fi
+	  $0 status
+	  if test $? = 0; then
 		$0 restart
-	else
-		: # Not running is not a failure.
-	fi
-	;;
+	  else
+	    : # Not running is not a failure.
+	  fi
+	  ;;
     restart)
-	$0 stop
-	$0 start
-	;;
+	  $0 stop
+	  $0 start
+	  ;;
     force-reload)
-	echo -n "Reload service HMC "
-	$0 try-restart
-	;;
+	  echo -n "Reload service HMC "
+	  $0 try-restart
+	  ;;
     reload)
-    	$0 restart
-	;;
+      $0 restart
+	  ;;
     status)
-    	status httpd
-	RETVAL=$?
-	;;
+      status httpd
+	  RETVAL=$?
+	  ;;
     probe)
-     echo "Not Implemented"
-	;;
+      echo "Not Implemented"
+	  ;;
     *)
-	echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}"
-	exit 1
-	;;
+	  echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}"
+	  exit 1
+	  ;;
 esac
 exit $RETVAL

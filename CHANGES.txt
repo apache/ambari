@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-368. Server restart kills puppet agent. (Mahadev via Vikram)
+
   AMBARI-366. Package up the fonts/ subdirectory in the HMC RPM (Varun via Vikram)
 
   AMBARI-365. Uninstall/reinstall complains about OS Type as unsupported (Ramya via Vikram)
