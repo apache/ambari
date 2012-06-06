@@ -89,10 +89,14 @@ function getMasterHostSelect(masterName, allHosts, chosenHostName) {
 	return markup;
 }
 
+var globalClusterName = '';
+
 function renderAssignHosts(clusterInfo) {
 
   hideLoadingImg();
+  globalYui.log("Render assign hosts data " + globalYui.Lang.dump(clusterInfo));
   globalYui.one('#assignHostsCoreDivId').setStyle("display", "block");
+  globalClusterName = clusterInfo.clusterName;
 
   if( !registeredAssignHostsEventHandlers ) {
 
@@ -116,7 +120,7 @@ function renderAssignHosts(clusterInfo) {
         // globalYui.log("Assignment for " + masterName + " is " + assignHostsRequestData[masterName]);
       };
 
-      globalYui.io("../php/frontend/assignMasters.php?clusterName="+clusterInfo.clusterName, {
+      globalYui.io("../php/frontend/assignMasters.php?clusterName="+globalClusterName, {
 
         method: 'POST',
         data: globalYui.JSON.stringify(assignHostsRequestData),

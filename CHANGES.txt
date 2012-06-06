@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-396. Add nodes fails in assign masters because of closure issues (Vikram)
+
   AMBARI-395. Ganglia server should not run gmond. (Mahadev via Vikram)
 
   AMBARI-394. Add nodes fails to find node in db (Vikram)
