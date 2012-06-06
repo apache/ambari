@@ -183,7 +183,7 @@ include "RoleDependencies.php";
      "hdp-hcat" => "hcatalog",
      "hdp-oozie::server" => "oozie.noarch",
      "hdp-oozie::client" => "oozie-client.noarch",
-     "hdp-mysql::mysql" => "mysql mysql-server",
+     "hdp-mysql::server" => "mysql-server",
      "hdp-templeton::server" => "templeton.i386",
      "hdp-templeton::client" => "templeton.i386",
      "lzo" => "lzo lzo.i386 lzo-devel lzo-devel.i386",
