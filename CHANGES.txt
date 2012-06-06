@@ -6,7 +6,9 @@ characters wide.
 
 Release 0.1.x - unreleased
 
-  AMBARI-325. Reverted the changes because they are useless without an option to enable/disable memory-monitoring.
+  AMBARI-405. Clean up messages for service management reconfiguration popup (Yusaku via Vikram)
+
+  AMBARI-325. Reverted the changes because they are useless without an option to enable/disable memory-monitoring. (Mahadev via Vikram) 
 
   AMBARI-404. Unify the top nav for both Monitoring and Cluster Management (Yusaku via Vikram)
 

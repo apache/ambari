@@ -261,7 +261,7 @@ function setupReconfigureScreens(serviceName) {
     var serviceConfigurationMarkup = constructDOM( serviceConfigurationData );
 
     if( globalYui.Lang.trim( serviceConfigurationMarkup).length == 0 ) {
-      serviceConfigurationMarkup = '<p>Move along folks, nothing to see here...</p>';
+      serviceConfigurationMarkup = '<p>There is nothing to reconfigure for this service.</p>';
     }
     else {
       /* Augment confirmationDataPanel with the relevant buttons only if there 
