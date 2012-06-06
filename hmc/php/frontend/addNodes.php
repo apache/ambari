@@ -6,7 +6,9 @@ include_once 'localDirs.php';
 include_once "../util/lock.php";
 include_once '../db/HMCDBAccessor.php';
 include_once "../util/clusterState.php";
+include_once '../util/util.php';
 
+include_once './commandUtils.php';
 /*
 sleep(3);
  */
@@ -15,16 +17,16 @@ $logger = new HMCLogger("UploadFiles");
 $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 
 $clusterName = $_GET['clusterName'];
-$cleanup = $_GET['freshInstall'];
+$freshInstall = $_GET['freshInstall'];
 $clusterDir = getClusterDir($clusterName);
 
-$logString = "Cluster Name: $clusterName Cleanup required? $cleanup and type: ".gettype($cleanup);
+$logString = "Cluster Name: $clusterName Cleanup required? $freshInstall and type: ".gettype($freshInstall);
 $logger->log_debug($logString);
 // Validate clusterName: TODO; FIXME
 
 // We need to clean up prior instances for this
 // cluster name if this is a fresh install
-if ($cleanup == 'true') {
+if ($freshInstall == 'true') {
   $dbAccessor->cleanupHosts($clusterName);
 }
 
@@ -53,6 +55,53 @@ if (move_uploaded_file($_FILES['clusterHostsFile']['tmp_name'], $hostsFileDestin
     //echo "Possible file upload attack!\n";
 }
 
+header("Content-type: application/json");
+
+// Validate that there are no nodes that are already in use in case of addNodesWizard
+$logger->log_debug("$freshInstall");
+if ($freshInstall != "true") {
+
+  // Get the list of current nodes
+    $allHostsInfoResult = $dbAccessor->getAllHostsInfo($clusterName, array());
+    if ($allHostsInfoResult["result"] != 0 ) {
+      $logger->log_error("Got error while getting hostInfo for $host :" .$allHostsInfoResult["error"]);
+      print json_encode($allHostsInfoResult);
+      return;
+    }
+
+    // See if they are duplicates
+    $newHosts = readHostsFile($hostsFileDestination);
+    $duplicateHosts = array();
+    $logger->log_debug("checking for dups");
+    foreach ($allHostsInfoResult["hosts"] as $hostInfo) {
+      if (in_array($hostInfo["hostName"], $newHosts)) {
+        $duplicateHosts[] = $hostInfo["hostName"];
+      }
+    }
+    $numDupHosts = count($duplicateHosts);
+    $numNewHosts = count($newHosts);
+    if ($numDupHosts != 0) {
+      if ($numNewHosts == $numDupHosts) {
+        print (json_encode(array("result" => 2, "error" => "All the hosts in the given file are already being used in cluster '$clusterName'")));
+      } else {
+        print (json_encode(array("result" => 3, "error" => "Some hosts in the given file are already being used in cluster '$clusterName'", "hosts" => implode(",", $duplicateHosts))));
+
+        // Just re-edit the hosts' file in case users says go ahead
+        $nodeFileOut = fopen($hostsFileDestination, "w");
+        foreach ($newHosts as $newHost) {
+          if (in_array($newHost, $duplicateHosts)) {
+            continue;
+          }
+          fwrite($nodeFileOut, $newHost."\n");
+        }
+        fclose($nodeFileOut);
+      }
+      return;
+    }
+}
+
+print (json_encode(array("result" => 0)));
+
 // Update the state of the cluster.
 $state = "CONFIGURATION_IN_PROGRESS";
 $displayName = "Configuration in progress";
@@ -62,61 +111,14 @@ $context = array (
 
 $retval = updateClusterState($clusterName, $state, $displayName, $context);
 
+/*
 $outjson = array(
                   "errorCode"=> $retval['result'],
  //                 "clusterName" => $clusterName,
  //                 "finalDestination" => $identityFileDestination,
  //                 "fileToBeMoved" => $_FILES['clusterDeployUserIdentityFile']['tmp_name'],
                 );
-
-// Post the response so that the front-end assumes this is back-grounded
-/*
-$outfile = $clusterDir."/json.out";
-$outHandle = fopen($outfile, "w");
-fwrite($outHandle, json_encode($outjson));
-fclose($outHandle);
-$outStr = json_encode($outjson);
-$len = strlen($outStr);
-header("Content-Length: $len");
-header("Content-type: application/json");
-print (($outStr));
-ob_flush();
-flush();
-*/
-
-/*
-// invoke the node-discoverer
-$logger->log_debug("About to discover node properties");
-$allHosts = discoverNodes($clusterName, $deployUser);
-$logger->log_debug("All Hosts Info \n".print_r($allHosts, true));
-$hostList = array();
-foreach($allHosts as $hostInfo) {
-  $logger->log_debug("HOST: ".json_encode($hostInfo));
-  array_push($hostList, $hostInfo["hostName"]);
-}
-*/
-
-/* Bootstrap happens here - installs puppet.
-$repository=array();
-$repository['name']="hmc_puppet";
-$repository['desc']="puppetlabs";
-$repository['url']="http://yum.puppetlabs.com/el/5/products/x86_64/";
-$repository['gpgkeyurl']="http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs";
-$logger->log_debug("BootStrapping with puppet");
-$boot_result = bootstrap($hostsFileDestination, $GLOBALS["puppet_install"], getSshKeyFilePath($clusterName), $repository);
-$logger->log_debug("Boot Result \n".print_r($boot_result, true));
- */
-
-/*
-// Perisist the data to the db.
-$logger->log_debug("Going to persist discovered node properties");
-$returnValue = $dbAccessor->addHostsToCluster($clusterName, $allHosts);
-if ($returnValue["result"] != 0 ) {
-  $logger->log_error("Got error while adding hosts: ".$returnValue["error"]);
-  print json_encode($returnValue);
-  return;
-}
-*/
+                */
 
 // TODO: FIXME: Check file lengths.
 

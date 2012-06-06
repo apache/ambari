@@ -1,7 +1,7 @@
-// The values of clusterName and freshInstallation come from html/addNodesWizard.php
+// The values of clusterName and freshInstall come from html/addNodesWizard.php
 var addNodesRequestData = {
   "clusterName": clusterName,
-  "freshInstall": freshInstallation
+  "freshInstall": freshInstall
 };
 
 InstallationWizard.AddNodes.render(addNodesRequestData);

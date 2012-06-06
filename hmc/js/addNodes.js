@@ -173,6 +173,36 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
     }
     globalYui.log("File upload finished");
 
+    if (freshInstall == false) {
+      // Do checks only in case of addNodesWizard
+      var myIFrame = globalYui.one("#fileUploadTargetId"); 
+      var myIFrameContent = myIFrame.get('contentWindow.document.body');
+      var content = myIFrameContent.one('pre:first-child');
+      var responseText = content.get('text');
+
+      var responseJson = globalYui.JSON.parse(responseText);
+
+      if (responseJson.result != "0") {
+        // This means we hit an error
+
+        if (responseJson.result == "2") {
+          alert('Got error : ' + responseJson.error);
+          hideLoadingImg();
+          return;
+      } else if (responseJson.result == "3") {
+        var confirmed = confirm(responseJson.error + "\n\n" + responseJson.hosts + "\n\nPlease click OK if you want to ignore them and continue.");
+        if (!confirmed) {
+          hideLoadingImg();
+          return;
+        }
+      } else {
+        alert('Got and error ' + responseJson.error);
+        hideLoadingImg();
+        return;
+      }
+      }
+    }
+
     doPostUpload = false;
     
     var repoFile = '';

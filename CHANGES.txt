@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-360. Adding nodes that already part of the cluster should be avoidable (Vinod via Vikram)
+
   AMBARI-286. Make TxnProgressWidget Immune To Re-Fetch Race Conditions (Varun via Vikram)
 
   AMBARI-526. Display client nodes as part of cluster topology display. (Varun via Vikram)

@@ -68,7 +68,7 @@
     <!-- Javascript Scaffolding -->
     <script type="text/javascript">
 
-    var freshInstallation = false;
+    var freshInstall = false;
     var nodesAction = "uninstall";
     var clusterName = "<?php echo $_GET['clusterName']; ?>";
 

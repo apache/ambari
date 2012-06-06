@@ -113,7 +113,7 @@
     <!-- Javascript Scaffolding -->
     <script type="text/javascript">
 
-    var freshInstallation = false;
+    var freshInstall = false;
     var clusterName = "<?php echo $_GET['clusterName']; ?>";
     var nodesAction = "addNodes";
 
