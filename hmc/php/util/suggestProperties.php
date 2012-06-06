@@ -214,21 +214,27 @@ class SuggestProperties {
 
     // set the num map/reduce tasks
     // assuming that there is atleast one host
-    $minCpuHost = $allHosts["hosts"][0];
-    $this->logger->log_info("Host Info with Min Cpu \n".print_r($minCpuHost, true));
-    $minCpus = $minCpuHost["cpuCount"];
-    $numMap = (int) (ceil ($minCpus/3 * 2 * 2)); // 2/3'rd of cpucount and multiply it by 2.
-    if ($numMap <= 0) {
-      $numMap = 1;
+    if (count($allHosts["hosts"]) == 1) {
+      // for single node install use 2 maps and 2 reduce slots
+      $this->logger->log_info("Single node install: Using Num Maps 2, Num Reduces 2");
+      $result["configs"]["mapred_map_tasks_max"] = 2;
+      $result["configs"]["mapred_red_tasks_max"] = 2;
+    } else {
+      $minCpuHost = $allHosts["hosts"][0];
+      $this->logger->log_info("Host Info with Min Cpu \n".print_r($minCpuHost, true));
+      $minCpus = $minCpuHost["cpuCount"];
+      $numMap = (int) (ceil ($minCpus/3 * 2 * 2)); // 2/3'rd of cpucount and multiply it by 2.
+      if ($numMap <= 0) {
+        $numMap = 1;
+      }
+      $numRed = ($minCpus * 2) - $numMap;
+      if ($numRed <= 0) {
+        $numRed = 1;
+      }
+      $this->logger->log_info("Num Maps ".$numMap ." Num Reduces ".$numRed);
+      $result["configs"]["mapred_map_tasks_max"] = $numMap;
+      $result["configs"]["mapred_red_tasks_max"] = $numRed;
     }
-    $numRed = ($minCpus * 2) - $numMap;
-    if ($numRed <= 0) {
-      $numRed = 1;
-    }
-    $this->logger->log_info("Num Maps ".$numMap ." Num Reduces ".$numRed);
-    $result["configs"]["mapred_map_tasks_max"] = $numMap;
-    $result["configs"]["mapred_red_tasks_max"] = $numRed;
-
 
     /* suggest memory for all the needed master daemons */
     /* assume MR and HDFS are always selected */
