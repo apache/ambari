@@ -40,6 +40,7 @@ function renderConfigureServicesInternal (optionsInfo) {
   var optionsSummary = constructDOM(optionsInfo);
  
   globalYui.one("#configureClusterAdvancedDynamicRenderDivId").setContent( optionsSummary );
+  postDOMRendering(optionsInfo);
   hideLoadingImg();
   globalYui.one("#configureClusterAdvancedCoreDivId").setStyle("display", "block");
 }
