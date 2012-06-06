@@ -112,7 +112,7 @@ function renderEffectiveClusterConfig (generatedClusterConfig) {
           '<li>' + dirsArray[dirs] + '</li>';
         } 
 
-        clusterConfigDisplayMarkup += '</ul>' + '</div><br/>';
+        clusterConfigDisplayMarkup += '</ul>' + '<div style="clear:both"></div></div>';
         globalYui.log("HTML GENERATED: " + clusterConfigDisplayMarkup);
     }
   }
@@ -203,6 +203,22 @@ function renderConfigureCluster (clusterConfig) {
         var nextScreenRenderFunction = renderOptionsPage;
         submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
      });
+    
+    globalYui.one('#previewLinkId').on('click', function(e) {
+      previewPanel = createInformationalPanel('#informationalPanelContainerDivId', 'Preview Directories to be used by Hadoop');
+      previewPanel.set('centered', true);
+      previewPanel.set('bodyContent', globalYui.one('#configureClusterDisplayDivId').getContent());
+      var okButton = {
+          value: 'OK',
+          action: function (e) {
+            e.preventDefault();
+            destroyInformationalPanel(previewPanel);
+          },
+          section: 'footer'
+        };
+      previewPanel.addButton(okButton);
+      previewPanel.show();
+    });
 
     /* event on mountPoints to be checked. */
     globalYui.one('#configureClusterMountPointsInputDivId').delegate(

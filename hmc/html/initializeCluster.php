@@ -224,8 +224,8 @@
                           </div>
                           <!-- Additional <div>s for other categories of cluster configuration go here -->
                         </fieldset>
-                    </div>
-                    <!-- <input type="button" id="configureClusterSubmitButtonId" value="Submit" class="submitButton"> -->
+                    </div>                    
+                    <a id="previewLinkId" href="javascript:void 0"><?php echo $RES['initWizard.configureCluster.preview.label'] ?></a>
                   </form>
                   <a href="javascript:void 0" class="btn btn-large" id="configureClusterSubmitButtonId"><?php echo $RES['initWizard.configureCluster.submit.label'] ?></a>
                 </div>
@@ -323,7 +323,7 @@
                 '../js/configureServicesUtils.js',
                 '../js/configureServices.js',
                 '../js/reviewAndDeploy.js',
-                '../js/deployProgress.js'                
+                '../js/deployProgress.js'                        
               ];
             </script>
 

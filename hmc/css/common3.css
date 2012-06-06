@@ -385,8 +385,7 @@ span.installationWizardStageNumber {
 #configureClusterInputContainerDivId {
   float:left;
   width:400px;
-  margin-left:40px;
-  margin-right:20px;
+  margin:20px 0 0 40px;
 }
 
 #configureClusterDisplayDivId {
@@ -394,6 +393,25 @@ span.installationWizardStageNumber {
   width:40%;
   opacity: 0.7;
   margin-left:10px;
+}
+
+#configureClusterCoreDivId #previewLinkId {
+  color:#0088CC;
+  font-size:13px; 
+}
+
+#configureClusterMountPointsDisplayDivId {
+  margin:20px; 
+}
+
+#configureClusterMountPointsDisplayDivId label {
+  font-weight:bold;
+  font-size:14px;
+}
+
+#configureClusterMountPointsDisplayDivId .formElement {
+  margin-top:20px;
+  width:auto;
 }
 
 .formInputError, input[type="text"].formInputError {

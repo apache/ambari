@@ -450,7 +450,7 @@ div.separator {
 	width:auto;
 	float:left;
 }
-.hostToMasterServices, .hostToServices {
+.hostToMasterServices, .hostToServices, #configureClusterMountPointsDisplayDivId .formElement {
     background-color: #F7F7F5;
     border: 2px solid rgba(0, 0, 0, 0.25);
     border-radius: 4px 4px 4px 4px;
