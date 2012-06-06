@@ -1,7 +1,7 @@
 class hdp-hadoop::namenode(
   $service_state = $hdp::params::cluster_service_state,
   $slave_hosts = [],
-  $format = false,
+  $format = true,
   $opts = {}
 ) inherits hdp-hadoop::params
 {

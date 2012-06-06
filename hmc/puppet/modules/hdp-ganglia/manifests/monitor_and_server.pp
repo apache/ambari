@@ -13,7 +13,7 @@ class hdp-ganglia::monitor_and_server(
       ensure => 'uninstalled'
       }
 
-    hdp::directory { [$ganglia_shell_cmds_dir,$ganglia_conf_dir,$ganglia_runtime_dir]:
+    hdp::directory { [$ganglia_conf_dir,$ganglia_runtime_dir]:
       service_state => $service_state,
       force => true
     }
@@ -23,7 +23,7 @@ class hdp-ganglia::monitor_and_server(
     }
 
     Class['hdp-ganglia::server::packages'] -> 
-      Hdp::Directory[$ganglia_shell_cmds_dir] ->  Hdp::Directory[$ganglia_conf_dir] -> Hdp::Directory[$ganglia_runtime_dir] ->
+      Hdp::Directory[$ganglia_conf_dir] -> Hdp::Directory[$ganglia_runtime_dir] ->
       Class['hdp-ganglia::config']
   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
     class { 'hdp-ganglia': }
