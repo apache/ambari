@@ -49,8 +49,6 @@ globalYui.one('#createClusterSubmitButtonId').on('click',function (e) {
               createClusterResponseJson = createClusterResponseJson.response;
 
               /* Done with this stage, transition to the next. */
-              // Add freshInstall tag
-              createClusterResponseJson.freshInstall = true;
               transitionToNextStage( "#createClusterCoreDivId", createClusterData, 
                   "#addNodesCoreDivId", createClusterResponseJson, InstallationWizard.AddNodes.render );
             },

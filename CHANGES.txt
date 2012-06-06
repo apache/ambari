@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-402. Completing successful add node takes one to initialize cluster page starting from scratch (Varun via Vikram)
+
   AMBARI-401. Manual config changes for nn get reset on stop/start from hmc (Jitendra via Vikram)
 
   AMBARI-399. Cannot uninstall - the page hangs with the spinning icon (Yusaku via Vikram)

@@ -167,11 +167,25 @@ $context = array (
   'txnId' => $rootTxnId
 );
 
-// update state of the cluster to be configuration in progress
-$retval = updateClusterState($clusterName, $state, $displayName, $context);
-if ($retval['result'] != 0) {
-  $result = $retval['result'];
-  $error = $retval['error'];
+/* Only updateClusterState() if we're in the middle of configuring the cluster 
+ * the first time through. 
+ */
+$clusterStateResponse = $dbAccessor->getClusterState($clusterName);
+
+if ($clusterStateResponse['result'] != 0) {
+  print json_encode($clusterStateResponse);
+  return;
+}
+
+$clusterState = json_decode($clusterStateResponse['state'], true);
+
+if ($clusterState['state'] == 'CONFIGURATION_IN_PROGRESS') {
+  // update state of the cluster to be configuration in progress
+  $retval = updateClusterState($clusterName, $state, $displayName, $context);
+  if ($retval['result'] != 0) {
+    $result = $retval['result'];
+    $error = $retval['error'];
+  }
 }
 
 print (json_encode(array(

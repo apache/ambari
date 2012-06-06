@@ -144,7 +144,7 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
   var addNodesFilesForm = globalYui.one("#addNodesFilesFormId");
 
   addNodesFilesForm.set('action', '../php/frontend/addNodes.php?clusterName=' +
-    InstallationWizard.AddNodes.renderData.clusterName + "&freshInstall=" + InstallationWizard.AddNodes.renderData.freshInstall);
+    InstallationWizard.AddNodes.renderData.clusterName);
 
   /* Set the target of the first form's upload to be a hidden iframe
    * on the page so as not to redirect to the PHP page we're POSTing

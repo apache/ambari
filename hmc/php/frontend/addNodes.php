@@ -17,7 +17,18 @@ $logger = new HMCLogger("UploadFiles");
 $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 
 $clusterName = $_GET['clusterName'];
-$freshInstall = $_GET['freshInstall'];
+
+/* Figure out whether it's a fresh install or an AddNodesWizard-ish flow. */
+$clusterStateResponse = $dbAccessor->getClusterState($clusterName);
+
+if ($clusterStateResponse['result'] != 0) {
+  print json_encode($clusterStateResponse);
+  return;
+}
+
+$clusterState = json_decode($clusterStateResponse['state'], true);
+$freshInstall = ($clusterState['state'] == 'CONFIGURATION_IN_PROGRESS') ? true : false;
+
 $clusterDir = getClusterDir($clusterName);
 
 $logString = "Cluster Name: $clusterName Cleanup required? $freshInstall and type: ".gettype($freshInstall);
@@ -26,7 +37,7 @@ $logger->log_debug($logString);
 
 // We need to clean up prior instances for this
 // cluster name if this is a fresh install
-if ($freshInstall == 'true') {
+if ($freshInstall) {
   $dbAccessor->cleanupHosts($clusterName);
 }
 
@@ -59,7 +70,7 @@ header("Content-type: application/json");
 
 // Validate that there are no nodes that are already in use in case of addNodesWizard
 $logger->log_debug("$freshInstall");
-if ($freshInstall != "true") {
+if (!$freshInstall) {
 
   // Get the list of current nodes
     $allHostsInfoResult = $dbAccessor->getAllHostsInfo($clusterName, array());
@@ -98,18 +109,18 @@ if ($freshInstall != "true") {
       }
       return;
     }
+} else {
+  // Update the state of the cluster.
+  $state = "CONFIGURATION_IN_PROGRESS";
+  $displayName = "Configuration in progress";
+  $context = array (
+      'stage' => "ADD_NODES"
+      );
+
+  $retval = updateClusterState($clusterName, $state, $displayName, $context);
 }
 
 print (json_encode(array("result" => 0)));
-
-// Update the state of the cluster.
-$state = "CONFIGURATION_IN_PROGRESS";
-$displayName = "Configuration in progress";
-$context = array (
-  'stage' => "ADD_NODES"
-);
-
-$retval = updateClusterState($clusterName, $state, $displayName, $context);
 
 /*
 $outjson = array(
