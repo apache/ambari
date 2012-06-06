@@ -3282,10 +3282,5 @@ class HMCDBAccessor {
     $this->cleanupHosts($clusterName);
   }
 
-  public function deleteCluster ($clusterName) {
-    $this->deleteClusterTable($clusterName, "SubTransactionStatus");
-    $this->deleteClusterTable($clusterName, "TransactionStatus");
-    $this->cleanupCluster($clusterName);
-  }
 }
 ?>

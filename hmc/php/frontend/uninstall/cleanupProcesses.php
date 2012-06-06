@@ -11,8 +11,7 @@ $logger = new HMCLogger("CleanupProcesses");
 $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 
 function getCommandLine() {
-  $cmdLine = "touch /etc/default/hadoop-env.sh ; killall puppet; rm -rf /var/log/puppet_agent.log; rm -rf /etc/yum.repos.d/hdp* ; ";
-  $cmdLine = $cmdLine . 'sleep $[ $RANDOM % 5 ]; ';
+  $cmdLine = " killall puppet ; rm -rf /var/lib/puppet/ssl ; ";
   return $cmdLine;
 }
 
