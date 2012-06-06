@@ -29,7 +29,9 @@ class hdp-oozie::service(
   hdp-oozie::service::directory { $hdp-oozie::params::oozie_tmp_dir : }
   hdp-oozie::service::directory { $hdp-oozie::params::oozie_data_dir : }
   hdp-oozie::service::directory { $hdp-oozie::params::oozie_lib_dir : }
-  hdp-oozie::service::createsymlinks { '/usr/lib/oozie/oozie-server/lib/mapred-site.xml' : }
+  if ($ensure == 'running') {
+    hdp-oozie::service::createsymlinks { '/usr/lib/oozie/oozie-server/lib/mapred-site.xml' : }
+  }
 
   anchor{'hdp-oozie::service::begin':} -> Hdp-oozie::Service::Directory<||> -> anchor{'hdp-oozie::service::end':}
   
