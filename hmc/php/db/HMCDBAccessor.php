@@ -77,7 +77,7 @@ class HMCDBAccessor {
     }
     LockRelease(); return $response;
   }
-  
+
   /**
    * Update cluster state for a given clusterName
    * @param string $clusterName Cluster Name
@@ -973,7 +973,7 @@ class HMCDBAccessor {
    *      )
    *   - optionally, an array of [ "sortColumn" => $sortColumn, "sortOrder" => $sortOrder]
    *     can be used
-   *      
+   *
    * @return mixed
    *   array (
    *       "result" => 0,
@@ -1055,7 +1055,7 @@ class HMCDBAccessor {
           }
           if (isset($orderItem["sortOrder"])) {
             $query .= " ".$orderItem["sortOrder"];
-            if (sizeof($order) > 0) { 
+            if (sizeof($order) > 0) {
               $query .= ',';
             }
           }
@@ -1526,8 +1526,24 @@ class HMCDBAccessor {
     LockAcquire();
     $response = array ( "result" => 0, "error" => "");
 
-    if (empty($hosts)) {
+    if ($hosts == NULL || empty($hosts)) {
       LockRelease(); return $response;
+    } else {
+      $noOp = TRUE;
+      foreach ($hosts as $host) {
+        if (isset($host)) {
+          $h = trim($host);
+          if ($h != "") {
+            $noOp = FALSE;
+            break;
+          }
+        }
+      }
+      if ($noOp) {
+        $this->logger->log_warn("Invalid hosts array passed in to function"
+            . ", hosts=" . implode(",", $hosts));
+        LockRelease(); return $response;
+      }
     }
 
     $error = "";

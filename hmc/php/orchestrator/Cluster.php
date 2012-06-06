@@ -123,6 +123,11 @@ class Cluster {
       }
 
       $nodes = $result["nodes"];
+
+      $this->logger->log_debug("Kicking puppet for uninstalling "
+         . "cluster=" . $this->name
+         . ", txn=" . $transaction->toString());
+      $startTime = time();
       $result = $this->puppet->kickPuppet($nodes, $transaction, $this->name,
           $result["componentMapping"], array ("wipeoff_data" => $wipeoutFlag));
       $this->logger->log_debug("Puppet kick response for uninstalling "
@@ -130,11 +135,17 @@ class Cluster {
           . ", txn=" . $transaction->toString()
           . ", response=" . print_r($result, true));
       // handle puppet response
-      $opStatus = array( "nodeReport" =>
-          array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
-            "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
-            "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
-            "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
+      $timeTaken = time() - $startTime;
+      $opStatus = array(
+         "stats" =>
+            array (
+              "NODE_COUNT" => count($nodes),
+              "TIME_TAKEN_SECS" => $timeTaken),
+         "nodeReport" =>
+            array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
+              "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
+              "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
+              "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
 
       $this->logger->log_info("Persisting puppet report for uninstall HDP");
       $this->db->persistTransactionOpStatus($transaction,
@@ -409,16 +420,26 @@ class Cluster {
       $this->setState(State::INSTALLING, $transaction, $dryRun);
 
       // send kick to hosts
+      $this->logger->log_debug("Kicking puppet for installing nodes on "
+         . " cluster=" . $this->name
+         . ", txn=" . $transaction->toString());
+      $startTime = time();
       $result = $this->puppet->kickPuppet($allHosts, $transaction, $this->name,
           $compMapping);
-      $this->logger->log_debug("Puppet kick response for installing "
+      $this->logger->log_debug("Puppet kick response for installing nodes on"
           . " cluster=" . $this->name
           . ", txn=" . $transaction->toString()
           . ", response=" . print_r($result, true));
 
       // handle puppet response
-      $opStatus = array ( "nodeReport" =>
-          array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
+      $timeTaken = time() - $startTime;
+      $opStatus = array(
+          "stats" =>
+             array (
+                    "NODE_COUNT" => count($nodes),
+                    "TIME_TAKEN_SECS" => $timeTaken),
+          "nodeReport" =>
+             array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
                   "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
                   "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
                   "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
@@ -495,16 +516,26 @@ class Cluster {
       $this->setState(State::STARTING, $transaction, $dryRun);
 
       // send kick to  hosts
+      $this->logger->log_debug("Kicking puppet for starting nodes on"
+          . " cluster=" . $this->name
+          . ", txn=" . $transaction->toString());
+      $startTime = time();
       $result = $this->puppet->kickPuppet($kickHosts, $transaction,
           $this->name, $compMapping);
-      $this->logger->log_debug("Puppet kick response for installing "
+      $this->logger->log_debug("Puppet kick response for starting nodes on"
           . " cluster=" . $this->name
           . ", txn=" . $transaction->toString()
           . ", response=" . print_r($result, true));
 
       // handle puppet response
-      $opStatus = array ( "nodeReport" =>
-          array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
+      $timeTaken = time() - $startTime;
+      $opStatus = array(
+          "stats" =>
+              array (
+                    "NODE_COUNT" => count($nodes),
+                    "TIME_TAKEN_SECS" => $timeTaken),
+         "nodeReport" =>
+            array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
                   "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
                   "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
                   "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
@@ -589,16 +620,26 @@ class Cluster {
       }
 
       $nodes = $result["nodes"];
+      $this->logger->log_debug("Kicking puppet for installing"
+          . " cluster=" . $this->name
+          . ", txn=" . $transaction->toString());
+      $startTime = time();
       $result = $this->puppet->kickPuppet($nodes, $transaction, $this->name,
           $result["componentMapping"]);
-      $this->logger->log_debug("Puppet kick response for installing "
+      $this->logger->log_debug("Puppet kick response for installing"
           . " cluster=" . $this->name
           . ", txn=" . $transaction->toString()
           . ", response=" . print_r($result, true));
 
       // handle puppet response
-      $opStatus = array ( "nodeReport" =>
-            array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
+      $timeTaken = time() - $startTime;
+      $opStatus = array(
+         "stats" =>
+             array (
+                    "NODE_COUNT" => count($nodes),
+                    "TIME_TAKEN_SECS" => $timeTaken),
+         "nodeReport" =>
+             array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
                     "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
                     "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
                     "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));

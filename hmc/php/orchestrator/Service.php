@@ -430,12 +430,15 @@ class Service {
     }
 
     if (!$dryRun) {
+      $this->logger->log_debug("Kicking puppet for smoketesting service on "
+         . " cluster=" . $this->clusterName
+         . ", service=" . $this->name
+         . ", txn=" . $transaction->toString());
 
+      $startTime = time();
       $result =
-        $this->puppet->kickServiceCheck(
-            array($this->name => $clientNode), $transaction,
-            $this->clusterName
-            );
+        $this->puppet->kickServiceCheck( array($this->name => $clientNode),
+            $transaction, $this->clusterName);
 
       $this->logger->log_debug("Puppet kick response for smoketesting service on "
           . " cluster=" . $this->clusterName
@@ -444,8 +447,14 @@ class Service {
           . ", response=" . print_r($result, true));
 
       // handle puppet response
-      $opStatus = array ( "nodeReport" =>
-          array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
+      $timeTaken = time() - $startTime;
+      $opStatus = array(
+          "stats" =>
+               array (
+                      "NODE_COUNT" => count($nodes),
+                      "TIME_TAKEN_SECS" => $timeTaken),
+          "nodeReport" =>
+              array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
                   "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
                   "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
 

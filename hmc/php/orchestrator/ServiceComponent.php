@@ -234,6 +234,12 @@ class ServiceComponent {
     }
 
     if (!$dryRun) {
+      $this->logger->log_debug("Kicking puppet for starting component on "
+         . " cluster=" . $this->clusterName
+         . ", servicecomponent=" . $this->name
+         . ", txn=" . $transaction->toString());
+
+      $startTime = time();
       $result = $this->puppet->kickPuppet($nodes['nodes'], $transaction,
           $this->clusterName, array ( $this->name => $nodes['nodes'] ));
       $this->logger->log_debug("Puppet kick response for starting component on "
@@ -243,11 +249,17 @@ class ServiceComponent {
           . ", response=" . print_r($result, true));
 
       // handle puppet response
-      $opStatus = array ( "nodeReport" =>
-          array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
-                  "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
-                  "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
-                  "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
+      $timeTaken = time() - $startTime;
+      $opStatus = array(
+          "stats" =>
+              array (
+                     "NODE_COUNT" => count($nodes),
+                     "TIME_TAKEN_SECS" => $timeTaken),
+          "nodeReport" =>
+              array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
+                      "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
+                      "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
+                   "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
 
       $this->logger->log_info("Persisting puppet report for starting "
           . $this->name);
@@ -341,6 +353,12 @@ class ServiceComponent {
     }
 
     if (!$dryRun) {
+      $this->logger->log_debug("Kicking puppet for stopping component on"
+          . " cluster=" . $this->clusterName
+          . ", servicecomponent=" . $this->name
+          . ", txn=" . $transaction->toString());
+
+      $startTime = time();
       $result = $this->puppet->kickPuppet($nodes['nodes'], $transaction,
           $this->clusterName, array ( $this->name => $nodes['nodes'] ));
       $this->logger->log_debug("Puppet kick response for stopping component on"
@@ -350,11 +368,17 @@ class ServiceComponent {
           . ", response=" . print_r($result, true));
 
       // handle puppet response
-      $opStatus = array ( "nodeReport" =>
-           array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
-                   "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
-                   "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
-                   "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
+      $timeTaken = time() - $startTime;
+      $opStatus = array(
+          "stats" =>
+              array (
+                     "NODE_COUNT" => count($nodes),
+                     "TIME_TAKEN_SECS" => $timeTaken),
+          "nodeReport" =>
+              array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
+                      "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
+                      "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
+                      "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
 
       $this->logger->log_info("Persisting puppet report for stopping "
           . $this->name);
