@@ -205,11 +205,11 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
     doPostUpload = false;
     
     var repoFile = '';
-    var localYumRepo = false;
+    var localYumRepo = '';
 
     if (globalYui.one("#yumMirrorSupportFormButtonId")) {
       if (globalYui.one("#yumMirrorSupportFormButtonId").get('checked')) {
-        localYumRepo = true;
+        localYumRepo = 'true';
         // local yum mirror support
         repoFile = globalYui.Lang.trim(globalYui.one("#yumRepoFilePathId").get('value'));
       }
