@@ -55,7 +55,7 @@ su - ${smoke_test_user} -c "hadoop dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/exampl
 su - ${smoke_test_user} -c "hadoop dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
 
 cmd="source ${oozie_conf_dir}/oozie-env.sh ; /usr/bin/oozie job -oozie $OOZIE_SERVER -config $OOZIE_EXAMPLES_DIR/examples/apps/map-reduce/job.properties  -run"
-job_info=`su - ${smoke_test_user} -c "$cmd"`
+job_info=`su - ${smoke_test_user} -c "$cmd" | grep "job:"`
 job_id="`echo $job_info | cut -d':' -f2`"
 checkOozieJobStatus "$job_id"
 OOZIE_EXIT_CODE="$?"
