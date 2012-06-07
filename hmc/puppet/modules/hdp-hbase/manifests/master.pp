@@ -7,9 +7,6 @@ class hdp-hbase::master(
   if ($service_state == 'no_op') {
   } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {    
     $hdp::params::service_exists['hdp-hbase::master'] = true
-    if ($hdp::params::ganglia_enabled == true) {
-      include hdp-hbase::master::enable-ganglia
-    }
 
     $hdfs_root_dir = $hdp-hbase::params::hbase_hdfs_root_dir
   

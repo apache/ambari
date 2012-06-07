@@ -24,11 +24,6 @@ class hdp-hadoop(
   $mapred_user = $hdp-hadoop::params::mapred_user  
   $hdfs_user = $hdp-hadoop::params::hdfs_user  
 
-
- if ($hdp::params::ganglia_enabled == true) {
-   include hdp-hadoop::enable-ganglia
- }
-
   $hdp::params::component_exists['hdp-hadoop'] = true
 
   anchor{'hdp-hadoop::begin':} 

@@ -7,9 +7,6 @@ class hdp-hbase::regionserver(
   if ($service_state == 'no_op') {
   } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {    
     $hdp::params::service_exists['hdp-hbase::regionserver'] = true       
-    if ($hdp::params::ganglia_enabled == true) {
-      include hdp-hbase::regionserver::enable-ganglia
-    }
 
     if ($hdp::params::service_exists['hdp-hbase::master'] != true) {
       #adds package, users, directories, and common configs
