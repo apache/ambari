@@ -15,11 +15,11 @@ class hdp-hive::mysql-connector()
        command => "mkdir -p ${artifact_dir} ;  cp /usr/share/java/mysql-connector-java.jar  ${target}",
        unless  => "test -f ${target}",
        creates => $target,
-       path    => ["/bin","/usr/bin/"]
+       path    => ["/bin","/usr/bin/"],
        require => Hdp::Package['mysql-connector-java-5.0.8-4.jpp5'],
        notify  =>  Anchor['hdp-hive::mysql-connector::end'],
    }
 
-   anchor { hdp-hive::mysql-connector::end':}
+   anchor { 'hdp-hive::mysql-connector::end':}
 
 }

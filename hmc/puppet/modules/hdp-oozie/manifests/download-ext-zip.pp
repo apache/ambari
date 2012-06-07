@@ -15,7 +15,7 @@ class hdp-oozie::download-ext-zip()
        command => "mkdir -p ${artifact_dir} ;  cp /tmp/HDP-oozie/${zip_name} ${target}",
        unless  => "test -f ${target}",
        creates => $target,
-       path    => ["/bin","/usr/bin/"]
+       path    => ["/bin","/usr/bin/"],
        require => Hdp::Package['extjs-2.2-1'],
        notify  =>  Anchor['hdp-oozie::download-ext-zip::end'],
    }

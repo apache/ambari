@@ -16,7 +16,7 @@ class hdp-templeton::download-hive-tar()
        command => "mkdir -p ${artifact_dir} ;  cp /tmp/HDP-templeton/${src_tar_name} ${target}",
        unless  => "test -f ${target}",
        creates => $target,
-       path    => ["/bin","/usr/bin/"]
+       path    => ["/bin","/usr/bin/"],
        require => Hdp::Package['templeton-tar-hive-0.0.1-1'],
        notify  =>  Anchor['hdp-templeton::download-hive-tar::end'],
    }
