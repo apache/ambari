@@ -131,7 +131,7 @@ class DBReader {
       "TEMPLETON_CLIENT" => "hdp-templeton::client",
       "DASHBOARD" => "hdp-dashboard",
       "NAGIOS_SERVER" => "hdp-nagios::server",
-      "GANGLIA_MONITOR_SERVER" => "hdp-ganglia::monitor_and_server",
+      "GANGLIA_MONITOR_SERVER" => "hdp-ganglia::server",
       "GANGLIA_MONITOR" => "hdp-ganglia::monitor",
       "HTTPD" => "hdp-monitor-webserver"
     );

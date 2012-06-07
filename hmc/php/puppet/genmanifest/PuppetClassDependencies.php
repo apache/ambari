@@ -133,9 +133,8 @@ class PuppetClassDependencies {
 
     //Ganglia
     $this->addDependency("hdp-ganglia::monitor", SERVICE_STATE_RUNNING, "hdp-ganglia::hdp-gmond::service_check", array());
-    $this->addDependency("hdp-ganglia::monitor_and_server", SERVICE_STATE_RUNNING, "hdp-ganglia::hdp-gmond::service_check", array());
-    $this->addDependency("hdp-ganglia::monitor_and_server", SERVICE_STATE_RUNNING, "hdp-ganglia::hdp-gmetad::service_check", array());
-    $this->addDependency("hdp-ganglia::monitor_and_server", SERVICE_STATE_RUNNING, "hdp-monitor-webserver", array());
+    $this->addDependency("hdp-ganglia::server", SERVICE_STATE_RUNNING, "hdp-ganglia::hdp-gmetad::service_check", array());
+    $this->addDependency("hdp-ganglia::server", SERVICE_STATE_RUNNING, "hdp-monitor-webserver", array());
 
     //Nagios
     $this->addDependency("hdp-nagios::server", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-oozie::client",

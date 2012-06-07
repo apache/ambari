@@ -3,17 +3,16 @@ class hdp-ganglia::config(
   $service_state = $hdp::params::cluster_service_state
 )
 {
-  #TODO: divide into what is needed on server vs what is needed on monitored nodes
-  $shell_cmds_dir = $hdp-ganglia::params::ganglia_shell_cmds_dir
-  $shell_files = ['checkGmond.sh','checkRrdcached.sh','gmetadLib.sh','gmondLib.sh','rrdcachedLib.sh' ,'setupGanglia.sh','startGmetad.sh','startGmond.sh','startRrdcached.sh','stopGmetad.sh','stopGmond.sh','stopRrdcached.sh','teardownGanglia.sh']
+ if ($service_state in ['running','installed_and_configured','stopped']) {
+    #TODO: divide into what is needed on server vs what is needed on monitored nodes
+    $shell_cmds_dir = $hdp-ganglia::params::ganglia_shell_cmds_dir
+    $shell_files = ['checkGmond.sh','checkRrdcached.sh','gmetadLib.sh','gmondLib.sh','rrdcachedLib.sh' ,'setupGanglia.sh','startGmetad.sh','startGmond.sh','startRrdcached.sh','stopGmetad.sh','stopGmond.sh','stopRrdcached.sh','teardownGanglia.sh']
 
-  hdp::directory_recursive_create { $shell_cmds_dir :
-    owner => root,
-    group => root,
-    service_state => $service_state,
-    force => true
-  } 
-   if ($service_state in ['running','installed_and_configured','stopped']) {
+    hdp::directory_recursive_create { $shell_cmds_dir :
+      owner => root,
+      group => root
+    } 
+
      hdp-ganglia::config::init_file { ['gmetad','gmond']: }
 
      hdp-ganglia::config::shell_file { $shell_files: }                       

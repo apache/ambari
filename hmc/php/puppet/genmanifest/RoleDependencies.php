@@ -53,7 +53,7 @@
         "hdp-dashboard::dashboard::service_check",
         "hdp-nagios::server",
         "hdp-nagios::nagios::service_check",
-        "hdp-ganglia::monitor_and_server",
+        "hdp-ganglia::server",
         "hdp-ganglia::monitor",
         "hdp-ganglia::hdp-gmond::service_check",
         "hdp-ganglia::hdp-gmetad::service_check",

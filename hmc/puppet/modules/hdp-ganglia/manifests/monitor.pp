@@ -4,71 +4,74 @@ class hdp-ganglia::monitor(
   $opts = {}
 ) inherits hdp-ganglia::params
 {
+  if  ($service_state == 'no_op') {
+  } elsif ($service_state == 'uninstalled') {     
 
-  #note: includes the common package ganglia-monitor
-  class { 'hdp-ganglia':
-    service_state => $service_state
-  }
-  if ($service_state == 'no_op') {
-  } elsif ($service_state in ['uninstalled']) {
-    class { 'hdp-ganglia::config':
-      ganglia_server_host => $ganglia_server_host,
-      service_state       => $service_state
-    }
-  } elsif ($service_state in ['running','stopped','installed_and_configured']) {
-    #note: includes the common package ganglia-monitor
-    class { 'hdp-ganglia::config': 
-      ganglia_server_host => $ganglia_server_host,
-      service_state       => $service_state
-    }
+   hdp::package { 'ganglia-monitor':         
+       ensure      => 'uninstalled', 
+      java_needed => false      
+   }
 
-    class { 'hdp-ganglia::monitor::config-gen':}
-
-    class { 'hdp-ganglia::service::gmond': 
-      ensure => $service_state
-    }
-
-    Class['hdp-ganglia'] -> Class['hdp-ganglia::config'] -> Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::service::gmond']
   } else {
-    hdp_fail("TODO not implemented yet: service_state = ${service_state}")
+    if ($hdp::params::service_exists['hdp-ganglia::server'] != true) {
+      class { 'hdp-ganglia':
+       service_state => $service_state
+      }
+    }
+
+    hdp::package { 'ganglia-monitor': }
+
+    if ($hdp::params::service_exists['hdp-ganglia::server'] != true) {
+      class { 'hdp-ganglia::config': ganglia_server_host => $ganglia_server_host}
+    }
+
+    if ($hdp::params::component_exists['hdp-hadoop'] == true) {
+      class { 'hdp-hadoop::enable-ganglia': }
+    }
+
+    if ($service_exists['hdp-hbase::master'] == true) {
+      class { 'hdp-hbase::master::enable-ganglia': }
+    }
+  
+    if ($service_exists['hdp-hbase::regionserver'] == true) {
+      class { 'hdp-hbase::regionserver::enable-ganglia': }
+    }
+
+    class { 'hdp-ganglia::monitor::config-gen': }
+  
+    class { 'hdp-ganglia::service::gmond': ensure => $service_state}
+
+    if ($hdp::params::service_exists['hdp-ganglia::server'] != true) {
+      Class['hdp-ganglia'] -> Hdp::Package['ganglia-monitor'] -> Class['hdp-ganglia::config'] -> 
+      Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::service::gmond']
+    } else {
+      Hdp::Package['ganglia-monitor'] ->  Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::service::gmond']
+    }
   }
 }
+
 
 class hdp-ganglia::monitor::config-gen()
 {
 
-  anchor{'hdp-ganglia::monitor::config-gen::begin':}
+  $service_exists = $hdp::params::service_exists
 
-  #TODO: to get around anchor problems
-  Class['hdp-ganglia'] -> Class['hdp-ganglia::monitor::config-gen']
-
-  if ($hdp-ganglia::params::nomit_namenode == true) {
-    hdp-ganglia::config::generate_monitor { 'HDPNameNode':
-      ganglia_service => 'gmond',
-      require => Anchor['hdp-ganglia::monitor::config-gen::begin'],
-      before  => Anchor['hdp-ganglia::monitor::config-gen::end']
-    }
+  if ($service_exists['hdp-hadoop::namenode'] == true) {
+    hdp-ganglia::config::generate_monitor { 'HDPNameNode':}
   }
-  if ($hdp-ganglia::params::nomit_jobtracker == true) {
-    hdp-ganglia::config::generate_monitor { 'HDPJobTracker':
-      ganglia_service => 'gmond',
-      require => Anchor['hdp-ganglia::monitor::config-gen::begin'],
-      before  => Anchor['hdp-ganglia::monitor::config-gen::end']
-    }
+  if ($service_exists['hdp-hadoop::jobtracker'] == true){
+    hdp-ganglia::config::generate_monitor { 'HDPJobTracker':}
   }
-  if ($hdp-ganglia::params::nomit_hbase_master == true) {
-    hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':
-      ganglia_service => 'gmond',
-      require => Anchor['hdp-ganglia::monitor::config-gen::begin'],
-      before  => Anchor['hdp-ganglia::monitor::config-gen::end']
-    }
+  if ($service_exists['hdp-hbase::master'] == true) {
+    hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':}
   }
-  if ($hdp-ganglia::params::nomit_slaves == true) {
-    hdp-ganglia::config::generate_monitor { 'HDPSlaves':
-      ganglia_service => 'gmond',
-      require => Anchor['hdp-ganglia::monitor::config-gen::begin'],
-      before  => Anchor['hdp-ganglia::monitor::config-gen::end']
-    }
-  }  
-  anchor{'hdp-ganglia::monitor::config-gen::end':}
+  if ($service_exists['hdp-hadoop::datanode'] == true) {
+    hdp-ganglia::config::generate_monitor { 'HDPSlaves':}
+  }
+  Hdp-ganglia::Config::Generate_monitor<||>{
+    ganglia_service => 'gmond',
+    role => 'monitor'
+  }
+   # 
+  anchor{'hdp-ganglia::monitor::config-gen::begin':} -> Hdp-ganglia::Config::Generate_monitor<||> -> anchor{'hdp-ganglia::monitor::config-gen::end':}
 }

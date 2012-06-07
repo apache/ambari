@@ -224,7 +224,7 @@ include "RoleDependencies.php";
      "hdp-templeton::client" => "templeton",
      "lzo" => "lzo lzo.i386 lzo-devel lzo-devel.i386",
      "snappy" => "snappy snappy-devel",
-     "hdp-ganglia::monitor_and_server" => "ganglia-gmetad-3.2.0 ganglia-gmond-3.2.0 gweb hdp_mon_ganglia_addons",
+     "hdp-ganglia::server" => "ganglia-gmetad-3.2.0 ganglia-gmond-3.2.0 gweb hdp_mon_ganglia_addons",
      "hdp-ganglia::monitor" => "ganglia-gmond-3.2.0 gweb hdp_mon_ganglia_addons",
      "hdp-nagios::server" => "hdp_mon_nagios_addons nagios-3.2.3 nagios-plugins-1.4.9 fping net-snmp-utils",
      "hdp-dashboard" => "hdp_mon_dashboard",
