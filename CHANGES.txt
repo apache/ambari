@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-507. Install rpms instead of tar.gz downloads (Ramya via Vikram)
+
   AMBARI-505. Messaging Update (Yusaku via Vikram)
 
   AMBARI-503. Make sure epel rep is installed when installing the agent. (Mahadev via Vikram)

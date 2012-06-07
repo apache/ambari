@@ -5,10 +5,10 @@ class hdp-templeton::params() inherits hdp::params
   ###pig and hive tar url connector
   $download_url = $hdp::params::apache_artifacts_download_url
 
-  $pig_tar_url = "${download_url}/pig-0.9.2.tar.gz"
-  $pig_tar_name = hdp_default("pig_tar_name","pig.tar.gz")
-  $hive_tar_url = "${download_url}/hive-0.9.0.tar.gz"
-  $hive_tar_name = hdp_default("hive_tar_name","hive.tar.gz")
+  $dest_pig_tar_name = hdp_default("pig_tar_name","pig.tar.gz")
+  $dest_hive_tar_name = hdp_default("hive_tar_name","hive.tar.gz")
+  $src_pig_tar_name = hdp_default("src_pig_tar_name","pig-0.9.2.tar.gz")
+  $src_hive_tar_name = hdp_default("src_hive_tar_name","hive-0.9.0.tar.gz")
 
   ### templeton-env
   $conf_dir = hdp_default("hadoop/templeton-env/conf_dir","/etc/templeton")

@@ -2,26 +2,24 @@ class hdp-hive::mysql-connector()
 {
   include hdp-hive::params
 
-  $url = $hdp-hive::params::mysql_connector_url
-  $zip_name = regsubst($url,'^.+/([^/]+$)','\1')
-  $jar_name = regsubst($zip_name,'zip$','.jar')
-  $target = "${hdp::params::artifact_dir}/${zip_name}"
   $hive_lib = $hdp-hive::params::hive_lib
+  $target = "${hive_lib}/mysql-connector-java.jar"
   
-  exec{ "curl hive_mysql_url":
-    command => "mkdir -p ${artifact_dir} ; curl -f --retry 10 ${url} -o ${target} ",
-    unless  => "test -f ${hive_lib}/${$zip_name}",
-    creates => $target,
-    path    => ["/bin","/usr/bin/"]
-  }
-  exec{ "unzip hive_mysql_url":
-    command => "unzip -o -j ${target}",
-    cwd     => $hive_lib,
-    group   => $hdp::params::hadoop_user_group,
-    unless  => "test -f ${hive_lib}/${$zip_name}",
-    creates => "${hive_lib}/${$zip_name}",
-    path    => ["/usr/bin/"]
-  }
+  anchor { 'hdp-hive::mysql-connector::begin':}
 
-  Exec["curl hive_mysql_url"] -> Exec["unzip hive_mysql_url"]
+   hdp::package { 'mysql-connector-java-5.0.8-4.jpp5' :
+     require   => Anchor['hdp-hive::mysql-connector::begin']
+   }
+
+   hdp::exec { 'mkdir -p ${artifact_dir} ;  cp /usr/share/java/mysql-connector-java.jar  ${target}':
+       command => "mkdir -p ${artifact_dir} ;  cp /usr/share/java/mysql-connector-java.jar  ${target}",
+       unless  => "test -f ${target}",
+       creates => $target,
+       path    => ["/bin","/usr/bin/"]
+       require => Hdp::Package['mysql-connector-java-5.0.8-4.jpp5'],
+       notify  =>  Anchor['hdp-hive::mysql-connector::end'],
+   }
+
+   anchor { hdp-hive::mysql-connector::end':}
+
 }
