@@ -376,6 +376,7 @@ CREATE TABLE  "Hosts" (
   disks_info BLOB, -- disk capacity json object, keys are mount-points
   discovery_status TEXT, -- discovery state - if we could connect properly
   bad_health_reason TEXT, -- failure reason if any
+  rack_info TEXT, -- rack information for host
   attributes BLOB, -- attributes blob to store additional attributes that may be required for the host
                    -- attributes stored currently:
                       -- "publicFQDN" => public hostname in case of AWS ( same as hostname in other environments )
