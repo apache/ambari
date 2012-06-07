@@ -7,7 +7,7 @@ include_once '../util/clusterState.php';
 include_once "uninstallCleanup.php";
 include_once "deployPostProcess.php";
 include_once "uninstallCleanup.php";
-include_once "manageServicesPostProcess.php";
+include_once "restoreDeployedStatePostProcess.php";
 
 $dbPath = $GLOBALS["DB_PATH"];
 
@@ -21,23 +21,26 @@ $map = array(
   "HMC::deployHDP" => array (
       "deployPostProcess"
   ),
+  "HMC::deployNodes" => array (
+      "restoreDeployedStatePostProcess"
+  ),
   "HMC::uninstallHDP" => array (
       "deBootStrap"
   ),
   "HMC::startAllServices" => array (
-      "manageServicesPostProcess"
+      "restoreDeployedStatePostProcess"
   ),
   "HMC::stopAllServices" => array (
-      "manageServicesPostProcess"
+      "restoreDeployedStatePostProcess"
   ),
   "HMC::startServices" => array (
-      "manageServicesPostProcess"
+      "restoreDeployedStatePostProcess"
   ),
   "HMC::stopServices" => array (
-      "manageServicesPostProcess"
+      "restoreDeployedStatePostProcess"
   ),
   "HMC::reconfigureServices" => array (
-      "manageServicesPostProcess"
+      "restoreDeployedStatePostProcess"
   )
 );
 

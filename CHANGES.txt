@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-508. Support Resume For Add Nodes (Varun via Vikram)
+
   AMBARI-506. Do not use epel in local yum repo installs (Hitesh via Vikram)
 
   AMBARI-507. Install rpms instead of tar.gz downloads (Ramya via Vikram)

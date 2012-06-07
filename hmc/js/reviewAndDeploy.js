@@ -44,7 +44,7 @@ function renderDeploySummary (deployInfo) {
         if (type == "checkbox") {
           readOnlyAttr = 'disabled="disabled"';
           var checkVal = perServiceInfo.properties[mPropertiesKey].value;
-          if (checkVal) {
+          if (checkVal == 'true') {
             valueAttr = 'checked=yes';
           } else {
             valueAttr = '';
@@ -94,7 +94,6 @@ globalYui.one('#deploySubmitButtonId').on('click',function (e) {
     var nextScreenRenderFunction = renderDeployProgress;
     submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
 });
-
 
 function renderDeploy (deployInfo) {
   globalDeployInfo = deployInfo;

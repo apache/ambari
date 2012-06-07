@@ -99,46 +99,12 @@ globalYui.one('#deployAddedNodesSubmitButtonId').on('click',function (e) {
     e.target.set('disabled', true);
 
     var deployRequestData = getSelectedComponents();
-    var deployAddedNodes = new DeployAddedNodes();
-    
-    globalYui.io("../php/frontend/deployAddedNodes.php?clusterName="+ InstallationWizard.SelectServicesForNewNodes.renderData.clusterName, {
-      method: 'POST',
-      data: globalYui.JSON.stringify(deployRequestData),
-      timeout : 10000,
-      on: {
-        start: function(x, o) {
-          e.target.set('disabled', false);
-          showLoadingImg();
-        },
-        complete: function(x, o) {
-          e.target.set('disabled', false);
-          hideLoadingImg();
-        },
-        success: function (x,o) {
-          globalYui.log("RAW DEPLOY DATA: " + o.responseText);
 
-          try {
-            deployProgressInfoJson = globalYui.JSON.parse(o.responseText);
-          } catch (e) {
-            alert("JSON Parse failed!");
-            return;
-          }
-
-          globalYui.log("PARSED DATA: " + globalYui.Lang.dump(deployProgressInfoJson));
-
-          /* Done with this stage, transition to the next. */
-          transitionToNextStage( "#selectServicesCoreDivId", deployRequestData, "#txnProgressCoreDivId", deployProgressInfoJson, deployAddedNodes.renderProgress);
-
-          /* At this point, our users are done with the installation wizard
-          * and have asked for a deploy, so there's no going back - remove
-          * all traces of #installationWizardProgressBarDivId.
-          */
-          globalYui.one('#installationWizardProgressBarDivId').setStyle('display', 'none');
-        },
-      failure: function (x,o) {
-        e.target.set('disabled', false);
-        alert("Async call failed!");
-      }
-    }
-  });
+    var url = "../php/frontend/deployAddedNodes.php?clusterName=" + InstallationWizard.SelectServicesForNewNodes.renderData.clusterName;
+    var requestData = deployRequestData;
+    var submitButton = e.target;
+    var thisScreenId = "#selectServicesCoreDivId";
+    var nextScreenId = "#txnProgressCoreDivId";
+    var nextScreenRenderFunction = renderDeployAddedNodesProgress;
+    submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
 });
