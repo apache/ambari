@@ -11,6 +11,10 @@ define hdp-hadoop::common(
 
 class hdp-hadoop::initialize()
 {
+  if ($hdp::params::component_exists['hdp-hadoop'] == true) {
+  } else {
+    $hdp::params::component_exists['hdp-hadoop'] = true
+  }
   hdp-hadoop::common { 'common':}
   anchor{'hdp-hadoop::initialize::begin':} -> Hdp-hadoop::Common['common'] -> anchor{'hdp-hadoop::initialize::end':}
 }
@@ -23,8 +27,6 @@ class hdp-hadoop(
   $hadoop_config_dir = $hdp-hadoop::params::conf_dir
   $mapred_user = $hdp-hadoop::params::mapred_user  
   $hdfs_user = $hdp-hadoop::params::hdfs_user  
-
-  $hdp::params::component_exists['hdp-hadoop'] = true
 
   anchor{'hdp-hadoop::begin':} 
   anchor{'hdp-hadoop::end':} 
