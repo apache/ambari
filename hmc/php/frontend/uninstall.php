@@ -28,7 +28,7 @@ if ($action == "wipeOut") {
 
 ////// need to generate the hosts.txt file with all the good nodes in the cluster
 $allHostsInfo = $dbAccessor->getAllHostsInfo($clusterName, 
-  array("=" => array ( "discoveryStatus" => "SUCCESS"));
+  array("=" => array ( "discoveryStatus" => "SUCCESS")));
 if ($allHostsInfo["result"] != 0 ) {
   $logger->log_error("Got error while getting hostsInfo ".$allHostsInfo["error"]);
   print json_encode($allHostsInfo);
@@ -40,7 +40,7 @@ $hostFileName = getHostsFilePath($clusterName);
 $hostFileHdl = fopen($hostFileName, "w");
 
 foreach ($allHostsInfo["hosts"] as $hostInfo) {
-  fwrite($hostFileHdl, "$hostInfo["hostName"]\n");
+  fwrite($hostFileHdl, $hostInfo["hostName"]."\n");
 }
 
 fclose($hostFileHdl);
