@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-477. Spec file for using installer with php-5.3 (Hitesh via Vikram)
+
   AMBARI-478. Checkbox in the review and deploy page does not show proper state (Vikram)
 
   AMBARI-476. Undefined offset: 0 in /usr/share/hmc/php/db/HMCDBAccessor.php on line 1030 (Hitesh via Vikram)
