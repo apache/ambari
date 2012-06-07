@@ -363,8 +363,8 @@ class Service {
     if ($dryRun) {
       $txnProgress = TransactionProgress::PENDING;
     }
-//    $desc = $this->name."-SMOKETEST-".TransactionProgress::$PROGRESS[$txnProgress];
-    $desc = getActionDescription($this->name, "SMOKE TEST", TransactionProgress::$PROGRESS[$txnProgress]);
+    $desc = getActionDescription($this->displayName, "SMOKE TEST",
+        TransactionProgress::$PROGRESS[$txnProgress]);
 
     $result =
         $this->db->persistTransaction($transaction,
