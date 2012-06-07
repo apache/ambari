@@ -31,7 +31,7 @@
   <div class="navbar">
     <div class="navbar-inner">
       <div class="container">
-        <a href="/hmc/html"><img id="logo" href="/hmc/html"></a>
+        <a href="/hmc/html"><img id="logo" src="/hmc/images/logo-small.gif"></a>
         <a id="brand" class="brand" href="/hmc/html"></a>				
         <ul class="nav">
           <li><a href="/hmc/html">Cluster Management</a></li>
@@ -65,7 +65,9 @@
 	<section class="clear"></section>
 	
 	<section class="widget roundedBox alertSummaryWidget">
-		<h1 class="title">HDFS Service</h1>
+    <h1 style="float:left" class="title">HDFS Service</h1>
+    <form class="checkbox"><input type="checkbox" id="autorefresh" onclick="a.autoRefresh()" /> Auto Refresh</form>
+    <div style="clear:both"></div>
 		
 		<section id="hdfsSummaryContainer">
 			<table id="alertSummaryTable" class="clusterSummaryGrid">
