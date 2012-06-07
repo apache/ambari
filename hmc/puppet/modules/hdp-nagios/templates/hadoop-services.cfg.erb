@@ -13,8 +13,8 @@ define service {
         use                     hadoop-service
         service_description     PUPPET::Puppet agent down
         servicegroups           PUPPET
-        check_command           check_puppet_agent_status
-        normal_check_interval   0.25
+        check_command           check_tcp!8139!-w 1 -c 1
+        normal_check_interval   1
         retry_check_interval    0.25
         max_check_attempts      4
 }
@@ -316,7 +316,6 @@ define service {
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
-        notifications_enabled   0
 }
 
 define service {
@@ -328,7 +327,6 @@ define service {
         normal_check_interval   5
         retry_check_interval    1
         max_check_attempts      2
-        notifications_enabled   0
 }
 
 # MAPREDUCE::TASKTRACKER Checks 
@@ -341,7 +339,6 @@ define service {
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
-        notifications_enabled   0
 }
 <%end-%>
 
@@ -356,7 +353,6 @@ define service {
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
-        notifications_enabled   0
 }
 <%end-%>
 

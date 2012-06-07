@@ -1,23 +1,23 @@
 {
     "Global": [
         {
-            "description": "Jobs submitted to the JobTracker", 
+            "description": "Number of Map/Reduce jobs submitted to the JobTracker", 
             "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
-            "title": "JobTracker Jobs: Submitted", 
+            "title": "Map/Reduce Jobs: Submitted", 
             "url":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_jobs_submitted_report"
         }, 
         {
-            "description": "Jobs running on the JobTracker", 
+            "description": "Number of jobs currently running on the cluster", 
             "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
-            "title": "JobTracker Jobs: Running", 
+            "title": "Map/Reduce Jobs: Running", 
             "url":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_jobs_running_report"
         }, 
         {
-            "description": "Jobs completed on the JobTracker, to give a feel for cluster-wide job throughput", 
+            "description": "Number of Map/Reduce jobs completed, to give a feel for cluster-wide job throughput", 
             "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
-            "title": "JobTracker Jobs: Completed", 
+            "title": "Map/Reduce Jobs: Completed", 
             "url":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_jobs_completed_report"
         }, 

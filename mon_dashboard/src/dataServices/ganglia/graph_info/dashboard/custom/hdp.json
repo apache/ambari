@@ -19,9 +19,9 @@
             "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_reduce_slot_report"
         }, 
         {
-            "description": "Waiting Maps and Reduces, to give a feel for a combined MapReduce backlog", 
+            "description": "Map and Reduce tasks waiting to be schdeduled, indicating load on the Map/Reduce cluster", 
             "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%", 
-            "title": "MapReduce Backlog", 
+            "title": "Waiting Map/Reduce tasks", 
             "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=hdp_mon_jobtracker_mapreduce_report"
         }
     ]
