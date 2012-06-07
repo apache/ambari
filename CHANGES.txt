@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-465. Fix suggestions for Map Red Child java opts. (Mahadev via Vikram)
+
   AMBARI-461. Uninstall shoud stop nagios service first before stopping other services (Hitesh via Vikram)
   
   AMBARI-464. Auto refresh should be applicable to all the service tabs (Suhas via Vikram)

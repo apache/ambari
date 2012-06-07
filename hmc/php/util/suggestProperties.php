@@ -62,6 +62,18 @@ class SuggestProperties {
     return $normalizedMem;
   }
 
+  function allocateHeapSizeWithMax($componentName, $hostRoles, $hostInfoMap,
+      $allHostsToComponents, $is32bit) {
+    $heapSizeT = $this->allocateHeapSizeForDaemon($componentName, $hostRoles, $hostInfoMap,
+        $allHostsToComponents, $is32bit);
+    if ($heapSizeT > 3072) {
+      $heapSize = 3072;
+    }
+
+    $this->logger->log_info("Calculating Maxed Heap Size For ".$componentName ." $heapSizeT" );
+    return $heapSizeT; 
+  }
+
   function getMaxHeapSizeForDaemon($componentName, $hostRoles, $hostInfoMap,
       $allHostsToComponents, $is32bit) {
     $this->logger->log_info("Calculating Max Heap Size For ".$componentName);
@@ -262,7 +274,10 @@ class SuggestProperties {
     // limit on the host
     $heapSize = $this->allocateHeapSizeForDaemon("TASKTRACKER", $hostRoles,
         $hostInfoMap, $allHostsToComponents, TRUE);
-    $result["configs"]["mapred_child_java_opts_sz"] = $heapSize;
+    $heapSizeWithMax = $this->allocateHeapSizeWithMax("TASKTRACKER", $hostRoles,
+        $hostInfoMap, $allHostsToComponents, TRUE);
+    $this->logger->log_info("Maxed Heap Size for MR Child opts ".$heapSizeWithMax);
+    $result["configs"]["mapred_child_java_opts_sz"] = $heapSizeWithMax;
 
     if (array_key_exists("HBASE", $services)) {
       $heapSize = $this->allocateHeapSizeForDaemon("HBASE_REGIONSERVER", $hostRoles,
