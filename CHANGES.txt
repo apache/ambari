@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-420. Improve style on error log popups (Yusaku via Vikram)
+
   AMBARI-419. Add Basic Keyboard Action Support For HMC UI (Varun via Vikram)
 
   AMBARI-418. Remove Redundant Titles From Reconfigure Panel (Varun via Vikram)

@@ -146,18 +146,10 @@ caption {
 }
 
 thead {
-  font-size:1.2em;
+  font-size:13px;
   font-weight:bold;
-  /*
-  */
   color:white;
-  background-color: #00CC00;
-  /*
-  color: green;
-  background-color: #33CC33;
-  background-color: #DBDBDB;
-  background-color: #BF3030;
-  */
+  background-color:#65B642;
   border-bottom:1px solid #7A7A7A ;
 }
 
@@ -165,6 +157,7 @@ thead tr {
 }
 
 thead tr:hover {
+  background-color:#65B642;
 }
 
 th {
@@ -178,21 +171,15 @@ tr {
   */
 
   /* Color transition */
-  transition: background-color 1s cubic-bezier(.09, .99, .37, .98);
-  -moz-transition: background-color 1s cubic-bezier(.09, .99, .37, .98);    /* FF3.7+ */
-  -o-transition: background-color 1s cubic-bezier(.09, .99, .37, .98) ;      /* Opera 10.5 */
-  -webkit-transition: background-color 1s cubic-bezier(.09, .99, .37, .98) ; /* Saf3.2+, Chrome */
+  transition: background-color 0.5s cubic-bezier(.09, .99, .37, .98);
+  -moz-transition: background-color 0.5s cubic-bezier(.09, .99, .37, .98);    /* FF3.7+ */
+  -o-transition: background-color 0.5s cubic-bezier(.09, .99, .37, .98) ;      /* Opera 10.5 */
+  -webkit-transition: background-color 0.5s cubic-bezier(.09, .99, .37, .98) ; /* Saf3.2+, Chrome */
 }
 
 tr:hover {
-  background-color: #DBDBDB;
-  /* 
-  background-color: #33CC33;
-  */
+  background-color:#DBDBDB;
   height:30px;
-  /* 
-  opacity:1.0;
-  */
 }
 
 td {
