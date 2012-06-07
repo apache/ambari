@@ -195,7 +195,7 @@ class hdp::params()
     #   32 => 'sqoop-1.4.1-1.noarch'
     #},
     templeton => {
-       32 => 'templeton.i386'
+       32 => 'templeton'
     },
     oozie-client => {
       64 => 'oozie-client.noarch'
