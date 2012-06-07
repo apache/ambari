@@ -432,25 +432,28 @@ div.separator {
 	border:1px solid #bbb;
 	border-width:0 0 1px 0;
 }
-
+.navbar .nav {
+  float:none;
+  overflow:hidden;
+}
 .navbar .nav .active > a, .navbar .nav .active > a:hover {
-    background-color: #999999;
-    color: #FFFFFF;
-    text-decoration: none;
+  background-color: #999999;
+  color: #FFFFFF;
+  text-decoration: none;
 }
 .navbar .nav > li > a {
 	border-radius:8px;
 	-webkit-border-radius: 8px;
 	-moz-border-radius: 8px;
-    color: #666666;
-    float: none;
-    font-size: 13px;
-    font-weight: bold;
-    line-height: 19px;
-    margin: 6px 10px 6px 0;
-    padding: 8px 14px;
-    text-decoration: none;
-    text-shadow: none;
+  color: #666666;
+  float: none;
+  font-size: 13px;
+  font-weight: bold;
+  line-height: 19px;
+  margin: 6px 10px 6px 0;
+  padding: 8px 14px;
+  text-decoration: none;
+  text-shadow: none;
 }
 .navbar .nav > li > a:hover {
   background-color: transparent;
@@ -463,6 +466,9 @@ div.separator {
 .navbar #logo {
 	float:left;
 	padding-top:7px;
+}
+.navbar .nav > li.right {
+  float:right; 
 }
 /* END TOPNAV */
 /* BEGIN SUBNAV */

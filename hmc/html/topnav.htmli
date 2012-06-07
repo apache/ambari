@@ -7,13 +7,14 @@
 			<div class="container">
 				<a href="<?php echo $homeUrl ?>"><img id="logo" src="../images/logo-small.gif"></a>
 				<a class="brand" href="<?php echo $homeUrl ?>"><?php echo $RES['app.name'] ?></a>
+        <ul class="nav">
 				<?php if (isset($clusterState) && $clusterState == 'OPERATIONAL') { ?> 
-				<ul class="nav">
 					<li class="active"><a href="<?php echo $homeUrl ?>">Cluster Management</a>
 					</li>
 					<li><a href="/hdp/dashboard/ui/home.html">Monitoring</a></li>
-        </ul>					
 				<?php } ?>
+          <li class="right"><a class="help" href="#" target="_blank">Help</a></li>
+				</ul>         
 			</div>
 		</div>
 	</div>
