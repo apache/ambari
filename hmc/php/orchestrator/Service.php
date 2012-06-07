@@ -363,7 +363,7 @@ class Service {
     if ($dryRun) {
       $txnProgress = TransactionProgress::PENDING;
     }
-    $desc = getActionDescription($this->displayName, "smoke test",
+    $desc = getActionDescription($this->displayName, "test",
         TransactionProgress::$PROGRESS[$txnProgress]);
 
     $result =
@@ -385,7 +385,7 @@ class Service {
   }
 
   public function smoke($transaction, $dryRun) {
-    $this->currentAction = "smoke test";
+    $this->currentAction = "test";
 
     $this->checkIsClientOnly();
     if ($this->isClientOnly

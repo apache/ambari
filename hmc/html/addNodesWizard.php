@@ -57,11 +57,7 @@
  
               <fieldset>
                 <form id="addNodesFilesFormId" enctype="multipart/form-data" method="post">
-                  <p>
-                  <label for="clusterDeployUserId"><?php echo $RES['common.sshUsername.label'] ?></label>
-                  <input type="text" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">
-                  </p>
-                  <br/>
+                  <input type="hidden" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">
                   <p>
                   <label for="clusterDeployUserIdentityFileId"><?php echo $RES['common.sshPrivateKeyFile.label'] ?></label>
                   <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFileId" value="" placeholder="">

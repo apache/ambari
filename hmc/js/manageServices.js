@@ -569,6 +569,7 @@ var fetchClusterServicesPollerResponseHandler = {
     var serviceManagementMarkup = '';
 
     // Separate block for client-only software
+    /*
     var clientOnlySoftwareMarkup = '';
     for (var serviceName in clusterServices) {
       var serviceInfo = clusterServices[serviceName];
@@ -581,9 +582,10 @@ var fetchClusterServicesPollerResponseHandler = {
       serviceManagementMarkup += clientOnlySoftwareMarkup;
       serviceManagementMarkup += '</div>';
     }
+    */
 
     // Real services with server side components
-    serviceManagementMarkup += '<div class="serviceManagementGroup"><h2>Long-running services</h2><ul>';
+    serviceManagementMarkup += '<div class="serviceManagementGroup" style="margin-top:30px"><ul>';
     for (var serviceName in clusterServices) {
       var serviceInfo = clusterServices[serviceName];
       if (clusterServices.hasOwnProperty(serviceName) && serviceInfo.attributes.runnable) {

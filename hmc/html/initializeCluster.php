@@ -114,9 +114,7 @@
                   </div>                  
                   <div class="pageContent">
                   <form id="addNodesFilesFormId" enctype="multipart/form-data" method="post">
-                    <label for="clusterDeployUserId"><?php echo $RES['common.sshUsername.label'] ?></label>
-                    <input type="text" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">
-                    <div class="separator"></div>
+                    <input type="hidden" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">
                     <label for="clusterDeployUserIdentityFileId"><?php echo $RES['common.sshPrivateKeyFile.label'] ?></label>
                     <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFileId" value="" placeholder="">
                     <div class="separator"></div>
@@ -323,7 +321,7 @@
                 'js/configureServicesUtils.js',
                 'js/configureServices.js',
                 'js/reviewAndDeploy.js',
-                'js/deployProgress.js'                  
+                'js/deployProgress.js'     
               ];
             </script>
 

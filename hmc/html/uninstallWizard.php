@@ -35,29 +35,28 @@
         <div id="installationMainFormsDivId">    
           <div id="formStatusDivId" class="alert alert-error" style="display:none">					
           </div>        
-          <div id="addNodesCoreDivId" style="display:block">
-            <fieldset>
-              <form id="addNodesFilesFormId" enctype="multipart/form-data" method="post">
-              <label for="clusterDeployUserId"><?php echo $RES['common.sshUsername.label'] ?></label>
-              <input type="text" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">      
-              <div class="separator"></div>
-              <label for="clusterDeployUserIdentityFileId"><?php echo $RES['common.sshPrivateKeyFile.label'] ?></label>
-              <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFileId" value="" placeholder="">
-              <div class="separator"></div>
-              <div id="fileUploadWrapperDivId">
-                <iframe name="fileUploadTarget" id="fileUploadTargetId" src="about:blank" style="display:none"></iframe>
-              </div>              
-              <div class="separator"></div>
-              <div id="confirmWipeOutDivId">
-                <label class="checkbox" for="confirmWipeOutId"><?php echo $RES['uninstallWizard.wipeout.label'] ?>
-                  <input type="checkbox" id="confirmWipeOutCheckId" value="false">
-                </label>
-              </div>
-              <div class="separator"></div>
-              <input type="button" class="btn btn-large" id="addNodesSubmitButtonId" value="<?php echo $RES['uninstallWizard.submit.label'] ?>">
-            </fieldset>
+          <div class="pageContent">
+            <div id="addNodesCoreDivId" style="display:block">
+              <fieldset>
+                <form id="addNodesFilesFormId" enctype="multipart/form-data" method="post">
+                <input type="hidden" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">
+                <label for="clusterDeployUserIdentityFileId"><?php echo $RES['common.sshPrivateKeyFile.label'] ?></label>
+                <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFileId" value="" placeholder="">
+                <div class="separator"></div>
+                <div id="fileUploadWrapperDivId">
+                  <iframe name="fileUploadTarget" id="fileUploadTargetId" src="about:blank" style="display:none"></iframe>
+                </div>              
+                <div class="separator"></div>
+                <div id="confirmWipeOutDivId">
+                  <label class="checkbox" for="confirmWipeOutId"><?php echo $RES['uninstallWizard.wipeout.label'] ?>
+                    <input type="checkbox" id="confirmWipeOutCheckId" value="false">
+                  </label>
+                </div>
+                <div class="separator"></div>
+                <input type="button" class="btn btn-large" id="addNodesSubmitButtonId" value="<?php echo $RES['uninstallWizard.submit.label'] ?>">
+              </fieldset>
+            </div>
           </div>
-
           <?php require "./txnUtils.htmli"; ?>
 
         </div>

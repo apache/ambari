@@ -160,7 +160,7 @@ function renderDeployProgress (deployProgressInfo) {
   };
 
   var deployProgressWidget = new TxnProgressWidget
-    ( deployProgressInfo, 'Cluster Deploy', deployProgressStatusMessage, deployProgressPostCompletionFixup );
+    ( deployProgressInfo, 'Deployment Progress', deployProgressStatusMessage, deployProgressPostCompletionFixup );
   
   deployProgressWidget.show();
 } 
