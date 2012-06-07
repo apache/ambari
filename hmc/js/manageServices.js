@@ -147,13 +147,10 @@ function setupStartStopServiceScreen(action, serviceName) {
   confirmationDataPanelBodyContent += getAffectedDependenciesMarkup(affectedServices, serviceName, action);
   confirmationDataPanelBodyContent = '<div id="confirmationDataPanelBodyContent">' + confirmationDataPanelBodyContent + '</div>';
 
-  var confirmationDataPanelWidth = 800;
-  var confirmationDataPanelHeight = 400;
-
   confirmationDataPanel.set( 'headerContent', confirmationDataPanelTitle);
   confirmationDataPanel.set( 'bodyContent', confirmationDataPanelBodyContent);
-  confirmationDataPanel.set( 'height', confirmationDataPanelHeight );
-  confirmationDataPanel.set( 'width', confirmationDataPanelWidth );
+  confirmationDataPanel.set( 'height', 400);
+  confirmationDataPanel.set( 'width', 800);
 
   confirmationDataPanel.addButton( panelNoButton);
   confirmationDataPanel.addButton( panelYesButton );
@@ -181,13 +178,10 @@ function setupStartStopAllServicesScreen(action) {
     confirmationDataPanelBodyContent = "We are now going to stop all the services in the cluster";
   }
 
-  var confirmationDataPanelWidth = 800;
-  var confirmationDataPanelHeight = 400;
-
   confirmationDataPanel.set( 'headerContent', confirmationDataPanelTitle);
   confirmationDataPanel.set( 'bodyContent', confirmationDataPanelBodyContent);
-  confirmationDataPanel.set( 'height', confirmationDataPanelHeight );
-  confirmationDataPanel.set( 'width', confirmationDataPanelWidth );
+  confirmationDataPanel.set( 'height', 400);
+  confirmationDataPanel.set( 'width', 800);
 
   confirmationDataPanel.addButton( panelNoButton);
   confirmationDataPanel.addButton( panelYesButton );
@@ -204,7 +198,7 @@ function setupReconfigureScreens(serviceName) {
     action: function (e) {
       e.preventDefault();
 
-      localReconfigureServiceData = generateUserOpts();
+      localReconfigureServiceData = configureServicesUtil.generateUserOpts();
       var remoteProps = remoteReconfigureServiceData.services[serviceName].properties;
       var localProps = localReconfigureServiceData[serviceName].properties;
       var allEqual = true;
@@ -247,11 +241,9 @@ function setupReconfigureScreens(serviceName) {
   // Render first with a loading image and then get config items
   confirmationDataPanelBodyContent = 
     "<img id=errorInfoPanelLoadingImgId class=loadingImg src=../images/loading.gif />";
-  var confirmationDataPanelWidth = 1000;
-  var confirmationDataPanelHeight = 500;
   var confirmationDataPanelTitle = getTitleForReconfiguration(serviceName);
-  confirmationDataPanel.set( 'height', confirmationDataPanelHeight );
-  confirmationDataPanel.set( 'width', confirmationDataPanelWidth );
+  confirmationDataPanel.set( 'height', 500);
+  confirmationDataPanel.set( 'width', 1000);
   confirmationDataPanel.set( 'headerContent', confirmationDataPanelTitle);
   confirmationDataPanel.set( 'bodyContent', confirmationDataPanelBodyContent );
   showPanel();
@@ -262,7 +254,7 @@ function setupReconfigureScreens(serviceName) {
     // Store the remote data
     remoteReconfigureServiceData = serviceConfigurationData;
 
-    var serviceConfigurationMarkup = constructDOM( serviceConfigurationData );
+    var serviceConfigurationMarkup = configureServicesUtil.getOptionsSummaryMarkup(serviceConfigurationData, true);
 
     if( globalYui.Lang.trim( serviceConfigurationMarkup).length == 0 ) {
       serviceConfigurationMarkup = '<p>There is nothing to reconfigure for this service.</p>';
@@ -360,7 +352,7 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
             hidePanel(function() {
               setupReconfigureFirstScreen(serviceName);
               showPanel( function() {
-                handleConfigureServiceErrors( manageServicesResponseJson );
+                configureServicesUtil.handleConfigureServiceErrors( manageServicesResponseJson );
             });
           });
           } else {
