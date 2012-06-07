@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-441. Add ganglia monitor to all the hosts including collector. (Mahadev via Vikram)
+
   AMBARI-440. Keep the touch file for NN format in /var/run rather than /etc/conf. (Mahadev via Vikram)
 
   AMBARI-439. Gmetad start fails sometimes. (Ramya via Vikram)

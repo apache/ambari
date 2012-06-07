@@ -159,9 +159,8 @@ class SelectNodes {
       $db->addHostsToComponent($clusterName, "HBASE_REGIONSERVER", $hostlist, "ASSIGNED", "");
     }
     if (array_key_exists("GANGLIA", $services)) {
-      $hosts = $this->getExcludeHosts($hostlist, array($gangliaMaster));
       if (sizeof($hosts) > 0) {
-        $db->addHostsToComponent($clusterName, "GANGLIA_MONITOR", $hosts, "ASSIGNED", "");
+        $db->addHostsToComponent($clusterName, "GANGLIA_MONITOR", $hostlist, "ASSIGNED", "");
       }
     }
   }
@@ -288,16 +287,15 @@ class SelectNodes {
     }
     /** make sure ganglia is added to all the masters **/
     $this->logger->log_debug("Host for Gangalia Master $gangliaMaster");
+    $masterHosts = array();
     foreach($masterToHost as $componentName=>$hostNames) {
-      $masterHosts = array();
       foreach($hostNames as $hostName) {
-        if ($hostName != $gangliaMaster) {
-          array_push($masterHosts, $hostName);
-          $this->logger->log_debug("Adding host $hostName for GANGLIA_MONITOR");
-        }
+        array_push($masterHosts, $hostName);
+        $this->logger->log_debug("Adding host $hostName for GANGLIA_MONITOR");
       }
-      $db->addHostsToComponent($clusterName, "GANGLIA_MONITOR", $masterHosts, "ASSIGNED", "");
     }
+    $db->addHostsToComponent($clusterName, "GANGLIA_MONITOR", $masterHosts, "ASSIGNED", "");
+
     // add DASHBOARD component
     $dashhostName = strtolower(exec('hostname -f'));
     $db->addHostsToComponent($clusterName, "DASHBOARD" , array($dashhostName), "ASSIGNED", "");
