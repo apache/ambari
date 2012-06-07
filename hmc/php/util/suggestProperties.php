@@ -63,14 +63,14 @@ class SuggestProperties {
   }
 
   function allocateHeapSizeWithMax($componentName, $hostRoles, $hostInfoMap,
-      $allHostsToComponents, $is32bit) {
+      $allHostsToComponents, $is32bit, $max) {
     $heapSizeT = $this->allocateHeapSizeForDaemon($componentName, $hostRoles, $hostInfoMap,
         $allHostsToComponents, $is32bit);
-    if ($heapSizeT > 3072) {
-      $heapSize = 3072;
+    if ($heapSizeT > $max) {
+      $heapSizeT = $max;
     }
 
-    $this->logger->log_info("Calculating Maxed Heap Size For ".$componentName ." $heapSizeT" );
+    $this->logger->log_info("Calculating Maxed Heap Size For ".$componentName ." $heapSizeT with max $max" );
     return $heapSizeT; 
   }
 
@@ -265,8 +265,9 @@ class SuggestProperties {
           $hostInfoMap, $allHostsToComponents, FALSE);
       $result["configs"]["hbase_master_heapsize"] = $hbaseHeap;
     }
-    $heapSize = $this->allocateHeapSizeForDaemon("DATANODE", $hostRoles,
-        $hostInfoMap, $allHostsToComponents, TRUE);
+    $heapSize = $this->allocateHeapSizeWithMax("DATANODE", $hostRoles,
+        $hostInfoMap, $allHostsToComponents, TRUE, 2048);
+    // cap the datanode heap size and hadoop heap size
     $result["configs"]["dtnode_heapsize"] = $heapSize;
     $result["configs"]["hadoop_heapsize"] = $heapSize;
 
@@ -275,7 +276,7 @@ class SuggestProperties {
     $heapSize = $this->allocateHeapSizeForDaemon("TASKTRACKER", $hostRoles,
         $hostInfoMap, $allHostsToComponents, TRUE);
     $heapSizeWithMax = $this->allocateHeapSizeWithMax("TASKTRACKER", $hostRoles,
-        $hostInfoMap, $allHostsToComponents, TRUE);
+        $hostInfoMap, $allHostsToComponents, TRUE, 3072);
     $this->logger->log_info("Maxed Heap Size for MR Child opts ".$heapSizeWithMax);
     $result["configs"]["mapred_child_java_opts_sz"] = $heapSizeWithMax;
 
