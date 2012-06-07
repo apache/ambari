@@ -1,29 +1,38 @@
 class hdp-ganglia(
-  $service_state = $hdp::params::cluster_client_state
+  $service_state
 )
 {
-  include hdp-ganglia::params
-  $gmetad_user = $hdp-ganglia::params::gmetad_user
-  $gmond_user = $hdp-ganglia::params::gmond_user
-  $ganglia_config_dir = $hdp-ganglia::params::ganglia_shell_cmds_dir
- 
-  user { $gmond_user : shell => '/bin/bash'} #provision for nobody user
-  if ( $gmetad_user != $gmond_user) {
-    user { $gmetad_user : shell => '/bin/bash'} #provision for nobody user
-  }
-  if ($service_state == 'no_op') {
-  } elsif ($service_state == 'uninstalled') {
-    hdp::package { 'ganglia-monitor' :
-      ensure => 'uninstalled'
-    }
-  } elsif ($service_state in ['running','installed_and_configured','stopped']) {
-    hdp::package { 'ganglia-monitor':
-      java_needed => false
-    }
-  } 
+  if ($service_state != 'no_op') {
+    include hdp-ganglia::params
+    $gmetad_user = $hdp-ganglia::params::gmetad_user
+    $gmond_user = $hdp-ganglia::params::gmond_user
+    $ganglia_config_dir = $hdp-ganglia::params::ganglia_shell_cmds_dir
 
-  anchor{'hdp-ganglia::begin':} -> User<|title == $gmond_user or title == $gmetad_user|> ->  
-    Hdp::Package['ganglia-monitor'] -> anchor{'hdp-ganglia::end':}
+    anchor{'hdp-ganglia::begin':} 
+    if ($service_state == 'uninstalled') {
+      hdp::package { 'ganglia-monitor' :
+        ensure => 'uninstalled'
+      }
+      package { 'libganglia' :
+        ensure => 'purged'
+      }
+      Anchor['hdp-ganglia::begin'] -> Hdp::Package['ganglia-monitor'] -> Package['libganglia'] -> Anchor['hdp-ganglia::end']
+
+    } elsif ($service_state in ['running','installed_and_configured','stopped']) {
+      user { $gmond_user : shell => '/bin/bash'} #provision for nobody user
+      if ( $gmetad_user != $gmond_user) {
+        user { $gmetad_user : shell => '/bin/bash'} #provision for nobody user
+      }
+
+      hdp::package { 'ganglia-monitor':
+        java_needed => false
+      }
+
+      Anchor['hdp-ganglia::begin'] -> User<|title == $gmond_user or title == $gmetad_user|> ->  
+        Hdp::Package['ganglia-monitor'] -> Anchor['hdp-ganglia::end']
+    }
+    anchor{'hdp-ganglia::end':}
+  }
 }
 
 class hdp-ganglia::service::gmond(

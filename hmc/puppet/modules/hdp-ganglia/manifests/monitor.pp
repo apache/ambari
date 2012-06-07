@@ -4,17 +4,19 @@ class hdp-ganglia::monitor(
   $opts = {}
 ) inherits hdp-ganglia::params
 {
+
+  #note: includes the common package ganglia-monitor
+  class { 'hdp-ganglia':
+    service_state => $service_state
+  }
   if ($service_state == 'no_op') {
   } elsif ($service_state in ['uninstalled']) {
-    #note: includes the common package ganglia-monitor
-    include hdp-ganglia
     class { 'hdp-ganglia::config':
       ganglia_server_host => $ganglia_server_host,
       service_state       => $service_state
     }
   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
     #note: includes the common package ganglia-monitor
-    include hdp-ganglia
     class { 'hdp-ganglia::config': 
       ganglia_server_host => $ganglia_server_host,
       service_state       => $service_state
