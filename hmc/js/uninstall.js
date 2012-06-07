@@ -72,34 +72,55 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
   
   var doWipeout = globalYui.one('#confirmWipeOutCheckId').get('checked');
   var warningMessage = doWipeout ? "All your data, in addition to services, will be deleted from all your cluster nodes.  Are you sure you want to proceed?" : "All your services will be deleted from all your cluster nodes.  Your data will not be deleted.  Are you sure you want to proceed?";
-  if (!confirm(warningMessage)) {
-	  return;
-  }
+  
+  var confirmPanel = createInformationalPanel('#informationalPanelContainerDivId','Uninstall Cluster');
+  confirmPanel.set('centered', true);
+  confirmPanel.set('bodyContent', warningMessage);
+  confirmPanel.addButton({
+    value: 'Cancel',
+    action: function (e) {
+      e.preventDefault();
+      destroyInformationalPanel(confirmPanel);
+    },
+    classNames: '',
+    section: 'footer'
+  });
+  confirmPanel.addButton({
+    value: 'Proceed with Uninstall',
+    action: function (e) {
+      e.preventDefault();
+      destroyInformationalPanel(confirmPanel);
+      showLoadingImg();
 
-  showLoadingImg();
+      globalYui.log("About to upload files.");
+      e.target.set('disabled', true);
 
-  globalYui.log("About to upload files.");
-  e.target.set('disabled', true);
+      var addNodesFilesForm = globalYui.one("#addNodesFilesFormId");
 
-  var addNodesFilesForm = globalYui.one("#addNodesFilesFormId");
+      addNodesFilesForm.set('action', '../php/frontend/addNodes.php?clusterName=' + 
+        clusterName);
 
-  addNodesFilesForm.set('action', '../php/frontend/addNodes.php?clusterName=' + 
-    clusterName);
+      /* Set the target of the first form's upload to be a hidden iframe 
+       * on the page so as not to redirect to the PHP page we're POSTing 
+       * to.
+       *
+       * See http://www.openjs.com/articles/ajax/ajax_file_upload/ for 
+       * more on this.
+       */
+      addNodesFilesForm.set('target', 'fileUploadTarget');
 
-  /* Set the target of the first form's upload to be a hidden iframe 
-   * on the page so as not to redirect to the PHP page we're POSTing 
-   * to.
-   *
-   * See http://www.openjs.com/articles/ajax/ajax_file_upload/ for 
-   * more on this.
-   */
-  addNodesFilesForm.set('target', 'fileUploadTarget');
+      /* And then programmatically submit the first of the 2 forms. */ 
+      addNodesFilesForm.submit();
+      globalYui.log("Files submitted to server.");
 
-  /* And then programmatically submit the first of the 2 forms. */ 
-  addNodesFilesForm.submit();
-  globalYui.log("Files submitted to server.");
+      e.target.set('disabled', false);
+    },
+    classNames: 'okButton',
+    section: 'footer'
+  });
 
-  e.target.set('disabled', false);
+  confirmPanel.show();
+  
 });
 
 var setupNodesJson = "";

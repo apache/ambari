@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-423. Uninstall cluster can't be automated by Selenium due to the internal confirmation window (Yusaku via Vikram)
+
   AMBARI-422. Increase Threshold For Number Of Successive Backend Connection Failures (Varun via Vikram)  
 
   AMBARI-420. Improve style on error log popups. Added missing file (Mahadev via Vikram)
