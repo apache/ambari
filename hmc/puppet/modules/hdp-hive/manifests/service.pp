@@ -15,7 +15,7 @@ class hdp-hive::service(
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
     #TODO: this needs to be fixed
-    $daemon_cmd = "ps aux | awk '{print $1,$2}' | grep ${user} | awk '{print $2}' | xargs kill >/dev/null 2>&1"
+    $daemon_cmd = "ps aux | awk '{print \$1,\$2}' | grep ${user} | awk '{print \$2}' | xargs kill >/dev/null 2>&1"
     $no_op_test = "ps aux | grep -i [h]ive"
   } else {
     $daemon_cmd = undef
