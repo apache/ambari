@@ -125,7 +125,7 @@ class ServiceComponent {
    *   array( "result" => 0, "error" => msg)
    */
   public function uninstall($transaction, $dryRun) {
-    $this->currentAction = "UNINSTALL";
+    $this->currentAction = "uninstall";
 
     // Check if it's already UNINSTALLED
     if ($this->state === State::UNINSTALLED) {
@@ -149,7 +149,7 @@ class ServiceComponent {
    *   array( "result" => 0, "error" => msg)
    */
   public function install($transaction, $dryRun) {
-    $this->currentAction = "INSTALL";
+    $this->currentAction = "install";
 
     // Check if it's already INSTALLED
     if ($this->state === State::INSTALLED) {
@@ -187,7 +187,7 @@ class ServiceComponent {
    *   array( "result" => 0, "error" => msg)
    */
   public function start($transaction, $dryRun) {
-    $this->currentAction = "START";
+    $this->currentAction = "start";
 
     if ($this->isClient) {
       // no-op for clients
@@ -306,7 +306,7 @@ class ServiceComponent {
    *   array( "result" => 0, "error" => msg)
    */
   public function stop($transaction, $dryRun) {
-    $this->currentAction = "STOP";
+    $this->currentAction = "stop";
 
     if ($this->isClient) {
       // no-op for clients

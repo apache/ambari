@@ -1,5 +1,6 @@
 <?php
 switch ($requestPage) {
+case 'html':
 case 'index.php':
   $activeTab = 'SUMMARY';
   break;

@@ -98,7 +98,8 @@ globalYui.one('#deployAddedNodesSubmitButtonId').on('click',function (e) {
     e.target.set('disabled', true);
 
     var deployRequestData = getSelectedComponents();
-
+    var deployAddedNodes = new DeployAddedNodes();
+    
     globalYui.io("../php/frontend/deployAddedNodes.php?clusterName="+ InstallationWizard.SelectServicesForNewNodes.renderData.clusterName, {
       method: 'POST',
       data: globalYui.JSON.stringify(deployRequestData),
@@ -125,7 +126,7 @@ globalYui.one('#deployAddedNodesSubmitButtonId').on('click',function (e) {
           globalYui.log("PARSED DATA: " + globalYui.Lang.dump(deployProgressInfoJson));
 
           /* Done with this stage, transition to the next. */
-          transitionToNextStage( "#selectServicesCoreDivId", deployRequestData, "#txnProgressCoreDivId", deployProgressInfoJson, renderDeployProgress );
+          transitionToNextStage( "#selectServicesCoreDivId", deployRequestData, "#txnProgressCoreDivId", deployProgressInfoJson, deployAddedNodes.renderProgress);
 
           /* At this point, our users are done with the installation wizard
           * and have asked for a deploy, so there's no going back - remove

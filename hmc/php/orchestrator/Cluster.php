@@ -50,7 +50,7 @@ class Cluster {
    * @param transaction transactionId for the operation
    */
   public function deployHDP($transaction) {
-    $this->currentAction = "INSTALL";
+    $this->currentAction = "Cluster install";
     $result = $this->_deployHDP($transaction, TRUE);
     if ($result['result'] !== 0) {
       return $result;
@@ -209,7 +209,7 @@ class Cluster {
    * @param transaction transactionId for the operation
    */
   public function uninstallHDP($transaction, $wipeoutData = FALSE) {
-    $this->currentAction = "Uninstall";
+    $this->currentAction = "Cluster uninstall";
     $this->logger->log_info("Uninstalling HDP, wipeoutDataFlag="
         . $wipeoutData);
 
@@ -315,7 +315,7 @@ class Cluster {
 
   private function _restartDashboardAndNagios($transaction, $dryRun,
       $restartNagiosOnly = FALSE) {
-    $this->currentAction = "Nagios/Ganglia Reconfiguration";
+    $this->currentAction = "Reconfigure Nagios/Ganglia";
     $this->logger->log_info("Restarting dashboard and nagios, dryRun=" . $dryRun);
 
     // check if nagios installed and needs to be restarted
@@ -402,7 +402,7 @@ class Cluster {
 
   private function _installNodes($transaction, $hostCompMapping, $dryRun) {
     $this->logger->log_info("Installing on nodes dryRun=" . $dryRun);
-    $this->currentAction = "Install Nodes";
+    $this->currentAction = "Install nodes";
     $hostsToInstall = array();
     $allHosts = array();
     $compMapping = array();
@@ -488,7 +488,7 @@ class Cluster {
   private function _startNodes($transaction, $hostCompMapping, $dryRun) {
     $this->logger->log_info("Starting nodes dryRun=" . $dryRun);
 
-    $this->currentAction = "Start Nodes";
+    $this->currentAction = "Start nodes";
     $hostsToStart = array();
     $kickHosts = array();
     $noOpHosts = array();
@@ -1020,10 +1020,10 @@ class Cluster {
   private function setState($state, $transaction, $dryRun) {
     $txnProgress = getTransactionProgressFromState($state);
 //  $desc = "CLUSTER"."-".$this->currentAction."-". TransactionProgress::$PROGRESS[$txnProgress];
-    $desc = getActionDescription("Cluster", $this->currentAction, TransactionProgress::$PROGRESS[$txnProgress]);
+    $desc = getActionDescription("", $this->currentAction, TransactionProgress::$PROGRESS[$txnProgress]);
     if ($dryRun) {
 //      $desc = "CLUSTER"."-".$this->currentAction."-PENDING";
-      $desc = getActionDescription("Cluster", $this->currentAction, "PENDING");
+      $desc = getActionDescription("", $this->currentAction, "PENDING");
     }
     $result =
       $this->db->persistTransaction($transaction, State::$STATE[$state],

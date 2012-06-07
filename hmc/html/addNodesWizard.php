@@ -37,7 +37,7 @@
                 <span class="installationWizardStageNumber">
                   2   
                 </span>
-                Select services
+                Install Services
               </div>
             </li>
           </ol>
@@ -131,7 +131,7 @@
         '../js/addNodes.js', 
         '../js/addNodesProgress.js', 
         '../js/selectComponents.js', 
-        '../js/deployProgress.js', 
+        '../js/deployAddedNodesProgress.js', 
         '../js/addNodesWizardInit.js'
       ];
     </script>

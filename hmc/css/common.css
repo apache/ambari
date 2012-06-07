@@ -522,7 +522,7 @@ div.separator {
   clear:both;  
 }
 #txnProgressBox ul label {
-  width:140px;
+  width:150px;
   float:left;
   margin-right:8px;
 }
@@ -636,3 +636,6 @@ div.separator {
   float:left;
 }
 /* END progress popup styles */
+#deployAddedNodesSubmitButtonId {
+  margin-left:20px; 
+}

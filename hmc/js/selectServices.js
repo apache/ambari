@@ -215,7 +215,7 @@ function updateRendering() {
 function displayStatusOnSelectDeselectAll(selectAll, setFormStatusAlso) {
   var labelNode = globalYui.one("#labelForSelectAllId");
   if (selectAll) {
-    labelNode.setContent("Deselect all");
+    labelNode.setContent("Select all");
   } else {
     labelNode.setContent("Select all");
   }

@@ -168,7 +168,7 @@ function getActionDescription($name, $action, $state) {
   }
   $description = $name . " " . strtolower($action) . " " . strtolower($stateInfo);
   */
-  $description = $name.' '.strtolower($action);
+  $description = $name.' '.$action;
   return $description;
 }
 ?>

@@ -137,7 +137,7 @@ class Service {
    *   array( "result" => 0, "error" => msg)
    */
   public function uninstall($transaction, $dryRun) {
-    $this->currentAction = "UNINSTALL";
+    $this->currentAction = "uninstall";
 
     // Check if it's already INSTALLED or STARTED
     if ($this->state === State::UNINSTALLED) {
@@ -182,7 +182,7 @@ class Service {
    *   array( "result" => 0, "error" => msg)
    */
   public function install($transaction, $dryRun) {
-    $this->currentAction = "INSTALL";
+    $this->currentAction = "install";
 
     // set flag to ensure smoke tests are run for client-only services
     // as we just installed or re-configured something
@@ -268,7 +268,7 @@ class Service {
    *   array( "result" => 0, "error" => msg)
    */
   public function start($transaction, $dryRun) {
-    $this->currentAction = "START";
+    $this->currentAction = "start";
 
     $result = $this->getComponents($transaction);
     if ($result["result"] !== 0) {
@@ -363,7 +363,7 @@ class Service {
     if ($dryRun) {
       $txnProgress = TransactionProgress::PENDING;
     }
-    $desc = getActionDescription($this->displayName, "SMOKE TEST",
+    $desc = getActionDescription($this->displayName, "smoke test",
         TransactionProgress::$PROGRESS[$txnProgress]);
 
     $result =
@@ -385,7 +385,7 @@ class Service {
   }
 
   public function smoke($transaction, $dryRun) {
-    $this->currentAction = "SMOKETEST";
+    $this->currentAction = "smoke test";
 
     $this->checkIsClientOnly();
     if ($this->isClientOnly
@@ -490,7 +490,7 @@ class Service {
    *   array( "result" => 0, "error" => msg)
    */
   public function stop($transaction, $dryRun) {
-    $this->currentAction = "STOP";
+    $this->currentAction = "stop";
 
     $result = $this->getComponents($transaction);
     if ($result["result"] !== 0) {
