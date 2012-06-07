@@ -1,5 +1,6 @@
 <?php
 
+define ("HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX", "clusterstate");
 // initial setup
 function updateClusterState ($clusterName, $state, $displayName, $context) {
   $logger = new HMCLogger("ClusterState");

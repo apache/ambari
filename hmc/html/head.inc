@@ -45,6 +45,14 @@ if (sizeof($clusters) == 0) {
     $state = json_decode($cluster['state'], true);    
     $logger->log_trace('cluster state='.print_r($state,1));
     switch ($state['state']) {
+      case 'NOT_CONFIGURED':
+        if ($requestPage != 'welcome.php' && 
+            $requestPage != 'initializeCluster.php') {
+          eval(redirectToPage($requestPage, 'welcome.php'));
+          exit;
+        }
+        $clusterState = 'NOT_CONFIGURED';
+        break;
       case 'DEPLOYED':
         if ($state['context']['status']) {
           if (!$bypassRouter && $requestPage == 'initializeCluster.php') {

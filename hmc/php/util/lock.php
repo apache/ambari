@@ -4,17 +4,32 @@ $logger = new HMCLogger("Lock");
 $lockFile = $GLOBALS['HMC_CLUSTER_PATH']."/lockfile";
 $GLOBALS['fileHdl'] = 0;
 
-function LockAcquire() {
+
+function LockAcquire($suffixT = "") {
   global $lockFile;
   global $logger;
-//  $logger->log_debug("About to acquire lock for pid: " .
-//    json_encode(posix_getpid()));
-  $fileHdl = fopen($lockFile, "r");
-  $GLOBALS['fileHdl'] = $fileHdl;
+  $suffix = strtolower($suffixT);
+
+  $suffixLockFile = $lockFile;
+  if ($suffix != "") {
+    $suffixLockFile = $lockFile.".".$suffix;
+  }
+
+  if ($suffix != "" && !file_exists($suffixLockFile)) {
+    $h = fopen($suffixLockFile, "x");
+    if ($h !== FALSE) {
+      fclose($h);
+    }
+  }
+
+  $logger->log_trace("About to acquire lock using $suffixLockFile for pid: " .
+    json_encode(posix_getpid()));
+  $fileHdl = fopen($suffixLockFile, "r");
+  $GLOBALS['fileHdl'.$suffix] = $fileHdl;
   $retval = flock($fileHdl, LOCK_EX);
   /* Uncomment for debugging purposes
   $e = new Exception;
-  $logger->log_debug("Acquired Lock Status for Process: "
+  $logger->log_trace("Acquired Lock Status for Process: "
     . json_encode(posix_getpid()). " : ". json_encode($retval) . " backtrace: ".
   $e->getTraceAsString());
   unset($e);
@@ -22,16 +37,23 @@ function LockAcquire() {
   return;
 }
 
-function LockRelease() {
+function LockRelease($suffixT = "") {
   global $lockFile;
   global $logger;
-//  $logger->log_debug("Trying to release lock Process: "
-//    . json_encode(posix_getpid()));
-  $fileHdl = $GLOBALS['fileHdl'];
+  $suffix = strtolower($suffixT);
+
+  $suffixLockFile = $lockFile;
+  if ($suffix != "") {
+    $suffixLockFile = $lockFile.".".$suffix;
+  }
+
+  $logger->log_trace("Trying to release lock using $suffixLockFile for process: "
+     . json_encode(posix_getpid()));
+  $fileHdl = $GLOBALS['fileHdl'.$suffix];
   $retval = flock($fileHdl, LOCK_UN);
   /* Uncomment for debugging purposes
   $e = new Exception;
-  $logger->log_debug("Released Lock Status for Process: "
+  $logger->log_trace("Released Lock Status for Process: "
   . json_encode(posix_getpid()). " : ". json_encode($retval) . " backtrace: ".
   $e->getTraceAsString());
   unset($e);

@@ -4,6 +4,7 @@ include_once '../util/Logger.php';
 include_once '../conf/Config.inc';
 include_once 'localDirs.php';
 include_once "../util/lock.php";
+include_once '../util/clusterState.php';
 include_once '../db/HMCDBAccessor.php';
 include_once "./uninstall/stages.php";
 
@@ -32,7 +33,9 @@ function deBootStrap ($clusterName, $deployUser, $txnId, $progressInfo)
       'status' => $txnStatus,
       'txnId' => $txnId
     );
+    LockAcquire(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX);
     $retval = updateClusterState($clusterName, $state, $displayName, $context);
+    LockRelease(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX);
     return $retval;
   }
 
@@ -132,10 +135,26 @@ function deBootStrap ($clusterName, $deployUser, $txnId, $progressInfo)
   }
   /////// done monitoring return back to the uninstall
   
+  if ($result != 0) {
+    return array('result' => $result, 'error' => $error);
+  }
   // need to cleanup db for this cluster
   $dbAccessor->cleanupCluster($clusterName);
-  
-  return array('result' => $result, 'error' => $error);
+
+  LockAcquire(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX);
+  $clusterStateResponse = $dbAccessor->getClusterState($clusterName);
+  if ($clusterStateResponse['result'] != 0) {
+    LockRelease(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX); return $clusterStateResponse;
+  }
+
+  $clusterState = json_decode($clusterStateResponse['state'], true);
+
+  // set cluster state to not configured
+  $state = "NOT_CONFIGURED";
+  $displayName = "Uninstall succeeded";
+  $retval = updateClusterState($clusterName, $state, $displayName, $clusterState['context']);
+  LockRelease(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX);
+  return $retval;
 }
 
 ?>

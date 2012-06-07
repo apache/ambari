@@ -110,9 +110,6 @@ class HMCDBAccessor {
       LockRelease(); return $response;
     }
 
-    $response["result"] = 1;
-    $response["error"] = "Result is not set or not array or count is not 1 ".json_encode($result);
-
     LockRelease(); return $response;
   }
 

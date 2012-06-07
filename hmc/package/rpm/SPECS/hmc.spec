@@ -127,6 +127,8 @@ mkdir -p /etc/puppet/rack/public
 mkdir -p /etc/puppet/rack/tmp
 touch /var/run/hmc/lockfile
 chown puppet:apache /var/run/hmc/lockfile
+touch /var/run/hmc/lockfile.clusterstate
+chown puppet:apache /var/run/hmc/lockfile.clusterstate
 cp /usr/share/puppet/ext/rack/files/config.ru /etc/puppet/rack
 chown puppet /etc/puppet/rack/config.ru
 

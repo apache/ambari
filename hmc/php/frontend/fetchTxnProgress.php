@@ -3,6 +3,7 @@
 include_once '../util/Logger.php';
 include_once "../conf/Config.inc";
 include_once "../orchestrator/HMC.php";
+include_once '../util/clusterState.php';
 include_once "uninstallCleanup.php";
 include_once "deployPostProcess.php";
 
@@ -24,587 +25,7 @@ $map = array(
   )
 );
 
-//REZXXX $dummyDeployProgressData = array(
-//REZXXX   // Sample 0
-//REZXXX   array(
-//REZXXX     'result' => 0,
-//REZXXX     'error' => '',
-//REZXXX     'processRunning' => 1,
-//REZXXX     'subTxns' => array(
-//REZXXX       array(
-//REZXXX         'subTxnId' => 1,
-//REZXXX         'parentSubTxnId' => 0,
-//REZXXX         'state' => 'INSTALLING',
-//REZXXX         'description' => 'orchestratortestcluster-INSTALLING',
-//REZXXX         'progress' => 'IN_PROGRESS',
-//REZXXX         'subTxnType' => 'CLUSTER',
-//REZXXX         'rank' => 0
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 14,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'HDFS-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 1
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 16,
-//REZXXX         'parentSubTxnId' => 15,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'NAMENODE-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 2
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 15,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'DATANODE-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 3
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 18,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'SNAMENODE-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 4
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 20,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'MAPREDUCE-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 5
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 22,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'JOBTRACKER-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 6
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 23,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'TASKTRACKER-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 7
-//REZXXX       )
-//REZXXX     )
-//REZXXX   ),
-//REZXXX   // Sample 1
-//REZXXX   array(
-//REZXXX     'result' => 0,
-//REZXXX     'error' => '',
-//REZXXX     'processRunning' => 1,
-//REZXXX     'subTxns' => array(
-//REZXXX       array(
-//REZXXX         'subTxnId' => 1,
-//REZXXX         'parentSubTxnId' => 0,
-//REZXXX         'state' => 'INSTALLED',
-//REZXXX         'description' => 'orchestratortestcluster-INSTALLED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'CLUSTER',
-//REZXXX         'rank' => 0
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 14,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'STARTING',
-//REZXXX         'description' => 'HDFS-STARTING',
-//REZXXX         'progress' => 'IN_PROGRESS',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 1
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 16,
-//REZXXX         'parentSubTxnId' => 15,
-//REZXXX         'state' => 'STARTING',
-//REZXXX         'description' => 'NAMENODE-STARTING',
-//REZXXX         'progress' => 'IN_PROGRESS',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 2
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 15,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'STARTING',
-//REZXXX         'description' => 'DATANODE-STARTING',
-//REZXXX         'progress' => 'IN_PROGRESS',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 3
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 18,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'SNAMENODE-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 4
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 20,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'MAPREDUCE-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 5
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 22,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'JOBTRACKER-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 6
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 23,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'TASKTRACKER-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 7
-//REZXXX       )
-//REZXXX     )
-//REZXXX   ),
-//REZXXX   // Sample 2
-//REZXXX   array(
-//REZXXX     'result' => 0,
-//REZXXX     'error' => '',
-//REZXXX     'processRunning' => 1,
-//REZXXX     'subTxns' => array(
-//REZXXX       array(
-//REZXXX         'subTxnId' => 1,
-//REZXXX         'parentSubTxnId' => 0,
-//REZXXX         'state' => 'INSTALLED',
-//REZXXX         'description' => 'orchestratortestcluster-INSTALLED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'CLUSTER',
-//REZXXX         'rank' => 0
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 14,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'STARTING',
-//REZXXX         'description' => 'HDFS-STARTING',
-//REZXXX         'progress' => 'IN_PROGRESS',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 1
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 16,
-//REZXXX         'parentSubTxnId' => 15,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'NAMENODE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 2
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 15,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'STARTING',
-//REZXXX         'description' => 'DATANODE-STARTING',
-//REZXXX         'progress' => 'IN_PROGRESS',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 3
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 18,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'SNAMENODE-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 4
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 20,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'MAPREDUCE-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 5
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 22,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'JOBTRACKER-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 6
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 23,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'TASKTRACKER-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 7
-//REZXXX       )
-//REZXXX     )
-//REZXXX   ),
-//REZXXX   // Sample 3
-//REZXXX   array(
-//REZXXX     'result' => 0,
-//REZXXX     'error' => '',
-//REZXXX     'processRunning' => 1,
-//REZXXX     'subTxns' => array(
-//REZXXX       array(
-//REZXXX         'subTxnId' => 1,
-//REZXXX         'parentSubTxnId' => 0,
-//REZXXX         'state' => 'INSTALLED',
-//REZXXX         'description' => 'orchestratortestcluster-INSTALLED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'CLUSTER',
-//REZXXX         'rank' => 0
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 14,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'STARTING',
-//REZXXX         'description' => 'HDFS-STARTING',
-//REZXXX         'progress' => 'IN_PROGRESS',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 1
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 16,
-//REZXXX         'parentSubTxnId' => 15,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'NAMENODE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 2
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 15,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'DATANODE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 3
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 18,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'STARTING',
-//REZXXX         'description' => 'SNAMENODE-STARTING',
-//REZXXX         'progress' => 'IN_PROGRESS',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 4
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 20,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'MAPREDUCE-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 5
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 22,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'JOBTRACKER-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 6
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 23,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'TASKTRACKER-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 7
-//REZXXX       )
-//REZXXX     )
-//REZXXX   ),
-//REZXXX   // Sample 4
-//REZXXX   array(
-//REZXXX     'result' => 0,
-//REZXXX     'error' => '',
-//REZXXX     'processRunning' => 1,
-//REZXXX     'subTxns' => array(
-//REZXXX       array(
-//REZXXX         'subTxnId' => 1,
-//REZXXX         'parentSubTxnId' => 0,
-//REZXXX         'state' => 'INSTALLED',
-//REZXXX         'description' => 'orchestratortestcluster-INSTALLED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'CLUSTER',
-//REZXXX         'rank' => 0
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 14,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'HDFS-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 1
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 16,
-//REZXXX         'parentSubTxnId' => 15,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'NAMENODE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 2
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 15,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'DATANODE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 3
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 18,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'SNAMENODE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 4
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 20,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'STARTING',
-//REZXXX         'description' => 'MAPREDUCE-STARTING',
-//REZXXX         'progress' => 'IN_PROGRESS',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 5
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 22,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'STARTING',
-//REZXXX         'description' => 'JOBTRACKER-STARTING',
-//REZXXX         'progress' => 'IN_PROGRESS',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 6
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 23,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'PENDING',
-//REZXXX         'description' => 'TASKTRACKER-STARTING',
-//REZXXX         'progress' => 'PENDING',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 7
-//REZXXX       )
-//REZXXX     )
-//REZXXX   ),
-//REZXXX   // Sample 5
-//REZXXX   array(
-//REZXXX     'result' => 0,
-//REZXXX     'error' => '',
-//REZXXX     'processRunning' => 1,
-//REZXXX     'subTxns' => array(
-//REZXXX       array(
-//REZXXX         'subTxnId' => 1,
-//REZXXX         'parentSubTxnId' => 0,
-//REZXXX         'state' => 'INSTALLED',
-//REZXXX         'description' => 'orchestratortestcluster-INSTALLED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'CLUSTER',
-//REZXXX         'rank' => 0
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 14,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'HDFS-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 1
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 16,
-//REZXXX         'parentSubTxnId' => 15,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'NAMENODE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 2
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 15,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'DATANODE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 3
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 18,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'SNAMENODE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 4
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 20,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'STARTING',
-//REZXXX         'description' => 'MAPREDUCE-STARTING',
-//REZXXX         'progress' => 'IN_PROGRESS',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 5
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 22,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'JOBTRACKER-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 6
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 23,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'STARTING',
-//REZXXX         'description' => 'TASKTRACKER-STARTING',
-//REZXXX         'progress' => 'IN_PROGRESS',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 7
-//REZXXX       )
-//REZXXX     )
-//REZXXX   ),
-//REZXXX   // Sample 6
-//REZXXX   array(
-//REZXXX     'result' => 0,
-//REZXXX     'error' => '',
-//REZXXX     'processRunning' => 0,
-//REZXXX     'subTxns' => array(
-//REZXXX       array(
-//REZXXX         'subTxnId' => 1,
-//REZXXX         'parentSubTxnId' => 0,
-//REZXXX         'state' => 'INSTALLED',
-//REZXXX         'description' => 'orchestratortestcluster-INSTALLED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'CLUSTER',
-//REZXXX         'rank' => 0
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 14,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'HDFS-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 1
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 16,
-//REZXXX         'parentSubTxnId' => 15,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'NAMENODE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 2
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 15,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'DATANODE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 3
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 18,
-//REZXXX         'parentSubTxnId' => 14,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'SNAMENODE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 4
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 20,
-//REZXXX         'parentSubTxnId' => 13,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'MAPREDUCE-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICE',
-//REZXXX         'rank' => 5
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 22,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'JOBTRACKER-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 6
-//REZXXX       ),
-//REZXXX       array(
-//REZXXX         'subTxnId' => 23,
-//REZXXX         'parentSubTxnId' => 20,
-//REZXXX         'state' => 'STARTED',
-//REZXXX         'description' => 'TASKTRACKER-STARTED',
-//REZXXX         'progress' => 'COMPLETED',
-//REZXXX         'subTxnType' => 'SERVICECOMPONENT',
-//REZXXX         'rank' => 7
-//REZXXX       )
-//REZXXX     )
-//REZXXX   )
-//REZXXX );
-//REZXXX
-//REZXXX define('LAST_PROGRESS_STATE_INDEX_FILE', '/tmp/rezDeployProgressStateIndex' . $txnId);
-//REZXXX
-//REZXXX function fetchLastProgressStateIndex()
-//REZXXX {
-//REZXXX   $lastProgressStateIndex = 0;
-//REZXXX
-//REZXXX   if( file_exists(LAST_PROGRESS_STATE_INDEX_FILE) )
-//REZXXX   {
-//REZXXX     $lastProgressStateIndex = trim( file_get_contents(LAST_PROGRESS_STATE_INDEX_FILE) );
-//REZXXX   }
-//REZXXX
-//REZXXX   return $lastProgressStateIndex;
-//REZXXX }
-//REZXXX
-//REZXXX function storeLastProgressStateIndex( $latestProgressStateIndex )
-//REZXXX {
-//REZXXX   file_put_contents(LAST_PROGRESS_STATE_INDEX_FILE, $latestProgressStateIndex);
-//REZXXX }
+$dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 
 function fetchTxnProgress( $txnId )
 {
@@ -614,28 +35,6 @@ function fetchTxnProgress( $txnId )
   $hmc = new HMC($dbPath, $clusterName);
 
   $progress = $hmc->getProgress($txnId);
-
-//REZXXX  global $dummyDeployProgressData;
-//REZXXX
-//REZXXX  $lastProgressStateIndex = fetchLastProgressStateIndex();
-//REZXXX
-//REZXXX  $progress = $dummyDeployProgressData[$lastProgressStateIndex];
-//REZXXX
-//REZXXX  $currentProgressStateIndex = $lastProgressStateIndex;
-//REZXXX
-//REZXXX  /* Progress to the next state only if we haven't already reached the end.
-//REZXXX   *
-//REZXXX   * We expect callers to stop to call this webservice once this condition is
-//REZXXX   * reached in any case, but let's be safe all the same.
-//REZXXX   */
-//REZXXX  if( $lastProgressStateIndex < count($dummyDeployProgressData) )
-//REZXXX  {
-//REZXXX    /* Randomize the rate of our progress, in steps of 1. */
-//REZXXX    $currentProgressStateIndex = (rand() % 2) ? ($lastProgressStateIndex + 1) : ($lastProgressStateIndex);
-//REZXXX
-//REZXXX    /* Update our disk cookie. */
-//REZXXX    storeLastProgressStateIndex( $currentProgressStateIndex );
-//REZXXX  }
 
   return $progress;
 }
@@ -686,37 +85,142 @@ foreach( $progress['subTxns'] as &$progressSubTxn )
   }
 }
 
-$lastTransaction = $progressSubTxn;
+$lastTxnIndex = -1;
+if ($atLeastOneSubTxnInProgress) {
+  $lastTxnIndex = count($progress['subTxns']) - 1;
+}
 
-/* If at least one subTxn isn't in progress, signal to the frontend that 
- * there's nothing worthy for it to process yet. 
+/* If at least one subTxn isn't in progress, signal to the frontend that
+ * there's nothing worthy for it to process yet.
  */
 if (!$atLeastOneSubTxnInProgress) {
   $progress['subTxns'] = null;
 }
 
-$dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
+LockAcquire(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX);
 
-if (($progress['processRunning'] == FALSE) || ($progress['encounteredError'] == TRUE)) {
-  // get the transaction status info from db
-  $retval = $dbAccessor->getTransactionStatusInfo($clusterName, $txnId);
-  if ($retval["result"] != 0) {
-    $progress['encounteredError'] = TRUE;
-  } else {
-    $statusInfo = json_decode($retval['statusInfo'], true);
-    $logger->log_debug("Status info function ".$statusInfo['function']);
-    // run the next script from the map
-    foreach ($map[$statusInfo['function']] as $postProcessFunc) {
-      $logger->log_debug("Post process function is ".$postProcessFunc);
-      $retval = $postProcessFunc($clusterName, $deployUser, $txnId, $progress);
-      if ($retval["result"] != 0) {
+$doPostProcess = TRUE;
+$clusterStateResponse = $dbAccessor->getClusterState($clusterName);
+$logger->log_debug("Got cluster state: ".json_encode($clusterStateResponse));
+if ($clusterStateResponse['result'] != 0) {
+  print json_encode($clusterStateResponse);
+  LockRelease(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX); return;
+}
+
+// if state is not set, should not proceed to post process.
+// setting post process to false allows returning appropriate txn data
+// without post processing.
+$clusterState = null;
+if (!isset($clusterStateResponse['state'])) {
+  $doPostProcess = FALSE;
+  // create an empty cluster state
+  $clusterState = array();
+} else {
+  $clusterState = json_decode($clusterStateResponse['state'], true);
+  $logger->log_debug("Current cluster state, " . print_r($clusterState, true));
+}
+
+/* check for matching txn id. if present check if it is same
+ * if not return with all data for txn id requested for and 
+ * do nothing for post process
+ * setting post process to false allows returning appropriate txn data
+ * without post processing.
+ */ 
+
+if (array_key_exists('context', $clusterState)) {  
+  $clusterContext = $clusterState['context'];
+  if (!array_key_exists('txnId', $clusterContext) || !isset($clusterContext['txnId']) || ($clusterContext["txnId"] != $txnId)) {
+    $logger->log_debug("TxnId does not exist ".
+      array_key_exists("txnId", $clusterContext) .
+      " or not set " .!isset($clusterContext["txnId"]) ." or does not match " .
+      ($clusterContext["txnId"] != $txnId));
+    $doPostProcess = FALSE;
+  }
+} 
+
+if ($progress['processRunning'] == FALSE) {
+  $logger->log_trace("Checking cluster state for post process state");
+  $context = $clusterState['context'];
+  if (isset($context['isInPostProcess'])) {
+    $doPostProcess = FALSE;
+    $logger->log_trace("Post process already done before in another call");
+    if ($context['isInPostProcess'] == TRUE) {
+      $logger->log_trace("Post process still in progress in another call");      
+      $progress['processRunning'] = TRUE;
+    } else {
+      $logger->log_trace("Post process completed in another call");
+      $progress['processRunning'] = FALSE;
+      if (!isset($context['postProcessSuccessful'])
+          || $context['postProcessSuccessful'] == FALSE) {
         $progress['encounteredError'] = TRUE;
-        $lastTransaction['progress'] = "FAILED";
-        break;
+        if ($lastTxnIndex >= 0) {
+          $progress['subTxns'][$lastTxnIndex]["progress"] = "FAILED";
+        }
       }
     }
   }
 }
+
+
+if ((($progress['processRunning'] == FALSE) || ($progress['encounteredError'] == TRUE))
+    && $doPostProcess) {
+  // get the transaction status info from db
+  $retval = $dbAccessor->getTransactionStatusInfo($clusterName, $txnId);
+  if ($retval["result"] != 0) {
+    $progress['encounteredError'] = TRUE;
+    if ($lastTxnIndex >= 0) {
+      $progress['subTxns'][$lastTxnIndex]["progress"] = "FAILED";
+    }
+  } else {
+    if (isset($retval['statusInfo'])) {
+      $statusInfo = json_decode($retval['statusInfo'], true);
+      $logger->log_debug("Status info function ".$statusInfo['function']);
+      $logger->log_debug("Running post process functions");
+      // run the next script from the map
+      // supports multiple post process functions
+      foreach ($map[$statusInfo['function']] as $postProcessFunc) {
+        $logger->log_debug("Post process function is ".$postProcessFunc);
+        // setting cluster state to denote in post process
+        $clusterState['context']['isInPostProcess'] = TRUE;
+        $logger->log_trace("Starting post process function");      
+        updateClusterState($clusterName, $clusterState['state'],
+          $clusterState['displayName'], $clusterState['context']);
+        LockRelease(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX);
+        $retval = $postProcessFunc($clusterName, $deployUser, $txnId, $progress);
+        LockAcquire(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX);
+        // setting cluster state to denote post process completed
+        $logger->log_trace("Finished post process function");
+
+        $clusterStateResponse = $dbAccessor->getClusterState($clusterName);
+        if ($clusterStateResponse['result'] != 0) {
+          print json_encode($clusterStateResponse);
+          LockRelease(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX); return;
+        }
+
+        $clusterState = json_decode($clusterStateResponse['state'], true);
+        $clusterState['context']['isInPostProcess'] = FALSE;
+        $clusterState['context']['postProcessSuccessful'] = ($retval["result"] == 0);
+
+
+        updateClusterState($clusterName, $clusterState['state'],
+          $clusterState['displayName'], $clusterState['context']);
+        $clusterStateResponse = $dbAccessor->getClusterState($clusterName);
+        $logger->log_trace("STATE AFTER UPDATE: ".json_encode($clusterStateResponse));
+        if ($retval["result"] != 0) {
+          $progress['encounteredError'] = TRUE;
+          if ($lastTxnIndex >= 0) {
+            $progress['subTxns'][$lastTxnIndex]["progress"] = "FAILED";
+          }
+          // if the post process failed stop from calling 
+          // further post process functions.
+          break;
+        }
+      }
+    }
+  }
+}
+
+LockRelease(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX);
 
 /* Clean up some more remnants that we don't need on the frontend. */
 unset( $progress['result'] );
@@ -729,7 +233,7 @@ $jsonOutput = array(
     'progress' => $progress );
 
 if ($deployUser != null) {
-    $jsonOutput['deployUser'] = $deployUser;
+  $jsonOutput['deployUser'] = $deployUser;
 }
 
 /* ...and spit it out. */

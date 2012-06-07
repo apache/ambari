@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-459. Race conditions in fetch transaction progress (Vikram)
+
   AMBARI-447. First pass at Info level logging (cleanup of logging). (Mahadev via Vikram)
 
   AMBARI-458. Support configuration of checkpointing-related variables (Hitesh via Vikram)
