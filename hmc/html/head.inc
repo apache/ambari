@@ -82,6 +82,13 @@ if (sizeof($clusters) == 0) {
         }     
         $clusterState = 'DEPLOYMENT_IN_PROGRESS';
         break;
+      case 'NODE_ADDITION_IN_PROGRESS':
+        if (!$bypassRouter && $requestPage != 'showDeployAddedNodesProgress.php') {
+          eval(redirectToPage($requestPage, 'showDeployAddedNodesProgress.php'));
+          exit;
+        }     
+        $clusterState = 'NODE_ADDITION_IN_PROGRESS';
+        break;
       case 'SERVICE_MANAGEMENT_IN_PROGRESS':
         if (!$bypassRouter && $requestPage != 'showManageServicesProgress.php') {
           eval(redirectToPage($requestPage, 'showManageServicesProgress.php'));
