@@ -15,4 +15,7 @@
       document.getElementsByTagName("head")[0].appendChild(dynamicJsScript);
     }
   });
+
+  // disable console logging
+  globalYui.log = function () {};
 </script>
