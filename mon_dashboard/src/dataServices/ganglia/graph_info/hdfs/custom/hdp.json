@@ -1,14 +1,14 @@
 {
     "Global": [
         {
-            "description": "HDFS capacity remaining (over the last month), in GB", 
+            "description": "HDFS capacity remaining in GB", 
             "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
             "title": "HDFS Capacity Remaining", 
             "url":
-              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_hdfs_capacity_remaining_report&r=month"
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_hdfs_capacity_remaining_report"
         }, 
         {
-            "description": "Number of blocks pending replication in HDFS, to give a feel for the current data replication load", 
+            "description": "Number of blocks pending replication in HDFS (indicates current data replication load)", 
             "link":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
             "title": "HDFS Blocks Pending Replication", 
@@ -16,7 +16,7 @@
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_hdfs_pending_replication_blocks_report"
         }, 
         {
-            "description": "Number of under-replicated blocks in HDFS, to give a feel for the chances of potential corruption", 
+            "description": "Number of under-replicated blocks in HDFS", 
             "link":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
             "title": "HDFS Under-Replicated Blocks", 
@@ -24,13 +24,13 @@
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_hdfs_under_replicated_blocks_report"
         }, 
         {
-            "description": "Counts of key operations on the NameNode, to give a feel for the high-level HDFS activity pattern", 
+            "description": "Counts of key operations on the NameNode (indicates high-level HDFS activity)", 
             "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
             "title": "NameNode Operation Counts", 
             "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_hdfs_ops_report"
         }, 
         {
-            "description": "Key Garbage Collection stats for the NameNode's JVM", 
+            "description": "Cumulative time spent in garbage collection for the NameNode's JVM", 
             "link":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
             "title": "NameNode JVM Garbage Collection", 
@@ -38,7 +38,7 @@
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_jvm_gc_report"
         }, 
         {
-            "description": "Heap memory used on the NameNode, to give a rough feel for HDFS capacity (all metadata is held in-memory on the NameNode) and performance (too much heap memory will likely trigger the JVM's garbage collection, which slows down the NameNode's RPC processing)", 
+            "description": "Java Heap memory usage of the NameNode (dip in the heap usage indicates garbage collection)",
             "link":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
             "title": "NameNode Heap Memory Used", 
@@ -46,7 +46,7 @@
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_jvm_mem_heap_used_report"
         }, 
         {
-            "description": "Average wait time for RPC requests to the NameNode, to give a feel for the NameNode's responsiveness", 
+            "description": "Average wait time to process RPC request on the NameNode", 
             "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
             "title": "NameNode RPC Average Wait Time", 
             "url":

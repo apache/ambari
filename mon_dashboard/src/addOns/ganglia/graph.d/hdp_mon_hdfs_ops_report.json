@@ -1,8 +1,8 @@
 {
    "report_name" : "hdfs_ops_report",
    "report_type" : "standard",
-   "title" : "HDFS Operations Count",
-   "vertical_label" : "Number Of Ops",
+   "title" : "HDFS Operations",
+   "vertical_label" : "Operations/Sec",
    "series" : [
       { "metric": "dfs.namenode.CreateFileOps", "color": "00ff00", "label": "File Creation", 
         "line_width": "2", "type": "stack" },

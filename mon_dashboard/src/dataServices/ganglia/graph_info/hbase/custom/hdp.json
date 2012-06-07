@@ -1,67 +1,67 @@
 {
     "Global": [
         {
-            "description": "Count of requests to the HBase cluster since the last call to update metrics", 
+            "description": "Rate of requests to the HBase cluster", 
             "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%HBaseMasterClusterName%", 
-            "title": "HBase Cluster Number Of Requests", 
+            "title": "Requests/Sec", 
             "url":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseMasterClusterName%&g=hdp_mon_hbase_master_cluster_requests_report"
         }, 
         {
-            "description": "Total number of read requests aggregated across all the HBase Region Servers", 
+            "description": "Total number of read requests aggregated across all the HBase Region Servers (dip in the graph could be due to deleting the regions)", 
             "link":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%HBaseSlavesClusterName%", 
-            "title": "HBase Region Servers' Read Requests", 
+            "title": "Region Servers' Read Requests", 
             "url":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseSlavesClusterName%&g=hdp_mon_hbase_regionserver_read_requests_report"
         }, 
         {
-            "description": "Total number of write requests aggregated across all the HBase Region Servers", 
+            "description": "Total number of write requests aggregated across all the HBase Region Servers (dip in the graph could be due to deleting the regions)", 
             "link":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%HBaseSlavesClusterName%", 
-            "title": "HBase Region Servers' Write Requests", 
+            "title": "Region Servers' Write Requests", 
             "url":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseSlavesClusterName%&g=hdp_mon_hbase_regionserver_write_requests_report"
         }, 
         {
-            "description": "Average number of regions served by each Region Server", 
+            "description": "Total number of regions aggregated across all Region Servers", 
             "link":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%HBaseSlavesClusterName%", 
-            "title": "Number Of Regions Per HBase Region Server", 
+            "title": "Total Cluster Regions", 
             "url":
-              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseSlavesClusterName%&g=hdp_mon_hbase_regionserver_regions_report&r=month"
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseSlavesClusterName%&g=hdp_mon_hbase_regionserver_regions_report"
         }, 
         {
-            "description": "Filesystem read latency for the HBase Region Servers", 
+            "description": "Total flush queue size for all region servers", 
             "link":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%HBaseSlavesClusterName%", 
-            "title": "HBase Region Server Filesystem Read Latency", 
+            "title": "Total flush Queue size", 
             "url":
-              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseSlavesClusterName%&g=hdp_mon_hbase_regionserver_fs_read_latency_report"
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseSlavesClusterName%&g=hdp_mon_hbase_regionserver_flush_queue_size_report"
         }, 
         {
-            "description": "Filesystem write latency for the HBase Region Servers", 
+            "description": "Total compaction queue size for all region servers", 
             "link":
               "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%HBaseSlavesClusterName%", 
-            "title": "HBase Region Server Filesystem Write Latency", 
+            "title": "Total Compaction Queue Size", 
             "url":
-              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseSlavesClusterName%&g=hdp_mon_hbase_regionserver_fs_write_latency_report"
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseSlavesClusterName%&g=hdp_mon_hbase_regionserver_compaction_queue_size_report"
         }, 
         {
-            "description": "Garbage collection time (in milliseconds) aggregated across all the HBase Region Servers", 
+            "description": "Average time in miliseconds for splitting HLog files", 
             "link":
-              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%HBaseSlavesClusterName%", 
-            "title": "HBase Region Server Garbage Collection Time", 
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%HBaseMasterClusterName%", 
+            "title": "Avg Time in HLog file split", 
             "url":
-              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseSlavesClusterName%&g=hdp_mon_jvm_gc_report"
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseMasterClusterName%&g=hdp_mon_hbase_hlog_report"
         }, 
         {
-            "description": "Average RPC wait time on the HBase Region Servers", 
+            "description": "Average size of HLog files being split", 
             "link":
-              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%HBaseSlavesClusterName%", 
-            "title": "Average HBase Region Server RPC Wait Time", 
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%HBaseMasterClusterName%", 
+            "title": "Avg HLog split file size", 
             "url":
-              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseSlavesClusterName%&g=hdp_mon_rpc_queue_time_avg_time_report"
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%HBaseMasterClusterName%&g=hdp_mon_hbase_hlog_split_size_report"
         } 
     ]
 }

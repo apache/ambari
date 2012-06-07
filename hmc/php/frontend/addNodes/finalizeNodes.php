@@ -38,6 +38,7 @@ function ping($host,$port=8139,$timeout=10, &$errstr, &$errno)
   }
   else
   {
+    fclose($fsock);
     return TRUE;
   }
 }
