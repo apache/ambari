@@ -64,30 +64,19 @@ function renderUninstallProgress (uninstallProgressInfo) {
 
   hideLoadingImg();
 
-  var hmcRestartMsg = '';
-  if (uninstallProgressInfo.nagiosGangliaCoHosted != null
-      && uninstallProgressInfo.nagiosGangliaCoHosted) {
-    hmcRestartMsg = '<strong>Note:</strong> We detected that you need to restart HMC as'
-        + ' Nagios/Ganglia are co-hosted on this server. <br/>Please restart'
-        + ' HMC using \"service hmc restart\". ';
-  } else {
-    hmcRestartMsg = '';
-  }
-
-  hmcRestartMsg += '' +
-      '<a href="javascript:void(null)" id=clustersListLinkId>' +
-        'Continue' +
-      '</a>';
 
   var uninstallProgressStatusMessage = {
 
     success:
       '<p style=\"text-align:center\">' +
-        'Uninstalled the cluster successfully.<br/>' + hmcRestartMsg +
+        'Uninstalled the cluster successfully.<br/>' +
+        '<a href="javascript:void(null)" id=clustersListLinkId>' +
+          'Continue' +
+        '</a>' +
       '</p>',
     failure:
       '<p>' +
-        'There was a problem with uninstall.  Take a look at ' +
+        'There was a problem with uninstall. Take a look at ' +
           '<a href="javascript:void(null)" id=showUninstallTxnLogsLinkId>Uninstall Logs</a>' +
         ' to see what might have happened.' +
       '</p>'

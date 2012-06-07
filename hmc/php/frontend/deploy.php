@@ -14,7 +14,6 @@ include_once "../util/clusterState.php";
 $dbPath = $GLOBALS["DB_PATH"];
 $clusterName = $_GET['clusterName'];
 
-$startTime = time();
 $hmc = new HMC($dbPath, $clusterName);
 
 /* For returning in our JSON at the very end. */
@@ -53,7 +52,9 @@ if (($clusterState['state'] == 'CONFIGURATION_IN_PROGRESS') &&
 
   $txnId = $deployResult["txnId"];
 
-  /* (And when we kick off the deploy is the only time to update the state of the cluster) */
+  /* (And when we kick off the deploy is the only time to update the state of 
+   * the cluster).
+   */
   $state = "DEPLOYMENT_IN_PROGRESS";
   $displayName = "Deployment in progress";
   $context = array (
@@ -102,7 +103,6 @@ if (!$nagiosGangliaCoHosted) {
 
 /* Create the output data... */
 $jsonOutput = array(
-    'startTime' => $startTime,
     'clusterName' => $clusterName,
     'txnId' => $txnId,
     'nagiosGangliaCoHosted' => $nagiosGangliaCoHosted);
