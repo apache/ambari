@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-522. Fix version of the server rpm. (Mahadev via Vikram)
+
   AMBARI-521. Lzo Install with RPM's. (Ramya via Vikram)
 
   AMBARI-520. Disable all debug console logging on the browser (Yusaku via Vikram)
