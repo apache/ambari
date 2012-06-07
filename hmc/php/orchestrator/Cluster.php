@@ -183,6 +183,11 @@ class Cluster {
       $this->logger->log_error("Failed to get cluster services.");
       return array("result" => -1, "error" => "Failed to get cluster services from DB.");
     }
+
+    // reverse order of services
+    // should cause NAGIOS to stop first
+    $services = array_reverse($services);
+
     $this->logger->log_info("Uninstalling HDP.... DryRun=$dryRun");
     $result = $this->_stopAllServices($services,
         $transaction->createSubTransaction(), $dryRun);

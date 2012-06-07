@@ -51,9 +51,9 @@ INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, desc
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
   ( "DASHBOARD", "Dashboard", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": true }',  "Monitoring Dashboard for HDP" );
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
-  ( "NAGIOS", "Nagios", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": false }',  "Nagios-based Monitoring for HDP" );
-INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
   ( "GANGLIA", "Ganglia", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": false }',  "Ganglia-based Metrics Collection for HDP" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "NAGIOS", "Nagios", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": false }',  "Nagios-based Monitoring for HDP" );
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
   ( "MISCELLANEOUS", "Miscellaneous", '{ "runnable": false, "mustInstall": true, "editable": false, "noDisplay": true }',  "" );
 
