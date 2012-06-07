@@ -69,8 +69,8 @@ if (sizeof($clusters) == 0) {
         }
         break;
       case 'CONFIGURATION_IN_PROGRESS':
-        if (!$bypassRouter && $requestPage != 'reinstall.php' && $requestPage != 'initializeCluster.php') {
-          eval(redirectToPage($requestPage, 'reinstall.php'));
+        if (!$bypassRouter && $requestPage != 'welcome.php' && $requestPage != 'initializeCluster.php') {
+          eval(redirectToPage($requestPage, 'welcome.php'));
           exit;
         }
         $clusterState = 'CONFIGURATION_IN_PROGRESS';
