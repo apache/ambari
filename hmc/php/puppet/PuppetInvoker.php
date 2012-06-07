@@ -55,15 +55,15 @@
           $p = count($nodes);
         }
         $cmd = $cmd . " --parallel " . $p;
-        $this->logger->log_trace("Kick command: " . $cmd);
+        $this->logger->log_debug("Kick command: " . $cmd);
         $output = $this->executeAndGetOutput($cmd);
-        $this->logger->log_trace("Kick response begins ===========");
-        $this->logger->log_trace($output);
-        $this->logger->log_trace("Kick response ends ===========");
+        $this->logger->log_debug("Kick response begins ===========");
+        $this->logger->log_debug($output);
+        $this->logger->log_debug("Kick response ends ===========");
       }
       foreach ($nodes as $kNode) {
         if (isset($doneNodes[$kNode])) {
-          $this->logger->log_debug($kNode . "previous kick has returned, no need to kick again");
+          $this->logger->log_debug($kNode . " previous kick has returned, no need to kick again");
           //Mark as previous kick running, reports will be discovered in waitForResults.
           $prevKickRunningNodes[] = $kNode;
           continue;
@@ -82,6 +82,24 @@
       }
     }
 
+    private function sendKickWithRetry($nodes, $txnId, &$failedNodes,
+        &$successNodes, &$prevKickRunningNodes) {
+      $kickFailedNodes = array();
+      $this->sendKick($nodes, $txnId, $kickFailedNodes,
+          $successNodes, $prevKickRunningNodes);
+      if (!empty($kickFailedNodes)) {
+        $this->logger->log_warn("Retrying kick after 10 seconds on " . print_r($kickFailedNodes, TRUE));
+        sleep(10);
+        $nodesToKick = $kickFailedNodes;
+        $kickFailedNodes = array();
+        $this->sendKick($nodesToKick, $txnId, $kickFailedNodes,
+            $successNodes, $prevKickRunningNodes);
+      }
+      foreach ($kickFailedNodes as $fn) {
+        $failedNodes[] = $fn;
+      }
+    }
+
     private function kickPuppetAsync($nodes, $txnId, &$kickFailedNodes, &$kickSuccessNodes, 
         &$prevKickRunningNodes) {
       $nodeListToKick = array();
@@ -91,7 +109,7 @@
           $nodeListToKick[] = $n;
           $index++;
         } else {
-          $this->sendKick($nodeListToKick, $txnId, $kickFailedNodes,
+          $this->sendKickWithRetry($nodeListToKick, $txnId, $kickFailedNodes,
               $kickSuccessNodes, $prevKickRunningNodes);
           $nodeListToKick = array();
           $nodeListToKick[] = $n;
@@ -99,7 +117,7 @@
         }
       }
       if ($index > 0) {
-          $this->sendKick($nodeListToKick, $txnId, $kickFailedNodes,
+          $this->sendKickWithRetry($nodeListToKick, $txnId, $kickFailedNodes,
             $kickSuccessNodes, $prevKickRunningNodes);
       }
     }
