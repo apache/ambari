@@ -1030,7 +1030,7 @@ class HMCDBAccessor {
       }
       while (sizeof($order) > 0) {
         // is it an array of arrays, for an array of sortColumn and sortOrder?        
-        if (is_array($order[0])) {
+        if (isset($order[0]) && is_array($order[0])) {
           $this->logger->log_debug('Order is array of arrays');
           $orderItem = array_shift($order);
         } else {

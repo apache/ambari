@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-476. Undefined offset: 0 in /usr/share/hmc/php/db/HMCDBAccessor.php on line 1030 (Hitesh via Vikram)
+
   AMBARI-475. Add missing JS file for making post cluster install Add Nodes work (Yusaku via Vikram)
 
   AMBARI-473. Secondary namenode checkpoint dir doesnt get created if its on the same host as NN. (Mahadev via Vikram)
