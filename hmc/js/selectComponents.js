@@ -39,18 +39,19 @@ function getServiceComponentListAndRender(clusterName) {
     for (serviceName in data['services'])  {
       if (data['services'][serviceName]['isEnabled'] != "0" && data['services'][serviceName]['attributes']['noDisplay'] == false) {
         component = data['services'][serviceName]['components'];
-        for (componentName in component) {
-          if (component[componentName]['isMaster'] == null && 
-              (component[componentName]['isClient'] == null)) {
+        for (componentIndex in component) {
+          if (component[componentIndex]['isMaster'] == null && 
+              (component[componentIndex]['isClient'] == null)) {
             continue;
           }
-          if (!component[componentName]['isMaster'] && 
-                !component[componentName]['isClient']) {
+          if (!component[componentIndex]['isMaster'] && 
+              !component[componentIndex]['isClient'] &&
+              component[componentIndex].componentName != 'HIVE_MYSQL') {
             divContent += '<li class="selectServicesEntry" name=try>';
             divContent +=   '<label class="checkbox" for="install' + serviceName + 'Id">' 
-                        +   '<input type="checkbox" disabled="disabled" checked="yes" name="' + serviceName + '" id="install' + serviceName + 'Id" value="' + component[componentName]["componentName"] + '"/>'
-                        + component[componentName]['displayName'] + '</label>'
-                        +   '<div class="contextualhelp">' + component[componentName]['description'] + '</div>'
+                        +   '<input type="checkbox" disabled="disabled" checked="yes" name="' + serviceName + '" id="install' + serviceName + 'Id" value="' + component[componentIndex].componentName + '"/>'
+                        + component[componentIndex].displayName + '</label>'
+                        +   '<div class="contextualhelp">' + component[componentIndex].description + '</div>'
                         + '</li>';
           } else {
             continue;
