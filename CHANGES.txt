@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-433. Using service stop instead of killall for uninstall (Vikram)
+
   AMBARI-432. Templeton should not install templeton.i386 (Ramya via Vikram)
 
   AMBARI-431. Fix orchestrator to use correct display names for descriptions of stages (Hitesh via Vikram)

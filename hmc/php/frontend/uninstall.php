@@ -44,8 +44,6 @@ foreach ($allHostsInfo["hosts"] as $hostInfo) {
 }
 
 fclose($hostFileHdl);
-$logger->log_debug("HOST FILE IS NOW POPULATED GO AHEAD!!");
-sleep(5);
 ////// end of generating new file
 
 $logger->log_debug("Uninstall got wipeout value $wipeout");

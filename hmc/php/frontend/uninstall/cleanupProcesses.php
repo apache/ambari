@@ -11,7 +11,7 @@ $logger = new HMCLogger("CleanupProcesses");
 $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 
 function getCommandLine() {
-  $cmdLine = " killall puppet ; ";
+  $cmdLine = " service hmc-agent stop; exit 0";
   return $cmdLine;
 }
 
