@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-485. Make Firebug debugger work again with fileCombinator.php (Yusaku via Vikram)
+
   AMBARI-484. Reconfigure option for Nagios service does not work (Vikram)
 
   AMBARI-483. Start Making Responses From fileCombinator.php Suitably Cacheable (Varun via Vikram)

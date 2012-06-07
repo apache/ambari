@@ -12,7 +12,7 @@ function deduceContentType ($fileToLoad)
   }
   elseif ($fileExtension == 'js' )
   {
-    $contentType = 'application/js';
+    $contentType = 'application/x-javascript';
   }
 
   return $contentType;
