@@ -19,8 +19,28 @@ header("Content-type: application/json");
 $clusterName = $_GET['clusterName'];
 // Validate clusterId: TODO; FIXME
 
+/////// only persist the yum repo stuff
+$serviceConfigResult = $dbAccessor->getServiceConfig($clusterName);
+if ($serviceConfigResult["result"] != 0) {
+  $logger->log_error("Failed to get service config ".json_encode($serviceConfigResult));
+  print (json_encode($serviceConfigResult));
+  return;
+}
+
 // We need to clean up prior instances for this cluster name
 $dbAccessor->cleanupServices($clusterName);
+
+$yumInfoArray = array("using_local_repo" => $serviceConfigResult['properties']['using_local_repo'], 
+                      "yum_repo_file" => $serviceConfigResult['properties']['yum_repo_file']
+                     );
+$dbResponse = $dbAccessor->updateServiceConfigs($clusterName, $yumInfoArray);
+if ($dbResponse["result"] != 0) {
+    $logger->log_error("Got error while persisting configs: ".$dbResponse["error"]);
+    print (json_encode($dbResponse));
+    return;
+}
+
+////// done persisting 
 
 // Read from the input
 $requestdata = file_get_contents('php://input');
