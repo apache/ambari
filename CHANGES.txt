@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-470. Fix conflicting dashbord conf files in installer and dashboard. (Mahadev via Vikram)
+
   AMBARI-469. Cap DataNode heap size. (Mahadev via Vikram)
 
   AMBARI-467. Fix hive stop to escape $. (Mahadev via Vikram)

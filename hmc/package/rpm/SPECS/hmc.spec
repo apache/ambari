@@ -109,13 +109,14 @@ fi
 %__cp -f "%{SOURCE2}" $RPM_BUILD_ROOT/%{web_prefixdir}/yum_repo/
 %__install -D -m0755 puppet/reports/get_revision $RPM_BUILD_ROOT/%{web_prefixdir}/bin
 %__cp -rf puppet/reports/hmcreport.rb $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
-echo "Alias /hdp %{_prefix}/share/hdp" > $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
  
 
 %post
 if test X"$RPM_INSTALL_PREFIX0" = X"" ; then
   RPM_INSTALL_PREFIX0="/usr"
 fi
+
+echo "Alias /hdp $RPM_INSTALL_PREFIX0/share/hdp" > /etc/httpd/conf.d/hdp_mon_dashboard.conf
 php $RPM_INSTALL_PREFIX0/share/hmc/php/frontend/initializeHMC.php /var/db/hmc/data/data.db $RPM_INSTALL_PREFIX0/share/hmc/db/schema.dump
 sed -i 's/User\ apache/User\ puppet/g' /etc/httpd/conf/httpd.conf
 chmod 666 /var/db/hmc/data/data.db
@@ -153,7 +154,6 @@ rm -rf /var/run/hmc/puppetmaster.boot
 %files
 %defattr(-,root,root)
 %{web_prefixdir}/*
-%{httpd_confdir}/hdp_mon_dashboard.conf
 /usr/lib/ruby/site_ruby/1.8/puppet/reports/hmcreport.rb
 %config /etc/init.d/%{name}
 %{hmc_passwd_dir}*
