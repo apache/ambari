@@ -59,6 +59,8 @@ class hdp-hadoop::params(
   ### core-site
   $enable_security_authorization = hdp_default("hadoop/core-site/enable_security_authorization","false")
 
+  $fs_checkpoint_dir = hdp_default("hadoop/core-site/fs_checkpoint_dir","/tmp/dfs/namesecondary")
+
   $proxyuser_group = hdp_default("hadoop/core-site/proxyuser_group","users")
 
   $security_type = hdp_default("hadoop/core-site/security_type","simple")

@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-457. Create template for SNN checkpoint dir (Ramya via Vikram)
+
   AMBARI-456. Add more logging for ganglia (Ramya via Vikram)
 
   AMBARI-455. nagios shows service status critical if hbase is not installed (Suhas via Vikram)

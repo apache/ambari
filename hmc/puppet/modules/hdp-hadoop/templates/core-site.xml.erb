@@ -54,6 +54,27 @@
   </property>
 
   <property>
+    <name>fs.checkpoint.dir</name>
+    <value><%=scope.function_hdp_template_var("fs_checkpoint_dir")%></value>
+    <description>Determines where on the local filesystem the DFS secondary
+        name node should store the temporary images to merge.
+        If this is a comma-delimited list of directories then the image is
+        replicated in all of the directories for redundancy.
+    </description>
+  </property>
+
+  <property>
+    <name>fs.checkpoint.edits.dir</name>
+    <value>${fs.checkpoint.dir}</value>
+    <description>Determines where on the local filesystem the DFS secondary
+        name node should store the temporary edits to merge.
+        If this is a comma-delimited list of directoires then teh edits is
+        replicated in all of the directoires for redundancy.
+        Default value is same as fs.checkpoint.dir
+    </description>
+  </property>
+
+  <property>
     <name>fs.checkpoint.period</name>
     <value>86400</value>
     <description>The number of seconds between two periodic checkpoints.

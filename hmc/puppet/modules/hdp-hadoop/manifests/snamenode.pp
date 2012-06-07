@@ -11,14 +11,14 @@ class hdp-hadoop::snamenode(
 
   if ($service_state == 'no_op') {
   } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {
-    $dfs_name_dir = $hdp-hadoop::params::dfs_name_dir
+    $fs_checkpoint_dir = $hdp-hadoop::params::fs_checkpoint_dir
   
     #adds package, users and directories, and common hadoop configs
     include hdp-hadoop::initialize
  
     Hdp-Hadoop::Configfile<||>{snamenode_host => $hdp::params::host_address}
   
-    hdp-hadoop::snamenode::create_name_dirs { $dfs_name_dir: 
+    hdp-hadoop::snamenode::create_name_dirs { $fs_checkpoint_dir: 
       service_state => $service_state
     }
     
