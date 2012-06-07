@@ -38,8 +38,8 @@
     <script type="text/javascript">
 
       var jsFilesToLoad = [ 
-        '../js/utils.js',
-        '../js/clustersList.js' 
+        'js/utils.js',
+        'js/clustersList.js' 
       ];
     </script>
 

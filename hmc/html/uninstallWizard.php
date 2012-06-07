@@ -82,10 +82,10 @@
     };
 
     var jsFilesToLoad = [ 
-        '../js/utils.js', 
-        '../js/txnUtils.js',
-        '../js/uninstall.js', 
-        '../js/uninstallProgress.js', 
+        'js/utils.js', 
+        'js/txnUtils.js',
+        'js/uninstall.js', 
+        'js/uninstallProgress.js', 
       ];
     </script>
 

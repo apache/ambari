@@ -32,10 +32,10 @@
       var clusterName = '<?php echo $clusterName; ?>';
 
       var jsFilesToLoad = [ 
-        '../js/utils.js',
-        '../js/txnUtils.js',
-        '../js/uninstallProgress.js',
-        '../js/showUninstallProgress.js' 
+        'js/utils.js',
+        'js/txnUtils.js',
+        'js/uninstallProgress.js',
+        'js/showUninstallProgress.js' 
       ];
     </script>
 

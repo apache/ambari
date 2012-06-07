@@ -2,25 +2,9 @@
 
 <script type="text/javascript">
 
-  /* Loads the next file from the global jsFilesToLoad array (destroying it 
-   * in the process).
-   */
-  function loadNextJsFile() {
-
-    if( jsFilesToLoad.length > 0 ) {
-
-      var dynamicJsScript = document.createElement("script");
-      dynamicJsScript.type = "text/javascript";
-      dynamicJsScript.src = jsFilesToLoad.shift();
-      globalYui.log('Loading ' + dynamicJsScript.src);
-      dynamicJsScript.onload = loadNextJsFile;
-      document.getElementsByTagName("head")[0].appendChild(dynamicJsScript);
-    }
-  }
-
   var globalYuiLoaderOptions = {
     combine: true,
-    comboBase: '../yuiCombinator.php?',
+    comboBase: '../fileCombinator.php?',
     root: 'yui-3.5.1/build/'
   };
 
@@ -30,8 +14,12 @@
     "datasource-polling", "stylesheet", "dd-drop", "dd-constrain",
     "dd-proxy", "transition", "overlay", "node-event-simulate", function (Y) {
 
-      /* Kick off the sequential loading. */
-      loadNextJsFile();
+      /* Load all the files in jsFilesToLoad in one shot. */
+      var dynamicJsScript = document.createElement("script");
+      dynamicJsScript.type = "text/javascript";
+      dynamicJsScript.src = '../fileCombinator.php?' + jsFilesToLoad.join('&');
+      globalYui.log('Loading ' + dynamicJsScript.src);
+      document.getElementsByTagName("head")[0].appendChild(dynamicJsScript);
 
     });
 </script>

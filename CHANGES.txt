@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-480. Reduce Page Load Time By Combining HMC JS Files (Varun via Vikram)
+
   AMBARI-479. Add nodes after install does not allow re-bootstrap if user closes browser after bootstrap and before starting services (Vikram)
 
   AMBARI-477. Spec file for using installer with php-5.3 (Hitesh via Vikram)

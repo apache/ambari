@@ -309,21 +309,21 @@
             };
 
             var jsFilesToLoad = [
-                '../js/ext/jquery.min.js',
-                '../js/ext/bootstrap.min.js',
-                '../js/utils.js', 
-                '../js/txnUtils.js',
-                '../js/installationWizard.js',
-                '../js/createCluster.js',
-                '../js/addNodes.js',
-                '../js/addNodesProgress.js',
-                '../js/selectServices.js',
-                '../js/assignMasters.js',
-                '../js/configureCluster.js',
-                '../js/configureServicesUtils.js',
-                '../js/configureServices.js',
-                '../js/reviewAndDeploy.js',
-                '../js/deployProgress.js'                  
+                'js/ext/jquery.min.js',
+                'js/ext/bootstrap.min.js',
+                'js/utils.js', 
+                'js/txnUtils.js',
+                'js/installationWizard.js',
+                'js/createCluster.js',
+                'js/addNodes.js',
+                'js/addNodesProgress.js',
+                'js/selectServices.js',
+                'js/assignMasters.js',
+                'js/configureCluster.js',
+                'js/configureServicesUtils.js',
+                'js/configureServices.js',
+                'js/reviewAndDeploy.js',
+                'js/deployProgress.js'                  
               ];
             </script>
 

@@ -97,11 +97,11 @@
       var clusterName = '<?php echo $_GET['clusterName']; ?>';
 
       var jsFilesToLoad = [ 
-        '../js/utils.js',
-        '../js/txnUtils.js',
-        '../js/configureServicesUtils.js',
-        '../js/manageServices.js',
-        '../js/manageServicesProgress.js'
+        'js/utils.js',
+        'js/txnUtils.js',
+        'js/configureServicesUtils.js',
+        'js/manageServices.js',
+        'js/manageServicesProgress.js'
       ];
     </script>
 

@@ -126,13 +126,13 @@
     };
   
     var jsFilesToLoad = [ 
-        '../js/utils.js', 
-        '../js/txnUtils.js',
-        '../js/addNodes.js', 
-        '../js/addNodesProgress.js', 
-        '../js/selectComponents.js', 
-        '../js/deployAddedNodesProgress.js', 
-        '../js/addNodesWizardInit.js'
+        'js/utils.js', 
+        'js/txnUtils.js',
+        'js/addNodes.js', 
+        'js/addNodesProgress.js', 
+        'js/selectComponents.js', 
+        'js/deployAddedNodesProgress.js', 
+        'js/addNodesWizardInit.js'
       ];
     </script>
   
