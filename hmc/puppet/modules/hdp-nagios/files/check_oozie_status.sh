@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # OOZIE_URL is of the form http://<hostname>:<port>/oozie
-# OOZIE_URL: http://hortonworks-sandbox.localdomain:11000/oozie
 HOST=$1
 PORT=$2
 JAVA_HOME=$3

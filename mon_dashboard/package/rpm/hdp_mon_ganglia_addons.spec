@@ -25,10 +25,10 @@
 Summary: Ganglia Add-ons for HDP Monitoring Dashboard
 Name: hdp_mon_ganglia_addons
 Version: 0.0.1
-URL: http://hortonworks.com
+URL: http://incubator.apache.org/projects/ambari.html
 Release: 2
 License: Apache License, Version 2.0
-Vendor: Hortonworks <ambari-group@hortonworks.com>
+Vendor: Apache Software Foundation (ambari-dev@incubator.apache.org)
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
 Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
@@ -65,5 +65,5 @@ for a better monitoring integration with a Hadoop Cluster
 %__rm -rf $RPM_BUILD_ROOT
 
 %changelog
-* Fri Feb 17 2011 Hortonworks <ambari-group@hortonworks.com>
+* Thu Jun 07 2011 Ambari <ambari-dev@incubator.apache.org>
 - Initial version

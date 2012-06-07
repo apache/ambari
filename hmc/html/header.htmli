@@ -1,10 +1,10 @@
 <!-- START HEADER -->
     <div class="container">
       <header>
-        <a href="http://www.hortonworks.com" target="_blank">
+        <a href="http://incubator.apache.org/projects/ambari.html" target="_blank">
           <img src="./logo.jpg"/>
         </a>
-        <section id="headerText">Hortonworks Data Platform</section>
+        <section id="headerText">Ambari</section>
       </header>
     </div>
 <!-- END HEADER -->

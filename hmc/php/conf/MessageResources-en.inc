@@ -1,10 +1,10 @@
 <?php
-$RES['app.name']="Hortonworks Management Center";
-$RES['page.title']="Hortonworks Management Center";
-$RES['page.footer.body']="Hortonworks &copy; 2012";
-$RES['topnav.help.link']="http://docs.hortonworks.com/CURRENT/index.htm#Troubleshooting_HDP_Deployment/Troubleshooting_HDP_Deployment.htm";
-$RES['welcome.header']="Welcome to Hortonworks Management Center!";
-$RES['welcome.body']="<p>Hortonworks Management Center makes it easy for you to install, configure, and manage your Hadoop cluster.</p><p>First, we will walk you through setting up your cluster with a step-by-step wizard.</p>";
+$RES['app.name']="Ambari";
+$RES['page.title']="Ambari";
+$RES['page.footer.body']="";
+$RES['topnav.help.link']="";
+$RES['welcome.header']="Welcome to Ambari!";
+$RES['welcome.body']="";
 $RES['welcome.note']="Before you proceed, make sure you have performed all the pre-installation steps.";
 $RES['welcome.submit.label']="Get started";
 $RES['installFailed.header']="Cluster installation failed";
@@ -14,7 +14,7 @@ $RES['reinstall.header']="You have not set up a cluster yet.";
 $RES['reinstall.body']="We'll walk you through setting up your cluster with a 7-step wizard.";
 $RES['reinstall.submit.label']="Let's get started!";
 $RES['uninstallFailed.header']="Cluster uninstallation failed";
-$RES['uninstallFailed.body']="Failed to uninstall the cluster.  <a href='http://docs.hortonworks.com/CURRENT/index.htm#Troubleshooting_HDP_Deployment/Troubleshooting_HDP_Deployment.htm' target='_blank'>View the troubleshooting guide.</a>";
+$RES['uninstallFailed.body']="Failed to uninstall the cluster";
 $RES['common.sshUsername.label']="SSH Username";
 $RES['common.sshPrivateKeyFile.label']="SSH Private Key File for <i>root</i>";
 $RES['common.hostsFile.label']="Hosts File (newline-delimited list of hostnames)";

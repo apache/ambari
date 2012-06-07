@@ -1,3 +1,0 @@
-HDPClusterDeployUser=hortonva
-HDPClusterDeployUserIdentityFile=/var/www/html/KickAssHDPUI/php/playground/input/va_rsa
-HDPClusterHostsFile=/var/www/html/KickAssHDPUI/php/playground/input/hostsFile.txt

@@ -32,9 +32,9 @@
   
   // on document ready
   $(document).ready(function(){
-    document.title = 'Hortonworks Management Center';
-    $('#brand').html('Hortonworks Management Center');
-    $('#footer').html('Hortonworks &copy 2012');
+    document.title = 'Ambari';
+    $('#brand').html('Ambari');
+    $('#footer').html('');
     self.clearTimeout(to);
     a.refreshPage();
     a.setEventDelegation();
@@ -820,9 +820,9 @@
 
           // Refresh the caption to indicate service name.
           if(page == "HDFS" || page == "MAPREDUCE" || page == "HBASE"){
-            $("#alertsGrid").jqGrid('setCaption',"Configured Alerts (<a href=\"http://hortonworks.com\" target=\"_blank\">troubleshoot?</a>)");
+            $("#alertsGrid").jqGrid('setCaption',"Configured Alerts (<a href=\"\" target=\"\"></a>)");
           } else {
-            $("#alertsGrid").jqGrid('setCaption',targetId+" Alerts (<a href=\"http://hortonworks.com\" target=\"_blank\">troubleshoot?</a>)");
+            $("#alertsGrid").jqGrid('setCaption',targetId+" Alerts (<a href=\"\" target=\"\"></a>)");
           }
           
           // Populate Alerts Grid

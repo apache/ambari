@@ -25,10 +25,10 @@
 Summary: Nagios Add-ons for HDP Monitoring Dashboard
 Name: hdp_mon_nagios_addons
 Version: 0.0.1
-URL: http://hortonworks.com
+URL: http://incubator.apache.org/projects/ambari.html
 Release: 2
 License: Apache License, Version 2.0
-Vendor: Hortonworks <ambari-group@hortonworks.com>
+Vendor: Apache Software Foundation (ambari-dev@incubator.apache.org)
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
 Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
@@ -68,5 +68,5 @@ echo "Alias /hdp %{_prefix}/share/hdp" > $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mo
 %__rm -rf $RPM_BUILD_ROOT
 
 %changelog
-* Fri Feb 17 2011 Hortonworks <ambari-group@hortonworks.com>
+* Thu Jun 07 2012 Ambari <ambari-dev@incubator.apache.org>
 - Initial version

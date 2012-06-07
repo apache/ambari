@@ -25,10 +25,10 @@
 Summary: HMC for PHP 5.3
 Name: hmc-php53
 Version: 0.0.1
-URL: http://hortonworks.com
+URL: http://incubator.apache.org/projects/ambari.html
 Release: 2%{?dist}
 License: Apache License, Version 2.0
-Vendor: Hortonworks <hmc-dev-group@hortonworks.com>
+Vendor: Apache Software Foundation <ambari-dev@incubator.apache.org>
 Group: System Environment/Base
 Source: hmc-%{version}.tar.gz
 Source1: hmc.init.in
@@ -152,5 +152,5 @@ rm -rf /var/run/hmc/puppetmaster.boot
 #%clean
 #%__rm -rf $RPM_BUILD_ROOT
 %changelog
-* Wed Apr 04 2012 Hortonworks <ambari-group@hortonworks.com>
+* Thu Jun 07 2012 Ambari <ambari-dev@incubator.apache.org>
 - Initial version

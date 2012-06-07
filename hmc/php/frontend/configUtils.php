@@ -389,7 +389,6 @@ function validateConfigs($svcConfigs) {
       scheduler_name|org.apache.hadoop.mapred.CapacityTaskScheduler
       nagios_web_login|nagiosadmin
       nagios_web_password|admin
-      nagios_contact|nagiosadmin@hortonworks.com
       hadoop_heapsize|1024
       namenode_heapsize|1024
       namenode_opt_newsize|200

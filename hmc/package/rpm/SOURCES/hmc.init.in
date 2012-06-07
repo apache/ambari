@@ -45,82 +45,6 @@ fi
 cp /etc/puppet/auth.conf /etc/puppet/master/
 cp /etc/puppet/puppet.conf /etc/puppet/master/
 
-checkLicense() {
-  if [ ! -f /var/run/hmc/license ]
-  then
-    echo "Do you agree to Oracle's Java License at"
-    while true; do
-      read -p "/usr/share/hmc/licenses/ORACLE_JDK_LICENSE.txt?(y/n)" yn
-      case $yn in
-        [Yy]* ) touch /var/run/hmc/license; break;;
-        [Nn]* ) echo "Exiting"; exit 0;;
-        * ) echo "Please answer yes or no.";;
-      esac
-    done
-  fi
-}
-
-downloadJDK() {
-  jdk64="jdk-6u26-linux-x64.bin"
-  jdk32="jdk-6u26-linux-i586.bin"
-
-  echo "Downloading JDK binaries. This may take a few minutes"
-
-  echo "Downloading 64-bit JDK binaries"
-  curl --connect-timeout 10 -f -L --output /var/run/hmc/downloads/${jdk64}.tmp "https://s3.amazonaws.com/dev.hortonworks.com/ARTIFACTS/jdk-6u26-linux-x64.bin"
-  ret=$?
-  if [[ "$ret" != "0" ]]; then
-    echo "Failed to download 64-bit JDK"
-    return 1
-  fi
-
-  curl --connect-timeout 10 -f -L --output /var/run/hmc/downloads/${jdk64}.md5.tmp "https://s3.amazonaws.com/dev.hortonworks.com/ARTIFACTS/jdk-6u26-linux-x64.bin.md5"
-  ret=$?
-  if [[ "$ret" != "0" ]]; then
-    echo "Failed to download 64-bit JDK md5"
-    return 1
-  fi
-
-  echo "Downloading 32-bit JDK binaries"
-  curl --connect-timeout 10 -f -L --output /var/run/hmc/downloads/${jdk32}.tmp "https://s3.amazonaws.com/dev.hortonworks.com/ARTIFACTS/jdk-6u26-linux-i586.bin"
-  ret=$?
-  if [[ "$ret" != "0" ]]; then
-    echo "Failed to download 32-bit JDK"
-    return 1
-  fi
-
-  curl --connect-timeout 10 -f -L --output /var/run/hmc/downloads/${jdk32}.md5.tmp "https://s3.amazonaws.com/dev.hortonworks.com/ARTIFACTS/jdk-6u26-linux-i586.bin.md5"
-  ret=$?
-  if [[ "$ret" != "0" ]]; then
-    echo "Failed to download 32-bit JDK md5"
-    return 1
-  fi
-
-  md5Str=`cat /var/run/hmc/downloads/${jdk64}.md5.tmp`
-  echo "${md5Str}  /var/run/hmc/downloads/${jdk64}.tmp" > /var/run/hmc/downloads/${jdk64}.md5
-
-  md5sum --status --check /var/run/hmc/downloads/${jdk64}.md5
-  ret=$?
-  if [[ "$ret" != "0" ]]; then
-    echo "Failed to match md5 checksum for 64-bit JDK"
-    return 1
-  fi
-
-  md5Str=`cat /var/run/hmc/downloads/${jdk32}.md5.tmp`
-  echo "${md5Str}  /var/run/hmc/downloads/${jdk32}.tmp" > /var/run/hmc/downloads/${jdk32}.md5
-
-  md5sum --status --check /var/run/hmc/downloads/${jdk32}.md5
-  ret=$?
-  if [[ "$ret" != "0" ]]; then
-    echo "Failed to match md5 checksum for 32-bit JDK"
-    return 1
-  fi
-
-  cp -f /var/run/hmc/downloads/${jdk64}.tmp /var/run/hmc/downloads/${jdk64}
-  cp -f /var/run/hmc/downloads/${jdk32}.tmp /var/run/hmc/downloads/${jdk32}
-  return 0
-}
-
 checkHDPRepo() {
   if [[ ! -f /etc/yum.repos.d/hdp.repo ]]; then
     echo "Please install hdp repo before starting hmc"
@@ -140,29 +64,6 @@ bootPuppet() {
 checkJDK() {
   jdk64="jdk-6u26-linux-x64.bin"
   jdk32="jdk-6u26-linux-i586.bin"
-
-  checkLicense
-
-  if [[ ! -f /var/run/hmc/downloads/$jdk64 || ! -f /var/run/hmc/downloads/$jdk32 ]]; then
-    while true; do
-      read -p "Would you like us to download the JDK binaries for you?(y/n)" dyn
-      case $dyn in
-        [Yy]* )
-               downloadJDK
-               ret=$?
-               if [[ "$ret" != "0" ]]; then
-                 echo -n "Failed to download JDK correctly"
-               fi
-               cleanupFiles="/var/run/hmc/downloads/${jdk64}.tmp /var/run/hmc/downloads/${jdk64}.md5 /var/run/hmc/downloads/${jdk64}.md5.tmp /var/run/hmc/downloads/${jdk32}.tmp /var/run/hmc/downloads/${jdk32}.md5 /var/run/hmc/downloads/${jdk32}.md5.tmp"
-               rm -f ${cleanupFiles}
-               break
-               ;;
-        [Nn]* ) break;;
-        * ) echo "Please answer yes or no.";;
-      esac
-    done
-  fi
-
 
   if [[ ! -f /var/run/hmc/downloads/$jdk64 || ! -f /var/run/hmc/downloads/$jdk32 ]]; then
     echo "Please download $jdk64 and $jdk32 from Oracle to /var/run/hmc/downloads/"
