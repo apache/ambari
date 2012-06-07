@@ -162,7 +162,7 @@ function populateVal ($line, $count, $arr)
     }
     $lline = strtolower(trim($line));
     if ($lline == "release") {
-      continue;
+      break;
     }
     $matches = array();
     if (preg_match("/([0-9]+)(\.[0-9]+)?/", $lline, $matches) > 0) {
