@@ -5,7 +5,9 @@ should be listed by their full name. Please keep the file to a max of 80
 characters wide.
 
 Release 0.1.x - unreleased
-  
+
+  AMBARI-422. Increase Threshold For Number Of Successive Backend Connection Failures (Varun via Vikram)  
+
   AMBARI-420. Improve style on error log popups. Added missing file (Mahadev via Vikram)
 
   AMBARI-420. Improve style on error log popups (Yusaku via Vikram)

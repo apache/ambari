@@ -344,7 +344,7 @@ function PeriodicDataPoller( dataSourceContext, responseHandler ) {
   }
   if( !this.dataSourceContext.maxFailedAttempts ) {
     /* How many failed attempts before we stop polling. */
-    this.dataSourceContext.maxFailedAttempts = 5;
+    this.dataSourceContext.maxFailedAttempts = 25;
   }
 
   this.responseHandler = responseHandler;
