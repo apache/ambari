@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-502. X button missing from popup (Yusaku via Vikram)
+
   AMBARI-501. Speed up page load/reload times (Yusaku via Vikram)
 
   AMBARI-500. Fix versions in rpm spec file. (Mahadev via Vikram)
