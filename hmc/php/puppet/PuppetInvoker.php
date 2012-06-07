@@ -242,13 +242,13 @@
           $configInfo, $hostRolesStates, $hostAttributes, $agentModulesDir);
 
       //Tar the modules and catalog
-      $tarCmd = "tar zcf ". $GLOBALS["manifestloaderDir"] . "/modules.tgz" . " " .  $GLOBALS["puppetMasterModulesDirectory"];
-      $this->logger->log_info($tarCmd);
-      exec($tarCmd);
       $tarLocation = $GLOBALS["puppetMasterModulesDirectory"] . "/catalog/files" ;
       $removeOldTar = "rm -f " . $tarLocation . "/modules.tgz";
       $this->logger->log_info($removeOldTar);
       exec($removeOldTar);
+      $tarCmd = "tar zcf ". $GLOBALS["manifestloaderDir"] . "/modules.tgz" . " " .  $GLOBALS["puppetMasterModulesDirectory"];
+      $this->logger->log_info($tarCmd);
+      exec($tarCmd);
       $placeNewTarCmd = "mv " . $GLOBALS["manifestloaderDir"] . "/modules.tgz" . " " . $tarLocation;
       $this->logger->log_info($placeNewTarCmd);
       exec($placeNewTarCmd);

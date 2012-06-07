@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-515. Modules tar size increases. (Jitendra via Vikram)
+
   AMBARI-514. Fix parsing error in puppet manifests. (Mahadev via Vikram)
 
   AMBARI-513. Download mysql rpm for sqoop (Ramya via Vikram)
