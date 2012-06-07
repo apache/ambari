@@ -253,7 +253,7 @@ class ServiceComponent {
       $opStatus = array(
           "stats" =>
               array (
-                     "NODE_COUNT" => count($nodes),
+                     "NODE_COUNT" => count($nodes['nodes']),
                      "TIME_TAKEN_SECS" => $timeTaken),
           "nodeReport" =>
               array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
@@ -372,7 +372,7 @@ class ServiceComponent {
       $opStatus = array(
           "stats" =>
               array (
-                     "NODE_COUNT" => count($nodes),
+                     "NODE_COUNT" => count($nodes['nodes']),
                      "TIME_TAKEN_SECS" => $timeTaken),
           "nodeReport" =>
               array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],

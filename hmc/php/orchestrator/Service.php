@@ -451,7 +451,7 @@ class Service {
       $opStatus = array(
           "stats" =>
                array (
-                      "NODE_COUNT" => count($nodes),
+                      "NODE_COUNT" => 1,
                       "TIME_TAKEN_SECS" => $timeTaken),
           "nodeReport" =>
               array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],

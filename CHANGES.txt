@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-430. set service state to failed if cluster monitoring reconfiguration fails (Hitesh via Vikram)
+
   AMBARI-429. Fix bug with jmx parsing on HBase. (Mahadev via Vikram)
 
   AMBARI-428. changes to templeton setup for 0.1.4 (Ramya via Vikram)

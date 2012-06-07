@@ -340,6 +340,11 @@ class Cluster {
       $result = $nagiosComp->stop($transaction->createSubTransaction(), $dryRun);
       if ($result["result"] != 0) {
         $this->setState(State::FAILED, $transaction, $dryRun);
+        $nagiosService = $this->db->getService("NAGIOS");
+        if ($nagiosService !== FALSE) {
+          $nagiosService->setState(STATE::FAILED,
+              $transaction->createSubTransaction(), $dryRun, FALSE);
+        }
         $this->logger->log_error("Failed to stop nagios server, error"
             . $result["error"]);
         return $result;
@@ -364,6 +369,11 @@ class Cluster {
       $result = $dashboardComp->start($transaction->createSubTransaction(), $dryRun);
       if ($result["result"] != 0) {
         $this->setState(State::FAILED, $transaction, $dryRun);
+        $dashboardService = $this->db->getService("DASHBOARD");
+        if ($dashboardService !== FALSE) {
+          $dashboardService->setState(STATE::FAILED,
+              $transaction->createSubTransaction(), $dryRun, FALSE);
+        }
         $this->logger->log_error("Failed to start dashboard server, error"
             . $result["error"]);
         return $result;
@@ -436,7 +446,7 @@ class Cluster {
       $opStatus = array(
           "stats" =>
              array (
-                    "NODE_COUNT" => count($nodes),
+                    "NODE_COUNT" => count($allHosts),
                     "TIME_TAKEN_SECS" => $timeTaken),
           "nodeReport" =>
              array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
@@ -532,7 +542,7 @@ class Cluster {
       $opStatus = array(
           "stats" =>
               array (
-                    "NODE_COUNT" => count($nodes),
+                    "NODE_COUNT" => count($kickHosts),
                     "TIME_TAKEN_SECS" => $timeTaken),
          "nodeReport" =>
             array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
