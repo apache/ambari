@@ -33,7 +33,8 @@ Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
 Source1: hmc.init.in
 Source2: hmc_hdp.repo
-Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
+Source3: hmc-agent.init.in
+BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 Requires: php >= 5, sqlite >= 3, php-pdo, php-pecl-json, httpd, puppet = 2.7.9, pdsh, httpd-devel, ruby-devel, rubygems, mod_passenger, mod_ssl
 %define web_prefixdir %{_prefix}/share/hmc
 %define httpd_confdir %{_sysconfdir}/httpd/conf.d
@@ -42,16 +43,26 @@ Requires: php >= 5, sqlite >= 3, php-pdo, php-pecl-json, httpd, puppet = 2.7.9, 
 %define hmc_db_dir %{_var}/db/hmc
 %define hmc_run_dir %{_var}/run/hmc
 %define hmc_log_dir %{_var}/log/hmc
-BuildArchitectures: noarch
+%define hmc_agent_dir %{_sysconfdir}/hmc
+BuildArch: noarch
+
 
 %description
 This package provides a Management Console for Hadoop Cluster.
+
+%package agent
+Summary: agent for hmc
+Group:  System/Daemons
+Requires: puppet = 2.7.9 
+BuildArch: noarch
+%description agent
+This package provides a Management Console for Hadoop Cluster. 
+
 
 %prep
 %setup -q -n %{name}-%{version}
 
 %build
-
 %pre
 # Make a backup of existing database before installing new package
 if [ -f /var/db/hmc/data/data.db ]; then
@@ -59,10 +70,12 @@ if [ -f /var/db/hmc/data/data.db ]; then
   mv /var/db/hmc/data/data.db /var/db/hmc/data/data.db.$DATE
 fi
 
+
 %install
 # Flush any old RPM build root
 %__rm -rf $RPM_BUILD_ROOT
 %__install -D -m0755 "%{SOURCE1}" "$RPM_BUILD_ROOT/etc/init.d/%{name}"
+%__install -D -m0755 "%{SOURCE3}" "$RPM_BUILD_ROOT/etc/init.d/%{name}-agent"
 %__mkdir -p $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/bin/
@@ -97,6 +110,7 @@ fi
 %__install -D -m0755 puppet/reports/get_revision $RPM_BUILD_ROOT/%{web_prefixdir}/bin
 %__cp -rf puppet/reports/hmcreport.rb $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
 echo "Alias /hdp %{_prefix}/share/hdp" > $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
+ 
 
 %post
 if test X"$RPM_INSTALL_PREFIX0" = X"" ; then
@@ -122,7 +136,7 @@ host=`hostname -f | tr '[:upper:]' '[:lower:]'`
 sed -i "s/__TODO_HOSTNAME__/$host/g" /etc/httpd/conf.d/puppetmaster.conf
 cp $RPM_INSTALL_PREFIX0/share/hmc/puppet/conf/puppet.conf.template /etc/puppet/puppet.conf
 echo 0 > /selinux/enforce
-htpasswd -mbc /etc/hmc/htpasswd.users hmcadmin hmcadmin
+htpasswd -mbc /etc/hmc/htpasswd.users hmcadmin hmcadmin &> /dev/null
 #chown apache:apache /var/db/hmc/data/data.db
 chown -R puppet:apache /etc/hmc
 
@@ -145,9 +159,13 @@ rm -rf /var/run/hmc/puppetmaster.boot
 %{hmc_db_dir}
 %{hmc_log_dir}
 %{hmc_run_dir}/*
-%clean
-%__rm -rf $RPM_BUILD_ROOT
 
+%files agent
+/etc/init.d/hmc-agent
+%{hmc_agent_dir}
+
+#%clean
+#%__rm -rf $RPM_BUILD_ROOT
 %changelog
 * Wed Apr 04 2012 Hortonworks <ambari-group@hortonworks.com>
 - Initial version

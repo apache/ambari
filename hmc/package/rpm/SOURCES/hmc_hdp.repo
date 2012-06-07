@@ -7,6 +7,13 @@ enabled=1
 gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL
 
+[HDP-1.0.11]
+name=Hortonworks Data Platform Version - HDP-1.0.11
+baseurl=http://s3.amazonaws.com/temp.repo/HDP-1.0.11/repos/centos5
+gpgcheck=0
+enabled=1
+priority=1
+
 [Puppet]
 name=Puppet
 baseurl = http://yum.puppetlabs.com/el/5/products/x86_64/

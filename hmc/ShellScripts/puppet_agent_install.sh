@@ -139,7 +139,7 @@ host=`hostname -f | tr '[:upper:]' '[:lower:]'`
 out=`/etc/init.d/iptables stop 1>/dev/null`
 
 echo "Installing puppet using yum"
-out=`yum install -y puppet-2.7.9-2`
+out=`yum install -y hmc-agent`
 ret=$?
 if [[ "$ret" != "0" ]]; then
   echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
@@ -153,7 +153,7 @@ if [[ "$ret" != "0" ]]; then
   echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
   exit 1
 fi
-
+out=`echo $master > /etc/hmc/hmc-agent.conf`
 out=`mkdir -p /etc/puppet/agent 2>&1`
 agent_auth_conf="path /run\nauth any\nallow $master\n\npath /\nauth any"
 out=`echo -e $agent_auth_conf > /etc/puppet/agent/auth.conf`
@@ -168,14 +168,21 @@ fi
 
 #TODO clean this up for better fix. For now make sure we stop puppet agent. The issue here is we do not know if we started this puppet agent during our run or not.
 echo "Stopping puppet agent using service stop command"
-out=`service puppet stop`
+out=`service hmc-agent stop`
 ret=$?
 
 echo "Starting puppet agent for HMC"
-out=`puppet agent --verbose --confdir=/etc/puppet/agent --listen --runinterval 5 --server $master --report --no-client --waitforcert 10 --configtimeout 600 --debug --logdest=/var/log/puppet_agent.log --httplog /var/log/puppet_agent_http.log --autoflush --use_cached_catalog 2>&1`
+out=`service hmc-agent start`
 ret=$?
 if [[ "$ret" != "0" ]]; then
   echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
   exit 1
 fi
+echo "Setting chkconfig for HMC"
+out=`chkconfig --add hmc-agent`
+ret=$?
+#if [[ "$ret" != "0" ]]; then
+#  echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
+#  exit 1
+#fi
 exit 0

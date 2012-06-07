@@ -72,7 +72,11 @@ mkdir -p ${RPM_BUILDDIR}/SRPMS/
 
 cp -f ${BASEDIR}/SPECS/${PKG_NAME}.spec ${RPM_BUILDDIR}/SPECS/
 cp -f ${TAR_DEST} ${RPM_BUILDDIR}/SOURCES/
-cp -f ${BASEDIR}/SOURCES/* ${RPM_BUILDDIR}/SOURCES/
+cp -f ${BASEDIR}/SOURCES/${PKG_NAME}_hdp.repo ${RPM_BUILDDIR}/SOURCES/
+cp -f ${BASEDIR}/SOURCES/${PKG_NAME}.init.in ${RPM_BUILDDIR}/SOURCES/
+cp -f ${BASEDIR}/SOURCES/${PKG_NAME}-agent.init.in ${RPM_BUILDDIR}/SOURCES/
+
+
 
 cd ${RPM_BUILDDIR}
 
@@ -88,10 +92,9 @@ if [[ "$ret" != "0" ]]; then
 fi
 
 cd ${CUR_DIR}
-
 RPM_DEST=`find ${RPM_BUILDDIR}/{SRPMS,RPMS} -name *.noarch.rpm`
-if [[ ! -f "${RPM_DEST}" ]]; then
-  echo "Error: ${RPM_DEST} does not exist"
+if [[ -z "${RPM_DEST}" ]]; then
+  echo "Error: RPM_DEST dir is empty"
   exit 1
 fi
 
