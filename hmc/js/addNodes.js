@@ -186,11 +186,7 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
 
       if (responseJson.result != 0) {
         // This means we hit an error
-        if (responseJson.result == 2) {
-          hideLoadingImg();
-          setFormStatus(responseJson.error, true);
-          return;
-      } else if (responseJson.result == 3) {
+      if (responseJson.result == 3) {
         info =
           '<p>' +
             responseJson.error + '. ' +
@@ -201,11 +197,15 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
           setFormStatus(info, true);
           var infoPanel = createInformationalPanel("#informationalPanelContainerDivId", "Duplicate nodes");
           infoPanel.set('centered', true);
-          var infoPanelContent = '<ul>';
-          for (host in responseJson.hosts) {
-            infoPanelContent += '<li>' + responseJson.hosts[host] + '</li>';
+          var infoPanelContent = '';
+          for (cluster in responseJson.hosts) {
+            infoPanelContent += 'Cluster: <b>' + cluster + '</b><ul>';
+            for (host in responseJson.hosts[cluster]) {
+              infoPanelContent += '<li>' + responseJson.hosts[cluster][host] + '</li>';
+            }
+
+            infoPanelContent += '</ul><br/>';
           }
-          infoPanelContent += '</ul>';
           infoPanel.set('bodyContent', infoPanelContent);
           infoPanel.addButton({
             value: 'Close',

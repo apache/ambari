@@ -1094,6 +1094,7 @@ class HMCDBAccessor {
       $host["discoveryStatus"] = $entry["discovery_status"];
       $host["badHealthReason"] = $entry["bad_health_reason"];
       $host["attributes"] = json_decode($entry["attributes"], true);
+      $host["clusterName"] = $entry["cluster_name"];
       array_push($response["hosts"], $host);
     }
     LockRelease(); return $response;
@@ -3381,7 +3382,7 @@ class HMCDBAccessor {
       $host["discoveryStatus"] = $entry["discovery_status"];
       $host["badHealthReason"] = $entry["bad_health_reason"];
       $host["attributes"] = json_decode($entry["attributes"], true);
-      array_push($response["hosts"], $host);
+      array_push($response["hosts"][$host["hostName"]], $host);
     }
     LockRelease(); return $response;
   }

@@ -82,42 +82,48 @@ $logger->log_info("Doing a fresh install: $freshInstall");
 if (!$freshInstall) {
 
   // Get the list of current nodes
-    $allHostsInfoResult = $dbAccessor->getAllHostsInfo($clusterName, array());
-    if ($allHostsInfoResult["result"] != 0 ) {
-      $logger->log_error("Got error while getting hostInfo for $host :" .$allHostsInfoResult["error"]);
-      print json_encode($allHostsInfoResult);
-      return;
-    }
+  $allHostsInfoResult = $dbAccessor->getAllHostsInfo("", array());
+  if ($allHostsInfoResult["result"] != 0 ) {
+    $logger->log_error("Got error while getting hostInfo for $host :" .$allHostsInfoResult["error"]);
+    print json_encode($allHostsInfoResult);
+    return;
+  }
 
-    // See if they are duplicates
-    $newHosts = readHostsFile($hostsFileDestination);
-    $duplicateHosts = array();
-    $logger->log_debug("Checking for Duplicate Hosts.");
-    foreach ($allHostsInfoResult["hosts"] as $hostInfo) {
-      if (in_array($hostInfo["hostName"], $newHosts)) {
-        $duplicateHosts[] = $hostInfo["hostName"];
-      }
-    }
-    $numDupHosts = count($duplicateHosts);
-    $numNewHosts = count($newHosts);
-    if ($numDupHosts != 0) {
-      if ($numNewHosts == $numDupHosts) {
-        print (json_encode(array("result" => 2, "error" => "All the hosts in the given file are already being used in cluster '$clusterName'")));
-      } else {
-        print (json_encode(array("result" => 3, "error" => "Some hosts in the given file are already being used in cluster '$clusterName'", "hosts" => $duplicateHosts)));
+  $unassignedHostResult = $dbAccessor->getAllUnassignedHosts($clusterName);
+  if ($unassignedHostResult["result"] != 0) {
+    print json_encode($unassignedHostResult);
+    return;
+  }
 
-        // Just re-edit the hosts' file in case users says go ahead
-        $nodeFileOut = fopen($hostsFileDestination, "w");
-        foreach ($newHosts as $newHost) {
-          if (in_array($newHost, $duplicateHosts)) {
-            continue;
-          }
-          fwrite($nodeFileOut, $newHost."\n");
+  $unassignedHostList = $unassignedHostResult["hosts"];
+
+  // See if they are duplicates
+  $newHosts = readHostsFile($hostsFileDestination);
+  $duplicateHosts = array();
+  $logger->log_debug("Checking for Duplicate Hosts.");
+  foreach ($allHostsInfoResult["hosts"] as $hostInfo) {
+    $logger->log_debug("Checking for Duplicate Hosts. hostname = ".
+      $hostInfo["hostName"]. " key does not exist? " . 
+      array_key_exists($hostInfo["hostName"], $unassignedHostList). 
+      " incoming cluster name: $clusterName, host is part of cluster "
+      .$hostInfo["clusterName"]);
+    if (in_array($hostInfo["hostName"], $newHosts) &&
+      (!(array_key_exists($hostInfo["hostName"], $unassignedHostList)) 
+      || ($hostInfo["clusterName"] != $clusterName))) {
+        if (!array_key_exists($hostInfo["clusterName"], $duplicateHosts)) {
+          $duplicateHosts[$hostInfo["clusterName"]] = array();
         }
-        fclose($nodeFileOut);
+
+        array_push($duplicateHosts[$hostInfo["clusterName"]], 
+                   $hostInfo["hostName"]);
       }
-      return;
-    }
+  }
+  $numDupHosts = count($duplicateHosts);
+  $numNewHosts = count($newHosts);
+  if ($numDupHosts != 0) {
+    print (json_encode(array("result" => 3, "error" => "Some hosts in the given file are already being used in cluster", "hosts" => $duplicateHosts)));
+    return;
+  }
 } else {
   // Update the state of the cluster.
   $state = "CONFIGURATION_IN_PROGRESS";
