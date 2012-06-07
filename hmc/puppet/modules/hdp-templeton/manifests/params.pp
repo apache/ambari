@@ -18,14 +18,14 @@ class hdp-templeton::params() inherits hdp::params
 
   $templeton_pid_dir = hdp_default("hadoop/templeton-env/templeton_pid_dir","/var/run/templeton")
 
-  $templeton_jar_name= hdp_default("hadoop/templeton-env/templeton_jar_name","templeton-0.1.3.jar")
+  $templeton_jar_name= hdp_default("hadoop/templeton-env/templeton_jar_name","templeton-0.1.4.jar")
  
   $hadoop_prefix = hdp_default("hadoop/templeton-env/hadoop_prefix","/usr")
   $hive_prefix = hdp_default("hadoop/templeton-env/hive_prefix","/usr")
   
   ### templeton-site
   $hadoop_conf_dir = hdp_default("hadoop/templeton-site/hadoop_conf_dir")
-  $templeton_jar = hdp_default("hadoop/templeton-site/templeton_jar","/usr/share/templeton/templeton-0.1.3.jar")
+  $templeton_jar = hdp_default("hadoop/templeton-site/templeton_jar","/usr/share/templeton/templeton-0.1.4.jar")
   $zookeeper_jar = hdp_default("hadoop/templeton-site/zookeeper_jar","/usr/lib/zookeeper/zookeeper.jar")
   $pig_tar_gz = hdp_default("hadoop/templeton-site/pig_tar_gz","$pig_tar_name")
   $pig_tar_name_hdfs = hdp_default("hadoop/templeton-site/pig_tar_name_hdfs","pig-0.9.2")

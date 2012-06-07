@@ -6,7 +6,9 @@ characters wide.
 
 Release 0.1.x - unreleased
 
-  AMBARI-435. Oozie start fails with "Not managing symlink mode" (Ramya via Vikram)
+  AMBARI-428. changes to templeton setup for 0.1.4 (Ramya via Vikram)
+
+  AMBARI-425. Oozie start fails with "Not managing symlink mode" (Ramya via Vikram)
 
   AMBARI-424. change "reconfiguremonitoring" message to a better worded action (Hitesh via Vikram)
 

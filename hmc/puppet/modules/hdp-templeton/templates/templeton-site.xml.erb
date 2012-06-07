@@ -57,7 +57,7 @@ limitations under the License.
 
   <property>
     <name>templeton.pig.archive</name>
-    <value>hdfs:///user/templeton/<%=scope.function_hdp_template_var("pig_tar_gz")%></value>
+    <value>hdfs:///apps/templeton/<%=scope.function_hdp_template_var("pig_tar_gz")%></value>
     <description>The path to the Pig archive.</description>
   </property>
 
@@ -75,7 +75,7 @@ limitations under the License.
 
   <property>
     <name>templeton.hive.archive</name>
-    <value>hdfs:///user/templeton/<%=scope.function_hdp_template_var("hive_tar_gz")%></value>
+    <value>hdfs:///apps/templeton/<%=scope.function_hdp_template_var("hive_tar_gz")%></value>
     <description>The path to the Hive archive.</description>
   </property>
 
@@ -104,5 +104,19 @@ limitations under the License.
     <value>org.apache.hcatalog.templeton.tool.ZooKeeperStorage</value>
     <description>The class to use as storage</description>
   </property>
+
+  <property>
+   <name>templeton.override.enabled</name>
+   <value>false</value>
+   <description>
+     Enable the override path in templeton.override.jars
+   </description>
+ </property>
+
+ <property>
+    <name>templeton.streaming.jar</name>
+    <value>hdfs:///apps/templeton/hadoop-streaming.jar</value>
+    <description>The hdfs path to the Hadoop streaming jar file.</description>
+  </property> 
 
 </configuration>
