@@ -310,7 +310,7 @@ class Cluster {
 
   private function _restartDashboardAndNagios($transaction, $dryRun,
       $restartNagiosOnly = FALSE) {
-    $this->currentAction = "ReconfigureMonitoring";
+    $this->currentAction = "Nagios/Ganglia Reconfiguration";
     $this->logger->log_info("Restarting dashboard and nagios, dryRun=" . $dryRun);
 
     // check if nagios installed and needs to be restarted

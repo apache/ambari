@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-424. change "reconfiguremonitoring" message to a better worded action (Hitesh via Vikram)
+
   AMBARI-421. Ganglia uninstall does not remove libganglia or gmond (Richard via Vikram)
 
   AMBARI-423. Uninstall cluster can't be automated by Selenium due to the internal confirmation window (Yusaku via Vikram)
