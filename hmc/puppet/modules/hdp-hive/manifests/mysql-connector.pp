@@ -11,7 +11,7 @@ class hdp-hive::mysql-connector()
      require   => Anchor['hdp-hive::mysql-connector::begin']
    }
 
-   hdp::exec { 'mkdir -p ${artifact_dir} ;  cp /usr/share/java/mysql-connector-java.jar  ${target}':
+   hdp::exec { 'hive mkdir -p ${artifact_dir} ;  cp /usr/share/java/mysql-connector-java.jar  ${target}':
        command => "mkdir -p ${artifact_dir} ;  cp /usr/share/java/mysql-connector-java.jar  ${target}",
        unless  => "test -f ${target}",
        creates => $target,
