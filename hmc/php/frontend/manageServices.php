@@ -14,13 +14,7 @@ include_once "../puppet/DBReader.php";
 include_once "../puppet/PuppetInvoker.php";
 include_once "configUtils.php";
 include_once '../util/suggestProperties.php';
-
-$logger = new HMCLogger("ManageServices");
-$dbPath = $GLOBALS["DB_PATH"];
-$clusterName = $_GET['clusterName'];
-$dbAccessor = new HMCDBAccessor($dbPath);
-
-header("Content-type: application/json");
+include_once "../util/clusterState.php";
 
 function performServiceManagement( $hmc, $requestObj )
 {
@@ -29,7 +23,7 @@ function performServiceManagement( $hmc, $requestObj )
   global $clusterName;
 
   /* What we're here to return. */
-  $result = array();
+  $serviceManagementResult = array();
 
   $action = $requestObj['action'];
 
@@ -38,22 +32,22 @@ function performServiceManagement( $hmc, $requestObj )
   switch( $action )
   {
     case 'startAll':
-      $result = $hmc->startAllServices();
+      $serviceManagementResult = $hmc->startAllServices();
       break;
 
     case 'stopAll':
-      $result = $hmc->stopAllServices();
+      $serviceManagementResult = $hmc->stopAllServices();
       break;
 
     case 'start':
       if( count($serviceNames) > 0 ) {
-        $result = $hmc->startServices( $serviceNames );
+        $serviceManagementResult = $hmc->startServices( $serviceNames );
       }
       break;
 
     case 'stop':
       if( count($serviceNames) > 0 ) {
-        $result = $hmc->stopServices( $serviceNames );
+        $serviceManagementResult = $hmc->stopServices( $serviceNames );
       }
       break;
 
@@ -63,77 +57,118 @@ function performServiceManagement( $hmc, $requestObj )
 
         /* Read additional data from $requestObj and update the DB
          * accordingly before attempting to call $hmc->reconfigureServices().
-         *
          */
-
-        /*
-        $configsToUpdate = array ();
-        foreach ($requestObj['services'] as $svcName => $svcInfo) {
-          if (!isset($svcInfo["properties"])
-              || !is_array($svcInfo["properties"])) {
-            continue;
-          }
-          // TODO: Stupid translation, FIXME says tshooter to hitman
-          $finalProperties = array();
-          foreach ($svcInfo["properties"] as $key => $valueObj) {
-            $finalProperties[$key] = $valueObj["value"];
-          }
-          $configsToUpdate = array_merge($configsToUpdate, $finalProperties);
-        }
-        $result = $dbAccessor->updateServiceConfigs($clusterName, $configsToUpdate);
-        if ($result['result'] != 0) {
-          $logger->log_error("Failed to update the configs in DB, error=" . $result["error"]);
-          return $result;
-        }
-        */
-
         // re-using persistConfigs code
-        $result = validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $requestObj['services']);
-        if ($result['result'] != 0) {
-          $logger->log_error("Failed to validate configs from user, error=" . $result["error"]);
-          return $result;
+        $serviceManagementResult = validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $requestObj['services']);
+        if ($serviceManagementResult['result'] != 0) {
+          $logger->log_error("Failed to validate configs from user, error=" . $serviceManagementResult["error"]);
+          return $serviceManagementResult;
         }
 
-        /*
-         * Also, remember to save a snapshot of the outgoing service
-         * config in the 'ConfigHistory' table (thanks, @tshooter).
+        /* Also, remember to save a snapshot of the outgoing service
+         * config in the 'ConfigHistory' table.
          */
         $changeMsg = "Reconfiguring services, list=" . implode(",", $serviceNames);
-        $result = $dbAccessor->createServiceConfigSnapshot($clusterName, $changeMsg);
-        if ($result['result'] != 0) {
-          $logger->log_error("Failed to create config snapshot in DB, error=" . $result["error"]);
-          return $result;
+        $serviceManagementResult = $dbAccessor->createServiceConfigSnapshot($clusterName, $changeMsg);
+        if ($serviceManagementResult['result'] != 0) {
+          $logger->log_error("Failed to create config snapshot in DB, error=" . $serviceManagementResult["error"]);
+          return $serviceManagementResult;
         }
 
-        $result = $hmc->reconfigureServices( $serviceNames );
+        $serviceManagementResult = $hmc->reconfigureServices( $serviceNames );
       }
       break;
 
     default:
       $logger->log_error( "Unrecognized action '" . $action . "' requested" );
-      $result = array ( "result" => -1 , "error" => "Invalid action, action=" . $action);
+      $serviceManagementResult = array ( "result" => -1 , "error" => "Invalid action, action=" . $action);
       break;
   }
 
-  return $result;
+  return $serviceManagementResult;
 }
 
-$hmc = new HMC($dbPath, $clusterName);
+$dbPath = $GLOBALS["DB_PATH"];
+$clusterName = $_GET['clusterName'];
 
-/* Slurp in the POST body. */
-$requestData = file_get_contents('php://input');
-$requestObj = json_decode($requestData, true);
+/* For returning in our JSON at the very end. */
+$result = 0;
+$error = "";
 
-/* The Main Event. */
-$result = performServiceManagement($hmc, $requestObj);
+$txnId = -1;
 
-/* Augment $result with 'clusterName'. */
-$result["clusterName"] = $clusterName;
+$logger = new HMCLogger("ManageServices");
 
-if ($result["result"] != 0 ) {
-  $logger->log_error("Failed to take an action in manage services, error=" . $result["error"]);
+$dbAccessor = new HMCDBAccessor($dbPath);
+$clusterStateResponse = $dbAccessor->getClusterState($clusterName);
+
+if ($clusterStateResponse['result'] != 0) {
+  print json_encode($clusterStateResponse);
+  return;
 }
 
-print (json_encode($result));
+$clusterState = json_decode($clusterStateResponse['state'], true);
+
+/* Perform the actual management only if this cluster is in a deployed state 
+ * (regardless of whether the deploy was a success or failure). 
+ */
+if ($clusterState['state'] == 'DEPLOYED') {
+
+  $hmc = new HMC($dbPath, $clusterName);
+
+  /* Slurp in the POST body. */
+  $requestData = file_get_contents('php://input');
+  $requestObj = json_decode($requestData, true);
+
+  /* The Main Event. */
+  $serviceManagementResult = performServiceManagement($hmc, $requestObj);
+
+  if ($serviceManagementResult["result"] != 0 ) {
+    $logger->log_error("Failed to take an action in manage services, error=" . $serviceManagementResult["error"]);
+    print json_encode($serviceManagementResult);
+    return;
+  }
+
+  $txnId = $serviceManagementResult["txnId"];
+
+  /* (And when we kick off the management action is the only time to update the 
+   * state of the cluster). 
+   */
+  $state = "SERVICE_MANAGEMENT_IN_PROGRESS";
+  $displayName = "Service management in progress";
+  $context = array (
+    'txnId' => $txnId,
+    /* We've come here only if the cluster is in the "DEPLOYED" state, so the 
+     * state we stash is the state at the end of the deploy - we'll restore 
+     * this state at the end of the service management action.
+     */
+    'stashedDeployState' => $clusterState
+  );
+
+  $retval = updateClusterState($clusterName, $state, $displayName, $context);
+  if ($retval['result'] != 0) {
+    $result = $retval['result'];
+    $error = $retval['error'];
+  }
+}
+/* In case a management operation is already running, just return the txnId 
+ * from the DB instead of kicking off a fresh managemen action - this is so 
+ * we can try and preclude multiple managements occurring in parallel.
+ */
+elseif ($clusterState['state'] == 'SERVICE_MANAGEMENT_IN_PROGRESS') {
+
+  $txnId = $clusterState['context']['txnId'];
+}
+
+/* Create the output data... */
+$jsonOutput = array(
+    'clusterName' => $clusterName,
+    'txnId' => $txnId
+  );
+
+/* ...and spit it out. */
+header("Content-type: application/json");
+
+print (json_encode(array("result" => $result, "error" => $error, "response" => $jsonOutput)));
 
 ?>

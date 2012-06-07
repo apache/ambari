@@ -5,6 +5,8 @@ should be listed by their full name. Please keep the file to a max of 80
 characters wide.
 
 Release 0.1.x - unreleased
+
+  AMBARI-446. Support Resume For Manage Services (Varun via Vikram)
   
   AMBARI-466. Add nodes page alerts removed in case of adding duplicate nodes (Vikram)
 

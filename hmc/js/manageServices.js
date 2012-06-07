@@ -349,131 +349,7 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
            */
           hideAndDestroyPanel();
 
-          var manageServicesProgressStatusMessage = {
-
-            success:
-              '<p>' +
-                'Successfully completed the operation. ' + 
-                  '<a href="javascript:void(null)" style="margin-left:10px;" id="closeManageServicesProgressWidgetLinkId">' + 
-                    'Continue' +
-                  '</a>' +
-              '</p>',
-
-            failure: 
-              '<p>' + 
-                'Failed to complete the operation.<br>Take a look at ' +
-                  '<a href="javascript:void(null)" id=showManageServicesTxnLogsLinkId>Operation Logs</a>' +
-                ' to see what might have gone wrong.' +
-                '<a href="javascript:void(null)" class="btn btn-large" style="margin:5px 0" id="closeManageServicesProgressWidgetLinkId">' + 
-                'Continue' +
-                '</a>' +
-              '</p>'
-          };
-
-          var manageServicesProgressPostCompletionFixup = {
-
-            success: function( txnProgressWidget ) {
-
-              /* Register a click-handler for the just-rendered 
-               * #closeManageServicesProgressWidgetLinkId.
-               *
-               * Don't worry about this being a double-registration - although
-               * it looks that way, it's not, because (an identical, but that's 
-               * irrelevant, really) manageServicesProgressStatusMessage.success 
-               * is re-rendered afresh each time through, and thus this 
-               * click-handler must also be re-registered each time 'round.
-               */
-              globalYui.one("#closeManageServicesProgressWidgetLinkId").on( "click", function(e) {
-                txnProgressWidget.hide();
-              });
-
-              /* Resume polling for information about the cluster's services. */
-              fetchClusterServicesPoller.start();
-            },
-
-            failure: function( txnProgressWidget ) {
-              
-              globalYui.one("#closeManageServicesProgressWidgetLinkId").on( "click", function(e) {
-                txnProgressWidget.hide();
-              });
-
-              
-              /* <-------------------- REZXXX BEGIN -----------------------> */
-
-              /* Create the panel that'll display our error info. */
-              var errorInfoPanel = 
-                createInformationalPanel( '#informationalPanelContainerDivId', 'Operation Logs' );
-
-              /* Prime the panel to start off showing our stock loading image. */
-              var errorInfoPanelBodyContent = 
-                '<img id=errorInfoPanelLoadingImgId class=loadingImg src=../images/loading.gif />';
-
-              /* Make the call to our backend to fetch the report for this txnId. */
-              globalYui.io('../php/frontend/fetchTxnLogs.php?clusterName=' + 
-                txnProgressWidget.txnProgressContext.clusterName + '&txnId=' + txnProgressWidget.txnProgressContext.txnId, {
-                  
-                timeout: 10000,
-                on: {
-                  success: function (x,o) {
-
-                    globalYui.log("RAW JSON DATA: " + o.responseText);
-
-                    var errorInfoJson = null;
-
-                    // Process the JSON data returned from the server
-                    try {
-                      errorInfoJson = globalYui.JSON.parse(o.responseText);
-                    }
-                    catch (e) {
-                      alert("JSON Parse failed!");
-                      return;
-                    }
-
-                    /* TODO XXX Remove some of the noise from this to allow
-                     * for better corelation - for now, just dump a 
-                     * pretty-printed version of the returned JSON.
-                     */
-                    errorInfoPanelBodyContent = 
-                      '<pre>' + 
-                        globalYui.JSON.stringify( errorInfoJson.logs, null, 4 ) +
-                      '</pre>';
-
-                    /* Update the contents of errorInfoPanel (which was, till
-                     * now, showing the loading image). 
-                     */
-                    errorInfoPanel.set( 'bodyContent', errorInfoPanelBodyContent );
-                  },
-                  failure: function (x,o) {
-                    alert("Async call failed!");
-                  }
-                }
-              });
-
-              var firstTimeShowingErrorInfoPanel = true;
-
-              /* Register a click-handler for #showManageServicesTxnLogsLinkId 
-               * to render the contents inside errorInfoPanel (and make it visible). 
-               */
-              globalYui.one("#showManageServicesTxnLogsLinkId").on( "click", function(e) {
-
-                errorInfoPanel.set( 'bodyContent', errorInfoPanelBodyContent );
-                errorInfoPanel.show();
-
-              });
-
-              /* <--------------------- REZXXX END ------------------------> */
-
-              /* Resume polling for information about the cluster's services. */
-              /* TODO XXX Move this into the click handler for closing the widget after the first show of the panel... */
-              fetchClusterServicesPoller.start();
-            }
-          };
-
-          var manageServicesProgressWidget = new TxnProgressWidget
-            ( manageServicesResponseJson, 'Performing Service Operation', manageServicesProgressStatusMessage, manageServicesProgressPostCompletionFixup );
-
-          /* And now that confirmationDataPanel is hidden, show manageServicesProgressWidget. */
-          manageServicesProgressWidget.show();
+          renderManageServicesProgress( manageServicesResponseJson.response );
         }
         else {
           /* No need to hide confirmationDataPanel here - there are errors 
@@ -487,7 +363,7 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
                 handleConfigureServiceErrors( manageServicesResponseJson );
             });
           });
-        } else {
+          } else {
             // Can't do anything for others
             alert('Got error during ' + action + ' : ' + globalYui.Lang.dump(manageServicesResponseJson));
           }

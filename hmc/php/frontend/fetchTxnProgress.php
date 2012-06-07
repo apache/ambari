@@ -6,6 +6,8 @@ include_once "../orchestrator/HMC.php";
 include_once '../util/clusterState.php';
 include_once "uninstallCleanup.php";
 include_once "deployPostProcess.php";
+include_once "uninstallCleanup.php";
+include_once "manageServicesPostProcess.php";
 
 $dbPath = $GLOBALS["DB_PATH"];
 
@@ -16,12 +18,26 @@ $deployUser = $_GET['deployUser'];
 $logger = new HMCLogger("TxnProgress");
 
 $map = array(
+  "HMC::deployHDP" => array (
+      "deployPostProcess"
+  ),
   "HMC::uninstallHDP" => array (
       "deBootStrap"
   ),
-
-  "HMC::deployHDP" => array (
-      "deployPostProcess"
+  "HMC::startAllServices" => array (
+      "manageServicesPostProcess"
+  ),
+  "HMC::stopAllServices" => array (
+      "manageServicesPostProcess"
+  ),
+  "HMC::startServices" => array (
+      "manageServicesPostProcess"
+  ),
+  "HMC::stopServices" => array (
+      "manageServicesPostProcess"
+  ),
+  "HMC::reconfigureServices" => array (
+      "manageServicesPostProcess"
   )
 );
 

@@ -37,29 +37,6 @@ function generateLogsContent(errorInfoJson) {
 
 }
 
-function generateClustersListUrl( clusterName ) {
-
-  var url = '';
-
-  var currentUrl = window.location.href;
-  globalYui.log('Current URL: ' + currentUrl);
-  var currentPathPos = currentUrl.indexOf(window.location.pathname);
-  globalYui.log('Current Path Pos: ' + currentPathPos);
-
-  if( -1 != currentPathPos ) {
-
-    /*
-    url = currentUrl.substr(0, currentPathPos) + 
-      '/hmc/html/manageServices.php?clusterName=' + clusterName;
-  globalYui.log('Services Page URL: ' + url);
-      */
-    // ClusterName is no longer needed
-    url = currentUrl.substr(0, currentPathPos) + '/hmc/html/index.php';
-  }
-
-  return url;
-}
-
 function renderDeployProgress (deployProgressInfo) {
 
   hideLoadingImg();
@@ -115,7 +92,7 @@ function renderDeployProgress (deployProgressInfo) {
     success: function( txnProgressWidget ) {
 
       globalYui.one("#clustersListLinkId").on( "click", function(e) {
-        document.location.href = generateClustersListUrl(txnProgressWidget.txnProgressContext.clusterName);
+        document.location.href = generateHMCUrl();
       });
     },
 
@@ -174,10 +151,10 @@ function renderDeployProgress (deployProgressInfo) {
        * the contents inside errorInfoPanel (and make it visible). 
        */
       globalYui.one("#showDeployTxnLogsLinkId").on( "click", function(e) {
-        errorInfoPanel.set('centered', true);
-        errorInfoPanel.set('bodyContent', errorInfoPanelBodyContent );
-        errorInfoPanel.show();
 
+        errorInfoPanel.set( 'centered', true );
+        errorInfoPanel.set( 'bodyContent', errorInfoPanelBodyContent );
+        errorInfoPanel.show();
       });
     }
   };

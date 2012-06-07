@@ -461,3 +461,21 @@ function titleCase(word){
   return word.substr(0,1).toUpperCase() + word.substr(1).toLowerCase();
 }
 
+function generateHMCUrl( uriPath ) {
+
+  var url = '';
+
+  /* By default, go to the HMC home page. */
+  uriPath = ( typeof uriPath == "undefined" ) ? '/hmc/html/index.php' : uriPath;
+    
+  var currentUrl = window.location.href;
+  globalYui.log('Current URL: ' + currentUrl);
+  var currentPathPos = currentUrl.indexOf(window.location.pathname);
+  globalYui.log('Current Path Pos: ' + currentPathPos);
+
+  if( -1 != currentPathPos ) {
+    url = currentUrl.substr(0, currentPathPos) + uriPath;
+  }
+
+  return url;
+}

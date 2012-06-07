@@ -100,7 +100,8 @@
         '../js/utils.js',
         '../js/txnUtils.js',
         '../js/configureServicesUtils.js',
-        '../js/manageServices.js' 
+        '../js/manageServices.js',
+        '../js/manageServicesProgress.js'
       ];
     </script>
 
