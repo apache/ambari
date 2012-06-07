@@ -1,4 +1,7 @@
 function ClustersList() { 
+  
+  var managerHostName;
+  
   function populateHostToMasterRoleMapping(clusterServices, hostMap) {
     
     for (var serviceName in clusterServices) {
@@ -64,11 +67,14 @@ function ClustersList() {
     
     markup += '<div>';
     for (var hostName in hostMap) {
-      markup += '<div class="hostToServices"><h3>' + hostName + '</h3>' + '<ul>';
+      markup += '<div class="hostToServices clearfix"><h3>' + hostName + '</h3>' + '<ul>';
+      if (hostName == managerHostName) {
+        markup += '<li class="master">HMC Server</li>';
+      }
       for (var service in hostMap[hostName]) {
         markup += '<li class="' + ((hostMap[hostName][service].isMaster) ? 'master' : 'client') + '">' + hostMap[hostName][service].serviceName + '</li>';
       }
-      markup += '</ul><div style="clear:both"></div></div>';
+      markup += '</ul></div>';
     }
     markup += '</div>';
   
@@ -101,8 +107,7 @@ function ClustersList() {
             return;
           }
   
-          clusterListInfoJson = clusterListInfoJson.response;
-  
+          clusterListInfoJson = clusterListInfoJson.response;  
           var numClusters = clusterListInfoJson.length;
           var clustersListMarkup;
           var clusterId;
@@ -155,6 +160,8 @@ function ClustersList() {
                   alert("JSON Parse failed");
                   return;
                 }
+                
+                managerHostName = clusterServicesResponseJson.response.managerHostName;
   
                 globalYui.log(globalYui.Lang.dump(clusterServicesResponseJson));
   
@@ -172,7 +179,6 @@ function ClustersList() {
                       '</div>' +
                     '</div>';
                   
-                  /* Link the newly-generated markup into the DOM. */
                   globalYui.one("#clusterHostRoleMappingDynamicRenderDivId").setContent(
                       markup + generateHostRoleMappingMarkup(clusterServices) );
                   globalYui.one("#clusterHostRoleMappingDivId").show();
@@ -199,20 +205,7 @@ function ClustersList() {
               // globalYui.one("#installationWizardDivId").setStyle('display','block');
           });
           }
-  
-          if(numClusters !=0) {
-            globalYui.one('#existingClusterLinkDivId').on('click',function (e) {
-  
-              e.target.set('disabled', true);
-  
-              /* Done with this stage, hide it. */
-              globalYui.one("#clustersListDivId").setStyle('display','none');
-  
-              /* Show off our rendering. */
-              globalYui.one("#displayServiceStatusCoreDivId").setStyle('display','block');
-            });
-         }
-  
+    
         },
         failure: function (x,o) {
           //    e.target.set('disabled', false);
@@ -220,7 +213,7 @@ function ClustersList() {
         }
       }
     });
-  }
+  }; // end render
 };
 
 var clustersList = new ClustersList();

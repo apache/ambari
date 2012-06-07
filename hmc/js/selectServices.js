@@ -312,7 +312,7 @@ globalYui.one('#selectServicesSubmitButtonId').on('click',function (e) {
     var submitButton = globalYui.one('#selectServicesSubmitButtonId');
     var thisScreenId = "#selectServicesCoreDivId";
     var nextScreenId  = "#assignHostsCoreDivId";
-    var nextScreenRenderFunction = renderAssignHosts;
+    var nextScreenRenderFunction = new AssignMasters().render;
 
     submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
 

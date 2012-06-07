@@ -187,6 +187,7 @@ $jsonOutput = array(
     'error' => $error,
     'response' => array(
       'clusterName' => $clusterName,
+      'managerHostName' => strtolower(exec('hostname -f')),
       'services' => $services )
   );
 

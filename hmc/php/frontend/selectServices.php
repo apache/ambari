@@ -156,6 +156,8 @@ foreach($allServicesArray["services"] as $service) {
 }
 //////////////////// End of populate service masters for the UI ///////////////////////////
 
+$jsonOutput['managerHostName'] = strtolower(exec('hostname -f'));
+
 // Update the state of the cluster.
 $result = 0;
 $error = "";
