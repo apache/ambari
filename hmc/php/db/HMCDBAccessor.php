@@ -3311,9 +3311,18 @@ class HMCDBAccessor {
   }
 
   public function cleanupCluster ($clusterName) {
-    $this->deleteAllInTable("Clusters");
+//    $this->deleteAllInTable("Clusters");
     $this->deleteClusterTable($clusterName, "ServiceComponentInfo");
     $this->cleanupHosts($clusterName);
+  }
+
+  public function wipeOutClusters () {
+    $this->deleteAllInTable("Clusters");
+    $this->deleteAllInTable("ServiceComponentInfo");
+    $this->deleteAllInTable("Hosts");
+    $this->deleteAllInTable("HostRoles");
+    $this->deleteAllInTable("ServiceConfig");
+    $this->deleteAllInTable("ServiceInfo");
   }
 
 }
