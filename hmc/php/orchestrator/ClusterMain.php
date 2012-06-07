@@ -178,7 +178,7 @@ function createServiceObj($dbHandle, $clusterName, $serviceName,
       continue;
     }
     $svcObj = new Service($svc["serviceName"], $svc["state"],
-       $odb, $puppetInvoker);
+       $odb, $puppetInvoker, $svc["serviceName"]);
     return $svcObj;
   }
   $logger->log_error("Could not find service in DB"

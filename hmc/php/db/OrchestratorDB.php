@@ -46,6 +46,10 @@ class OrchestratorDB {
 
   private $serviceComponentsCache;
 
+  private $serviceMetaInfo;
+
+  private $serviceComponentMetaInfo;
+
   /**
    * Initialize ODB
    * @param string $dbPath
@@ -59,7 +63,45 @@ class OrchestratorDB {
     $this->exploreMode = false;
     $this->servicesCache = array();
     $this->serviceComponentsCache = array();
+    $this->serviceMetaInfo = NULL;
+    $this->serviceComponentMetaInfo = NULL;
     $this->logger = new HMCLogger("OrchestratorDB");
+  }
+
+  function getServiceDisplayName($serviceName) {
+    if (!isset($serviceMetaInfo)
+        || $serviceMetaInfo == NULL) {
+      $result = $this->db->getAllServicesList();
+      if ($result["result"] != 0 || !isset($result["services"])) {
+        $this->logger->log_error("Failed to retrieve service meta info from DB"
+           . ", error=" . $result["error"]);
+        return $serviceName;
+      }
+      $serviceMetaInfo = $result["services"];
+    }
+    if (isset($serviceMetaInfo[$serviceName]["displayName"])
+        && $serviceMetaInfo[$serviceName]["displayName"] != "") {
+      return $serviceMetaInfo[$serviceName]["displayName"];
+    }
+    return $serviceName;
+  }
+
+  function getServiceComponentDisplayName($serviceName, $componentName) {
+    if (!isset($serviceComponentMetaInfo)
+        || $serviceComponentMetaInfo == NULL) {
+      $result = $this->db->getAllServiceComponentsList();
+      if ($result["result"] != 0 || !isset($result["services"])) {
+        $this->logger->log_error("Failed to retrieve service component meta info from DB"
+            . ", error=" . $result["error"]);
+        return $componentName;
+      }
+      $serviceComponentMetaInfo = $result["services"];
+    }
+    if (isset($serviceComponentMetaInfo[$serviceName]["components"][$componentName]["displayName"])
+        && $serviceComponentMetaInfo[$serviceName]["components"][$componentName]["displayName"] != "") {
+      return $serviceComponentMetaInfo[$serviceName]["components"][$componentName]["displayName"];
+    }
+    return $componentName;
   }
 
   /**
@@ -588,7 +630,9 @@ class OrchestratorDB {
       $service = $this->servicesCache[$serviceName];
       $this->logger->log_debug("Got cached service for $serviceName");
     } else {
-      $service = new Service($this->clusterName, $serviceName, $serviceState, $db, $puppet);
+      $displayName = $this->getServiceDisplayName($serviceName);
+      $service = new Service($this->clusterName, $serviceName, $serviceState,
+          $db, $puppet, $displayName);
       $this->servicesCache[$serviceName] = $service;
       $this->logger->log_debug("Did not get cached service for $serviceName");
     }
@@ -602,9 +646,11 @@ class OrchestratorDB {
       $serviceComponent = $this->serviceComponentsCache[$componentName];
       $this->logger->log_debug("Got cached serviceComponent for $componentName");
     } else {
+      $displayName = $this->getServiceComponentDisplayName($serviceName,
+          $componentName);
       $serviceComponent =
         new ServiceComponent($this->clusterName, $componentName, $serviceName,
-          $componentState, $db, $puppet, $isClient);
+          $componentState, $db, $puppet, $isClient, $displayName);
       $this->logger->log_debug("Did not get cached serviceComponent for $componentName");
       $this->serviceComponentsCache[$componentName] = $serviceComponent;
     }

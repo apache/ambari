@@ -397,7 +397,7 @@ class Cluster {
 
   private function _installNodes($transaction, $hostCompMapping, $dryRun) {
     $this->logger->log_info("Installing on nodes dryRun=" . $dryRun);
-    $this->currentAction = "InstallNodes";
+    $this->currentAction = "Install Nodes";
     $hostsToInstall = array();
     $allHosts = array();
     $compMapping = array();
@@ -483,7 +483,7 @@ class Cluster {
   private function _startNodes($transaction, $hostCompMapping, $dryRun) {
     $this->logger->log_info("Starting nodes dryRun=" . $dryRun);
 
-    $this->currentAction = "StartNodes";
+    $this->currentAction = "Start Nodes";
     $hostsToStart = array();
     $kickHosts = array();
     $noOpHosts = array();

@@ -29,6 +29,9 @@ class ServiceComponent {
   // Name of the component
   public $name;
 
+  // Display Name of the component
+  public $displayName;
+
   // Name of the service to which the component belongs to
   public $serviceName;
 
@@ -60,9 +63,10 @@ class ServiceComponent {
   private $currentAction;
 
   function __construct($clusterName, $componentName, $serviceName, $componentState,
-      $db, $puppet, $isClient) {
+      $db, $puppet, $isClient, $displayName) {
     $this->clusterName = $clusterName;
     $this->name = $componentName;
+    $this->displayName = $displayName;
     $this->serviceName = $serviceName;
     $this->state = $componentState;
     $this->db = $db;
@@ -83,10 +87,11 @@ class ServiceComponent {
   function setState($state, $transaction, $dryRun, $persistTxn) {
     if ($persistTxn) {
       $txnProgress = getTransactionProgressFromState($state);
-      $desc = $this->name."-".$this->currentAction."-"
-          . TransactionProgress::$PROGRESS[$txnProgress];
+      $desc = getActionDescription($this->displayName, $this->currentAction,
+          TransactionProgress::$PROGRESS[$txnProgress]);
       if ($dryRun) {
-        $desc = $this->name."-".$this->currentAction."-PENDING";
+        $desc = getActionDescription($this->displayName, $this->currentAction,
+            "PENDING");
       }
       $result = $this->db->persistTransaction($transaction, State::$STATE[$state],
             $desc, TransactionProgress::$PROGRESS[$txnProgress],

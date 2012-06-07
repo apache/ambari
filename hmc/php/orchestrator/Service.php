@@ -33,6 +33,9 @@ class Service {
   // Name of the service
   public $name;
 
+  // Display Name of the service
+  public $displayName;
+
   // Service state
   public $state;
 
@@ -68,8 +71,9 @@ class Service {
   private $runClientSmokeTest;
 
   function __construct($clusterName, $serviceName, $serviceState,
-      $odb, $puppet) {
+      $odb, $puppet, $displayName) {
     $this->name = $serviceName;
+    $this->displayName = $displayName;
     $this->state = $serviceState;
     $this->clusterName = $clusterName;
     $this->db = $odb;
@@ -91,11 +95,11 @@ class Service {
   function setState($state, $transaction, $dryRun, $persistTxn) {
     if ($persistTxn) {
       $txnProgress = getTransactionProgressFromState($state);
-//      $desc = $this->name."-".$this->currentAction."-". TransactionProgress::$PROGRESS[$txnProgress];
-    $desc = getActionDescription($this->name, $this->currentAction, TransactionProgress::$PROGRESS[$txnProgress]);
+      $desc = getActionDescription($this->displayName, $this->currentAction,
+          TransactionProgress::$PROGRESS[$txnProgress]);
       if ($dryRun) {
-//        $desc = $this->name."-".$this->currentAction."-PENDING";
-        $desc = getActionDescription($this->name, $this->currentAction, "PENDING");
+        $desc = getActionDescription($this->displayName, $this->currentAction,
+            "PENDING");
       }
       $result =
         $this->db->persistTransaction($transaction, State::$STATE[$state],
