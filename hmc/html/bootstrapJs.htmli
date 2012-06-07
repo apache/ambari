@@ -28,7 +28,7 @@
     "node", "io", "dump", "json", "panel", "event", "arraysort", 
     "array-extras", "datasource", "datasource-io", "datasource-jsonschema", 
     "datasource-polling", "stylesheet", "dd-drop", "dd-constrain",
-    "dd-proxy", "transition", function (Y) {
+    "dd-proxy", "transition", "node-event-simulate", function (Y) {
 
       /* Kick off the sequential loading. */
       loadNextJsFile();

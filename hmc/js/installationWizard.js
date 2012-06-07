@@ -83,3 +83,21 @@ globalYui.one('#installationWizardProgressBarListId').delegate('click', function
     InstallationWizardStages.transitionToCachedStage( previouslyCurrentStage.get('id'), newCurrentStage.get('id') );
   }
 }, 'li' ); 
+
+globalYui.one('#installationMainFormsDivId').delegate('key', function (e) {
+    /* Prevent the refresh of the page. */
+    e.preventDefault();
+
+    /* We don't have identically structured markup around all our 
+     * 'a.btn' elements, so we need this bubble-up search logic. 
+     */
+    var currentButtonSibling = e.target.ancestor();
+
+    while( !currentButtonSibling.next('a.btn') ) {
+      currentButtonSibling = currentButtonSibling.ancestor();
+    }
+
+    /* Generate the click. */
+    currentButtonSibling.next('a.btn').simulate('click');
+
+}, 'enter' );
