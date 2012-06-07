@@ -82,6 +82,13 @@ if (sizeof($clusters) == 0) {
         }     
         $clusterState = 'DEPLOYMENT_IN_PROGRESS';
         break;
+      case 'SERVICE_MANAGEMENT_IN_PROGRESS':
+        if (!$bypassRouter && $requestPage != 'showManageServicesProgress.php') {
+          eval(redirectToPage($requestPage, 'showManageServicesProgress.php'));
+          exit;
+        }     
+        $clusterState = 'SERVICE_MANAGEMENT_IN_PROGRESS';
+        break;        
       case 'UNINSTALLATION_IN_PROGRESS':
         if (!$bypassRouter && $requestPage != 'showUninstallProgress.php') {
           eval(redirectToPage($requestPage, 'showUninstallProgress.php'));
