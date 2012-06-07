@@ -69,6 +69,11 @@ function validateConfigs($svcConfigs) {
         if ($check["error"] != "") {
           $errors[$key] = $check;
         }
+      } else if ($key == "fs_checkpoint_dir") {
+        $check = validateDirList($val);
+        if ($check["error"] != "") {
+          $errors[$key] = $check;
+        }
       } else if ($key == "mapred_local_dir") {
         $check = validateDirList($val);
         if ($check["error"] != "") {
@@ -473,7 +478,8 @@ function sanitizeConfigs($requestObjFromUser, $logger) {
           || $key == "dfs_data_dir"
           || $key == "mapred_local_dir"
           || $key == "oozie_data_dir"
-          || $key == "zk_data_dir") {
+          || $key == "zk_data_dir"
+          || $key == "fs_checkpoint_dir" ) {
         $finalProperties[$key] = trimDirList($val);
       } else if ($key == "lzo_enabled"
                  || $key == "snappy_enabled") {

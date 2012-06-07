@@ -117,6 +117,11 @@ $outjson = array(
                                                                     "maxDirectoriesNeeded" => -1,
                                                                     "suffix" => "hadoop/hdfs/data"
                                                                     ),
+                                             "fs_checkpoint_dir" => array(
+                                                                    "displayName" => "SecondaryNameNode Checkpoint directory",
+                                                                    "maxDirectoriesNeeded" => 1,
+                                                                    "suffix" => "hadoop/hdfs/namesecondary"
+                                                                    )
                                             ),
                                 "MAPREDUCE" => array(
                                              "mapred_local_dir" => array(

@@ -78,9 +78,10 @@ class HostsConfigManifest {
            ($key == "snappy_enabled") || 
            ($key == "wipeoff_data") ) {
         $manifest = $manifest . $value . "\n";
-      } else if ($key == "datanode_du_reserved") {
+      } else if ($key == "datanode_du_reserved"
+                 || $key == "fs_checkpoint_size") {
         // convert GB to bytes and round off to whole number
-        $newVal = round(intval($value) * 1024 * 1024 * 1024);
+        $newVal = round($value * 1024 * 1024 * 1024);
         $manifest = $manifest . "\"" .  $newVal . "\"\n";
       } else {
         $manifest = $manifest . "\"" .  $value . "\"\n";
