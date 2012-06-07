@@ -160,7 +160,15 @@ function populateVal ($line, $count, $arr)
     if (!isset($arr["osType"])) {
       $arr["osType"] = "";
     }
-    $arr["osType"] .= trim($line);
+    $lline = strtolower(trim($line));
+    if ($lline == "release") {
+      continue;
+    }
+    $matches = array();
+    if (preg_match("/([0-9]+)(\.[0-9]+)?/", $lline, $matches) > 0) {
+      $lline = $matches[1];
+    }
+    $arr["osType"] .= $lline;
     break;
   case 5:
     if (!isset($arr["os"])) {
@@ -279,7 +287,7 @@ if ($dirHandle = opendir($prevOutputDir)) {
       }
 
       if ($nodeStatus == "SUCCESS") {
-        if ($thisHostArray["osType"] != "redhatenterpriseserver5"
+        if ($thisHostArray["osType"] != "redhatenterpriselinuxserver5"
             && $thisHostArray["osType"] != "centos5") {
           $thisHostArray["badHealthReason"] = "Unsupported OS";
           $finalOpStatus = "FAILED";

@@ -21,8 +21,8 @@ function getCommandLine() {
   $cpuCmd = "grep -c processor /proc/cpuinfo ;";
   $archCmd = "uname -m ;";
   $mntPointCmd = "df -lkh | sed \\\"1 d\\\" | grep -vw \\\"/boot\\\" | grep -vw \\\"/dev\/shm\\\" | grep -vw \\\"/home\\\" | grep -vw \/ | awk '{ print \\\$(NF)}' ; ";
-  $osTypeCmd = "if [ -f /usr/bin/lsb_release ] ; then lsb_release -si | tr '[:upper:]' '[:lower:]' | cut -d ' ' -f 1; lsb_release -sr | cut -d . -f 1; "
-      . "else cat \\`ls /etc/*release | grep \\\"redhat\|SuSE\\\"\\` | head -1 | awk '{ first=\\\"\\\"; ver=\\\"\\\"; for(i=1; i<=NF; i++) { if ( i == 1 ) print \\\$i; if ( \\\$i ~ /[0-9]+/ ) { print \\\$i; break; } } }' | tr '[:upper:]' '[:lower:]' ; "
+  $osTypeCmd = "if [ -f /usr/bin/lsb_release ] ; then lsb_release -sd | tr '[:upper:]' '[:lower:]' | tr '\\\"' ' ' | awk '{ for(i=1; i<=NF; i++) { print \\\$i; print '\\n'; if ( \\\$i ~ /[0-9]+/ ) { break; } } }' ; "
+      . "else cat \\`ls /etc/*release | grep \\\"redhat\|SuSE\\\"\\` | head -1 | awk '{ for(i=1; i<=NF; i++) { print \\\$i; print '\\n'; if ( \\\$i ~ /[0-9]+/ ) { break; } } }' | tr '[:upper:]' '[:lower:]' ; "
       . "fi ; ";
   $osInfoCmd = "if [ -f /usr/bin/lsb_release ] ; then lsb_release -sd | tr '\\\"' ' '; "
       . " else cat \\`ls /etc/*release | grep \\\"redhat\|SuSE\\\"\\` | head -1 ; "
