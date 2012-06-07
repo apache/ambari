@@ -47,6 +47,10 @@ if (sizeof($clusters) == 0) {
     switch ($state['state']) {
       case 'DEPLOYED':
         if ($state['context']['status']) {
+          if (!$bypassRouter && $requestPage == 'initializeCluster.php') {
+            eval(redirectToPage($requestPage, 'index.php'));
+            exit;
+          }
           $clusterState = 'OPERATIONAL';
         } else {
           if (!$bypassRouter && $requestPage != 'installFailed.php' && $requestPage != 'uninstallWizard.php') {
