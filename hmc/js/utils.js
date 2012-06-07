@@ -49,6 +49,7 @@ function createInformationalPanel( containerNodeId, headerContentString ) {
     render: true,
     modal: true,
     zIndex: 100,
+    centered: true,
     visible: false
   });
 
@@ -459,3 +460,4 @@ PeriodicDataPoller.prototype.pollOnce = function() {
 function titleCase(word){
   return word.substr(0,1).toUpperCase() + word.substr(1).toLowerCase();
 }
+

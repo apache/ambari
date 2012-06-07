@@ -157,6 +157,7 @@ function getTransactionProgressFromState($state) {
 }
 
 function getActionDescription($name, $action, $state) {
+  /*
   $stateInfo = "";
   if ($state == "PENDING") {
     $stateInfo = "is $state";
@@ -166,6 +167,8 @@ function getActionDescription($name, $action, $state) {
     $stateInfo = "has $state";
   }
   $description = $name . " " . strtolower($action) . " " . strtolower($stateInfo);
+  */
+  $description = $name.' '.strtolower($action);
   return $description;
 }
 ?>

@@ -214,9 +214,6 @@ function renderClusterList() {
             /* Done with this stage, hide it. */
             globalYui.one("#clustersListDivId").setStyle('display','none');
 
-            /* Render the next stage. */
-            getServicesStatus(globalYui, clusterId);
-
             /* Show off our rendering. */
             globalYui.one("#displayServiceStatusCoreDivId").setStyle('display','block');
           });

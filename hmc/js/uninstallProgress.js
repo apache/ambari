@@ -68,17 +68,20 @@ function renderUninstallProgress (uninstallProgressInfo) {
   var uninstallProgressStatusMessage = {
 
     success:
-      '<p style=\"text-align:center\">' +
-        'Uninstalled the cluster successfully.<br/>' +
-        '<a href="javascript:void(null)" id=clustersListLinkId>' +
+      '<p>' +
+        'Uninstalled the cluster successfully.' +
+        '<a href="javascript:void(null)" style="margin-left:20px" class="btn btn-large" id="clustersListLinkId">' +
           'Continue' +
         '</a>' +
       '</p>',
     failure:
       '<p>' +
-        'There was a problem with uninstall. Take a look at ' +
-          '<a href="javascript:void(null)" id=showUninstallTxnLogsLinkId>Uninstall Logs</a>' +
-        ' to see what might have happened.' +
+        'There was a problem with uninstall.<br />Take a look at ' +
+          '<a href="javascript:void(null)" id="showUninstallTxnLogsLinkId">Uninstall Logs</a>' +
+        ' to see what might have happened.<br>' +
+        '<a href="javascript:void(null)" class="btn btn-large" style="margin-top:10px" id="clustersListLinkId">' + 
+            'Close' + 
+        '</a>' +
       '</p>'
   };
 
@@ -87,12 +90,16 @@ function renderUninstallProgress (uninstallProgressInfo) {
     success: function( txnProgressWidget ) {
 
       globalYui.one("#clustersListLinkId").on( "click", function(e) {
-        window.open( generateClustersListUrl(txnProgressWidget.txnProgressContext.clusterName) );
+        document.location.href = generateClustersListUrl(txnProgressWidget.txnProgressContext.clusterName);
       });
     },
 
     failure: function( txnProgressWidget ) {
 
+      globalYui.one("#clustersListLinkId").on( "click", function(e) {
+        document.location.href = generateClustersListUrl(txnProgressWidget.txnProgressContext.clusterName);
+      });
+      
       /* Create the panel that'll display our error info. */
       var errorInfoPanel = 
         createInformationalPanel( '#informationalPanelContainerDivId', 'Uninstall Logs' );
@@ -139,35 +146,17 @@ function renderUninstallProgress (uninstallProgressInfo) {
         }
       });
 
-      var firstTimeShowingErrorInfoPanel = true;
 
-      /* Register a click-handler for #showUninstallTxnLogsLinkId to render 
-       * the contents inside errorInfoPanel (and make it visible). 
-       */
       globalYui.one("#showUninstallTxnLogsLinkId").on( "click", function(e) {
         errorInfoPanel.set( 'centered', true);
         errorInfoPanel.set( 'bodyContent', errorInfoPanelBodyContent );
         errorInfoPanel.show();
-
-        if( firstTimeShowingErrorInfoPanel ) {
-
-          globalYui.one('#txnProgressStatusActionsDivId').setContent(  
-            '<a href="javascript:void(null)" id=clustersListLinkId>' + 
-              'Restart the installation wizard' + 
-            '</a>' );
-
-          globalYui.one("#clustersListLinkId").on( "click", function(e) {
-            document.location.href = generateClustersListUrl(txnProgressWidget.txnProgressContext.clusterName);
-          });
-
-          firstTimeShowingErrorInfoPanel = false;
-        }
       });
     }
   };
 
   var uninstallProgressWidget = new TxnProgressWidget
-    ( uninstallProgressInfo, uninstallProgressStatusMessage, uninstallProgressPostCompletionFixup );
+    ( uninstallProgressInfo, 'Uninstall Cluster', uninstallProgressStatusMessage, uninstallProgressPostCompletionFixup );
 
   uninstallProgressWidget.show();
 } 

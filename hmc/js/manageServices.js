@@ -354,16 +354,19 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
             success:
               '<p>' +
                 'Successfully completed the operation. ' + 
-                  '<a href="javascript:void(null)" id=closeManageServicesProgressWidgetLinkId>' + 
+                  '<a href="javascript:void(null)" style="margin-left:10px;" id="closeManageServicesProgressWidgetLinkId">' + 
                     'Continue' +
                   '</a>' +
               '</p>',
 
             failure: 
               '<p>' + 
-                'Failed to complete the operation.  Please ' +
-                  '<a href="javascript:void(null)" id=showManageServicesTxnLogsLinkId>take a look at Operation Logs</a>' +
+                'Failed to complete the operation.<br>Take a look at ' +
+                  '<a href="javascript:void(null)" id=showManageServicesTxnLogsLinkId>Operation Logs</a>' +
                 ' to see what might have gone wrong.' +
+                '<a href="javascript:void(null)" class="btn btn-large" style="margin:5px 0" id="closeManageServicesProgressWidgetLinkId">' + 
+                'Continue' +
+                '</a>' +
               '</p>'
           };
 
@@ -381,7 +384,6 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
                * click-handler must also be re-registered each time 'round.
                */
               globalYui.one("#closeManageServicesProgressWidgetLinkId").on( "click", function(e) {
-
                 txnProgressWidget.hide();
               });
 
@@ -390,7 +392,12 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
             },
 
             failure: function( txnProgressWidget ) {
+              
+              globalYui.one("#closeManageServicesProgressWidgetLinkId").on( "click", function(e) {
+                txnProgressWidget.hide();
+              });
 
+              
               /* <-------------------- REZXXX BEGIN -----------------------> */
 
               /* Create the panel that'll display our error info. */
@@ -452,20 +459,6 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
                 errorInfoPanel.set( 'bodyContent', errorInfoPanelBodyContent );
                 errorInfoPanel.show();
 
-                if( firstTimeShowingErrorInfoPanel ) {
-
-                  globalYui.one('#txnProgressStatusActionsDivId').setContent(  
-                    '<a href="javascript:void(null)" id=closeManageServicesProgressWidgetLinkId>' + 
-                      'Close' +
-                    '</a>' );
-
-                  globalYui.one("#closeManageServicesProgressWidgetLinkId").on( "click", function(e) {
-
-                    txnProgressWidget.hide();
-                  });
-
-                  firstTimeShowingErrorInfoPanel = false;
-                }
               });
 
               /* <--------------------- REZXXX END ------------------------> */
@@ -477,7 +470,7 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
           };
 
           var manageServicesProgressWidget = new TxnProgressWidget
-            ( manageServicesResponseJson, manageServicesProgressStatusMessage, manageServicesProgressPostCompletionFixup );
+            ( manageServicesResponseJson, 'Performing Service Operation', manageServicesProgressStatusMessage, manageServicesProgressPostCompletionFixup );
 
           /* And now that confirmationDataPanel is hidden, show manageServicesProgressWidget. */
           manageServicesProgressWidget.show();

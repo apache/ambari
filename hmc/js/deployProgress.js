@@ -101,9 +101,12 @@ function renderDeployProgress (deployProgressInfo) {
       '</p>',
     failure:
       '<p>' +
-        'Failed to finish setting up the cluster. ' +
-          '<a href="javascript:void(null)" id="showDeployTxnLogsLinkId">Take a look at the deploy logs</a>' +
+        'Failed to finish setting up the cluster.<br>Take a look at the ' +
+          '<a href="javascript:void(null)" id="showDeployTxnLogsLinkId">deploy logs</a>' +
         ' to find out what might have gone wrong.' +
+        '<a href="javascript:void(null)" class="btn btn-large" style="margin-top:10px" id="restartInstallationWizardLinkId">' + 
+        'Reinstall Cluster' +
+        '</a>' +
       '</p>'
   };
 
@@ -117,15 +120,9 @@ function renderDeployProgress (deployProgressInfo) {
     },
 
     failure: function( txnProgressWidget ) {
-      globalYui.one('#txnProgressStatusActionsDivId').setContent(  
-          '<a href="javascript:void(null)" id=restartInstallationWizardLinkId>' + 
-            'Reinstall Cluster' +
-          '</a>'
-      );          
       globalYui.one("#restartInstallationWizardLinkId").on( "click", function(e) {
         document.location.href = 'installFailed.php';
       });
-      globalYui.one('#txnProgressStatusActionsDivId').setStyle('display','block');
 
       /* Create the panel that'll display our error info. */
       var errorInfoPanel = 
@@ -133,7 +130,7 @@ function renderDeployProgress (deployProgressInfo) {
 
       /* Prime the panel to start off showing our stock loading image. */
       var errorInfoPanelBodyContent = 
-        '<img id=errorInfoPanelLoadingImgId class=loadingImg src=../images/loading.gif />';
+        '<img id="errorInfoPanelLoadingImgId" class="loadingImg" src="../images/loading.gif" />';
 
       /* Make the call to our backend to fetch the report for this txnId. */
       globalYui.io('../php/frontend/fetchTxnLogs.php?clusterName=' + 
@@ -178,7 +175,7 @@ function renderDeployProgress (deployProgressInfo) {
        */
       globalYui.one("#showDeployTxnLogsLinkId").on( "click", function(e) {
         errorInfoPanel.set('centered', true);
-        errorInfoPanel.set( 'bodyContent', errorInfoPanelBodyContent );
+        errorInfoPanel.set('bodyContent', errorInfoPanelBodyContent );
         errorInfoPanel.show();
 
       });
@@ -186,7 +183,7 @@ function renderDeployProgress (deployProgressInfo) {
   };
 
   var deployProgressWidget = new TxnProgressWidget
-    ( deployProgressInfo, deployProgressStatusMessage, deployProgressPostCompletionFixup );
+    ( deployProgressInfo, 'Cluster Deploy', deployProgressStatusMessage, deployProgressPostCompletionFixup );
   
   deployProgressWidget.show();
 } 

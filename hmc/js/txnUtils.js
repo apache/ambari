@@ -1,5 +1,6 @@
-function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnProgressPostCompletionFixup ) {
+function TxnProgressWidget( txnProgressContext, txnProgressTitle, txnProgressStatusMessage, txnProgressPostCompletionFixup ) {
 
+  
   /**************************** Private methods ********************************/
   var txnProgressStateShouldBeSkipped = function( txnProgressState ) {
     
@@ -18,17 +19,46 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
     return skipIt;
   }
 
-  var generateSingleTxnProgressStateMarkup = function( txnProgressStateTitle, txnProgressStateCssClass ) {
+  var generateSingleTxnProgressStateMarkup = function( txnProgressStateTitle, txnProgressState ) {
 
-    globalYui.log( 'Generating: ' + txnProgressStateTitle + '-' + txnProgressStateCssClass );
+    var stateClass;
+    var barClass;
+    var status;
+    
+    switch (txnProgressState) {
+    case 'COMPLETED':
+      stateClass = 'txnProgressStateDone';
+      barClass = 'progress progress-success';
+      status = 'Completed';
+      break;
 
-    var markup = 
-      '<li>' + 
-        '<div class=' + txnProgressStateCssClass + '>' +
-          /* TODO XXX Format this nicer by camel-casing and putting the status in parentheses. */
-          txnProgressStateTitle +
-        '</div>' +
-      '</li>';
+    case 'IN_PROGRESS':
+      stateClass = 'txnProgressStateInProgress';
+      //barClass = 'progress progress-striped active';
+      barClass = 'progress';
+      status = 'In Progress';
+      break;
+
+    case 'FAILED':
+      stateClass = 'txnProgressStateError';
+      barClass = 'progress progress-danger';
+      status = 'Failed';
+      break;
+
+    default:
+      stateClass = 'txnProgressStatePending';
+      barClass = 'progress';
+      status = 'Pending';
+      break;
+    }
+
+    var barMarkup = '<div class="' + barClass + '"><div class="bar"></div></div>'; 
+    
+    if (stateClass == 'txnProgressStateInProgress') {
+      barMarkup = '<div id="activeProgressBarContainer">' + barMarkup + '</div>';
+    }
+    
+    var markup = '<li class="clearfix"><label class="' + stateClass + '">' + txnProgressStateTitle + '</label>' + barMarkup + '<div class="status ' + stateClass + '">' + status + '</div>' + '</li>';
 
     globalYui.log("XXX" + markup);
     return markup;
@@ -38,6 +68,7 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
   globalYui.log( 'Got txnId:' + txnProgressContext.txnId );
 
   this.txnProgressContext = txnProgressContext;
+  this.txnProgressTitle = txnProgressTitle;
   this.txnProgressStatusMessage = txnProgressStatusMessage;
   this.txnProgressPostCompletionFixup = txnProgressPostCompletionFixup;
   var requestStr = '?clusterName=' + this.txnProgressContext.clusterName + '&txnId=' + this.txnProgressContext.txnId;
@@ -58,6 +89,39 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
     pollInterval: 3000,
     maxFailedAttempts: 5
   };
+  
+  this.clearActiveProgressBar = function() {
+    var bar = globalYui.one('#activeProgressBar');
+    if (bar != null) {
+      bar.remove();
+    }
+    globalYui.on('windowresize', function(e) {
+      setActiveProgressBarInPlace();
+    });
+  };
+  
+  function setActiveProgressBarInPlace() {  
+    var bar = globalYui.one('#activeProgressBar');
+    var barContainer = globalYui.one('#activeProgressBarContainer');
+    var marginTop = 3;
+    
+    // Puts an active progress bar where the placeholder with the DIV ID of "activeProgressBarSpot" is located.
+    // Creates an instance of the active progress bar if one does not already exist
+    // so that we can keep reusing it and moving it in place, rather than dynamically rendering it
+    // on every successful callback to avoid flickering/disconnect due to animation.
+    if (barContainer != null) {
+      if (bar == null) {
+        globalYui.one("body").append('<div id="activeProgressBar" class="progress progress-striped active" style="position:absolute;top:-50px;left:0;z-index:99;"><div style="width:100%" class="bar"></div></div>');
+        bar = globalYui.one('#activeProgressBar');
+      }      
+      bar.setStyle('display', 'block');     
+      if (bar.getX() != barContainer.getX() || bar.getY() != barContainer.getY() + marginTop) {      
+        bar.setXY([ barContainer.getX(), barContainer.getY() + marginTop ]);
+      }
+    } else if (bar != null) {
+      bar.setStyle('display', 'none');
+    }    
+  }
 
   var pdpResponseHandler = {
     success: function (e, pdp) {
@@ -90,7 +154,7 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
         var txnProgressStates = txnProgress.subTxns || [];
         globalYui.log(globalYui.Lang.dump(txnProgressStates));
 
-        txnProgressMarkup = '<ul id=txnProgressStatesListId>';
+        txnProgressMarkup = '<ul>';
 
         var progressStateIndex = 0;
 
@@ -112,7 +176,7 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
           globalYui.log( 'Done loop - ' + progressStateIndex );
 
           txnProgressMarkup += generateSingleTxnProgressStateMarkup
-            ( presentTxnProgressState.description, 'txnProgressStateDone' );
+            ( presentTxnProgressState.description, 'COMPLETED' );
 
             globalYui.log("Currently, markup is:" + txnProgressMarkup );
         }
@@ -148,7 +212,7 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
            * the fitting .txnProgressStateError, else just annoint it with
            * .txnProgressStateInProgress 
            */
-          var currentProgressStateCssClass = 'txnProgressStateInProgress';
+          var currentProgressState = 'IN_PROGRESS';
 
           /* The 2 possible indications of error are:
            * 
@@ -159,12 +223,12 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
           if( (txnProgress.encounteredError) || 
               (presentTxnProgressState.progress == 'FAILED') ) {
 
-            currentProgressStateCssClass = 'txnProgressStateError';
+            currentProgressState = 'FAILED';
           }
 
           /* And generate markup for this "in-progress" state. */
           txnProgressMarkup += generateSingleTxnProgressStateMarkup
-            ( presentTxnProgressState.description, currentProgressStateCssClass );
+            ( presentTxnProgressState.description, currentProgressState );
 
           /* It's important to manually increment progressStateIndex here, 
            * to set it up correctly for the upcoming loop.
@@ -191,8 +255,10 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
           }
 
           globalYui.log( 'Pending loop - ' + progressStateIndex );
+          
           txnProgressMarkup += generateSingleTxnProgressStateMarkup
-            ( presentTxnProgressState.description, 'txnProgressStatePending' );
+            ( presentTxnProgressState.description, 'PENDING' );
+          
         }
 
         txnProgressMarkup += '</ul>';
@@ -212,7 +278,7 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
             txnProgressMarkup = 
               '<br/>' + 
               '<div class=txnNoOpMsg>' + 
-                'Nothing to do for this transaction; enjoy the freebie!' +
+                'There are no tasks for this transaction.' +
               '</div>' + 
               '<br/>';
           } 
@@ -254,7 +320,8 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
        * future state of pdp. 
        */
       globalYui.log('About to generate markup: ' + txnProgressMarkup);
-      globalYui.one('#txnProgressDynamicRenderDivId').setContent( txnProgressMarkup );
+      globalYui.one('#txnProgressContentDivId').setContent( txnProgressMarkup );
+      setActiveProgressBarInPlace();
 
       /* And before checking out, decide whether we're done with this txn 
        * or whether any more polling is required.
@@ -298,13 +365,14 @@ function TxnProgressWidget( txnProgressContext, txnProgressStatusMessage, txnPro
 }
 
 TxnProgressWidget.prototype.show = function() {
-  
+     
   /* Start with a clean slate for #txnProgressStatusDivId, regardless of 
    * the mess previous uses might have left it in.
    */
   var txnProgressStatusDiv = globalYui.one('#txnProgressStatusDivId');
   txnProgressStatusDiv.one('#txnProgressStatusMessageDivId').setContent('');
   txnProgressStatusDiv.one('#txnProgressStatusActionsDivId').setContent('');
+  globalYui.one('#txnProgressHeader').setContent('');
   /* Remove the CSS statusOk/statusError classes from txnProgressStatusDiv 
    * as well - sure would be nice to remove all classes that match a 
    * pattern, but oh well. 
@@ -312,10 +380,15 @@ TxnProgressWidget.prototype.show = function() {
   txnProgressStatusDiv.removeClass('statusOk');
   txnProgressStatusDiv.removeClass('statusError');
 
-  /* Similarly, set a clean slate for #txnProgressDynamicRenderDivId as well. */
-  globalYui.one('#txnProgressDynamicRenderDivId').setContent
-    ( '<img id=txnProgressLoadingImgId class=loadingImg src=../images/loading.gif />' );
+  /* Similarly, set a clean slate for #txnProgressContentDivId as well. */
+  globalYui.one('#txnProgressContentDivId').setContent
+    ( '<ul class="wrapped"><li><img id=txnProgressLoadingImgId class=loadingImg src=../images/loading.gif /></li></ul>' );
 
+  // clear active progress bar if one already exists
+  this.clearActiveProgressBar();
+  
+  globalYui.one("#txnProgressHeader").setContent(this.txnProgressTitle);
+  
   globalYui.one('#blackScreenDivId').setStyle('display', 'block');
   globalYui.one('#txnProgressCoreDivId').setStyle('display','block');  
 
@@ -325,7 +398,7 @@ TxnProgressWidget.prototype.show = function() {
 TxnProgressWidget.prototype.hide = function() {
 
   this.periodicDataPoller.stop();
-
+  
   globalYui.one('#txnProgressStatusDivId').setStyle('display', 'none'); 
   globalYui.one('#txnProgressCoreDivId').setStyle('display','none');
   globalYui.one('#blackScreenDivId').setStyle('display', 'none');

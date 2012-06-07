@@ -153,7 +153,7 @@
                   <h2><?php echo $RES['initWizard.selectServices.pageSummary.header'] ?></h2>
                   <p><?php echo $RES['initWizard.selectServices.pageSummary.body'] ?></p>
                	</div>
-               	<div style="width:100%;height:40px">
+               	<div style="width:400px;height:40px;float:right;">
                   <div id="formStatusDivId" class="formStatusBar" style="display:none">					
                   </div>               
                 </div>
@@ -178,7 +178,7 @@
                   </div>
                 </div>
                 </fieldset>
-                <a href="javascript:void 0" class="btn btn-large" style="margin:20px 0 0 60px" id="selectServicesSubmitButtonId" class="submitButton"><?php echo $RES['initWizard.selectServices.submit.label'] ?></a>
+                <a href="javascript:void 0" class="btn btn-large" style="margin:10px 0 0 60px" id="selectServicesSubmitButtonId" class="submitButton"><?php echo $RES['initWizard.selectServices.submit.label'] ?></a>
 
               </div>
               <!-- End of selectServicesCoreDivId -->
@@ -310,7 +310,7 @@
 
             var jsFilesToLoad = [
                 '../js/ext/jquery.min.js',
-                '../js/ext/bootstrap.min.js', 
+                '../js/ext/bootstrap.min.js',
                 '../js/utils.js', 
                 '../js/txnUtils.js',
                 '../js/installationWizard.js',
@@ -323,7 +323,7 @@
                 '../js/configureServicesUtils.js',
                 '../js/configureServices.js',
                 '../js/reviewAndDeploy.js',
-                '../js/deployProgress.js'                        
+                '../js/deployProgress.js'                  
               ];
             </script>
 

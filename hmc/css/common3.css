@@ -71,68 +71,6 @@ span.installationWizardStageNumber {
   -webkit-border-radius:4px;
 }
 
-#txnProgressStatesListId {
-	margin:0;
-	padding:20px;
-	list-style:none;
-}
-
-#txnProgressStatesListId li div {
-  height: 2em;
-  color: black;
-  border-style: solid;
-  border-width: 2px;
-
-  background-color:#F0F0E8;
-  /*
-  background-color: #c5c5c5;
-  background-color:white;
-  background-color:#F0F0E8;
-  */
-  text-align: center;
-  margin-bottom: 10px;
-  border-radius:4px;
-  -moz-border-radius:4px;
-  -webkit-border-radius:4px;
-  padding-top: 1em;
-  font-size: larger;
-}
-
-.txnProgressStateDone {
-  border-color: rgb(50,205,50);
-  background-image: url(../images/green_check.png);
-  background-repeat: no-repeat;
-  background-position: 95% center;
-  /*background-size: contain;*/
-  background-size: 24px 24px;
-}
-
-.txnProgressStateInProgress {
-  /*border-color: #FFDF00;*/
-  border-color: #FA6A0C;
-  /*text-decoration: blink;*/
-  /*color: #FFDF00;*/
-  background-image: url(../images/orange-loader.gif);
-  background-repeat: no-repeat;
-  background-position: 95% center;
-  /*background-size: contain;*/
-  background-size: 24px 24px;
-}
-
-.txnProgressStateError {
-  border-color: #F53907;
-  background-image: url(../images/red_cross.png);
-  background-repeat: no-repeat;
-  background-position: 95% center;
-  /*background-size: contain;*/
-  background-size: 24px 24px;
-}
-
-.txnProgressStatePending {
-  border-color: gray;
-  color: gray;
-}
-
 .txnNoOpMsg {
   padding: 4px;
   font-weight: bolder;
@@ -159,17 +97,19 @@ span.installationWizardStageNumber {
 
 #txnProgressStatusDivId {
   width: auto;
+  max-width:500px;
   /-*height: 2em;*-/
   border-style: solid;
   border-width: 2px;
   border-radius:2px;
   -moz-border-radius:2px;
   -webkit-border-radius:2px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  font-size: larger;
-  text-align: center;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  font-size: 13px;
+  /*text-align: center;*/
   margin-bottom:0;
+  text-align:right;
 }
 
 .formStatusBar {
@@ -179,7 +119,7 @@ span.installationWizardStageNumber {
     color: #C09853;
     font-size:14px;
     margin-bottom: 18px;
-    padding: 8px 35px 8px 14px;
+    padding: 8px 20px;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
@@ -191,14 +131,12 @@ span.installationWizardStageNumber {
 }
 
 #txnProgressCoreDivId {
-  width:50%;
-  top:30%; 
-  left:0;
-  margin-left:25%;
-
   /* Float above all else*/
   z-index:15;
   position:absolute;
+  top:180px;
+  left:50%;
+  margin-left:-270px;
 
   /* Leave some space at the bootom for long progress-lists */
   padding-bottom:100px;
@@ -206,7 +144,8 @@ span.installationWizardStageNumber {
 
 #txnProgressStatusDivId p {
 	font-size:14px;
-	margin-top:10px;
+	margin:0;
+	/*margin-top:10px;*/
 }
 
 #txnProgressFieldSetId {
@@ -232,22 +171,22 @@ span.installationWizardStageNumber {
  */
 #informationalPanelContainerDivId .yui3-widget-bd {
     max-height:400px;
-    min-height:100px;
+    min-height:80px;
     padding:15px;
     overflow-x:hidden;
     overflow-y:auto;
 }
 
 #informationalPanelContainerDivId .yui3-widget-hd {
-	background: #f0f0f0;
-    border-bottom: 1px solid #DDDDDD;
-    box-shadow: 0 1px 0 #FFFFFF inset;
-    border-radius:6px 6px 0 0;
-    padding: 9px 15px;
-    font-size: 18px;
-    line-height: 27px;
-    color:#333333;
-    font-weight:bold;
+  background: #f0f0f0;
+  border-bottom: 1px solid #DDDDDD;
+  box-shadow: 0 1px 0 #FFFFFF inset;
+  border-radius:6px 6px 0 0;
+  padding: 9px 15px;
+  font-size: 18px;
+  line-height: 27px;
+  color:#333333;
+  font-weight:bold;
 }
 
 #informationalPanelContainerDivId .yui3-widget-ft {
@@ -385,7 +324,7 @@ span.installationWizardStageNumber {
 #configureClusterInputContainerDivId {
   float:left;
   width:400px;
-  margin:20px 0 0 40px;
+  margin:20px 0 0 80px;
 }
 
 #configureClusterDisplayDivId {

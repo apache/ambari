@@ -55,7 +55,7 @@ select {
 #blackScreenDivId, #loadingBlackScreenDivId {
   position:fixed;
   background-color:black;
-  opacity:0.7;
+  opacity:0.8;
   height:100%;
   width:100%;
   top:0px;
@@ -537,3 +537,140 @@ div.separator {
 	float:left;
 	padding-top:7px;
 }
+/* BEGIN progress box styles */
+#txnProgressBox {
+  width:auto;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-radius: 4px 4px 4px 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) inset;
+  background-color:#ffffff;
+  min-height:80px;
+}
+#txnProgressBox ul {
+  list-style-type:none;
+  width:500px;
+  margin:0;
+  padding:20px;
+  font-size:13px;
+}
+#txnProgressBox ul li {
+  margin-bottom:3px;
+  text-align:right;
+  clear:both;  
+}
+#txnProgressBox ul label {
+  width:140px;
+  float:left;
+  margin-right:8px;
+}
+#txnProgressBox ul.wrapped li {
+  margin-bottom:18px;
+  text-align:left;
+  clear:both;  
+}
+#txnProgressBox ul.wrapped li:last-child {
+  margin-bottom:0px;
+}
+#txnProgressBox ul.wrapped label {
+  width:auto;
+  float:none;
+  background:none;
+  box-shadow:none;
+  margin-bottom:2px;
+}
+#txnProgressBox ul .progress {
+  /*height:10px;*/
+  width:240px;
+}
+#txnProgressBox ul.wrapped .progress {
+  width:100%;
+}
+#txnProgressBox #buttonArea {
+  background-color:#fefefe;
+  padding:6px 20px;
+}
+#txnProgressBox ul .progress {
+  height:12px;
+  margin-top:3px;
+  margin-bottom:0;
+  float:left;
+}
+#txnProgressBox ul.wrapped .progress {
+  margin-bottom:0;
+  float:none;
+}
+#txnProgressBox label.txnProgressStatePending {
+  color:#999;
+}
+#txnProgressBox label.txnProgressStateDone {
+}
+#txnProgressBox label.txnProgressStateError {
+  color:red;
+}
+#txnProgressBox label.txnProgressStateInProgress {
+  color:#333;
+  font-weight:bold;
+}
+#txnProgressBox .progress .bar {
+  width:0;
+}
+#txnProgressBox .progress.active .bar {
+  width:auto;
+}
+#txnProgressBox .progress.progress-success .bar {
+  width:auto;
+}
+#txnProgressBox .progress.progress-danger .bar {
+  width:auto;
+}
+#txnProgressBox .status {
+  margin-left:8px;
+  float:left; 
+}
+#txnProgressBox .status.txnProgressStatePending {
+  color:#999;
+}
+#txnProgressBox .status.txnProgressStateDone {
+  color:green;
+}
+#txnProgressBox .status.txnProgressStateInProgress {
+  color:#149BDF;
+  font-weight:bold;
+}
+#txnProgressBox .status.txnProgressStateError {
+  color:red;
+}
+#txnProgressBox #successInfoLinkId {
+  margin-left:20px;
+}
+#txnProgressHeader {
+  background-color:#f0f0f0;
+  border-bottom: 1px solid #DDDDDD;
+  box-shadow: 0 1px 0 #FFFFFF inset;
+  color:#333333;
+  font-size:18px;
+  font-weight:bold; 
+  padding:9px 15px;
+  min-width:500px;
+}
+#activeProgressBar.wrapped {
+  width:500px;
+  height:12px;
+  float:none;
+}
+#activeProgressBar {
+  margin-top:3px;
+  width:240px;
+  height:12px;
+  float:none;
+}
+.wrapped #activeProgressBarContainer {
+  height:12px;
+  float:none;
+}
+#activeProgressBarContainer {
+  height:12px;
+  float:left;
+}
+
+/* END progress popup styles */

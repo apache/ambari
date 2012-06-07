@@ -165,7 +165,7 @@ foreach ($stagesInfo as $stage => $stageInfo) {
 
   // create a new subtransaction for each stage
   $mySubTxnId = 100 + $count;
-  $state = ""; $description = $stagesInfo[$stage]["description"]; $progress = " ( starting )"; $subTxnType = "";
+  $state = ""; $description = $stagesInfo[$stage]["description"]; $progress = ": starting"; $subTxnType = "";
   $subTransactionReturnValue = $dbHandle->insertOrUpdateSubTransaction($clusterName, $orchestratorTxnId, $mySubTxnId, $orchestratorTxnId, $state, $description, $progress, $subTxnType );
   if ($subTransactionReturnValue["result"] != 0 ) {
     $logger->log_error("Got error while creating subTxn: ".$subTransactionReturnValue["error"]);
