@@ -158,7 +158,9 @@ if [[ "${usingLocalRepo}" == "0" ]]; then
     cmd="cat $repoFile | grep \"baseurl\" | awk -F= '{print \$2}'| awk 'NR==1' | sed 's/ //g'"
     epelUrl=`eval $cmd`
     epelRPM=$epelUrl/epel-release-5-4.noarch.rpm
-    rpm -Uvh $epelRPM
+    mkdir -p /tmp/HDP-artifacts/
+    curl -f --retry 10 $epelRPM -o /tmp/HDP-artifacts/epel-release-5-4.noarch.rpm
+    rpm -Uvh /tmp/HDP-artifacts/epel-release-5-4.noarch.rpm
     #make sure epel is installed else fail
     epel_installed=`yum repolist enabled | grep epel`
     if [[ "x$epel_installed" == "x" ]]; then
