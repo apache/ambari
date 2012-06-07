@@ -21,6 +21,21 @@ function deBootStrap ($clusterName, $deployUser, $txnId, $progressInfo)
 {
   global $logger, $dbAccessor, $stagesInfo;
 
+  $txnStatus = !($progressInfo['encounteredError']);
+
+  // do not go ahead with the cleanup. 
+  // Update the state of the cluster.
+  if (!$txnStatus) {
+    $state = "UNINSTALLED";
+    $displayName = "Uninstall failed";
+    $context = array (
+      'status' => $txnStatus,
+      'txnId' => $txnId
+    );
+    $retval = updateClusterState($clusterName, $state, $displayName, $context);
+    return $retval;
+  }
+
   /////// launch the stages in the background.
   $stagesFile = "./uninstall/stages.php";
   $logger->log_debug("ClusterName: $clusterName\n");

@@ -711,6 +711,7 @@ if (($progress['processRunning'] == FALSE) || ($progress['encounteredError'] == 
       $retval = $postProcessFunc($clusterName, $deployUser, $txnId, $progress);
       if ($retval["result"] != 0) {
         $progress['encounteredError'] = TRUE;
+        $lastTransaction['progress'] = "FAILED";
         break;
       }
     }

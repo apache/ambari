@@ -19,11 +19,11 @@ function deployPostProcess($clusterName, $user, $txnId, $progress)
   $result = 0;
   $error = "";
 
-  $txnStatus = $dbAccessor->getTransactionStatusInfo($clusterName, $txnId);
-  if ($txnStatus['result'] != 0) {
+  $txnStatusInfo = $dbAccessor->getTransactionStatusInfo($clusterName, $txnId);
+  if ($txnStatusInfo['result'] != 0) {
     $logger->log_error("Deploy post process get txn info failed");
-    $result = $txnStatus['result'];
-    $error = $txnStatus['error'];
+    $result = $txnStatusInfo['result'];
+    $error = $txnStatusInfo['error'];
     return (array("result" => $result, "error" => $error));
   }
 
