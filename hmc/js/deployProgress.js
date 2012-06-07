@@ -81,9 +81,9 @@ function renderDeployProgress (deployProgressInfo) {
   var hmcRestartMsg = '';
   if (deployProgressInfo.nagiosGangliaCoHosted != null
       && deployProgressInfo.nagiosGangliaCoHosted) {
-    hmcRestartMsg = '<strong>Note:</strong> We detected that you need to restart HMC as'
-        + ' Nagios/Ganglia are co-hosted on this server. <br/>Please restart'
-        + ' HMC using \"service hmc restart\".  After that is done, ';
+    hmcRestartMsg = '<span style="color:red"><strong>Note:</strong> You need to restart HMC as'
+        + ' Nagios/Ganglia are co-hosted on this server.<br>Please restart'
+        + ' HMC using \"service hmc restart\".</span><br>After that is done, ';
   } else {
     hmcRestartMsg = 'Please ';
   }
@@ -96,7 +96,7 @@ function renderDeployProgress (deployProgressInfo) {
   var deployProgressStatusMessage = {
 
     success:
-      '<p style=\"text-align:center\">' +
+      '<p>' +
         'Your cluster is ready! <br/>' + hmcRestartMsg +
       '</p>',
     failure:

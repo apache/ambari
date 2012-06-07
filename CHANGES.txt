@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-450. Boldify/Redify restart HMC message when nagios/ganglia is on the hmc host (Yusaku via Vikram)
+
   AMBARI-449. Post cluster install/deploy the URL hmc/html/initializeCluster.php should be disabled (Yusaku via Vikram)
 
   AMBARI-448. Redesign progress popups. (Yusaku via Vikram)
