@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-437. Update router to handle resuming uninstall progress and uninstall failed pages (Yusaku via Vikram)
+
   AMBARI-436. Support Resume For Uninstall (Varun via Vikram)
 
   AMBARI-435. Uninstall needs to update status for failure. (Vikram)

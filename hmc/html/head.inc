@@ -24,6 +24,10 @@ $logger = new HMCLogger("Interceptor");
 $db = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 $appDir = "/hmc/html";
 
+/* If bypassRouter parameter is 1, don't do any routing */
+
+$bypassRouter = (isset($_GET['bypassRouter']) && $_GET['bypassRouter']);
+
 $res = $db->getAllClusters();
 $clusters = $res['clusters'];
 $requestPage = basename(preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']));
@@ -45,7 +49,7 @@ if (sizeof($clusters) == 0) {
         if ($state['context']['status']) {
           $clusterState = 'OPERATIONAL';
         } else {
-          if ($requestPage != 'installFailed.php' && $requestPage != 'uninstallWizard.php') {
+          if (!$bypassRouter && $requestPage != 'installFailed.php' && $requestPage != 'uninstallWizard.php') {
             eval(redirectToPage($requestPage, 'installFailed.php'));
             exit; 
           }
@@ -53,19 +57,33 @@ if (sizeof($clusters) == 0) {
         }
         break;
       case 'CONFIGURATION_IN_PROGRESS':
-        if ($requestPage != 'reinstall.php' && $requestPage != 'initializeCluster.php') {
+        if (!$bypassRouter && $requestPage != 'reinstall.php' && $requestPage != 'initializeCluster.php') {
           eval(redirectToPage($requestPage, 'reinstall.php'));
           exit;
         }
         $clusterState = 'CONFIGURATION_IN_PROGRESS';
         break;      
       case 'DEPLOYMENT_IN_PROGRESS':
-        if ($requestPage != 'showDeployProgress.php') {
+        if (!$bypassRouter && $requestPage != 'showDeployProgress.php') {
           eval(redirectToPage($requestPage, 'showDeployProgress.php'));
           exit;
         }     
         $clusterState = 'DEPLOYMENT_IN_PROGRESS';
         break;
+      case 'UNINSTALLATION_IN_PROGRESS':
+        if (!$bypassRouter && $requestPage != 'showUninstallProgress.php') {
+          eval(redirectToPage($requestPage, 'showUninstallProgress.php'));
+          exit;
+        }     
+        $clusterState = 'UNINSTALLATION_IN_PROGRESS';
+        break;
+      case 'UNINSTALLED':
+        if (!$bypassRouter && $requestPage != 'uninstallFailed.php') {
+          eval(redirectToPage($requestPage, 'uninstallFailed.php'));
+          exit;
+        }
+        $clusterState = 'UNINSTALL_FAILED';
+        break;        
     } 
   }  
 }
