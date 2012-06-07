@@ -3,6 +3,7 @@ include_once '../util/Logger.php';
 include_once '../conf/Config.inc';
 include_once 'localDirs.php';
 include_once "../util/lock.php";
+include_once "../util/util.php";
 include_once '../db/HMCDBAccessor.php';
 include_once "../orchestrator/HMC.php";
 include_once "../db/OrchestratorDB.php";
@@ -24,6 +25,28 @@ if ($action == "wipeOut") {
 } else {
   $wipeout = FALSE;
 }
+
+////// need to generate the hosts.txt file with all the good nodes in the cluster
+$allHostsInfo = $dbAccessor->getAllHostsInfo($clusterName, 
+  array("=" => array ( "discoveryStatus" => "SUCCESS"));
+if ($allHostsInfo["result"] != 0 ) {
+  $logger->log_error("Got error while getting hostsInfo ".$allHostsInfo["error"]);
+  print json_encode($allHostsInfo);
+  return;
+}
+
+$hostFileName = getHostsFilePath($clusterName);
+
+$hostFileHdl = fopen($hostFileName, "w");
+
+foreach ($allHostsInfo["hosts"] as $hostInfo) {
+  fwrite($hostFileHdl, "$hostInfo["hostName"]\n");
+}
+
+fclose($hostFileHdl);
+$logger->log_debug("HOST FILE IS NOW POPULATED GO AHEAD!!");
+sleep(5);
+////// end of generating new file
 
 $logger->log_debug("Uninstall got wipeout value $wipeout");
 

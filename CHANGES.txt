@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-409. Uninstall does not get full list of hosts. (Vikram)
+
   AMBARI-410. Need to move the creation of cluster directory for hosting the key file and the nodes file to add nodes. (Vikram)
 
   AMBARI-408. HDPJobTracker cluster in ganglia has multiple nodes (Suhas via Vikram)
