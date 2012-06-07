@@ -30,7 +30,6 @@ class hdp(
     if ($hdp::params::lzo_enabled == true) {
       @hdp::lzo::package{ 32:}
       @hdp::lzo::package{ 64:}
-      hdp::artifact_dir { 'hdp::lzo::package::tar':}
     }
   }
 

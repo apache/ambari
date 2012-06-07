@@ -201,12 +201,12 @@ include "RoleDependencies.php";
    }
 
    private static $rolesToPackageMap = array (
-     "hdp-hadoop::namenode" => "hadoop hadoop-libhdfs.x86_64 hadoop-native.x86_64 hadoop-pipes.x86_64 hadoop-sbin.x86_64",
-     "hdp-hadoop::snamenode" => "hadoop hadoop-libhdfs.x86_64 hadoop-native.x86_64 hadoop-pipes.x86_64 hadoop-sbin.x86_64",
-     "hdp-hadoop::jobtracker" => "hadoop hadoop-libhdfs.x86_64 hadoop-native.x86_64 hadoop-pipes.x86_64 hadoop-sbin.x86_64",
-     "hdp-hadoop::client" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386",
-     "hdp-hadoop::datanode" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386",
-     "hdp-hadoop::tasktracker" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386",
+     "hdp-hadoop::namenode" => "hadoop hadoop-libhdfs.x86_64 hadoop-native.x86_64 hadoop-pipes.x86_64 hadoop-sbin.x86_64 hadoop-lzo",
+     "hdp-hadoop::snamenode" => "hadoop hadoop-libhdfs.x86_64 hadoop-native.x86_64 hadoop-pipes.x86_64 hadoop-sbin.x86_64 hadoop-lzo",
+     "hdp-hadoop::jobtracker" => "hadoop hadoop-libhdfs.x86_64 hadoop-native.x86_64 hadoop-pipes.x86_64 hadoop-sbin.x86_64 hadoop-lzo",
+     "hdp-hadoop::client" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386 hadoop-lzo",
+     "hdp-hadoop::datanode" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386 hadoop-lzo",
+     "hdp-hadoop::tasktracker" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386 hadoop-lzo",
      "hdp-zookeeper" => "zookeeper",
      "hdp-zookeeper::client" => "zookeeper",
      "hdp-hbase::master" => "hbase",
