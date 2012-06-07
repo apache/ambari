@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-524. Add nodes restore yum default on post install add nodes page (Vikram)
+
   AMBARI-523. Need to persist yum repo for add nodes. (Vikram)
 
   AMBARI-522. Fix version of the server rpm. (Mahadev via Vikram)

@@ -59,11 +59,6 @@ if (isset($_POST['yumRepoFilePath'])
   $repoFilePath = trim($_POST['yumRepoFilePath']);
 }
 
-if ("true" != strtolower($useLocalYumRepo)) {
-  // Restore to default if we are not using the local repo
-  $repoFilePath = $propertiesArr["configs"]["yum_repo_file"]["value"];
-}
-
 header("Content-type: application/json");
 
 if (!file_exists($repoFilePath)) {
