@@ -27,11 +27,11 @@ if [[ -z "${BUILD_DIR}" ]]; then
 fi
 
 if [[ -z "${VERSION}" ]]; then
-  VERSION="0.0.1"
+  VERSION="0.7.0"
 fi
 
 if [[ -z "${RELEASE}" ]]; then
-  RELEASE="2"
+  RELEASE="0"
 fi
 
 rm -rf ${BUILD_DIR}/*

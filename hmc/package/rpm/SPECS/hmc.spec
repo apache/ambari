@@ -24,9 +24,9 @@
 
 Summary: HMC
 Name: hmc
-Version: 0.0.1
+Version: 0.7.0
 URL: http://hortonworks.com
-Release: 2%{?dist}
+Release: 1%{?dist}
 License: Apache License, Version 2.0
 Vendor: Hortonworks <hmc-dev-group@hortonworks.com>
 Group: System Environment/Base
