@@ -186,17 +186,44 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
 
       if (responseJson.result != 0) {
         // This means we hit an error
-
         if (responseJson.result == 2) {
-          alert('Got error : ' + responseJson.error);
           hideLoadingImg();
+          setFormStatus(responseJson.error, true);
           return;
       } else if (responseJson.result == 3) {
-        var confirmed = confirm(responseJson.error + "\n\n" + responseJson.hosts + "\n\nPlease click OK if you want to ignore them and continue.");
-        if (!confirmed) {
+        info =
+          '<p>' +
+            responseJson.error + '. ' +
+            '<a href="javascript:void(null)" id=errorHostInfoLinkId>' +
+            'Show me the duplicates</a>' +
+          '</p>';
+
+          setFormStatus(info, true);
+          var infoPanel = createInformationalPanel("#informationalPanelContainerDivId", "Duplicate nodes");
+          infoPanel.set('centered', true);
+          var infoPanelContent = '<ul>';
+          for (host in responseJson.hosts) {
+            infoPanelContent += '<li>' + responseJson.hosts[host] + '</li>';
+          }
+          infoPanelContent += '</ul>';
+          infoPanel.set('bodyContent', infoPanelContent);
+          infoPanel.addButton({
+            value: 'Close',
+            action: function(e) {
+              e.preventDefault();
+              destroyInformationalPanel(infoPanel);
+            },
+
+            className: '',
+            section: 'footer'
+          });
+
+          globalYui.one('#errorHostInfoLinkId').on("click", function(e) {
+            infoPanel.show();
+          });
           hideLoadingImg();
           return;
-        }
+
       } else {
         alert('Got and error ' + responseJson.error);
         hideLoadingImg();

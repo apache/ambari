@@ -104,7 +104,7 @@ if (!$freshInstall) {
       if ($numNewHosts == $numDupHosts) {
         print (json_encode(array("result" => 2, "error" => "All the hosts in the given file are already being used in cluster '$clusterName'")));
       } else {
-        print (json_encode(array("result" => 3, "error" => "Some hosts in the given file are already being used in cluster '$clusterName'", "hosts" => implode(",", $duplicateHosts))));
+        print (json_encode(array("result" => 3, "error" => "Some hosts in the given file are already being used in cluster '$clusterName'", "hosts" => $duplicateHosts)));
 
         // Just re-edit the hosts' file in case users says go ahead
         $nodeFileOut = fopen($hostsFileDestination, "w");
