@@ -80,7 +80,7 @@ $hosts = array (
         "osType" => "RHEL5",
         "os" => "RHEL5 32-bit",
         "disksInfo" => "foo",
-        "discoveryStatus" => "success",
+        "discoveryStatus" => "SUCCESS",
         "badHealthReason" => "no error",
         "attributes" => array ( "foo" => "bar" )
      ),
@@ -116,7 +116,7 @@ $hosts2 = array (
         "osType" => "RHEL5",
         "os" => "RHEL5 32-bit",
         "disksInfo" => "foo",
-        "discoveryStatus" => "success",
+        "discoveryStatus" => "SUCCESS",
         "badHealthReason" => "no error"
      )
 );
@@ -370,13 +370,13 @@ assert(is_array($result["components"]["NAMENODE"])
   && $result["components"]["NAMENODE"]["componentName"] == "NAMENODE"
   && $result["components"]["NAMENODE"]["isMaster"] == true
   && $result["components"]["NAMENODE"]["isClient"] == false
-  && $result["components"]["NAMENODE"]["displayName"] == "Namenode"
+  && $result["components"]["NAMENODE"]["displayName"] == "NameNode"
   && $result["components"]["NAMENODE"]["description"] != "");
 assert(is_array($result["components"]["SNAMENODE"])
   && $result["components"]["SNAMENODE"]["componentName"] == "SNAMENODE"
   && $result["components"]["SNAMENODE"]["isMaster"] == true
   && $result["components"]["SNAMENODE"]["isClient"] == false
-  && $result["components"]["SNAMENODE"]["displayName"] == "Secondary Namenode"
+  && $result["components"]["SNAMENODE"]["displayName"] == "Secondary NameNode"
   && $result["components"]["SNAMENODE"]["description"] != "");
 assert(is_array($result["components"]["DATANODE"])
   && $result["components"]["DATANODE"]["componentName"] == "DATANODE"
@@ -896,14 +896,11 @@ assert($result["result"] == 0);
 assert($result["error"] == "");
 assert(is_array($result["componentMapping"]));
 assert(is_array($result["nodes"])
-       && count($result["nodes"]) == 2);
-assert($result["nodes"][0] == "localhost1"
-       || $result["nodes"][0] == "localhost2");
-assert($result["nodes"][1] == "localhost1"
-       || $result["nodes"][1] == "localhost2");
+       && count($result["nodes"]) == 1);
+assert($result["nodes"][0] == "localhost1");
 
 print "Test getComponentNodes\n";
-$svcCompObj = new ServiceComponent($clusterName, "DATANODE", "HDFS", "", $odb, $puppet, FALSE);
+$svcCompObj = new ServiceComponent($clusterName, "DATANODE", "HDFS", "", $odb, $puppet, FALSE, "Datanode");
 $result = $odb->getComponentNodes($svcCompObj);
 assert(is_array($result));
 assert($result["result"] == 0);
@@ -916,7 +913,7 @@ assert($result["nodes"][1] == "localhost1"
     || $result["nodes"][1] == "localhost2");
 
 print "Test setServiceState\n";
-$svcObj = new Service($clusterName, "HDFS", 0, $odb, $puppet);
+$svcObj = new Service($clusterName, "HDFS", 0, $odb, $puppet, "HDFS");
 $result = $odb->setServiceState($svcObj, 1);
 assert(is_array($result));
 assert($result["result"] == 0);
@@ -983,12 +980,11 @@ assert(is_array($result["serviceDependencies"])
 
 print "Test getRecursiveServiceDependency\n";
 $result = $db->getRecursiveServiceDependency($result["serviceDependencies"],
-    "HCATALOG");
+    "HIVE");
 assert(is_array($result)
-    && count($result) == 3
+    && count($result) == 2
     && in_array("HDFS", $result)
-    && in_array("MAPREDUCE", $result)
-    && in_array("HIVE", $result));
+    && in_array("MAPREDUCE", $result));
 
 print "Test setHostsState\n";
 $hostsToUpdate = array (
@@ -1156,5 +1152,54 @@ foreach ($result["configs"] as $key => $info) {
   assert(isset($info["value"]));
   assert(is_array($info["displayAttributes"]));
 }
+
+print "Test getAllUnassignedHosts\n";
+
+$result = $db->getAllHostsInfo("", "", "");
+assert($result["result"] == 0);
+assert($result["error"] == "");
+assert(count($result["hosts"]) == 3);
+
+$hostsToAdd = array (
+array (
+        "hostName" => "localhost4",
+        "ip" => "127.0.0.4",
+        "totalMem" => 64,
+        "cpuCount" => 4,
+        "osArch" => "i386",
+        "osType" => "RHEL5",
+        "os" => "RHEL5 32-bit",
+        "disksInfo" => "foo",
+        "discoveryStatus" => "SUCCESS",
+        "badHealthReason" => "no error",
+        "attributes" => array ( "foo" => "bar" )
+),
+array (
+        "hostName" => "localhost5",
+        "ip" => "127.0.0.5",
+        "totalMem" => 32,
+        "cpuCount" => 8,
+        "osArch" => "x86_64",
+        "osType" => "RHEL6",
+        "os" => "RHEL6 64-bit",
+        "disksInfo" => "bar",
+        "discoveryStatus" => "error",
+        "badHealthReason" => "invalid ssh key"
+)
+);
+$result = $db->addHostsToCluster($clusterName, $hostsToAdd);
+assert(is_array($result));
+assert($result["clusterName"] == $clusterName);
+assert($result["result"] == 0);
+assert($result["error"] == "");
+
+$result = $db->getAllUnassignedHosts($clusterName);
+assert(is_array($result));
+assert($result["clusterName"] == $clusterName);
+assert($result["result"] == 0);
+assert($result["error"] == "");
+assert(count($result["hosts"]) == 1);
+assert($result["hosts"][0]["hostName"] == $hostsToAdd[0]["hostName"]);
+
 
 ?>

@@ -751,6 +751,7 @@ class HMCDBAccessor {
 
     foreach ($hostsInfo as $hostInfo) {
       if (!isset($hostInfo["hostName"])
+          || $hostInfo["hostName"] == ""
           || !isset($hostInfo["discoveryStatus"])) {
         $response["result"] = 1;
         $response["error"] = "Invalid arguments";
@@ -999,11 +1000,16 @@ class HMCDBAccessor {
     LockAcquire();
     $error = "";
     $query = "SELECT "
-        . " host_name, ip, total_mem, "
+        . " cluster_name, host_name, ip, total_mem, "
         . " cpu_count, os_arch, os_type, os, disks_info, "
         . " discovery_status, bad_health_reason, attributes "
-        . " FROM Hosts WHERE cluster_name = "
-        . $this->dbHandle->quote($clusterName);
+        . " FROM Hosts WHERE host_name != ''";
+
+    if ($clusterName != "") {
+      $query .= " AND cluster_name = "
+          . $this->dbHandle->quote($clusterName);
+    }
+
     if (is_array($filter) && !empty($filter)) {
       foreach ($filter as $operand => $cols) {
         if ($operand == "=" || $operand == "!=") {
@@ -1137,9 +1143,12 @@ class HMCDBAccessor {
       LockRelease(); return $response;
     }
     $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
-    $response["clusterName"] = $clusterName;
+    if ($clusterName != "") {
+      $response["clusterName"] = $clusterName;
+    }
     if (isset($result) && is_array($result) && count($result) == 1) {
       $entry = $result[0];
+      $response["clusterName"] = $entry["cluster_name"];
       $response["hostName"] = $entry["host_name"];
       $response["ip"] = $entry["ip"];
       $response["totalMem"] = $entry["total_mem"];
@@ -3320,6 +3329,61 @@ class HMCDBAccessor {
     $this->deleteAllInTable("HostRoles");
     $this->deleteAllInTable("ServiceConfig");
     $this->deleteAllInTable("ServiceInfo");
+  }
+
+
+  /**
+   * Returns all nodes that were successfully discovered but have no
+   * components/roles assigned to them within the given cluster
+   * Enter description here ...
+   * @param unknown_type $clusterName
+   */
+  public function getAllUnassignedHosts($clusterName) {
+    LockAcquire();
+    $error = "";
+    $query = "SELECT "
+        . " Hosts.host_name, Hosts.ip, Hosts.total_mem, "
+        . " Hosts.cpu_count, Hosts.os_arch, Hosts.os_type, Hosts.os, Hosts.disks_info, "
+        . " Hosts.discovery_status, Hosts.bad_health_reason, Hosts.attributes "
+        . " FROM Hosts LEFT JOIN HostRoles ON "
+        . " Hosts.cluster_name = HostRoles.cluster_name "
+        . " AND Hosts.host_name = HostRoles.host_name "
+        . " WHERE Hosts.cluster_name = "
+        . $this->dbHandle->quote($clusterName)
+        . " AND Hosts.discovery_status = 'SUCCESS'"
+        . " AND HostRoles.component_name ISNULL";
+
+    $response = array ( "result" => 0, "error" => "");
+    $this->logger->log_trace("Running query: $query");
+    $pdoStmt = $this->dbHandle->query($query);
+    if ($pdoStmt === FALSE) {
+      $error = $this->getLastDBErrorAsString();
+      $this->logger->log_error("Error when executing query"
+          . ", query=".$query
+          . ", error=".$error);
+      $response["result"] = 1;
+      $response["error"] = $error;
+      LockRelease(); return $response;
+    }
+    $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
+    $response["hosts"] = array();
+    $response["clusterName"] = $clusterName;
+    foreach ($result as $entry) {
+      $host = array();
+      $host["hostName"] = $entry["host_name"];
+      $host["ip"] = $entry["ip"];
+      $host["totalMem"] = $entry["total_mem"];
+      $host["cpuCount"] = $entry["cpu_count"];
+      $host["osArch"] = $entry["os_arch"];
+      $host["osType"] = $entry["os_type"];
+      $host["os"] = $entry["os"];
+      $host["disksInfo"] = $entry["disks_info"];
+      $host["discoveryStatus"] = $entry["discovery_status"];
+      $host["badHealthReason"] = $entry["bad_health_reason"];
+      $host["attributes"] = json_decode($entry["attributes"], true);
+      array_push($response["hosts"], $host);
+    }
+    LockRelease(); return $response;
   }
 
 }
