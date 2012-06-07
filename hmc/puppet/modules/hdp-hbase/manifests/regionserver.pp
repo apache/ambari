@@ -20,7 +20,8 @@ class hdp-hbase::regionserver(
       $create_pid_dir = false
       $create_log_dir = false
     }
-     
+
+
     hdp-hbase::service{ 'regionserver':
       ensure         => $service_state,
       create_pid_dir => $create_pid_dir,
@@ -28,7 +29,7 @@ class hdp-hbase::regionserver(
     }
 
     #top level does not need anchors
-    Class['hdp-hbase'] -> Hdp-hbase::Service['regionserver']
+    Class['hdp-hbase'] ->  Hdp-hbase::Service['regionserver']
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }

@@ -25,9 +25,9 @@ class hdp-ganglia::monitor(
       class { 'hdp-ganglia::config': ganglia_server_host => $ganglia_server_host}
     }
 
-    if (($hdp::params::service_exists['hdp-hadoop::datanode'] == true) or ($hdp::params::service_exists['hdp-hadoop::namenode'] == true) or ($hdp::params::service_exists['hdp-hadoop::jobtracker'] == true) or ($hdp::params::service_exists['hdp-hadoop::tasktracker'] == true) or ($hdp::params::service_exists['hdp-hadoop::client'] == true) or ($hdp::params::service_exists['hdp-hadoop::snamenode'] == true)) {
-      class { 'hdp-hadoop::enable-ganglia': }
-    }
+#    if (($hdp::params::service_exists['hdp-hadoop::datanode'] == true) or ($hdp::params::service_exists['hdp-hadoop::namenode'] == true) or ($hdp::params::service_exists['hdp-hadoop::jobtracker'] == true) or ($hdp::params::service_exists['hdp-hadoop::tasktracker'] == true) or ($hdp::params::service_exists['hdp-hadoop::client'] == true) or ($hdp::params::service_exists['hdp-hadoop::snamenode'] == true)) {
+#     class { 'hdp-hadoop::enable-ganglia': }
+#   }
 
     if ($service_exists['hdp-hbase::master'] == true) {
       class { 'hdp-hbase::master::enable-ganglia': }

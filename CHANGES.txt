@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-471. hadoop-metrics2.properties not updated (Ramya via Vikram)
+
   AMBARI-468. Post-Install Add Nodes - update progress title and success/error messages to reflect what it's actually doing/has done (Yusaku via Vikram)
 
   AMBARI-472. Add api to find all unassigned hosts in a cluster (Hitesh via Vikram)

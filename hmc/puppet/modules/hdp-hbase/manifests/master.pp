@@ -28,8 +28,8 @@ class hdp-hbase::master(
     }
 
     #top level does not need anchors
-    Class['hdp-hbase'] -> Hdp-hadoop::Hdfs::Directory[$hdfs_root_dir] -> Hdp-hbase::Service['master']
-  } else {
+    Class['hdp-hbase'] -> Hdp-hadoop::Hdfs::Directory[$hdfs_root_dir] -> Hdp-hbase::Service['master'] 
+    } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }
 }

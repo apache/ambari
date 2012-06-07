@@ -33,9 +33,10 @@ class hdp-hbase(
       force => true
     }
 
-#    hdp-hbase::configfile { ['hbase-env.sh','hbase-site.xml','hbase-policy.xml','log4j.properties','hadoop-metrics.properties']: }
-      hdp-hbase::configfile { ['hbase-env.sh','hbase-site.xml','hbase-policy.xml','log4j.properties']: }
-      hdp-hbase::configfile { 'regionservers':}
+   hdp-hbase::configfile { ['hbase-env.sh','hbase-site.xml','hbase-policy.xml','log4j.properties','hadoop-metrics.properties']: 
+      type => $type
+    }
+    hdp-hbase::configfile { 'regionservers':}
     Anchor['hdp-hbase::begin'] -> Hdp::Package['hbase'] -> Hdp::User[$hbase_user] -> Hdp::Directory[$config_dir] -> 
     Hdp-hbase::Configfile<||> ->  Anchor['hdp-hbase::end']
   }
@@ -45,14 +46,24 @@ class hdp-hbase(
 define hdp-hbase::configfile(
   $mode = undef,
   $hbase_master_host = undef,
-  $template_tag = undef
+  $template_tag = undef,
+  $type = undef,
 ) 
 {
+  if ($name == 'hadoop-metrics.properties') {
+    if ($type == 'master') {
+    $tag = GANGLIA-MASTER
+  } else {
+     $tag = GANGLIA-RS
+  }
+   } else {
+    $tag = $template_tag
+}
   hdp::configfile { "${hdp-hbase::params::conf_dir}/${name}":
     component         => 'hbase',
     owner             => $hdp-hbase::params::hbase_user,
     mode              => $mode,
     hbase_master_host => $hbase_master_host,
-    template_tag      => $template_tag
+    template_tag      => $tag
   }
 }

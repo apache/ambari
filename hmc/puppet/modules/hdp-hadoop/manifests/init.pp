@@ -70,10 +70,10 @@ class hdp-hadoop(
       owner => $hdfs_user
     }
     
-#    hdp-hadoop::configfile { 'hadoop-metrics2.properties' : 
-#      tag   => 'common', 
-#      owner => $hdfs_user,
-#    }
+    hdp-hadoop::configfile { 'hadoop-metrics2.properties' : 
+      tag   => 'common', 
+      owner => $hdfs_user,
+    }
 
     hdp-hadoop::configfile { 'mapred-site.xml': 
       tag => 'common', 
