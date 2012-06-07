@@ -138,7 +138,7 @@ function checkPasswordCorrectness () {
     divId = "#" + globalPasswordsArray[count]['verificationDivId'];
     var verifyPasswd = globalYui.one(divId).get('value');
 
-    if (passwd !== verifyPasswd) {
+    if (passwd != verifyPasswd) {
       errCount++;
       errString += "<li>Password does not match for " + globalYui.one(divId).get('name') + "</li>";
       globalYui.one(divId).addClass('formInputError');
@@ -168,7 +168,7 @@ function checkPasswordCorrectness () {
 function generateUserOpts () {
 
   var retval = checkPasswordCorrectness();
-  if (retval.passwdMatched !== true) {
+  if (retval.passwdMatched != true) {
     setFormStatus(retval.errorString, true, true);
     document.getElementById(retval.focusOn).scrollIntoView();
     return {};
@@ -184,6 +184,12 @@ function generateUserOpts () {
     var prop = globalYui.all(selectionStr);
     var properties = {};
     prop.each(function (proper) {
+      for (i = 0; i < globalPasswordsArray.length; i++) {
+        if (proper.get('id') == globalPasswordsArray[i]['verificationDivId']) {
+          return;
+        }
+      }
+
       var value = globalYui.Lang.trim(proper.get('value'));
       if ((proper.get('type') == "checkbox")) {
         value = proper.get('checked').toString();
