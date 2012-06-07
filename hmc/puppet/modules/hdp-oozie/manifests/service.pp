@@ -56,9 +56,8 @@ define hdp-oozie::service::directory()
 }
 define hdp-oozie::service::createsymlinks()
 {
-  file { '/usr/lib/oozie/oozie-server/lib/mapred-site.xml':
-    ensure => present,
-    target => "/etc/hadoop/conf/mapred-site.xml",
-    mode => '0755'
+  hdp::exec { '/usr/lib/oozie/oozie-server/lib/mapred-site.xml':
+    command => "ln -sf /etc/hadoop/conf/mapred-site.xml /usr/lib/oozie/oozie-server/lib/mapred-site.xml",
+    unless => "test -e /usr/lib/oozie/oozie-server/lib/mapred-site.xml"
   }
 }
