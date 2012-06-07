@@ -23,11 +23,12 @@
     ?>
     
     <div id="ContentDivId"> 
+      <?php require "./subnav.htmli"; ?>
 
       <!-- Uninstallation Wizard -->
       <div id="installationWizardDivId" style="display:block">
         <?php require "./utils.htmli"; ?>
-        <div class="pageSummary">
+        <div class="pageSummary" style="margin-top:0px">
           <h2><?php echo $RES['uninstallWizard.pageSummary.header'] ?></h2>
           <p><?php echo $RES['uninstallWizard.pageSummary.body'] ?></p>
         </div>

@@ -6,6 +6,10 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-463. Redesign cluster management pages and navigation (Yusaku via Vikram)
+
+  AMBARI-462. when hive is being stopped, it stops the hive nagios checks (Ramya via Vikram)
+
   AMBARI-460. Ganglia shows four hosts on a single node installation (Suhas via Vikram)
 
   AMBARI-459. Race conditions in fetch transaction progress (Vikram)

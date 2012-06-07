@@ -18,12 +18,8 @@
     <?php require "./topnav.htmli"; ?>
 
     <div id="ContentDivId"> 
-
-      <!-- List of clusters
-      <div name="clustersListDiv" id="clustersListDivId">
-      </div>
-      -->
-
+      <?php require "./subnav.htmli"; ?>
+      
       <!-- Installation Wizard -->
       <div name="installationWizardDiv" id="installationWizardDivId" style="display:block">
         <div name="installationWizardProgressBarDiv" id="installationWizardProgressBarDivId">

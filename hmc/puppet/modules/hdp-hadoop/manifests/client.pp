@@ -2,6 +2,8 @@ class hdp-hadoop::client(
   $service_state = $hdp::params::cluster_client_state
 ) inherits hdp::params
 {
+  $hdp::params::service_exists['hdp-hadoop::client'] = true
+
   Hdp-hadoop::Common<||>{service_states +> $service_state}
   Hdp-hadoop::Package<||>{include_32_bit => true}
   Hdp-hadoop::Configfile<||>{sizes +> 32}

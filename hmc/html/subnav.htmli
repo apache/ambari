@@ -1,0 +1,26 @@
+<?php
+switch ($requestPage) {
+case 'index.php':
+  $activeTab = 'SUMMARY';
+  break;
+case 'manageServices.php':
+  $activeTab = 'SERVICES';
+  break;
+case 'addNodesWizard.php':
+  $activeTab = 'ADD_NODES';
+  break;
+case 'uninstallWizard.php':
+  $activeTab = 'UNINSTALL';
+  break;
+default:
+  $activeTab = '';
+}
+?>
+<div id="subnav">
+  <ul class="nav nav-tabs">
+    <li class="<?php echo ($activeTab == 'SUMMARY') ? 'active' : '' ?>"><a id="subNavSummaryLink" href="index.php">Cluster Summary</a></li>
+    <li class="<?php echo ($activeTab == 'SERVICES') ? 'active' : '' ?>"><a id="subNavServicesLink" href="manageServices.php?clusterName=<?php echo $clusterName ?>">Manage Services</a></li>
+    <li class="<?php echo ($activeTab == 'ADD_NODES') ? 'active' : '' ?>"><a id="subAddNodesLink" href="addNodesWizard.php?clusterName=<?php echo $clusterName ?>">Add Nodes</a></li>
+    <li class="<?php echo ($activeTab == 'UNINSTALL') ? 'active' : '' ?>"><a id="subNavUninstallLink" href="uninstallWizard.php?clusterName=<?php echo $clusterName ?>">Uninstall</a></li>
+  </ul>
+</div>

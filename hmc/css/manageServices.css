@@ -1,7 +1,6 @@
 #serviceManagementCoreDivId {
   width: 400px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-left:20px;
 }
 
 .serviceManagementGroup {
@@ -131,7 +130,6 @@ a.serviceManagementEntryName {
 
 
 #serviceManagementGlobalActionsDivId {
-	margin-top:40px;
   margin-left:90px;
 }
 

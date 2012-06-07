@@ -15,24 +15,16 @@
 
   <body class="yui3-skin-sam">
     <?php require "./topnav.htmli"; ?>
-
+      
     <div id="ContentDivId">
+      <?php require "./subnav.htmli"; ?>
+      <?php require "./utils.htmli"; ?>            
 
-      <?php require "./utils.htmli"; ?>
-
-      <div id="welcomeDivId" style="display:none">
-        <?php require "./welcome.inc" ?>           
-      </div>
       <!-- List of clusters -->
       <div id="clustersListDivId" style="display:none">
       </div>
 
       <div id="clusterHostRoleMappingDivId" style="display:none">
-        <h2>Service Mapping</h2>
-        <div class="serviceLegend">
-          <span class="masterLegend">Master Service</span><span class="clientLegend">Client Service</span>
-        </div>
-        <div style="clear:both"></div>
         <div id="clusterHostRoleMappingDynamicRenderDivId">
         </div>      
       </div>

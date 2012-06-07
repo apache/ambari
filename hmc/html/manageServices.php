@@ -17,8 +17,8 @@
   <body class="yui3-skin-sam">
     <?php require "./topnav.htmli"; ?>
 
-    <div id="ContentDivId"> 
-
+    <div id="ContentDivId">
+      <?php require "./subnav.htmli"; ?>
       <?php require "./utils.htmli"; ?>
 
       <!-- Service Management: The Main Event -->

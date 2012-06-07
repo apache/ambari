@@ -33,7 +33,8 @@ class hdp-hbase(
       force => true
     }
 
-    hdp-hbase::configfile { ['hbase-env.sh','hbase-site.xml','hbase-policy.xml','log4j.properties','hadoop-metrics.properties']: }
+#    hdp-hbase::configfile { ['hbase-env.sh','hbase-site.xml','hbase-policy.xml','log4j.properties','hadoop-metrics.properties']: }
+      hdp-hbase::configfile { ['hbase-env.sh','hbase-site.xml','hbase-policy.xml','log4j.properties']: }
       hdp-hbase::configfile { 'regionservers':}
     Anchor['hdp-hbase::begin'] -> Hdp::Package['hbase'] -> Hdp::User[$hbase_user] -> Hdp::Directory[$config_dir] -> 
     Hdp-hbase::Configfile<||> ->  Anchor['hdp-hbase::end']
