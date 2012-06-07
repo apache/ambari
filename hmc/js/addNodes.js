@@ -184,14 +184,14 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
 
       var responseJson = globalYui.JSON.parse(responseText);
 
-      if (responseJson.result != "0") {
+      if (responseJson.result != 0) {
         // This means we hit an error
 
-        if (responseJson.result == "2") {
+        if (responseJson.result == 2) {
           alert('Got error : ' + responseJson.error);
           hideLoadingImg();
           return;
-      } else if (responseJson.result == "3") {
+      } else if (responseJson.result == 3) {
         var confirmed = confirm(responseJson.error + "\n\n" + responseJson.hosts + "\n\nPlease click OK if you want to ignore them and continue.");
         if (!confirmed) {
           hideLoadingImg();
