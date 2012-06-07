@@ -87,13 +87,15 @@
       $kickFailedNodes = array();
       $this->sendKick($nodes, $txnId, $kickFailedNodes,
           $successNodes, $prevKickRunningNodes);
-      if (!empty($kickFailedNodes)) {
-        $this->logger->log_warn("Retrying kick after 10 seconds on " . print_r($kickFailedNodes, TRUE));
-        sleep(10);
-        $nodesToKick = $kickFailedNodes;
-        $kickFailedNodes = array();
-        $this->sendKick($nodesToKick, $txnId, $kickFailedNodes,
-            $successNodes, $prevKickRunningNodes);
+      $numRetry = 3;
+      while ( ($numRetry > 0) && (!empty($kickFailedNodes))) {
+          $numRetry = $numRetry - 1;
+          $this->logger->log_warn("Retrying kick after 10 seconds on " . print_r($kickFailedNodes, TRUE));
+          sleep(10);
+          $nodesToKick = $kickFailedNodes;
+          $kickFailedNodes = array();
+          $this->sendKick($nodesToKick, $txnId, $kickFailedNodes,
+              $successNodes, $prevKickRunningNodes);
       }
       foreach ($kickFailedNodes as $fn) {
         $failedNodes[] = $fn;
