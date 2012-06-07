@@ -12,6 +12,8 @@
     <link type="text/css" rel="stylesheet" href="../css/selectHosts.css" media="screen"/>
     <link rel="shortcut icon" href="../images/logo-micro.gif">
     <!-- End CSS -->
+    <script src="../js/ext/jquery.min.js"></script>
+    <script src="../js/ext/bootstrap.min.js"></script>
   </head>
 
   <body class="yui3-skin-sam">
@@ -307,8 +309,6 @@
             };
 
             var jsFilesToLoad = [
-                'js/ext/jquery.min.js',
-                'js/ext/bootstrap.min.js',
                 'js/utils.js', 
                 'js/txnUtils.js',
                 'js/installationWizard.js',

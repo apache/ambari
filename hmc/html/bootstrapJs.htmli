@@ -1,25 +1,18 @@
+<link type="text/css" rel="stylesheet" href="../css/yuiCombined.css">
 <script src="../yui-3.5.1/build/yui/yui-min.js"></script>
+<script src="../js/ext/yuiCombined.js"></script>
 
 <script type="text/javascript">
 
-  var globalYuiLoaderOptions = {
-    combine: true,
-    comboBase: '../fileCombinator.php?',
-    root: 'yui-3.5.1/build/'
-  };
+  var globalYui = YUI().use("*", function (Y) {
 
-  var globalYui = YUI( globalYuiLoaderOptions ).use( 
-    "node", "io", "dump", "json", "panel", "event", "arraysort", 
-    "array-extras", "datasource", "datasource-io", "datasource-jsonschema", 
-    "datasource-polling", "stylesheet", "dd-drop", "dd-constrain",
-    "dd-proxy", "transition", "overlay", "node-event-simulate", function (Y) {
-
+    for (var jsFile in jsFilesToLoad) {
       /* Load all the files in jsFilesToLoad in one shot. */
       var dynamicJsScript = document.createElement("script");
       dynamicJsScript.type = "text/javascript";
-      dynamicJsScript.src = '../fileCombinator.php?' + jsFilesToLoad.join('&');
-      globalYui.log('Loading ' + dynamicJsScript.src);
+      dynamicJsScript.src = '../' + jsFilesToLoad[jsFile];
+      dynamicJsScript.async = false;
       document.getElementsByTagName("head")[0].appendChild(dynamicJsScript);
-
-    });
+    }
+  });
 </script>
