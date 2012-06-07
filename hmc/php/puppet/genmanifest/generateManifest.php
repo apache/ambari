@@ -213,7 +213,7 @@ include "RoleDependencies.php";
      "hdp-hbase::regionserver" => "hbase",
      "hdp-hbase::client" => "hbase",
      "hdp-pig" => "pig.noarch",
-     "hdp-sqoop" => "sqoop",
+     "hdp-sqoop" => "sqoop mysql-connector-java-5.0.8-4.jpp5",
      "hdp-hive::server" => "hive mysql-connector-java-5.0.8-4.jpp5",
      "hdp-hive::client" => "hive",
      "hdp-hcat" => "hcatalog",

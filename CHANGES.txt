@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-511. Fix for the previous 511 patch.
+
   AMBARI-512. Fix puppet manifests for tarball downloads via rpms. (Mahadev via Vikram)
 
   AMBARI-511. Support rpms for mysql connector and other tars. (Jitendra via Vikram)
