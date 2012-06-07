@@ -54,7 +54,6 @@ class SelectNodes {
 
       $result["mastersToHosts"]["NAMENODE"] = $this->createHostMap($hostInfo);
     }
-    $this->logger->log_info("Adding to result ".$result);
     return $result;
   }
 
@@ -159,7 +158,7 @@ class SelectNodes {
       $db->addHostsToComponent($clusterName, "HBASE_REGIONSERVER", $hostlist, "ASSIGNED", "");
     }
     if (array_key_exists("GANGLIA", $services)) {
-      if (sizeof($hosts) > 0) {
+      if (sizeof($hostlist) > 0) {
         $db->addHostsToComponent($clusterName, "GANGLIA_MONITOR", $hostlist, "ASSIGNED", "");
       }
     }
@@ -243,8 +242,8 @@ class SelectNodes {
     $return = array();
     $return["result"] = 0;
     $return["error"] = "";
-    $this->logger->log_error("All info: ".$clusterName."\n "
-        .json_encode($masterToHost));
+    $this->logger->log_info("Updating with Info from User: \n".$clusterName."\n "
+        .print_r($masterToHost, true));
     $allHostsDBInfo = $db->getAllHostsInfo($clusterName,
         array("=" => array ( "discoveryStatus" => "SUCCESS")), array());
     if ($allHostsDBInfo["result"] != 0) {
@@ -266,7 +265,7 @@ class SelectNodes {
     $services = $this->filterEnabledServices($services_tmp);
     $allHosts = $this->convertHostInfoToList($allHosts_t);
     foreach($masterToHost as $componentName=>$hostNames) {
-      $this->logger->log_debug("For cluster  $clusterName setting $componentName to host $hostName");
+      $this->logger->log_info("For cluster  $clusterName setting $componentName to host \n". print_r($hostNames, true));
       $db->addHostsToComponent($clusterName, $componentName, $hostNames, "ASSIGNED", "");
       if ($componentName == "GANGLIA_MONITOR_SERVER") {
         $gangliaMaster = $hostNames[0];
@@ -286,7 +285,6 @@ class SelectNodes {
       }
     }
     /** make sure ganglia is added to all the masters **/
-    $this->logger->log_debug("Host for Gangalia Master $gangliaMaster");
     $masterHosts = array();
     foreach($masterToHost as $componentName=>$hostNames) {
       foreach($hostNames as $hostName) {
@@ -323,7 +321,7 @@ class SelectNodes {
         array_push($result, $hostInfo);
       }
     }
-    $this->logger->log_debug("Excluding hmc host \n".print_r($result, true));
+    $this->logger->log_debug("List for picking Nagios/Ganglia masters from \n".print_r($result, true));
     return $result;
   }
 

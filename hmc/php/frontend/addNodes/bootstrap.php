@@ -23,8 +23,8 @@ include_once "../util/YumRepoConfigParser.php";
     $gpgKeyFiles = $repo['gpgKeyFiles'];
 
     exec ("/etc/init.d/iptables stop");
-    $logger->log_debug("List of hosts to BootStrap ".json_encode($hosts));
-    $logger->log_debug("Run script for pdsh ".$rscript);
+    $logger->log_info("List of hosts to BootStrap ".json_encode($hosts));
+    $logger->log_info("Run script for pdsh ".$rscript);
     $scpCmd = "scp -o StrictHostKeyChecking=no ";
 
     foreach ($hosts as $host) {

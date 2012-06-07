@@ -32,7 +32,7 @@ $freshInstall = ($clusterState['state'] == 'CONFIGURATION_IN_PROGRESS') ? true :
 $clusterDir = getClusterDir($clusterName);
 
 $logString = "Cluster Name: $clusterName Cleanup required? $freshInstall and type: ".gettype($freshInstall);
-$logger->log_debug($logString);
+$logger->log_info($logString);
 // Validate clusterName: TODO; FIXME
 
 // We need to clean up prior instances for this
@@ -78,7 +78,7 @@ if (move_uploaded_file($_FILES['clusterHostsFile']['tmp_name'], $hostsFileDestin
 header("Content-type: application/json");
 
 // Validate that there are no nodes that are already in use in case of addNodesWizard
-$logger->log_debug("$freshInstall");
+$logger->log_info("Doing a fresh install: $freshInstall");
 if (!$freshInstall) {
 
   // Get the list of current nodes
@@ -92,7 +92,7 @@ if (!$freshInstall) {
     // See if they are duplicates
     $newHosts = readHostsFile($hostsFileDestination);
     $duplicateHosts = array();
-    $logger->log_debug("checking for dups");
+    $logger->log_debug("Checking for Duplicate Hosts.");
     foreach ($allHostsInfoResult["hosts"] as $hostInfo) {
       if (in_array($hostInfo["hostName"], $newHosts)) {
         $duplicateHosts[] = $hostInfo["hostName"];

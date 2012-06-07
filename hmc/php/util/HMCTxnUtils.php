@@ -73,7 +73,7 @@ class HMCTxnUtils {
     }
     $execCommand .= " -l \"" . $logFile . "\"";
 
-    self::$logger->log_debug("Trying to background a new process"
+    self::$logger->log_info("Trying to background a new process"
         . ", cluster=" . $clusterName
         . ", txnId=" . $txnId
         . ", command=" . $command
@@ -100,7 +100,7 @@ class HMCTxnUtils {
       do {
         $data = fread($handle, 256);
         $output .= $data;
-        self::$logger->log_debug("Output from process"
+        self::$logger->log_info("Output from process"
             . ", command=" . $command
             . ", txnId=" . $txnId
             . ", output=" . $output);
@@ -109,7 +109,7 @@ class HMCTxnUtils {
           $output, $match);
         if ($count > 0) {
           $childPid = intval($match[1]);
-          self::$logger->log_debug("Found child pid"
+          self::$logger->log_info("Found child pid"
               . ", command=" . $command
               . ", txnId=" . $txnId
               . ", output=" . $output

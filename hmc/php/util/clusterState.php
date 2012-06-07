@@ -15,7 +15,7 @@ function updateClusterState ($clusterName, $state, $displayName, $context) {
   $stateStr = json_encode($stateObj);
   $retval = $dbAccessor->setClusterState($clusterName, $stateStr);
 
-  $logger->log_debug("Update Cluster State with ".$stateStr);
+  $logger->log_info("Update Cluster State with ".$stateStr);
 
   return $retval;
 }

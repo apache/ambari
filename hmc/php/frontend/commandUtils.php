@@ -4,7 +4,7 @@ function launchCmd ($cmd)
 {
 
   global $logger;
-  $logger->log_debug("WCOLL is ".json_encode(getenv("WCOLL")));
+  $logger->log_info("Env variable WCOLL is ".json_encode(getenv("WCOLL")));
   $handle = popen($cmd, "r");
   while (!feof($handle)) {
     $read = fread($handle, 4096);

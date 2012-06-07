@@ -129,7 +129,7 @@ class ServiceComponent {
 
     // Check if it's already UNINSTALLED
     if ($this->state === State::UNINSTALLED) {
-      $this->logger->log_debug("ServiceComponent $this->name is already UNINSTALLED!");
+      $this->logger->log_info("ServiceComponent $this->name is already UNINSTALLED!");
       return array("result" => 0, "error" => "");
     }
 
@@ -153,7 +153,7 @@ class ServiceComponent {
 
     // Check if it's already INSTALLED
     if ($this->state === State::INSTALLED) {
-      $this->logger->log_debug("ServiceComponent $this->name is already INSTALLED!");
+      $this->logger->log_info("ServiceComponent $this->name is already INSTALLED!");
       return array("result" => 0, "error" => "");
     }
 
@@ -196,7 +196,7 @@ class ServiceComponent {
 
     // Check if it's already STARTED
     if ($this->state === State::STARTED) {
-      $this->logger->log_debug("ServiceComponent $this->name is already STARTED!");
+      $this->logger->log_info("ServiceComponent $this->name is already STARTED!");
       return array("result" => 0, "error" => "");
     }
 
@@ -239,7 +239,7 @@ class ServiceComponent {
     }
 
     if (!$dryRun) {
-      $this->logger->log_debug("Kicking puppet for starting component on "
+      $this->logger->log_info("Kicking puppet for starting component on "
          . " cluster=" . $this->clusterName
          . ", servicecomponent=" . $this->name
          . ", txn=" . $transaction->toString());
@@ -247,7 +247,7 @@ class ServiceComponent {
       $startTime = time();
       $result = $this->puppet->kickPuppet($nodes['nodes'], $transaction,
           $this->clusterName, array ( $this->name => $nodes['nodes'] ));
-      $this->logger->log_debug("Puppet kick response for starting component on "
+      $this->logger->log_info("Puppet kick response for starting component on "
           . " cluster=" . $this->clusterName
           . ", servicecomponent=" . $this->name
           . ", txn=" . $transaction->toString()
@@ -315,7 +315,7 @@ class ServiceComponent {
 
     // Check if it's already STOPPED
     if ($this->state === State::STOPPED) {
-      $this->logger->log_debug("ServiceComponent $this->name is already STOPPED!");
+      $this->logger->log_info("ServiceComponent $this->name is already STOPPED!");
       return array("result" => 0, "error" => "");
     }
 
@@ -358,7 +358,7 @@ class ServiceComponent {
     }
 
     if (!$dryRun) {
-      $this->logger->log_debug("Kicking puppet for stopping component on"
+      $this->logger->log_info("Kicking puppet for stopping component on"
           . " cluster=" . $this->clusterName
           . ", servicecomponent=" . $this->name
           . ", txn=" . $transaction->toString());
@@ -366,7 +366,7 @@ class ServiceComponent {
       $startTime = time();
       $result = $this->puppet->kickPuppet($nodes['nodes'], $transaction,
           $this->clusterName, array ( $this->name => $nodes['nodes'] ));
-      $this->logger->log_debug("Puppet kick response for stopping component on"
+      $this->logger->log_info("Puppet kick response for stopping component on"
           . " cluster=" . $this->clusterName
           . ", servicecomponent=" . $this->name
           . ", txn=" . $transaction->toString()

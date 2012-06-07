@@ -32,8 +32,6 @@ if (isset($_GET['serviceName'])) {
   $forService = "all";
 }
 
-$logger->log_debug("$forService");
-
 function getAllComponentsForService ($serviceName)
 {
   global $logger, $dbAccessor, $clusterName;

@@ -26,8 +26,6 @@ $dbAccessor->cleanupServices($clusterName);
 $requestdata = file_get_contents('php://input');
 $requestObj = json_decode($requestdata, true);
 
-$deployUser = $requestObj['ClusterDeployUser'];
-
 // Persist the services enabled stuff
 $servicesCheckList = $requestObj["services"];
 
@@ -37,7 +35,7 @@ foreach($servicesCheckList as $serviceInfo) {
   $tempLocalServicesCopy[$serviceInfo["serviceName"]] = array("isEnabled" => $serviceInfo["isEnabled"]);
 }
 
-$logger->log_debug("temp local".json_encode($tempLocalServicesCopy)."========");
+$logger->log_debug("Temp local copy for services \n".json_encode($tempLocalServicesCopy));
 
 $svcDepsListArr = $dbAccessor->getAllServiceDependencies();
 if ($svcDepsListArr["result"] != 0) {

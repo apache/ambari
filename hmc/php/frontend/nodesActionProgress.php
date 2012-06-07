@@ -30,7 +30,7 @@ include_once $stagesFile;
 
 header("Content-type: application/json");
 
-$logger->log_debug("Cluster Name: $clusterName Root Txn ID: $rootTxnId");
+$logger->log_info("Cluster Name: $clusterName Root Txn ID: $rootTxnId");
 
 $progressStates = array();
 foreach ($stagesInfo as $stage => $stageInfo) {

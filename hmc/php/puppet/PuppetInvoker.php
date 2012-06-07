@@ -76,7 +76,7 @@
           $this->logger->log_info($kNode . "previous kick still running, will continue to wait");
           $prevKickRunningNodes[] = $kNode;
         } else {
-          $this->logger->log_info($kNode . ": Kick failed");
+          $this->logger->log_info($kNode . ": Kick failed with $output");
           $failedNodes[] = $kNode;
         }
       }

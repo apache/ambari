@@ -304,7 +304,7 @@ if ($dirHandle = opendir($prevOutputDir)) {
 }
 
 // Perisist the data to the db.
-$logger->log_debug("Going to persist discovered node properties");
+$logger->log_info("Going to persist discovered node properties");
 $returnValue = $dbAccessor->addHostsToCluster($clusterName, $allHosts);
 if ($returnValue["result"] != 0 ) {
   $logger->log_error("Got error while adding hosts: ".$returnValue["error"]);

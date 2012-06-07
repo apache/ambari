@@ -45,7 +45,7 @@ $suggestedNodes = $selectNodes->updateDBWithRoles($clusterName,
                                                   $componentsToHosts
                                                 );
 
-$logger->log_error("323". json_encode($allServicesComponents["services"]));
+$logger->log_trace("Debug Trace". json_encode($allServicesComponents["services"]));
 
 /* hack to unlock front end if the updateDBWithRoles
 $allHosts = array();
@@ -91,7 +91,7 @@ if ($nameNodeInfoResult["result"] != 0 ) {
   print json_encode($nameNodeInfoResult);
   return;
 }
-$logger->log_error("All mount points: ".$nameNodeInfoResult["disksInfo"]);
+$logger->log_info("All mount points: ".$nameNodeInfoResult["disksInfo"]);
 $AllMountPoints = json_decode($nameNodeInfoResult["disksInfo"], true);
 
 // generate the mount points info required by javascript in the next phase

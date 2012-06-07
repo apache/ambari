@@ -20,7 +20,7 @@ $GLOBALS["puppet_install"] = "/usr/share/hmc/ShellScripts/puppet_agent_install.s
 $GLOBALS["DRYRUN"] = FALSE;
 
 $GLOBALS["HMC_LOG_DIR"] = "/var/log/hmc";
-$GLOBALS["HMC_LOG_LEVEL"] = HMCLogger::DEBUG;
+$GLOBALS["HMC_LOG_LEVEL"] = HMCLogger::INFO;
 $GLOBALS["HMC_LOG_FILE"] = $GLOBALS["HMC_LOG_DIR"] . "/hmc.log";
 
 /*

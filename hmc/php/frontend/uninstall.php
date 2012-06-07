@@ -38,7 +38,7 @@ $clusterState = json_decode($clusterStateResponse['state'], true);
  */
 if ($clusterState['state'] == 'DEPLOYED') {
 
-  $logger->log_debug("Uninstall invoked");
+  $logger->log_info("Uninstall invoked");
 
   $action = $_GET['action'];
   $deployUser = $_GET['clusterDeployUser'];
@@ -70,7 +70,7 @@ if ($clusterState['state'] == 'DEPLOYED') {
   fclose($hostFileHdl);
   ////// end of generating new file
 
-  $logger->log_debug("Uninstall got wipeout value $wipeout");
+  $logger->log_info("Uninstall got wipeout value $wipeout");
 
   // call the wipeout script and return the transaction id
   $hmc = new HMC($dbPath, $clusterName);

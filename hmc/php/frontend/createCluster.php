@@ -61,7 +61,7 @@ fclose($fileHdl);
 
 // if user re-enters this page, we need to delete and restart the cluster conf
 $dbAccessor->wipeOutClusters($clusterName);
-$logger->log_debug("Completed deletion of cluster: ".$clusterName);
+$logger->log_info("Completed deletion of cluster: ".$clusterName);
 
 $hdpVersion="1.0"; // TODO: hardcoded
 $state="Configuration in progress";

@@ -38,8 +38,8 @@ function deBootStrap ($clusterName, $deployUser, $txnId, $progressInfo)
 
   /////// launch the stages in the background.
   $stagesFile = "./uninstall/stages.php";
-  $logger->log_debug("ClusterName: $clusterName\n");
-  $logger->log_debug("Deploy User: $deployUser\n");
+  $logger->log_info("ClusterName: $clusterName\n");
+  $logger->log_info("Deploy User: $deployUser\n");
   $status = "";         
   $createTxResult = HMCTxnUtils::createNewTransaction($dbAccessor, $clusterName, $status);
   if ($createTxResult == FALSE) {
@@ -49,8 +49,7 @@ function deBootStrap ($clusterName, $deployUser, $txnId, $progressInfo)
   }
 
   $rootTxnId = $createTxResult;
-  $logger->log_error("Txn Id ===== $rootTxnId\n");
-  $logger->log_error("Clustername ===== $clusterName");
+  $logger->log_info("Root Txn Id = $rootTxnId\n");
     
   $cmd = $GLOBALS["PHP_EXEC_PATH"] . " " . "../util/sequentialScriptRunner.php";
   // $cmd = $GLOBALS["PHP_EXEC_PATH"] . " " . "./addNodes/addNodesOrchestrator.php";

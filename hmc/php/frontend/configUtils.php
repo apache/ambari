@@ -518,7 +518,7 @@ function validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $
     }
     /* TODO - need to handle values with warnings - do we want to tell users they are using above recommended settings? */
 
-    $logger->log_info("Got error when validating configs");
+    $logger->log_error("Got error when validating configs");
     return $mergedErrors;
   }
 

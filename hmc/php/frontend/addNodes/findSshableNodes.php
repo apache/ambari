@@ -118,7 +118,7 @@ if ($dirHandle = opendir($commandOutputDir)) {
 }
 
 // Perisist the data to the db.
-$logger->log_debug("Going to persist information sshAble nodes");
+$logger->log_info("Going to persist information sshAble nodes");
 $returnValue = $dbAccessor->addHostsToCluster($clusterName, $allHosts);
 if ($returnValue["result"] != 0 ) {
   $logger->log_error("Got error while adding hosts: ".$returnValue["error"]);
