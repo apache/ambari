@@ -7,7 +7,7 @@ class hdp-templeton::params() inherits hdp::params
 
   $pig_tar_url = "${download_url}/pig-0.9.2.tar.gz"
   $pig_tar_name = hdp_default("pig_tar_name","pig.tar.gz")
-  $hive_tar_url = "${download_url}/hive-0.8.1.tar.gz"
+  $hive_tar_url = "${download_url}/hive-0.9.0.tar.gz"
   $hive_tar_name = hdp_default("hive_tar_name","hive.tar.gz")
 
   ### templeton-env
@@ -31,7 +31,7 @@ class hdp-templeton::params() inherits hdp::params
   $pig_tar_name_hdfs = hdp_default("hadoop/templeton-site/pig_tar_name_hdfs","pig-0.9.2")
 
   $hive_tar_gz = hdp_default("hadoop/templeton-site/hive_tar_gz","hive.tar.gz")
-  $hive_tar_gz_name = hdp_default("hadoop/templeton-site/hive_tar_gz_name","hive-0.8.1")
+  $hive_tar_gz_name = hdp_default("hadoop/templeton-site/hive_tar_gz_name","hive-0.9.0")
   $hive_metastore_sasl_enabled = hdp_default("hadoop/templeton-site/hive_metastore_sasl_enabled","no")
 
   $templeton_metastore_principal = hdp_default("hadoop/templeton-site/templeton_metastore_principal")
