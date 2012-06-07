@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-490. Highlight the required parameters in Step 6 "Custom Config" of the Cluster Init Wizard (Yusaku via Vikram)
+
   AMBARI-489. Call out HMC master node in the topology and node assignments (Yusaku via Vikram)
 
   AMBARI-488. Manage service needs a way to recover from terminated browser sessions (Yusaku via Vikram)
