@@ -29,6 +29,20 @@ function check_error ($output, $pattern, $ret) {
   return $ret1;
 }
 
+function ping($host,$port=8139,$timeout=10, &$errstr, &$errno)
+{
+  $fsock = fsockopen($host, $port, $errno, $errstr, $timeout);
+  if ( ! $fsock )
+  {
+    return FALSE;
+  }
+  else
+  {
+    return TRUE;
+  }
+}
+
+
 /* Sign and verify puppet agent */
 function sign_and_verify_agent ($hosts, $logger) {
   $origHosts = $hosts;
@@ -164,99 +178,41 @@ function sign_and_verify_agent ($hosts, $logger) {
     $logger->log_debug("Puppet kick --ping retry attempt " . $retryAttempt
         . ", pendingHoststoCheck=" . implode(",", $pendingNodes));
 
-    // Run kick ping in batches of 10 hosts
-    $hostsToKick = array();
-    $index = 0;
-    $counter = 0;
-    foreach ($pendingNodes as $i => $host) {
-      $counter++;
-      if (!isset($hostsToKick[$index])) {
-        $hostsToKick[$index] = array();
-      }
-      $hostsToKick[$index][] = $host;
-
-      if ($counter == 10) {
-        $index++;
-        $counter = 0;
-      }
-    }
-
     $failedNodes = array();
 
-    foreach ($hostsToKick as $idx => $hostKickList)  {
+    $pHostOutput = array();
+    $pHostResponse = array();
+    foreach ($pendingNodes as $i => $host) {
+      /* Give ping agent check if it is working */
+      $logger->log_debug("Pinging puppet agent for host=".$host);
+      $errstr = "";
+      $errno = "";
+      ping($host, 8139, 10, $errstr, $errno);
+      $pHostOutput[$host] = $errstr;
+      $pHostResponse[$host] = $errno;
+    }
 
-      $hostList = implode(",", $hostKickList);
-
-      /* Give puppet kick --ping to check if agent is working */
-      $logger->log_debug("Puppet kick --ping for batch $idx , hosts=".$hostList);
-
-      $hostListStr = "";
-      foreach ($hostKickList as $hostToKick) {
-        $hostListStr .= " --host " . $hostToKick;
-      }
-
-      $out_arr = array();
-      $cmd = "puppet kick -f --parallel 10 --ping $hostListStr 2>/dev/null";
-      exec ($cmd, $out_arr, $err);
-
-      // TODO do we need to check $err ?
-
-      $pHostOutput = array();
-      $pHostResponse = array();
-      foreach ($out_arr as $line) {
-        foreach ($hostKickList as $host) {
-          if (preg_match ("/$host/", $line)) {
-            if (!isset($pHostOutput[$host])) {
-              $pHostOutput[$host] = array();
-            }
-            $pHostOutput[$host][] = $line;
-            $pattern = $host." finished with exit code (\d+)";
-            $matches = array();
-            if (preg_match("/$pattern/", $line, $matches) > 0) {
-              $retCode = (int)$matches[1];
-              $pHostResponse[$host] = $retCode;
-            }
-          }
-        }
-      }
-
-      $logger->log_debug("Output for batch $idx, outputLogs="
-          . print_r($pHostOutput, true) . " , errorCodes="
-          . print_r($pHostResponse, true) );
-
-      foreach ($hostKickList as $host) {
-        if (isset($pHostResponse[$host])
-            && $pHostResponse[$host] == 0) {
-          $logger->log_info("Puppet kick succeeded for host " . $host);
+    foreach ($pendingNodes as $i => $host) {
+      if ($pHostResponse[$host] == 0) {
+          $logger->log_info("Ping to puppet agent succeeded for host [" . $host . "]");
           $hostsState[$host] = TRUE;
           if (isset($output[$host])) {
             unset($output[$host]);
           }
-        } else {
-          $logger->log_error("Failed to do puppet kick -ping on host " . $host);
-
-          $errorCode = -1;
-
+      } else {
+          $logger->log_error("Failed to ping puppet agent on host [" . $host . "]: " . $pHostOutput[$host]);
           $failedNodes[] = $host;
-
-          if (isset($pHostResponse[$host])) {
-            $errorCode = $pHostResponse[$host];
-          }
-
-          $errorLogs = "Puppet kick failed";
-          if (isset($pHostOutput[$host])) {
-            $errorLogs = implode(";", $pHostOutput[$host]);
-          }
+          $errorCode = $pHostResponse[$host];
+          $errorLogs = "Puppet agent ping failed: [" . $pHostOutput[$host] . "]";
 
           if (!isset($output[$host])) {
             $output[$host] =
                 array ( "discoveryStatus" => "FAILED",
-                        "badHealthReason" => "Puppet kick failed: "
+                        "badHealthReason" => "Puppet agent ping failed: "
                             . ", error=" . $errorCode
                             . ", outputLogs=" . $errorLogs);
           }
           $hostsState[$host] = FALSE;
-        }
       }
     }
     $pendingNodes = $failedNodes;
@@ -272,7 +228,7 @@ function sign_and_verify_agent ($hosts, $logger) {
     }
   }
 
-  $logger->log_info("Puppet kick status"
+  $logger->log_info("Puppet agent ping status"
       . ", totalHosts=" . $totalCnt
       . ", succeededHostsCount=" . $countSucceeded
       . ", failedHostsCount=" . $countFailed);
