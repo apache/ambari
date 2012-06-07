@@ -200,16 +200,16 @@ class SelectNodes {
     }
     if ($numNodes <= 5) {
       /* all slaves except for the namenode */
-      $excludeList = $this->getExcludeHosts($allHosts, array($masterToHost["NAMENODE"]));
+      $excludeList = $this->getExcludeHosts($allHosts, $masterToHost["NAMENODE"]);
       return $excludeList;
     }
     if ($numNodes > 5) {
       /* all slaves except for the namenode/JT/Hbase master */
       $excludeHosts = array();
-      array_push($excludeHosts, $masterToHost["NAMENODE"]);
-      array_push($excludeHosts, $masterToHost["JOBTRACKER"]);
+      array_push($excludeHosts, $masterToHost["NAMENODE"][0]);
+      array_push($excludeHosts, $masterToHost["JOBTRACKER"][0]);
       if (array_key_exists("HBASE", $services)) {
-        array_push($excludeHosts, $masterToHost["HBASE_MASTER"]);
+        array_push($excludeHosts, $masterToHost["HBASE_MASTER"][0]);
       }
       $excludeList = $this->getExcludeHosts($allHosts, $excludeHosts);
       return $excludeList;

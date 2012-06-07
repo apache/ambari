@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-494. Fix node assignments not not allow slaves on master. (Mahadev via Vikram)
+
   AMBARI-493. Add rack_info as column in Hosts table (Hitesh via Vikram)
 
   AMBARI-492. make support for os check a bit more robust (Hitesh via Vikram)
