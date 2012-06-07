@@ -13,6 +13,12 @@ class hdp-nagios::server(
       service_state => uninstalled
     }
 
+    if ($wipeoff_data == true) {
+      hdp::exec { "rm -f /var/nagios/rw/nagios.cmd" :
+        command => "rm -f /var/nagios/rw/nagios.cmd",
+        unless => "test ! -e  /var/nagios/rw/nagios.cmd"
+      }
+    }
     hdp::directory { $nagios_config_dir:
       service_state => $service_state,
       force => true
@@ -27,8 +33,11 @@ class hdp-nagios::server(
       service_state => $service_state,
       force => true
     }
-   Class['hdp-nagios::server::packages'] -> Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory[$nagios_obj_dir]
-
+    if ($wipeoff_data == true) {
+     Class['hdp-nagios::server::packages'] -> Exec['rm -f /var/nagios/rw/nagios.cmd'] -> Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory[$nagios_obj_dir]
+    } else {
+     Class['hdp-nagios::server::packages'] -> Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory[$nagios_obj_dir]
+    }
   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
     class { 'hdp-nagios::server::packages' : }
 
@@ -46,6 +55,7 @@ class hdp-nagios::server(
       service_state => $service_state,
       force => true
     }
+
 
     class { 'hdp-nagios::server::config': 
       notify => Class['hdp-nagios::server::services']
