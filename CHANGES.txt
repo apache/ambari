@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-517. Dashboard shows HDFS is down though it's still running (Suhas via Vikram)
+
   AMBARI-511. Fix for previous patch (Jitendra via Vikram)
 
   AMBARI-516. Fix epel install to be using curl calls. (Mahadev via Vikram)
