@@ -400,7 +400,7 @@ function hdp_mon_jmx_parse_hbase_info($data) {
     elseif ($mbean["name"] == "java.lang:type=Runtime") {
       $hbase_info["start_time"] = round($mbean["StartTime"]/1000, 0);
     }
-    elseif ($mbean["name"] == "hadoop:service=org.apache.hbase,name=Master") {
+    elseif ($mbean["name"] == "hadoop:service=Master,name=Master") {
       $hbase_info["cluster_id"] = $mbean["ClusterId"];
       $hbase_info["start_time"] = round($mbean["MasterStartTime"]/1000, 0);
       $hbase_info["active_time"] = round($mbean["MasterActiveTime"]/1000, 0);
