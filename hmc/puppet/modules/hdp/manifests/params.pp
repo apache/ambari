@@ -216,7 +216,7 @@ class hdp::params()
       32 =>  ['mysql','mysql-server']
   },
     mysql-connector => {
-      64 =>  ['mysql-connector-java-5.0.8-4.jpp5']
+      64 =>  ['mysql-connector-java-5.0.8-1']
   },
     extjs => {
       64 =>  ['extjs-2.2-1']
