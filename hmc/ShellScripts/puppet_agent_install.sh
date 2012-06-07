@@ -33,9 +33,10 @@ trap 'pp_cmd=$ppp_cmd; ppp_cmd=$previous_command; previous_command=$this_command
 usage() {
   echo "
 Usage: $0 with the following parameters
-    --puppet-master            Puppet Master
+    --puppet-master     Puppet Master
     --repo-file         Repo File
     --gpg-key-files     GPG Key files - comma-separated
+    --using-local-repo  Whether local repo is being used
   "
 }
 
@@ -44,6 +45,7 @@ OPTS=$(getopt \
   -o '' \
   -l 'puppet-master:' \
   -l 'repo-file:' \
+  -l 'using-local-repo' \
   -l 'gpg-key-files:' \
   -l 'help' \
   -- "$@")
@@ -56,6 +58,8 @@ fi
 
 echo "DEBUG: opts ${OPTS}"
 
+USINGLOCALREPO=0
+
 eval set -- "${OPTS}"
 while true ; do
   case "$1" in
@@ -67,6 +71,9 @@ while true ; do
       ;;
     --gpg-key-files)
       GPGKEYFILESTR=$2 ; shift 2
+      ;;
+    --using-local-repo)
+      USINGLOCALREPO=1; shift
       ;;
     --help)
       usage ;
@@ -100,6 +107,7 @@ fi
 master=${MASTER}
 repoFile=${REPOFILE}
 gpgKeyFiles=${GPGKEYFILES}
+usingLocalRepo=${USINGLOCALREPO}
 
 echo "DEBUG: Puppet Master: ${master}"
 echo "DEBUG: Repo File: ${repoFile}"
@@ -139,20 +147,27 @@ host=`hostname -f | tr '[:upper:]' '[:lower:]'`
 out=`/etc/init.d/iptables stop 1>/dev/null`
 
 #check if epel repo is installed if not try installing
-epel_installed=`yum repolist enabled | grep epel`
-if [[ "x$epel_installed" != "x" ]]; then 
-  echo "Already Installed epel repo"
-else
-  cmd="cat $repoFile | grep \"baseurl\" | awk -F= '{print \$2}'| awk 'NR==1' | sed 's/ //g'"
-  epelUrl=`eval $cmd`
-  epelRPM=$epelUrl/epel-release-5-4.noarch.rpm
-  rpm -Uvh $epelRPM
-  #make sure epel is installed else fail 
+#only needed if non-local repo mode
+echo "Using local repo setting is ${usingLocalRepo}"
+if [[ "${usingLocalRepo}" == "0" ]]; then
+  echo "Checking to see if epel needs to be installed"
   epel_installed=`yum repolist enabled | grep epel`
-  if [[ "x$epel_installed" == "x" ]]; then
-    echo "$host:_ERROR_:retcode:[1], CMD:[rpm -Uvh $epelRPM]: OUT:[Not Installed]" >&2
-    exit 1
+  if [[ "x$epel_installed" != "x" ]]; then
+    echo "Already Installed epel repo"
+  else
+    cmd="cat $repoFile | grep \"baseurl\" | awk -F= '{print \$2}'| awk 'NR==1' | sed 's/ //g'"
+    epelUrl=`eval $cmd`
+    epelRPM=$epelUrl/epel-release-5-4.noarch.rpm
+    rpm -Uvh $epelRPM
+    #make sure epel is installed else fail
+    epel_installed=`yum repolist enabled | grep epel`
+    if [[ "x$epel_installed" == "x" ]]; then
+      echo "$host:_ERROR_:retcode:[1], CMD:[rpm -Uvh $epelRPM]: OUT:[Not Installed]" >&2
+      exit 1
+    fi
   fi
+else
+  echo "Skipping epel check+install as local repo mode is enabled"
 fi
 
 echo "Installing puppet using yum"

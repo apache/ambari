@@ -254,8 +254,7 @@ INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, de
 
 -- Configuration for local yum mirror support
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "yum_repo_file", "/etc/yum.repos.d/hdp.repo", "Path to YUM Repo file", "Path to YUM Repo file", "MISCELLANEOUS", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "apache_artifacts_download_url", "http://s3.amazonaws.com/dev.hortonworks.com/HDP-1.0.11/repos/centos5/tars/", "Apache Artifacts Download URL", "URL form where to download HDP artifacts", "MISCELLANEOUS", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "gpl_artifacts_download_url", "https://s3.amazonaws.com/dev.hortonworks.com/ARTIFACTS/", "GPL Artifacts Download URL", "URL form where to download GPL artifacts", "MISCELLANEOUS", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "using_local_repo", "false", "Whether a local repo is being used", "Whether a local repo is being used", "MISCELLANEOUS", "NODISPLAY", '{ "isPassword": false, "noDisplay": true, "reconfigurable": false, "displayType": "checkbox" }' );
 
 --                                         gsCluster.properties keys
 

@@ -20,6 +20,7 @@ include_once "../util/YumRepoConfigParser.php";
 
     $master=strtolower(exec('hostname -f'));
     $repoFile = $repo['yumRepoFilePath'];
+    $usingLocalRepo = $repo['usingLocalRepo'];
     $gpgKeyFiles = $repo['gpgKeyFiles'];
 
     exec ("/etc/init.d/iptables stop");
@@ -56,6 +57,10 @@ include_once "../util/YumRepoConfigParser.php";
     $rcmd = "/tmp/puppet_agent_install.sh --puppet-master=" . $master
         . " --repo-file=" . $remoteRepoFilePath
         . " --gpg-key-files=" . $remoteGpgKeyPaths;
+
+    if ("true" == strtolower($usingLocalRepo)) {
+        $rcmd .= " --using-local-repo ";
+    }
     $logger->log_info("Running $rcmd to bootstrap each node");
 
     runPdsh($clusterName, "bootstrapNodes", $user, $readFromFile, $rcmd);
@@ -109,6 +114,7 @@ if ($configs["result"] != 0) {
 }
 
 $repoFile = $configs["properties"]["yum_repo_file"];
+$usingLocalRepo = $configs["properties"]["using_local_repo"];
 $gpgKeyLocations = getEnabledGpgKeyLocations($repoFile);
 if ($gpgKeyLocations === FALSE) {
   $subTransactionReturnValue = $dbAccessor->updateSubTransactionOpStatus($clusterName, $parentSubTxnId, $mySubTxnId, "TOTALFAILURE");
@@ -164,6 +170,7 @@ foreach ($gpgKeyLocations as $repoId => $gpgInfo) {
 }
 
 $repository = array( "yumRepoFilePath" => $repoFile,
+                     "usingLocalRepo" => $usingLocalRepo,
                      "gpgKeyFiles" => $gpgKeyFiles);
 
 $logger->log_debug("BootStrapping with puppet");

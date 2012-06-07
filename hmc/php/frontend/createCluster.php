@@ -148,13 +148,8 @@ $output = array(
                  "result" => $result,
                  "error" => $error,
                  "response" => array(
-                                 "clusterName" => $response["clusterName"],
-                                 "yumRepo" => array (
-                                   "yumRepoFilePath" => $propertiesArr["configs"]["yum_repo_file"]["value"],
-                                   "hdpArtifactsDownloadUrl" => $propertiesArr["configs"]["apache_artifacts_download_url"]["value"],
-                                   "gplArtifactsDownloadUrl" => $propertiesArr["configs"]["gpl_artifacts_download_url"]["value"]
+                                 "clusterName" => $response["clusterName"]
                         )
-                   ),
               );
 
 print (json_encode($output));

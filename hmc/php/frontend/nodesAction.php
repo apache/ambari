@@ -29,9 +29,8 @@ if ($propertiesArr["result"] != 0) {
 // Override with current svc configs
 // Override with POST params
 
+$useLocalYumRepo = $propertiesArr["configs"]["using_local_repo"]["value"];
 $repoFilePath = $propertiesArr["configs"]["yum_repo_file"]["value"];
-$hdpArtifactsDownloadUrl = $propertiesArr["configs"]["apache_artifacts_download_url"]["value"];
-$gplArtifactsDownloadUrl = $propertiesArr["configs"]["gpl_artifacts_download_url"]["value"];
 
 $currentConfigs = $dbAccessor->getServiceConfig($clusterName);
 if ($currentConfigs["result"] != 0) {
@@ -41,19 +40,18 @@ if ($currentConfigs["result"] != 0) {
   return;
 }
 
+if (isset($currentConfigs["properties"]["using_local_repo"]) && 
+    $currentConfigs["properties"]["using_local_repo"] != "") {
+  $useLocalYumRepo = $currentConfigs["properties"]["using_local_repo"];
+}
+
 if (isset($currentConfigs["properties"]["yum_repo_file"])
     && $currentConfigs["properties"]["yum_repo_file"] != "") {
   $repoFilePath = $currentConfigs["properties"]["yum_repo_file"];
 }
 
-if (isset($currentConfigs["properties"]["apache_artifacts_download_url"])
-    && $currentConfigs["properties"]["apache_artifacts_download_url"] != "") {
-  $hdpArtifactsDownloadUrl = $currentConfigs["properties"]["apache_artifacts_download_url"];
-}
-
-if (isset($currentConfigs["properties"]["gpl_artifacts_download_url"])
-    && $currentConfigs["properties"]["gpl_artifacts_download_url"] != "") {
-  $gplArtifactsDownloadUrl = $currentConfigs["properties"]["gpl_artifacts_download_url"];
+if (isset($_POST['useLocalYumRepo']) && (trim($_POST['useLocalYumRepo']) != "")) {
+  $useLocalYumRepo = trim($_POST['useLocalYumRepo']);
 }
 
 if (isset($_POST['yumRepoFilePath'])
@@ -61,14 +59,9 @@ if (isset($_POST['yumRepoFilePath'])
   $repoFilePath = trim($_POST['yumRepoFilePath']);
 }
 
-if (isset($_POST['hdpArtifactsDownloadUrl'])
-    && trim($_POST['hdpArtifactsDownloadUrl']) != "") {
-  $hdpArtifactsDownloadUrl = trim($_POST['hdpArtifactsDownloadUrl']);
-}
-
-if (isset($_POST['gplArtifactsDownloadUrl'])
-    && trim($_POST['gplArtifactsDownloadUrl']) != "") {
-  $gplArtifactsDownloadUrl = trim($_POST['gplArtifactsDownloadUrl']);
+if ("true" != strtolower($useLocalYumRepo)) {
+  // Restore to default if we are not using the local repo
+  $repoFilePath = $propertiesArr["configs"]["yum_repo_file"]["value"];
 }
 
 header("Content-type: application/json");
@@ -99,9 +92,8 @@ if (parse_url($hdpArtifactsDownloadUrl) === FALSE
 }
 */
 
-$configs =  array ( "yum_repo_file" => $repoFilePath,
-                    "apache_artifacts_download_url" => $hdpArtifactsDownloadUrl,
-                    "gpl_artifacts_download_url" => $gplArtifactsDownloadUrl);
+$configs =  array ( "using_local_repo" => $useLocalYumRepo,
+                    "yum_repo_file" => $repoFilePath);
 $dbResponse = $dbAccessor->updateServiceConfigs($clusterName, $configs);
 if ($dbResponse["result"] != 0) {
   $logger->log_error("Got error while persisting configs: ".$dbResponse["error"]);

@@ -132,10 +132,6 @@
                       <div id="yumMirrorSupportFormFieldsId" style="display:none">
                         <label for="yumRepoFilePathId"><?php echo $RES['initWizard.addNodes.yumRepoFilePath.label'] ?></label>
                         <input type="text" name="YumRepoFilePath" id="yumRepoFilePathId" value="" placeholder="">
-                        <label for="hmcArtifactsDownloadUrlId"><?php echo $RES['initWizard.addNodes.apacheArtifactsDownloadUrl.label'] ?></label>
-                        <input type="text" name="HmcArtifactsDownloadUrl" id="hmcArtifactsDownloadUrlId" value="" placeholder="">
-                        <label for="hmcGplArtifactsDownloadUrlId"><?php echo $RES['initWizard.addNodes.gplArtifactsDownloadUrl.label'] ?></label>
-                        <input type="text" name="HmcGplArtifactsDownloadUrl" id="hmcGplArtifactsDownloadUrlId" value="" placeholder="">
                       </div>
                     </div>
                     <div id="fileUploadWrapperDivId">
