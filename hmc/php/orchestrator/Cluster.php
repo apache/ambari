@@ -863,11 +863,14 @@ class Cluster {
     }
 
     $services = $result["services"];
+    $servicesToSetToStoppedState = array();
 
     $svcsToStart = array();
     foreach ($services as $svcObj) {
       if ($svcObj->state == STATE::STARTED || $svcObj->state == STATE::STARTING) {
         array_push($svcsToStart, $svcObj->name);
+      } else if ($svcObj->state == STATE::STOPPED) {
+        array_push($servicesToSetToStoppedState, $svcObj->name);
       }
     }
 
@@ -888,6 +891,8 @@ class Cluster {
         array_push($services, $svc);
         if ($svc->state == STATE::STARTED || $svc->state == STATE::STARTING) {
           array_push($svcsToStart, $serviceName);
+        } else if ($svc->state == STATE::STOPPED) {
+          array_push($servicesToSetToStoppedState, $serviceName);
         }
       }
     }
@@ -935,6 +940,15 @@ class Cluster {
         $this->logger->log_error("Failed to start service $service->name with " . $result["error"]);
         return $result;
       }
+    }
+
+    // Set the originally stopped services back to stopped state
+    foreach ($servicesToSetToStoppedState as $serviceName) {
+      $service = $this->db->getService($serviceName);
+      $this->logger->log_info("Setting state to STOPPED for service "
+          . $service->name);
+      $service->setState(STATE::STOPPED,
+          $transaction->createSubTransaction(), $dryRun, FALSE);
     }
 
     if ($restartNagios) {
