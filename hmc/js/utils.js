@@ -309,7 +309,6 @@ function submitDataAndProgressToNextScreen(url, requestData, submitButton, thisS
 
           if (responseJson.result != 0) {
              submitButton.set('disabled', false);
-             hideLoadingImg();
              // Error!
              globalYui.log("Got error during submit data!" + responseJson.error);
              if ( errorHandlerFunction ) {
@@ -318,6 +317,7 @@ function submitDataAndProgressToNextScreen(url, requestData, submitButton, thisS
              } else {
                alert("Got error during submit data!" + responseJson.error);
              }
+             hideLoadingImg();
              return;
            }
           responseJson = responseJson.response;

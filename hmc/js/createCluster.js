@@ -1,3 +1,10 @@
+function handleCreateClusterError (errorResponse) {
+
+  globalYui.one("#clusterNameId").addClass('formInputError');
+  setFormStatus(errorResponse.error, true);
+  globalYui.one("#clusterNameId").focus();
+}
+
 globalYui.one('#createClusterSubmitButtonId').on('click',function (e) {
 
       var createClusterData = {
@@ -6,58 +13,14 @@ globalYui.one('#createClusterSubmitButtonId').on('click',function (e) {
 
       globalYui.log("Cluster Name: "+globalYui.Lang.dump(createClusterData));
 
-      if (createClusterData.clusterName == '') {
-        globalYui.one("#clusterNameId").addClass('formInputError');
-        setFormStatus("Cluster name cannot be empty", true);
-        globalYui.one("#clusterNameId").focus();
-        return;
-      }
-
+      /* Always clear the slate with each submit. */
       clearFormStatus();
       globalYui.one("#clusterNameId").removeClass('formInputError');
-      globalYui.io("../php/frontend/createCluster.php", {
 
-          method: 'POST',
-          data: globalYui.JSON.stringify(createClusterData),
-          timeout : 10000,
-          on: {
-
-            start: function (x,o) {
-              showLoadingImg();
-            },
-            success: function (x,o) {
-              hideLoadingImg();
-              globalYui.log("RAW JSON DATA: " + o.responseText);
-
-              // Process the JSON data returned from the server
-              try {
-                createClusterResponseJson = globalYui.JSON.parse(o.responseText);
-              }
-              catch (e) {
-                alert("JSON Parse failed!");
-                return;
-              }
-
-              globalYui.log("PARSED DATA: " + globalYui.Lang.dump(createClusterResponseJson));
-
-              if (createClusterResponseJson.result != 0) {
-                // Error!
-                alert("Got error!" + createClusterResponseJson.error); 
-                return;
-              }
-
-              createClusterResponseJson = createClusterResponseJson.response;
-
-              /* Done with this stage, transition to the next. */
-              transitionToNextStage( "#createClusterCoreDivId", createClusterData, 
-                  "#addNodesCoreDivId", createClusterResponseJson, InstallationWizard.AddNodes.render );
-            },
-            failure: function (x,o) {
-              hideLoadingImg();
-              alert("Async call failed!");
-            }
-          }
-      });
+      submitDataAndProgressToNextScreen(
+        '../php/frontend/createCluster.php', createClusterData, e.target, 
+        '#createClusterCoreDivId', '#addNodesCoreDivId', InstallationWizard.AddNodes.render,
+        handleCreateClusterError );
 });
 
 /* Signify that the containing application is ready for business. */

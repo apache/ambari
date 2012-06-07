@@ -24,6 +24,8 @@ InstallationWizard.AddNodes = {
         globalYui.one("#hmcArtifactsDownloadUrlId").set('value', addNodesRenderData.yumRepo.hdpArtifactsDownloadUrl);
         globalYui.one("#hmcGplArtifactsDownloadUrlId").set('value', addNodesRenderData.yumRepo.gplArtifactsDownloadUrl);
       }
+
+      hideLoadingImg();
     }
 };
 
