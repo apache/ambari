@@ -305,8 +305,8 @@ define service {
 }
 <%end-%>
 
-# HDFS::DATANODE Checks
 <%if scope.function_hdp_nagios_members_exist('slaves')-%>
+# HDFS::DATANODE Checks
 define service {
         hostgroup_name          slaves
         use                     hadoop-service
@@ -342,20 +342,6 @@ define service {
 }
 <%end-%>
 
-<%if scope.function_hdp_nagios_members_exist('region-servers')-%>
-# HBASE::REGIONSERVER Checks
-define service {
-        hostgroup_name          region-servers
-        use                     hadoop-service
-        service_description     REGIONSERVER::Process down
-        servicegroups           HBASE
-        check_command           check_tcp!60020!-w 1 -c 1
-        normal_check_interval   1
-        retry_check_interval    0.5
-        max_check_attempts      3
-}
-<%end-%>
-
 <%if scope.function_hdp_nagios_members_exist('zookeeper-servers')-%>
 # ZOOKEEPER Checks
 define service {
@@ -371,7 +357,19 @@ define service {
 <%end-%>
 
 <%if scope.function_hdp_nagios_members_exist('hbasemaster')-%>
-# HBASE Checks
+# HBASE::REGIONSERVER Checks
+define service {
+        hostgroup_name          region-servers
+        use                     hadoop-service
+        service_description     REGIONSERVER::Process down
+        servicegroups           HBASE
+        check_command           check_tcp!60020!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+# HBASE:: MASTER Checks
 define service {
         hostgroup_name          hbasemaster
         use                     hadoop-service
