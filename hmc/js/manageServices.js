@@ -51,7 +51,11 @@ function hideAndDestroyPanel() {
 }
 
 function getTitleForReconfiguration(serviceName) {
-  return 'Make configuration changes for ' + serviceName ;
+  /* serviceName is not used for now because the reconfiguration markup 
+   * already has the service name right at the top, and this ends up 
+   * looking redundant.
+   */
+  return 'Make Configuration Changes';
 }
 
 function setupReconfigureFirstScreen(serviceName) {
