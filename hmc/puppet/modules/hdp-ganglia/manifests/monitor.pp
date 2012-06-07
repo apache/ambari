@@ -39,13 +39,13 @@ class hdp-ganglia::monitor(
 
     class { 'hdp-ganglia::monitor::config-gen': }
   
-    class { 'hdp-ganglia::service::gmond': ensure => $service_state}
+    class { 'hdp-ganglia::monitor::gmond': ensure => $service_state}
 
     if ($hdp::params::service_exists['hdp-ganglia::server'] != true) {
       Class['hdp-ganglia'] -> Hdp::Package['ganglia-monitor'] -> Class['hdp-ganglia::config'] -> 
-      Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::service::gmond']
+      Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::monitor::gmond']
     } else {
-      Hdp::Package['ganglia-monitor'] ->  Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::service::gmond']
+      Hdp::Package['ganglia-monitor'] ->  Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::monitor::gmond']
     }
   }
 }
@@ -74,4 +74,22 @@ class hdp-ganglia::monitor::config-gen()
   }
    # 
   anchor{'hdp-ganglia::monitor::config-gen::begin':} -> Hdp-ganglia::Config::Generate_monitor<||> -> anchor{'hdp-ganglia::monitor::config-gen::end':}
+}
+
+class hdp-ganglia::monitor::gmond(
+  $ensure
+  )
+{
+  if ($ensure == 'running') {
+    $command = "service hdp-gmond start >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1"
+   } elsif  ($ensure == 'stopped') {
+    $command = "service hdp-gmond stop >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1"
+  }
+  if ($ensure == 'running' or $ensure == 'stopped') {
+    hdp::exec { "hdp-gmond service" :
+      command => "$command",
+      unless => "/bin/ps auwx | /bin/grep [g]mond",
+      path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+    }
+  }
 }

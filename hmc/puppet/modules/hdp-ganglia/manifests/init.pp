@@ -15,30 +15,3 @@ class hdp-ganglia(
   }
 }
 
-class hdp-ganglia::service::gmond(
-  $ensure
-  )
-{
-  if ($ensure == 'running' or $ensure == 'stopped') {
-    service { 'hdp-gmond':
-      ensure     => $ensure,
-      hasstatus  => false,
-      hasrestart => true,
-      status    => '/bin/ps auwx | /bin/grep [g]mond'
-    }
-  }
-}
-
-class hdp-ganglia::service::gmetad(
-  $ensure
-)
-{
-  if ($ensure == 'running' or $ensure == 'stopped') {
-    service { 'hdp-gmetad':
-      ensure     => $ensure,
-      hasstatus  => false,
-      hasrestart => true,
-      status    => '/bin/ps auwx | /bin/grep [g]metad'
-    }
-  }
-}

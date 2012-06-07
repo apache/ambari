@@ -33,13 +33,13 @@ class hdp-ganglia::server(
     role => 'server'
   }
 
-  class { 'hdp-ganglia::server::services' : service_state => $service_state}
+  class { 'hdp-ganglia::server::gmetad': ensure => $service_state}
 
   class { 'hdp-ganglia::service::change_permission': ensure => $service_state }
 
   #top level does not need anchors
   Class['hdp-ganglia'] -> Class['hdp-ganglia::server::packages'] -> Class['hdp-ganglia::config'] -> 
-    Hdp-ganglia::Config::Generate_server<||> -> Class['hdp-ganglia::server::services'] -> Class['hdp-ganglia::service::change_permission']
+    Hdp-ganglia::Config::Generate_server<||> -> Class['hdp-ganglia::server::gmetad'] -> Class['hdp-ganglia::service::change_permission']
  }
 }
 
@@ -53,11 +53,6 @@ class hdp-ganglia::server::packages(
   } 
 }
 
-class hdp-ganglia::server::services($service_state)
-{
-  class { 'hdp-ganglia::service::gmetad': ensure => $service_state}
-  anchor{'hdp-ganglia::server::services::begin':} -> Class['hdp-ganglia::service::gmetad'] -> anchor{'hdp-ganglia::server::services::end':}
-}
 
 class hdp-ganglia::service::change_permission(
   $ensure
@@ -67,5 +62,23 @@ class hdp-ganglia::service::change_permission(
     hdp::directory_recursive_create { '/var/lib/ganglia/dwoo' :
       mode => '0777'
       }
+  }
+}
+
+class hdp-ganglia::server::gmetad(
+  $ensure
+)
+{
+  if ($ensure == 'running') {
+    $command = "service hdp-gmetad start >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1"
+   } elsif  ($ensure == 'stopped') {
+    $command = "service hdp-gmetad stop >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1"
+  }
+  if ($ensure == 'running' or $ensure == 'stopped') {
+    hdp::exec { "hdp-gmetad service" :
+      command => "$command",
+      unless => "/bin/ps auwx | /bin/grep [g]metad",
+      path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+    }
   }
 }

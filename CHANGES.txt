@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-456. Add more logging for ganglia (Ramya via Vikram)
+
   AMBARI-455. nagios shows service status critical if hbase is not installed (Suhas via Vikram)
 
   AMBARI-453. Remove the puppet kick --ping during bootstrap instead use simple network ping for puppet agent. (Suhas via Vikram)
