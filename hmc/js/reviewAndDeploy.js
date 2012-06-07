@@ -1,5 +1,7 @@
 function renderDeploySummary (deployInfo) {
   var deploySummary = "";
+  
+  var unit, unitClass, unitLabel;
 
   for (var serviceName in deployInfo.services) {
     var serviceHasToBeRendered = false;
@@ -48,10 +50,15 @@ function renderDeploySummary (deployInfo) {
             valueAttr = '';
           }
         }
-
+        
+        unit = perServiceInfo.properties[mPropertiesKey].unit;
+        unitClass = (unit != null) ? 'unit' : '';
+        unitLabel = (unit != null && unit != 'int') ? unit : '';        
+        
         propertySummary += '<div class="formElement">' +
                              '<label for=' + mPropertiesKey  + 'Id>' + perServiceInfo.properties[mPropertiesKey].displayName + '</label>' +
-                             '<input type=' + type + ' name=' + mPropertiesKey + 'Name id=' + mPropertiesKey + 'Id ' + readOnlyAttr + ' ' + valueAttr + '>' +
+                             '<input class="' + unitClass + '" type=' + type + ' name=' + mPropertiesKey + 'Name id=' + mPropertiesKey + 'Id ' + readOnlyAttr + ' ' + valueAttr + '>' +
+                             '<label class="unit">' + unitLabel + '</label>' +
                            '</div>';
       }
     }

@@ -5,7 +5,9 @@ var globalPasswordsArray = [];
 
 function generateDivForService (option, type, service, property, unit, displayAttributes) {
 	
-  var unitString = (unit != null) ? unit : '';
+  var unitClass = (unit != null) ? 'unit' : '';
+  var unitLabel = (unit != null && unit != 'int') ? unit : '';
+  
   var readOnlyFlag= false;
   if (displayAttributes != null && displayAttributes.editable != null
       && !displayAttributes.editable) {
@@ -15,12 +17,12 @@ function generateDivForService (option, type, service, property, unit, displayAt
   var retString = '<div class="formElement">' +
     '<label for="' + service + '">' + option['displayName'] + '</label>' +
     //((unitString != '') ? '<div class="input-append">' : '') +
-    '<input class="unit-' + unit + '" type="' + type + '" id="' + property + '" name="' + service + '" value="' + option['value'] + '"';
+    '<input class="' + unitClass + '" type="' + type + '" id="' + property + '" name="' + service + '" value="' + option['value'] + '"';
   if (readOnlyFlag) {
     retString += ' readonly="readonly" ';
   }
 
-  retString += '> ' + unitString +
+  retString += '><label class="unit">' + unitLabel + '</label>' + 
     '<div class="contextualHelp">' + option['description'] + '</div>' +
     //((unitString != '') ? '</div>' : '') +
     '<div class="formInputErrorReason" id="' + property + 'ErrorReason' + '"></div>' +

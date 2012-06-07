@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-481. Units of various config values not displayed on review and deploy page (Yusaku via Vikram)
+
   AMBARI-480. Reduce Page Load Time By Combining HMC JS Files (Varun via Vikram)
 
   AMBARI-479. Add nodes after install does not allow re-bootstrap if user closes browser after bootstrap and before starting services (Vikram)

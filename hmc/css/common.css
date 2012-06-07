@@ -1,9 +1,12 @@
-header, footer, aside, nav, article, section {display: block;}
+header, footer, aside, nav, article, section {
+  display: block;
+}
+
 header {
 	margin:10px 0;
-        height:100px;
-        background-color:white;
-        font-size:300%;
+  height:100px;
+  background-color:white;
+  font-size:300%;
 }
 
 body { 
@@ -77,20 +80,9 @@ select {
 }
 
 #installationWizardDivId {
-
- /* The following three lines to auto-adjust height
-  min-height:500px;
-  height:auto !important;
-  height:500px; 
-  */
-
-  /*
-  overflow: auto;
-  */
   margin-left:auto;
   margin-right:auto;
-  /*max-height:500px;*/
-  border:1px; /*solid;*/
+  border:1px;
   background-color:#FFF;
   padding:20px 20px 20px;
   width:940px;
@@ -110,12 +102,10 @@ select {
 }
 
 #installationMainFormsDivId {
-  /* border:1px solid; */
   display:block;
 }
 
 #displayLogsContentDivId {
-  /* scroll box */
   height: 500px;
   width: 600px;
   padding: 5px;
@@ -131,11 +121,7 @@ table {
   font-size:1em;
   cellspacing:10px;
   cellpadding:10px;
-  /*
-  background-color:#F4F4F4;
-  */
-  border:1px solid #DBDBDB ;
-
+  border:1px solid #DBDBDB;
 }
 
 caption {
@@ -150,7 +136,7 @@ thead {
   font-weight:bold;
   color:white;
   background-color:#65B642;
-  border-bottom:1px solid #7A7A7A ;
+  border-bottom:1px solid #7A7A7A;
 }
 
 thead tr {
@@ -165,12 +151,6 @@ th {
 }
 
 tr {
-  /* 
-  height:30px;
-  opacity:0.75;
-  */
-
-  /* Color transition */
   transition: background-color 0.5s cubic-bezier(.09, .99, .37, .98);
   -moz-transition: background-color 0.5s cubic-bezier(.09, .99, .37, .98);    /* FF3.7+ */
   -o-transition: background-color 0.5s cubic-bezier(.09, .99, .37, .98) ;      /* Opera 10.5 */
@@ -185,18 +165,6 @@ tr:hover {
 td {
   padding:10px;
 }
-
-/*
-.formElement {
-  margin:3px;
-  overflow:auto;
-  border:1px solid #F0F0E8;
-}
-
-.formElement:hover {
-  border:1px solid #B2B299;
-}
-*/
 
 .contextualHelp {
   margin-left:10px;
@@ -282,21 +250,28 @@ div.formElement {
 	padding-top:4px;
 }
 
-#deployDynamicRenderDivId input[readonly] {
+#deployDynamicRenderDivId input {
 	display:block!important;
+	float:left;
 }
 
 #labelForSelectAllId {
 	font-size:12px!important;
 }
 
-input.unit-MB,
-input.unit-B,
-input.unit-hours,
-input.unit-ms {
-	width:100px;
+#configureClusterAdvancedCoreDivId input {
+  float:left;
 }
 
+input.unit, input[readonly].unit {
+	width:80px;
+}
+
+label.unit {
+  margin-top:3px;
+  margin-left:4px;
+  width:auto!important;  
+}
 
 a.btn {
 	color:#333;
