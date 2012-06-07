@@ -23,6 +23,7 @@ $filesToLoad = explode('&', $_SERVER['QUERY_STRING']);
 
 $contentType = '';
 $responseBody = '';
+$servingYuiFile = false;
 
 foreach ($filesToLoad as $fileToLoad) 
 {
@@ -32,6 +33,11 @@ foreach ($filesToLoad as $fileToLoad)
   if (empty($contentType))
   {
     $contentType = deduceContentType($fileToLoad);
+
+    if (preg_match('/^yui/', $fileToLoad))
+    {
+      $servingYuiFile = true;
+    }
   }
 
   $fileContents = file_get_contents('./' . $fileToLoad);
@@ -43,9 +49,15 @@ foreach ($filesToLoad as $fileToLoad)
 }
 
 header('Content-type: ' . $contentType);
-/* TODO XXX Add appropriate Cache-Control/Age/Last-Modified/Expires headers 
- * here to be super-efficient. 
- */
+header('Content-Length: ' . strlen($responseBody));
+
+/* When we serve YUI files, make sure they're cached for a long time. */
+if( $servingYuiFile )
+{
+  $validitySecs = 24 * 60 * 60; /* 1 day */
+
+  header('Cache-Control: max-age=' . $validitySecs . ', must-revalidate, public');
+}
 
 echo $responseBody;
 

@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-483. Start Making Responses From fileCombinator.php Suitably Cacheable (Varun via Vikram)
+
   AMBARI-482. Show the same welcome page to the user if the user starts configuring a cluster but has not started deploy yet (Yusaku via Vikram)
 
   AMBARI-481. Units of various config values not displayed on review and deploy page (Yusaku via Vikram)
