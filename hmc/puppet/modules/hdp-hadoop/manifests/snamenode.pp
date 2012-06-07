@@ -47,13 +47,11 @@ class hdp-hadoop::snamenode(
 
 define hdp-hadoop::snamenode::create_name_dirs($service_state)
 {
- if ($hdp::params::service_exists['hdp-hadoop::namenode'] != true) {
    $dirs = hdp_array_from_comma_list($name)
    hdp::directory_recursive_create { $dirs :
      owner => $hdp-hadoop::params::hdfs_user,
      mode => '0755',
      service_state => $service_state,
      force => true
-   }
   }
 }

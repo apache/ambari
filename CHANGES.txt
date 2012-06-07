@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-473. Secondary namenode checkpoint dir doesnt get created if its on the same host as NN. (Mahadev via Vikram)
+
   AMBARI-471. hadoop-metrics2.properties not updated (Ramya via Vikram)
 
   AMBARI-468. Post-Install Add Nodes - update progress title and success/error messages to reflect what it's actually doing/has done (Yusaku via Vikram)
