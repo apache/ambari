@@ -7,7 +7,7 @@ class hdp-oozie::download-ext-zip()
 
   anchor { 'hdp-oozie::download-ext-zip::begin':}
 
-   hdp::package { 'extjs-2.2-1' :
+   hdp::package { 'extjs' :
      require   => Anchor['hdp-oozie::download-ext-zip::begin']
    }
 
@@ -16,7 +16,7 @@ class hdp-oozie::download-ext-zip()
        unless  => "test -f ${target}",
        creates => $target,
        path    => ["/bin","/usr/bin/"],
-       require => Hdp::Package['extjs-2.2-1'],
+       require => Hdp::Package['extjs'],
        notify  =>  Anchor['hdp-oozie::download-ext-zip::end'],
    }
 

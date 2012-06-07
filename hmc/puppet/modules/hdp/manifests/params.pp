@@ -214,6 +214,18 @@ class hdp::params()
     },
     mysql => {
       32 =>  ['mysql','mysql-server']
+  },
+    mysql-connector => {
+      64 =>  ['mysql-connector-java-5.0.8-4.jpp5']
+  },
+    extjs => {
+      64 =>  ['extjs-2.2-1']
+  },
+     templeton-tar-hive => { 
+      64 => ['templeton-tar-hive-0.0.1-1']
+  },
+     templeton-tar-pig => {
+       64 => ['templeton-tar-pig-0.0.1-1']
   }
 }
   $packages = 'bigtop' 

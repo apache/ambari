@@ -8,7 +8,7 @@ class hdp-templeton::download-hive-tar()
  
   anchor { 'hdp-templeton::download-hive-tar::begin':}         
 
-   hdp::package { 'templeton-tar-hive-0.0.1-1' :
+   hdp::package { 'templeton-tar-hive' :
      require   => Anchor['hdp-templeton::download-hive-tar::begin']                                                              
    }
   
@@ -17,7 +17,7 @@ class hdp-templeton::download-hive-tar()
        unless  => "test -f ${target}",
        creates => $target,
        path    => ["/bin","/usr/bin/"],
-       require => Hdp::Package['templeton-tar-hive-0.0.1-1'],
+       require => Hdp::Package['templeton-tar-hive'],
        notify  =>  Anchor['hdp-templeton::download-hive-tar::end'],
    }
 
