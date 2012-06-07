@@ -138,6 +138,23 @@ host=`hostname -f | tr '[:upper:]' '[:lower:]'`
 
 out=`/etc/init.d/iptables stop 1>/dev/null`
 
+#check if epel repo is installed if not try installing
+epel_installed=`yum repolist enabled | grep epel`
+if [[ "x$epel_installed" != "x" ]]; then 
+  echo "Already Installed epel repo"
+else
+  cmd="cat $repoFile | grep \"baseurl\" | awk -F= '{print \$2}'| awk 'NR==1' | sed 's/ //g'"
+  epelUrl=`eval $cmd`
+  epelRPM=$epelUrl/epel-release-5-4.noarch.rpm
+  rpm -Uvh $epelRPM
+  #make sure epel is installed else fail 
+  epel_installed=`yum repolist enabled | grep epel`
+  if [[ "x$epel_installed" == "x" ]]; then
+    echo "$host:_ERROR_:retcode:[1], CMD:[rpm -Uvh $epelRPM]: OUT:[Not Installed]" >&2
+    exit 1
+  fi
+fi
+
 echo "Installing puppet using yum"
 out=`yum install -y hmc-agent`
 ret=$?

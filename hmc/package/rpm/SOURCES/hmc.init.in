@@ -121,6 +121,13 @@ downloadJDK() {
   return 0
 }
 
+checkHDPRepo() {
+  if [[ ! -f /etc/yum.repos.d/hdp.repo ]]; then
+    echo "Please install hdp repo before starting hmc"
+    exit 1
+  fi
+}
+
 bootPuppet() {
  if [[ ! -f /var/run/hmc/puppetmaster.boot ]]; then
    daemon  $daemonopts $puppetd  ${PUPPET_OPTS} ${PUPPET_EXTRA_OPTS}
@@ -170,6 +177,7 @@ PUPPET_OPTS="master --confdir=/etc/puppet/master --verbose --config_version=/usr
 
 case "$1" in
     start)
+      checkHDPRepo
       checkJDK
       bootPuppet
       echo "Starting HMC Installer "

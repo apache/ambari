@@ -32,7 +32,6 @@ Vendor: Hortonworks <hmc-dev-group@hortonworks.com>
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
 Source1: hmc.init.in
-Source2: hmc_hdp.repo
 Source3: hmc-agent.init.in
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 Requires: php >= 5, sqlite >= 3, php-pdo, php-pecl-json, httpd, puppet = 2.7.9, pdsh, httpd-devel, ruby-devel, rubygems, mod_passenger, mod_ssl
@@ -79,7 +78,6 @@ fi
 %__mkdir -p $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/bin/
-%__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/yum_repo/
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/manifests
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/
@@ -106,7 +104,6 @@ fi
 %__cp -rf puppet/manifestloader $RPM_BUILD_ROOT/%{puppet_master_dir}
 %__cp -rf puppet/modules $RPM_BUILD_ROOT/%{puppet_master_dir}
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/modules/catalog/files
-%__cp -f "%{SOURCE2}" $RPM_BUILD_ROOT/%{web_prefixdir}/yum_repo/
 %__install -D -m0755 puppet/reports/get_revision $RPM_BUILD_ROOT/%{web_prefixdir}/bin
 %__cp -rf puppet/reports/hmcreport.rb $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
  
