@@ -231,6 +231,7 @@ foreach ($stagesInfo as $stage => $stageInfo) {
         $currentStatus = $allSubTransactionsInfoResult["subTxns"][$mySubTxnId]["opStatus"];
 
         //$logger->log_debug(" sequentialScriptExecutors sub txns  " . json_encode($allSubTransactionsInfoResult));
+        $logger->log_debug("Host count is $hostCount");
         if ($currentStatus != $successStatus && $currentStatus != $errorStatus
             && $currentStatus != $totalFailedStatus) {
           updateProgressForStage($clusterName, $rootTxnId,
@@ -265,6 +266,13 @@ foreach ($stagesInfo as $stage => $stageInfo) {
       $nextStageHosts[] = $host;
     }
   }
+
+  // need to provide this list of hosts to the next phase through the hosts.txt
+  $fp = fopen($readFromFile, "w");
+  foreach ($nextStageHosts as $nextStageHost) {
+    fwrite($fp, $nextStageHost."\n");
+  }
+  fclose($fp);
   // Change the host list to weed-out bad nodes.
   $hosts = $nextStageHosts;
   ////////// End of constructructing the host list needed for next stage ////////////

@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-487. Add nodes with external name on AWS causes issues. (Vikram)
+
   AMBARI-486. Add Node installs MySQL Server for Hive (Yusaku via Vikram)
 
   AMBARI-485. Make Firebug debugger work again with fileCombinator.php (Yusaku via Vikram)
