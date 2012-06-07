@@ -44,8 +44,9 @@ function renderDeploySummary (deployInfo) {
           var checkVal = perServiceInfo.properties[mPropertiesKey].value;
           if (checkVal) {
             valueAttr = 'checked=yes';
+          } else {
+            valueAttr = '';
           }
-          valueAttr = '';
         }
 
         propertySummary += '<div class="formElement">' +
