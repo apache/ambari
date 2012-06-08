@@ -22,18 +22,18 @@
 # RPM Spec file for HMC
 #
 
-Summary: HMC for PHP 5.3
-Name: hmc-php53
+Summary: HMC without PHP/Ruby dependencies
+Name: hmc-nodep
 Version: 1.0.0
-URL: http://incubator.apache.org/projects/ambari.html
+URL: http://hortonworks.com
 Release: 2%{?dist}
 License: Apache License, Version 2.0
-Vendor: Apache Software Foundation <ambari-dev@incubator.apache.org>
+Vendor: Hortonworks <hmc-dev-group@hortonworks.com>
 Group: System Environment/Base
 Source: hmc-%{version}.tar.gz
 Source1: hmc.init.in
 BuildRoot: %{_tmppath}/hmc-%{version}-buildroot
-Requires: php53, php53-process, php53-pdo, sqlite >= 3, httpd, puppet = 2.7.9, pdsh, httpd-devel, ruby-devel, rubygems, mod_passenger, mod_ssl
+Requires: sqlite >= 3, httpd, pdsh, mod_ssl
 %define web_prefixdir %{_prefix}/share/hmc
 %define httpd_confdir %{_sysconfdir}/httpd/conf.d
 %define puppet_master_dir %{_sysconfdir}/puppet/master
@@ -149,5 +149,5 @@ rm -rf /var/run/hmc/puppetmaster.boot
 #%clean
 #%__rm -rf $RPM_BUILD_ROOT
 %changelog
-* Thu Jun 07 2012 Ambari <ambari-dev@incubator.apache.org>
+* Wed Apr 04 2012 Hortonworks <ambari-group@hortonworks.com>
 - Initial version
