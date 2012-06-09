@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.1.x - unreleased
 
+  AMBARI-540. Naming cleanup required for management console. (Vikram via reznor)
+
   AMBARI-539. Create a spec file with less dependencies for HMC. (Hitesh via reznor)
 
   AMBARI-537. Cleaning up references. (Vikram via Hitesh)
