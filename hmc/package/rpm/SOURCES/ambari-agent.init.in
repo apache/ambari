@@ -1,11 +1,11 @@
 #! /bin/bash
 #
-# hmc-agent Bring up/down hmc-agent
+# ambari-agent Bring up/down ambari-agent
 #
 # chkconfig: 345 20 80
 # description: Starts and stops the agent 
 #
-# /etc/rc.d/init.d/hmc-agent
+# /etc/rc.d/init.d/ambari-agent
 # See how we were called.
 #/*
 # * Licensed to the Apache Software Foundation (ASF) under one

@@ -20,7 +20,7 @@
 # */
 
 #
-# RPM Init file for HMC
+# RPM Init file for Ambari
 #
 
 PATH=/usr/bin:/sbin:/bin:/usr/sbin
@@ -47,7 +47,7 @@ cp /etc/puppet/puppet.conf /etc/puppet/master/
 
 checkHDPRepo() {
   if [[ ! -f /etc/yum.repos.d/hdp.repo ]]; then
-    echo "Please install hdp repo before starting hmc"
+    echo "Please install the HDP repo before starting Ambari"
     exit 1
   fi
 }
@@ -81,24 +81,24 @@ case "$1" in
       checkHDPRepo
       checkJDK
       bootPuppet
-      echo "Starting HMC Installer "
+      echo "Starting Ambari Installer "
       /etc/init.d/httpd start
       RETVAL=$?
 	  if [ $RETVAL = 0 ]; then
-	    echo -n "Starting HMC"
+	    echo -n "Starting Ambari"
 	  else
-	    echo -n "Failed to start HMC"
+	    echo -n "Failed to start Ambari"
 	  fi
 	  echo 
 	  ;;
     stop)
-	  echo "Shutting down HMC "
+	  echo "Shutting down Ambari"
       /etc/init.d/httpd stop
 	  RETVAL=$?
       if [ $RETVAL = 0 ]; then
-        echo -n "Stopped HMC"
+        echo -n "Stopped Ambari"
       else
-       echo -n "Failed to stop HMC"
+       echo -n "Failed to stop Ambari"
       fi
       echo 
 	  ;;
@@ -118,7 +118,7 @@ case "$1" in
 	  $0 start
 	  ;;
     force-reload)
-	  echo -n "Reload service HMC "
+	  echo -n "Reload service Ambari"
 	  $0 try-restart
 	  ;;
     reload)

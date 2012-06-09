@@ -19,11 +19,11 @@
 # */
 
 #
-# RPM Spec file for HMC
+# RPM Spec file for Ambari
 #
 
-Summary: HMC
-Name: hmc
+Summary: Ambari
+Name: ambari
 Version: 1.0.0
 URL: http://incubator.apache.org/projects/ambari.html
 Release: 1%{?dist}
@@ -31,8 +31,8 @@ License: Apache License, Version 2.0
 Vendor: Apache Software Foundation (ambari-dev@incubator.apache.org)
 Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
-Source1: hmc.init.in
-Source3: hmc-agent.init.in
+Source1: ambari.init.in
+Source3: ambari-agent.init.in
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 Requires: php >= 5, sqlite >= 3, php-pdo, php-pecl-json, httpd, puppet = 2.7.9, pdsh, httpd-devel, ruby-devel, rubygems, mod_passenger, mod_ssl
 %define web_prefixdir %{_prefix}/share/hmc
@@ -50,7 +50,7 @@ BuildArch: noarch
 This package provides a Management Console for Hadoop Cluster.
 
 %package agent
-Summary: agent for hmc
+Summary: agent for Ambari
 Group:  System/Daemons
 Requires: puppet = 2.7.9 
 BuildArch: noarch
