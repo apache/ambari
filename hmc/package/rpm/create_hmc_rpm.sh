@@ -36,7 +36,7 @@ fi
 
 rm -rf ${BUILD_DIR}/*
 
-PKG_NAME="hmc"
+PKG_NAME="ambari"
 
 HMC_DIR="${BUILD_DIR}/${PKG_NAME}-$VERSION/"
 

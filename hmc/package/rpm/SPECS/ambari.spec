@@ -160,7 +160,7 @@ rm -rf /var/run/hmc/puppetmaster.boot
 %{hmc_run_dir}/*
 
 %files agent
-/etc/init.d/hmc-agent
+/etc/init.d/ambari-agent
 %{hmc_agent_dir}
 
 #%clean
