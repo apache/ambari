@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Creating Custom Widget Classes With Extensions</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Creating Custom Widget Classes With Extensions</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style type="text/css" scoped>
+
+/* Standard Module Widget CSS */
+.yui3-standardmodule-hidden {
+    display:none;
+}
+
+.yui3-standardmodule {
+    margin:10px;
+}
+
+.yui3-standardmodule-content {
+    padding:3px;
+    border:1px solid #666;
+}
+
+.yui3-standardmodule-content .yui3-widget-hd {
+    padding:5px;
+    border:2px solid #aa0000;
+    background-color:#fff;
+    overflow:auto;
+}
+
+.yui3-standardmodule-content .yui3-widget-bd {
+    padding:5px;
+    border:2px solid #0000aa;
+    background-color:#fff;
+    overflow:auto;
+}
+
+.yui3-standardmodule-content .yui3-widget-ft {
+    padding:5px;
+    border:2px solid #00aa00;
+    background-color:#fff;
+    overflow:auto;
+}
+
+/* Positionable Widget CSS */
+.yui3-positionable {
+    position:absolute;
+}
+
+.yui3-positionable-content {
+    text-align:center;
+    border:1px solid #000;
+    background-color:#999966;
+    color:#fff;
+    padding:10px;
+}
+
+.yui3-positionable-hidden {
+    visibility:hidden;
+}
+
+/* Alignable Widget CSS */
+.yui3-alignable {
+    position:absolute;
+}
+
+.yui3-alignable-content {
+    text-align:center;
+    border:1px solid #000000;
+    background-color:#004C6D;
+    color:#fff;
+    padding:1px;
+}
+
+.yui3-alignable-hidden {
+    visibility:hidden;
+}
+
+/* Example Layout CSS */
+.widget-build-example {
+    border:1px solid #ccc;
+    padding:5px;
+}
+
+.widget-build-example button, .widget-build-example label, .widget-build-example select, .widget-build-example input {
+    margin-right:5px;
+}
+
+.widget-build-example button.fail {
+    color:#cc0000;
+    margin-left:10px;
+}
+
+.widget-build-example .filler {
+    color:#999;
+}
+
+#x, #y {
+    width:3em;
+}
+
+#widget-build-examples dd {
+    margin-left:0;
+}
+
+#widget-build-examples dt {
+    margin-bottom:1em;
+    margin-top:1em;
+}
+
+#widget2-example, #widget3-example {
+    height:15em;
+}
+
+#widget2-example select, #widget3-example select {
+    width:100%;
+}
+
+#alignment p {
+    margin:0;
+    padding:2px;
+    color:#dddd00;
+}
+</style>
+
+<div class="intro">
+    <p>This example shows how you can mix and match the <code>WidgetPosition</code>, <code>WidgetPositionAlign</code>, <code>WidgetStack</code> and <code>WidgetStdMod</code> extensions to build custom versions of the <code>Widget</code> class, using <code>Base.create</code>.</p>    
+</div>
+
+<div class="example">
+    <dl id="widget-build-examples">
+<dt><code>Widget</code> with <code>WidgetStdMod</code></dt>
+<dd>
+    <form class="widget-build-example" id="widget1-example" action="#">
+        <input type="text" id="content" value="">
+        <select id="section">
+            <option value="header">Header</option>
+            <option value="body">Body</option>
+            <option value="footer">Footer</option>
+        </select>
+        <button type="submit" id="setContent">Set Content</button>
+        <button type="button" class="fail" id="tryMove">move() (should fail)</button>
+    
+        <div id="widget1">
+            <div class="yui3-widget-hd">Module Header</div>
+            <div class="yui3-widget-bd">Module Body</div>
+            <div class="yui3-widget-ft">Module Footer</div>
+        </div>
+    
+        <p class="filler">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nunc pretium quam eu mi varius pulvinar. Duis orci arcu, ullamcorper sit amet, luctus ut, interdum ac, quam.</p>
+    </form>
+</dd>
+
+<dt><code>Widget</code> with <code>WidgetPosition, WidgetStack</code></dt>
+
+<dd>
+    <form class="widget-build-example" id="widget2-example" action="#">
+        <label>X: <input type="text" id="x" value="0" ></label>
+        <label>Y: <input type="text" id="y" value="0" ></label>
+        <button type="submit" id="move">Move</button>
+        <button type="button" class="fail" id="tryContent">setStdModContent() (should fail)</button>
+    
+        <div id="widget2"><strong>Positionable Widget</strong></div>
+    
+        <p class="filler">
+            <select>
+                <option>Prevent IE6 Bleedthrough</option>
+            </select>
+            Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nunc pretium quam eu mi varius pulvinar. Duis orci arcu, ullamcorper sit amet, luctus ut, interdum ac, quam. Pellentesque euismod. Nam tincidunt, purus in ultrices congue, urna neque posuere arcu, aliquam tristique purus sapien id nulla. Etiam rhoncus nulla at leo. Cras scelerisque nisl in nibh. Sed eget odio. Morbi elit elit, porta a, convallis sit amet, rhoncus non, felis. Mauris nulla pede, pretium eleifend, porttitor at, rutrum id, orci. Quisque non urna. Nulla aliquam rhoncus est. 
+        </p>
+    </form>
+</dd>
+
+<dt><code>Widget</code> with <code>WidgetPosition, WidgetStack, WidgetPositionAlign</code></dt>
+
+<dd>
+    <div class="widget-build-example" id="widget3-example">
+        <button type="button" id="run">Step Through Alignments (every 2.5s)</button>
+        <p class="filler">
+            <select>
+                <option>Prevent IE6 Bleedthrough</option>
+            </select>
+            Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nunc pretium quam eu mi varius pulvinar. Duis orci arcu, ullamcorper sit amet, luctus ut, interdum ac, quam. Pellentesque euismod. Nam tincidunt, purus in ultrices congue, urna neque posuere arcu, aliquam tristique purus sapien id nulla. Etiam rhoncus nulla at leo. Cras scelerisque nisl in nibh. Sed eget odio. Morbi elit elit, porta a, convallis sit amet, rhoncus non, felis. Mauris nulla pede, pretium eleifend, porttitor at, rutrum id, orci. Quisque non urna. Nulla aliquam rhoncus est.
+        </p>
+    </div>
+</dd>
+</dl>
+
+<script type="text/javascript">
+YUI().use("widget", "widget-position", "widget-stack", "widget-position-align", "widget-stdmod", "async-queue", "escape", function(Y) {
+
+    // WIDGET 1 : Build Widget with StdMod, but no positioning/stacking support.
+
+    var StandardModule = Y.Base.create("standardModule", Y.Widget, [Y.WidgetStdMod]);
+
+    var stdmod = new StandardModule({
+        srcNode: "#widget1",
+        width:"12em",
+        height:"12em"
+    });
+    stdmod.render();
+
+    var contentInput = Y.one("#content");
+    var sectionInput = Y.one("#section");
+
+    Y.on("submit", function(e) {
+        e.preventDefault();
+        
+        var content = Y.Escape.html(contentInput.get("value"));
+        var section = sectionInput.get("value");
+
+        stdmod.setStdModContent(section, content);
+
+    }, "#widget1-example");
+
+    Y.on("click", function(e) {
+        try {
+            stdmod.move([0,0]);
+        } catch (e) {
+            alert("move() is " + typeof stdmod.move + ", stdmod.hasImpl(Y.WidgetPosition) : " + stdmod.hasImpl(Y.WidgetPosition));
+        }
+    }, "#tryMove");
+
+    // WIDGET 2: Build Widget with Position support and Stack support, but no StdMod support or Position Extras support.
+
+    var Positionable = Y.Base.create("positionable", Y.Widget, [Y.WidgetPosition, Y.WidgetStack]);
+
+    var positionable = new Positionable({
+        srcNode: "#widget2",
+        width:"10em",
+        zIndex:1
+    });
+    positionable.render("#widget2-example");
+
+    var xy = Y.one("#widget2-example > p").getXY();
+
+    positionable.move(xy[0], xy[1]);
+
+    var xInput = Y.one("#x");
+    var yInput = Y.one("#y");
+
+    xInput.set("value", Math.round(xy[0]));
+    yInput.set("value", Math.round(xy[1]));
+
+    Y.on("submit", function(e) {
+        e.preventDefault();
+        
+        var x = parseInt(xInput.get("value"));
+        var y = parseInt(yInput.get("value"));
+
+        positionable.move(x,y);
+
+    }, "#widget2-example");
+
+    Y.on("click", function(e) {
+        try {
+            positionable.setStdModContent("header", "new content");
+        } catch (e) {
+            alert("setStdModContent() is " + typeof positionable.setStdModContent + ", positionable.hasImpl(Y.WidgetStdMod) : " + positionable.hasImpl(Y.WidgetStdMod));
+        }
+    }, "#tryContent");
+
+
+
+    // WIDGET 3: Build Widget with Position, PositionExt and Stack support, but no StdMod support.
+
+    var Alignable = Y.Base.create("alignable", Y.Widget, [Y.WidgetPosition, Y.WidgetPositionAlign, Y.WidgetStack]);
+
+    var alignable = new Alignable({
+        width:"14em",
+        align : {
+            node: "#widget3-example",
+            points: ["cc", "cc"]
+        },
+        zIndex:1
+    });
+    alignable.get("contentBox").set("innerHTML", '<strong>Alignable Widget</strong><div id="alignment"><p>#widget3-example</p><p>[center, center]</p></div>');
+    alignable.render("#widget3-example");
+
+    // Example Alignments Queue
+    var stepDelay = 2500;
+    var currAlignment = Y.one("#alignment");
+    var steps = [
+        function() {
+            alignable.set("align", {node:"#widget3-example", points:["lc", "rc"]});
+            currAlignment.set("innerHTML", "<p>#widget3-example</p><p>[left-center, right-center]</p>");
+        },
+        function() {
+            alignable.set("align", {node:"#widget3-example", points:["tr", "br"]});
+            currAlignment.set("innerHTML", "<p>#widget3-example</p><p>[top-right, bottom-right]</p>");
+        },
+        function() {
+            alignable.set("centered", "#widget3-example");
+            currAlignment.set("innerHTML", "<p>#widget3-example</p><p>centered</p>");
+        },
+        function() {
+            alignable.set("align", {points:["rc", "rc"]});
+            currAlignment.set("innerHTML", "<p>viewport</p><p>[right-center, right-center]</p>");
+        },
+        function() {
+            alignable.set("centered", true);
+            currAlignment.set("innerHTML", "<p>viewport</p><p>centered</p>");
+        },
+        function() {
+            alignable.set("align", {node:"#widget3-example", points:["cc", "cc"]});
+            currAlignment.set("innerHTML", "<p>#widget3-example</p><p>[center, center]</p>");
+        }
+    ];
+
+    var runBtn = Y.one("#run"); 
+    var label = runBtn.get("text");
+
+    var q = new Y.AsyncQueue();
+    q.after("complete", function() {
+        runBtn.set("text", label);
+    });
+
+    runBtn.on('click', function() {
+        if (q.isRunning()) {
+            q.stop();
+            this.set("text", label);
+        } else {
+            for (var i = 0; i < steps.length; i++){
+                q.add({
+                    timeout: (i === 0) ? 0 : stepDelay,
+                    fn:steps[i]
+                });
+            }
+    
+            q.run();
+            this.set("text", "Stop");
+        }
+    });
+
+});
+</script>
+
+</div>
+
+<h2>Creating Custom Widget Classes</h2>
+
+<p>The <code>Base</code> class provides a <code>create</code> method which can be used to create custom versions of classes which derive from <code>Base</code> by adding extension classes to them.</p>
+
+<p>Widget currently ships with four such extensions: <code>WidgetPosition</code>, <code>WidgetStack</code>, <code>WidgetPositionAlign</code> and <code>WidgetStdMod</code>.
+These extensions are used to create the basic <code>Overlay</code> widget, but can also be used individually, to create custom versions of the base <code>Widget</code> class.</p>
+
+<h2>Widget with WidgetStdMod support</h2>
+
+<p>Adding the <code>WidgetStdMod</code> extension to Widget, creates a statically positioned Widget, with support for standard module format sections - header, body and footer, which maybe useful in portal type use cases, where the positioning/stacking capabilities which come bundled with Overlay are not required.</p>
+
+<p>To create a custom class, we use <a href="http://yuilibrary.com/yui/docs/api/Base.html#method_Base.create"><code>Base.create</code></a>, which is described in detail on the documention page for <a href="../base/index.html#extensions">Base</a>.</p>
+
+<p>We pass in <code>Widget</code> as the main class we want to add extensions to, and <code>WidgetStdMod</code> as the extension we'd like added to the main class:</p>
+
+<pre class="code prettyprint">var StandardModule = Y.Base.create(&quot;standardModule&quot;, Y.Widget, [Y.WidgetStdMod]);
+
+&#x2F;&#x2F; Render from Markup
+var stdmod = new StandardModule({
+    contentBox: &quot;#widget1&quot;,
+    width:&quot;12em&quot;,
+    height:&quot;12em&quot;
+});
+stdmod.render();</pre>
+
+
+<p><code>Base.create</code> will:</p>
+<ol>
+    <li>Create a new class which extends <code>Widget</code></li>
+    <li>Aggregate known <code>Base</code> and <code>Widget</code> fields, such as <code>ATTRS</code> and <code>HTML_PARSER</code> from <code>WidgetStdMod</code> on the new class</li>
+    <li>Augment prototype methods from <code>WidgetStdMod</code> onto the new class prototype</li>
+</ol>
+
+<p>The first argument to create is the <code>NAME</code> of the new class we are creating, just like the <code>NAME</code> we define when extending the Widget class directly.</p>
+
+<p>Note that the <code>Widget</code> class is unchanged, allowing you to still create <code>Widget</code> instances without any standard module support, along with <code>StandardModule</code> instances which have standard module support.</p>
+
+<h3>Testing It Out</h3>
+
+<p>The example attempts to set content on an instance of the newly created <code>StandardModule</code> class, using the <code>setStdModContent</code> method which is added by the extension (which would otherwise not exist on the Widget instance).</p>
+
+<pre class="code prettyprint">var contentInput = Y.one(&quot;#content&quot;);
+var sectionInput = Y.one(&quot;#section&quot;);
+
+&#x2F;&#x2F; This should work, since the StandardModule widget has settable 
+&#x2F;&#x2F; header&#x2F;body&#x2F;footer sections
+Y.on(&quot;submit&quot;, function(e) {
+    e.preventDefault();
+
+    var content = Y.Escape.html(contentInput.get(&quot;value&quot;));
+    var section = sectionInput.get(&quot;value&quot;);
+
+    stdmod.setStdModContent(section, content);
+
+}, &quot;#widget1-example&quot;);</pre>
+
+
+<p>To verify that no unrequested features are added, we also attempt to move the instance using the <code>move</code> method, which is not part of the base Widget class, and would be added by the <code>WidgetPosition</code> extension. This verifies that the other example classes we'll create, which do create new classes which use <code>WidgetPosition</code>, have not modified the base Widget class.</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; This shoud fail, since the StandardModule widget is not positionable
+Y.on(&quot;click&quot;, function(e) {
+    try {
+        stdmod.move([0,0]);
+    } catch (e) {
+        alert(&quot;move() is &quot; + typeof stdmod.move + &quot;, stdmod.hasImpl(Y.WidgetPosition) : &quot;
+        + stdmod.hasImpl(Y.WidgetPosition));
+    }
+}, &quot;#tryMove&quot;);</pre>
+
+
+<p>Note that <code>Base.create</code> adds a <code>hasImpl</code> method to the built class, which allows you to query whether or not it has a particular extension applied.</p>
+
+<h3>CSS Considerations</h3>
+
+<p>We need to define the CSS which goes with this new <code>StandardModule</code> class we have created. The only rule really required out of the box is the rule which handles visibility (<code>yui-standardmodule-hidden</code>). The "standardmodule" used in the class name comes from the <code>NAME</code> property we set up for the new class, and is used to prefix all state related classes added to the widgets bounding box.
+Since the <code>StandardModule</code> class is not positionable, we use <code>display:none</code> to define the <code>hidden</code> state.</p>
+
+<pre class="code prettyprint">&#x2F;* Visibility - How to handle visibility for this new widget *&#x2F;
+.yui3-standardmodule-hidden {
+    display:none;
+}</pre>
+
+
+<p>The other "yui-standardmodule" rules are only used to create the required look/feel for this particular example, and do not impact the StandardModule widget's functionality.</p>
+
+<h2>Widget with WidgetPosition and WidgetStack support</h2>
+
+<p>As with <code>StandardModule</code>, we use <code>Base.create</code> to create the new <code>Positionable</code> widget class. This time we add <code>WidgetPosition</code> and <code>WidgetStack</code> support to the base <code>Widget</code> class to create a basic XY positionable widget, with shimming and z-index support.</p>
+
+<pre class="code prettyprint">var Positionable = Y.Base.create(&quot;positionable&quot;, Y.Widget, 
+                            [Y.WidgetPosition, Y.WidgetStack]);
+
+&#x2F;&#x2F; Render from markup
+var positionable = new Positionable({
+    contentBox: &quot;#widget2&quot;,
+    width:&quot;10em&quot;,
+    height:&quot;10em&quot;,
+    zIndex:1
+});
+positionable.render(&quot;#widget2-example&quot;);
+
+var xy = Y.one(&quot;#widget2-example &gt; p&quot;).getXY();
+
+positionable.move(xy[0], xy[1]);</pre>
+
+
+<p>We <strong>don't</strong> add <code>WidgetPositionAlign</code> or <code>WidgetStdMod</code> support, so the widget doesn't have extended positioning support (align, center) or standard module support. Hence we position it manually using the <code>move</code> method which the <code>WidgetPosition</code> extension provides.</p>
+
+<h3>Testing It Out</h3>
+
+<p>We should now be able to invoke the <code>move</code> method on an instance of the newly created <code>Positionable</code> class:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; This should work, since Positionable has basic XY Positioning support
+Y.on(&quot;submit&quot;, function(e) {
+    e.preventDefault();
+    
+    var x = parseInt(xInput.get(&quot;value&quot;));
+    var y = parseInt(yInput.get(&quot;value&quot;));
+
+    positionable.move(x,y);
+
+}, &quot;#widget2-example&quot;);</pre>
+
+
+<p>And, as with the <code>StandardModule</code> class, we should not be allowed to invoke any methods from an extension which we didn't request:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; This should fail, since Positionable does not have Standard Module sections
+Y.on(&quot;click&quot;, function(e) {
+    try {
+        positionable.setStdModContent(&quot;header&quot;, &quot;new content&quot;);
+    } catch (e) {
+        alert(&quot;setStdModContent() is &quot; + typeof positionable.setStdModContent + 
+            &quot;, positionable.hasImpl(Y.WidgetStdMod) : &quot; + positionable.hasImpl(Y.WidgetStdMod));
+    }
+}, &quot;#tryContent&quot;);</pre>
+
+
+<h3>CSS Considerations</h3>
+
+<p>Since now we have a positionable widget, with z-index support, we set the widget to be absolutely positioned by default, and control it's hidden state using <code>visibility</code> as opposed to <code>display</code></p>
+
+<pre class="code prettyprint">&#x2F;* Define absolute positioning as the default for positionable widgets *&#x2F;
+.yui3-positionable {
+    position:absolute;
+}
+
+&#x2F;* 
+   In order to be able to position the widget when hidden, we define hidden
+   to use visibility, as opposed to display
+*&#x2F;
+.yui3-positionable-hidden {
+    visibility:hidden;
+}</pre>
+
+
+<h2>Widget with WidgetPosition, WidgetStack and WidgetPositionAlign support</h2>
+
+<p>Lastly, we'll attempt to create a new widget class, which, in addition to basic positioning and stacking support, also has extended positioning support, allowing us to align it with other elements on the page.</p>
+
+<p>Again, we use <code>Base.create</code> to create our new <code>Alignable</code> widget class, by combining <code>WidgetPosition</code>, <code>WidgetStack</code> and <code>WidgetPositionAlign</code> with the base widget class:</p>
+
+<pre class="code prettyprint">var Alignable = Y.Base.create(&quot;alignable&quot;, Y.Widget, 
+                    [Y.WidgetPosition, Y.WidgetPositionAlign, Y.WidgetStack]);
+
+var alignable = new Alignable({
+    width:&quot;14em&quot;,
+    align : {
+        node: &quot;#widget3-example&quot;,
+        points: [&quot;cc&quot;, &quot;cc&quot;]
+    },
+    zIndex:1
+});
+alignable.get(&quot;contentBox&quot;).set(&quot;innerHTML&quot;, 
+    &#x27;&lt;strong&gt;Alignable Widget&lt;&#x2F;strong&gt;&lt;div id=&quot;alignment&quot;&gt;&lt;p&gt;#widget3-example&lt;&#x2F;p&gt; \
+    &lt;p&gt;[center, center]&lt;&#x2F;p&gt;&lt;&#x2F;div&gt;&#x27;);
+alignable.render(&quot;#widget3-example&quot;);</pre>
+
+
+<h3>Testing It Out</h3>
+
+<p>We'll attempt to align an instance of the <code>Alignable</code> class, using some of the additional attributes which <code>WidgetPositionAlign</code> adds to the base <code>Widget</code> class: <code>align</code> and <code>centered</code>:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Align left-center egde of widget to 
+&#x2F;&#x2F; right-center edge of the node with id &quot;widget3-example&quot;
+alignable.set(&quot;align&quot;, {node:&quot;#widget3-example&quot;, points:[&quot;lc&quot;, &quot;rc&quot;]});
+
+&#x2F;&#x2F; Align top-right corner of widget to 
+&#x2F;&#x2F; bottom-right corner of the node with id &quot;widget3-example&quot;
+alignable.set(&quot;align&quot;, {node:&quot;#widget3-example&quot;, points:[&quot;tr&quot;, &quot;br&quot;]});
+
+&#x2F;&#x2F; Center the widget in the node with id &quot;widget3-example&quot;
+alignable.set(&quot;centered&quot;, &quot;widget3-example&quot;);
+
+&#x2F;&#x2F; Align the right-center edge of the widget to 
+&#x2F;&#x2F; the right center edge of the viewport (since a node is not provided to &#x27;align&#x27;)
+alignable.set(&quot;align&quot;, {points:[&quot;rc&quot;, &quot;rc&quot;]});
+
+&#x2F;&#x2F; Center the widget in the viewport (wince a node is not provided to &#x27;centered&#x27;)
+alignable.set(&quot;centered&quot;, true);
+
+&#x2F;&#x2F; Return the node to it&#x27;s original alignment 
+&#x2F;&#x2F; (centered in the node with id &quot;widget3-example&quot;)
+&#x2F;&#x2F; NOTE: centered is a shortcut for align : { points:[&quot;cc&quot;, &quot;cc&quot;] }
+alignable.set(&quot;align&quot;, {node:&quot;#widget3-example&quot;, points:[&quot;cc&quot;, &quot;cc&quot;]});</pre>
+
+
+<h3>CSS Considerations</h3>
+
+<p>The <code>Alignable</code> widget class, has the same core CSS rules as the <code>Positionable</code> class, to define how it is positioned and how it is hidden:</p>
+
+<pre class="code prettyprint">&#x2F;* Define absolute positioning as the default for alignable widgets *&#x2F;
+.yui3-alignable {
+    position:absolute;
+}
+
+&#x2F;* 
+   In order to be able to position the widget when hidden, we define hidden
+   to use visibility, as opposed to display
+*&#x2F;
+.yui3-alignable-hidden {
+    visibility:hidden;
+}</pre>
+
+
+<h2>Complete Example Source</h2>
+<pre class="code prettyprint">&lt;dl id=&quot;widget-build-examples&quot;&gt;
+&lt;dt&gt;&lt;code&gt;Widget&lt;&#x2F;code&gt; with &lt;code&gt;WidgetStdMod&lt;&#x2F;code&gt;&lt;&#x2F;dt&gt;
+&lt;dd&gt;
+    &lt;form class=&quot;widget-build-example&quot; id=&quot;widget1-example&quot; action=&quot;#&quot;&gt;
+        &lt;input type=&quot;text&quot; id=&quot;content&quot; value=&quot;&quot;&gt;
+        &lt;select id=&quot;section&quot;&gt;
+            &lt;option value=&quot;header&quot;&gt;Header&lt;&#x2F;option&gt;
+            &lt;option value=&quot;body&quot;&gt;Body&lt;&#x2F;option&gt;
+            &lt;option value=&quot;footer&quot;&gt;Footer&lt;&#x2F;option&gt;
+        &lt;&#x2F;select&gt;
+        &lt;button type=&quot;submit&quot; id=&quot;setContent&quot;&gt;Set Content&lt;&#x2F;button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;fail&quot; id=&quot;tryMove&quot;&gt;move() (should fail)&lt;&#x2F;button&gt;
+    
+        &lt;div id=&quot;widget1&quot;&gt;
+            &lt;div class=&quot;yui3-widget-hd&quot;&gt;Module Header&lt;&#x2F;div&gt;
+            &lt;div class=&quot;yui3-widget-bd&quot;&gt;Module Body&lt;&#x2F;div&gt;
+            &lt;div class=&quot;yui3-widget-ft&quot;&gt;Module Footer&lt;&#x2F;div&gt;
+        &lt;&#x2F;div&gt;
+    
+        &lt;p class=&quot;filler&quot;&gt;Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nunc pretium quam eu mi varius pulvinar. Duis orci arcu, ullamcorper sit amet, luctus ut, interdum ac, quam.&lt;&#x2F;p&gt;
+    &lt;&#x2F;form&gt;
+&lt;&#x2F;dd&gt;
+
+&lt;dt&gt;&lt;code&gt;Widget&lt;&#x2F;code&gt; with &lt;code&gt;WidgetPosition, WidgetStack&lt;&#x2F;code&gt;&lt;&#x2F;dt&gt;
+
+&lt;dd&gt;
+    &lt;form class=&quot;widget-build-example&quot; id=&quot;widget2-example&quot; action=&quot;#&quot;&gt;
+        &lt;label&gt;X: &lt;input type=&quot;text&quot; id=&quot;x&quot; value=&quot;0&quot; &gt;&lt;&#x2F;label&gt;
+        &lt;label&gt;Y: &lt;input type=&quot;text&quot; id=&quot;y&quot; value=&quot;0&quot; &gt;&lt;&#x2F;label&gt;
+        &lt;button type=&quot;submit&quot; id=&quot;move&quot;&gt;Move&lt;&#x2F;button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;fail&quot; id=&quot;tryContent&quot;&gt;setStdModContent() (should fail)&lt;&#x2F;button&gt;
+    
+        &lt;div id=&quot;widget2&quot;&gt;&lt;strong&gt;Positionable Widget&lt;&#x2F;strong&gt;&lt;&#x2F;div&gt;
+    
+        &lt;p class=&quot;filler&quot;&gt;
+            &lt;select&gt;
+                &lt;option&gt;Prevent IE6 Bleedthrough&lt;&#x2F;option&gt;
+            &lt;&#x2F;select&gt;
+            Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nunc pretium quam eu mi varius pulvinar. Duis orci arcu, ullamcorper sit amet, luctus ut, interdum ac, quam. Pellentesque euismod. Nam tincidunt, purus in ultrices congue, urna neque posuere arcu, aliquam tristique purus sapien id nulla. Etiam rhoncus nulla at leo. Cras scelerisque nisl in nibh. Sed eget odio. Morbi elit elit, porta a, convallis sit amet, rhoncus non, felis. Mauris nulla pede, pretium eleifend, porttitor at, rutrum id, orci. Quisque non urna. Nulla aliquam rhoncus est. 
+        &lt;&#x2F;p&gt;
+    &lt;&#x2F;form&gt;
+&lt;&#x2F;dd&gt;
+
+&lt;dt&gt;&lt;code&gt;Widget&lt;&#x2F;code&gt; with &lt;code&gt;WidgetPosition, WidgetStack, WidgetPositionAlign&lt;&#x2F;code&gt;&lt;&#x2F;dt&gt;
+
+&lt;dd&gt;
+    &lt;div class=&quot;widget-build-example&quot; id=&quot;widget3-example&quot;&gt;
+        &lt;button type=&quot;button&quot; id=&quot;run&quot;&gt;Step Through Alignments (every 2.5s)&lt;&#x2F;button&gt;
+        &lt;p class=&quot;filler&quot;&gt;
+            &lt;select&gt;
+                &lt;option&gt;Prevent IE6 Bleedthrough&lt;&#x2F;option&gt;
+            &lt;&#x2F;select&gt;
+            Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nunc pretium quam eu mi varius pulvinar. Duis orci arcu, ullamcorper sit amet, luctus ut, interdum ac, quam. Pellentesque euismod. Nam tincidunt, purus in ultrices congue, urna neque posuere arcu, aliquam tristique purus sapien id nulla. Etiam rhoncus nulla at leo. Cras scelerisque nisl in nibh. Sed eget odio. Morbi elit elit, porta a, convallis sit amet, rhoncus non, felis. Mauris nulla pede, pretium eleifend, porttitor at, rutrum id, orci. Quisque non urna. Nulla aliquam rhoncus est.
+        &lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;dd&gt;
+&lt;&#x2F;dl&gt;
+
+&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+YUI().use(&quot;widget&quot;, &quot;widget-position&quot;, &quot;widget-stack&quot;, &quot;widget-position-align&quot;, &quot;widget-stdmod&quot;, &quot;async-queue&quot;, &quot;escape&quot;, function(Y) {
+
+    &#x2F;&#x2F; WIDGET 1 : Build Widget with StdMod, but no positioning&#x2F;stacking support.
+
+    var StandardModule = Y.Base.create(&quot;standardModule&quot;, Y.Widget, [Y.WidgetStdMod]);
+
+    var stdmod = new StandardModule({
+        srcNode: &quot;#widget1&quot;,
+        width:&quot;12em&quot;,
+        height:&quot;12em&quot;
+    });
+    stdmod.render();
+
+    var contentInput = Y.one(&quot;#content&quot;);
+    var sectionInput = Y.one(&quot;#section&quot;);
+
+    Y.on(&quot;submit&quot;, function(e) {
+        e.preventDefault();
+        
+        var content = Y.Escape.html(contentInput.get(&quot;value&quot;));
+        var section = sectionInput.get(&quot;value&quot;);
+
+        stdmod.setStdModContent(section, content);
+
+    }, &quot;#widget1-example&quot;);
+
+    Y.on(&quot;click&quot;, function(e) {
+        try {
+            stdmod.move([0,0]);
+        } catch (e) {
+            alert(&quot;move() is &quot; + typeof stdmod.move + &quot;, stdmod.hasImpl(Y.WidgetPosition) : &quot; + stdmod.hasImpl(Y.WidgetPosition));
+        }
+    }, &quot;#tryMove&quot;);
+
+    &#x2F;&#x2F; WIDGET 2: Build Widget with Position support and Stack support, but no StdMod support or Position Extras support.
+
+    var Positionable = Y.Base.create(&quot;positionable&quot;, Y.Widget, [Y.WidgetPosition, Y.WidgetStack]);
+
+    var positionable = new Positionable({
+        srcNode: &quot;#widget2&quot;,
+        width:&quot;10em&quot;,
+        zIndex:1
+    });
+    positionable.render(&quot;#widget2-example&quot;);
+
+    var xy = Y.one(&quot;#widget2-example &gt; p&quot;).getXY();
+
+    positionable.move(xy[0], xy[1]);
+
+    var xInput = Y.one(&quot;#x&quot;);
+    var yInput = Y.one(&quot;#y&quot;);
+
+    xInput.set(&quot;value&quot;, Math.round(xy[0]));
+    yInput.set(&quot;value&quot;, Math.round(xy[1]));
+
+    Y.on(&quot;submit&quot;, function(e) {
+        e.preventDefault();
+        
+        var x = parseInt(xInput.get(&quot;value&quot;));
+        var y = parseInt(yInput.get(&quot;value&quot;));
+
+        positionable.move(x,y);
+
+    }, &quot;#widget2-example&quot;);
+
+    Y.on(&quot;click&quot;, function(e) {
+        try {
+            positionable.setStdModContent(&quot;header&quot;, &quot;new content&quot;);
+        } catch (e) {
+            alert(&quot;setStdModContent() is &quot; + typeof positionable.setStdModContent + &quot;, positionable.hasImpl(Y.WidgetStdMod) : &quot; + positionable.hasImpl(Y.WidgetStdMod));
+        }
+    }, &quot;#tryContent&quot;);
+
+
+
+    &#x2F;&#x2F; WIDGET 3: Build Widget with Position, PositionExt and Stack support, but no StdMod support.
+
+    var Alignable = Y.Base.create(&quot;alignable&quot;, Y.Widget, [Y.WidgetPosition, Y.WidgetPositionAlign, Y.WidgetStack]);
+
+    var alignable = new Alignable({
+        width:&quot;14em&quot;,
+        align : {
+            node: &quot;#widget3-example&quot;,
+            points: [&quot;cc&quot;, &quot;cc&quot;]
+        },
+        zIndex:1
+    });
+    alignable.get(&quot;contentBox&quot;).set(&quot;innerHTML&quot;, &#x27;&lt;strong&gt;Alignable Widget&lt;&#x2F;strong&gt;&lt;div id=&quot;alignment&quot;&gt;&lt;p&gt;#widget3-example&lt;&#x2F;p&gt;&lt;p&gt;[center, center]&lt;&#x2F;p&gt;&lt;&#x2F;div&gt;&#x27;);
+    alignable.render(&quot;#widget3-example&quot;);
+
+    &#x2F;&#x2F; Example Alignments Queue
+    var stepDelay = 2500;
+    var currAlignment = Y.one(&quot;#alignment&quot;);
+    var steps = [
+        function() {
+            alignable.set(&quot;align&quot;, {node:&quot;#widget3-example&quot;, points:[&quot;lc&quot;, &quot;rc&quot;]});
+            currAlignment.set(&quot;innerHTML&quot;, &quot;&lt;p&gt;#widget3-example&lt;&#x2F;p&gt;&lt;p&gt;[left-center, right-center]&lt;&#x2F;p&gt;&quot;);
+        },
+        function() {
+            alignable.set(&quot;align&quot;, {node:&quot;#widget3-example&quot;, points:[&quot;tr&quot;, &quot;br&quot;]});
+            currAlignment.set(&quot;innerHTML&quot;, &quot;&lt;p&gt;#widget3-example&lt;&#x2F;p&gt;&lt;p&gt;[top-right, bottom-right]&lt;&#x2F;p&gt;&quot;);
+        },
+        function() {
+            alignable.set(&quot;centered&quot;, &quot;#widget3-example&quot;);
+            currAlignment.set(&quot;innerHTML&quot;, &quot;&lt;p&gt;#widget3-example&lt;&#x2F;p&gt;&lt;p&gt;centered&lt;&#x2F;p&gt;&quot;);
+        },
+        function() {
+            alignable.set(&quot;align&quot;, {points:[&quot;rc&quot;, &quot;rc&quot;]});
+            currAlignment.set(&quot;innerHTML&quot;, &quot;&lt;p&gt;viewport&lt;&#x2F;p&gt;&lt;p&gt;[right-center, right-center]&lt;&#x2F;p&gt;&quot;);
+        },
+        function() {
+            alignable.set(&quot;centered&quot;, true);
+            currAlignment.set(&quot;innerHTML&quot;, &quot;&lt;p&gt;viewport&lt;&#x2F;p&gt;&lt;p&gt;centered&lt;&#x2F;p&gt;&quot;);
+        },
+        function() {
+            alignable.set(&quot;align&quot;, {node:&quot;#widget3-example&quot;, points:[&quot;cc&quot;, &quot;cc&quot;]});
+            currAlignment.set(&quot;innerHTML&quot;, &quot;&lt;p&gt;#widget3-example&lt;&#x2F;p&gt;&lt;p&gt;[center, center]&lt;&#x2F;p&gt;&quot;);
+        }
+    ];
+
+    var runBtn = Y.one(&quot;#run&quot;); 
+    var label = runBtn.get(&quot;text&quot;);
+
+    var q = new Y.AsyncQueue();
+    q.after(&quot;complete&quot;, function() {
+        runBtn.set(&quot;text&quot;, label);
+    });
+
+    runBtn.on(&#x27;click&#x27;, function() {
+        if (q.isRunning()) {
+            q.stop();
+            this.set(&quot;text&quot;, label);
+        } else {
+            for (var i = 0; i &lt; steps.length; i++){
+                q.add({
+                    timeout: (i === 0) ? 0 : stepDelay,
+                    fn:steps[i]
+                });
+            }
+    
+            q.run();
+            this.set(&quot;text&quot;, &quot;Stop&quot;);
+        }
+    });
+
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Shows how to extend the base widget class, to create your own Widgets.">
+                                            <a href="widget-extend.html">Extending the Base Widget Class</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to use Base.create and mix/match extensions to create custom Widget classes.">
+                                            <a href="widget-build.html">Creating Custom Widget Classes With Extensions</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create an IO plugin for Widget.">
+                                            <a href="widget-plugin.html">Creating a Widget Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to extend the Widget class, and add WidgetPosition and WidgetStack to create a Tooltip widget class.">
+                                            <a href="widget-tooltip.html">Creating a Simple Tooltip Widget With Extensions</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to extend the Widget class, and add WidgetParent and WidgetChild to create a simple ListBox widget.">
+                                            <a href="widget-parentchild-listbox.html">Creating a Hierarchical ListBox Widget</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

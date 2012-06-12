@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Loading Tab Content</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Loading Tab Content</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>This example shows how to create a plugin to load YQL data into a TabView for dynamic content.</p>
+</div>
+
+<div class="example yui3-skin-sam">
+<style>
+.example h3 {
+    color: #666;
+    margin: 0.5em 0;
+}
+</style>
+<h3>Today's Browser News</h3>
+<div id="demo"></div>
+<script type="text/javascript">
+YUI().use('tabview', 'yql', function(Y) {
+    // YQL plugin for Y.Tab instances
+    var TabYQL = function(config) {
+        this.init(config);
+    };
+
+    TabYQL.NS = 'yql'; // plugin namespace (e.g. "tab.yql.load(myQuery)");
+
+    TabYQL.prototype = {
+        init: function(config) {
+            if (config) {
+                this.tab = config.host;
+                this.query = config.query || this.query;
+                this.errorMsg = config.errorMsg || this.errorMsg;
+            }
+
+            if (this.tab) {
+                this.tab.after('selectedChange', Y.bind(this.afterSelectedChange, this));
+            }
+        },
+
+        loaded: false,
+        query: '',
+        errorMsg: 'There was a problem loading the content',
+        tab: null,
+
+        afterLoad: function(response) {
+            var results = (response.query) ? response.query.results.item : null,
+                content = '';
+
+            if (results) {
+                Y.each(results, function(fields) {
+                    content += '<li><a href="' + fields.link + '">' +
+                        fields.title + '</a></li>';
+                });
+
+                this.loaded = true;
+                content = '<ul>' + content + '</ul>'
+            } else {
+                content = this.errorMsg;
+            }
+
+            this.tab.set('content', content);
+        },
+
+        afterSelectedChange: function(e) {
+            // only load if not already loaded
+            if (!this.loaded) {
+                this.load(this.query, this.afterLoad);
+            }
+        },
+
+        load: function(query, afterLoad) {
+            Y.YQL(query, Y.bind(afterLoad, this));
+        }
+    };
+
+    var tabview = new Y.TabView(),
+        feeds = {
+            Chrome: 'chrome+browser',
+            Firefox: 'firefox+browser',
+            Safari: 'safari+browser',
+            Explorer: 'explorer+browser',
+            Opera: 'opera+browser'
+        };
+
+    Y.each(feeds, function(feed, label) {
+        var tab = new Y.Tab({
+            label: label,
+            content: 'loading...'
+        });
+
+        tab.plug(TabYQL, {
+            query: 'select title, link from rss where ' +
+                'url="http://search.news.yahoo.com/rss?p=' +
+                feed + '"'
+        });
+
+        tabview.add(tab);
+    });
+
+    tabview.render('#demo');
+});
+</script>
+
+</div>
+
+<h2>Creating the YQL Plugin</h2>
+<h3>Plugin Constructor</h3>
+<p>To create a plugin, we need to create a constructor with a static
+    <code>NS</code> property. This is the namespace used by the plugin on each
+    instance.</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; YQL plugin for Y.Tab instances
+var TabYQL = function(config) {
+    this.init(config);
+};
+
+TabYQL.NS = &#x27;yql&#x27;; &#x2F;&#x2F; plugin namespace (e.g. &quot;tab.yql.load(myQuery)&quot;);</pre>
+
+
+</h3>Plugin Prototype</h3>
+<p>Next we will add the YQL functionality to the prototype. The init method
+    wires the YQL functionality up using the load method.</p>
+
+<pre class="code prettyprint">TabYQL.prototype = {
+    init: function(config) {
+        if (this.tab) {
+            this.tab.after(&#x27;selectedChange&#x27;, Y.bind(this.afterSelectedChange, this));
+        }
+    },
+
+    afterSelectedChange: function(e) {
+        &#x2F;&#x2F; only load if not already loaded
+        if (!this.loaded) {
+            this.load(this.query, this.afterLoad);
+        }
+    },
+
+    load: function(query, afterLoad) {
+        Y.YQL(query, Y.bind(afterLoad, this));
+    }</pre>
+
+
+<h2>Creating the TabView</h2>
+<p>Next we will create a new instance of a TabView:</p>
+
+<pre class="code prettyprint">&#x2F;* Create a new TabView instance, with content generated from script *&#x2F;
+var tabview = new Y.TabView();</pre>
+
+
+<p>And then use the <code>add</code> method to add the <code>Tab</code> instances,
+to add a tab for each of the feeds, then render the tabview into the placeholder
+element.</p>
+
+
+<pre class="code prettyprint">var feeds = {
+    Chrome: &#x27;chrome+browser&#x27;,
+    Firefox: &#x27;firefox+browser&#x27;,
+    Safari: &#x27;safari+browser&#x27;,
+    Explorer: &#x27;explorer+browser&#x27;,
+    Opera: &#x27;opera+browser&#x27;
+};
+
+Y.each(feeds, function(feed, label) {
+    var tab = new Y.Tab({
+        label: label,
+        content: &#x27;loading...&#x27;,
+    });
+
+    tab.plug(TabYQL, {
+        query: &#x27;select title, link from rss where &#x27; +
+            &#x27;url=&quot;http:&#x2F;&#x2F;search.news.yahoo.com&#x2F;rss?p=&#x27; +
+            feed + &#x27;&quot;&#x27;
+    });
+
+    tabview.add(tab);
+});
+
+tabview.render(&#x27;#demo&#x27;);</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="This example shows how to create a TabView wigdet from existing HTML.">
+                                            <a href="tabview-basic.html">TabView from Existing Markup</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example shows how to create a TabView wigdet from JavaScript.">
+                                            <a href="tabview-fromjs.html">Dynamic TabView from JavaScript</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example shows how to add and remove Tabs.">
+                                            <a href="tabview-add-remove.html">Adding and Removing Tabs</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example shows how to load tab content remotely using a YQL plugin.">
+                                            <a href="tabview-yql.html">Loading Tab Content</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Demonstrates how to add browser history support to a TabView widget using the History Utility.">
+                                            <a href="../history/history-tabview.html">History + TabView</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Using Y.io in Node.js</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Using Y.io in Node.js</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>
+        YUI uses Mikeal Roger's <a href="https://github.com/mikeal/request">Request</a> library under the hood
+        to provide our IO transport layer in Node.js.
+    </p>
+</div>
+
+<h2 id="out-of-the-box">Out of the box</h2>
+<p>
+    Our <code>io-base</code> module works out of the box and mimic's it's browser counterpart as much as it can.
+</p>
+
+<p><strong>Note:</strong> You can not use the <code>io</code> module on the server, the <code>io</code> module
+contains the <code>io-form</code> and the <code>io-upload-frame</code> modules which both rely on a working DOM
+to be available. The <code>io-base</code> module, however, has no requirement on a DOM.
+</p>
+
+<h2 id="simple-example">Simple Example</h2>
+
+<pre class="code prettyprint">var Y = require(&#x27;yui&#x2F;io-base&#x27;);
+
+Y.io(&#x27;https:&#x2F;&#x2F;github.com&#x2F;api&#x2F;v2&#x2F;json&#x2F;user&#x2F;show&#x2F;yui&#x27;, {
+    on: {
+        complete: function(id, e) {
+            var json = JSON.parse(e.responseText);
+            console.log(json);
+        }
+    }
+});</pre>
+
+
+<p>That will output this:</p>
+
+<pre class="code prettyprint">{
+    user: {
+        gravatar_id: &#x27;af34a0de54b2b7a34cc6d7196ef12fc0&#x27;,
+        company: null,
+        name: &#x27;YUI Library&#x27;,
+        created_at: &#x27;2008-12-03T17:46:11-08:00&#x27;,
+        location: &#x27;Sunnyvale, CA&#x27;,
+        public_repo_count: 15,
+        public_gist_count: 0,
+        blog: &#x27;http:&#x2F;&#x2F;yuilibrary.com&#x2F;&#x27;,
+        following_count: 0,
+        id: 38181,
+        type: &#x27;Organization&#x27;,
+        permission: null,
+        followers_count: 1301,
+        login: &#x27;yui&#x27;,
+        email: null
+    }
+}</pre>
+
+
+<h2 id="using-requests-options">Using Request's options</h2>
+
+<p>One of the additions our Node.js transport comes with is the ability to add
+<a href="https://github.com/mikeal/request">Request</a> options to the request as we are making
+it. This example is how you can <code>PUT</code> data with <code>Y.io</code>.</p>
+<p>More configuration information can be found in the <a href="https://github.com/mikeal/request#readme">request readme</a>
+over on Github.</p>
+
+<pre class="code prettyprint">var Y = require(&#x27;yui&#x2F;io-base&#x27;),
+    rand = Math.floor(Math.random()*100000000).toString();
+
+Y.io(&#x27;http:&#x2F;&#x2F;mikeal.iriscouch.com&#x2F;testjs&#x2F;&#x27; + rand, {
+    method: &#x27;PUT&#x27;,
+    request: {
+        multipart: [
+            {
+                &#x27;content-type&#x27;: &#x27;application&#x2F;json&#x27;, 
+                body: JSON.stringify({
+                    foo: &#x27;bar&#x27;,
+                    _attachments: {
+                        &#x27;message.txt&#x27;: {
+                            follows: true,
+                            length: 18,
+                            &#x27;content_type&#x27;: &#x27;text&#x2F;plain&#x27;
+                        }
+                    }
+                })
+            }, 
+            {
+                body: &#x27;I am an attachment&#x27;
+            }
+        ] 
+    },
+    on: {
+        success: function(id, e) {
+            Y.log(&#x27;document saved as: http:&#x2F;&#x2F;mikeal.iriscouch.com&#x2F;testjs&#x2F;&#x27;+ rand);
+            var json = JSON.parse(e.responseText);
+            Y.log(json);
+        }
+    }
+});</pre>
+
+
+<pre class="code prettyprint">info: document saved as: http:&#x2F;&#x2F;mikeal.iriscouch.com&#x2F;testjs&#x2F;9595449
+info: 
+{
+    ok: true,
+    id: &#x27;9595449&#x27;,
+    rev: &#x27;1-b40bbeb0ba183941cc666251c556910a&#x27;
+}</pre>
+
+
+<h2 id="using-request">Using Request</h2>
+
+<p>Since the <code>request</code> module is bundled with YUI, we expose that inside YUI so you can also use it.</p>
+
+<p>We alias request on the <code>IO</code> object as <code>Y.IO.request</code>, so now you can use it like this:</p>
+
+<pre class="code prettyprint">fs.createReadStream(&#x27;file.json&#x27;).pipe(Y.IO.request.put(&#x27;http:&#x2F;&#x2F;mysite.com&#x2F;obj.json&#x27;));
+
+Y.IO.request.get(&#x27;http:&#x2F;&#x2F;google.com&#x2F;img.png&#x27;).pipe(Y.IO.request.put(&#x27;http:&#x2F;&#x2F;mysite.com&#x2F;img.png&#x27;));</pre>
+
+
+<p>In future versions of YUI, we will support file uploads via our File API that will use this under the hood as well.</p>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#out-of-the-box">Out of the box</a>
+</li>
+<li>
+<a href="#simple-example">Simple Example</a>
+</li>
+<li>
+<a href="#using-requests-options">Using Request's options</a>
+</li>
+<li>
+<a href="#using-request">Using Request</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Using YUI with a DOM in Node.js">
+                                            <a href="nodejs-dom.html">YUI, Node.js and DOM</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Packaging a YUI script with npm">
+                                            <a href="nodejs-package.html">Packaging a YUI script with npm</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using Y.io in Node.js">
+                                            <a href="nodejs-io.html">Using Y.io in Node.js</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

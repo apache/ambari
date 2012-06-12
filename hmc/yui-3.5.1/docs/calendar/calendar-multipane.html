@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Two-Pane Calendar with Custom Rendering and Multiple Selection</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Two-Pane Calendar with Custom Rendering and Multiple Selection</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style>
+.example {
+	font-size:15px;
+}
+
+.example h4 {
+	border: none;
+	text-transform: none;
+}
+
+.example th {
+	background: none;
+	color: #000;
+	text-transform: none;
+	border: none;
+}
+
+</style>
+
+<div class="intro">
+<p>
+This example demonstrates how to instantiate a Calendar, switch its template to a double-pane, and create custom renderers for its header and certain cells (based on rules), as well as turn on multiple date selection and disable certain dates from being selected.
+</p>
+<p><strong>The <code>selectionMode</code> in this example is set to <code>multiple</code></strong>, which allows additional dates to be selected if a <strong>Shift</strong> or <strong>Ctrl/Meta</strong> key is held down. This selection mode does not allow multiple selection on touchscreen devices; for such devices, use the <code>multiple-sticky</code> selection mode instead.
+</p>
+
+<p>
+<strong>There are two custom filtering rules provided in the example code.</strong> One matches all Saturdays and Sundays (weekends in the United States), and the other matches Tuesdays and Fridays. The first rule is used in conjunction with a custom renderer to set the corresponding date cell text color to red. The second rule is used to disable matching dates from selection and interaction.
+</p>
+</div>
+
+<div class="example yui3-skin-sam">
+    <style>
+.yui3-skin-sam .redtext {
+  color:#ff0000;
+}
+</style>
+<div id="demo" class="yui3-skin-sam">
+  <div id="mycalendar"></div>
+</div>
+<script type="text/javascript">
+YUI().use('calendar', 'datatype-date', 'datatype-date-math', function(Y) {
+
+
+ // Switch the calendar main template to the included two pane template
+ Y.CalendarBase.CONTENT_TEMPLATE = Y.CalendarBase.TWO_PANE_TEMPLATE;
+
+ // Create a new instance of calendar, setting the showing of previous
+ // and next month's dates to true, and the selection mode to multiple
+ // selected dates. Additionally, set the disabledDatesRule to a name of
+ // the rule which, when matched, will force the date to be excluded
+ // from being selected. Also configure the initial date on the calendar
+ // to be July of 2011.
+ var calendar = new Y.Calendar({
+   contentBox: "#mycalendar",
+   width: "700px",
+   showPrevMonth: true,
+   showNextMonth: true,
+   selectionMode: 'multiple',
+   disabledDatesRule: "tuesdays_and_fridays",
+   date: new Date(2011, 6, 1)
+ }).render();
+
+// Create a set of rules to match specific dates. In this case,
+// the "tuesdays_and_fridays" rule will match any Tuesday or Friday,
+// whereas the "all_weekends" rule will match any Saturday or Sunday.
+ var rules = {
+   "all": {
+     "all": {
+       "all": {
+         "2,5": "tuesdays_and_fridays",
+         "0,6": "all_weekends"
+       }
+     }
+   }
+ };
+
+// Set the calendar customRenderer, provides the rules defined above,
+// as well as a filter function. The filter function receives a reference
+// to the node corresponding to the DOM element of the date that matched
+// one or more rule, along with the list of rules. Check if one of the
+// rules is "all_weekends", and if so, apply a custom CSS class to the
+// node.
+ calendar.set("customRenderer", {
+   rules: rules,
+   filterFunction: function (date, node, rules) {
+     if (Y.Array.indexOf(rules, 'all_weekends') >= 0) {
+       node.addClass("redtext");
+     }
+   }
+ });
+
+// Set a custom header renderer with a callback function,
+// which receives the current date and outputs a string.
+// use the Y.Datatype.Date format to format the date, and
+// the Datatype.Date math to add one month to the current
+// date, so both months can appear in the header (since 
+// this is a two-pane calendar).
+ calendar.set("headerRenderer", function (curDate) {
+   var ydate = Y.DataType.Date,
+       output = ydate.format(curDate, {
+       format: "%B %Y"
+     }) + " &mdash; " + ydate.format(ydate.addMonths(curDate, 1), {
+       format: "%B %Y"
+     });
+   return output;
+ }); 
+
+// When selection changes, output the fired event to the
+// console. the newSelection attribute in the event facade
+// will contain the list of currently selected dates (or be
+// empty if all dates have been deselected).
+ calendar.on("selectionChange", function (ev) {
+   Y.log(ev);
+ });
+ 
+ });
+
+</script>
+
+</div>
+
+<h2>Complete Example Source</h2>
+
+<pre class="code prettyprint">&lt;style&gt;
+.yui3-skin-sam .redtext {
+  color:#ff0000;
+}
+&lt;&#x2F;style&gt;
+&lt;div id=&quot;demo&quot; class=&quot;yui3-skin-sam&quot;&gt;
+  &lt;div id=&quot;mycalendar&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+YUI().use(&#x27;calendar&#x27;, &#x27;datatype-date&#x27;, &#x27;datatype-date-math&#x27;, function(Y) {
+
+
+ &#x2F;&#x2F; Switch the calendar main template to the included two pane template
+ Y.CalendarBase.CONTENT_TEMPLATE = Y.CalendarBase.TWO_PANE_TEMPLATE;
+
+ &#x2F;&#x2F; Create a new instance of calendar, setting the showing of previous
+ &#x2F;&#x2F; and next month&#x27;s dates to true, and the selection mode to multiple
+ &#x2F;&#x2F; selected dates. Additionally, set the disabledDatesRule to a name of
+ &#x2F;&#x2F; the rule which, when matched, will force the date to be excluded
+ &#x2F;&#x2F; from being selected. Also configure the initial date on the calendar
+ &#x2F;&#x2F; to be July of 2011.
+ var calendar = new Y.Calendar({
+   contentBox: &quot;#mycalendar&quot;,
+   width: &quot;700px&quot;,
+   showPrevMonth: true,
+   showNextMonth: true,
+   selectionMode: &#x27;multiple&#x27;,
+   disabledDatesRule: &quot;tuesdays_and_fridays&quot;,
+   date: new Date(2011, 6, 1)
+ }).render();
+
+&#x2F;&#x2F; Create a set of rules to match specific dates. In this case,
+&#x2F;&#x2F; the &quot;tuesdays_and_fridays&quot; rule will match any Tuesday or Friday,
+&#x2F;&#x2F; whereas the &quot;all_weekends&quot; rule will match any Saturday or Sunday.
+ var rules = {
+   &quot;all&quot;: {
+     &quot;all&quot;: {
+       &quot;all&quot;: {
+         &quot;2,5&quot;: &quot;tuesdays_and_fridays&quot;,
+         &quot;0,6&quot;: &quot;all_weekends&quot;
+       }
+     }
+   }
+ };
+
+&#x2F;&#x2F; Set the calendar customRenderer, provides the rules defined above,
+&#x2F;&#x2F; as well as a filter function. The filter function receives a reference
+&#x2F;&#x2F; to the node corresponding to the DOM element of the date that matched
+&#x2F;&#x2F; one or more rule, along with the list of rules. Check if one of the
+&#x2F;&#x2F; rules is &quot;all_weekends&quot;, and if so, apply a custom CSS class to the
+&#x2F;&#x2F; node.
+ calendar.set(&quot;customRenderer&quot;, {
+   rules: rules,
+   filterFunction: function (date, node, rules) {
+     if (Y.Array.indexOf(rules, &#x27;all_weekends&#x27;) &gt;= 0) {
+       node.addClass(&quot;redtext&quot;);
+     }
+   }
+ });
+
+&#x2F;&#x2F; Set a custom header renderer with a callback function,
+&#x2F;&#x2F; which receives the current date and outputs a string.
+&#x2F;&#x2F; use the Y.Datatype.Date format to format the date, and
+&#x2F;&#x2F; the Datatype.Date math to add one month to the current
+&#x2F;&#x2F; date, so both months can appear in the header (since 
+&#x2F;&#x2F; this is a two-pane calendar).
+ calendar.set(&quot;headerRenderer&quot;, function (curDate) {
+   var ydate = Y.DataType.Date,
+       output = ydate.format(curDate, {
+       format: &quot;%B %Y&quot;
+     }) + &quot; &amp;mdash; &quot; + ydate.format(ydate.addMonths(curDate, 1), {
+       format: &quot;%B %Y&quot;
+     });
+   return output;
+ }); 
+
+&#x2F;&#x2F; When selection changes, output the fired event to the
+&#x2F;&#x2F; console. the newSelection attribute in the event facade
+&#x2F;&#x2F; will contain the list of currently selected dates (or be
+&#x2F;&#x2F; empty if all dates have been deselected).
+ calendar.on(&quot;selectionChange&quot;, function (ev) {
+   Y.log(ev);
+ });
+ 
+ });
+
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="How to create a single-pane calendar with selectable dates">
+                                            <a href="calendar-simple.html">Simple Calendar with Selection</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to create a multi-pane calendar with custom-rendered cells and multiple date selection.">
+                                            <a href="calendar-multipane.html">Two-Pane Calendar with Custom Rendering and Multiple Selection</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

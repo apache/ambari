@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Basic Caching</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Basic Caching</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>The Cache Utility provides a basic caching mechanism for storing key/value pairs in local JavaScript memory.
+</div>
+
+<div class="example">
+    <style scoped>
+/* custom styles for this example */
+#demo fieldset {display:block; border:0;}
+#demo .short {width:2em;}
+</style>
+
+<form id="demo">
+    <fieldset>
+        <label for="demo_max">Cache max: <input type="text" id="demo_max" class="short" value="0"> <input type="button" id="demo_setMax" value="Set max"></label>
+        <label for="demo_setUniqueKeys">Enforce unique keys: <input type="checkbox" id="demo_setUniqueKeys"></label>
+    </fieldset>
+    <fieldset>
+        <label for="demo_expires">Data expires after: <input type="text" id="demo_expires" class="med" value="86400000"> milliseconds
+        <input type="button" id="demo_setExpires" value="Set expires"></label>
+    </fieldset>
+    <fieldset>
+        <label for="demo_addKey">Key: <input type="text" id="demo_addKey"></label>
+        <label for="demo_addValue">Value: <input type="text" id="demo_addValue"></label>
+        <input type="button" id="demo_add" value="Cache value">
+    </fieldset>
+    <fieldset>
+        <label for="demo_retrieveKey">Key: <input type="text" id="demo_retrieveKey"></label>
+        <input type="button" id="demo_retrieve" value="Retrieve value">
+    </fieldset>
+    <fieldset>
+        <input type="button" id="demo_flush" value="Flush cache"></label>
+    </fieldset>
+</form>
+
+
+
+<script>
+YUI().use("node", "datatype-number", "cache-base" ,function (Y) {
+    var cache = new Y.Cache();
+    
+    Y.on("click", function(e){
+        cache.set("max", Y.DataType.Number.parse(Y.one("#demo_max").get("value")));
+        alert("Cache max set to " + cache.get("max") + ".");
+    }, "#demo_setMax");
+    
+    Y.on("click", function(e){
+        cache.set("uniqueKeys", Y.one("#demo_setUniqueKeys").get("checked"));
+        alert("Cache uniqueKeys set to " + cache.get("uniqueKeys") + ".");
+    }, "#demo_setUniqueKeys");
+
+    Y.on("click", function(e){
+        cache.set("expires", Y.DataType.Number.parse(Y.one("#demo_expires").get("value")));
+        alert("Cache \"expires\" set to " + cache.get("expires") + ".");
+    }, "#demo_setExpires");
+
+    Y.on("click", function(e){
+        cache.add(Y.one("#demo_addKey").get("value"), Y.one("#demo_addValue").get("value"));
+        var msg = cache.get("max") ?
+            "Value cached. Cache size is now " + cache.get("size") + "." :
+            "Cache max is " + cache.get("max") + ". Value not cached."
+        alert(msg);
+    }, "#demo_add");
+
+    Y.on("click", function(e){
+        var entry = cache.retrieve(Y.one("#demo_retrieveKey").get("value")),
+            output = entry ? entry.response : "Value not cached.";
+        alert(output);
+    }, "#demo_retrieve");
+
+    Y.on("click", function(e){
+        cache.flush();
+        alert("Cache flushed.");
+    }, "#demo_flush");
+});
+</script>
+
+</div>
+
+<pre class="code prettyprint">YUI().use(&quot;cache-base&quot;, function(Y) {
+    &#x2F;&#x2F; Configure Cache maximum size, expires in the constructor
+    var cache = new Y.Cache({max:5, expires:3600000});
+
+    &#x2F;&#x2F; Add entries to the Cache
+    cache.add(&quot;key1&quot;, &quot;value1&quot;);
+    cache.add(&quot;key2&quot;, &quot;value2&quot;);
+
+    &#x2F;&#x2F; Retrieve a cached entry
+    var cachedentry = cache.retrieve(&quot;key1&quot;);
+
+    &#x2F;&#x2F; Cached entry is an object with a request property and a response property
+    alert(&quot;cached key: &quot; + cachedentry.request +
+        &quot;&#x2F;cached value: &quot; + cachedentry.response);
+
+    &#x2F;&#x2F; Flush the cache
+    cache.flush();
+});</pre>
+
+
+<h2>Complete Example Source</h2>
+
+<pre class="code prettyprint">&lt;style scoped&gt;
+&#x2F;* custom styles for this example *&#x2F;
+#demo fieldset {display:block; border:0;}
+#demo .short {width:2em;}
+&lt;&#x2F;style&gt;
+
+&lt;form id=&quot;demo&quot;&gt;
+&lt;fieldset&gt;
+    &lt;label for=&quot;demo_max&quot;&gt;Cache max: &lt;input type=&quot;text&quot; id=&quot;demo_max&quot; class=&quot;short&quot; value=&quot;0&quot;&gt; &lt;input type=&quot;button&quot; id=&quot;demo_setMax&quot; value=&quot;Set max&quot;&gt;&lt;&#x2F;label&gt;
+    &lt;label for=&quot;demo_setUniqueKeys&quot;&gt;Enforce unique keys: &lt;input type=&quot;checkbox&quot; id=&quot;demo_setUniqueKeys&quot;&gt;&lt;&#x2F;label&gt;
+&lt;&#x2F;fieldset&gt;
+&lt;fieldset&gt;
+    &lt;label for=&quot;demo_expires&quot;&gt;Data expires after: &lt;input type=&quot;text&quot; id=&quot;demo_expires&quot; class=&quot;med&quot; value=&quot;86400000&quot;&gt; milliseconds
+    &lt;input type=&quot;button&quot; id=&quot;demo_setExpires&quot; value=&quot;Set expires&quot;&gt;&lt;&#x2F;label&gt;
+&lt;&#x2F;fieldset&gt;
+&lt;fieldset&gt;
+    &lt;label for=&quot;demo_addKey&quot;&gt;Key: &lt;input type=&quot;text&quot; id=&quot;demo_addKey&quot;&gt;&lt;&#x2F;label&gt;
+    &lt;label for=&quot;demo_addValue&quot;&gt;Value: &lt;input type=&quot;text&quot; id=&quot;demo_addValue&quot;&gt;&lt;&#x2F;label&gt;
+    &lt;input type=&quot;button&quot; id=&quot;demo_add&quot; value=&quot;Cache value&quot;&gt;
+&lt;&#x2F;fieldset&gt;
+&lt;fieldset&gt;
+    &lt;label for=&quot;demo_retrieveKey&quot;&gt;Key: &lt;input type=&quot;text&quot; id=&quot;demo_retrieveKey&quot;&gt;&lt;&#x2F;label&gt;
+    &lt;input type=&quot;button&quot; id=&quot;demo_retrieve&quot; value=&quot;Retrieve value&quot;&gt;
+&lt;&#x2F;fieldset&gt;
+&lt;fieldset&gt;
+    &lt;input type=&quot;button&quot; id=&quot;demo_flush&quot; value=&quot;Flush cache&quot;&gt;&lt;&#x2F;label&gt;
+&lt;&#x2F;fieldset&gt;
+&lt;&#x2F;form&gt;
+
+
+
+&lt;script&gt;
+YUI().use(&quot;node&quot;, &quot;datatype-number&quot;, &quot;cache-base&quot; ,function (Y) {
+var cache = new Y.Cache();
+
+Y.on(&quot;click&quot;, function(e){
+    cache.set(&quot;max&quot;, Y.DataType.Number.parse(Y.one(&quot;#demo_max&quot;).get(&quot;value&quot;)));
+    alert(&quot;Cache max set to &quot; + cache.get(&quot;max&quot;) + &quot;.&quot;);
+}, &quot;#demo_setMax&quot;);
+
+Y.on(&quot;click&quot;, function(e){
+    cache.set(&quot;uniqueKeys&quot;, Y.one(&quot;#demo_setUniqueKeys&quot;).get(&quot;checked&quot;));
+    alert(&quot;Cache uniqueKeys set to &quot; + cache.get(&quot;uniqueKeys&quot;) + &quot;.&quot;);
+}, &quot;#demo_setUniqueKeys&quot;);
+
+Y.on(&quot;click&quot;, function(e){
+    cache.set(&quot;expires&quot;, Y.DataType.Number.parse(Y.one(&quot;#demo_expires&quot;).get(&quot;value&quot;)));
+    alert(&quot;Cache \&quot;expires\&quot; set to &quot; + cache.get(&quot;expires&quot;) + &quot;.&quot;);
+}, &quot;#demo_setExpires&quot;);
+
+Y.on(&quot;click&quot;, function(e){
+    cache.add(Y.one(&quot;#demo_addKey&quot;).get(&quot;value&quot;), Y.one(&quot;#demo_addValue&quot;).get(&quot;value&quot;));
+    var msg = cache.get(&quot;max&quot;) ?
+        &quot;Value cached. Cache size is now &quot; + cache.get(&quot;size&quot;) + &quot;.&quot; :
+        &quot;Cache max is &quot; + cache.get(&quot;max&quot;) + &quot;. Value not cached.&quot;
+    alert(msg);
+}, &quot;#demo_add&quot;);
+
+Y.on(&quot;click&quot;, function(e){
+    var entry = cache.retrieve(Y.one(&quot;#demo_retrieveKey&quot;).get(&quot;value&quot;)),
+        output = entry ? entry.response : &quot;Value not cached.&quot;;
+    alert(output);
+}, &quot;#demo_retrieve&quot;);
+
+Y.on(&quot;click&quot;, function(e){
+    cache.flush();
+    alert(&quot;Cache flushed.&quot;);
+}, &quot;#demo_flush&quot;);
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Basic caching functionality with the Cache Utility.">
+                                            <a href="cache-basic.html">Basic Caching</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Offline caching implements HTML 5 localStorage when available, to allow data to persist across browser sessions.">
+                                            <a href="cache-offline.html">Offline Caching</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Use the DataSourceCache plugin to enable caching and reduce server calls to remote sources.">
+                                            <a href="../datasource/datasource-caching.html">DataSource with Caching</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The DataSourceCache plugin supports offline caching so that cached data persists across browser sessions.">
+                                            <a href="../datasource/datasource-offlinecache.html">DataSource with Offline Cache</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

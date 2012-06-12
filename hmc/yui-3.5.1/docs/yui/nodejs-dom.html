@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: YUI, Node.js and DOM</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: YUI, Node.js and DOM</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>YUI does not come with Server Side DOM support out of the box, but you can still use one.
+    This example will show you one way to accomplish this task.</p>
+</div>
+
+<h2 id="installing-the-packages">Installing the packages</h2>
+
+<p>This example uses the <a href="https://github.com/tmpvar/jsdom">JSDom</a> npm package, 
+but theortically YUI can be used with any valid DOM.</p>
+
+<pre class="code terminal">npm install yui jsdom</pre>
+
+
+<h2 id="setup-the-dom">Setup the DOM</h2>
+
+<p>JSDom has many useful features and some that are a little on the edge, luckily it's highly configurable.</p>
+<p>Here we will <code>require</code> jsdom, configure it to our liking and 
+then create the <code>window</code> and <code>document</code> references that we will later give to our YUI instance.</p>
+
+<pre class="code prettyprint">#!&#x2F;usr&#x2F;bin&#x2F;env node
+
+    var jsdom = require(&#x27;jsdom&#x27;);
+
+    &#x2F;&#x2F;Turn off all the things we don&#x27;t want.
+    jsdom.defaultDocumentFeatures = {
+        &#x2F;&#x2F;Don&#x27;t bring in outside resources
+        FetchExternalResources   : false,
+        &#x2F;&#x2F;Don&#x27;t process them
+        ProcessExternalResources : false,
+        &#x2F;&#x2F;Don&#x27;t expose Mutation events (for performance)
+        MutationEvents           : false,
+        &#x2F;&#x2F;Do not use their implementation of QSA
+        QuerySelector            : false
+    };
+    
+    var dom = jsdom.defaultLevel;
+    &#x2F;&#x2F;Hack in focus and blur methods so they don&#x27;t fail when a YUI widget calls them
+    dom.Element.prototype.blur = function() {};
+    dom.Element.prototype.focus = function() {};
+
+
+    &#x2F;&#x2F;Create the document and window
+    var document = jsdom.jsdom(&quot;&lt;html&gt;&lt;head&gt;&lt;title&gt;&lt;&#x2F;title&gt;&lt;&#x2F;head&gt;&lt;body&gt;&lt;h1&gt;Hello YUI!&lt;&#x2F;h1&gt;&lt;&#x2F;body&gt;&lt;&#x2F;html&gt;&quot;),
+    window = document.createWindow();</pre>
+
+
+<h2 id="applying-this-dom-to-a-yui-instance">Applying this DOM to a YUI instance</h2>
+
+<p>Using the references to <code>window</code> and <code>document</code> from the above snippet, you
+just pass them to the YUI constructor as the <code>win</code> and <code>doc</code> properties.</p>
+
+<pre class="code prettyprint">YUI({
+    win: window,
+    doc: document
+}).use(&#x27;node&#x27;, function(Y) {
+    
+    Y.one(&#x27;title&#x27;).setContent(&#x27;YUI Server Side DOM&#x27;);
+    console.log(Y.one(&#x27;doc&#x27;).get(&#x27;outerHTML&#x27;));
+
+});</pre>
+
+
+<p>This will output this:</p>
+
+<pre class="code prettyprint">&lt;html style=&quot;&quot;&gt;
+  &lt;head&gt;
+    &lt;title&gt;YUI Server Side DOM&lt;&#x2F;title&gt;
+  &lt;&#x2F;head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Hello YUI!&lt;&#x2F;h1&gt;
+  &lt;&#x2F;body&gt;
+&lt;&#x2F;html&gt;</pre>
+
+
+<h2 id="rendering-a-widget-full-source">Rendering a widget (Full Source)</h2>
+
+<p>In this example, we will render a <code>TabView</code> in Node.js and print the <code>document</code> to the screen:</p>
+
+<pre class="code prettyprint">#!&#x2F;usr&#x2F;bin&#x2F;env node
+
+    var jsdom = require(&#x27;jsdom&#x27;);
+
+    &#x2F;&#x2F;Turn off all the things we don&#x27;t want.
+    jsdom.defaultDocumentFeatures = {
+      FetchExternalResources   : false,
+      ProcessExternalResources : false,
+      MutationEvents           : false,
+      QuerySelector            : false
+    };
+    
+    var dom = jsdom.defaultLevel;
+    &#x2F;&#x2F;Hack in focus and blur methods so they don&#x27;t fail
+    dom.Element.prototype.blur = function() {};
+    dom.Element.prototype.focus = function() {};
+
+
+    &#x2F;&#x2F;Create the document and window
+    var document = jsdom.jsdom(&quot;&lt;html&gt;&lt;head&gt;&lt;title&gt;&lt;&#x2F;title&gt;&lt;&#x2F;head&gt;&lt;body&gt;&lt;h1&gt;Hello YUI!&lt;&#x2F;h1&gt;&lt;&#x2F;body&gt;&lt;&#x2F;html&gt;&quot;),
+    window = document.createWindow();
+
+
+var YUI = require(&#x27;yui&#x27;).YUI;
+
+YUI({
+    win: window,
+    doc: document
+}).use(&#x27;tabview&#x27;, function(Y) {
+
+    Y.one(&#x27;title&#x27;).setContent(&#x27;YUI Server Side DOM&#x27;);
+
+    Y.one(&#x27;body&#x27;).append(&#x27;&lt;div id=&quot;demo&quot;&gt;&lt;&#x2F;div&gt;&#x27;);
+    
+    Y.log(&#x27;Creating the TabView from script..&#x27;);
+
+    var tabview = new Y.TabView({
+        children: [{
+            label: &#x27;foo&#x27;,
+            content: &#x27;&lt;p&gt;foo content&lt;&#x2F;p&gt;&#x27;
+        }, {
+            label: &#x27;bar&#x27;,
+            content: &#x27;&lt;p&gt;bar content&lt;&#x2F;p&gt;&#x27;
+        }, {
+            label: &#x27;baz&#x27;,
+            content: &#x27;&lt;p&gt;baz content&lt;&#x2F;p&gt;&#x27;
+        }]
+    });
+
+    Y.log(&#x27;Rendering..&#x27;);
+    tabview.render(&#x27;#demo&#x27;);
+
+    console.log(Y.one(&#x27;doc&#x27;).get(&#x27;outerHTML&#x27;));
+});</pre>
+
+
+<p>The above script will output this:</p>
+
+<pre class="code prettyprint">&lt;html style=&quot;&quot;&gt;
+  &lt;head&gt;
+    &lt;title&gt;YUI Server Side DOM&lt;&#x2F;title&gt;
+  &lt;&#x2F;head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Hello YUI!&lt;&#x2F;h1&gt;
+    &lt;div id=&quot;demo&quot;&gt;
+      &lt;div id=&quot;yui_3_3_0_1_1326472765944_13&quot; class=&quot;yui3-widget yui3-tabview&quot; style=&quot;&quot;&gt;
+        &lt;div id=&quot;yui_3_3_0_1_1326472765944_15&quot; class=&quot;yui3-tabview-content&quot;&gt;
+          &lt;ul class=&quot;yui3-tabview-list&quot;&gt;
+            &lt;li class=&quot;yui3-tab yui3-widget yui3-tab-selected&quot; id=&quot;yui_3_3_0_1_1326472765944_41&quot; role=&quot;presentation&quot; style=&quot;&quot;&gt;
+              &lt;a class=&quot;yui3-tab-label yui3-tab-content&quot; id=&quot;yui_3_3_0_1_1326472765944_43&quot; role=&quot;tab&quot;&gt;foo&lt;&#x2F;a&gt;
+            &lt;&#x2F;li&gt;
+            &lt;li class=&quot;yui3-tab yui3-widget&quot; id=&quot;yui_3_3_0_1_1326472765944_63&quot; role=&quot;presentation&quot; style=&quot;&quot;&gt;
+              &lt;a class=&quot;yui3-tab-label yui3-tab-content&quot; id=&quot;yui_3_3_0_1_1326472765944_65&quot; role=&quot;tab&quot; tabindex=&quot;-1&quot;&gt;bar&lt;&#x2F;a&gt;
+            &lt;&#x2F;li&gt;
+            &lt;li class=&quot;yui3-tab yui3-widget&quot; id=&quot;yui_3_3_0_1_1326472765944_83&quot; role=&quot;presentation&quot; style=&quot;&quot;&gt;
+              &lt;a class=&quot;yui3-tab-label yui3-tab-content&quot; id=&quot;yui_3_3_0_1_1326472765944_85&quot; role=&quot;tab&quot; tabindex=&quot;-1&quot;&gt;baz&lt;&#x2F;a&gt;
+            &lt;&#x2F;li&gt;
+          &lt;&#x2F;ul&gt;
+          &lt;div class=&quot;yui3-tabview-panel&quot;&gt;
+            &lt;div class=&quot;yui3-tab-panel yui3-tab-panel-selected&quot; role=&quot;tabpanel&quot; aria-labelledby=&quot;yui_3_3_0_1_1326472765944_43&quot;&gt;
+              &lt;p&gt;foo content&lt;&#x2F;p&gt;
+            &lt;&#x2F;div&gt;
+            &lt;div class=&quot;yui3-tab-panel&quot; role=&quot;tabpanel&quot; aria-labelledby=&quot;yui_3_3_0_1_1326472765944_65&quot;&gt;
+              &lt;p&gt;bar content&lt;&#x2F;p&gt;
+            &lt;&#x2F;div&gt;
+            &lt;div class=&quot;yui3-tab-panel&quot; role=&quot;tabpanel&quot; aria-labelledby=&quot;yui_3_3_0_1_1326472765944_85&quot;&gt;
+              &lt;p&gt;baz content&lt;&#x2F;p&gt;
+            &lt;&#x2F;div&gt;
+          &lt;&#x2F;div&gt;
+        &lt;&#x2F;div&gt;
+      &lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+  &lt;&#x2F;body&gt;
+&lt;&#x2F;html&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#installing-the-packages">Installing the packages</a>
+</li>
+<li>
+<a href="#setup-the-dom">Setup the DOM</a>
+</li>
+<li>
+<a href="#applying-this-dom-to-a-yui-instance">Applying this DOM to a YUI instance</a>
+</li>
+<li>
+<a href="#rendering-a-widget-full-source">Rendering a widget (Full Source)</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Using YUI with a DOM in Node.js">
+                                            <a href="nodejs-dom.html">YUI, Node.js and DOM</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Packaging a YUI script with npm">
+                                            <a href="nodejs-package.html">Packaging a YUI script with npm</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using Y.io in Node.js">
+                                            <a href="nodejs-io.html">Using Y.io in Node.js</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

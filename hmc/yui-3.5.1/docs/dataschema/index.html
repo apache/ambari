@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>DataSchema</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>DataSchema</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>
+        The DataSchema Utility applies a given schema against data of arbitrary
+        formats, normalizing input such as JSON, XML, or delimited text into a
+        JavaScript object with known properties. The value of the DataSchema
+        Utility is in its ability to translate data from a variety of sources
+        into a consistent format for consumption by components in a predictable
+        manner.
+    </p>
+</div>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for DataSchema and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;dataschema&#x27;, function (Y) {
+    &#x2F;&#x2F; DataSchema is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+
+<h2 id="using">Using the DataSchema</h2>
+
+<p>This section describes how to use the DataSchema in further detail.</p>
+
+<h3 id="basics">DataSchema basics</h3>
+
+<p>
+    DataSchema classes are standalone static utilities that accept data input
+    plus a schema definition and return a JavaScript object with the following
+    properties:
+</p>
+
+<table>
+<thead>
+    <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+        <td><code>results</code></td>
+        <td>Array</td>
+        <td>An array of data.</td>
+    </tr>
+    <tr>
+        <td><code>meta</code></td>
+        <td>Object</td>
+        <td>Arbitrary data values filtered from the input data.</td>
+    </tr>
+</tbody>
+</table>
+
+<p>
+    Note that the schema you define will depend on which subclass of DataSchema
+    is being used.
+</p>
+
+<h4 id="array">DataSchema.Array</h4>
+
+<p>
+    Use DataSchema.Array when working with JavaScript arrays. These arrays may
+    contain JavaScript objects, other arrays, or primitive values.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; A sample array of objects
+[
+    {make:&quot;Chevrolet&quot;,model:&quot;Bel Air&quot;,year:1957},
+    {make:&quot;Dodge&quot;,model:&quot;Dart&quot;,year:1964},
+    {make:&quot;Ford&quot;,model:&quot;Mustang&quot;,year:1968}
+];
+
+&#x2F;&#x2F; A sample array of arrays
+[
+    [&quot;Chevrolet&quot;, &quot;Bel Air&quot;, 1957],
+    [&quot;Dodge&quot;, &quot;Dart&quot;, 1964],
+    [&quot;Ford&quot;, &quot;Mustang&quot;, 1968]
+];
+
+&#x2F;&#x2F; A sample array of primitives
+[
+    &quot;1957 Chevrolet Bel Air&quot;, &quot;1964 Dodge Dart&quot;, &quot;1968 Ford Mustang&quot;
+];</pre>
+
+
+<p>Define a schema with the following properties for your array data:</p>
+
+<table>
+<thead>
+    <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+        <td><code>resultFields</code></td>
+        <td>Array</td>
+        <td>Keys to assign to the values contained in the array.</td>
+    </tr>
+</tbody>
+</table>
+
+<pre class="code prettyprint">var mySchema = {
+        resultFields: [{key:&quot;make&quot;}, {key:&quot;model&quot;}, {key:&quot;year&quot;}]
+};
+
+&#x2F;&#x2F; Returns an object with the properties &quot;results&quot; and &quot;meta&quot;
+var myOutput = Y.DataSchema.Array.apply(mySchema, myData);</pre>
+
+
+<h4 id="json">DataSchema.JSON</h4>
+
+<p>
+    Use DataSchema.JSON when working with JavaScript objects or JSON data.
+    Typically, your data will hold meta values as well as an internal array of
+    tabular data.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Sample JSON data
+{
+    &quot;profile&quot;:{
+        &quot;current&quot;:160,
+        &quot;target&quot;:150
+    },
+    &quot;program&quot;: [
+        {
+            &quot;category&quot;:&quot;exercise&quot;,
+            &quot;weekly schedule&quot;:[
+                {&quot;day&quot;:&quot;sunday&quot;, &quot;activity&quot;:&quot;swimming&quot;},
+                {&quot;day&quot;:&quot;monday&quot;, &quot;activity&quot;:&quot;running&quot;},
+                {&quot;day&quot;:&quot;tuesday&quot;, &quot;activity&quot;:&quot;biking&quot;},
+                {&quot;day&quot;:&quot;wednesday&quot;, &quot;activity&quot;:&quot;running&quot;},
+                {&quot;day&quot;:&quot;thursday&quot;, &quot;activity&quot;:&quot;swimming&quot;},
+                {&quot;day&quot;:&quot;friday&quot;, &quot;activity&quot;:&quot;running&quot;},
+                {&quot;day&quot;:&quot;saturday&quot;, &quot;activity&quot;:&quot;golf&quot;}
+            ]
+        }
+    ]
+};</pre>
+
+
+<p>
+    Locators are string values in your schema that use dot notation or bracket
+    syntax to point to data values within the object. Define a schema with the
+    following properties for your object data:
+</p>
+
+<table>
+<thead>
+    <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+        <td><code>metaFields</code></td>
+        <td>Object</td>
+        <td>Key/locator pairs that point to arbitrary data values.</td>
+    </tr>
+    <tr>
+        <td><code>resultListLocator</code></td>
+        <td>String</td>
+        <td>Locator to an internal array of tabular data.</td>
+    </tr>
+    <tr>
+        <td><code>resultFields</code></td>
+        <td>Array</td>
+        <td>Keys to assign to the values contained in the array.</td>
+    </tr>
+</tbody>
+</table>
+
+<pre class="code prettyprint">var mySchema = {
+    metaFields: {current:&quot;profile.current&quot;, target:&quot;profile.target&quot;},
+    resultListLocator: &quot;program[0][&#x27;weekly schedule&#x27;]&quot;,
+    resultFields: [{key:&quot;day&quot;}, {key:&quot;activity&quot;}]
+};
+
+&#x2F;&#x2F; Returns an object with the properties &quot;results&quot; and &quot;meta&quot;
+var myOutput = Y.DataSchema.JSON.apply(mySchema, myData);</pre>
+
+
+<h4 id="xml">DataSchema.XML</h4>
+
+<p>
+    <strong>Note:</strong> XML parsing currently has known issues on the
+    Android WebKit browser.
+</p>
+
+<p>
+    Use DataSchema.XML when working with XML data. As with JSON data, your XML
+    data may hold meta values as well as an internal node list of tabular
+    data.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Sample XML data
+&lt;Response&gt;
+    &lt;Session&gt;542235629&lt;&#x2F;Session&gt;
+    &lt;Tracks start=&quot;1&quot; count=&quot;10&quot; total=&quot;98&quot; errorCount=&quot;0&quot;
+        defaultSort=&quot;popularity+&quot; description=&quot;Top 100 Tracks&quot;
+        name=&quot;Top 100 Tracks&quot;&gt;
+        &lt;Track id=&quot;59672468&quot; rating=&quot;-1&quot; title=&quot;I Kissed A Girl&quot;&gt;
+            &lt;Artist id=&quot;30326214&quot; rating=&quot;-1&quot;&gt;Katy Perry&lt;&#x2F;Artist&gt;
+            &lt;ItemInfo&gt;&lt;ChartPosition last=&quot;26&quot; this=&quot;1&quot;&#x2F;&gt;&lt;&#x2F;ItemInfo&gt;
+        &lt;&#x2F;Track&gt;
+        &lt;Track id=&quot;47973564&quot; rating=&quot;-1&quot; title=&quot;Shake It&quot;&gt;
+            &lt;Artist id=&quot;45575683&quot; rating=&quot;-1&quot;&gt;Metro Station&lt;&#x2F;Artist&gt;
+            &lt;ItemInfo&gt;&lt;ChartPosition last=&quot;27&quot; this=&quot;2&quot;&#x2F;&gt;&lt;&#x2F;ItemInfo&gt;
+        &lt;&#x2F;Track&gt;
+        &lt;Track id=&quot;52207363&quot; rating=&quot;-1&quot; title=&quot;Bleeding Love&quot;&gt;
+            &lt;Artist id=&quot;37956508&quot; rating=&quot;-1&quot;&gt;Leona Lewis&lt;&#x2F;Artist&gt;
+            &lt;ItemInfo&gt;&lt;ChartPosition last=&quot;28&quot; this=&quot;3&quot;&#x2F;&gt;&lt;&#x2F;ItemInfo&gt;
+        &lt;&#x2F;Track&gt;
+    &lt;&#x2F;Tracks&gt;
+&lt;&#x2F;Response&gt;</pre>
+
+
+<p>
+    Locators are XPath string values in your schema that point to data values
+    within the XML. Define a schema with the following properties for your XML
+    data:
+</p>
+
+<table>
+<thead>
+    <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+        <td><code>metaFields</code></td>
+        <td>Object</td>
+        <td>Key/locator pairs that point to arbitrary data values.</td>
+    </tr>
+    <tr>
+        <td><code>resultListLocator</code></td>
+        <td>String</td>
+        <td>Locator to an internal node list of tabular data.</td>
+    </tr>
+    <tr>
+        <td><code>resultFields</code></td>
+        <td>Array</td>
+        <td>Keys to assign to the values contained in the array. Locators may be defined to point to complex nested values or values held in attributes.</td>
+    </tr>
+</tbody>
+</table>
+
+<pre class="code prettyprint">var mySchema = {
+    metaFields: {session:&quot;&#x2F;&#x2F;Session&quot;, total:&quot;&#x2F;&#x2F;Tracks&#x2F;@total&quot;},
+    resultListLocator: &quot;Track&quot;, &#x2F;&#x2F; node name or XPath
+    resultFields: [{key:&quot;song&quot;, locator:&quot;@title&quot;}, {key:&quot;artist&quot;, locator:&quot;Artist&quot;}, {key:&quot;rank&quot;, locator:&quot;ItemInfo&#x2F;ChartPosition&#x2F;@this&quot;}]
+};
+
+&#x2F;&#x2F; Returns an object with the properties &quot;results&quot; and &quot;meta&quot;
+var myOutput = Y.DataSchema.XML.apply(mySchema, myData);</pre>
+
+
+<h4 id="text">DataSchema.Text</h4>
+
+<p>
+    Use DataSchema.Text when working with delimited textual data. Typically,
+    your data will not contain meta values.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Sample text data
+notebooks, 100, spiral-bound
+pencils, 300, #2 erasers
+pens, 500, blue ink</pre>
+
+
+<p>Define a schema with the following properties for your text data:</p>
+
+<table>
+<thead>
+    <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+        <td><code>resultDelimiter</code></td>
+        <td>String</td>
+        <td>Delimiter separating each row of tabular data</td>
+    </tr>
+    <tr>
+        <td><code>fieldDelimiter</code></td>
+        <td>String</td>
+        <td>Delimiter separating each column of tabular data</td>
+    </tr>
+    <tr>
+        <td><code>resultFields</code></td>
+        <td>Array</td>
+        <td>Keys to assign to the values contained in each field (column).</td>
+    </tr>
+</tbody>
+</table>
+
+<pre class="code prettyprint">var mySchema = {
+    resultDelimiter: &quot;\\n&quot;,
+    fieldDelimiter: &quot;,&quot;,
+    resultFields: [{key:&quot;product&quot;}, {key:&quot;quantity&quot;}, {key:&quot;detail&quot;}];
+
+&#x2F;&#x2F; Returns an object with the properties &quot;results&quot; and &quot;meta&quot;
+var myOutput = Y.DataSchema.Text.apply(mySchema, myData);</pre>
+
+
+<h3 id="plugin">DataSchema as a DataSource plugin</h3>
+
+<p>
+    DataSchema plugins integrate DataSource's retrieval functionality with
+    schema-based normalization of the retrieved data for further consumption by
+    another component. There are currently four available DataSource plugins:
+    DataSourceArraySchema, DataSourceJSONSchema, DataSourceXMLSchema, and
+    DataSourceTextSchema.
+</p>
+
+<pre class="code prettyprint">myDataSource.plug({fn: Y.Plugin.DataSourceJSONSchema, cfg: {
+    schema: {
+        resultListLocator: &quot;ResultSet.Result&quot;,
+        resultFields: [&quot;Title&quot;]
+    }
+}});
+
+&#x2F;&#x2F; myCallback functions will receive the schema-normalized response object
+myDataSource.sendRequest({
+    request: myRequest,
+    callback: myCallback
+});</pre>
+
+
+<h2 id="knownissues">Known Issues</h2>
+
+<p>
+    <strong>Known Android issues (bugs 2529621, 2529758, 2529775):</strong> XML
+    parsing is currently buggy on the Android WebKit browser.
+</p>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+</li>
+<li>
+<a href="#using">Using the DataSchema</a>
+<ul class="toc">
+<li>
+<a href="#basics">DataSchema basics</a>
+<ul class="toc">
+<li>
+<a href="#array">DataSchema.Array</a>
+</li>
+<li>
+<a href="#json">DataSchema.JSON</a>
+</li>
+<li>
+<a href="#xml">DataSchema.XML</a>
+</li>
+<li>
+<a href="#text">DataSchema.Text</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#plugin">DataSchema as a DataSource plugin</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#knownissues">Known Issues</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Schema parsing a JavaScript array.">
+                                            <a href="dataschema-array.html">DataSchema.Array</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Schema parsing JSON data.">
+                                            <a href="dataschema-json.html">DataSchema.JSON</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Schema parsing XML data.">
+                                            <a href="dataschema-xml.html">DataSchema.XML for XML Data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Schema parsing data held in TABLE elements.">
+                                            <a href="dataschema-table.html">DataSchema.XML for HTML Tables</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Schema parsing delimited plain-text data.">
+                                            <a href="dataschema-text.html">DataSchema.Text</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Parsing data into specified types as the schema is being applied.">
+                                            <a href="dataschema-parsing.html">Enforcing DataTypes</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="The Local DataSource manages retrieval of in-page data, from JavaScript arrays and objects to DOM elements.">
+                                            <a href="../datasource/datasource-local.html">DataSource.Local</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The Get DataSource, which manages retrieval of data from remote sources via the Get Utility, can be useful for accessing data from cross-domain servers without the need for a proxy.">
+                                            <a href="../datasource/datasource-get.html">DataSource.Get</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The IO DataSource manages retrieval of data from remote sources, via the IO Utility.">
+                                            <a href="../datasource/datasource-io.html">DataSource.IO</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The Function DataSource, which manages retrieval of data from a JavaScript function, provides a highly customizeable mechanism for implementer-defined data retrieval algorithms">
+                                            <a href="../datasource/datasource-function.html">DataSource.Function</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use the DataSourceCache plugin to enable caching and reduce server calls to remote sources.">
+                                            <a href="../datasource/datasource-caching.html">DataSource with Caching</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The DataSourceCache plugin supports offline caching so that cached data persists across browser sessions.">
+                                            <a href="../datasource/datasource-offlinecache.html">DataSource with Offline Cache</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

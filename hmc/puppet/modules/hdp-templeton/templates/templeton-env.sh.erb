@@ -1,0 +1,16 @@
+# The file containing the running pid
+PID_FILE=<%=scope.function_hdp_template_var("templeton_pid_dir")%>/templeton.pid
+
+TEMPLETON_LOG_DIR=<%=scope.function_hdp_template_var("templeton_log_dir")%>/
+
+# The console error log
+ERROR_LOG=<%=scope.function_hdp_template_var("templeton_log_dir")%>/templeton-console-error.log
+
+# The console log
+CONSOLE_LOG=<%=scope.function_hdp_template_var("templeton_log_dir")%>/templeton-console.log
+
+TEMPLETON_JAR=<%=scope.function_hdp_template_var("templeton_jar_name")%>
+
+HADOOP_PREFIX=<%=scope.function_hdp_template_var("hadoop_prefix")%>/
+
+HCAT_PREFIX=<%=scope.function_hdp_template_var("hive_prefix")%>/

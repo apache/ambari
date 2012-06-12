@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: DataType.XML.parse()</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: DataType.XML.parse()</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+/* custom styles for this example */
+#demo input, #demo label {display:block;}
+#demo fieldset {margin:1em;}
+#demo textarea {width:40em;height:8em;}
+</style>
+
+<div class="intro">
+    <p>The XML module of the DataType Utility allows you to take a string and convert it to an XML document.</p>
+</div>
+
+<div class="example yui3-skin-sam">
+    <form id="demo">
+    <fieldset>
+        <label for="demo_input">String to parse:</label>
+        <textarea type="text" id="demo_input"><myroot><item type='foo'><name>Abc</name><rank>1</rank></item><item type='bar'><name>Def</name><rank>2</rank></item><item type='bat'><name>Ghi</name><rank>3</rank></item></myroot></textarea>
+        <input type="button" id="demo_btn" value="Alert node type of parsed output">
+    </fieldset>
+</form>
+
+<script>
+YUI().use("node", "datatype-xml", function (Y) {
+    Y.on("click", function(e){
+        var input = Y.one("#demo_input").get("value"),
+            output = Y.DataType.XML.parse(input);
+                
+        if(output === "") {
+            output += "(Invalid value)"
+        }
+        
+        alert("node type: " + output.nodeType);
+    }, "#demo_btn");
+});
+</script>
+
+</div>
+
+<p>To convert a string to an XML document, simply call the <code>parse()</code> function of the DataType.XML class:</p>
+
+<pre class="code prettyprint">YUI().use(&quot;datatype-xml&quot;, function(Y) {
+    var output = Y.DataType.XML.parse(&quot;&lt;myroot&gt;&lt;item type=&#x27;foo&#x27;&gt;&lt;name&gt;Abc&lt;&#x2F;name&gt;&lt;rank&gt;1&lt;&#x2F;rank&gt;&lt;&#x2F;item&gt;&lt;item type=&#x27;bar&#x27;&gt;&lt;name&gt;Def&lt;&#x2F;name&gt;&lt;rank&gt;2&lt;&#x2F;rank&gt;&lt;&#x2F;item&gt;&lt;item type=&#x27;bat&#x27;&gt;&lt;name&gt;Ghi&lt;&#x2F;name&gt;&lt;rank&gt;3&lt;&#x2F;rank&gt;&lt;&#x2F;item&gt;&lt;&#x2F;myroot&gt;&quot;);
+    &#x2F;&#x2F; output is an XML document
+});</pre>
+
+
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Formatting dates into strings using pre-packaged language resource bundles.">
+                                            <a href="datatype-dateformat-lang.html">Formatting Dates Using Language Resource Bundles</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Parsing data into dates.">
+                                            <a href="datatype-dateparse.html">DataType.Date.parse()</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Formatting numbers into strings.">
+                                            <a href="datatype-numberformat.html">DataType.Number.format()</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Parsing data into numbers.">
+                                            <a href="datatype-numberparse.html">DataType.Number.parse()</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Formatting XML documents into strings.">
+                                            <a href="datatype-xmlformat.html">DataType.XML.format()</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Parsing strings into XML documents.">
+                                            <a href="datatype-xmlparse.html">DataType.XML.parse()</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Using DataTable&#x27;s recordType attribute to create calculated, sortable columns.">
+                                            <a href="../datatable/datatable-recordtype.html">Sortable generated columns</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

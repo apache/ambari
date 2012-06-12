@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: YUI Core</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: YUI Core</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+<p>This example shows how to use the core of YUI.</p>
+</div>
+
+<div class="example">
+    <style>
+.example {
+    position: relative;
+    font-family: georgia;
+    height: 260px;
+}
+.example p {
+    margin: 0;
+}
+.example .count {
+    font-size: 250%;
+    display: inline-block;
+    line-height: 0.8em;
+    zoom: 1; *display: inline; /* IE < 8: fake inline-block */
+    width: 0.6em;
+    vertical-align: baseline;
+    font-family: verdana;
+}
+.example em {
+    font-size: 170%;
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(110, 132, 57, 0.75);
+    display: block;
+    font-style: normal;
+}
+.example .fruit {
+    position: absolute;
+    top: 21px;
+    left: 200px;
+    border: solid 3px #000;
+    background-color: #F4EBE2;
+    -moz-border-radius: 20px;
+    -webkit-border-radius: 20px;
+    border-radius: 20px;
+    padding: 0.6em 0.6em 0.9em;
+    text-align: center;
+    box-shadow: 3px 4px 10px rgba(0, 0, 0, 0.3);
+    font-size: 125%;
+}
+.example .changer {
+    left: 464px;    
+}
+.example .fruit img {
+    position: absolute;
+    top: 35px;
+    left: -202px;
+}
+</style>
+
+    <div class='fruit'>
+        <div class="speech">We're twins<br>
+            for <div class="count">5</div> sec.
+        </div>
+        <img src="../assets/yui/images/apple.png" width="221" height="225"/>
+    </div>
+    <div class='fruit changer'>
+        <div class="speech">We're twins<br>
+            for <div class="count">5</div> sec.
+        </div>
+        <img src="../assets/yui/images/apple.png" width="221" height="225"/>
+    </div>
+
+<script>
+YUI().use('node', function(Y) {
+    var count = 6, // seconds for timer count down
+        changer = Y.one('.changer'), // just the node to change
+        counters = Y.all('.fruit .count'); // counter numbers on both fruits 
+        
+    var doChange = function(){
+        count -= 1;  // decrement the seconds count
+        counters.setContent(count); // update the number of seconds by setting the contents of the node
+        
+        // when it gets to 0 seconds, make changes to just the node with class "changer"
+        if(count < 1){
+            // set the "src" attribute of one image to an orange
+            Y.one('.changer img').setAttribute('src', '../assets/yui/images/orange.png');
+            
+            // change the contents of one speech bubble 
+            Y.one('.changer .speech').setContent("No, I'm from <em>Florida!</em>");
+            
+            // change several styles together
+            changer.setStyles({
+                fontSize: '150%',
+                color: '#EA6500',
+                backgroundColor: '#FFD7AA'
+            });
+            return; // bypass the setTimeout and don't call the function again
+        }
+        setTimeout(doChange, 1000);
+    }
+    doChange();
+});
+
+</script>
+
+
+</div>
+
+<h3 id="setting-up-the-yui-instance">Setting up the YUI Instance</h3>
+<p>Here we will create our <code>YUI</code> instance, loading <code>node</code> so we can work with DOM elements in the example.</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;node&#x27;, ...</pre>
+
+
+<h3 id="using-the-callback">Using the callback</h3>
+<p>The <code>use</code> method will dynamically fetch anything required for <code>Node</code> if it isn't already on the page.
+If dynamic loading is required, the last parameter supplied to <code>use</code> should be a function to execute when
+the load is complete.  This function will be executed whether or not dynamic loading is required, so it
+is the preferred pattern for using <code>YUI</code>.</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;node&#x27;, function(Y) ...</pre>
+
+
+<p>
+The function is supplied a reference to the <code>YUI</code> instance, so we can wrap all of our implementation code inside of
+the <code>use</code> statement without saving an external reference to the instance somewhere else.
+</p>
+<p>
+Now that we know all of the modules are loaded, we can use <code>Node</code> 
+to update DOM nodes in many ways.
+Here's a simplified version of the fruit example above.
+</p>
+<style>
+.example-simple{
+    height: 30px;
+}
+.example-simple span{
+    padding: 0.3em;
+    margin: 0.3em;
+}
+</style>
+
+<div class="example example-simple">
+    <span>
+        Box 1
+    </span>
+    
+    <span class="bob">
+        Box 2
+    </span>
+
+<script>
+    YUI().use('node', function(Y){
+        // change the style of just the DOM node with the class "bob"
+        Y.one('.bob').setStyle('backgroundColor', '#FFD7AA');
+    });
+</script>
+
+</div>
+
+
+<pre class="code prettyprint">&lt;span&gt;
+    Box 1
+&lt;&#x2F;span&gt;
+
+&lt;span class=&quot;bob&quot;&gt;
+    Box 2
+&lt;&#x2F;span&gt;
+
+&lt;script&gt;
+YUI().use(&#x27;node&#x27;, function(Y){
+    &#x2F;&#x2F; change the style of just the DOM node with the class &quot;bob&quot;
+    Y.one(&#x27;.bob&#x27;).setStyle(&#x27;backgroundColor&#x27;, &#x27;#FFD7AA&#x27;);
+});
+&lt;&#x2F;script&gt;</pre>
+
+<p>
+
+</p>
+
+<h3 id="full-source">Full Source</h3>
+<p>
+Here's the full source of the fruit example.
+</p>
+
+<pre class="code prettyprint">&lt;style&gt;
+.example {
+    position: relative;
+    font-family: georgia;
+    height: 260px;
+}
+.example p {
+    margin: 0;
+}
+.example .count {
+    font-size: 250%;
+    display: inline-block;
+    line-height: 0.8em;
+    zoom: 1; *display: inline; &#x2F;* IE &lt; 8: fake inline-block *&#x2F;
+    width: 0.6em;
+    vertical-align: baseline;
+    font-family: verdana;
+}
+.example em {
+    font-size: 170%;
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(110, 132, 57, 0.75);
+    display: block;
+    font-style: normal;
+}
+.example .fruit {
+    position: absolute;
+    top: 21px;
+    left: 200px;
+    border: solid 3px #000;
+    background-color: #F4EBE2;
+    -moz-border-radius: 20px;
+    -webkit-border-radius: 20px;
+    border-radius: 20px;
+    padding: 0.6em 0.6em 0.9em;
+    text-align: center;
+    box-shadow: 3px 4px 10px rgba(0, 0, 0, 0.3);
+    font-size: 125%;
+}
+.example .changer {
+    left: 464px;    
+}
+.example .fruit img {
+    position: absolute;
+    top: 35px;
+    left: -202px;
+}
+&lt;&#x2F;style&gt;
+
+    &lt;div class=&#x27;fruit&#x27;&gt;
+        &lt;div class=&quot;speech&quot;&gt;We&#x27;re twins&lt;br&gt;
+            for &lt;div class=&quot;count&quot;&gt;5&lt;&#x2F;div&gt; sec.
+        &lt;&#x2F;div&gt;
+        &lt;img src=&quot;..&#x2F;assets&#x2F;yui&#x2F;images&#x2F;apple.png&quot; width=&quot;221&quot; height=&quot;225&quot;&#x2F;&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div class=&#x27;fruit changer&#x27;&gt;
+        &lt;div class=&quot;speech&quot;&gt;We&#x27;re twins&lt;br&gt;
+            for &lt;div class=&quot;count&quot;&gt;5&lt;&#x2F;div&gt; sec.
+        &lt;&#x2F;div&gt;
+        &lt;img src=&quot;..&#x2F;assets&#x2F;yui&#x2F;images&#x2F;apple.png&quot; width=&quot;221&quot; height=&quot;225&quot;&#x2F;&gt;
+    &lt;&#x2F;div&gt;
+
+&lt;script&gt;
+YUI().use(&#x27;node&#x27;, function(Y) {
+    var count = 6, &#x2F;&#x2F; seconds for timer count down
+        changer = Y.one(&#x27;.changer&#x27;), &#x2F;&#x2F; just the node to change
+        counters = Y.all(&#x27;.fruit .count&#x27;); &#x2F;&#x2F; counter numbers on both fruits 
+        
+    var doChange = function(){
+        count -= 1;  &#x2F;&#x2F; decrement the seconds count
+        counters.setContent(count); &#x2F;&#x2F; update the number of seconds by setting the contents of the node
+        
+        &#x2F;&#x2F; when it gets to 0 seconds, make changes to just the node with class &quot;changer&quot;
+        if(count &lt; 1){
+            &#x2F;&#x2F; set the &quot;src&quot; attribute of one image to an orange
+            Y.one(&#x27;.changer img&#x27;).setAttribute(&#x27;src&#x27;, &#x27;..&#x2F;assets&#x2F;yui&#x2F;images&#x2F;orange.png&#x27;);
+            
+            &#x2F;&#x2F; change the contents of one speech bubble 
+            Y.one(&#x27;.changer .speech&#x27;).setContent(&quot;No, I&#x27;m from &lt;em&gt;Florida!&lt;&#x2F;em&gt;&quot;);
+            
+            &#x2F;&#x2F; change several styles together
+            changer.setStyles({
+                fontSize: &#x27;150%&#x27;,
+                color: &#x27;#EA6500&#x27;,
+                backgroundColor: &#x27;#FFD7AA&#x27;
+            });
+            return; &#x2F;&#x2F; bypass the setTimeout and don&#x27;t call the function again
+        }
+        setTimeout(doChange, 1000);
+    }
+    doChange();
+});
+
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#setting-up-the-yui-instance">Setting up the YUI Instance</a>
+</li>
+<li>
+<a href="#using-the-callback">Using the callback</a>
+</li>
+<li>
+<a href="#full-source">Full Source</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Setting up a YUI Instance">
+                                            <a href="yui-core.html">YUI Core</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with multiple YUI instances.">
+                                            <a href="yui-multi.html">Multiple Instances</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="On-demand loading of YUI and non-YUI assets">
+                                            <a href="yui-loader-ext.html">YUI Loader - Dynamically Adding YUI and External Modules</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Create Class Hierarchies with &#x60;extend&#x60;">
+                                            <a href="yui-extend.html">Create Class Hierarchies with &#x60;extend&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating a composition-based class structure using &#x60;augment&#x60;">
+                                            <a href="yui-augment.html">Compose Classes of Objects with &#x60;augment&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Add behaviors to objects or static classes with &#x60;mix&#x60;">
+                                            <a href="yui-mix.html">Add Behaviors to Objects with &#x60;mix&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Combine data sets and create shallow copies of objects with &#x60;merge&#x60;">
+                                            <a href="yui-merge.html">Combine Data Sets with &#x60;merge&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Check data types with the &#x60;Lang Utilities&#x60;">
+                                            <a href="yui-isa.html">Check Data Types with &#x60;Lang&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Get information about the current user agent with &#x60;UA&#x60;">
+                                            <a href="yui-ua.html">Browser Detection with &#x60;UA&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with YUI 2 in 3">
+                                            <a href="yui-yui2.html">Working with YUI 2 in 3</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Natively use YUI Gallery Modules">
+                                            <a href="yui-gallery.html">Natively use YUI Gallery Modules</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Programatically use Loader">
+                                            <a href="loader-resolve.html">Programatically use Loader</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Executing functions in parallel">
+                                            <a href="parallel.html">Using Y.Parallel</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

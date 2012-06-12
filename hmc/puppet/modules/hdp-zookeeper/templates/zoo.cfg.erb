@@ -1,0 +1,15 @@
+# The number of milliseconds of each tick
+tickTime=<%=scope.function_hdp_template_var("tickTime")%>
+# The number of ticks that the initial
+# synchronization phase can take
+initLimit=<%=scope.function_hdp_template_var("initLimit")%>
+# The number of ticks that can pass between
+# sending a request and getting an acknowledgement
+syncLimit=<%=scope.function_hdp_template_var("syncLimit")%>
+# the directory where the snapshot is stored.
+dataDir=<%=scope.function_hdp_template_var("zk_data_dir")%>
+# the port at which the clients will connect
+clientPort=<%=scope.function_hdp_template_var("clientPort")%>
+<%(scope.function_hdp_host("zookeeper_hosts")||[]).each_with_index do |host,i|-%>
+server.<%=(i+1).to_s%>=<%=host%>:2888:3888
+<% end -%>

@@ -1,0 +1,2 @@
+class hdp-mysql(){}
+

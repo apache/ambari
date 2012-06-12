@@ -1,0 +1,505 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* Fix Styles for HTML5 semantic tags */
+header, footer, aside, nav, article, section {display: block;}
+
+/* Generic Styles */
+body {
+	margin:0;
+	padding:0;
+	font:normal 12px Arial, Verdana, sans-serif;
+	color:#333;
+}
+.navAndLinks {
+	width:1045px;
+	margin:5px 5px 5px 10px;
+	padding:8px;
+}
+.clear {
+	clear:both;
+}
+h1.pageTitle {
+	margin:35px 5px 0 10px;
+	font-weight:normal;
+}
+.filterLabel {
+	width:100px;
+	display:inline;
+	font-size:13px;
+}
+footer {
+	text-align:left;
+	padding:40px 10px;
+	color:#454545;
+}
+header {
+	width:1045px;
+	margin:20px 10px;
+	text-align:left;
+}
+header {
+	height:100px;
+	background-color:white;
+	margin:15px 10px;
+	font-size:300%;
+}
+header img {
+	height:93px;
+	width:241px;
+	float:left;
+}
+#headerText {
+	font-weight:bold;
+	padding:30px 0 0 0;
+}
+#links {
+	float:right;
+	width:50%;
+}
+#links a {
+	float:right;
+	margin:2px 2px;
+	padding:2px 6px;
+	text-decoration:none;
+	/* Styles to make it look like a button */
+	background:-moz-linear-gradient(#F8F8F8, #E2E2E2) repeat scroll 0 0 #00ABDD;
+	border:1px solid #A0A0A0;
+	color:#333;
+	cursor:pointer;
+}
+#links a:hover {
+	background: -moz-linear-gradient(#DDF3F9, #99D3F7) repeat scroll 0 0 transparent;
+}
+.roundedBox {
+	border:1px solid;
+	border-color:#E5E5E5 #DBDBDB #D2D2D2;
+	border-radius:6px;
+	-moz-border-radius:6px;
+	-webkit-border-radius:6px;
+	box-shadow:0 1px 2px rgba(0,0,0,.3);
+	-moz-box-shadow:0 1px 2px rgba(0,0,0,.3);
+	-webkit-box-shadow:0 1px 2px rgba(0,0,0,.3);
+	background-color:#FFF;
+}
+.roundedBottom {
+	border:1px solid;
+	border-color:#D2D2D2 #DBDBDB;
+	border-radius:0 0 6px 6px;
+	-moz-border-radius:0 0 6px 6px;
+	-webkit-border-radius:0 0 6px 6px;
+	box-shadow:0 0 2px rgba(0,0,0,.3);
+	-moz-box-shadow:0 0 2px rgba(0,0,0,.3);
+	-webkit-box-shadow:0 0 2px rgba(0,0,0,.3);
+	background-color:#FFF;
+}
+.roundedTop {
+	border-radius:6px 6px 0 0;
+	-moz-border-radius:6px 6px 0 0;
+	-webkit-border-radius:6px 6px 0 0;
+}
+.roundedTopLeft {
+	border-radius:6px 0 0 0;
+	-moz-border-radius:6px 0 0 0;
+	-webkit-border-radius:6px 0 0 0;
+}
+.roundedTopRight {
+	border-radius:0 6px 0 0;
+	-moz-border-radius:0 6px 0 0;
+	-webkit-border-radius:0 6px 0 0;
+}
+.shadowBox {
+	box-shadow:0 1px 3px rgba(0,0,0,.3);
+	-moz-box-shadow:0 1px 3px rgba(0,0,0,.3);
+	-webkit-box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+
+/* Styles for navigation and controls on all pages */
+nav {
+	float:left;
+	margin:0;
+	list-style:none;
+}
+nav ul {
+	margin:0;
+	list-style:none;
+}
+nav ul li {
+	list-style:none;
+	display:inline;
+	background-color:#fff;
+	float:left;
+	padding:0 0 0 0;
+}
+nav ul li a {
+	background-color:#6A9F00;
+	border:1px solid #A0A0A0;
+	border-radius:1px;
+	-moz-border-radius:1px;
+	-webkit-border-radius:1px;
+	text-decoration:none;
+	padding:0 10px;
+	font-weight:normal;
+	width:85px;
+	text-align:center;
+	color:#fff;
+}
+.selectedNavItem {
+	font-weight:bold;
+	background-color:#99CE71;
+    color:#000;
+}
+input[type="button"] {
+	margin:5px 2px;
+	padding:2px;
+	cursor:pointer;
+	border-radius:3px;
+	border:1px solid #A0A0A0;
+	color:#333;
+	background:-moz-linear-gradient(#F8F8F8, #E2E2E2) repeat scroll 0 0 #00ABDD;
+}
+input[type="button"]:hover {
+	background: -moz-linear-gradient(#DDF3F9, #99D1E1) repeat scroll 0 0 transparent;
+}
+
+/* START Styles for second level navigation items */
+nav ul li a:hover {
+    
+}
+nav li a:link, nav li a:visited {
+    display:block;
+    padding:5px 10px;
+}
+.title {
+        margin:0 5px;
+        font-size:150%;
+        font-weight:normal;
+	line-height:normal;
+}
+.checkbox {
+        float:right;
+        margin:0 5px;
+        font-weight:normal;
+}
+#clusterTitle {
+	width:200px;
+}
+/* END styles for control and navigation */
+
+/* START styles for containers */
+.graphContainer {
+	margin:9px 10px;
+}
+.graphContainer img {
+	width:250px;
+	height:105px;
+	margin:5px 3px;
+	cursor:pointer;
+}
+#clusterContainer {
+	width:290px;
+	font-size:10px;
+}
+
+/* Styles for tables */
+/* Set this for all tables.
+border-radius: 4px 4px 4px 4px; */
+table, tr, th, td {
+	border-collapse:collapse;
+	border:1px solid silver;
+}
+th, td {
+	font-size:11px;
+	border-right:1px solid #F1F1F1;
+    white-space:nowrap;
+    empty-cells:show;
+}
+
+/* START Alert Summary Table */
+#alertSummaryTable {
+	float:left;
+}
+td.service, td.state, td.critical, td.warning {
+	cursor:pointer;
+}
+.state, .critical, .warning {
+	text-align:center;
+}
+.highlighted-red {
+	color:red;
+        text-decoration:blink;
+        font-weight:bold;
+}
+.highlighted-green {
+	color:green;
+}
+.highlighted-orange {
+	color:orange;
+        text-decoration:blink;
+        font-weight:bold;
+}
+.selected {
+	background-color:lightblue;
+}
+
+/* START Dashboard Page */
+.widget {
+	margin:5px 0 10px 10px;
+	width:1045px;
+	height:200px;
+	padding:8px;
+}
+#serviceSummaryWidget {
+	height:312px;
+}
+.graphSummaryWidget {
+	min-height:150px;
+	height:auto;
+}
+#hdfsSummaryWidget, 
+#mrSummaryWidget, 
+#hbaseSummaryWidget {
+	height:auto;
+}
+.alertSummaryWidget {
+	height:220px;
+}
+
+/*--------START ServicesTable & PIE containers---------*/
+#clusterSummaryContainer, 
+#hdfsSummaryContainer, 
+#mrSummaryContainer, 
+#hbaseSummaryContainer {
+	float:left;
+	margin:0 0 0 5px;
+}
+#clusterSummaryContainer section.row section, 
+#hdfsSummaryContainer section.row section, 
+#mrSummaryContainer section.row section, 
+#hbaseSummaryContainer section.row section {
+	cursor:pointer;
+}
+.textContainer, 
+.linkContainer {
+	float:left;
+	width:380px;
+	margin:5px;
+}
+.linkContainer {
+	width:100px;
+}
+#links2 {
+	width:110px;
+}
+.linkContainer a {
+	display:block;
+	clear:right;
+}
+#clusterTextContainer {
+	clear:left;
+	width:325px;
+}
+/* ------------------- PIE charts ------------------- */
+.pieContainer {
+       float:left;
+       width:660px;
+       margin:0 0 0 15px;
+}
+.pieContainer h2 {
+       display:inline-block;
+       margin:8px 0px 0px 50px;
+       width:325px;
+       text-align:left;
+       font-weight:normal;
+}
+.pieBox, .pieChart {
+       float:left;
+       width:330px;
+       height:200px;
+}
+/*---------------END PIE containers--------------------*/
+
+/* START styles for grids */
+#alerts {
+	float:left;
+	margin:0 0 0 10px;
+}
+.grid {
+	float:left;
+	width:380px;
+}
+.clusterSummaryGrid {
+	width:325px;
+	font: 11px Verdana,Arial,sans-serif;
+}
+.clusterSummaryGrid th {
+	background:url("../libs/jqueryui/css/custom-theme/images/ui-bg_highlight-soft_75_cccccc_1x100.png") repeat-x scroll 50% 50% #CCCCCC;
+}
+.clusterSummaryGrid tr td:first-child {
+	width:50%;
+}
+#hdfsSummaryGrid1 tr td:first-child, 
+#hdfsSummaryGrid2 tr td:first-child,
+#mrSummaryGrid1 tr td:first-child, 
+#mrSummaryGrid2 tr td:first-child, 
+#hbaseSummaryGrid1 tr td:first-child, 
+#hbaseSummaryGrid2 tr td:first-child {
+	background:url("../libs/jqueryui/css/custom-theme/images/ui-bg_highlight-soft_75_cccccc_1x100.png") repeat-x scroll 50% 50% #CCCCCC;
+	width:50%;
+	font-weight:bold;
+}
+
+/* START styles for AUTO-GENERATED TABLES  */
+#header1 {
+	width:300px;
+}
+#overallSummaryGrid section.row {
+	width:300px;
+}
+section.row > section, .header > section {
+	float:left;
+	margin:0;
+	padding:0 1px;
+}
+section.row {
+	color:#333;
+	height:16px;
+}
+section.row > section {
+	line-height:1.25em;
+	height:1.25em;
+	overflow:hidden;
+}
+
+/* Graph Popup Styles */
+#graphPopup {
+	display:none;
+	position:absolute;
+	top:520px;
+	left:270px;
+	min-width:480px;
+	width:auto;
+	min-height:180px;
+	height:auto;
+	padding:30px 30px 15px 30px;
+	text-align:center;
+}
+#graphPopup #close {
+	margin:5px;
+	position:absolute;
+	top:0;
+	right:0;
+	padding:3px 4px 0 0;
+	display:inline-block;
+	width:12px;
+	height:12px;
+	background:url("../libs/jqueryui/css/custom-theme/images/ui-icons_888888_256x240.png") 223px 47px #fff;
+}
+#graphPopup a {
+	display:block;
+	margin:8px 0 0 0;
+}
+.hiddenLink {
+	display:none;
+}
+.container {
+	width:980px;
+	margin:0 auto;
+}
+.container:after {
+	clear:both;
+	content:"";
+	display:table;
+}
+.navbar {
+	font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+	margin-bottom:30px
+}
+.navbar .brand {
+    color: #666666;
+    display: block;
+    float: left;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 1;
+    margin-left: 0;
+    margin-right: 40px;
+    margin-top: 3px;
+    padding: 14px 10px;
+    text-decoration: none;
+    width:280px;
+}
+
+.navbar-inner {
+	background: linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+	background: -moz-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+	background: -webkit-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+	border-radius:0;
+	border:1px solid #bbb;
+	border-width:0 0 1px 0;
+	min-height:40px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 -1px 0 rgba(0, 0, 0, 0.1) inset;
+}
+.navbar .nav {
+	display:block;
+	float:left;
+	left:0;
+	margin:0 10px 0 0;
+	position:relative;
+}
+.navbar .nav .active > a, .navbar .nav .active > a:hover {
+    background-color: #999999;
+    color: #FFFFFF;
+    text-decoration: none;
+}
+.navbar ul {
+	margin:0;
+	padding:0;
+}
+.navbar .nav > li {
+	float:left;
+	display:block;
+}
+.navbar .nav > li > a {
+	border-radius:8px;
+	-webkit-border-radius: 8px;
+	-moz-border-radius: 8px;
+	color: #666666;
+	float: none;
+	font-size: 13px;
+	font-weight: bold;
+	line-height: 19px;
+	margin: 6px 10px 6px 0;
+	padding: 8px 14px;
+	text-decoration: none;
+	text-shadow: none;
+	display: block;
+	float: left;
+}
+.navbar .nav > li > a:hover {
+	background-color: transparent;
+	color: #999999;
+	text-decoration: none;
+}
+.navbar .brand {
+	margin-right:40px;
+}
+.navbar #logo {
+	float:left;
+	padding-top:7px;
+}

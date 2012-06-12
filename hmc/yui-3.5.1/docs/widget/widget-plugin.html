@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Creating a Widget Plugin</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Creating a Widget Plugin</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+#demo {
+    width: 50em;
+}
+.yui3-widget-content {
+    border:1px solid #000;
+    padding:1em;
+}
+.yui3-tab-loading {
+    background: #fff url(../assets/widget/img/ajax-loader.gif) no-repeat center center;
+    height:40px;
+}
+</style>
+
+<div class="intro">
+    <p>This example shows how you can use Widget's plugin infrastructure to add additional features to an existing widget.</p>
+    <p>
+        We use the <code>&quot;gallery-widget-io&quot;</code> plugin to add io capabilities bound to a widget instance. The plugin provides an <code>io</code> interface on Widget, which can be used to update 
+        the widget's contentBox contents.
+    </p>
+    <p>
+      NOTE: This example uses io-xdr to retrieve content from pipes, and requires Flash.
+    </p>
+</div>
+
+<div class="example">
+    <div id="demo"></div>
+<script type="text/javascript">
+YUI().use("widget", "gallery-widget-io", "json-parse", "substitute", "escape", function(Y) {
+
+    var formatRSS = function (val) {
+        var formatted = "Error parsing feed data";
+        try {
+            var json = Y.JSON.parse(val);
+
+            if (json && json.count) {
+                var html = ['<ul class="yui3-feed-data">'];
+                var linkTemplate = '<li><a href="{link}" target="_blank">{title}</a></li>';
+
+                Y.each(json.value.items, function(v, i) {
+                    if (i < 10) {
+                        v.title = Y.Escape.html(v.title);
+                        v.link = Y.Escape.html(v.link);
+                        html.push(Y.substitute(linkTemplate, v));
+                    }
+                });
+                html.push("</ul>");
+                formatted = html.join("");
+            } else {
+                formatted = "No Data Available";
+            }
+        } catch(e) {
+            formatted = "Error parsing feed data";
+        }
+        return formatted;
+    };
+
+    Y.on('io:xdrReady', function() {
+
+        var widget = new Y.Widget();
+
+        widget.plug(Y.Plugin.WidgetIO, {
+            uri : 'http:/' + '/pipes.yahooapis.com/pipes/pipe.run?_id=6b7b2c6a32f5a12e7259c36967052387&_render=json&url=http:/' + '/rss.news.yahoo.com/rss/us',
+            cfg:{
+                xdr: {
+                    use:'flash'
+                }
+            },
+            formatter: formatRSS,
+            loading: '<img class="yui3-loading" width="32px" height="32px" src="../assets/widget/img/ajax-loader.gif">'
+        });
+        widget.render('#demo');
+        
+        widget.io.refresh();
+    });
+
+    Y.io.transport({
+        id:'flash',
+        yid: Y.id,
+        src:'../../build/io-xdr/io.swf?stamp=' + (new Date()).getTime()
+    });
+    
+});
+</script>
+
+</div>
+
+<h2>Using The Gallery IO Plugin For Widget</h2>
+
+<h3>Setting Up The YUI Instance</h3>
+
+<p>For this example, we'll pull in <code>widget</code>; the <code>gallery-widget-io</code> plugin, and the <code>json-parse</code> and <code>substitute</code> modules to help us work with the JSON RSS data returned.
+ The code to set up our sandbox instance is shown below:</p>
+
+<pre class="code prettyprint">YUI().use(&quot;widget&quot;, &quot;gallery-widget-io&quot;, &quot;json-parse&quot;, &quot;substitute&quot;, function(Y) {
+    &#x2F;&#x2F; We&#x27;ll write our code here, after pulling in the default Widget module, 
+    &#x2F;&#x2F; the IO plugin.
+});</pre>
+
+
+<h3>The Widget IO Plugin</h3>
+
+<p>The Widget IO plugin is a fairly simple plugin. It provides incremental functionality. It does not need to modify the behavior of any methods on the host Widget instance, or monitor any Widget events (unlike the <a href="../overlay/overlay-anim-plugin.html">AnimPlugin</a> example).</p>
+
+<p>It sets up the following attributes, which are used to control how the IO plugin's <code>refresh</code> method behaves:</p>
+
+<dl>
+    <dt>uri</dt>
+    <dd>The uri to use for the io request</dd>
+    <dt>cfg</dt>
+    <dd>The io configuration object, to pass to io when initiating a transaction</dd>
+    <dt>formatter</dt>
+    <dd>The formatter to use to formatting response data. The default implementation simply passes back the response data passed in, unchanged.</dd>
+    <dt>loading</dt>
+    <dd>The default content to display while an io transaction is in progress</dd>
+</dl>
+
+<h3>Using the Plugin</h3>
+
+<p>All objects derived from <a href="http://yuilibrary.com/yui/docs/api/Base.html">Base</a> are <a href="http://yuilibrary.com/yui/docs/api/Plugin.Host.html">Plugin Hosts</a>. 
+They provide <a href="http://yuilibrary.com/yui/docs/api/Plugin.Host.html#method_plug"><code>plug</code></a> and <a href="http://yuilibrary.com/yui/docs/api/Plugin.Host.html#method_unplug"><code>unplug</code></a> methods to allow users to add/remove plugins to/from existing instances. 
+They also allow the user to specify the set of plugins to be applied to a new instance, along with their configurations, as part of the constructor arguments.</p>
+
+<p>In this example, we'll create a new instance of a Widget:</p>
+
+<pre class="code prettyprint">&#x2F;* Create a new Widget instance, with content generated from script *&#x2F;
+var widget = new Y.Widget();</pre>
+
+
+<p>And then use the <code>plug</code> method to add the <code>WidgetIO</code> plugin,
+providing it with a configuration to use when sending out io transactions
+(The <a href="../overlay/overlay-anim-plugin.html">Animation Plugin</a> example shows how
+you could do the same thing during construction), render the widget, and refresh
+the plugin to fetch the content.</p>
+
+<pre class="code prettyprint">&#x2F;*
+ * Add the Plugin, and configure it to use a news feed uri, and work cross-domain, using xdr 
+ *&#x2F;
+widget.plug(Y.Plugin.WidgetIO, {
+    uri : &#x27;http:&#x2F;&#x27; + &#x27;&#x2F;pipes.yahooapis.com&#x2F;pipes&#x2F;pipe.run?_id=6b7b2c6a32f5a12e7259c36967052387&amp;_render=json&amp;url=http:&#x2F;&#x27; + &#x27;&#x2F;rss.news.yahoo.com&#x2F;rss&#x2F;us&#x27;,
+    cfg:{
+        xdr: {
+            use:&#x27;flash&#x27;
+        }
+    },
+    formatter: formatRSS,        
+    loading: &#x27;&lt;img class=&quot;yui3-loading&quot; width=&quot;32px&quot; height=&quot;32px&quot; src=&quot;..&#x2F;assets&#x2F;widget&#x2F;img&#x2F;ajax-loader.gif&quot;&gt;&#x27;
+});
+
+widget.render(&#x27;#demo&#x27;);
+
+&#x2F;* fetch the content *&#x2F;
+widget.io.refresh();</pre>
+
+
+<p>We pass in a formatter to the io plugin, which is responsible for translating the JSON RSS from the uri to HTML:</p>
+
+<pre class="code prettyprint">var formatRSS = function (val) {
+    var formatted = &quot;Error parsing feed data&quot;;
+    try {
+        var json = Y.JSON.parse(val);
+
+        if (json &amp;&amp; json.count) {
+            var html = [&#x27;&lt;ul class=&quot;yui3-feed-data&quot;&gt;&#x27;];
+            var linkTemplate = &#x27;&lt;li&gt;&lt;a href=&quot;{link}&quot; target=&quot;_blank&quot;&gt;{title}&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;&#x27;;
+
+            Y.each(json.value.items, function(v, i) {
+                if (i &lt; 10) {
+                    v.title = Y.Escape.html(v.title);
+                    v.link = Y.Escape.html(v.link);
+                    html.push(Y.substitute(linkTemplate, v));
+                }
+            });
+            html.push(&quot;&lt;&#x2F;ul&gt;&quot;);
+            formatted = html.join(&quot;&quot;);
+        } else {
+            formatted = &quot;No Data Available&quot;;
+        }
+    } catch(e) {
+        formatted = &quot;Error parsing feed data&quot;;
+    }
+    return formatted;
+};</pre>
+
+
+<p>NOTE: Since we're using <code>IO</code>'s XDR functionality for this example, we wrap the widget construction in a callback which notifies us when the flash XDR module is ready to service requests. In your local implementations,
+if you're not sending cross-domain requests, you don't need to use the XDR functionality and leave out the code below:</p>
+
+<pre class="code prettyprint">Y.on(&#x27;io:xdrReady&#x27;, function() {
+    &#x2F;&#x2F; Setup Widget when io xdr is available
+});
+
+&#x2F;&#x2F; Set up io to use the flash XDR transport
+Y.io.transport({
+    id:&#x27;flash&#x27;,
+    yid: Y.id,
+    src:&#x27;..&#x2F;..&#x2F;build&#x2F;io-xdr&#x2F;io.swf?stamp=&#x27; + (new Date()).getTime()
+});</pre>
+
+ 
+<h2>Complete Example Source</h2>
+<pre class="code prettyprint">&lt;div id=&quot;demo&quot;&gt;&lt;&#x2F;div&gt;
+&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+YUI().use(&quot;widget&quot;, &quot;gallery-widget-io&quot;, &quot;json-parse&quot;, &quot;substitute&quot;, &quot;escape&quot;, function(Y) {
+
+    var formatRSS = function (val) {
+        var formatted = &quot;Error parsing feed data&quot;;
+        try {
+            var json = Y.JSON.parse(val);
+
+            if (json &amp;&amp; json.count) {
+                var html = [&#x27;&lt;ul class=&quot;yui3-feed-data&quot;&gt;&#x27;];
+                var linkTemplate = &#x27;&lt;li&gt;&lt;a href=&quot;{link}&quot; target=&quot;_blank&quot;&gt;{title}&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;&#x27;;
+
+                Y.each(json.value.items, function(v, i) {
+                    if (i &lt; 10) {
+                        v.title = Y.Escape.html(v.title);
+                        v.link = Y.Escape.html(v.link);
+                        html.push(Y.substitute(linkTemplate, v));
+                    }
+                });
+                html.push(&quot;&lt;&#x2F;ul&gt;&quot;);
+                formatted = html.join(&quot;&quot;);
+            } else {
+                formatted = &quot;No Data Available&quot;;
+            }
+        } catch(e) {
+            formatted = &quot;Error parsing feed data&quot;;
+        }
+        return formatted;
+    };
+
+    Y.on(&#x27;io:xdrReady&#x27;, function() {
+
+        var widget = new Y.Widget();
+
+        widget.plug(Y.Plugin.WidgetIO, {
+            uri : &#x27;http:&#x2F;&#x27; + &#x27;&#x2F;pipes.yahooapis.com&#x2F;pipes&#x2F;pipe.run?_id=6b7b2c6a32f5a12e7259c36967052387&amp;_render=json&amp;url=http:&#x2F;&#x27; + &#x27;&#x2F;rss.news.yahoo.com&#x2F;rss&#x2F;us&#x27;,
+            cfg:{
+                xdr: {
+                    use:&#x27;flash&#x27;
+                }
+            },
+            formatter: formatRSS,
+            loading: &#x27;&lt;img class=&quot;yui3-loading&quot; width=&quot;32px&quot; height=&quot;32px&quot; src=&quot;..&#x2F;assets&#x2F;widget&#x2F;img&#x2F;ajax-loader.gif&quot;&gt;&#x27;
+        });
+        widget.render(&#x27;#demo&#x27;);
+        
+        widget.io.refresh();
+    });
+
+    Y.io.transport({
+        id:&#x27;flash&#x27;,
+        yid: Y.id,
+        src:&#x27;..&#x2F;..&#x2F;build&#x2F;io-xdr&#x2F;io.swf?stamp=&#x27; + (new Date()).getTime()
+    });
+    
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Shows how to extend the base widget class, to create your own Widgets.">
+                                            <a href="widget-extend.html">Extending the Base Widget Class</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to use Base.create and mix/match extensions to create custom Widget classes.">
+                                            <a href="widget-build.html">Creating Custom Widget Classes With Extensions</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create an IO plugin for Widget.">
+                                            <a href="widget-plugin.html">Creating a Widget Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to extend the Widget class, and add WidgetPosition and WidgetStack to create a Tooltip widget class.">
+                                            <a href="widget-tooltip.html">Creating a Simple Tooltip Widget With Extensions</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to extend the Widget class, and add WidgetParent and WidgetChild to create a simple ListBox widget.">
+                                            <a href="widget-parentchild-listbox.html">Creating a Hierarchical ListBox Widget</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

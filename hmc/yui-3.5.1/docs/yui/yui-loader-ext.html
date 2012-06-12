@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: YUI Loader - Dynamically Adding YUI and External Modules</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: YUI Loader - Dynamically Adding YUI and External Modules</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>In this example we will create an external module and use it as a core module.</p>
+</div>
+
+<div class="example">
+<div id="marker"></div>
+
+</div>
+
+<h2 id="creating-your-external-module">Creating your external module</h2>
+<p>This is a simple example of creating an external module with <code>YUI.add</code>.</p>
+<p>This module simply adds an <code>External</code> namespace to the <code>Y</code> object and
+exports a single <code>run</code> method.</p>
+
+<pre class="code prettyprint">YUI.add(&#x27;external&#x27;, function(Y) {
+    Y.External = {
+        run: function() {
+            Y.one(&#x27;#marker&#x27;).setContent(&#x27;External Module was loaded.&#x27;);
+        }
+    }
+}, &#x27;1.0.0&#x27;, { requires: [ &#x27;node&#x27; ] });</pre>
+
+
+<h2 id="using-the-instance-config">Using the instance config</h2>
+
+<p>Now that we have our external module, we need to add it to the <code>modules</code> config
+on the <code>YUI</code> instance that you want to attach this module to.</p>
+
+
+<pre class="code prettyprint">{
+    modules: {
+        external: {
+            fullpath: &#x27;..&#x2F;assets&#x2F;yui&#x2F;external.js&#x27;,
+            requires: [&#x27;node&#x27;]
+        }
+    }
+}</pre>
+
+
+<h2 id="setting-up-for-the-module">Setting up for the module</h2>
+
+<p>Now we add the HTML needed to make this module run:</p>
+
+<pre class="code prettyprint">&lt;div id=&quot;marker&quot;&gt;&lt;&#x2F;div&gt;</pre>
+
+
+<p>Now we put it all together and you should see the message in the example box above.</p>
+
+<pre class="code prettyprint">YUI({
+    modules: {
+        external: {
+            fullpath: &#x27;..&#x2F;assets&#x2F;yui&#x2F;external.js&#x27;,
+            requires: [&#x27;node&#x27;]
+        }
+    }
+}).use(&#x27;external&#x27;, function(Y) {
+    Y.External.run();
+});</pre>
+
+
+<script>
+YUI({
+    modules: {
+        external: {
+            fullpath: '../assets/yui/external.js',
+            requires: ['node']
+        }
+    }
+}).use('external', function(Y) {
+    Y.External.run();
+});
+
+</script>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#creating-your-external-module">Creating your external module</a>
+</li>
+<li>
+<a href="#using-the-instance-config">Using the instance config</a>
+</li>
+<li>
+<a href="#setting-up-for-the-module">Setting up for the module</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Setting up a YUI Instance">
+                                            <a href="yui-core.html">YUI Core</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with multiple YUI instances.">
+                                            <a href="yui-multi.html">Multiple Instances</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="On-demand loading of YUI and non-YUI assets">
+                                            <a href="yui-loader-ext.html">YUI Loader - Dynamically Adding YUI and External Modules</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Create Class Hierarchies with &#x60;extend&#x60;">
+                                            <a href="yui-extend.html">Create Class Hierarchies with &#x60;extend&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating a composition-based class structure using &#x60;augment&#x60;">
+                                            <a href="yui-augment.html">Compose Classes of Objects with &#x60;augment&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Add behaviors to objects or static classes with &#x60;mix&#x60;">
+                                            <a href="yui-mix.html">Add Behaviors to Objects with &#x60;mix&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Combine data sets and create shallow copies of objects with &#x60;merge&#x60;">
+                                            <a href="yui-merge.html">Combine Data Sets with &#x60;merge&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Check data types with the &#x60;Lang Utilities&#x60;">
+                                            <a href="yui-isa.html">Check Data Types with &#x60;Lang&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Get information about the current user agent with &#x60;UA&#x60;">
+                                            <a href="yui-ua.html">Browser Detection with &#x60;UA&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with YUI 2 in 3">
+                                            <a href="yui-yui2.html">Working with YUI 2 in 3</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Natively use YUI Gallery Modules">
+                                            <a href="yui-gallery.html">Natively use YUI Gallery Modules</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Programatically use Loader">
+                                            <a href="loader-resolve.html">Programatically use Loader</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Executing functions in parallel">
+                                            <a href="parallel.html">Using Y.Parallel</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title></title>
+	<link type="text/css" rel="stylesheet" href="./styles/common.css" media="screen"/>
+	<link type="text/css" rel="stylesheet" href="./libs/jqueryui/css/custom-theme/jquery-ui-1.7.3.custom.css" media="screen"/>
+	<link type="text/css" rel="stylesheet" href="./libs/jqgrid/css/ui.jqgrid.css" media="screen"/>
+	<link type="text/css" rel="stylesheet" href="./libs/jquery.multiselect.css" media="screen"/>
+	<!--[if lt IE 9]><script type="text/javascript" src="./libs/html5shiv/html5shiv.min.js"></script><![endif]-->
+	<link rel="shortcut icon" href="/hmc/images/logo-micro.gif"/>
+</head>
+<body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <a href="/hmc/html"><img id="logo" src="/hmc/images/logo-small.gif"></a>
+        <a id="brand" class="brand" href="/hmc/html"></a>				
+        <ul class="nav">
+          <li><a href="/hmc/html">Cluster Management</a></li>
+          <li class="active"><a href="/hdp/dashboard/ui/home.html">Monitoring</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+	<div class="container">
+	
+	<section class="navAndLinks">
+		<nav>
+			<ul>
+				<li><a href="./home.html">Dashboard</a></li>
+				<li><a href="./hdfs.html" class="selectedNavItem">HDFS</a></li>
+				<li><a href="./mapreduce.html">MapReduce</a></li>
+				<li><a id="hbase_link" href="./hbase.html">HBase</a></li>
+			</ul>
+		</nav>
+		
+		<section id="links">
+			<a class="roundedBox" href="" target="_blank">Post Feedback</a>
+			<a class="roundedBox" href="" target="_blank">Documentation</a>
+			<a id="nagios" class="roundedBox" href="" target="_blank">Nagios</a>
+			<a id="ganglia" class="roundedBox" href="" target="_blank">Ganglia</a>
+                        <a id="oozie" class="hiddenLink" href="" target="_blank">Oozie</a>
+		</section>
+		<section class="clear"></section>
+	</section>
+	<section class="clear"></section>
+	
+	<section class="widget roundedBox alertSummaryWidget">
+    <h1 style="float:left" class="title">HDFS Service</h1>
+    <form class="checkbox"><input type="checkbox" id="autorefresh" onclick="a.autoRefresh()" /> Auto Refresh</form>
+    <div style="clear:both"></div>
+		
+		<section id="hdfsSummaryContainer">
+			<table id="alertSummaryTable" class="clusterSummaryGrid">
+				<thead>
+					<tr>
+						<th class="service">Service</th>
+						<th class="state">State</th>
+						<th class="critical">Critical</th>
+						<th class="warning">Warning</th>
+					</tr>
+				</thead>
+				<tbody id="servicesGrid"></tbody>
+			</table>
+			
+			<section id="alerts">
+				<table id="alertsGrid"></table>
+				<section id="pager"></section>
+			</section>
+		</section>
+	</section>
+	
+	<section id="hdfsSummaryWidget" class="widget roundedBox">
+		<section class="title">HDFS Summary</section>
+		
+		<section class="textContainer">
+			<table id="hdfsSummaryGrid1" class="grid">
+				<tbody>
+					<tr><td>Version</td><td></td></tr>
+					<tr><td>NameNode</td><td></td></tr>
+					<tr><td>NameNode Uptime</td><td></td></tr>
+					<tr><td title="Used/Max">NameNode Heap</td><td></td></tr>
+					<tr><td>HDFS Pending Upgrade Status</td><td></td></tr>
+					<tr><td>HDFS Safe Mode Status</td><td></td></tr>
+				</tbody>
+			</table>
+		</section>
+		
+		<section class="textContainer">
+			<table id="hdfsSummaryGrid2" class="grid">
+				<tbody>
+					<tr><td>DataNodes (live/dead/decom)</td><td></td></tr>
+					<tr><td title="Used/Total">HDFS Disk Capacity</td><td></td></tr>
+					<tr><td>Blocks (total)</td><td></td></tr>
+					<tr><td>Block Errors (corr./miss./underrep.)</td><td></td></tr>
+					<tr><td>Total Files + Directory Count</td><td></td></tr>
+				</tbody>
+			</table>
+		</section>
+		
+		<section class="linkContainer">
+			<section>Quick Links:</section>
+			<a id="nnUI" href="">Namenode UI</a>
+			<a id="nnLogs" href="">Namenode logs</a>
+		</section>
+		<section class="linkContainer">
+			<section>Advanced Links:</section>
+			<a id="nnJMX" href="">Namenode JMX</a>
+			<a id="nnTS" href="">Thread Stacks</a>
+		</section>
+		<section class="clear"></section>
+	</section>
+		
+	<section class="widget roundedBox graphSummaryWidget">
+		<h1 class="title">Service Graphs</h1>
+		<section id="graphs_hdp" class="graphContainer">
+                  <a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a><a href=""><img src="" class="imgLink"></a>
+	 	</section>
+	</section>
+	
+	<section id="graphPopup" class="roundedBox">
+		<span id="close"></span>
+		<img id="popupImg" src=""/>
+		<a id="graphForwardLink" href=""></a>
+	</section>
+	
+	<footer id="footer"></footer>
+</div>
+<script type="text/javascript" src="./libs/jquery-1.7.1.js"></script>
+<script type="text/javascript" src="./libs/jqueryui/js/jquery-ui-1.7.3.custom.min.js"></script>
+<script type="text/javascript" src="./libs/jquery.multiselect.js"></script>
+<script type="text/javascript" src="./libs/jqgrid/js/i18n/grid.locale-en.js"></script>
+<script type="text/javascript" src="./libs/jqgrid/js/jquery.jqGrid.src.js"></script>
+<script type="text/javascript" src="./js/common.js"></script>	
+</body>
+</html>

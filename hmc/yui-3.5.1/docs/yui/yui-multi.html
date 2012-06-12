@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Multiple Instances</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Multiple Instances</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+<p>This example shows how to work with multiple YUI instances.</p>
+</div>
+
+<div class="example">
+    <style>
+    #demo {
+        height: 100px;
+        width: 100px;
+        border: 1px solid black;
+        background-color: #8DD5E7;
+        cursor: move;
+    }
+    #play {
+        height: 200px;
+    }
+</style>
+
+<div id="play">
+    <div id="demo"></div>
+</div>
+
+<script>
+YUI().use('anim', function(Y) {
+    var anim = new Y.Anim({
+        node: '#demo',
+        to: {
+            height: 50,
+            width: 150
+        },
+        from: {
+            height: 100,
+            width: 100
+        },
+        direction: 'alternate',
+        iterations: 30,
+        duration: .5
+    });
+    anim.run();
+});
+
+YUI().use('dd-drag', function(Y) {
+    var dd = new Y.DD.Drag({
+        node: '#demo'
+    });
+});
+
+</script>
+
+</div>
+
+<h3 id="setting-up-the-first-yui-instance">Setting up the first YUI Instance</h3>
+<p>Here we will create our first YUI instance and tell it to load the <code>anim</code> module.</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;anim&#x27;, function(Y) {
+
+});</pre>
+
+
+<h3 id="using-animation">Using Animation</h3>
+<p>Now let's setup a simple animation on the Node <code>#demo</code>.</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;anim&#x27;, function(Y) {
+    var anim = new Y.Anim({
+        node: &#x27;#demo&#x27;,
+        to: {
+            height: 50,
+            width: 150
+        },
+        from: {
+            height: 100,
+            width: 100
+        },
+        direction: &#x27;alternate&#x27;,
+        iterations: 30,
+        duration: .5
+    });
+    anim.run();
+});</pre>
+
+
+<h3 id="setting-up-the-second-yui-instance">Setting up the second YUI Instance</h3>
+
+<p>Here we will create our second YUI instance and tell it to load the <code>dd-drag</code> module.</p>
+<p>Since we didn't specify the <code>anim</code> module, we will not have access to it in this instance.</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;dd-drag&#x27;, function(Y) {
+
+});</pre>
+
+
+<h3 id="making-the-node-draggable">Making the node draggable</h3>
+<p>Now let's make the same node draggable (while it's animated).</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;dd-drag&#x27;, function(Y) {
+    var dd = new Y.DD.Drag({
+        node: &#x27;#demo&#x27;
+    });
+});</pre>
+
+
+<h3 id="full-example-source">Full Example Source</h3>
+
+<pre class="code prettyprint">&lt;style&gt;
+    #demo {
+        height: 100px;
+        width: 100px;
+        border: 1px solid black;
+        background-color: #8DD5E7;
+        cursor: move;
+    }
+    #play {
+        height: 200px;
+    }
+&lt;&#x2F;style&gt;
+
+&lt;div id=&quot;play&quot;&gt;
+    &lt;div id=&quot;demo&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+
+&lt;script&gt;
+YUI().use(&#x27;anim&#x27;, function(Y) {
+    var anim = new Y.Anim({
+        node: &#x27;#demo&#x27;,
+        to: {
+            height: 50,
+            width: 150
+        },
+        from: {
+            height: 100,
+            width: 100
+        },
+        direction: &#x27;alternate&#x27;,
+        iterations: 30,
+        duration: .5
+    });
+    anim.run();
+});
+
+YUI().use(&#x27;dd-drag&#x27;, function(Y) {
+    var dd = new Y.DD.Drag({
+        node: &#x27;#demo&#x27;
+    });
+});
+
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#setting-up-the-first-yui-instance">Setting up the first YUI Instance</a>
+</li>
+<li>
+<a href="#using-animation">Using Animation</a>
+</li>
+<li>
+<a href="#setting-up-the-second-yui-instance">Setting up the second YUI Instance</a>
+</li>
+<li>
+<a href="#making-the-node-draggable">Making the node draggable</a>
+</li>
+<li>
+<a href="#full-example-source">Full Example Source</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Setting up a YUI Instance">
+                                            <a href="yui-core.html">YUI Core</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with multiple YUI instances.">
+                                            <a href="yui-multi.html">Multiple Instances</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="On-demand loading of YUI and non-YUI assets">
+                                            <a href="yui-loader-ext.html">YUI Loader - Dynamically Adding YUI and External Modules</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Create Class Hierarchies with &#x60;extend&#x60;">
+                                            <a href="yui-extend.html">Create Class Hierarchies with &#x60;extend&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating a composition-based class structure using &#x60;augment&#x60;">
+                                            <a href="yui-augment.html">Compose Classes of Objects with &#x60;augment&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Add behaviors to objects or static classes with &#x60;mix&#x60;">
+                                            <a href="yui-mix.html">Add Behaviors to Objects with &#x60;mix&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Combine data sets and create shallow copies of objects with &#x60;merge&#x60;">
+                                            <a href="yui-merge.html">Combine Data Sets with &#x60;merge&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Check data types with the &#x60;Lang Utilities&#x60;">
+                                            <a href="yui-isa.html">Check Data Types with &#x60;Lang&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Get information about the current user agent with &#x60;UA&#x60;">
+                                            <a href="yui-ua.html">Browser Detection with &#x60;UA&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with YUI 2 in 3">
+                                            <a href="yui-yui2.html">Working with YUI 2 in 3</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Natively use YUI Gallery Modules">
+                                            <a href="yui-gallery.html">Natively use YUI Gallery Modules</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Programatically use Loader">
+                                            <a href="loader-resolve.html">Programatically use Loader</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Executing functions in parallel">
+                                            <a href="parallel.html">Using Y.Parallel</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

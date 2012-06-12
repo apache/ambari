@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>DataSource</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>DataSource</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro component">
+    <p>
+        The DataSource Utility provides a consistent API for the retrieval of
+        data from arbitrary sources over a variety of supported protocols.
+        DataSource plugins and extensions enable additional functionality such
+        as schema normalization, caching, and polling of data.
+    </p>
+</div>
+				
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for DataSource and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;datasource&#x27;, function (Y) {
+    &#x2F;&#x2F; DataSource is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+				
+<h2 id="using">Using DataSources</h2>
+			
+<h3 id="basics">DataSource basics</h3>
+
+<p>
+    The DataSource Utility uses a callback mechanism to manage the data
+    retrieval process across a wide variety of potential sources. Define your
+    callback object with custom functions that will execute when the data
+    returns from your source. The <code>sendRequest()</code> method accepts an
+    object literal with properties for the request value, a callback object,
+    and/or any configuration values for the request.
+</p>
+
+<pre class="code prettyprint">myDataSource.sendRequest({
+    request: myRequest,
+    callback: {
+        success: function(e){
+            alert(e.response);
+        },
+        failure: function(e){
+            alert(e.error.message);
+        }
+    }
+});</pre>
+
+
+				
+<p>
+    You must instantiate the appropriate DataSource subclass for your source of
+    data.
+</p>
+
+<h4 id="local">Local sources</h4>
+
+<p>
+    Use DataSource.Local when you are working with data that is held in local
+    memory, such as a JavaScript array or object.
+</p>
+
+<pre class="code prettyprint">var myDataSource = new Y.DataSource.Local({source:[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]});</pre>
+
+
+<h4 id="get">Remote sources with the Get Utility</h4>
+
+<p>
+    Use DataSource.Get to access data coming from a server via the Get Utility.
+    The Get Utility supports data retrieval from cross-domain resources without
+    the need for a proxy, but the server must return JSON data and support a
+    script callback parameter in order for the response to return properly.
+    This parameter specifies the name of the internally defined function that
+    the return data will be wrapped in when it returns to the page. 
+</p>
+
+<pre class="code prettyprint">var myDataSource = new Y.DataSource.Get({
+    source: &quot;http:&#x2F;&#x2F;query.yahooapis.com&#x2F;v1&#x2F;public&#x2F;yql?format=json&amp;&quot;
+});</pre>
+
+
+<p>
+    You should not modify the internally assigned value of this script callback
+    parameter. However, you may need to set the parameter name to a different
+    value so that your server will accept it. By default, the script callback
+    parameter name is <code>"callback"</code>, but this value can be changed
+    via the Attribute <code>scriptCallbackParam</code>.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; By default the request is sent to
+&#x2F;&#x2F; &quot;http:&#x2F;&#x2F;query.yahooapis.com&#x2F;v1&#x2F;public&#x2F;yql?format=json&amp;q=foo&amp;callback=YUI.Env.DataSource.callbacks[0]&quot;
+myDataSource.sendRequest({
+    request: &quot;q=foo&quot;,
+    callback: myCallback
+});
+
+&#x2F;&#x2F; But the parameter name can be customized to match the server requirement
+myDataSource.set(&quot;scriptCallbackParam&quot;, &quot;cbFunc&quot;);
+
+&#x2F;&#x2F; So now the request is sent to
+&#x2F;&#x2F; &quot;http:&#x2F;&#x2F;query.yahooapis.com&#x2F;v1&#x2F;public&#x2F;yql?format=json&amp;q=foo&amp;cbFunc=YUI.Env.DataSource.callbacks[0]&quot;
+myDataSource.sendRequest({
+    request: &quot;q=foo&quot;,
+    callback: myCallback
+});</pre>
+
+
+<p>
+    Use the DataSourceJSONSchema plugin to normalize the data that is sent to
+    your callack.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Normalize the data sent to myCallback
+myDataSource.plug({fn: Y.Plugin.DataSourceJSONSchema, cfg: {
+    schema: {
+        resultListLocator: &quot;myResults&quot;,
+        resultFields: [&quot;myField1&quot;, &quot;myField2&quot;]
+    }
+}});</pre>
+
+
+<h4 id="io">Remote sources with the IO Utility</h4>
+
+<p>
+    DataSource.IO is used to access data coming from a server via the IO
+    Utility. Note that accessing a cross-domain server will require a
+    same-domain proxy or enabling IO's XDR feature, in order to bypass standard
+    browser security restrictions.
+</p>
+
+<pre class="code prettyprint">var myDataSource = new Y.DataSource.IO({source:&quot;.&#x2F;myScript.php&quot;});</pre>
+
+
+<p>
+    The IO Utility supports retrieval of multiple data formats, including JSON,
+    XML, and plain text. Use the appropriate DataSchema plugin to normalize the
+    data that is sent to your callback.
+</p>
+
+<pre class="code prettyprint">myDataSource.plug({fn: Y.Plugin.DataSourceXMLSchema, cfg: {
+    schema: {
+        resultListLocator: &quot;resultNodeName&quot;,
+        resultFields: [{key:&quot;myField1&quot;, locator:&quot;xpath&#x2F;to&#x2F;value&quot;}]
+    }
+}});</pre>
+
+
+<h4 id="function">Sources using custom functions</h4>
+
+<p>
+    Defining your own JavaScript function that returns data for a given request
+    allows full customization of the data retrieval mechanism.
+</p>
+
+<pre class="code prettyprint">var myDataSource = new Y.DataSource.Function({
+    source: function (request) {
+        return data;
+    }
+});</pre>
+
+
+<p>
+    Since your data can return data of any format, you may consider ways to
+    taking advantage of the built-in infrastructure, including using a
+    DataSchema plugin to normalize the data that is sent to your callback.
+</p>
+                
+<pre class="code prettyprint">var myDataSource = new Y.DataSource.Function({
+    source: function (request) {
+        return [[&quot;ann&quot;, 123], [&quot;bill&quot;, 456]];
+    }
+});
+
+myDataSource.plug({fn: Y.Plugin.DataSourceArraySchema, cfg: {
+    schema: {
+        resultFields: [&quot;name&quot;,&quot;id&quot;]
+    }
+}});</pre>
+
+
+<h3 id="caching">Caching</h3>
+
+<p>
+    The DataSourceCache plugin provides integrated caching functionality to
+    your DataSource instance. Use the DataSource's <code>plug()</code> method
+    to instantiate a Cache instance. Set the <code>max</code> Attribute value
+    to the maximum number of entries the Cache should hold.
+</p>
+
+<pre class="code prettyprint">myDataSource.plug({fn:Y.Plugin.DataSourceCache, cfg:{max:3}});</pre>
+
+
+<p>
+    Once the plugin is enabled, it will handle caching and retrieval of values
+    seamlessly for you without the need for extra code. However, all the
+    methods and properties of the Cache instance is available on the DataSource
+    instance's <code>cache</code> namepace.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Flush myDataSource&#x27;s cache.
+myDataSource.cache.flush();
+
+&#x2F;&#x2F; Disable myDataSource&#x27;s cache
+myDataSource.cache.set(&quot;max&quot;, 0);</pre>
+
+
+<h3 id="polling">Polling</h3>
+
+<p>
+    Pollable is a DataSource extension that enhances the class with polling
+    functionality. Once the extension is applied, all instances of DataSource
+    will have available on their prototype the methods that enable and disable
+    requests sent at regular intervals. To apply the extension, simply include
+    the <code>datasource-polling</code> sub-module in your
+    <code>YUI.use()</code> statement.
+</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;datasource-io&#x27;, &#x27;datasource-polling&#x27;, &#x27;json-parse&#x27;, function(Y) {
+    var onlineFriends = Y.one(&#x27;#friend-count&#x27;),
+        friendData,
+        intervalId;
+        
+    friendData = new Y.DataSource.IO({
+        source: &#x27;&#x2F;services&#x2F;friends&#x2F;&#x27;
+    });
+
+    &#x2F;&#x2F; Start polling the server every 10 seconds
+    intervalId = friendData.setInterval(10000, {
+        request : Y.one(&#x27;#user-id&#x27;).get(&#x27;value&#x27;),
+        callback: {
+            success: function (e) {
+                var friends = Y.JSON.parse(e.response.results[0]).friendCount;
+
+                if (!friends) {
+                    friends = &#x27;No friends.  You should go outside more.&#x27;;
+                }
+
+                onlineFriends.set(&#x27;text&#x27;, friends);
+            },
+            failure: function (e) {
+                onlineFriends.set(&#x27;text&#x27;,
+                    &#x27;(Bang) Ouch! &#x27; + e.error.message + &#x27; happened!&#x27;);
+
+                &#x2F;&#x2F; Stop polling
+                friendData.clearInterval(intervalId);
+            }
+        }
+    });
+});</pre>
+
+
+<h3 id="events">Events</h3>
+<table>
+<thead>
+    <tr>
+        <th>Event</th>
+        <th>When</th>
+        <th>Event properties</th>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+        <td><code>request</code></td>
+        <td>Request is made.</td>
+        <td>
+            <dl>
+                <dt><code>tId</code></dt>
+                    <dd>Unique transaction ID.</dd>
+                <dt><code>request</code></dt>
+                    <dd>The request value.</dd>
+                <dt><code>callback</code></dt>
+                    <dd>The callback object.</dd>
+                <dt><code>cfg</code></dt>
+                    <dd>The configuration object.</dd>
+            </dl>
+       </td>
+    </tr>
+    <tr>
+        <td><code>data</code></td>
+        <td>Raw data is received from the source.</td>
+        <td>
+            All properties from <code>request</code> plus
+            <dl>
+                <dt><code>data</code></dt>
+                    <dd>The raw data.</dd>
+            </dl>
+        </td>
+    </tr>
+    <tr>
+        <td><code>response</code></td>
+        <td>Response is returned to a callback function.</td>
+        <td>
+            All properties from <code>data</code> plus
+            <dl>
+                <dt><code>response</code></dt>
+                    <dd>Data normalized into a response object.</dd>
+            </dl>
+        </td>
+    </tr>
+    <tr>
+        <td><code>error</code></td>
+        <td>After <code>response</code> event, before the configured failure callback is executed.</td>
+        <td>Same properties as the <code>response</code> event</td>
+    </tr>
+</tbody>
+</table>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+</li>
+<li>
+<a href="#using">Using DataSources</a>
+<ul class="toc">
+<li>
+<a href="#basics">DataSource basics</a>
+<ul class="toc">
+<li>
+<a href="#local">Local sources</a>
+</li>
+<li>
+<a href="#get">Remote sources with the Get Utility</a>
+</li>
+<li>
+<a href="#io">Remote sources with the IO Utility</a>
+</li>
+<li>
+<a href="#function">Sources using custom functions</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#caching">Caching</a>
+</li>
+<li>
+<a href="#polling">Polling</a>
+</li>
+<li>
+<a href="#events">Events</a>
+</li>
+</ul>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="The Local DataSource manages retrieval of in-page data, from JavaScript arrays and objects to DOM elements.">
+                                            <a href="datasource-local.html">DataSource.Local</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The Get DataSource, which manages retrieval of data from remote sources via the Get Utility, can be useful for accessing data from cross-domain servers without the need for a proxy.">
+                                            <a href="datasource-get.html">DataSource.Get</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The IO DataSource manages retrieval of data from remote sources, via the IO Utility.">
+                                            <a href="datasource-io.html">DataSource.IO</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The Function DataSource, which manages retrieval of data from a JavaScript function, provides a highly customizeable mechanism for implementer-defined data retrieval algorithms">
+                                            <a href="datasource-function.html">DataSource.Function</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use the DataSourceCache plugin to enable caching and reduce server calls to remote sources.">
+                                            <a href="datasource-caching.html">DataSource with Caching</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The DataSourceCache plugin supports offline caching so that cached data persists across browser sessions.">
+                                            <a href="datasource-offlinecache.html">DataSource with Offline Cache</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use the Pollable extension to enable polling in your DataSource.">
+                                            <a href="datasource-polling.html">DataSource with Polling</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="How to provide autocomplete suggestions using a DataSource instance.">
+                                            <a href="../autocomplete/ac-datasource.html">Remote Data via DataSource</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

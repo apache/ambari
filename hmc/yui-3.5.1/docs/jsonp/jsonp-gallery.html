@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Reusing a JSONPRequest Instance to Poll a Remote Server</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Reusing a JSONPRequest Instance to Poll a Remote Server</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+    #out {
+        margin-top: 2em;
+    }
+    #out h4 {
+        border-right: 100px solid #ccc;
+    }
+</style>
+
+
+<div class="intro">
+    <p>
+        This example shows how to create a reusable JSONPRequest for polling as
+        well as how to configure success and failure callbacks.  See the API
+        docs and user guide for a full listing of available configurations.
+    </p>
+
+    <p>
+        For this example, we will use a JSONP service hosted on <a
+        href="http://yuilibrary.com">YUILibrary</a> to fetch information about
+        a random Gallery module and render some of the information on the page.
+    </p>
+</div>
+
+<div class="example yui3-skin-sam">
+<div id="demo">
+    <input type="button" id="start" value="Start polling">
+    <input type="button" id="stop" value="Stop polling">
+    <div id="out">
+    </div>
+</div>
+
+<script>
+YUI().use("jsonp", "transition",function (Y) {
+
+    var url = "http://yuilibrary.com/gallery/api/random?callback={callback}",
+        outputDiv = Y.one("#out"),
+        gallery;
+        
+    // Using the configuration object syntax
+    gallery = new Y.JSONPRequest(url, {
+        on: {
+            success: function (response) {
+                var module = response.modules[0],
+                    author = module.owner;
+
+                // Some users don't have a rank
+                if (!author.rank) {
+                    author.rank = "user";
+                }
+
+                // Format the author info and store as a property of the
+                // module object for use by Y.Lang.sub
+                // ('this' refers to the JSONPRequest object by default)
+                module.authorHTML = Y.Lang.sub(this.authorTemplate, author);
+
+                outputDiv.setContent(Y.Lang.sub(this.moduleTemplate, module));
+
+                // Add some flare to the poll interval by showing a "time left"
+                // indicator via the header's border
+                Y.one("#out h4")
+                    .setStyle("borderRightWidth", "100px")
+                    .transition({
+                        borderRightWidth: 0,
+                        duration: 7
+                    }, function () {
+                        if (gallery.polling) {
+                            gallery.send();
+                        }
+                    });
+            },
+
+            failure: function () {
+                gallery.polling = false;
+                outputDiv.setContent(this.failureTemplate);
+
+                // Wire up the Try again button
+                outputDiv.one("button").on("click", function () {
+                    gallery.send();
+                });
+            }
+        }
+    });
+
+
+    gallery.moduleTemplate =
+        '<h4><a href="{url}">{title}</a></h4>' +
+        '<p class="author">{authorHTML}</p>' +
+        '<div>{summary}</div>';
+
+    gallery.authorTemplate =
+        '<img src="{icon}" height="30" width="30">' +
+        ' {fullname} <span class="rank">({rank})</span>';
+
+    gallery.failureTemplate =
+        '<p class="error">Ack, I couldn\'t reach the Gallery web service!</p>' +
+        '<button>Try again</button>';
+
+    gallery.polling = false;
+
+
+    // Click the button to send the JSONP request
+    Y.one("#start").on("click", function (e) {
+        if (!gallery.polling) {
+            gallery.polling = true;
+            gallery.send();
+        }
+    });
+
+    Y.one("#stop").on("click", function (e) {
+        gallery.polling = false;
+    });
+
+});
+</script>
+
+</div>
+
+<h3>The data</h3>
+<p>The structure of the JavaScript object returned from YUILibrary's JSONP service will look like this:</p>
+
+<pre class="code prettyprint">{
+    modules: [
+        {
+            url: (the url to the module),
+            title: (the title of the module),
+            summary: (short description of the module),
+            ...,
+            owner: {
+                icon: (url to the author&#x27;s thumb image),
+                fullname: (the author&#x27;s full name),
+                rank: (YUI Team member?, Contributor? etc),
+                ...
+            }
+        }
+    ],
+    ...
+}</pre>
+
+
+<p>We'll use these objects to populate an HTML template with data <em>{placeholder}</em>s using <code>Y.Lang.sub( template, object )</code>.</p>
+
+
+<h3>Start simple</h3>
+<p>To make a single call to the YUILibrary Gallery API, we can just use</p>
+
+<pre class="code prettyprint">Y.jsonp(&quot;http:&#x2F;&#x2F;yuilibrary.com&#x2F;gallery&#x2F;api&#x2F;random?callback={callback}&quot;, handleJSONP);</pre>
+
+
+<p>But since each call to <code>Y.jsonp()</code> creates a new instance of <code>Y.JSONPRequest</code>, we may as well store the instance and reuse it.</p>
+
+<pre class="code prettyprint">var gallery = new Y.JSONPRequest(&quot;http:&#x2F;&#x2F;yuilibrary.com&#x2F;gallery&#x2F;api&#x2F;random?callback={callback}&quot;, handleJSONP);
+
+gallery.send();</pre>
+
+
+<h3>Add polling</h3>
+<p>JSONPRequest doesn't have any built-in polling mechanism, but <code>Y.later()</code> can handle this for us.</p>
+
+<pre class="code prettyprint">var url = &quot;http:&#x2F;&#x2F;yuilibrary.com&#x2F;gallery&#x2F;api&#x2F;random?callback={callback}&quot;;
+
+function handleJSONP(response) {
+    &#x2F;&#x2F; populate template from the response object and add to the output div
+    ...
+
+    Y.one(&quot;#out&quot;).setContent( Y.Lang.sub(template, module) );
+
+    &#x2F;&#x2F; After 7 seconds, call the API for a new module
+    Y.later(7000, this, this.send);
+};
+
+var gallery = new Y.JSONPRequest(url, handleJSONP);
+gallery.send();</pre>
+
+
+<h3>Add failure protection</h3>
+<p>In case the Gallery API is busy or some other problem arises, we'll also want to handle this case and display an error.  We can do this by passing a configuration object as the second parameter rather than a simple success callback.</p>
+
+<pre class="code prettyprint">var gallery = new Y.JSONPRequest(url, {
+        on: {
+            success: function (response) {
+                &#x2F;&#x2F; populate output div from the template and response object
+                ...
+
+                Y.one(&quot;#out&quot;).setContent( Y.Lang.sub(template, module) );
+
+                &#x2F;&#x2F; After 7 seconds, call the API for a new module
+                Y.later(7000, this, this.send);
+            },
+
+            failure: function () {
+                Y.one(&quot;#out&quot;).setContent( failureTemplate );
+            }
+        }
+    });
+
+gallery.send();</pre>
+
+
+<h3>Add flare</h3>
+<p>Now we'll add a bit of flourish, by adding a visual indicator of how long until the next module is requested.  We'll replace the call to <code>Y.later()</code> with a call to <code>node.transition()</code> using a shrinking border to show the remaining time.  Then when the transition is complete, we call <code>send()</code> again.
+
+<pre class="code prettyprint">var gallery = new Y.JSONPRequest(url, {
+        on: {
+            success: function (response) {
+                &#x2F;&#x2F; populate output div from the template and response object
+                ...
+
+                Y.one(&quot;#out&quot;).setContent( Y.Lang.sub(template, module) );
+
+                &#x2F;&#x2F; Add some flare to the poll interval by showing a &quot;time left&quot;
+                &#x2F;&#x2F; indicator via the header&#x27;s border
+                Y.one(&quot;#out h4&quot;)
+                    .setStyle(&quot;borderRightWidth&quot;, &quot;100px&quot;)
+                    .transition({
+                        borderRightWidth: 0,
+                        duration: 7
+                    }, function () {
+                        gallery.send();
+                    });
+            },
+
+            failure: function () {
+                Y.one(&quot;#out&quot;).setContent( failureTemplate );
+            }
+        }
+    });
+
+gallery.send();</pre>
+
+
+<h3>Stop the poll</h3>
+<p>The final step is to add the ability to start and stop the polling.  We'll manage this by adding a property to the <code>gallery</code> JSONPRequest instance named <code>gallery.polling</code>.  See the full code listing below for the implementation.
+
+<h3 id="fullcode">Full Code Listing</h3>
+<h4>HTML</h4>
+<pre class="code prettyprint">&lt;div id=&quot;demo&quot;&gt;
+    &lt;input type=&quot;button&quot; id=&quot;start&quot; value=&quot;Start polling&quot;&gt;
+    &lt;input type=&quot;button&quot; id=&quot;stop&quot; value=&quot;Stop polling&quot;&gt;
+    &lt;div id=&quot;out&quot;&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;</pre>
+
+
+<h4>JavaScript</h4>
+<pre class="code prettyprint">&lt;script&gt;
+YUI().use(&quot;jsonp&quot;, &quot;transition&quot;,function (Y) {
+
+    var url = &quot;http:&#x2F;&#x2F;yuilibrary.com&#x2F;gallery&#x2F;api&#x2F;random?callback={callback}&quot;,
+        outputDiv = Y.one(&quot;#out&quot;),
+        gallery;
+        
+    &#x2F;&#x2F; Using the configuration object syntax
+    gallery = new Y.JSONPRequest(url, {
+        on: {
+            success: function (response) {
+                var module = response.modules[0],
+                    author = module.owner;
+
+                &#x2F;&#x2F; Some users don&#x27;t have a rank
+                if (!author.rank) {
+                    author.rank = &quot;user&quot;;
+                }
+
+                &#x2F;&#x2F; Format the author info and store as a property of the
+                &#x2F;&#x2F; module object for use by Y.Lang.sub
+                &#x2F;&#x2F; (&#x27;this&#x27; refers to the JSONPRequest object by default)
+                module.authorHTML = Y.Lang.sub(this.authorTemplate, author);
+
+                outputDiv.setContent(Y.Lang.sub(this.moduleTemplate, module));
+
+                &#x2F;&#x2F; Add some flare to the poll interval by showing a &quot;time left&quot;
+                &#x2F;&#x2F; indicator via the header&#x27;s border
+                Y.one(&quot;#out h4&quot;)
+                    .setStyle(&quot;borderRightWidth&quot;, &quot;100px&quot;)
+                    .transition({
+                        borderRightWidth: 0,
+                        duration: 7
+                    }, function () {
+                        if (gallery.polling) {
+                            gallery.send();
+                        }
+                    });
+            },
+
+            failure: function () {
+                gallery.polling = false;
+                outputDiv.setContent(this.failureTemplate);
+
+                &#x2F;&#x2F; Wire up the Try again button
+                outputDiv.one(&quot;button&quot;).on(&quot;click&quot;, function () {
+                    gallery.send();
+                });
+            }
+        }
+    });
+
+
+    gallery.moduleTemplate =
+        &#x27;&lt;h4&gt;&lt;a href=&quot;{url}&quot;&gt;{title}&lt;&#x2F;a&gt;&lt;&#x2F;h4&gt;&#x27; +
+        &#x27;&lt;p class=&quot;author&quot;&gt;{authorHTML}&lt;&#x2F;p&gt;&#x27; +
+        &#x27;&lt;div&gt;{summary}&lt;&#x2F;div&gt;&#x27;;
+
+    gallery.authorTemplate =
+        &#x27;&lt;img src=&quot;{icon}&quot; height=&quot;30&quot; width=&quot;30&quot;&gt;&#x27; +
+        &#x27; {fullname} &lt;span class=&quot;rank&quot;&gt;({rank})&lt;&#x2F;span&gt;&#x27;;
+
+    gallery.failureTemplate =
+        &#x27;&lt;p class=&quot;error&quot;&gt;Ack, I couldn\&#x27;t reach the Gallery web service!&lt;&#x2F;p&gt;&#x27; +
+        &#x27;&lt;button&gt;Try again&lt;&#x2F;button&gt;&#x27;;
+
+    gallery.polling = false;
+
+
+    &#x2F;&#x2F; Click the button to send the JSONP request
+    Y.one(&quot;#start&quot;).on(&quot;click&quot;, function (e) {
+        if (!gallery.polling) {
+            gallery.polling = true;
+            gallery.send();
+        }
+    });
+
+    Y.one(&quot;#stop&quot;).on(&quot;click&quot;, function (e) {
+        gallery.polling = false;
+    });
+
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Get basic GitHub user info using a Y.jsonp(url, callback).">
+                                            <a href="jsonp-github.html">Getting Cross Domain JSON Data Using Y.jsonp()</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Create a reusable JSONPRequest object to poll the YUILibrary.com Gallery web service, fetching info on a random Gallery module.">
+                                            <a href="jsonp-gallery.html">Reusing a JSONPRequest Instance to Poll a Remote Server</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

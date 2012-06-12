@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Calendar</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Calendar</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+<p>
+<img src="../assets/calendar/calendar.png" alt="Screenshot of the Calendar widget" style="border: 1px solid #bfbfbf; float:right; height:161px; margin: 0 0 8px 8px; width:272px;">
+The Calendar widget is a visual representation of a range of dates in blocks of one or more months, which allows the user to select dates and navigate the date range.</p>
+
+<p>
+In addition to the core logic for displaying a date range and allowing date selection and navigation, Calendar also provides options for custom date filtering, custom formatting of individual dates, various display options, internationalization, flexible templates, additional navigation plugins, and more.
+</p>
+
+<p>
+Calendar is highly modular and easy to extend so that it can be modified or used as the basis for custom implementations and widgets.
+</p>
+</div>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for Calendar and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;calendar&#x27;, function (Y) {
+    &#x2F;&#x2F; Calendar is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+
+<h2 id="using-calendar">Using Calendar</h2>
+<h3 id="quick-start">Quick Start</h3>
+
+<p>
+Here's an easy way to create an instance of a Calendar with just a few lines of code.
+</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;calendar&#x27;, function (Y) {
+
+  &#x2F;&#x2F; Add the yui3-skin-sam class to the body so the default
+  &#x2F;&#x2F; Calendar widget skin will be applied.
+  Y.one(&#x27;body&#x27;).addClass(&#x27;yui3-skin-sam&#x27;);
+
+  &#x2F;&#x2F; Create a new instance of Calendar, setting its width 
+  &#x2F;&#x2F; and height, allowing the dates from the previous
+  &#x2F;&#x2F; and next month to be visible and setting the initial
+  &#x2F;&#x2F; date to be November, 1982.
+  var calendar = new Y.Calendar({
+          contentBox: &quot;#mycalendar&quot;,
+          height:&#x27;200px&#x27;,
+          width:&#x27;600px&#x27;,
+          showPrevMonth: true,
+          showNextMonth: true,
+          date: new Date(1982,11,1)}).render();
+
+});</pre>
+
+
+<p>
+For a more complete discussion of how to use, configure, and customize Calendar, read on.
+</p>
+
+<h3 id="configuring-calendar">Configuring Calendar</h3>
+
+<p>
+Except for <code>contentBox</code>, all configuration attributes are optional. This list only contains the most interesting attributes. For a complete list of all attributes, please refer to the <a href="http://yuilibrary.com/yui/docs/api/Calendar.html">API docs</a>.
+</p>
+
+<h4 id="calendarbase-config-attributes">CalendarBase Config Attributes</h4>
+
+<p>
+These attributes are provided by <code>CalendarBase</code>, which is the core foundation for the Calendar widget. They are available on all Calendar instances.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Attribute</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>width</code></td>
+      <td><code>300px</code></td>
+      <td>
+        The width of the calendar widget.
+      </td>
+    </tr>
+    <tr>
+      <td><code>height</code></td>
+      <td><code>200px</code></td>
+      <td>
+        The height of the calendar widget.
+      </td>
+    </tr>
+    <tr>
+      <td><code>date</code></td>
+      <td>Today's date on the user's system</td>
+      <td>
+        The date corresponding to the month and the year to be displayed. The date assigned to this attribute will always be normalized to the noon on the first of the month. In a multi-pane calendar, the month and the year of the first pane will correspond to this date.
+      </td>
+    </tr>
+    <tr>
+      <td><code>customRenderer</code></td>
+      <td><code>null</code></td>
+      <td>
+        An object containing a <code>rules</code> attribute and a <code>filterFunction</code> attribute. See the <a href="#custom-rendering">Custom Rendering</a> section for details on how these attributes work.
+      </td>
+    </tr>
+    <tr>
+      <td><code>showPrevMonth</code></td>
+      <td><code>false</code></td>
+      <td>
+        Whether the dates from the previous month should be shown in the empty cells of the month grid before the first of the month (if there are any).
+      </td>
+    </tr>
+    <tr>
+      <td><code>showNextMonth</code></td>
+      <td><code>false</code></td>
+      <td>
+        Whether the dates from the next month should be shown in the empty cells of the month grid after the last of the month (if there are any).
+      </td>
+    </tr>
+    <tr>
+      <td><code>headerRenderer</code></td>
+      <td><code>&quot;%B %Y&quot;</code></td>
+      <td>
+        The formatting for the header of the Calendar. This attribute can be either a String with the formatting tokens used by the <code>strftime</code> specification, or a callback function that will receive a <code>Date</code> object as an argument and output a <code>String</code>.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="calendar-config-attributes">Calendar Config Attributes</h4>
+
+<p>
+These attributes are provided by <code>Calendar</code>, which is the complete implementation of Calendar widget that includes user interactivity (navigation and selection). They are available on all instances of <code>Calendar</code>.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Attribute</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>selectionMode</code></td>
+      <td><code>single</code></td>
+      <td>
+        The configuration for the type of date selection allowed by the calendar. The <code>selectionMode</code> can be either <code>&quot;single&quot;</code>, <code>&quot;multiple&quot;</code> or <code>&quot;multiple-sticky&quot;</code>.
+      </td>
+    </tr>
+    <tr>
+      <td><code>minimumDate</code></td>
+      <td><code>null</code></td>
+      <td>
+        Specification for the earliest month which the Calendar will display. In a multi-pane calendar, this is the earliest month that will appear in the first pane.
+      </td>
+    </tr>
+    <tr>
+      <td><code>maximumDate</code></td>
+      <td><code>null</code></td>
+      <td>
+        Specification for the latest month which the Calendar will display. In a multi-pane calendar, this is the latest month that will appear in the last pane.
+      </td>
+    </tr>
+    <tr>
+      <td><code>enabledDatesRule</code></td>
+      <td><code>null</code></td>
+      <td>
+        The name of the rule that should be matched by enabled dates. If specified, a <code>customRenderer</code> definition is required (see <a href="#custom-rendering">Custom Rendering</a> for more information). Only dates matching the rule will be enabled for interaction; all other dates will be disabled. Cannot be specified simultaneously with the <code>disabledDatesRule</code> attribute.
+      </td>
+    </tr>
+    <tr>
+      <td><code>disabledDatesRule</code></td>
+      <td><code>null</code></td>
+      <td>
+        The name of the rule that should be matched by disabled dates. If specified, a <code>customRenderer</code> definition is required (see <a href="#custom-rendering">Custom Rendering</a> for more information). Only dates not matching the rule will be enabled for interaction; all other dates will be disabled. Cannot be specified simultaneously with the <code>enabledDatesRule</code> attribute.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="custom-rendering">Custom Rendering</h3>
+
+<p>
+Calendar allows the developer to customize the rendering of individual cells based on a set of rules that match
+specific dates. To create a set of custom rules and a custom renderer function that is triggered when a rule is matched, set the <code>customRenderer</code> property to an <code>Object</code> with two keys: <code>rules</code> and <code>filterFunction</code>:
+</p>
+<pre class="code prettyprint">calendar.set(&quot;customRenderer&quot;, {rules: myRules, 
+                                filterFunction: myFilterFunction});</pre>
+
+<h4 id="rendering-rules">Rendering Rules</h4>
+<p>The <code>rules</code> parameter looks as follows:</p>
+<pre class="code prettyprint">var rules = {
+&quot;2011,2013,2015-2019,2017&quot;: {
+  &quot;0,1,5-7&quot;: {
+    &quot;5,6,8&quot;: {
+      &quot;all&quot;: &quot;rule_name&quot;
+      }
+    }
+  }  
+};</pre>
+
+<p>
+At the top level, the rules object specifies years that dates should match; the next level is months (indexed 
+starting at 0), the next is days of the month (indexed starting at 1), and the last is days of the week (indexed
+from Sunday, starting at 0). The actual value is the name of the rule that is matched by a date. In the example
+above, the rule "rule_name" is matched by the 5th, 6th and 8th days of January, February, June, July and August of
+2011, 2013, 2015 through 2019, and 2017.</p>
+<p>
+Note that the keyword <code>&#x27;all&#x27;</code> can appear at any level of the <code>rule</code> object and will match all parameters (e.g. all years, or all months) at that level. Furthermore, the rule name value can also appear at any level, for instance:
+</p>
+<pre class="code prettyprint">var rules = {
+&quot;2011&quot;: {
+  &quot;5-7&quot;: &quot;summer-2011&quot;
+  }  
+};</pre>
+
+<p>
+The rule 'summer-2011' corresponds to June through August of 2011. More than one rule can be specified in the same
+rules object:
+</p>
+<pre class="code prettyprint">var rules = {
+&quot;2011&quot;: {
+  &quot;5-7&quot;: &quot;summer-2011&quot;
+  },
+&quot;2012&quot;:
+  {
+   &quot;all&quot;: {
+      &quot;all&quot;: {
+        &quot;0,6&quot;: &quot;all-weekends-in-2012&quot;
+      } 
+   }
+  }  
+};</pre>
+
+<h4 id="custom-rendering-function">Custom Rendering Function</h4>
+<p>In order to match these rules, the customRenderer allows the developer to provide a <code>filterFunction</code> that will get called every time one or more rules is matched. The <code>filterFunction</code> has the following signature:</p>
+<pre class="code prettyprint">filterFunction = function (date &#x2F;*Date*&#x2F;, node &#x2F;*Node*&#x2F;, rules &#x2F;*Array*&#x2F;) {
+  if (rules.indexOf(&quot;rule_name&quot;) &gt;= 0) {
+  
+  }
+};</pre>
+
+<p>The first parameter, <code>date</code>, is a single date that matched one or more rules. The second parameter, <code>node</code>, is the <code>Node</code> wrapping the DOM element corresponding to the given date. Finally, the third parameter, <code>rules</code>, is an
+<code>Array</code> of <code>String</code>s, each containing a rule name that the given date matched.</p>
+<p>As an example, here is a custom renderer that assigns a custom CSS class to all summer weekends:</p>
+<pre class="code prettyprint">var rules = {
+  &quot;all&quot;: {
+    &quot;5-7&quot;: {
+      &quot;all&quot;: {
+        &quot;0,6&quot;: &quot;all-summer-weekends&quot;
+      }
+    }
+  }
+};
+
+var filterFunction = function (date, node, rules) {
+  if (rules.indexOf(&quot;all-summer-weekends&quot; &gt;= 0)) {
+    node.addClass(&quot;customCSSClass&quot;);
+  }
+}
+
+calendar.set(&quot;customRenderer&quot;, {rules: rules, filterFunction: filterFunction});</pre>
+
+<h4 id="-enabling-and-disabling-dates"> Enabling and Disabling Dates</h4>
+<p> In addition to custom rendering, the rules can also be used to specify sets of dates that should be enabled or disabled for selection. To do that, specify a rule set as described above, and then specify which rule should be used to match either the disabled dates, or the enabled dates (but not both: only one of the two parameters will be honored):</p>
+<pre class="code prettyprint">calendar.set(&quot;disabledDatesRule&quot;, &quot;someRuleName&quot;);
+&#x2F;&#x2F; OR
+calendar.set(&quot;enabledDatesRule&quot;, &quot;someRuleName&quot;);</pre>
+
+<p>
+Note, by the way, that the same rule name can be listed multiple times, giving the developer a lot of flexibility in defining what set of dates can be matched. For example, the following rule set matches all weekends and the 10th of every month:
+</p>
+<pre class="code prettyprint">var rules = {
+  &quot;all&quot;: {
+    &quot;all&quot;: {
+      &quot;all&quot;: {
+        &quot;0,6&quot;: &quot;all-summer-weekends&quot;
+      },
+      &quot;10&quot;: &quot;10th-of-every-month&quot;
+    }
+  }
+};</pre>
+
+
+<h3 id="calendar-templates">Calendar Templates</h3>
+<p>By default, the calendar is rendered using a set of templates, specified as static properties of the <code>CalendarBase</code> class. These templates can be completely modified to reconfigure the markup of the calendar, as long as the tokens they use as placeholders for CSS classes, ids and content are preserved.</p>
+<p>Using the template logic, the developer can easily switch from a single pane calendar, to a calendar with
+an arbitrary number of panes. Consider the main <code>CONTENT_TEMPLATE</code> in <code>CalendarBase</code>:
+<pre class="code prettyprint">CONTENT_TEMPLATE:  &#x27;&lt;div class=&quot;yui3-g {calendar_pane_class}&quot; id=&quot;{calendar_id}&quot;&gt;&#x27; +  
+                            &#x27;{header_template}&#x27; +
+                          &#x27;&lt;div class=&quot;yui3-u-1&quot;&gt;&#x27; +
+                            &#x27;{calendar_grid_template}&#x27; +
+                          &#x27;&lt;&#x2F;div&gt;&#x27; +
+               &#x27;&lt;&#x2F;div&gt;&#x27;</pre>
+
+<p>In this template, the <code>{calendar_grid_template}</code> is a so-called iterative token -- that means it can be used
+multiple times, and the calendar will automatically adjust to generate multiple sequential month grids for the
+calendar</p>
+<p>For convenience, we provide a two-pane and a three-pane calendar templates. Here is the two-pane template:</p>
+<pre class="code prettyprint">TWO_PANE_TEMPLATE: 
+    &#x27;&lt;div class=&quot;yui3-g {calendar_pane_class}&quot; id=&quot;{calendar_id}&quot;&gt;&#x27; +  
+                 &#x27;{header_template}&#x27; +
+               &#x27;&lt;div class=&quot;yui3-u-1-2&quot;&gt;&#x27;+
+                       &#x27;&lt;div class = &quot;{calendar_left_grid_class}&quot;&gt;&#x27; +
+                    &#x27;{calendar_grid_template}&#x27; +
+                       &#x27;&lt;&#x2F;div&gt;&#x27; +
+               &#x27;&lt;&#x2F;div&gt;&#x27; +
+               &#x27;&lt;div class=&quot;yui3-u-1-2&quot;&gt;&#x27; +
+                       &#x27;&lt;div class = &quot;{calendar_right_grid_class}&quot;&gt;&#x27; +
+                    &#x27;{calendar_grid_template}&#x27; +
+                       &#x27;&lt;&#x2F;div&gt;&#x27; +
+               &#x27;&lt;&#x2F;div&gt;&#x27; +                   
+    &#x27;&lt;&#x2F;div&gt;&#x27;</pre>
+
+<p>Switching to the two-pane template is as simple as assigning the value of <code>CalendarBase.CONTENT_TEMPLATE</code>:</p>
+<pre class="code prettyprint">CalendarBase.CONTENT_TEMPLATE = CalendarBase.TWO_PANE_TEMPLATE;</pre>
+
+Custom templates may also be constructed, with as many <code>{calendar_grid_template}</code> tokens as necessary.
+
+<h2 id="calendar-plugins">Calendar Plugins</h2>
+<p>The Calendar ships with a default <code>CalendarNavigator</code> plugin, which adds the
+simple navigation controls to the top of the widget. The plugin is located on the <code>navigator</code> namespace (that is, to access it and its properties, you would reference <code>mycalendar.navigator</code>). For future releases, more complex calendar navigation plugins
+are planned.</p>
+<p>In addition, in future releases, Calendar will also have a Popup plugin that will 
+allow it to be easily hidden, shown, and associated with other UI elements.</p>
+<h2 id="known-issues">Known Issues</h2>
+
+<ul class="spaced">
+  <li>
+    <p>
+    The calendar is currently not enabled with popup functionality: it will be released as a calendar plugin in 3.5
+    </p>
+  </li>
+</ul>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+</li>
+<li>
+<a href="#using-calendar">Using Calendar</a>
+<ul class="toc">
+<li>
+<a href="#quick-start">Quick Start</a>
+</li>
+<li>
+<a href="#configuring-calendar">Configuring Calendar</a>
+<ul class="toc">
+<li>
+<a href="#calendarbase-config-attributes">CalendarBase Config Attributes</a>
+</li>
+<li>
+<a href="#calendar-config-attributes">Calendar Config Attributes</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#custom-rendering">Custom Rendering</a>
+<ul class="toc">
+<li>
+<a href="#rendering-rules">Rendering Rules</a>
+</li>
+<li>
+<a href="#custom-rendering-function">Custom Rendering Function</a>
+</li>
+<li>
+<a href="#-enabling-and-disabling-dates"> Enabling and Disabling Dates</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#calendar-templates">Calendar Templates</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#calendar-plugins">Calendar Plugins</a>
+</li>
+<li>
+<a href="#known-issues">Known Issues</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="How to create a single-pane calendar with selectable dates">
+                                            <a href="calendar-simple.html">Simple Calendar with Selection</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to create a multi-pane calendar with custom-rendered cells and multiple date selection.">
+                                            <a href="calendar-multipane.html">Two-Pane Calendar with Custom Rendering and Multiple Selection</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

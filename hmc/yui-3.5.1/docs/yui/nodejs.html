@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>YUI on Node.js</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>YUI on Node.js</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>
+        As of 3.5.0, YUI runs natively on <a href="http://nodejs.org/">Node.js</a> and comes with an official <a href="http://search.npmjs.org/#/yui">npm</a> package for easy installation.
+        YUI supports Node.js &gt; 0.4.10, but should work on stable releases above that. Unstable releases will be supported in local developer builds as features change.
+    </p>
+</div>
+
+<h2 id="about-yui-on-nodejs">About YUI on Node.js</h2>
+
+<p><img src="../assets/yui/nodejs.png" align="right" hspace="10" vspace="10" alt="Node.js Logo">
+    The core library will run on Node.js with minimal external dependencies. <code>Get.script</code>, <code>JSONP</code>, <code>YQL</code> &amp; <code>io</code>
+    along with our core infrastructure pieces (anything that doesn't require a DOM) will work out of the box.
+    The only dependency required to run YUI inside Node.js is Mikeal Roger's <a href="https://github.com/mikeal/request">Request</a>
+    library. It's used under the hood for <code>Y.Get</code> &amp; <code>Y.IO</code>.
+</p>
+<p>
+    However, there is <strong>no DOM support</strong> included in our releases.
+    This means that you can not do DOM manipulation on the server with this core system. With the introduction
+    of <code>Y.Handlebars</code>, we are working very hard to allow Widget rendering on the server via strings instead of raw
+    DOM manipulation. If you need DOM support, please look into our <a href="nodejs-dom.html">YUI, Node.js and DOM</a> example.
+</p>
+
+
+<h2 id="install-via-npm">Install via npm</h2>
+
+<p>
+Installing YUI with npm is easy and fast. Simply use <code>npm</code> to install the offical <code>yui</code> package.
+</p>
+
+<pre class="code prettyprint lang-term">npm install yui</pre>
+
+
+<p>
+This will install the latest YUI release into your local <code>.&#x2F;node_modules</code> directory to require in your Node.js application.
+</p>
+
+<h2 id="using-yui-on-nodejs">Using YUI on Node.js</h2>
+<p>
+Using YUI on Node.js is very similar to using it inside the browser:
+</p>
+
+<pre class="code prettyprint">var YUI = require(&#x27;yui&#x27;).YUI;
+
+YUI().use(&#x27;yql&#x27;, function(Y) {
+    Y.YQL(&#x27;....&#x27;);
+});</pre>
+
+
+<p>
+When you require the <code>yui</code> module in this fashion, you are returned the global YUI object. It will be
+re-used on each additional require. So if you load modules into one instance, then <em>re-require</em> YUI,
+those modules will still be available without fetching them from disk again.
+</p>
+
+<h2 id="requiring-a-yui-module">Requiring a YUI module</h2>
+
+<p>
+    If you are working on a packageable application, you can also use YUI in a sync mode to allow for exporting
+    a YUI module or a custom module that requires a YUI module.
+</p>
+
+<p>For example, here we are only requiring the <code>YQL</code> module and the return is now a <code>YUI</code>
+instance with the <code>YQL</code> module already attached to it:
+</p>
+
+<pre class="code prettyprint">var Y = require(&#x27;yui&#x2F;yql&#x27;);</pre>
+
+
+<p>
+    This way you can export a custom module like this:
+</p>
+
+
+<pre class="code prettyprint">#!&#x2F;usr&#x2F;bin&#x2F;env node
+
+var Y = require(&#x27;yui&#x2F;yql&#x27;);
+
+module.exports.getYQLData = function(cb) {
+    Y.YQL(&#x27;select * from awesome.datasource&#x27;, function(r) {
+        cb(r);
+    });
+};</pre>
+
+
+<p>
+    Now, your implementor can use your module like this:
+</p>
+
+<pre class="code prettyprint">var mod = require(&#x27;your-module&#x27;);
+
+mod.getYQLData(function(r) {
+    &#x2F;&#x2F;r will be the return from the above YQL call
+});</pre>
+
+
+<p>
+    There are also other ways to require a single module,
+    or a set of modules.
+</p>
+
+<h3 id="one-at-a-time">One at a time</h3>
+
+<p>
+    In the example below, you can see that the first require returns the <code>YQL</code>
+    module, but doesn't return <code>Base</code>. However, the second require asking for <code>Base</code>
+    returns the same instance as before with both the <code>YQL</code> and <code>Base</code> modules attached.
+</p>
+
+
+<pre class="code prettyprint">#!&#x2F;usr&#x2F;bin&#x2F;env node
+
+var Y = require(&#x27;yui&#x2F;yql&#x27;);
+console.log(&#x27;YQL #1?&#x27;, (Y.YQL) ? true : false); &#x2F;&#x2F;True
+console.log(&#x27;Base #1?&#x27;, (Y.Base) ? true : false); &#x2F;&#x2F;False
+
+var Y = require(&#x27;yui&#x2F;base-base&#x27;);
+console.log(&#x27;YQL #2?&#x27;, (Y.YQL) ? true : false); &#x2F;&#x2F;True
+console.log(&#x27;Base #2?&#x27;, (Y.Base) ? true : false); &#x2F;&#x2F;True</pre>
+
+
+<h3 id="in-a-batch">In a batch</h3>
+
+<p>
+    In this example, we have multiple modules being required from the object
+    being returned from the inital require call.
+</p>
+
+<pre class="code prettyprint">#!&#x2F;usr&#x2F;bin&#x2F;env node
+
+var Y = require(&#x27;yui&#x27;).use(&#x27;yql&#x27;, &#x27;oop&#x27;, &#x27;base-base&#x27;);
+
+console.log(&#x27;OOP?&#x27;, (Y.rbind) ? true : false); &#x2F;&#x2F;True
+console.log(&#x27;YQL?&#x27;, (Y.YQL) ? true : false); &#x2F;&#x2F;True
+console.log(&#x27;Base?&#x27;, (Y.Base) ? true : false); &#x2F;&#x2F;True</pre>
+
+
+<p>The above is exactly the same as this:</p>
+
+<pre class="code prettyprint">#!&#x2F;usr&#x2F;bin&#x2F;env node
+
+var YUI = require(&#x27;yui&#x27;).YUI;
+
+var Y = YUI({ useSync: true }).use(&#x27;yql&#x27;, &#x27;oop&#x27;, &#x27;base-base&#x27;);</pre>
+
+
+<p>
+    This approach makes it easy for you to create custom YUI modules and export them
+    from inside your own app.
+</p>
+
+<pre class="code prettyprint">var path = require(&#x27;path&#x27;),
+    YUI = require(&#x27;yui&#x27;).YUI;
+
+var Y = YUI({
+    useSync: true,
+    modules: {
+        awesome: {
+            fullpath: path.join(__dirname, &#x27;.&#x2F;lib&#x2F;awesome.js&#x27;),
+            requires: [ &#x27;yql&#x27;, &#x27;oop&#x27;, &#x27;base-base&#x27; ]
+        }
+    }
+}).use(&#x27;awesome&#x27;);
+
+&#x2F;&#x2F;If your module adds a Y.Awesome namespace
+
+module.exports.awesome = Y.Awesome;</pre>
+
+
+<h2 id="using-debug-versions">Using Debug Versions</h2>
+
+<p>
+    Just like in the browser, YUI will load minimized versions of the requested modules. You
+    can choose to load either all debug files, or single modules.
+</p>
+
+<h3 id="load-all-modules-in-debug-mode">Load all modules in debug mode</h3>
+
+<p>
+    This will load the debug seed and force all modules to load in debug mode:        
+</p>
+
+<pre class="code prettyprint">#!&#x2F;usr&#x2F;bin&#x2F;env node
+
+var YUI = require(&#x27;yui&#x2F;debug&#x27;).YUI;
+
+YUI().use(&#x27;base&#x27;, fn);</pre>
+
+
+<h3 id="debugging-some-modules">Debugging some modules</h3>
+
+<p>
+    You may only want to debug a single module, you can do this by adding <code>&#x2F;debug</code> to the original
+    require:
+</p>
+
+<pre class="code prettyprint">#!&#x2F;usr&#x2F;bin&#x2F;env node
+
+var Y = require(&#x27;yui&#x2F;yql&#x2F;debug&#x27;);
+console.log(&#x27;YQL?&#x27;, (Y.YQL) ? true : false);
+
+Y.YQL(&#x27;select * from weather.forecast where location=90210&#x27;, function(r) {
+    console.log(r.query.results.channel.item.description);
+});</pre>
+
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#about-yui-on-nodejs">About YUI on Node.js</a>
+</li>
+<li>
+<a href="#install-via-npm">Install via npm</a>
+</li>
+<li>
+<a href="#using-yui-on-nodejs">Using YUI on Node.js</a>
+</li>
+<li>
+<a href="#requiring-a-yui-module">Requiring a YUI module</a>
+<ul class="toc">
+<li>
+<a href="#one-at-a-time">One at a time</a>
+</li>
+<li>
+<a href="#in-a-batch">In a batch</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#using-debug-versions">Using Debug Versions</a>
+<ul class="toc">
+<li>
+<a href="#load-all-modules-in-debug-mode">Load all modules in debug mode</a>
+</li>
+<li>
+<a href="#debugging-some-modules">Debugging some modules</a>
+</li>
+</ul>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Using YUI with a DOM in Node.js">
+                                            <a href="nodejs-dom.html">YUI, Node.js and DOM</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Packaging a YUI script with npm">
+                                            <a href="nodejs-package.html">Packaging a YUI script with npm</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using Y.io in Node.js">
+                                            <a href="nodejs-io.html">Using Y.io in Node.js</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

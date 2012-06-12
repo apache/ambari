@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Recordset</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Recordset</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro component">
+    <p>
+        The Recordset utility allows the storage and retrieval of objects with
+        similar properties.
+    </p>
+</div>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for Recordset and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;recordset&#x27;, function (Y) {
+    &#x2F;&#x2F; Recordset is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+
+<h2 id="using">Using Recordsets</h2>
+
+<h3 id="basics">Recordset basics</h3>
+
+<p>
+    A Recordset in its simplest form is a collection of records, where records
+    can be considered to be object literals. Recordset allows the user to
+    handle this collection of records with a consistent API.
+</p>
+
+<p>
+    Recordset augments the functionality of <code>Y.Arraylist</code> but goes a
+    step further, by allowing the developer to quickly store and retrieve
+    objects with similar properties. Additional submodules can be plugged into
+    a <code>Y.Recordset</code> instance to enable sorting, filtering and
+    indexing by specific keys.
+</p>
+
+<p>
+    Initializing a Recordset is straight-forward:
+</p>
+
+<pre class="code prettyprint">YUI().use(&quot;recordset-base&quot;, function(Y) {
+    var data = [
+		{a:3, b:2, c:1},
+		{a:9, b:8, c:7},
+		{a:1, b:2, c:3}
+	],
+
+	&#x2F;&#x2F;Recordset is created with the objects from the data array
+	myRecordset = new Y.Recordset({records: data}),
+
+	&#x2F;&#x2F;Empty Recordsets can also be created
+	anEmptyRecordset = new Y.Recordset();
+
+});</pre>
+
+
+
+<h3 id="crud">Adding, Removing, Updating and Emptying</h3>
+
+<p>
+    A <code>Y.Recordset</code> can be filled with a single, or an array of
+    object literals. Under the hood, Recordset will convert these objects into
+    <code>record</code> instances - essentially creating a light wrapper around
+    them.
+</p>
+
+<p>
+    More information on performing operations on Recordset can be seen the the
+    documentation for the <a href="recordset-basic.html">
+    <code>recordset-base</code> sub-module</a>.
+</p>
+
+<h4 id="add">Adding Records</h4>
+
+<pre class="code prettyprint">var data = [
+    {key:&quot;a&quot;, label:&quot;Column A&quot;},
+    {key:&quot;b&quot;, label:&quot;Column B&quot;},
+    {key:&quot;c&quot;, label:&quot;Column C&quot;}
+],
+myRecordset = new Y.Recordset({records:data});
+
+&#x2F;&#x2F;Adding a single record to the end of a Recordset
+myRecordset.add({key:&quot;d&quot;, label:&quot;Column D&quot;});
+
+&#x2F;&#x2F;Adding multiple records at the 2nd index of the Recordset
+myRecordset.add([
+    {key:&quot;e&quot;, label:&quot;Column E&quot;},
+    {key:&quot;f&quot;, label:&quot;Column F&quot;}
+], 2);</pre>
+
+
+<h4 id="remove">Removing Records</h4>
+
+<pre class="code prettyprint">var data = [
+    {key:&quot;a&quot;, label:&quot;Column A&quot;},
+    {key:&quot;b&quot;, label:&quot;Column B&quot;},
+    {key:&quot;c&quot;, label:&quot;Column C&quot;}
+],
+myRecordset = new Y.Recordset({records:data});
+
+&#x2F;&#x2F;removes the record stored at index 2 (in this case {key:&quot;c&quot;, label:&quot;Column C&quot;} is removed)
+myRecordset.remove(2);
+
+&#x2F;&#x2F;Removes 2 records starting at index zero
+myRecordset.remove(0,2);</pre>
+
+
+<h4 id="updating-records">Updating Records</h4>
+
+<pre class="code prettyprint">var data = [
+    {key:&quot;a&quot;, label:&quot;Column A&quot;},
+    {key:&quot;b&quot;, label:&quot;Column B&quot;},
+    {key:&quot;c&quot;, label:&quot;Column C&quot;}
+],
+
+myRecordset = new Y.Recordset({records:data});
+
+&#x2F;&#x2F;overwite the record at index 2 with the following record
+myRecordset.update({key:&quot;d&quot;, label:&quot;Column D&quot;}, 2);
+
+&#x2F;&#x2F;You can also update multiple records at a time.
+&#x2F;&#x2F;Here we are updating indices 0 and 1 of the Recordset with the corresponding two objects.
+myRecordset.update([
+    {key:&quot;e&quot;, label:&quot;Column E&quot;},
+    {key: &quot;f&quot;, label: &quot;Column F&quot;}
+], 0);</pre>
+
+
+<h4 id="emptying-a-recordset">Emptying a Recordset</h4>
+
+<pre class="code prettyprint">var data = [
+    {key:&quot;a&quot;, label:&quot;Column A&quot;},
+    {key:&quot;b&quot;, label:&quot;Column B&quot;},
+    {key:&quot;c&quot;, label:&quot;Column C&quot;}
+],
+
+myRecordset = new Y.Recordset({records:data});
+myRecordset.empty();</pre>
+
+
+<h3 id="events">Events</h3>
+
+<p>
+    The Recordset Utility fires custom events in addition attribute change
+    events. Details on these events are shown below. The sub-module responsible
+    for firing each event is represented in square braces.
+</p>
+
+<table>
+	<thead>
+		<tr>
+			<th>Event [sub-module]</th>
+			<th>Payload</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><code>add</code> [base]</td>
+			<td><strong>added:</strong> an array of new records that were added (can contain a single record)<br/>
+		        <strong>index:</strong> index that the addition started at
+			</td>
+		</tr>
+		<tr>
+			<td><code>remove</code> [base]</td>
+			<td><strong>removed:</strong> an array of records that were removed (can contain a single record)<br/>
+		        <strong>index:</strong> index that the removals started at<br/>
+				<strong>range:</strong> range of records that were removed
+			</td>
+		</tr>
+		<tr>
+			<td><code>update</code> [base]</td>
+			<td><strong>updated:</strong> an array of records that updated (added to the Recordset)<br/>
+		        <strong>index:</strong> index that the updates started at<br/>
+				<strong>range:</strong> range of records that were updated
+			</td>
+		</tr>
+		<tr>
+			<td><code>empty</code> [base]</td>
+			<td>Empty object bag</td>
+		</tr>
+		<tr>
+			<td><code>change</code> [base]</td>
+			<td>Empty object bag, fired whenever records in the Recordset change (ie: they are added, removed, updated, or emptied)</td>
+		</tr>
+		<tr>
+			<td><code>sort</code> [sort]</td>
+			<td><strong>field:</strong> A string representing the key to sort by<br/>
+		        <strong>desc:</strong> Boolean representing whether sorting order is descending<br/>
+				<strong>sorter:</strong> The comparison function being used to sort
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<h3 id="sorting">Sorting</h3>
+
+<p>
+    The <code>RecordsetSort</code> plugin allows a Recordset to have default
+    and custom sorting functionality. Various helper methods and attributes are
+    provided. A brief listing is shown below. Refer to the documentation for
+    the <a href="recordset-sort.html">
+    <code>RecordsetSort</code> plugin</a> to see code snippets.
+</p>
+
+<dl>
+	<dt><code>sort(key,desc,function [optional])</code></dt>
+		<dd>
+            Sorts a Recordset by the value in the provided key. Recordset is
+            sorted in descending order if <code>desc</code> is truthy. Optional
+            custom comparison function can be supplied to sort by.
+        </dd>
+    <dt><code>resort()</code></dt>
+        <dd>Resorts a Recordset using last-used sorting arguments</dd>
+    <dt><code>reverse()</code></dt>
+        <dd>Reverses the Recordset without performing any sort operations</dd>
+    <dt><code>flip()</code></dt>
+        <dd>
+            Resorts the Recordset in ascending order if the last sort arguments
+            specified descending, and vice versa.
+        </dd>
+    <dt><code>lastSortProperties Attribute</code></dt>
+        <dd>
+            An object bag with <code>field</code>, <code>desc</code> and
+            <code>sorter</code> keys listing the last-used arguments to sort
+            by.
+        </dd>
+    <dt><code>isSorted Attribute</code></dt>
+        <dd>A boolean representing if the Recordset is in a sorted state.</dd>
+</dl>
+
+<h3 id="filtering">Filtering</h3>
+
+<p>
+    The <code>RecordsetFilter</code> plugin allows a Recordset to be filtered,
+    and returns subsets of that Recordset (as a separate Recordset instance).
+    Refer to the documentation for the <a
+    href="recordset-filter.html">
+    <code>RecordsetFilter</code> plugin to see code snippets.</a>
+</p>
+
+<dl>
+	<dt><code>filter(key or function, value)</code></dt>
+		<dd>
+            If a key/value pair is passed in, returns a Recordset with records
+            that match the key/value pair. Supports a custom function for more
+            advanced filtering. The custom function must return a boolean.
+        </dd>
+    <dt><code>reject(function)</code></dt>
+        <dd>
+            The inverse of filter. Executes the supplied function on each item.
+            Returns a new Recordset containing the items that the supplied
+            function returned <code>false</code> for.
+        </dd>
+    <dt><code>grep(pattern)</code></dt>
+        <dd>
+            Iterates over the Recordset, returning a new Recordset of all the
+            elements that match the supplied regular expression
+        </dd>
+</dl>
+
+
+<h3 id="indexing">Indexing</h3>
+
+<p>
+    In the <code>recordset-base</code> submodule, the <code>table</code>
+    attribute stores an associative array that hashes all records within the
+    Recordset by their unique YUIDs. This table is kept in sync with the
+    Recordset through custom events.
+</p>
+
+<p>
+    To allow for customization when indexing, there is the
+    <code>RecordsetIndexer</code> plugin. Refer to the <a
+    href="recordset-indexer.html"><code>RecordsetIndexer</code>
+    documentation</a> for full details.
+</p>
+
+
+<dl>
+	<dt><code>createTable(key)</code></dt>
+		<dd>
+            Creates a hash table with the given key with all existing records
+            in the Recordset.
+        </dd>
+    <dt><code>getTable(key)</code></dt>
+        <dd>Get a hash table that hashes records by a given key.</dd>
+    <dt><code>hashTables</code> attribute</dt>
+        <dd>
+            An object bag, with each property referring to a user-created hash
+            table.
+        </dd>
+</dl>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+</li>
+<li>
+<a href="#using">Using Recordsets</a>
+<ul class="toc">
+<li>
+<a href="#basics">Recordset basics</a>
+</li>
+<li>
+<a href="#crud">Adding, Removing, Updating and Emptying</a>
+<ul class="toc">
+<li>
+<a href="#add">Adding Records</a>
+</li>
+<li>
+<a href="#remove">Removing Records</a>
+</li>
+<li>
+<a href="#updating-records">Updating Records</a>
+</li>
+<li>
+<a href="#emptying-a-recordset">Emptying a Recordset</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#events">Events</a>
+</li>
+<li>
+<a href="#sorting">Sorting</a>
+</li>
+<li>
+<a href="#filtering">Filtering</a>
+</li>
+<li>
+<a href="#indexing">Indexing</a>
+</li>
+</ul>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Shows how to instantiate and interact with a standard Recordset by adding, removing and updating records/objects. Explains the events that are fired, and shows how to access the built-in hash table that stores records by their YUIDs.">
+                                            <a href="recordset-basic.html">Basic Recordset</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to sort a Recordset using the default sorter, or a custom sort function. Additionally, demonstrates how convenience attributes help in determining when Recordset is in a sorted state, and what the last sort parameters were.">
+                                            <a href="recordset-sort.html">Recordset Sort Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to use filtering methods to Recordset. Key-value filtering, and filtering by providing a custom function are covered.">
+                                            <a href="recordset-filter.html">Recordset Filter Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create and access hash tables on Recordset. Tables are kept in sync through events fired by Recordset.">
+                                            <a href="recordset-indexer.html">Recordset Indexer Plugin</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

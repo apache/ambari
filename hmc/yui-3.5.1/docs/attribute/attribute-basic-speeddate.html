@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Attribute Based Speed Dating</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Attribute Based Speed Dating</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style type="text/css" scoped>
+    #speeddate h1 {
+        font-size: 108%;
+        color:#000;
+        margin-bottom:2em;
+    }
+
+    #john {
+        margin-bottom:10px;
+    }
+
+    .sd-nametag {
+        border:1px solid #000;
+        text-align:center;
+        width:25em;
+        margin:20px;
+        
+        background-color:#00f;
+
+        border-radius: 10px;
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+                
+        box-shadow: 3px 3px 3px #888;
+        -moz-box-shadow: 3px 3px 3px #888;
+        -webkit-box-shadow: 3px 3px 3px #888;
+    }
+
+    .sd-nametag .sd-hd, .sd-nametag .sd-ft {
+        padding:5px;
+        text-align:center;
+        font-size:108%;
+        font-weight:900;
+        color:#fff;
+    }
+
+    .sd-nametag .sd-hd {    
+        border-top-right-radius: 10px;
+        border-top-left-radius: 10px;
+        -moz-border-radius-topright: 10px;
+        -moz-border-radius-topleft: 10px;
+        -webkit-border-top-right-radius: 10px;
+        -webkit-border-top-left-radius: 10px;
+    }
+
+    .sd-nametag .sd-ft {    
+        border-bottom-right-radius: 10px;
+        border-bottom-left-radius: 10px;
+        -moz-border-radius-bottomright: 10px;
+        -moz-border-radius-bottomleft: 10px;
+        -webkit-border-bottom-right-radius: 10px;
+        -webkit-border-bottom-left-radius: 10px;
+    }
+
+    .sd-nametag .sd-bd {
+        background-color:#fff;
+        padding:1em;
+    }
+
+    .sd-nametag .sd-bd .sd-name, 
+    .sd-nametag .sd-bd .sd-personality {
+        font-size:108%;
+        font-weight:900;
+        font-family:monospace;
+        text-decoration:underline;
+        color:#00a;
+    }
+
+    .sd-nametag .sd-bd .sd-personality.sd-max {
+        color:#f00;
+    }
+
+</style>
+
+<div class="intro">
+    <p>
+        This example builds on the <a href="attribute-basic.html">"Basic Configuration" example</a>, 
+        showing how you can use attribute to model objects in your application.
+    </p>
+    
+    <p>
+        As with the basic example, it is geared towards users who want to create their own classes from 
+        scratch and add attribute support. In most cases you should consider extending the 
+        <a href="../base/index.html"><code>Base</code></a> class when you need attribute support, instead 
+        of augmenting Attribute directly. <a href="../base/index.html"><code>Base</code></a> does the work described 
+        in this example for you, in addition to making it easier for users to extend you class.
+    </p>    
+</div>
+
+<div class="example">
+    <div id="speeddate">
+
+    <h1>Speed Dating With Attributes</h1>
+
+    <div id="john">
+        <button type="button" class="hi">Hi I'm John</button>
+        <button type="button" class="taken" disabled="disabled">I like Jane</button>
+        <div class="shirt"></div>
+    </div>
+
+    <div id="jane">
+        <button type="button" disabled="disabled" class="hi">Hey, I'm Jane</button>
+        <button type="button" class="upgrade" disabled="disabled">No way!, I save whales too!</button>
+        <button type="button" class="taken" disabled="disabled">I like John</button>
+        <div class="shirt"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+// Get a new instance of YUI and 
+// load it with the required set of modules
+
+YUI().use("node", "attribute", "substitute", function(Y) {
+
+    // Setup custom class which we want to 
+    // add managed attribute support to
+
+    function SpeedDater(cfg) {
+
+        // When constructed, setup the initial attributes for the
+        // instance, by calling the addAttrs method.
+
+        var attrs = {
+            // Add 3 attributes: name, personality, available
+            name : {
+                writeOnce:true
+            },
+    
+            personality : {
+                value:50
+            },
+    
+            available : {
+                value:true
+            }
+        };
+
+        this.addAttrs(attrs, cfg);
+    }
+
+    // Setup static property to hold attribute config
+
+    SpeedDater.NAMETAG = '<div class="sd-nametag"><div class="sd-hd">Hello!</div><div class="sd-bd">I\'m <span class="sd-name">{name}</span> and my PersonalityQuotientIndex is <span class="sd-personality">{personality}</span></div><div class="sd-ft sd-availability">{available}</div></div>';
+
+    SpeedDater.prototype.applyNameTag = function(where) {
+
+        var tokens = {
+            name: this.get("name"),
+            available: (this.get("available")) ? "I'm still looking " : "Sorry, I'm taken",
+            personality: this.get("personality")
+        };
+
+        var str = Y.substitute(SpeedDater.NAMETAG, tokens);
+        this.nameTag = Y.Node.create(str);
+        Y.one(where).appendChild(this.nameTag);
+    };
+
+    SpeedDater.prototype.updateNameTag = function() {
+
+        var taken = (this.get("available")) ? "I'm still looking " : "Sorry, I'm taken";
+        var name = this.get("name");
+        var personality = this.get("personality");
+
+        this.nameTag.one(".sd-name").set("innerHTML", name);
+        this.nameTag.one(".sd-availability").set("innerHTML", taken);
+
+        var personalityEl = this.nameTag.one(".sd-personality"); 
+        personalityEl.set("innerHTML", personality);
+
+        if (personality > 90) {
+            personalityEl.addClass("sd-max");
+        }
+    }
+
+    // Augment custom class with Attribute
+    Y.augment(SpeedDater, Y.Attribute);
+    
+    var john, jane;
+
+    Y.on("click", function() {
+
+        if (!john) {
+
+            // Set both name and personality during construction 
+            john = new SpeedDater({
+                name: "John",
+                personality: 76.43
+            });
+            john.applyNameTag("#john .shirt");
+
+            Y.one("#jane .hi").set("disabled", false); 
+        }
+
+    }, "#john .hi");
+
+    Y.on("click", function() {
+
+        if (!jane) {
+
+            // Set name during construction
+            jane = new SpeedDater({
+                name: "Jane"
+            });
+
+            // Set personality after construction
+            jane.set("personality", 82);
+
+            jane.applyNameTag("#jane .shirt");
+
+            Y.all("#jane button").set("disabled", false);
+            Y.all("#john button").set("disabled", false); 
+        }
+
+    }, "#jane .hi");
+
+    Y.on("click", function() {
+
+        john.set("available", false);
+        john.updateNameTag();
+        
+    }, "#john .taken");
+
+    Y.on("click", function() {
+
+        jane.set("available", false);
+        jane.updateNameTag();
+
+    }, "#jane .taken");
+
+    Y.on("click", function() {
+
+        jane.set("personality", 98);
+        jane.updateNameTag();
+
+    }, "#jane .upgrade");
+
+ });
+</script>
+
+</div>
+
+<h2>Setting Up a SpeedDater Class</h2>
+
+<p>In this example, we'll create a custom <code>SpeedDater</code> class, and show how you can use attributes to manage the state for a Speed Dater.
+In the <a href="attribute-event-speeddate.html">"Attribute Event Based Speed Dating" example</a> we'll modify this example to leverage attribute change events.</p>
+
+<h3>Creating A YUI Instance</h3>
+
+<p>As with the other attribute <a href="attribute-basic.html">examples</a>, we'll setup our own instance of the YUI object and request the modules we require using the code pattern shown below:</p>
+
+<pre class="code prettyprint">&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+
+    &#x2F;&#x2F; Create our local YUI instance, to avoid
+    &#x2F;&#x2F; modifying the global YUI object
+
+    YUI({...}).use(&quot;attribute&quot;, &quot;node&quot;, ... function(Y) {
+
+        &#x2F;&#x2F; Example code is written inside this function,
+        &#x2F;&#x2F; which gets passed our own YUI instance, Y, populated
+        &#x2F;&#x2F; with the modules we asked for (e.g. Y.Attribute, Y.Node etc.)
+
+    });
+&lt;&#x2F;script&gt;</pre>
+
+
+<h3>Defining The SpeedDater Class</h3>
+
+<p>The first step in the example is to create the constructor function for our new class, to which we want to add attribute support. In our example, this class is called <code>SpeedDater</code>.
+We then augment <code>SpeedDater</code> with <code>Y.Attribute</code>, so that it receives all of <code>Attribute&#x27;s</code> methods, in addition to any it may defined itself:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Setup custom class which we want to add attribute support to
+function SpeedDater(cfg) {
+    ...
+}
+
+&#x2F;&#x2F; Augment custom class with Attribute
+Y.augment(SpeedDater, Y.Attribute);</pre>
+
+
+<h3>Adding Attributes</h3>
+
+<p>
+We can now set up any attributes we need for <code>SpeedDater</code> using Attribute's <code>addAttrs()</code> method. 
+
+For this example we add 3 attributes - <code>name</code>, <code>personality</code>, and <code>available</code>. 
+
+We provide an default initial <code>value</code> for <code>personality</code> and <code>available</code>, but don't have anything for <code>name</code>.
+
+As mentioned in the basic example, the same object literal we use to provide the initial value for the attribute can also be used to configure attribute properties such as <code>readOnly</code> or 
+<code>writeOnce</code>, and to define <code>getter</code>, <code>setter</code> and <code>validator</code> methods for the attribute. For <code>name</code>, we configure it to be <code>writeOnce</code>, 
+meaning that it's value can be set once by the user, but not modified after that single set.
+</p>
+
+<p>
+The default set of attributes which <code>SpeedDater</code> will support is passed to <code>addAttrs</code> to set up the attributes for each instance during construction.
+</p>
+
+<p>
+As mentioned previously, if you expect your class to be extended, <a href="../base/index.html">Base</a> provides a more convenient way for you to define the same attribute configuration statically for your class, so that it can be modified by extended classes. 
+Base will take care of isolating the static configuration, so that it isn't modified across instances. 
+</p>
+
+The complete definition for <code>SpeedDater</code> is shown below:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Setup custom class which we want to 
+&#x2F;&#x2F; add managed attribute support to
+
+function SpeedDater(cfg) {
+
+    &#x2F;&#x2F; When constructed, setup the initial attributes for the
+    &#x2F;&#x2F; instance, by calling the addAttrs method.
+
+    var attrs = {
+        &#x2F;&#x2F; Add 3 attributes: name, personality, available
+        name : {
+            writeOnce:true
+        },
+
+        personality : {
+            value:50
+        },
+
+        available : {
+            value:true
+        }
+    };
+
+    this.addAttrs(attrs, cfg);
+}
+
+SpeedDater.prototype.applyNameTag = function(where) {
+    &#x2F;&#x2F; Method used to render the visual representation of a 
+    &#x2F;&#x2F; SpeedDater object&#x27;s state (in this case as a name tag)
+};
+
+SpeedDater.prototype.updateNameTag = function() {
+    &#x2F;&#x2F; Method used to update the rendered state of SpeedDater in the DOM.
+}
+
+&#x2F;&#x2F; Template to use form the markup    
+SpeedDater.NAMETAG = &quot;&lt;div class=&quot;sd-nametag&quot;&gt;&lt;div class=&quot;sd-hd&quot;&gt;Hello!&lt;&#x2F;div&gt;... &lt;&#x2F;div&gt;&quot;;
+
+&#x2F;&#x2F; Augment custom class with Attribute
+Y.augment(SpeedDater, Y.Attribute);</pre>
+
+
+<p>
+The <code>addAttrs()</code> method, in addition to the default attribute configuration, also accepts an object literal (associative array) of name/value pairs which can be 
+used to over-ride the default initial values of the attributes. This is useful for classes which wish to allow the user the set the value of attributes as part of object 
+construction, as shown by the use of the <code>cfg</code> argument above.
+</p>
+
+<h3>Using Attributes</h3>
+
+<p>Now that we have <code>SpeedDater</code> defined with the set of attributes it supports, we can create multiple instances of <code>SpeedDater</code> defining the initial 
+attribute state for each instance through the constructor. We can also update the instance's attribute state after construction, using the <code>get</code> and 
+<code>set</code> methods defined by Attribute.</p>
+
+<p>We create a first instance, <code>john</code>, setting up the intial state using Attribute's constructor configuration object support:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Set both name and personality during construction 
+john = new SpeedDater({
+    name: &quot;John&quot;,
+    personality: 76.43
+});</pre>
+
+
+<p>For the second instance that we create, <code>jane</code>, we set the value of the personality attribute, after construction:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Set name during construction
+jane = new SpeedDater({
+    name: &quot;Jane&quot;
+});
+
+&#x2F;&#x2F; Set personality after construction. The initial value for personality 
+&#x2F;&#x2F; in this case, will be the value defined when the attribute was added 
+&#x2F;&#x2F; using addAttrs (above)
+jane.set(&quot;personality&quot;, 82);</pre>
+
+
+<p>We render the current attribute state of each instance to the DOM, using the <code>applyNameTag()</code> method defined on SpeedDater's prototype:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Render the sticker with john&#x27;s state information to the DOM
+john.applyNameTag(&quot;#john .shirt&quot;);
+
+&#x2F;&#x2F; Render the sticker with jane&#x27;s state information to the DOM
+jane.applySicker(&quot;#jane .shirt&quot;);</pre>
+
+
+<p>Although not directly related to working with Attributes, it's worth taking a look at the <code>applyNameTag()</code> and <code>updateNameTag()</code> implementations, since they establish
+a commonly used pattern.</p>
+
+<p>The <code>applyNameTag()</code> method handles rendering the initial visual representation for a speed dater object's state (in this case a name tag). It uses tokens in an HTML "template" string, which it replaces with the values 
+of attributes using the <code>substitute()</code> utility method:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; A template for the markup representing the SpeedDater object..
+SpeedDater.NAMETAG = &#x27;&lt;div class=&quot;sd-nametag&quot;&gt; \
+                        &lt;div class=&quot;sd-hd&quot;&gt;Hello!&lt;&#x2F;div&gt; \
+                        &lt;div class=&quot;sd-bd&quot;&gt;I\&#x27;m &lt;span class=&quot;sd-name&quot;&gt;{name}&lt;&#x2F;span&gt; \ 
+                        and my PersonalityQuotientIndex is \ 
+                        &lt;span class=&quot;sd-personality&quot;&gt;{personality}&lt;&#x2F;span&gt; \
+                        &lt;&#x2F;div&gt; \
+                        &lt;div class=&quot;sd-ft sd-availability&quot;&gt;{available}&lt;&#x2F;div&gt; \
+                     &lt;&#x2F;div&gt;&#x27;;</pre>
+
+
+<pre class="code prettyprint">&#x2F;&#x2F; A rendering method, used to create the initial markup for the SpeedDater.
+SpeedDater.prototype.applyNameTag = function(where) {
+
+    &#x2F;&#x2F; This example uses an HTML template string containing placeholder 
+    &#x2F;&#x2F; tokens (SpeedDater.NAMETAG above), and Y.substitute to replace the 
+    &#x2F;&#x2F; tokens with the current attribute values.  
+
+    var tokens = {
+        &#x2F;&#x2F; Get attribute values and map them to the tokens in the HTML template string
+        name: this.get(&quot;name&quot;),
+        available: (this.get(&quot;available&quot;)) ? &quot;I&#x27;m still looking &quot; : &quot;Sorry, I&#x27;m taken&quot;,
+        personality: this.get(&quot;personality&quot;)
+    };
+
+    &#x2F;&#x2F; Create a new Node element, from the token substituted string... 
+    this.nameTag = Y.Node.create(Y.substitute(SpeedDater.NAMETAG, tokens));
+
+    &#x2F;&#x2F; ... and append it to the DOM
+    Y.one(where).appendChild(this.nameTag);
+};</pre>
+
+
+<p>The <code>updateNameTag()</code> method handles updating this visual representation with the current state, when requested by the user</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; An update method, used to refresh the rendered content, after 
+&#x2F;&#x2F; an attribute value is changed.
+SpeedDater.prototype.updateNameTag = function() {
+
+    &#x2F;&#x2F; Get current attribute values...
+    var taken = (this.get(&quot;available&quot;)) ? &quot;I&#x27;m still looking &quot; : &quot;Sorry, I&#x27;m taken&quot;;
+    var name = this.get(&quot;name&quot;);
+    var personality = this.get(&quot;personality&quot;);
+
+    &#x2F;&#x2F; Find the corresponding element, and replace the innerHTML with the new value
+    this.nameTag.one(&quot;.sd-name&quot;).set(&quot;innerHTML&quot;, name);
+    this.nameTag.one(&quot;.sd-availability&quot;).set(&quot;innerHTML&quot;, taken);
+
+    var personalityEl = this.nameTag.one(&quot;.sd-personality&quot;); 
+    personalityEl.set(&quot;innerHTML&quot;, personality);
+
+    if (personality &gt; 90) {
+        personalityEl.addClass(&quot;sd-max&quot;);
+    }
+}</pre>
+
+
+<p>Each instance's state can be now be updated using Attribute's <code>set</code> method, and the subsequent call to SpeedDater's <code>updateNameTag()</code> method will update the visual representation (the rendered DOM) of the object:</p>
+
+<pre class="code prettyprint">Y.on(&quot;click&quot;, function() {
+
+    john.set(&quot;available&quot;, false);
+    john.updateNameTag();
+    
+}, &quot;#john .taken&quot;);
+
+Y.on(&quot;click&quot;, function() {
+
+    jane.set(&quot;available&quot;, false);
+    jane.updateNameTag();
+
+}, &quot;#jane .taken&quot;);
+
+Y.on(&quot;click&quot;, function() {
+
+    jane.set(&quot;personality&quot;, 98);
+    jane.updateNameTag();
+
+}, &quot;#jane .upgrade&quot;);</pre>
+
+
+<p>In the <a href="attribute-event-speeddate.html">"Attribute Event Based Speed Dating" example</a>, we'll see how we can use Attribute change events to eliminate the need for users to call <code>updateNameTag()</code> each time they set an attribute, and have the two instances communicate with one another.</p>
+
+<h2>Complete Example Source</h2>
+
+<pre class="code prettyprint">&lt;div id=&quot;speeddate&quot;&gt;
+
+    &lt;h1&gt;Speed Dating With Attributes&lt;&#x2F;h1&gt;
+
+    &lt;div id=&quot;john&quot;&gt;
+        &lt;button type=&quot;button&quot; class=&quot;hi&quot;&gt;Hi I&#x27;m John&lt;&#x2F;button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;taken&quot; disabled=&quot;disabled&quot;&gt;I like Jane&lt;&#x2F;button&gt;
+        &lt;div class=&quot;shirt&quot;&gt;&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+
+    &lt;div id=&quot;jane&quot;&gt;
+        &lt;button type=&quot;button&quot; disabled=&quot;disabled&quot; class=&quot;hi&quot;&gt;Hey, I&#x27;m Jane&lt;&#x2F;button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;upgrade&quot; disabled=&quot;disabled&quot;&gt;No way!, I save whales too!&lt;&#x2F;button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;taken&quot; disabled=&quot;disabled&quot;&gt;I like John&lt;&#x2F;button&gt;
+        &lt;div class=&quot;shirt&quot;&gt;&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+
+&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+
+&#x2F;&#x2F; Get a new instance of YUI and 
+&#x2F;&#x2F; load it with the required set of modules
+
+YUI().use(&quot;node&quot;, &quot;attribute&quot;, &quot;substitute&quot;, function(Y) {
+
+    &#x2F;&#x2F; Setup custom class which we want to 
+    &#x2F;&#x2F; add managed attribute support to
+
+    function SpeedDater(cfg) {
+
+        &#x2F;&#x2F; When constructed, setup the initial attributes for the
+        &#x2F;&#x2F; instance, by calling the addAttrs method.
+
+        var attrs = {
+            &#x2F;&#x2F; Add 3 attributes: name, personality, available
+            name : {
+                writeOnce:true
+            },
+    
+            personality : {
+                value:50
+            },
+    
+            available : {
+                value:true
+            }
+        };
+
+        this.addAttrs(attrs, cfg);
+    }
+
+    &#x2F;&#x2F; Setup static property to hold attribute config
+
+    SpeedDater.NAMETAG = &#x27;&lt;div class=&quot;sd-nametag&quot;&gt;&lt;div class=&quot;sd-hd&quot;&gt;Hello!&lt;&#x2F;div&gt;&lt;div class=&quot;sd-bd&quot;&gt;I\&#x27;m &lt;span class=&quot;sd-name&quot;&gt;{name}&lt;&#x2F;span&gt; and my PersonalityQuotientIndex is &lt;span class=&quot;sd-personality&quot;&gt;{personality}&lt;&#x2F;span&gt;&lt;&#x2F;div&gt;&lt;div class=&quot;sd-ft sd-availability&quot;&gt;{available}&lt;&#x2F;div&gt;&lt;&#x2F;div&gt;&#x27;;
+
+    SpeedDater.prototype.applyNameTag = function(where) {
+
+        var tokens = {
+            name: this.get(&quot;name&quot;),
+            available: (this.get(&quot;available&quot;)) ? &quot;I&#x27;m still looking &quot; : &quot;Sorry, I&#x27;m taken&quot;,
+            personality: this.get(&quot;personality&quot;)
+        };
+
+        var str = Y.substitute(SpeedDater.NAMETAG, tokens);
+        this.nameTag = Y.Node.create(str);
+        Y.one(where).appendChild(this.nameTag);
+    };
+
+    SpeedDater.prototype.updateNameTag = function() {
+
+        var taken = (this.get(&quot;available&quot;)) ? &quot;I&#x27;m still looking &quot; : &quot;Sorry, I&#x27;m taken&quot;;
+        var name = this.get(&quot;name&quot;);
+        var personality = this.get(&quot;personality&quot;);
+
+        this.nameTag.one(&quot;.sd-name&quot;).set(&quot;innerHTML&quot;, name);
+        this.nameTag.one(&quot;.sd-availability&quot;).set(&quot;innerHTML&quot;, taken);
+
+        var personalityEl = this.nameTag.one(&quot;.sd-personality&quot;); 
+        personalityEl.set(&quot;innerHTML&quot;, personality);
+
+        if (personality &gt; 90) {
+            personalityEl.addClass(&quot;sd-max&quot;);
+        }
+    }
+
+    &#x2F;&#x2F; Augment custom class with Attribute
+    Y.augment(SpeedDater, Y.Attribute);
+    
+    var john, jane;
+
+    Y.on(&quot;click&quot;, function() {
+
+        if (!john) {
+
+            &#x2F;&#x2F; Set both name and personality during construction 
+            john = new SpeedDater({
+                name: &quot;John&quot;,
+                personality: 76.43
+            });
+            john.applyNameTag(&quot;#john .shirt&quot;);
+
+            Y.one(&quot;#jane .hi&quot;).set(&quot;disabled&quot;, false); 
+        }
+
+    }, &quot;#john .hi&quot;);
+
+    Y.on(&quot;click&quot;, function() {
+
+        if (!jane) {
+
+            &#x2F;&#x2F; Set name during construction
+            jane = new SpeedDater({
+                name: &quot;Jane&quot;
+            });
+
+            &#x2F;&#x2F; Set personality after construction
+            jane.set(&quot;personality&quot;, 82);
+
+            jane.applyNameTag(&quot;#jane .shirt&quot;);
+
+            Y.all(&quot;#jane button&quot;).set(&quot;disabled&quot;, false);
+            Y.all(&quot;#john button&quot;).set(&quot;disabled&quot;, false); 
+        }
+
+    }, &quot;#jane .hi&quot;);
+
+    Y.on(&quot;click&quot;, function() {
+
+        john.set(&quot;available&quot;, false);
+        john.updateNameTag();
+        
+    }, &quot;#john .taken&quot;);
+
+    Y.on(&quot;click&quot;, function() {
+
+        jane.set(&quot;available&quot;, false);
+        jane.updateNameTag();
+
+    }, &quot;#jane .taken&quot;);
+
+    Y.on(&quot;click&quot;, function() {
+
+        jane.set(&quot;personality&quot;, 98);
+        jane.updateNameTag();
+
+    }, &quot;#jane .upgrade&quot;);
+
+ });
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Use the Attribute API to define, set and get attribute values.">
+                                            <a href="attribute-basic.html">Basic Attribute Configuration</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Configure attributes to be readOnly or writeOnce.">
+                                            <a href="attribute-rw.html">Read-Only and Write-Once Attributes</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to listen for changes in attribute values.">
+                                            <a href="attribute-event.html">Attribute Change Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Create a basic SpeedDater class, with Attribute support.">
+                                            <a href="attribute-basic-speeddate.html">Attribute Based Speed Dating</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Refactors the basic Speed Dating example, to use attribute change events to update rendered elements, and have two instances react to another.">
+                                            <a href="attribute-event-speeddate.html">Attribute Event Based Speed Dating</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Add custom methods to get and set attribute values and provide validation support.">
+                                            <a href="attribute-getset.html">Attribute Getters, Setters and Validators</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

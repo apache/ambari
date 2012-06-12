@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Language Resource Bundles</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Language Resource Bundles</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+#out .word {
+    margin:0.3em 0.3em 0.3em 1em;
+}
+
+#out .speaking {
+    font-size:108%;
+    color:#00aa00;
+    margin-top:1em;
+    margin-bottom:1em;
+}
+</style>
+
+<div class="intro">
+    <p>This example shows how you can define language resource bundles for your custom module implementations; it also illustrates how YUI Loader can load the correct bundle based on the language you've chosen for your YUI instance.</p>    
+</div>
+
+<div class="example">
+    <div id="out"></div>
+
+<script>
+(function() {
+
+    var say = function(msg, node, cls) {
+        node.append('<p class="' + cls + '">' + msg + '</p>');
+    };
+
+    var appMetaData = {
+        myapp: {
+            base: '../assets/intl/',
+            modules : {
+                "translator" : {
+                    path: 'translator/translator.js',
+                    lang: ["en", "fr", "es"]
+                }
+            }
+        }
+    };
+
+    YUI({
+        lang:"en",
+        groups: appMetaData
+    }).use("node-base", "translator", function(Y) {
+        var translator = new Y.Translator(),
+            out = Y.one("#out");
+
+        say("Speaking in: " + Y.Intl.getLang("translator"), out, "speaking");
+        say(translator.hi(), out, "word");
+        say(translator.bye(), out, "word");
+    });
+
+    YUI({
+        lang:"fr",
+        groups: appMetaData
+    }).use("node-base", "translator", function(Y) {
+        var translator = new Y.Translator(),
+            out = Y.one("#out");
+
+        say("Speaking in: " + Y.Intl.getLang("translator"), out, "speaking");
+        say(translator.hi(), out, "word");
+        say(translator.bye(), out, "word");
+    });
+
+    YUI({
+        lang:"es",
+        groups: appMetaData
+    }).use("node-base", "translator", function(Y) {
+        var translator = new Y.Translator(),
+            out = Y.one("#out");
+
+        say("Speaking in: " + Y.Intl.getLang("translator"), out, "speaking");
+        say(translator.hi(), out, "word");
+        say(translator.bye(), out, "word");
+    });
+
+}());
+</script>
+</div>
+
+<h3>Defining your Custom Module</h3>
+
+<p>We use Loader's groups support to add a custom module called "translator" under the group "myapp". The "lang" property in the module's metadata specifies which set of languages it supports.</p>
+
+<pre class="code prettyprint">var appMetaData = {
+    myapp: {
+        base: &#x27;..&#x2F;assets&#x2F;intl&#x27;,
+        modules : {
+            &quot;translator&quot; : {
+                path: &#x27;translator&#x2F;translator.js&#x27;,
+                lang: [&quot;en&quot;, &quot;fr&quot;, &quot;es&quot;]
+            }
+        }
+    }
+};
+
+YUI({
+    lang:&#x27;fr&#x27;,
+    groups: appMetaData
+}).use(...);</pre>
+
+<p>NOTE: Since this example is hosted on a page with other YUI instances, we don't want to pollute their configuration, so we just pass our <code>groups: appMetaData</code> configuration property to each YUI instance we create as shown above.</p>
+<p>If you own all YUI instances on the page, you can use the global <code>YUI_Config</code> variable to define a global configuration for all YUI instances on the page, to avoid passing the same meta-data to all your instances as shown below:</p>
+<pre class="code prettyprint">var YUI_Config = {
+    groups: {
+        myapp: {
+            base: &#x27;..&#x2F;assets&#x2F;intl&#x27;,
+            modules : {
+                &quot;translator&quot; : {
+                    path: &#x27;translator&#x2F;translator.js&#x27;,
+                    lang: [&quot;en&quot;, &quot;fr&quot;, &quot;es&quot;]
+                }
+            }
+        }
+    }
+};
+
+YUI({
+    lang:&#x27;fr&#x27;
+}).use(...);</pre>
+
+
+<h3>What Language Resource Bundles Look Like</h3>
+
+<p>The language resource bundles for any module follows the pattern below:</p>
+
+<pre class="code prettyprint">YUI.add(&quot;lang&#x2F;translator_fr&quot;, function(Y) {
+
+    Y.Intl.add(
+
+        &quot;translator&quot;,     &#x2F;&#x2F; Associated Module
+        &quot;fr&quot;,             &#x2F;&#x2F; BCP 47 Language Tag
+
+        {                 &#x2F;&#x2F; Translated String Key&#x2F;Value Pairs
+            hello:&quot;Bonjour&quot;,
+            goodbye: &quot;Au revoir&quot;
+        }
+
+    );
+
+}, &quot;3.1.0&quot;);</pre>
+
+
+<p>The <code>&quot;lang&#x2F;[for-module]_[lang]&quot;</code> passed to <code>YUI.add</code> is the default module name used for language resource bundles, and the <code>Y.Intl.add</code> method is used to register the string name/value pair hash for a given module and language combination.
+
+<h3>Generating Language Resource Bundles</h3>
+
+<p>YUI Builder will handle the creation of the boiler plate code shown above, from the raw language files found in the module's <code>src&#x2F;[module]&#x2F;lang</code> subdirectory. The raw files under the <code>lang</code> directory contain just the string name/value pairs for each language.</p>
+
+<p>As the component developer, the only thing you need to do is specify the <code>component.lang</code> property in the build properties file:</p>
+
+<pre class="code prettyprint"># In your component&#x27;s build properties file (src&#x2F;[module]&#x2F;build.properties for example):
+component.lang=en,fr,es</pre>
+
+
+<p>Provide the raw string name/value pairs in the <code>src&#x2F;[component]&#x2F;lang</code> subdirectory in your component's source area:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Contents of the raw src&#x2F;[component]&#x2F;lang&#x2F;[component]_fr.js file
+{
+    hello:&quot;Bonjour&quot;,
+    goodbye: &quot;Au revoir&quot;
+}</pre>
+
+
+<p>And whenever you build your component code, the language resource bundles will be built and deployed too.</p>
+
+<p>You can checkout the <a href="http://yuilibrary.com/yui3"></a>YUI 3 Source Code</code> and see the source code and build configuration files for the "console" and "datatype-date-format" modules to see a concrete example of this.</p>
+
+<h3>Accessing Localized Resources In Your Class</h3>
+
+<p>The Translator class implementation gets access to the localized strings by using <code>Y.Intl.get</code>, passing in the module name whose strings we need access to:</p>
+
+<pre class="code prettyprint">function Translator() {
+    &#x2F;&#x2F; Get localized strings in the current language
+    this._strs = Y.Intl.get(&quot;translator&quot;);
+}
+
+Translator.prototype = {
+
+    hi : function() {
+        return this._strs.hello;
+    },
+
+    bye : function() {
+        return this._strs.goodbye;
+    }
+
+    ...
+}</pre>
+
+
+
+<h3>Specifying the Language for an Instance</h3>
+
+<p>We specify the language to use for each instance, using the "lang" configuration property for the instance.</p>
+
+<h4> An English instance</h4>
+
+<pre class="code prettyprint">YUI({
+    lang:&quot;en&quot;,
+    ...
+}).use(&quot;node-base&quot;, &quot;translator&quot;, function(Y) {
+    var translator = new Y.Translator(),
+        out = Y.one(&quot;#out&quot;);
+
+    say(&quot;Speaking in: &quot; + Y.Intl.getLang(&quot;translator&quot;), out);
+    say(translator.hi(), out);
+    say(translator.bye(), out);
+});</pre>
+
+
+<h4>A French YUI Instance</h4>
+
+<pre class="code prettyprint">YUI({
+    lang:&quot;fr&quot;,
+    ...
+}).use(&quot;node-base&quot;, &quot;translator&quot;, function(Y) {
+    ...
+});</pre>
+
+
+<h4>A Spanish YUI Instance</h4>
+
+<pre class="code prettyprint">YUI({
+    lang:&quot;es&quot;,
+    ...
+}).use(&quot;node-base&quot;, &quot;translator&quot;, function(Y) {
+    ...
+});</pre>
+
+
+<h3>Modules Shipping With Language Resource Bundles</h3>
+
+<p>As mentioned above, the <code>datatype</code> module (specifically the <code>datatype-date-format</code> module) and <code>console</code> are shipped with language resource bundles. Datatype ships with over 50 different languages supported, and Console ships with en and es language resource bundles, mainly as a demonstration of how language resource bundles are defined and used for Widget development.</p>
+
+<h2>Complete Example Source</h2>
+<pre class="code prettyprint">&lt;div id=&quot;out&quot;&gt;&lt;&#x2F;div&gt;
+
+&lt;script&gt;
+(function() {
+
+    var say = function(msg, node, cls) {
+        node.append(&#x27;&lt;p class=&quot;&#x27; + cls + &#x27;&quot;&gt;&#x27; + msg + &#x27;&lt;&#x2F;p&gt;&#x27;);
+    };
+
+    var appMetaData = {
+        myapp: {
+            base: &#x27;..&#x2F;assets&#x2F;intl&#x2F;&#x27;,
+            modules : {
+                &quot;translator&quot; : {
+                    path: &#x27;translator&#x2F;translator.js&#x27;,
+                    lang: [&quot;en&quot;, &quot;fr&quot;, &quot;es&quot;]
+                }
+            }
+        }
+    };
+
+    YUI({
+        lang:&quot;en&quot;,
+        groups: appMetaData
+    }).use(&quot;node-base&quot;, &quot;translator&quot;, function(Y) {
+        var translator = new Y.Translator(),
+            out = Y.one(&quot;#out&quot;);
+
+        say(&quot;Speaking in: &quot; + Y.Intl.getLang(&quot;translator&quot;), out, &quot;speaking&quot;);
+        say(translator.hi(), out, &quot;word&quot;);
+        say(translator.bye(), out, &quot;word&quot;);
+    });
+
+    YUI({
+        lang:&quot;fr&quot;,
+        groups: appMetaData
+    }).use(&quot;node-base&quot;, &quot;translator&quot;, function(Y) {
+        var translator = new Y.Translator(),
+            out = Y.one(&quot;#out&quot;);
+
+        say(&quot;Speaking in: &quot; + Y.Intl.getLang(&quot;translator&quot;), out, &quot;speaking&quot;);
+        say(translator.hi(), out, &quot;word&quot;);
+        say(translator.bye(), out, &quot;word&quot;);
+    });
+
+    YUI({
+        lang:&quot;es&quot;,
+        groups: appMetaData
+    }).use(&quot;node-base&quot;, &quot;translator&quot;, function(Y) {
+        var translator = new Y.Translator(),
+            out = Y.one(&quot;#out&quot;);
+
+        say(&quot;Speaking in: &quot; + Y.Intl.getLang(&quot;translator&quot;), out, &quot;speaking&quot;);
+        say(translator.hi(), out, &quot;word&quot;);
+        say(translator.bye(), out, &quot;word&quot;);
+    });
+
+}());
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="How to create components which use language resource bundles.">
+                                            <a href="intl-basic.html">Language Resource Bundles</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Formatting dates into strings using pre-packaged language resource bundles.">
+                                            <a href="../datatype/datatype-dateformat-lang.html">Formatting Dates Using Language Resource Bundles</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

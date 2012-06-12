@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Attribute</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Attribute</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>The Attribute utility allows you to add attributes to any class through an augmentable Attribute interface. 
+       The interface adds <code>get and </code>set methods to your class to retrieve and store attribute values, as well as 
+       support for change events that can be used to listen for changes in attribute values.</p>
+
+    <p>In addition, attributes can be configured with custom getters, setters and validators, allowing the developer to
+    normalize and validate values being stored or retrieved. Attributes can also be specified as read-only or write-once.</p>
+</div>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for Attribute and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;attribute&#x27;, function (Y) {
+    &#x2F;&#x2F; Attribute is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+
+<h2 id="augment">Augmenting Your Class With Attribute</h2>
+
+<p>The Attribute class is designed to be augmented to an existing class (we'll refer to this class as the 'host' class) and adds attribute 
+management support to it. For example, assuming you have a class constructor, `MyClass, to which you'd like to add attribute support, 
+you can simply augment your class with Attribute, as shown below:</p>
+
+<pre class="code prettyprint">YUI().use(&quot;attribute&quot;, function(Y) {
+
+    function MyClass() {
+        ...
+    }
+
+    Y.augment(MyClass, Y.Attribute);
+});</pre>
+
+<p>Instances of your class will now have Attribute methods available, which your class can use to configure attributes for itself, and which users of your
+class can use to get and set attribute values. See the <a href="http://yuilibrary.com/yui/docs/api/Attribute.html">Attribute API documentation</a> for a complete list of 
+methods which Attribute will add to your class.</p>
+
+<p>Note that in general, rather than augmenting Attribute directly, most implementations will simply extend <a href="../base/index.html">Base</a>, which 
+augments Attribute, and handles attribute setup for you. Base also sets up all attributes to be lazily initialized (initialized on the first call to get or set) by default, improving performance.</p>
+
+<h2 id="adding">Adding Attributes</h2>
+
+<p>Once augmented with Attribute, your class can either use the <code>addAttrs</code> method to setup attributes en mass, or use the 
+<code>addAttr</code> method, to add them individually. <code>addAttrs</code> is tailored towards use by host classes, since in addition
+to being able to initialize multiple attributes in one call, it also accepts an additional name/value hash, which can be used to allow the 
+user to define the initial value of attributes when instantiating Attribute driven classes, as shown below:</p>
+
+<pre class="code prettyprint">...
+function MyClass(userValues) {
+
+    &#x2F;&#x2F; Use addAttrs, to setup default attributes for
+    &#x2F;&#x2F; your class, and mixing in user provided initial values.
+    
+    var attributeConfig = {
+        attrA : {
+            &#x2F;&#x2F; ... Configuration for attribute &quot;attrA&quot; ...
+        },
+
+        attrB : {
+            &#x2F;&#x2F; ... Configuration for attribute &quot;attrB&quot; ...
+        } 
+    };
+    
+    this.addAttrs(attributeConfig, userValues);
+};</pre>
+
+
+<p>Users of your class now have the ability to pass attribute values to the constructor,
+or set values using the <code>set</code> method as shown below:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Set initial value for attrA during instantiation
+var o = new MyClass({
+    attrA:5
+});
+
+&#x2F;&#x2F; Set attrB later on
+o.set(&quot;attrB&quot;, &quot;Hello World!&quot;);</pre>
+
+
+<h2 id="configuration">Attribute Configuration Properties</h2>
+
+<p>Each attribute you add can be configured with the properties listed in the table below (all properties are optional and case-sensitive):</p>
+
+<table>
+    <caption>Attribute Configuration Properties</caption>
+    <thead>
+        <tr>
+            <th>Property Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>value</code></td>
+            <td>Any</td>
+            <td>The default value for this attribute</td>
+        </tr>
+        <tr>
+            <td><code>valueFn</code></td>
+            <td>Function</td>
+            <td>
+
+            <p>A function, the return value of which is the value for the attribute. This property can be used instead of the 
+            value property for static configurations, if you need to set default values which require access to instance state 
+            ("this.something").</p>
+
+            <p>If both the value and valueFn properties are defined, the value returned by valueFn has precedence over the value property, 
+            unless it returns undefined, in which case the value property is used.</p>
+
+            <p>The valueFn is passed the name of the attribute, allowing users to share valueFn implementations across attributes if required.</p>
+            </td>
+        </tr>
+        <tr>
+            <td><code>getter</code></td>
+            <td>Function</td>
+            <td>
+                <p>Custom 'get' handler, which is invoked when the user calls Attribute's <code>get</code> method. It can
+                be used to manipulate or normalize the stored value before it is returned to the user.</p>
+
+                <p>The function will be passed the currently stored value of the attribute as the first argument and the name
+                of the attribute as the second argument. If configured, the value returned by this function will be 
+                the value returned to the user.</p>
+                
+                <p>Attribute also supports the ability to return sub-attribute values (<code>get(&#x27;a.b.c&#x27;)</code>). The getter implications for 
+                this are discussed in the <a href="#subattrs-gsv">Getters, Setters, Validators and Sub Attributes</a> section.</p>
+            </td>
+        </tr>
+        <tr>
+            <td><code>setter</code></td>
+            <td>Function</td>
+            <td>
+                <p>Custom 'set' handler, which is invoked when the user calls Attribute's <code>set</code> method. It can
+                be used to manipulate the value which is stored for the attribute.</p>
+
+                <p>The function will be passed the value which the user passed to the set method as the first 
+                argument and the name of the attribute as the second argument. If configured, the value returned by this 
+                function will be the value stored as the attribute value.</p> 
+
+                <p>The getter and setter can be used to normalize values on input/output for the user while storing the 
+                value in a format most effective for internal operation.</p>
+                
+                <p>Attribute also supports the ability to set sub-attribute values (<code>set(&#x27;a.b.c&#x27;, 10)</code>). The setter 
+                implications for this are discussed in the  <a href="#subattrs-gsv">Getters, Setters, Validators and Sub Attributes</a>  
+                section.</p>
+            </td>
+        </tr>
+        <tr>
+            <td><code>validator</code></td>
+            <td>Function</td>
+            <td>
+                <p>Validation function, which if defined, is called before the <code>setter</code>. 
+                The validation function is passed the value which the user is trying to set as the first argument and the name of the 
+                attribute as the second argument.</p>
+
+                <p>If the function returns <code>false</code>, the attribute's stored value is not updated (and the <code>setter</code>, if defined, will not be invoked). 
+                If it returns <code>true</code>, the <code>setter</code> is invoked if defined, and the attribute's stored value is updated.</p>
+
+                <p>If validation is a potentially expensive task and contains code which would be repeated in a <code>setter</code> (for example, converting a string to a Node reference),
+                you can combine validation into the <code>setter</code> function, by returning <code>Attribute.INVALID_VALUE</code> from a <code>setter</code> if it 
+                encounters an invalid value.</p>
+                
+                <p>Attribute also supports the ability to set sub-attribute values (set('a.b.c', 10)). The 'validator' 
+                implications for this are discussed in the  <a href="#subattrs-gsv">Getters, Setters, Validators and Sub Attributes</a>  
+                section.</p>
+            </td>
+        </tr>
+        <tr>
+            <td><code>readOnly</code></td>
+            <td>boolean</td>
+            <td>
+                Configures the attribute to be read-only. Users will not be able to set the value of the attribute using
+                Attribute's public API.
+            </td>
+        </tr>
+        <tr>
+            <td><code>writeOnce</code></td>
+            <td>boolean or "initOnly"</td>
+            <td>
+                <p>Configures the attribute to be write-once. Users will only be able to set the value of the attribute using
+                Attribute's <code>set</code> method once. Once a value has been set for the attribute, calling <code>set</code> will not change it's value.
+                </p>
+                <p>If set to "initOnly", the attribute can only be set during initialization. In the case of Base, this means that the attribute can
+                only be set through the constructor.</p>
+                <p>Code within your class can update the value of readOnly or writeOnce attributes by using the private <code>_set</code> method.</p>
+            </td>
+        </tr>
+        <tr>
+            <td><code>broadcast</code></td>
+            <td>int</td>
+            <td>
+             By default attribute change events are not broadcast to the YUI instance or global YUI object. The broadcast property
+             can be used to set specific attribute change events to be broadcast to either the YUI instance or the global YUI object.
+             See CustomEvent's <a href="http://yuilibrary.com/yui/docs/api/CustomEvent.html#property_broadcast">broadcast</a> property for valid values.
+            </td>
+        </tr>
+        <tr>
+            <td><code>lazyAdd</code></td>
+            <td>boolean</td>
+            <td>
+                <p>
+                Whether or not to delay initialization of the attribute until the first call to get/set it. 
+                This flag can be used to over-ride lazy initialization on a per attribute basis, when adding multiple attributes through 
+                the <a href="http://yuilibrary.com/yui/docs/api/Attribute.html#method_addAttrs"><code>addAttrs</code></a> method.
+                </p>
+                <p>When extending Base, all attributes are added lazily, so this flag can be used to over-ride
+                lazyAdd behavior for specific attributes.</p>
+                <p><strong>The only reason you should need to disable <code>lazyAdd</code> is if your setter is doing more
+                than normalizing the attribute value</strong>. For example if your setter is storing some other state, in <code>this._someProp</code>, which is being used
+                by other parts of your component. In this case, since you're not getting or setting the attribute to access <code>this._someProp</code>, 
+                it won't get set up lazily, until someone actually calls <code>get</code> or <code>set</code> for the related attribute.</p>
+            </td>
+        </tr>
+        <tr>
+            <td><code>cloneDefaultValue</code></td>
+            <td>"shallow", "deep", true, false</td>
+            <td>
+                <p>
+                This configuration value is not actually supported by Attribute natively, but is available when
+                working with Base, and defining attribute configurations using Base's static <code>&lt;a href=&quot;http:&#x2F;&#x2F;yuilibrary.com&#x2F;yui&#x2F;docs&#x2F;api&#x2F;Base.html#property_Base.ATTRS&quot;&gt;ATTRS&lt;&#x2F;a&gt;</code> property. 
+                </p>
+                <p>
+                This property controls how the statically defined default <code>value</code> field in Base's <code>ATTRS</code> attribute configuration is handled,
+                when setting it up as the value for an instance. By default (if this property is not defined) object literals and arrays are deep cloned, to protect the default value from
+                being modified. Setting cloneDefaultValue to <code>false</code> will disable cloning. This is useful in cases where you intend to use arrays or 
+                object literals by reference (e.g. they point to utilities). A shallow clone will be used if cloneDefaultValue is set to <code>&quot;shallow&quot;</code> and a 
+                deep clone will be used for <code>&quot;deep&quot;</code> or <code>true</code>.
+                </p>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<h4 id="howtoconfig">Configuring Attributes</h4>
+
+<p>The above attribute properties are set using an object with property name/value pairs, which is passed to either <code>addAttrs</code> or <code>addAttr</code> as the 
+configuration argument. For example, expanding on the code snippet above:</p>
+
+<pre class="code prettyprint">...
+var attributeConfig = {
+    attrA : {
+        &#x2F;&#x2F; Configuration for attribute &quot;attrA&quot;
+
+        value: 5,
+
+        setter: function(val) {
+            return Math.min(val, 10); 
+        },
+
+        validator: function(val) {
+            return Y.Lang.isNumber(val);
+        }
+    },
+
+    attrB : {
+        &#x2F;&#x2F; Configuration for attribute &quot;attrB&quot;
+    }
+};
+
+this.addAttrs(attributeConfig, userValues);
+...</pre>
+
+<p>Or, if using <code>addAttr</code>:</p>
+
+<pre class="code prettyprint">this.addAttr(&quot;attrA&quot;, {
+    &#x2F;&#x2F; Configuration for attribute &quot;attrA&quot;
+
+    value: 5,
+
+    setter: function(val) {
+        return Math.min(val, 10); 
+    },
+
+    validator: function(val) {
+        return Y.Lang.isNumber(val);
+    }
+});</pre>
+
+<h2 id="events">Attribute Change Events</h2>
+
+<p>The availability of attribute change events are one of the key benefits of using 
+attributes to store state for your objects, instead of regular object properties. 
+Attribute change events are fired whenever <code>set</code> is invoked for an 
+attribute, allowing you to execute code in response to a change in the attribute's 
+value.</p>
+
+<h4 id="listening-for-change-events">Listening for Change Events</h4>
+
+<p>Attribute change events are Custom Events, having the type: "[attributeName]Change", where
+[attributeName] is the name of the attribute which you're monitoring for changes.</p>
+
+<p>For example, if you were interested in listening for changes to an attribute named 
+"enabled", you would subscribe to events of type "enabledChange".</p>
+
+<pre class="code prettyprint">o.on(&quot;enabledChange&quot;, function(event) {
+    &#x2F;&#x2F; Do something just before &quot;enabled&quot; is about to be set
+});</pre>
+
+
+<p><em>NOTE:</em> Context and additional arguments for the listener function can either be 
+defined using YUI's <code>bind</code> method, or by passing in the context and 
+additional arguments to the <code>on</code> method.</p>
+
+<p>Attribute change event listeners can be registered using either the <code>on</code> 
+(as shown above) or <code>after</code> Attribute methods.</p>
+ 
+<h4 id="on-vs-after">On vs. After</h4>
+
+<h5 id="on">On</h5>
+
+<p>Listeners registered using the <code>on</code> method, are notified <strong>before</strong> the stored state of the attribute has been updated. 
+Functions registered as "on" listeners receive an <code>Event</code> object as the first argument (actually an
+instance of <a href="http://yuilibrary.com/yui/docs/api/EventFacade.html"><code>EventFacade</code></a>) which contains information 
+about the attribute being modified.</p>
+
+<p>Since these listeners are invoked before any state change has occurred, they have the ability to
+prevent the change in state from occurring, by invoking <code>event.preventDefault()</code> on 
+the event object passed to them, or to modify the value being set, by modifying the <code>event.newVal</code> property.</p>
+
+<pre class="code prettyprint">o.on(&quot;enabledChange&quot;, function(event) {
+
+    &#x2F;&#x2F; event.prevVal will contain the current attribute value
+    var val = event.prevVal;
+
+    if (val !== someCondition) {
+        &#x2F;&#x2F; Prevent &quot;enabled&quot; from being changed
+        event.preventDefault();
+    }
+
+});</pre>
+
+
+<h5 id="after">After</h5>
+
+<p>Listeners registered using the <code>after</code> method, are notified <strong>after</strong> 
+the stored state of the attribute has been updated. As with "on" listeners, the subscribed function 
+receives an <code>Event</code> object as the first parameter.</p>
+
+<p>Based on the definition above, "after" listeners are not invoked if state change is prevented, 
+for example, due to one of the "on" listeners calling <code>preventDefault</code> on the event object.</p>
+
+<pre class="code prettyprint">o.after(&quot;enabledChange&quot;, function(event) {
+
+    &#x2F;&#x2F; event.newVal will contain the currently set value
+    var val = event.newVal;
+
+    &#x2F;&#x2F; Calling preventDefault() in an &quot;after&quot; listener has no impact
+    event.preventDefault();
+
+});</pre>
+
+
+
+<h4 id="the-event-object">The Event Object</h4>
+
+<p>The event facade passed to attribute change event listeners, has a number of attributes which provide information about the attribute being modified,
+as well methods used to manage event propagation. These are described below:</p>
+
+<dl>
+    <dt>newVal</dt>
+    <dd>The value which the attribute will be set to (in the case of "on" listeners), or has been set to (in the case of "after" listeners)</dd>
+    <dt>prevVal</dt>
+    <dd>The value which the attribute is currently set to (in the case of "on" listeners), or was previously set to (in the case of "after" listeners)</dd>
+    <dt>attrName</dt>
+    <dd>The name of the attribute which is being set</dd>
+    <dt>subAttrName</dt>
+    <dd><p>Attribute also allows you to set individual properties of attributes having values which are objects through the 
+    <code>set</code> method (e.g. <code>o.set(&quot;X.a.b&quot;, 5)</code>, discussed below). This event property will contain the complete dot notation path for the object property which was changed.</p>
+    <p>For example, during <code>o.set(&quot;X.a.b&quot;, 5);</code>, <code>event.subAttrName</code> will be <code>&quot;X.a.b&quot;</code>, the path of the property which was modified, and <code>event.attrName</code> will be <code>&quot;X&quot;</code>, the attribute name.</p></dd>
+    <dt>preventDefault()<dt>
+    <dd>This method can be called in an "on" listener function to prevent the attribute's value from being updated (the default behavior). Calling this method in an "after" listener has no impact, since the default behavior has already been invoked.</dd>
+    <dt>stopImmediatePropagation()</dt>
+    <dd>This method can be called in "on" or "after" listener functions, and will prevent the rest of the listener stack from
+    being notified, but will not prevent the attribute's value from being updated (viz. will not prevent the default behavior).</dd>
+</dl>
+
+<h2 id="attrsetflow">Attribute Set Flow Diagram</h2>
+ 
+<p>The diagram below shows the order in which attribute setters, validators and change event subscribers are invoked during the set operation:</p>
+
+<p><a href="setflow.html" title="Click too see full-size image"><img src="../assets/attribute/img/attribute-set-flow.png" alt="Flow diagram for the attribute 'set' operation" height="466" width="538"></a></p>
+
+<p><em>NOTE:</em> Any decision blocks for which an exit path is not explicitly shown will effectively exit the set operation, without storing the new value. These paths are not explicitly shown, in order to avoid clutter.</p>
+
+<h2 id="subattrs">Getting/Setting Sub Attribute Values</h2>
+
+<p>If you have attribute values which are objects (as opposed to primitive values, such as numbers or booleans), the <code>set</code> method will let
+you set properties of the object directly, using a dot notation syntax. For example, if you have an attribute, "strings" with the following value:</p>
+
+<pre class="code prettyprint">o.set(&quot;strings&quot;, {
+    ui : {
+        accept_label : &quot;OK&quot;,
+        decline_label : &quot;Cancel&quot;,
+    },
+    errors : {
+        e1000 : &quot;Not Supported&quot;,
+        e1001 : &quot;Network Error&quot;
+    }
+});</pre>
+
+
+<p>You can set individual properties on the "strings" attribute value object, without having to get and then set the whole string's attribute value. This is done
+by using the dot notation to reference properties within the attribute's value:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Set existing properties
+o.set(&quot;strings.ui.accept_label&quot;, &quot;Yes&quot;);
+o.set(&quot;strings.ui.decline_label&quot;, &quot;No&quot;);
+
+&#x2F;&#x2F; Add a new property
+o.set(&quot;strings.errors.e2000&quot;, &quot;New Error&quot;);
+
+&#x2F;&#x2F; Cannot set new intermediate properties:
+&#x2F;&#x2F; &quot;strings.messages&quot; does not exist so can&#x27;t set
+&#x2F;&#x2F; &quot;strings.messages.intro&quot;
+o.set(&quot;strings.messages.intro&quot;, &quot;Welcome&quot;);</pre>
+
+
+<p>Setting sub attribute values, will fire an attribute change event for the 
+main attribute (<code>&quot;stringsChange&quot;</code> in the above example), however the event object passed
+to the listeners with have a "subAttrName" property set to reflect the full path to the 
+attribute set (e.g. <code>event.subAttrName</code> will be <code>&quot;strings.ui.accept_label&quot;</code> for the set call on line 2 in the code snippet above).</p>
+
+<p>You can also retrieve sub attribute values using the same dot notation syntax</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Get the string for the accept label
+var lbl = o.get(&quot;strings.ui.accept_label&quot;);</pre>
+
+
+<h3 id="subattrs-gsv">Getters, Setters, Validators and Sub Attributes</h3> 
+
+<p>Getter, setter and validator attribute configuration functions are only defined for the top level 
+attribute (<code>&quot;strings&quot;</code> in this case) and will be invoked when getting/setting sub attribute values. 
+What this means is that getters and setters should always return the massaged value for the top level 
+attribute (e.g. <code>&quot;strings&quot;</code>), and not the sub attribute value being set (e.g. <code>&quot;strings.ui.accept_label&quot;</code>). 
+The sub attribute being set is passed in as the second argument to the getter/setter/validator, so that it 
+can fork for sub attribute handling if required.</p>
+
+<p>For example:</p>
+
+<pre class="code prettyprint">this.addAttr(&quot;strings&quot;, {
+    getter : function(val, fullName) {
+
+        &#x2F;&#x2F; &#x27;fullName&#x27; is &quot;strings.errors.e4500&quot;
+        &#x2F;&#x2F; &#x27;val&#x27; is the whole strings hash: { ui : {...}, errors : {...}}.
+
+        &#x2F;&#x2F; &#x27;path&#x27; is [&quot;strings&quot;, &quot;errors&quot;, &quot;e4500&quot;]
+        var path = fullName.split(&quot;.&quot;);
+
+        if (path.length &gt; 1) {
+            
+            &#x2F;&#x2F; Someone&#x27;s asking for a sub-attribute value
+
+            &#x2F;&#x2F; Maybe we want to do some special normalization just for this use case.
+            &#x2F;&#x2F; For example, return a default error message instead of undefined.
+
+            path.shift();
+
+            if (path[0] == &quot;errors&quot;) {
+                var leafValue = Y.Object.getValue(val, path);
+
+                if (leafValue === undefined) {
+                    Y.Object.setValue(val, path, &quot;Unknown Error&quot;);
+                }
+            }
+        }
+
+        &#x2F;&#x2F; In either case (sub attribute or not) val is always the full hash for the &#x27;strings&#x27; attribute.
+        return val;
+    }
+});</pre>
+
+
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+</li>
+<li>
+<a href="#augment">Augmenting Your Class With Attribute</a>
+</li>
+<li>
+<a href="#adding">Adding Attributes</a>
+</li>
+<li>
+<a href="#configuration">Attribute Configuration Properties</a>
+<ul class="toc">
+<li>
+<a href="#howtoconfig">Configuring Attributes</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#events">Attribute Change Events</a>
+<ul class="toc">
+<li>
+<a href="#listening-for-change-events">Listening for Change Events</a>
+</li>
+<li>
+<a href="#on-vs-after">On vs. After</a>
+<ul class="toc">
+<li>
+<a href="#on">On</a>
+</li>
+<li>
+<a href="#after">After</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#the-event-object">The Event Object</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#attrsetflow">Attribute Set Flow Diagram</a>
+</li>
+<li>
+<a href="#subattrs">Getting/Setting Sub Attribute Values</a>
+<ul class="toc">
+<li>
+<a href="#subattrs-gsv">Getters, Setters, Validators and Sub Attributes</a>
+</li>
+</ul>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Use the Attribute API to define, set and get attribute values.">
+                                            <a href="attribute-basic.html">Basic Attribute Configuration</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Configure attributes to be readOnly or writeOnce.">
+                                            <a href="attribute-rw.html">Read-Only and Write-Once Attributes</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="How to listen for changes in attribute values.">
+                                            <a href="attribute-event.html">Attribute Change Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Create a basic SpeedDater class, with Attribute support.">
+                                            <a href="attribute-basic-speeddate.html">Attribute Based Speed Dating</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Refactors the basic Speed Dating example, to use attribute change events to update rendered elements, and have two instances react to another.">
+                                            <a href="attribute-event-speeddate.html">Attribute Event Based Speed Dating</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Add custom methods to get and set attribute values and provide validation support.">
+                                            <a href="attribute-getset.html">Attribute Getters, Setters and Validators</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

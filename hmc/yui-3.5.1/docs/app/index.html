@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>App Framework</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>App Framework</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+<p>
+The YUI App Framework is a rollup of the <a href="#app-component">App</a>, <a href="../model/index.html">Model</a>, <a href="../model-list/index.html">Model List</a>, <a href="../router/index.html">Router</a>, and <a href="../view/index.html">View</a> components, combined to form a simple MVC-style framework for writing single-page JavaScript applications.
+</p>
+
+<p>
+You can use these components separately or together to create anything from simple non-interactive views to rich applications with URL-based routing, data binding, and full client-server synchronization.
+</p>
+
+<p>
+If you've used <a href="http://www.documentcloud.org/">DocumentCloud</a>'s excellent <a href="http://documentcloud.github.com/backbone/">Backbone.js</a> framework, many of the classes and APIs provided by App Framework components will look familiar to you. There are important differences, though, and the App Framework takes full advantage of YUI's powerful component and event infrastructure under the hood.
+</p>
+</div>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for App Framework and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;app&#x27;, function (Y) {
+    &#x2F;&#x2F; App Framework is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+
+<h2 id="components-of-the-app-framework">Components of the App Framework</h2>
+
+<p>
+The <code>app</code> module is a rollup module consisting of the following individual components. These components may also be used individually if you don't need all of them at the same time.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Module</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="#app-component">App</a></td>
+      <td style="white-space: nowrap;"><code>app-base</code></td>
+      <td>
+        <p>
+        Provides a top-level application component which manages navigation and views. This gives you a foundation and structure on which to build your application; it combines robust URL navigation with powerful routing and flexible view management.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><a href="../model/index.html">Model</a></td>
+      <td><code>model</code></td>
+      <td>
+        <p>
+        A lightweight <a href="http://yuilibrary.com/yui/docs/api/classes/Attribute.html"><code>Y.Attribute</code></a>-based data model with APIs for getting, setting, validating, and syncing attribute values to a persistence layer or server, as well as events for notifying subscribers of model changes.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><a href="../model-list/index.html">Model List</a></td>
+      <td style="white-space: nowrap;"><code>model-list</code></td>
+      <td>
+        <p>
+        An array-like ordered list of <code>Y.Model</code> instances with APIs for adding, removing, sorting, filtering, and performing other actions on models in the list. Acts as a bubble target for events fired by the models in the list.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><a href="../router/index.html">Router</a></td>
+      <td><code>router</code></td>
+      <td>
+        <p>
+        Provides URL-based same-page routing using <a href="https://developer.mozilla.org/en/DOM/Manipulating_the_browser_history">HTML5 history</a> (<code>pushState</code>) or the location hash, depending on what the user's browser supports.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><a href="../view/index.html">View</a></td>
+      <td><code>view</code></td>
+      <td>
+        <p>
+        Represents a piece of an application's user interface and is responsible for rendering content and handling DOM events. Views are commonly associated with Models or Model Lists and are re-rendered when they change, although this isn't required.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="app-component">App Component</h2>
+
+<p>
+App is a high-level component that builds upon other components in the App Framework. The App component is composed of <a href="../router/index.html">Router</a> and <a href="../view/index.html">View</a>, and also the <a href="../pjax/index.html">Pjax</a> utility. This combination creates a solid foundation and structure on which to build your application. It connects together robust URL navigation with powerful routing and flexible view management.
+</p>
+
+<p>
+The goal of the App component is to provide you a place to organize and connect together the parts of your application. App implements infrastructural pieces which are common to all apps — such as <a href="#view-management">managing views</a> and the <a href="#navigating-between-pages">navigation between pages</a> — allowing you to focus on the specifics of <em>your</em> app.
+</p>
+
+<p>
+App will enable you to seamlessly enhance the user experience and performance of traditional client/server apps. It enables you to create richer interactions without compromising standard browser behavior, URLs, or search engine craw-ability. The <a href="#routing-coordination-with-server">Routing Coordination with Server</a> section of this guide contain details on accomplishing this.
+</p>
+
+<p>
+You can also use the App component to build client-only apps for when there is no server, or the server is not capable of routing and handling requests. There are <strong>drawbacks to client-only apps</strong> which you need to be aware of and fully understand their implications. Be sure to read the <a href="#progressively-enhanced-vs-client-only-apps">Progressively-enhanced vs. Client-only Apps</a> section which contains details on these drawbacks and best practices.
+</p>
+
+<p>
+The remaining sections of this guide provide details on what you'll need to know to start working with the App component. Refer to the previous section for information about the <a href="#components-of-the-app-framework">other components of the App Framework</a>.
+</p>
+
+<h2 id="using-app">Using App</h2>
+
+<h3 id="instantiating-app">Instantiating App</h3>
+
+<p>
+Creating an App instance couldn't be any simpler:
+</p>
+
+<pre class="code prettyprint">var app = new Y.App();</pre>
+
+
+<p>
+Two instantiable classes are provided by the <code>app-base</code> module: <code>Y.App</code>, and <code>Y.App.Base</code>. The difference between these is that <code>Y.App.Base</code> provides the basic app functionality and will remain pure; whereas <code>Y.App</code> (which extends <code>Y.App.Base</code>) will have all of the app-component extensions automatically mixed-in when they are included in the YUI instance.
+</p>
+
+<p>
+In the following example, we are including both the <code>app-base</code> and <code>app-transitions</code> modules. When the <code>app-transitions</code> module is added to the YUI instance it will automatically mix itself into the <code>Y.App</code> class, adding transitions to all <code>Y.App</code> instances, but <code>Y.App.Base</code> will remain unaffected by the inclusion of this module.
+</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;app-base&#x27;, &#x27;app-transitions&#x27;, function (Y) {
+    &#x2F;&#x2F; This will create two YUI Apps, &#x60;basicApp&#x60; will not have transitions,
+    &#x2F;&#x2F; but &#x60;fancyApp&#x60; will have transitions support included and turn itself on.
+    var basicApp = new Y.App.Base(),
+        fancyApp = new Y.App({transitions: true});
+});</pre>
+
+
+<p>
+While App instances are usable without any configuration, any non-trivial app will need to be configured. You might also want to extend <code>Y.App</code> by mixing-in additional functionality, or even create a custom App class to implement the specific features of your application. The <a href="#extending-yapp">Extending <code>Y.App</code></a> section explains how to do this.
+</p>
+
+<h4 id="config-properties">Config Properties</h4>
+
+<p>
+When constructing a new <code>Y.App</code> instance you can provide a config object with initial values for <a href="#app-attributes">attributes</a> along with values for <a href="../view/index.html#view-properties"><code>Y.View</code>'s properties</a> and <a href="../api/classes/Base.html"><code>Y.Base</code>'s "special" properties</a> (used only during initialization). In addition to these, the following non-attribute properties have specific initialization logic applied and can be passed to the <code>Y.App</code> constructor:
+</p>
+
+<dl>
+  <dt><code>views</code></dt>
+  <dd>
+    <p>
+    Hash of view-name to metadata used to declaratively describe an application's views and their relationship with the app and its other views. The views specified here will override any defaults provided by the <code>views</code> object on the <code>prototype</code>. Every <code>Y.App</code> instance gets its own copy of a <code>views</code> object so this object on the prototype will not be polluted.
+    </p>
+
+    <p>
+    See the <a href="#app-properties">App Properties</a> and <a href="#declaring-views">Declaring Views</a> sections for more details.
+    </p>
+  </dd>
+</dl>
+
+<p>
+Here's an example that defines some <code>views</code> at instantiation time:
+</p>
+
+<pre class="code prettyprint">var app = new Y.App({
+    views: {
+        home : {preserve: true},
+        users: {preserve: true},
+        user : {parent: &#x27;users&#x27;}
+    }
+});</pre>
+
+
+<h3 id="app-properties">App Properties</h3>
+
+<p>
+The following properties are meaningful to App classes and subclasses. In addition to these, <a href="../view/index.html#view-properties">View's properties</a> are also applicable <code>Y.View</code> is part of App's composition.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Default Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>views</code></td>
+      <td><code>{}</code></td>
+      <td>
+        <p>
+        Hash of view-name to metadata used to declaratively describe an application's views and their relationship with the app and its other views. See <a href="#declaring-views">Declaring Views</a> for more details.
+        </p>
+
+        <p>
+        The view metadata is composed of Objects keyed to a view-name that can have any or all of the following properties:
+        </p>
+
+        <dl style="margin-top:1em">
+          <dt><code>type</code></dt>
+          <dd>
+            <p>
+            Function or a string representing the view constructor to use to create view instances. If a string is used, the constructor function is assumed to be on the <code>Y</code> object; e.g. <code>&quot;SomeView&quot;</code> -> <code>Y.SomeView</code>.
+            </p>
+          </dd>
+
+          <dt><code>preserve</code></dt>
+          <dd>
+            <p>
+            Boolean for whether the view instance should be retained. By default, the view instance will be destroyed when it is no longer the <code>activeView</code>. If <code>true</code> the view instance will simply be <code>removed()</code> from the DOM when it is no longer active. This is useful when the view is frequently used and may be expensive to re-create. See <a href="#preserved-views">Preserved Views</a> for best practices.
+            </p>
+          </dd>
+
+          <dt><code>parent</code></dt>
+          <dd>
+            <p>
+            String to another named view in this hash that represents the parent view within the application's view hierarchy; e.g. a <code>&quot;photo&quot;</code> view could have <code>&quot;album&quot;</code> has its <code>parent</code> view. This parent/child relationship is a useful cue for things like transitions.
+            </p>
+          </dd>
+
+          <dt><code>instance</code></dt>
+          <dd>
+            <p>
+            Used internally to manage the current instance of this named view. This can be used if your view instance is created up-front, or if you would rather manage the View lifecycle, but you probably should just let this be handled for you.
+            </p>
+          </dd>
+        </dl>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>transitions</code></td>
+      <td><code>{}</code></td>
+      <td>
+        <p>
+        Default transitions to use when the <code>activeView</code> changes. See the <a href="#switching-the-active-view">Switching the Active View</a> and <code><a href="#yapptransitions">Y.App.Transitions</a></code> sections for more details.
+        </p>
+
+        <p>
+        The following are types of changes for which transitions can be defined that correspond to the relationship between the new and old <code>activeView</code>:
+        </p>
+
+        <dl style="margin-top:1em">
+          <dt><code>navigate</code></dt>
+          <dd>
+            <p>
+            The default transition to use when changing the <code>activeView</code> of the application. This will be <strong><code>&quot;fade&quot;</code></strong> by default.
+            </p>
+          </dd>
+
+          <dt><code>toChild</code></dt>
+          <dd>
+            <p>
+            The transition to use when the new <code>activeView</code> is configured as a child of the previously active view via its <code>parent</code> property as defined in this app's <code>views</code>. This will be <strong><code>&quot;slideLeft&quot;</code></strong> by default.
+            </p>
+          </dd>
+
+          <dt><code>toParent</code></dt>
+          <dd>
+            <p>
+            The transition to use when the new <code>activeView</code> is configured as the <code>parent</code> of the previously active view as defined in this app's <code>views</code>. This will be <strong><code>&quot;slideRight&quot;</code></strong> by default.
+            </p>
+          </dd>
+        </dl>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+The App class uses both properties and attributes. Properties are best when their stored data might be useful to multiple App instances, whereas attributes are best when the data being stored only pertains to a single instance.
+</p>
+
+<h3 id="app-attributes">App Attributes</h3>
+
+<p>
+App is composed of <a href="../view/index.html#view-attributes">View</a>, <a href="../router/index.html#config-attributes">Router</a>, and <a href="../pjax/index.html#config-attributes">Pjax</a>, all of which provide attributes that will be of interest to you — beyond these, App adds the following attributes:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Attribute</th>
+      <th>Default Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>activeView</code></td>
+      <td><code>null</code></td>
+      <td>
+        <p>
+        The application's active/visible view. This attribute is read-only, to set the <code>activeView</code> use the <code>showView()</code> method.
+        </p>
+
+        <p>
+        See <a href="#switching-the-active-view">Switching the Active View</a> for more details.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>serverRouting</code></td>
+      <td><code>undefined</code></td>
+      <td>
+        <p>
+        Whether or not this application's server is capable of properly routing all requests and rendering the initial state in the HTML responses.
+        </p>
+
+        <p>
+        This can have three different values, each having particular implications on how the app will handle routing and navigation:
+        </p>
+
+        <dl style="margin-top:1em">
+          <dt><code>undefined</code></dt>
+          <dd>
+            <p>
+            The best form of URLs will be chosen based on the capabilities of the browser. Given no information about the server environment, a balanced approach to routing and navigation is chosen. See <a href="#urls-based-on-browser-capabilities">URLs Based on Browser Capabilities</a> for more details.
+            </p>
+          </dd>
+
+          <dt><code>true</code></dt>
+          <dd>
+            <p>
+            The server is <em>fully</em> capable of properly handling requests to all full-path URLs the app can produce.
+            </p>
+
+            <p>
+            This is the best option for progressive-enhancement because it will cause <strong>all URLs to always have full-paths</strong>, which means the server will be able to accurately handle all URLs this app produces. See <a href="#full-path-urls-only">Full-path URLs Only</a> and <a href="#progressively-enhanced-vs-client-only-apps">Progressively-enhanced vs. Client-only Apps</a> for more details.
+            </p>
+          </dd>
+
+          <dt><code>false</code></dt>
+          <dd>
+            <p>
+            The server is <em>not</em> capable of properly handling requests to all full-path URLs the app can produce, therefore <em>all</em> routing will be handled by this App instance.
+            </p>
+
+            <p>
+            Be aware that this will cause <strong>all URLs to always be hash-based</strong>, even in browsers that are capable of using HTML5 history. Please make sure you fully understand the implications of client-only apps. See <a href="#hash-based-urls-only">Hash-based URLs Only</a> and <a href="#progressively-enhanced-vs-client-only-apps">Progressively-enhanced vs. Client-only Apps</a> for more details.
+            </p>
+          </dd>
+        </dl>
+
+        <p>
+        See <a href="#routing-coordination-with-server">Routing Coordination with Server</a> for more details.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>transitions</code></td>
+      <td><code>false</code></td>
+      <td>
+        <p>
+        Whether or not this application should use view transitions, and if so then which ones or <code>true</code> for the defaults which are specified by the <code>transitions</code> prototype property.
+        </p>
+
+        <p>
+        <strong>Note:</strong> Transitions are an opt-in feature and will only be used in browsers which support native CSS3 transitions.
+        </p>
+
+        <p>
+        See the <a href="#switching-the-active-view">Switching the Active View</a> and <code><a href="#yapptransitions">Y.App.Transitions</a></code> sections for more details.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>viewContainer</code></td>
+      <td><code>&lt;div&gt;</code> Node</td>
+      <td>
+        <p>
+        The node into which this app's <code>views</code> will be rendered when they become the <code>activeView</code>.
+        </p>
+
+        <p>
+        The view container node serves as the container to hold the app's <code>activeView</code>. Each time the <code>activeView</code> is set via <code>showView()</code>, the previous view will be removed from this node, and the new active view's <code>container</code> node will be appended.
+        </p>
+
+        <p>
+        The default view container is a <code>&lt;div&gt;</code> Node, but you can override this in a subclass, or by passing in a custom <code>viewContainer</code> config value at instantiation time. The <code>viewContainer</code> may be provided as a selector string, DOM element, or a <code>Y.Node</code> instance (having the <code>viewContainer</code> and the <code>container</code> be the same node is also supported).
+        </p>
+
+        <p>
+        The app's <code>render()</code> method will stamp the view container with the CSS class <code>&quot;yui3-app-views&quot;</code> and append it to the app's <code>container</code> node if it isn't already, and any <code>activeView</code> will be appended to this node if it isn't already.
+        </p>
+
+        <p>
+        See <a href="#rendering-an-app">Rendering an App</a> for more details.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+A few of App's inherited attributes are given new default values:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Attribute</th>
+      <th>Inherited From</th>
+      <th>New Default Value</th>
+      <th>Reason</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>container</code></td>
+      <td><code>Y.View</code></td>
+      <td><code>&lt;body&gt;</code> Node</td>
+      <td>
+        <p>
+        Apps are considered to be full-page by default.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>html5</code></td>
+      <td><code>Y.Router</code></td>
+      <td>auto</td>
+      <td>
+        <p>
+        This value is dependent on the value of <code>serverRouting</code> and will default accordingly.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>linkSelector</code></td>
+      <td><code>Y.PjaxBase</code></td>
+      <td><code>&quot;a&quot;</code></td>
+      <td>
+        <p>
+        By default this selector should match <em>all</em> links on the page because full-page apps are the default.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="routing-coordination-with-server">Routing Coordination with Server</h3>
+
+<p>
+A primary feature of App is its powerful routing which enables you to enhance the user experience and performance of traditional client/server apps. Using <code>Y.App</code> you can create more meaningful and richer interactions for a user navigating through your application. App's routing features center on progressive enhancement and do <em>not</em> compromise standard browser features (back/forward button support), URLs, or search engine craw-ability.
+</p>
+
+<p>
+There are two attributes which are used to configure an app's URLs and how its routing should coordinate with the server:
+</p>
+
+<dl>
+  <dt><code>root</code></dt>
+  <dd>
+    <p>
+    An app's <code>root</code> is the absolute path from which all routes should be evaluated, i.e. the path at which the app is mounted, usually "/".
+    </p>
+
+    <p>
+    See <a href="../router/index.html#setting-the-root-path">Setting the Root Path</a> in Router's user guide for more information.
+    </p>
+  </dd>
+
+  <dt><code>serverRouting</code></dt>
+  <dd>
+    <p>
+    Models a higher level concept over the capabilities of, and interactions between the browser and server with respect to URLs and inter-page navigation. This attribute determines how your <code>Y.App</code> instance will interact with the server: set this to <code>true</code> if the app can be progressively enhanced, or <code>false</code> if it's a client side-only app.
+    </p>
+
+    <p>
+    <strong>Note:</strong> The value of an app's <code>html5</code> attribute depends on the value of its <code>serverRouting</code> attribute. When <code>serverRouting</code> is explicit set to <code>false</code> (not just falsy), the default value for <code>html5</code> will be set to <code>false</code> for <em>all</em> browsers. When <code>serverRouting</code> is <code>true</code> or <code>undefined</code> the returned value will be dependent on the browser's capability of using HTML5 history.
+    </p>
+  </dd>
+</dl>
+
+<p>
+<strong>Looking for general information about routing?</strong> See the <a href="../router/index.html#routing">Routing</a> section in Router's user guide.
+</p>
+
+<h4 id="urls-based-on-browser-capabilities">URLs Based on Browser Capabilities</h4>
+
+<p>
+This is the <strong>default</strong> behavior of how an app's routing will coordinate with the server. When <code>serverRouting</code> is left <code>undefined</code>, the app is given no information about the server's capabilities. In this case a balanced approach to URLs, routing, and navigation will be used:
+</p>
+
+<ul>
+  <li>
+    <p>
+    Full-path URLs will only be used if the browser is capable of using HTML5 history, otherwise hash-based URLs will be used.
+    </p>
+  </li>
+
+  <li>
+    <p>
+    The <code>Y.App</code> instance will handle <em>all</em> routing since it is unknown whether the server is capable of properly routing requests.
+    </p>
+  </li>
+
+  <li>
+    <p>
+    The server is <em>required</em> to handle full-path URLs which will be generated by browsers which use the HTML5 <code>pushState()</code> history API. A server can handle these requests by either rendering the initial state in the HTML, or redirecting to a hash-based URL and letting the app dispatch to its route handlers.
+    </p>
+  </li>
+</ul>
+
+<p>
+This behavior has been chosen as the default because it provides the best path forward for a developer to upgrade a client side-only app to a progressively enhanced app (but you should always prefer to build an app using progressive enhancement from the start, that's the whole point).
+</p>
+
+<p>
+The following is a simple <a href="http://nodejs.org/">Node.js</a> <a href="http://expressjs.com/">Express</a> server and very basic <code>Y.App</code> instance which demonstrate how the client and server can coordinate routing and the fulfillment of a request when using URLs that conform to the capabilities of the browser, but the server is "dumb":
+</p>
+
+<h5 class="no-toc">server.js - The Node.js Express server</h5>
+
+<pre class="code prettyprint">var server = require(&#x27;express&#x27;).createServer();
+
+&#x2F;&#x2F; Handles requests to the root path (&quot;&#x2F;&quot;) my simply sending the &quot;shell&quot; page
+&#x2F;&#x2F; which creates the &#x60;Y.App&#x60; instance.
+server.get(&#x27;&#x2F;&#x27;, function (req, res) {
+    res.sendfile(&#x27;index.html&#x27;);
+});
+
+&#x2F;&#x2F; Handles all other requests by redirecting the browser back to the root path
+&#x2F;&#x2F; and tacking on URL&#x27;s path as the fragment; e.g. &quot;&#x2F;foo&#x2F;&quot; =&gt; &quot;&#x2F;#&#x2F;foo&#x2F;&quot;.
+server.get(&#x27;*&#x27;, function (req, res) {
+    res.redirect(&#x27;&#x2F;#&#x27; + req.url, 302);
+});
+
+server.listen(process.env.PORT || 3000);</pre>
+
+
+<h5 class="no-toc"><code>index.html</code> - The "shell" page for the <code>Y.App</code> instance</h5>
+
+<pre class="code prettyprint">&lt;!DOCTYPE html&gt;
+
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot; &#x2F;&gt;
+    &lt;title&gt;Example App&lt;&#x2F;title&gt;
+&lt;&#x2F;head&gt;
+&lt;body&gt;
+
+    &lt;h1&gt;&lt;&#x2F;h1&gt;
+
+    &lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;
+    &lt;script&gt;
+    YUI().use(&#x27;app-base&#x27;, function (Y) {
+
+        var app = new Y.App({
+            &#x2F;&#x2F; Configure the app.
+        });
+
+        &#x2F;&#x2F; Handles requests for the root by updating the page heading.
+        app.route(&#x27;&#x2F;&#x27;, function () {
+            Y.one(&#x27;h1&#x27;).set(&#x27;text&#x27;, &#x27;Example App - Home&#x27;);
+        });
+
+        &#x2F;&#x2F; Handles all other requests by updating the page heading and
+        &#x2F;&#x2F; displaying current path in it.
+        app.route(&#x27;*&#x27;, function (req) {
+            Y.one(&#x27;h1&#x27;).set(&#x27;text&#x27;, &#x27;Example App - &#x27; + req.path);
+        });
+
+        &#x2F;&#x2F; Make sure to dispatch the current hash-based URL which was set by
+        &#x2F;&#x2F; the server to our route handlers.
+        app.render().dispatch();
+
+    });
+    &lt;&#x2F;script&gt;
+
+&lt;&#x2F;body&gt;
+&lt;&#x2F;html&gt;</pre>
+
+
+<p>
+In the above example, the server handles full URLs by sending a redirect back to the root ("/") with a hash-based path and serves a "shell" HTML page to delegate control to a <code>Y.App</code> instance. Once the app is loaded, it will dipatch the hash-based path to its route handlers, finishing the fulfillment of the request on the client.
+</p>
+
+<p>
+You could also implement the server-side redirection logic using an Apache Mod Rewrite <code>.htaccess</code> file:
+</p>
+
+<pre class="code">RewriteEngine On
+RewriteRule ^(.+)$ &#x2F;#&#x2F;$1 [L]</pre>
+
+
+<h4 id="full-path-urls-only">Full-path URLs Only</h4>
+
+<p>
+Full-path URLs are standard URLs which have matching routes based on the URL's path segments. The follow are example full-path URLs you might expect to see in a photos application:
+</p>
+
+<pre class="code">http:&#x2F;&#x2F;example.com&#x2F;
+http:&#x2F;&#x2F;example.com&#x2F;photos&#x2F;
+http:&#x2F;&#x2F;example.com&#x2F;photos&#x2F;1
+http:&#x2F;&#x2F;example.com&#x2F;photos&#x2F;2
+http:&#x2F;&#x2F;example.com&#x2F;albums&#x2F;
+http:&#x2F;&#x2F;example.com&#x2F;albums&#x2F;vacation</pre>
+
+
+<p>
+Setting an app's <code>serverRouting</code> attribute to <code>true</code> signals that the server <em>is</em> capable of properly handling requests to all full-path URLs the app can produce. This causes the app to <em>always</em> use full-path URLs, regardless of whether the browser can use HTML5 history or not. In this case the capabilities of the client and server are coordinated in the most optimal way, giving the app the following qualities:
+</p>
+
+<ul>
+  <li>
+    <p>
+    Full-path URLs are <em>always</em> used, older browsers which can not use HTML5 history will have to do full page loads.
+    </p>
+  </li>
+
+  <li>
+    <p>
+    The <code>Y.App</code> instance will only handle routing in browser which support HTML5 history, the other browser's "requests" will be handled completely by the server.
+    </p>
+  </li>
+
+  <li>
+    <p>
+    The server is <em>required</em> to handle full-path URLs which will be generated by the app. Ideally the server should render the application's initial state in the response HTML for the given URL.
+    </p>
+  </li>
+</ul>
+
+<p>
+This is the <strong>best option for progressive enhancement</strong>! All users of your app will have the same, full-path URLs, independent of the browser or device they are using. Configuring your app with <code>serverRouting</code> set to <code>true</code> means that the client and server components of your application are working together to provide the best overall experience for your users.
+</p>
+
+<p>
+See <a href="#progressively-enhanced-vs-client-only-apps">Progressively-enhanced vs. Client-only Apps</a> for more information about best practices.
+</p>
+
+<h4 id="hash-based-urls-only">Hash-based URLs Only</h4>
+
+<p>
+Hash-based URLs have matching routes based on the URL's fragment identifier ("#"). The follow are example hash-based URLs you might expect to see in a photos application:
+</p>
+
+<pre class="code">http:&#x2F;&#x2F;example.com&#x2F;#&#x2F;
+http:&#x2F;&#x2F;example.com&#x2F;#&#x2F;photos&#x2F;
+http:&#x2F;&#x2F;example.com&#x2F;#&#x2F;photos&#x2F;1
+http:&#x2F;&#x2F;example.com&#x2F;#&#x2F;photos&#x2F;2
+http:&#x2F;&#x2F;example.com&#x2F;#&#x2F;albums&#x2F;
+http:&#x2F;&#x2F;example.com&#x2F;#&#x2F;albums&#x2F;vacation</pre>
+
+
+<p>
+Notice how the above URLs actually all contain the same path segment ("/"), but use the fragment identifier ("#") to hold a pseudo-path value.
+</p>
+
+<p>
+Setting an app's <code>serverRouting</code> attribute to <code>false</code> signals that the server is <em>not</em> capable of properly handling requests to full-path URLs. This causes the app to <em>always</em> use hash-based URLs, regardless of the browser's capabilities. In this case the app will assume that there is no server to rely on, giving the app the following qualities:
+</p>
+
+<ul>
+  <li>
+    <p>
+    Be aware that <strong>all URLs will be hash-based</strong>, even in browsers which are capable of using HTML5 history.
+    </p>
+  </li>
+
+  <li>
+    <p>
+    The <code>Y.App</code> instance will handle all routing since there is no server capable of properly routing handling requests.
+    </p>
+  </li>
+
+  <li>
+    <p>
+    The server is only expected to serve out a static HTML "shell" page with the required JavaScript to instantiate the <code>Y.App</code> instance, which will then render the initial state of the application.
+    </p>
+  </li>
+</ul>
+
+<p>
+This is the best option if there is no guarantee that your app will be served by a capable server. This allows an app to run when hosted on the filesystem or static file server. You should be aware that using hash-based URLs means there will be information loss. The server will <em>not</em> receive the full URL because browsers do not send the fragment-part to the server, that is everything after and including the "#".
+</p>
+
+<p>
+<strong>Please read</strong> <a href="#progressively-enhanced-vs-client-only-apps">Progressively-enhanced vs. Client-only Apps</a> for more information and best practices.
+</p>
+
+<h3 id="rendering-an-app">Rendering an App</h3>
+
+<p>
+App inherits both its <code>container</code> attribute and <code>render()</code> method from View. Unlike <a href="../view/index.html#rendering-a-view">View's empty <code>render()</code> implementation</a>, App provides a default implementation which appends the <code>activeView</code> (if there is one) to the <code>viewContainer</code> node which itself is appended to the <code>container</code> node.
+</p>
+
+<p>
+The basic usage of your app's <code>render()</code> method is to call it at least once, usually after you instantiate your app, this ensures the proper DOM structure is setup to handle rendering the app's <a href="#view-management">views</a>.
+</p>
+
+<pre class="code prettyprint">var app = new Y.App();
+app.render();</pre>
+
+
+<p>
+This results in the HTML of the page looking like this:
+</p>
+
+<pre class="code prettyprint">&lt;body class=&quot;yui3-app&quot;&gt;
+    ...
+    &lt;div class=&quot;yui3-app-views&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;body&gt;</pre>
+
+
+<p>
+By default, an app's <code>container</code> node will be the <code>&lt;body&gt;</code> element and its <code>viewContainer</code> node will be a new <code>&lt;div&gt;</code>.
+</p>
+
+<p>
+<strong>Note:</strong> The <code>&quot;yui3-app&quot;</code> and <code>&quot;yui3-app-views&quot;</code> CSS classes are added to the <code>container</code> and <code>viewContainer</code> respectively — this happens when the app is rendered.
+</p>
+
+<h4 id="specifying-container-nodes">Specifying Container Nodes</h4>
+
+<p>
+When constructing a new App instance you can specify values for the app's <code>container</code> and <code>viewContainer</code> attributes, and they can even reference the same node.
+</p>
+
+<pre class="code prettyprint">var app = new Y.App({
+    container    : &#x27;#wrapper&#x27;,
+    viewContainer: &#x27;#wrapper&#x27;
+});
+
+app.render();</pre>
+
+
+<p>
+Assuming that a <code>&lt;div id=&quot;wrapper&quot;&gt;</code> node already exists on the page, this uses a CSS selector string to reference the node, assigns it to both containers, and results in the following HTML:
+</p>
+
+<pre class="code prettyprint">&lt;div id=&quot;wrapper&quot; class=&quot;yui3-app yui3-app-views&quot;&gt;
+    ...
+&lt;&#x2F;div&gt;</pre>
+
+
+<p>
+If you specify a <code>container</code> that is not already within the markup of the page, you'll need to manually append it to an element that is:
+</p>
+
+<pre class="code prettyprint">var app = new Y.App({
+    container: Y.Node.create(&#x27;&lt;div id=&quot;fancy-app&quot; &#x2F;&gt;&#x27;)
+});
+
+app.render().get(&#x27;container&#x27;).appendTo(&#x27;body&#x27;);</pre>
+
+
+<p>
+This results in the HTML of the page looking like this:
+</p>
+
+<pre class="code prettyprint">&lt;body&gt;
+    ...
+    &lt;div id=&quot;fancy-app&quot; class=&quot;yui3-app&quot;&gt;
+        &lt;div class=&quot;yui3-app-views&quot;&gt;&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;body&gt;</pre>
+
+
+<p>
+Refer to App's API Docs for more details about <a href="http://yuilibrary.com/yui/docs/api/classes/App.html#attr_container"><code>container</code></a> and <a href="http://yuilibrary.com/yui/docs/api/classes/App.html#attr_viewContainer"><code>viewContainer</code></a> attributes.
+</p>
+
+<h4 id="overriding-render">Overriding <code>render()</code></h4>
+
+<p>
+You may override the <code>render()</code> method to customize how the app renders itself, particularly if you are creating an App subclass.
+</p>
+
+<p>
+<strong>Note:</strong> You should expect that the <code>viewContainer</code>'s contents will be modified by the app for the purpose of rendering the <code>activeView</code> when it changes; and ideally your <code>render()</code> method should also return <code>this</code> at the end to allow chaining, but that's up to you.
+</p>
+
+<p>
+The following provides a templates for how you could subclass <code>Y.App</code> and implement a custom <code>render()</code> method while still preserving its default behavior:
+</p>
+
+<pre class="code prettyprint">Y.CustomApp = Y.Base.create(&#x27;customApp&#x27;, Y.App, [], {
+    render: function () {
+        &#x2F;&#x2F; This calls the superclass&#x27; (Y.App) implementation of the &#x60;render()&#x60;
+        &#x2F;&#x2F; method to preserve the default behavior.
+        Y.CustomApp.superclass.render.apply(this, arguments);
+
+        &#x2F;&#x2F; Provide your custom rendering logic here.
+
+        &#x2F;&#x2F; Returns this &#x60;Y.CustomApp&#x60; instance to allow for chaining.
+        return this;
+    }
+});</pre>
+
+
+<p>
+Refer to App's API Docs for more details about the <a href="http://yuilibrary.com/yui/docs/api/classes/App.html#method_render"><code>render()</code> method</a>. See <a href="#subclassing">Subclassing</a> for more details on extending <code>Y.App</code>.
+</p>
+
+<h3 id="view-management">View Management</h3>
+
+<p>
+A primary feature of App is its flexible view management, which enables you to declare the primary views of your application and easily switch which one is active. This is very handy for defining your app's top-level "page" views, then switching between them as a user navigates through the application.
+</p>
+
+<h4 id="declaring-views">Declaring Views</h4>
+
+<p>
+The <code>views</code> property of an App class allows you to specify a mapping of view-names to view-metadata that should be registered to your app. This way you can specify information about your app's views — how they should be treated by the app, and how they related to other views — up-front, in a declarative way that is self-documenting.
+</p>
+
+<p>
+You can setup this views mapping on both App subclasses and instances. Every App instance will receive its own copy of a <code>views</code> object, any <code>views</code> metadata defined at the class-level will be used as defaults and merged with any <code>views</code> specified during instantiation time.
+</p>
+
+<p>
+The follow example shows the creation of an App subclass, <code>CustomApp</code>, which has a few default views defined, and an instance of <code>CustomApp</code> which defines another view and overrides some of the defaults.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Create a Y.CustomApp class that extends Y.App.
+Y.CustomApp = Y.Base.create(&#x27;customApp&#x27;, Y.App, [], {
+    &#x2F;&#x2F; Default registered views inherited by all CustomApp instances.
+    views: {
+        home : {preserve: true},
+        users: {preserve: true},
+        user : {parent: &#x27;users&#x27;}
+    }
+});
+
+&#x2F;&#x2F; Create a CustomApp instance that inherits the defaults and adds to them.
+var app = new Y.CustomApp({
+    &#x2F;&#x2F; Additional view metadata to be merged with the defaults.
+    views: {
+        home : {preserve: false},
+        user : {preserve: false},
+        about: {preserve: true}
+    }
+});</pre>
+
+
+<p>
+Using the <code>getViewInfo()</code> method, we can see how the <code>views</code> metadata from our <code>CustomView</code> class and instance were merged together.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Overwrote &quot;home&quot;&#x27;s default &#x60;preserve&#x60; value.
+Y.log(app.getViewInfo(&#x27;home&#x27;).preserve);  &#x2F;&#x2F; =&gt; false
+
+&#x2F;&#x2F; Added &#x60;preserve&#x60; to &quot;user&quot; view,
+&#x2F;&#x2F; and this did not overwrite the default &#x60;parent&#x60; value.
+Y.log(app.getViewInfo(&#x27;user&#x27;).parent);    &#x2F;&#x2F; =&gt; &quot;home&quot;
+Y.log(app.getViewInfo(&#x27;user&#x27;).preserve);  &#x2F;&#x2F; =&gt; false
+
+&#x2F;&#x2F; The specified &quot;about&quot; view was registered.
+Y.log(app.getViewInfo(&#x27;about&#x27;).preserve); &#x2F;&#x2F; =&gt; true</pre>
+
+
+<p>
+See the <a href="#app-properties">App Properties</a> section above for more details on what metadata can be stored for each view in <code>views</code> mapping.
+</p>
+
+<h4 id="switching-the-active-view">Switching the Active View</h4>
+
+
+<p>
+When decomposing an application into discrete user-interfaces, it is natural to think of these as different "pages"—with each one serving a particular role and being the main content on the screen. With the App component, changing the main content/user-interface is done by updating an app's <code>activeView</code> attribute via the <code>showView()</code> method.
+</p>
+
+<p>
+Working in concert with an app's registered <code>views</code>, the <code>showView()</code> method will take a specified view and make it the app's <code>activeView</code>. This view will be "attached" to the app by rendering it inside the app's <code>viewContainer</code> and any custom events fired by the view will bubble to the app. Any previously active view will be "detached" from the app, removed from the DOM, and either preserved for later use or properly destroyed.
+</p>
+
+<p>
+The following example is the most basic "Hello World" app:
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Creates a new App and View instance.
+var app  = new Y.App(),
+    view = new Y.View();
+
+&#x2F;&#x2F; Overrides the view&#x27;s &#x60;render()&#x60; method to render text into its &#x60;container&#x60;.
+view.render = function () {
+    this.get(&#x27;container&#x27;).set(&#x27;text&#x27;, &#x27;Hello World!&#x27;);
+    return this;
+};
+
+&#x2F;&#x2F; Renders the &#x60;app&#x60; and &#x60;view&#x60;, then sets the view as the app&#x27;s &#x60;activeView&#x60;.
+&#x2F;&#x2F; We have to explicity tell the app to render the view because by default, if
+&#x2F;&#x2F; the view instance already exists it won&#x27;t be rendered automatically.
+app.render().showView(view, null, {render: true});
+
+&#x2F;&#x2F; Verify that &#x60;view&#x60; is now the &#x60;activeView&#x60;, and that the view&#x27;s &#x60;container&#x60;
+&#x2F;&#x2F; is now rendered within the app&#x27;s &#x60;viewContainer&#x60;.
+Y.log(app.get(&#x27;activeView&#x27;) === view);                           &#x2F;&#x2F; =&gt; true
+Y.log(app.get(&#x27;viewContainer&#x27;).contains(view.get(&#x27;container&#x27;))); &#x2F;&#x2F; =&gt; true</pre>
+
+
+<p>
+This results in the HTML of the page looking like this:
+</p>
+
+<pre class="code prettyprint">&lt;body class=&quot;yui3-app&quot;&gt;
+    ...
+    &lt;div class=&quot;yui3-app-views&quot;&gt;
+        &lt;div&gt;Hello World!&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;body&gt;</pre>
+
+
+<p>
+This example app can <em>easily</em> become dynamic and have the ability to say hello to someone by name. By creating a reusable <code>HelloView</code> class the app can dynamically switch between outputting "Hello World!" and "Hello [name]!" where the "name" is a path segment in the URL.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Creates a HelloView which can say hello to someone named, or to the World
+&#x2F;&#x2F; if a name is not specified.
+Y.HelloView = Y.Base.create(&#x27;helloView&#x27;, Y.View, [], {
+    render: function () {
+        var name = this.get(&#x27;name&#x27;);
+        this.get(&#x27;container&#x27;).set(&#x27;text&#x27;, &#x27;Hello &#x27; + (name || &#x27;World&#x27;) + &#x27;!&#x27;);
+        return this;
+    }
+});
+
+&#x2F;&#x2F; Creates a new App instance and registers the HelloView.
+var app = new Y.App({
+    views: {
+        hello: {type: &#x27;HelloView&#x27;}
+    }
+});
+
+&#x2F;&#x2F; Adds a route handler for &quot;&#x2F;&quot; to show the HelloView.
+app.route(&#x27;&#x2F;&#x27;, function (req) {
+    &#x2F;&#x2F; Sets the &#x60;activeView&#x60; to a new instance of a &#x60;Y.HelloView&#x60; by just
+    &#x2F;&#x2F; passing &quot;hello&quot;, the name of the registered view.
+    this.showView(&#x27;hello&#x27;);
+});
+
+&#x2F;&#x2F; Adds a route handler for &quot;&#x2F;:name&quot; to show the HelloView with a &#x60;name&#x60;.
+app.route(&#x27;&#x2F;:name&#x27;, function (req) {
+    &#x2F;&#x2F; The name which we want to say hello to is specified on &#x60;req.params&#x60;.
+    var name = req.params.name;
+
+    &#x2F;&#x2F; Sets the &#x60;activeView&#x60; to a new instance of a &#x60;Y.HelloView&#x60;, but here
+    &#x2F;&#x2F; we are also passing a config object which the new view instance will
+    &#x2F;&#x2F; be constructed with, and it contains the name which we&#x27;ll say hello to.
+    this.showView(&#x27;hello&#x27;, {name: name});
+});
+
+&#x2F;&#x2F; Renders the app, then saves a new history entry for &quot;&#x2F;eric&quot; which will
+&#x2F;&#x2F; dispatch the &quot;&#x2F;:name&quot; route handler.
+app.render().save(&#x27;&#x2F;eric&#x27;);</pre>
+
+
+<p>
+This results in the URL being updated to either <code>&quot;&#x2F;eric&quot;</code> or <code>&quot;&#x2F;#&#x2F;eric&quot;</code> depending on whether the browser is capable of HTML5 history, and the HTML of the page looking like this:
+</p>
+
+<pre class="code prettyprint">&lt;body class=&quot;yui3-app&quot;&gt;
+    ...
+    &lt;div class=&quot;yui3-app-views&quot;&gt;
+        &lt;div&gt;Hello eric!&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;body&gt;</pre>
+
+
+<h5 id="understanding-showview-options">Understanding <code>showView()</code> Options</h5>
+
+<p>
+App's <code>showView()</code> method has the following signature:
+</p>
+
+<pre class="code prettyprint">showView ( view  [config]  [options]  [callback] )</pre>
+
+
+<p>
+As seen in the previous usage examples, <code>view</code> can either be a view instance or the string-name of a view defined in the app's <code>views</code> object. The optional <code>config</code> object is used when creating a new view instance. The <code>config</code> object can also be used to update an existing or preserved <code>view</code>'s attributes when <code>options.update</code> is <code>true</code>.
+</p>
+
+<p>
+The following is the list of <code>options</code> which affect how the app will switch its <code>activeView</code>:
+</p>
+
+<dl>
+  <dt><code>callback</code></dt>
+  <dd>
+    <p>
+    Optional callback function to call after new <code>activeView</code> is ready to use, the function will be passed a reference to the view.
+    </p>
+
+    <p>
+    Specifying a callback function is useful you need access to the view instance which is created as a result of calling <code>showView()</code>. Also, if an app is using transitions, the callback function will be called once the transitions have completed.
+    </p>
+  </dd>
+
+  <dt><code>prepend</code></dt>
+  <dd>
+    <p>
+    Whether the <code>view</code> should be prepended instead of appended to the app's <code>viewContainer</code> node.
+    </p>
+
+    <p>
+    This option is used internally to aid transitions by prepending the new <code>activeView</code> if it has been defined as the <code>parent</code> of the currently active view. This puts the view as the first child of the app's <code>viewContainer</code> node which helps the sliding transitions.
+    </p>
+  </dd>
+
+  <dt><code>render</code></dt>
+  <dd>
+    <p>
+    Whether the <code>view</code> should be rendered. <strong>Note:</strong> If no value is specified, a view instance will only be rendered if it's newly created by this method.
+    </p>
+
+    <p>
+    Sometimes you may need greater control over when a view is rendered. Under certain circumstances you may wish to re-render a preserved view, you can use this option to accomplish this.
+    </p>
+  </dd>
+
+  <dt><code>transition</code></dt>
+  <dd>
+    <p>
+    Optional transition override. A transition can be specified which will override the default, or <code>false</code> for no transition.
+    </p>
+
+    <p>
+    When an app is using transitions, this option allows you to override the default transition that will occur per the app's <code>transitions</code> configuration — enabling finer-grained control over how views transition.
+    </p>
+  </dd>
+
+  <dt><code>update</code></dt>
+  <dd>
+    <p>
+    Whether an existing view should have its attributes updated by passing the <code>config</code> object to its <code>setAttrs()</code> method. <strong>Note:</strong> This option does not have an effect if the <code>view</code> instance is created as a result of calling this method.
+    </p>
+
+    <p>
+    This option would usually be used to update a preserved view with new data and can be used in conjunction with the <code>render</code> option to force a view to update and re-render.
+    </p>
+  </dd>
+</dl>
+
+<p>
+Refer to App's API docs</a> for more details about the <a href="http://yuilibrary.com/yui/docs/api/classes/App.html#method_showView"><code>showView()</code> method</a>.
+</p>
+
+<h3 id="navigating-between-pages">Navigating Between "Pages"</h3>
+
+<p>
+A key feature of <code>Y.App</code> is its robust URL navigation management. You can simply use standard HTML links within your app and when the user clicks a link, <code>Y.App</code> will handle it if there’s a matching route for that URL. With the <a href="#configuring-navigation-behavior">navigation-related config options</a> you have full control over your app's navigation behavior and experience, plus your app will automatically use the best available navigation method based on these settings, the browser’s capabilities, and the actions of the user.
+</p>
+
+<p>
+This enables an app fulfill a "page request" by using data it already has stored in models or loading new data, then composing and showing a view which represents the app's current state for this URL — all without requiring a full page load.
+</p>
+
+<h4 id="programmatic-navigation">Programmatic navigation</h4>
+
+<p>
+Beyond handling navigation via link clicks, <code>Y.App</code> also exposes a programmatic way to navigate the user though your app via the <code>navigate()</code> method.
+</p>
+
+<p>
+App's <code>navigate()</code> method implements a higher level concept of "browsing" over the <code>save()</code> and <code>replace()</code> methods. It will manage a user's navigation history like a browser, and is the recommended method to use when programmatically navigating the user to URLs within your app.
+</p>
+
+<p>
+The <code>navigate()</code> method will do the right thing (what the browser would do) when navigating the user to the same URL they are currently on — it will replace the history entry — or to an in-page fragment identifier — which only when configured will navigate. The following demonstrates some of these behaviors:
+</p>
+
+<pre class="code prettyprint">var app = new Y.App();
+
+app.route(&#x27;*&#x27;, function (req, res, next) {
+    &#x2F;&#x2F; Handle all URLs.
+});
+
+&#x2F;&#x2F; Save a new history entry for &quot;&#x2F;&quot;, or replaces the current entry if we&#x27;re
+&#x2F;&#x2F; already on &quot;&#x2F;&quot;.
+app.navigate(&#x27;&#x2F;&#x27;); &#x2F;&#x2F; =&gt; true
+
+&#x2F;&#x2F; Does not navigate even though there&#x27;s a matching route handler.
+app.navigate(&#x27;#top&#x27;); &#x2F;&#x2F; =&gt; false
+
+&#x2F;&#x2F; Enable navigation on hash-only changes to the URL.
+app.set(&#x27;navigateOnHash&#x27;, true);
+
+&#x2F;&#x2F; Does navigate because &#x60;navigateOnHash&#x60; was enabled.
+app.navigate(&#x27;#top&#x27;); &#x2F;&#x2F; =&gt; true</pre>
+
+
+<p>
+Refer to App's API Docs for more details about the <a href="http://yuilibrary.com/yui/docs/api/classes/App.html#method_navigate"><code>navigate()</code> method</a>.
+</p>
+
+<h4 id="configuring-navigation-behavior">Configuring Navigation Behavior</h4>
+
+<p>
+The navigation features of <code>Y.App</code> are built on the <a href="http://yuilibrary.com/yui/docs/api/classes/PjaxBase.html">base pjax functionality</a>. This is what enables users to navigate to the different sections or "pages" of an app while avoiding full page loads.
+</p>
+
+<p>
+The following are configuration attributes which define an app’s navigation behavior:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Attribute</th>
+      <th>Defined in</th>
+      <th>Default Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>linkSelector</code></td>
+      <td><code>Y.PjaxBase</code></td>
+      <td><code>&quot;a&quot;</code></td>
+      <td>
+        <p>
+        CSS selector string used to filter link click events so that only the links which match it will have the enhanced-navigation behavior of pjax applied.
+        </p>
+
+        <p>
+        When a link is clicked and that link matches this selector, navigating to the link's <code>href</code> URL using the enhanced, pjax, behavior will be attempted; and the browser's default way to navigate to new pages will be the fallback.
+        </p>
+
+        <p>
+        By default this selector will match <em>all</em> links on the page.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>navigateOnHash</code></td>
+      <td><code>Y.PjaxBase</code></td>
+      <td><code>false</code></td>
+      <td>
+        <p>
+        Whether navigating to a hash-fragment identifier on the current page should be enhanced and cause the <code>navigate</code> event to fire.
+        </p>
+
+        <p>
+        By default Pjax allows the browser to perform its default action when a user is navigating within a page by clicking in-page links (e.g. <code>&lt;a href=&quot;#top&quot;&gt;Top of page&lt;&#x2F;a&gt;</code>) and does not attempt to interfere or enhance in-page navigation.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>scrollToTop</code></td>
+      <td><code>Y.PjaxBase</code></td>
+      <td><code>true</code></td>
+      <td>
+        <p>
+        Whether the page should be scrolled to the top after navigating to a URL.
+        </p>
+
+        <p>
+        When the user clicks the browser's back button, the previous scroll position will be maintained.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td><code>serverRouting</code></td>
+      <td><code>Y.App.Base</code></td>
+      <td><code>undefined</code></td>
+      <td>
+        <p>
+        Whether or not this application's server is capable of properly routing all requests and rendering the initial state in the HTML responses.
+        </p>
+
+        <p>
+        See <a href="#app-attributes">App Attributes</a> and <a href="#routing-coordination-with-server">Routing Coordination with Server</a> for more details.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="navigate-event"><code>navigate</code> Event</h4>
+
+<p>
+When the user is navigating to a URL for which the app has a route handler, the <code>navigate</code> event will fire. The default action of this event updates the browser’s address bar to reflect the new URL, causing the app to dispatch to the matching route handlers.
+</p>
+
+<p>
+Listening to your app's <code>navigate</code> event is a useful way to indicate to the user that something is loading while they wait for the app to fully handle the new URL, possibly loading data from a remote server.
+</p>
+
+<pre class="code prettyprint">var app = new Y.App({
+    views: {
+        users: {}
+    },
+
+    users: new Y.ModelList()
+});
+
+app.route(&#x27;&#x2F;users&#x2F;&#x27;, function () {
+    var users = app.get(&#x27;users&#x27;);
+
+    &#x2F;&#x2F; Load users data from a remote server.
+    users.load(function () {
+        app.showView(&#x27;users&#x27;, {users: users});
+
+        &#x2F;&#x2F; Removes the &quot;loading&quot; class from the app&#x27;s &#x60;container&#x60; node.
+        app.get(&#x27;container&#x27;).removeClass(&#x27;loading&#x27;);
+    });
+});
+
+&#x2F;&#x2F; Listen for the app&#x27;s &#x60;navigate&#x60; event.
+app.on(&#x27;navigate&#x27;, function (e) {
+    &#x2F;&#x2F; Adds the &quot;loading&quot; class to the app&#x27;s &#x60;container&#x60; node.
+    app.get(&#x27;container&#x27;).addClass(&#x27;loading&#x27;);
+});
+
+&#x2F;&#x2F; Navigate the user to &quot;&#x2F;users&#x2F;&quot;.
+app.navigate(&#x27;&#x2F;users&#x2F;&#x27;);</pre>
+
+
+<p>
+Refer to App's API Docs for more details about the <a href="http://yuilibrary.com/yui/docs/api/classes/App.html#event_navigate"><code>navigate</code> event</a>.
+</p>
+
+<h2 id="extending-yapp">Extending <code>Y.App</code></h2>
+
+<p>
+The <code>Y.App</code> class is intended to be mutable insofar as being the host for <em>all</em> App-component features, whereas <code>Y.App.Base</code> is intended to remain pure and just host the basic set of features. This allows for two different ways to extend the functionality of <code>Y.App</code>: <a href="#mixing-in-features">mixing-in features</a>, and <a href="#subclassing">subclassing</a>.
+</p>
+
+<h3 id="mixing-in-features">Mixing-In Features</h3>
+
+<p>
+Additional class extensions can be automatically mixed-into <code>Y.App</code>, doing so will dynamically extend the functionality of the App class making these new features available to all of its instances and subclasses. The <a href="#yapptransitions"><code>Y.App.Transitions</code></a> class extension, provided by the <code>app-transitions</code> module, uses this pattern to add transitions support to <code>Y.App</code>.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Creates the namespace for the transitions class extension and assigns a
+&#x2F;&#x2F; simple constructor function to it.
+Y.App.Transitions = function () {};
+
+&#x2F;&#x2F; Defines the &#x60;transitions&#x60; attribute with a default value of &#x60;false&#x60;. This
+&#x2F;&#x2F; makes the view transitions an opt-in feature.
+Y.App.Transitions.ATTRS = {
+    transitions: {value: false}
+};
+
+&#x2F;&#x2F; This defines the prototype of the transitions class extension, the actual
+&#x2F;&#x2F; implementation has been left out for the sake of simplicity.
+Y.App.Transitions.prototype = {
+
+    &#x2F;&#x2F; The implementation of the transition features would be here.
+
+};
+
+&#x2F;&#x2F; Here the transitions class extension is being applied automatically by
+&#x2F;&#x2F; mixing itself into the &#x60;Y.App&#x60; class.
+Y.Base.mix(Y.App, [Y.App.Transitions]);</pre>
+
+
+<p>
+When this module is included in the YUI instance, the transitions support for App can be used by simply toggling it on:
+</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;app-base&#x27;, &#x27;app-transitions&#x27;, function (Y) {
+    var app = new Y.App({transitions: true});
+});</pre>
+
+
+<p>
+When writing your own class extensions to add features to <code>Y.App</code>, feel free to add them to App's namespace (e.g., <code>Y.App.SomeNewFeature</code>), and be sure to follow these two rules:
+</p>
+
+<ol>
+  <li>
+    <p>
+    The addition functionality should be <strong>disabled by default</strong>. The API for the class extensions should provide some way for the user to <em>opt-in</em> to using the features it adds.
+    </p>
+
+    <p>
+    The <code>Y.App.Transitions</code> class extension does this be requiring a "truthy" value for the <code>transitions</code> attribute. By default the value will be <code>false</code>, making this an opt-in feature.
+    </p>
+  </li>
+
+  <li>
+    <p>
+    Be courteous to the other App component class extensions, since they all share the same <code>prototype</code> be careful not to unintentionally overwrite other properties or methods.
+    </p>
+  </li>
+</ol>
+
+<h3 id="subclassing">Subclassing</h3>
+
+<p>
+Creating class extensions for <a href="#mixing-in-features">mixing-in features</a> to <code>Y.App</code> is a great way to extend its functionality in a reusable way while not changing how you <a href="#instantiating-app">Instantiate an App</a>; but might find it more useful to extend the <code>Y.App</code> class to create a subclass customized to your specific needs.
+</p>
+
+<p>
+Use the <code>Y.Base.create()</code> method to extend <code>Y.App</code> and add or override prototype and static members and attributes. You may also optionally specify one or more <a href="../base/index.html#extensions">class extensions</a> to mix into your new class.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Create a Y.CustomApp class that extends Y.App.
+Y.CustomApp = Y.Base.create(&#x27;customApp&#x27;, Y.App, [], {
+    &#x2F;&#x2F; Add or override prototype properties and methods here.
+}, {
+    &#x2F;&#x2F; Add static properties and methods here.
+
+    ATTRS: {
+        &#x2F;&#x2F; Add or override default attributes here.
+    }
+});</pre>
+
+
+<p>
+One benefit of extending <code>Y.App</code> is that you can easily add default views, routes, and route handlers to your custom App class, and they'll be shared by all instances of that class unless overridden at the instance level:
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Create a Y.CustomApp class that extends Y.App.
+Y.CustomApp = Y.Base.create(&#x27;customApp&#x27;, Y.App, [], {
+    &#x2F;&#x2F; Default registered views inherited by all CustomApp instances.
+    views: {
+        home : {preserve: true},
+        users: {preserve: true},
+        user : {parent: &#x27;users&#x27;}
+    },
+
+    &#x2F;&#x2F; Default route handlers inherited by all CustomApp instances.
+
+    handleHome: function (req) {
+        &#x2F;&#x2F; Handle the &quot;&#x2F;&quot; route here.
+    },
+
+    handleUsers: function (req) {
+        &#x2F;&#x2F; Handle the &quot;&#x2F;users&#x2F;&quot; route here.
+    },
+
+    handleUser: function (req) {
+        &#x2F;&#x2F; Handle the &quot;&#x2F;users&#x2F;:name&#x2F;&quot; route here.
+    }
+}, {
+    ATTRS: {
+        &#x2F;&#x2F; Share these routes with all CustomApp instances.
+        routes: {
+            value: [
+                {path: &#x27;&#x2F;&#x27;,             callback: &#x27;handleHome&#x27;},
+                {path: &#x27;&#x2F;users&#x2F;&#x27;,       callback: &#x27;handleUsers&#x27;}
+                {path: &#x27;&#x2F;users&#x2F;:name&#x2F;&#x27;, callback: &#x27;handleUser&#x27;}
+            ]
+        }
+    }
+});
+
+&#x2F;&#x2F; Create a CustomApp instance that inherits the defaults and adds to them.
+var app = new Y.CustomApp({
+    &#x2F;&#x2F; Register an additional view. The &#x60;home&#x60;, &#x60;users&#x60;, and &#x60;user&#x60; views will
+    &#x2F;&#x2F; also be inherited.
+    views: {
+        about: {preserve: true}
+    }
+});
+
+&#x2F;&#x2F; Add a route and route handler.
+app.route(&#x27;&#x2F;about&#x2F;&#x27;, function (req) {
+    &#x2F;&#x2F; Handle the &quot;&#x2F;about&#x2F;&quot; route here.
+});</pre>
+
+
+<p>
+Now all instances of <code>Y.CustomApp</code> will inherit all the custom defaults and can add to or override them. The <code>app</code> instance created here will handle the <code>&quot;&#x2F;&quot;</code>, <code>&quot;&#x2F;users&#x2F;&quot;</code>, and <code>&quot;&#x2F;users&#x2F;:name&#x2F;&quot;</code> routes in addition to its own <code>&quot;&#x2F;about&#x2F;&quot;</code> route.
+</p>
+
+<p>
+Before you subclass <code>Y.App</code>, you should refer to <a href="http://yuilibrary.com/yui/docs/api/modules/app-base.html">App's API docs</a> to become familiar with its public and protected properties and methods.
+</p>
+
+<h2 id="app-extensions">App Extensions</h2>
+
+<h3 id="yapptransitions"><code>Y.App.Transitions</code></h3>
+
+<p>
+The <a href="http://yuilibrary.com/yui/docs/api/classes/App.Transitions.html">Transitions</a> extension provides view transitions for apps in browsers which support native CSS3 transitions. View transitions visually enhance the change from one "page" to the next that is both pleasant to the user and helps to communicate a hierarchy between sections of an application.
+</p>
+
+<h4 class="no-toc">Enabling Transitions</h4>
+
+<p>
+Enabling transitions for an app just requires <em>opting-in</em>. The following will create a new <code>Y.App</code> instance with the default transitions enabled:
+</p>
+
+<pre class="code prettyprint">var app = new Y.App({transitions: true});</pre>
+
+
+<p>
+With transitions enabled for an app, anytime the app's <code>activeView</code> changes, there will be a visual transition from the old to the new active view. How an app's <code>views</code> are configured effects which transition will be used, e.g. when changing between views which have a hierarchical relationship a sliding transition will be used.
+</p>
+
+<h4 class="no-toc">Types of <code>activeView</code> Changes</h4>
+
+<p>
+The following are the types of <code>activeView</code> changes for which transitions can be defined that correspond to the relationship between the new and old <code>activeView</code>:
+</p>
+
+<dl>
+  <dt><code>navigate</code></dt>
+  <dd>
+    <p>
+    The default transition to use when changing the <code>activeView</code> of the application. This will be <strong><code>&quot;fade&quot;</code></strong> by default.
+    </p>
+  </dd>
+
+  <dt><code>toChild</code></dt>
+  <dd>
+    <p>
+    The transition to use when the new <code>activeView</code> is configured as a child of the previously active view via its <code>parent</code> property as defined in this app's <code>views</code>. This will be <strong><code>&quot;slideLeft&quot;</code></strong> by default.
+    </p>
+  </dd>
+
+  <dt><code>toParent</code></dt>
+  <dd>
+    <p>
+    The transition to use when the new <code>activeView</code> is configured as the <code>parent</code> of the previously active view as defined in this app's <code>views</code>. This will be <strong><code>&quot;slideRight&quot;</code></strong> by default.
+    </p>
+  </dd>
+</dl>
+
+<h4 class="no-toc">Overriding Default Transitions</h4>
+
+<p>
+The default transitions can be overridden in the following ways:
+</p>
+
+<ul>
+  <li>
+    <p>
+    Overriding the <a href="http://yuilibrary.com/yui/docs/api/classes/App.html#property_transitions"><code>transitions</code> property</a> which is used as the default transitions for all <code>Y.App</code> instances.
+    </p>
+  </li>
+
+  <li>
+    <p>
+    Specifying a <code>transitions</code> configuration object when instantiating a new app, which sets the app's <a href="http://yuilibrary.com/yui/docs/api/classes/App.html#attr_transitions"><code>transitions</code> attribute</a>.
+    </p>
+  </li>
+
+  <li>
+    <p>
+    Specifying a <code>transition</code> when calling the <a href="http://yuilibrary.com/yui/docs/api/classes/App.html#method_showView"><code>showView()</code> method</a>.
+    </p>
+  </li>
+</ul>
+
+<p>
+The following example will override which transitions should be used by default, and specifically set the <code>transition</code> option on certain calls to <code>showView()</code>.
+</p>
+
+<pre class="code prettyprint">var app = new Y.App({
+    &#x2F;&#x2F; The app&#x27;s three views and their relationships between one another.
+    views: {
+        home   : {},
+        about  : {},
+        contact: {parent: &#x27;about&#x27;},
+        team   : {parent: &#x27;about&#x27;}
+    },
+
+    &#x2F;&#x2F; Overrides the default transitions types all to &quot;fade&quot; which will
+    &#x2F;&#x2F; cross-fade between &#x60;activeView&#x60; changes.
+    transitions: {
+        navigate: &#x27;fade&#x27;,
+        toChild : &#x27;fade&#x27;,
+        toParent: &#x27;fade&#x27;
+    },
+
+    &#x2F;&#x2F; The app&#x27;s &#x60;team&#x60; model list for use by the &quot;team&quot; view.
+    team: new Y.ModelList().reset([
+        {name: &#x27;Eric Ferraiuolo&#x27;},
+        {name: &#x27;Ryan Grove&#x27;}
+    ])
+});
+
+app.route(&#x27;&#x2F;&#x27;, function () {
+    &#x2F;&#x2F; Will transition via &quot;fade&quot;.
+    app.showView(&#x27;home&#x27;);
+});
+
+app.route(&#x27;&#x2F;about&#x2F;&#x27;, function () {
+    &#x2F;&#x2F; Will transition via &quot;fade&quot;, even though we maybe coming from a child
+    &#x2F;&#x2F; view (i.e. &quot;contact&quot; or &quot;team&quot;).
+    app.showView(&#x27;about&#x27;);
+});
+
+app.route(&#x27;&#x2F;about&#x2F;contact&#x2F;&#x27;, function () {
+    &#x2F;&#x2F; Will transition via &quot;fade&quot;, even though we maybe coming from the parent
+    &#x2F;&#x2F; &quot;about&quot; view.
+    app.showView(&#x27;contact&#x27;);
+});
+
+app.route(&#x27;&#x2F;about&#x2F;team&#x2F;&#x27;, function () {
+    &#x2F;&#x2F; Shows the &quot;team&quot; view, passing it the app&#x27;s &#x60;team&#x60; model list, and
+    &#x2F;&#x2F; overrides the &#x60;transition&#x60; options so no visual transitions will occur.
+    app.showView(&#x27;team&#x27;, {team: this.get(&#x27;team&#x27;)}, {transition: false});
+});
+
+app.render().dispatch();</pre>
+
+
+<h4 class="no-toc">Transition-Aiding CSS</h4>
+
+<p>
+Some structural CSS is required to setup an app's <code>container</code> and <code>viewContainer</code> nodes so the app's views transition properly. While an app's views are transitioning, the CSS class: <strong><code>yui3-app-transitioning</code></strong> will be added to the app's <code>container</code> node.
+</p>
+
+<p>
+<strong>Note:</strong> While transitioning, the app's <code>viewContainer</code> node will have its <code>overflow-x</code> set to <code>hidden</code>. This causes its margins to <em>not collapse</em> with its child nodes. To compensate for this, it is best to not style your views with margins.
+</p>
+
+<h2 id="best-practices">Best Practices</h2>
+
+<h3 id="progressively-enhanced-vs-client-only-apps">Progressively-enhanced vs. Client-only Apps</h3>
+
+<p>
+It's important to understand the difference between the preferred approach of developing an app using a progressive enhancement strategy vs. creating a client side-only app, and when it might be appropriate to do so. As discussed in the <a href="#routing-coordination-with-server">Routing Coordination with Server</a>, <code>Y.App</code> provides the tools and is flexible enough implement an app using either strategy, but <strong>there are drawbacks to client-only applications</strong>.
+</p>
+
+<p>
+The following sections build on <a href="../router/index.html#best-practices">Router's Best Practices</a>, all of which apply, by looking at things from a higher level, application perspective:
+</p>
+
+<h4 id="full-path-vs-hash-based-urls">Full-path vs. Hash-based URLs</h4>
+
+<p>
+Before making a decision to use hash-based URLs in your application, you should <strong>be aware of their drawbacks</strong>.
+</p>
+
+<p>
+A client-only app will use hash-based URLs instead of the standard, full-path URLs. When the server receives a request for a hash-based URL everything after and including the fragment identifier ("#") is lost. This means your application will have to rely on the JavaScript to finish fulfilling the request for the user.
+</p>
+
+<p>
+The following shows how this information loss manifest itself:
+</p>
+
+<pre class="code">Browser URL: http:&#x2F;&#x2F;example.com&#x2F;#&#x2F;foo&#x2F;bar&#x2F;
+Request URL: http:&#x2F;&#x2F;example.com&#x2F;</pre>
+
+
+<p>
+The request URL that the server will see is missing the entire path, this means every URL in your application looks to the server as if it's the same page! To prevent link rot in your application, you'll have to support the hash-based variation of your URLs indefinitely.
+</p>
+
+<p>
+Ideally you should prefer full-path URLs (e.g., http://example.com/foo/bar/) for your application and be able to handle full page loads for browsers which are not capable of using HTML5 history. This requires a server capable of routing requests and rendering the initial state of the application in the HTML responses. This is the main idea behind a progressive enhancement development strategy — providing a better experience for more capable browsers/devices.
+</p>
+
+<h4 id="performance-and-seo">Performance and SEO</h4>
+
+<p>
+Client-only apps suffer in more places than just their URLs. There are <em>horrible side-effects</em> of using hash-based URLs: degradation in performance of rendering the app's initial state, and lack of SEO.
+</p>
+
+<p>
+It is faster to render the initial state of an app on the server before delegating control to the client-side JavaScript. But in order to achieve this, the server must be capable of routing requests and rendering this initial state. This means your application needs to be using full-path URLs.
+</p>
+
+<p>
+To render the initial state in a client-only app, the server has to send over the HTML "shell" page, which then makes more HTTP requests to get the JavaScript. Once the JavaScript has been downloaded and parsed, it can execute and construct the <code>Y.App</code> instance. The app now needs to fetch data from the server (yet another HTTP request), and then it can display the initial state. All while the user is staring at a blank page — which is a horrible user experience, especially on a mobile device with a slower connection.
+</p>
+
+<p>
+Optimizing your app to be indexed by search engines is also relates to this. SEO requires that your app uses full-path URLs so the server can route requests and render the initial state. The basic functions of your app which you want to be indexable should work without JavaScript.
+</p>
+
+<h4 id="when-client-only-apps-are-appropriate">When Client-only Apps are Appropriate</h4>
+
+<p>
+Given all the drawbacks of client-only apps, there's one major advantage: <strong>they don't rely on the server</strong>. If your app needs to run off the filesystem, or be deployed to a "dumb" static file server, then this might be your only option.
+</p>
+
+<p>
+Developing a client-only app using <code>Y.App</code> still gives you nice (but hash-based) URLs that are bookmarkable, browser back/forward button support, and view management.
+</p>
+
+<p>
+<strong>Please make sure you understand the issues with hash-based URLs and their side-effects.</strong> Consider developing your application using a progressive enhancement strategy, it will be worth the extra effort in the long run.
+</p>
+
+<h3 id="flow-control">Flow Control</h3>
+
+<p>
+When developing an app, it's important to have a clear understanding about how the various components are working together. The use of consistent patterns for information sharing, and execution of operations aid in maintaining a separation of concerns which becomes ever more crucial as the size of the app and team increases.
+</p>
+
+<p>
+Restricting the flow of information to a single direction creates a "one-way street" which enforces a strict separation of concerns and divides control over execution throughout an application. This strategy can be implemented by leveraging YUI's powerful custom event infrastructure. All of the components of App Framework are <code>Y.Base</code>-based, and therefore are primed to be both publishers and subscribers of an app's custom events.
+</p>
+
+<p>
+The following example app demonstrates how to wire up the components of an application using custom events to achieve the one-way flow of information and divide control by maintaining a strict separation of concerns:
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Create the &#x60;UserView&#x60;.
+Y.UserView = Y.Base.create(&#x27;userView&#x27;, Y.View, [], {
+    template: &#x27;&lt;p&gt;{name}&lt;&#x2F;p&gt;&#x27; +
+              &#x27;&lt;label for=&quot;name-input&quot;&gt;Name:&lt;&#x2F;label&gt;&#x27; +
+              &#x27;&lt;input id=&quot;name-input&quot; type=&quot;text&quot; value=&quot;{name}&quot; &#x2F;&gt;&#x27; +
+              &#x27;&lt;button&gt;Save&lt;&#x2F;button&gt;&#x27;,
+
+    &#x2F;&#x2F; Listens for DOM events from the user and translates them into application
+    &#x2F;&#x2F; events; e.g., &quot;click&quot; -&gt; &quot;save&quot;.
+    events: {
+        &#x27;button&#x27;: {click: &#x27;save&#x27;}
+    },
+
+    initializer: function () {
+        &#x2F;&#x2F; Listens for the user model to change, and re-renders the view.
+        this.get(&#x27;user&#x27;).after(&#x27;change&#x27;, this.render, this);
+    },
+
+    render: function () {
+        var user    = this.get(&#x27;user&#x27;),
+            content = Y.Lang.sub(this.template, {name: user.get(&#x27;name&#x27;)});
+
+        this.get(&#x27;container&#x27;).setContent(content);
+        return this;
+    },
+
+    &#x2F;&#x2F; This view doesn&#x27;t actually do the saving, instead, it is translating the
+    &#x2F;&#x2F; user&#x27;s intent (they click the Save button) to an application-level event.
+    &#x2F;&#x2F; This way control is given to the app to respond to this action.
+    save: function () {
+        var user = this.get(&#x27;user&#x27;),
+            name = this.get(&#x27;container&#x27;).one(&#x27;input&#x27;).get(&#x27;value&#x27;);
+
+        &#x2F;&#x2F; Fires the save event and passes along the needed information. When
+        &#x2F;&#x2F; this is the app&#x27;s &#x60;activeView&#x60; this event will bubble to the app.
+        this.fire(&#x27;save&#x27;, {
+            user: user,
+            name: name
+        });
+    }
+});
+
+&#x2F;&#x2F; Create the app and define the app&#x27;s &#x60;views&#x60;, and assign a new &#x60;Model&#x60;
+&#x2F;&#x2F; instance as an ad-hoc attribute to the app.
+var app = new Y.App({
+    views: {
+        user: {
+            type    : &#x27;UserView&#x27;,
+            preserve: true
+        }
+    },
+
+    user: new Y.Model()
+});
+
+&#x2F;&#x2F; The app listens for the &#x60;UserView&#x60; to fire its &#x60;save&#x60; event. The only will
+&#x2F;&#x2F; only be notified if the view is the app&#x27;s current &#x60;activeView&#x60;.
+app.on(&#x27;userView:save&#x27;, function (e) {
+    &#x2F;&#x2F; The app has the control to execute update the model and execute the save
+    &#x2F;&#x2F; operation. Updating the model will cause the view to re-render.
+    e.user.set(&#x27;name&#x27;, e.name).save();
+});
+
+&#x2F;&#x2F; Renders the app and set&#x27;s the &#x60;user&#x60; view and the &#x60;activeView&#x60;, passing it
+&#x2F;&#x2F; the user model.
+app.render().showView(&#x27;user&#x27;, {user: app.get(&#x27;user&#x27;)});</pre>
+
+
+<p>
+The main thing to note about the above example is that the <code>UserView</code> is <em>not</em> updating its <code>user</code> model directly, instead it is translating the user's intent via DOM events into application-level events. This gives control back to the app so it can decide how best to proceed. The result is a flow of information and control that moves in one direction and in a continuous loop.
+</p>
+
+<h3 id="preserved-views">Preserved Views</h3>
+
+<p>
+An app's <code>views</code> can be defined so that a single instance of a particular view is preserved and can be reused. When a view is defined with its <code>preserve</code> property set to <code>true</code>, the same view instance will be used each time the app's <code>showView()</code> method is called to set it as the app's <code>activeView</code>.
+</p>
+
+<p>
+Preserved views should be used in situations where the contents of the view might not change and that view will be displayed often. They are especially useful if its contents have a complex DOM structure that would be costly to create each time the view was to be shown.
+</p>
+
+<p>
+Imagine a simple app that displays user information in two views: a <code>users</code> view that lists all the users, and a <code>user</code> view that displays the details of a single user. If the set of all users in this application won't change often, then it would be a good idea to make the <code>users</code> view a preserved view. That way it only has to be constructed once, and the same view instance can be shown many times. Whereas the contents of the <code>user</code> view are always going to change depending on which user is being displayed, making it <em>not</em> suitable to preserve.
+</p>
+
+<p>
+The following example demonstrates how this hypothetical users app would define its two views:
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Create the &#x60;UsersView&#x60;.
+Y.UsersView = Y.Base.create(&#x27;usersView&#x27;, Y.View, [] {
+    &#x2F;&#x2F; Implementation would be here...
+});
+
+&#x2F;&#x2F; Create the &#x60;UserView&#x60;.
+Y.UserView = Y.Base.create(&#x27;userView&#x27;, Y.View, [] {
+    &#x2F;&#x2F; Implementation would be here...
+});
+
+&#x2F;&#x2F; Create the app and define its two views.
+var app = new Y.App({
+    views: {
+        &#x2F;&#x2F; Only one &#x60;users&#x60; view instance will be created and it will be
+        &#x2F;&#x2F; preserved for reuse.
+        users: {
+            preserve: true,
+            type    : &#x27;UsersView&#x27;
+        },
+
+        &#x2F;&#x2F; A new &#x60;user&#x60; view instance will be created every time.
+        user: {
+            type  : &#x27;UserView&#x27;,
+            parent: &#x27;users&#x27;
+        }
+    }
+});</pre>
+
+
+<p>
+Be cautious about the number of preserved views you have in your application. Their DOM structures are maintained even when they are not in the visible portion of the page's DOM, this means the more preserved views, the more memory your application will consume. On mobile devices with very limited memory and no swap space, consuming too much memory in your app can cause the browser to crash.
+</p>
+
+
+
+<h2 id="known-limitations">Known Limitations</h2>
+
+<ul>
+  <li>
+    <p>
+    <strong>When multiple App instances are on the page, only one can manage the URL and navigation.</strong> All of the app instances can have route handlers, but only one should have its <code>linkSelector</code> attribute set to a non-falsy value. See <a href="#configuring-navigation-behavior">Configuring Navigation Behavior</a> for more details.
+    </p>
+  </li>
+
+  <li>
+    <p>
+    <strong>Transitions are only supported in WebKit and Firefox browsers which also support CSS3 transitions.</strong> It is intended to only support transitions in browser which have native CSS3 transitions, and YUI's <a href="../transition/index.html">Transition</a> component only supports WebKit and Firefox.
+    </p>
+  </li>
+</ul>
+
+<p>
+App relies heavily on Router which has some know limitations in Internet Explorer 9 and lower, and Android 2.x. See <a href="../router/index.html#known-limitations">Router's Known Limitations</a> for more details.
+</p>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+</li>
+<li>
+<a href="#components-of-the-app-framework">Components of the App Framework</a>
+</li>
+<li>
+<a href="#app-component">App Component</a>
+</li>
+<li>
+<a href="#using-app">Using App</a>
+<ul class="toc">
+<li>
+<a href="#instantiating-app">Instantiating App</a>
+<ul class="toc">
+<li>
+<a href="#config-properties">Config Properties</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#app-properties">App Properties</a>
+</li>
+<li>
+<a href="#app-attributes">App Attributes</a>
+</li>
+<li>
+<a href="#routing-coordination-with-server">Routing Coordination with Server</a>
+<ul class="toc">
+<li>
+<a href="#urls-based-on-browser-capabilities">URLs Based on Browser Capabilities</a>
+</li>
+<li>
+<a href="#full-path-urls-only">Full-path URLs Only</a>
+</li>
+<li>
+<a href="#hash-based-urls-only">Hash-based URLs Only</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#rendering-an-app">Rendering an App</a>
+<ul class="toc">
+<li>
+<a href="#specifying-container-nodes">Specifying Container Nodes</a>
+</li>
+<li>
+<a href="#overriding-render">Overriding <code>render()</code></a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#view-management">View Management</a>
+<ul class="toc">
+<li>
+<a href="#declaring-views">Declaring Views</a>
+</li>
+<li>
+<a href="#switching-the-active-view">Switching the Active View</a>
+<ul class="toc">
+<li>
+<a href="#understanding-showview-options">Understanding <code>showView()</code> Options</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<a href="#navigating-between-pages">Navigating Between "Pages"</a>
+<ul class="toc">
+<li>
+<a href="#programmatic-navigation">Programmatic navigation</a>
+</li>
+<li>
+<a href="#configuring-navigation-behavior">Configuring Navigation Behavior</a>
+</li>
+<li>
+<a href="#navigate-event"><code>navigate</code> Event</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<a href="#extending-yapp">Extending <code>Y.App</code></a>
+<ul class="toc">
+<li>
+<a href="#mixing-in-features">Mixing-In Features</a>
+</li>
+<li>
+<a href="#subclassing">Subclassing</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#app-extensions">App Extensions</a>
+<ul class="toc">
+<li>
+<a href="#yapptransitions"><code>Y.App.Transitions</code></a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#best-practices">Best Practices</a>
+<ul class="toc">
+<li>
+<a href="#progressively-enhanced-vs-client-only-apps">Progressively-enhanced vs. Client-only Apps</a>
+<ul class="toc">
+<li>
+<a href="#full-path-vs-hash-based-urls">Full-path vs. Hash-based URLs</a>
+</li>
+<li>
+<a href="#performance-and-seo">Performance and SEO</a>
+</li>
+<li>
+<a href="#when-client-only-apps-are-appropriate">When Client-only Apps are Appropriate</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#flow-control">Flow Control</a>
+</li>
+<li>
+<a href="#preserved-views">Preserved Views</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#known-limitations">Known Limitations</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="A basic todo list built with the Model, Model List, and View components.">
+                                            <a href="app-todo.html">Todo List</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="An application to browse through the contributors of a GitHub project.">
+                                            <a href="app-contributors.html">GitHub Contributors</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

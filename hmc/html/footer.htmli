@@ -1,0 +1,5 @@
+<!-- START FOOTER -->
+	<div class="container">
+		<footer><?php echo $RES['page.footer.body'] ?></footer>
+	</div>
+<!-- END FOOTER -->

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>history-html5 test</title>
+    <style>
+        #menu {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #log { margin-top: 1em; }
+
+        #photos {
+            height: 200px;
+            margin-top: 1em;
+        }
+
+        #photos img {
+            margin-right: 10px;
+            max-height: 200px;
+        }
+    </style>
+</head>
+<body class="yui3-skin-sam">
+
+<h1>history-html5 test</h1>
+
+<form>
+    <ul id="menu">
+        <li><label><input type="checkbox" id="asparagus">Asparagus</label></li>
+        <li><label><input type="checkbox" id="bluebird">Bluebird</label></li>
+        <li><label><input type="checkbox" id="coffee">Coffee</label></li>
+    </ul>
+</form>
+
+<p>
+<a href="http://www.yahoo.com">Yahoo!</a>
+</p>
+
+<div id="photos"></div>
+<div id="log"></div>
+
+<script src="../../../../build/yui/yui.js"></script>
+<script>
+var Y = YUI({
+    filter: 'raw',
+    filters: {
+        history: 'debug'
+    },
+    useBrowserConsole: false
+}).use('console', 'event-delegate', 'history-html5', 'json-stringify', function (Y) {
+    new Y.Console().render('#log');
+
+    var history    = new Y.HistoryHTML5({enableSessionFallback: true}),
+        bookmarked = history.get(),
+        images  = {
+            asparagus: 'http://farm5.static.flickr.com/4005/4686935131_253e921bf7_m.jpg', // http://www.flickr.com/photos/allenr/4686935131/
+            bluebird : 'http://farm1.static.flickr.com/26/66307916_811efccdfc_m.jpg',     // http://www.flickr.com/photos/allenr/66307916/
+            coffee   : 'http://farm4.static.flickr.com/3336/4638474362_093edb7565_m.jpg'  // http://www.flickr.com/photos/allenr/4638474362/
+        },
+
+        menuNode   = Y.one('#menu'),
+        photosNode = Y.one('#photos');
+
+    function refresh(state) {
+        menuNode.all('input[type="checkbox"]').set('checked', false);
+        photosNode.setContent('');
+
+        Y.Object.each(state, function (value, key) {
+            if (Y.Object.owns(images, key)) {
+                var img = new Image();
+
+                img.src = images[key];
+                img.alt = key;
+
+                menuNode.one('#' + key).set('checked', true);
+                photosNode.append(img);
+            }
+        });
+    }
+
+    Y.on('history:change', function (e) {
+        refresh(e.newVal);
+    });
+
+    menuNode.delegate('click', function (e) {
+        var node = e.currentTarget;
+        history.addValue(node.get('id'), node.get('checked') ? '1' : null);
+    }, 'input');
+
+    // Refresh with the bookmarked state, if any.
+    Y.log('Bookmarked state: ' + Y.JSON.stringify(bookmarked));
+    refresh(bookmarked);
+});
+</script>
+
+</body>
+</html>

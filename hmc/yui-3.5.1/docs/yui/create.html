@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Creating YUI Modules</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Creating YUI Modules</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><p>In this example we will show you our recommended approach to creating your own <code>YUI</code> modules.</p>
+
+<h2 id="what">What is a module?</h2>
+
+<p>A <code>YUI</code> module can be described as <em>"any code that can be separated to run on it's own"</em>.
+Many times, this code can be reusable in different ways.</p>
+
+<h3 id="define">How is a module defined?</h3>
+
+<p>
+<code>YUI.add()</code> is a static method that registers a reusable module&mdash;essentially, it adds a module to the set of modules available to be attached to a YUI instance via the <code>use()</code> method.
+</p>
+
+<p>
+Defining a reusable YUI module is as simple as providing a name and a callback function to <code>YUI.add()</code>.
+</p>
+
+<pre class="code prettyprint">YUI.add(&#x27;my-module&#x27;, function (Y) {
+   &#x2F;&#x2F; Write your module code here, and make your module available on the Y
+   &#x2F;&#x2F; object if desired.
+   Y.MyModule = {
+       sayHello: function () {
+           console.log(&#x27;Hello!&#x27;);
+       }
+   };
+});</pre>
+
+
+<p>
+Note that there are no parentheses after <code>YUI</code> when calling <code>YUI.add()</code> as there are when calling <code>YUI().use()</code>. This is because <code>add()</code> is a static method of the global <code>YUI</code> object, not a method on a specific YUI instance. Modules are registered globally via <code>add()</code> and are later attached to a specific YUI instance via <code>use()</code>.
+</p>
+
+<p>
+The <code>add()</code> method accepts two optional arguments after the callback function: a module version string and a config object. The most useful option in the config object is <code>requires</code>, which allows you to specify an array of other YUI modules that your module requires. YUI will then be sure to load these dependencies before executing your module.
+</p>
+
+<pre class="code prettyprint">YUI.add(&#x27;my-module&#x27;, function (Y) {
+   &#x2F;&#x2F; ...
+}, &#x27;0.0.1&#x27;, {
+    requires: [&#x27;node&#x27;, &#x27;event&#x27;]
+});</pre>
+
+
+<p>
+After your module has been added via <code>YUI.add()</code>, you can specify its name in a <code>use()</code> call to attach it to a YUI instance.
+</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;my-module&#x27;, function (Y) {
+    &#x2F;&#x2F; The Y instance here is the same Y instance that was passed into
+    &#x2F;&#x2F; my-module&#x27;s add() callback, so the Y.MyModule object that was created
+    &#x2F;&#x2F; there is now available here as well.
+    Y.MyModule.sayHello();
+});</pre>
+
+
+<p>
+A module's <code>add()</code> callback isn't executed until that module is attached to a YUI instance via <code>use()</code>. Each time a module is attached via <code>use()</code>, the module's <code>add()</code> callback will be executed, and will receive as an argument the same YUI instance that will later be passed to the <code>use()</code> callback.
+</p>
+
+
+<h2 id="know">How does YUI know about a module?</h2>
+
+<p><code>YUI</code> gives you a few options on how to tell it about your modules. The simpliest way is to include your modules
+on the page after the <code>YUI</code> seed file.</p>
+
+<h3 id="local">Local Modules</h3>
+
+<p>If all of your modules are wrapped in a valid <code>YUI.add</code> call, <code>YUI</code> will know about them just
+because they are on the page. The calls to <code>YUI.add</code> tell the <code>YUI</code> seed all that it needs to know
+about your modules and registers them with the system.</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;&#x2F;path&#x2F;to&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;
+&lt;script src=&quot;&#x2F;path&#x2F;to&#x2F;my&#x2F;module1.js&quot;&gt;&lt;&#x2F;script&gt;
+&lt;script src=&quot;&#x2F;path&#x2F;to&#x2F;my&#x2F;module2.js&quot;&gt;&lt;&#x2F;script&gt;
+&lt;script src=&quot;&#x2F;path&#x2F;to&#x2F;my&#x2F;module3.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>Once available, they can be <em>used</em> as you would expect:</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;module1&#x27;, &#x27;module2&#x27;, &#x27;module3&#x27;, function(Y) {
+
+});</pre>
+
+
+<h3 id="config">Configured Modules</h3>
+
+<p>The local use case may not be good for you if you have several modules that you would like <code>YUI</code> to know about.
+In this case, you would want to tell <code>YUI</code> about your modules so that it can fetch them when they are required.</p>
+
+<p>To do this, you need to use one of the <a href="index.html#config">various ways to configure</a> <code>YUI</code> and
+tell it about your modules.</p>
+
+<p>In this example, we will use the <code>YUI.GlobalConfig</code> to tell all <code>YUI</code> instances about our modules (Note: this must come <em>after</em> the YUI seed file in the page's source):</p>
+
+<pre class="code prettyprint">YUI.GlobalConfig = {
+    modules: {
+        module1: &#x27;&#x2F;path&#x2F;to&#x2F;my&#x2F;module1.js&#x27;,
+        module2: &#x27;&#x2F;path&#x2F;to&#x2F;my&#x2F;module2.js&#x27;,
+        module3: {
+            fullpath: &#x27;&#x2F;path&#x2F;to&#x2F;my&#x2F;module3.js&#x27;,
+            requires: [ &#x27;node&#x27;, &#x27;event&#x27;, &#x27;dd&#x27;, &#x27;yql&#x27;]
+        }
+    }
+};</pre>
+
+
+<p>Now that we have told <code>YUI</code> about our modules, we can simply use them:</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;module1&#x27;, &#x27;module2&#x27;, &#x27;module3&#x27;, function(Y) {
+
+});</pre>
+
+
+<p>The advantage of this approach is that we now have all of our modules information in one simple location
+that can be created by a build script and will be much easier to maintain.</p>
+
+<h3 id="structured">Structured Modules</h3>
+
+<p>In larger projects, you may need to structure your modules in a common way if you have multiple developers working
+on the code. In this case, you can follow <code>YUI</code>'s model on this and structure your code to get the most use
+out of Loader.</p>
+
+<p>When creating a module like the ones above, you can create your built files like this:</p>
+
+<pre class="code terminal">ourmodules&#x2F;
+    module1&#x2F;
+        module1.js
+        module1-min.js
+        module1-debug.js
+    module2&#x2F;
+        module2.js
+        module2-min.js
+        module2-debug.js
+    module3&#x2F;
+        module3.js
+        module3-min.js
+        module3-debug.js</pre>
+
+
+<p>Now that your files are structed in a parsable manner, <code>Loader</code> can handle them without much of a configuration.</p>
+
+<h4 id="local-static-files">Local Static Files</h4>
+
+<pre class="code prettyprint">YUI.GlobalConfig: {
+    groups: {
+        ourmodules: {
+            base: &#x27;&#x2F;ourmodules&#x2F;&#x27;,
+            modules: {
+                module1: {},
+                module2: {},
+                module3: {
+                    requires: [ &#x27;node&#x27;, &#x27;event&#x27;, &#x27;dd&#x27;, &#x27;yql&#x27;]
+                }
+            }
+        }
+    }
+};</pre>
+
+
+<p>By default, when <code>Loader</code> is attempting to fetch a static module, it will create a url using a few config options:
+<code>base</code> and the <code>modulename</code> that was requested.</p>
+
+<pre class="code terminal">&#x2F;&lt;base&gt;&#x2F;&lt;modulename&gt;&#x2F;&lt;modulename&gt;(-&lt;filter&gt;).js
+&#x2F;ourmodules&#x2F;module1&#x2F;module1.js
+&#x2F;ourmodules&#x2F;module2&#x2F;module2.js</pre>
+
+
+<p>Now when you <code>use</code> your modules, <code>Loader</code> will find them and load them dynamically.</p>
+
+<h4 id="using-a-combohandler">Using a ComboHandler</h4>
+
+<p>There are several combo handlers for different languages, so we won't discuss them here. Basically
+a combo handler is an entry point on your server that accepts a query string of a list of files. The
+server then combines all those files and returns the output. This allows you to ask for multiple files
+but only use a few HTTP requests to fetch them.</p>
+
+<p><code>YUI</code> has always had this support built in for it's core files, but you can have this with your modules too.
+Configuring <code>YUI</code> to use a custom combo handler is extremely easy, let's modify the above example to use a
+combo server that's located here: <code>&#x2F;my-combo</code></p>
+
+<pre class="code prettyprint">YUI.GlobalConfig: {
+    groups: {
+        ourmodules: {
+            base: &#x27;&#x2F;ourmodules&#x2F;&#x27;,
+            combine: true,
+            comboBase: &#x27;&#x2F;my-combo?&#x27;,
+            comboSep: &#x27;;&#x27;, &#x2F;&#x2F;Defaults to &amp;
+            root: &#x27;&#x27;,
+            modules: {
+                module1: {},
+                module2: {},
+                module3: {
+                    requires: [ &#x27;node&#x27;, &#x27;event&#x27;, &#x27;dd&#x27;, &#x27;yql&#x27;]
+                }
+            }
+        }
+    }
+};</pre>
+
+
+<p>When <code>Loader</code> is attempting to fetch a set of combined modules, it will create a url using these config options:
+<code>root</code>, <code>comboBase</code>, <code>comboSep</code> and the <code>&lt;modulename&gt;</code>'s that were requested.</p>
+
+<pre class="code terminal">&lt;comboBase&gt;&lt;root&gt;&lt;modulename&gt;&#x2F;&lt;modulename&gt;(-&lt;filter&gt;).js&lt;comboSep&gt;&lt;root&gt;&lt;modulename&gt;&#x2F;&lt;modulename&gt;(-&lt;filter&gt;).js
+&#x2F;my-combo?module1&#x2F;module1.js&amp;amp;module2&#x2F;module2.js;&#x2F;module2&#x2F;module3.js</pre>
+
+
+<p>Now you have a flexible, scalable and dynamic module loading system that will let you build large scale
+applications or simple websites.</p>
+
+<h2 id="builder">Builder</h2>
+
+<p>If you want to dynamically create the <code>-min</code>, <code>-debug</code> files inside your project, take a look
+at our <code>Ant</code> based build system tool called <a href="https://github.com/yui/builder/">builder</a>.</p>
+
+<h2 id="custom-aliases">Custom Aliases</h2>
+
+<p><code>YUI</code> uses <em>aliases</em> under the hood as module "shortcuts", for example, when you <code>use</code> "node"
+<code>Loader</code> doesn't fetch a <code>node.js</code> file, it actually fetches several files under the hood that make up the "node"
+alias. You can use this too with your custom modules:</p>
+
+<pre class="code prettyprint">YUI.GlobalConfig = {
+    groups: {
+        ourmodules: {
+            modules: {
+                all: {
+                    use: [ &#x27;module1&#x27;, &#x27;module2&#x27;, &#x27;module3&#x27; ]
+                },
+                foo: {
+                    requires: [ &#x27;all&#x27; ]
+                }
+            }
+        }
+    }
+};</pre>
+
+
+<p>This will create an alias called <code>all</code> for the modules: <code>&#x27;module1&#x27;, &#x27;module2&#x27;, &#x27;module3&#x27;</code>. You can then
+<code>use</code> that module as you normally would. You can even use that module as a requirement for other modules.</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;all&#x27;);
+    &#x2F;&#x2F;or
+YUI().use(&#x27;foo&#x27;);</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#what">What is a module?</a>
+<ul class="toc">
+<li>
+<a href="#define">How is a module defined?</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#know">How does YUI know about a module?</a>
+<ul class="toc">
+<li>
+<a href="#local">Local Modules</a>
+</li>
+<li>
+<a href="#config">Configured Modules</a>
+</li>
+<li>
+<a href="#structured">Structured Modules</a>
+<ul class="toc">
+<li>
+<a href="#local-static-files">Local Static Files</a>
+</li>
+<li>
+<a href="#using-a-combohandler">Using a ComboHandler</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<a href="#builder">Builder</a>
+</li>
+<li>
+<a href="#custom-aliases">Custom Aliases</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Setting up a YUI Instance">
+                                            <a href="yui-core.html">YUI Core</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with multiple YUI instances.">
+                                            <a href="yui-multi.html">Multiple Instances</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="On-demand loading of YUI and non-YUI assets">
+                                            <a href="yui-loader-ext.html">YUI Loader - Dynamically Adding YUI and External Modules</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Create Class Hierarchies with &#x60;extend&#x60;">
+                                            <a href="yui-extend.html">Create Class Hierarchies with &#x60;extend&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating a composition-based class structure using &#x60;augment&#x60;">
+                                            <a href="yui-augment.html">Compose Classes of Objects with &#x60;augment&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Add behaviors to objects or static classes with &#x60;mix&#x60;">
+                                            <a href="yui-mix.html">Add Behaviors to Objects with &#x60;mix&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Combine data sets and create shallow copies of objects with &#x60;merge&#x60;">
+                                            <a href="yui-merge.html">Combine Data Sets with &#x60;merge&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Check data types with the &#x60;Lang Utilities&#x60;">
+                                            <a href="yui-isa.html">Check Data Types with &#x60;Lang&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Get information about the current user agent with &#x60;UA&#x60;">
+                                            <a href="yui-ua.html">Browser Detection with &#x60;UA&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with YUI 2 in 3">
+                                            <a href="yui-yui2.html">Working with YUI 2 in 3</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Natively use YUI Gallery Modules">
+                                            <a href="yui-gallery.html">Natively use YUI Gallery Modules</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Programatically use Loader">
+                                            <a href="loader-resolve.html">Programatically use Loader</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Executing functions in parallel">
+                                            <a href="parallel.html">Using Y.Parallel</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

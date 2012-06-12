@@ -1,0 +1,20 @@
+<% all_hosts = Array.new -%>
+<%scope.function_hdp_template_var("hostgroup_defs").each do |name,info|-%>
+<%members = scope.function_hdp_host(info['host_member_info'])-%>
+<%unless scope.function_hdp_is_empty(members) -%>
+<% all_hosts += [members].flatten-%>
+define hostgroup {
+        hostgroup_name  <%=name%>
+        alias           <%=name%>
+        members         <%=[members].flatten.join(',')%>
+}
+
+<%end-%>
+<%end%>
+<%unless all_hosts.empty?-%>
+define hostgroup {
+        hostgroup_name  all-servers
+        alias           All Servers
+        members         <%=all_hosts.uniq.join(',')%>
+}
+<%end%>

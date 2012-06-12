@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ScrollView</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>ScrollView</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>ScrollView's main use case is to provide a scrollable content widget for touch devices on which overflow scrollbars are not natively supported. However, it is built on top of YUI's cross-platform/browser gesture and transition layers, so it can also be used to provide flickable scrolling on mouse-based devices across on all the A-grade browsers.</p>
+    <p>The <code>ScrollViewScrollbars</code> plugin can be added to the base scrollview to provide a scroll indicator. The <code>ScrollViewPaginator</code> plugin can be added to provide a cross-platform paginated scrolling implementation (a simple carousel).</p>
+</div>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for ScrollView and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;scrollview&#x27;, function (Y) {
+    &#x2F;&#x2F; ScrollView is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+
+<h2 id="using">Using ScrollView</h2>
+
+<h3 id="instantiating">Instantiating A ScrollView</h3>
+
+<p><code>ScrollView</code> extends the <code>Widget</code> class, and hence follows the same pattern as any widget constructor, accepting a configuration object to set the initial configuration for the widget.</p>
+
+<h4 id="instantiating-from-markup-progressive-enhancement">Instantiating From Markup: Progressive Enhancement</h4>
+
+<p>A ScrollView widget is instantiated from markup by specifying the <code>srcNode</code> which contains the content to be scrolled. The content is usually in the form of a list, but doesn't necessarily have to be:</p>
+
+<pre class="code prettyprint">&lt;div id=&quot;scrollable&quot; class=&quot;yui3-scrollview-loading&quot;&gt;
+    &lt;ul&gt;
+        &lt;li&gt;AC&#x2F;DC&lt;&#x2F;li&gt;
+        &lt;li&gt;Aerosmith&lt;&#x2F;li&gt;
+        &lt;li&gt;Bob Dylan&lt;&#x2F;li&gt;
+        &lt;li&gt;Bob Seger&lt;&#x2F;li&gt;
+        ...
+    &lt;&#x2F;ul&gt;
+&lt;&#x2F;div&gt;</pre>
+
+<p>The <code>yui3-scrollview-loading</code> class is applied by the developer to progressively enhanced markup, and can be used along with the <code>yui3-js-enabled</code> class applied to the document element, to hide the scrollview markup from view, while the JS is being loaded. The examples show how to set up a <code>yui3-scrollview-loading</code> rule to hide progressively enhanced content.</p>  
+
+<p>When instantiating from markup, a reference to the <code>srcNode</code> is provided to the constructor as part of the configuration object. This reference can be a node reference, or a selector string which can be used to identify the node. If the selector string is too broad (returns multiple nodes), the first node found will be used.
+The following code references the markup shown above, while constructing the scrollview:</p>
+
+<pre class="code prettyprint">YUI({...}).use(&quot;scrollview&quot;, function(Y) {
+
+    var scrollview = new Y.ScrollView({
+        srcNode:&quot;#scrollable&quot;,
+        height:&quot;20em&quot;
+    });
+
+});</pre>
+
+
+<p>Generally, a ScrollView widget will be scrollable either horizontally (along the X axis) or vertically (along the Y axis). The ScrollView determines which direction it can scroll in based on whether or not its content is taller (vertically scrolled) or wider (horizontally scrolled) than its height or width respectively, as you would expect
+from native overflow handling. In the above example the widget is given a fixed height, so that it will scroll vertically, when the content gets larger than the specified height. In most use cases you will provide either a height or a width to the ScrollView widget constructor.</p>  
+
+<p>Following instantiation, a call to <code>render</code> is required to have the ScrollView's state reflected in the DOM, as with all YUI 3 widgets:</p>
+
+<pre class="code prettyprint">var scrollview = new Y.ScrollView({ ... });
+scrollview.render();</pre>
+
+
+<h3 id="attributes">Attributes</h3>
+
+<p>ScrollView provides the following core attributes, in addition to the attributes provided by the base <a href="../widget/index.html#attributes">Widget</a> class:</p>
+
+<table>
+    <tr><th>Attribute</th><th>Description</th></tr>
+    <tr><td><code>scrollX</code></td><td>The number of pixels to scroll the widget's content by, along the X axis (vertically).</td></tr>
+    <tr><td><code>scrollY</code></td><td>The number of pixels to scroll the widget's content by, along the Y axis (horizontally).</td></tr>
+</table>
+
+<p>Additionally, the following attributes control the sensitivity and scroll dynamics, per instance:</p>
+
+<table>
+    <tr><th>Attribute</th><th>Description</th><th>Default</th></tr>
+    <tr><td><code>flick</code></td><td>An object which specifies the minimum distance and minimum velocity (in pixels/ms - generally around 0.5) which should constitute a flick gesture. Can be set to false to disable flick support, in which case the ScrollView content can only be dragged to scroll it.</td><td><code>{minDistance:10, minVelocity:0.3}</code></td></tr>
+    <tr><td><code>deceleration</code></td><td>A drag coefficient, which defines how quickly the velocity of the scrollview content decreases after a flick, when it's still with in the min and max bounds for the widget. The closer this is to 1, the less friction there is after a flick.</td><td><code>0.98</code></td></tr>
+    <tr><td><code>bounce</code></td><td>A drag coefficient, which defines how quickly the velocity of the scrollview content decreases after a flick, when it's past the min and max bounds for the widget. Can be set to 0 to disable bounce behavior.</td><td><code>0.1</code></td></tr>
+</table>
+
+<h3 id="static-properties-controlling-scroll-dynamics">Static Properties Controlling Scroll Dynamics</h3>
+
+<p>The following properties are provided as static properties and can be used to define default values affecting scroll dynamics for all ScrollViews on the page:</p>
+
+<table>
+    <tr><th>Static Property</th><th>Description</th><th>Default</th></tr>
+    <tr><td><code>Y.ScrollView.BOUNCE_RANGE</code></td><td>The default bounce distance in pixels.</td><td><code>150</code></td></tr>
+    <tr><td><code>Y.ScrollView.FRAME_STEP</code></td><td>The default time interval used when animating the flick deceleration.</td><td><code>30</code></td></tr>
+    <tr><td><code>Y.ScrollView.EASING</code></td><td>The default easing used when scrolling to a given X or Y.</td><td><code>cubic-bezier(0, 0.1, 0, 1.0)</code></td></tr>
+    <tr><td><code>Y.ScrollView.SNAP_EASING</code></td><td>The default easing used for the snap back animation when scrolled past the min or max bounds for the widget.</td><td><code>ease-out</code></td></tr>                
+</table>
+
+<h3 id="markup">Markup Structure</h3>
+
+<p>The final rendered ScrollView has the markup structure shown below (shown for a vertical scrollview):</p>
+
+<pre class="code prettyprint">&lt;!-- Bounding Box, with overflow setting and fixed dimension (in this case height) --&gt;
+&lt;div class=&quot;yui3-widget yui3-scrollview yui3-scrollview-vert&quot; style=&quot;height: 310px;&quot;&gt;
+
+    &lt;!-- Content Box, which is scrolled using either top&#x2F;left, or transform:translate, where supported --&gt;
+    &lt;div class=&quot;yui3-scrollview-content&quot; id=&quot;scrollable&quot; style=&quot;left: 0px; top: 0px;&quot;&gt;
+        ... scrollable content. generally a list ...
+    &lt;&#x2F;div&gt;
+
+    &lt;!-- Scrollbar indicator, if Scrollbar Plugin is added (added by default for the &quot;scrollview&quot; module) --&gt;
+    &lt;div class=&quot;yui3-scrollview-scrollbar yui3-scrollview-scrollbar-vert&quot;&gt;
+        &lt;span class=&quot;yui3-scrollview-child yui3-scrollview-first&quot;&gt;&lt;&#x2F;span&gt;
+        &lt;span class=&quot;yui3-scrollview-child yui3-scrollview-middle&quot;&gt;&lt;&#x2F;span&gt;
+        &lt;span class=&quot;yui3-scrollview-child yui3-scrollview-last&quot;&gt;&lt;&#x2F;span&gt;
+    &lt;&#x2F;div&gt;
+
+&lt;&#x2F;div&gt;</pre>
+
+
+<p>The <code>yui3-scrollview-vert</code>, or <code>yui3-scrollview-horiz</code> classes applied to the bounding box can be used to style the scrollview based on its scroll orientation.</p>
+
+<h3 id="css">CSS</h3>
+
+<p>The core structural css for the ScrollView is shown below, and is pretty straightforward. It simply sets up the bounding box and the content box as positioned elements, and sets overflow hidden, so that the 
+content beyond the bounding box area is hidden, until scrolled into view.</p>
+
+<pre class="code prettyprint">&#x2F;* Bounding Box *&#x2F;
+.yui3-scrollview {
+    position: relative; &#x2F;* To provide positioning context *&#x2F; 
+    overflow: hidden;   &#x2F;* To clip scrolled content *&#x2F;
+    ...
+}
+
+&#x2F;* Content Box *&#x2F;
+.yui3-scrollview-content {
+    position:relative; &#x2F;* To allow positioning *&#x2F;
+}</pre>
+
+
+<p>Since the scrollable content is commonly set up as a list (for semantic reasons), the core css for ScrollView also ships with a rule targeting list items (<code>LI</code>s), so that list content works out of the box, for both vertical and horizontal scrollviews (inline-block is used so that we can trivially support the horizontal use case):</p>
+
+<pre class="code prettyprint">.yui3-scrollview-content ul {
+    margin:0;
+    padding:0;
+}
+
+.yui3-scrollview-content li {
+    padding:0;
+    margin:0;
+
+    list-style:none;
+    
+    &#x2F;* cross browser inline block *&#x2F;
+    display: -moz-inline-stack;
+    display: inline-block;
+    *display: inline;
+
+    ...
+}</pre>
+
+<p>The above rules can of course be over-ridden for cases in which you don't want lists inside ScrollView handled specially.</p>
+
+<h3 id="scrollbars">ScrollBar Plugin</h3>
+
+<p>The ScrollBar plugin provides a visual scroll indicator to let the user know how much scrollable content there is, and the current scroll position they're at.</p>
+
+<p>When using the <code>scrollview</code> module, the <code>ScrollViewScrollbars</code> plugin is automatically pulled down and plugged in for all ScrollView instances (plugged in at the class level).</p>
+
+<p>However, the user can also choose to pull down just the base scrollview module (<code>scrollview-base</code>) and add scrollbar support optionally (when and if required).</p>
+
+<pre class="code prettyprint">YUI({...}).use(&quot;scrollview-base&quot;, &quot;scrollview-scrollbars&quot;, function(Y) {
+
+    &#x2F;* ScrollView without scrollbar indicator *&#x2F;
+    var scrollview = new Y.ScrollView({
+        srcNode:&quot;#scrollable&quot;,
+        height:&quot;20em&quot;
+    });
+
+    &#x2F;* Add scrollbar indicator support *&#x2F;
+    scrollview.plug(Y.Plugin.ScrollViewScrollbars);
+
+    &#x2F;* 
+      scrollview.scrollbars is an instance of the ScrollViewScrollbars 
+      plugin 
+    *&#x2F;
+    scrollview.scrollbars.hide();
+    scrollview.scrollbars.show(); 
+    scrollview.scrollbars.flash();
+});</pre>
+
+<p>When the <code>ScrollViewScrollbars</code> plugin is plugged in to a ScrollView instance, a <code>scrollbars</code> property (the namespace for the plugin) is added to the ScrollView instance, which points to an instance of the plugin, as shown above. The plugin provides public <code>hide()</code>, <code>show()</code> and <code>flash()</code> methods for the scroll indicator.</p>
+
+<h3 id="paginator">Paginator Plugin</h3>
+
+<p>The <code>ScrollViewPaginator</code> plugin adds pagination support to ScrollView, so that it recognizes, and stops at, discrete page boundaries within its content, as opposed to scrolling continuously (it effectively makes ScrollView behave like a simple Carousel).</p>
+
+<p>Adding the <code>scrollview-paginator</code> module to the <code>use</code> statement will pull down and add the <code>Plugin.ScrollViewPaginator</code> plugin class to the YUI instance. It can then be plugged in to ScrollView instances requiring pagination support, as shown below:</p>
+<pre class="code prettyprint">YUI({...}).use(&quot;scrollview-base&quot;, &quot;scrollview-paginator&quot;, function(Y) {
+
+    &#x2F;* ScrollView without paginator *&#x2F;
+    var scrollview = new Y.ScrollView({
+        srcNode:&quot;#scrollable&quot;,
+        height:&quot;20em&quot;
+    });
+
+    &#x2F;* Plug in pagination support *&#x2F;
+    scrollview.plug(Y.Plugin.ScrollViewPaginator, {
+        selector: &quot;li&quot; &#x2F;&#x2F; elements definining page boundaries
+    });
+
+    &#x2F;* 
+       scrollview.pages is an instance of the ScrollViewPaginator 
+       plugin 
+    *&#x2F;
+    scrollview.pages.set(&quot;index&quot;, 3);
+    scrollview.pages.scrollTo(3, 0.6, &quot;ease-in&quot;);
+    scrollview.pages.next();
+    scrollview.pages.get(&quot;total&quot;);
+});</pre>
+
+<p>The paginator plugin accepts a <code>selector</code> attribute as part of its configuration, which selects the list of elements to be used to establish page boundaries. In the example above, each <code>LI</code> within the ScrollView's content box, defines a <em>page</em> in the ScrollView.</p>
+
+<p>When plugged in, the plugin API is available on the <code>pages</code> property of the scrollview widget instance, and can be used to set the current page, or retrieve paging information.</p>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+</li>
+<li>
+<a href="#using">Using ScrollView</a>
+<ul class="toc">
+<li>
+<a href="#instantiating">Instantiating A ScrollView</a>
+<ul class="toc">
+<li>
+<a href="#instantiating-from-markup-progressive-enhancement">Instantiating From Markup: Progressive Enhancement</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#attributes">Attributes</a>
+</li>
+<li>
+<a href="#static-properties-controlling-scroll-dynamics">Static Properties Controlling Scroll Dynamics</a>
+</li>
+<li>
+<a href="#markup">Markup Structure</a>
+</li>
+<li>
+<a href="#css">CSS</a>
+</li>
+<li>
+<a href="#scrollbars">ScrollBar Plugin</a>
+</li>
+<li>
+<a href="#paginator">Paginator Plugin</a>
+</li>
+</ul>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="This example creates a basic ScrollView which doesn&#x27;t include a scrollbar indicator.">
+                                            <a href="scrollview-base.html">Basic ScrollView Without a Scroll Indicator</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example shows the classic Scrollview implementation, including scroll indicators (bars) and including code to suppress link navigation while scrolling.">
+                                            <a href="scrollview.html">ScrollView with Scroll Indicator and Link Suppression Behavior</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example creates a horizontal ScrollView.">
+                                            <a href="scrollview-horiz.html">Horizontal ScrollView</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example creates a horizontal ScrollView with pagination support.">
+                                            <a href="scrollview-paging.html">ScrollView With Pagination</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

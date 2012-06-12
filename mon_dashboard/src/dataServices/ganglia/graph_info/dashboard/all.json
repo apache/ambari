@@ -1,0 +1,28 @@
+{
+    "Global": [
+        {
+            "description": "Key load metrics, aggregated across the slave nodes", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%GridSlavesClusterName%", 
+            "title": "Load Report", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%GridSlavesClusterName%&g=load_report"
+        }, 
+        {
+            "description": "Key memory metrics, aggregated across the slave nodes", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%GridSlavesClusterName%", 
+            "title": "Memory Report", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%GridSlavesClusterName%&g=mem_report"
+        }, 
+        {
+            "description": "Key CPU metrics, aggregated across the slave nodes", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%GridSlavesClusterName%", 
+            "title": "CPU Report", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%GridSlavesClusterName%&g=cpu_report"
+        }, 
+        {
+            "description": "Key network I/O metrics, aggregated across the slave nodes", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%GridSlavesClusterName%", 
+            "title": "Network I/O Report", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%GridSlavesClusterName%&g=network_report"
+        }
+    ]
+}

@@ -1,0 +1,139 @@
+#!/bin/sh
+##
+#
+#/*
+# * Licensed to the Apache Software Foundation (ASF) under one
+# * or more contributor license agreements.  See the NOTICE file
+# * distributed with this work for additional information
+# * regarding copyright ownership.  The ASF licenses this file
+# * to you under the Apache License, Version 2.0 (the
+# * "License"); you may not use this file except in compliance
+# * with the License.  You may obtain a copy of the License at
+# *
+# *     http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# */
+
+#
+# RPM Init file for Ambari
+#
+
+PATH=/usr/bin:/sbin:/bin:/usr/sbin
+export PATH
+
+[ -f /etc/sysconfig/puppet ] && . /etc/sysconfig/puppet
+lockfile=${LOCKFILE-/var/lock/subsys/puppet}
+pidfile=${PIDFILE-/var/run/puppet/agent.pid}
+puppetd=${PUPPETD-/usr/bin/puppet}
+RETVAL=0
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Determine if we can use the -p option to daemon, killproc, and status.
+# RHEL < 5 can't.
+if status | grep -q -- '-p' 2>/dev/null; then
+    daemonopts="--pidfile $pidfile"
+    pidopts="-p $pidfile"
+fi
+# copy the configs in the right config dir for puppet
+cp /etc/puppet/auth.conf /etc/puppet/master/
+cp /etc/puppet/puppet.conf /etc/puppet/master/
+
+checkHDPRepo() {
+  if [[ ! -f /etc/yum.repos.d/hdp.repo ]]; then
+    echo "Please install the HDP repo before starting Ambari"
+    exit 1
+  fi
+}
+
+bootPuppet() {
+ if [[ ! -f /var/run/hmc/puppetmaster.boot ]]; then
+   daemon  $daemonopts $puppetd  ${PUPPET_OPTS} ${PUPPET_EXTRA_OPTS}
+   killproc puppet
+   touch /var/run/hmc/puppetmaster.boot
+ fi
+}
+    
+
+checkJDK() {
+  jdk64="jdk-6u26-linux-x64.bin"
+  jdk32="jdk-6u26-linux-i586.bin"
+
+  if [[ ! -f /var/run/hmc/downloads/$jdk64 || ! -f /var/run/hmc/downloads/$jdk32 ]]; then
+    echo "Please download $jdk64 and $jdk32 from Oracle to /var/run/hmc/downloads/"
+    exit 1
+  fi
+
+  mkdir -p /var/www/html/downloads
+  cp /var/run/hmc/downloads/* /var/www/html/downloads/
+}
+
+PUPPET_OPTS="master --confdir=/etc/puppet/master --verbose --config_version=/usr/share/hmc/bin/get_revision --reports hmcreport --debug --logdest=/var/log/puppet_master.log --autoflush"
+
+case "$1" in
+    start)
+      checkHDPRepo
+      checkJDK
+      bootPuppet
+      echo "Starting Ambari Installer "
+      /etc/init.d/httpd start
+      RETVAL=$?
+	  if [ $RETVAL = 0 ]; then
+	    echo -n "Starting Ambari"
+	  else
+	    echo -n "Failed to start Ambari"
+	  fi
+	  echo 
+	  ;;
+    stop)
+	  echo "Shutting down Ambari"
+      /etc/init.d/httpd stop
+	  RETVAL=$?
+      if [ $RETVAL = 0 ]; then
+        echo -n "Stopped Ambari"
+      else
+       echo -n "Failed to stop Ambari"
+      fi
+      echo 
+	  ;;
+    try-restart|condrestart)
+	  if test "$1" = "condrestart"; then
+		echo "${attn} Use try-restart ${done}(LSB)${attn} rather than condrestart ${warn}(RH)${norm}"
+	  fi
+	  $0 status
+	  if test $? = 0; then
+		$0 restart
+	  else
+	    : # Not running is not a failure.
+	  fi
+	  ;;
+    restart)
+	  $0 stop
+	  $0 start
+	  ;;
+    force-reload)
+	  echo -n "Reload service Ambari"
+	  $0 try-restart
+	  ;;
+    reload)
+      $0 restart
+	  ;;
+    status)
+      status httpd
+	  RETVAL=$?
+	  ;;
+    probe)
+      echo "Not Implemented"
+	  ;;
+    *)
+	  echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}"
+	  exit 1
+	  ;;
+esac
+exit $RETVAL

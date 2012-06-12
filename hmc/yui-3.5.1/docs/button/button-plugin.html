@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Enhancing &lt;button&gt; nodes with button-plugin</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Enhancing &lt;button&gt; nodes with button-plugin</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>In this example, we'll look at a few ways to create buttons using the <code>&#x27;button-plugin&#x27;</code> module, and use the <code>&#x27;cssbutton&#x27;</code> module for basic styles.</p>
+    <p>This example uses 3 different ways of creating plugged node elements.  Choose the one you are most comfortable with.</p>
+</div>
+
+<div class="example">
+    <button id="myButton">A simple push button</button>
+
+<button id="myEventButton">Toggle 'disabled' state of >></button>
+
+<button id="myDisabledButton">Disabled</button>
+
+    <script>
+    YUI().use('button-plugin', 'cssbutton', function(Y){
+    
+    // A basic push button
+    Y.one('#myButton').plug(Y.Plugin.Button);
+    
+    
+    // A disabled button
+    var disabledButton = Y.one('#myDisabledButton');
+    disabledButton.plug(Y.Plugin.Button, {
+        disabled: true
+    });
+    
+    disabledButton.on('click', function(){
+        var label = this.get('label');
+        alert("My label is '"  + label + "'");
+    });
+    
+    // An event button, listening for a click
+    var eventButton = Y.Plugin.Button.createNode({
+        srcNode:'#myEventButton'
+    });
+    
+    eventButton.on('click', function(){
+        var disabled = disabledButton.get('disabled'),
+            newLabel = disabled ? 'Not disabled' : 'Disabled';
+            
+        disabledButton.set('label', newLabel).set('disabled', !disabled);
+    });
+});
+    </script>
+</div>
+
+<h4 id="source-html">Source: HTML</h4>
+<pre class="code prettyprint">&lt;button id=&quot;myButton&quot;&gt;A simple push button&lt;&#x2F;button&gt;
+
+&lt;button id=&quot;myEventButton&quot;&gt;Toggle &#x27;disabled&#x27; state of &gt;&gt;&lt;&#x2F;button&gt;
+
+&lt;button id=&quot;myDisabledButton&quot;&gt;Disabled&lt;&#x2F;button&gt;</pre>
+
+
+<h4 id="source-javascript">Source: JavaScript</h4>
+<pre class="code prettyprint">YUI().use(&#x27;button-plugin&#x27;, &#x27;cssbutton&#x27;, function(Y){
+    
+    &#x2F;&#x2F; A basic push button
+    Y.one(&#x27;#myButton&#x27;).plug(Y.Plugin.Button);
+    
+    
+    &#x2F;&#x2F; A disabled button
+    var disabledButton = Y.one(&#x27;#myDisabledButton&#x27;);
+    disabledButton.plug(Y.Plugin.Button, {
+        disabled: true
+    });
+    
+    disabledButton.on(&#x27;click&#x27;, function(){
+        var label = this.get(&#x27;label&#x27;);
+        alert(&quot;My label is &#x27;&quot;  + label + &quot;&#x27;&quot;);
+    });
+    
+    &#x2F;&#x2F; An event button, listening for a click
+    var eventButton = Y.Plugin.Button.createNode({
+        srcNode:&#x27;#myEventButton&#x27;
+    });
+    
+    eventButton.on(&#x27;click&#x27;, function(){
+        var disabled = disabledButton.get(&#x27;disabled&#x27;),
+            newLabel = disabled ? &#x27;Not disabled&#x27; : &#x27;Disabled&#x27;;
+            
+        disabledButton.set(&#x27;label&#x27;, newLabel).set(&#x27;disabled&#x27;, !disabled);
+    });
+});</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#source-html">Source: HTML</a>
+</li>
+<li>
+<a href="#source-javascript">Source: JavaScript</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="This example shows how you can easily style button and non-button DOM elements to appear as buttons">
+                                            <a href="cssbutton.html">Styling elements with cssbutton</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example shows a simple, light solution to enhance &lt;button&gt; nodes">
+                                            <a href="button-plugin.html">Enhancing &lt;button&gt; nodes with button-plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to create button widgets">
+                                            <a href="button.html">Basic button widgets</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to create a widget containing a group of buttons">
+                                            <a href="button-group.html">Managing groups of buttons with button-group</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

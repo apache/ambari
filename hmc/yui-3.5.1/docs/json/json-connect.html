@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: JSON with Y.io</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: JSON with Y.io</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+<p>
+    A natural fit for the JSON module is to work with IO to parse JSON messages received via XMLHttpRequest (XHR). In this example, we'll request JSON data from the server using the <a href="http://yuilibrary.com/yui/docs/api/classes/IO.html#method_io"><code>Y.io()</code></a> method and parse the resulting JSON string data.
+</p>
+</div>
+
+<div class="example yui3-skin-sam">
+    <div id="demo" class="yui3-skin-sam">
+    <p>Click the <em>Get Messages</em> button to send the request to the server; the response will be displayed below the button.</p>
+    <p><button>Get Messages</button></p>
+    <div id="demo-messages"></div>
+</div>
+
+<script>
+// Create business logic in a YUI sandbox using the 'io' and 'json' modules
+YUI().use("node", "io", "dump", "json-parse", function (Y) {
+
+    // capture the node that we'll display the messages in
+    var target = Y.one('#demo-messages');
+
+    // Create the io callback/configuration
+    var callback = {
+
+        timeout : 3000,
+
+        on : {
+            success : function (x,o) {
+                Y.log("RAW JSON DATA: " + o.responseText);
+
+                var messages = [],
+                    html = '', i, l;
+
+                // Process the JSON data returned from the server
+                try {
+                    messages = Y.JSON.parse(o.responseText);
+                }
+                catch (e) {
+                    alert("JSON Parse failed!");
+                    return;
+                }
+
+                Y.log("PARSED DATA: " + Y.Lang.dump(messages));
+
+                // The returned data was parsed into an array of objects.
+                // Add a P element for each received message
+                for (i=0, l=messages.length; i < l; ++i) {
+                    html += '<p>' + messages[i].animal + ' says "' +
+                                    messages[i].message + '"</p>';
+                }
+
+                // Use the Node API to apply the new innerHTML to the target
+                target.setContent(html);
+            },
+
+            failure : function (x,o) {
+                alert("Async call failed!");
+            }
+
+        }
+    };
+
+    // Attach a click event listener to the button #demo_btn to send the request
+    Y.one('#demo button').on('click',function (e) {
+        // Make the call to the server for JSON data
+        Y.io("../assets/json/json-connect-response.json", callback);
+    });
+
+});
+</script>
+
+</div>
+
+<h2>Use <code>Y.JSON.parse</code> in the <code>success</code> handler</h2>
+
+<p>
+    Pass the XHR <code>responseText</code> to <code>Y.JSON.parse()</code> and capture the return value. Note that the <code>parse()</code> method can throw a <code>SyntaxError</code> exception, so be sure to wrap the call in a <code>try&#x2F;catch</code> block.
+</p>
+
+<pre class="code prettyprint lang-javascript">Y.io(&#x27;..&#x2F;assets&#x2F;json&#x2F;json-connect-response.json&#x27;, {
+    on : {
+        success : function (tx, r) {
+            var parsedResponse;
+
+            &#x2F;&#x2F; protected against malformed JSON response
+            try {
+               parsedResponse = Y.JSON.parse(r.responseText);
+            }
+            catch (e) {
+                alert(&quot;JSON Parse failed!&quot;);
+                return;
+            }
+        }
+    }
+});</pre>
+
+
+<p>
+    The <code>parse()</code> method returns the native JavaScript object representation of the string data returned from the <a href="http://yuilibrary.com/yui/docs/api/classes/IO.html#method_io"><code>Y.io()</code></a> call. In this case, the data is an array of object literals in this form:
+</p>
+
+<pre class="code prettyprint lang-json">[
+    { &quot;animal&quot; : &quot;Cat&quot;,  &quot;message&quot; : &quot;Meow&quot;  },
+    { &quot;animal&quot; : &quot;Dog&quot;,  &quot;message&quot; : &quot;Woof&quot;  },
+    { &quot;animal&quot; : &quot;Cow&quot;,  &quot;message&quot; : &quot;Moo&quot;   },
+    { &quot;animal&quot; : &quot;Duck&quot;, &quot;message&quot; : &quot;Quack&quot; },
+    { &quot;animal&quot; : &quot;Lion&quot;, &quot;message&quot; : &quot;Roar&quot;  }
+]</pre>
+
+
+<p>
+    In the <code>success</code> handler we'll simply loop through this array and outputting its contents to the DOM.
+</p>
+
+<h2>Complete Example Source</h2>
+<pre class="code prettyprint">&lt;div id=&quot;demo&quot; class=&quot;yui3-skin-sam&quot;&gt;
+    &lt;p&gt;Click the &lt;em&gt;Get Messages&lt;&#x2F;em&gt; button to send the request to the server; the response will be displayed below the button.&lt;&#x2F;p&gt;
+    &lt;p&gt;&lt;button&gt;Get Messages&lt;&#x2F;button&gt;&lt;&#x2F;p&gt;
+    &lt;div id=&quot;demo-messages&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+
+&lt;script&gt;
+&#x2F;&#x2F; Create business logic in a YUI sandbox using the &#x27;io&#x27; and &#x27;json&#x27; modules
+YUI().use(&quot;node&quot;, &quot;io&quot;, &quot;dump&quot;, &quot;json-parse&quot;, function (Y) {
+
+    &#x2F;&#x2F; capture the node that we&#x27;ll display the messages in
+    var target = Y.one(&#x27;#demo-messages&#x27;);
+
+    &#x2F;&#x2F; Create the io callback&#x2F;configuration
+    var callback = {
+
+        timeout : 3000,
+
+        on : {
+            success : function (x,o) {
+                Y.log(&quot;RAW JSON DATA: &quot; + o.responseText);
+
+                var messages = [],
+                    html = &#x27;&#x27;, i, l;
+
+                &#x2F;&#x2F; Process the JSON data returned from the server
+                try {
+                    messages = Y.JSON.parse(o.responseText);
+                }
+                catch (e) {
+                    alert(&quot;JSON Parse failed!&quot;);
+                    return;
+                }
+
+                Y.log(&quot;PARSED DATA: &quot; + Y.Lang.dump(messages));
+
+                &#x2F;&#x2F; The returned data was parsed into an array of objects.
+                &#x2F;&#x2F; Add a P element for each received message
+                for (i=0, l=messages.length; i &lt; l; ++i) {
+                    html += &#x27;&lt;p&gt;&#x27; + messages[i].animal + &#x27; says &quot;&#x27; +
+                                    messages[i].message + &#x27;&quot;&lt;&#x2F;p&gt;&#x27;;
+                }
+
+                &#x2F;&#x2F; Use the Node API to apply the new innerHTML to the target
+                target.setContent(html);
+            },
+
+            failure : function (x,o) {
+                alert(&quot;Async call failed!&quot;);
+            }
+
+        }
+    };
+
+    &#x2F;&#x2F; Attach a click event listener to the button #demo_btn to send the request
+    Y.one(&#x27;#demo button&#x27;).on(&#x27;click&#x27;,function (e) {
+        &#x2F;&#x2F; Make the call to the server for JSON data
+        Y.io(&quot;..&#x2F;assets&#x2F;json&#x2F;json-connect-response.json&quot;, callback);
+    });
+
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Use JSON to parse data received via XMLHttpRequest via Y.io calls — a simple JSON use case.">
+                                            <a href="json-connect.html">JSON with Y.io</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use the replacer and reviver parameters to reconstitute object instances that have been serialized to JSON.">
+                                            <a href="json-freeze-thaw.html">Rebuilding Class Instances from JSON Data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use a currency conversion calculation to add a new price member to a JSON response, demonstrating how JSON data, once retrieved, can be transformed during parsing.">
+                                            <a href="json-convert-values.html">Adding New Object Members During Parsing</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="A basic todo list built with the Model, Model List, and View components.">
+                                            <a href="../app/app-todo.html">Todo List</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Portal style example using Drag &amp; Drop Event Bubbling and Animation.">
+                                            <a href="../dd/portal-drag.html">Portal Style Example</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

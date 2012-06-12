@@ -1,0 +1,63 @@
+{
+    "Global": [
+        {
+            "description": "HDFS capacity remaining in GB", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
+            "title": "HDFS Capacity Remaining", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_hdfs_capacity_remaining_report"
+        }, 
+        {
+            "description": "Number of blocks pending replication in HDFS (indicates current data replication load)", 
+            "link":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
+            "title": "HDFS Blocks Pending Replication", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_hdfs_pending_replication_blocks_report"
+        }, 
+        {
+            "description": "Number of under-replicated blocks in HDFS", 
+            "link":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
+            "title": "HDFS Under-Replicated Blocks", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_hdfs_under_replicated_blocks_report"
+        }, 
+        {
+            "description": "Counts of key operations on the NameNode (indicates high-level HDFS activity)", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
+            "title": "NameNode Operation Counts", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_hdfs_ops_report"
+        }, 
+        {
+            "description": "Cumulative time spent in garbage collection for the NameNode's JVM", 
+            "link":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
+            "title": "NameNode JVM Garbage Collection", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_jvm_gc_report"
+        }, 
+        {
+            "description": "Java Heap memory usage of the NameNode (dip in the heap usage indicates garbage collection)",
+            "link":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
+            "title": "NameNode Heap Memory Used", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_jvm_mem_heap_used_report"
+        }, 
+        {
+            "description": "Average wait time to process RPC request on the NameNode", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%", 
+            "title": "NameNode RPC Average Wait Time", 
+            "url":
+              "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_rpc_queue_time_avg_time_report"
+        },
+        {
+          "description": "Average number of heartbeats received (per second) by the NameNode from the DataNodes",
+          "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%",
+          "title": "NameNode Heartbeats",
+          "url":
+            "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=hdp_mon_rpcdetailed_heartbeat_num_ops_report"
+        },
+    ]
+}

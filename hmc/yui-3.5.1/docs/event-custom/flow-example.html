@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Custom Event Bubbling and Behaviors</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Custom Event Bubbling and Behaviors</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style type="text/css">
+	#fire {
+        margin: 1em;
+    }
+	#log {
+		border: 1px dotted #999;
+        background-color: #FFF;
+	}
+	#log li {
+        padding: 5px;
+    }
+	#log li highlight {
+        color: #930;
+    }
+</style>
+
+<div class="intro">
+    <p>
+        The Custom Event framework is one of the principle communication
+        mechanisms in YUI.  An object can be augmented with
+        <code>EventTarget</code>, enabling it to be both a host and a target
+        for custom events.  Custom events fire from their host and optionally
+        bubble up to one or more targets.  This allows you to make the
+        interesting moments of your applications broadly available within a
+        module, within a set of modules, or throughout a complex interface
+        populated with rich elements.
+    </p>
+
+    <p>
+        In this example, a simple custom event is illustrated:
+        <code>testEvent</code>.  This custom event is hosted on a Publisher
+        object and bubbles up to a BubbleTarget object.
+    </p>
+
+    <img src="../assets/event-custom/ce-example.gif"
+        alt="An illustration of the relationship between the custom event, its host, and its Bubble Target.">
+
+    <p>
+        Like DOM events, custom event bubbling can be stopped with
+        <code>e.stopPropagation()</code> and default behavior can be suppressed with
+        <code>e.preventDefault()</code>.
+    </p>
+</div>
+
+<div class="example yui3-skin-sam">
+    <p>
+        <button id="fire" value="Fire">Fire testEvent</button>
+    </p>
+
+    <div>
+        <input type="checkbox" id="stopPropagation">
+            <label for="stopPropagation">
+                Stop Propagation (testEvent won't bubble to the BubbleTarget.)
+            </label>
+    </div>
+    <div>
+        <input type="checkbox" id="preventDefault">
+            <label for="preventDefault">
+                Prevent Default (testEvent's <code>defaultFn</code> won't fire.)
+            </label>
+    </div>
+
+    <ol id="log">
+        <li>Custom Event log messages will appear here.</li>
+    </ol>
+    <script>
+    // Bubbling events are added by the event-custom module.
+YUI().use('event-custom', 'node', function (Y) {
+
+    var logger          = Y.one("#log");
+        stopCheckbox    = Y.one("#stopPropagation"),
+        preventCheckbox = Y.one("#preventDefault");
+
+    // We'll create two classes, one to fire the event, and another to be a
+    // bubble target for the other.  All events from the Publisher class can
+    // then be subscribed from either the Publisher instance or the BubbleTarget
+    // instance that it's related to.
+    function BubbleTarget() {
+        Y.log("BubbleTarget constructor executed.");
+    }
+
+    function Publisher(bubbleTo) {
+        Y.log("Publisher constructor executed.");
+
+        this.init(bubbleTo); // see class prototype below
+    }
+
+    // Publishers need to add the provided target to their bubble chain with
+    // <code>addTarget</code>. We'll do this, and publish an event, in an <code>init</code> method
+    Publisher.prototype = {
+        init: function (bubbleTo) {
+
+            // <code>addTarget</code> is the EventTarget method to register new bubble
+            // targets for this instance
+            this.addTarget(bubbleTo);
+
+            // It's only necessary to publish events with special configuration,
+            // such as default, stop, or prevent behaviors.  You can always
+            // fire any event name you wish, published or unpublished.
+            this.publish("testEvent", {
+                // Pass an event facade to subscribers so they can call
+                // e.preventDefault() and other methods.
+                emitFacade: true,
+
+                // An event's default behavior is defined in defaultFn.  This
+                // will execute unless a subscriber calls <code>e.preventDefault()</code>
+                defaultFn: function () {
+                    Y.log("defaultFn: testEvent's defaultFn executed.");
+                },
+
+                // You can react to subscribers preventing default behavior as
+                // well, by defining a preventedFn.
+                preventedFn: function () {
+                    Y.log("preventedFn: A subscriber to testEvent called preventDefault().");
+                },
+
+                // If a subscriber calls <code>e.stopPropagation()</code>, the event won't
+                // bubble any further, and the stoppedFn will be called if one
+                // is defined.
+                stoppedFn: function () {
+                    Y.log("stoppedFn: A subscriber to testEvent called stopPropagation().");
+                }
+            });
+        }
+    };
+
+
+    // To fire events or be a bubble target, augment a class with EventTarget
+    Y.augment(Publisher, Y.EventTarget);
+    Y.augment(BubbleTarget, Y.EventTarget);
+
+
+    // SEE IT IN ACTION
+
+    var bubbleTarget = new BubbleTarget();
+
+    // You can subscribe to the "testEvent" from the BubbleTarget, even before
+    // a Publisher is created
+    bubbleTarget.subscribe("testEvent", function (e) {
+        Y.log("testEvent fired on the BubbleTarget object.");
+    });
+
+    // Create a Publisher instance, and link it to our BubbleTarget
+    var publisher = new Publisher(bubbleTarget);
+
+    // We can also subscribe to the testEvent on the Publisher instance.
+    publisher.on("testEvent", function (e) {
+        Y.log("testEvent subscriber fired on the publisher object.");
+
+        if (stopCheckbox.get("checked")) {
+            e.stopPropagation();
+        }
+        
+        if (preventCheckbox.get("checked")) {
+            e.preventDefault();
+        }
+    });
+
+
+    // Wire up the example button to fire the event from our publisher
+    Y.one("#fire").on("click", function (e) {
+        logger.empty(); // clear out the logger:
+
+        publisher.fire("testEvent");
+    });
+
+    // A little supporting magic to output Y.log() statements to the screen
+    Y.on("yui:log", function (e) {
+        logger.append("<li>" + e.msg + "</li>");
+    });
+
+});
+
+    </script>
+</div>
+
+<h2>Source Code</h2>
+
+<p>
+    The full source code for this example follows.  Read through the comments
+    and code to get an understanding of how you can make use of custom events
+    in your own application development.
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Bubbling events are added by the event-custom module.
+YUI().use(&#x27;event-custom&#x27;, &#x27;node&#x27;, function (Y) {
+
+    var logger          = Y.one(&quot;#log&quot;);
+        stopCheckbox    = Y.one(&quot;#stopPropagation&quot;),
+        preventCheckbox = Y.one(&quot;#preventDefault&quot;);
+
+    &#x2F;&#x2F; We&#x27;ll create two classes, one to fire the event, and another to be a
+    &#x2F;&#x2F; bubble target for the other.  All events from the Publisher class can
+    &#x2F;&#x2F; then be subscribed from either the Publisher instance or the BubbleTarget
+    &#x2F;&#x2F; instance that it&#x27;s related to.
+    function BubbleTarget() {
+        Y.log(&quot;BubbleTarget constructor executed.&quot;);
+    }
+
+    function Publisher(bubbleTo) {
+        Y.log(&quot;Publisher constructor executed.&quot;);
+
+        this.init(bubbleTo); &#x2F;&#x2F; see class prototype below
+    }
+
+    &#x2F;&#x2F; Publishers need to add the provided target to their bubble chain with
+    &#x2F;&#x2F; &#x60;addTarget&#x60;. We&#x27;ll do this, and publish an event, in an &#x60;init&#x60; method
+    Publisher.prototype = {
+        init: function (bubbleTo) {
+
+            &#x2F;&#x2F; &#x60;addTarget&#x60; is the EventTarget method to register new bubble
+            &#x2F;&#x2F; targets for this instance
+            this.addTarget(bubbleTo);
+
+            &#x2F;&#x2F; It&#x27;s only necessary to publish events with special configuration,
+            &#x2F;&#x2F; such as default, stop, or prevent behaviors.  You can always
+            &#x2F;&#x2F; fire any event name you wish, published or unpublished.
+            this.publish(&quot;testEvent&quot;, {
+                &#x2F;&#x2F; Pass an event facade to subscribers so they can call
+                &#x2F;&#x2F; e.preventDefault() and other methods.
+                emitFacade: true,
+
+                &#x2F;&#x2F; An event&#x27;s default behavior is defined in defaultFn.  This
+                &#x2F;&#x2F; will execute unless a subscriber calls &#x60;e.preventDefault()&#x60;
+                defaultFn: function () {
+                    Y.log(&quot;defaultFn: testEvent&#x27;s defaultFn executed.&quot;);
+                },
+
+                &#x2F;&#x2F; You can react to subscribers preventing default behavior as
+                &#x2F;&#x2F; well, by defining a preventedFn.
+                preventedFn: function () {
+                    Y.log(&quot;preventedFn: A subscriber to testEvent called preventDefault().&quot;);
+                },
+
+                &#x2F;&#x2F; If a subscriber calls &#x60;e.stopPropagation()&#x60;, the event won&#x27;t
+                &#x2F;&#x2F; bubble any further, and the stoppedFn will be called if one
+                &#x2F;&#x2F; is defined.
+                stoppedFn: function () {
+                    Y.log(&quot;stoppedFn: A subscriber to testEvent called stopPropagation().&quot;);
+                }
+            });
+        }
+    };
+
+
+    &#x2F;&#x2F; To fire events or be a bubble target, augment a class with EventTarget
+    Y.augment(Publisher, Y.EventTarget);
+    Y.augment(BubbleTarget, Y.EventTarget);
+
+
+    &#x2F;&#x2F; SEE IT IN ACTION
+
+    var bubbleTarget = new BubbleTarget();
+
+    &#x2F;&#x2F; You can subscribe to the &quot;testEvent&quot; from the BubbleTarget, even before
+    &#x2F;&#x2F; a Publisher is created
+    bubbleTarget.subscribe(&quot;testEvent&quot;, function (e) {
+        Y.log(&quot;testEvent fired on the BubbleTarget object.&quot;);
+    });
+
+    &#x2F;&#x2F; Create a Publisher instance, and link it to our BubbleTarget
+    var publisher = new Publisher(bubbleTarget);
+
+    &#x2F;&#x2F; We can also subscribe to the testEvent on the Publisher instance.
+    publisher.on(&quot;testEvent&quot;, function (e) {
+        Y.log(&quot;testEvent subscriber fired on the publisher object.&quot;);
+
+        if (stopCheckbox.get(&quot;checked&quot;)) {
+            e.stopPropagation();
+        }
+        
+        if (preventCheckbox.get(&quot;checked&quot;)) {
+            e.preventDefault();
+        }
+    });
+
+
+    &#x2F;&#x2F; Wire up the example button to fire the event from our publisher
+    Y.one(&quot;#fire&quot;).on(&quot;click&quot;, function (e) {
+        logger.empty(); &#x2F;&#x2F; clear out the logger:
+
+        publisher.fire(&quot;testEvent&quot;);
+    });
+
+    &#x2F;&#x2F; A little supporting magic to output Y.log() statements to the screen
+    Y.on(&quot;yui:log&quot;, function (e) {
+        logger.append(&quot;&lt;li&gt;&quot; + e.msg + &quot;&lt;&#x2F;li&gt;&quot;);
+    });
+
+});</pre>
+
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Publish an event with a default behavior, as well as behaviors for reacting to preventing the default or stopping bubbling.">
+                                            <a href="flow-example.html">Custom Event Bubbling and Behaviors</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

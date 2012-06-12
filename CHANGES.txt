@@ -1,393 +1,879 @@
 Ambari Change log
 
-Release 0.1.0 - unreleased
+Note: Committers should be listed using their login and non-committers
+should be listed by their full name. Please keep the file to a max of 80
+characters wide.
 
-  AMBARI-185. Remove NodeServers from NodeState. Instead use NodeRole to keep associated roles to node and their active state. (vgogate)
+Release 1.0.0 - unreleased
 
-  AMBARI-184. Ambari client node list command returns multiple entries for same node (vgogate)
+  AMBARI-543. Rpm naming needs to be corrected. (vikram via reznor)
 
-  AMBARI-183. Pass the appropriate component user to agent as specified in the stack (vgogate)
+  AMBARI-541. Update README for installing/running code off
+  AMBARI-186. (vinodkv via reznor)
 
-  AMBARI-182. rename controller/src/main/resources/org/apache/ambari/acd/mapred-0.1.0.acd to mapreduce-0.1.0.acd (vgogate)
+  AMBARI-542. Rename HMC to Ambari in user-facing init.d scripts
+  (reznor via vikram)
 
-  AMBARI-180. Fixes the agent to do better process management (ddas)
+  AMBARI-540. Naming cleanup required for management console. (vikram
+  via reznor)
 
-  AMBARI-179. Set the component level user/group information in the flattened stack, 
-  inherit default user/group information if not set one for component. (vgogate)
+  AMBARI-539. Create a spec file with less dependencies for
+  HMC. (hitesh via reznor)
 
-  AMBARI-178. Add support for Map/Reduce component in Ambari stack (vgogate)
+  AMBARI-537. Cleaning up references. (vikram via hitesh)
 
-  AMBARI-176. Adds a first version of MapReduce ACD (ddas)
+  AMBARI-528. Fix oozie smoke test failure (ramya via vikram)
 
-  AMBARI-175. Removes the map from hostnames to heartbeat-responses. (ddas)
+  AMBARI-525. Javascript should not pass flag in case of post install
+  add nodes. (vikram)
 
-  AMBARI-174. Controller marks nodes unhealthy upon command execution failures. Marks them
-  healthy when the corresponding agent is restarted (ddas)
+  AMBARI-524. Add nodes restore yum default on post install add nodes
+  page (vikram)
 
-  AMBARI-173. Fixed RPM build for OpenSUSE. (Eric Yang)
+  AMBARI-523. Need to persist yum repo for add nodes. (vikram)
 
-  AMBARI-172. Remove the "ambari" category from the configuration element, put it as "globals" elemement in the stack. (vgogate)
+  AMBARI-522. Fix version of the server rpm. (mahadev via vikram)
 
-  AMBARI-171. Agents retry failed actions for a configurable number of times
-  after a configurable delay (ddas)
+  AMBARI-521. Lzo Install with RPM's. (ramya via vikram)
 
-  AMBARI-170. Update the cluster state after state machine transitions it to final ACTIVE/INACTIVE state (vgogate)
+  AMBARI-520. Disable all debug console logging on the browser. (Yusaku Sako
+  via vikram)
 
-  AMBARI-168. trim the white spaces from host names returned through getHostnamesFromRageExpressions (vgogate)
+  AMBARI-517. Dashboard shows HDFS is down though it's still running.
+  (vgogate via vikram)
 
-  AMBARI-163. Addresses failure handling in FSM. ((thejas via ddas)
+  AMBARI-516. Fix epel install to be using curl calls. (mahadev via vikram)
 
-  AMBARI-165. Fix the component definition for HDFS. (omalley)
+  AMBARI-515. Modules tar size increases. (jitendra via vikram)
 
-  AMBARI-162. Fixed agent unit test failure when ethernet is not in
-  used. (Eric Yang)
+  AMBARI-514. Fix parsing error in puppet manifests. (mahadev via vikram)
 
-  AMBARI-161. Add puppet module for Hadoop to agent resources (vgogate)
+  AMBARI-513. Download mysql rpm for sqoop (ramya via vikram)
 
-  AMBARI-159. Temporarily disabled security (until Ambari upgrades to 
-  Python2.7). (ddas)
+  AMBARI-512. Fix puppet manifests for tarball downloads via
+  rpms. (mahadev via vikram)
 
-  AMBARI-160. Ambari client add stack command should allow both json
-  and xml (vgogate)
+  AMBARI-511. Support rpms for mysql connector and other
+  tars. (jitendra via vikram)
 
-  AMBARI-158. Move the JSON encoding to the natural one. (omalley)
+  AMBARI-510. Modify the router to force redirection to "Add Nodes
+  Progress" popup (Yusaku Sako via vikram)
+
+  AMBARI-508. Support Resume For Add Nodes (reznor via vikram)
+
+  AMBARI-506. Do not use epel in local yum repo installs (hitesh via vikram)
+
+  AMBARI-507. Install rpms instead of tar.gz downloads (ramya via vikram)
+
+  AMBARI-505. Messaging Update (Yusaku Sako via vikram)
+
+  AMBARI-503. Make sure epel rep is installed when installing the
+  agent. (mahadev via vikram)
+
+  AMBARI-527. Increase number of puppet retries to recover from
+  intermittent network issues. (jitendra via vikram)
+
+  AMBARI-502. X button missing from popup (Yusaku Sako via vikram)
+
+  AMBARI-501. Speed up page load/reload times (Yusaku Sako via vikram)
+
+  AMBARI-500. Fix versions in rpm spec file. (mahadev via vikram)
+
+  AMBARI-499. Add "Help" link to the top nav (Yusaku Sako via vikram)
+
+  AMBARI-498. Make service directories editable (but not
+  reconfigurable) (Yusaku Sako via vikram)
+
+  AMBARI-497. Messaging clean up (Yusaku Sako via vikram)
+
+  AMBARI-496. Ganglia graphs have labels/content that are not
+  meaningful (vgogate via vikram)
+
+  AMBARI-494. Fix node assignments not not allow slaves on
+  master. (mahadev via vikram)
+
+  AMBARI-493. Add rack_info as column in Hosts table (hitesh via vikram)
+
+  AMBARI-492. make support for os check a bit more robust (hitesh via vikram)
+
+  AMBARI-491. Service Reconfiguration screens should respect the
+  "reconfigurable" attributes set in ConfigProperties table (Yusaku Sako
+  via vikram)
+
+  AMBARI-490. Highlight the required parameters in Step 6 "Custom
+  Config" of the Cluster Init Wizard (Yusaku Sako via vikram)
+
+  AMBARI-489. Call out HMC master node in the topology and node
+  assignments (Yusaku Sako via vikram)
+
+  AMBARI-488. Manage service needs a way to recover from terminated
+  browser sessions (Yusaku Sako via vikram)
+
+  AMBARI-487. Add nodes with external name on AWS causes issues. (vikram)
+
+  AMBARI-486. Add Node installs MySQL Server for Hive (Yusaku Sako via vikram)
+
+  AMBARI-485. Make Firebug debugger work again with fileCombinator.php
+  (Yusaku Sako via vikram)
+
+  AMBARI-484. Reconfigure option for Nagios service does not work (vikram)
+
+  AMBARI-483. Start Making Responses From fileCombinator.php Suitably
+  Cacheable (reznor via vikram)
+
+  AMBARI-482. Show the same welcome page to the user if the user
+  starts configuring a cluster but has not started deploy yet (Yusaku Sako
+  via vikram)
+
+  AMBARI-481. Units of various config values not displayed on review
+  and deploy page (Yusaku Sako via vikram)
+
+  AMBARI-480. Reduce Page Load Time By Combining HMC JS Files (reznor
+  via vikram)
+
+  AMBARI-479. Add nodes after install does not allow re-bootstrap if
+  user closes browser after bootstrap and before starting services
+  (vikram)
+
+  AMBARI-477. Spec file for using installer with php-5.3 (hitesh via vikram)
+
+  AMBARI-478. Checkbox in the review and deploy page does not show
+  proper state (vikram)
+
+  AMBARI-476. Undefined offset: 0 in
+  /usr/share/hmc/php/db/HMCDBAccessor.php on line 1030 (hitesh via
+  vikram)
+
+  AMBARI-475. Add missing JS file for making post cluster install Add
+  Nodes work (Yusaku Sako via vikram)
+
+  AMBARI-473. Secondary namenode checkpoint dir doesnt get created if
+  its on the same host as NN. (mahadev via vikram)
+
+  AMBARI-471. hadoop-metrics2.properties not updated (ramya via vikram)
+
+  AMBARI-468. Post-Install Add Nodes - update progress title and
+  success/error messages to reflect what it's actually doing/has done
+  (Yusaku Sako via vikram)
+
+  AMBARI-472. Add api to find all unassigned hosts in a cluster
+  (hitesh via vikram)
+
+  AMBARI-470. Fix conflicting dashbord conf files in installer and
+  dashboard. (mahadev via vikram)
+
+  AMBARI-469. Cap DataNode heap size. (mahadev via vikram)
+
+  AMBARI-467. Fix hive stop to escape $. (mahadev via vikram)
+
+  AMBARI-446. Support Resume For Manage Services (reznor via vikram)
   
-  AMBARI-157. Enhances the agent to make it puppet aware (ddas)
+  AMBARI-466. Add nodes page alerts removed in case of adding
+  duplicate nodes (vikram)
 
-  AMBARI-156. Clean up the puppet example stack. (omalley)
+  AMBARI-465. Fix suggestions for Map Red Child java opts. (mahadev via vikram)
 
-  AMBARI-155. Heartbeat response to a node should contain an empty list of 
-  actions if node doesn't belong to any cluster presently. (ddas)
-
-  AMBARI-154. Exception while starting the controller. Outdated JAXB
-  fields in HeartBeat class (vgogate)
-
-  AMBARI-153. Introduce a 'ambari.properties' configuration file that
-  can specify 'data.store' and a url. It defaults to 'zk://localhost:2181/',
-  but can be set to 'test:/' to get the static storage. (omalley)
-
-  AMBARI-152. Fixes issues in the shell scripts (ddas)
-
-  AMBARI-148. Refactors StateMachineInvoker (ddas)
-
-  AMBARI-151. Fix TestHardware when in offline mode. (omalley)
-
-  AMBARI-150. Simplifies states in controller state machine (thejas via ddas)
-
-  AMBARI-149. Filter the meta ambari category out of the flattened stacks.
-  (omalley)
-
-  AMBARI-141. Update the heartbeat on controller/agent (ddas)
-
-  AMBARI-147. Create a stack flattener and introduce Guice. (omalley)
-
-  AMBARI-145. FSMs are created for only those components that have 
-  active roles (thejas via ddas)
-
-  AMBARI-146. Fix test case failures in agent's FileUtil. (omalley)
-
-  AMBARI-144. Implement getInstallAndConfigureScript for a given
-  revision of cluster definition. (vgogate)
-
-  AMBARI-143. Fixes an annotation issue in HeartBeat class (ddas)
-
-  AMBZRI-142. Add cluster must validate if requested nodes are
-  pre-allocated to any other existing cluster (vgogate)
-
-  AMBARI-140. Refactors the heartbeat handling w.r.t simplification of 
-  state management. (ddas)
-
-  AMBARI-138. Implement stack persistence (vgogate)
-
-  AMBARI-135. Simplifies the heartbeat handling to not deal with 
-  install/configure methods on component plugin definitions (ddas)
-
-  AMBARI-134. Add Google analytics to the site. (omalley)
-
-  AMBARI-132. Fix update agent environment script location. (Ahmed
-  Fathalla via Eric Yang)
-
-  AMBARI-131. Fixed post installation script for Ambari Agent. (Eric Yang)
-
-  AMBARI-129. Rename agent package reference of HMS to Ambari. (Eric Yang)
-
-  AMBARI-128. Improved ethtool handling. (Ahmed Fathalla via Eric Yang)
-
-  AMBARI-127. Fixed mailing list address. (Ahmed Fathalla via Eric Yang)
-
-  AMBARI-126. Minor fixes to the FSM invocations (ddas)
-
-  AMBARI-125. Recover the the state of existing clusters after
-  controller restart (vgogate)
-
-  AMBARI-124. Add Zookeeper Data store and persist the cluster
-  definitions across controller restart (vgogate)
-
-  AMBARI-116. Change the name group to provider in
-  hadoop-security-0.xml stack definition (vgogate)
-
-  AMBARI-120. Fixed REST resource annotation bugs. (Eric Yang)
-
-  AMBARI-121. Added examples for returning REST resources. (Eric Yang)
-
-  AMBARI-119. Enhance agent to support workDirComponent. (Eric Yang)
-
-  AMBARI-118. Added safe guard mechanism to prevent agent crash on 
-  faulty action. (Eric Yang)
-
-  AMBARI-117. If some install action is sent in a heartbeat response, the
-  latter should also include the dependent components' installs. (ddas)
-
-  AMBARI-115. Fixed connection error handling for agent. (Eric Yang)
-
-  AMBARI-114. Fix issues in XMLComponentDefinition (ddas)
-
-  AMBARI-112. Fixes the blueprint/stack resolution in the Cluster class
-  (ddas)
-
-  AMBARI-112. Fix the url path conflict for /clusters used in both
-  ClustersResource and ClusterResource (vgogate)
-
-  AMBARI-111. Minor clean up of site documentation (omalley)
-
-  AMBARI-110. Add persistent data store interface (vgogate)
-
-  AMBARI-107. Added reporting section to aggregate javadocs. (Eric Yang)
-
-  AMBARI-109. Minor fixes to the CLI documentation. (omalley)
-
-  AMBARI-108. Change name blueprint to stack (vgogate)
-
-  AMBARI-106. Fixes some javadoc stuff (ddas)
-
-  AMBARI-105. Remove post on clusters resource to create new cluster
-  (instead use put operation on cluster resource along with update
-  cluster) (vgogate)
-
-  AMBARI-104. Polishes the CLI doc some (ddas)
-
-  AMBARI-103. Refactor agent entities package to 
-  org.apache.ambari.common.rest.agent. (Eric Yang)
-
-  AMBARI-102. Reduce heartbeat message content, when installedRoleState
-  is empty. (Eric Yang)
-
-  AMBARI-101. Remove clusterID and use cluster name as unique ID for
-  the cluster(vgogate)
-
-  AMBARI-100. Fixes the heartbeat to take into account install/uninstall 
-  of components (ddas)
-
-  AMBARI-99. Added schema and wadl generation to be part of the build system, 
-  and integrate with maven site. (Eric Yang)
-
-  AMBARI-98. Get cluster nodes with cluster in ATTIC state fails. (vgogate)
-
-  AMBARI-96. Updated ambar client to show usage screen. (Eric Yang)
-
-  AMBARI-93. Update -revision parameter to make it optional. (Eric Yang)
-
-  AMBARI-92. Added logic to retry heartbeat sending. (Eric Yang)
-
-  AMBARI-91. Move the example blueprints into xml resources. (omalley)
-
-  AMBARI-90. Implement nodes get/list CLI (vgogate)
-
-  AMBARI-89. Implement blueprint history CLI (vgogate)
-
-  AMBARI-88. Update cluster nodes reservation is giving null pointer
-  exception during cluster creation (vgogate)
-
-  AMBARI-87. Importing pre-existing blueprint to Ambari through CLI
-  "blueprint add" gives wrong error message (vgogate)
-
-  AMBARI-86. Validate blueprint referenced by cluster exist including
-  it's parent blueprints (vgogate)
-
-  AMBARI-85. Adds handling of new states to do with preinstall actions (ddas)
-
-  AMBARI-84. Added configuration file writer for Ambari Component. (Eric Yang)
-
-  AMBARI-83. Added python unit test framework. (Eric Yang)
-
-  AMBARI-82. Fix example clusters. (omalley)
-
-  AMBARI-81. Updated xslt document to show human readable stylesheet. (Eric 
-  Yang)
-
-  AMBARI-80. Implement blueprint get CLI
-
-  AMBARI-79. create default blueprint instance
-
-  AMBARI-78. Change the datatype of responseId in the heartbeat messages to 
-  short (ddas)
-
-  AMBARI-77. create default blueprint containing HDFS component (vgogate)
-
-  AMBARI-76. Register new node w/ Ambari controller (vgogate)
-
-  AMBARI-75. Centralize agent configuration parsing. (Eric Yang)
-
-  AMBARI-74. Throttle the frequency of checking action queue to 5 seconds.
-  (Eric Yang)
-
-  AMBARI-73. Implement cluster nodes CLI. (vgogate)
-
-  AMBARI-72. Adding (dummy) blueprints before (dummy) cluster definitions and
-             fixing null pointer exception when parent blueprint is set to null
-             for top level blueprint  (vgogate)
-
-  AMBARI-71. Fix broken packaging and startup scripts. (Eric Yang)
-
-  AMBARI-70. Implements the installation/configuration of gateway role (ddas)
-
-  AMBARI-66. Implemented compatible package install/uninstall action for 
-  plugin. (Eric Yang)
-
-  AMBARI-69. Added skeleton for Ambari component plugin library. (Eric Yang)
-
-  AMBARI-68. Implement add blueprint CLI (vgogate)
-
-  AMBARI-67. Implement cluster list, get CLI commands (vgogate)
-
-  AMBARI-65. Added directory structure actions. (Eric Yang)
-
-  AMBARI-60. Added permission check for RUN_ACTION, and
-  WRITE_FILE_ACTION. (Eric Yang)
-
-  AMBARI-64. Define components in terms of XML. (omalley)
-
-  AMBARI-63. Implement cluster update, rename and delete CLI commands (vgogte)
-
-  AMBARI-62. Adds the install/uninstall checks in the heartbeat handler (ddas)
-
-  AMBARI-60. Added permission check for RUN_ACTION, and
-  WRITE_FILE_ACTION.  (Eric Yang)
-
-  AMBARI-61. Rename cluster REST API. (vgogate)
-
-  AMBARI-59. Refactor to use clusterRevision instead of bluePrintName and 
-  bluePrintRevision. (Eric Yang)
-
-  AMBARI-57. Adds a state for monitoring safe-mode success/failure
-  checks in the ServiceFSM (ddas)
-
-  AMBARI-56. Refactor write config file command to write config file
-  action. (Eric Yang)
-
-  AMBARI-54. Refactor agent implementation to match AMBARI-53. (Eric Yang)
-
-  AMBARI-51. Refactor transport data model for commands to become
-  action. (Eric Yang)
-
-  AMBARI-56. Surface the write config file command to write config
-  file action. (Eric Yang)
-
-  AMBARI-55. release cluster nodes function (vgogate)
-
-  AMBARI-53. Refactor the HeartBeat to have Agents' states separated by 
-  component/role (ddas)
-
-  AMBARI-50. Refactor the REST apis. (omalley)
-
-  AMBARI-48. Move Cluster object from rest entities to controller(vgogate)
-
-  AMBARI-47. Implement Cluster definition re-visioning(vgogate)
-
-  AMBARI-45. Implement CLI command Cluster create (vgogate)
-
-  AMBARI-46. Implemented preservation of cluster id, blueprint name and
-  blueprint revision on agent. (Eric Yang)
-
-  AMBARI-44. Implemented blueprint name and revision in heartbeat. (Eric Yang)
+  AMBARI-461. Uninstall shoud stop nagios service first before
+  stopping other services (hitesh via vikram)
   
-  AMBARI-39. Bridged cluster reference gap between REST API with State machine.
-  (Eric Yang)
+  AMBARI-464. Auto refresh should be applicable to all the service
+  tabs (vgogate via vikram)
 
-  AMBARI-28. Clean up html encoded javadoc. (Eric Yang) 
+  AMBARI-463. Redesign cluster management pages and navigation (Yusaku Sako
+  via vikram)
 
-  AMBARI-23. Renamed agent API to /agent, and public API to /rest. (Eric Yang)
+  AMBARI-462. when hive is being stopped, it stops the hive nagios
+  checks (ramya via vikram)
 
-  AMBARI-18. Implemented special command to write configuration file. (Eric 
-  Yang)
+  AMBARI-460. Ganglia shows four hosts on a single node installation
+  (vgogate via vikram)
 
-  AMBARI-17. Added idle state for agent heartbeat. (Eric Yang)
+  AMBARI-459. Race conditions in fetch transaction progress (vikram)
 
-  AMBARI-15. Implemented agent side of authentication hooks. (Eric Yang)
+  AMBARI-447. First pass at Info level logging (cleanup of
+  logging). (mahadev via vikram)
 
-  AMBARI-12. Added transition state STARTING, STOPPING. (Eric Yang)
+  AMBARI-458. Support configuration of checkpointing-related variables
+  (hitesh via vikram)
 
-  AMBARI-11. Implemented Agent to controller heartbeat communication. (Eric 
-  Yang)
+  AMBARI-457. Create template for SNN checkpoint dir (ramya via vikram)
 
-  AMBARI-7. Updated Jersey to 1.9 for automating wadl generation. (Eric Yang)
+  AMBARI-456. Add more logging for ganglia (ramya via vikram)
 
-  AMBARI-3. Move HMS prototype code to branch 0.0. (Eric Yang)
+  AMBARI-455. nagios shows service status critical if hbase is not
+  installed (vgogate via vikram)
 
-  AMBARI-2. Added heartbeat/controller response data model, and wadl 
-  configuration. (Eric Yang)
+  AMBARI-453. Remove the puppet kick --ping during bootstrap instead
+  use simple network ping for puppet agent. (vgogate via vikram)
 
-  AMBARI-42. Return the latest blueprint revision if revision is not specified
-  as query parameter.
+  AMBARI-454. Fix Hive tarball issue download for templeton. (mahadev
+  via vikram)
 
-  AMBARI-43. Change the API StateMachineInvoker.getStateMachineClusterInstance 
-  to take blueprint related arguments. (ddas)
+  AMBARI-452. Create cluster should wipe out entire db (vikram)
 
-  AMBARI-41. Rename the Role/Cluster/Service classes in the statemachine 
-  package to RoleFSM/ClusterFSM/ServiceFSM (ddas)
+  AMBARI-451. Add nodes has incorrect check on returned status (vikram)
 
-  AMBARI-37. Tidies up a bit the statemachine API and related classes (ddas)
+  AMBARI-450. Boldify/Redify restart HMC message when nagios/ganglia
+  is on the hmc host (Yusaku Sako via vikram)
 
-  AMBARI-36. Add CLI interface document to Ambari site (vgogate)
+  AMBARI-449. Post cluster install/deploy the URL
+  hmc/html/initializeCluster.php should be disabled (Yusaku Sako via
+  vikram)
 
-  AMBARI-35. Replaces the counters for keeping track of service/role start/stop
-  with iterators. (ddas)
+  AMBARI-448. Redesign progress popups. (Yusaku Sako via vikram)
 
-  AMBARI-34. Address the start cluster part of the statemachine implementation,
-  and handle the heartbeat. (ddas)
+  AMBARI-444, 445. Nagios checks send kicks to the agent that trigger
+  a run. Configure nagios to send email notifications when slaves go
+  down (vgogate via vikram)
 
-  AMBARI-32. Remove stack resource Remove the Stack resource from Ambari 
-  (vgogate)
+  AMBARI-443. Nagios start fails on reinstall (ramya via vikram)
 
-  AMBARI-25. Clean up the configuration entity to collapse some levels. 
-  (omalley)
+  AMBARI-442 Duplicate definition:
+  Class[Hdp-hbase::Regionserver::Enable-ganglia] (ramya via vikram)
 
-  AMBARI-31. Fix JAXB annotations for Ambari resourcesi (vgogate)
+  AMBARI-441. Add ganglia monitor to all the hosts including
+  collector. (mahadev via vikram)
 
-  AMBARI-30. Fix the build so that the client and controller tarballs are 
-  built. (omalley)
+  AMBARI-440. Keep the touch file for NN format in /var/run rather
+  than /etc/conf. (mahadev via vikram)
 
-  AMBARI-29. Implement Node Resource API. (vgogate)
+  AMBARI-439. Gmetad start fails sometimes. (ramya via vikram)
 
-  AMBARI-24. Fix the versions in the pom.xml. (omalley)
+  AMBARI-438. Add retry if kick fails immediately. (jitendra via vikram)
 
-  AMBARI-22. Implement Blueprint Resource API (vgogate)
+  AMBARI-437. Update router to handle resuming uninstall progress and
+  uninstall failed pages (Yusaku Sako via vikram)
 
-  AMBARI-21. Fix the problem w/ Stacks Resource API (vgogate)
+  AMBARI-436. Support Resume For Uninstall (reznor via vikram)
 
-  AMBARI-20. Fix the rest API for getting the cluster nodes (vgogate)
+  AMBARI-435. Uninstall needs to update status for failure. (vikram)
 
-  AMBARI-19. Fix Cluster resource API nodes reservation logic (vgogate)
+  AMBARI-434. fix display name in smoke test progress description
+  (hitesh via vikram)
 
-  AMBARI-16. Implement Stacks resource API (vgogate)
+  AMBARI-433. Using service stop instead of killall for uninstall (vikram)
 
-  AMBARI-14. Implement Ambari REST API for cluster resource (vgogate)
+  AMBARI-432. Templeton should not install templeton.i386 (ramya via vikram)
 
-  AMBARI-13. Initial attempt at a website. (omalley)
+  AMBARI-431. Fix orchestrator to use correct display names for
+  descriptions of stages (hitesh via vikram)
 
-  AMBARI-10. Initial checkin of the heartbeat handling code (ddas)
+  AMBARI-430. set service state to failed if cluster monitoring
+  reconfiguration fails (hitesh via vikram)
 
-  AMBARI-9. Fix all of the files to have the Apache header and include
-  RAT in the build. (omalley)
+  AMBARI-429. Fix bug with jmx parsing on HBase. (mahadev via vikram)
 
-  AMBARI-8. Move dependencies into controller. (omalley)
+  AMBARI-428. changes to templeton setup for 0.1.4 (ramya via vikram)
 
-  AMBARI-6. Moving Clusters and Nodes container objects into controller
-  (vgogate)
+  AMBARI-425. Oozie start fails with "Not managing symlink mode"
+  (ramya via vikram)
 
-  AMBARI-5. Added some left over changes from git repository for Ambari REST 
-  APIs. (vgogate)
+  AMBARI-424. change "reconfiguremonitoring" message to a better
+  worded action (hitesh via vikram)
 
-  AMBARI-4. Created interface for component plugins. (omalley)
+  AMBARI-421. Ganglia uninstall does not remove libganglia or gmond
+  (Richard Pelavin via vikram)
 
-  AMBARI-1. Initial code import (omalley)
+  AMBARI-423. Uninstall cluster can't be automated by Selenium due to
+  the internal confirmation window (Yusaku Sako via vikram)
+
+  AMBARI-422. Increase Threshold For Number Of Successive Backend
+  Connection Failures (reznor via vikram)
+
+  AMBARI-420. Improve style on error log popups (Yusaku Sako via vikram)
+
+  AMBARI-419. Add Basic Keyboard Action Support For HMC UI (reznor via vikram)
+
+  AMBARI-418. Remove Redundant Titles From Reconfigure Panel (reznor
+  via vikram)
+
+  AMBARI-416. Fix Inconsistent Validation Error Messages (reznor via vikram)
+
+  AMBARI-417. Typo fix in uninstall path. (vikram)
+
+  AMBARI-415. Reset service back to original state after
+  reconfiguration (hitesh via vikram)
+
+  AMBARI-414. Add rpm spec for hmc agent. (mahadev via vikram)
+
+  AMBARI-409. Uninstall does not get full list of hosts. (vikram)
+
+  AMBARI-410. Need to move the creation of cluster directory for
+  hosting the key file and the nodes file to add nodes. (vikram)
+
+  AMBARI-408. HDPJobTracker cluster in ganglia has multiple nodes
+  (vgogate via vikram)
+
+  AMBARI-426. Reinstall of cluster after failure to install results in
+  failure (ramya via vikram)
+
+  AMBARI-427. Class not found Class['hdp-zookeeper::service'] during
+  uninstall (ramya via vikram)
+
+  AMBARI-531. Remove/disable reconfigure option for Sqoop, Pig,
+  Ganglia and Templeton (Yusaku Sako via vikram)
+
+  AMBARI-529. Fix Advanced Config: HDFS reserved space is in
+  bytes. Too many bytes to count. (hitesh via vikram)
+
+  AMBARI-530. HMC UI shows undefined for nodes after single node
+  install (Yusaku Sako via vikram)
+
+  AMBARI-532. add ganglia monitor to all masters (mahadev via vikram)
+
+  AMBARI-407. add more logging and timing info for various actions
+  (hitesh via vikram)
+
+  AMBARI-406. Monitoring dashboard does not show ZK service state
+  correctly (ramya via vikram)
+
+  AMBARI-321. Multiple ZK nodes not displayed on review-page (Yusaku Sako
+  via vikram)
+
+  AMBARI-405. Clean up messages for service management reconfiguration
+  popup (Yusaku Sako via vikram)
+
+  AMBARI-404. Unify the top nav for both Monitoring and Cluster
+  Management (Yusaku Sako via vikram)
+
+  AMBARI-403. Show fixed count of total nodes during all bootstrap
+  phases (hitesh via vikram)
+
+  AMBARI-325. MR vmem config options are useless without an option to
+  enable/disable memory-monitoring (vinodkv via vikram)
+
+  AMBARI-402. Completing successful add node takes one to initialize
+  cluster page starting from scratch (reznor via vikram)
+
+  AMBARI-401. Manual config changes for nn get reset on stop/start
+  from hmc (jitendra via vikram)
+
+  AMBARI-399. Cannot uninstall - the page hangs with the spinning icon
+  (Yusaku Sako via vikram)
+
+  AMBARI-398. if hbase is not installed, nagios sends alerts for
+  "ganglia collector for hbasemaster" being down (vgogate via vikram)
+
+  AMBARI-397. Clean up descriptions and titles of mapreduce memory
+  related configs (vinodkv via vikram)
+
+  AMBARI-396. Add nodes fails in assign masters because of closure
+  issues (vikram)
+
+  AMBARI-395. Ganglia server should not run gmond. (mahadev via vikram)
+
+  AMBARI-394. Add nodes fails to find node in db (vikram)
+
+  AMBARI-393. ZooKeeper myid files not existent on ZK
+  install. (mahadev via vikram)
+
+  AMBARI-392. Add ID attributes to HTML tags to help test automation
+  (Yusaku Sako via vikram)
+
+  AMBARI-358. Make index.php always accessible, rather than
+  automatically forwarding to the action, even if there's only one
+  action that the user can take (Yusaku Sako via vikram)
+
+  AMBARI-390. Handle multiple ZooKeeper service masters in Assign
+  Masters page (Yusaku Sako via vikram)
+
+  AMBARI-389. Do not allow invalid chars for database name and user
+  name for hive (hitesh via vikram)
+
+  AMBARI-388. Prevent the user from assigning NameNode and Secondary
+  NameNode services on the same host (Yusaku Sako via vikram)
+
+  AMBARI-386. On Single Node install when install all the components
+  the recommended num for Map/Reduce Tasks is too high (hitesh via
+  vikram)
+
+  AMBARI-279. On the mount points page show info on what the mount
+  points are being used for (Yusaku Sako via vikram)
+
+  AMBARI-387. Fine tune node assignment and propagate ZK host
+  assignments to the frontend. (mahadev via vikram)
+
+  AMBARI-381. Restarting Templeton should not run PIG smoke tests
+  (hitesh via vikram)
+
+  AMBARI-384. Fix the position of the deploy error logs popup (Yusaku Sako
+  via vikram)
+
+  AMBARI-385. Namenode format should not be passed as true in the
+  manifest unless from user input. (vikram via jitendra)
+
+  AMBARI-383. Do not force the user to look at the error logs before
+  given choices to go back/continue, etc (Yusaku Sako via vikram)
+
+  AMBARI-382. Make sure install/uninstall/reinstall preserves data on
+  HDFS/ZK/others. (ramya via vikram)
+
+  AMBARI-377. Uninstall does not handle component
+  dependencies. (jitendra via vikram)
+
+  AMBARI-380. Clean up messages for Add Nodes and Deploy progress
+  result (Yusaku Sako via vikram)
+
+  AMBARI-379. Remove puppet start stub on uninstall. (mahadev via vikram)
+
+  AMBARI-378. Getting a 404 after clicking on reinstall when the
+  install fails (Yusaku Sako via vikram)
+
+  AMBARI-376. Show welcome page when no clusters are set up (Yusaku Sako via vikram)
+
+  AMBARI-374. Modify the cluster info page to show host-to-service
+  mapping for both master services and client services using
+  color-coding (Yusaku Sako via vikram)
+
+  AMBARI-372. Hive metastore nagios check is broken. (jitendra via vikram)
+
+  AMBARI-373. Create RPM fails as fonts files are not copied
+  over. (mahadev via vikram)
+
+  AMBARI-371. Mysql packages not being sent during install and
+  uninstall (jitendra via vikram)
+
+  AMBARI-369. Improve Service Management page and general popup
+  styling (Yusaku Sako via vikram)
+
+  AMBARI-367. Make users enter hive configs instead of using defaults
+  (hitesh via vikram)
+
+  AMBARI-364. Retry puppet kick --ping on bootstrap to handle
+  intermittent failures (hitesh via vikram)
+
+  AMBARI-370. Uninstall needs to clear Puppet directories (vikram)
+
+  AMBARI-368. Server restart kills puppet agent. (mahadev via vikram)
+
+  AMBARI-366. Package up the fonts/ subdirectory in the HMC RPM (reznor
+  via vikram)
+
+  AMBARI-365. Uninstall/reinstall complains about OS Type as
+  unsupported (ramya via vikram)
+
+  AMBARI-363. Nagios should monitor puppet agents (vgogate via vikram)  
+
+  AMBARI-362. Create lock file as part of rpm install (vikram)
+
+  AMBARI-361. Display client nodes as part of cluster topology display
+  (Yusaku Sako via vikram)
+
+  AMBARI-360. Adding nodes that already part of the cluster should be
+  avoidable (vinodkv via vikram)
+
+  AMBARI-286. Make TxnProgressWidget Immune To Re-Fetch Race
+  Conditions (reznor via vikram)
+
+  AMBARI-526. Display client nodes as part of cluster topology
+  display. (reznor via vikram)
+
+  AMBARI-265. Reconfig page close button (x) is not visible (vinodkv
+  via vikram)
+
+  AMBARI-357. Redesign master service assignment page so that it takes
+  up less vertical space (Yusaku Sako via vikram)
+
+  AMBARI-356. Log output to console slows puppet run. (jitendra via vikram)
+
+  AMBARI-359. invalid parameter java_needed during uninstall (ramya
+  via vikram)
+
+  AMBARI-354. hmc rpm on install must backup the database (suresh via vikram)
+
+  AMBARI-353. Passing packages in hdp class for package install
+  optimization. (jitendra via vikram)
+
+  AMBARI-344. Fix TxnProgressWidget To Not Hide Previously Pending
+  States (reznor via vikram)
+
+  AMBARI-352. Add flow control - force redirects to appropriate pages
+  based on cluster configuration status for better usability (Yusaku Sako
+  via vikram)
+
+  AMBARI-351.  Monitoring dashboard should auto refresh as regular
+  interval (vgogate via vikram)
+
+  AMBARI-349. Logging in case of error during uninstall needs to be
+  fixed. (vikram)
+
+  AMBARI-317. Select-all + unselect HBASE removes Zookeeper
+  incorrectly (vinodkv via vikram)
+
+  AMBARI-348. Select all services by default (vinodkv via vikram)
+
+  AMBARI-247. Replace index.php with clusters.php (reznor via vikram)
+
+  AMBARI-347. Redo master service assignment page (Yusaku Sako via vikram)
+
+  AMBARI-339. Making transitionToNextStage more robust (vikram)
+
+  AMBARI-345. Make TxnProgressWidget More Robust In The Face Of
+  Un-Ready Txn Stages (reznor via vikram)
+
+  AMBARI-346. user should not be allowed to change the paths to
+  various directories on the advance config page (hitesh via vikram)
+
+  AMBARI-316. Grid mount points page doesn't let one pass with only a
+  custom mount point (vinodkv via vikram)
+
+  AMBARI-343. add option to enable webhdfs (hitesh via vikram)
+
+  AMBARI-342. Reconfiguration process kicks in even when the user
+  submits without new configs changes (vinodkv via vikram)
+
+  AMBARI-341. Batch yum commands (ramya via vikram)
+
+  AMBARI-338. Cluster status update needs to happen for all stages of
+  installation wizard. (vikram)
+
+  AMBARI-330. Provide a way to resume if browser crashes/is closed
+  during the deploy-in-progress (reznor via vikram)
+
+  AMBARI-320. Reconfiguring a stopped service starts it incorrectly
+  (hitesh via vikram)
+
+  AMBARI-340. Info logs for PuppetInvoker (jitendra via vikram)
+
+  AMBARI-337. Parallelize puppet kick --ping during bootstrap (hitesh
+  via vikram)
+
+  AMBARI-335. Redundant downloads even though the artifacts are
+  already installed (ramya via vikram)
+
+  AMBARI-519. update to fix the ganglia monitor_and_server anchor
+  problem (Richard Pelavin via vikram)
+
+  AMBARI-333. Update messaging resources for initialization wizard
+  (Yusaku Sako via vikram)
+
+  AMBARI-332. Modify nav to easily switch between cluster management
+  and monitoring. (Yusaku Sako via vikram)
+
+  AMBARI-518. Junk code in manifestloader site.pp. (jitendra via
+  vikram)
+
+  AMBARI-331. Make txnUtils immune to backend race conditions (reznor
+  via vikram)
+
+  AMBARI-327. Fix syntax error in monitoring modules (ramya via vikram)
+
+  AMBARI-326. Dependencies should be added only during install phase
+  (jitendra via vikram)
+
+  AMBARI-324. Welcome page missing. (Yusaku Sako via vikram)
+
+  AMBARI-323. During any process in the cluster initialization wizard,
+  if the user goes back to the "1 Create Cluster" tab, the user is
+  stuck. (vikram)
+
+  AMBARI-319. Scale puppet master to large number of nodes. (jitendra
+  via vikram)
+
+  AMBARI-318. Do not install the packages that install init.d scripts.
+  (ramya via vikram)
+
+  AMBARI-315. reconfig a service should a list of dependent services
+  that will be restarted as a result. (vinodkv via vikram)
+
+  AMBARI-314. Uninstall Wizard prevents the user from proceeding.
+  (Yusaku Sako via vikram)
+
+  AMBARI-311. Update HBase configuration description (suresh via vikram)
+
+  AMBARI-313. Provide a DB cleanup script. (hitesh via vikram)
+
+  AMBARI-312. Uninstall's wipe flag should be correctly passed to
+  puppet. (hitesh via vikram)
+
+  AMBARI-307. Ensure recommended memory is never below 256 M. (hitesh
+  via vikram)
+
+  AMBARI-310. Externalize message resources for the welcome
+  page. Update styles on various pages. (Yusaku Sako via vikram)
+
+  AMBARI-309. Make ManageServices Show Only One Action Per Service
+  (reznor via vgogate)
+
+  AMBARI-194. Avoid TxnProgressWidget Getting Stuck In An Infinite
+  Loop (reznor via vgogate)
+
+  AMBARI-308. Externalize message resources; Update styles/messaging
+  on Uninstall Wizard and Add Nodes Wizard (Yusaku Sako via vgogate)
+
+  AMBARI-306. Ignore client components when calculating
+  memory. (hitesh via jitendra)
+
+  AMBARI-305. Combine Hive and HCat into a single service. (hitesh via
+  jitendra)
+
+  AMBARI-278. Update MapReduce parameter configuration
+  description. (suresh via jitendra)
+
+  AMBARI-276. Update HDFS parameter configuration description. (suresh
+  via jitendra)
+
+  AMBARI-304. Upgrade to yui-3.5.1. (vinodkv via jitendra)
+
+  AMBARI-302. regionservers config in the hbase only has localhost in it. 
+  (ramya via jitendra)
+
+  AMBARI-275. Remove the configuration variable fs.inmemory.size.mb.
+  (suresh via jitendra)
+
+  AMBARI-303. Cleanup testing code for uninstall failure (simulation). 
+  (vikram via jitendra)
+
+  AMBARI-301. Uninstall should not stop HMC. (vikram via jitendra)
+  
+  AMBARI-273. Fix TxnProgressWidget To Show Failed States When No
+  SubTxn Is In Progress (reznor via vgogate)
+
+  AMBARI-294. Add Nodes page - incorrect field label (Yusaku Sako via vgogate)
+
+  AMBARI-293. Invoking browser "back" action on any step after the Add
+  Hosts step in the Cluster Init Wizard launches the host discovery
+  process again (Yusaku Sako via vgogate)
+
+  AMBARI-289. Hive dependency on hcat (jitendra via vgogate)
+
+  AMBARI-288. Add description for Nagios config (vgogate)
+
+  AMBARI-400. Fixes the regionserver opts for GC (ddas)
+
+  AMBARI-287. Add link to uninstall on index page. (vikram via hitesh)
+
+  AMBARI-285. Clean up Add Hosts page. (Yusaku Sako via hitesh)
+
+  AMBARI-284. Define service groups in nagios such that users can more easily
+  enable/disable the related alerts. (vgogate via hitesh)
+
+  AMBARI-283. Fixup review and deploy rendering. (vinodkv via hitesh)
+
+  AMBARI-282. Make fetchTxnProgress post processing easier to
+  debug. (vikram via hitesh)
+
+  AMBARI-281. Uninstall should hide loading image at startup. (vikram
+  via hitesh)
+
+  AMBARI-280. Cleanup of utilities. (vikram via hitesh)
+
+  AMBARI-249. Uninstall support from UI. (vikram via hitesh)
+
+  AMBARI-277. API for getting cluster status. (vikram via hitesh)
+
+  AMBARI-274. Templeton data on hdfs needs to be readable by all users
+  (ramya via hitesh)
+
+  AMBARI-272. Remove occurrences of repo_url to support local yum repo
+  (ramya via hitesh)
+
+  AMBARI-271. Support for local yum mirror (hitesh via ramya)
+ 
+  AMBARI-270. Puppet cleanup to define all the users in a common 
+  location (ramya)
+
+  AMBARI-269. Specifiy the notification intervals and options for Alerts 
+  (vgogate via ramya)
+
+  AMBARI-300. Change the status message (success/error) location so that it 
+  shows below the page summary box, rather than above, more better visibility 
+  (Yusaku Sako via ramya)
+
+  AMBARI-255. Rename/Relocate files as appropriate (reznor via ramya)
+
+  AMBARI-252. Remove Playground files from HMC (reznor via ramya)
+
+  AMBARI-266. add select/unselect all buttons to the select services page 
+  (vinodkv via ramya)
+
+  AMBARI-256. Update hive config to enable authorization (ramya)
+ 
+  AMBARI-254. Parameterize zookeeper configs (ramya)
+
+  AMBARI-257. Manage services section will have any empty section when no 
+  client only components installed (vinodkv via ramya)
+
+  AMBARI-253. Support uninstall state in mysql modules (ramya)
+
+  AMBARI-258. Start/Stop service show services that are not dependent on the 
+  service being worked on (vinodkv via ramya)
+
+  AMBARI-251. Oozie link is not displayed even when Oozie is installed 
+  (vgogate via ramya)
+
+  AMBARI-298. The current stage and the next stage are shown at the same time
+  during state transition (Yusaku Sako via ramya)
+
+  AMBARI-245. Support data cleanup if installation fails (jitendra via ramya)
+
+  AMBARI-248. Add yuiCombinator.php to rpm (jitendra via ramya)
+
+  AMBARI-297. Modal dialog box for showing deploy progress looks broken
+  in Safari (Yusaku Sako via ramya)
+
+  AMBARI-244. Implement wipeoff state in puppet (ramya)
+
+  AMBARI-246. Add support for parsing yum repo files to understand how to
+  bootstrap nodes for local yum mirror (hitesh via ramya)
+
+  AMBARI-218. Install Combo-Handler On HMC Webserver To Drastically Speed Up
+  Page Load Times (reznor via ramya)
+
+  AMBARI-259. add nodes to a cluster gives an option for ganglia and dashboard,
+  these should be on by default (vinodkv via ramya)
+
+  AMBARI-262. Init Wizard: Advanced Config validation errors can be bypassed 
+  (vinodkv via ramya)
+
+  AMBARI-263. Initialization Wizard: Select Disk Mount Points allows the user 
+  to continue without any mount points selected (vinodkv via ramya) 
+
+  AMBARI-250. Cluster name validation (vikram via ramya)
+
+  AMBARI-243. Templeton setup fails due to hive download error. (ramya)
+
+  AMBARI-296. Update styles on Service Management page (Yusaku Sako via ramya)
+
+  AMBARI-264. Nagios Admin Contact should be checked to ensure it is always an 
+  email address (vinodkv via ramya)
+
+  AMBARI-242. Change code layout to ensure unit tests are not part of final
+  built rpm. (hitesh via ramya)
+
+  AMBARI-295. Improve the overall look and feel (Yusaku Sako via ramya)
+
+  AMBARI-241. Support cluster wipeout in orchestrator. (hitesh via jitendra)
+
+  AMBARI-292. HTML being spewed in the Review+Deploy page. (reznor
+  via jitendra)
+
+  AMBARI-291. Fix yui packaging in the rpm. (jitendra)
+
+  AMBARI-290. Comment in addNodesWizardInit.js. (reznor via jitendra)
+
+  AMBARI-240. Make All FE Entry Points Hide The Loading Image When
+  They're Ready To Take Input.  (reznor via jitendra)
+
+  AMBARI-197. Templatize Standard Helper Components Of Every HTML
+  Page. (reznor via jitendra)
+
+  AMBARI-229. Remove Navigation Bar (W/ Clusters Link) From
+  InstallationWizard (And Other Entry Points).  (reznor via
+  jitendra)
+
+  AMBARI-214. Make HMC Use Local YUI Copy. (reznor via jitendra)
+
+  AMBARI-239. HDFS utilization pie chart shows gray / HDFS down while
+  HDFS is up and running.  (vgogate via jitendra)
+
+  AMBARI-238. When namenode process is down info shown is not correct
+  for both HDFS and MR (vgogate)
+
+  AMBARI-237. Refactor puppet kick loop to easily change retries and timeouts.
+  (jitendra)
+
+  AMBARI-236. Increase puppet agent timeout. (jitendra via vgogate)
+
+  AMBARI-235. Ordering problem when using
+  hdp-ganglia::monitor_and_server (Richard Pelavin via vgogate)
+
+  AMBARI-234. Typo in javascript (vikram via vgogate)
+
+  AMBARI-233. Add Oozie link to HMC dashboard (vgogate)
+
+  AMBARI-232. Enable LZO should show checkbox instead of text (
+  vikram via vgogate)
+
+  AMBARI-231. Support hadoop cleanup (ramya via vgogate)
+
+  AMBARI-228. Ganglia reports on host types not present (Richard
+  Pelavin via vgogate)
+
+  AMBARI-227. Invalid parameter ensure in ganglia manifests (ramya via vgogate)
+
+  AMBARI-226. Make the daemon names and other field names consistent
+  (suresh via vgogate)
+
+  AMBARI-225. Currently we dont have any monitoring alerts setup for
+  secondary namenode (vgogate)
+
+  AMBARI-224. sequentialScriptRunner.php logging in a tight
+  loop. (jitendra via vgogate)
+
+  AMBARI-223. Add troubleshoot link in the Alerts table to provide
+  documentation for debugging/resolving the alerts (vgogate)
+
+  AMBARI-222. Remove the word alert from all the Nagios alerts
+  descriptions. (vgogate)
+
+  AMBARI-221. Service fails to set its state to failed if a component
+  fails to be acted upon (hitesh via vgogate)
+
+  AMBARI-220. Alerts table semantic difference at different levels (vgogate)
+
+  AMBARI-217. Alert table needs to display service name for context.
+  (vgogate via omalley)
+
+  AMBARI-216. Remove sleeps to speed simulations of installs. (vikram
+  via omalley)
+
+  AMBARI-215. Fix description for dfs_data_dir. (hitesh via omalley)
+
+  AMBARI-209. Node selection should ignore failed nodes. (hitesh via omalley)
+
+  AMBARI-213. Fix directory permissions so that Ganglia graphs render.
+  (ramya via omalley)
+
+  AMBARI-210. Remove link for wiping clusters from the hope page. (vikram
+  via omalley)
+
+  AMBARI-212. Fix templeton configurations. (ramya via omalley)
+
+  AMBARI-206. Fix undefined variable in orchestrator. (hitesh via omalley)
+
+  AMBARI-208. Support filtering hosts based on discovery status. (hitesh
+  via omalley)
+
+  AMBARI-207. Fix for undefined variable manifest. (jitendra via omalley)
+
+  AMBARI-204. Use the host that runs Ambari for running slaves & masters.
+  (mahadev via omalley)
+
+  AMBARI-196. Support capturing os information correctly during node 
+  discovery. (hitesh via omalley)
+
+  AMBARI-203. Fix for duplicate jdk definition (ramya via omalley)
+
+  AMBARI-202. Add check to verify jdk path after install (ramya via vgogate)
+
+  AMBARI-201. reduce db query logging (hitesh via vgogate)
+
+  AMBARI-200. External hostnames should be used for links on dashboard
+  UI (ramya via vgogate)
+
+  AMBARI-199. Remove import of mysql puppet module from manifest
+  (jitendra via vgogate)
+
+  AMBARI-198. Dependency of templeton on hcat client (jitendra via vgogate)
+
+  AMBARI-192. Check for NN safemode during restarts (ramya via vgogate)
+
+  AMBARI-191. Implement hive server stopped state (ramya via vgogate)
+
+  AMBARI-195. Fix typo in java license question (hitesh via vgogate)
+
+  AMBARI-187. Syntax error in the puppet manifest in reconfiguration (jitendra
+  via vgogate)
+
+  AMBARI-193. Track nodes that timed out for puppet kicks (hitesh via
+  vgogate)
+
+  AMBARI-190. On a Single Node install, Nagios alert do not take affect until 
+  hmc is restarted (hitesh via vgogate)
+
+  AMBARI-189. Make getAllHostsInfo api support optional params (
+  hitesh via vgogate)
+
+  AMBARI-188. Disable jdk location validation as filter apis not supported in 
+  PHP 5.1. (hitesh via vgogate)

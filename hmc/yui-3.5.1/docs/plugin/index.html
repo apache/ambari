@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Plugin</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Plugin</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>
+    Plugins allow you to unobtrusively add functionality to objects (referred to as the "host" object) such as nodes and widgets. 
+    Plugins can inherit from the <code>Plugin.Base</code> class, but this is not a hard requirement as we'll see later.
+    </p>
+
+    <p>
+    Plugins are used to add atomic pieces of functionality or features to component instances (hosts), without having  to bake support or even 
+    knowledge of the feature into the component class. This allows features to be mixed and matched per component instance, without having to build all 
+    features into a monolithic component class or having to ship multiple versions of the component class with varying combinations of features.
+    </p>
+</div>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for Plugin and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;plugin&#x27;, function (Y) {
+    &#x2F;&#x2F; Plugin is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+
+<h2 id="using">Creating Plugins</h2>
+
+<h3 id="simple">Simple Plugins</h3>
+
+<p>
+For the most basic plugins, which don't have any events or attributes of their own, and which don't modify the behavior
+of the host by listening for any host events, or overriding any of the host's methods, plugins can simply be basic JavaScript classes.
+</p>
+
+<p>
+The only requirement for the class is that it has a static namespace property <code>NS</code> with a value assigned to it. 
+The value of the <code>NS</code> property is used to define the property on the host instance which will refer to 
+the plugin when it's plugged into the host.
+</p>
+
+<p>
+When plugins are plugged into a host instance a new instance of the plugin is created, 
+and a reference to the host is added to the configuration object passed to the plugin's constructor, 
+so that the plugin has a way to reference the host object. (similarly, when plugins are unplugged from a host 
+object they are destroyed).
+</p>
+
+<p>So, putting this all together, a simple plugin class may look something like the following:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; This AnchorPlugin is designed to be added to Node instances (the host will be a Node instance)
+
+function AnchorPlugin(config) {
+
+    &#x2F;&#x2F; Hold onto the host instance (a Node in this case), 
+    &#x2F;&#x2F; for other plugin methods to use.
+
+    this._node = config.host;
+}
+
+&#x2F;&#x2F; When plugged into a node instance, the plugin will be 
+&#x2F;&#x2F; available on the &quot;anchors&quot; property.
+AnchorPlugin.NS = &quot;anchors&quot;
+
+AnchorPlugin.prototype = {
+    disable: function() {
+        var node = this._node;
+        var anchors = node.queryAll(&quot;a&quot;);
+        anchors.addClass(&quot;disabled&quot;);
+        anchors.setAttribute(&quot;disabled&quot;, true);
+    }
+};</pre>
+
+
+<p>To use the <code>AnchorPlugin</code>, the user would plug it into a Node reference they were holding on to:</p>
+
+<pre class="code prettyprint">var container = Y.one(&quot;div.actions&quot;);
+container.plug(AnchorPlugin);</pre>
+
+
+<p>And invoke methods on the plugin, through the namespace it is bound to:</p>
+
+<pre class="code prettyprint">container.anchors.disable();</pre>
+
+
+<h3 id="advanced">Advanced Plugins</h3>
+
+<p>For basic features, simple plugin classes as described above may suffice. However, when you have more complex features which you'd like to encapsulate, the ability to use 
+attributes and events for your plugin implementation becomes useful. More importantly, for many plugins, you'll be looking to modify the default 
+behavior of the host instance in some way (for example an Animation Plugin may want to change the default show/hide behavior of a Widget, to be animated).</p>
+
+<p>For these richer plugins, you should extend the base plugin class <a href="http://yuilibrary.com/yui/docs/api/Plugin.Base.html"><code>Plugin.Base</code></a>. </p>
+
+<p><code>Plugin</code> is a subclass of <code>Base</code>, thereby providing managed attributes, lifecycle methods, and custom event support. Additionally it allows the plugin code to 
+either listen for and react to events fired by the host or inject custom logic before or after methods invoked on the host object (through the YUI 3 <a href="http://yuilibrary.com/yui/docs/api/Do.html">AOP</a> infrastructure).
+<code>Plugin.Base</code> also sets up <code>host</code> as an attribute, so you can access it through <code>this.get(&quot;host&quot;)</code> in your plugin implementation code.
+</p>
+
+<h4 id="extendingplugin">Extending Plugin.Base</h4>
+
+<p>You can extend the <code>Plugin.Base</code> class, just as you would extend the <a href="../base/index.html"><code>Base</code></a> class. One thing to note when comparing this to simple plugins 
+is that the host reference is automatically set up as an attribute by the <code>Plugin.Base</code> class, so a reference to it does not need to be set up explicitly.</p>
+
+<p>The class structure for an advanced plugin follows the pattern for all classes derived from Base, with the addition of the <code>NS</code> property to define
+the namespace for the plugin (see the <a href="../base/index.html">Base</a> documentation for details about NAME and ATTRS).</p>
+
+
+<pre class="code prettyprint">&#x2F;&#x2F; A plugin class designed to animate Widget&#x27;s show and hide methods.
+function WidgetAnimPlugin(config) {
+    WidgetAnimPlugin.superclass.constructor.apply(this, arguments);
+}
+
+&#x2F;&#x2F; Define Static properties NAME (to identify the class) and NS (to identify the namespace)
+WidgetAnimPlugin.NAME = &#x27;widgetAnimPlugin&#x27;;
+WidgetAnimPlugin.NS = &#x27;fx&#x27;;
+
+&#x2F;&#x2F; Attribute definitions for the plugin
+WidgetAnimPlugin.ATTRS = {
+
+    animHidden : {
+        ...
+    },
+
+    animVisible: {
+        ...
+    }
+};
+
+&#x2F;&#x2F; Extend Plugin.Base
+Y.extend(WidgetAnimPlugin, Y.Plugin.Base, {
+
+    &#x2F;&#x2F; Add any required prototype methods
+
+});</pre>
+
+
+<p>The plugin class structure described above is captured in this <a href="../assets/plugin/myplugin.js.txt">"MyPlugin" Template File</a>, which you can use as a starting point to create your own plugins derived from <code>Plugin.Base</code>.</p>
+
+<h4 id="pluginlisteners">Plugin Listeners</h4>
+
+<p>The main value obtained by extending <code>Plugin.Base</code> is the ability to react to events fired by the host  
+using <code>Plugin.Base</code>'s <a href="http://yuilibrary.com/yui/docs/api/Plugin.Base.html#method_onHostEvent"><code>onHostEvent</code></a> and <a href="http://yuilibrary.com/yui/docs/api/Plugin.Base.html#method_afterHostEvent"><code>afterHostEvent</code></a> methods, or 
+modify methods on the host, using <a href="http://yuilibrary.com/yui/docs/api/Plugin.Base.html#method_beforeHostMethod"><code>beforeHostMethod</code></a> and <a href="http://yuilibrary.com/yui/docs/api/Plugin.Base.html#method_afterHostMethod"><code>afterHostMethod</code></a>.</p>
+
+<p>The value of doing this through the above <code>Plugin.Base</code> methods as opposed to working with the host directly, is that any listeners added by the plugin using the above methods are removed when the plugin is unplugged. 
+This is important. Plugins should clean up after themselves when unplugged from the host.</p>
+
+<h5 id="events">Events</h5>
+
+<p>As mentioned, plugins which derive from <code>Plugin.Base</code> have the ability to listen for events on the host object and react to them.</p>
+
+<p>For example, all widgets fire a <code>render</code> event when they are rendered. Your widget-specific plugin may need to know when this occurs, 
+so that it can inject custom elements into the markup the host renders. It can do this through the <code>afterHostEvent</code> method:</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; A plugin which introduces rounded corners to a widget.
+function RoundedCornersPlugin(config) {
+    &#x2F;&#x2F;...
+}
+
+RoundedCornersPlugin.NAME = &#x27;roundedCornersPlugin&#x27;;
+RoundedCornersPlugin.NS = &#x27;corners&#x27;;
+
+Y.extend(RoundedCornersPlugin, Y.Plugin.Base, {
+
+    &#x2F;&#x2F; Automatically called by Base, during construction
+    initializer: function(config) { 
+         &#x2F;&#x2F; &quot;render&quot; is a widget event 
+        this.afterHostEvent(&#x27;render&#x27;, this.insertCornerElements);
+    },
+
+    insertCornerElements: function() {
+        var widget = this.get(&quot;host&quot;);
+        var boundingBox = widget.get(&quot;boundingBox&quot;);
+
+        var tl = Y.Node.create(TL_TEMPLATE);
+        &#x2F;&#x2F;...
+
+        boundingBox.appendChild(tlNode);
+        boundingBox.appendChild(trNode);
+        boundingBox.appendChild(blNode);
+        boundingBox.appendChild(brNode);
+    }
+});</pre>
+
+
+<h5 id="methods">Methods</h5>
+
+<p>In some cases, your plugin may need to override the logic in the host class' methods. The <code>beforeHostMethod</code> and <code>afterHostMethod</code> methods provided by <code>Plugin.Base</code> 
+allow you to insert custom plugin logic before or after a method is executed on the host object.</p>
+
+<p>For example, to animate the way a widget is shown or hidden, we may need to override the method
+which actually flips the visibility style attribute on the widget's bounding box and replace it with an animated opacity implementation, 
+as shown below:</p>
+    
+<pre class="code prettyprint">&#x2F;&#x2F; A plugin class designed to animate Widget&#x27;s show and hide methods.
+function WidgetAnimPlugin(config) {
+    &#x2F;&#x2F;...
+}
+
+WidgetAnimPlugin.NAME = &#x27;widgetAnimPlugin&#x27;;
+WidgetAnimPlugin.NS = &#x27;fx&#x27;;
+
+WidgetAnimPlugin.ATTRS = {
+
+    animHidden : {
+        &#x2F;&#x2F;...
+    },
+
+    animVisible: {
+        &#x2F;&#x2F;...
+    }
+};
+
+&#x2F;&#x2F; Extend Plugin.Base, and override the default
+&#x2F;&#x2F; method _uiSetVisible, used by Widget to flip the visibility
+Y.extend(WidgetAnimPlugin, Y.Plugin.Base, {
+
+    initializer : function(config) {
+
+        &#x2F;&#x2F; Override Widget&#x27;s _uiSetVisible method, with the custom animated method
+        this.beforeHostMethod(&quot;_uiSetVisible&quot;, this._uiAnimSetVisible);
+    },
+
+    _uiAnimSetVisible : function(show) {
+        &#x2F;&#x2F; Instead of flipping visibility, use the animation
+        &#x2F;&#x2F; instances configured for the plugin to animate
+        &#x2F;&#x2F; hide&#x2F;show.
+        if (this.get(&quot;host&quot;).get(&quot;rendered&quot;)) {
+            if (show) {
+                this.get(&quot;animHidden&quot;).stop();
+                this.get(&quot;animVisible&quot;).run();
+            } else {
+                this.get(&quot;animVisible&quot;).stop();
+                this.get(&quot;animHidden&quot;).run();
+            }
+
+            &#x2F;&#x2F; Prevent the default method from being invoked.
+            return new Y.Do.Prevent();
+        }
+    }
+});</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+</li>
+<li>
+<a href="#using">Creating Plugins</a>
+<ul class="toc">
+<li>
+<a href="#simple">Simple Plugins</a>
+</li>
+<li>
+<a href="#advanced">Advanced Plugins</a>
+<ul class="toc">
+<li>
+<a href="#extendingplugin">Extending Plugin.Base</a>
+</li>
+<li>
+<a href="#pluginlisteners">Plugin Listeners</a>
+<ul class="toc">
+<li>
+<a href="#events">Events</a>
+</li>
+<li>
+<a href="#methods">Methods</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Shows how to create an IO plugin for Widget.">
+                                            <a href="../widget/widget-plugin.html">Creating a Widget Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create a simple plugin to retrieve content for the Overlay using the io utility.">
+                                            <a href="../overlay/overlay-io-plugin.html">IO Plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create a simple plugin to animate the Overlay&#x27;s movement and visibility.">
+                                            <a href="../overlay/overlay-anim-plugin.html">Animation Plugin</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

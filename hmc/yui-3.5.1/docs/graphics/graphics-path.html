@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Basic Path</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Basic Path</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+#custom-doc { width: 95%; min-width: 950px; }
+#pagetitle {background-image: url(../../assets/bg_hd.gif);}
+#mygraphiccontainer {
+    position: relative;
+    width: 700px;
+    height:300px;
+}
+</style>
+<div class="intro">
+<p>This example shows how to draw shapes and line segments with the <code>Path</code> shape.</p>
+</div>
+<div class="example">
+<div id="mygraphiccontainer"></div>
+<script>
+    YUI().use('graphics', function (Y) 
+    { 
+        var mygraphic = new Y.Graphic({render: "#mygraphiccontainer"}),
+            connector = mygraphic.addShape({
+				type: "path",
+				stroke: {
+					weight: 1,
+					color: "#000",
+					opacity: 1,
+					dashstyle: [3, 4]
+				}
+            }),
+            diamond1 = mygraphic.addShape({
+                type: "path",
+                stroke: {
+                    weight: 1,
+                    color: "#000"
+                },
+                fill: {
+                    color: "#f00"
+                }
+            }),
+            diamond2 = mygraphic.addShape({
+                type: "path",
+                stroke: {
+                    weight: 1,
+                    color: "#000"
+                },
+                fill: {
+                    color: "#f00"
+                }
+            });
+
+            diamond1.moveTo(60, 60);
+            diamond1.lineTo(80, 40);
+            diamond1.lineTo(100, 60);
+            diamond1.lineTo(80, 80);
+            diamond1.lineTo(60, 60);
+            diamond1.end();
+
+			connector.moveTo(100, 60);
+            connector.lineTo(450, 220);
+            connector.end();
+
+            diamond2.moveTo(450, 220);
+            diamond2.lineTo(470, 200);
+            diamond2.lineTo(490, 220);
+            diamond2.lineTo(470, 240);
+            diamond2.lineTo(450, 220);
+            diamond2.end();
+    });
+</script>
+
+</div>
+
+<h2>HTML</h2>
+<pre class="code prettyprint">&lt;div id=&quot;mygraphiccontainer&quot;&gt;&lt;&#x2F;div&gt;</pre>
+
+
+<h2>CSS</h2>
+<pre class="code prettyprint">#mygraphiccontainer {
+    position: relative;
+    width: 700px;
+    height:300px;
+}</pre>
+
+
+<h2>Javascript</h2>
+<p>Create a <code>Graphic</code> instance.</p>
+<pre class="code prettyprint">var mygraphic = new Y.Graphic({render:&quot;#mygraphiccontainer&quot;});</pre>
+
+
+<p>Create two path elements for end shapes. Give each a red fill and a black stroke.</p>
+
+<pre class="code prettyprint">var diamond1 = mygraphic.addShape({
+        type: &quot;path&quot;,
+        stroke: {
+            weight: 1,
+            color: &quot;#000&quot;
+        },
+        fill: {
+            color: &quot;#f00&quot;
+        }
+    });
+
+var diamond2 = mygraphic.addShape({
+        type: &quot;path&quot;,
+        stroke: {
+            weight: 1,
+            color: &quot;#000&quot;
+        },
+        fill: {
+            color: &quot;#f00&quot;
+        }
+    });</pre>
+
+<p>Create a path for the connecting segment. Give it a black dashed stroke and no fill. The <code>dashstyle</code> property of the stroke attribute allows for the creation of a dashed stroke. The first value is 
+the length of the dash and the second value is the gap space between dashes.</p>
+<pre class="code prettyprint">var connector = mygraphic.addShape({
+        type: &quot;path&quot;,
+        stroke: {
+            weight: 1,
+            color: &quot;#000&quot;,
+            opacity: 1,
+            dashstyle: [3, 4]
+        }
+    });</pre>
+
+<p>Draw the first diamond.</p>
+
+<pre class="code prettyprint">diamond1.moveTo(60, 60);
+diamond1.lineTo(80, 40);
+diamond1.lineTo(100, 60);
+diamond1.lineTo(80, 80);
+diamond1.lineTo(60, 60);
+diamond1.end();</pre>
+
+<p>Draw the connector segment.</p>
+<pre class="code prettyprint">connector.moveTo(100, 60);
+connector.lineTo(450, 220);
+connector.end();</pre>
+
+
+<p>Draw the second diamond.</p>
+<pre class="code prettyprint">diamond2.moveTo(450, 220);
+diamond2.lineTo(470, 200);
+diamond2.lineTo(490, 220);
+diamond2.lineTo(470, 240);
+diamond2.lineTo(450, 220);
+diamond2.end();</pre>
+
+<h2>Complete Example Source</h2>
+<pre class="code prettyprint">&lt;div id=&quot;mygraphiccontainer&quot;&gt;&lt;&#x2F;div&gt;
+&lt;script&gt;
+    YUI().use(&#x27;graphics&#x27;, function (Y) 
+    { 
+        var mygraphic = new Y.Graphic({render: &quot;#mygraphiccontainer&quot;}),
+            connector = mygraphic.addShape({
+				type: &quot;path&quot;,
+				stroke: {
+					weight: 1,
+					color: &quot;#000&quot;,
+					opacity: 1,
+					dashstyle: [3, 4]
+				}
+            }),
+            diamond1 = mygraphic.addShape({
+                type: &quot;path&quot;,
+                stroke: {
+                    weight: 1,
+                    color: &quot;#000&quot;
+                },
+                fill: {
+                    color: &quot;#f00&quot;
+                }
+            }),
+            diamond2 = mygraphic.addShape({
+                type: &quot;path&quot;,
+                stroke: {
+                    weight: 1,
+                    color: &quot;#000&quot;
+                },
+                fill: {
+                    color: &quot;#f00&quot;
+                }
+            });
+
+            diamond1.moveTo(60, 60);
+            diamond1.lineTo(80, 40);
+            diamond1.lineTo(100, 60);
+            diamond1.lineTo(80, 80);
+            diamond1.lineTo(60, 60);
+            diamond1.end();
+
+			connector.moveTo(100, 60);
+            connector.lineTo(450, 220);
+            connector.end();
+
+            diamond2.moveTo(450, 220);
+            diamond2.lineTo(470, 200);
+            diamond2.lineTo(490, 220);
+            diamond2.lineTo(470, 240);
+            diamond2.lineTo(450, 220);
+            diamond2.end();
+    });
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Shows how to create a Graphic instance and add shapes.">
+                                            <a href="graphics-simple.html">Basic Graphics Implementation</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to draw lines and polygons.">
+                                            <a href="graphics-path.html">Basic Path</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to create linear and radial gradient fills.">
+                                            <a href="graphics-gradients.html">Create Gradient Fills</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to add drag to a shape.">
+                                            <a href="graphics-drag.html">Basic drag with graphic object</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to apply transforms to shape.">
+                                            <a href="graphics-transforms.html">Using Transforms</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to use a custom shape with the Graphics module.">
+                                            <a href="graphics-customshape.html">Custom Shape</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows to use the graphics api to draw a realistic glass.">
+                                            <a href="graphics-muddyglass.html">Transparent Glass with Shadow</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Shows to use the graphics api to draw a violin.">
+                                            <a href="graphics-violin.html">Complex Drawing: Violin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates animating an element along a curved path using bezier control points.">
+                                            <a href="../anim/curve.html">Animating Along a Curved Path</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

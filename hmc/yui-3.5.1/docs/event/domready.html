@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>DOM Lifecycle Events</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>DOM Lifecycle Events</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>The <code>event-base</code> module includes three special events that can be used to execute code as soon as the DOM, or certain elements in the DOM tree, are ready to be scripted.</p>
+
+    <p>Because all of these events are designed to target elements that aren't present or parsed yet, <strong>you must use <code>Y.on(...)</code> to subscribe to them</strong>.  <code>Y.one(&#x27;#notHereYet&#x27;)</code> will return <code>null</code>, and you can't do much with <code>null</code>.</p>
+
+    <p>Be sure to read <a href="#caveat">the final note on this page</a> about performance.</p>
+</div>
+
+<h2 id="domready"><code>domready</code></h2>
+
+<pre class="code prettyprint">&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot;&gt;
+    &lt;title&gt;domready&lt;&#x2F;title&gt;
+    &lt;script src=&quot;...yui-min.js&quot;&gt;&lt;&#x2F;script&gt;
+    &lt;script&gt;
+    YUI().use(&#x27;event-base&#x27;, function (Y) {
+        var notHereYet = Y.one(&#x27;#readygo&#x27;); &#x2F;&#x2F; null
+
+        Y.on(&#x27;domready&#x27;, function () {
+            Y.one(&#x27;#readygo&#x27;).on(&#x27;click&#x27;, function () {
+                Y.log(&#x27;This works fine, before the images are loaded&#x27;);
+            });
+        });
+    });
+    &lt;&#x2F;script&gt;
+&lt;&#x2F;head&gt;
+&lt;body&gt;
+    ... lots of markup including images and stuff
+    &lt;button id=&quot;readygo&quot;&gt;Go!&lt;&#x2F;button&gt;
+&lt;&#x2F;body&gt;
+&lt;&#x2F;html&gt;</pre>
+
+
+<p>Modern browsers support an event that signals when the markup has been
+completely parsed and the DOM tree is built.  This event happens before the
+window's <code>load</code> event, which fires when all images and other resources have
+been fetched.  For setting up event subscriptions and core page interactivity,
+it's usually enough that all DOM elements are available, regardless of their
+loading state.</p>
+
+<p>The <code>domready</code> event abstracts over the patchwork necessary for browsers without a native "domready" event.</p>
+
+<p>Note the subscription signature does not include a target, only the event name and callback.</p>
+
+<h2 id="contentready"><code>contentready</code></h2>
+
+<pre class="code prettyprint">&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot;&gt;
+    &lt;title&gt;contentready&lt;&#x2F;title&gt;
+    &lt;script src=&quot;...yui-min.js&quot;&gt;&lt;&#x2F;script&gt;
+    &lt;script&gt;
+    YUI().use(&#x27;event-base&#x27;, function (Y) {
+        var notHereYet = Y.one(&#x27;#list&#x27;); &#x2F;&#x2F; null
+
+        function addItem() {
+            &#x2F;&#x2F; children of #todo are in the DOM tree
+            this.one(&#x27;ul&#x27;).append(&#x27;&lt;li&gt;This will be four&lt;&#x2F;li&gt;&#x27;);
+        }
+
+        Y.on(&#x27;contentready&#x27;, addItem, &#x27;#todo&#x27;);
+    });
+    &lt;&#x2F;script&gt;
+&lt;&#x2F;head&gt;
+&lt;body&gt;
+    ... lots of markup including images and stuff
+    &lt;div id=&quot;todos&quot;&gt;
+        &lt;ul&gt;
+            &lt;li&gt;one&lt;&#x2F;li&gt;
+            &lt;li&gt;two&lt;&#x2F;li&gt;
+            &lt;li&gt;three&lt;&#x2F;li&gt;
+        &lt;&#x2F;ul&gt;
+    &lt;&#x2F;div&gt;
+    ... more markup
+&lt;&#x2F;body&gt;
+&lt;&#x2F;html&gt;</pre>
+
+
+<p>You may want to script some nodes that are in the middle of the page markup inside a specific containing element.  You just need to know that the container and its children have been parsed from markup and added to the DOM tree.  But you don't want to wait for the entire DOM tree to finish.  That's what the <code>contentready</code> event is for.</p>
+
+<p>YUI will check the DOM periodically, looking for an element matching the selector passed as the the third argument.  When it finds one and can verify that that element's children are also in the DOM tree, it will execute the callback.</p>
+
+<p>Callbacks will be executed with <code>this</code> assigned to the Node matching the selector.</p>
+
+<h2 id="available"><code>available</code></h2>
+
+<pre class="code prettyprint">&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot;&gt;
+    &lt;title&gt;available&lt;&#x2F;title&gt;
+    &lt;script src=&quot;...yui-min.js&quot;&gt;&lt;&#x2F;script&gt;
+    &lt;script&gt;
+    YUI().use(&#x27;event-hover&#x27;, function (Y) {
+        var notHereYet = Y.one(&#x27;#highlight-me&#x27;); &#x2F;&#x2F; null
+
+        function over() {
+            this.addClass(&quot;over&quot;);
+        }
+        function out() {
+            this.removeClass(&quot;over&quot;);
+        }
+
+        function addSubscribers() {
+            this.on(&#x27;hover&#x27;, over, out);
+        }
+
+        Y.on(&#x27;available&#x27;, addSubscribers, &#x27;#highlight-me&#x27;);
+    });
+    &lt;&#x2F;script&gt;
+&lt;&#x2F;head&gt;
+&lt;body&gt;
+    ... lots of markup including images and stuff
+    &lt;div id=&quot;highlight-me&quot;&gt;
+        ... stuff that doesn&#x27;t need to be ready
+    &lt;&#x2F;div&gt;
+    ... more markup
+&lt;&#x2F;body&gt;
+&lt;&#x2F;html&gt;</pre>
+
+
+<p>The <code>available</code> event is almost identical to <a href="#contentready"><code>contentready</code></a> except it does not wait for children of the matching element to be ready.  If your code only needs to reference the targeted Node, not any of its children, use <code>available</code> instead of <code>contentready</code>.</p>
+
+<h2 id="caveat">Just put your &lt;script&gt; tags at the bottom</h2>
+
+<p>You might not need to use any of these events, and maybe you shouldn't.</p>
+
+<p>It is always safe to script nodes defined in the markup above the JavaScript that references it.  In practice, if you have the option, it is preferable to move &lt;script&gt; tags below the markup that it needs in place, and often it is best to simply <a href="http://developer.yahoo.com/blogs/ydn/posts/2007/07/high_performanc_5/">move scripts to the bottom of the page</a>.</p>
+
+<pre class="code prettyprint">&lt;div id=&quot;stuff-i-need&quot;&gt;
+    ...
+&lt;&#x2F;div&gt;
+&lt;script&gt;
+&#x2F;&#x2F; Scripts below markup can access the DOM elements above
+YUI().use(&#x27;node&#x27;, function (Y) {
+    Y.one(&#x27;#stuff-i-need&#x27;, function () {
+        Y.log(&#x27;This will always work&#x27;);
+    });
+});
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#domready"><code>domready</code></a>
+</li>
+<li>
+<a href="#contentready"><code>contentready</code></a>
+</li>
+<li>
+<a href="#available"><code>available</code></a>
+</li>
+<li>
+<a href="#caveat">Just put your &lt;script&gt; tags at the bottom</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Use the Event Utility to attach simple DOM event handlers.">
+                                            <a href="basic-example.html">Simple DOM Events</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using the synthetic event API to create a DOM event that fires in response to arrow keys being pressed.">
+                                            <a href="synth-example.html">Creating an Arrow Event for DOM Subscription</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Supporting cross-device swipe gestures, using the event-move gesture events">
+                                            <a href="swipe-example.html">Supporting A Swipe Left Gesture</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Shows how to extend the base widget class, to create your own Widgets.">
+                                            <a href="../widget/widget-extend.html">Extending the Base Widget Class</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible menu button using the Focus Manager Node Plugin, Event&#x27;s delegation support and mouseenter event, along with the Overlay widget and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="../node-focusmanager/node-focusmanager-3.html">Accessible Menu Button</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use IO to request data over HTTP.">
+                                            <a href="../io/get.html">HTTP GET to request data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Example Photo Browser application.">
+                                            <a href="../dd/photo-browser.html">Photo Browser</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Portal style example using Drag &amp; Drop Event Bubbling and Animation.">
+                                            <a href="../dd/portal-drag.html">Portal Style Example</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

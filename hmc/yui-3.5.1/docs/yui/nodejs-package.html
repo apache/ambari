@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Packaging a YUI script with npm</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Packaging a YUI script with npm</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>
+        This example will guide you through the recommended way to package a YUI module as
+        an exportable package with <code>npm</code> on Node.js.
+    </p>
+</div>
+
+
+<h2 id="why-package">Why Package?</h2>
+
+<p>
+    Packaging up your scripts with <code>npm</code> makes them usable by others so they can benefit from
+    all your hard work. There's nothing quite like having others use something you worked hard
+    to create. So, why not make using your code as easy as possible?
+</p>
+
+<h2 id="how-to-create-a-usable-package">How to Create a Usable Package</h2>
+
+<p>
+    There are 2 primary ways a Node.js user could use your YUI module, below we will discuss both
+    ways as well as how to package up your code so they can both be available to your end user.
+</p>
+
+<h3 id="setting-up-the-package">Setting up the Package</h3>
+
+<p>First we need to set up the code so we can package it up all nice and neat.</p>
+
+<p>We are going to use this simple version of a module in this example:</p>
+
+<pre class="code prettyprint">YUI.add(&#x27;my-module&#x27;, function(Y) {
+    Y.MyModule = function() {
+        Y.log(&#x27;Here&#x27;);
+    };
+});</pre>
+
+<p>This file will be saved as <code>module.js</code> in a directory all by itself.</p>
+<p>Next we create a <code>package.json</code> file that describes our Node.js package:</p>
+
+<pre class="code prettyprint">{
+    &quot;version&quot;: &quot;0.1.0&quot;,
+    &quot;name&quot;: &quot;my-yui-module&quot;,
+    &quot;description&quot;: &quot;My YUI Module&quot;,
+    &quot;dependencies&quot;: {
+        &quot;yui&quot;: &quot;*&quot;
+    },
+    &quot;main&quot;: &quot;.&#x2F;index.js&quot;
+}</pre>
+
+<p><strong>Note that we are using <code>index.js</code> here as our main script and not <code>module.js</code>, <code>index.js</code> will be created below.</strong></p>
+
+<p>Your <code>index.js</code> file is the main file in your <code>npm</code> package, it's the file that executed when your module
+is <code>required</code>. We need to make a special <code>index.js</code> file that will load YUI and <code>use</code> our module.</p>
+
+<h3 id="the-all-in-one-package">The All in One Package</h3>
+
+<p>
+    In this example, we will export our module as a working YUI instance. So when the user <code>requires</code> our
+    module they get all of YUI with it too. Here's the <code>index.js</code> file used in this case:
+</p>
+
+<pre class="code prettyprint">var path = require(&#x27;path&#x27;);
+
+&#x2F;&#x2F;setup our custom modules meta-data
+var meta = {
+    &#x27;my-module&#x27;: {
+        requires: [ &#x27;yql&#x27; ],
+        &#x2F;&#x2F;Give it a full path on the file system
+        fullpath: path.join(__dirname, &#x27;module.js&#x27;)
+    }
+};
+
+module.exports = {
+    module: function() {
+        var inst = require(&#x27;yui&#x27;).getInstance();
+        inst.applyConfig({useSync: true, modules:  meta });
+        return inst.use(Object.keys(meta));
+    }
+};</pre>
+
+
+<p>
+    This setup allows the user to do this:
+</p>
+
+<pre class="code prettyprint">var mod = require(&#x27;my-yui-module&#x27;).module();
+mod.MyModule();
+mod.YQL(&#x27;select * from ...&#x27;);</pre>
+
+
+<p>
+    At this point <code>mod</code> will be a YUI instance containing <code>my-module</code> and all of it's dependencies (<code>yql</code>, <code>jsonp</code>).
+    This will allow you to create a module that the end user doesn't even have to that YUI is there. Making it
+    easy for them to just <code>require</code> and run your module.
+</p>
+
+
+<h3 id="just-let-me-use-it">Just Let Me Use It</h3>
+
+<p>
+    The other type of user you want to deal with is the one that is already writing scripts with YUI
+    on Node.js and they want to use your module too. In this case you need to make your modules metadata
+    available so they can add it to their YUI instances. You can do this in your <code>index.js</code> to provide 
+    the metadata needed to load your module.
+</p>
+
+<pre class="code prettyprint">var path = require(&#x27;path&#x27;);
+
+&#x2F;&#x2F;setup our custom modules meta-data
+var meta = {
+    &#x27;my-module&#x27;: {
+        requires: [ &#x27;yql&#x27; ],
+        &#x2F;&#x2F;Give it a full path on the file system
+        fullpath: path.join(__dirname, &#x27;module.js&#x27;)
+    }
+};
+
+module.exports = {
+    metadata: function() {
+        return meta;
+    }
+}</pre>
+
+
+<p>
+    This will export the module metadata needed to allow <code>Loader</code> to load your module and
+    use it as if it was a native module.
+</p>
+
+<pre class="code prettyprint">var YUI = require(&#x27;yui&#x27;).YUI,
+var mod = require(&#x27;my-yui-module&#x27;);
+
+YUI({
+    &#x2F;&#x2F;Populating the modules config option
+    &#x2F;&#x2F;   with the metadata from the package
+    modules: mod.metadata()
+}).use(&#x27;my-module&#x27;, function(Y) {
+    Y.MyModule();
+    Y.YQL(&#x27;select * from ...&#x27;);
+});</pre>
+
+
+
+<h2 id="putting-them-all-together">Putting Them All Together</h2>
+
+<p>
+    Now that we have them individually covered, let's put them together so you have one
+    package that now works for both types of use cases. Here is the complete <code>index.js</code>
+    file.
+</p>
+
+<pre class="code prettyprint">var path = require(&#x27;path&#x27;);
+
+&#x2F;&#x2F;setup our custom modules meta-data
+var meta = {
+    &#x27;my-module&#x27;: {
+        requires: [ &#x27;yql&#x27; ],
+        &#x2F;&#x2F;Give it a full path on the file system
+        fullpath: path.join(__dirname, &#x27;module.js&#x27;)
+    }
+};
+
+module.exports = {
+    &#x2F;**
+    * Calling this method will create and return a YUI instance
+    * with the modules in the meta data attached.
+    * @method module
+    * @return YUI
+    *&#x2F;
+    module: function() {
+        var inst = require(&#x27;yui&#x27;).getInstance();
+        inst.applyConfig({useSync: true, modules:  meta });
+        return inst.use(Object.keys(meta));
+    },
+    &#x2F;**
+    * Calling this method will return the modules meta data
+    * so that it can be passed to the YUI constructor.
+    * @method metadata
+    * @return Object
+    *&#x2F;
+    metadata: function() {
+        return meta;
+    }
+}</pre>
+
+
+<p>Now that we have our <code>index.js</code> file ready to go, we can now include our package and use it both ways.</p>
+
+<pre class="code prettyprint">#!&#x2F;usr&#x2F;bin&#x2F;env node
+
+var mod = require(&#x27;my-yui-module&#x27;);
+mod.MyModule();
+mod.YQL(&#x27;select * from ...&#x27;);
+
+&#x2F;&#x2F; OR
+
+var YUI = require(&#x27;yui&#x27;).YUI;
+
+YUI({
+    modules: mod.metadata()
+}).use(&#x27;my-module&#x27;, function(Y) {
+    Y.MyModule();
+    Y.YQL(&#x27;select * from ...&#x27;);
+});</pre>
+
+
+<p>
+    Using this method to setup your YUI module, you can now publish your module to <code>npm</code> and 
+    share it with others.
+</p>
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#why-package">Why Package?</a>
+</li>
+<li>
+<a href="#how-to-create-a-usable-package">How to Create a Usable Package</a>
+<ul class="toc">
+<li>
+<a href="#setting-up-the-package">Setting up the Package</a>
+</li>
+<li>
+<a href="#the-all-in-one-package">The All in One Package</a>
+</li>
+<li>
+<a href="#just-let-me-use-it">Just Let Me Use It</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#putting-them-all-together">Putting Them All Together</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Using YUI with a DOM in Node.js">
+                                            <a href="nodejs-dom.html">YUI, Node.js and DOM</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Packaging a YUI script with npm">
+                                            <a href="nodejs-package.html">Packaging a YUI script with npm</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using Y.io in Node.js">
+                                            <a href="nodejs-io.html">Using Y.io in Node.js</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

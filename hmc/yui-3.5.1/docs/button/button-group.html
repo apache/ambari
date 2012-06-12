@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Managing groups of buttons with button-group</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Managing groups of buttons with button-group</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><link rel="stylesheet" href='../../build/cssbutton/cssbutton.css'></link>
+<div class="intro">
+    <p>In this example, we'll look at a few ways to create groups of buttons using the <code>&#x27;button-group&#x27;</code> module.</p>
+</div>
+
+<div class="example">
+    <div class='yui3-skin-sam'>
+    <div id='checkboxContainer'>
+        <h2 id="checkbox-group">Checkbox Group</h2>
+        <button class='checkbox'>Button 1</button>
+        <button class='checkbox'>Button 2</button>
+        <button class='checkbox'>Button 3</button>
+    </div>
+
+    <div id='radioContainer'>
+        <h2 id="radio-group">Radio Group</h2>
+        <button class='radio'>Button A</button>
+        <button class='radio'>Button B</button>
+        <button class='radio'>Button C</button>
+    </div>
+</div>
+
+    <script>
+    YUI().use('button-group', function(Y){
+
+    // A group of checkbox-like buttons
+    var buttonGroupCB = new Y.ButtonGroup({
+        srcNode: '#checkboxContainer',
+        type: 'checkbox',
+        on: {
+            'selectionChange': function(e){
+                var selection = buttonGroupCB.getSelectedButtons();
+                Y.log('buttonGroup2 selected count = ' + selection.length);
+            }
+        }
+    }).render();
+
+
+    // A group of radio-like buttons
+    var buttonGroupRadio = new Y.ButtonGroup({
+        srcNode: '#radioContainer',
+        type: 'radio'
+    })
+    
+    buttonGroupRadio.render();
+
+    buttonGroupRadio.on('selectionChange', function(e){
+        Y.log('buttonGroup selection changed');
+    });
+
+});
+    </script>
+</div>
+
+<h4 id="source-html">Source: HTML</h4>
+<pre class="code prettyprint">&lt;div class=&#x27;yui3-skin-sam&#x27;&gt;
+    &lt;div id=&#x27;checkboxContainer&#x27;&gt;
+        &lt;h2&gt;Checkbox Group&lt;&#x2F;h2&gt;
+        &lt;button class=&#x27;checkbox&#x27;&gt;Button 1&lt;&#x2F;button&gt;
+        &lt;button class=&#x27;checkbox&#x27;&gt;Button 2&lt;&#x2F;button&gt;
+        &lt;button class=&#x27;checkbox&#x27;&gt;Button 3&lt;&#x2F;button&gt;
+    &lt;&#x2F;div&gt;
+
+    &lt;div id=&#x27;radioContainer&#x27;&gt;
+        &lt;h2&gt;Radio Group&lt;&#x2F;h2&gt;
+        &lt;button class=&#x27;radio&#x27;&gt;Button A&lt;&#x2F;button&gt;
+        &lt;button class=&#x27;radio&#x27;&gt;Button B&lt;&#x2F;button&gt;
+        &lt;button class=&#x27;radio&#x27;&gt;Button C&lt;&#x2F;button&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;</pre>
+
+<h4 id="source-javascript">Source: JavaScript</h4>
+<pre class="code prettyprint">YUI().use(&#x27;button-group&#x27;, function(Y){
+
+    &#x2F;&#x2F; A group of checkbox-like buttons
+    var buttonGroupCB = new Y.ButtonGroup({
+        srcNode: &#x27;#checkboxContainer&#x27;,
+        type: &#x27;checkbox&#x27;,
+        on: {
+            &#x27;selectionChange&#x27;: function(e){
+                var selection = buttonGroupCB.getSelectedButtons();
+                Y.log(&#x27;buttonGroup2 selected count = &#x27; + selection.length);
+            }
+        }
+    }).render();
+
+
+    &#x2F;&#x2F; A group of radio-like buttons
+    var buttonGroupRadio = new Y.ButtonGroup({
+        srcNode: &#x27;#radioContainer&#x27;,
+        type: &#x27;radio&#x27;
+    })
+    
+    buttonGroupRadio.render();
+
+    buttonGroupRadio.on(&#x27;selectionChange&#x27;, function(e){
+        Y.log(&#x27;buttonGroup selection changed&#x27;);
+    });
+
+});</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#checkbox-group">Checkbox Group</a>
+</li>
+<li>
+<a href="#radio-group">Radio Group</a>
+<ul class="toc">
+<li>
+<a href="#source-html">Source: HTML</a>
+</li>
+<li>
+<a href="#source-javascript">Source: JavaScript</a>
+</li>
+</ul>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="This example shows how you can easily style button and non-button DOM elements to appear as buttons">
+                                            <a href="cssbutton.html">Styling elements with cssbutton</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example shows a simple, light solution to enhance &lt;button&gt; nodes">
+                                            <a href="button-plugin.html">Enhancing &lt;button&gt; nodes with button-plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to create button widgets">
+                                            <a href="button.html">Basic button widgets</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to create a widget containing a group of buttons">
+                                            <a href="button-group.html">Managing groups of buttons with button-group</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

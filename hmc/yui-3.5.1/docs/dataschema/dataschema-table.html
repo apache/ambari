@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: DataSchema.XML for HTML Tables</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: DataSchema.XML for HTML Tables</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+    <p>DataSchema.XML can be used to retrieve data held in HTML TABLE elements.</p>
+</div>
+
+<div class="example yui3-skin-sam">
+    <style scoped>
+/* custom styles for this example */
+#demo .output {margin-bottom:1em; padding:10px; border:1px solid #D9D9D9;}
+#complex tbody, #complex thead {
+    border:3px solid #CCC;
+}
+</style>
+
+<form id="demo">
+    <h4>Simple Table</h4>
+    <h6>Data</h6>
+
+    <table id="simple">
+    <tr>
+        <td>coffee</td>
+        <td>1.25</td>
+    </tr>
+    <tr>
+        <td>juice</td>
+        <td>2.00</td>
+    </tr>
+    <tr>
+        <td>tea</td>
+        <td>1.25</td>
+    </tr>
+    <tr>
+        <td>soda</td>
+        <td>1.00</td>
+    </tr>
+    </table>
+
+    
+    <h6>Schema</h6>
+    <pre>
+{
+    // Each record is held in a TR
+    resultListLocator: "tr",
+    // Note that the XPath indexes are 1-based!
+    resultFields: [{key:"beverage", locator:"td[1]"}, {key:"price", locator:"td[2]"}]
+}
+    </pre>
+
+    <h6>Normalized data</h6>
+    <input type="button" id="demo_apply_basic" value="Apply schema =>">
+    <div id="demo_output_basic" class="output"></div>
+
+    <h4>Complex table</h4>
+    <h6>Data</h6>
+
+    <table id="complex">
+    <thead>
+        <tr>
+            <th>item</th>
+            <th>price</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>hamburger</td>
+            <td>4.00</td>
+        </tr>
+        <tr>
+            <td>cheeseburger</td>
+            <td>4.50</td>
+        </tr>
+        <tr>
+            <td>veggie burger</td>
+            <td>4.00</td>
+        </tr>
+        <tr>
+            <td>salmon burger</td>
+            <td>5.00</td>
+        </tr>
+    </tbody>
+    <tbody>
+        <tr>
+            <td>french fries</td>
+            <td>1.50</td>
+        </tr>
+        <tr>
+            <td>onion rings</td>
+            <td>2.00</td>
+        </tr>
+        <tr>
+            <td>fruit salad</td>
+            <td>2.50</td>
+        </tr>
+        <tr>
+            <td>side salad</td>
+            <td>2.00</td>
+        </tr>
+    </tbody>
+    <tbody>
+        <tr>
+            <td>coffee</td>
+            <td>1.25</td>
+        </tr>
+        <tr>
+            <td>juice</td>
+            <td>2.00</td>
+        </tr>
+        <tr>
+            <td>tea</td>
+            <td>1.25</td>
+        </tr>
+        <tr>
+            <td>soda</td>
+            <td>1.00</td>
+        </tr>
+    </tbody>
+    </table>
+
+    <h6>Schema</h6>
+    <pre>
+// This schema is dynamically generated
+{
+    // Each record is held in a TR
+    resultListLocator: "tr",
+    // Note that the XPath indexes are 1-based!
+    resultFields: [{key:"beverage", locator:"td[1]"}, {key:"price", locator:"td[2]"}]
+}
+    </pre>
+
+    <h6>Normalized data</h6>
+    <input type="button" id="demo_apply_complex" value="Apply schema =>">
+    <div id="demo_output_complex" class="output"></div>
+</form>
+
+
+<script>
+YUI().use("dump", "node", "datatype-xml", "dataschema-xml", function (Y) {
+    Y.on("click", function(e){
+        var tableEl = Y.Node.getDOMNode(Y.one("#simple")),
+            schema = {
+                // Each record is held in a TR
+                resultListLocator: "tr",
+                // Note that the XPath indexes are 1-based!
+                resultFields: [{key:"beverage", locator:"td[1]"}, {key:"price", locator:"td[2]"}]
+            };
+        Y.one("#demo_output_basic").setContent(Y.dump(Y.DataSchema.XML.apply(schema, tableEl)));
+    }, "#demo_apply_basic");
+
+
+    Y.on("click", function(e){
+        // This function generates a schema based on contents of a TABLE element
+        var getSchemaFromTableNode = function(tableNode) {
+            var fields = [],
+                // Each record is held in a TR
+                schema = {resultListLocator:"tr"},
+                // Each field name is held in a TH
+                thList = tableNode.all("th");
+                
+            // Generate field definitions based on TH
+            thList.each(function(thNode, i){
+                // Note that the XPath indexes are 1-based!
+                fields.push({key:thNode.get("text"), locator:"td["+(i+1)+"]"});
+            });
+            schema.resultFields = fields;
+            return schema;
+        };
+        
+        var tableNode = Y.one("#complex"),
+            // Generate schema dynamically
+            schema = getSchemaFromTableNode(tableNode),
+            // Create a temporary TBODY container to hold all data TRs
+            tbody = document.createElement("tbody"),
+            tbodyContainer = document.createDocumentFragment().appendChild(tbody);
+
+        // Grab each TR in a TBODY but don't include TRs from the THEAD
+        Y.all("#complex tbody tr").each(function(trNode, i){
+            // Cloning the TR keeps it in the document (optional)
+            // Append each TR to the container
+            tbodyContainer.appendChild(Y.Node.getDOMNode(trNode).cloneNode(true));
+        })
+
+        Y.one("#demo_output_complex").setContent(Y.dump(Y.DataSchema.XML.apply(schema, tbodyContainer)));
+    }, "#demo_apply_complex");
+});
+</script>
+
+</div>
+
+<p>DataSource.XML's <code>apply()</code> method supports passing in DOM nodes or document fragments. Use XPath strings to define data locations. In this example, we are retrieving data held in the rows of a TABLE element.</p>
+
+<pre class="code prettyprint">YUI().use(&quot;dataschema-xml&quot;, function(Y) {
+    var tableEl = Y.Node.getDOMNode(Y.one(&quot;#simple&quot;)),
+        schema = {
+            &#x2F;&#x2F; Each record is held in a TR
+            resultListLocator: &quot;tr&quot;,
+            &#x2F;&#x2F; Note that the XPath indexes are 1-based!
+            resultFields: [
+                {key:&quot;beverage&quot;, locator:&quot;td[1]&quot;},
+                {key:&quot;price&quot;, locator:&quot;td[2]&quot;}
+            ]
+        },
+        data_out = Y.DataSchema.XML.apply(schema, tableEl);
+
+    alert(data_out);
+});</pre>
+
+
+<p>If the table has a THEAD element and/or multiple TBODY elements, special considerations must be taken to apply the schema to the appropriate collection of TR elements. In the following complex example we leverage the power of the Node API to</p>
+
+<ul>
+    <li>Access the contents of the THEAD to generate our schema dynamically;</li>
+    <li>and access only the TR elements contained in TBODY elements for data values, ignoring those TR elements in the THEAD.</li>
+</ul>
+
+<pre class="code prettyprint">YUI().use(&quot;dataschema-xml&quot;, function(Y) {
+    &#x2F;&#x2F; This function generates a schema based on contents of a TABLE element
+    var getSchemaFromTableNode = function(tableNode) {
+        var fields = [],
+            &#x2F;&#x2F; Each record is held in a TR
+            schema = {resultListLocator:&quot;tr&quot;},
+            &#x2F;&#x2F; Each field name is held in a TH
+            thList = tableNode.all(&quot;th&quot;);
+
+        &#x2F;&#x2F; Generate field definitions based on TH
+        thList.each(function(thNode, i){
+            &#x2F;&#x2F; Note that the XPath indexes are 1-based!
+            fields.push({key:thNode.get(&quot;text&quot;), locator:&quot;td[&quot;+(i+1)+&quot;]&quot;});
+        });
+        schema.resultFields = fields;
+        return schema;
+    };
+
+    var tableNode = Y.one(&quot;#complex&quot;),
+        &#x2F;&#x2F; Generate schema dynamically
+        schema = getSchemaFromTableNode(tableNode),
+        &#x2F;&#x2F; Create a temporary TBODY container to hold all data TRs
+        tbody = document.createElement(&quot;tbody&quot;),
+        tbodyContainer = document.createDocumentFragment().appendChild(tbody);
+
+    &#x2F;&#x2F; Grab each TR in a TBODY but don&#x27;t include TRs from the THEAD
+    Y.all(&quot;#complex tbody tr&quot;).each(function(trNode, i){
+        &#x2F;&#x2F; Cloning the TR keeps it in the document (optional)
+        &#x2F;&#x2F; Append each TR to the container
+        tbodyContainer.appendChild(Y.Node.getDOMNode(trNode).cloneNode(true));
+    })
+
+    var data_out = Y.DataSchema.XML.apply(schema, tbodyContainer);
+
+    alert(data_out);
+});</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Schema parsing a JavaScript array.">
+                                            <a href="dataschema-array.html">DataSchema.Array</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Schema parsing JSON data.">
+                                            <a href="dataschema-json.html">DataSchema.JSON</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Schema parsing XML data.">
+                                            <a href="dataschema-xml.html">DataSchema.XML for XML Data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Schema parsing data held in TABLE elements.">
+                                            <a href="dataschema-table.html">DataSchema.XML for HTML Tables</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Schema parsing delimited plain-text data.">
+                                            <a href="dataschema-text.html">DataSchema.Text</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Parsing data into specified types as the schema is being applied.">
+                                            <a href="dataschema-parsing.html">Enforcing DataTypes</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="The Local DataSource manages retrieval of in-page data, from JavaScript arrays and objects to DOM elements.">
+                                            <a href="../datasource/datasource-local.html">DataSource.Local</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The Get DataSource, which manages retrieval of data from remote sources via the Get Utility, can be useful for accessing data from cross-domain servers without the need for a proxy.">
+                                            <a href="../datasource/datasource-get.html">DataSource.Get</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The IO DataSource manages retrieval of data from remote sources, via the IO Utility.">
+                                            <a href="../datasource/datasource-io.html">DataSource.IO</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The Function DataSource, which manages retrieval of data from a JavaScript function, provides a highly customizeable mechanism for implementer-defined data retrieval algorithms">
+                                            <a href="../datasource/datasource-function.html">DataSource.Function</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Use the DataSourceCache plugin to enable caching and reduce server calls to remote sources.">
+                                            <a href="../datasource/datasource-caching.html">DataSource with Caching</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="The DataSourceCache plugin supports offline caching so that cached data persists across browser sessions.">
+                                            <a href="../datasource/datasource-offlinecache.html">DataSource with Offline Cache</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

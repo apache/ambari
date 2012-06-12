@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: DataTable + DataSource.Get + JSON Data</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: DataTable + DataSource.Get + JSON Data</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+/* custom styles for this example */
+.dt-example {margin:1em;}
+
+/* css to counter global site css */
+.dt-example th {text-transform:none;}
+.dt-example table {width:auto;}
+.dt-example caption {display:table-caption;}
+.notice {
+    background: #faf3d1;
+    border: 1px solid #eac9a9;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: px;
+    padding: 0 1em;
+    -moz-box-shadow: 0 0 5px #ccc8b3;
+    -webkit-box-shadow: 0 0 5px #ccc8b3;
+    box-shadow: 0 0 5px #ccc8b3;
+    margin-bottom: 1em;
+}
+</style>
+
+<div class="notice">
+    <p>
+        <strong>NOTICE</strong>: This example is for the <strong>deprecated
+        version of DataTable</strong>.  The components referred to here will be
+        removed in future versions of YUI</strong>.  If you are unable to
+        upgrade to <a href="../datatable/index.html">the latest DataTable
+        version</a> due to unresolvable feature conflicts from version 3.4.1 or
+        prior, please <a href="../../../projects/yui3/newticket/">file a
+        ticket</a>.
+    </p>
+</div>
+
+<div class="intro">
+    <p>This example shows how to populate a DataTable with data from the Yahoo! Local webservice retrieved via a YQL query. First we create a DataSource.Get instance pointing to YQL, then using the DataTableDataSource plugin we can load data for pizza places near our office.</p>
+
+    <p>In this example, we render the DataTable first, then load data into it in a separate call.</p>
+</div>
+
+<div class="example yui3-skin-sam">
+    <div id="pizza" class="yui3-skin-sam dt-example"></div>
+
+<script>
+YUI().use("datasource-get", "datasource-jsonschema", "datatable-base-deprecated", "datatable-datasource-deprecated", function (Y) {
+
+    var url = "http://query.yahooapis.com/v1/public/yql?format=json" +
+                  "&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys",
+        query = "&q=" + encodeURIComponent(
+            'select * from local.search ' +
+            'where zip = "94089" and query = "pizza"'),
+        dataSource,
+        table;
+
+    dataSource = new Y.DataSource.Get({ source: url });
+
+    dataSource.plug(Y.Plugin.DataSourceJSONSchema, {
+        schema: {
+            resultListLocator: "query.results.Result",
+            resultFields: [
+                "Title",
+                "Phone",
+                {
+                    key: "Rating.AverageRating",
+                    // YQL is returning "NaN" for unrated restaurants
+                    parser: function (val) {
+                        return isNaN(val) ? '(none)' : val;
+                    }
+                }
+            ]
+        }
+    });
+
+    table = new Y.DataTable.Base({
+        columnset: [
+            "Title",
+            "Phone",
+            { key:"Rating.AverageRating", label:"Rating" }
+        ],
+        summary: "Pizza places near 98089",
+        caption: "Table with JSON data from YQL"
+    });
+    
+    table.plug(Y.Plugin.DataTableDataSource, { datasource: dataSource });
+
+    table.render("#pizza");
+
+    table.datasource.load({ request: query });
+});
+</script>
+
+</div>
+
+<h2>Populating Your DataTable with Remote Data Using DataSource.Get</h2>
+
+<p>Your table can be easily popluated with remote JSON data from a JSONP webservice by creating a DataSource instance and using the DataTableDataSource plugin to load the data into a DataTable.</p>
+
+<p>Start with the <code>use()</code> statement:</p>
+
+<pre class="code prettyprint">YUI().use(&quot;datasource-get&quot;, &quot;datasource-jsonschema&quot;, &quot;datatable-datasource-deprecated&quot;, function(Y) {
+});</pre>
+
+
+<p>Next create a DataSource.Get instance pointing to YQL. The <a href="http://developer.yahoo.com/yql/console/">YQL Console</a> makes it easy to determine the REST URL we want to send. You also need to define the correct schema for the DataSourceJSONSchema plugin. This is a good time to call <code>sendRequest</code> to make sure the data returns as expected.</p>
+
+<pre class="code prettyprint">var dataSource = new Y.DataSource.Get({
+    source: &quot;http:&#x2F;&#x2F;query.yahooapis.com&#x2F;v1&#x2F;public&#x2F;yql?&quot;+
+        &quot;q=select%20*%20from%20local.search%20where%20zip%3D%2794089%27%20&quot;+
+        &quot;and%20query%3D%27pizza%27&amp;format=json&amp;&quot;+
+        &quot;env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&quot;
+});
+
+dataSource.plug(Y.Plugin.DataSourceJSONSchema, {
+    schema: {
+        resultListLocator: &quot;query.results.Result&quot;,
+        resultFields: [&quot;Title&quot;, &quot;Phone&quot;, &quot;Rating.AverageRating&quot;]
+    }
+});
+
+dataSource.sendRequest({
+    callback: {
+        success: function(e) {
+            Y.log(e);
+        }
+    }
+});</pre>
+
+
+<p>Now that the DataSource is created properly, define the columns that you want your table to show. These columns map directly to the parameter names returned in the data.</p>
+
+<pre class="code prettyprint">var cols = [
+    &quot;Title&quot;,
+    &quot;Phone&quot;,
+    { key: &quot;Rating.AverageRating&quot;, label: &quot;Rating&quot; }
+];</pre>
+
+
+<p>Now you are ready to create a DataTable using the columns you have defined. When you plug the instance with the DataTableDataSource plugin, point to your DataSource instance. After you render the table, load the data via the plugin.</p>
+
+<pre class="code prettyprint">var table = new Y.DataTable.Base({
+    columnset: cols,
+    summary:&quot;Pizza places near 98089&quot;,
+    caption:&quot;Table with JSON data from YQL&quot;
+});
+
+table.plug(Y.Plugin.DataTableDataSource, {
+    datasource: dataSource
+}).render(&quot;#pizza&quot;);
+
+table.datasource.load();</pre>
+
+
+<p>One final change you can make is to split the URL between the DataSource <code>source</code> value and the <code>request</code> value sent to the DataTableDataSource plugin. Splitting the URL this way facilitates making future requests to the same DataSource.  You can see this in the <a href="#fullcode">Full Code Listing</a> below.</p>
+
+<h2 id="fullcode">Full Code Listing</h2>
+
+<pre class="code prettyprint">&lt;div id=&quot;pizza&quot; class=&quot;yui3-skin-sam dt-example&quot;&gt;&lt;&#x2F;div&gt;
+
+&lt;script&gt;
+YUI().use(&quot;datasource-get&quot;, &quot;datasource-jsonschema&quot;, &quot;datatable-base-deprecated&quot;, &quot;datatable-datasource-deprecated&quot;, function (Y) {
+
+var url = &quot;http:&#x2F;&#x2F;query.yahooapis.com&#x2F;v1&#x2F;public&#x2F;yql?format=json&quot; +
+              &quot;&amp;env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&quot;,
+    query = &quot;&amp;q=&quot; + encodeURIComponent(
+        &#x27;select * from local.search &#x27; +
+        &#x27;where zip = &quot;94089&quot; and query = &quot;pizza&quot;&#x27;),
+    dataSource,
+    table;
+
+dataSource = new Y.DataSource.Get({ source: url });
+
+dataSource.plug(Y.Plugin.DataSourceJSONSchema, {
+    schema: {
+        resultListLocator: &quot;query.results.Result&quot;,
+        resultFields: [
+            &quot;Title&quot;,
+            &quot;Phone&quot;,
+            {
+                key: &quot;Rating.AverageRating&quot;,
+                &#x2F;&#x2F; YQL is returning &quot;NaN&quot; for unrated restaurants
+                parser: function (val) {
+                    return isNaN(val) ? &#x27;(none)&#x27; : val;
+                }
+            }
+        ]
+    }
+});
+
+table = new Y.DataTable.Base({
+    columnset: [
+        &quot;Title&quot;,
+        &quot;Phone&quot;,
+        { key:&quot;Rating.AverageRating&quot;, label:&quot;Rating&quot; }
+    ],
+    summary: &quot;Pizza places near 98089&quot;,
+    caption: &quot;Table with JSON data from YQL&quot;
+});
+
+table.plug(Y.Plugin.DataTableDataSource, { datasource: dataSource });
+
+table.render(&quot;#pizza&quot;);
+
+table.datasource.load({ request: query });
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="This example illustrates simple DataTable use cases.">
+                                            <a href="datatable-basic.html">Basic DataTable</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable loaded with JSON data from a remote webservice via DataSource.Get">
+                                            <a href="datatable-dsget.html">DataTable + DataSource.Get + JSON Data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable loaded with XML data from a remote webservice via DataSource.IO.">
+                                            <a href="datatable-dsio.html">DataTable + DataSource.IO + XML Data</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Custom format data for display.">
+                                            <a href="datatable-formatting.html">Formatting Row Data for Display</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable with nested column headers.">
+                                            <a href="datatable-nestedcols.html">Nested Column Headers</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable with column sorting.">
+                                            <a href="datatable-sort.html">Column Sorting</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="DataTable with vertical and/or horizontal scrolling rows.">
+                                            <a href="datatable-scroll.html">Scrolling DataTable</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

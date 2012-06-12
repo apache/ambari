@@ -1,0 +1,21 @@
+<link type="text/css" rel="stylesheet" href="../css/yuiCombined.css">
+<script src="../yui-3.5.1/build/yui/yui-min.js"></script>
+<script src="../js/ext/yuiCombined.js"></script>
+
+<script type="text/javascript">
+
+  var globalYui = YUI().use("*", function (Y) {
+
+    for (var jsFile in jsFilesToLoad) {
+      /* Load all the files in jsFilesToLoad in one shot. */
+      var dynamicJsScript = document.createElement("script");
+      dynamicJsScript.type = "text/javascript";
+      dynamicJsScript.src = '../' + jsFilesToLoad[jsFile];
+      dynamicJsScript.async = false;
+      document.getElementsByTagName("head")[0].appendChild(dynamicJsScript);
+    }
+  });
+
+  // disable console logging
+  globalYui.log = function () {};
+</script>

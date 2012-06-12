@@ -1,0 +1,948 @@
+{
+    "CPU": [
+        {
+            "description": "Percent of time since boot idle CPU", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=cpu_aidle", 
+            "title": "CPU AIdle", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=cpu_aidle"
+        }, 
+        {
+            "description": "Percent CPU idle", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=cpu_idle", 
+            "title": "CPU Idle", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=cpu_idle"
+        }, 
+        {
+            "description": "Percent CPU nice", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=cpu_nice", 
+            "title": "CPU Nice", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=cpu_nice"
+        }, 
+        {
+            "description": "Percent CPU system", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=cpu_system", 
+            "title": "CPU System", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=cpu_system"
+        }, 
+        {
+            "description": "Percent CPU user", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=cpu_user", 
+            "title": "CPU User", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=cpu_user"
+        }, 
+        {
+            "description": "Percent CPU spent waiting on I/O", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=cpu_wio", 
+            "title": "CPU Wait I/O", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=cpu_wio"
+        }
+    ], 
+    "Disk": [
+        {
+            "description": "Total free disk space", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=disk_free", 
+            "title": "Disk Free", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=disk_free"
+        }, 
+        {
+            "description": "Total available disk space", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=disk_total", 
+            "title": "Disk Total", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=disk_total"
+        }, 
+        {
+            "description": "Maximum percent used for all disk partitions", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=part_max_used", 
+            "title": "Max Disk Partition Used", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=part_max_used"
+        }
+    ], 
+    "Global": [
+        {
+            "description": "Key load metrics on the MapReduce JobTracker", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=load_report", 
+            "title": "Load Report", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=load_report"
+        }, 
+        {
+            "description": "Key memory metrics on the MapReduce JobTracker", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mem_report", 
+            "title": "Memory Report", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=mem_report"
+        }, 
+        {
+            "description": "Key CPU metrics on the MapReduce JobTracker", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=cpu_report", 
+            "title": "CPU Report", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=cpu_report"
+        }, 
+        {
+            "description": "Key network I/O metrics on the MapReduce JobTracker", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=network_report", 
+            "title": "Network I/O Report", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&g=network_report"
+        }
+    ], 
+    "JVM": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.gcCount", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.gcCount"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.gcTimeMillis", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.gcTimeMillis"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.logError", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.logError"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.logFatal", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.logFatal"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.logInfo", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.logInfo"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.logWarn", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.logWarn"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.memHeapCommittedM", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.memHeapCommittedM"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.memHeapUsedM", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.memHeapUsedM"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.memNonHeapCommittedM", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.memNonHeapCommittedM"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.memNonHeapUsedM", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.memNonHeapUsedM"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.threadsBlocked", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.threadsBlocked"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.threadsNew", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.threadsNew"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.threadsRunnable", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.threadsRunnable"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.threadsTerminated", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.threadsTerminated"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.threadsTimedWaiting", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.threadsTimedWaiting"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=jvm.metrics.threadsWaiting", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=jvm.metrics.threadsWaiting"
+        }
+    ], 
+    "JobTracker": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.blacklisted_maps", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.blacklisted_maps"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.blacklisted_reduces", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.blacklisted_reduces"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.heartbeats", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.heartbeats"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.jobs_completed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.jobs_completed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.jobs_failed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.jobs_failed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.jobs_killed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.jobs_killed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.jobs_preparing", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.jobs_preparing"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.jobs_running", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.jobs_running"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.jobs_submitted", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.jobs_submitted"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.map_slots", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.map_slots"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.maps_completed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.maps_completed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.maps_failed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.maps_failed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.maps_killed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.maps_killed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.maps_launched", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.maps_launched"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.occupied_map_slots", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.occupied_map_slots"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.occupied_reduce_slots", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.occupied_reduce_slots"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.reduce_slots", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.reduce_slots"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.reduces_completed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.reduces_completed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.reduces_failed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.reduces_failed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.reduces_killed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.reduces_killed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.reduces_launched", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.reduces_launched"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.reserved_map_slots", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.reserved_map_slots"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.reserved_reduce_slots", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.reserved_reduce_slots"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.running_maps", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.running_maps"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.running_reduces", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.running_reduces"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.trackers", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.trackers"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.trackers_blacklisted", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.trackers_blacklisted"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.trackers_decommissioned", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.trackers_decommissioned"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.trackers_graylisted", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.trackers_graylisted"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.waiting_maps", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.waiting_maps"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.jobtracker.waiting_reduces", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.jobtracker.waiting_reduces"
+        }
+    ], 
+    "Load": [
+        {
+            "description": "Fifteen minute load average", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=load_fifteen", 
+            "title": "Load Fifteen", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=load_fifteen"
+        }, 
+        {
+            "description": "Five minute load average", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=load_five", 
+            "title": "Load Five", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=load_five"
+        }, 
+        {
+            "description": "One minute load average", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=load_one", 
+            "title": "Load One", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=load_one"
+        }
+    ], 
+    "MapReduce Queue": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.jobs_completed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.jobs_completed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.jobs_failed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.jobs_failed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.jobs_killed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.jobs_killed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.jobs_preparing", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.jobs_preparing"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.jobs_running", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.jobs_running"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.jobs_submitted", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.jobs_submitted"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.maps_completed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.maps_completed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.maps_failed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.maps_failed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.maps_killed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.maps_killed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.maps_launched", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.maps_launched"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.reduces_completed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.reduces_completed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.reduces_failed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.reduces_failed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.reduces_killed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.reduces_killed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.reduces_launched", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.reduces_launched"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.reserved_map_slots", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.reserved_map_slots"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.reserved_reduce_slots", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.reserved_reduce_slots"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.waiting_maps", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.waiting_maps"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mapred.Queue.waiting_reduces", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mapred.Queue.waiting_reduces"
+        }
+    ], 
+    "Memory": [
+        {
+            "description": "Amount of buffered memory", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mem_buffers", 
+            "title": "Memory Buffers", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mem_buffers"
+        }, 
+        {
+            "description": "Amount of cached memory", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mem_cached", 
+            "title": "Cached Memory", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mem_cached"
+        }, 
+        {
+            "description": "Amount of available memory", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mem_free", 
+            "title": "Free Memory", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mem_free"
+        }, 
+        {
+            "description": "Amount of shared memory", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=mem_shared", 
+            "title": "Shared Memory", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=mem_shared"
+        }, 
+        {
+            "description": "Total amount of swap memory", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=swap_free", 
+            "title": "Free Swap Space", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=swap_free"
+        }
+    ], 
+    "MetricsSystem": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.dropped_pub_all", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.dropped_pub_all"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.num_sinks", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.num_sinks"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.num_sources", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.num_sources"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_imax_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_imax_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_imin_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_imin_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_max_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_max_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_min_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_min_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_stdev_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.publish_stdev_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.dropped", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.dropped"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.latency_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.latency_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.latency_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.latency_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.qsize", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.qsize"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_imax_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_imax_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_imin_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_imin_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_max_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_max_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_min_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_min_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_stdev_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=metricssystem.MetricsSystem.snapshot_stdev_time"
+        }
+    ], 
+    "Network": [
+        {
+            "description": "Number of bytes in per second", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=bytes_in", 
+            "title": "Bytes Received", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=bytes_in"
+        }, 
+        {
+            "description": "Number of bytes out per second", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=bytes_out", 
+            "title": "Bytes Sent", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=bytes_out"
+        }, 
+        {
+            "description": "Packets in per second", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=pkts_in", 
+            "title": "Packets Received", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=pkts_in"
+        }, 
+        {
+            "description": "Packets out per second", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=pkts_out", 
+            "title": "Packets Sent", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=pkts_out"
+        }
+    ], 
+    "Process": [
+        {
+            "description": "Total number of running processes", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=proc_run", 
+            "title": "Total Running Processes", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=proc_run"
+        }, 
+        {
+            "description": "Total number of processes", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=proc_total", 
+            "title": "Total Processes", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=proc_total"
+        }
+    ], 
+    "RPC": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpc.rpc.NumOpenConnections", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpc.rpc.NumOpenConnections"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpc.rpc.ReceivedBytes", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpc.rpc.ReceivedBytes"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpc.rpc.RpcProcessingTime_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpc.rpc.RpcProcessingTime_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpc.rpc.RpcProcessingTime_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpc.rpc.RpcProcessingTime_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpc.rpc.RpcQueueTime_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpc.rpc.RpcQueueTime_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpc.rpc.RpcQueueTime_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpc.rpc.RpcQueueTime_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpc.rpc.SentBytes", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpc.rpc.SentBytes"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpc.rpc.callQueueLen", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpc.rpc.callQueueLen"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpc.rpc.rpcAuthenticationFailures", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpc.rpc.rpcAuthenticationFailures"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpc.rpc.rpcAuthenticationSuccesses", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpc.rpc.rpcAuthenticationSuccesses"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpc.rpc.rpcAuthorizationFailures", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpc.rpc.rpcAuthorizationFailures"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpc.rpc.rpcAuthorizationSuccesses", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpc.rpc.rpcAuthorizationSuccesses"
+        }
+    ], 
+    "RPCDetailed": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getBuildVersion_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getBuildVersion_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getBuildVersion_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getBuildVersion_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getJobCounters_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getJobCounters_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getJobCounters_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getJobCounters_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getJobProfile_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getJobProfile_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getJobProfile_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getJobProfile_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getJobStatus_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getJobStatus_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getJobStatus_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getJobStatus_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getProtocolVersion_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getProtocolVersion_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getNewJobId_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getNewJobId_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getNewJobId_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getNewJobId_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getQueueAdmins_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getQueueAdmins_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getQueueAdmins_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getQueueAdmins_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getStagingAreaDir_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getStagingAreaDir_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getStagingAreaDir_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getStagingAreaDir_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getSystemDir_avg_tim", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getSystemDir_avg_tim"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getSystemDir_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getSystemDir_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getTaskCompletionEvents_avg_tim", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getTaskCompletionEvents_avg_tim"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getTaskCompletionEvents_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getTaskCompletionEvents_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.heartbeat_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.heartbeat_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.heartbeat_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.heartbeat_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.submitJob_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.submitJob_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.submitJob_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.submitJob_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getProtocolVersion_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=rpcdetailed.rpcdetailed.getProtocolVersion_num_ops"
+        }
+    ], 
+    "UGI": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=ugi.ugi.loginFailure_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=ugi.ugi.loginFailure_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=ugi.ugi.loginFailure_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=ugi.ugi.loginFailure_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=ugi.ugi.loginSuccess_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=ugi.ugi.loginSuccess_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%JobTrackerClusterName%&m=ugi.ugi.loginSuccess_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%JobTrackerClusterName%&m=ugi.ugi.loginSuccess_num_ops"
+        }
+    ]
+}

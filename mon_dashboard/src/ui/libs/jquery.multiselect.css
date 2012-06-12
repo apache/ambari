@@ -1,0 +1,25 @@
+.ui-multiselect { font-weight:normal !important; display:-moz-inline-block; display:inline-block; cursor:default; text-decoration:none !important; padding:0 }
+.ui-multiselect input { float:left; padding:3px 0 3px 6px; margin:0; border:none !important /* important fixes bug when inside ui-widget-content */; cursor:default; background:transparent }
+.ui-multiselect span { float:right; margin-top:-18px; }
+
+.ui-multiselect-header { margin-bottom:3px; padding:3px 0 3px 6px }
+.ui-multiselect-header ul { font-size:0.9em }
+.ui-multiselect-header ul li { float:left; padding:0 10px 0 0 }
+.ui-multiselect-header a { text-decoration:none }
+.ui-multiselect-header a:hover { text-decoration:underline }
+.ui-multiselect-header .ui-icon { float:left }
+.ui-multiselect-header li.ui-multiselect-close { float:right; text-align:right; padding-right:0 }
+
+.ui-multiselect-options { display:none; padding:3px; position:relative; z-index:10000 }
+.ui-multiselect-checkboxes { position:relative /* fixes bug in IE6/7 */; overflow-y:scroll }
+.ui-multiselect-checkboxes label { cursor:default; display:block; border:1px solid transparent; padding:3px }
+.ui-multiselect-checkboxes label input { position:relative; top:1px }
+.ui-multiselect-checkboxes li { clear:both; font-size:0.9em; padding-right:3px }
+.ui-multiselect-checkboxes li.ui-multiselect-optgroup-label { text-align:center; font-weight:bold; border-bottom:1px solid }
+.ui-multiselect-checkboxes li.ui-multiselect-optgroup-label a { display:block; padding:3px; margin:1px 0; text-decoration:none }
+
+/* remove label borders in IE6 because IE6 does not support transparency */
+* html .ui-multiselect-checkboxes label { border:none }
+
+/* shadow effect */
+.ui-multiselect-shadow { box-shadow:0 0 10px #777; -moz-box-shadow:0 0 10px #777; -webkit-box-shadow:0 0 10px #777; -ms-filter: "progid:DXImageTransform.Microsoft.Glow(color=#666666,strength=3) progid:DXImageTransform.Microsoft.Shadow(color=#777777,direction=135,strength=3)"; filter: progid:DXImageTransform.Microsoft.Glow(color=#666666,strength=3) progid:DXImageTransform.Microsoft.Shadow(color=#777777,direction=135,strength=3); }

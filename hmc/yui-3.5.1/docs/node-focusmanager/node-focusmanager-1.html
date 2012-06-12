@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Accessible Toolbar</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Accessible Toolbar</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+<p>
+This example illustrates how to create an accessible toolbar using the
+Focus Manager Node Plugin and Node's support for the
+<a href="http://www.w3.org/TR/wai-aria/">WAI-ARIA Roles and States</a>.
+</p>
+</div>
+
+<div class="example">
+    <style scoped>
+    .yui3-toolbar {
+        border: solid 1px #999;
+        background-color: #ccc;
+        margin: .25em;
+        overflow: auto;
+    }
+
+    .yui3-toolbar-button {
+        display: inline-block;
+        border-width: 1px 0;
+        border-style: solid;
+        border-color: #808080;
+        background-color: #dfdfdf;
+        margin: .25em;
+        font-size: 85%;  /* 11px */
+    }
+
+    .first-child {
+        margin-left: .5em;
+    }
+
+    .yui3-toolbar-button span {
+        display: inline-block;
+        border-width: 0 1px;
+        border-style: solid;
+        border-color: #808080;
+        margin: 0 -1px;
+        *position: relative;    /* Necessary to get negative margins working in IE */
+        *left: -1px;
+    }
+
+    .yui3-toolbar-button span span {
+        display: inline-block;
+        border: solid 1px #b6b6b6;
+        margin: 0;
+        *position: static;
+    }
+
+    .yui3-toolbar-button input {
+        border: none;
+        margin: 0;
+        padding: 4px 4px 4px 24px;
+        *overflow: visible; /* Remove superfluous padding for IE */
+        background: transparent url(../assets/node-focusmanager/icons.png) no-repeat;
+    }
+
+    #add-btn input {
+        background-position: 4px -102px;
+        *background-position: 4px -100px;
+    }
+
+    #edit-btn input {
+        background-position: 4px -78px;
+        *background-position: 4px -76px;
+    }
+
+    #print-btn input {
+        background-position: 4px -54px;
+        *background-position: 4px -52px;
+    }
+
+    #open-btn input {
+        background-position: 4px -30px;
+        *background-position: 4px -28px;
+    }
+
+    #delete-btn input {
+        background-position: 4px -126px;
+        *background-position: 4px -124px;
+    }
+
+    #save-btn input {
+        background-position: 4px -6px;
+        *background-position: 4px -4px;
+    }
+
+
+    /*  Augment the browser's default styling of the focus state by changing the
+        background color of the button when it is focused.  */
+
+    .yui3-toolbar-button input.focus {
+        background-color: #B3D4FF;
+    }
+    </style>
+
+    <div id="toolbar-1" class="yui3-toolbar">
+    <span id="add-btn" class="yui3-toolbar-button first-child"><span><span><input type="button" name="btn-add" value="Add"></span></span></span>
+    <span id="edit-btn" class="yui3-toolbar-button"><span><span><input type="button" name="btn-edit" value="Edit"></span></span></span>
+    <span id="print-btn" class="yui3-toolbar-button"><span><span><input type="button" name="btn-print" value="Print"></span></span></span>
+    <span id="delete-btn" class="yui3-toolbar-button"><span><span><input type="button" name="btn-delete" value="Delete"></span></span></span>
+    <span id="open-btn" class="yui3-toolbar-button"><span><span><input type="button" name="btn-open" value="Open"></span></span></span>
+    <span id="save-btn" class="yui3-toolbar-button"><span><span><input type="button" name="btn-save" value="Save"></span></span></span>
+</div>
+
+<script>
+
+    YUI().use("node-focusmanager", function (Y) {
+
+        //  Retrieve the Node instance representing the toolbar
+        //  (<div id="toolbar">) and call the "plug" method
+        //  passing in a reference to the Focus Manager Node Plugin.
+
+        var toolbar = Y.one("#toolbar-1");
+
+        toolbar.plug(Y.Plugin.NodeFocusManager, {
+
+                descendants: "input",
+                keys: { next: "down:39", // Right arrow
+                        previous: "down:37" },  //  Left arrow
+                focusClass: "focus",
+                circular: true
+
+             });
+
+
+        //  Set the ARIA "role" attribute of the Node instance representing the
+        //  toolbar to "toolbar" to improve the semantics of the markup for
+        //  users of screen readers.
+
+        toolbar.set("role", "toolbar");
+
+
+        //  Listen for the click event on each button via the use of the
+        //  "delegate" method
+
+        toolbar.delegate("click", function (event) {
+
+            alert("You clicked " + this.one("input").get("value"));
+
+        }, ".yui3-toolbar-button");
+
+    });
+
+</script>
+
+</div>
+
+<h2 id="setting-up-the-html">Setting Up the HTML</h2>
+
+<p>
+Start with a set of <code>&#60;input&#62;</code> elements.  For the
+purpose of this example, the <code>type</code> attribute of each
+button will be set to a value of "button" since they won't be responsible for
+submitting a form.  Each <code>&#60;input&#62;</code> is wrapped by two
+<code>&#60;span&#62;</code>s that serve as decorator elements used to style
+each button with rounded corners.
+</p>
+
+<pre class="code prettyprint">&lt;div id=&quot;toolbar-1&quot; class=&quot;yui3-toolbar&quot;&gt;
+    &lt;span id=&quot;add-btn&quot; class=&quot;yui3-toolbar-button first-child&quot;&gt;&lt;span&gt;&lt;span&gt;&lt;input type=&quot;button&quot; name=&quot;btn-add&quot; value=&quot;Add&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;
+    &lt;span id=&quot;edit-btn&quot; class=&quot;yui3-toolbar-button&quot;&gt;&lt;span&gt;&lt;span&gt;&lt;input type=&quot;button&quot; name=&quot;btn-edit&quot; value=&quot;Edit&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;
+    &lt;span id=&quot;print-btn&quot; class=&quot;yui3-toolbar-button&quot;&gt;&lt;span&gt;&lt;span&gt;&lt;input type=&quot;button&quot; name=&quot;btn-print&quot; value=&quot;Print&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;
+    &lt;span id=&quot;delete-btn&quot; class=&quot;yui3-toolbar-button&quot;&gt;&lt;span&gt;&lt;span&gt;&lt;input type=&quot;button&quot; name=&quot;btn-delete&quot; value=&quot;Delete&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;
+    &lt;span id=&quot;open-btn&quot; class=&quot;yui3-toolbar-button&quot;&gt;&lt;span&gt;&lt;span&gt;&lt;input type=&quot;button&quot; name=&quot;btn-open&quot; value=&quot;Open&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;
+    &lt;span id=&quot;save-btn&quot; class=&quot;yui3-toolbar-button&quot;&gt;&lt;span&gt;&lt;span&gt;&lt;input type=&quot;button&quot; name=&quot;btn-save&quot; value=&quot;Save&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;
+&lt;&#x2F;div&gt;</pre>
+
+
+<h2 id="setting-up-the-css">Setting Up the CSS</h2>
+
+<p>
+Next, each button in the toolbar is styled with rounded corners using a
+combination of the CSS <code>border</code> property along with the use of
+negative margins.  An icon is added to each button using a background image.
+Following the advice of the
+<a href="http://developer.yahoo.com/performance/rules.html">Exceptional Performance team</a>,
+this example uses the technique of
+<a href="http://www.alistapart.com/articles/sprites">CSS Sprites</a>,
+combining all of the icons for each button into a single image to reduce
+HTTP requests.
+</p>
+
+<pre class="code prettyprint">.yui3-toolbar {
+    border: solid 1px #999;
+    background-color: #ccc;
+    margin: .25em;
+    overflow: auto;
+}
+
+.yui3-toolbar-button {
+    display: inline-block;
+    border-width: 1px 0;
+    border-style: solid;
+    border-color: #808080;
+    background-color: #dfdfdf;
+    margin: .25em;
+    font-size: 85%;  &#x2F;* 11px *&#x2F;
+}
+
+.first-child {
+    margin-left: .5em;
+}
+
+.yui3-toolbar-button span {
+    display: inline-block;
+    border-width: 0 1px;
+    border-style: solid;
+    border-color: #808080;
+    margin: 0 -1px;
+    *position: relative;    &#x2F;* Necessary to get negative margins working in IE *&#x2F;
+    *left: -1px;
+}
+
+.yui3-toolbar-button span span {
+    display: inline-block;
+    border: solid 1px #b6b6b6;
+    margin: 0;
+    *position: static;
+}
+
+.yui3-toolbar-button input {
+    border: none;
+    margin: 0;
+    padding: 4px 4px 4px 24px;
+    *overflow: visible; &#x2F;* Remove superfluous padding for IE *&#x2F;
+    background: transparent url(..&#x2F;assets&#x2F;node-focusmanager&#x2F;icons.png) no-repeat;
+}
+
+#add-btn input {
+    background-position: 4px -102px;
+    *background-position: 4px -100px;
+}
+
+#edit-btn input {
+    background-position: 4px -78px;
+    *background-position: 4px -76px;
+}
+
+#print-btn input {
+    background-position: 4px -54px;
+    *background-position: 4px -52px;
+}
+
+#open-btn input {
+    background-position: 4px -30px;
+    *background-position: 4px -28px;
+}
+
+#delete-btn input {
+    background-position: 4px -126px;
+    *background-position: 4px -124px;
+}
+
+#save-btn input {
+    background-position: 4px -6px;
+    *background-position: 4px -4px;
+}</pre>
+
+
+<h2 id="initializing-the-focus-manager">Initializing the Focus Manager</h2>
+
+<p>
+With the toolbar markup and CSS in place, retrieve the Node instance
+representing the toolbar (<code>&#60;div id="toolbar-1"&#62;</code>)
+and call the <a href="http://yuilibrary.com/yui/docs/api/classes/Node.html#method_plug"><code>plug</code></a>
+passing in a reference to the Focus Manager Node Plugin as the first argument,
+and a collection of configuration attributes as the second argument.
+</p>
+
+<p>
+The Focus Manager's
+<a href="http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#attr_descendants"><code>descendants</code></a>
+attribute is set to a value of "input", so that only one button in the toolbar
+is in the browser's default tab flow.  This allows users navigating via the
+keyboard to use the tab key to quickly move into and out of the toolbar.  Once
+the toolbar has focus, the user can move focus among each button using the left
+and right arrows keys, as defined by the value of the
+<a href="http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#attr_keys"><code>keys</code></a>
+attribute.  Lastly, the
+<a href="http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#attr_focusClass"><code>focusClass</code></a>
+attribute is used to apply a class of <code>focus</code> to each
+<code>&#60;input&#62;</code> when it is focused, making it easy to style the
+focused state in all browsers.
+</p>
+
+<pre class="code prettyprint">YUI().use(&quot;node-focusmanager&quot;, function (Y) {
+
+    &#x2F;&#x2F;  Retrieve the Node instance representing the toolbar
+    &#x2F;&#x2F;  (&lt;div id=&quot;toolbar&quot;&gt;) and call the &quot;plug&quot; method
+    &#x2F;&#x2F;  passing in a reference to the Focus Manager Node Plugin.
+
+    var toolbar = Y.one(&quot;#toolbar-1&quot;);
+
+    toolbar.plug(Y.Plugin.NodeFocusManager, {
+
+            descendants: &quot;input&quot;,
+            keys: { next: &quot;down:39&quot;, &#x2F;&#x2F; Right arrow
+                    previous: &quot;down:37&quot; },  &#x2F;&#x2F;  Left arrow
+            focusClass: &quot;focus&quot;,
+            circular: true
+
+         });
+
+
+    &#x2F;&#x2F;  Set the ARIA &quot;role&quot; attribute of the Node instance representing the
+    &#x2F;&#x2F;  toolbar to &quot;toolbar&quot; to improve the semantics of the markup for
+    &#x2F;&#x2F;  users of screen readers.
+
+    toolbar.set(&quot;role&quot;, &quot;toolbar&quot;);
+
+
+    &#x2F;&#x2F;  Listen for the click event on each button via the use of the
+    &#x2F;&#x2F;  &quot;delegate&quot; method
+
+    toolbar.delegate(&quot;click&quot;, function (event) {
+
+        alert(&quot;You clicked &quot; + this.one(&quot;input&quot;).get(&quot;value&quot;));
+
+    }, &quot;.yui3-toolbar-button&quot;);
+
+});</pre>
+
+
+<h2 id="styling-focus">Styling Focus</h2>
+
+<p>
+To augment the browser's default styling of the focused state define a CSS
+selector that adds a background color to the
+</p>
+
+<pre class="code prettyprint">&#x2F;*  Augment the browser&#x27;s default styling of the focus state by changing the
+    background color of the button when it is focused.  *&#x2F;
+
+.yui3-toolbar-button input.focus {
+    background-color: #B3D4FF;
+}</pre>
+
+
+<h2 id="complete-example-source">Complete Example Source</h2>
+
+<pre class="code prettyprint">&lt;div id=&quot;toolbar-1&quot; class=&quot;yui3-toolbar&quot;&gt;
+    &lt;span id=&quot;add-btn&quot; class=&quot;yui3-toolbar-button first-child&quot;&gt;&lt;span&gt;&lt;span&gt;&lt;input type=&quot;button&quot; name=&quot;btn-add&quot; value=&quot;Add&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;
+    &lt;span id=&quot;edit-btn&quot; class=&quot;yui3-toolbar-button&quot;&gt;&lt;span&gt;&lt;span&gt;&lt;input type=&quot;button&quot; name=&quot;btn-edit&quot; value=&quot;Edit&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;
+    &lt;span id=&quot;print-btn&quot; class=&quot;yui3-toolbar-button&quot;&gt;&lt;span&gt;&lt;span&gt;&lt;input type=&quot;button&quot; name=&quot;btn-print&quot; value=&quot;Print&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;
+    &lt;span id=&quot;delete-btn&quot; class=&quot;yui3-toolbar-button&quot;&gt;&lt;span&gt;&lt;span&gt;&lt;input type=&quot;button&quot; name=&quot;btn-delete&quot; value=&quot;Delete&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;
+    &lt;span id=&quot;open-btn&quot; class=&quot;yui3-toolbar-button&quot;&gt;&lt;span&gt;&lt;span&gt;&lt;input type=&quot;button&quot; name=&quot;btn-open&quot; value=&quot;Open&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;
+    &lt;span id=&quot;save-btn&quot; class=&quot;yui3-toolbar-button&quot;&gt;&lt;span&gt;&lt;span&gt;&lt;input type=&quot;button&quot; name=&quot;btn-save&quot; value=&quot;Save&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;&lt;&#x2F;span&gt;
+&lt;&#x2F;div&gt;
+
+&lt;script&gt;
+
+    YUI().use(&quot;node-focusmanager&quot;, function (Y) {
+
+        &#x2F;&#x2F;  Retrieve the Node instance representing the toolbar
+        &#x2F;&#x2F;  (&lt;div id=&quot;toolbar&quot;&gt;) and call the &quot;plug&quot; method
+        &#x2F;&#x2F;  passing in a reference to the Focus Manager Node Plugin.
+
+        var toolbar = Y.one(&quot;#toolbar-1&quot;);
+
+        toolbar.plug(Y.Plugin.NodeFocusManager, {
+
+                descendants: &quot;input&quot;,
+                keys: { next: &quot;down:39&quot;, &#x2F;&#x2F; Right arrow
+                        previous: &quot;down:37&quot; },  &#x2F;&#x2F;  Left arrow
+                focusClass: &quot;focus&quot;,
+                circular: true
+
+             });
+
+
+        &#x2F;&#x2F;  Set the ARIA &quot;role&quot; attribute of the Node instance representing the
+        &#x2F;&#x2F;  toolbar to &quot;toolbar&quot; to improve the semantics of the markup for
+        &#x2F;&#x2F;  users of screen readers.
+
+        toolbar.set(&quot;role&quot;, &quot;toolbar&quot;);
+
+
+        &#x2F;&#x2F;  Listen for the click event on each button via the use of the
+        &#x2F;&#x2F;  &quot;delegate&quot; method
+
+        toolbar.delegate(&quot;click&quot;, function (event) {
+
+            alert(&quot;You clicked &quot; + this.one(&quot;input&quot;).get(&quot;value&quot;));
+
+        }, &quot;.yui3-toolbar-button&quot;);
+
+    });
+
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#setting-up-the-html">Setting Up the HTML</a>
+</li>
+<li>
+<a href="#setting-up-the-css">Setting Up the CSS</a>
+</li>
+<li>
+<a href="#initializing-the-focus-manager">Initializing the Focus Manager</a>
+</li>
+<li>
+<a href="#styling-focus">Styling Focus</a>
+</li>
+<li>
+<a href="#complete-example-source">Complete Example Source</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Creating an accessible toolbar using the Focus Manager Node Plugin and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="node-focusmanager-1.html">Accessible Toolbar</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible menu button using the Focus Manager Node Plugin, Event&#x27;s delegation support and mouseenter event, along with the Overlay widget and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="node-focusmanager-3.html">Accessible Menu Button</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

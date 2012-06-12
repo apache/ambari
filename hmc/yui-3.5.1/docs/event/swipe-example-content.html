@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" class="yui3-loading">
+<head>
+    <title>Swipe to Delete</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
+    <link rel="stylesheet" href="../../build/cssreset/reset-min.css" type="text/css" charset="utf-8">
+    <link rel="stylesheet" href="../../build/cssfonts/fonts-min.css" type="text/css" charset="utf-8">
+    <link rel="stylesheet" href="../assets/event/examples.css" type="text/css" charset="utf-8">
+    <link media="handheld, only screen and (max-width: 800px)" href="../assets/event/examples-smallscreen.css" type= "text/css" rel="stylesheet" charset="utf-8">
+
+    <script src="../../build/yui/yui.js" charset="utf-8"></script>
+    
+    <style>
+        /* Hide progressively enhanced markup */
+        .yui3-js-enabled .myexample-hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="yui3-skin-sam">
+    <div id="groceryheader" class="myexample-hidden">
+        <h1>Grocery List (swipe left to delete item)</h1>
+    </div>
+    <ul id="swipe" class="myexample-hidden">
+        <li><span>Fat Free Milk</span><button class="myapp-delete myapp-hidden">Delete</button></li>
+        <li><span>Egg Whites</span><button class="myapp-delete myapp-hidden">Delete</button></li>
+        <li><span>Whole Wheat Bread</span><button class="myapp-delete myapp-hidden">Delete</button></li>
+        <li><span>Organic Apples</span><button class="myapp-delete myapp-hidden">Delete</button></li>
+        <li id="kitkat"><span>Jumbo KitKat (24 pack)</span><button class="myapp-delete myapp-hidden">Delete</button></li>
+    </ul>
+
+    <script>
+    YUI().use('node-base','node-event-delegate', 'transition', 'event-move', function (Y) {
+
+    var MIN_SWIPE = 10;
+
+    Y.all(".myexample-hidden").removeClass("myexample-hidden");
+
+    Y.one("#swipe").delegate("gesturemovestart", function(e) {
+
+        var item = e.currentTarget,
+            target = e.target,
+            container = e.container,
+            isDeleteButton = target.hasClass("myapp-delete");
+
+        // Prevent Text Selection in IE
+        item.once("selectstart", function(e) {
+            e.preventDefault();
+        });
+
+        if (!isDeleteButton) {
+
+            container.all(".myapp-delete").addClass("myapp-hidden");
+
+            item.setData("swipeStart", e.pageX);
+
+            item.once("gesturemoveend", function(e) {
+
+                var swipeStart = item.getData("swipeStart"),
+                    swipeEnd = e.pageX,
+                    isSwipeLeft = (swipeStart - swipeEnd) > MIN_SWIPE;
+
+                if (isSwipeLeft) {
+                    item.one(".myapp-delete").removeClass("myapp-hidden");    
+                }
+
+            });
+        } else {
+            item = target.get("parentNode");
+
+            if (item.get("id") != "kitkat" || confirm("Seriously? The KitKats?")) {
+                item.transition({
+                    duration:0.3,
+                    opacity:0,
+                    height:0
+                }, function() {
+                    this.remove();
+                });
+            }
+        }
+
+    }, "li", {
+        preventDefault:true
+    });
+});
+
+    </script>
+</body>
+
+
+</html>

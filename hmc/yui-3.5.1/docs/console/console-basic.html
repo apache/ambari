@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Creating a Console for Debugging</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Creating a Console for Debugging</h1>
+
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><style scoped>
+#basic, #add_to_bottom {
+    margin-bottom: 1em;
+}
+
+#demo .yui3-console .yui3-console-title {
+    border: 0 none;
+    color: #000;
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0;
+    text-transform: none;
+}
+#demo .yui3-console .yui3-console-entry-meta {
+    margin: 0;
+}
+</style>
+
+
+
+<div class="intro">
+    <p>This example walks through the basics of setting up and logging messages to a YUI Console instance.  Three Console instances are created with slightly different configurations.  All calls to <code>Y.log(..)</code> will be broadcast to every Console.</p>
+</div>
+
+<div class="example yui3-skin-sam">
+    <form>
+    <div id="demo" class="yui3-skin-sam">
+        <h4>Basic Console</h4>
+        <div id="basic"></div>
+        <p>
+            <button type="button" id="toggle_basic">hide console</button>
+        </p>
+
+        <h4>New messages added to bottom</h4>
+        <div id="add_to_bottom"></div>
+        <p>
+            <button type="button" id="toggle_atb">show console</button>
+        </p>
+
+        <h4>Custom strings</h4>
+        <p><em>Rendered in default location (top right)</em></p>
+        <p>
+            <button type="button" id="toggle_cstrings">show console</button>
+        </p>
+
+        <h4>Log some messages</h4>
+        <p>
+            <input type="text" id="info_text" value="I'm an info message!">
+            <input type="submit" id="info">log info message</button>
+        </p>
+        <p>
+            <input type="text" id="warn_text" value="I'm a warning!">
+            <input type="submit" id="warn">log warning</button>
+        </p>
+        <p>
+            <input type="text" id="error_text" value="I'm an error!">
+            <input type="submit" id="error">log error</button>
+        </p>
+    </div>
+</form>
+    <script type="text/javascript">
+// Create a YUI instance and request the console module and its dependencies
+YUI().use("console", "console-filters", "dd-plugin", function (Y) {
+
+// Create and render the three Console instances
+var basic, newOnBottom, customStrings;
+
+basic = new Y.Console({
+    style: 'block' // keeps the Console in the page flow as a block element
+}).render( '#basic' );
+
+newOnBottom = new Y.Console({
+    style: 'inline', // keeps the Console in the page flow as an inline element
+    newestOnTop: false,
+    visible: false
+}).render( "#add_to_bottom" );
+
+customStrings = new Y.Console({
+    strings: {
+        title : 'Draggable Console with filters!',
+        pause : 'Wait',
+        clear : 'Flush',
+        collapse : 'Shrink',
+        expand : 'Grow'
+    },
+    visible: false
+}).plug(Y.Plugin.ConsoleFilters)
+  .plug(Y.Plugin.Drag, { handles: ['.yui3-console-hd'] })
+  .render('#demo');
+
+// Set up the button listeners
+function toggle(e,cnsl) {
+    if (cnsl.get('visible')) {
+        cnsl.hide();
+        this.set('innerHTML','show console');
+    } else {
+        cnsl.show();
+        cnsl.syncUI(); // to handle any UI changes queued while hidden.
+        this.set('innerHTML','hide console');
+    }
+}
+
+function report(e,type) {
+    Y.log(this.get('value'),type);
+    e.preventDefault();
+}
+
+// Display a message in the Console for reference
+Y.log("Click the buttons below to log messages");
+
+// Pass the corresponding Console instance to the handler as a second arg
+Y.on('click', toggle, '#toggle_basic',    null, basic);
+Y.on('click', toggle, '#toggle_atb',      null, newOnBottom);
+Y.on('click', toggle, '#toggle_cstrings', null, customStrings);
+
+// Set the context of the event handler to the input text node
+// for convenience and pass the message type as a second arg
+Y.on('click', report, '#info',  Y.one('#info_text'),  'info');
+Y.on('click', report, '#warn',  Y.one('#warn_text'),  'warn');
+Y.on('click', report, '#error', Y.one('#error_text'), 'error');
+
+});
+</script>
+
+</div>
+
+<h3>Markup not required</h3>
+<p>The primary purpose of the Console is to aid in debugging your application.  As such, it doesn't make much sense to require your page to include markup for something that is not bound for production.</p>
+
+<p><em>However</em>, Console is built on the Widget framework, so it can be rendered into a containing element just as any other Widget.  We'll do that for the first two Consoles, then for the third we'll call <code>render</code> with no input, allowing the default behavior.</p>
+
+<p>For the first two cases, we need to set up some markup.  We'll throw in some placeholder content for the third.</p>
+
+<pre class="code prettyprint">&lt;h4&gt;Basic Console&lt;&#x2F;h4&gt;
+&lt;div id=&quot;basic&quot;&gt;&lt;&#x2F;div&gt;
+
+&lt;h4&gt;New messages added to bottom&lt;&#x2F;h4&gt;
+&lt;div id=&quot;add_to_bottom&quot;&gt;&lt;&#x2F;div&gt;
+
+&lt;h4&gt;Custom strings&lt;&#x2F;h4&gt;
+&lt;p&gt;&lt;em&gt;Rendered in default location (top right corner of page)&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;</pre>
+
+
+<p>Then instantiate the Console instances.</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Create a YUI instance and request the console module and its dependencies
+YUI().use(&quot;console&quot;, &quot;console-filters&quot;, &quot;dd-plugin&quot;, function (Y) {
+
+&#x2F;&#x2F; Create and render the three Console instances
+var basic, newOnBottom, customStrings;
+
+basic = new Y.Console({
+    style: &#x27;block&#x27; &#x2F;&#x2F; keeps the Console in the page flow as a block element
+}).render( &quot;#basic&quot; ); &#x2F;&#x2F; note the inline render()
+
+newOnBottom = new Y.Console({
+    style: &#x27;inline&#x27;, &#x2F;&#x2F; keeps the Console in the page flow as an inline element
+    newestOnTop: false,
+    visible: false   &#x2F;&#x2F; hidden at instantiation
+}).render( &quot;#add_to_bottom&quot; );
+
+customStrings = new Y.Console({
+    strings: {
+        title : &#x27;Console with custom strings!&#x27;,
+        pause : &#x27;Wait&#x27;,
+        clear : &#x27;Flush&#x27;,
+        collapse : &#x27;Shrink&#x27;,
+        expand : &#x27;Grow&#x27;
+    },
+    visible: false  &#x2F;&#x2F; hidden at instantiation
+}).plug(Y.Plugin.ConsoleFilters)
+  .plug(Y.Plugin.Drag, { handles: [&#x27;.yui3-console-hd&#x27;] })
+  .render();
+
+});</pre>
+
+
+<h3>Log some messages</h3>
+<p>In your code, inserting calls to <code>Y.log(..)</code> will cause the content of those log messages to be broadcast to every Console instance present in the YUI instance.  We'll illustrate this by creating some buttons to log various types of messages.</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F; Create a YUI instance and request the console module and its dependencies
+YUI().use(&quot;console&quot;, &quot;console-filters&quot;, &quot;dd-plugin&quot;, function (Y) {
+
+&#x2F;&#x2F; Create and render the three Console instances
+var basic, newOnBottom, customStrings;
+
+...
+
+function report(e,type) {
+    Y.log(this.get(&#x27;value&#x27;),type);
+}
+
+&#x2F;&#x2F; Set the context of the event handler to the input text node
+&#x2F;&#x2F; for convenience and pass the message type as a second arg
+Y.on(&#x27;click&#x27;, report, &#x27;#info&#x27;,  Y.one(&#x27;#info_text&#x27;),  &#x27;info&#x27;);
+Y.on(&#x27;click&#x27;, report, &#x27;#warn&#x27;,  Y.one(&#x27;#warn_text&#x27;),  &#x27;warn&#x27;);
+Y.on(&#x27;click&#x27;, report, &#x27;#error&#x27;, Y.one(&#x27;#error_text&#x27;), &#x27;error&#x27;);
+
+});</pre>
+
+
+<h3 id="full_code_listing">Full Code Listing</h3>
+
+<h4>Markup</h4>
+
+<pre class="code prettyprint">&lt;form&gt;
+    &lt;div id=&quot;demo&quot; class=&quot;yui3-skin-sam&quot;&gt;
+        &lt;h4&gt;Basic Console&lt;&#x2F;h4&gt;
+        &lt;div id=&quot;basic&quot;&gt;&lt;&#x2F;div&gt;
+        &lt;p&gt;
+            &lt;button type=&quot;button&quot; id=&quot;toggle_basic&quot;&gt;hide console&lt;&#x2F;button&gt;
+        &lt;&#x2F;p&gt;
+
+        &lt;h4&gt;New messages added to bottom&lt;&#x2F;h4&gt;
+        &lt;div id=&quot;add_to_bottom&quot;&gt;&lt;&#x2F;div&gt;
+        &lt;p&gt;
+            &lt;button type=&quot;button&quot; id=&quot;toggle_atb&quot;&gt;show console&lt;&#x2F;button&gt;
+        &lt;&#x2F;p&gt;
+
+        &lt;h4&gt;Custom strings&lt;&#x2F;h4&gt;
+        &lt;p&gt;&lt;em&gt;Rendered in default location (top right)&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+        &lt;p&gt;
+            &lt;button type=&quot;button&quot; id=&quot;toggle_cstrings&quot;&gt;show console&lt;&#x2F;button&gt;
+        &lt;&#x2F;p&gt;
+
+        &lt;h4&gt;Log some messages&lt;&#x2F;h4&gt;
+        &lt;p&gt;
+            &lt;input type=&quot;text&quot; id=&quot;info_text&quot; value=&quot;I&#x27;m an info message!&quot;&gt;
+            &lt;input type=&quot;submit&quot; id=&quot;info&quot;&gt;log info message&lt;&#x2F;button&gt;
+        &lt;&#x2F;p&gt;
+        &lt;p&gt;
+            &lt;input type=&quot;text&quot; id=&quot;warn_text&quot; value=&quot;I&#x27;m a warning!&quot;&gt;
+            &lt;input type=&quot;submit&quot; id=&quot;warn&quot;&gt;log warning&lt;&#x2F;button&gt;
+        &lt;&#x2F;p&gt;
+        &lt;p&gt;
+            &lt;input type=&quot;text&quot; id=&quot;error_text&quot; value=&quot;I&#x27;m an error!&quot;&gt;
+            &lt;input type=&quot;submit&quot; id=&quot;error&quot;&gt;log error&lt;&#x2F;button&gt;
+        &lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;form&gt;</pre>
+
+
+<h4>JavaScript</h4>
+
+<pre class="code prettyprint">&lt;script type=&quot;text&#x2F;javascript&quot;&gt;
+&#x2F;&#x2F; Create a YUI instance and request the console module and its dependencies
+YUI().use(&quot;console&quot;, &quot;console-filters&quot;, &quot;dd-plugin&quot;, function (Y) {
+
+&#x2F;&#x2F; Create and render the three Console instances
+var basic, newOnBottom, customStrings;
+
+basic = new Y.Console({
+    style: &#x27;block&#x27; &#x2F;&#x2F; keeps the Console in the page flow as a block element
+}).render( &#x27;#basic&#x27; );
+
+newOnBottom = new Y.Console({
+    style: &#x27;inline&#x27;, &#x2F;&#x2F; keeps the Console in the page flow as an inline element
+    newestOnTop: false,
+    visible: false
+}).render( &quot;#add_to_bottom&quot; );
+
+customStrings = new Y.Console({
+    strings: {
+        title : &#x27;Draggable Console with filters!&#x27;,
+        pause : &#x27;Wait&#x27;,
+        clear : &#x27;Flush&#x27;,
+        collapse : &#x27;Shrink&#x27;,
+        expand : &#x27;Grow&#x27;
+    },
+    visible: false
+}).plug(Y.Plugin.ConsoleFilters)
+  .plug(Y.Plugin.Drag, { handles: [&#x27;.yui3-console-hd&#x27;] })
+  .render(&#x27;#demo&#x27;);
+
+&#x2F;&#x2F; Set up the button listeners
+function toggle(e,cnsl) {
+    if (cnsl.get(&#x27;visible&#x27;)) {
+        cnsl.hide();
+        this.set(&#x27;innerHTML&#x27;,&#x27;show console&#x27;);
+    } else {
+        cnsl.show();
+        cnsl.syncUI(); &#x2F;&#x2F; to handle any UI changes queued while hidden.
+        this.set(&#x27;innerHTML&#x27;,&#x27;hide console&#x27;);
+    }
+}
+
+function report(e,type) {
+    Y.log(this.get(&#x27;value&#x27;),type);
+    e.preventDefault();
+}
+
+&#x2F;&#x2F; Display a message in the Console for reference
+Y.log(&quot;Click the buttons below to log messages&quot;);
+
+&#x2F;&#x2F; Pass the corresponding Console instance to the handler as a second arg
+Y.on(&#x27;click&#x27;, toggle, &#x27;#toggle_basic&#x27;,    null, basic);
+Y.on(&#x27;click&#x27;, toggle, &#x27;#toggle_atb&#x27;,      null, newOnBottom);
+Y.on(&#x27;click&#x27;, toggle, &#x27;#toggle_cstrings&#x27;, null, customStrings);
+
+&#x2F;&#x2F; Set the context of the event handler to the input text node
+&#x2F;&#x2F; for convenience and pass the message type as a second arg
+Y.on(&#x27;click&#x27;, report, &#x27;#info&#x27;,  Y.one(&#x27;#info_text&#x27;),  &#x27;info&#x27;);
+Y.on(&#x27;click&#x27;, report, &#x27;#warn&#x27;,  Y.one(&#x27;#warn_text&#x27;),  &#x27;warn&#x27;);
+Y.on(&#x27;click&#x27;, report, &#x27;#error&#x27;, Y.one(&#x27;#error_text&#x27;), &#x27;error&#x27;);
+
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<h4>CSS</h4>
+
+<pre class="code prettyprint">&lt;style scoped&gt;
+#basic, #add_to_bottom {
+    margin-bottom: 1em;
+}
+
+#demo .yui3-console .yui3-console-title {
+    border: 0 none;
+    color: #000;
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0;
+    text-transform: none;
+}
+#demo .yui3-console .yui3-console-entry-meta {
+    margin: 0;
+}
+&lt;&#x2F;style&gt;</pre>
+
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="The basics of setting up a Console">
+                                            <a href="console-basic.html">Creating a Console for Debugging</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using your YUI instance configuration to filter which messages are reported in the Console">
+                                            <a href="console-yui-config.html">YUI Configuration to Filter Log Messages</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Using the Console&#x27;s logSource attribute to consolidate log messages from multiple YUI instances into one Console">
+                                            <a href="console-global.html">Creating a Universal Console</a>
+                                        </li>
+                                    
+                                
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples That Use This Component</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                        <li data-description="Adding the ConsoleFilters plugin to a Console instance for more granular run time log message filtering">
+                                            <a href="../console-filters/console-filters-intro.html">Using the ConsoleFilters Plugin</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

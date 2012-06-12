@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>FocusManager Node Plugin</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>FocusManager Node Plugin</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class='intro'>
+    <p>
+        When designing widgets that manage a set of descendant controls (i.e. buttons in a toolbar, tabs in a tablist, menuitems in a menu, etc.) it is important to limit the number of descendants in the browser's default tab flow.  The fewer number of descendants in the default tab flow, the easier it is for keyboard users to navigate between widgets by pressing the tab key.  When a widget has focus it should provide a set of shortcut keys (typically the arrow keys) to move focus among its descendants.
+    </p>
+
+    <p>
+        To this end, the Focus Manager Node Plugin makes it easy to define a Node's focusable descendants, define which descendant should be in the default tab flow, and define the keys that move focus among each descendant. Additionally, as the CSS <a href='http://www.w3.org/TR/CSS21/selector.html#x38'><code>:focus</code></a> pseudo class is not supported on all elements in all browsers, the Focus Manager Node Plugin provides an easy, cross-browser means of styling focus.
+    </p>
+</div>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>
+To include the source files for FocusManager Node Plugin and its dependencies, first load
+the YUI seed file if you haven't already loaded it.
+</p>
+
+<pre class="code prettyprint">&lt;script src=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js&quot;&gt;&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+Next, create a new YUI instance for your application and populate it with the
+modules you need by specifying them as arguments to the <code>YUI().use()</code> method.
+YUI will automatically load any dependencies required by the modules you
+specify.
+</p>
+
+<pre class="code prettyprint">&lt;script&gt;
+&#x2F;&#x2F; Create a new YUI instance and populate it with the required modules.
+YUI().use(&#x27;node-focusmanager&#x27;, function (Y) {
+    &#x2F;&#x2F; FocusManager Node Plugin is available and ready for use. Add implementation
+    &#x2F;&#x2F; code here.
+});
+&lt;&#x2F;script&gt;</pre>
+
+
+<p>
+For more information on creating YUI instances and on the
+<a href="http://yuilibrary.com/yui/docs/api/classes/YUI.html#method_use"><code>use()</code> method</a>, see the
+documentation for the <a href="../yui/index.html">YUI Global Object</a>.
+</p>
+
+
+<h2 id="using-the-focus-manager-node-plugin">Using the Focus Manager Node Plugin</h2>
+
+<p>
+    To use the Focus Manager Node Plugin, start by identifying the parent element of the elements whose focus is to be managed.  For example, consider the following toolbar HTML:
+</p>
+
+<pre class="code prettyprint">&lt;div id=&#x27;toolbar&#x27;&gt;
+    &lt;input type=&#x27;button&#x27; name=&#x27;btn-add&#x27; value=&#x27;Add&#x27;&gt;
+    &lt;input type=&#x27;button&#x27; name=&#x27;btn-edit&#x27; value=&#x27;Edit&#x27;&gt;
+    &lt;input type=&#x27;button&#x27; name=&#x27;btn-print&#x27; value=&#x27;Print&#x27;&gt;
+    &lt;input type=&#x27;button&#x27; name=&#x27;btn-delete&#x27; value=&#x27;Delete&#x27;&gt;
+    &lt;input type=&#x27;button&#x27; name=&#x27;btn-open&#x27; value=&#x27;Open&#x27;&gt;
+    &lt;input type=&#x27;button&#x27; name=&#x27;btn-save&#x27; value=&#x27;Save&#x27;&gt;
+&lt;&#x2F;div&gt;</pre>
+
+
+<p>
+    To manage the focus of each button in the toolbar, start by retrieving a <a href='../node'>Node</a> instance representing the toolbar's root element (<code>&lt;div id=&#x27;toolbar&#x27;&gt;</code>). Next, call the Node's <a href='http://yuilibrary.com/yui/docs/api/classes/Node.html#method_plug'><code>plug</code></a> method, passing in a reference to the Focus Manager Node Plugin (<code>Y.Plugin.NodeFocusManager</code>) as the first argument, followed by an object literal of configuration attributes as the second.
+</p>
+
+<p>
+    Use the <a href='http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#attr_descendants'><code>descendants</code></a> configuration attribute to specify the child nodes of the root node whose focus is to be managed.  The <code>descendants</code> configuration attribute accepts a string representing a CSS selector, making it very easy to identify the elements whose focus should be managed.  For the toolbar, a value of 'input' will be passed as the value of the <code>descendants</code> configuration attribute.
+</p>
+
+<p>
+    Use the <a href='http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#attr_keys'><code>keys</code></a> configuration attribute to identify which keys move focus between each of the specified descendant Nodes.  The <code>keys</code> configuration attribute accepts an object literal, the format of which is <code>{ next: &#x27;down:40&#x27;, previous: &#x27;down:38&#x27; }</code>.  The value for the <code>next</code> and <code>previous</code> sub attributes are used to attach <code>keys</code> event listeners.  Each value represents the type of event ('down' for <code>mousedown</code>, 'up' for <code>mouseup</code>, and 'press' for <code>keypress</code>) and key codes ('40' for the down arrow key) to use to navigate to the next/previous descendant.  For the toolbar the <code>keys</code> configuration attribute will be set to a value of <code>{ next: &#x27;down:39&#x27;, previous: &#x27;down:37&#x27; }</code>, enabling the user to move focus among each button using the left and right arrows keys. (See the <a href='../event/key.html'>Using the key Event</a> section of the Event documentation for more information on 'key' event listeners.)
+</p>
+
+<pre class="code prettyprint">&#x2F;&#x2F;  Retrieve the Node instance representing the toolbar
+&#x2F;&#x2F;  (&lt;div id=&#x27;toolbar&#x27;&gt;) and call the &#x27;plug&#x27; method
+&#x2F;&#x2F;  passing in a reference to the Focus Manager Node Plugin.
+
+var toolbar = Y.one(&#x27;#toolbar&#x27;);
+
+toolbar.plug(Y.Plugin.NodeFocusManager, {
+    &#x2F;&#x2F; CSS Selector indicating the descendant Nodes whose focus to manage
+    descendants: &#x27;input&#x27;,
+
+    &#x2F;&#x2F;  Move focus the buttons in the toolbar by pressing the left and
+    &#x2F;&#x2F;  right arrow keys
+    keys: { 
+        next: &#x27;down:39&#x27;, 
+        previous: &#x27;down:37&#x27; 
+    }
+});</pre>
+
+
+<p>
+    Use the <a href='http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#attr_circular'><code>circular</code></a> configuration attribute to indicate that focus should be directed to the first or last descendant when the user has navigated to the first or last descendant.
+</p>
+
+<pre class="code prettyprint">var toolbar = Y.one(&#x27;#toolbar&#x27;);
+
+toolbar.plug(Y.Plugin.NodeFocusManager, {
+    descendants: &#x27;input&#x27;,
+    keys: { next: &#x27;down:39&#x27;, previous: &#x27;down:37&#x27; },
+
+    circular: true
+});</pre>
+
+
+<h3 id="activedescendant-attribute">The <code>activeDescendant</code> Attribute</h3>
+
+<p>
+    The <a href='http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#attr_activeDescendant'><code>activeDescendant</code></a> attribute represents which of the Focus Manager's <a href='http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#attr_descendants'><code>descendants</code></a> is either currently focused or is focusable (<code>tabIndex</code> attribute is set to 0). As the user moves focus among the Focus Manager's defined descendants, the <code>activeDescendant</code> configuration attribute is updated to remain in sync with the currently focused descendant.
+</p>
+
+<p>
+    The <code>activeDescendant</code> configuration attribute can be set two different ways: via markup or via script.  To set the <code>activeDescendant</code> configuration attribute via markup, simply set the <code>tabIndex</code> attribute to 0 for the element that should be considered the active descendant. If the <code>tabIndex</code> attribute isn't set on any of the descendants the active descendant will be set to 0, or the index of the first enabled descendant. The following example shows how to make the second button in the toolbar the active descendant.
+</p>
+
+<pre class="code prettyprint">&lt;div id=&#x27;toolbar&#x27;&gt;
+    &lt;input type=&#x27;button&#x27; name=&#x27;btn-add&#x27; value=&#x27;Add&#x27;&gt;
+    &lt;input type=&#x27;button&#x27; tabindex=&#x27;0&#x27; name=&#x27;btn-edit&#x27; value=&#x27;Edit&#x27;&gt;
+    &lt;input type=&#x27;button&#x27; name=&#x27;btn-print&#x27; value=&#x27;Print&#x27;&gt;
+    &lt;input type=&#x27;button&#x27; name=&#x27;btn-delete&#x27; value=&#x27;Delete&#x27;&gt;
+    &lt;input type=&#x27;button&#x27; name=&#x27;btn-open&#x27; value=&#x27;Open&#x27;&gt;
+    &lt;input type=&#x27;button&#x27; name=&#x27;btn-save&#x27; value=&#x27;Save&#x27;&gt;
+&lt;&#x2F;div&gt;</pre>
+
+
+<p>
+    The <code>activeDescendant</code> configuration attribute can also be set via the object literal of configuration attributes passed to the <a href='http://yuilibrary.com/yui/docs/api/classes/Node.html#method_plug'><code>plug</code></a> method.
+</p>
+
+<pre class="code prettyprint">var toolbar = Y.one(&#x27;#toolbar&#x27;);
+
+toolbar.plug(Y.Plugin.NodeFocusManager, {
+    descendants: &#x27;input&#x27;,
+    keys: { next: &#x27;down:39&#x27;, previous: &#x27;down:37&#x27; },
+
+    &#x2F;&#x2F;  Make the second button in the toolbar the active descendant
+    activeDescendant: 1
+});</pre>
+
+
+<p>
+    The <code>activeDescendant</code> configuration attribute can also be set at runtime via the <a href='http://yuilibrary.com/yui/docs/api/classes/Attribute.html#method_set'><code>set</code></a> method.
+</p>
+
+<pre class="code prettyprint">var toolbar = Y.one(&#x27;#toolbar&#x27;);
+
+toolbar.plug(Y.Plugin.NodeFocusManager, {
+    descendants: &#x27;input&#x27;,
+    keys: { next: &#x27;down:39&#x27;, previous: &#x27;down:37&#x27; }
+
+});
+
+toolbar.focusManager.set(&#x27;activeDescendant&#x27;, 1);</pre>
+
+
+<h3 id="styling-focus">Styling Focus</h3>
+<p>
+    One of the challenges to styling the focus state of HTML elements is that support for the CSS <a href='http://www.w3.org/TR/CSS21/selector.html#x38'><code>:focus</code></a> pseudo class is limited to the <code>a</code> element in Internet Explorer. To fix this problem, the Focus Manager Node Plugin provides a <a href='http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#attr_focusClass'><code>focusClass</code></a> configuration attribute that makes it easy to style focus across <em>all</em> elements in <em>all</em> browsers</a>.
+</p>
+<p>
+    The <code>focusClass</code> configuration attribute can be used one of two ways.  The first way is to simply pass a string representing the class name to be applied to the currently focused descendant Node instance.  For example, to apply a class of 'focus' to each button in the toolbar, set the the <code>focusClass</code> configuration attribute to a value of 'focus':
+</p>
+
+<pre class="code prettyprint">var toolbar = Y.one(&#x27;#toolbar&#x27;);
+
+toolbar.plug(Y.Plugin.NodeFocusManager, {
+    descendants: &#x27;input&#x27;,
+    keys: { next: &#x27;down:39&#x27;, previous: &#x27;down:37&#x27; },
+    focusClass: &#x27;focus&#x27;
+});</pre>
+
+
+<p>
+    Often styling focusable elements such as <code>&lt;input&gt;</code>s requires wrapping them in decorator elements, since <code>&lt;input&gt;</code> elements cannot have children.  In such cases, it is likely the class name used to style focus would be applied to the element decorating the focused descendant, rather than the descendant itself.  For this reason, it is also possible to pass an object literal as the value of the <a href='http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#attr_focusClass'><code>focusClass</code></a> configuration attribute that defines not only the class name to be used to indicate focus, but a function used to retrieve the Node instance to which the class name should be applied.  For example, if each button in the toolbar where decorated by a <code>&lt;span&gt;</code>, the 'focus' class could be applied to the parent <code>&lt;span&gt;</code> of the focused <code>&lt;input&gt;</code> using the following code:
+</p>
+
+<pre class="code prettyprint">var toolbar = Y.one(&#x27;#toolbar&#x27;);
+
+toolbar.plug(Y.Plugin.NodeFocusManager, {
+    descendants: &#x27;input&#x27;,
+    keys: { next: &#x27;down:39&#x27;, previous: &#x27;down:37&#x27; },
+    focusClass: {
+        className: &#x27;focus&#x27;, &#x2F;&#x2F;  The class name to use
+        fn: function (node) {
+            &#x2F;&#x2F;  The Node instance to which the class should be applied
+            return node.get(&#x27;parentNode&#x27;);
+        }
+    }
+});</pre>
+
+
+<p>
+    As demonstrated in the example, the function passed as the value of the <code>fn</code> property is passed a reference to the currently focused descendant.  That Node reference is then used to return the Node to which the class name is to be applied.
+</p>
+
+
+<h3 id="managing-focus">Managing Focus</h3>
+
+<p>
+    The Focus Manager Node Plugin manages focus among its defined descendants as an atomic operation: the Focus Manager's <a href='http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#attr_focused'><code>focused</code></a> configuration attribute is set to <code>true</code> the first time any descendant is focused, and is set to <code>false</code> the first time no descendant is focused.  The <code>focused</code> configuration attribute is read only, and is set either via user interaction (the user focuses one of the defined descendant elements using either the keyboard or the mouse), or programmatically via the <a href='http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#method_focus'><code>focus</code></a> and <a href='http://yuilibrary.com/yui/docs/api/classes/plugin.NodeFocusManager.html#method_blur'><code>blur</code></a> methods, as illustrated in the following example:
+</p>
+
+<pre class="code prettyprint">var toolbar = Y.one(&#x27;#toolbar&#x27;);
+
+toolbar.plug(Y.Plugin.NodeFocusManager, {
+    descendants: &#x27;input&#x27;,
+    keys: { next: &#x27;down:39&#x27;, previous: &#x27;down:37&#x27; }
+});
+
+
+&#x2F;&#x2F;  Listen for when the &#x27;focused&#x27; attribute changes
+
+toolbar.focusManager.after(&#x27;focusedChange&#x27;, function (event) {
+    if (event.newVal) {
+        Y.log(&#x27;The toolbar has focus&#x27;);
+    }
+    else {
+        Y.log(&#x27;The toolbar has lost focus&#x27;);
+    }
+});
+
+&#x2F;&#x2F;  Focus the current active descendant, setting the &#x27;focused&#x27; attribute to true
+toolbar.focusManager.focus();
+
+&#x2F;&#x2F;  Focus the second descendant in the toolbar, making it the active descendant
+&#x2F;&#x2F;  (this won&#x27;t change the &#x27;focused&#x27; attribute, meaning the &#x27;focusedChange&#x27;
+&#x2F;&#x2F;  event handler won&#x27;t be called.)
+toolbar.focusManager.focus(1);
+
+
+&#x2F;&#x2F;  Blur the current active descendant, setting the &#x27;focused&#x27; attribute to false
+&#x2F;&#x2F;  and causing the &#x27;focusedChange&#x27; event handler to be called.
+toolbar.focusManager.blur();</pre>
+
+
+<h3 id="best-practices">Best Practices</h3>
+
+<p>
+    While it is possible to use the Focus Manager Node Plugin to manage focus among descendants of any type, it is recommended to use it with elements that are natively in the the browser's default tab flow. Doing so provides two primary benefits:  The first is that your code will work in all popular browsers, since some browsers don't support the <a href='http://www.w3.org/TR/html401/interact/forms.html#adef-tabindex' title='Forms in HTML documents'><code>tabIndex</code></a> attribute on all elements.  Sticking with the elements that natively support <code>tabIndex</code> as defined in the HTML 4.01 specification will ensure better cross-browser keyboard support.
+</p>
+
+<p>
+    The second benefit is that by using the set of natively focusable HTML elements, users of screen readers will still perceive the Focus Manager's defined descendants as actionable/clickable elements.
+</p></div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#getting-started">Getting Started</a>
+</li>
+<li>
+<a href="#using-the-focus-manager-node-plugin">Using the Focus Manager Node Plugin</a>
+<ul class="toc">
+<li>
+<a href="#activedescendant-attribute">The <code>activeDescendant</code> Attribute</a>
+</li>
+<li>
+<a href="#styling-focus">Styling Focus</a>
+</li>
+<li>
+<a href="#managing-focus">Managing Focus</a>
+</li>
+<li>
+<a href="#best-practices">Best Practices</a>
+</li>
+</ul>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Creating an accessible toolbar using the Focus Manager Node Plugin and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="node-focusmanager-1.html">Accessible Toolbar</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating an accessible menu button using the Focus Manager Node Plugin, Event&#x27;s delegation support and mouseenter event, along with the Overlay widget and Node&#x27;s support for the WAI-ARIA Roles and States.">
+                                            <a href="node-focusmanager-3.html">Accessible Menu Button</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

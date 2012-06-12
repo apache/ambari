@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Styling elements with cssbutton</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Styling elements with cssbutton</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><link rel="stylesheet" href='../../build/cssbutton/cssbutton.css'></link>
+<style>.yui3-button {
+    margin:3px;
+}
+
+.warning{
+    background-color:#FAF55F;
+}
+
+.success{
+    background-color:#57A957;
+    color:white;
+}
+
+.error{
+    background-color:#C43C35;
+    color:white;
+}
+
+.notice{
+    background-color:#1B7AE0;
+    color:white;
+}
+
+.yui3-button-icon {
+    background-image: url("../assets/button/icon-sprite-dark-and-light-24.png");
+    background-repeat: no-repeat;
+    display: inline-block;
+    height: 20px;
+    vertical-align: middle;
+    width: 20px;
+}
+
+.yui3-button-icon-bold {
+    background-position: 1px 1px;
+}
+
+.yui3-button-icon-italic {
+    background-position: 1px -35px;
+}
+
+.yui3-button-icon-underline {
+    background-position: 1px -71px;
+}</style>
+
+<div class="intro">
+    <p>In this example, we'll look at a few ways to use the <code>&#x27;cssbutton&#x27;</code> module to enhance the look &amp; feel of the default browser buttons.</p>
+</div>
+
+<div class="example">
+    <!-- Include the cssbutton stylesheet -->
+<link ref="stylsheet" href="http://yui.yahooapis.com/3.5.1/build/cssbutton/cssbutton.css">
+
+<h4 id="button-tags">Button Tags</h4>
+<button class='yui3-button'>&lt;button&gt;</button>
+<input type='button' class='yui3-button' value='&lt;input type="button"&gt;'>
+<input type='submit' class='yui3-button' value='&lt;input type="submit"&gt;'>
+
+<h4 id="other-tags">Other Tags</h4>
+<div class='yui3-button'>&lt;div&gt;</div>
+<span class='yui3-button'>&lt;span&gt;</span>
+<a class='yui3-button'>&lt;a&gt;</a>
+
+<h4 id="colors">Colors</h4>
+<button class='yui3-button success'>.success <br> #57A957</button>
+<button class='yui3-button warning'>.warning <br> #FAF55F</button>
+<button class='yui3-button error'>.error <br> #C43C35</button>
+<button class='yui3-button notice'>.notice <br> #1B7AE0</button>
+
+<h4 id="icon-buttons">Icon Buttons</h4>
+<button class='yui3-button'>
+    <span class='yui3-button-icon yui3-button-icon-bold'></span>
+</button>
+
+<button class='yui3-button'>
+    <span class='yui3-button-icon yui3-button-icon-italic'></span>
+</button>
+
+<button class='yui3-button'>
+    <span class='yui3-button-icon yui3-button-icon-underline'></span>
+</button>
+
+<h4 id="image-button">Image Button</h4>
+<input type='image' id='imageButton' class='yui3-button' src="../assets/button/yui-logo.png"></input>
+
+</div>
+
+<h4 id="source-html">Source: HTML</h4>
+<pre class="code prettyprint">&lt;!-- Include the cssbutton stylesheet --&gt;
+&lt;link ref=&quot;stylsheet&quot; href=&quot;http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssbutton&#x2F;cssbutton.css&quot;&gt;
+
+&lt;h4&gt;Button Tags&lt;&#x2F;h4&gt;
+&lt;button class=&#x27;yui3-button&#x27;&gt;&amp;lt;button&amp;gt;&lt;&#x2F;button&gt;
+&lt;input type=&#x27;button&#x27; class=&#x27;yui3-button&#x27; value=&#x27;&amp;lt;input type=&quot;button&quot;&amp;gt;&#x27;&gt;
+&lt;input type=&#x27;submit&#x27; class=&#x27;yui3-button&#x27; value=&#x27;&amp;lt;input type=&quot;submit&quot;&amp;gt;&#x27;&gt;
+
+&lt;h4&gt;Other Tags&lt;&#x2F;h4&gt;
+&lt;div class=&#x27;yui3-button&#x27;&gt;&amp;lt;div&amp;gt;&lt;&#x2F;div&gt;
+&lt;span class=&#x27;yui3-button&#x27;&gt;&amp;lt;span&amp;gt;&lt;&#x2F;span&gt;
+&lt;a class=&#x27;yui3-button&#x27;&gt;&amp;lt;a&amp;gt;&lt;&#x2F;a&gt;
+
+&lt;h4&gt;Colors&lt;&#x2F;h4&gt;
+&lt;button class=&#x27;yui3-button success&#x27;&gt;.success &lt;br&gt; #57A957&lt;&#x2F;button&gt;
+&lt;button class=&#x27;yui3-button warning&#x27;&gt;.warning &lt;br&gt; #FAF55F&lt;&#x2F;button&gt;
+&lt;button class=&#x27;yui3-button error&#x27;&gt;.error &lt;br&gt; #C43C35&lt;&#x2F;button&gt;
+&lt;button class=&#x27;yui3-button notice&#x27;&gt;.notice &lt;br&gt; #1B7AE0&lt;&#x2F;button&gt;
+
+&lt;h4&gt;Icon Buttons&lt;&#x2F;h4&gt;
+&lt;button class=&#x27;yui3-button&#x27;&gt;
+    &lt;span class=&#x27;yui3-button-icon yui3-button-icon-bold&#x27;&gt;&lt;&#x2F;span&gt;
+&lt;&#x2F;button&gt;
+
+&lt;button class=&#x27;yui3-button&#x27;&gt;
+    &lt;span class=&#x27;yui3-button-icon yui3-button-icon-italic&#x27;&gt;&lt;&#x2F;span&gt;
+&lt;&#x2F;button&gt;
+
+&lt;button class=&#x27;yui3-button&#x27;&gt;
+    &lt;span class=&#x27;yui3-button-icon yui3-button-icon-underline&#x27;&gt;&lt;&#x2F;span&gt;
+&lt;&#x2F;button&gt;
+
+&lt;h4&gt;Image Button&lt;&#x2F;h4&gt;
+&lt;input type=&#x27;image&#x27; id=&#x27;imageButton&#x27; class=&#x27;yui3-button&#x27; src=&quot;..&#x2F;assets&#x2F;button&#x2F;yui-logo.png&quot;&gt;&lt;&#x2F;input&gt;</pre>
+
+
+<h4 id="source-css">Source: CSS</h4>
+<pre class="code prettyprint">.yui3-button {
+    margin:3px;
+}
+
+.warning{
+    background-color:#FAF55F;
+}
+
+.success{
+    background-color:#57A957;
+    color:white;
+}
+
+.error{
+    background-color:#C43C35;
+    color:white;
+}
+
+.notice{
+    background-color:#1B7AE0;
+    color:white;
+}
+
+.yui3-button-icon {
+    background-image: url(&quot;..&#x2F;assets&#x2F;button&#x2F;icon-sprite-dark-and-light-24.png&quot;);
+    background-repeat: no-repeat;
+    display: inline-block;
+    height: 20px;
+    vertical-align: middle;
+    width: 20px;
+}
+
+.yui3-button-icon-bold {
+    background-position: 1px 1px;
+}
+
+.yui3-button-icon-italic {
+    background-position: 1px -35px;
+}
+
+.yui3-button-icon-underline {
+    background-position: 1px -71px;
+}</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#button-tags">Button Tags</a>
+</li>
+<li>
+<a href="#other-tags">Other Tags</a>
+</li>
+<li>
+<a href="#colors">Colors</a>
+</li>
+<li>
+<a href="#icon-buttons">Icon Buttons</a>
+</li>
+<li>
+<a href="#image-button">Image Button</a>
+</li>
+<li>
+<a href="#source-html">Source: HTML</a>
+</li>
+<li>
+<a href="#source-css">Source: CSS</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="This example shows how you can easily style button and non-button DOM elements to appear as buttons">
+                                            <a href="cssbutton.html">Styling elements with cssbutton</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example shows a simple, light solution to enhance &lt;button&gt; nodes">
+                                            <a href="button-plugin.html">Enhancing &lt;button&gt; nodes with button-plugin</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to create button widgets">
+                                            <a href="button.html">Basic button widgets</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="This example demonstrates how to create a widget containing a group of buttons">
+                                            <a href="button-group.html">Managing groups of buttons with button-group</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

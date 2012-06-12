@@ -1,0 +1,12 @@
+<div id="txnProgressCoreDivId" style="display:none">
+  <div id="txnProgressBox">
+    <div id="txnProgressHeader"></div>
+    <div id="txnProgressContentDivId"></div>    
+    <!-- Used to render informational/status messages (error, success reports and such like) -->
+    <div id="txnProgressStatusDivId" class="formStatusBar" style="display:none">
+      <div id="txnProgressStatusMessageDivId"></div>
+      <div id="txnProgressStatusActionsDivId"></div>
+    </div>
+  </div>
+</div>
+<!-- End of txnProgressCoreDivId -->

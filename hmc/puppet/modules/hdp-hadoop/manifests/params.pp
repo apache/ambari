@@ -1,0 +1,144 @@
+class hdp-hadoop::params(
+) inherits hdp::params 
+{
+
+  ##TODO: for testing in masterless mode
+  $use_preconditions = false
+  ####  
+  $conf_dir = $hdp::params::hadoop_conf_dir 
+
+  ####### users
+
+  $mapred_user = $hdp::params::mapred_user
+  $hdfs_user = $hdp::params::hdfs_user
+  
+  ### hadoop-env
+  
+  $dtnode_heapsize = hdp_default("hadoop/hadoop-env/dtnode_heapsize","1024m")
+
+  $hadoop_heapsize = hdp_default("hadoop/hadoop-env/hadoop_heapsize","1024m")
+
+  $hadoop_logdirprefix = hdp_default("hadoop/hadoop-env/hadoop_logdirprefix","/var/log/hadoop")
+
+  $hadoop_piddirprefix = hdp_default("hadoop/hadoop-env/hadoop_piddirprefix","/var/run/hadoop")
+  $run_dir = $hadoop_piddirprefix 
+  $namenode_formatted_mark_file = "${run_dir}/hdfs/namenode-formatted"
+
+
+  $jtnode_heapsize = hdp_default("hadoop/hadoop-env/jtnode_heapsize","1024m")
+
+  $jtnode_opt_maxnewsize = hdp_default("hadoop/hadoop-env/jtnode_opt_maxnewsize","200m")
+
+  $jtnode_opt_newsize = hdp_default("hadoop/hadoop-env/jtnode_opt_newsize","200m")
+
+  $namenode_heapsize = hdp_default("hadoop/hadoop-env/namenode_heapsize","1024m")
+
+  $namenode_opt_maxnewsize = hdp_default("hadoop/hadoop-env/namenode_opt_maxnewsize","640m")
+
+  $namenode_opt_newsize = hdp_default("hadoop/hadoop-env/namenode_opt_newsize","640m")
+  
+  ### compression related
+  if (($hdp::params::lzo_enabled == true) and ($hdp::params::snappy_enabled == true)) {
+    $mapred_compress_map_output = true
+    $compression_codecs =  "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,com.hadoop.compression.lzo.LzoCodec,com.hadoop.compression.lzo.LzopCodec,org.apache.hadoop.io.compress.SnappyCodec"
+    $mapred_map_output_compression_codec = "org.apache.hadoop.io.compress.SnappyCodec"
+  } elsif ($hdp::params::snappy_enabled == true) {
+    $mapred_compress_map_output = true
+    $compression_codecs = "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec" 
+    $mapred_map_output_compression_codec = "org.apache.hadoop.io.compress.SnappyCodec"
+  } elsif ($hdp::params::lzo_enabled == true) {
+    $mapred_compress_map_output = true
+    $compression_codecs = "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,com.hadoop.compression.lzo.LzoCodec,com.hadoop.compression.lzo.LzopCodec"
+    $mapred_map_output_compression_codec = "com.hadoop.compression.lzo.LzoCodec"
+  } else { 
+    $mapred_compress_map_output = false
+    $compression_codecs = "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec"
+    $mapred_map_output_compression_codec = "org.apache.hadoop.io.compress.DefaultCodec"
+  }
+
+  ### core-site
+  $enable_security_authorization = hdp_default("hadoop/core-site/enable_security_authorization","false")
+
+  $fs_checkpoint_dir = hdp_default("hadoop/core-site/fs_checkpoint_dir","/tmp/dfs/namesecondary")
+
+  $proxyuser_group = hdp_default("hadoop/core-site/proxyuser_group","users")
+
+  $security_type = hdp_default("hadoop/core-site/security_type","simple")
+  
+  ### hdfs-site
+  $datanode_du_reserved = hdp_default("hadoop/hdfs-site/datanode_du_reserved",1073741824)
+
+  $dfs_block_local_path_access_user = hdp_default("hadoop/hdfs-site/dfs_block_local_path_access_user","hbase")
+
+  $dfs_data_dir = $hdp::params::dfs_data_dir
+
+  $dfs_datanode_address = hdp_default("hadoop/hdfs-site/dfs_datanode_address",50010)
+
+  $dfs_datanode_data_dir_perm = hdp_default("hadoop/hdfs-site/dfs_datanode_data_dir_perm",750)
+
+  $dfs_datanode_failed_volume_tolerated = hdp_default("hadoop/hdfs-site/dfs_datanode_failed_volume_tolerated",0)
+
+  $dfs_datanode_http_address = hdp_default("hadoop/hdfs-site/dfs_datanode_http_address",50075)
+
+  $dfs_exclude = hdp_default("hadoop/hdfs-site/dfs_exclude","dfs.exclude")
+
+  $dfs_include = hdp_default("hadoop/hdfs-site/dfs_include","dfs.include")
+  
+  $dfs_name_dir = hdp_default("hadoop/hdfs-site/dfs_name_dir","/tmp/hadoop-hdfs/dfs/name")
+  
+  $dfs_replication = hdp_default("hadoop/hdfs-site/dfs_replication",3)
+
+  $dfs_support_append = hdp_default("hadoop/hdfs-site/dfs_support_append",true)
+
+  $dfs_webhdfs_enabled = hdp_default("hadoop/hdfs-site/dfs_webhdfs_enabled","false")
+
+
+ ######### mapred #######
+   ### mapred-site
+
+  $mapred_system_dir = '/mapred/system'
+
+  $io_sort_mb = hdp_default("hadoop/mapred-site/io_sort_mb","200m")
+
+  $io_sort_spill_percent = hdp_default("hadoop/mapred-site/io_sort_spill_percent","0.9")
+
+  $mapred_child_java_opts_sz = hdp_default("hadoop/mapred-site/mapred_child_java_opts_sz","-Xmx768m")
+
+  $mapred_cluster_map_mem_mb = hdp_default("hadoop/mapred-site/mapred_cluster_map_mem_mb","-1")
+
+  $mapred_cluster_max_map_mem_mb = hdp_default("hadoop/mapred-site/mapred_cluster_max_map_mem_mb","-1")
+
+  $mapred_cluster_max_red_mem_mb = hdp_default("hadoop/mapred-site/mapred_cluster_max_red_mem_mb","-1")
+
+  $mapred_cluster_red_mem_mb = hdp_default("hadoop/mapred-site/mapred_cluster_red_mem_mb","-1")
+
+  $mapred_hosts_exclude = hdp_default("hadoop/mapred-site/mapred_hosts_exclude","mapred.exclude")
+
+  $mapred_hosts_include = hdp_default("hadoop/mapred-site/mapred_hosts_include","mapred.include")
+
+  $mapred_job_map_mem_mb = hdp_default("hadoop/mapred-site/mapred_job_map_mem_mb","-1")
+
+  $mapred_job_red_mem_mb = hdp_default("hadoop/mapred-site/mapred_job_red_mem_mb","-1")
+
+  $mapred_jobstatus_dir = hdp_default("hadoop/mapred-site/mapred_jobstatus_dir","file:////mapred/jobstatus")
+
+  $mapred_local_dir = hdp_default("hadoop/mapred-site/mapred_local_dir","/tmp/hadoop-mapred/mapred/local")
+   
+  $mapred_map_tasks_max = hdp_default("hadoop/mapred-site/mapred_map_tasks_max",4)
+
+  $mapred_red_tasks_max = hdp_default("hadoop/mapred-site/mapred_red_tasks_max",4)
+
+  $mapreduce_userlog_retainhours = hdp_default("hadoop/mapred-site/mapreduce_userlog_retainhours",24)
+
+  $maxtasks_per_job = hdp_default("hadoop/mapred-site/maxtasks_per_job","-1")
+
+  $scheduler_name = hdp_default("hadoop/mapred-site/scheduler_name","org.apache.hadoop.mapred.CapacityTaskScheduler")
+
+  $task_controller = hdp_default("hadoop/mapred-site/task_controller","org.apache.hadoop.mapred.DefaultTaskController")
+
+  #### health_check
+
+  $security_enabled = hdp_default("hadoop/health_check/security_enabled","false")
+
+  $task_bin_exe = hdp_default("hadoop/health_check/task_bin_exe")
+}

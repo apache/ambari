@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Example: Working with YUI 2 in 3</title>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Maven+Pro:400,700">
+    <link rel="stylesheet" href="../../build/cssgrids/grids-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <script src="../../build/yui/yui-min.js"></script>
+</head>
+<body>
+
+<div id="doc">
+    <h1>Example: Working with YUI 2 in 3</h1>
+
+    
+        <a href="#toc" class="jump">Jump to Table of Contents</a>
+    
+
+    <div class="yui3-g">
+        <div class="yui3-u-3-4">
+            <div id="main">
+                <div class="content"><div class="intro">
+<p>This example shows how to use YUI 2 and 3 at the same time as well as interacting with each other.</p>
+</div>
+
+<div class="example">
+    
+<img src="../assets/yui/yui.jpg" id="cropper">
+
+<script>
+YUI().use('node', 'anim', 'yui2-imagecropper', function(Y) {
+
+    Y.one('body').addClass('yui-skin-sam');
+
+    //This will make your YUI 2 code run unmodified
+    var YAHOO = Y.YUI2;
+
+    var crop = new YAHOO.widget.ImageCropper('cropper'); 
+
+});
+
+</script>
+
+
+</div>
+
+<style>
+div.hidden {
+    display: none;
+}
+</style>
+<script>
+YUI().use('node', function(Y) {
+    if (Y.UA.mobile) {
+        Y.one('#note').removeClass('hidden');
+    }
+});
+</script>
+
+<div id="note" class="intro hidden">
+<p>This example does not work on touch based devices since it uses the old YUI 2 based Image Cropper.</p>
+</div>
+
+<h3 id="using-yui-2-inside-of-yui-3">Using YUI 2 inside of YUI 3</h3>
+<p>In this example, we are using the new YUI 3 support for loading and sandboxing YUI 2. 
+From the <code>YUI().use()</code> statement, you will be able to load any module/utility/widget from
+YUI 2 and use it like you would in YUI 2.</p>
+
+<h3 id="creating-your-yui-instance">Creating your YUI instance</h3>
+<p>Now we need to create our YUI instance with the <code>node</code> and <code>yui2-imagecropper</code>
+modules, so we can create a YUI 2 ImageCropper and do some simple DOM manipulation with <code>Node</code>.</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;node&#x27;, &#x27;yui2-imagecropper&#x27;, function(Y) {
+});</pre>
+
+
+<h3 id="creating-the-imagecropper">Creating the ImageCropper</h3>
+<p>Now that we have our tools in place, let's create the ImageCropper. Using the new support 
+for loading YUI 2 into a YUI 3 instance, you can set up a simple variable to help you cut 
+and paste your YUI 2 based code.</p>
+<p>In the code sample below, we are creating a scoped variable called <code>YAHOO</code> and assigning
+it from <code>Y.YUI2</code>. The <code>YUI2</code> property of the <code>YUI</code> instance is a scoped version of the 
+YUI 2 <code>YAHOO</code> object. If this page is inspected, you will notice that there is no global <code>YAHOO</code> variable.</p>
+
+<pre class="code prettyprint">YUI().use(&#x27;node&#x27;, &#x27;yui2-imagecropper&#x27;, function(Y) {
+    &#x2F;&#x2F;This will make your YUI 2 code run unmodified
+    var YAHOO = Y.YUI2;
+
+    var crop = new YAHOO.widget.ImageCropper(&#x27;cropper&#x27;); 
+    
+});</pre>
+
+
+<h3 id="using-node-too">Using Node too</h3>
+<p>Now we need to add the <code>yui-skin-sam</code> class to the body so the skin works.</p>
+
+<pre class="code prettyprint">Y.one(&#x27;body&#x27;).addClass(&#x27;yui-skin-sam&#x27;);</pre>
+
+
+<h3 id="full-example-source">Full example source</h3>
+
+<pre class="code prettyprint">&lt;img src=&quot;..&#x2F;assets&#x2F;yui&#x2F;yui.jpg&quot; id=&quot;cropper&quot;&gt;
+
+&lt;script&gt;
+YUI().use(&#x27;node&#x27;, &#x27;anim&#x27;, &#x27;yui2-imagecropper&#x27;, function(Y) {
+
+    Y.one(&#x27;body&#x27;).addClass(&#x27;yui-skin-sam&#x27;);
+
+    &#x2F;&#x2F;This will make your YUI 2 code run unmodified
+    var YAHOO = Y.YUI2;
+
+    var crop = new YAHOO.widget.ImageCropper(&#x27;cropper&#x27;); 
+
+});
+
+&lt;&#x2F;script&gt;</pre>
+
+</div>
+            </div>
+        </div>
+
+        <div class="yui3-u-1-4">
+            <div class="sidebar">
+                
+                    <div id="toc" class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Table of Contents</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="toc">
+<li>
+<a href="#using-yui-2-inside-of-yui-3">Using YUI 2 inside of YUI 3</a>
+</li>
+<li>
+<a href="#creating-your-yui-instance">Creating your YUI instance</a>
+</li>
+<li>
+<a href="#creating-the-imagecropper">Creating the ImageCropper</a>
+</li>
+<li>
+<a href="#using-node-too">Using Node too</a>
+</li>
+<li>
+<a href="#full-example-source">Full example source</a>
+</li>
+</ul>
+                        </div>
+                    </div>
+                
+
+                
+                    <div class="sidebox">
+                        <div class="hd">
+                            <h2 class="no-toc">Examples</h2>
+                        </div>
+
+                        <div class="bd">
+                            <ul class="examples">
+                                
+                                    
+                                        <li data-description="Setting up a YUI Instance">
+                                            <a href="yui-core.html">YUI Core</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with multiple YUI instances.">
+                                            <a href="yui-multi.html">Multiple Instances</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="On-demand loading of YUI and non-YUI assets">
+                                            <a href="yui-loader-ext.html">YUI Loader - Dynamically Adding YUI and External Modules</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Create Class Hierarchies with &#x60;extend&#x60;">
+                                            <a href="yui-extend.html">Create Class Hierarchies with &#x60;extend&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Creating a composition-based class structure using &#x60;augment&#x60;">
+                                            <a href="yui-augment.html">Compose Classes of Objects with &#x60;augment&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Add behaviors to objects or static classes with &#x60;mix&#x60;">
+                                            <a href="yui-mix.html">Add Behaviors to Objects with &#x60;mix&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Combine data sets and create shallow copies of objects with &#x60;merge&#x60;">
+                                            <a href="yui-merge.html">Combine Data Sets with &#x60;merge&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Check data types with the &#x60;Lang Utilities&#x60;">
+                                            <a href="yui-isa.html">Check Data Types with &#x60;Lang&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Get information about the current user agent with &#x60;UA&#x60;">
+                                            <a href="yui-ua.html">Browser Detection with &#x60;UA&#x60;</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Working with YUI 2 in 3">
+                                            <a href="yui-yui2.html">Working with YUI 2 in 3</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Natively use YUI Gallery Modules">
+                                            <a href="yui-gallery.html">Natively use YUI Gallery Modules</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Programatically use Loader">
+                                            <a href="loader-resolve.html">Programatically use Loader</a>
+                                        </li>
+                                    
+                                
+                                    
+                                        <li data-description="Executing functions in parallel">
+                                            <a href="parallel.html">Using Y.Parallel</a>
+                                        </li>
+                                    
+                                
+                            </ul>
+                        </div>
+                    </div>
+                
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+
+</body>
+</html>

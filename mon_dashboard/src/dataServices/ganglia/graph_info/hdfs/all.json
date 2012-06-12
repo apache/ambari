@@ -1,0 +1,894 @@
+{
+    "CPU": [
+        {
+            "description": "Percent of time since boot idle CPU", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=cpu_aidle", 
+            "title": "CPU AIdle", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=cpu_aidle"
+        }, 
+        {
+            "description": "Percent CPU idle", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=cpu_idle", 
+            "title": "CPU Idle", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=cpu_idle"
+        }, 
+        {
+            "description": "Percent CPU nice", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=cpu_nice", 
+            "title": "CPU Nice", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=cpu_nice"
+        }, 
+        {
+            "description": "Percent CPU system", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=cpu_system", 
+            "title": "CPU System", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=cpu_system"
+        }, 
+        {
+            "description": "Percent CPU user", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=cpu_user", 
+            "title": "CPU User", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=cpu_user"
+        }, 
+        {
+            "description": "Percent CPU spent waiting on I/O", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=cpu_wio", 
+            "title": "CPU Wait I/O", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=cpu_wio"
+        }
+    ], 
+    "Disk": [
+        {
+            "description": "Total free disk space", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=disk_free", 
+            "title": "Disk Free", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=disk_free"
+        }, 
+        {
+            "description": "Total available disk space", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=disk_total", 
+            "title": "Disk Total", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=disk_total"
+        }, 
+        {
+            "description": "Maximum percent used for all disk partitions", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=part_max_used", 
+            "title": "Max Disk Partition Used", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=part_max_used"
+        }
+    ], 
+    "FSNamesystem": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.BlockCapacity", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.BlockCapacity"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.BlocksTotal", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.BlocksTotal"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.CapacityRemainingGB", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.CapacityRemainingGB"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.CapacityTotalGB", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.CapacityTotalGB"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.CapacityUsedGB", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.CapacityUsedGB"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.CorruptBlocks", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.CorruptBlocks"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.ExcessBlocks", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.ExcessBlocks"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.FilesTotal", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.FilesTotal"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.MissingBlocks", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.MissingBlocks"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.PendingDeletionBlocks", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.PendingDeletionBlocks"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.PendingReplicationBlocks", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.PendingReplicationBlocks"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.ScheduledReplicationBlocks", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.ScheduledReplicationBlocks"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.TotalLoad", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.TotalLoad"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.FSNamesystem.UnderReplicatedBlocks", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.FSNamesystem.UnderReplicatedBlocks"
+        }
+    ], 
+    "Global": [
+        {
+            "description": "Key load metrics on the HDFS NameNode", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=load_report", 
+            "title": "Load Report", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=load_report"
+        }, 
+        {
+            "description": "Key memory metrics on the HDFS NameNode", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=mem_report", 
+            "title": "Memory Report", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=mem_report"
+        }, 
+        {
+            "description": "Key CPU metrics on the HDFS NameNode", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=cpu_report", 
+            "title": "CPU Report", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=cpu_report"
+        }, 
+        {
+            "description": "Key network I/O metrics on the HDFS NameNode", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=network_report", 
+            "title": "Network I/O Report", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&g=network_report"
+        }
+    ], 
+    "JVM": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.gcCount", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.gcCount"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.gcTimeMillis", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.gcTimeMillis"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.logError", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.logError"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.logFatal", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.logFatal"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.logInfo", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.logInfo"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.logWarn", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.logWarn"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.memHeapCommittedM", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.memHeapCommittedM"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.memHeapUsedM", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.memHeapUsedM"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.memNonHeapCommittedM", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.memNonHeapCommittedM"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.memNonHeapUsedM", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.memNonHeapUsedM"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.threadsBlocked", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.threadsBlocked"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.threadsNew", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.threadsNew"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.threadsRunnable", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.threadsRunnable"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.threadsTerminated", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.threadsTerminated"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.threadsTimedWaiting", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.threadsTimedWaiting"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=jvm.metrics.threadsWaiting", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=jvm.metrics.threadsWaiting"
+        }
+    ], 
+    "Load": [
+        {
+            "description": "Fifteen minute load average", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=load_fifteen", 
+            "title": "Load Fifteen", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=load_fifteen"
+        }, 
+        {
+            "description": "Five minute load average", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=load_five", 
+            "title": "Load Five", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=load_five"
+        }, 
+        {
+            "description": "One minute load average", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=load_one", 
+            "title": "Load One", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=load_one"
+        }
+    ], 
+    "Memory": [
+        {
+            "description": "Amount of buffered memory", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=mem_buffers", 
+            "title": "Memory Buffers", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=mem_buffers"
+        }, 
+        {
+            "description": "Amount of cached memory", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=mem_cached", 
+            "title": "Cached Memory", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=mem_cached"
+        }, 
+        {
+            "description": "Amount of available memory", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=mem_free", 
+            "title": "Free Memory", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=mem_free"
+        }, 
+        {
+            "description": "Amount of shared memory", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=mem_shared", 
+            "title": "Shared Memory", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=mem_shared"
+        }, 
+        {
+            "description": "Total amount of swap memory", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=swap_free", 
+            "title": "Free Swap Space", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=swap_free"
+        }
+    ], 
+    "MetricsSystem": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.dropped_pub_all", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.dropped_pub_all"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.num_sinks", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.num_sinks"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.num_sources", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.num_sources"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_imax_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_imax_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_imin_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_imin_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_max_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_max_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_min_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_min_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_stdev_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.publish_stdev_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.dropped", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.dropped"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.latency_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.latency_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.latency_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.latency_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.qsize", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.sink.ganglia.qsize"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_imax_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_imax_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_imin_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_imin_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_max_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_max_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_min_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_min_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_stdev_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=metricssystem.MetricsSystem.snapshot_stdev_time"
+        }
+    ], 
+    "NameNode": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.AddBlockOps", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.AddBlockOps"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.CreateFileOps", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.CreateFileOps"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.DeleteFileOps", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.DeleteFileOps"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.FileInfoOps", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.FileInfoOps"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.FilesAppended", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.FilesAppended"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.FilesCreated", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.FilesCreated"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.FilesDeleted", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.FilesDeleted"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.FilesInGetListingOps", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.FilesInGetListingOps"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.FilesRenamed", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.FilesRenamed"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.GetBlockLocations", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.GetBlockLocations"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.GetListingOps", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.GetListingOps"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.JournalTransactionsBatchedInSync", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.JournalTransactionsBatchedInSync"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.SafemodeTime", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.SafemodeTime"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.Syncs_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.Syncs_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.Syncs_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.Syncs_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.Transactions_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.Transactions_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.Transactions_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.Transactions_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.blockReport_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.blockReport_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.blockReport_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.blockReport_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=dfs.namenode.fsImageLoadTime", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=dfs.namenode.fsImageLoadTime"
+        }
+    ], 
+    "Network": [
+        {
+            "description": "Number of bytes in per second", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=bytes_in", 
+            "title": "Bytes Received", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=bytes_in"
+        }, 
+        {
+            "description": "Number of bytes out per second", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=bytes_out", 
+            "title": "Bytes Sent", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=bytes_out"
+        }, 
+        {
+            "description": "Packets in per second", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=pkts_in", 
+            "title": "Packets Received", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=pkts_in"
+        }, 
+        {
+            "description": "Packets out per second", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=pkts_out", 
+            "title": "Packets Sent", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=pkts_out"
+        }
+    ], 
+    "Process": [
+        {
+            "description": "Total number of running processes", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=proc_run", 
+            "title": "Total Running Processes", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=proc_run"
+        }, 
+        {
+            "description": "Total number of processes", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=proc_total", 
+            "title": "Total Processes", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=proc_total"
+        }
+    ], 
+    "RPC": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpc.rpc.NumOpenConnections", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpc.rpc.NumOpenConnections"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpc.rpc.ReceivedBytes", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpc.rpc.ReceivedBytes"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpc.rpc.RpcProcessingTime_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpc.rpc.RpcProcessingTime_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpc.rpc.RpcProcessingTime_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpc.rpc.RpcProcessingTime_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpc.rpc.RpcQueueTime_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpc.rpc.RpcQueueTime_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpc.rpc.RpcQueueTime_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpc.rpc.RpcQueueTime_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpc.rpc.SentBytes", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpc.rpc.SentBytes"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpc.rpc.callQueueLen", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpc.rpc.callQueueLen"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpc.rpc.rpcAuthenticationFailures", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpc.rpc.rpcAuthenticationFailures"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpc.rpc.rpcAuthenticationSuccesses", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpc.rpc.rpcAuthenticationSuccesses"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpc.rpc.rpcAuthorizationFailures", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpc.rpc.rpcAuthorizationFailures"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpc.rpc.rpcAuthorizationSuccesses", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpc.rpc.rpcAuthorizationSuccesses"
+        }
+    ], 
+    "RPCDetailed": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.addBlock_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.addBlock_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.blockReceived_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.blockReceived_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.blockReport_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.blockReport_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.complete_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.complete_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.create_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.create_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.delete_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.delete_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.getFileInfo_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.getFileInfo_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.getListing_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.getListing_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.getProtocolVersion_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.getProtocolVersion_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.mkdirs_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.mkdirs_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.register_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.register_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.renewLease_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.renewLease_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.sendHeartbeat_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.sendHeartbeat_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.setPermission_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.setPermission_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.versionRequest_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.versionRequest_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.addBlock_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.addBlock_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.blockReceived_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.blockReceived_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.blockReport_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.blockReport_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.complete_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.complete_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.create_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.create_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.delete_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.delete_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.getFileInfo_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.getFileInfo_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.getListing_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.getListing_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.getProtocolVersion_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.getProtocolVersion_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.mkdirs_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.mkdirs_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.register_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.register_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.renewLease_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.renewLease_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.sendHeartbeat_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.sendHeartbeat_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.setPermission_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.setPermission_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.versionRequest_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=rpcdetailed.rpcdetailed.versionRequest_num_ops"
+        }
+    ], 
+    "UGI": [
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=ugi.ugi.loginFailure_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=ugi.ugi.loginFailure_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=ugi.ugi.loginFailure_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=ugi.ugi.loginFailure_num_ops"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=ugi.ugi.loginSuccess_avg_time", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=ugi.ugi.loginSuccess_avg_time"
+        }, 
+        {
+            "description": "", 
+            "link": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/?c=%NameNodeClusterName%&m=ugi.ugi.loginSuccess_num_ops", 
+            "title": "", 
+            "url": "http://%GangliaWebHostName%:%GangliaWebPort%/ganglia/graph.php?c=%NameNodeClusterName%&m=ugi.ugi.loginSuccess_num_ops"
+        }
+    ]
+}
