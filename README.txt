@@ -1,7 +1,8 @@
 Ambari
 ======
 
- - Ambari provides the GUI frontend that would help users install, manage and monitor the Hadoop cluster.
+ - Ambari provides the GUI frontend that would help users install, manage and
+monitor the Hadoop cluster.
  - It uses CSS, Javascript, and HTML on client side. We use the existing proven
 open-source technologies in the backend e.g. PHP, Puppet for deploying and
 configuring the Hadoop services, Nagios & Ganglia for monitoring alerts and
@@ -12,7 +13,7 @@ Getting Ambari
 
 The source can be checked out anonymously from SVN with this command:
 
-  $ svn checkout http://svn.apache.org/viewvc/incubator/ambari/branches/ambari-186 ambari
+  $ svn checkout http://svn.apache.org/repos/asf/incubator/ambari/trunk ambari
 
 How to build Ambari
 ===================

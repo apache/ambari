@@ -6,6 +6,8 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-552. Update README to point to trunk (vinodkv via vikram)
+
   AMBARI-543. Rpm naming needs to be corrected. (vikram via reznor)
 
   AMBARI-541. Update README for installing/running code off
