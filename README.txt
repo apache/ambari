@@ -90,6 +90,10 @@ So, you should do the following at the command line:
 Now, to install ambari-rpms
 
  $ sudo yum install php-pecl-json (version 1.2.1 compatible with php-5.1 or php-5.2)
+ 
+ $ php -m | grep posix
+
+   If the posix module is not found, run 'sudo yum install php-process'
 
  $ sudo rpm -iv ambari-1.0.0-1.noarch.rpm 
 
