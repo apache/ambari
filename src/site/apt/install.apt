@@ -1,0 +1,115 @@
+Getting Ambari
+
+  The source can be checked out anonymously from SVN with this command:
+  
++--
+$ svn checkout http://svn.apache.org/repos/asf/incubator/ambari/trunk ambari
++--
+
+How to build Ambari
+
+  You need to build Ambari RPMs from the source code that you checked out:
+
++--
+$ yum install rpm-build
+$ cd hmc/package/rpm
+$ ./create_hmc_rpm.sh
++--
+
+  When this succeeds, you will find two RPMs inside the build directory package/rpm/build/rpmbuild/RPMS/noarch/:
+
+  1) ambari-1.0.0-1.noarch.rpm
+
+  2) ambari-agent-1.0.0-1.noarch.rpm
+
+
+Steps to run before you use Ambari to install Hadoop on your cluster
+  
+  We will refer to the node running the Ambari server as <Ambari master>
+  and the nodes to which Hadoop services will be installed as <cluster nodes>.
+
+  1) Set up password-less SSH for root on all your cluster nodes.
+
+    * Copy root's SSH public key to all the cluster nodes in the <authorized_keys> file.
+
+    * Save the corresponding SSH private key file locally.  You will be prompted by Ambari UI to upload it during cluster installation.
+
+  2) Install ambari-agent-1.0.0-1.noarch.rpm on each of the cluster nodes by running:
+
++--
+$ sudo rpm -Uvh ambari-agent-1.0.0-1.noarch.rpm
++--
+
+  3) Stop iptables on the Ambari master:
+
++--
+$ sudo service iptables stop
++--
+
+
+How to install Ambari
+
+  Ambari has several external runtime dependencies.  Major dependencies are:
+
+  1) puppet
+
+  2) php
+
+  3) ruby
+
+  To simplify the installation of the dependencies, you should enable the following
+  yum repos. To do that, you can simply install the corresponding RPMs.
+
+  1) EPEL repo
+
+  2) Puppet passenger
+
+  3) Hadoop repo
+
+  You should run the following at the command line:
+  
++--  
+$ sudo rpm -Uvh http://download.fedoraproject.org/pub/epel/5/[i386|x86_64]/epel-release-5-4.noarch.rpm 
+$ sudo rpm -Uvh http://passenger.stealthymonkeys.com/rhel/5/passenger-release.noarch.rpm 
+$ sudo rpm -Uvh http://public-repo-1.hortonworks.com/HDP-1.0.13/repos/centos5/hdp-release-1.0.13-1.el5.noarch.rpm
++--
+
+  To install necessary PHP modules:
+
++--
+$ sudo yum install php-pecl-json (version 1.2.1 compatible with php-5.1 or php-5.2)
+$ php -m | grep posix
++--
+
+   If the posix module is not found, run:
+
++--   
+$ sudo yum install php-process
++--
+
+  To install Ambari:
+
++--
+$ sudo rpm -iv ambari-1.0.0-1.noarch.rpm 
++--
+
+  Hadoop requires JDK.  You can download it from the Oracle website: 
+  {{{http://download.oracle.com/otn-pub/java/jdk/6u26-b03} http://download.oracle.com/otn-pub/java/jdk/6u26-b03}}
+  The following two files need to be copied to /var/run/hmc/downloads/ on the Ambari master:
+
+  1) jdk-6u26-linux-x64.bin
+
+  2) jdk-6u26-linux-i586.bin
+
+
+How to run Ambari
+
++--
+$ sudo service ambari start
++--
+
+  Now that Ambari server is installed and started, you can start installing Apache Hadoop and its ecosystem components on your cluster nodes by visiting:
+
+  http://AMBARIMASTER/hmc/html/
+  
+  from your browser.  

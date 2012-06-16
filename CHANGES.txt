@@ -6,6 +6,8 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-554. Update documentation to account for ambari-186 merge to trunk (Yusaku via hitesh)
+
   AMBARI-555. Update README for additional documentation to get around errors
   related to missing php-posix module (ViVek Raghuwanshi via hitesh)
 
