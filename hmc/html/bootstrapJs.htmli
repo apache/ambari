@@ -3,11 +3,10 @@
 <script src="../js/ext/yuiCombined.js"></script>
 
 <script type="text/javascript">
-
-  var globalYui = YUI().use("*", function (Y) {
+  var globalYui, Y;
+  globalYui = Y = YUI().use("*", function (Y) {
 
     for (var jsFile in jsFilesToLoad) {
-      /* Load all the files in jsFilesToLoad in one shot. */
       var dynamicJsScript = document.createElement("script");
       dynamicJsScript.type = "text/javascript";
       dynamicJsScript.src = '../' + jsFilesToLoad[jsFile];
@@ -17,5 +16,5 @@
   });
 
   // disable console logging
-  globalYui.log = function () {};
+  Y.log = function () {};
 </script>

@@ -317,8 +317,11 @@
                 'js/configureServicesUtils.js',
                 'js/configureServices.js',
                 'js/reviewAndDeploy.js',
-                'js/deployProgress.js'     
+                'js/deployProgress.js'
               ];
+
+            // uncomment to allow jumping to a specified stage for development
+            // jsFilesToLoad.push('js/test/initializeClusterTest.js');
             </script>
 
             <?php require "./bootstrapJs.htmli"; ?>
