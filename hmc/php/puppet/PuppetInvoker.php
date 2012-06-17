@@ -241,6 +241,15 @@
       ManifestGenerator::generateManifest($manifestDir, $hostInfo,
           $configInfo, $hostRolesStates, $hostAttributes, $agentModulesDir);
 
+      //Write version file
+      $this->writeVersionFile($versionFile, $txnId);
+
+      if ($dryRun) {
+        $successfullNodes = $nodes;
+        return $this->createGenKickWaitResponse($kickFailedNodes, $failureResponseNodes,
+           $timedoutNodes, $successfullNodes, $nodes);
+      }
+
       //Tar the modules and catalog
       $tarLocation = $GLOBALS["puppetMasterModulesDirectory"] . "/catalog/files" ;
       $removeOldTar = "rm -f " . $tarLocation . "/modules.tgz";
@@ -253,14 +262,6 @@
       $this->logger->log_info($placeNewTarCmd);
       exec($placeNewTarCmd);
 
-      //Write version file
-      $this->writeVersionFile($versionFile, $txnId);
-
-      if ($dryRun) {
-        $successfullNodes = $nodes;
-        return $this->createGenKickWaitResponse($kickFailedNodes, $failureResponseNodes,
-           $timedoutNodes, $successfullNodes, $nodes);
-      }
       $numRekicks = 1;
       $maxRekicks = 3;
       $nodesToKick = $nodes;

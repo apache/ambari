@@ -151,8 +151,10 @@ include "RoleDependencies.php";
        }
        if (isset(self::$rolesToPackageMap[$r])) {
          $p = self::$rolesToPackageMap[$r];
-         if (!in_array($p, $packageList)) {
-           $packageList[] = $p;
+         foreach ($p as $apack) {
+           if (!in_array($p, $packageList)) {
+             $packageList[] = $apack;
+           }
          }
        }
      }
@@ -163,9 +165,19 @@ include "RoleDependencies.php";
      }
 
      //lzo and snappy 
-     $packageList[] = self::$rolesToPackageMap["snappy"];
+     $snappyPackages = self::$rolesToPackageMap["snappy"];
+     foreach ($snappyPackages as $spack) {
+       if (!in_array($spack, $packageList)) {
+         $packageList[] = $spack; 
+       }
+     }
      if ($configInfo["lzo_enabled"] == "true") {
-       $packageList[] = self::$rolesToPackageMap["lzo"];
+       $p = self::$rolesToPackageMap["lzo"];
+       foreach ($p as $apack) {
+         if (!in_array($p, $packageList)) {
+           $packageList[] = $apack;
+         }
+       }
      }
 
      $firstP = true;
@@ -201,33 +213,41 @@ include "RoleDependencies.php";
    }
 
    private static $rolesToPackageMap = array (
-     "hdp-hadoop::namenode" => "hadoop hadoop-libhdfs.x86_64 hadoop-native.x86_64 hadoop-pipes.x86_64 hadoop-sbin.x86_64 hadoop-lzo",
-     "hdp-hadoop::snamenode" => "hadoop hadoop-libhdfs.x86_64 hadoop-native.x86_64 hadoop-pipes.x86_64 hadoop-sbin.x86_64 hadoop-lzo",
-     "hdp-hadoop::jobtracker" => "hadoop hadoop-libhdfs.x86_64 hadoop-native.x86_64 hadoop-pipes.x86_64 hadoop-sbin.x86_64 hadoop-lzo",
-     "hdp-hadoop::client" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386 hadoop-lzo",
-     "hdp-hadoop::datanode" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386 hadoop-lzo",
-     "hdp-hadoop::tasktracker" => "hadoop hadoop-libhdfs.i386 hadoop-native.i386 hadoop-pipes.i386 hadoop-sbin.i386 hadoop-lzo",
-     "hdp-zookeeper" => "zookeeper",
-     "hdp-zookeeper::client" => "zookeeper",
-     "hdp-hbase::master" => "hbase",
-     "hdp-hbase::regionserver" => "hbase",
-     "hdp-hbase::client" => "hbase",
-     "hdp-pig" => "pig.noarch",
-     "hdp-sqoop" => "sqoop mysql-connector-java-5.0.8-1",
-     "hdp-hive::server" => "hive mysql-connector-java-5.0.8-1",
-     "hdp-hive::client" => "hive",
-     "hdp-hcat" => "hcatalog",
-     "hdp-oozie::server" => "oozie.noarch extjs-2.2-1",
-     "hdp-oozie::client" => "oozie-client.noarch",
-     "hdp-mysql::server" => "mysql-server",
-     "hdp-templeton::server" => "templeton templeton-tar-pig-0.0.1-1 templeton-tar-hive-0.0.1-1",
-     "hdp-templeton::client" => "templeton",
-     "lzo" => "lzo lzo.i386 lzo-devel lzo-devel.i386",
-     "snappy" => "snappy snappy-devel",
-     "hdp-ganglia::server" => "ganglia-gmetad-3.2.0 ganglia-gmond-3.2.0 gweb hdp_mon_ganglia_addons",
-     "hdp-ganglia::monitor" => "ganglia-gmond-3.2.0 gweb hdp_mon_ganglia_addons",
-     "hdp-nagios::server" => "hdp_mon_nagios_addons nagios-3.2.3 nagios-plugins-1.4.9 fping net-snmp-utils",
-     "hdp-dashboard" => "hdp_mon_dashboard",
+       "hdp-hadoop::namenode" => array ("hadoop", "hadoop-libhdfs.x86_64", "hadoop-native.x86_64", "hadoop-pipes.x86_64",
+            "hadoop-sbin.x86_64", "hadoop-lzo"),
+       "hdp-hadoop::snamenode" => array ("hadoop", "hadoop-libhdfs.x86_64", "hadoop-native.x86_64", "hadoop-pipes.x86_64",
+            "hadoop-sbin.x86_64", "hadoop-lzo"),
+       "hdp-hadoop::jobtracker" => array ("hadoop", "hadoop-libhdfs.x86_64", "hadoop-native.x86_64", "hadoop-pipes.x86_64",
+            "hadoop-sbin.x86_64", "hadoop-lzo"),
+       "hdp-hadoop::client" => array ("hadoop hadoop-libhdfs.i386", "hadoop-native.i386", 
+            "hadoop-pipes.i386", "hadoop-sbin.i386", "hadoop-lzo"),
+       "hdp-hadoop::client" => array ("hadoop hadoop-libhdfs.i386", "hadoop-native.i386", 
+            "hadoop-pipes.i386", "hadoop-sbin.i386", "hadoop-lzo"),
+       "hdp-hadoop::datanode" => array ("hadoop hadoop-libhdfs.i386", "hadoop-native.i386",
+            "hadoop-pipes.i386", "hadoop-sbin.i386", "hadoop-lzo"),
+       "hdp-hadoop::tasktracker" => array ("hadoop hadoop-libhdfs.i386", "hadoop-native.i386",
+            "hadoop-pipes.i386", "hadoop-sbin.i386", "hadoop-lzo"),
+       "hdp-zookeeper" => array ("zookeeper"),
+       "hdp-zookeeper::client" => array ("zookeeper"),
+       "hdp-hbase::master" => array ("hbase"),
+       "hdp-hbase::regionserver" => array("hbase"),
+       "hdp-hbase::client" => array("hbase"),
+       "hdp-pig" => array("pig.noarch"),
+       "hdp-sqoop" => array("sqoop", "mysql-connector-java-5.0.8-1"),
+       "hdp-hive::server" => array("hive", "mysql-connector-java-5.0.8-1"),
+       "hdp-hive::client" => array("hive"),
+       "hdp-hcat" => array("hcatalog"),
+       "hdp-oozie::server" => array("oozie.noarch", "extjs-2.2-1"),
+       "hdp-oozie::client" => array("oozie-client.noarch"),
+       "hdp-mysql::server" => array("mysql-server"),
+       "hdp-templeton::server" => array("templeton", "templeton-tar-pig-0.0.1-1", "templeton-tar-hive-0.0.1-1"),
+       "hdp-templeton::client" => array("templeton"),
+       "lzo" => array("lzo", "lzo.i386", "lzo-devel", "lzo-devel.i386"),
+       "snappy" => array("snappy", "snappy-devel"),
+       "hdp-ganglia::server" => array("ganglia-gmetad-3.2.0", "ganglia-gmond-3.2.0", "gweb", "hdp_mon_ganglia_addons"),
+       "hdp-ganglia::monitor" => array("ganglia-gmond-3.2.0", "gweb", "hdp_mon_ganglia_addons"),
+       "hdp-nagios::server" => array("hdp_mon_nagios_addons", "nagios-3.2.3", "nagios-plugins-1.4.9", "fping", "net-snmp-utils"),
+       "hdp-dashboard" => array("hdp_mon_dashboard"),
    );
  }
 
