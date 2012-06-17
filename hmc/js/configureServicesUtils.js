@@ -18,10 +18,12 @@ function ConfigureServicesUtil() {
         readOnlyFlag = true;
       }
     }
+    
+    var checked = (type === 'checkbox' && option.value === 'true') ? 'checked' : '';
   
     var retString = '<div class="formElement">' +
       '<label for="' + service + '">' + option.displayName + '</label>' +
-      '<input class="' + unitClass + '" type="' + type + '" id="' + property + '" name="' + service + '" value="' + option.value + '"';
+      '<input class="' + unitClass + '" type="' + type + '" id="' + property + '" name="' + service + '" value="' + option.value + '" ' + checked;
     if (readOnlyFlag) {
       retString += ' readonly="readonly" ';
     }
@@ -180,7 +182,7 @@ function ConfigureServicesUtil() {
       return {};
     }
     this.cleanupClassesForPasswordErrors();
-  
+   
     var desiredOptions = {};
   
     var temp = globalYui.all("#configureClusterAdvancedDynamicRenderDivId div[name=configureClusterAdvancedPerServiceDiv]");
@@ -195,7 +197,7 @@ function ConfigureServicesUtil() {
             return;
           }
         }
-  
+ 
         var value = globalYui.Lang.trim(proper.get('value'));
         if ((proper.get('type') == "checkbox")) {
           value = proper.get('checked').toString();
