@@ -37,10 +37,10 @@ function readHostsFile($hostsFile) {
           $hostSuffix = $matches[4];
           for ($i = $matches[2]; $i <= $matches[3]; $i++) {
             $newH = $hostPrefix . $i . $hostSuffix;
-            $hosts[] = $newH;
+            $hosts[] = strtolower($newH);
           }
         } else {
-          $hosts[] = $h;
+          $hosts[] = strtolower($h);
         }
       }
     }

@@ -113,7 +113,6 @@ if (!$freshInstall) {
         if (!array_key_exists($hostInfo["clusterName"], $duplicateHosts)) {
           $duplicateHosts[$hostInfo["clusterName"]] = array();
         }
-
         array_push($duplicateHosts[$hostInfo["clusterName"]], 
                    $hostInfo["hostName"]);
       }
@@ -121,6 +120,8 @@ if (!$freshInstall) {
   $numDupHosts = count($duplicateHosts);
   $numNewHosts = count($newHosts);
   if ($numDupHosts != 0) {
+    $logger->log_warn("Trying to add duplicate nodes to the cluster, dups="
+        . print_r($duplicateHosts, true));
     print (json_encode(array("result" => 3, "error" => "Some hosts in the given file are already being used in cluster", "hosts" => $duplicateHosts)));
     return;
   }
