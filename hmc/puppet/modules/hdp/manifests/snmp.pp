@@ -4,6 +4,8 @@ class hdp::snmp(
 {
   include hdp::params
 
+  hdp::package {'snmp':}
+
   hdp::snmp-configfile {'snmpd.conf': 
     notify => Service['snmpd']    
   }
@@ -12,7 +14,7 @@ class hdp::snmp(
     ensure => $service_state
   }
   
-  anchor{'hdp::snmp::begin':} -> Hdp::Snmp-configfile<||> -> Service['snmpd'] -> anchor{'hdp::snmp::end':}
+  anchor{'hdp::snmp::begin':} -> Hdp::Package['snmp'] -> Hdp::Snmp-configfile<||> -> Service['snmpd'] -> anchor{'hdp::snmp::end':}
 }
 
 define hdp::snmp-configfile()

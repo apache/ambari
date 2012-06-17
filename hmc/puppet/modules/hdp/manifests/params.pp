@@ -185,8 +185,8 @@ class hdp::params()
     nagios-php-pecl-json => {
       64 => 'php-pecl-json.x86_64'
     },
-    nagios-net-snmp-utils => {
-      64 => 'net-snmp-utils'
+    snmp => {
+      64 => ['net-snmp','net-snmp-utils'],
     },
     dashboard => {
       64 => 'hdp_mon_dashboard'
