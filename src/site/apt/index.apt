@@ -41,7 +41,8 @@ Introduction
   []
   
   Ambari's primary audience is system administrators responsible for managing Hadoop clusters.
-  It allow them to:
+  
+  Ambari allows them to:
 
   * Easily Install a Hadoop Cluster  
   
@@ -53,7 +54,7 @@ Introduction
 
   * Manage a Hadoop Cluster
   
-    * Ambari provides a central management console for starting, stopping, and reconfiguring Hadoop services across the entire cluster.
+    * Ambari provides central management for starting, stopping, and reconfiguring Hadoop services across the entire cluster.
 
   []
 
@@ -79,8 +80,14 @@ Roadmap
   
   * Support for various operating systems
   
-    * Ambari currently supports RHEL 5.*.  Work is being done to support RHEL 6.* (coming soon)
-      and other OS's.
+    * Ambari currently supports:
+    
+      * 64-bit RHEL 5.*
+      
+      * 64-bit CentOS 5.*
+      
+    * Support for RHEL/CentOS 6.* is coming soon.
+      Contributions to support other operating systems are welcome.
 
   []
   
@@ -97,7 +104,7 @@ Roadmap
 
   * RESTful API for third-party integration
   
-    * Ambari will expose a unified, RESTful API to expose health, status, usage, and various and metrics from
+    * Ambari will expose a unified, RESTful API to expose health, status, usage, and various metrics from
       the underlying Hadoop stack.  This enables third-party applications to integrate Hadoop cluster management
       and monitoring capabilities.
       

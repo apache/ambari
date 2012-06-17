@@ -1,3 +1,14 @@
+Supported Operating Systems
+
+  * Ambari currently supports:
+  
+    * 64-bit RHEL 5.*
+    
+    * 64-bit CentOS 5.*
+
+  RHEL/CentOS 6.* support is coming shortly.
+
+
 Getting Ambari
 
   The source can be checked out anonymously from SVN with this command:

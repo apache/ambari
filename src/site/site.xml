@@ -45,16 +45,8 @@
     </head>
 
     <links>
-      <item name="Apache" href="http://www.apache.org/" />
-      <item name="Hadoop" href="http://hadoop.apache.org/"/>
-      <item name="HBase" href="http://hbase.apache.org/"/>
-      <item name="HCatalog" href="http://incubator.apache.org/hcatalog/"/>
-      <item name="Hive" href="http://hive.apache.org/"/>
-      <item name="Pig" href="http://pig.apache.org/"/>
-      <item name="Oozie" href="http://incubator.apache.org/oozie/"/>
-      <item name="Sqoop" href="http://sqoop.apache.org"/>
-      <item name="Templeton" href="http://people.apache.org/~thejas/templeton_doc_latest/index.html"/>
-      <item name="Zookeeper" href="http://zookeeper.apache.org/"/>
+      <item name="JIRA" href="https://issues.apache.org/jira/browse/AMBARI" />
+      <item name="SVN" href="https://svn.apache.org/repos/asf/incubator/ambari/" />
     </links>
 
     <menu name="Ambari">
