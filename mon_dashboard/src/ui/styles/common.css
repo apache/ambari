@@ -502,4 +502,5 @@ section.row > section {
 .navbar #logo {
 	float:left;
 	padding-top:7px;
+	height:36px;
 }
