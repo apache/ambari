@@ -73,14 +73,18 @@ How to install Ambari
 
   1) EPEL repo
 
-  2) Puppet passenger
+  2) Puppet Passenger
 
   3) Hadoop repo
 
   You should run the following at the command line:
   
 +--  
-$ sudo rpm -Uvh http://download.fedoraproject.org/pub/epel/5/[i386|x86_64]/epel-release-5-4.noarch.rpm 
+
+$ sudo rpm -Uvh http://dl.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
+OR 
+$ sudo rpm -Uvh http://dl.fedoraproject.org/pub/epel/5/i386/epel-release-5-4.noarch.rpm
+
 $ sudo rpm -Uvh http://passenger.stealthymonkeys.com/rhel/5/passenger-release.noarch.rpm 
 $ sudo rpm -Uvh http://public-repo-1.hortonworks.com/HDP-1.0.13/repos/centos5/hdp-release-1.0.13-1.el5.noarch.rpm
 +--
@@ -96,6 +100,16 @@ $ php -m | grep posix
 
 +--   
 $ sudo yum install php-process
++--
+
+  Depending on which packages you have already installed, you may need to run:
+  
++--
+$ sudo yum install pdsh
+$ sudo yum install httpd-devel
+$ sudo yum install mod_passenger
+$ sudo yum install puppet-2.7.9
+$ sudo yum install ruby-devel
 +--
 
   To install Ambari:
