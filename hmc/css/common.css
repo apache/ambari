@@ -466,6 +466,7 @@ div.separator {
 .navbar #logo {
 	float:left;
 	padding-top:7px;
+	height:36px;
 }
 .navbar .nav > li.right {
   float:right; 
