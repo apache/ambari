@@ -92,7 +92,8 @@ $ sudo rpm -Uvh http://public-repo-1.hortonworks.com/HDP-1.0.13/repos/centos5/hd
   To install necessary PHP modules:
 
 +--
-$ sudo yum install php-pecl-json (version 1.2.1 compatible with php-5.1 or php-5.2)
+$ sudo yum install php-pecl-json  # version 1.2.1 compatible with php-5.1 or php-5.2
+$ sudo yum install php-pdo
 $ php -m | grep posix
 +--
 

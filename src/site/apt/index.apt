@@ -104,7 +104,6 @@ Roadmap
 
   * RESTful API for third-party integration
   
-    * Ambari will expose a unified, RESTful API to expose health, status, usage, and various metrics from
-      the underlying Hadoop stack.  This enables third-party applications to integrate Hadoop cluster management
+    * Ambari will expose a unified, RESTful API to enable third-party applications to integrate Hadoop cluster management
       and monitoring capabilities.
       

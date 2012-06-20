@@ -301,6 +301,9 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-site-plugin</artifactId>
             <version>3.0</version>
+            <configuration>
+              <outputDirectory>../site</outputDirectory>
+            </configuration>
           </plugin>
         </plugins>
       </pluginManagement>
@@ -329,16 +332,6 @@
                </reports>
              </reportSet>
           </reportSets>
-          <configuration>
-            <checkoutDirectoryName>sqoop</checkoutDirectoryName>
-            <webAccessUrl>http://svn.apache.org/viewvc/sqoop/</webAccessUrl>
-            <anonyumousConnection>
-              scm:svn:https://svn.apache.org/repos/asf/sqoop/trunk/
-            </anonyumousConnection>
-            <developerConnection>
-              scm:svn:https://svn.apache.org/repos/asf/sqoop/trunk/
-            </developerConnection>
-          </configuration>
         </plugin>
       </plugins>
     </reporting>
