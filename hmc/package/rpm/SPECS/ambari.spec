@@ -98,7 +98,6 @@ fi
 %__cp -rf js $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf puppet $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf php $RPM_BUILD_ROOT/%{web_prefixdir}/
-%__cp -rf yui-3.5.1 $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -f fileCombinator.php $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf conf $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__cp -rf puppet/manifestloader $RPM_BUILD_ROOT/%{puppet_master_dir}

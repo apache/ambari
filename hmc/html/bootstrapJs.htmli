@@ -1,5 +1,5 @@
 <link type="text/css" rel="stylesheet" href="../css/yuiCombined.css">
-<script src="../yui-3.5.1/build/yui/yui-min.js"></script>
+<script src="../js/ext/yui-min.js"></script>
 <script src="../js/ext/yuiCombined.js"></script>
 
 <script type="text/javascript">

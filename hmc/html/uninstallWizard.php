@@ -4,7 +4,7 @@
     <title id="pageTitleId"><?php echo $RES['page.title'] ?></title>
 
     <!-- CSS -->
-    <link type="text/css" rel="stylesheet" href="../yui-3.5.1/build/cssreset/cssreset-min.css"> 
+    <link type="text/css" rel="stylesheet" href="../css/cssreset-min.css"> 
     <link type="text/css" rel="stylesheet" href="../css/bootstrap.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common.css" media="screen"/>
     <link type="text/css" rel="stylesheet" href="../css/common2.css" media="screen"/>

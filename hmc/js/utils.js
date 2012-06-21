@@ -17,9 +17,6 @@ Function.prototype.bind = function(scope) {
   }
 }
 
-/* Belongs with createInformationalPanel() */
-var customizedYuiPanelCss = false;
-
 /* XXX Ugly, ugly hack to emulate a singleton - users are NEVER supposed 
  * to use this, and should only access the createInformationalPanel() and 
  * destroyInformationalPanel() methods below.
@@ -52,57 +49,6 @@ function createInformationalPanel( containerNodeId, headerContentString ) {
     centered: true,
     visible: false
   });
-
-  if( !customizedYuiPanelCss ) {
-    /* Needs to be called one time only. 
-     *
-     * We do this here instead of creating a static entry in a CSS file  
-     * because the first invocation of globalYui.Panel (above) pulls in all 
-     * the necessary additional styling information that is applied to the 
-     * panel - since this new styling information comes in at runtime, it
-     * overrides any static CSS we might have had, so adding our overrides
-     * at runtime (*after* globalYui.Panel) is the only way out.
-     */
-	/*
-    globalYui.StyleSheet('KewlApp').set( '.yui3-skin-sam .yui3-panel-content .yui3-widget-hd', {
-      background: 'rgb(50,185,50)',
-      textAlign: 'center',
-      fontWeight: 'bold',
-      fontSize: '150%'
-    });
-
-    globalYui.StyleSheet('KewlApp').set( '.yui3-skin-sam .yui3-panel .yui3-widget-hd .yui3-button-close', {
-        border: 'medium solid gray',
-        backgroundColor: 'white',
-        height: '17px',
-        width: '20px',
-    });
-    */	
-	  
-    // Temporary fix to a yui bug
-    globalYui.StyleSheet('KewlApp').set( '.yui3-skin-sam .yui3-panel .yui3-widget-hd .yui3-button-close:before', {
-        content: 'url(../yui-3.5.1/build/assets/skins/sam/sprite_icons.png)',
-        backgroundImage: 'url(../yui-3.5.1/build/assets/skins/sam/sprite_icons.png)',
-    });
-    /*
-    globalYui.StyleSheet('KewlApp').set( '.yui3-skin-sam .yui3-panel-content .yui3-widget-ft', {
-      background: 'rgb(50,185,50)',
-    });
-
-    globalYui.StyleSheet('KewlApp').set( '.yui3-skin-sam .yui3-panel-content .yui3-widget-ft .yui3-button', {
-      fontWeight: 'bold',
-      fontSize: '135%',
-      color: 'white',
-      margin: '0pt 6px',
-      padding: '4px 8px',
-      textDecoration: 'underline',
-      background: 'none',
-      border: '0px'
-    });
-    */
-
-    customizedYuiPanelCss = true;
-  }
 
   globalSingletonInformationalPanel = newPanel;
 
