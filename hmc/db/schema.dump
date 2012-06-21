@@ -111,7 +111,7 @@ INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, displ
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
   ( "HIVE", "HIVE_MYSQL", "MySql Server for Hive", '{ "isMaster": false, "isClient": false }', "" );
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
-  ( "HIVE", "HIVE_SERVER", "Hive Server", '{ "isMaster": true, "isClient": false }', "" );
+  ( "HIVE", "HIVE_SERVER", "Hive Metastore", '{ "isMaster": true, "isClient": false }', "" );
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
   ( "HIVE", "HIVE_CLIENT", "Hive Client", '{ "isMaster": false, "isClient": true }', "" );
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
