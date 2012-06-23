@@ -51,11 +51,7 @@ function hideAndDestroyPanel() {
 }
 
 function getTitleForReconfiguration(serviceName) {
-  /* serviceName is not used for now because the reconfiguration markup 
-   * already has the service name right at the top, and this ends up 
-   * looking redundant.
-   */
-  return 'Make Configuration Changes';
+  return 'Make Configuration Changes for ' + serviceName;
 }
 
 function setupReconfigureFirstScreen(serviceName) {
@@ -500,7 +496,7 @@ function generateServiceManagementEntryMarkup( serviceName, serviceInfo ) {
         'class="' + serviceManagementEntryAnchorCssClasses + '"><i class="' + serviceManagementEntryIconCssClass + '"></i></a> ';
     }
 
-    var notReconfigurable = [ 'PIG', 'SQOOP', 'OOZIE', 'TEMPLETON', 'GANGLIA' ];
+    var notReconfigurable = [ 'PIG', 'SQOOP', 'OOZIE', 'TEMPLETON', 'GANGLIA', 'HIVE' ];
     var reconfigureClass;
     if (globalYui.Array.indexOf(notReconfigurable, serviceName) >= 0) {
       reconfigureClass = 'serviceManagementEntryActionReconfigure disabled';

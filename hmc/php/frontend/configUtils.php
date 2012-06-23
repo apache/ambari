@@ -55,6 +55,7 @@ function basicNumericCheck($val, $negativeAllowed = TRUE) {
  *        )
  */
 function validateConfigs($svcConfigs) {
+  $REQUIRED_FIELD_MESSAGE = 'This is required.  Please specify.';
   $errors = array();
 //  foreach ($configs as $svc => $svcConfigs) {
     foreach ($svcConfigs as $key => $val) {
@@ -93,19 +94,19 @@ function validateConfigs($svcConfigs) {
         // TODO ??
       } else if ($key == "hive_database_name") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "Database name cannot be empty");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         } else if (preg_match("/^\w+$/", $val) == 0) {
           $errors[$key] = array ( "error" => "Database name should only contain alphanumeric characters");
         }
       } else if ($key == "hive_metastore_user_name") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "Database user name cannot be empty");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         } else if (preg_match("/^\w+$/", $val) == 0) {
           $errors[$key] = array ( "error" => "Database user name should only contain alphanumeric characters");
         }
       } else if ($key == "hive_metastore_user_passwd") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "Database password cannot be empty");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         }
       } else if ($key == "java32_home") {
         if ($val != "") {
@@ -129,11 +130,11 @@ function validateConfigs($svcConfigs) {
         }
       } else if ($key == "hdfs_user") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "Empty user id specified");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         }
       } else if ($key == "mapred_user") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "Empty user id specified");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         }
       } else if ($key == "dfs_support_append") {
         // TODO
@@ -163,7 +164,7 @@ function validateConfigs($svcConfigs) {
         }
       } else if ($key == "hbase_user") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "Empty user id specified");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         }
       } else if ($key == "zk_log_dir") {
         $check = validatePath($val);
@@ -177,16 +178,16 @@ function validateConfigs($svcConfigs) {
         }
       } else if ($key == "zk_user") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "Empty user id specified");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         }
       } else if ($key == "hcat_logdirprefix") {
       } else if ($key == "hcat_user") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "Empty user id specified");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         }
       } else if ($key == "templeton_user") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "Empty user id specified");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         }
       } else if ($key == "templeton_pid_dir") {
         $check = validatePath($val);
@@ -210,19 +211,19 @@ function validateConfigs($svcConfigs) {
         }
       } else if ($key == "oozie_user") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "Empty user id specified");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         }
       } else if ($key == "nagios_web_login") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "No nagios web login specified");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         }
       } else if ($key == "nagios_web_password") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "No nagios web password specified");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         }
       } else if ($key == "nagios_contact") {
         if ($val == "") {
-          $errors[$key] = array ( "error" => "Empty nagios contact specified");
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         } else if (0 == preg_match("/^(\w+((-\w+)|(\w.\w+))*)\@(\w+((\.|-)\w+)*\.\w+$)/",$val)) {
           $errors[$key] = array ( "error" => "Not a valid email address");
         }
@@ -368,11 +369,11 @@ function validateConfigs($svcConfigs) {
         }
       } else if ($key == "lzo_enabled") {
         if ($val != "true" && $val != "false") {
-          $errors[$key] = array ( "error" => "Invalid value, only true/false allowed");
+          $errors[$key] = array ( "error" => "Invalid value. Only true/false allowed");
         }
       } else if ($key == "snappy_enabled") {
         if ($val != "true" && $val != "false") {
-          $errors[$key] = array ( "error" => "Invalid value, only true/false allowed");
+          $errors[$key] = array ( "error" => "Invalid value. Only true/false allowed");
         }
       }
 
@@ -503,7 +504,7 @@ function validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $
   $suggestProperties = new SuggestProperties();
   $cfgSuggestResult = $suggestProperties->verifyProperties($clusterName, $dbAccessor, $finalProperties);
   if ($cfgResult["result"] != 0 || $cfgSuggestResult["result"] != 0) {
-    $mergedErrors = array( "result" => 1, "error" => "Invalid Configs",
+    $mergedErrors = array( "result" => 1, "error" => "Some configuration parameters need your attention before you can proceed.",
         "properties" => array());
 
     if (isset($cfgResult["properties"])) {

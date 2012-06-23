@@ -847,6 +847,71 @@ span.installationWizardStageNumber {
     color: #B94A48;
 }
 
+.statusWarning {
+  background-color: #FCF8E3;
+  border-color: #FBEED5;
+  color: #C09853;
+}
+
+/* configureServices */
+#configureClusterAdvancedCoreDivId .nav-tabs > li > a {
+  color:#0088CC;
+  outline: 0 none;
+  font-size:13px;
+}
+#configureClusterAdvancedCoreDivId .nav-tabs > .active > a, #configureClusterAdvancedCoreDivId .nav-tabs > .active > a:hover {
+  font-weight:bold;
+  color:#65B642;
+}
+#configureClusterAdvancedCoreDivId #buttonAreaDivId {
+  background-color:#f0f0f0;
+  border:1px solid #dddddd;
+  border-width:0 1px 1px 1px;
+  border-radius:0 0 4px 4px;
+}
+#configureClusterAdvancedDynamicRenderDivId #configureServicesTabs {
+  margin-top:20px;
+}
+
+#configureClusterAdvancedDynamicRenderDivId .tab-content {
+  /* height:300px; */
+  border:1px solid #dddddd;
+  border-width:0 1px 1px 1px;
+  padding:40px 0;
+}
+
+#configureClusterAdvancedFormId {
+  margin:0;
+}
+
+#configureClusterAdvancedDynamicRenderDivId .nav {
+  margin-bottom:0;
+}
+
+#configureClusterAdvancedDynamicRenderDivId .formInputErrorReason {
+  color: red;
+  display: inline-block;
+  margin-bottom: 20px;
+  margin-left: 320px;
+}
+#configureClusterAdvancedCoreDivId #buttonGroupDivId {
+  float:right;
+  padding:6px 20px;
+}
+#configureClusterAdvancedCoreDivId #backNextDivId {
+  float:left;
+  margin-right:20px;
+}
+#configureClusterAdvancedCoreDivId #configureClusterAdvancedSubmitButtonId {
+  /* width:100px; */
+  width:300px;
+}
+#configureClusterAdvancedCoreDivId .contextualHelp {
+  width:280px;
+}
+/* END configure services */
+
+
 /* Add a scrollbar only to the body of the YUI Panel, keeping the locations of
  * the Header and Footer fixed (and always visible).
  */

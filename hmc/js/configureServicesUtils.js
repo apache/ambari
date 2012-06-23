@@ -30,14 +30,14 @@ function ConfigureServicesUtil() {
   
     retString += '><label class="unit">' + unitLabel + '</label>' + 
       '<div class="contextualHelp">' + option.description + '</div>' +
-      '<div class="formInputErrorReason" id="' + property + 'ErrorReason' + '"></div>' +
+      '<div class="formInputErrorReason" id="' + property + 'ErrorReason' + '" style="display:none"></div>' +
       '</div>';
-    if (type == "password") {
+    if (type == "password" && !isReconfigure) {
       retString += '<div class="formElement">' +
         '<label for="' + service + '"> Retype ' + option.displayName + '</label>' +
-        '<input type="' + type + '" id="' + property + 'SecretService" name="' + service + '" value="' + option.value + '">' +
+        '<input type="' + type + '" id="' + property + 'SecretService" class="retypePassword" name="' + service + '" value="' + option.value + '">' +
         '<div class="contextualHelp">' + option.description + '</div>' +
-        '<div class="formInputErrorReason" id="' + property + 'SecretServiceErrorReason' + '" ></div>' +
+        '<div class="formInputErrorReason" id="' + property + 'SecretServiceErrorReason' + '" style="display:none"></div>' +
         '</div>';
   
       /// Put it in the global passwd array
@@ -45,7 +45,7 @@ function ConfigureServicesUtil() {
         "passwordDivId"     : property,
         "verificationDivId" : property + 'SecretService'
       };
-      // globalYui.log("Global Passwords Array: " + globalYui.Lang.dump(passwordsArray));
+      // Y.log("Global Passwords Array: " + Y.Lang.dump(passwordsArray));
   
     }
     return retString;
@@ -61,107 +61,121 @@ function ConfigureServicesUtil() {
      * there is re-use of this module of code within the same JS memory.
      */
     passwordsArray = [];
-    var optionsSummary = "";
-    for (servicesKey in optionsInfo['services']) {
-      if (optionsInfo['services'][servicesKey]["isEnabled"] == true) {
+    var tabs = '<ul id="configureServicesTabs" class="nav nav-tabs">';
+    var optionsSummary = (isReconfigure) ? '<div>': '<div class="tab-content">';
+
+    var setServiceMarkup = function(service) {
+      if (service.isEnabled === '1') {
         var serviceNeedsRender = false;
-        var propertiesRendering = "";
-        for (property in optionsInfo['services'][servicesKey]["properties"]) {
+        var propertiesMarkup = "";
+        for (var property in service.properties) {
           // service has configs, so needs render
-          var type = convertDisplayType(optionsInfo['services'][servicesKey]['properties'][property]['type']);
-          // globalYui.log("TYPE: " + type + "Property: " + property);
-          if (type == "NODISPLAY") {
+          var type = convertDisplayType(service.properties[property].type);
+          // Y.log("TYPE: " + type + "Property: " + property);
+          if (type === "NODISPLAY") {
               continue;
           }
           serviceNeedsRender = true;
-          var unit = optionsInfo['services'][servicesKey]['properties'][property]['unit'];
+          var unit = service.properties[property].unit;
           var displayAttributes = null;
-          if (optionsInfo['services'][servicesKey]['properties'][property]['displayAttributes']) {
-             displayAttributes = optionsInfo['services'][servicesKey]['properties'][property]['displayAttributes'];
+          if (service.properties[property].displayAttributes) {
+             displayAttributes = service.properties[property].displayAttributes;
           }
   
-          propertiesRendering += generateDivForService(optionsInfo['services'][servicesKey]["properties"][property], type, servicesKey, property, unit, displayAttributes, isReconfigure);
+          propertiesMarkup += generateDivForService(service.properties[property], type, service.serviceName, property, unit, displayAttributes, isReconfigure);
         }
         if (serviceNeedsRender) {
-          optionsSummary += "<fieldset> <legend>" + servicesKey + "</legend>";
-          optionsSummary += '<div name=\"configureClusterAdvancedPerServiceDiv\" id=\"' + servicesKey + '\">';
-          optionsSummary += propertiesRendering;
-          optionsSummary += '</fieldset></div>';
+          tabs += '<li><a data-toggle="tab" href="#' + service.serviceName + '">' + service.displayName + '<span id="' + service.serviceName + 'ErrorCount" class="serviceErrorCount"></span></a></li>';
+          // optionsSummary += "<fieldset> <legend>" + service.serviceName + "</legend>";
+          optionsSummary += '<div class="tab-pane" name=\"configureClusterAdvancedPerServiceDiv\" id=\"' + service.serviceName + '\">';
+          optionsSummary += propertiesMarkup;
+          // optionsSummary += '</fieldset></div>';
+          optionsSummary += '</div>';
         }
       }
+    };    
+
+    if (optionsInfo.services.NAGIOS !== undefined) {
+      setServiceMarkup(optionsInfo.services.NAGIOS);
     }
-    return optionsSummary;
+    if (optionsInfo.services.HIVE !== undefined) {
+      setServiceMarkup(optionsInfo.services.HIVE);
+    }
+
+    for (var servicesKey in optionsInfo.services) {
+      if (servicesKey !== 'NAGIOS' && servicesKey !== 'HIVE') {
+        setServiceMarkup(optionsInfo.services[servicesKey]);  
+      }      
+    }
+    
+    tabs += '</ul>';
+    optionsSummary += '</div>';
+    return (isReconfigure) ? optionsSummary : tabs + optionsSummary;
   };
   
   
   /////////////////// End of rendering related functions /////////////////////////////
   
   /////////////////// Submit related functions /////////////////////////////
-  
-  // use this function for cleaning up the formInputError class added
-  // to the fields that failed to satisfy correctness
-  function cleanupClassesForErrors (divId) {
-    globalYui.one(divId).removeClass('formInputError');
-    globalYui.one(divId + "ErrorReason").setContent('');
-  }
-  
-  this.cleanupClassesForPasswordErrors = function () {
+    
+  this.clearPasswordErrors = function () {
     for (var count = 0; count < passwordsArray.length; count++) {
       divId = "#" + passwordsArray[count]['verificationDivId'];
-      cleanupClassesForErrors(divId);
+      this.clearErrorReason(divId);
     }
   };
   
   this.clearErrorReasons = function (opts) {
     for(serviceName in opts) {
-      //globalYui.log('Clear errors for svc : ' +  serviceName);
-      //globalYui.log(globalYui.Lang.dump(opts[serviceName]['properties']));
       for (propKey in opts[serviceName]['properties']) {
-        //globalYui.log('Clear errors for prop : ' +  propKey);
-        globalYui.one('#' + propKey).removeClass('formInputError');
-        var elem = globalYui.one('#' + propKey + 'ErrorReason');
-        elem.setContent('');
-        //} else {
-        //  globalYui.log('Found invalid div for error reason for prop key : ' + propKey);
-        //}
+        this.clearErrorReason('#' + propKey);
       }
     }
+    // clear the error count displayed in all service tabs
+    Y.all('.serviceErrorCount').setContent('');
   };
   
-  function addErrorStringToHiddenDiv (divId, errorReason) {
-    errorDivId = divId + 'ErrorReason';
-    globalYui.one(errorDivId).setContent(errorReason);
-  }
+  this.setErrorReason = function(fieldDivId, errorReason) {
+    Y.one(fieldDivId).addClass('formInputError');
+    errorDivId = fieldDivId + 'ErrorReason';
+    Y.one(errorDivId).setContent(errorReason);
+    Y.one(errorDivId).show();
+  };
+  
+  this.clearErrorReason = function(fieldDivId) {
+    Y.one(fieldDivId).removeClass('formInputError');
+    errorDivId = fieldDivId + 'ErrorReason';
+    Y.one(errorDivId).setContent('');
+    Y.one(errorDivId).hide();
+  };
   
   this.checkPasswordCorrectness = function () {
     var count = 0;
-    var focusId = "";
+    var focusId = '';
     var passwdMatch = true;
     var errCount = 0;
-    var errString = "<ul>";
+    var errString = ''; //"<ul>";
   
     for (count = 0; count < passwordsArray.length; count++) {
       var divId = "#" + passwordsArray[count]['passwordDivId'];
-      var passwd = globalYui.one(divId).get('value');
+      var passwd = Y.one(divId).get('value');
       divId = "#" + passwordsArray[count]['verificationDivId'];
-      var verifyPasswd = globalYui.one(divId).get('value');
+      var verifyPasswd = Y.one(divId).get('value');
   
-      if (passwd != verifyPasswd) {
+      if (passwd !== verifyPasswd) {
         errCount++;
-        errString += "<li>Password does not match for " + globalYui.one(divId).get('name') + "</li>";
-        globalYui.one(divId).addClass('formInputError');
-        addErrorStringToHiddenDiv(divId, errString);
-        if (focusId == '') {
-          focusId = "formStatusDivId";
+        errString = "Password does not match";
+        this.setErrorReason(divId, errString);
+        if (focusId === '') {
+          focusId = divId;
         }
         passwdMatch = false;
       } else {
-        globalYui.one(divId).removeClass('formInputError');
-        addErrorStringToHiddenDiv(divId, '');
+        this.clearErrorReason(divId, '');
       }
     }
   
-    errString += "</ul>";
+    errString += ''; //"</ul>";
   
     retArray = {
       "passwdMatched" : passwdMatch,
@@ -174,22 +188,14 @@ function ConfigureServicesUtil() {
   };
   
   this.generateUserOpts = function () {
-  
-    var retval = this.checkPasswordCorrectness();
-    if (retval.passwdMatched != true) {
-      setFormStatus(retval.errorString, true, true);
-      document.getElementById(retval.focusOn).scrollIntoView();
-      return {};
-    }
-    this.cleanupClassesForPasswordErrors();
    
     var desiredOptions = {};
   
-    var temp = globalYui.all("#configureClusterAdvancedDynamicRenderDivId div[name=configureClusterAdvancedPerServiceDiv]");
+    var temp = Y.all("#configureClusterAdvancedDynamicRenderDivId div[name=configureClusterAdvancedPerServiceDiv]");
     temp.each(function (selection) {
   
       var selectionStr = "#configureClusterAdvancedDynamicRenderDivId input[name=" + selection.get('id') + "]";
-      var prop = globalYui.all(selectionStr);
+      var prop = Y.all(selectionStr);
       var properties = {};
       prop.each(function (proper) {
         for (var i = 0; i < passwordsArray.length; i++) {
@@ -198,12 +204,12 @@ function ConfigureServicesUtil() {
           }
         }
  
-        var value = globalYui.Lang.trim(proper.get('value'));
+        var value = Y.Lang.trim(proper.get('value'));
         if ((proper.get('type') == "checkbox")) {
           value = proper.get('checked').toString();
         }
   
-        var keyName = globalYui.Lang.trim(proper.get('id'));
+        var keyName = Y.Lang.trim(proper.get('id'));
         properties[keyName] = {
         "value" : value,
         };
@@ -216,26 +222,83 @@ function ConfigureServicesUtil() {
   
     });
   
-  //  globalYui.log("Final Options: " + globalYui.Lang.dump(desiredOptions));
-  
     clearFormStatus();
     this.clearErrorReasons(desiredOptions);
   
     return desiredOptions;
   };
   
-  this.handleConfigureServiceErrors = function (errorResponse) {
-    var message = errorResponse.error;
-    setFormStatus(message, true, true);
-    for (propKey in errorResponse['properties'])  {
-      errorReason = errorResponse['properties'][propKey]['error'];
-      globalYui.one('#' + propKey).addClass('formInputError');
-      var elemReason = propKey + 'ErrorReason';
-      //globalYui.log('Setting content ' + errorReason + ' for div ' + elemReason);
-      globalYui.one('#' + elemReason).setContent(errorReason);
+  // update the error count displayed in the tab for the specified service.
+  // also toggle the disabled status of the submit button.
+  this.updateServiceErrorCount = function (serviceName) {
+    var errorCount = 0;
+    var serviceDivId = '#' + serviceName;
+    var serviceDiv = Y.one(serviceDivId);
+    var errorFields = serviceDiv.all('.formInputErrorReason');
+    errorFields.each(function (errorField) {
+      if (errorField.getStyle('display') !== 'none') {
+        errorCount++;
+      }
+    });
+    
+    var submitButton = Y.one('#configureClusterAdvancedSubmitButtonId');
+
+    if (errorCount > 0) {
+      Y.one(serviceDivId + 'ErrorCount').setContent('<span style="margin-left:4px" class="badge badge-important">' + errorCount + '</span>');
+      // there is at least one error.  disable the submit button      
+      submitButton.addClass('disabled');
+    } else {
+      Y.one(serviceDivId + 'ErrorCount').setContent('');
+      // if no errors at all, enable the submit button and clear error message at the top
+      if (this.getTotalErrorCount() === 0) { 
+        submitButton.removeClass('disabled');
+        clearFormStatus();
+      }
     }
-    document.getElementById('formStatusDivId').scrollIntoView();
   };
+  
+  this.getTotalErrorCount = function () {
+    var totalErrorCount = 0;
+    var tabsDiv = Y.one('#configureServicesTabs');
+    var errorCountBadges = tabsDiv.all('span.badge');
+    errorCountBadges.each(function (errorCountBadge) {
+      totalErrorCount += parseInt(errorCountBadge.getHTML(), 10);
+    });
+    return totalErrorCount;
+  };
+  
+  this.handleConfigureServiceErrors = function (errorResponse) {
+    var errorCounts = {};
+    var message = errorResponse.error;
+    var serviceName = '';
+    setFormStatus(message, true, true);
+    for (propKey in errorResponse.properties)  {
+      var errorReason = errorResponse.properties[propKey].error;
+      var propDom = Y.one('#' + propKey);
+      serviceName = propDom.get('name');
+      if (errorCounts[serviceName] == null) {
+        errorCounts[serviceName] = 1;
+      } else {
+        errorCounts[serviceName] += 1;
+      }
+    
+      this.setErrorReason('#' + propKey, errorReason);
+    }
+    
+    var firstServiceName = null;
+    // show error counts in the tab for each service that had errors
+    for (serviceName in errorCounts) {
+      if (firstServiceName === null) {
+        firstServiceName = serviceName;
+      }
+      this.updateServiceErrorCount(serviceName, errorCounts[serviceName]);
+    }
+    // open the first tab that has an error
+    $('#configureServicesTabs a[href="#' + firstServiceName + '"]').tab('show');
+    
+    Y.one('#formStatusDivId').scrollIntoView();
+    
+  }.bind(this);
 };
 
 var configureServicesUtil = new ConfigureServicesUtil();

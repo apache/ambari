@@ -6,9 +6,52 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
-  AMBARI-573. Puppet error: Cannot reassign variable zookeeper_hosts at modules/hdp/manifests/params.pp (hitesh)
+  AMBARI-574. Service Configuration: tabify settings for each service
+  (yusaku) 
 
-  AMBARI-554. Update documentation to account for ambari-186 merge to trunk (Yusaku via hitesh)
+  AMBARI-573. Puppet error: Cannot reassign variable zookeeper_hosts at
+  modules/hdp/manifests/params.pp (hitesh)
+
+  AMBARI-571. Hive Server text should be replaced with Hive Metastore
+  (Jaimin Jetly via yusaku)
+
+  AMBARI-570. Consolidate head tags for organization and combine CSS files
+  for faster load (yusaku)
+
+  AMBARI-565. Remove YUI source files from SVN (yusaku)
+
+  AMBARI-566. Update documentation (yusaku)
+
+  AMBARI-564. Check in generated docs into svn to allow automatic updates
+  for doc web server. (hitesh)
+
+  AMBARI-559. Top nav - specify a static height for the logo (yusaku)
+
+  AMBARI-558. Update Installation Guide (yusaku)
+
+  AMBARI-556. Update version number for documentation (hitesh via yusaku)
+  
+  AMBARI-551. Missing font images (yusaku)
+
+  AMBARI-550. Add support to jump to a specified state in the wizard for
+  development purposes (yusaku)
+
+  AMBARI-538. Puppet layer assumes net-snmp* to be installed on all boxes
+  (ramya via yusaku)
+
+  AMBARI-536. Duplicate hosts not recognized due to case sensitive matching
+  (hitesh via yusaku)
+
+  AMBARI-535. On Reconfigure Service popup, enable webhdfs and enable lzo
+  check boxes are not selected when they should be (yusaku)
+
+  AMBARI-534. Duplicate package names passed in the manifest (jitendra via
+  yusaku)
+
+  AMBARI-557. Update project website documentation (yusaku via hitesh)
+
+  AMBARI-554. Update documentation to account for ambari-186 merge to trunk
+  (Yusaku via hitesh)
 
   AMBARI-555. Update README for additional documentation to get around errors
   related to missing php-posix module (ViVek Raghuwanshi via hitesh)

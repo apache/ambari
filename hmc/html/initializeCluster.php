@@ -237,8 +237,17 @@
                       <div id="configureClusterAdvancedDynamicRenderDivId"></div>
                     </fieldset>
                   </form>
-                  <label></label>
-                  <a href="javascript:void 0" class="btn btn-large" id="configureClusterAdvancedSubmitButtonId"><?php echo $RES['initWizard.configureClusterAdvanced.submit.label'] ?></a>
+                  <div id="buttonAreaDivId" class="clearfix">
+                    <div id="buttonGroupDivId">
+                      <?php /* 
+                      <div id="backNextDivId" class="btn-group">
+                        <a href="javascript:void 0" class="btn btn-large" id="configureClusterAdvancedBackButtonId"><?php echo $RES['initWizard.configureClusterAdvanced.back.label'] ?></a>
+                        <a href="javascript:void 0" class="btn btn-large" id="configureClusterAdvancedNextButtonId"><?php echo $RES['initWizard.configureClusterAdvanced.next.label'] ?></a>
+                      </div>
+                      */ ?>
+                      <a href="javascript:void 0" class="btn btn-large" id="configureClusterAdvancedSubmitButtonId"><?php echo $RES['initWizard.configureClusterAdvanced.submit.label'] ?></a>
+                    </div>
+                  </div>
                 </div>
 
                 <div name="deployCoreDiv" id="deployCoreDivId" style="display:none">

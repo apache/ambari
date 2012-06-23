@@ -1,26 +1,19 @@
 
 var multipleClustersSupported = false;
 
-/* Super-handy augmentation to Function that allows 'this' to be bound 
- * statically.
+/* Allows 'this' to be bound statically.
  *
  * Primarily used when creating objects whose methods will be used as
  * callbacks in unknown contexts.
- *
- * Look at txnUtils.js for sample usage. 
  */
 Function.prototype.bind = function(scope) {
   var _function = this;
 
   return function() {
     return _function.apply(scope, arguments);
-  }
-}
+  };
+};
 
-/* XXX Ugly, ugly hack to emulate a singleton - users are NEVER supposed 
- * to use this, and should only access the createInformationalPanel() and 
- * destroyInformationalPanel() methods below.
- */
 var globalSingletonInformationalPanel;
 
 function createInformationalPanel( containerNodeId, headerContentString ) {
@@ -69,26 +62,21 @@ function destroyInformationalPanel( theInformationalPanelInstance ) {
 }
 
 function showLoadingImg() {
-
-  globalYui.one("#loadingDivId").setStyle('display','block');
-  //globalYui.one("#blackScreenDivId").setStyle('display','block');
-  //globalYui.one("#loadingImgId").setStyle('display','block');
+  globalYui.one("#loadingDivId").show();
 }
 
 function hideLoadingImg() {
-  globalYui.one("#loadingDivId").setStyle('display','none');
-  //globalYui.one("#loadingImgId").setStyle('display','none');
-  //globalYui.one("#blackScreenDivId").setStyle('display','none');
+  globalYui.one("#loadingDivId").hide();
 }
 
 function swapStageVisibilities( currentStageDivSelector, newStageDivSelector ) {
 
   globalYui.log("In swapStageVisibilities: " + currentStageDivSelector + "->" + newStageDivSelector);
   /* Hide the current stage. */
-  globalYui.one(currentStageDivSelector).setStyle('display','none');
+  globalYui.one(currentStageDivSelector).hide();
 
   /* Show the new stage. */
-  globalYui.one(newStageDivSelector).setStyle('display','block');
+  globalYui.one(newStageDivSelector).show();
 }
 
 /* TODO XXX Consider bundling the last 3 parameters into their own NewStage object.
@@ -98,7 +86,7 @@ function transitionToNextStage( currentStageDivSelector, currentStageData, newSt
 
   clearFormStatus();
 
-  globalYui.one(currentStageDivSelector).setStyle('display','none');
+  globalYui.one(currentStageDivSelector).hide();
   
   /* Render the next stage. */
   newStageRenderFunction(newStageData);
@@ -133,7 +121,7 @@ function clearFormStatus() {
   var formStatusDiv = globalYui.all("#formStatusDivId");
   // formStatusDiv.setContent("");
   formStatusDiv.setStyle("visibility", "hidden");
-  formStatusDiv.setStyle("display", "none");
+  formStatusDiv.hide();
   formStatusDiv.set('className','');
   formStatusDiv.addClass("formStatusBar");
 }
@@ -147,7 +135,7 @@ function setFormStatus(statusString, isError, noFade) {
   }
   var formStatusDiv = globalYui.all("#formStatusDivId");
   formStatusDiv.setStyle("visibility", "visible");
-  formStatusDiv.setStyle("display", "block");
+  formStatusDiv.show();
   formStatusDiv.set('className','');
   formStatusDiv.addClass("formStatusBar");
   formStatusDiv.addClass(formStatusDivCssClass);

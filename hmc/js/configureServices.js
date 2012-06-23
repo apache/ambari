@@ -1,17 +1,7 @@
 var globalOptionsInfo = null;
            
-globalYui.one('#configureClusterAdvancedSubmitButtonId').on('click',function (e) {
-
-  var retval = configureServicesUtil.checkPasswordCorrectness();
-  if (retval.passwdMatched !== true) {
-    setFormStatus(retval.errorString, true, true);
-    document.getElementById(retval.focusOn).scrollIntoView();
-    return;
-  }
-  configureServicesUtil.cleanupClassesForPasswordErrors();
- 
-  clearFormStatus();
-  configureServicesUtil.clearErrorReasons(opts); 
+Y.one('#configureClusterAdvancedSubmitButtonId').on('click',function (e) {
+  
   var opts = configureServicesUtil.generateUserOpts();
 
   e.target.set('disabled', true);
@@ -21,23 +11,39 @@ globalYui.one('#configureClusterAdvancedSubmitButtonId').on('click',function (e)
   var thisScreenId = "#configureClusterAdvancedCoreDivId";
   var nextScreenId = "#deployCoreDivId";
   var nextScreenRenderFunction = renderDeploy;
-  submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction, configureServicesUtil.handleConfigureServiceErrors);
+  var errorFunction = configureServicesUtil.handleConfigureServiceErrors;
+  submitDataAndProgressToNextScreen(url, requestData, submitButton,
+      thisScreenId, nextScreenId, nextScreenRenderFunction, errorFunction);
 });
 
-// register an event handler for the password fields
-globalYui.one("#configureClusterAdvancedDynamicRenderDivId").delegate(
+// register event handlers for dynamic validation
+// when a key is pressed on a password field, perform password validation
+Y.one("#configureClusterAdvancedDynamicRenderDivId").delegate(
   {
-    'keyup' : function (passwordEvent) {
+    'keyup' : function (e) {
       configureServicesUtil.checkPasswordCorrectness();
+      configureServicesUtil.updateServiceErrorCount(e.target.get('name'));
     }
   },
   "input[type=password]"
 );
+// when a key is pressed on a text field, just clear the error
+Y.one("#configureClusterAdvancedDynamicRenderDivId").delegate(
+  {
+    'keyup' : function (e) {
+      configureServicesUtil.clearErrorReason('#' + e.target.get('id'));
+      configureServicesUtil.updateServiceErrorCount(e.target.get('name'));
+    }
+  },
+  "input[type=text],input[type=password]:not(.retypePassword)"
+);
 
 function renderConfigureServicesInternal (optionsInfo) {
-  globalYui.one("#configureClusterAdvancedDynamicRenderDivId").setContent(configureServicesUtil.getOptionsSummaryMarkup(optionsInfo, false));
+  Y.one("#configureClusterAdvancedDynamicRenderDivId").setContent(configureServicesUtil.getOptionsSummaryMarkup(optionsInfo, false));
+  $('#configureServicesTabs a:first').tab('show');
+  Y.one("#configureClusterAdvancedCoreDivId").show();
+  Y.one('#configureClusterAdvancedSubmitButtonId').simulate('click');  
   hideLoadingImg();
-  globalYui.one("#configureClusterAdvancedCoreDivId").setStyle("display", "block");
 }
 
 function renderOptionsPage (optionsInfo) {
