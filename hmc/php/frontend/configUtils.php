@@ -224,7 +224,7 @@ function validateConfigs($svcConfigs) {
       } else if ($key == "nagios_contact") {
         if ($val == "") {
           $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
-        } else if (0 == preg_match("/^(\w+((-\w+)|(\w.\w+))*)\@(\w+((\.|-)\w+)*\.\w+$)/",$val)) {
+        } else if (0 == preg_match("/^(\w+((-\w+)|(\.\w+)|(_\w+))*)\@(\w+((\.|-)\w+)*\.\w+$)/",$val)) {
           $errors[$key] = array ( "error" => "Not a valid email address");
         }
       } else if ($key == "hadoop_heapsize") {
