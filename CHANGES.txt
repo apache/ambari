@@ -6,6 +6,9 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-577. Document the steps to build and install monitoring RPMs for Ambari 
+              (vgogate)
+
   AMBARI-576. In Custom config for Nagios: emails with multiple periods
   before the '@' fails validation (Jaimin Jetly via yusaku)
  

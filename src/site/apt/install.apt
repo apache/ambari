@@ -25,13 +25,24 @@ How to build Ambari
 $ yum install rpm-build
 $ cd hmc/package/rpm
 $ ./create_hmc_rpm.sh
+
+$ cd mon_dashboard/package/rpm
+$ ./create_dashboard_rpm.sh
+$ ./create_ganglia_addon_rpm.sh
+$ ./create_nagios_addon_rpm.sh
 +--
 
-  When this succeeds, you will find two RPMs inside the build directory package/rpm/build/rpmbuild/RPMS/noarch/:
+  When this succeeds, you will find following RPMs inside the ambari directory:
 
-  1) ambari-1.0.0-1.noarch.rpm
+  1) hmc/package/rpm/build/rpmbuild/RPMS/noarch/ambari-1.0.0-1.noarch.rpm
 
-  2) ambari-agent-1.0.0-1.noarch.rpm
+  2) hmc/package/rpm/build/rpmbuild/RPMS/noarch/ambari-agent-1.0.0-1.noarch.rpm
+
+  3) mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_dashboard-0.0.1-2.noarch.rpm
+
+  4) mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_ganglia_addons-0.0.1-2.noarch.rpm
+
+  5) mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_nagios_addons-0.0.1-2.noarch.rpm
 
 
 Steps to run before you use Ambari to install Hadoop on your cluster
@@ -77,7 +88,7 @@ How to install Ambari
 
   3) Hadoop repo
 
-  You should run the following at the command line:
+  You should run the following at the command line on Ambari master:
   
 +--  
 
@@ -89,7 +100,7 @@ $ sudo rpm -Uvh http://passenger.stealthymonkeys.com/rhel/5/passenger-release.no
 $ sudo rpm -Uvh http://public-repo-1.hortonworks.com/HDP-1.0.13/repos/centos5/hdp-release-1.0.13-1.el5.noarch.rpm
 +--
 
-  To install necessary PHP modules:
+  To install necessary PHP modules on Ambari master:
 
 +--
 $ sudo yum install php-pecl-json  # version 1.2.1 compatible with php-5.1 or php-5.2
@@ -103,7 +114,7 @@ $ php -m | grep posix
 $ sudo yum install php-process
 +--
 
-  Depending on which packages you have already installed, you may need to run:
+  Depending on which packages you have already installed, you may need to run following on Ambari master:
   
 +--
 $ sudo yum install pdsh
@@ -113,15 +124,24 @@ $ sudo yum install puppet-2.7.9
 $ sudo yum install ruby-devel
 +--
 
-  To install Ambari:
+  To install Ambari and Monitoring Dashboard RPMs on Ambari master:
 
 +--
 $ sudo rpm -iv ambari-1.0.0-1.noarch.rpm 
+$ sudo rpm -iv hdp_mon_dashboard-0.0.1-2.noarch.rpm
 +--
 
-  Hadoop requires JDK.  You can download it from the Oracle website: 
-  {{{http://download.oracle.com/otn-pub/java/jdk/6u26-b03} http://download.oracle.com/otn-pub/java/jdk/6u26-b03}}
-  The following two files need to be copied to /var/run/hmc/downloads/ on the Ambari master:
+  Note: if you have made any changes to Nagios or Ganglia addons code, you will also have to install the 
+  hdp_mon_ganglia_addons-0.0.1-2.noarch.rpm and hdp_mon_nagios_addons-0.0.1-2.noarch.rpm on the
+  Ganglia and Nagios server respectively. After Hadoop is installed using Ambari, go to Nagios and Ganglia server, 
+  remove these preinstalled addon RPMs for ganglia and nagios and install the new ones built from the source (See, 
+  "How to build Ambari" section). 
+
+  Hadoop requires JDK.  You can download following files from the Oracle website: 
+  {{{http://www.oracle.com/technetwork/java/javase/downloads/jdk-6u26-download-400750.html} http://www.oracle.com/technetwork/java/javase/downloads/jdk-6u26-download-400750.html}}
+  After accepting the license and downloading the files, copy them to /var/run/hmc/downloads/ directory on the 
+  Ambari master (Note: Upon download, these files may have .sh extension, so make sure you remove the .sh extension 
+  from the filenames and also set the execute permission on them)
 
   1) jdk-6u26-linux-x64.bin
 

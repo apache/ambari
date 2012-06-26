@@ -60,7 +60,7 @@ function renderDeployProgress (deployProgressInfo) {
       && deployProgressInfo.nagiosGangliaCoHosted) {
     hmcRestartMsg = '<span style="color:red"><strong>Note:</strong> You need to restart HMC as'
         + ' Nagios/Ganglia are co-hosted on this server.<br>Please restart'
-        + ' HMC using \"service hmc restart\".</span><br>After that is done, ';
+        + ' HMC using \"service ambari restart\".</span><br>After that is done, ';
   } else {
     hmcRestartMsg = 'Please ';
   }

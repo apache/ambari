@@ -34,7 +34,7 @@ if [[ -z "${RELEASE}" ]]; then
   RELEASE="2"
 fi
 
-rm -rf ${BUILD_DIR}/*
+#rm -rf ${BUILD_DIR}/*
 
 PKG_NAME="hdp_mon_dashboard"
 
