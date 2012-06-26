@@ -2,6 +2,10 @@ var globalOptionsInfo = null;
            
 Y.one('#configureClusterAdvancedSubmitButtonId').on('click',function (e) {
   
+  if (this.hasClass('disabled')) {
+    return;
+  }
+  
   var opts = configureServicesUtil.generateUserOpts();
 
   e.target.set('disabled', true);
