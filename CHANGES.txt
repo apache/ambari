@@ -6,6 +6,9 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-411. The HBase puppet templates could include some more config knobs
+  (Jaimin Jetly via yusaku)
+
   AMBARI-577. Document the steps to build and install monitoring RPMs for Ambari 
               (vgogate)
 

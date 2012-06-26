@@ -32,11 +32,25 @@ class hdp-hbase::params() inherits hdp::params
 
   $hfile_blockcache_size = hdp_default("hadoop/hbase-site/hfile_blockcache_size","0.25")
 
+  $hfile_max_keyvalue_size = hdp_default("hadoop/hbase-site/hfile_max_keyvalue_size",10485760)
+
+  $zookeeper_sessiontimeout = hdp_default("hadoop/hbase-site/zookeeper_sessiontimeout",60000)
+
+  $client_scannercaching = hdp_default("hadoop/hbase-site/client_scannercaching",100)
+
   $hstore_blockingstorefiles = hdp_default("hadoop/hbase-site/hstore_blockingstorefiles",7)
 
   $hstore_compactionthreshold = hdp_default("hadoop/hbase-site/hstore_compactionthreshold",3)
 
-  $hstorefile_maxsize = hdp_default("hadoop/hbase-site/hstorefile_maxsize",268435456)
+  $hstorefile_maxsize = hdp_default("hadoop/hbase-site/hstorefile_maxsize",1073741824)
+
+  $hregion_blockmultiplier = hdp_default("hadoop/hbase-site/hregion_blockmultiplier",2)
+
+  $hregion_memstoreflushsize = hdp_default("hadoop/hbase-site/hregion_memstoreflushsize",134217728)
+
+  $regionserver_handlers = hdp_default("hadoop/hbase-site/regionserver_handlers", 30)
+
+  $hregion_majorcompaction = hdp_default("hadoop/hbase-site/hregion_majorcompaction", 86400000)
 
   $preloaded_mastercoprocessor_classes = hdp_default("hadoop/hbase-site/preloaded_mastercoprocessor_classes")
 

@@ -65,6 +65,22 @@
     </description>
   </property>
   <property>
+    <name>hbase.regionserver.handler.count</name>
+    <value><%=scope.function_hdp_template_var("regionserver_handlers")%></value>
+    <description>Count of RPC Listener instances spun up on RegionServers.
+    Same property is used by the Master for count of master handlers.
+    Default is 10.
+    </description>
+  </property>
+  <property>
+    <name>hbase.hregion.majorcompaction</name>
+    <value><%=scope.function_hdp_template_var("hregion_majorcompaction")%></value>
+    <description>The time (in miliseconds) between 'major' compactions of all
+    HStoreFiles in a region.  Default: 1 day.
+    Set to 0 to disable automated major compactions.
+    </description>
+  </property>
+  <property>
     <name>hbase.regionserver.global.memstore.lowerLimit</name>
     <value><%=scope.function_hdp_template_var("regionserver_memstore_lowerlimit")%></value>
     <description>When memstores are being forced to flush to make room in
@@ -72,6 +88,26 @@
       This value equal to hbase.regionserver.global.memstore.upperLimit causes
       the minimum possible flushing to occur when updates are blocked due to
       memstore limiting.
+    </description>
+  </property>
+  <property>
+    <name>hbase.hregion.memstore.block.multiplier</name>
+    <value><%=scope.function_hdp_template_var("hregion_blockmultiplier")%></value>
+    <description>Block updates if memstore has hbase.hregion.memstore.block.multiplier
+    time hbase.hregion.flush.size bytes.  Useful preventing
+    runaway memstore during spikes in update traffic.  Without an
+    upper-bound, memstore fills such that when it flushes the
+    resultant flush files take a long time to compact or split, or
+    worse, we OOME
+    </description>
+  </property>
+  <property>
+    <name>hbase.hregion.memstore.flush.size</name>
+    <value><%=scope.function_hdp_template_var("hregion_memstoreflushsize")%></value>
+    <description>
+    Memstore will be flushed to disk if size of the memstore
+    exceeds this number of bytes.  Value is checked by a thread that runs
+    every hbase.server.thread.wakefrequency.
     </description>
   </property>
   <property>
@@ -91,6 +127,39 @@
     Maximum HStoreFile size. If any one of a column families' HStoreFiles has
     grown to exceed this value, the hosting HRegion is split in two.
     Default: 1G.
+    </description>
+  </property>
+  <property>
+    <name>hbase.client.scanner.caching</name>
+    <value><%=scope.function_hdp_template_var("client_scannercaching")%></value>
+    <description>Number of rows that will be fetched when calling next
+    on a scanner if it is not served from (local, client) memory. Higher
+    caching values will enable faster scanners but will eat up more memory
+    and some calls of next may take longer and longer times when the cache is empty.
+    Do not set this value such that the time between invocations is greater
+    than the scanner timeout; i.e. hbase.regionserver.lease.period
+    </description>
+  </property>
+  <property>
+    <name>zookeeper.session.timeout</name>
+    <value><%=scope.function_hdp_template_var("zookeeper_sessiontimeout")%></value>
+    <description>ZooKeeper session timeout.
+      HBase passes this to the zk quorum as suggested maximum time for a
+      session (This setting becomes zookeeper's 'maxSessionTimeout').  See
+      http://hadoop.apache.org/zookeeper/docs/current/zookeeperProgrammers.html#ch_zkSessions
+      "The client sends a requested timeout, the server responds with the
+      timeout that it can give the client. " In milliseconds.
+    </description>
+  </property>
+  <property>
+    <name>hbase.client.keyvalue.maxsize</name>
+    <value><%=scope.function_hdp_template_var("hfile_max_keyvalue_size")%></value>
+    <description>Specifies the combined maximum allowed size of a KeyValue
+    instance. This is to set an upper boundary for a single entry saved in a
+    storage file. Since they cannot be split it helps avoiding that a region
+    cannot be split any further because the data is too large. It seems wise
+    to set this to a fraction of the maximum region size. Setting it to zero
+    or less disables the check.
     </description>
   </property>
   <property>
