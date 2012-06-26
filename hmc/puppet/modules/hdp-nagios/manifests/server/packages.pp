@@ -8,8 +8,18 @@ class hdp-nagios::server::packages(
       ensure => 'uninstalled'
     }
   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
-     hdp-nagios::server::package { ['nagios-server','nagios-fping','nagios-plugins','nagios-addons','nagios-php-pecl-json']: 
-   }
+    case $hdp::params::hdp_os_type {
+      centos6, rhel6: {
+        hdp-nagios::server::package { ['nagios-server','nagios-fping','nagios-plugins','nagios-addons']:
+          ensure => 'present'
+        }
+      }
+      default: {
+        hdp-nagios::server::package { ['nagios-server','nagios-fping','nagios-plugins','nagios-addons','nagios-php-pecl-json']:
+          ensure => 'present'
+        }
+      }
+    }
   } 
   Hdp-nagios::Server::Package['nagios-plugins'] -> Hdp::Package['nagios-addons'] #other order produces package conflict
 
