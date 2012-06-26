@@ -34,7 +34,7 @@ Source: %{name}-%{version}.tar.gz
 Source1: ambari.init.in
 Source3: ambari-agent.init.in
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
-Requires: php >= 5, sqlite >= 3, php-pdo, php-pecl-json, httpd, puppet = 2.7.9, pdsh, httpd-devel, ruby-devel, rubygems, mod_passenger, mod_ssl
+Requires: php >= 5, sqlite >= 3, php-pdo, php-pecl-json, php-posix, httpd, puppet = 2.7.9, pdsh, httpd-devel, ruby-devel, rubygems, mod_passenger, mod_ssl
 %define web_prefixdir %{_prefix}/share/hmc
 %define httpd_confdir %{_sysconfdir}/httpd/conf.d
 %define puppet_master_dir %{_sysconfdir}/puppet/master

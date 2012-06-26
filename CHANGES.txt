@@ -6,6 +6,8 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-549. rpm should have a dependency on php-posix (hitesh)
+
   AMBARI-578. Custom Config page: don't allow form submission if there are
   client-side validation errors (yusaku)
 
