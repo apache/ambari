@@ -6,6 +6,9 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-547. Change os type check during node bootstrap to allow for
+  CentOS6/RHEL6 nodes (hitesh)
+
   AMBARI-549. rpm should have a dependency on php-posix (hitesh)
 
   AMBARI-578. Custom Config page: don't allow form submission if there are

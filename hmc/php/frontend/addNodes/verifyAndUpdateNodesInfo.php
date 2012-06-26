@@ -288,7 +288,9 @@ if ($dirHandle = opendir($prevOutputDir)) {
 
       if ($nodeStatus == "SUCCESS") {
         if ($thisHostArray["osType"] != "redhatenterpriselinuxserver5"
-            && $thisHostArray["osType"] != "centos5") {
+            && $thisHostArray["osType"] != "centos5"
+            && $thisHostArray["osType"] != "redhatenterpriselinuxserver6"
+            && $thisHostArray["osType"] != "centos6") {
           $thisHostArray["badHealthReason"] = "Unsupported OS";
           $finalOpStatus = "FAILED";
           $nodeStatus = "FAILED";
