@@ -48,6 +48,17 @@ class hdp(
     ensure => stopped,
   }
 
+  case $hdp::params::hdp_os_type {
+    centos6, rhel6: {
+      hdp::package{ 'glibc-rhel6':
+        ensure       => 'present',
+        size         => $size,
+        java_needed  => false,
+        lzo_needed   => false
+      }
+    }
+  }
+
 }
 
 class hdp::pre_install_pkgs

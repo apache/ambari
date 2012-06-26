@@ -26,6 +26,25 @@ class hdp::params()
   
   $dashboard_host = hdp_default("dashboard_host")
 
+  $hdp_os = $::operatingsystem
+  $hdp_os_version = $::operatingsystemrelease
+  case $::operatingsystem {
+    centos: {
+      case $::operatingsystemrelease {
+        /^5\..+$/: { $hdp_os_type = "centos5" }
+        /^6\..+$/: { $hdp_os_type = "centos6" }
+      }
+    }
+    redhat: {
+      case $::operatingsystemrelease {
+        /^5\..+$/: { $hdp_os_type = "rhel5" }
+        /^6\..+$/: { $hdp_os_type = "rhel6" }
+      }
+    }
+    default: {
+      hdp_fail("No support for os  ${hdp_os} ${hdp_os_version}")
+    }
+  }
 
   if ($hostAttributes != undef) {
     $public_namenode_host = hdp_host_attribute($hostAttributes,"publicfqdn",$namenode_host)
@@ -169,6 +188,10 @@ class hdp::params()
     },
     ganglia-hdp-gweb-addons => {
       64 => 'hdp_mon_ganglia_addons'
+    },
+    glibc-rhel6 => {
+      32 => ['glibc','glibc.i686'],
+      64 => ['glibc','glibc.i686']
     },
     nagios-addons => {
       64 => 'hdp_mon_nagios_addons'

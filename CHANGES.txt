@@ -6,6 +6,8 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-546. Puppet fails to install 32-bit JDK properly on RHEL6 (hitesh)
+
   AMBARI-548. Puppet agent install script should use correct epel repo (hitesh)
 
   AMBARI-547. Change os type check during node bootstrap to allow for
