@@ -113,11 +113,47 @@ echo "DEBUG: Puppet Master: ${master}"
 echo "DEBUG: Repo File: ${repoFile}"
 echo "DEBUG: GPG Key File Locations: ${gpgKeyFiles}"
 
+osType=''
+osMajorVersion=''
+if [ -f /usr/bin/lsb_release ] ; then
+  osType=$( lsb_release -sd | tr '[:upper:]' '[:lower:]' | tr '"' ' ' | awk '{ for(i=1; i<=NF; i++) { if ( $i ~ /[0-9]+/ ) { cnt=split($i, arr, "."); if ( cnt > 1) { print arr[1] } else { print $i; } break; } print $i; } }' )
+  osMajorVersion=`lsb_release -sd | tr '[:upper:]' '[:lower:]' | tr '"' ' ' | awk '{ for(i=1; i<=NF; i++) { if ( $i ~ /[0-9]+/ ) { cnt=split($i, arr, "."); if ( cnt > 1) { print arr[1] } else { print $i; } break; } } }'`
+else
+  osType=$( cat `ls /etc/*release | grep "redhat\|SuSE"` | head -1 | awk '{ for(i=1; i<=NF; i++) { if ( $i ~ /[0-9]+/ ) { cnt=split($i, arr, "."); if ( cnt > 1) { print arr[1] } else { print $i; } break; } print $i; } }' | tr '[:upper:]' '[:lower:]' )
+  osMajorVersion=`cat \`ls /etc/*release | grep "redhat\|SuSE"\` | head -1 | awk '{ for(i=1; i<=NF; i++) { if ( $i ~ /[0-9]+/ ) { cnt=split($i, arr, "."); if ( cnt > 1) { print arr[1] } else { print $i; } break; } } }' | tr '[:upper:]' '[:lower:]'`
+fi
+
+osType=`echo ${osType} | sed -e "s/ *//g"`
+
+osArch=`uname -m`
+if [[ "xi686" == "x${osArch}" || "xi386" == "x${osArch}" ]]; then
+  osArch="i386"
+fi
+if [[ "xx86_64" == "x${osArch}" || "xamd64" == "x${osArch}" ]]; then
+  osArch="x86_64"
+fi
+
+echo "DEBUG: OS Type ${osType}"
+echo "DEBUG: OS Arch ${osArch}"
+echo "DEBUG: OS Major Version ${osMajorVersion}"
+
 if [[ ! -f ${repoFile} ]]; then
   echo "Error: Repo file ${repoFile} does not exist" >&2
   exit 3
 else
-  echo "Copying $repoFile to /etc/yum.repos.d/"
+  echo "Copying $repoFile to /etc/yum.repos.d/ for ${osType} ${osMajorVersion}"
+  if [[ "x${usingLocalRepo}" == "x0" ]]; then
+    osReplaceStr=""
+    if [[ "x${osMajorVersion}" == "x5" ]]; then
+      osReplaceStr="centos5"
+    fi
+    if [[ "x${osMajorVersion}" == "x6" ]]; then
+      osReplaceStr="centos6"
+    fi
+    if [[ "x${osReplaceStr}" != "x" ]]; then
+      sed -i -e "s/centos[0-9]/${osReplaceStr}/g" ${repoFile}
+    fi
+  fi
   cp -f $repoFile /etc/yum.repos.d/
 fi
 
@@ -148,6 +184,19 @@ out=`/etc/init.d/iptables stop 1>/dev/null`
 
 #check if epel repo is installed if not try installing
 #only needed if non-local repo mode
+
+epelVer="";
+if [[ "x${osMajorVersion}" == "x5" ]]; then
+  epelVer="5-4"
+fi
+if [[ "x${osMajorVersion}" == "x6" ]]; then
+  epelVer="6-7"
+fi
+
+# Assumption that earlier stage is already doing a check on valid os types
+# so should not reach here for non-CentOS/RHEL 5/6 hosts
+epelRPMUrl="http://download.fedoraproject.org/pub/epel/${osMajorVersion}/${osArch}/epel-release-${epelVer}.noarch.rpm"
+
 echo "Using local repo setting is ${usingLocalRepo}"
 if [[ "${usingLocalRepo}" == "0" ]]; then
   echo "Checking to see if epel needs to be installed"
@@ -155,16 +204,14 @@ if [[ "${usingLocalRepo}" == "0" ]]; then
   if [[ "x$epel_installed" != "x" ]]; then
     echo "Already Installed epel repo"
   else
-    cmd="cat $repoFile | grep \"baseurl\" | awk -F= '{print \$2}'| awk 'NR==1' | sed 's/ //g'"
-    epelUrl=`eval $cmd`
-    epelRPM=$epelUrl/epel-release-5-4.noarch.rpm
+    echo "Installing epel-release rpm from ${epelRPMUrl}"
     mkdir -p /tmp/HDP-artifacts/
-    curl -f --retry 10 $epelRPM -o /tmp/HDP-artifacts/epel-release-5-4.noarch.rpm
-    rpm -Uvh /tmp/HDP-artifacts/epel-release-5-4.noarch.rpm
+    curl -L -f --retry 10 $epelRPMUrl -o /tmp/HDP-artifacts/epel-release-${osMajorVersion}.noarch.rpm
+    rpm -Uvh /tmp/HDP-artifacts/epel-release-${osMajorVersion}.noarch.rpm
     #make sure epel is installed else fail
     epel_installed=`yum repolist enabled | grep epel`
     if [[ "x$epel_installed" == "x" ]]; then
-      echo "$host:_ERROR_:retcode:[1], CMD:[rpm -Uvh $epelRPM]: OUT:[Not Installed]" >&2
+      echo "$host:_ERROR_:retcode:[1], CMD:[rpm -Uvh $epelRPMUrl]: OUT:[Not Installed]" >&2
       exit 1
     fi
   fi
