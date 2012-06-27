@@ -28,8 +28,6 @@ $ ./create_hmc_rpm.sh
 
 $ cd mon_dashboard/package/rpm
 $ ./create_dashboard_rpm.sh
-$ ./create_ganglia_addon_rpm.sh
-$ ./create_nagios_addon_rpm.sh
 +--
 
   When this succeeds, you will find following RPMs inside the ambari directory:
@@ -39,10 +37,6 @@ $ ./create_nagios_addon_rpm.sh
   2) hmc/package/rpm/build/rpmbuild/RPMS/noarch/ambari-agent-1.0.0-1.noarch.rpm
 
   3) mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_dashboard-0.0.1-2.noarch.rpm
-
-  4) mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_ganglia_addons-0.0.1-2.noarch.rpm
-
-  5) mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_nagios_addons-0.0.1-2.noarch.rpm
 
 
 Steps to run before you use Ambari to install Hadoop on your cluster
@@ -124,18 +118,12 @@ $ sudo yum install puppet-2.7.9
 $ sudo yum install ruby-devel
 +--
 
-  To install Ambari and Monitoring Dashboard RPMs on Ambari master:
+  To install Ambari on Ambari master:
 
 +--
 $ sudo rpm -iv ambari-1.0.0-1.noarch.rpm 
 $ sudo rpm -iv hdp_mon_dashboard-0.0.1-2.noarch.rpm
 +--
-
-  Note: if you have made any changes to Nagios or Ganglia addons code, you will also have to install the 
-  hdp_mon_ganglia_addons-0.0.1-2.noarch.rpm and hdp_mon_nagios_addons-0.0.1-2.noarch.rpm on the
-  Ganglia and Nagios server respectively. After Hadoop is installed using Ambari, go to Nagios and Ganglia server, 
-  remove these preinstalled addon RPMs for ganglia and nagios and install the new ones built from the source (See, 
-  "How to build Ambari" section). 
 
   Hadoop requires JDK.  You can download following files from the Oracle website: 
   {{{http://www.oracle.com/technetwork/java/javase/downloads/jdk-6u26-download-400750.html} http://www.oracle.com/technetwork/java/javase/downloads/jdk-6u26-download-400750.html}}
@@ -159,3 +147,26 @@ $ sudo service ambari start
   http://AMBARIMASTER/hmc/html/
   
   from your browser.  
+
+
+Notes for Developers
+
+  If you have made any changes to Nagios or Ganglia addons code (mon_dashboard/src/addOns/[ganglia|nagios]), you will also have to install 
+  hdp_mon_ganglia_addons-0.0.1-2.noarch.rpm and hdp_mon_nagios_addons-0.0.1-2.noarch.rpm on the hosts running 
+  Ganglia and Nagios server, respectively, to make your changes effective.
+  After your Hadoop cluster is installed using Ambari, go to the host(s) running Nagios and Ganglia server, 
+  remove these pre-installed addon RPMs for Nagios and Ganglia, and install the new ones built from the source.
+  To build these RPMs from the source, run:
+
++--
+$ cd mon_dashboard/package/rpm
+$ ./create_ganglia_addon_rpm.sh
+$ ./create_nagios_addon_rpm.sh
++--
+  
+  Running the above creates the following two RPMs:
+
+   * mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_ganglia_addons-0.0.1-2.noarch.rpm
+   
+   * mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_nagios_addons-0.0.1-2.noarch.rpm
+  

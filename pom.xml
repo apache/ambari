@@ -302,7 +302,7 @@
             <artifactId>maven-site-plugin</artifactId>
             <version>3.0</version>
             <configuration>
-              <outputDirectory>../site</outputDirectory>
+              <outputDirectory>./target</outputDirectory>
             </configuration>
           </plugin>
         </plugins>
