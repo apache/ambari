@@ -6,6 +6,9 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-581. Strip carriage-return related control-chars from hosts files
+  (Jaimin Jetly via hitesh)
+
   AMBARI-582. Update the installation guide - monitoring dashboard install
   instructions (yusaku) 
 

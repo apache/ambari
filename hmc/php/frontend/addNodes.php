@@ -75,6 +75,8 @@ if (move_uploaded_file($_FILES['clusterHostsFile']['tmp_name'], $hostsFileDestin
     //echo "Possible file upload attack!\n";
 }
 
+removeCarriageReturn($hostsFileDestination);
+
 header("Content-type: application/json");
 
 // Validate that there are no nodes that are already in use in case of addNodesWizard

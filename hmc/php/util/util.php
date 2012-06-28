@@ -51,4 +51,11 @@ function convertToLowerCase($hosts) {
   return $result;
 }
 
+function removeCarriageReturn($hostsFileDestination) {
+  exec("sed -i -e 's/\r//g' ". $hostsFileDestination, $output, $retVal);
+  if($retVal != 0) {
+    $logger->log_error("shell command exec() removing '\r' from ". $hostsFileDestination . " file failed");
+  }
+}
+
 ?>
