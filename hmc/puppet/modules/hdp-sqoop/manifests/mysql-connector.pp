@@ -8,9 +8,9 @@ class hdp-sqoop::mysql-connector()
 
   anchor { 'hdp-sqoop::mysql-connector::begin':}
 
-   hdp::exec { 'yum install -y mysql-connector-java-5.0.8-1':
-       command => "yum install -y mysql-connector-java-5.0.8-1",
-       unless  => "rpm -qa | grep mysql-connector-java-5.0.8-1",
+   hdp::exec { 'yum install -y mysql-connector-java':
+       command => "yum install -y mysql-connector-java",
+       unless  => "rpm -qa | grep mysql-connector-java",
        path    => ["/bin","/usr/bin/"],
        require   => Anchor['hdp-sqoop::mysql-connector::begin']
    }
@@ -20,7 +20,7 @@ class hdp-sqoop::mysql-connector()
        unless  => "test -f ${target}",
        creates => $target,
        path    => ["/bin","/usr/bin/"],
-       require => Hdp::Exec['yum install -y mysql-connector-java-5.0.8-1'],
+       require => Hdp::Exec['yum install -y mysql-connector-java'],
        notify  =>  Anchor['hdp-sqoop::mysql-connector::end'],
    }
 

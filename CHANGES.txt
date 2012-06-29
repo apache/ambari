@@ -6,6 +6,9 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-585. Remove hardcoded dependency on mysql-connector-java package
+  version 5.0.8-1 (hitesh)
+
   AMBARI-581. Strip carriage-return related control-chars from hosts files
   (Jaimin Jetly via hitesh)
 
