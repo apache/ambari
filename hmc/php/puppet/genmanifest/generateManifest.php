@@ -92,9 +92,9 @@ include "RoleDependencies.php";
        if ($k == SERVICE_STATE_KEY) {
          $alreadySetSvcState = NULL;
          if (isset($rolesStates[$depRole][$k])) {
-           $alreadySetSvcState = $rolesStates[$depRole][$k]; 
+           $alreadySetSvcState = $rolesStates[$depRole][$k];
          }
-         $rolesStates[$depRole][$k] = 
+         $rolesStates[$depRole][$k] =
              ManifestGenerator::priorityState($v, $alreadySetSvcState);
        } else {
          //Assume no conflicts for this key
@@ -103,7 +103,7 @@ include "RoleDependencies.php";
      }
    }
 
-   private static function optimizePackageInstall($node, &$manifestObj, $rolesStatesDs, 
+   private static function optimizePackageInstall($node, &$manifestObj, $rolesStatesDs,
        $configInfo, $roleStages) {
      //Figure out the state
      $serviceState = SERVICE_STATE_INSTALLED_AND_CONFIGURED;
@@ -115,19 +115,19 @@ include "RoleDependencies.php";
            break;
          }
        }
-     } 
+     }
      if (!isset($serviceState)) {
        $serviceState = SERVICE_STATE_UNINSTALLED;
        //See if it is uninstalled
        foreach ($rolesStatesDs as $r => $stateList) {
-         if ( (isset($stateList[SERVICE_STATE_KEY])) && 
+         if ( (isset($stateList[SERVICE_STATE_KEY])) &&
            ($stateList[SERVICE_STATE_KEY] != SERVICE_STATE_NO_OP )) {
            if ($stateList[SERVICE_STATE_KEY] != SERVICE_STATE_UNINSTALLED) {
              $serviceState = NULL;
              break;
            }
          }
-       } 
+       }
      }
      if (!isset($serviceState)) {
        //No optimization needed
@@ -146,7 +146,7 @@ include "RoleDependencies.php";
        }
        //Add in the order of the stages
        $stateList = $rolesStatesDs[$r];
-       if ($stateList[SERVICE_STATE_KEY] != $serviceState) { 
+       if ($stateList[SERVICE_STATE_KEY] != $serviceState) {
          continue;
        }
        if (isset(self::$rolesToPackageMap[$r])) {
@@ -161,14 +161,14 @@ include "RoleDependencies.php";
 
      if (empty($packageList)) {
        //No packages don't bother
-       return;       
+       return;
      }
 
-     //lzo and snappy 
+     //lzo and snappy
      $snappyPackages = self::$rolesToPackageMap["snappy"];
      foreach ($snappyPackages as $spack) {
        if (!in_array($spack, $packageList)) {
-         $packageList[] = $spack; 
+         $packageList[] = $spack;
        }
      }
      if ($configInfo["lzo_enabled"] == "true") {
@@ -219,14 +219,14 @@ include "RoleDependencies.php";
             "hadoop-sbin.x86_64", "hadoop-lzo"),
        "hdp-hadoop::jobtracker" => array ("hadoop", "hadoop-libhdfs.x86_64", "hadoop-native.x86_64", "hadoop-pipes.x86_64",
             "hadoop-sbin.x86_64", "hadoop-lzo"),
-       "hdp-hadoop::client" => array ("hadoop hadoop-libhdfs.i386", "hadoop-native.i386", 
-            "hadoop-pipes.i386", "hadoop-sbin.i386", "hadoop-lzo"),
-       "hdp-hadoop::client" => array ("hadoop hadoop-libhdfs.i386", "hadoop-native.i386", 
-            "hadoop-pipes.i386", "hadoop-sbin.i386", "hadoop-lzo"),
-       "hdp-hadoop::datanode" => array ("hadoop hadoop-libhdfs.i386", "hadoop-native.i386",
-            "hadoop-pipes.i386", "hadoop-sbin.i386", "hadoop-lzo"),
-       "hdp-hadoop::tasktracker" => array ("hadoop hadoop-libhdfs.i386", "hadoop-native.i386",
-            "hadoop-pipes.i386", "hadoop-sbin.i386", "hadoop-lzo"),
+       "hdp-hadoop::client" => array ("hadoop", "hadoop-libhdfs", "hadoop-native",
+            "hadoop-pipes", "hadoop-sbin", "hadoop-lzo"),
+       "hdp-hadoop::client" => array ("hadoop", "hadoop-libhdfs", "hadoop-native",
+            "hadoop-pipes", "hadoop-sbin", "hadoop-lzo"),
+       "hdp-hadoop::datanode" => array ("hadoop", "hadoop-libhdfs", "hadoop-native",
+            "hadoop-pipes", "hadoop-sbin", "hadoop-lzo"),
+       "hdp-hadoop::tasktracker" => array ("hadoop", "hadoop-libhdfs", "hadoop-native",
+            "hadoop-pipes", "hadoop-sbin", "hadoop-lzo"),
        "hdp-zookeeper" => array ("zookeeper"),
        "hdp-zookeeper::client" => array ("zookeeper"),
        "hdp-hbase::master" => array ("hbase"),
@@ -242,7 +242,7 @@ include "RoleDependencies.php";
        "hdp-mysql::server" => array("mysql-server"),
        "hdp-templeton::server" => array("templeton", "templeton-tar-pig-0.0.1-1", "templeton-tar-hive-0.0.1-1"),
        "hdp-templeton::client" => array("templeton"),
-       "lzo" => array("lzo", "lzo.i386", "lzo-devel", "lzo-devel.i386"),
+       "lzo" => array("lzo", "lzo", "lzo-devel", "lzo-devel"),
        "snappy" => array("snappy", "snappy-devel"),
        "hdp-ganglia::server" => array("ganglia-gmetad-3.2.0", "ganglia-gmond-3.2.0", "gweb", "hdp_mon_ganglia_addons"),
        "hdp-ganglia::monitor" => array("ganglia-gmond-3.2.0", "gweb", "hdp_mon_ganglia_addons"),

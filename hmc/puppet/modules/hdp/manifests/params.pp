@@ -264,7 +264,7 @@ class hdp::params()
     $oozie_conf_dir = "/etc/oozie"
     $hadoop_jar_location = "/usr/share/hadoop"
     $hbase_daemon_script = "/usr/bin/hbase-daemon.sh"
-    $use_32_bits_on_slaves = true
+    $use_32_bits_on_slaves = false
     $package_names[zookeeper] = {64 => 'zookeeper.x86_64'}
     $package_names[hbase] = {64 => 'hbase.x86_64'}
     $package_names[sqoop] = {32 => 'sqoop-1.4.1-1.noarch'}
@@ -295,7 +295,7 @@ class hdp::params()
     $hcat_conf_dir = "/etc/hcatalog/conf"
     $hadoop_jar_location = "/usr/lib/hadoop/"
     $hbase_daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
-    $use_32_bits_on_slaves = true
+    $use_32_bits_on_slaves = false
     $package_names[zookeeper] = {64 => ['zookeeper']}
     $package_names[hbase] = {64 => ['hbase']}
     $package_names[sqoop] = {32 => ['sqoop']}
