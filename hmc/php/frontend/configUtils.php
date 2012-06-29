@@ -321,6 +321,8 @@ function validateConfigs($svcConfigs) {
         $check = basicNumericCheck($val, FALSE);
         if ($check["error"] != "") {
           $errors[$key] = $check;
+        } else if ($val > 1) {
+          $errors[$key] = array ( "error" => "value cannot be greater than 1");
         }
       } else if ($key == "mapreduce_userlog_retainhours") {
         $check = basicNumericCheck($val);
