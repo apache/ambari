@@ -24,7 +24,7 @@
 
 Summary: HMC without PHP/Ruby dependencies
 Name: hmc-nodep
-Version: 1.0.0
+Version: 0.9.0
 URL: http://hortonworks.com
 Release: 2%{?dist}
 License: Apache License, Version 2.0

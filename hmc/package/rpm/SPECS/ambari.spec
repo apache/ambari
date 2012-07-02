@@ -24,7 +24,7 @@
 
 Summary: Ambari
 Name: ambari
-Version: 1.0.0
+Version: 0.9.0
 URL: http://incubator.apache.org/projects/ambari.html
 Release: 1%{?dist}
 License: Apache License, Version 2.0
