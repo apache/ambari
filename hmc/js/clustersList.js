@@ -69,7 +69,7 @@ function ClustersList() {
     for (var hostName in hostMap) {
       markup += '<div class="hostToServices clearfix"><h3>' + hostName + '</h3>' + '<ul>';
       if (hostName == managerHostName) {
-        markup += '<li class="master">HMC Server</li>';
+        markup += '<li class="master">' + App.Props.managerServiceName + ' Server</li>';
       }
       for (var service in hostMap[hostName]) {
         markup += '<li class="' + ((hostMap[hostName][service].isMaster) ? 'master' : 'client') + '">' + hostMap[hostName][service].serviceName + '</li>';

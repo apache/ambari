@@ -58,9 +58,9 @@ function renderDeployProgress (deployProgressInfo) {
   var hmcRestartMsg = '';
   if (deployProgressInfo.nagiosGangliaCoHosted != null
       && deployProgressInfo.nagiosGangliaCoHosted) {
-    hmcRestartMsg = '<span style="color:red"><strong>Note:</strong> You need to restart HMC as'
-        + ' Nagios/Ganglia are co-hosted on this server.<br>Please restart'
-        + ' HMC using \"service ambari restart\".</span><br>After that is done, ';
+    hmcRestartMsg = '<span style="color:red"><strong>Note:</strong> You need to restart ' + App.Props.managerServiceName + ' as'
+        + ' Nagios/Ganglia are co-hosted on this server.<br>Please restart '
+        + App.Props.managerServiceName + ' using \"service ' + App.Props.managerServiceName.toLowerCase() + ' restart\".</span><br>After that is done, ';
   } else {
     hmcRestartMsg = 'Please ';
   }
