@@ -1,7 +1,7 @@
 [^ ]*/*.json
 [^ ]*/*.txt
 [^ ]*/*.afm
-[^ ]*/*.erb
+[^ ]*/stdlib/*[^ ]*
 [^ ]*/*.gitignore
 [^ ]*/*.conf
 [^ ]*/*.template
@@ -16,3 +16,7 @@
 [^ ]*/*yui-min.js
 [^ ]*/*yuiCombined.js
 [^ ]*/*jquery.min.js
+[^ ]*/*hadoop-hosts.cfg.erb
+[^ ]*/*hadoop-servicegroups.cfg.erb
+[^ ]*/*hadoop-hostgroups.cfg.erb
+[^ ]*/*regionservers.erb
