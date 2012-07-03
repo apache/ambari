@@ -10,3 +10,9 @@ Copyright (c) 2012, Yahoo! Inc.
 This product includes jquery (http://jquery.org MIT license)
 Copyright (c) 2012 John Resig.
 
+This product includes jqgrid (http://www.triand.com/)
+Copyright (c) 2007-2012 jQuery Grid Plugin - jqGrid
+
+This product includes raphael (http://raphaeljs.com/)
+Copyright (c) 2008 Dmitry Baranovskiy
+
