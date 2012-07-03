@@ -6,6 +6,8 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  Spec files changed to reflect the version of this release. (vikram)
+
   AMBARI-588. Externalize the manager service name and point the Help link to
 a valid URL (yusaku via vikram)
 
