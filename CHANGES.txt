@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  Added notices where we use compatibly licensed third party libraries (vikram)
+
   Rat tool compliance on special files. (hitesh and vikram)
 
   Spec files changed to reflect the version of this release. (vikram)

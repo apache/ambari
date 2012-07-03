@@ -1,6 +1,12 @@
-Apache HCatalog
+Apache Ambari
 Copyright 2012 The Apache Software Foundation
 
 This product includes software developed by The Apache Software
 Foundation (http://www.apache.org/).
+
+This product includes YUI (http://yuilibrary.com)
+Copyright (c) 2012, Yahoo! Inc.
+
+This product includes jquery (http://jquery.org MIT license)
+Copyright (c) 2012 John Resig.
 
