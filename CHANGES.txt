@@ -6,6 +6,9 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-588. Externalize the manager service name and point the Help link to
+  a valid URL (yusaku)
+
   AMBARI-587. Rat compliance patch. (vikram)
 
   AMBARI-583. UI allows io_sort_spill_percent value to be set to over 1.0
