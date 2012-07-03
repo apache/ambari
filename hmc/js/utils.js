@@ -413,9 +413,3 @@ function generateHMCUrl( uriPath ) {
 
   return url;
 }
-
-var App = App || {
-  Props: {
-    managerServiceName: 'Ambari'
-  }
-};

@@ -28,16 +28,16 @@ function AssignMasters() {
   function renderHostsToMasterServices(hostsToMasterServices) {
   	var markup = '';
   	for (var host in hostsToMasterServices) {
-      var hostInfo = getNodeInfo(host);
-      markup += '<div class="hostToMasterServices"><h3>' + host + '<span class="hostInfo">' + getTotalMemForDisplay(hostInfo.totalMem) + ', ' + hostInfo.cpuCount + ' cores</span></h3><ul>';
-      for (var j in hostsToMasterServices[host]) {
-        markup += '<li>' + hostsToMasterServices[host][j] + '</li>';
-      }
-      // add manager server
-      if (host == this.managerHostName) {
-        markup += '<li>' + App.Props.managerServiceName + ' Server</li>';     
-      }
-      markup += '</ul><div style="clear:both"></div></div>';
+  		  var hostInfo = getNodeInfo(host);
+  		  markup += '<div class="hostToMasterServices"><h3>' + host + '<span class="hostInfo">' + getTotalMemForDisplay(hostInfo.totalMem) + ', ' + hostInfo.cpuCount + ' cores</span></h3><ul>';
+  		  for (var j in hostsToMasterServices[host]) {
+  			  markup += '<li>' + hostsToMasterServices[host][j] + '</li>';
+  		  }
+  		  // add HMC Server
+  		  if (host == this.managerHostName) {
+          markup += '<li>HMC Server</li>';	    
+  		  }
+        markup += '</ul><div style="clear:both"></div></div>';
   	}
   	$('#hostsToMasterServices').html(markup);
   }

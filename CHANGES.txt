@@ -4,13 +4,7 @@ Note: Committers should be listed using their login and non-committers
 should be listed by their full name. Please keep the file to a max of 80
 characters wide.
 
-Release 0.9.0 - 07/02/2012
-
-  Spec files changed to reflect the version of this release. (vikram)
-
-  AMBARI-588. Externalize the manager service name and point the Help link to a valid URL (yusaku via vikram)
-
-  AMBARI-587. Rat tool changes with exclude file. (vikram)
+Release 1.0.0 - unreleased
 
   AMBARI-583. UI allows io_sort_spill_percent value to be set to over 1.0
   (Jaimin Jetly via hitesh)

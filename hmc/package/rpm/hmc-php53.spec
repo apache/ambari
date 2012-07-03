@@ -24,7 +24,7 @@
 
 Summary: HMC for PHP 5.3
 Name: hmc-php53
-Version: 0.9.0
+Version: 1.0.0
 URL: http://incubator.apache.org/projects/ambari.html
 Release: 2%{?dist}
 License: Apache License, Version 2.0

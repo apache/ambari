@@ -2,7 +2,7 @@
 $RES['app.name']="Ambari";
 $RES['page.title']="Ambari";
 $RES['page.footer.body']="";
-$RES['topnav.help.link']="http://incubator.apache.org/ambari/install.html";
+$RES['topnav.help.link']="";
 $RES['welcome.header']="Welcome to Ambari!";
 $RES['welcome.body']="";
 $RES['welcome.note']="Before you proceed, make sure you have performed all the pre-installation steps.";
