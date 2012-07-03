@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  More notices added for jqgrid etc. (vikram)
+
   AMBARI-591. License header for PHP files should use PHP comments,
   not HTML comments (yusaku)
 
