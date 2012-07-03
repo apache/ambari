@@ -1,5 +1,5 @@
-<!--
-
+<?php
+/*
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
  distributed with this work for additional information
@@ -16,9 +16,8 @@
  KIND, either express or implied.  See the License for the
  specific language governing permissions and limitations
  under the License.
-
--->
-
+*/
+?>
 <div class="alert alert-info" style="margin-top:40px;padding:20px">
   <h2 style="margin-bottom:10px"><?php echo $RES['welcome.header'] ?></h2>
   <p><?php echo $RES['welcome.body'] ?></p>
