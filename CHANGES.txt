@@ -6,6 +6,9 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-591. License header for PHP files should use PHP comments,
+  not HTML comments (yusaku)
+
   Added notices where we use compatibly licensed third party libraries (vikram)
 
   Rat tool compliance on special files. (hitesh and vikram)
