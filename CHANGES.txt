@@ -6,6 +6,8 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-593. Update README file for consistency (yusaku)
+
   AMBARI-592. Add a link to NOTICE file on every page (yusaku)
 
   More notices added for jqgrid etc. (vikram)
