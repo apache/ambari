@@ -10,8 +10,7 @@ Copyright (c) 2012, Yahoo! Inc.
 This product includes jQuery (http://jquery.org - MIT license)
 Copyright (c) 2012, John Resig.
 
-This product includes Iconic (http://somerandomdude.com/work/iconic -
-Creative Commons Share Alike 3.0) by P.J. Onori.
+This product includes fonts/images from iconic hmc/fonts/iconic_* (http://somerandomdude.com/work/iconic - Creative Commons Share Alike 3.0) by P.J. Onori.
 
 This product includes jqgrid (http://www.triand.com/)
 Copyright (c) 2007-2012 jQuery Grid Plugin - jqGrid

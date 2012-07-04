@@ -6,6 +6,8 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-595. Fix NOTICE file to link to the images borrowed from Iconic. (vikram)
+
   AMBARI-495. HMC master node not shown in topology and node assignments 
   if the HMC server is not assigned to any other role (yusaku)
 
