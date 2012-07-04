@@ -35,5 +35,6 @@
         <a id="submitLinkId" class='btn btn-large' style='margin-top:20px' href='initializeCluster.php'><?php echo $RES['welcome.submit.label'] ?></a>
       </div>
     </div>
+    <?php require "./footer.htmli"; ?>
   </body>
 </html>

@@ -61,6 +61,12 @@ footer {
 	border-top:1px solid #e5e5e5;
 	padding:40px 0;
 	background-color:#fff;
+    color:#666666;
+}
+
+footer a:link, footer a:visited {
+    color:#666666;
+    text-decoration:underline;
 }
 
 a:link {

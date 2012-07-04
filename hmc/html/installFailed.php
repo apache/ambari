@@ -34,5 +34,6 @@
         </div>
       </div>
     </div>
+    <?php require "./footer.htmli"; ?>
   </body>
 </html>

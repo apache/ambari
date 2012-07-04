@@ -22,7 +22,7 @@
 
 $RES['app.name']="Ambari";
 $RES['page.title']="Ambari";
-$RES['page.footer.body']="";
+$RES['page.footer.body']="<a href='http://www.apache.org/licenses/LICENSE-2.0' target='_blank'>Licensed under the Apache License, Version 2.0</a>.<br><a href='/hmc/licenses/NOTICE.txt' target='_blank'>See third-party tools/resources that Ambari uses and their respective authors</a>";
 $RES['topnav.help.link']="http://incubator.apache.org/ambari/install.html";
 $RES['welcome.header']="Welcome to Ambari!";
 $RES['welcome.body']="";

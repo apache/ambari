@@ -52,10 +52,10 @@ cp -rf ${BASEDIR}/../../js ${HMC_DIR}
 #cp -rf ${BASEDIR}/../../src/puppet ${HMC_DIR}
 cp -rf ${BASEDIR}/../../puppet ${HMC_DIR}
 cp -rf ${BASEDIR}/../../php ${HMC_DIR}
-cp -rf ${BASEDIR}/../../yui-3.5.1 ${HMC_DIR}
 cp -rf ${BASEDIR}/../../conf ${HMC_DIR}
 cp -rf ${BASEDIR}/../../fonts ${HMC_DIR}
 cp -f ${BASEDIR}/../../fileCombinator.php ${HMC_DIR}
+cp -f ${BASEDIR}/../../../NOTICE.txt ${HMC_DIR}/licenses
 TAR_DEST="${BUILD_DIR}/${PKG_NAME}-$VERSION.tar.gz"
 
 cd ${BUILD_DIR};
