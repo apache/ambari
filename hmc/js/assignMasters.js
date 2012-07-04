@@ -21,6 +21,8 @@
 
 function AssignMasters() {
 
+  var managerHostName;
+  var allHosts;
   var registeredAssignHostsEventHandlers = false;
   
   function getNodeInfo(nodeName) {
@@ -28,10 +30,10 @@ function AssignMasters() {
     if (nodeName == null) {
       return null;
     }
-    for (host in this.allHosts) {
-      if (this.allHosts[host].hostName == nodeName) {
+    for (var host in allHosts) {
+      if (allHosts[host].hostName == nodeName) {
         // globalYui.log("Get node info: " + allHosts[host].hostName);
-        return this.allHosts[host];
+        return allHosts[host];
       }
     }
   
@@ -49,15 +51,11 @@ function AssignMasters() {
   function renderHostsToMasterServices(hostsToMasterServices) {
   	var markup = '';
   	for (var host in hostsToMasterServices) {
-      var hostInfo = getNodeInfo(host);
-      markup += '<div class="hostToMasterServices"><h3>' + host + '<span class="hostInfo">' + getTotalMemForDisplay(hostInfo.totalMem) + ', ' + hostInfo.cpuCount + ' cores</span></h3><ul>';
-      for (var j in hostsToMasterServices[host]) {
-        markup += '<li>' + hostsToMasterServices[host][j] + '</li>';
-      }
-      // add manager server
-      if (host == this.managerHostName) {
-        markup += '<li>' + App.Props.managerServiceName + ' Server</li>';     
-      }
+  	  var hostInfo = getNodeInfo(host);
+  	  markup += '<div class="hostToMasterServices"><h3>' + host + '<span class="hostInfo">' + getTotalMemForDisplay(hostInfo.totalMem) + ', ' + hostInfo.cpuCount + ' cores</span></h3><ul>';
+  	  for (var j in hostsToMasterServices[host]) {
+  	    markup += '<li>' + hostsToMasterServices[host][j] + '</li>';
+  	  }
       markup += '</ul><div style="clear:both"></div></div>';
   	}
   	$('#hostsToMasterServices').html(markup);
@@ -110,8 +108,8 @@ function AssignMasters() {
   	var chosenHost = getNodeInfo(chosenHostName);
   	var markup = '<select name="' + masterName + '">'; 
   	markup += '<option selected="selected" value="' + chosenHost.hostName + '">' + getHostInfoForDisplay(chosenHost) + '</option>';
-  	for (var i in this.allHosts) {
-        var host = this.allHosts[i];
+  	for (var i in allHosts) {
+        var host = allHosts[i];
   	  if (host.hostName != chosenHost.hostName) {
   	    markup += '<option value="' + host.hostName + '">' + host.hostName + ' - ' + getTotalMemForDisplay(host.totalMem) + ', ' + host.cpuCount + ' cores</option>';
   	  }
@@ -201,8 +199,8 @@ function AssignMasters() {
       registeredAssignHostsEventHandlers = true;
     }
   
-    this.allHosts = clusterInfo.allHosts;
-    this.managerHostName = clusterInfo.managerHostName;
+    allHosts = clusterInfo.allHosts;
+    managerHostName = clusterInfo.managerHostName;
     
     var servicesInfo = globalYui.Array( clusterInfo.services );
     var masterServices = {};
@@ -243,7 +241,12 @@ function AssignMasters() {
   	  } 
   	  hostsToMasterServices[masterServices[i].host][masterServices[i].name] = masterServices[i].displayName;
     }
-    
+    // add manager server
+    if (hostsToMasterServices[managerHostName] == null) {
+      hostsToMasterServices[managerHostName] = {};
+    }
+    hostsToMasterServices[managerHostName].MANAGER_SERVER = App.Props.managerServiceName + ' Server';
+
     $('#masterServicesToHosts').html(markup);
     
     renderHostsToMasterServices(hostsToMasterServices);
