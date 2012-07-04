@@ -6,6 +6,9 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-495. HMC master node not shown in topology and node assignments 
+  if the HMC server is not assigned to any other role (yusaku)
+
   AMBARI-593. Update README file for consistency (yusaku)
 
   AMBARI-592. Add a link to NOTICE file on every page (yusaku)
