@@ -6,6 +6,8 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-599. Welcome page - revive introductory message (yusaku) 
+
   AMBARI-589. Refactor progress popup (TxnProgressWidget) Javascript code
   (yusaku)
 
