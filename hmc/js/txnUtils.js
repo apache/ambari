@@ -19,137 +19,161 @@
  *
 */
 
-function TxnProgressWidget( txnProgressContext, txnProgressTitle, txnProgressStatusMessage, txnProgressPostCompletionFixup ) {
+App.ui.TxnProgressWidget = function (config) {
 
-  
-  /**************************** Private methods ********************************/
-  var txnProgressStateShouldBeSkipped = function( txnProgressState ) {
-    
+  var CONTAINER_DOM_ID = 'txnProgressCoreDivId';
+  var CLOSE_LINK_DOM_ID = 'txnProgressWidgetCloseLink';
+  var SHOW_LOGS_LINK_DOM_ID = 'txnProgressWidgetShowLogsLink';
+
+  var periodicDataPoller = null;
+  var isLogFetched = false;
+  var errorInfoPanel = null;
+  var targetUrl = null;
+
+  config.successMessage = config.successMessage ||
+    '<p>' +
+      'Successfully completed the operation.' +
+      '<a href="javascript:void(null)" id="' + CLOSE_LINK_DOM_ID + '" style="margin-left:10px" class="btn btn-large">' +
+      'Continue' +
+      '</a>' +
+      '</p>';
+
+  config.failureMessage = config.failureMessage ||
+    '<p>' +
+      'Failed to complete the operation.  Please ' +
+      '<a href="javascript:void(null)" id="' + SHOW_LOGS_LINK_DOM_ID + '">take a look at Operation Logs</a>' +
+      ' to see what might have gone wrong.  ' +
+      '<a href="javascript:void(null)" id="' + CLOSE_LINK_DOM_ID + '">' +
+      'Close' +
+      '</a>' +
+      '</p>';
+
+  config.onSuccess = config.onSuccess || function (widget) {
+  };
+
+  config.onFailure = config.onFailure || function (widget) {
+  };
+
+  config.onClose = config.onClose || function (widget) {
+  };
+
+  this.setTargetUrl = function (url) {
+    targetUrl = url;
+  };
+
+  var txnProgressStateShouldBeSkipped = function (txnProgressState) {
+
     var skipIt = false;
 
-    /* Step over any deploy progress states that aren't in the CLUSTER, SERVICE 
-     * or SERVICE-SMOKETEST contexts. 
-     */
-    if( (txnProgressState.subTxnType != 'CLUSTER') && 
-        (txnProgressState.subTxnType != 'SERVICE') &&
-        (txnProgressState.subTxnType != 'SERVICE-SMOKETEST') ) {
+    if ((txnProgressState.subTxnType != 'CLUSTER') &&
+      (txnProgressState.subTxnType != 'SERVICE') &&
+      (txnProgressState.subTxnType != 'SERVICE-SMOKETEST')) {
 
       skipIt = true;
     }
 
     return skipIt;
-  }
+  };
 
-  var generateSingleTxnProgressStateMarkup = function( txnProgressStateTitle, txnProgressState ) {
+  var getTxnElementMarkup = function (txnProgressStateTitle, txnProgressState) {
 
     var stateClass;
     var barClass;
     var status;
-    
+
     switch (txnProgressState) {
-    case 'COMPLETED':
-      stateClass = 'txnProgressStateDone';
-      barClass = 'progress progress-success';
-      status = 'Completed';
-      break;
+      case 'COMPLETED':
+        stateClass = 'txnProgressStateDone';
+        barClass = 'progress progress-success';
+        status = 'Completed';
+        break;
 
-    case 'IN_PROGRESS':
-      stateClass = 'txnProgressStateInProgress';
-      //barClass = 'progress progress-striped active';
-      barClass = 'progress';
-      status = 'In Progress';
-      break;
+      case 'IN_PROGRESS':
+        stateClass = 'txnProgressStateInProgress';
+        //barClass = 'progress progress-striped active';
+        barClass = 'progress';
+        status = 'In Progress';
+        break;
 
-    case 'FAILED':
-      stateClass = 'txnProgressStateError';
-      barClass = 'progress progress-danger';
-      status = 'Failed';
-      break;
+      case 'FAILED':
+        stateClass = 'txnProgressStateError';
+        barClass = 'progress progress-danger';
+        status = 'Failed';
+        break;
 
-    default:
-      stateClass = 'txnProgressStatePending';
-      barClass = 'progress';
-      status = 'Pending';
-      break;
+      default:
+        stateClass = 'txnProgressStatePending';
+        barClass = 'progress';
+        status = 'Pending';
+        break;
     }
 
-    var barMarkup = '<div class="' + barClass + '"><div class="bar"></div></div>'; 
-    
+    var barMarkup = '<div class="' + barClass + '"><div class="bar"></div></div>';
+
     if (stateClass == 'txnProgressStateInProgress') {
       barMarkup = '<div id="activeProgressBarContainer">' + barMarkup + '</div>';
     }
-    
+
     var markup = '<li class="clearfix"><label class="' + stateClass + '">' + txnProgressStateTitle + '</label>' + barMarkup + '<div class="status ' + stateClass + '">' + status + '</div>' + '</li>';
 
-    globalYui.log("XXX" + markup);
     return markup;
-  }
-
-  /**************************** Public data members ********************************/
-  globalYui.log( 'Got txnId:' + txnProgressContext.txnId );
-
-  this.txnProgressContext = txnProgressContext;
-  this.txnProgressTitle = txnProgressTitle;
-  this.txnProgressStatusMessage = txnProgressStatusMessage;
-  this.txnProgressPostCompletionFixup = txnProgressPostCompletionFixup;
-  var requestStr = '?clusterName=' + this.txnProgressContext.clusterName + '&txnId=' + this.txnProgressContext.txnId;
-
-  if ("deployUser" in this.txnProgressContext) {
-    requestStr += '&deployUser=' + this.txnProgressContext.deployUser;
-  }
-
-  var pdpDataSourceContext = {
-    source: '../php/frontend/fetchTxnProgress.php',
-    schema: {
-      metaFields: {
-        progress: 'progress'
-      }
-    },
-
-    request: requestStr, 
-    pollInterval: 3000,
-    maxFailedAttempts: 5
   };
-  
-  this.clearActiveProgressBar = function() {
-    var bar = globalYui.one('#activeProgressBar');
+
+  var clearActiveProgressBar = function () {
+    var bar = Y.one('#activeProgressBar');
     if (bar != null) {
       bar.remove();
     }
-    globalYui.on('windowresize', function(e) {
+    Y.on('windowresize', function (e) {
       setActiveProgressBarInPlace();
     });
   };
-  
-  function setActiveProgressBarInPlace() {  
-    var bar = globalYui.one('#activeProgressBar');
-    var barContainer = globalYui.one('#activeProgressBarContainer');
+
+  var setActiveProgressBarInPlace = function () {
+    var bar = Y.one('#activeProgressBar');
+    var barContainer = Y.one('#activeProgressBarContainer');
     var marginTop = 3;
-    
+
     // Puts an active progress bar where the placeholder with the DIV ID of "activeProgressBarSpot" is located.
     // Creates an instance of the active progress bar if one does not already exist
     // so that we can keep reusing it and moving it in place, rather than dynamically rendering it
     // on every successful callback to avoid flickering/disconnect due to animation.
     if (barContainer != null) {
       if (bar == null) {
-        globalYui.one("body").append('<div id="activeProgressBar" class="progress progress-striped active" style="position:absolute;top:-50px;left:0;z-index:99;"><div style="width:100%" class="bar"></div></div>');
-        bar = globalYui.one('#activeProgressBar');
-      }      
-      bar.setStyle('display', 'block');     
-      if (bar.getX() != barContainer.getX() || bar.getY() != barContainer.getY() + marginTop) {      
+        Y.one("body").append('<div id="activeProgressBar" class="progress progress-striped active" style="position:absolute;top:-50px;left:0;z-index:99;"><div style="width:100%" class="bar"></div></div>');
+        bar = Y.one('#activeProgressBar');
+      }
+      bar.show();
+      if (bar.getX() != barContainer.getX() || bar.getY() != barContainer.getY() + marginTop) {
         bar.setXY([ barContainer.getX(), barContainer.getY() + marginTop ]);
       }
     } else if (bar != null) {
-      bar.setStyle('display', 'none');
-    }    
+      bar.hide();
+    }
+  };
+
+  var requestStr = '?clusterName=' + config.context.clusterName + '&txnId=' + config.context.txnId;
+  if ("deployUser" in config.context) {
+    requestStr += '&deployUser=' + config.context.deployUser;
   }
+
+  var pdpDataSourceContext = {
+    source: '/hmc/php/frontend/fetchTxnProgress.php',
+    schema: {
+      metaFields: {
+        progress: 'progress'
+      }
+    },
+    request: requestStr,
+    pollInterval: 3000,
+    maxFailedAttempts: 5
+  };
 
   var pdpResponseHandler = {
     success: function (e, pdp) {
 
-      /* What we're here to render. */
-      var txnProgressMarkup = 
-        '<img id=txnProgressLoadingImgId class=loadingImg src=../images/loading.gif />'; 
+      var txnProgressMarkup =
+        '<img id=txnProgressLoadingImgId class=loadingImg src=/hmc/images/loading.gif />';
 
       var noNeedForFurtherPolling = false;
       var txnProgressStatusDivContent = '';
@@ -157,14 +181,14 @@ function TxnProgressWidget( txnProgressContext, txnProgressTitle, txnProgressSta
 
       var txnProgress = e.response.meta.progress;
 
-      /* Guard against race conditions where txnProgress is null because the 
+      /* Guard against race conditions where txnProgress is null because the
        * txn hasn't had time to be kicked off yet.
        */
       if (txnProgress) {
 
-        /* The first time we get back meaningful progress data, pause the 
-         * automatic polling to avoid race conditions where response N+1 
-         * is made (and returns with fresh data) while request N hasn't 
+        /* The first time we get back meaningful progress data, pause the
+         * automatic polling to avoid race conditions where response N+1
+         * is made (and returns with fresh data) while request N hasn't
          * yet been fully processed.
          *
          * We'll unpause at the end, after we've performed the rendering
@@ -173,42 +197,42 @@ function TxnProgressWidget( txnProgressContext, txnProgressTitle, txnProgressSta
         pdp.pause();
 
         var txnProgressStates = txnProgress.subTxns || [];
-        globalYui.log(globalYui.Lang.dump(txnProgressStates));
+        Y.log(Y.Lang.dump(txnProgressStates));
 
         txnProgressMarkup = '<ul>';
 
         var progressStateIndex = 0;
 
         /* Generate markup for all the "done" states. */
-        for( ; progressStateIndex < txnProgressStates.length; ++progressStateIndex ) {
+        for (; progressStateIndex < txnProgressStates.length; ++progressStateIndex) {
 
           var presentTxnProgressState = txnProgressStates[ progressStateIndex ];
 
           /* Step over any progress states that don't deserve to be shown. */
-          if( txnProgressStateShouldBeSkipped( presentTxnProgressState ) ) {
+          if (txnProgressStateShouldBeSkipped(presentTxnProgressState)) {
             continue;
           }
 
           /* The first sign of a state that isn't done, and we're outta here. */
-          if( presentTxnProgressState.progress != 'COMPLETED' ) {
+          if (presentTxnProgressState.progress != 'COMPLETED') {
             break;
           }
 
-          globalYui.log( 'Done loop - ' + progressStateIndex );
+          Y.log('Done loop - ' + progressStateIndex);
 
-          txnProgressMarkup += generateSingleTxnProgressStateMarkup
-            ( presentTxnProgressState.description, 'COMPLETED' );
+          txnProgressMarkup += getTxnElementMarkup
+            (presentTxnProgressState.description, 'COMPLETED');
 
-            globalYui.log("Currently, markup is:" + txnProgressMarkup );
+          Y.log("Currently, markup is:" + txnProgressMarkup);
         }
 
         /* Next, generate markup for the first "in-progress" state. */
-        for( ; progressStateIndex < txnProgressStates.length; ++progressStateIndex ) {
+        for (; progressStateIndex < txnProgressStates.length; ++progressStateIndex) {
 
           var presentTxnProgressState = txnProgressStates[ progressStateIndex ];
 
           /* Step over any progress states that don't deserve to be shown. */
-          if( txnProgressStateShouldBeSkipped( presentTxnProgressState ) ) {
+          if (txnProgressStateShouldBeSkipped(presentTxnProgressState)) {
             continue;
           }
 
@@ -216,110 +240,110 @@ function TxnProgressWidget( txnProgressContext, txnProgressTitle, txnProgressSta
            * "in-progress", even if presentTxnProgressState.progress is
            * not explicitly set to "IN_PROGRESS".
            *
-           * This is to take care of race conditions where the poll to the 
-           * backend is made at a time when the previous state has 
+           * This is to take care of race conditions where the poll to the
+           * backend is made at a time when the previous state has
            * "COMPLETED" but the next state hasn't been started yet (which
            * means it's "PENDING") - if we were explicitly looking for
            * "IN_PROGRESS", there'd be nothing to show in this loop and it
            * would run to the end of txnProgressStates hunting for that
-           * elusive "IN_PROGRESS", thus not even showing any of the 
+           * elusive "IN_PROGRESS", thus not even showing any of the
            * "PENDING" states, causing a momentary jitter in the rendering
            * (see AMBARI-344 for an example).
            */
-          globalYui.log( 'In-progress/failed - ' + progressStateIndex );
+          Y.log('In-progress/failed - ' + progressStateIndex);
 
           /* Decide upon what CSS class to assign to the currently-in-progress
            * state - if an error was marked as having been encountered, assign
            * the fitting .txnProgressStateError, else just annoint it with
-           * .txnProgressStateInProgress 
+           * .txnProgressStateInProgress
            */
           var currentProgressState = 'IN_PROGRESS';
 
           /* The 2 possible indications of error are:
-           * 
-           * a) presentTxnProgressState.progress is 'IN_PROGRESS' but 
+           *
+           * a) presentTxnProgressState.progress is 'IN_PROGRESS' but
            *    txnProgress.encounteredError is true.
            * b) presentTxnProgressState.progress is 'FAILED'.
            */
-          if( (txnProgress.encounteredError) || 
-              (presentTxnProgressState.progress == 'FAILED') ) {
+          if ((txnProgress.encounteredError) ||
+            (presentTxnProgressState.progress == 'FAILED')) {
 
             currentProgressState = 'FAILED';
           }
 
           /* And generate markup for this "in-progress" state. */
-          txnProgressMarkup += generateSingleTxnProgressStateMarkup
-            ( presentTxnProgressState.description, currentProgressState );
+          txnProgressMarkup += getTxnElementMarkup
+            (presentTxnProgressState.description, currentProgressState);
 
-          /* It's important to manually increment progressStateIndex here, 
+          /* It's important to manually increment progressStateIndex here,
            * to set it up correctly for the upcoming loop.
            */
           ++progressStateIndex;
 
           /* Remember, we only care for the FIRST "in-progress" state.
            *
-           * Any following "in-progress" states will all be marked as 
-           * "pending", so as to avoid the display from becoming 
+           * Any following "in-progress" states will all be marked as
+           * "pending", so as to avoid the display from becoming
            * disorienting (with multiple states "in-progress").
            */
           break;
         }
 
         /* Finally, generate markup for all the "pending" states. */
-        for( ; progressStateIndex < txnProgressStates.length; ++progressStateIndex ) {
+        for (; progressStateIndex < txnProgressStates.length; ++progressStateIndex) {
 
           var presentTxnProgressState = txnProgressStates[ progressStateIndex ];
 
           /* Step over any progress states that don't deserve to be shown. */
-          if( txnProgressStateShouldBeSkipped( presentTxnProgressState ) ) {
+          if (txnProgressStateShouldBeSkipped(presentTxnProgressState)) {
             continue;
           }
 
-          globalYui.log( 'Pending loop - ' + progressStateIndex );
-          
-          txnProgressMarkup += generateSingleTxnProgressStateMarkup
-            ( presentTxnProgressState.description, 'PENDING' );
-          
+          Y.log('Pending loop - ' + progressStateIndex);
+
+          txnProgressMarkup += getTxnElementMarkup
+            (presentTxnProgressState.description, 'PENDING');
+
         }
 
         txnProgressMarkup += '</ul>';
 
-        /* Make sure we have some progress data to show - if not, 
+        /* Make sure we have some progress data to show - if not,
          * we'll just show a loading image until this is non-null.
          *
-         * The additional check for txnProgress.processRunning is to account 
-         * for cases where there are no subTxns (because it's all a no-op at 
-         * the backend) - the loading image should only be shown as long as 
+         * The additional check for txnProgress.processRunning is to account
+         * for cases where there are no subTxns (because it's all a no-op at
+         * the backend) - the loading image should only be shown as long as
          * the backend is still working; after that, we should break out of
          * the loading image loop and let the user know that there was
          * nothing to be done.
          */
-        if( txnProgress.subTxns == null ) {
-          if( txnProgress.processRunning == 0 ) {
-            txnProgressMarkup = 
-              '<br/>' + 
-              '<div class=txnNoOpMsg>' + 
+        if (txnProgress.subTxns == null) {
+          if (txnProgress.processRunning == 0) {
+            txnProgressMarkup =
+              '<br/>' +
+                '<div class="txnNoOpMsg">' +
                 'There are no tasks for this transaction.' +
-              '</div>' + 
-              '<br/>';
-          } 
+                '</div>' +
+                '<br/>';
+          }
           else {
-            txnProgressMarkup = 
-              '<img id=txnProgressLoadingImgId class=loadingImg src=../images/loading.gif />';
+            txnProgressMarkup =
+              '<img id="txnProgressLoadingImgId" class="loadingImg" src="/hmc/images/loading.gif" />';
           }
         }
 
-        /* We can break this polling cycle in one of 2 ways: 
-         * 
+        /* We can break this polling cycle in one of 2 ways:
+         *
          * 1) If we are explicitly told by the backend that we're done.
          */
-        if( txnProgress.processRunning == 0 ) {
+        if (txnProgress.processRunning == 0) {
 
           noNeedForFurtherPolling = true;
           /* Be optimistic and assume that no errors were encountered (we'll
            * get more in touch with reality further below).
            */
-          txnProgressStatusDivContent = this.txnProgressStatusMessage.success;
+          txnProgressStatusDivContent = config.successMessage;
           txnProgressStatusDivCssClass = 'statusOk';
         }
 
@@ -329,22 +353,22 @@ function TxnProgressWidget( txnProgressContext, txnProgressTitle, txnProgressSta
          * as an override in case the backend explicitly told us that we're
          * done, but an error was encountered in that very last progress report.
          */
-        if( txnProgress.encounteredError ) {
+        if (txnProgress.encounteredError) {
 
           noNeedForFurtherPolling = true;
-          txnProgressStatusDivContent = this.txnProgressStatusMessage.failure;
+          txnProgressStatusDivContent = config.failureMessage;
           txnProgressStatusDivCssClass = 'statusError';
         }
       }
 
       /* Render txnProgressMarkup before making any decisions about the
-       * future state of pdp. 
+       * future state of pdp.
        */
-      globalYui.log('About to generate markup: ' + txnProgressMarkup);
-      globalYui.one('#txnProgressContentDivId').setContent( txnProgressMarkup );
+      Y.log('About to generate markup: ' + txnProgressMarkup);
+      Y.one('#txnProgressContentDivId').setContent(txnProgressMarkup);
       setActiveProgressBarInPlace();
 
-      /* And before checking out, decide whether we're done with this txn 
+      /* And before checking out, decide whether we're done with this txn
        * or whether any more polling is required.
        */
       if (noNeedForFurtherPolling) {
@@ -352,21 +376,21 @@ function TxnProgressWidget( txnProgressContext, txnProgressTitle, txnProgressSta
         /* We've made all the progress we could have, so stop polling. */
         pdp.stop();
 
-        var txnProgressStatusDiv = globalYui.one('#txnProgressStatusDivId');
-        
+        var txnProgressStatusDiv = Y.one('#txnProgressStatusDivId');
+
         txnProgressStatusDiv.addClass(txnProgressStatusDivCssClass);
         txnProgressStatusDiv.one('#txnProgressStatusMessageDivId').setContent(txnProgressStatusDivContent);
-        txnProgressStatusDiv.setStyle('display', 'block');
+        txnProgressStatusDiv.show();
 
-        /* Run the post-completion fixups. */
+        /* Run the post-completion callback. */
         if (txnProgressStatusDivCssClass == 'statusOk') {
-          if (this.txnProgressPostCompletionFixup.success) {
-            this.txnProgressPostCompletionFixup.success(this);
+          if (config.onSuccess) {
+            config.onSuccess(this);
           }
         }
         else if (txnProgressStatusDivCssClass == 'statusError') {
-          if (this.txnProgressPostCompletionFixup.failure) {
-            this.txnProgressPostCompletionFixup.failure(this);
+          if (config.onFailure) {
+            config.onFailure(this);
           }
         }
       }
@@ -382,45 +406,98 @@ function TxnProgressWidget( txnProgressContext, txnProgressTitle, txnProgressSta
     }.bind(this)
   };
 
-  this.periodicDataPoller = new PeriodicDataPoller( pdpDataSourceContext, pdpResponseHandler );
-}
+  this.show = function () {
+    // start with a clean slate to clear any mess left by previous invocations
+    var statusDiv = Y.one('#txnProgressStatusDivId');
+    statusDiv.one('#txnProgressStatusMessageDivId').setContent('');
+    statusDiv.one('#txnProgressStatusActionsDivId').setContent('');
+    statusDiv.removeClass('statusOk');
+    statusDiv.removeClass('statusError');
+    statusDiv.hide();
+    Y.one('#txnProgressContentDivId').setContent
+      ('<ul class="wrapped"><li><img id="txnProgressLoadingImgId" class="loadingImg" src="/hmc/images/loading.gif" /></li></ul>');
 
-TxnProgressWidget.prototype.show = function() {
-     
-  /* Start with a clean slate for #txnProgressStatusDivId, regardless of 
-   * the mess previous uses might have left it in.
-   */
-  var txnProgressStatusDiv = globalYui.one('#txnProgressStatusDivId');
-  txnProgressStatusDiv.one('#txnProgressStatusMessageDivId').setContent('');
-  txnProgressStatusDiv.one('#txnProgressStatusActionsDivId').setContent('');
-  globalYui.one('#txnProgressHeader').setContent('');
-  /* Remove the CSS statusOk/statusError classes from txnProgressStatusDiv 
-   * as well - sure would be nice to remove all classes that match a 
-   * pattern, but oh well. 
-   */
-  txnProgressStatusDiv.removeClass('statusOk');
-  txnProgressStatusDiv.removeClass('statusError');
+    // clear active progress bar if one already exists
+    clearActiveProgressBar();
 
-  /* Similarly, set a clean slate for #txnProgressContentDivId as well. */
-  globalYui.one('#txnProgressContentDivId').setContent
-    ( '<ul class="wrapped"><li><img id=txnProgressLoadingImgId class=loadingImg src=../images/loading.gif /></li></ul>' );
+    App.ui.hideLoadingOverlay();
 
-  // clear active progress bar if one already exists
-  this.clearActiveProgressBar();
-  
-  globalYui.one("#txnProgressHeader").setContent(this.txnProgressTitle);
-  
-  globalYui.one('#blackScreenDivId').setStyle('display', 'block');
-  globalYui.one('#txnProgressCoreDivId').setStyle('display','block');  
+    Y.one("#txnProgressHeader").setContent(config.title);
+    Y.one('#blackScreenDivId').show();
+    Y.one('#txnProgressCoreDivId').show();
 
-  this.periodicDataPoller.start();
-}
+    periodicDataPoller.start();
+  };
 
-TxnProgressWidget.prototype.hide = function() {
+  this.hide = function () {
+    periodicDataPoller.stop();
 
-  this.periodicDataPoller.stop();
-  
-  globalYui.one('#txnProgressStatusDivId').setStyle('display', 'none'); 
-  globalYui.one('#txnProgressCoreDivId').setStyle('display','none');
-  globalYui.one('#blackScreenDivId').setStyle('display', 'none');
-}
+    Y.one('#txnProgressCoreDivId').hide();
+    Y.one('#blackScreenDivId').hide();
+  };
+
+  // initialize this object
+
+  periodicDataPoller = new App.io.PeriodicDataPoller(pdpDataSourceContext, pdpResponseHandler);
+
+  var onClick = function (e) {
+    switch (e.target.get('id')) {
+      case CLOSE_LINK_DOM_ID:
+        if (config.onClose) {
+          config.onClose();
+          if (targetUrl != null) {
+            document.location.href = targetUrl;
+          }
+          this.hide();
+        }
+        break;
+      case SHOW_LOGS_LINK_DOM_ID:
+
+        if (!isLogFetched) {
+          errorInfoPanel = App.ui.createInfoPanel('Operation Logs');
+
+          var bodyContent =
+            '<img id="errorInfoPanelLoadingImgId" class="loadingImg" src="/hmc/images/loading.gif" />';
+
+          errorInfoPanel.set('bodyContent', bodyContent);
+          errorInfoPanel.show();
+
+          Y.io('/hmc/php/frontend/fetchTxnLogs.php?clusterName=' +
+            config.context.clusterName + '&txnId=' + config.context.txnId, {
+
+            timeout: App.io.FETCH_LOG_TIMEOUT_MS,
+            on: {
+              success: function (x, o) {
+
+                var errorInfoJson = null;
+                try {
+                  errorInfoJson = Y.JSON.parse(o.responseText);
+                } catch (e) {
+                  alert("JSON Parse failed!");
+                  return;
+                }
+
+                errorInfoPanelBodyContent =
+                  '<pre>' +
+                    Y.JSON.stringify(errorInfoJson.logs, null, 4) +
+                    '</pre>';
+
+                errorInfoPanel.set('bodyContent', errorInfoPanelBodyContent);
+
+                isLogFetched = true;
+              },
+              failure: function (x, o) {
+                alert("Async call failed!");
+              }
+            }
+          });
+        } else {
+          errorInfoPanel.show();
+        }
+        break;
+    }
+  }.bind(this);
+
+  Y.one('#' + CONTAINER_DOM_ID).delegate('click', onClick, 'a');
+
+};

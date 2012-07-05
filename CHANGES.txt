@@ -6,6 +6,9 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-589. Refactor progress popup (TxnProgressWidget) Javascript code
+  (yusaku)
+
   AMBARI-597. Remove /usr/bin/php dependency from the rpm's. (mahadev)
 
   AMBARI-596. Remove unused images in images/ directory. (vinodkv)
