@@ -125,7 +125,7 @@ class OrchestratorDB {
         $this->logger->log_error("Found service with invalid state"
             . ", service=" . $svc["serviceName"]
             . ", state=" . $svc["state"]);
-        $state = 0; // unknown
+        $state = STATE::UNKNOWN; // unknown
       }
 
       $svcObj =
@@ -155,6 +155,12 @@ class OrchestratorDB {
     }
 
     $state = STATE::getStateFromString($serviceInfo["state"]);
+    if ($state === FALSE) {
+      $this->logger->log_error("Found service with invalid state"
+          . ", service=" . $serviceName
+          . ", state=" . $serviceInfo["state"]);
+      $state = STATE::UNKNOWN; // unknown
+    }
     return $this->getServiceObj($serviceName, $state, $this, $this->puppet);
   }
 
@@ -200,7 +206,7 @@ class OrchestratorDB {
         $this->logger->log_error("Found service with invalid state"
             . ", service=" . $svc["serviceName"]
             . ", state=" . $svc["state"]);
-        $state = 0; // unknown
+        $state = STATE::UNKNOWN; // unknown
       }
 
       $svcObj =
@@ -243,7 +249,7 @@ class OrchestratorDB {
         $this->logger->log_warn("Found service with invalid state"
             . ", service=" . $svc["serviceName"]
             . ", state=" . $svc["state"]);
-        $state = 0; // unknown
+        $state = STATE::UNKNOWN; // unknown
       }
 
       $svcObj =
@@ -290,7 +296,7 @@ class OrchestratorDB {
         $this->logger->log_warn("Found component with invalid state"
             . ", component=" . $comp["componentName"]
             . ", state=" . $comp["state"]);
-        $state = 0;
+        $state = STATE::UNKNOWN;
       }
       $isClient = FALSE;
       if (isset($fullCompList[$comp["componentName"]])) {
@@ -392,7 +398,7 @@ class OrchestratorDB {
         $this->logger->log_error("Found component with invalid state"
             . ", component=" . $comp["componentName"]
             . ", state=" . $comp["state"]);
-        $state = 0;
+        $state = STATE::UNKNOWN;
       }
       $isClient = FALSE;
       if (isset($fullCompList[$comp["componentName"]])) {
@@ -464,7 +470,7 @@ class OrchestratorDB {
         $this->logger->log_error("Found component with invalid state"
         . ", component=" . $comp["componentName"]
         . ", state=" . $comp["state"]);
-        $state = 0;
+        $state = STATE::UNKNOWN;
       }
       $isClient = FALSE;
       if (isset($fullCompList[$comp["componentName"]])) {

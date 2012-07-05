@@ -106,7 +106,7 @@ class Service {
             $desc, TransactionProgress::$PROGRESS[$txnProgress],
             "SERVICE", $dryRun);
       if ($result['result'] !== 0) {
-        $this->state == State::FAILED;
+        $this->state = State::FAILED;
         $this->logger->log_error($this->name." - ".State::$STATE[$state]);
         $this->logger->log_error("Failed to persist transaction: " . $transaction->toString());
         $this->db->setServiceState($this, $state);
@@ -117,7 +117,7 @@ class Service {
     if (!$dryRun) {
       $result = $this->db->setServiceState($this, $state);
       if ($result['result'] !== 0) {
-        $this->state == State::FAILED;
+        $this->state = State::FAILED;
         $this->logger->log_error("Failed to persist state for Service "
             . "$this->name - ".State::$STATE[$state] . " dryRun=$dryRun");
         $this->db->setServiceState($this, $state);

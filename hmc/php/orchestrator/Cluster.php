@@ -265,6 +265,9 @@ class Cluster {
             $compInfo["state"] = "UNKNOWN";
           }
           $state = State::getStateFromString($compInfo["state"]);
+          if ($state === FALSE) {
+            $state = STATE::UNKNOWN;
+          }
           if (!isset($hostCompMapping[$svcName][$compName]["state"])) {
             $hostCompMapping[$svcName][$compName]["state"] = $state;
           }
@@ -1030,7 +1033,7 @@ class Cluster {
           $desc, TransactionProgress::$PROGRESS[$txnProgress],
           "CLUSTER", $dryRun);
     if ($result['result'] !== 0) {
-      $this->state == State::FAILED;
+      $this->state = State::FAILED;
       $this->logger->log_error($this->name." - ".State::$STATE[$state]);
       return $result;
     }

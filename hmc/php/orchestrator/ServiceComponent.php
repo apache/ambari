@@ -97,7 +97,7 @@ class ServiceComponent {
             $desc, TransactionProgress::$PROGRESS[$txnProgress],
             "SERVICECOMPONENT", $dryRun);
       if ($result['result'] !== 0) {
-        $this->state == State::FAILED;
+        $this->state = State::FAILED;
         $this->logger->log_error("$this->name - ".State::$STATE[$state]);
         $this->db->setServiceState($this, $state);
         return $result;
@@ -107,7 +107,7 @@ class ServiceComponent {
     if (!$dryRun) {
       $result = $this->db->setServiceComponentState($this->serviceName, $this->name, $state);
       if ($result['result'] !== 0) {
-        $this->state == State::FAILED;
+        $this->state = State::FAILED;
         $this->logger->log_error("$this->name - ".State::$STATE[$state]);
         $this->db->setServiceState($this, $state);
         return $result;
