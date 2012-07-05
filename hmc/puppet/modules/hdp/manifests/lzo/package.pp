@@ -21,8 +21,18 @@
 define hdp::lzo::package()
 {
   $size = $name
+
+  case $hdp::params::hdp_os_type {
+    centos6, rhel6: {
+      $pkg_type = 'lzo-rhel6'
+    }
+    default: {
+      $pkg_type = 'lzo-rhel5'
+    }
+  }
+
   hdp::package {"lzo ${size}":
-    package_type  => 'lzo',
+    package_type  => "${pkg_type}",
     size          => $size,
     java_needed   => false
   }

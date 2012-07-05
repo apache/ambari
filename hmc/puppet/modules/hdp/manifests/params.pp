@@ -246,9 +246,13 @@ class hdp::params()
     oozie-server => {
       64 => 'oozie.noarch'
     },
-    lzo => {
+    lzo-rhel5 => {
       32 => ['lzo','lzo.i386','lzo-devel','lzo-devel.i386'],
       64 => ['lzo','lzo.i386','lzo-devel','lzo-devel.i386']
+    },
+    lzo-rhel6 => {
+      32 => ['lzo','lzo.i686','lzo-devel','lzo-devel.i686'],
+      64 => ['lzo','lzo.i686','lzo-devel','lzo-devel.i686']
     },
     #TODO: make these two consistent on whether case of 64/32 bits
     snappy => {
