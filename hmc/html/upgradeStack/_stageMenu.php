@@ -19,17 +19,17 @@
 */
 
 switch ($requestPage) {
-  case 'uninstall.php':
+  case 'upgradeStack/uninstall.php':
     $uninstallStageClass = 'current';
     $reconfigureStageClass = 'unvisited';
     $deployStageClass = 'unvisited';
     break;
-  case 'reconfigure.php':
+  case 'upgradeStack/reconfigure.php':
     $uninstallStageClass = 'visited';
     $reconfigureStageClass = 'current';
     $deployStageClass = 'unvisited';
     break;
-  case 'deploy.php':
+  case 'upgradeStack/deploy.php':
     $uninstallStageClass = 'visited';
     $reconfigureStageClass = 'visited';
     $deployStageClass = 'current';

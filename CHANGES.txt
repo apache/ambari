@@ -6,6 +6,9 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-609. Modify router to handle hierarchical directory structure for
+  front-facing PHP files (yusaku)
+
   AMBARI-606. Refactor "review and deploy" Javascript code for reuse (yusaku)
 
   AMBARI-605. Add UI flow/groundwork for handling Ambari / Hadoop stack version

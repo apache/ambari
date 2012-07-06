@@ -56,11 +56,11 @@ function redirectToPage($requestPage, $targetPage)
 
 $logger = new HMCLogger("Router");
 $db = new HMCDBAccessor($GLOBALS["DB_PATH"]);
-$appDir = "/hmc/html";
+$appDir = "/hmc/html/";
 
 $res = $db->getAllClusters();
 $clusters = $res['clusters'];
-$requestPage = basename(preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']));
+$requestPage = str_replace($appDir, '', $_SERVER['SCRIPT_NAME']);
 $logger->log_trace('requestPage=' . $requestPage);
 
 if (sizeof($clusters) == 0) {
