@@ -513,7 +513,13 @@ function sanitizeConfigs($requestObjFromUser, $logger) {
   return $finalProperties;
 }
 
-// Reused in reConfigure
+/**
+ * @param $dbAccessor HMCDBAccessor
+ * @param $logger HMCLogger
+ * @param $clusterName
+ * @param $requestObjFromUser
+ * @return array|mixed
+ */
 function validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $requestObjFromUser) {
   // sanitize and persist the user entered configs *******
   $finalProperties = sanitizeConfigs($requestObjFromUser, $logger);

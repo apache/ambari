@@ -215,7 +215,7 @@ function setupReconfigureScreens(serviceName) {
     action: function (e) {
       e.preventDefault();
 
-      localReconfigureServiceData = configureServicesUtil.generateUserOpts();
+      localReconfigureServiceData = App.ui.configureServicesUtil.generateUserOpts();
       var remoteProps = remoteReconfigureServiceData.services[serviceName].properties;
       var localProps = localReconfigureServiceData[serviceName].properties;
       var allEqual = true;
@@ -271,7 +271,7 @@ function setupReconfigureScreens(serviceName) {
     // Store the remote data
     remoteReconfigureServiceData = serviceConfigurationData;
 
-    var serviceConfigurationMarkup = configureServicesUtil.getOptionsSummaryMarkup(serviceConfigurationData, true);
+    var serviceConfigurationMarkup = App.ui.configureServicesUtil.getOptionsSummaryMarkup(serviceConfigurationData, true);
 
     if( globalYui.Lang.trim( serviceConfigurationMarkup).length == 0 ) {
       serviceConfigurationMarkup = '<p>There is nothing to reconfigure for this service.</p>';
@@ -369,7 +369,7 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
             hidePanel(function() {
               setupReconfigureFirstScreen(serviceName);
               showPanel( function() {
-                configureServicesUtil.handleConfigureServiceErrors( manageServicesResponseJson );
+                App.ui.configureServicesUtil.handleConfigureServiceErrors( manageServicesResponseJson );
             });
           });
           } else {

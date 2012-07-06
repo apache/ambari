@@ -77,4 +77,17 @@ $RES['uninstallWizard.pageSummary.body']="<span class='label label-important'>Wa
 $RES['uninstallWizard.wipeout.label']="Perform wipe out (delete all data)";
 $RES['uninstallWizard.submit.label']="Uninstall Cluster";
 $RES['initWizard.configureClusterAdvanced.validation.error']="We've encountered invalid settings.";
+$RES['upgradeStack.index.pageSummary.header']="Upgrade Your Hadoop Services";
+$RES['upgradeStack.index.pageSummary.body']="You have a pending upgrade of your Hadoop services.  You must complete the upgrade before you can continue.<br>We will walk you through the upgrade process with a step-by-step wizard.";
+$RES['upgradeStack.index.submit.label']="Get Started";
+$RES['upgradeStack.uninstall.pageSummary.header']="Upgrade Step 1 - Uninstall Existing Hadoop Services";
+$RES['upgradeStack.uninstall.pageSummary.body']="First, we will uninstall the existing Hadoop services before we install the new version.  This will not delete your data.";
+$RES['upgradeStack.uninstall.submit.label']="Proceed";
+$RES['upgradeStack.reconfigure.pageSummary.header']='Upgrade Step 2 - Reconfigure the Hadoop Services';
+$RES['upgradeStack.reconfigure.pageSummary.body']="Reconfigure your Hadoop services.  Make changes as you see fit.<br>The existing configuration values will automatically carry over.";
+$RES['upgradeStack.reconfigure.submit.label']="Proceed";
+$RES['upgradeStack.deploy.pageSummary.header']='Upgrade Step 3 - Deploy the New Version of the Hadoop Services';
+$RES['upgradeStack.deploy.pageSummary.body']="We are now ready to install the new version of the Hadoop services.  Please review the configuration parameters.<br>If you need to make changes, you can go back to Step 2.";
+$RES['upgradeStack.deploy.backButton.label']="Back to Reconfigure";
+$RES['upgradeStack.deploy.submit.label']="Deploy";
 ?>

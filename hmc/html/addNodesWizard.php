@@ -18,17 +18,17 @@
  under the License.
 */
 ?>
-<?php require_once "./head.inc" ?>
+<?php require_once "./_router.php" ?>
 <html>
   <head>
-    <?php require "./head.htmli" ?>
+    <?php require "./_head.php" ?>
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./topnav.htmli"; ?>
+    <?php require "./_topnav.php"; ?>
 
-    <div id="ContentDivId"> 
-      <?php require "./subnav.htmli"; ?>
+    <div id="content">
+      <?php require "./_subnav.php"; ?>
       
       <!-- Installation Wizard -->
       <div name="installationWizardDiv" id="installationWizardDivId" style="display:block">
@@ -53,7 +53,7 @@
           </ol>
         </div>
 
-        <?php require "./utils.htmli"; ?>
+        <?php require "./_utils.php"; ?>
 
         <div name="installationMainFormsDiv" id="installationMainFormsDivId">
           <div id="addNodesCoreDivId" style="display:block">
@@ -103,20 +103,20 @@
             <button class="btn btn-large" id="deployAddedNodesSubmitButtonId"><?php echo $RES['addNodesWizard.selectServices.submit.label'] ?></button>
           </div>
 
-          <?php require "./txnUtils.htmli"; ?>
+          <?php require "./_txnUtils.php"; ?>
 
         </div>
       </div>
       <!-- End of installation Wizard -->
 
     </div>
-    <?php require "./footer.htmli"; ?>
+    <?php require "./_footer.php"; ?>
 
     <!-- Javascript Scaffolding -->
     <script type="text/javascript">
 
     var freshInstall = false;
-    var clusterName = "<?php echo $_GET['clusterName']; ?>";
+    var clusterName = "<?php echo $clusterName; ?>";
     var nodesAction = "addNodes";
 
     var InstallationWizard = {
@@ -142,7 +142,7 @@
       ];
     </script>
   
-    <?php require "./bootstrapJs.htmli"; ?>
+    <?php require "./_bootstrapJs.php"; ?>
     <!-- End of Javascript Scaffolding -->
 
   </body>

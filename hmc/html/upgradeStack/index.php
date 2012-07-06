@@ -18,18 +18,25 @@
  under the License.
 */
 ?>
-<!-- The mechanism by which we black out the screen and affix the
-     the spotlight on a smaller portion of it. -->
-<div id="blackScreenDivId" style="display:none"></div>
+<?php require_once '../_router.php' ?>
+<html>
+<head>
+  <?php require "../_head.php" ?>
+  <script src="/hmc/js/ext/jquery.min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+  <?php require "../_topnav.php"; ?>
 
-<!-- The image we use to let users know something is loading, and 
-     that they should wait. Starts off showing by default, so it's
-     up to the container application to hide this using the 
-     hideLoadingImg() method from utils.js. -->
-<div id="loadingDivId">
-  <div id="loadingBlackScreenDivId"></div>
-  <img id="loadingImgId" src="../images/loadingLarge.gif"/>
-</div>
+  <div id="content">
+      <div class="alert alert-info" style="margin-top:40px;padding:20px">
+        <h2><?php echo $RES['upgradeStack.index.pageSummary.header'] ?></h2>
+        <p><?php echo $RES['upgradeStack.index.pageSummary.body'] ?></p>
+        <p style="font-weight:bold">Upgrading from HDP Version X to Y</p>
+        <a href="uninstall.php" class="btn btn-large" id="submitButton"><?php echo $RES['upgradeStack.index.submit.label'] ?></a>
+      </div>
+    </div>
+  </div>
+  <?php require "../_footer.php"; ?>
 
-<!-- Placeholder for our informational YUI panel. -->
-<div id="informationalPanelContainerDivId"></div>
+</body>
+</html> 

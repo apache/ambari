@@ -19,24 +19,22 @@
  *
 */
 
-var globalOptionsInfo = null;
-           
 Y.one('#configureClusterAdvancedSubmitButtonId').on('click',function (e) {
   
   if (this.hasClass('disabled')) {
     return;
   }
   
-  var opts = configureServicesUtil.generateUserOpts();
+  var opts = App.ui.configureServicesUtil.generateUserOpts();
 
   e.target.set('disabled', true);
-  var url = "../php/frontend/configureServices.php?clusterName="+globalOptionsInfo.clusterName;
+  var url = "../php/frontend/configureServices.php?clusterName=" + App.props.clusterName;
   var requestData = opts;
   var submitButton = e.target;
   var thisScreenId = "#configureClusterAdvancedCoreDivId";
   var nextScreenId = "#deployCoreDivId";
   var nextScreenRenderFunction = renderDeploy;
-  var errorFunction = configureServicesUtil.handleConfigureServiceErrors;
+  var errorFunction = App.ui.configureServicesUtil.handleConfigureServiceErrors;
   submitDataAndProgressToNextScreen(url, requestData, submitButton,
       thisScreenId, nextScreenId, nextScreenRenderFunction, errorFunction);
 });
@@ -46,8 +44,8 @@ Y.one('#configureClusterAdvancedSubmitButtonId').on('click',function (e) {
 Y.one("#configureClusterAdvancedDynamicRenderDivId").delegate(
   {
     'keyup' : function (e) {
-      configureServicesUtil.checkPasswordCorrectness();
-      configureServicesUtil.updateServiceErrorCount(e.target.get('name'));
+      App.ui.configureServicesUtil.checkPasswordCorrectness();
+      App.ui.configureServicesUtil.updateServiceErrorCount(e.target.get('name'));
     }
   },
   "input[type=password]"
@@ -56,23 +54,23 @@ Y.one("#configureClusterAdvancedDynamicRenderDivId").delegate(
 Y.one("#configureClusterAdvancedDynamicRenderDivId").delegate(
   {
     'keyup' : function (e) {
-      configureServicesUtil.clearErrorReason('#' + e.target.get('id'));
-      configureServicesUtil.updateServiceErrorCount(e.target.get('name'));
+      App.ui.configureServicesUtil.clearErrorReason('#' + e.target.get('id'));
+      App.ui.configureServicesUtil.updateServiceErrorCount(e.target.get('name'));
     }
   },
   "input[type=text],input[type=password]:not(.retypePassword)"
 );
 
 function renderConfigureServicesInternal (optionsInfo) {
-  Y.one("#configureClusterAdvancedDynamicRenderDivId").setContent(configureServicesUtil.getOptionsSummaryMarkup(optionsInfo, false));
+  Y.one("#configureClusterAdvancedDynamicRenderDivId").setContent(App.ui.configureServicesUtil.getOptionsSummaryMarkup(optionsInfo, false));
   $('#configureServicesTabs a:first').tab('show');
   Y.one("#configureClusterAdvancedCoreDivId").show();
   Y.one('#configureClusterAdvancedSubmitButtonId').simulate('click');  
-  hideLoadingImg();
+  App.ui.hideLoadingOverlay();
 }
 
 function renderOptionsPage (optionsInfo) {
-  globalOptionsInfo = optionsInfo;
+  App.props.clusterName = optionsInfo.clusterName;
   var inputUrl = "../php/frontend/fetchClusterServices.php?clusterName=" + optionsInfo.clusterName + "&getConfigs=true";
   executeStage(inputUrl, renderConfigureServicesInternal);
 }

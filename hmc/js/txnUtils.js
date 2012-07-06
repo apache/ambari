@@ -425,6 +425,7 @@ App.ui.TxnProgressWidget = function (config) {
     Y.one("#txnProgressHeader").setContent(config.title);
     Y.one('#blackScreenDivId').show();
     Y.one('#txnProgressCoreDivId').show();
+    Y.one('#txnProgressBox').scrollIntoView();
 
     periodicDataPoller.start();
   };

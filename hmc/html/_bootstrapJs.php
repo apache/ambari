@@ -18,8 +18,23 @@
  under the License.
 */
 ?>
-    <title id="pageTitleId"><?php echo $RES['page.title'] ?></title>
-    <link type="text/css" rel="stylesheet" href="../css/cssreset-min.css">
-    <link type="text/css" rel="stylesheet" href="../css/bootstrap.css" media="screen"/>
-    <link type="text/css" rel="stylesheet" href="../css/app.css" media="screen"/>
-    <link rel="shortcut icon" href="../images/logo-micro.gif">
+<link type="text/css" rel="stylesheet" href="/hmc/css/yuiCombined.css">
+<script src="/hmc/js/ext/yui-min.js"></script>
+<script src="/hmc/js/ext/yuiCombined.js"></script>
+
+<script type="text/javascript">
+  var globalYui, Y;
+  globalYui = Y = YUI().use("*", function (Y) {
+
+    for (var jsFile in jsFilesToLoad) {
+      var dynamicJsScript = document.createElement("script");
+      dynamicJsScript.type = "text/javascript";
+      dynamicJsScript.src = '/hmc/' + jsFilesToLoad[jsFile];
+      dynamicJsScript.async = false;
+      document.getElementsByTagName("head")[0].appendChild(dynamicJsScript);
+    }
+  });
+
+  // disable console logging
+  Y.log = function () {};
+</script>

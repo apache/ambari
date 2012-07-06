@@ -18,18 +18,18 @@
  under the License.
 */
 ?>
-<?php require_once "./head.inc"; ?>
+<?php require_once "./_router.php"; ?>
 <html>
   <head>
-    <?php require "./head.htmli" ?>
+    <?php require "./_head.php" ?>
     <script src="../js/ext/jquery.min.js"></script>
     <script src="../js/ext/bootstrap.min.js"></script>
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./topnav.htmli"; ?>
+    <?php require "./_topnav.php"; ?>
 
-    <div id="ContentDivId">
+    <div id="content">
 
       <!-- List of clusters
       <div name="clustersListDiv" id="clustersListDivId">
@@ -99,7 +99,7 @@
           </ol>
         </div>
 
-        <?php require "./utils.htmli"; ?>
+        <?php require "./_utils.php"; ?>
 
         <div id="installationMainFormsDivId">
               <div id="createClusterCoreDivId">
@@ -184,7 +184,7 @@
                   </div>
                 </div>
                 </fieldset>
-                <a href="javascript:void 0" class="btn btn-large" style="margin:10px 0 0 60px" id="selectServicesSubmitButtonId" class="submitButton"><?php echo $RES['initWizard.selectServices.submit.label'] ?></a>
+                <a href="javascript:void 0" class="btn btn-large" style="margin:10px 0 0 60px" id="selectServicesSubmitButtonId"><?php echo $RES['initWizard.selectServices.submit.label'] ?></a>
 
               </div>
               <!-- End of selectServicesCoreDivId -->
@@ -287,13 +287,13 @@
                   <a href="javascript:void 0" class="btn btn-large" id="deploySubmitButtonId" value="Deploy"><?php echo $RES['initWizard.reviewAndDeploy.submit.label'] ?></a>
                 </div>
 
-                <?php require "./txnUtils.htmli"; ?>
+                <?php require "./_txnUtils.php"; ?>
 
               </div>
             </div>
             <!-- End of installation Wizard -->
     </div>
-            <?php require "./footer.htmli"; ?>
+            <?php require "./_footer.php"; ?>
 
             <!-- Javascript Scaffolding -->
             <script type="text/javascript">
@@ -343,7 +343,7 @@
             // jsFilesToLoad.push('js/test/initializeClusterTest.js');
             </script>
 
-            <?php require "./bootstrapJs.htmli"; ?>
+            <?php require "./_bootstrapJs.php"; ?>
             <!-- End of Javascript Scaffolding -->
 
           </body>

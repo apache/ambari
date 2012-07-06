@@ -18,16 +18,16 @@
  under the License.
 */
 ?>
-<?php require_once "./head.inc"; ?>
+<?php require_once "./_router.php"; ?>
 <html>
   <head>
-    <?php require "./head.htmli" ?>
+    <?php require "./_head.php" ?>
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./topnav.htmli"; ?>
+    <?php require "./_topnav.php"; ?>
 
-    <div id="ContentDivId">
+    <div id="content">
       <div class="alert alert-info" style="margin-top:40px;padding:20px">
         <h2 style="margin-bottom:10px"><?php echo $RES['welcome.header'] ?></h2>
         <p><?php echo $RES['welcome.body'] ?></p>
@@ -35,6 +35,6 @@
         <a id="submitLinkId" class='btn btn-large' style='margin-top:20px' href='initializeCluster.php'><?php echo $RES['welcome.submit.label'] ?></a>
       </div>
     </div>
-    <?php require "./footer.htmli"; ?>
+    <?php require "./_footer.php"; ?>
   </body>
 </html>

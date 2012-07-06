@@ -18,14 +18,14 @@
  under the License.
 */
 ?>
-<?php require_once "./head.inc" ?>
+<?php require_once "./_router.php" ?>
 <html>
   <head>
-    <?php require "./head.htmli" ?>
+    <?php require "./_head.php" ?>
   </head>
   <body class="yui3-skin-sam">
-    <?php require "./topnav.htmli"; ?>
-    <div id="ContentDivId"> 
+    <?php require "./_topnav.php"; ?>
+    <div id="content">
       <div class="container">
         <div class="alert alert-important" style="margin-top:40px;padding:20px">
           <h2 style="margin-bottom:10px"><?php echo $RES['installFailed.header'] ?></h2>
@@ -34,6 +34,6 @@
         </div>
       </div>
     </div>
-    <?php require "./footer.htmli"; ?>
+    <?php require "./_footer.php"; ?>
   </body>
 </html>

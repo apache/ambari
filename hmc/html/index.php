@@ -18,32 +18,27 @@
  under the License.
 */
 ?>
-<?php require_once "./head.inc" ?>
+<?php require_once "./_router.php" ?>
 <html>
   <head>
-    <?php require "./head.htmli" ?>
+    <?php require "./_head.php" ?>
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./topnav.htmli"; ?>
+    <?php require "./_topnav.php"; ?>
       
-    <div id="ContentDivId">
-      <?php require "./subnav.htmli"; ?>
-      <?php require "./utils.htmli"; ?>            
+    <div id="content">
+      <?php require "./_subnav.php"; ?>
+      <?php require "./_utils.php"; ?>
 
-      <!-- List of clusters -->
-      <div id="clustersListDivId" style="display:none">
-      </div>
-
-      <div id="clusterHostRoleMappingDivId" style="display:none">
-        <div id="clusterHostRoleMappingDynamicRenderDivId">
+      <div id="clusterHostRoleMapping" style="display:none">
+        <div id="clusterHostRoleMappingContent">
         </div>      
       </div>
-
     </div>        
     <!-- End of contentDivId -->
     
-    <?php require "./footer.htmli"; ?>
+    <?php require "./_footer.php"; ?>
 
     <!-- Javascript Scaffolding -->
     <script type="text/javascript">
@@ -54,7 +49,7 @@
       ];
     </script>
 
-    <?php require "./bootstrapJs.htmli"; ?>
+    <?php require "./_bootstrapJs.php"; ?>
     <!-- End of Javascript Scaffolding -->
   </body>
 </html> 

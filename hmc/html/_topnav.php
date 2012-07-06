@@ -18,9 +18,26 @@
  under the License.
 */
 ?>
-<div class="alert alert-info" style="margin-top:40px;padding:20px">
-  <h2 style="margin-bottom:10px"><?php echo $RES['welcome.header'] ?></h2>
-  <p><?php echo $RES['welcome.body'] ?></p>
-  <p><span class='label label-info'>Note</span><span style='margin-left:10px;'><?php echo $RES['welcome.note'] ?></span></p> 
-  <a class='btn btn-large' style='margin-top:20px' href='initializeCluster.php'><?php echo $RES['welcome.submit.label'] ?></a>
-</div>
+<!-- START TOPNAV -->
+<?php
+  $homeUrl = '/hmc/html';
+?>
+	<div class="navbar">
+		<div class="navbar-inner">
+			<div class="container">
+				<a href="<?php echo $homeUrl ?>"><img id="logo" src="/hmc/images/logo-small.gif"></a>
+				<a class="brand" href="<?php echo $homeUrl ?>"><?php echo $RES['app.name'] ?></a>
+        <ul class="nav">
+				<?php if (isset($clusterState) && $clusterState == 'OPERATIONAL') { ?> 
+					<li class="active"><a href="<?php echo $homeUrl ?>">Cluster Management</a>
+					</li>
+					<li><a href="/hdp/dashboard/ui/home.html">Monitoring</a></li>
+				<?php } ?>
+          <li class="right"><a class="help" href="<?php echo $RES['topnav.help.link'] ?>" target="_blank">Help</a></li>
+				</ul>         
+			</div>
+		</div>
+	</div>
+	
+	
+<!-- END TOPNAV -->

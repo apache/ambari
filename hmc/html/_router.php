@@ -1,5 +1,6 @@
 <?php
 /*
+
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
  distributed with this work for additional information
@@ -16,120 +17,139 @@
  KIND, either express or implied.  See the License for the
  specific language governing permissions and limitations
  under the License.
+
 */
 
-require_once '../php/conf/MessageResources-en.inc';
-require_once '../php/util/Logger.php';
-require_once '../php//conf/Config.inc';
-require_once "../php/util/lock.php";
-require_once '../php/db/HMCDBAccessor.php';
-require_once "../php/util/clusterState.php";
+// Do not cache pages.  Otherwise handling browser back/forward
+// can cause problems due to stale content.
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
-/* 
- * due to the way include files are scoped,
+$BASE_DIR = dirname(__FILE__);
+require_once $BASE_DIR.'/../php/conf/MessageResources-en.inc';
+require_once $BASE_DIR.'/../php/util/Logger.php';
+require_once $BASE_DIR.'/../php/conf/Config.inc';
+require_once $BASE_DIR.'/../php/util/lock.php';
+require_once $BASE_DIR.'/../php/db/HMCDBAccessor.php';
+require_once $BASE_DIR.'/../php/util/clusterState.php';
+
+/*
+ * Due to the way include files are scoped,
  * we return the string to be eval'd, rather than
  * executing them.
  */
-function redirectToPage($requestPage, $targetPage) {
-  // if the page is index.php or the root app directory, don't redirect... simply include
-  if ($requestPage != 'index.php' && $requestPage != 'html') {
-    return "header('Location: /hmc/html/$targetPage');";
+function redirectToPage($requestPage, $targetPage)
+{
+  $bypassRouter = $GLOBALS['BYPASS_ROUTER'] || (isset($_GET['bypassRouter']) && $_GET['bypassRouter']);
+  if (!$bypassRouter) {
+    // if the page is index.php or the root app directory, don't redirect... simply include
+    if ($requestPage != 'index.php' && $requestPage != 'html') {
+      return "header('Location: /hmc/html/$targetPage'); exit;";
+    } else {
+      return "require('$targetPage'); exit;";
+    }
   } else {
-    return "require('$targetPage');";
+    // do not redirect/forward.  fall through
+    return "";
   }
 }
 
-$logger = new HMCLogger("Interceptor");
+$logger = new HMCLogger("Router");
 $db = new HMCDBAccessor($GLOBALS["DB_PATH"]);
 $appDir = "/hmc/html";
-
-/* If bypassRouter parameter is 1, don't do any routing */
-
-$bypassRouter = (isset($_GET['bypassRouter']) && $_GET['bypassRouter']);
 
 $res = $db->getAllClusters();
 $clusters = $res['clusters'];
 $requestPage = basename(preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']));
-$logger->log_trace('requestPage='.$requestPage);
+$logger->log_trace('requestPage=' . $requestPage);
 
 if (sizeof($clusters) == 0) {
   if ($requestPage != 'welcome.php' && $requestPage != 'initializeCluster.php') {
     eval(redirectToPage($requestPage, 'welcome.php'));
-    exit;
   }
   $clusterState = 'NOT_CONFIGURED';
 } else {
   foreach ($clusters as $cluster) {
     $clusterName = $cluster['clusterName'];
-    $state = json_decode($cluster['state'], true);    
-    $logger->log_trace('cluster state='.print_r($state,1));
+    $state = json_decode($cluster['state'], true);
+    $logger->log_trace('cluster state=' . print_r($state, 1));
     switch ($state['state']) {
       case 'NOT_CONFIGURED':
-        if ($requestPage != 'welcome.php' && 
-            $requestPage != 'initializeCluster.php') {
+        if ($requestPage != 'welcome.php' &&
+          $requestPage != 'initializeCluster.php'
+        ) {
           eval(redirectToPage($requestPage, 'welcome.php'));
-          exit;
         }
         $clusterState = 'NOT_CONFIGURED';
         break;
       case 'DEPLOYED':
         if ($state['context']['status']) {
-          if (!$bypassRouter && $requestPage == 'initializeCluster.php') {
+          if ($requestPage == 'initializeCluster.php') {
             eval(redirectToPage($requestPage, 'index.php'));
-            exit;
           }
           $clusterState = 'OPERATIONAL';
         } else {
-          if (!$bypassRouter && $requestPage != 'installFailed.php' && $requestPage != 'uninstallWizard.php') {
+          if ($requestPage != 'installFailed.php' && $requestPage != 'uninstallWizard.php') {
             eval(redirectToPage($requestPage, 'installFailed.php'));
-            exit; 
           }
-          $clusterState = 'DEPLOY_FAILED';            
+          $clusterState = 'DEPLOY_FAILED';
         }
         break;
       case 'CONFIGURATION_IN_PROGRESS':
-        if (!$bypassRouter && $requestPage != 'welcome.php' && $requestPage != 'initializeCluster.php') {
+        if ($requestPage != 'welcome.php' && $requestPage != 'initializeCluster.php') {
           eval(redirectToPage($requestPage, 'welcome.php'));
-          exit;
         }
         $clusterState = 'CONFIGURATION_IN_PROGRESS';
-        break;      
+        break;
       case 'DEPLOYMENT_IN_PROGRESS':
-        if (!$bypassRouter && $requestPage != 'showDeployProgress.php') {
+        if ($requestPage != 'showDeployProgress.php') {
           eval(redirectToPage($requestPage, 'showDeployProgress.php'));
-          exit;
-        }     
+        }
         $clusterState = 'DEPLOYMENT_IN_PROGRESS';
         break;
       case 'NODE_ADDITION_IN_PROGRESS':
-        if (!$bypassRouter && $requestPage != 'showDeployAddedNodesProgress.php') {
+        if ($requestPage != 'showDeployAddedNodesProgress.php') {
           eval(redirectToPage($requestPage, 'showDeployAddedNodesProgress.php'));
-          exit;
-        }     
+        }
         $clusterState = 'NODE_ADDITION_IN_PROGRESS';
         break;
       case 'SERVICE_MANAGEMENT_IN_PROGRESS':
-        if (!$bypassRouter && $requestPage != 'showManageServicesProgress.php') {
+        if ($requestPage != 'showManageServicesProgress.php') {
           eval(redirectToPage($requestPage, 'showManageServicesProgress.php'));
-          exit;
-        }     
+        }
         $clusterState = 'SERVICE_MANAGEMENT_IN_PROGRESS';
-        break;        
+        break;
       case 'UNINSTALLATION_IN_PROGRESS':
-        if (!$bypassRouter && $requestPage != 'showUninstallProgress.php') {
+        if ($requestPage != 'showUninstallProgress.php') {
           eval(redirectToPage($requestPage, 'showUninstallProgress.php'));
-          exit;
-        }     
+        }
         $clusterState = 'UNINSTALLATION_IN_PROGRESS';
         break;
       case 'UNINSTALLED':
-        if (!$bypassRouter && $requestPage != 'uninstallFailed.php') {
+        if ($requestPage != 'uninstallFailed.php') {
           eval(redirectToPage($requestPage, 'uninstallFailed.php'));
-          exit;
         }
         $clusterState = 'UNINSTALL_FAILED';
-        break;        
-    } 
-  }  
+        break;
+      case 'UPGRADE_STACK_PENDING':
+        if ($requestPage != 'upgradeStack/index.php') {
+          eval(redirectToPage($requestPage, 'upgradeStack/index.php'));
+        }
+        $clusterState = 'UPGRADE_STACK_PENDING';
+        break;
+      case 'UPGRADE_STACK_UNINSTALL_IN_PROGRESS':
+        if ($requestPage != 'upgradeStack/uninstall.php') {
+          eval(redirectToPage($requestPage, 'upgradeStack/uninstall.php'));
+        }
+        $clusterState = 'UPGRADE_STACK_UNINSTALL_IN_PROGRESS';
+        break;
+      case 'UPGRADE_STACK_DEPLOY_IN_PROGRESS':
+        if ($requestPage != 'upgradeStack/deploy.php') {
+          eval(redirectToPage($requestPage, 'upgradeStack/deploy.php'));
+        }
+        $clusterState = 'UPGRADE_STACK_DEPLOY_IN_PROGRESS';
+        break;
+    }
+  }
 }
 ?>

@@ -33,9 +33,9 @@ renderDeployProgress = function (context) {
   var hmcRestartMsg = '';
   if (context.nagiosGangliaCoHosted != null && context.nagiosGangliaCoHosted) {
     hmcRestartMsg = '<span style="color:red"><strong>Note:</strong> You need to restart '
-      + App.Props.managerServiceName + ' as Nagios/Ganglia are co-hosted on this server.<br>Restart '
-      + App.Props.managerServiceName + ' by executing <i>sudo service ' + App.Props.managerServiceName.toLowerCase()
-      + ' restart</i> from the command line.</span><br>After that is done, ';
+      + App.props.managerServiceName + ' as Nagios/Ganglia are co-hosted on this server.<br>Restart '
+      + App.props.managerServiceName + ' by executing <i>sudo service ' + App.props.managerServiceName.toLowerCase()
+      + ' restart</i> from the shell.</span><br>After that is done, ';
   } else {
     hmcRestartMsg = 'Please ';
   }

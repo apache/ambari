@@ -18,23 +18,18 @@
  under the License.
 */
 ?>
-<link type="text/css" rel="stylesheet" href="../css/yuiCombined.css">
-<script src="../js/ext/yui-min.js"></script>
-<script src="../js/ext/yuiCombined.js"></script>
+<!-- The mechanism by which we black out the screen and affix the
+     the spotlight on a smaller portion of it. -->
+<div id="blackScreenDivId" style="display:none"></div>
 
-<script type="text/javascript">
-  var globalYui, Y;
-  globalYui = Y = YUI().use("*", function (Y) {
+<!-- The image we use to let users know something is loading, and 
+     that they should wait. Starts off showing by default, so it's
+     up to the container application to hide this using the 
+     hideLoadingImg() method from utils.js. -->
+<div id="loadingDivId">
+  <div id="loadingBlackScreenDivId"></div>
+  <img id="loadingImgId" src="/hmc/images/loadingLarge.gif"/>
+</div>
 
-    for (var jsFile in jsFilesToLoad) {
-      var dynamicJsScript = document.createElement("script");
-      dynamicJsScript.type = "text/javascript";
-      dynamicJsScript.src = '../' + jsFilesToLoad[jsFile];
-      dynamicJsScript.async = false;
-      document.getElementsByTagName("head")[0].appendChild(dynamicJsScript);
-    }
-  });
-
-  // disable console logging
-  Y.log = function () {};
-</script>
+<!-- Placeholder for our informational YUI panel. -->
+<div id="informationalPanelContainerDivId"></div>

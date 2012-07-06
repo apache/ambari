@@ -23,13 +23,6 @@ header, footer, aside, nav, article, section {
   display: block;
 }
 
-header {
-	margin:10px 0;
-  height:100px;
-  background-color:white;
-  font-size:300%;
-}
-
 body { 
   font:13px/1.231 Helvetica,Arial,sans-serif;
   *font-size:small; 
@@ -47,26 +40,16 @@ h1 {
   text-align: center; 
 }
 
-header img {
-        height:93px;
-        width:241px;
-	float:left;
-}
-#headerText {
-        font-weight:bold;
-        padding:30px 0 0 400px;
-}
-
 footer {
 	border-top:1px solid #e5e5e5;
 	padding:40px 0;
 	background-color:#fff;
-    color:#666666;
+  color:#666666;
 }
 
 footer a:link, footer a:visited {
-    color:#666666;
-    text-decoration:underline;
+  color:#666666;
+  text-decoration:underline;
 }
 
 a:link {
@@ -151,13 +134,6 @@ table {
   border:1px solid #DBDBDB;
 }
 
-caption {
-  font-weight:bold;
-  font-size:1.3em;
-  padding:10px;
-  color:green;
-}
-
 thead {
   font-size:13px;
   font-weight:bold;
@@ -229,7 +205,7 @@ td {
   margin:0 auto;
 }
 
-#ContentDivId {
+#content {
   width:980px;
   margin:0 auto;
   padding:0;
@@ -301,7 +277,11 @@ label.unit {
 }
 
 a.btn {
-	color:#333;
+	color: #333;
+}
+
+a.btn-success {
+  color: #fff;
 }
 
 .btn-large .iconic-stop:before {
@@ -422,13 +402,14 @@ div.separator {
 #serviceLegend {
   float:right;
 }
-#clusterHostRoleMappingDivId {
-  margin-top:20px;
-  width:500px;
-  margin-left:20px;
+#clusterHostRoleMapping {
+  margin-top: 20px;
+  width: 500px;
+  margin-left: 20px;
+  float: left;
 }
 
-#clusterHostRoleMappingDivId h2 {
+#clusterHostRoleMapping h2 {
   font-size:16px;
   float:left;
   margin-bottom:10px;
@@ -661,38 +642,6 @@ legend {
   text-align:left;
 }
 
-.submitButton:hover {
-  background-color:#00CC00;
-  cursor:pointer;
-  border:1px solid green;
-  color:white;
-}
-
-.submitButton {
-  -moz-box-shadow:inset 0px 1px 20px -2px #caefab;
-  -webkit-box-shadow:inset 0px 1px 20px -2px #caefab;
-  box-shadow:inset 0px 1px 20px -2px #caefab;
-  background-color: #39E639;
-  -moz-border-radius:6px;
-  -webkit-border-radius:6px;
-  border-radius:6px;
-  border:1px solid grey;
-  color:black;
-  margin-top:6px;
-  margin-bottom:6px;
-  font-family:Arial;
-  font-size:14px;
-  font-weight:bold;
-  padding:6px 20px;
-  text-decoration:none;
-  float:right;
-}
-
-.submitButton:active {
-  position:relative;
-  top:1px;
-}
-
 input[readonly] {
   width:300px;
   /*
@@ -704,9 +653,6 @@ input[readonly] {
   vertical-align:top;
 }
 
-#formElement {
-  height: 35px;
-}
 /* END common2 */
 /* BEGIN common3 */
 span.installationWizardStageNumber {
@@ -806,7 +752,6 @@ span.installationWizardStageNumber {
 #txnProgressStatusDivId {
   width: auto;
   max-width:500px;
-  /-*height: 2em;*-/
   border-style: solid;
   border-width: 2px;
   border-radius:2px;
@@ -829,13 +774,6 @@ span.installationWizardStageNumber {
     margin-bottom: 18px;
     padding: 8px 20px;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
-}
-
-.formStatusBarZeroOpacity {
-  visibility: hidden;
-  opacity: 0;
-  transition: visibility 0s 5s, opacity 3s linear;
-  -moz-transition: visibility 0s 5s, opacity 3s linear;
 }
 
 #txnProgressCoreDivId {
@@ -1021,7 +959,6 @@ span.installationWizardStageNumber {
 
 #informationalPanelContainerDivId .yui3-widget-ft .yui3-button:active {
   background-color: #e6e6e6;
-  background-color: #d9d9d9 \9;
   background-image: none;
   outline: 0;
   -webkit-box-shadow: inset 0 2px 4px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.05);
@@ -1088,12 +1025,6 @@ span.installationWizardStageNumber {
   margin: auto;
 }
 
-.centered {
-  position: fixed; 
-  left: 50%; 
-  top: 50%;
-}
-
 #configureClusterInputContainerDivId {
   float:left;
   width:400px;
@@ -1144,181 +1075,11 @@ span.installationWizardStageNumber {
     margin-left: 320px;
 }
 /* END common3 */
-/* BEGIN selectHosts */
-#serviceMastersLinksDivId {
-  width:40%;
-  float:left;
-}
-
-.aServiceMasterLink {
-  display:block;
-  border: 1px solid #B2B299;
-  clear:left;
-  float: left;
-  width:100%;
-  height:35px;
-  background-color: #DBDBDB;
-  color:white;
-  margin-bottom:15px;
-}
-
-.aServiceMasterLinkVisited {
-  display:block;
-  border: 1px solid #B2B299;
-  clear:left;
-  float: left;
-  width:100%;
-  height:35px;
-  background-color: green;
-  color:white;
-  margin-bottom:15px;
-  font-weight:bold;
-}
-
-#nodeGroupsCoreDivId {
-  border: 1px solid #B2B299;
-  float:left;
-  width:100%;
-}
-
-#nodeListDynamicId {
-  border: 1px solid #B2B299;
-  text-align:center;
-  /* display:inline-block; */
-}
-
-#nodeGroupsTable {
-  margin:5px;
-  overflow:auto;
-}
-
-.nodeGroupTitle {
-  font-weight:bold;
-  font-size:1.2em;
-  padding:5px;
-  background-color:#B2B299;
-  color:white;
-}
-
-.nodeList {
-  display:block;
-  margin:5px;
-  width:40%;
-  margin-left:50%;
-}
-
-.aNodeGroup {
-  /*overflow:auto;*/
-  padding:10px;
-  width:500px;
-  float:left;
-}
-
-.slotBucket {
-  margin:5px;
-  display:block;
-  float:left;
-}
-
-.slotTitle {
-  display:block;
-}
-
-.slot {
-  border: 1px solid #B2B299;
-  min-height:50px;
-
-  /* Color transition */
-  transition: background-color 1s cubic-bezier(.09, .99, .37, .98);
-  -moz-transition: background-color 1s cubic-bezier(.09, .99, .37, .98);    /* FF3.7+ */
-  -o-transition: background-color 1s cubic-bezier(.09, .99, .37, .98) ;      /* Opera 10.5 */
-  -webkit-transition: background-color 1s cubic-bezier(.09, .99, .37, .98) ; /* Saf3.2+, Chrome */
-}
-
-.slotHover {
-  border: 1px solid #B2B299;
-  min-height:50px;
- /* background-color: #00CC00; */
-  background-color:#F0F0E8;
-}
-
-.yui3-dd-drop-over {
- /* background-color: #00CC00; */
-  background-color:#F0F0E8;
-}
-
-.masterDiv {
-  border:1px solid green;
-  margin:3px;
-  padding:10px;
-  cursor:move;
-  /* background-color: #00CC00; */
-  background-color:#65B642;
-  border-radius:4px 4px 4px 4px;
-  color:white;
-  font-weight:bold;
-  width:180px;
-}
 
 #selectServiceMastersSubmitButtonId {
   clear:both;
 }
 
-.nodeAssignmentWrapper {
-  display:block;
-  padding:3px;
-
-  /* Color transition */
-  transition: background-color 0.5s cubic-bezier(.09, .99, .37, .98);
-  -moz-transition: background-color 0.5s cubic-bezier(.09, .99, .37, .98);    /* FF3.7+ */
-  -o-transition: background-color 0.5s cubic-bezier(.09, .99, .37, .98) ;      /* Opera 10.5 */
-  -webkit-transition: background-color 0.5s cubic-bezier(.09, .99, .37, .98) ; /* Saf3.2+, Chrome */
-}
-
-.nodeAssignmentWrapperHover {
-  display:block;
-  padding:3px;
-  /* background-color: #00CC00; */
-  background-color: #F0F0E8;
-}
-
-.nodeAssignment {
-  display:inline-block;
-}
-
-.nodeAssignmentHover {
-  display:inline-block;
-}
-/* END selectHosts */
-/* BEGIN clusters */
-#clustersNavigationLinksDivId {
-  width: 100%;
-  text-align: center;
-  margin: 0px auto;
-  margin-bottom: 8px;
-}
-
-#clustersNavigationLinksListId {
-  margin:0;
-  padding:0;
-  text-align:center;
-  height:50px;
-}
-
-#clustersNavigationLinksListId li {
-  display: inline-block;
-  width: auto;
-  padding: 5px;
-  margin: 2px;
-  cursor: default;
-}
-
-#clustersHostRoleMappingFieldsetId {
-  margin-left: auto;
-  margin-right: auto;
-  width: 300px;
-}
-/* END clusters */
 /* BEGIN manageServices */
 #serviceManagementCoreDivId {
   width: 400px;
@@ -1444,3 +1205,38 @@ ul#serviceManagementListId,
   margin:0;
 }
 /* END manageServices */
+
+#stageTabsContainer {
+
+}
+
+#stageTabs {
+  margin: 30px 0 30px 0;
+}
+
+#stageTabs li {
+  display: inline-block;
+  width: auto;
+  padding: 10px;
+  margin: 0 4px 0 0;
+  cursor: default;
+  color: white;
+  font-size: 12px;
+  border-radius: 4px;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+}
+
+#stageTabs li.current {
+  background-color: #65B642;
+  font-weight: bolder;
+  font-size: 14px;
+}
+
+#stageTabs li.unvisited {
+  background-color: rgb(190, 190, 190);
+}
+#stageTabs li.visited {
+  background-color: grey;
+  cursor: pointer;
+}

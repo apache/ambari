@@ -39,6 +39,7 @@ $GLOBALS["manifestloaderDir"] = "/etc/puppet/master/manifestloader";
 $GLOBALS["manifestloaderDestinationDir"] = "/etc/puppet/master/manifests";
 $GLOBALS["puppet_install"] = "/usr/share/hmc/ShellScripts/puppet_agent_install.sh";
 $GLOBALS["DRYRUN"] = FALSE;
+$GLOBALS["BYPASS_ROUTER"] = FALSE;
 
 $GLOBALS["HMC_LOG_DIR"] = "/var/log/hmc";
 $GLOBALS["HMC_LOG_LEVEL"] = HMCLogger::INFO;

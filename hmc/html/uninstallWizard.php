@@ -18,26 +18,22 @@
  under the License.
 */
 ?>
-<?php require_once "./head.inc" ?>
+<?php require_once "./_router.php" ?>
 <html>
   <head>
-    <?php require "./head.htmli" ?>
+    <?php require "./_head.php" ?>
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./topnav.htmli"; ?>
-    <?php 
-     include_once ("../php/util/clusterState.php"); 
-    // $clusterName = "m4v1";
-    // $clusterState = needWipeOut($clusterName); 
-    ?>
+    <?php require "./_topnav.php"; ?>
+    <?php include_once "../php/util/clusterState.php"; ?>
     
-    <div id="ContentDivId"> 
-      <?php require "./subnav.htmli"; ?>
+    <div id="content">
+      <?php require "./_subnav.php"; ?>
 
       <!-- Uninstallation Wizard -->
       <div id="installationWizardDivId" style="display:block">
-        <?php require "./utils.htmli"; ?>
+        <?php require "./_utils.php"; ?>
         <div class="pageSummary" style="margin-top:0px">
           <h2><?php echo $RES['uninstallWizard.pageSummary.header'] ?></h2>
           <p><?php echo $RES['uninstallWizard.pageSummary.body'] ?></p>
@@ -67,20 +63,20 @@
               </fieldset>
             </div>
           </div>
-          <?php require "./txnUtils.htmli"; ?>
+          <?php require "./_txnUtils.php"; ?>
 
         </div>
       </div>
       <!-- End of Uninstallation Wizard -->
     </div>            
-    <?php require "./footer.htmli"; ?>
+    <?php require "./_footer.php"; ?>
 
     <!-- Javascript Scaffolding -->
     <script type="text/javascript">
 
     var freshInstall = false;
     var nodesAction = "uninstall";
-    var clusterName = "<?php echo $_GET['clusterName']; ?>";
+    var clusterName = "<?php echo $clusterName; ?>";
 
     var InstallationWizard = {
 
@@ -98,7 +94,7 @@
       ];
     </script>
 
-    <?php require "./bootstrapJs.htmli"; ?>
+    <?php require "./_bootstrapJs.php"; ?>
     <!-- End of Javascript Scaffolding -->
 
   </body>

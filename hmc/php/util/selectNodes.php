@@ -234,7 +234,7 @@ class SelectNodes {
    * @return Error or not
    *     array("result" => $result, "error" => $error)
    * @param clusterName name of the cluster
-   * @param db the database being used
+   * @param HMCDBAccessor the database being used
    * @param masterToHost the master to Host mapping that the user selected
    *          array("componentName" => hostName")
    */

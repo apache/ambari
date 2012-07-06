@@ -162,14 +162,6 @@ function setFormStatus(statusString, isError, noFade) {
   formStatusDiv.addClass("formStatusBar");
   formStatusDiv.addClass(formStatusDivCssClass);
   formStatusDiv.setContent(statusString);
-  if (!isError && !noFade) {
-    //setTimeout(fadeFormStatus, 1000);
-  }
-}
-
-function fadeFormStatus() {
-  var formStatusDiv = Y.one("#formStatusDivId");
-  formStatusDiv.addClass("formStatusBarZeroOpacity");
 }
 
 function convertDisplayType(displayType) {
@@ -418,7 +410,8 @@ function titleCase(word) {
 // Create namespace and export functionality.
 // We'll remove globally defined functions and properties eventually
 // For now we need to keep the non-namespaced global functions and properties
-// so that our existing code continues to work without refactoring.
+// so that our existing code continues to work without major refactoring.
+
 var App = App || {
   props: {
     managerServiceName: 'Ambari',
@@ -433,8 +426,14 @@ var App = App || {
   },
   ui: {
     createInfoPanel: createInfoPanel,
+    showLoadingOverlay: showLoadingImg,
     hideLoadingOverlay: hideLoadingImg
   }
 };
 
-App.Props = App.props;
+// On some pages the clusterName global variable is set before
+// this file is loaded.  Remember it in the App namespace.
+if (typeof clusterName !== 'undefined') {
+  App.props.clusterName = clusterName;
+}
+

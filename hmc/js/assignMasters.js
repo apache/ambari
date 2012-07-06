@@ -245,7 +245,7 @@ function AssignMasters() {
     if (hostsToMasterServices[managerHostName] == null) {
       hostsToMasterServices[managerHostName] = {};
     }
-    hostsToMasterServices[managerHostName].MANAGER_SERVER = App.Props.managerServiceName + ' Server';
+    hostsToMasterServices[managerHostName].MANAGER_SERVER = App.props.managerServiceName + ' Server';
 
     $('#masterServicesToHosts').html(markup);
     

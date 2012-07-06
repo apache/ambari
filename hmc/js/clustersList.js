@@ -34,7 +34,7 @@ function ClustersList() {
           clusterServices[serviceName].attributes.runnable &&
           !clusterServices[serviceName].attributes.noDisplay) {
 
-          globalYui.Array.each( clusterServices[serviceName].components, function (serviceComponent) {
+          Y.Array.each( clusterServices[serviceName].components, function (serviceComponent) {
             if (serviceComponent.isMaster) {
               // just add the master to the hostname object
               for (var i in serviceComponent.hostNames) {
@@ -53,7 +53,7 @@ function ClustersList() {
     if (!(hostName in hostMap)) {
       hostMap[hostName] = [];
     }
-    hostMap[hostName].push({ serviceName: App.Props.managerServiceName + ' Server', isMaster: true });
+    hostMap[hostName].push({ serviceName: App.props.managerServiceName + ' Server', isMaster: true });
   }
 
   function populateHostToClientRoleMapping(clusterServices, hostMap) {
@@ -64,7 +64,7 @@ function ClustersList() {
         if (clusterServices[serviceName].isEnabled == "1" &&
           !clusterServices[serviceName].attributes.noDisplay) {
 
-          globalYui.Array.each( clusterServices[serviceName].components, function (serviceComponent) {
+          Y.Array.each( clusterServices[serviceName].components, function (serviceComponent) {
             if (serviceComponent.isClient) {
               // just add the client to the hostname object
               for (var i in serviceComponent.hostNames) {
@@ -106,23 +106,25 @@ function ClustersList() {
 
   this.render = function() {
 
-    globalYui.io("../php/frontend/listClusters.php", {
+    Y.io("/hmc/php/frontend/listClusters.php", {
       method: 'GET',
-      timeout : 10000,
+      timeout : App.io.DEFAULT_AJAX_TIMEOUT_MS,
       on: {
         success: function (x,o) {
-          globalYui.log("RAW JSON DATA: " + o.responseText);
+          var clusterListInfoJson;
+          
+          Y.log("RAW JSON DATA: " + o.responseText);
 
           // Process the JSON data returned from the server
           try {
-            clusterListInfoJson = globalYui.JSON.parse(o.responseText);
+            clusterListInfoJson = Y.JSON.parse(o.responseText);
           }
           catch (e) {
             alert("JSON Parse failed!");
             return;
           }
 
-          globalYui.log("PARSED DATA: " + globalYui.Lang.dump(clusterListInfoJson));
+          Y.log("PARSED DATA: " + Y.Lang.dump(clusterListInfoJson));
 
           if (clusterListInfoJson.result != 0) {
             // Error!
@@ -152,8 +154,8 @@ function ClustersList() {
               var clusterName; var clusterInfo;
               for (clusterId in clusterListInfoJson) {
                 clusterName = clusterId;
-                clusterInfo = globalYui.JSON.parse(clusterListInfoJson[clusterName]);
-                globalYui.log( "Cluster Info: " + globalYui.Lang.dump(clusterInfo.displayName));
+                clusterInfo = Y.JSON.parse(clusterListInfoJson[clusterName]);
+                Y.log( "Cluster Info: " + Y.Lang.dump(clusterInfo.displayName));
               }
             }
           }
@@ -165,19 +167,19 @@ function ClustersList() {
           }
 
           /* Beginning of adding Role Topology information. */
-          globalYui.io( "../php/frontend/fetchClusterServices.php?clusterName=" + clusterName + "&getConfigs=true&getComponents=true", {
-            timeout: 10000,
+          Y.io( "/hmc/php/frontend/fetchClusterServices.php?clusterName=" + clusterName + "&getConfigs=true&getComponents=true", {
+            timeout: App.io.DEFAULT_AJAX_TIMEOUT_MS,
             on: {
               success: function(x1, o1) {
 
-                hideLoadingImg();
+                App.ui.hideLoadingOverlay();
 
-                globalYui.log("RAW JSON DATA: " + o1.responseText);
+                Y.log("RAW JSON DATA: " + o1.responseText);
 
                 var clusterServicesResponseJson;
 
                 try {
-                  clusterServicesResponseJson = globalYui.JSON.parse(o1.responseText);
+                  clusterServicesResponseJson = Y.JSON.parse(o1.responseText);
                 }
                 catch (e) {
                   alert("JSON Parse failed");
@@ -186,7 +188,7 @@ function ClustersList() {
 
                 managerHostName = clusterServicesResponseJson.response.managerHostName;
 
-                globalYui.log(globalYui.Lang.dump(clusterServicesResponseJson));
+                Y.log(Y.Lang.dump(clusterServicesResponseJson));
 
                 /* Check that clusterServicesResponseJson actually indicates success. */
                 if( clusterServicesResponseJson.result == 0 ) {
@@ -202,42 +204,31 @@ function ClustersList() {
                       '</div>' +
                       '</div>';
 
-                  globalYui.one("#clusterHostRoleMappingDynamicRenderDivId").setContent(
+                  Y.one("#clusterHostRoleMappingContent").setContent(
                     markup + generateHostRoleMappingMarkup(clusterServices) );
-                  globalYui.one("#clusterHostRoleMappingDivId").show();
+                  Y.one("#clusterHostRoleMapping").show();
                 }
                 else {
                   alert("Fetching Cluster Services failed");
                 }
               },
               failure: function(x1, o1) {
-                hideLoadingImg();
-                alert("Async call failed");
+                App.ui.hideLoadingOverlay();
+                alert(App.io.DEFAULT_AJAX_ERROR_MESSAGE);
               }
             }
           });
           /* End of adding Role Topology information. */
 
-          globalYui.one("#clustersListDivId").setContent( clustersListMarkup );
-          globalYui.one("#clustersListDivId").setStyle('display', 'block');
-
-          if (globalYui.one('#newClusterLinkDivId') != null) {
-            globalYui.one('#newClusterLinkDivId').on('click',function (e) {
-              /* Done with this stage, hide it. */
-              globalYui.one("#clustersListDivId").setStyle('display','none');
-              // globalYui.one("#installationWizardDivId").setStyle('display','block');
-            });
-          }
-
         },
         failure: function (x,o) {
           //    e.target.set('disabled', false);
-          alert("Async call failed!");
+          alert(App.io.DEFAULT_AJAX_ERROR_MESSAGE);
         }
       }
     });
   }; // end render
 };
 
-var clustersList = new ClustersList();
-clustersList.render();
+new ClustersList().render();
+
