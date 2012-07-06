@@ -19,95 +19,24 @@
  *
 */
 
-function renderDeploySummary (deployInfo) {
-  var deploySummary = "";
-  
-  var unit, unitClass, unitLabel;
+function renderDeploySummary(deployInfo) {
 
-  for (var serviceName in deployInfo.services) {
-    var serviceHasToBeRendered = false;
-    var masterSummary = "";
-    var propertySummary = "";
+  var deploySummary = App.ui.configureServicesUtil.getDeploySummaryMarkup(deployInfo);
 
-    if (deployInfo.services.hasOwnProperty( serviceName )) {
+  Y.log("Final HTML: " + Y.Lang.dump(deploySummary));
 
-      var perServiceInfo = deployInfo.services[serviceName];
-
-      var configElementName = serviceName;
-      var configElementIdName = configElementName + 'Id';
-
-      if (perServiceInfo.isEnabled == false) {
-          continue;
-      }
-
-      // Render all master components
-      for (var componentIndex in perServiceInfo.components) {
-        if (!perServiceInfo.components[componentIndex].isMaster) {
-          continue;
-        }
-        var component = perServiceInfo.components[componentIndex];
-        serviceHasToBeRendered = true;
-        masterSummary += '<div class="formElement">' +
-                           '<label for=' + component.componentName + 'Id>' + component.displayName + '&nbsp; : &nbsp;</label>' +
-                           '<input type=text name=' + component.componentName + 'Name id=' + component.componentName + 'Id readonly=readonly value=\"' + component.hostNames.join(',') + '\">' +
-                         '</div>';
-      }
-
-      for (var mPropertiesKey in perServiceInfo.properties) {
-        if (perServiceInfo.properties[mPropertiesKey].type == "NODISPLAY") {
-          continue;
-        }
-        serviceHasToBeRendered = true;
-
-        readOnlyAttr = 'readonly=readonly';
-        valueAttr = 'value=\"' + perServiceInfo.properties[mPropertiesKey].value + '\"';
-        type = convertDisplayType(perServiceInfo.properties[mPropertiesKey].type);
-        if (type == "checkbox") {
-          readOnlyAttr = 'disabled="disabled"';
-          var checkVal = perServiceInfo.properties[mPropertiesKey].value;
-          if (checkVal == 'true') {
-            valueAttr = 'checked=yes';
-          } else {
-            valueAttr = '';
-          }
-        }
-        
-        unit = perServiceInfo.properties[mPropertiesKey].unit;
-        unitClass = (unit != null) ? 'unit' : '';
-        unitLabel = (unit != null && unit != 'int') ? unit : '';        
-        
-        propertySummary += '<div class="formElement">' +
-                             '<label for=' + mPropertiesKey  + 'Id>' + perServiceInfo.properties[mPropertiesKey].displayName + '</label>' +
-                             '<input class="' + unitClass + '" type=' + type + ' name=' + mPropertiesKey + 'Name id=' + mPropertiesKey + 'Id ' + readOnlyAttr + ' ' + valueAttr + '>' +
-                             '<label class="unit">' + unitLabel + '</label>' +
-                           '</div>';
-      }
-    }
-
-    if (serviceHasToBeRendered) {
-      deploySummary += '<fieldset>' + '<legend>' + perServiceInfo.displayName + '</legend>';
-      deploySummary += masterSummary;
-      deploySummary += propertySummary;
-      deploySummary += '</fieldset><br/>';
-    }
-  }
-
-  globalYui.log("Final HTML: " + globalYui.Lang.dump(deploySummary));
-
-  globalYui.one("#deployDynamicRenderDivId").setContent( deploySummary );
-  hideLoadingImg();
-  globalYui.one("#deployCoreDivId").setStyle("display", "block");
+  Y.one("#deployDynamicRenderDivId").setContent( deploySummary );
+  App.ui.hideLoadingOverlay();
+  Y.one("#deployCoreDivId").show();
 }
 
-var globalDeployInfo = null;
-
-globalYui.one('#deploySubmitButtonId').on('click',function (e) {
+Y.one('#deploySubmitButtonId').on('click',function (e) {
 
     e.target.set('disabled', true);
 
     var deployRequestData = {};
 
-    var url = "../php/frontend/deploy.php?clusterName="+globalDeployInfo.clusterName;
+    var url = "../php/frontend/deploy.php?clusterName=" + App.props.clusterName;
     var requestData = deployRequestData;
     var submitButton = e.target;
     var thisScreenId = "#deployCoreDivId";
@@ -117,7 +46,7 @@ globalYui.one('#deploySubmitButtonId').on('click',function (e) {
 });
 
 function renderDeploy (deployInfo) {
-  globalDeployInfo = deployInfo;
-  var inputUrl = "../php/frontend/fetchClusterServices.php?clusterName=" + deployInfo.clusterName + "&getConfigs=true&getComponents=true";
+  App.props.clusterName = deployInfo.clusterName
+  var inputUrl = "../php/frontend/fetchClusterServices.php?clusterName=" + App.props.clusterName + "&getConfigs=true&getComponents=true";
   executeStage(inputUrl, renderDeploySummary);
 }
