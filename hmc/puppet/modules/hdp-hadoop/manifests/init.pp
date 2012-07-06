@@ -160,7 +160,7 @@ define hdp-hadoop::exec-hadoop(
   $refreshonly = undef,
   $echo_yes = false,
   $tries = 1,
-  $timeout = undef,
+  $timeout = 900,
   $try_sleep = undef,
   $user = undef,
   $logoutput = undef

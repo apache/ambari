@@ -6,6 +6,9 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-607. Increase puppet timeouts to handle single-node installs timing out
+  (hitesh)
+
   AMBARI-609. Modify router to handle hierarchical directory structure for
   front-facing PHP files (yusaku)
 
