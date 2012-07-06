@@ -66,7 +66,7 @@ This package provides a Management Console for Hadoop Cluster.
 # Make a backup of existing database before installing new package
 if [ -f /var/db/hmc/data/data.db ]; then
   DATE=`date +%d-%m-%y-%H%M`
-  mv /var/db/hmc/data/data.db /var/db/hmc/data/data.db.$DATE
+  cp /var/db/hmc/data/data.db /var/db/hmc/data/data.db.$DATE
 fi
 
 
@@ -113,7 +113,13 @@ if test X"$RPM_INSTALL_PREFIX0" = X"" ; then
 fi
 
 echo "Alias /hdp $RPM_INSTALL_PREFIX0/share/hdp" > /etc/httpd/conf.d/hdp_mon_dashboard.conf
-php $RPM_INSTALL_PREFIX0/share/hmc/php/frontend/initializeHMC.php /var/db/hmc/data/data.db $RPM_INSTALL_PREFIX0/share/hmc/db/schema.dump
+if [ -f /var/db/hmc/data/data.db ]; then
+  DATE=`date +%d-%m-%y-%H%M`
+  php $RPM_INSTALL_PREFIX0/share/hmc/php/upgrade/upgradeDB.php /var/db/hmc/data/data.db $RPM_INSTALL_PREFIX0/share/hmc/php/upgrade/dbupgrade
+else
+  php $RPM_INSTALL_PREFIX0/share/hmc/php/frontend/initializeHMC.php /var/db/hmc/data/data.db $RPM_INSTALL_PREFIX0/share/hmc/db/schema.dump
+fi
+
 sed -i 's/User\ apache/User\ puppet/g' /etc/httpd/conf/httpd.conf
 chmod 666 /var/db/hmc/data/data.db
 chown -R puppet:apache /var/db/hmc/

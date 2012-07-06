@@ -99,6 +99,134 @@ class HMCDBAccessor {
     LockRelease(); return $response;
   }
 
+ /**
+   * Get version of Ambari that is running.
+   * @return mixed
+   *   array ( "version" => $ambariVersion,
+   *           "result" => 0,
+   *           "error" => "");
+   */
+  public function getCurrentAmbariVersion () {
+    LockAcquire();
+    $query = "SELECT version FROM AmbariConfig WHERE key_name = \"Ambari\" AND
+    tag_name = \"Current\"";
+    $response = array ( "result" => 0, "error" => "");
+    $this->logger->log_trace("Running query: $query");
+    $pdoStmt = $this->dbHandle->query($query);
+    if ($pdoStmt === FALSE) {
+      $error = $this->getLastDBErrorAsString();
+      $this->logger->log_error("Error when executing query"
+          . ", query=".$query
+          . ", error=".$error);
+      $response["result"] = 1;
+      $response["error"] = $error;
+      LockRelease(); return $response;
+    }
+    $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
+    if (isset($result) && is_array($result) && count($result) == 1) {
+      $response["version"] = $result[0]["version"];
+      LockRelease(); return $response;
+    }
+    LockRelease(); return $response;
+  }
+
+ /**
+   * Get version of Ambari that was running.
+   * @return mixed
+   *   array ( "version" => $ambariVersion,
+   *           "result" => 0,
+   *           "error" => "");
+   */
+  public function getPreviousAmbariVersion () {
+    LockAcquire();
+    $query = "SELECT version FROM AmbariConfig WHERE key_name = \"Ambari\" AND
+    tag_name = \"Previous\"";
+    $response = array ( "result" => 0, "error" => "");
+    $this->logger->log_trace("Running query: $query");
+    $pdoStmt = $this->dbHandle->query($query);
+    if ($pdoStmt === FALSE) {
+      $error = $this->getLastDBErrorAsString();
+      $this->logger->log_error("Error when executing query"
+          . ", query=".$query
+          . ", error=".$error);
+      $response["result"] = 1;
+      $response["error"] = $error;
+      LockRelease(); return $response;
+    }
+    $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
+    if (isset($result) && is_array($result) && count($result) == 1) {
+      $response["version"] = $result[0]["version"];
+      LockRelease(); return $response;
+    }
+    LockRelease(); return $response;
+  }
+
+ /**
+   * Get latest version of Stack that Ambari supports.
+   * @return mixed
+   *   array ( "version" => $stackVersion,
+   *           "result" => 0,
+   *           "error" => "");
+   */
+  public function getLatestStackVersion () {
+    LockAcquire();
+    $query = "SELECT version FROM AmbariConfig WHERE key_name = \"HDPStack\" AND
+    tag_name = \"Latest\"";
+    $response = array ( "result" => 0, "error" => "");
+    $this->logger->log_trace("Running query: $query");
+    $pdoStmt = $this->dbHandle->query($query);
+    if ($pdoStmt === FALSE) {
+      $error = $this->getLastDBErrorAsString();
+      $this->logger->log_error("Error when executing query"
+          . ", query=".$query
+          . ", error=".$error);
+      $response["result"] = 1;
+      $response["error"] = $error;
+      LockRelease(); return $response;
+    }
+    $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
+    if (isset($result) && is_array($result) && count($result) == 1) {
+      $response["version"] = $result[0]["version"];
+      LockRelease(); return $response;
+    }
+    LockRelease(); return $response;
+  }
+
+
+  /**
+   * Get the version of the stack running on a cluster
+   * @param string $clusterName Cluster Name
+   * @return mixed
+   *   array ( "version" => $stackVersion,
+   *           "result" => 0,
+   *           "error" => "");
+   */
+
+  public function getCurrentClusterStackVersion ($clusterName) {
+    LockAcquire();
+    $query = "SELECT version FROM Clusters WHERE cluster_name = "
+        . $this->dbHandle->quote($clusterName);
+    $response = array ( "result" => 0, "error" => "");
+    $this->logger->log_trace("Running query: $query");
+    $pdoStmt = $this->dbHandle->query($query);
+    if ($pdoStmt === FALSE) {
+      $error = $this->getLastDBErrorAsString();
+      $this->logger->log_error("Error when executing query"
+          . ", query=".$query
+          . ", error=".$error);
+      $response["result"] = 1;
+      $response["error"] = $error;
+      LockRelease(); return $response;
+    }
+    $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
+    if (isset($result) && is_array($result) && count($result) == 1) {
+      $response["version"] = $result[0]["version"];
+      LockRelease(); return $response;
+    }
+
+    LockRelease(); return $response;
+  }
+
   /**
    * Update cluster state for a given clusterName
    * @param string $clusterName Cluster Name
