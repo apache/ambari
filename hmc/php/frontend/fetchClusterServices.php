@@ -200,6 +200,25 @@ if ($getConfigs == "true") {
   }
 }
 
+
+$versionInfo = array(
+  'currentManagerVersion' => $dbAccessor->getCurrentAmbariVersion(),
+  'currentStackVersion' => $dbAccessor->getCurrentClusterStackVersion($clusterName),
+  'previousManagerVersion' => $dbAccessor->getPreviousAmbariVersion(),
+  'latestStackVersion' => $dbAccessor->getLatestStackVersion()
+);
+foreach ($versionInfo as $key => $value) {
+  if ($value['result'] === 0) {
+    $versionInfo[$key] = $value['version'];
+  } else {
+    $gotError = "Error while getting version info: " . $value['error'] ;
+    $logger->log_error($gotError);
+    print (json_encode(array("result" => 1, "error" => $gotError)));
+    return;
+  }
+}
+
+
 $result = 0;
 $error = "";
 /* Create the output data... */
@@ -208,6 +227,7 @@ $jsonOutput = array(
     'error' => $error,
     'response' => array(
       'clusterName' => $clusterName,
+      'versionInfo' => $versionInfo,
       'managerHostName' => strtolower(exec('hostname -f')),
       'services' => $services )
   );

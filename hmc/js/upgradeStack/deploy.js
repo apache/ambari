@@ -22,7 +22,7 @@
 
 (function() {
 
-  // initiates uninstall of stack and shows progress widget
+  // initiates deploy of new stack and shows progress widget
   function deployStack() {
     $.ajax({
       type: 'POST',
@@ -86,21 +86,23 @@
 
   }
 
+  function attachEventHandlers() {
+    $('#deploySubmitButton').click(function() {
+      App.ui.showLoadingOverlay();
+      deployStack();
+    });
 
-  $('#deploySubmitButton').click(function() {
-    App.ui.showLoadingOverlay();
-    deployStack();
-  });
-
-  // allow the user to go back to the reconfigure stage
-  $('#reconfigureStage').click(function() {
-    App.ui.showLoadingOverlay();
-    document.location.href = 'reconfigure.php';
-  });
+    // allow the user to go back to the reconfigure stage
+    $('#reconfigureStage').click(function() {
+      App.ui.showLoadingOverlay();
+      document.location.href = 'reconfigure.php';
+    });
+  }
 
   function renderPage(data) {
     var markup = App.ui.configureServicesUtil.getDeploySummaryMarkup(data);
     $('#deployDynamicRenderDivId').html(markup);
+    attachEventHandlers();
     App.ui.hideLoadingOverlay();
   }
 

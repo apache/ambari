@@ -6,6 +6,10 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-613. Do not force Hadoop stack upgrade when a new version is available.
+  Show Hadoop stack version info (currently installed and latest available).
+  (yusaku)
+
   AMBARI-612. Allow upgrading the database and add versions for ambari and
   hadoop stacks. (mahadev)
 

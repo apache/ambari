@@ -186,9 +186,11 @@ function convertDisplayType(displayType) {
 function executeStage(inputUrl, renderStageFunction) {
   Y.io(inputUrl, {
     method: 'GET',
-    timeout: 10000,
+    timeout: App.io.DEFAULT_AJAX_TIMEOUT_MS,
     on: {
       success: function (x, o) {
+        var responseJson;
+
         Y.log("RAW JSON DATA: " + o.responseText);
         // Process the JSON data returned from the server
         try {
@@ -222,12 +224,13 @@ function executeStage(inputUrl, renderStageFunction) {
 }
 
 function submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction, errorHandlerFunction) {
-  showLoadingImg();
+  App.ui.showLoadingOverlay();
+
   Y.io(url, {
 
     method: 'POST',
     data: Y.JSON.stringify(requestData),
-    timeout: 10000,
+    timeout: App.io.DEFAULT_AJAX_TIMEOUT_MS,
     on: {
       start: function (x, o) {
         submitButton.set('disabled', true);
@@ -240,6 +243,8 @@ function submitDataAndProgressToNextScreen(url, requestData, submitButton, thisS
         // hideLoadingImg();
       },
       success: function (x, o) {
+        var responseJson;
+
         submitButton.set('disabled', false);
         Y.log("RAW JSON DATA: " + o.responseText);
 
@@ -266,7 +271,7 @@ function submitDataAndProgressToNextScreen(url, requestData, submitButton, thisS
           } else {
             alert("Got error during submit data!" + responseJson.error);
           }
-          hideLoadingImg();
+          App.ui.hideLoadingOverlay();
           return;
         }
         responseJson = responseJson.response;
@@ -289,7 +294,7 @@ function PeriodicDataPoller(dataSourceContext, responseHandler) {
   /* Smoothe out the optional bits of this.dataSourceContext. */
   if (!this.dataSourceContext.pollInterval) {
     /* How often we poll. */
-    this.dataSourceContext.pollInterval = 5000;
+    this.dataSourceContext.pollInterval = DEFAULT_POLLING_INTERVAL_MS;
   }
   if (!this.dataSourceContext.maxFailedAttempts) {
     /* How many failed attempts before we stop polling. */
@@ -409,6 +414,7 @@ function titleCase(word) {
 
 // Create namespace and export functionality.
 // We'll remove globally defined functions and properties eventually
+// by wrapping in a closure.
 // For now we need to keep the non-namespaced global functions and properties
 // so that our existing code continues to work without major refactoring.
 
@@ -422,6 +428,7 @@ var App = App || {
     PeriodicDataPoller: PeriodicDataPoller,
     DEFAULT_AJAX_TIMEOUT_MS: 10000,
     FETCH_LOG_TIMEOUT_MS: 20000,
+    DEFAULT_POLLING_INTERVAL_MS: 5000,
     DEFAULT_AJAX_ERROR_MESSAGE: 'Failed to retrieve information from the server'
   },
   ui: {

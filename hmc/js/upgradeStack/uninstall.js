@@ -75,18 +75,20 @@
 
     server.respondWith(
       function (request) {
-        var body;
-        numCalled++;
-        if (numCalled == 1) {
-          body = initialResponse;
-        } else if (numCalled == 2) {
-          body = inProgressResponse;
-        } else if (numCalled == 3) {
-          body = successResponse;
-          //body = errorResponse;
-          server.restore();
-        }
+        var body = successResponse;
+
+//        numCalled++;
+//        if (numCalled == 1) {
+//          body = initialResponse;
+//        } else if (numCalled == 2) {
+//          body = inProgressResponse;
+//        } else if (numCalled == 3) {
+//          body = successResponse;
+//          //body = errorResponse;
+//          server.restore();
+//        }
         request.respond('200', { 'Content-Type': 'application/json' }, body);
+        server.restore();
       }
     );
 

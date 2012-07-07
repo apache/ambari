@@ -138,6 +138,12 @@
 
     /////////////////// Submit related functions /////////////////////////////
 
+    var submitButtonSelector = '#configureClusterAdvancedSubmitButtonId';
+
+    this.setSubmitButtonSelector = function (selector) {
+      submitButtonSelector = selector;
+    };
+
     this.clearPasswordErrors = function () {
       for (var count = 0; count < passwordsArray.length; count++) {
         divId = "#" + passwordsArray[count]['verificationDivId'];
@@ -261,7 +267,7 @@
         }
       });
 
-      var submitButton = Y.one('#configureClusterAdvancedSubmitButtonId');
+      var submitButton = Y.one(submitButtonSelector);
 
       if (errorCount > 0) {
         Y.one(serviceDivId + 'ErrorCount').setContent('<span style="margin-left:4px" class="badge badge-important">' + errorCount + '</span>');

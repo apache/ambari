@@ -131,12 +131,6 @@ if (sizeof($clusters) == 0) {
         }
         $clusterState = 'UNINSTALL_FAILED';
         break;
-      case 'UPGRADE_STACK_PENDING':
-        if ($requestPage != 'upgradeStack/index.php') {
-          eval(redirectToPage($requestPage, 'upgradeStack/index.php'));
-        }
-        $clusterState = 'UPGRADE_STACK_PENDING';
-        break;
       case 'UPGRADE_STACK_UNINSTALL_IN_PROGRESS':
         if ($requestPage != 'upgradeStack/uninstall.php') {
           eval(redirectToPage($requestPage, 'upgradeStack/uninstall.php'));

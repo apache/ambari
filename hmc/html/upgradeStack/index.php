@@ -26,17 +26,30 @@
 </head>
 <body class="yui3-skin-sam">
   <?php require "../_topnav.php"; ?>
-
+  <?php require "../_utils.php"; ?>
   <div id="content">
       <div class="alert alert-info" style="margin-top:40px;padding:20px">
         <h2><?php echo $RES['upgradeStack.index.pageSummary.header'] ?></h2>
         <p><?php echo $RES['upgradeStack.index.pageSummary.body'] ?></p>
-        <p style="font-weight:bold">Upgrading from HDP Version X to Y</p>
-        <a href="uninstall.php" class="btn btn-large" id="submitButton"><?php echo $RES['upgradeStack.index.submit.label'] ?></a>
+        <p id="versionInfo" style="font-weight:bold"></p>
+        <div id="buttonGroup" style="margin-top:20px">
+          <a href="uninstall.php" class="btn btn-large btn-success" id="upgradeButton"><?php echo $RES['upgradeStack.index.submit.label'] ?></a>
+          <a href="../" class="btn btn-large" id="cancelButton" style="margin-left:10px"><?php echo $RES['upgradeStack.index.cancel.label'] ?></a>
+        </div>
       </div>
     </div>
   </div>
   <?php require "../_footer.php"; ?>
+  <script type="text/javascript">
 
+    var clusterName = '<?php echo $clusterName; ?>';
+
+    var jsFilesToLoad = [
+      'js/utils.js',
+      'js/upgradeStack/index.js'
+    ];
+  </script>
+
+  <?php require "../_bootstrapJs.php"; ?>
 </body>
 </html> 
