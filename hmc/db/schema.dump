@@ -31,20 +31,6 @@ INSERT OR REPLACE INTO "AmbariConfig" (key_name, tag_name, version) VALUES
 INSERT OR REPLACE INTO "AmbariConfig" (key_name, tag_name, version) VALUES
   ("HDPStack", "Latest", "1.0.1");
 
-CREATE TABLE "AmbariConfig" (
-  key_name TEXT, -- the key for cluster wide version
-  tag_name TEXT, -- tag name current/previous
-  version TEXT,  -- the cluster wide version
-  PRIMARY KEY (key_name, tag_name)
-);
-
-INSERT OR REPLACE INTO "AmbariConfig" (key_name, tag_name, version) VALUES 
-  ("Ambari", "Current", "1.0.2");
-INSERT OR REPLACE INTO "AmbariConfig" (key_name, tag_name, version) VALUES
-  ("Ambari", "Previous", "");
-INSERT OR REPLACE INTO "AmbariConfig" (key_name, tag_name, version) VALUES
-  ("HDPStack", "Latest", "1.0.1");
-
 CREATE TABLE  "Clusters" (
   cluster_name TEXT, -- Cluster name
   version TEXT, -- version of the hadoop stack installed
