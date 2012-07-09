@@ -6,6 +6,11 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-601. Ambari docs need updating for the release version for rpms
+(hitesh via vikram)
+
+  AMBARI-600. Fix lzo installs to work correctly on RHEL6 (hitesh via vikram)
+
   AMBARI-495. HMC master node not shown in topology and node assignments 
   if the HMC server is not assigned to any other role (yusaku)
 
