@@ -24,6 +24,21 @@
 
     var passwordsArray = [];
 
+    function convertDisplayType(displayType) {
+      switch (displayType) {
+        case "NODISPLAY":
+          return "NODISPLAY";
+        case "TEXT":
+          return "text";
+        case "PASSWORD":
+          return "password";
+        case "CHECKBOX":
+          return "checkbox";
+        default:
+          return "text";
+      }
+    }
+
     function generateDivForService (option, type, service, property, unit, displayAttributes, isReconfigure) {
 
       var unitClass = (unit != null) ? 'unit' : '';

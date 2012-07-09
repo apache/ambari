@@ -164,25 +164,6 @@ function setFormStatus(statusString, isError, noFade) {
   formStatusDiv.setContent(statusString);
 }
 
-function convertDisplayType(displayType) {
-  switch (displayType) {
-    case "NODISPLAY":
-      return "NODISPLAY";
-
-    case "TEXT":
-      return "text";
-
-    case "SECRET":
-      return "password";
-
-    case "ONOFF":
-      return "checkbox";
-
-    default:
-      return "text";
-  }
-}
-
 function executeStage(inputUrl, renderStageFunction) {
   Y.io(inputUrl, {
     method: 'GET',

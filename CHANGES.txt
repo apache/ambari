@@ -6,6 +6,9 @@ characters wide.
 
 Release 1.0.0 - unreleased
 
+  AMBARI-615. Eliminate redundant and unused definition for the columns in the
+  table ConfigProperties (yusaku) 
+
   AMBARI-614. The database set up script has a duplicate definition of
   AmbariConfig so install fails (yusaku) 
 
