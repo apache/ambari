@@ -32,6 +32,8 @@ Release 1.0.0 - unreleased
 
 Release 0.9.0
 
+  AMBARI-618. Fix RAT warnings on docs directory (vinodkv via vikram)
+
   AMBARI-617. Missing some files in rat-excludes (vikram via vinodkv)
 
   AMBARI-600. Fix lzo installs to work correctly on RHEL6 (hitesh)
