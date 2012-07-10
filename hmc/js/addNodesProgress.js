@@ -220,7 +220,7 @@ function renderProgress (discoverProgressInfo) {
                 globalYui.one('#txnProgressStatusMessageDivId').setContent(statusContent);    
                 globalYui.one("#successInfoLinkId").on( "click", function(e) {
                   cleanUpTxnProgress();
-                  transitionToNextStage( "#txnProgressCoreDivId", discoverProgressInfo, 
+                  App.transition.transitionToNextStage( "#txnProgressCoreDivId", discoverProgressInfo,
                     "#selectServicesCoreDivId", discoverProgressInfo, renderSelectServicesBlock);
               });
             } else {
@@ -257,7 +257,7 @@ function renderProgress (discoverProgressInfo) {
                     errorInfoPanel.destroy();
                     //REZYYY globalYui.one("#progressErrorInfoNavigateDivId").setContent("");
                     globalYui.one("#txnProgressStatusActionsDivId").setContent("");
-                    transitionToNextStage( "#txnProgressCoreDivId", discoverProgressInfo, 
+                    App.transition.transitionToNextStage( "#txnProgressCoreDivId", discoverProgressInfo,
                       "#selectServicesCoreDivId", discoverProgressInfo, renderSelectServicesBlock);
                   });
                 }
@@ -265,8 +265,7 @@ function renderProgress (discoverProgressInfo) {
                 
                 /* Create the panel that'll display our error info. */
                 var errorInfoPanel = 
-                  createInformationalPanel( '#informationalPanelContainerDivId',
-                    'Node Discovery and Preparation Logs' );
+                  App.ui.createInfoPanel('Node Discovery and Preparation Logs');
     
                   globalYui.one("#errorInfoLinkId").on( "click", function(err) {
                     var bodyContent = "";

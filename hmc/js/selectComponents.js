@@ -30,7 +30,7 @@ InstallationWizard.SelectServicesForNewNodes = {
 function getServiceComponentListAndRender(clusterName) {
   globalYui.io("../php/frontend/fetchClusterServices.php?clusterName=" + clusterName + "&getComponents=true", {
   method: 'GET',
-  timeout: 10000,
+  timeout: App.io.DEFAULT_AJAX_TIMEOUT_MS,
   on: {
     success: function (x,o) {
     globalYui.log("RAW JSON DATA: " + o.responseText);
@@ -90,7 +90,7 @@ function getServiceComponentListAndRender(clusterName) {
     },
    
     failure: function (x,o) {
-      alert("Async call failed!");
+      alert(App.io.DEFAULT_AJAX_ERROR_MESSAGE);
     }
   }
   });
@@ -127,5 +127,5 @@ globalYui.one('#deployAddedNodesSubmitButtonId').on('click',function (e) {
     var thisScreenId = "#selectServicesCoreDivId";
     var nextScreenId = "#txnProgressCoreDivId";
     var nextScreenRenderFunction = renderDeployAddedNodesProgress;
-    submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
+    App.transition.submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
 });

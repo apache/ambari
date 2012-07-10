@@ -20,9 +20,8 @@
 */
 
 function handleCreateClusterError (errorResponse) {
-
   globalYui.one("#clusterNameId").addClass('formInputError');
-  setFormStatus(errorResponse.error, true);
+  App.ui.setFormStatus(errorResponse.error, true);
   globalYui.one("#clusterNameId").focus();
 }
 
@@ -35,17 +34,17 @@ globalYui.one('#createClusterSubmitButtonId').on('click',function (e) {
       globalYui.log("Cluster Name: "+globalYui.Lang.dump(createClusterData));
 
       /* Always clear the slate with each submit. */
-      clearFormStatus();
+      App.ui.clearFormStatus();
       globalYui.one("#clusterNameId").removeClass('formInputError');
 
-      submitDataAndProgressToNextScreen(
+      App.transition.submitDataAndProgressToNextScreen(
         '../php/frontend/createCluster.php', createClusterData, e.target, 
         '#createClusterCoreDivId', '#addNodesCoreDivId', InstallationWizard.AddNodes.render,
         handleCreateClusterError );
 });
 
 /* Signify that the containing application is ready for business. */
-hideLoadingImg();
+App.ui.hideLoadingOverlay();
 
 /* At the end of the installation wizard, we hide 
  * #installationWizardProgressBarDivId, so make sure we explicitly show

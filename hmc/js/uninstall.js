@@ -85,23 +85,23 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
 
   if (errCount != 0) {
     globalYui.one(focusId).focus();
-    setFormStatus(message, true);
+    App.ui.setFormStatus(message, true);
     return;
   }
 
-  clearFormStatus();
+  App.ui.clearFormStatus();
   
   var doWipeout = globalYui.one('#confirmWipeOutCheckId').get('checked');
   var warningMessage = doWipeout ? "All your data, in addition to services, will be deleted from all your cluster nodes.  Are you sure you want to proceed?" : "All your services will be deleted from all your cluster nodes.  Your data will not be deleted.  Are you sure you want to proceed?";
   
-  var confirmPanel = createInformationalPanel('#informationalPanelContainerDivId','Uninstall Cluster');
+  var confirmPanel = App.ui.createInfoPanel('Uninstall Cluster');
   confirmPanel.set('centered', true);
   confirmPanel.set('bodyContent', warningMessage);
   confirmPanel.addButton({
     value: 'Cancel',
     action: function (e) {
       e.preventDefault();
-      destroyInformationalPanel(confirmPanel);
+      App.ui.destroyInfoPanel(confirmPanel);
     },
     classNames: '',
     section: 'footer'
@@ -110,8 +110,9 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
     value: 'Proceed with Uninstall',
     action: function (e) {
       e.preventDefault();
-      destroyInformationalPanel(confirmPanel);
-      showLoadingImg();
+      App.ui.destroyInfoPanel(confirmPanel);
+
+      App.ui.showLoadingOverlay();
 
       globalYui.log("About to upload files.");
       e.target.set('disabled', true);
@@ -161,8 +162,8 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
     var thisScreenId = "#addNodesCoreDivId";
     var nextScreenId = "#txnProgressCoreDivId";
     var nextScreenRenderFunction = renderUninstallProgress;
-    submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
+    App.transition.submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
 });
 
 /* Main() */
-hideLoadingImg();
+App.ui.hideLoadingOverlay();

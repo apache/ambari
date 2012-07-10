@@ -28,4 +28,4 @@ var addNodesRequestData = {
 InstallationWizard.AddNodes.render(addNodesRequestData);
 
 /* Signify that the containing application is ready for business. */
-hideLoadingImg();
+App.ui.hideLoadingOverlay();

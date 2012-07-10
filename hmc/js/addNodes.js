@@ -43,7 +43,7 @@ InstallationWizard.AddNodes = {
       }
       globalYui.one("#addNodesCoreDivId").setStyle('display', 'block');
 
-      hideLoadingImg();
+      App.ui.hideLoadingOverlay();
     }
 };
 
@@ -123,13 +123,13 @@ globalYui.one('#addNodesSubmitButtonId').on('click',function (e) {
 
   if (errCount != 0) {
     globalYui.one(focusId).focus();
-    setFormStatus(message, true);
+    App.ui.setFormStatus(message, true);
     return;
   }
 
-  clearFormStatus();
+  App.ui.clearFormStatus();
 
-  showLoadingImg();
+  App.ui.showLoadingOverlay();
 
   globalYui.log("About to upload files.");
   e.target.set('disabled', true);
@@ -185,8 +185,8 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
             'Show me the duplicates</a>' +
           '</p>';
 
-          setFormStatus(info, true);
-          var infoPanel = createInformationalPanel("#informationalPanelContainerDivId", "Duplicate nodes");
+          App.ui.setFormStatus(info, true);
+          var infoPanel = App.ui.createInfoPanel("Duplicate nodes");
           infoPanel.set('centered', true);
           var infoPanelContent = '';
           for (cluster in responseJson.hosts) {
@@ -202,7 +202,7 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
             value: 'Close',
             action: function(e) {
               e.preventDefault();
-              destroyInformationalPanel(infoPanel);
+              infoPanel.hide();
             },
 
             className: '',
@@ -212,12 +212,12 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
           globalYui.one('#errorHostInfoLinkId').on("click", function(e) {
             infoPanel.show();
           });
-          hideLoadingImg();
+          App.ui.hideLoadingOverlay();
           return;
 
       } else {
         alert('Got and error ' + responseJson.error);
-        hideLoadingImg();
+        App.ui.hideLoadingOverlay();
         return;
       }
       }
@@ -247,7 +247,7 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
     globalYui.io(url, {
       method: 'POST',
       data: addNodesRequestData,
-      timeout : 10000,
+      timeout : App.io.DEFAULT_AJAX_TIMEOUT_MS,
       on: {
         success: function (x,o) {
           	
@@ -263,13 +263,13 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
           if (setupNodesJson.result != 0) {
             // Error!
             alert("Got error! " + setupNodesJson.error);
-            hideLoadingImg();
+            App.ui.hideLoadingOverlay();
             return;
           }
           setupNodesJson = setupNodesJson.response;
 
 
-          hideLoadingImg();
+          App.ui.hideLoadingOverlay();
 
           globalYui.one("#blackScreenDivId").setStyle("display", "block");
 
@@ -277,7 +277,7 @@ globalYui.one("#fileUploadTargetId").on('load', function (e) {
 
         },
         failure: function (x,o) {
-          alert("Async call failed!");
+          alert(App.io.DEFAULT_AJAX_ERROR_MESSAGE);
         }
       }
     });

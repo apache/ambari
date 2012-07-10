@@ -20,4 +20,4 @@
 */
 
 /* Main() */
-executeStage( '../php/frontend/manageServices.php?clusterName=' + clusterName, renderManageServicesProgress );
+App.transition.executeStage( '../php/frontend/manageServices.php?clusterName=' + App.props.clusterName, renderManageServicesProgress );

@@ -20,4 +20,4 @@
 */
 
 /* Main() */
-executeStage( '../php/frontend/deploy.php?clusterName=' + clusterName, renderDeployProgress );
+App.transition.executeStage( '../php/frontend/deploy.php?clusterName=' + App.props.clusterName, renderDeployProgress );

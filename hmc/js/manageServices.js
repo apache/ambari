@@ -67,7 +67,7 @@ function hidePanel(postHideFn) {
 function hideAndDestroyPanel() {
   hidePanel(function() {
     confirmationDataPanel.hide();
-    destroyInformationalPanel(confirmationDataPanel);
+    confirmationDataPanel.destroy();
   });
 }
 
@@ -122,12 +122,12 @@ function getAffectedDependenciesMarkup(affectedServices, serviceName, action) {
   var dependencyMarkup = "";
   for (affectedSrvc in affectedServices) {
     if (clusterServices[affectedServices[affectedSrvc]].attributes.runnable) {
-      dependencyMarkup += '<tr><td>' + clusterServices[affectedServices[affectedSrvc]].displayName + '</td><td>' + titleCase(clusterServices[affectedServices[affectedSrvc]].state) + '</td></tr>';
+      dependencyMarkup += '<tr><td>' + clusterServices[affectedServices[affectedSrvc]].displayName + '</td><td>' + App.util.titleCase(clusterServices[affectedServices[affectedSrvc]].state) + '</td></tr>';
     }
   }
   if (dependencyMarkup != '') {
     // Add this service at the top of the list
-    dependencyMarkup = '<table><thead><th>Service name</th><th>Current state</th></thead><tr><td>' + serviceDisplayName + '</td><td>' + titleCase(clusterServices[serviceName].state) + '</td></tr>' + dependencyMarkup + '</table>';
+    dependencyMarkup = '<table><thead><th>Service name</th><th>Current state</th></thead><tr><td>' + serviceDisplayName + '</td><td>' + App.util.titleCase(clusterServices[serviceName].state) + '</td></tr>' + dependencyMarkup + '</table>';
     affectedDependenciesMarkup += 'Including this service and all its recursive dependencies, the following is the list of services that will be affected by ' + action + ' of ' + serviceName + ' :' +
       '<br/>' +
       '<div id="manageServicesDisplayDepsOnAction">' +
@@ -265,7 +265,7 @@ function setupReconfigureScreens(serviceName) {
   confirmationDataPanel.set( 'bodyContent', confirmationDataPanelBodyContent );
   showPanel();
 
-  executeStage( '../php/frontend/fetchClusterServices.php?clusterName=' + clusterName + 
+  App.transition.executeStage( '../php/frontend/fetchClusterServices.php?clusterName=' + clusterName +
     '&getConfigs=true&serviceName=' + serviceName, function (serviceConfigurationData) {
 
     // Store the remote data
@@ -331,7 +331,7 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
   globalYui.io( "../php/frontend/manageServices.php?clusterName=" + clusterName, {
     method: 'POST',
     data: globalYui.JSON.stringify(manageServicesRequestData),
-    timeout: 10000,
+    timeout: App.io.DEFAULT_AJAX_TIMEOUT_MS,
     on: {
       success: function(x, o) {
 
@@ -379,7 +379,7 @@ function performServiceManagement( action, serviceName, confirmationDataPanel ) 
         }
       },
       failure: function(x, o) {
-        alert("Async call failed!");
+        alert(App.io.DEFAULT_AJAX_ERROR_MESSAGE);
       }
     }
   });
@@ -399,7 +399,7 @@ function serviceManagementActionClickHandler( action, serviceName ) {
 
   /* Create the panel that'll display our confirmation/data dialog. */
   confirmationDataPanel = 
-      createInformationalPanel( '#informationalPanelContainerDivId', confirmationDataPanelTitle );
+      App.ui.createInfoPanel(confirmationDataPanelTitle);
 
   panelYesButton = {
     value: 'OK',
@@ -474,7 +474,7 @@ function generateServiceManagementEntryMarkup( serviceName, serviceInfo ) {
             '</a>' +
           '</span>' +
           '<div class="serviceManagementEntryStateContainer">' +
-            titleCase(serviceInfo.state) +
+            App.util.titleCase(serviceInfo.state) +
           '</div>' +
           '<div class="serviceManagementEntryActionsContainer">';
 
@@ -570,14 +570,14 @@ var fetchClusterServicesPollerContext = {
   },
   request: '?clusterName=' + clusterName,
   /* TODO XXX Change this from 5 seconds to 1 minute. */
-  pollInterval: 5000,
+  pollInterval: App.io.DEFAULT_POLLING_INTERVAL_MS,
   maxFailedAttempts: 5
 };
 
 var fetchClusterServicesPollerResponseHandler = {
   success: function (e, pdp) {
     /* Clear the screen of the loading image (in case it's currently showing). */
-    hideLoadingImg();
+    App.ui.hideLoadingOverlay();
 
     /* The data from our backend. */
     clusterServices = e.response.meta.services;
@@ -625,13 +625,13 @@ var fetchClusterServicesPollerResponseHandler = {
 
   failure: function (e, pdp) {
     /* Clear the screen of the loading image (in case it's currently showing). */
-    hideLoadingImg();
+    App.ui.hideLoadingOverlay();
 
     alert('Failed to fetch cluster services!');
   }
 };
 
-fetchClusterServicesPoller = new PeriodicDataPoller
+fetchClusterServicesPoller = new App.io.PeriodicDataPoller
   ( fetchClusterServicesPollerContext, fetchClusterServicesPollerResponseHandler );
 
 /* Kick the polling loop off. */

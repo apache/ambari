@@ -25,7 +25,7 @@
 <!-- The image we use to let users know something is loading, and 
      that they should wait. Starts off showing by default, so it's
      up to the container application to hide this using the 
-     hideLoadingImg() method from utils.js. -->
+     App.ui.hideLoadingOverlay() method from utils.js. -->
 <div id="loadingDivId">
   <div id="loadingBlackScreenDivId"></div>
   <img id="loadingImgId" src="/hmc/images/loadingLarge.gif"/>

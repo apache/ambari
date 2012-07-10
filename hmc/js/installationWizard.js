@@ -52,10 +52,10 @@ var InstallationWizardStages = {
   transitionToCachedStage : 
     function (currentStageId, cachedStageId) {
 
-      clearFormStatus();
+      App.ui.clearFormStatus();
 
       globalYui.log("In transitionToCachedStage: " + currentStageId + "->" + cachedStageId);
-      swapStageVisibilities( this.stages[currentStageId].divSelector, 
+      App.transition.swapStageVisibilities( this.stages[currentStageId].divSelector,
       this.stages[cachedStageId].divSelector );
     }
 };

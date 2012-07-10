@@ -20,4 +20,4 @@
 */
 
 /* Main() */
-executeStage( '../php/frontend/deployAddedNodes.php?clusterName=' + clusterName, renderDeployAddedNodesProgress );
+App.transition.executeStage( '../php/frontend/deployAddedNodes.php?clusterName=' + App.props.clusterName, renderDeployAddedNodesProgress );

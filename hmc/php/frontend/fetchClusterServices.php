@@ -191,7 +191,7 @@ if ($getConfigs == "true") {
             "displayName" => $propInfo["displayName"],
             "description" => $propInfo["description"],
             "type" => $propInfo["displayType"],
-        	"unit" => $propInfo["displayAttributes"]["unit"],
+            "unit" => $propInfo["displayAttributes"]["unit"],
             "value" => $value,
             "displayAttributes" => $propInfo["displayAttributes"]
           );

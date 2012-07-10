@@ -192,7 +192,7 @@ function displayStatusOnSuccess(serviceName) {
       statusString += "Also added  " + dependencies + " as dependencies.";
     }
   }
-  setFormStatus(statusString, false);
+  App.ui.setFormStatus(statusString, false);
 }
 
 function updateRendering() {
@@ -242,10 +242,10 @@ function displayStatusOnSelectDeselectAll(selectAll, setFormStatusAlso) {
   }
   if (setFormStatusAlso) {
     if (selectAll) {
-      setFormStatus("Selected all services", false);
-  } else {
-    setFormStatus("Deselected all optional services", false);
-  }
+      App.ui.setFormStatus("Selected all services", false);
+    } else {
+      App.ui.setFormStatus("Deselected all optional services", false);
+    }
   }
 }
 
@@ -294,7 +294,7 @@ globalYui.one('#selectServicesCoreDivId').delegate('click', function (e) {
         }
       }
       if (invalidDep) {
-        setFormStatus(invalidDepReason, true);
+        App.ui.setFormStatus(invalidDepReason, true);
         globalYui.one('#' + buttonId).set('checked', 'yes');
         return;
       }
@@ -335,7 +335,7 @@ globalYui.one('#selectServicesSubmitButtonId').on('click',function (e) {
     var nextScreenId  = "#assignHostsCoreDivId";
     var nextScreenRenderFunction = new AssignMasters().render;
 
-    submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
+    App.transition.submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
 
 });
 
@@ -346,5 +346,5 @@ function renderSelectServicesBlock(infoInitializeCluster) {
   //////// Get the list of services and relevant information for rendering them.
   var clusterName = InstallationWizard.SelectServices.renderData.clusterName;
   var inputUrl = "../php/frontend/fetchClusterServices.php?clusterName=" + clusterName ;
-  executeStage(inputUrl, renderServiceList);
+  App.transition.executeStage(inputUrl, renderServiceList);
 }

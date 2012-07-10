@@ -222,18 +222,18 @@ function renderConfigureCluster (clusterConfig) {
         var thisScreenId = "#configureClusterCoreDivId";
         var nextScreenId = "#configureClusterAdvancedCoreDivId";
         var nextScreenRenderFunction = renderOptionsPage;
-        submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
+        App.transition.submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
      });
     
     globalYui.one('#previewLinkId').on('click', function(e) {
-      previewPanel = createInformationalPanel('#informationalPanelContainerDivId', 'Preview Directories to be used by Hadoop');
+      previewPanel = App.ui.createInfoPanel('Preview Directories to be used by Hadoop');
       previewPanel.set('centered', true);
       previewPanel.set('bodyContent', globalYui.one('#configureClusterDisplayDivId').getContent());
       var okButton = {
           value: 'OK',
           action: function (e) {
             e.preventDefault();
-            destroyInformationalPanel(previewPanel);
+            App.ui.destroyInfoPanel(previewPanel);
           },
           section: 'footer'
         };
@@ -269,7 +269,7 @@ function renderConfigureCluster (clusterConfig) {
   /* Link the newly-generated clusterConfigInputMarkup into the DOM. */
   globalYui.one("#configureClusterMountPointsDynamicRenderDivId").setContent( clusterConfigInputMarkup );
 
-  hideLoadingImg();
+  App.ui.hideLoadingOverlay();
   globalYui.one('#configureClusterCoreDivId').setStyle("display", "block");
 
   renderEffectiveClusterConfig(generateServiceDirs(globalServicesInfo));

@@ -20,6 +20,9 @@ Trunk (unreleased changes)
 
   IMPROVEMENTS
 
+    AMBARI-620. Put common Javascript utility functions into appropriate
+    namespace/packages (yusaku)
+
     AMBARI-615. Eliminate redundant and unused definition for the columns in the
     table ConfigProperties (yusaku) 
 

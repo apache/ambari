@@ -35,7 +35,7 @@ Y.one('#configureClusterAdvancedSubmitButtonId').on('click',function (e) {
   var nextScreenId = "#deployCoreDivId";
   var nextScreenRenderFunction = renderDeploy;
   var errorFunction = App.ui.configureServicesUtil.handleConfigureServiceErrors;
-  submitDataAndProgressToNextScreen(url, requestData, submitButton,
+  App.transition.submitDataAndProgressToNextScreen(url, requestData, submitButton,
       thisScreenId, nextScreenId, nextScreenRenderFunction, errorFunction);
 });
 
@@ -72,5 +72,5 @@ function renderConfigureServicesInternal (optionsInfo) {
 function renderOptionsPage (optionsInfo) {
   App.props.clusterName = optionsInfo.clusterName;
   var inputUrl = "../php/frontend/fetchClusterServices.php?clusterName=" + optionsInfo.clusterName + "&getConfigs=true";
-  executeStage(inputUrl, renderConfigureServicesInternal);
+  App.transition.executeStage(inputUrl, renderConfigureServicesInternal);
 }

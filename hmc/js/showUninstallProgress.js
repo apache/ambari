@@ -20,4 +20,4 @@
 */
 
 /* Main() */
-executeStage( '../php/frontend/uninstall.php?clusterName=' + clusterName, renderUninstallProgress );
+App.transition.executeStage( '../php/frontend/uninstall.php?clusterName=' + App.props.clusterName, renderUninstallProgress );

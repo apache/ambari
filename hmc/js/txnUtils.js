@@ -488,7 +488,7 @@ App.ui.TxnProgressWidget = function (config) {
                 isLogFetched = true;
               },
               failure: function (x, o) {
-                alert("Async call failed!");
+                alert(App.io.DEFAULT_AJAX_ERROR_MESSAGE);
               }
             }
           });

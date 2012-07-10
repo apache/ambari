@@ -120,7 +120,7 @@ function AssignMasters() {
   
   this.render = function (clusterInfo) {
   
-    hideLoadingImg();
+    App.ui.hideLoadingOverlay();
     globalYui.log("Render assign hosts data " + globalYui.Lang.dump(clusterInfo));
     globalYui.one('#assignHostsCoreDivId').setStyle("display", "block");
     globalClusterName = clusterInfo.clusterName;
@@ -151,14 +151,14 @@ function AssignMasters() {
   
           method: 'POST',
           data: globalYui.JSON.stringify(assignHostsRequestData),
-          timeout : 10000,
+          timeout : App.io.DEFAULT_AJAX_TIMEOUT_MS,
           on: {
             start: function(x, o) {
-              showLoadingImg();
+              App.ui.showLoadingOverlay();
             },
             complete: function(x, o) {
               e.target.set('disabled', false);
-              hideLoadingImg();
+              App.ui.hideLoadingOverlay();
             },
   
             success: function (x,o) {
@@ -185,12 +185,12 @@ function AssignMasters() {
               clusterConfigJson = clusterConfigJson.response;
   
               /* Done with this stage, transition to the next. */
-              transitionToNextStage( "#assignHostsCoreDivId", assignHostsRequestData,
+              App.transition.transitionToNextStage( "#assignHostsCoreDivId", assignHostsRequestData,
               "#configureClusterCoreDivId", clusterConfigJson, renderConfigureCluster );
             },
             failure: function (x,o) {
               e.target.set('disabled', false);
-              alert("Async call failed!");
+              alert(App.io.DEFAULT_AJAX_ERROR_MESSAGE);
             }
           }
         });

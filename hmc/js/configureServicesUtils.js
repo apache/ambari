@@ -263,7 +263,7 @@
 
       });
 
-      clearFormStatus();
+      App.ui.clearFormStatus();
       this.clearErrorReasons(desiredOptions);
 
       return desiredOptions;
@@ -293,7 +293,7 @@
         // if no errors at all, enable the submit button and clear error message at the top
         if (this.getTotalErrorCount() === 0) {
           submitButton.removeClass('disabled');
-          clearFormStatus();
+          App.ui.clearFormStatus();
         }
       }
     };
@@ -312,7 +312,7 @@
       var errorCounts = {};
       var message = errorResponse.error;
       var serviceName = '';
-      setFormStatus(message, true, true);
+      App.ui.setFormStatus(message, true, true);
       for (propKey in errorResponse.properties)  {
         var errorReason = errorResponse.properties[propKey].error;
         var propDom = Y.one('#' + propKey);

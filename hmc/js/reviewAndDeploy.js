@@ -42,11 +42,11 @@ Y.one('#deploySubmitButtonId').on('click',function (e) {
     var thisScreenId = "#deployCoreDivId";
     var nextScreenId = "#txnProgressCoreDivId";
     var nextScreenRenderFunction = renderDeployProgress;
-    submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
+    App.transition.submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
 });
 
 function renderDeploy (deployInfo) {
   App.props.clusterName = deployInfo.clusterName
   var inputUrl = "../php/frontend/fetchClusterServices.php?clusterName=" + App.props.clusterName + "&getConfigs=true&getComponents=true";
-  executeStage(inputUrl, renderDeploySummary);
+  App.transition.executeStage(inputUrl, renderDeploySummary);
 }
