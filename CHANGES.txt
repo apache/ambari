@@ -1,0 +1,393 @@
+Ambari Change log
+
+Release 0.1.0 - unreleased
+
+  AMBARI-185. Remove NodeServers from NodeState. Instead use NodeRole to keep associated roles to node and their active state. (vgogate)
+
+  AMBARI-184. Ambari client node list command returns multiple entries for same node (vgogate)
+
+  AMBARI-183. Pass the appropriate component user to agent as specified in the stack (vgogate)
+
+  AMBARI-182. rename controller/src/main/resources/org/apache/ambari/acd/mapred-0.1.0.acd to mapreduce-0.1.0.acd (vgogate)
+
+  AMBARI-180. Fixes the agent to do better process management (ddas)
+
+  AMBARI-179. Set the component level user/group information in the flattened stack, 
+  inherit default user/group information if not set one for component. (vgogate)
+
+  AMBARI-178. Add support for Map/Reduce component in Ambari stack (vgogate)
+
+  AMBARI-176. Adds a first version of MapReduce ACD (ddas)
+
+  AMBARI-175. Removes the map from hostnames to heartbeat-responses. (ddas)
+
+  AMBARI-174. Controller marks nodes unhealthy upon command execution failures. Marks them
+  healthy when the corresponding agent is restarted (ddas)
+
+  AMBARI-173. Fixed RPM build for OpenSUSE. (Eric Yang)
+
+  AMBARI-172. Remove the "ambari" category from the configuration element, put it as "globals" elemement in the stack. (vgogate)
+
+  AMBARI-171. Agents retry failed actions for a configurable number of times
+  after a configurable delay (ddas)
+
+  AMBARI-170. Update the cluster state after state machine transitions it to final ACTIVE/INACTIVE state (vgogate)
+
+  AMBARI-168. trim the white spaces from host names returned through getHostnamesFromRageExpressions (vgogate)
+
+  AMBARI-163. Addresses failure handling in FSM. ((thejas via ddas)
+
+  AMBARI-165. Fix the component definition for HDFS. (omalley)
+
+  AMBARI-162. Fixed agent unit test failure when ethernet is not in
+  used. (Eric Yang)
+
+  AMBARI-161. Add puppet module for Hadoop to agent resources (vgogate)
+
+  AMBARI-159. Temporarily disabled security (until Ambari upgrades to 
+  Python2.7). (ddas)
+
+  AMBARI-160. Ambari client add stack command should allow both json
+  and xml (vgogate)
+
+  AMBARI-158. Move the JSON encoding to the natural one. (omalley)
+  
+  AMBARI-157. Enhances the agent to make it puppet aware (ddas)
+
+  AMBARI-156. Clean up the puppet example stack. (omalley)
+
+  AMBARI-155. Heartbeat response to a node should contain an empty list of 
+  actions if node doesn't belong to any cluster presently. (ddas)
+
+  AMBARI-154. Exception while starting the controller. Outdated JAXB
+  fields in HeartBeat class (vgogate)
+
+  AMBARI-153. Introduce a 'ambari.properties' configuration file that
+  can specify 'data.store' and a url. It defaults to 'zk://localhost:2181/',
+  but can be set to 'test:/' to get the static storage. (omalley)
+
+  AMBARI-152. Fixes issues in the shell scripts (ddas)
+
+  AMBARI-148. Refactors StateMachineInvoker (ddas)
+
+  AMBARI-151. Fix TestHardware when in offline mode. (omalley)
+
+  AMBARI-150. Simplifies states in controller state machine (thejas via ddas)
+
+  AMBARI-149. Filter the meta ambari category out of the flattened stacks.
+  (omalley)
+
+  AMBARI-141. Update the heartbeat on controller/agent (ddas)
+
+  AMBARI-147. Create a stack flattener and introduce Guice. (omalley)
+
+  AMBARI-145. FSMs are created for only those components that have 
+  active roles (thejas via ddas)
+
+  AMBARI-146. Fix test case failures in agent's FileUtil. (omalley)
+
+  AMBARI-144. Implement getInstallAndConfigureScript for a given
+  revision of cluster definition. (vgogate)
+
+  AMBARI-143. Fixes an annotation issue in HeartBeat class (ddas)
+
+  AMBZRI-142. Add cluster must validate if requested nodes are
+  pre-allocated to any other existing cluster (vgogate)
+
+  AMBARI-140. Refactors the heartbeat handling w.r.t simplification of 
+  state management. (ddas)
+
+  AMBARI-138. Implement stack persistence (vgogate)
+
+  AMBARI-135. Simplifies the heartbeat handling to not deal with 
+  install/configure methods on component plugin definitions (ddas)
+
+  AMBARI-134. Add Google analytics to the site. (omalley)
+
+  AMBARI-132. Fix update agent environment script location. (Ahmed
+  Fathalla via Eric Yang)
+
+  AMBARI-131. Fixed post installation script for Ambari Agent. (Eric Yang)
+
+  AMBARI-129. Rename agent package reference of HMS to Ambari. (Eric Yang)
+
+  AMBARI-128. Improved ethtool handling. (Ahmed Fathalla via Eric Yang)
+
+  AMBARI-127. Fixed mailing list address. (Ahmed Fathalla via Eric Yang)
+
+  AMBARI-126. Minor fixes to the FSM invocations (ddas)
+
+  AMBARI-125. Recover the the state of existing clusters after
+  controller restart (vgogate)
+
+  AMBARI-124. Add Zookeeper Data store and persist the cluster
+  definitions across controller restart (vgogate)
+
+  AMBARI-116. Change the name group to provider in
+  hadoop-security-0.xml stack definition (vgogate)
+
+  AMBARI-120. Fixed REST resource annotation bugs. (Eric Yang)
+
+  AMBARI-121. Added examples for returning REST resources. (Eric Yang)
+
+  AMBARI-119. Enhance agent to support workDirComponent. (Eric Yang)
+
+  AMBARI-118. Added safe guard mechanism to prevent agent crash on 
+  faulty action. (Eric Yang)
+
+  AMBARI-117. If some install action is sent in a heartbeat response, the
+  latter should also include the dependent components' installs. (ddas)
+
+  AMBARI-115. Fixed connection error handling for agent. (Eric Yang)
+
+  AMBARI-114. Fix issues in XMLComponentDefinition (ddas)
+
+  AMBARI-112. Fixes the blueprint/stack resolution in the Cluster class
+  (ddas)
+
+  AMBARI-112. Fix the url path conflict for /clusters used in both
+  ClustersResource and ClusterResource (vgogate)
+
+  AMBARI-111. Minor clean up of site documentation (omalley)
+
+  AMBARI-110. Add persistent data store interface (vgogate)
+
+  AMBARI-107. Added reporting section to aggregate javadocs. (Eric Yang)
+
+  AMBARI-109. Minor fixes to the CLI documentation. (omalley)
+
+  AMBARI-108. Change name blueprint to stack (vgogate)
+
+  AMBARI-106. Fixes some javadoc stuff (ddas)
+
+  AMBARI-105. Remove post on clusters resource to create new cluster
+  (instead use put operation on cluster resource along with update
+  cluster) (vgogate)
+
+  AMBARI-104. Polishes the CLI doc some (ddas)
+
+  AMBARI-103. Refactor agent entities package to 
+  org.apache.ambari.common.rest.agent. (Eric Yang)
+
+  AMBARI-102. Reduce heartbeat message content, when installedRoleState
+  is empty. (Eric Yang)
+
+  AMBARI-101. Remove clusterID and use cluster name as unique ID for
+  the cluster(vgogate)
+
+  AMBARI-100. Fixes the heartbeat to take into account install/uninstall 
+  of components (ddas)
+
+  AMBARI-99. Added schema and wadl generation to be part of the build system, 
+  and integrate with maven site. (Eric Yang)
+
+  AMBARI-98. Get cluster nodes with cluster in ATTIC state fails. (vgogate)
+
+  AMBARI-96. Updated ambar client to show usage screen. (Eric Yang)
+
+  AMBARI-93. Update -revision parameter to make it optional. (Eric Yang)
+
+  AMBARI-92. Added logic to retry heartbeat sending. (Eric Yang)
+
+  AMBARI-91. Move the example blueprints into xml resources. (omalley)
+
+  AMBARI-90. Implement nodes get/list CLI (vgogate)
+
+  AMBARI-89. Implement blueprint history CLI (vgogate)
+
+  AMBARI-88. Update cluster nodes reservation is giving null pointer
+  exception during cluster creation (vgogate)
+
+  AMBARI-87. Importing pre-existing blueprint to Ambari through CLI
+  "blueprint add" gives wrong error message (vgogate)
+
+  AMBARI-86. Validate blueprint referenced by cluster exist including
+  it's parent blueprints (vgogate)
+
+  AMBARI-85. Adds handling of new states to do with preinstall actions (ddas)
+
+  AMBARI-84. Added configuration file writer for Ambari Component. (Eric Yang)
+
+  AMBARI-83. Added python unit test framework. (Eric Yang)
+
+  AMBARI-82. Fix example clusters. (omalley)
+
+  AMBARI-81. Updated xslt document to show human readable stylesheet. (Eric 
+  Yang)
+
+  AMBARI-80. Implement blueprint get CLI
+
+  AMBARI-79. create default blueprint instance
+
+  AMBARI-78. Change the datatype of responseId in the heartbeat messages to 
+  short (ddas)
+
+  AMBARI-77. create default blueprint containing HDFS component (vgogate)
+
+  AMBARI-76. Register new node w/ Ambari controller (vgogate)
+
+  AMBARI-75. Centralize agent configuration parsing. (Eric Yang)
+
+  AMBARI-74. Throttle the frequency of checking action queue to 5 seconds.
+  (Eric Yang)
+
+  AMBARI-73. Implement cluster nodes CLI. (vgogate)
+
+  AMBARI-72. Adding (dummy) blueprints before (dummy) cluster definitions and
+             fixing null pointer exception when parent blueprint is set to null
+             for top level blueprint  (vgogate)
+
+  AMBARI-71. Fix broken packaging and startup scripts. (Eric Yang)
+
+  AMBARI-70. Implements the installation/configuration of gateway role (ddas)
+
+  AMBARI-66. Implemented compatible package install/uninstall action for 
+  plugin. (Eric Yang)
+
+  AMBARI-69. Added skeleton for Ambari component plugin library. (Eric Yang)
+
+  AMBARI-68. Implement add blueprint CLI (vgogate)
+
+  AMBARI-67. Implement cluster list, get CLI commands (vgogate)
+
+  AMBARI-65. Added directory structure actions. (Eric Yang)
+
+  AMBARI-60. Added permission check for RUN_ACTION, and
+  WRITE_FILE_ACTION. (Eric Yang)
+
+  AMBARI-64. Define components in terms of XML. (omalley)
+
+  AMBARI-63. Implement cluster update, rename and delete CLI commands (vgogte)
+
+  AMBARI-62. Adds the install/uninstall checks in the heartbeat handler (ddas)
+
+  AMBARI-60. Added permission check for RUN_ACTION, and
+  WRITE_FILE_ACTION.  (Eric Yang)
+
+  AMBARI-61. Rename cluster REST API. (vgogate)
+
+  AMBARI-59. Refactor to use clusterRevision instead of bluePrintName and 
+  bluePrintRevision. (Eric Yang)
+
+  AMBARI-57. Adds a state for monitoring safe-mode success/failure
+  checks in the ServiceFSM (ddas)
+
+  AMBARI-56. Refactor write config file command to write config file
+  action. (Eric Yang)
+
+  AMBARI-54. Refactor agent implementation to match AMBARI-53. (Eric Yang)
+
+  AMBARI-51. Refactor transport data model for commands to become
+  action. (Eric Yang)
+
+  AMBARI-56. Surface the write config file command to write config
+  file action. (Eric Yang)
+
+  AMBARI-55. release cluster nodes function (vgogate)
+
+  AMBARI-53. Refactor the HeartBeat to have Agents' states separated by 
+  component/role (ddas)
+
+  AMBARI-50. Refactor the REST apis. (omalley)
+
+  AMBARI-48. Move Cluster object from rest entities to controller(vgogate)
+
+  AMBARI-47. Implement Cluster definition re-visioning(vgogate)
+
+  AMBARI-45. Implement CLI command Cluster create (vgogate)
+
+  AMBARI-46. Implemented preservation of cluster id, blueprint name and
+  blueprint revision on agent. (Eric Yang)
+
+  AMBARI-44. Implemented blueprint name and revision in heartbeat. (Eric Yang)
+  
+  AMBARI-39. Bridged cluster reference gap between REST API with State machine.
+  (Eric Yang)
+
+  AMBARI-28. Clean up html encoded javadoc. (Eric Yang) 
+
+  AMBARI-23. Renamed agent API to /agent, and public API to /rest. (Eric Yang)
+
+  AMBARI-18. Implemented special command to write configuration file. (Eric 
+  Yang)
+
+  AMBARI-17. Added idle state for agent heartbeat. (Eric Yang)
+
+  AMBARI-15. Implemented agent side of authentication hooks. (Eric Yang)
+
+  AMBARI-12. Added transition state STARTING, STOPPING. (Eric Yang)
+
+  AMBARI-11. Implemented Agent to controller heartbeat communication. (Eric 
+  Yang)
+
+  AMBARI-7. Updated Jersey to 1.9 for automating wadl generation. (Eric Yang)
+
+  AMBARI-3. Move HMS prototype code to branch 0.0. (Eric Yang)
+
+  AMBARI-2. Added heartbeat/controller response data model, and wadl 
+  configuration. (Eric Yang)
+
+  AMBARI-42. Return the latest blueprint revision if revision is not specified
+  as query parameter.
+
+  AMBARI-43. Change the API StateMachineInvoker.getStateMachineClusterInstance 
+  to take blueprint related arguments. (ddas)
+
+  AMBARI-41. Rename the Role/Cluster/Service classes in the statemachine 
+  package to RoleFSM/ClusterFSM/ServiceFSM (ddas)
+
+  AMBARI-37. Tidies up a bit the statemachine API and related classes (ddas)
+
+  AMBARI-36. Add CLI interface document to Ambari site (vgogate)
+
+  AMBARI-35. Replaces the counters for keeping track of service/role start/stop
+  with iterators. (ddas)
+
+  AMBARI-34. Address the start cluster part of the statemachine implementation,
+  and handle the heartbeat. (ddas)
+
+  AMBARI-32. Remove stack resource Remove the Stack resource from Ambari 
+  (vgogate)
+
+  AMBARI-25. Clean up the configuration entity to collapse some levels. 
+  (omalley)
+
+  AMBARI-31. Fix JAXB annotations for Ambari resourcesi (vgogate)
+
+  AMBARI-30. Fix the build so that the client and controller tarballs are 
+  built. (omalley)
+
+  AMBARI-29. Implement Node Resource API. (vgogate)
+
+  AMBARI-24. Fix the versions in the pom.xml. (omalley)
+
+  AMBARI-22. Implement Blueprint Resource API (vgogate)
+
+  AMBARI-21. Fix the problem w/ Stacks Resource API (vgogate)
+
+  AMBARI-20. Fix the rest API for getting the cluster nodes (vgogate)
+
+  AMBARI-19. Fix Cluster resource API nodes reservation logic (vgogate)
+
+  AMBARI-16. Implement Stacks resource API (vgogate)
+
+  AMBARI-14. Implement Ambari REST API for cluster resource (vgogate)
+
+  AMBARI-13. Initial attempt at a website. (omalley)
+
+  AMBARI-10. Initial checkin of the heartbeat handling code (ddas)
+
+  AMBARI-9. Fix all of the files to have the Apache header and include
+  RAT in the build. (omalley)
+
+  AMBARI-8. Move dependencies into controller. (omalley)
+
+  AMBARI-6. Moving Clusters and Nodes container objects into controller
+  (vgogate)
+
+  AMBARI-5. Added some left over changes from git repository for Ambari REST 
+  APIs. (vgogate)
+
+  AMBARI-4. Created interface for component plugins. (omalley)
+
+  AMBARI-1. Initial code import (omalley)

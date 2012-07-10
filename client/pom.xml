@@ -1,19 +1,36 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-        <groupId>org.apache.hms</groupId>
-        <artifactId>hms</artifactId>
-        <version>0.1.0</version>
+        <groupId>org.apache.ambari</groupId>
+        <artifactId>ambari</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.apache.hms</groupId>
-    <artifactId>client</artifactId>
+    <groupId>org.apache.ambari</groupId>
+    <artifactId>ambari-client</artifactId>
     <packaging>jar</packaging>
     <version>0.1.0-SNAPSHOT</version>
     <name>client</name>
-    <description>Hadoop Management System Client</description>
+    <description>Ambari Client</description>
 
     <dependencies>
       <dependency>
@@ -22,34 +39,74 @@
         <version>1.2</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.hms</groupId>
-        <artifactId>common</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.hms</groupId>
-        <artifactId>hms-controller</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
         <groupId>commons-daemon</groupId>
         <artifactId>commons-daemon</artifactId>
         <version>1.0.5</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>commons-configuration</groupId>
+        <artifactId>commons-configuration</artifactId>
+        <version>1.6</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.jmdns</groupId>
+        <artifactId>jmdns</artifactId>
+        <version>3.4.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.jackson</groupId>
+        <artifactId>jackson-xc</artifactId>
+        <version>1.8.5</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-json</artifactId>
+        <version>1.8</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-client</artifactId>
+        <version>1.8</version>
+      </dependency>
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.15</version>
+        <exclusions>
+          <exclusion>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>javax.jms</groupId>
+            <artifactId>jms</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jdmk</groupId>
+            <artifactId>jmxtools</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jmx</groupId>
+            <artifactId>jmxri</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
     </dependencies>
 
     <build>
       <plugins>
         <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <configuration>
             <archive>
               <manifest>
-                <mainClass>org.apache.hms.client.Client</mainClass>
-                <packageName>org.apache.hms.client</packageName>
+                <mainClass>org.apache.ambari.client.Client</mainClass>
+                <packageName>org.apache.ambari.client</packageName>
               </manifest>
               <manifestEntries>
                 <mode>development</mode>
@@ -60,5 +117,73 @@
         </plugin>
       </plugins>
     </build>
+
+  <profiles>
+    <profile>
+      <id>docs</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.sun.tools.jxc.maven2</groupId>
+            <artifactId>maven-jaxb-schemagen-plugin</artifactId>
+            <version>1.2</version>
+            <executions>
+              <execution>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <project>${project}</project>
+              <destdir>../src/site/resources</destdir>
+              <srcdir>${project.build.sourceDirectory}/org/apache/ambari/common/rest/entities/</srcdir>
+              <verbose>true</verbose>
+              <schemas>
+                <schema>
+                  <namespace>http://incubator.apache.org/ambari/rest</namespace>
+                  <file>schema1.xsd</file>
+                </schema>
+              </schemas>
+            </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>2.2</version>
+              </dependency>
+              <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-xjc</artifactId>
+                <version>2.2</version>
+              </dependency>
+              <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>2.2</version>
+              </dependency>
+              <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-xjc</artifactId>
+                <version>2.2</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <distributionManagement>
+    <site>
+      <id>apache-website</id>
+      <name>Apache website</name>
+      <url>scpexe://people.apache.org/www/incubator.apache.org/ambari-client</url>
+    </site>
+  </distributionManagement>
 
 </project>

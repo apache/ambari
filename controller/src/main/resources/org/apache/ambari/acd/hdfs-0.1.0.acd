@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<component provides="hdfs">
+  <requires name="common"/>
+  <roles name="namenode"/>
+  <roles name="secondarynamenode"/>
+  <roles name="datanode"/>
+  <start>
+<![CDATA[
+import os
+import sys
+
+[pgm, cluster, role] = sys.argv
+os.environ['HADOOP_CONF_DIR']=os.getcwd() + "/etc/hadoop"
+os.execlp("hadoop", "hadoop", role)
+]]>
+  </start>
+  <check runOn="namenode">
+<![CDATA[
+import os
+import sys
+
+os.environ['HADOOP_CONF_DIR']=os.getcwd() + "/etc/hadoop"
+sys.exit(os.system('hadoop dfsadmin -safemode get | grep "Safe mode is OFF"'))
+
+]]>
+  </check>
+
+  <prestart runOn="namenode">
+<![CDATA[]]>
+import subprocess
+import os
+
+os.environ['HADOOP_CONF_DIR']=os.getcwd() + "/etc/hadoop"
+proc = subprocess.Popen(['hadoop', 'namenode', '-format'], stdin=subprocess.PIPE)
+proc.communicate('N\n')
+proc.wait()
+  </prestart>
+</component>

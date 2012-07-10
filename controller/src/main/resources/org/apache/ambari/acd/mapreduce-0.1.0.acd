@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<component provides="mapred">
+  <requires name="hdfs"/>
+  <roles name="jobtracker"/>
+  <roles name="tasktracker"/>
+  <roles name="historyserver"/>
+  <start>
+<![CDATA[
+import os
+import sys
+
+[pgm, cluster, role] = sys.argv
+os.environ['HADOOP_CONF_DIR']=os.getcwd() + "/etc/hadoop"
+os.execlp("hadoop", "hadoop", role)
+]]>
+  </start>
+  <check runOn="jobtracker">
+<![CDATA[
+import os
+import sys
+
+os.environ['HADOOP_CONF_DIR']=os.getcwd() + "/etc/hadoop"
+sys.exit(os.system('hadoop job -list'))
+
+]]>
+  </check>
+
+  <prestart runOn="namenode">
+<![CDATA[
+import os
+import sys
+
+os.environ['HADOOP_CONF_DIR']=os.getcwd() + "/etc/hadoop"
+sys.exit(os.system('hadoop dfs -mkdir /mapred'))
+
+]]>
+  </prestart>
+</component>

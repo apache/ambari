@@ -18,48 +18,84 @@
 -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <name>ambari</name>
+    <description>
+      Ambari is a monitoring, administration and lifecycle management project
+      for Apache Hadoop clusters. Hadoop clusters require many inter-related
+      components that must be installed, configured, and managed across the
+      entire cluster. The stack of components that are currently supported by
+      Ambari includes HBase, HCatalog, HDFS, Hive, MapReduce, Pig, and 
+      Zookeeper.
+    </description>
+    <url>http://incubator.apache.org/ambari</url>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.apache.ambari</groupId>
+    <version>0.1.0-SNAPSHOT</version>
+    <artifactId>ambari</artifactId>
+    <packaging>pom</packaging>
+
     <properties>
         <buildtype>test</buildtype>
         <BUILD_NUMBER>${env.BUILD_NUMBER}</BUILD_NUMBER>
-        <VERSION>0.1</VERSION>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
         <package.prefix>/usr</package.prefix>
-        <package.conf.dir>/etc/hms</package.conf.dir>
-        <package.log.dir>/var/log/hms</package.log.dir>
-        <package.pid.dir>/var/run/hms</package.pid.dir>
+        <package.conf.dir>/etc/ambari</package.conf.dir>
+        <package.log.dir>/var/log/ambari</package.log.dir>
+        <package.pid.dir>/var/run/ambari</package.pid.dir>
         <package.release>1</package.release>
-        <package.version>0.1.0</package.version>
-        <final.name>${project.artifactId}-${project.version}</final.name>
+        <package.type>tar.gz</package.type>
+        <ambari.version>0.1.0-SNAPSHOT</ambari.version>
+        <final.name>${project.artifactId}-${ambari.version}</final.name>
     </properties>
 
-    <name>Hadoop Management System</name>
-    <description>Hadoop Management System for the cloud</description>
-    <url>http://incubator.apache.org/hms</url>
-    <modelVersion>4.0.0</modelVersion>
-
-    <groupId>org.apache.hms</groupId>
-    <version>0.1.0</version>
-    <artifactId>hms</artifactId>
-    <packaging>pom</packaging>
-
-    <issueManagement>
-        <system>HMS JIRA</system>
-        <url>http://issues.apache.org/jira/browse/HMS</url>
-    </issueManagement>
+    <licenses>
+      <license>
+        <name>Apache 2</name>
+        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        <distribution>repo</distribution>
+      </license>
+    </licenses>
 
     <scm>
-        <developerConnection>git@github.com:macroadster/hms.git</developerConnection>
-        <url>git@github.com:macroadster/hms.git</url>
-        <tag></tag>
+      <connection>scm:svn:http://svn.apache.org/repos/asf/incubator/ambari</connection>
+      <developerConnection>scm:svn:https://svn.apache.org/repos/asf/incubator/ambari</developerConnection>
+      <tag>HEAD</tag>
+      <url>http://svn.apache.org/repos/asf/incubator/ambari</url>
     </scm>
+
+    <issueManagement>
+        <system>Jira</system>
+        <url>http://issues.apache.org/jira/browse/AMBARI</url>
+    </issueManagement>
 
     <mailingLists>
         <mailingList>
-            <name>hms</name>
-            <subscribe></subscribe>
-            <unsubscribe></unsubscribe>
-            <post>mailto:general@hms.apache.com</post>
+            <name>User list</name>
+            <subscribe>mailto:ambari-user-subscribe@incubator.apache.org
+            </subscribe>
+            <unsubscribe>mailto:ambari-user-unsubscribe@incubator.apache.org
+            </unsubscribe>
+            <post>mailto:ambari-user@incubator.apache.org</post>
+            <archive></archive>
+        </mailingList>
+        <mailingList>
+            <name>Development list</name>
+            <subscribe>mailto:ambari-dev-subscribe@incubator.apache.org
+            </subscribe>
+            <unsubscribe>mailto:ambari-dev-unsubscribe@incubator.apache.org
+            </unsubscribe>
+            <post>mailto:ambari-dev@incubator.apache.org</post>
+            <archive></archive>
+        </mailingList>
+        <mailingList>
+            <name>Commit list</name>
+            <subscribe>mailto:ambari-commits-subscribe@incubator.apache.org
+            </subscribe>
+            <unsubscribe>mailto:ambari-commits-unsubscribe@incubator.apache.org
+            </unsubscribe>
+            <post>mailto:ambari-commits@incubator.apache.org</post>
             <archive></archive>
         </mailingList>
     </mailingLists>
@@ -78,111 +114,68 @@
                         </exclusion>
                 </exclusions>
         </dependency>
-        <dependency>
-                <groupId>org.apache.zookeeper</groupId>
-                <artifactId>zookeeper</artifactId>
-                <version>3.3.2</version>
-                <!-- <scope>provided</scope> -->
-                <exclusions>
-                  <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                  </exclusion>
-                </exclusions>
-        </dependency>
-        <dependency>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty</artifactId>
-                <version>6.1.26</version>
-        </dependency>
-        <dependency>
-                <groupId>javax.jmdns</groupId>
-                <artifactId>jmdns</artifactId>
-                <version>3.4.0</version>
-        </dependency>
-        <dependency>
-                <groupId>commons-logging</groupId>
-                <artifactId>commons-logging</artifactId>
-                <version>1.1.1</version>
-        </dependency>
-        <dependency>
-                <groupId>commons-codec</groupId>
-                <artifactId>commons-codec</artifactId>
-                <version>1.3</version>
-                <scope>compile</scope>
-        </dependency>
-        <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>2.4</version>
-        </dependency>
-        <dependency>
-                <groupId>commons-httpclient</groupId>
-                <artifactId>commons-httpclient</artifactId>
-                <version>3.0.1</version>
-        </dependency>
-        <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>servlet-api</artifactId>
-                <version>2.5</version>
-                <scope>provided</scope>
-        </dependency>
-        <dependency>
-                <groupId>log4j</groupId>
-                <artifactId>log4j</artifactId>
-                <version>1.2.15</version>
-                <exclusions>
-                  <exclusion>
-                    <groupId>javax.mail</groupId>
-                    <artifactId>mail</artifactId>
-                  </exclusion>
-                  <exclusion>
-                    <groupId>javax.jms</groupId>
-                    <artifactId>jms</artifactId>
-                  </exclusion>
-                  <exclusion>
-                    <groupId>com.sun.jdmk</groupId>
-                    <artifactId>jmxtools</artifactId>
-                  </exclusion>
-                  <exclusion>
-                    <groupId>com.sun.jmx</groupId>
-                    <artifactId>jmxri</artifactId>
-                  </exclusion>
-                </exclusions>
-        </dependency>
-        <dependency>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-json</artifactId>
-                <version>1.6</version>
-        </dependency>
-        <dependency>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-server</artifactId>
-                <version>1.6</version>
-        </dependency>
-
-        <dependency>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-client</artifactId>
-                <version>1.6</version>
-        </dependency>
     </dependencies>
 
     <developers>
         <developer>
-            <id>eyang</id>
-            <name>Eric Yang</name>
-            <email>eric818@gmail.com</email>
-            <timezone>(GMT-08:00) Pacific Time(US &amp; Canada)</timezone>
+            <id>ddas</id>
+            <name>Devaraj Das</name>
+            <email>ddas@hortonworks.com</email>
+            <timezone>-8</timezone>
             <roles>
                 <role></role>
             </roles>
         </developer>
         <developer>
-            <id>kan</id>
+            <id>berndf</id>
+            <name>Bernd Fondermann</name>
+            <email>berndf@apache.org</email>
+            <timezone>+1</timezone>
+            <roles>
+                <role></role>
+            </roles>
+        </developer>
+        <developer>
+            <id>vgogate</id>
+            <name>Vitthal Suhas Gogate</name>
+            <email>vgogate@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role></role>
+            </roles>
+        </developer>
+        <developer>
+            <id>omalley</id>
+            <name>Owen O'Malley</name>
+            <email>omalley@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role></role>
+            </roles>
+        </developer>
+        <developer>
+            <id>jagane</id>
+            <name>Jagane Sundar</name>
+            <email>jagane@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role></role>
+            </roles>
+        </developer>
+        <developer>
+            <id>eyang</id>
+            <name>Eric Yang</name>
+            <email>eyang@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role></role>
+            </roles>
+        </developer>
+        <developer>
+            <id>kzhang</id>
             <name>Kan Zhang</name>
             <email>kanzhangmail@yahoo.com</email>
-            <timezone>(GMT-08:00) Pacific Time(US &amp; Canada)</timezone>
+            <timezone>-8</timezone>
             <roles>
                 <role></role>
             </roles>
@@ -195,121 +188,177 @@
     </organization>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
+      <resources>
+        <resource>
+          <directory>src/main/resources</directory>
+          <filtering>true</filtering>
+        </resource>
+      </resources>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.8</version>
+          <configuration>
+            <doctitle>Ambari API for ${project.name} ${project.version}</doctitle>
+          </configuration>
+          <executions>
+            <execution>
+              <id>aggregate</id>
+              <goals>
+                <goal>aggregate</goal>
+              </goals>
+              <phase>site</phase>
+              <configuration>
+                <doctitle>Ambari API for ${project.name} ${project.version}</doctitle>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.4</version>
+          <executions>
+            <execution>
+              <phase>validate</phase>
+              <configuration>
+                <tasks name="setup">
+                  <mkdir dir="${basedir}/target"/>
+                  <echo message="${project.version}" file="${basedir}/target/VERSION"/>
+                  <mkdir dir="${basedir}/target/clover"/>
+                  <chmod dir="${basedir}/target/clover" perm="a+w" />
+                </tasks>
+              </configuration>
+              <goals>
+                <goal>run</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+      <pluginManagement>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.4.3</version>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <compilerVersion>1.5</compilerVersion>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.1.1</version>
-                <executions>
-                    <execution>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.5</version>
-                <configuration>
-                    <phase>test</phase>
-                    <argLine>-Xmx1024m</argLine>
-                    <includes>
-                        <include>**/Test*.java</include>
-                    </includes>
-                    <excludes>
-                        <exclude>**/IntegrationTest*.java</exclude>
-                        <exclude>**/PerformanceTest*.java</exclude>
-                    </excludes>
-                    <skipTests>${skipTests}</skipTests>
-                    <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
-                    <systemProperties>
-                        <property>
-                            <name>HMS_LOG_DIR</name>
-                            <value>${project.build.directory}/logs</value>
-                        </property>
-                    </systemProperties>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <tarLongFileMode>gnu</tarLongFileMode>
-                    <descriptors>
-                        <descriptor>src/packages/tarball/all.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>build-tarball</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <phase>validate</phase>
-                        <configuration>
-                            <tasks name="setup">
-                                <mkdir dir="${basedir}/target"/>
-                                <echo message="0.1.0" file="${basedir}/target/VERSION"/>
-                                <mkdir dir="${basedir}/target/clover"/>
-                                <chmod dir="${basedir}/target/clover" perm="a+w" />
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.8</version>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>2.4.3</version>
+            <configuration>
+              <encoding>UTF-8</encoding>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>2.3.2</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>test-jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>2.3.2</version>
+            <configuration>
+              <compilerVersion>1.5</compilerVersion>
+              <source>1.6</source>
+              <target>1.6</target>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.1.1</version>
+            <executions>
+              <execution>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.5</version>
+            <configuration>
+              <phase>test</phase>
+              <argLine>-Xmx1024m</argLine>
+              <includes>
+                <include>**/Test*.java</include>
+              </includes>
+              <excludes>
+                <exclude>**/IntegrationTest*.java</exclude>
+                <exclude>**/PerformanceTest*.java</exclude>
+              </excludes>
+              <skipTests>${skipTests}</skipTests>
+              <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
+              <systemProperties>
+                <property>
+                  <name>AMBARI_LOG_DIR</name>
+                  <value>${project.build.directory}/logs</value>
+                </property>
+              </systemProperties>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-site-plugin</artifactId>
+            <version>3.0</version>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.rat</groupId>
+            <artifactId>apache-rat-plugin</artifactId>
+            <version>0.7</version>
+            <executions>
+              <execution>
+                <phase>verify</phase>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <numUnapprovedLicenses>0</numUnapprovedLicenses>
+              <excludes>
+                <!-- notice files -->
+                <exclude>CHANGES.txt</exclude>
+                <!-- generated files -->
+                <exclude>**/target/**</exclude>
+                <exclude>**/.classpath</exclude>
+                <exclude>**/.project</exclude>
+                <exclude>**/.settings/**</exclude>
+                <!-- bsd/gpl dual licensed files -->
+                <exclude>src/main/webapps/css/smoothness/jquery-ui-1.8.13.custom.css</exclude>
+                <exclude>src/main/webapps/js/jquery.dataTables.min.js</exclude>
+                <exclude>**/application-grammars.xml</exclude>
+  		<exclude>**/wadl.xsl</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.wagon</groupId>
+            <artifactId>wagon-ssh-external</artifactId>
+            <version>1.0</version>
+          </plugin>
         </plugins>
+      </pluginManagement>
+      <extensions>
+        <extension>
+          <groupId>org.apache.maven.wagon</groupId>
+          <artifactId>wagon-ssh-external</artifactId>
+        </extension>
+      </extensions>
     </build>
 
     <profiles>
@@ -345,9 +394,9 @@
                         <version>2.6.2</version>
                         <configuration>
                             <licenseLocation>conf/clover/clover.license</licenseLocation>
-                            <snapshot>/tmp/hms_clover</snapshot>
-                            <cloverDatabase>/tmp/hms</cloverDatabase>
-                            <cloverMergeDatabase>/tmp/hms</cloverMergeDatabase>
+                            <snapshot>/tmp/ambari_clover</snapshot>
+                            <cloverDatabase>/tmp/ambari</cloverDatabase>
+                            <cloverMergeDatabase>/tmp/ambari</cloverMergeDatabase>
                         </configuration>
                         <executions>
                             <execution>
@@ -394,7 +443,7 @@
                                     <argLine>-Xmx1024m -Djava.library.path=.
                                     </argLine>
                                     <includes>
-                                        <include>**/*Test.java</include>
+                                        <include>**/Test*.java</include>
                                     </includes>
                                     <excludes>
                                         <exclude>**/IntegrationTest.java</exclude>
@@ -428,7 +477,7 @@
                                         <include>**/IntegrationTest*.java</include>
                                     </includes>
                                     <excludes>
-                                        <exclude>**/*Test.java</exclude>
+                                        <exclude>**/Test*.java</exclude>
                                         <exclude>**/PerformanceTest*.java</exclude>
                                     </excludes>
                                     <skipTests>false</skipTests>
@@ -489,11 +538,9 @@
               </property>
             </activation>
             <modules>
-              <module>common</module>
               <module>agent</module>
-              <module>controller</module>
               <module>client</module>
-              <module>beacon</module>
+              <module>controller</module>
             </modules>
         </profile>
 
@@ -514,6 +561,54 @@
         <profile>
             <id>src</id>
             <build>
+              <plugins>
+                <plugin>
+                  <artifactId>maven-assembly-plugin</artifactId>
+                  <configuration>
+                    <tarLongFileMode>gnu</tarLongFileMode>
+                    <descriptors>
+                      <descriptor>src/packages/tarball/source.xml</descriptor>
+                    </descriptors>
+                    <finalName>${project.artifactId}-${project.version}-source</finalName>
+                  </configuration>
+                  <executions>
+                    <execution>
+                      <id>build-source-tarball</id>
+                      <phase>package</phase>
+                      <goals>
+                        <goal>single</goal>
+                      </goals>
+                    </execution>
+                  </executions>
+                </plugin>
+              </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>binary</id>
+            <build>
+              <plugins>
+                <plugin>
+                  <artifactId>maven-assembly-plugin</artifactId>
+                  <configuration>
+                    <tarLongFileMode>gnu</tarLongFileMode>
+                    <descriptors>
+                      <descriptor>src/packages/tarball/binary.xml</descriptor>
+                    </descriptors>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
+                  </configuration>
+                  <executions>
+                    <execution>
+                      <id>build-tarball</id>
+                      <phase>package</phase>
+                      <goals>
+                        <goal>single</goal>
+                      </goals>
+                    </execution>
+                  </executions>
+                </plugin>
+              </plugins>
             </build>
         </profile>
 
@@ -580,112 +675,80 @@
             </build>
         </profile>
 
-        <profile>
-            <id>docs</id>
-            <activation />
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-site-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>report</id>
-            <activation />
-            <reporting>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <configuration>
-                            <links>
-                                <link>http://java.sun.com/j2se/1.5.0/docs/api/</link>
-                            </links>
-                            <doclet>org.umlgraph.doclet.UmlGraphDoc</doclet>
-                                <docletArtifact>
-                                    <groupId>org.umlgraph</groupId>
-                                    <artifactId>doclet</artifactId>
-                                    <version>5.1</version>
-                                </docletArtifact>
-                                <additionalparam>-inferrel -inferdep -useimports -postfixpackage -nodefontsize 9 -nodefontpackagesize 7 -hide java.* -hide org.*</additionalparam>
-                                <destDir>withUML</destDir>
-                                <show>public</show>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-jxr-plugin</artifactId>
-                    </plugin>
-<!--                    <plugin>
-                        <groupId>com.atlassian.maven.plugins</groupId>
-                        <artifactId>maven-clover2-plugin</artifactId>
-                        <version>2.6.2</version>
-                        <configuration>
-                            <licenseLocation>conf/clover/clover.license</licenseLocation>
-                            <cloverDatabase>/tmp/cc</cloverDatabase>
-                            <cloverMergeDatabase>/tmp/hms</cloverMergeDatabase>
-                        </configuration>
-                    </plugin> -->
-                    <plugin>
-                        <artifactId>maven-pmd-plugin</artifactId>
-                        <reportSets>
-                            <reportSet>
-                                <reports>
-                                    <report>pmd</report>
-                                    <report>cpd</report>
-                                </reports>
-                            </reportSet>
-                        </reportSets>
-                        <configuration>
-                            <targetJdk>1.5</targetJdk>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>findbugs-maven-plugin</artifactId>
-                        <configuration>
-                            <threshold>Normal</threshold>
-                            <effort>Max</effort>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>javancss-maven-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>jdepend-maven-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>taglist-maven-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </reporting>
-        </profile>
     </profiles>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.7</version>
+                <reportSets>
+                    <reportSet>
+                        <id>javadoc</id>
+                        <configuration>
+                            <aggregate>true</aggregate>
+                            <doctitle>Ambari API for ${project.name} ${project.version}</doctitle>
+                        </configuration>
+                        <reports>
+                            <report>javadoc</report>
+                        </reports>
+                    </reportSet>
+                    <reportSet>
+                        <id>aggregate</id>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jxr-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>pmd</report>
+                                <report>cpd</report>
+                            </reports>
+                        </reportSet>
+                </reportSets>
+                <configuration>
+                    <targetJdk>1.5</targetJdk>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <configuration>
+                    <threshold>Normal</threshold>
+                    <effort>Max</effort>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>javancss-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jdepend-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>taglist-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </reporting>
 
     <repositories>
         <repository>
@@ -713,5 +776,13 @@
         <dependencies>
         </dependencies>
     </dependencyManagement>
+
+  <distributionManagement>
+    <site>
+      <id>apache-website</id>
+      <name>Apache website</name>
+      <url>scpexe://people.apache.org/www/incubator.apache.org/ambari</url>
+    </site>
+  </distributionManagement>
 
 </project>

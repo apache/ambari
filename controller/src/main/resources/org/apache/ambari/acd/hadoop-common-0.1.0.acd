@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<component provides="common" package="hadoop-${version}.tar.gz"
+           user="root">
+  <configure>
+<![CDATA[
+import ambari_component
+
+for file in ['log4j', 'commons-logging', 'hadoop-metrics2']:
+  ambari_component.copyProperties('hadoop/' + file, {})
+
+ambari_component.copySh('hadoop/hadoop-env', {})
+
+ambari_component.copyXml('hadoop/core-site', {})
+]]>
+  </configure>
+  <install>
+<![CDATA[
+import ambari_component
+import os
+
+if not os.path.isdir("stack"):
+  os.mkdir("stack")
+
+ambari_component.installTar("hadoop")
+]]>
+  </install>
+  <uninstall>
+<![CDATA[
+import ambari_component
+import shutil
+
+shutil.rmtree("stack")
+]]>
+  </uninstall>
+</component>
