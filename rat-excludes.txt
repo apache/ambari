@@ -20,3 +20,6 @@
 [^ ]*/*hadoop-servicegroups.cfg.erb
 [^ ]*/*hadoop-hostgroups.cfg.erb
 [^ ]*/*regionservers.erb
+[^ ]*/*cluster_configuration.json.erb
+[^ ]*/*slaves.erb
+[^ ]*/*configuration.xsl.erb
