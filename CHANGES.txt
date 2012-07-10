@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-617. Missing some files in rat-excludes (vikram via vinodkv)
+
   AMBARI-601. Ambari docs need updating for the release version for rpms
 (hitesh via vikram)
 
