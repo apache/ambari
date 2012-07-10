@@ -1,34 +1,46 @@
 Ambari Change log
 
-Note: Committers should be listed using their login and non-committers
-should be listed by their full name. Please keep the file to a max of 80
-characters wide.
+Notes:
+ - Committers should be listed using their login and non-committers
+should be listed by their full name.
+ - Please keep the file to a max of 80 characters wide.
+ - Put latest commits first in each section.
 
-Release 1.0.0 - unreleased
+Trunk (unreleased changes)
 
-  AMBARI-615. Eliminate redundant and unused definition for the columns in the
-  table ConfigProperties (yusaku) 
+  INCOMPATIBLE CHANGES
 
-  AMBARI-614. The database set up script has a duplicate definition of
-  AmbariConfig so install fails (yusaku) 
+  NEW FEATURES
 
-  AMBARI-613. Do not force Hadoop stack upgrade when a new version is available.
-  Show Hadoop stack version info (currently installed and latest available).
-  (yusaku)
+    AMBARI-612. Allow upgrading the database and add versions for ambari and
+    hadoop stacks. (mahadev)
 
-  AMBARI-612. Allow upgrading the database and add versions for ambari and
-  hadoop stacks. (mahadev)
+    AMBARI-605. Add UI flow/groundwork for handling Ambari / Hadoop stack version
+    upgrades (yusaku) 
 
-  AMBARI-607. Increase puppet timeouts to handle single-node installs timing out
-  (hitesh)
+  IMPROVEMENTS
 
-  AMBARI-609. Modify router to handle hierarchical directory structure for
-  front-facing PHP files (yusaku)
+    AMBARI-615. Eliminate redundant and unused definition for the columns in the
+    table ConfigProperties (yusaku) 
 
-  AMBARI-606. Refactor "review and deploy" Javascript code for reuse (yusaku)
+    AMBARI-613. Do not force Hadoop stack upgrade when a new version is available.
+    Show Hadoop stack version info (currently installed and latest available).
+    (yusaku)
 
-  AMBARI-605. Add UI flow/groundwork for handling Ambari / Hadoop stack version
-  upgrades (yusaku) 
+    AMBARI-607. Increase puppet timeouts to handle single-node installs timing
+    out (hitesh)
+
+    AMBARI-609. Modify router to handle hierarchical directory structure for
+    front-facing PHP files (yusaku)
+
+    AMBARI-606. Refactor "review and deploy" Javascript code for reuse (yusaku)
+
+  OPTIMIZATIONS
+
+  BUG FIXES
+
+    AMBARI-614. The database set up script has a duplicate definition of
+    AmbariConfig so install fails (yusaku) 
 
 Release 0.9.0
 
