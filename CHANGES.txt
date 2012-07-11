@@ -50,6 +50,9 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-629. Upgrading Hadoop stack - uninstall for upgrade should preserve
+    cluster information (yusaku) 
+
     AMBARI-624. Make hadoop-client/templeton/pig/sqoop also use 64-bit only packages
     (hitesh)
 

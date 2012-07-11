@@ -43,6 +43,8 @@ function deBootStrap ($clusterName, $deployUser, $txnId, $progressInfo)
 {
   global $logger, $dbAccessor, $stagesInfo;
 
+  // $logger->log_debug('progressInfo='.print_r($progressInfo, 1));
+
   $txnStatus = !($progressInfo['encounteredError']);
 
   // do not go ahead with the cleanup. 
@@ -159,21 +161,32 @@ function deBootStrap ($clusterName, $deployUser, $txnId, $progressInfo)
   if ($result != 0) {
     return array('result' => $result, 'error' => $error);
   }
-  // need to cleanup db for this cluster
-  $dbAccessor->cleanupCluster($clusterName);
 
+  // clean up db for this cluster if uninstalling cluster.
+  // if this is uninstall as part of upgrade, do not clean up the db.
   LockAcquire(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX);
   $clusterStateResponse = $dbAccessor->getClusterState($clusterName);
   if ($clusterStateResponse['result'] != 0) {
-    LockRelease(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX); return $clusterStateResponse;
+    LockRelease(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX);
+    return $clusterStateResponse;
   }
 
   $clusterState = json_decode($clusterStateResponse['state'], true);
 
+  $newState = null;
+  $newDisplayName = null;
+
+  if ($clusterState['state'] == 'UPGRADE_STACK_UNINSTALL_IN_PROGRESS') {
+    $newState = 'UPGRADE_STACK_UNINSTALLED';
+    $newDisplayName = 'Upgrade Stack - Uninstall succeeded';
+  } else {
+    $newState = 'NOT_CONFIGURED';
+    $newDisplayName = 'Uninstall succeeded';
+    $dbAccessor->cleanupCluster($clusterName);
+  }
+
   // set cluster state to not configured
-  $state = "NOT_CONFIGURED";
-  $displayName = "Uninstall succeeded";
-  $retval = updateClusterState($clusterName, $state, $displayName, $clusterState['context']);
+  $retval = updateClusterState($clusterName, $newState, $newDisplayName, $clusterState['context']);
   LockRelease(HMC_CLUSTER_STATE_LOCK_FILE_SUFFIX);
   return $retval;
 }
