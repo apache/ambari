@@ -11,6 +11,7 @@ Trunk (unreleased changes)
   INCOMPATIBLE CHANGES
 
   NEW FEATURES
+    AMBARI-622. Upgrade DB only when Ambari Config table exists. (mahadev)
 
     AMBARI-621. On Cluster Summary page, show Hadoop stack version information
     and "Upgrade available" link if a newer version of the stack is available
