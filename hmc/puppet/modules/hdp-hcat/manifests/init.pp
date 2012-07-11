@@ -23,12 +23,18 @@ class hdp-hcat(
 ) inherits hdp-hcat::params
 {
   $hcat_config_dir = $hdp-hcat::params::hcat_conf_dir
-   
+
+  if ($hdp::params::use_32_bits_on_slaves == false) {
+    $size = 64
+  } else {
+    $size = 32
+  }
+
   if ($service_state == 'no_op') {
   } elsif ($service_state == 'uninstalled') {
     hdp::package { 'hcat' :
       ensure => 'uninstalled', 
-      size   => 32
+      size   => $size
     }
 
     hdp::directory { $hcat_config_dir:
@@ -40,7 +46,7 @@ class hdp-hcat(
 
   } elsif ($service_state == 'installed_and_configured') {
     hdp::package { 'hcat' : 
-      size => 32
+      size => $size
     }
 
     hdp::directory { $hcat_config_dir:

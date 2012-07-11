@@ -25,12 +25,18 @@ class hdp-templeton(
 {
   include hdp-templeton::params 
  
+  if ($hdp::params::use_32_bits_on_slaves == false) {
+    $size = 64
+  } else {
+    $size = 32
+  }
+
   $templeton_user = $hdp-templeton::params::templeton_user
   $templeton_config_dir = $hdp-templeton::params::conf_dir
 
   if ($service_state == 'uninstalled') {
       hdp::package { 'templeton' :
-      size => 32,
+      size => $size,
       ensure => 'uninstalled'
     }
       hdp::directory { $templeton_config_dir:
@@ -42,7 +48,7 @@ class hdp-templeton(
 
   } else {
     hdp::package { 'templeton' :
-    size => 32
+      size => $size
     }
     class { hdp-templeton::download-hive-tar: }
     class { hdp-templeton::download-pig-tar: }

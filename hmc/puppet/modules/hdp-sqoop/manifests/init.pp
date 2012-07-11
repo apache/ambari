@@ -21,17 +21,23 @@
 class hdp-sqoop(
   $service_state = $hdp::params::cluster_client_state
 ) inherits hdp-sqoop::params
-{ 
+{
+  if ($hdp::params::use_32_bits_on_slaves == false) {
+    $size = 64
+  } else {
+    $size = 32
+  }
+
   if ($service_state == 'no_op') {
   } elsif ($service_state == 'uninstalled') {
     hdp::package { 'sqoop' :
       ensure => 'uninstalled',
-      size   => 32
+      size   => $size
     }
   } elsif ($service_state == 'installed_and_configured') {
 
     hdp::package { 'sqoop' :
-      size => 32
+      size => $size
     }
     class { 'hdp-sqoop::mysql-connector': }
     if ($package_type == 'hdp') {

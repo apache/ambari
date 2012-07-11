@@ -50,6 +50,9 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-624. Make hadoop-client/templeton/pig/sqoop also use 64-bit only packages
+    (hitesh)
+
     AMBARI-625. Fix undefined variable warning in puppet php layer (hitesh)
 
     AMBARI-614. The database set up script has a duplicate definition of

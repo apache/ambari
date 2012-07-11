@@ -24,11 +24,17 @@ class hdp-pig(
 {  
   $pig_config_dir = $hdp-pig::params::pig_conf_dir
  
+  if ($hdp::params::use_32_bits_on_slaves == false) {
+    $size = 64
+  } else {
+    $size = 32
+  }
+
   if ($service_state == 'no_op') {
   } elsif ($service_state == 'uninstalled') {
     hdp::package { 'pig' :
       ensure => 'uninstalled',
-      size   => 32
+      size   => $size
     }
     hdp::directory_recursive_create { $pig_config_dir:
       service_state => $service_state,
@@ -38,7 +44,7 @@ class hdp-pig(
 
   } elsif ($service_state == 'installed_and_configured') {
     hdp::package { 'pig' : 
-      size => 32
+      size => $size
     }
 
     hdp::directory { $pig_config_dir:
