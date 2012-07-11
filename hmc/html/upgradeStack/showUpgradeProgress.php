@@ -32,26 +32,15 @@
         <h2><?php echo $RES['upgradeStack.index.pageSummary.header'] ?></h2>
         <p><?php echo $RES['upgradeStack.index.pageSummary.body'] ?></p>
         <p id="versionInfo" style="font-weight:bold"></p>
-      </div>
-      <div id="formStatusDivId" class="formStatusBar" style="display:none"></div>
-      <div id="pageContent" style="margin:40px 0 0 40px">
-        <fieldset>
-          <form id="upgradeStackForm" enctype="multipart/form-data" method="post">
-            <input type="hidden" name="ClusterDeployUser" id="ClusterDeployUser" value="root">
-            <label for="clusterDeployUserIdentityFile"><?php echo $RES['common.sshPrivateKeyFile.label'] ?></label>
-            <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFile" value="" placeholder="">
-            <div class="separator"></div>
-            <div id="fileUploadWrapper">
-              <iframe name="fileUploadTarget" id="fileUploadTarget" src="about:blank" style="display:none"></iframe>
-            </div>
-            <div class="separator"></div>
-            <div id="buttonGroup" style="margin-top:20px">
-              <a href="javascript:void 0" class="btn btn-large btn-success" id="upgradeButton"><?php echo $RES['upgradeStack.index.submit.label'] ?></a>
-              <a href="../" class="btn btn-large" id="cancelButton" style="margin-left:10px"><?php echo $RES['upgradeStack.index.cancel.label'] ?></a>
-            </div>
-        </fieldset>
+        <?php /*
+        <div id="buttonGroup" style="margin-top:20px">
+          <a href="uninstall.php" class="btn btn-large btn-success" id="upgradeButton"><?php echo $RES['upgradeStack.index.submit.label'] ?></a>
+          <a href="../" class="btn btn-large" id="cancelButton" style="margin-left:10px"><?php echo $RES['upgradeStack.index.cancel.label'] ?></a>
+        </div>
+        <?php */ ?>
       </div>
     </div>
+    <?php require "../_txnUtils.php"; ?>
   </div>
   <?php require "../_footer.php"; ?>
   <script type="text/javascript">
@@ -59,8 +48,10 @@
     var clusterName = '<?php echo $clusterName; ?>';
 
     var jsFilesToLoad = [
+      'js/ext/sinon.min.js',
       'js/utils.js',
-      'js/upgradeStack/index.js'
+      'js/txnUtils.js',
+      'js/upgradeStack/showUpgradeProgress.js'
     ];
   </script>
 

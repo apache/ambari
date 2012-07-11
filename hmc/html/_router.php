@@ -132,16 +132,34 @@ if (sizeof($clusters) == 0) {
         $clusterState = 'UNINSTALL_FAILED';
         break;
       case 'UPGRADE_STACK_UNINSTALL_IN_PROGRESS':
-        if ($requestPage != 'upgradeStack/uninstall.php') {
-          eval(redirectToPage($requestPage, 'upgradeStack/uninstall.php'));
+        if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
+          eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
         }
         $clusterState = 'UPGRADE_STACK_UNINSTALL_IN_PROGRESS';
         break;
+      case 'UPGRADE_STACK_UNINSTALL_FAILED':
+        if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
+          eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
+        }
+        $clusterState = 'UPGRADE_STACK_UNINSTALL_FAILED';
+        break;
+      case 'UPGRADE_STACK_UNINSTALLED':
+        if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
+          eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
+        }
+        $clusterState = 'UPGRADE_STACK_UNINSTALLED';
+        break;
       case 'UPGRADE_STACK_DEPLOY_IN_PROGRESS':
-        if ($requestPage != 'upgradeStack/deploy.php') {
-          eval(redirectToPage($requestPage, 'upgradeStack/deploy.php'));
+        if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
+          eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
         }
         $clusterState = 'UPGRADE_STACK_DEPLOY_IN_PROGRESS';
+        break;
+      case 'UPGRADE_STACK_DEPLOY_FAILED':
+        if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
+          eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
+        }
+        $clusterState = 'UPGRADE_STACK_DEPLOY_FAILED';
         break;
     }
   }

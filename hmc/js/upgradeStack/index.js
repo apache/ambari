@@ -21,12 +21,73 @@
 
 (function() {
 
-  App.ui.showLoadingOverlay();
+  $('#upgradeButton').click(function () {
+
+    var message = '';
+    var errorCount = 0;
+
+    var fileName = $('#clusterDeployUserIdentityFile').val();
+    if (fileName == '') {
+      message += 'SSH Private Key File not specified';
+      $('#clusterDeployUserIdentityFile').addClass('formInputError');
+      errorCount++;
+    } else {
+      $('#clusterDeployUserIdentityFile').removeClass('formInputError');
+    }
+
+    if (errorCount > 0) {
+      App.ui.setFormStatus(message, true);
+      return;
+    }
+
+    App.ui.clearFormStatus();
+
+    var warningMessage = "The current version of your Hadoop stack will be uninstalled first and the new version will be installed after.  This will not delete your data.<br>Are you sure you want to proceed with upgrade?";
+
+    var confirmPanel = App.ui.createInfoPanel('Upgrade Hadoop Stack');
+    confirmPanel.set('bodyContent', warningMessage);
+    confirmPanel.addButton({
+      value: 'Cancel',
+      action: function (e) {
+        e.preventDefault();
+        App.ui.destroyInfoPanel(confirmPanel);
+      },
+      section: 'footer'
+    });
+    confirmPanel.addButton({
+      value: 'Proceed with Upgrade',
+      action: function (e) {
+        e.preventDefault();
+        App.ui.destroyInfoPanel(confirmPanel);
+
+        App.ui.showLoadingOverlay();
+
+        var form = $('#upgradeStackForm');
+
+        // addNodes.php handles ssh key upload and save
+        form.attr('action', '/hmc/php/frontend/addNodes.php?clusterName=' +
+          App.props.clusterName);
+
+        form.attr('target', 'fileUploadTarget');
+        form.submit();
+      },
+      classNames: 'okButton',
+      section: 'footer'
+    });
+
+    confirmPanel.show();
+
+  });
+
+  // Event handler for when the ssh key file upload is done)
+  $('#fileUploadTarget').load(function () {
+    document.location.href = 'showUpgradeProgress.php';
+  });
 
   function renderPage(data) {
     $('#versionInfo').html(
-      'You are upgrading your Hadoop stack (HDP) from Version ' + data.versionInfo.currentStackVersion +
-      ' to ' + data.versionInfo.latestStackVersion + '.'
+      'You will be upgrading your Hadoop stack from HDP ' + data.versionInfo.currentStackVersion +
+      ' to HDP ' + data.versionInfo.latestStackVersion + '.'
     );
     App.ui.hideLoadingOverlay();
   }
@@ -42,7 +103,9 @@
     },
     error: function (data) {
       alert(App.io.DEFAULT_AJAX_ERROR_MESSAGE);
-    },
+    }
   });
+
+  App.ui.showLoadingOverlay();
 
 })();
