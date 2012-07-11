@@ -167,7 +167,8 @@ include "RoleDependencies.php";
        }
        //Add in the order of the stages
        $stateList = $rolesStatesDs[$r];
-       if ($stateList[SERVICE_STATE_KEY] != $serviceState) {
+       if (!isset($stateList[SERVICE_STATE_KEY])
+           || $stateList[SERVICE_STATE_KEY] != $serviceState) {
          continue;
        }
        if (isset(self::$rolesToPackageMap[$r])) {
