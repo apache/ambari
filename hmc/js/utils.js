@@ -278,9 +278,38 @@ if (typeof clusterName !== 'undefined') {
     return word.substr(0, 1).toUpperCase() + word.substr(1).toLowerCase();
   }
 
+  /**
+   * Compares two version strings.  A version string is defined as
+   * versionString = number [(.|-) versionString]
+   * @param {string} v1 - version string
+   * @param {string} v2 - version string
+   * @returns {number} -1 if v1 < v2; 0 if v1 == v2; 1 if v1 > v2
+   */
+  function compareVersionStrings(v1, v2) {
+    var v1Split = v1.split(/[.-]/);
+    var v2Split = v2.split(/[.-]/);
+
+    var len = Math.min(v1Split.length, v2Split.length);
+
+    for (var i = 0; i < len; i++) {
+      if (v1Split[i] < v2Split[i]) {
+        return -1;
+      } else if (v1Split[i] > v2Split[i]) {
+        return 1;
+      }
+    }
+    if (v1Split.length < v2Split.length) {
+      return -1;
+    } else if (v1Split.length > v2Split.length) {
+      return 1;
+    }
+    return 0;
+  }
+
   // exports
   App.util = {
-    titleCase: titleCase
+    titleCase: titleCase,
+    compareVersionStrings: compareVersionStrings
   };
 
 })();

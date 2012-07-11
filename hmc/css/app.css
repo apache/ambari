@@ -52,14 +52,6 @@ footer a:link, footer a:visited {
   text-decoration:underline;
 }
 
-a:link {
-  color: blue;
-}
-
-a:visited {
-  color: blue;
-}
-
 select {
   width:250px;
   background-color:#DBDBDB;
@@ -401,6 +393,7 @@ div.separator {
 }
 #serviceLegend {
   float:right;
+  margin-bottom: 4px;
 }
 #clusterHostRoleMapping {
   margin-top: 20px;
@@ -414,6 +407,14 @@ div.separator {
   float:left;
   margin-bottom:10px;
   font-weight:normal;
+}
+
+#clusterInfo {
+  margin-left:20px;
+}
+#clusterInfo label {
+  display: inline;
+  font-weight:bold;
 }
 /* BEGIN TOP NAV */
 .navbar {

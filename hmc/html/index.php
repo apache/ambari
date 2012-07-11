@@ -31,7 +31,10 @@
       <?php require "./_subnav.php"; ?>
       <?php require "./_utils.php"; ?>
 
-      <div id="clusterHostRoleMapping" style="display:none">
+      <div id="clusterInfo">
+        <div id="clusterInfoContent"></div>
+      </div>
+      <div id="clusterHostRoleMapping" style="display:none;margin-top:0">
         <div id="clusterHostRoleMappingContent">
         </div>      
       </div>

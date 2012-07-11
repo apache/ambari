@@ -12,6 +12,10 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-621. On Cluster Summary page, show Hadoop stack version information
+    and "Upgrade available" link if a newer version of the stack is available
+    (yusaku) 
+
     AMBARI-612. Allow upgrading the database and add versions for ambari and
     hadoop stacks. (mahadev)
 

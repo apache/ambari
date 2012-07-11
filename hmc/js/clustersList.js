@@ -176,33 +176,42 @@ function ClustersList() {
 
                 Y.log("RAW JSON DATA: " + o1.responseText);
 
-                var clusterServicesResponseJson;
+                var responseJson;
 
                 try {
-                  clusterServicesResponseJson = Y.JSON.parse(o1.responseText);
+                  responseJson = Y.JSON.parse(o1.responseText);
                 }
                 catch (e) {
                   alert("JSON Parse failed");
                   return;
                 }
 
-                managerHostName = clusterServicesResponseJson.response.managerHostName;
+                managerHostName = responseJson.response.managerHostName;
 
-                Y.log(Y.Lang.dump(clusterServicesResponseJson));
+                Y.log(Y.Lang.dump(responseJson));
 
-                /* Check that clusterServicesResponseJson actually indicates success. */
-                if( clusterServicesResponseJson.result == 0 ) {
+                /* Check that responseJson actually indicates success. */
+                if (responseJson.result == 0) {
 
-                  var clusterServices = clusterServicesResponseJson.response.services;
+                  var clusterServices = responseJson.response.services;
+                  var versionInfo = responseJson.response.versionInfo;
+
+                  var clusterInfoMarkup =
+                    '<div><label>Cluster:</label> ' + clusterName + '</div>' +
+                    '<div><label>Hadoop Stack:</label> HDP ' + versionInfo.currentStackVersion +
+                    ((App.util.compareVersionStrings(versionInfo.currentStackVersion, versionInfo.latestStackVersion) < 0) ? ' (<a href="upgradeStack">Upgrade available</a>)' : '') +
+                    '</div>' +
+                    '<div style="clear:both"></div>';
 
                   var markup =
                     '<div class="clearfix">' +
-                      '<h2>Cluster: ' +  clusterName + '</h2>' +
                       '<div id="serviceLegend">' +
-                      '<span class="masterLegend">Master</span><span class="clientLegend" style="margin-right:0">Client</span>' +
+                      '<span class="masterLegend">Master</span><span class="clientLegend">Client</span>' +
                       '</div>' +
                       '</div>' +
                       '</div>';
+
+                  Y.one('#clusterInfoContent').setContent(clusterInfoMarkup);
 
                   Y.one("#clusterHostRoleMappingContent").setContent(
                     markup + generateHostRoleMappingMarkup(clusterServices) );
