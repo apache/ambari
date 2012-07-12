@@ -92,7 +92,7 @@ if (($clusterState['state'] == 'UPGRADE_STACK_UNINSTALLED')) {
  * future, not just during a live deploy. 
  */
 elseif (($clusterState['state'] == 'UPGRADE_STACK_DEPLOY_IN_PROGRESS') ||
-        ($clusterState['state'] == 'UPGRADE_STACK_UPGRADED')) {
+        ($clusterState['state'] == 'DEPLOYED')) {
 
   $txnId = $clusterState['context']['txnId'];
 }

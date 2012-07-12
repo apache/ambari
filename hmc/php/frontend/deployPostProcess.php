@@ -53,6 +53,25 @@ function deployPostProcess($clusterName, $user, $txnId, $progress)
     'txnId' => $txnId
   );
 
+  // record new HDP version in Clusters table if deploy was for upgrade
+  $clusterStateResponse = $dbAccessor->getClusterState($clusterName);
+  if ($clusterStateResponse['result'] != 0) {
+    return $clusterStateResponse;
+  }
+
+  $clusterState = json_decode($clusterStateResponse['state'], true);
+
+  if ($clusterState['state'] == 'UPGRADE_STACK_DEPLOY_IN_PROGRESS') {
+    $versionResponse = $dbAccessor->getLatestStackVersion();
+    if ($versionResponse['result'] != 0) {
+      return $versionResponse;
+    }
+    $dbAccessor->setCurrentClusterStackVersion(
+      $clusterName,
+      $versionResponse['version']
+    );
+  }
+
   // update state of the cluster 
   $retval = updateClusterState($clusterName, $state, $displayName, $context);
   if ($retval['result'] != 0) {

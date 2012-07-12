@@ -73,14 +73,15 @@ if (sizeof($clusters) == 0) {
     $clusterName = $cluster['clusterName'];
     $state = json_decode($cluster['state'], true);
     $logger->log_trace('cluster state=' . print_r($state, 1));
-    switch ($state['state']) {
+    $clusterState = $state['state'];
+
+    switch ($clusterState) {
       case 'NOT_CONFIGURED':
         if ($requestPage != 'welcome.php' &&
           $requestPage != 'initializeCluster.php'
         ) {
           eval(redirectToPage($requestPage, 'welcome.php'));
         }
-        $clusterState = 'NOT_CONFIGURED';
         break;
       case 'DEPLOYED':
         if ($state['context']['status']) {
@@ -99,31 +100,26 @@ if (sizeof($clusters) == 0) {
         if ($requestPage != 'welcome.php' && $requestPage != 'initializeCluster.php') {
           eval(redirectToPage($requestPage, 'welcome.php'));
         }
-        $clusterState = 'CONFIGURATION_IN_PROGRESS';
         break;
       case 'DEPLOYMENT_IN_PROGRESS':
         if ($requestPage != 'showDeployProgress.php') {
           eval(redirectToPage($requestPage, 'showDeployProgress.php'));
         }
-        $clusterState = 'DEPLOYMENT_IN_PROGRESS';
         break;
       case 'NODE_ADDITION_IN_PROGRESS':
         if ($requestPage != 'showDeployAddedNodesProgress.php') {
           eval(redirectToPage($requestPage, 'showDeployAddedNodesProgress.php'));
         }
-        $clusterState = 'NODE_ADDITION_IN_PROGRESS';
         break;
       case 'SERVICE_MANAGEMENT_IN_PROGRESS':
         if ($requestPage != 'showManageServicesProgress.php') {
           eval(redirectToPage($requestPage, 'showManageServicesProgress.php'));
         }
-        $clusterState = 'SERVICE_MANAGEMENT_IN_PROGRESS';
         break;
       case 'UNINSTALLATION_IN_PROGRESS':
         if ($requestPage != 'showUninstallProgress.php') {
           eval(redirectToPage($requestPage, 'showUninstallProgress.php'));
         }
-        $clusterState = 'UNINSTALLATION_IN_PROGRESS';
         break;
       case 'UNINSTALLED':
         if ($requestPage != 'uninstallFailed.php') {
@@ -135,31 +131,26 @@ if (sizeof($clusters) == 0) {
         if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
           eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
         }
-        $clusterState = 'UPGRADE_STACK_UNINSTALL_IN_PROGRESS';
         break;
       case 'UPGRADE_STACK_UNINSTALL_FAILED':
         if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
           eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
         }
-        $clusterState = 'UPGRADE_STACK_UNINSTALL_FAILED';
         break;
       case 'UPGRADE_STACK_UNINSTALLED':
         if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
           eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
         }
-        $clusterState = 'UPGRADE_STACK_UNINSTALLED';
         break;
       case 'UPGRADE_STACK_DEPLOY_IN_PROGRESS':
         if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
           eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
         }
-        $clusterState = 'UPGRADE_STACK_DEPLOY_IN_PROGRESS';
         break;
       case 'UPGRADE_STACK_DEPLOY_FAILED':
         if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
           eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
         }
-        $clusterState = 'UPGRADE_STACK_DEPLOY_FAILED';
         break;
     }
   }

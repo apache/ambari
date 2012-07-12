@@ -45,7 +45,7 @@
     $.ajax({
       type: 'POST',
       url: '/hmc/php/frontend/deployForUpgrade.php?clusterName=' + App.props.clusterName +
-        '&action=uninstall&clusterDeployUser=root',
+        '&clusterDeployUser=root',
       data: {},
       timeout: App.io.DEFAULT_AJAX_TIMEOUT_MS,
       success: function (data) {

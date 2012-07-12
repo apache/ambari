@@ -12,6 +12,9 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-631. Set the new Hadoop stack version in the database upon successful
+    upgrade (yusaku) 
+
     AMBARI-623. Streamline UI flow for Hadoop stack upgrade (yusaku)
 
     AMBARI-622. Upgrade DB only when Ambari Config table exists. (mahadev)

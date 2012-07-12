@@ -228,6 +228,36 @@ class HMCDBAccessor {
   }
 
   /**
+   * Sets the version of the stack running on a cluster
+   * @param string $clusterName Cluster Name
+   * @return mixed
+   *   array ( "version" => $stackVersion
+   *           "result" => 0,
+   *           "error" => "");
+   */
+
+  public function setCurrentClusterStackVersion ($clusterName, $stackVersion) {
+    LockAcquire();
+    $query = "UPDATE Clusters SET version = " . $this->dbHandle->quote($stackVersion)
+      . " WHERE cluster_name = "
+      . $this->dbHandle->quote($clusterName);
+    $response = array ( "result" => 0, "error" => "");
+    $this->logger->log_trace("Running query: $query");
+    $ret = $this->dbHandle->exec($query);
+    if ($ret === FALSE) {
+      $error = $this->getLastDBErrorAsString();
+      $this->logger->log_error("Error when executing query"
+        . ", query=".$query
+        . ", error=".$error);
+      $response["result"] = 1;
+      $response["error"] = $error;
+      LockRelease(); return $response;
+    }
+    $response['version'] = $stackVersion;
+    LockRelease(); return $response;
+  }
+
+  /**
    * Update cluster state for a given clusterName
    * @param string $clusterName Cluster Name
    * @param string $state New state of cluster
