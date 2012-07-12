@@ -6,6 +6,9 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-632. Ensure that mysql connector jar is available to sqoop (hitesh
+via vikram)
+
   AMBARI-630. lzo needs arch-specific hadoop-lzo-native rpm to also be installed (hitesh via vikram)
 
   AMBARI-624. Make hadoop-client/templeton/pig/sqoop also use 64-bit only packages (hitesh via vikram)
