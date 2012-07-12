@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-624. Make hadoop-client/templeton/pig/sqoop also use 64-bit only packages (hitesh via vikram)
+
   AMBARI-598. Set state to UNKNOWN and not 0 to avoid issues when using ===
 matches (hitesh via vikram)
 

@@ -25,8 +25,14 @@ class hdp-hadoop::client(
   $hdp::params::service_exists['hdp-hadoop::client'] = true
 
   Hdp-hadoop::Common<||>{service_states +> $service_state}
-  Hdp-hadoop::Package<||>{include_32_bit => true}
-  Hdp-hadoop::Configfile<||>{sizes +> 32}
+
+  if ($hdp::params::use_32_bits_on_slaves == true) {
+    Hdp-hadoop::Package<||>{include_32_bit => true}
+    Hdp-hadoop::Configfile<||>{sizes +> 32}
+  } else {
+    Hdp-hadoop::Package<||>{include_64_bit => true}
+    Hdp-hadoop::Configfile<||>{sizes +> 64}
+  }
 
   if ($service_state == 'no_op') {
   } elsif ($service_state in ['installed_and_configured','uninstalled']) {

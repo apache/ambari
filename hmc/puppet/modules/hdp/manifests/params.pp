@@ -238,7 +238,8 @@ class hdp::params()
     #   32 => 'sqoop-1.4.1-1.noarch'
     #},
     templeton => {
-       32 => 'templeton'
+       32 => 'templeton',
+       64 => 'templeton'
     },
     oozie-client => {
       64 => 'oozie-client.noarch'
@@ -261,20 +262,20 @@ class hdp::params()
     },
     mysql => {
       32 =>  ['mysql','mysql-server']
-  },
+    },
     mysql-connector => {
       64 =>  ['mysql-connector-java']
-  },
+    },
     extjs => {
       64 =>  ['extjs-2.2-1']
-  },
-     templeton-tar-hive => { 
+    },
+    templeton-tar-hive => {
       64 => ['templeton-tar-hive-0.0.1-1']
-  },
-     templeton-tar-pig => {
-       64 => ['templeton-tar-pig-0.0.1-1']
+    },
+    templeton-tar-pig => {
+      64 => ['templeton-tar-pig-0.0.1-1']
+    }
   }
-}
   $packages = 'bigtop' 
   if ($packages == 'hdp') {
     $package_names[hadoop] = { 32 => ['hadoop.i386'], 64 => ['hadoop.x86_64']}
@@ -304,7 +305,7 @@ class hdp::params()
 
   } elsif ($packages == 'bigtop') {  
 
-    $package_names[hadoop] = {32 => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386','hadoop-lzo'], 64 => ['hadoop','hadoop-libhdfs.x86_64','hadoop-native.x86_64','hadoop-pipes.x86_64','hadoop-sbin.x86_64','hadoop-lzo']}
+    $package_names[hadoop] = {32 => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386','hadoop-lzo'], 64 => ['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo']}
     #$package_names[hadoop] = {32 => ['hadoop.i386','hadoop-native.i386'], 64 => ['hadoop.x86_64','hadoop-native.x86_64']}
    
     $mapred_smoke_test_script = "/usr/lib/hadoop/sbin/hadoop-validate-setup.sh"
@@ -322,9 +323,9 @@ class hdp::params()
     $use_32_bits_on_slaves = false
     $package_names[zookeeper] = {64 => ['zookeeper']}
     $package_names[hbase] = {64 => ['hbase']}
-    $package_names[sqoop] = {32 => ['sqoop']}
-    $package_names[pig] = {32 => ['pig.noarch']}
-    $package_names[hcat] = {32 => ['hcatalog']}
+    $package_names[sqoop] = {32 => ['sqoop'], 64 => ['sqoop']}
+    $package_names[pig] = {32 => ['pig.noarch'], 64 => ['pig.noarch']}
+    $package_names[hcat] = {32 => ['hcatalog'], 64 => ['hcatalog']}
     $package_names[hive] = {64 => ['hive']}
     $zk_bin = '/usr/lib/zookeeper/bin'
     $zk_smoke_test_script = "/usr/lib/zookeeper/bin/zkCli.sh"
