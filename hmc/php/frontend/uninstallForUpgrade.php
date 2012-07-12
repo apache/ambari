@@ -54,10 +54,10 @@ if ($clusterStateResponse['result'] != 0) {
 
 $clusterState = json_decode($clusterStateResponse['state'], true);
 
-/* Run an actual uninstall for upgrade only if this cluster is in a deployed state
+/* Run uninstall for upgrade only if this cluster is in a deployed state
  * (regardless of whether the deploy was a success or failure). 
  */
-if ($clusterState['state'] == 'DEPLOYED') {
+if ($clusterState['state'] == 'UPGRADE_STACK_STARTED') {
 
   $logger->log_info("Uninstall invoked");
 
@@ -118,12 +118,9 @@ if ($clusterState['state'] == 'DEPLOYED') {
   }
 }
 /* In case the uninstall is already running or has ended, just return the txnId 
- * and deployUser from the DB instead of kicking off a fresh uninstall - this 
- * is so we can use this entrypoint to show the cluster's uninstall progress at 
- * any time in the future, not just during a live uninstall. 
+ * and deployUser from the DB
  */
-elseif ($clusterState['state'] == 'UPGRADE_STACK_UNINSTALL_IN_PROGRESS') {
-
+else {
   $txnId = $clusterState['context']['txnId'];
   $deployUser = $clusterState['context']['deployUser'];
 }

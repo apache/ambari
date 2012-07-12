@@ -178,7 +178,36 @@
 
   }
 
-  uninstallStack();
+  function checkClusterState() {
+    $.ajax({
+      type: 'GET',
+      url: '/hmc/php/frontend/listClusters.php',
+      data: {},
+      dataType: 'json',
+      timeout: App.io.DEFAULT_AJAX_TIMEOUT_MS,
+      success: function (data) {
+        var clusterState = data.response[App.props.clusterName].state;
+        switch (clusterState) {
+          case 'UPGRADE_STACK_STARTED':
+          case 'UPGRADE_STACK_UNINSTALL_IN_PROGRESS':
+          case 'UPGRADE_STACK_UNINSTALL_FAILED':
+            uninstallStack();
+            break;
+          case 'UPGRADE_STACK_UNINSTALLED':
+          case 'UPGRADE_STACK_DEPLOY_IN_PROGRESS':
+          case 'UPGRADE_STACK_DEPLOY_FAILED':
+          case 'DEPLOYED':
+            deployStack();
+            break;
+        }
+      },
+      error: function (data) {
+        alert(App.io.DEFAULT_AJAX_ERROR_MESSAGE);
+      }
+    });
+  }
+
+  checkClusterState();
 
 })();
 

@@ -87,12 +87,9 @@ if (($clusterState['state'] == 'UPGRADE_STACK_UNINSTALLED')) {
   }
 }
 /* In case the deploy is already running or has ended, just return the txnId 
- * from the DB instead of kicking off a fresh deploy - this is so we can use
- * this entrypoint to show the cluster's deploy progress at any time in the
- * future, not just during a live deploy. 
+ * from the DB
  */
-elseif (($clusterState['state'] == 'UPGRADE_STACK_DEPLOY_IN_PROGRESS') ||
-        ($clusterState['state'] == 'DEPLOYED')) {
+else {
 
   $txnId = $clusterState['context']['txnId'];
 }

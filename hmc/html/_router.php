@@ -33,21 +33,11 @@ require_once $BASE_DIR.'/../php/util/lock.php';
 require_once $BASE_DIR.'/../php/db/HMCDBAccessor.php';
 require_once $BASE_DIR.'/../php/util/clusterState.php';
 
-/*
- * Due to the way include files are scoped,
- * we return the string to be eval'd, rather than
- * executing them.
- */
-function redirectToPage($requestPage, $targetPage)
-{
+
+function redirectToPage($requestPage, $targetPage) {
   $bypassRouter = $GLOBALS['BYPASS_ROUTER'] || (isset($_GET['bypassRouter']) && $_GET['bypassRouter']);
   if (!$bypassRouter) {
-    // if the page is index.php or the root app directory, don't redirect... simply include
-    if ($requestPage != 'index.php' && $requestPage != 'html') {
-      return "header('Location: /hmc/html/$targetPage'); exit;";
-    } else {
-      return "require('$targetPage'); exit;";
-    }
+    return "header('Location: /hmc/html/$targetPage'); exit;";
   } else {
     // do not redirect/forward.  fall through
     return "";
@@ -85,7 +75,7 @@ if (sizeof($clusters) == 0) {
         break;
       case 'DEPLOYED':
         if ($state['context']['status']) {
-          if ($requestPage == 'initializeCluster.php') {
+          if ($requestPage == 'initializeCluster.php' || $requestPage == 'welcome.php') {
             eval(redirectToPage($requestPage, 'index.php'));
           }
           $clusterState = 'OPERATIONAL';
@@ -127,26 +117,10 @@ if (sizeof($clusters) == 0) {
         }
         $clusterState = 'UNINSTALL_FAILED';
         break;
+      case 'UPGRADE_STACK_STARTED':
       case 'UPGRADE_STACK_UNINSTALL_IN_PROGRESS':
-        if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
-          eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
-        }
-        break;
       case 'UPGRADE_STACK_UNINSTALL_FAILED':
-        if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
-          eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
-        }
-        break;
-      case 'UPGRADE_STACK_UNINSTALLED':
-        if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
-          eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
-        }
-        break;
       case 'UPGRADE_STACK_DEPLOY_IN_PROGRESS':
-        if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
-          eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));
-        }
-        break;
       case 'UPGRADE_STACK_DEPLOY_FAILED':
         if ($requestPage != 'upgradeStack/showUpgradeProgress.php') {
           eval(redirectToPage($requestPage, 'upgradeStack/showUpgradeProgress.php'));

@@ -12,6 +12,9 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-634. Force redirect to the "upgrade progress" page to prevent any
+    other actions during Hadoop stack upgrade (yusaku)
+
     AMBARI-628. hdp-nagios and hdp-monitoring has wrong configuration file
     location, also owner:group permissions are wrong.
 

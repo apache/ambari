@@ -37,9 +37,9 @@
       <div id="pageContent" style="margin:40px 0 0 40px">
         <fieldset>
           <form id="upgradeStackForm" enctype="multipart/form-data" method="post">
-            <input type="hidden" name="ClusterDeployUser" id="ClusterDeployUser" value="root">
-            <label for="clusterDeployUserIdentityFile"><?php echo $RES['common.sshPrivateKeyFile.label'] ?></label>
-            <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFile" value="" placeholder="">
+            <input type="hidden" name="sshUser" id="sshUser" value="root">
+            <label for="sshPrivateKeyFile"><?php echo $RES['common.sshPrivateKeyFile.label'] ?></label>
+            <input type="file" name="sshPrivateKeyFile" id="sshPrivateKeyFile" value="" placeholder="">
             <div class="separator"></div>
             <div id="fileUploadWrapper">
               <iframe name="fileUploadTarget" id="fileUploadTarget" src="about:blank" style="display:none"></iframe>

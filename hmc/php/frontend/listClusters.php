@@ -45,7 +45,7 @@ if ($allClustersResult["result"] != 0) {
 
 foreach($allClustersResult["clusters"] as $clusterId => $value) {
   $logger->log_debug("Got cluster ".$clusterId.json_encode($value));
-  $listOfClusters[$value["clusterName"]] = $value["state"];
+  $listOfClusters[$value["clusterName"]] = json_decode($value["state"]);
 }
 
 $response["response"] = $listOfClusters;

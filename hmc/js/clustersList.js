@@ -154,7 +154,7 @@ function ClustersList() {
               var clusterName; var clusterInfo;
               for (clusterId in clusterListInfoJson) {
                 clusterName = clusterId;
-                clusterInfo = Y.JSON.parse(clusterListInfoJson[clusterName]);
+                clusterInfo = clusterListInfoJson[clusterName];
                 Y.log( "Cluster Info: " + Y.Lang.dump(clusterInfo.displayName));
               }
             }

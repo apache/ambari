@@ -26,13 +26,13 @@
     var message = '';
     var errorCount = 0;
 
-    var fileName = $('#clusterDeployUserIdentityFile').val();
+    var fileName = $('#sshPrivateKeyFile').val();
     if (fileName == '') {
       message += 'SSH Private Key File not specified';
-      $('#clusterDeployUserIdentityFile').addClass('formInputError');
+      $('#sshPrivateKeyFile').addClass('formInputError');
       errorCount++;
     } else {
-      $('#clusterDeployUserIdentityFile').removeClass('formInputError');
+      $('#sshPrivateKeyFile').removeClass('formInputError');
     }
 
     if (errorCount > 0) {
@@ -64,8 +64,9 @@
 
         var form = $('#upgradeStackForm');
 
-        // addNodes.php handles ssh key upload and save
-        form.attr('action', '/hmc/php/frontend/addNodes.php?clusterName=' +
+        // upgradeStack.php handles ssh key upload and also triggers
+        // the upgrade process
+        form.attr('action', '/hmc/php/frontend/upgradeStack.php?clusterName=' +
           App.props.clusterName);
 
         form.attr('target', 'fileUploadTarget');
