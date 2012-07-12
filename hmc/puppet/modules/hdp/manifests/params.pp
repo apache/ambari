@@ -305,7 +305,7 @@ class hdp::params()
 
   } elsif ($packages == 'bigtop') {  
 
-    $package_names[hadoop] = {32 => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386','hadoop-lzo'], 64 => ['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo']}
+    $package_names[hadoop] = {32 => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386','hadoop-lzo', 'hadoop-lzo-native.i386'], 64 => ['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo', 'hadoop-lzo-native']}
     #$package_names[hadoop] = {32 => ['hadoop.i386','hadoop-native.i386'], 64 => ['hadoop.x86_64','hadoop-native.x86_64']}
    
     $mapred_smoke_test_script = "/usr/lib/hadoop/sbin/hadoop-validate-setup.sh"

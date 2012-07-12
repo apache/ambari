@@ -50,6 +50,9 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-630. lzo needs arch-specific hadoop-lzo-native rpm to also be installed
+    (hitesh)
+
     AMBARI-627. AMBARI-400 messed up the hbase region server opts (ddas via hitesh)
 
     AMBARI-629. Upgrading Hadoop stack - uninstall for upgrade should preserve
