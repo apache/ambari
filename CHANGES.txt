@@ -56,6 +56,8 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-632. Ensure that mysql connector jar is available to sqoop (hitesh)
+
     AMBARI-633. Fix invalid HTML markup on Monitoring Dashboard (yusaku)
 
     AMBARI-630. lzo needs arch-specific hadoop-lzo-native rpm to also be installed

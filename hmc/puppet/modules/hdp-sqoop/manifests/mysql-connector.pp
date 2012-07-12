@@ -35,11 +35,9 @@ class hdp-sqoop::mysql-connector()
        require   => Anchor['hdp-sqoop::mysql-connector::begin']
    }
 
-   hdp::exec { 'sqoop mkdir -p ${artifact_dir} ;  cp /usr/share/java/mysql-connector-java.jar  ${target}':
-       command => "mkdir -p ${artifact_dir} ;  cp /usr/share/java/mysql-connector-java.jar  ${target}",
-       unless  => "test -f ${target}",
-       creates => $target,
-       path    => ["/bin","/usr/bin/"],
+   file { "${sqoop_lib}/mysql-connector-java.jar" :
+       ensure => link,
+       target => "/usr/share/java/mysql-connector-java.jar",
        require => Hdp::Exec['yum install -y mysql-connector-java'],
        notify  =>  Anchor['hdp-sqoop::mysql-connector::end'],
    }
