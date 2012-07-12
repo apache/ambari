@@ -53,6 +53,8 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-633. Fix invalid HTML markup on Monitoring Dashboard (yusaku)
+
     AMBARI-630. lzo needs arch-specific hadoop-lzo-native rpm to also be installed
     (hitesh)
 
