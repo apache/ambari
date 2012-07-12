@@ -33,8 +33,14 @@ Group: System Environment/Base
 Source: %{name}-%{version}.tar.gz
 Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
 Requires: gweb >= 2.2
+
+%if 0%{?suse_version}
+%define graphd_dir /srv/www/htdocs/ganglia/graph.d/
+%else
 %define graphd_dir /var/www/html/ganglia/graph.d/
+%endif
 %define gconf_dir /var/lib/ganglia/conf/
+
 BuildArchitectures: noarch
 
 %description

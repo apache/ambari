@@ -34,7 +34,11 @@ Source: %{name}-%{version}.tar.gz
 Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
 Requires: php >= 5, httpd
 %define web_prefixdir %{_prefix}/share/hdp/dashboard
+%if 0%{?suse_version}
+%define httpd_confdir %{_sysconfdir}/apache2/conf.d
+%else
 %define httpd_confdir %{_sysconfdir}/httpd/conf.d
+%endif
 BuildArchitectures: noarch
 
 %description
@@ -55,12 +59,25 @@ This package provides a monitoring dashboard for a Hadoop cluster.
 
 %__cp -rf dataServices/* $RPM_BUILD_ROOT/%{web_prefixdir}/dataServices/
 %__cp -rf ui/* $RPM_BUILD_ROOT/%{web_prefixdir}/ui/
-echo "Alias /hdp %{_prefix}/share/hdp" > $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
+
+echo "Alias /hdp %{_prefix}/share/hdp" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
+echo "<Directory /usr/share/hdp>" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
+echo "  Options None" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
+echo "  AllowOverride None" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
+echo "  Order allow,deny" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
+echo "  Allow from all" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
+echo "</Directory>" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_dashboard.conf
 
 %files
 %defattr(-,root,root)
-%{web_prefixdir}/*
 %{httpd_confdir}/hdp_mon_dashboard.conf
+%if 0%{?suse_version}
+%defattr(-,wwwrun,www)
+%{web_prefixdir}/*
+%else
+%defattr(-,root,root)
+%{web_prefixdir}/*
+%endif
 
 %clean
 %__rm -rf $RPM_BUILD_ROOT

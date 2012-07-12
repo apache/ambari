@@ -35,7 +35,11 @@ Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
 Requires: nagios, nagios-plugins, php >= 5
 %define nagioshdpscripts_dir %{_prefix}/share/hdp/nagios
 %define nagiosplugin_dir %{_libdir}/nagios/plugins
+%if 0%{?suse_version}
+%define httpd_confdir %{_sysconfdir}/apache2/conf.d
+%else
 %define httpd_confdir %{_sysconfdir}/httpd/conf.d
+%endif
 BuildArchitectures: noarch
 
 %description
@@ -56,7 +60,13 @@ monitoring of a Hadoop Cluster
 
 %__cp -rf scripts/* $RPM_BUILD_ROOT/%{nagioshdpscripts_dir}/
 %__cp -rf plugins/* $RPM_BUILD_ROOT/%{nagiosplugin_dir}/
-echo "Alias /hdp %{_prefix}/share/hdp" > $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_nagios_addons.conf
+echo "Alias /hdp %{_prefix}/share/hdp" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_nagios_addons.conf
+echo "<Directory /usr/share/hdp>" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_nagios_addons.conf
+echo "  Options None" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_nagios_addons.conf
+echo "  AllowOverride None" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_nagios_addons.conf
+echo "  Order allow,deny" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_nagios_addons.conf
+echo "  Allow from all" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_nagios_addons.conf
+echo "</Directory>" >> $RPM_BUILD_ROOT/%{httpd_confdir}/hdp_mon_nagios_addons.conf
 
 %files
 %defattr(-,root,root)
