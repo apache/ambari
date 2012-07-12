@@ -218,7 +218,7 @@ define hdp::exec(
   $user = undef,
   $creates = undef,
   $tries = 1,
-  $timeout = undef,
+  $timeout = 900,
   $try_sleep = undef,
   $initial_wait = undef,
   $logoutput = undef,

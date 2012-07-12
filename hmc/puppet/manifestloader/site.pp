@@ -32,7 +32,7 @@ class manifestloader () {
 
     exec { 'puppet_apply':
       command   => "sh /etc/puppet/agent/modules/puppetApply.sh",
-      timeout   => 1200,
+      timeout   => 1800,
       path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
       logoutput => "true"
     }

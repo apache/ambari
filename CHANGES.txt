@@ -6,6 +6,9 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-607. Increase puppet timeouts to handle single-node installs timing
+out (hitesh via vikram)
+
   AMBARI-627. AMBARI-400 messed up the hbase region server opts (ddas via vikram)
 
   AMBARI-618. Fix RAT warnings on docs directory (vinodkv via vikram)
