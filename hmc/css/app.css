@@ -577,6 +577,9 @@ div.separator {
 #txnProgressBox .progress.progress-danger .bar {
   width:auto;
 }
+#txnProgressBox .progress.progress-warning .bar {
+  width:auto;
+}
 #txnProgressBox .status {
   margin-left:8px;
   float:left; 

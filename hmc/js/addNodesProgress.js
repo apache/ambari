@@ -50,6 +50,9 @@ function generateSingleDiscoverProgressStateMarkup(discoverProgressStateTitle, p
      break;
 
   case "FAILED":
+    stateClass = 'txnProgressStateWarning';
+    barClass = 'progress progress-warning';
+    break;
   case "TOTALFAILURE":
     stateClass = 'txnProgressStateError';
     barClass = 'progress progress-danger';

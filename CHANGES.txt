@@ -37,6 +37,10 @@ Trunk (unreleased changes)
 
   IMPROVEMENTS
 
+    AMBARI-635. Add Nodes Progress: for partial failure that lets the user
+    continue, display an orange bar rather than a red bar in the progress popup
+    (yusaku)
+
     AMBARI-620. Put common Javascript utility functions into appropriate
     namespace/packages (yusaku)
 
