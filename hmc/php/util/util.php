@@ -72,7 +72,13 @@ function convertToLowerCase($hosts) {
   return $result;
 }
 
+function updateKerberosState($clusterName, $kerberosSecurity) {
+  $dbAccessor = new HMCDBAccessor($GLOBALS["DB_PATH"]);
+  return $dbAccessor->updateKerberosConfigs($clusterName, $kerberosSecurity);
+}
+
 function removeCarriageReturn($hostsFileDestination) {
+  $logger = new HMCLogger("RemoveCarriageReturn");
   exec("sed -i -e 's/\r//g' ". $hostsFileDestination, $output, $retVal);
   if($retVal != 0) {
     $logger->log_error("shell command exec() removing '\r' from ". $hostsFileDestination . " file failed");

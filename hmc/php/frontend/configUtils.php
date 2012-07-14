@@ -398,6 +398,14 @@ function validateConfigs($svcConfigs) {
         if ($val != "true" && $val != "false") {
           $errors[$key] = array ( "error" => "Invalid value. Only true/false allowed");
         }
+      } else if ($key == "kerberos_realm") {
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        }
+      } else if ($key == "keytab_path") {
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        }
       }
 
       /*
@@ -549,6 +557,13 @@ function validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $
 
     $logger->log_error("Got error when validating configs");
     return $mergedErrors;
+  }
+  if ($finalProperties["kerberos_install_type"] == "USER_SET_KERBEROS") {
+    $dbResponse = $dbAccessor->setServiceEnabled($clusterName, "KERBEROS", FALSE);
+    if ($dbResponse["result"] != 0) {
+      $logger->log_error("Got error while updating Kerberos state: ".$dbResponse["error"]);
+      return $dbResponse;
+    }
   }
 
   $dbResponse = $dbAccessor->updateServiceConfigs($clusterName, $finalProperties);

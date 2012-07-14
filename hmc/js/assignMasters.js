@@ -54,6 +54,9 @@ function AssignMasters() {
   	  var hostInfo = getNodeInfo(host);
   	  markup += '<div class="hostToMasterServices"><h3>' + host + '<span class="hostInfo">' + getTotalMemForDisplay(hostInfo.totalMem) + ', ' + hostInfo.cpuCount + ' cores</span></h3><ul>';
   	  for (var j in hostsToMasterServices[host]) {
+        if (j === "KERBEROS_SERVER" && Y.one("#existingKerberosId").get('checked') === true) {
+          continue;
+        }
   	    markup += '<li>' + hostsToMasterServices[host][j] + '</li>';
   	  }
       markup += '</ul><div style="clear:both"></div></div>';
@@ -129,7 +132,6 @@ function AssignMasters() {
   
       globalYui.one('#selectServiceMastersSubmitButtonId').on('click', function (e) {
         e.target.set('disabled', true);
-  
         var assignHostsRequestData = {};      
         for (var masterName in masterServices) {
           var hostName = $('select[name=' + masterName + ']').val();
@@ -142,13 +144,23 @@ function AssignMasters() {
             if (assignHostsRequestData[masterName] == null) {
               assignHostsRequestData[masterName] = [];
             }
+            if (masterName === 'KERBEROS_SERVER') {
+
+              var checked = Y.one("#existingKerberosId").get('checked');
+              if (checked) {
+                App.props.securityType = "USER_SET_KERBEROS";
+                hostName = Y.one("#existingKerbTxtId").get('value');
+              } else {
+                App.props.securityType = "AMBARI_SET_KERBEROS";
+              }
+            }
             assignHostsRequestData[masterName].push(hostName);
           }
           // globalYui.log("Assignment for " + masterName + " is " + assignHostsRequestData[masterName]);
         };
   
         globalYui.io("../php/frontend/assignMasters.php?clusterName=" + clusterInfo.clusterName, {
-  
+
           method: 'POST',
           data: globalYui.JSON.stringify(assignHostsRequestData),
           timeout : App.io.DEFAULT_AJAX_TIMEOUT_MS,
@@ -162,6 +174,7 @@ function AssignMasters() {
             },
   
             success: function (x,o) {
+              var clusterConfigJson;
               e.target.set('disabled', false);
               globalYui.log("RAW JSON DATA: " + o.responseText);
   
@@ -181,7 +194,7 @@ function AssignMasters() {
                 alert("Got error!" + clusterConfigJson.error);
                 return;
               }
-  
+
               clusterConfigJson = clusterConfigJson.response;
   
               /* Done with this stage, transition to the next. */
@@ -222,7 +235,6 @@ function AssignMasters() {
               masterHostInfo.displayName = masterHostInfo.displayName + ' ' + zkIndex;
               zkIndex++;
             }
-  
             masterServices[masterHostInfo.name] = masterHostInfo;
           }
         });
@@ -232,10 +244,10 @@ function AssignMasters() {
     var hostsToMasterServices = {};
     var markup = '';
     for (var i in masterServices) {
-  	  markup += '<div class="masterServiceSelect"><label><b>'
+  	  markup += '<div class="masterServiceSelect" id=' + masterServices[i].name + 'Id' + '><label><b>'
   	  	+ masterServices[i].displayName
   	    + '</b></label>' + getMasterHostSelect(masterServices[i].name, masterServices[i].host)
-  		+ '</div>';
+  		  + '</div>';
   	  if (hostsToMasterServices[masterServices[i].host] == null) {
   		  hostsToMasterServices[masterServices[i].host] = {};
   	  } 
@@ -247,8 +259,49 @@ function AssignMasters() {
     }
     hostsToMasterServices[managerHostName].MANAGER_SERVER = App.props.managerServiceName + ' Server';
 
-    $('#masterServicesToHosts').html(markup);
-    
+    Y.one('#masterServicesToHosts').setContent(markup);
+
+    // At the time of load of the page if Kerberos selection div is already
+    // present then remove it
+
+    var kerbPresent = Y.one("#existingKerberosServerId");
+    if (kerbPresent) {
+      Y.one("#masterServicesToHostsContainer").removeChild(kerbPresent);
+    }
+
+    kerbPresent = Y.one("#KERBEROS_SERVERId");
+    if (kerbPresent) {
+      var hmarkup = '<div name="existingKerberosServer" id="existingKerberosServerId" style="clear:both;float:none;">'
+        + '<label class="checkbox" for="existing_Kerberos" style="padding-left:70px; dispaly:block;">'
+        + '<em>'
+        + "Use self-configured Kerberos Server"
+        + '</em>'
+        + '<input type="checkbox" name="existing_Kerberos" id="existingKerberosId" style="position: relative;">'
+        + '</label>'
+        + '<br>'
+        + '</div>';
+      var target = Y.one("#masterServicesToHostsContainer");
+      target.prepend(hmarkup);
+
+      var hmarkupTxt = '<input class type="text" name="existing_Kerberos" id="existingKerbTxtId" placeholder="Enter host name" value="" style="display:none;">';
+      kerbPresent.one('label').insert(hmarkupTxt, "after");
+
+      Y.one('#existingKerberosId').on('click', function(e) {
+        var selectKerbNode = Y.one("#KERBEROS_SERVERId").one('select');
+        var existKerbVal = this.get('checked');
+        var kerbLabelTxt =  Y.one('#existingKerbTxtId');
+
+        if (existKerbVal === true) {
+          selectKerbNode.hide();
+          kerbLabelTxt.show();
+        } else {
+          selectKerbNode.show();
+          kerbLabelTxt.hide();
+        }
+        renderHostsToMasterServices(hostsToMasterServices);
+      });
+    }
+
     renderHostsToMasterServices(hostsToMasterServices);
     
     // prevValue is used to undo user selection in case we prevent the user from assigning a service
@@ -270,5 +323,5 @@ function AssignMasters() {
   	  }
     });    
   };  // end render
-  
+
 };

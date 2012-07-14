@@ -62,6 +62,7 @@ Y.one("#configureClusterAdvancedDynamicRenderDivId").delegate(
 );
 
 function renderConfigureServicesInternal (optionsInfo) {
+  optionsInfo.services.KERBEROS.properties.kerberos_install_type.value = App.props.securityType;
   Y.one("#configureClusterAdvancedDynamicRenderDivId").setContent(App.ui.configureServicesUtil.getOptionsSummaryMarkup(optionsInfo, false));
   $('#configureServicesTabs a:first').tab('show');
   Y.one("#configureClusterAdvancedCoreDivId").show();

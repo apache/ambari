@@ -12,6 +12,9 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-636. Support for Hadoop Security (front-end changes)
+    (Jaimin Jetly via yusaku)
+
     AMBARI-634. Force redirect to the "upgrade progress" page to prevent any
     other actions during Hadoop stack upgrade (yusaku)
 

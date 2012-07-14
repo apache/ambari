@@ -62,6 +62,8 @@ CREATE TABLE  "Services" (
 );
 
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
+  ( "KERBEROS", "Kerberos", '{ "runnable": true, "mustInstall": false, "editable": true, "noDisplay": false }',  "Kerberos for Secure Cluster Installation" );
+INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
   ( "HDFS", "HDFS", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": false }', "Apache Hadoop Distributed File System" );
 INSERT OR REPLACE INTO "Services" ( service_name, display_name, attributes, description ) VALUES
   ( "MAPREDUCE", "MapReduce", '{ "runnable": true, "mustInstall": true, "editable": false, "noDisplay": false }', "Apache Hadoop Distributed Processing Framework" );
@@ -157,6 +159,12 @@ INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, displ
   ( "GANGLIA", "GANGLIA_MONITOR_SERVER", "Ganglia Collector", '{ "isMaster": true, "isClient": false }', "" );
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
   ( "GANGLIA", "GANGLIA_MONITOR", "Ganglia Slave", '{ "isMaster": false, "isClient": false }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "KERBEROS", "KERBEROS_SERVER", "Kerberos Server", '{ "isMaster": true, "isClient": false }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "KERBEROS", "KERBEROS_ADMIN_CLIENT", "Kerberos Admin Client", '{ "isMaster": false, "isClient": false }', "" );
+INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
+  ( "KERBEROS", "KERBEROS_CLIENT", "Kerberos Client", '{ "isMaster": false, "isClient": true }', "" );
 
 CREATE TABLE  "ServiceDependencies" (
   from_service_name TEXT, -- service A depends on B
@@ -415,6 +423,12 @@ INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, de
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "fs_checkpoint_period", "21600", "HDFS Maximum Checkpoint Delay", "Maximum delay between two consecutive checkpoints for HDFS", "HDFS" , "TEXT", '{ "reconfigurable": false, "unit":"seconds", "editable": false }' );
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "fs_checkpoint_size", "0.5", "HDFS Maximum Edit Log Size for Checkpointing", "Maximum size of the edits log file that forces an urgent checkpoint even if the maximum checkpoint delay is not reached", "HDFS" , "TEXT", '{ "reconfigurable": false, "unit":"GB", "editable": false }' );
 
+-- Security related properties
+
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "security_enabled", "true", "Hadoop security", "Hadoop security enabled", "KERBEROS" , "NODISPLAY", '{ "reconfigurable": true }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "kerberos_realm", "", "Kerberos realm", "Kerberos realm", "KERBEROS" , "TEXT", '{ "reconfigurable": false }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "keytab_path", "/etc/security/keytabs", "Keytab directory", "Keytab directory", "KERBEROS" , "TEXT", '{ "reconfigurable": false }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "kerberos_install_type", "NONE", "Kerberos installation", "Whether it is a user-configured or Ambari-configured Kerberos", "KERBEROS" , "NODISPLAY", '{ "reconfigurable": false, "editable": false }' );
 
 --                                        Done with gsCluster.properties
 

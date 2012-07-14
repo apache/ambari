@@ -44,7 +44,8 @@ var App = App || {
 App.props = {
   managerServiceName: 'Ambari',
   clusterName: '',
-  homeUrl: '/hmc/html/'
+  homeUrl: '/hmc/html/',
+  troubleshootUrl: 'http://incubator.apache.org/ambari/troubleshoot.html'
 };
 
 // On some pages the clusterName global variable is set before
@@ -468,4 +469,5 @@ if (typeof clusterName !== 'undefined') {
     submitDataAndProgressToNextScreen: submitDataAndProgressToNextScreen
   };
 })();
+
 

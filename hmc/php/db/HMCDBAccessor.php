@@ -779,6 +779,88 @@ class HMCDBAccessor {
   }
 
   /**
+   * Set Service Enabled value
+   * @param clusterName Cluster Name
+   * @param serviceName Service Name
+   * @param enable/disable Service
+   * @return mixed
+   *   array (
+   *       "result" => 0,
+   *       "error" => "",
+   *       "is_enabled" => $enableValue,
+   *       "clusterName" =>
+   *       "serviceName" =>
+   *    )
+   */
+
+  public function setServiceEnabled($clusterName, $serviceName, $enableValue) {
+    LockAcquire();
+    if ($enableValue == FAlSE) {
+      $enableValue = 0;
+    } else if ($enableValue == FAlSE){
+      $enableValue = 1;
+    }
+    $response = array ( "result" => 0, "error" => "",
+      "clusterName" => $clusterName, "serviceName" => $serviceName);
+    $error = "";
+    $ret = $this->dbHandle->beginTransaction();
+    if (!$ret) {
+      $error = $this->getLastDBErrorAsString();
+      $response["result"] = 1;
+      $response["error"] = "Failed to start DB transaction, error=".$error;
+      LockRelease(); return $response;
+    }
+    $query = "SELECT is_enabled FROM ServiceInfo"
+      . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
+      . " AND service_name = " . $this->dbHandle->quote($serviceName);
+    $this->logger->log_trace("Running query: $query");
+    $pdoStmt = $this->dbHandle->query($query);
+    if ($pdoStmt === FALSE) {
+      $error = $this->getLastDBErrorAsString();
+      $this->dbHandle->rollBack();
+      $this->logger->log_error("Error when executing query"
+        . ", query=".$query
+        . ", error=".$error);
+      $response["result"] = 1;
+      $response["error"] = $error;
+      LockRelease(); return $response;
+    }
+    $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
+    if (isset($result) && is_array($result) && count($result) == 1) {
+      $response["oldState"] = $result[0]["state"];
+      $query = "UPDATE ServiceInfo SET is_enabled = "
+        . $this->dbHandle->quote($enableValue)
+        . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
+        . " AND service_name = " . $this->dbHandle->quote($serviceName);
+      $this->logger->log_trace("Running query: $query");
+      $ret = $this->dbHandle->exec($query);
+      if (FALSE === $ret) {
+        $error = $this->getLastDBErrorAsString();
+        $this->dbHandle->rollBack();
+        $this->logger->log_error("Error when executing query"
+          . ", query=".$query
+          . ", error=".$error);
+        $response["result"] = 1;
+        $response["error"] = $error;
+        LockRelease(); return $response;
+      }
+      $ret = $this->dbHandle->commit();
+      if (!$ret) {
+        $error = $this->getLastDBErrorAsString();
+        $response["result"] = 1;
+        $response["error"] = "Failed to commit DB transaction, error=".$error;
+        LockRelease(); return $response;
+      }
+      $response["is_enabled"] = $enableValue;
+      LockRelease(); return $response;
+    }
+    $this->dbHandle->rollBack();
+    $response["result"] = 1;
+    $response["error"] = "Could not find service in DB";
+    LockRelease(); return $response;
+  }
+
+  /**
    * Add list of services for cluster
    * @param string $clusterName
    * @param mixed $services
@@ -883,6 +965,9 @@ class HMCDBAccessor {
     }
     LockRelease(); return $response;
   }
+
+
+
 
 /////////////////////////////////////////// End of services related APIs ////////////////////////////////////////////
 
@@ -1405,6 +1490,44 @@ class HMCDBAccessor {
   }
 
   /**
+   * Get the install type of the Kerberos service
+   * @param string $clusterName
+   * @return mixed
+   *   array (
+   *       "result" => 0,
+   *       "error" => "",
+   *       "clusterName" => $clusterName,
+   *       "type" => value
+   *           ...
+   *         )
+   *      )
+   */
+  public function getKerberosInstallType($clusterName) {
+    LockAcquire();
+    $error = "";
+    $query = "SELECT value FROM ServiceConfig "
+      . " WHERE cluster_name = " . $this->dbHandle->quote($clusterName)
+      . "AND key = kerberos_install_type";
+    $response = array ( "result" => 0, "error" => "");
+    $response["clusterName"] = $clusterName;
+    $this->logger->log_trace("Running query: $query");
+    $pdoStmt = $this->dbHandle->query($query);
+    if ($pdoStmt === FALSE) {
+      $error = $this->getLastDBErrorAsString();
+      $this->logger->log_error("Error when executing query"
+        . ", query=".$query
+        . ", error=".$error);
+      $response["result"] = 1;
+      $response["error"] = $error;
+    LockRelease(); return $response;
+    }
+    $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
+    $response["type"] = $result[0]["value"];
+    LockRelease(); return $response;
+  }
+
+
+  /**
    * Get all configuration properties for a given cluster
    * @param string $clusterName
    * @return mixed
@@ -1446,6 +1569,21 @@ class HMCDBAccessor {
   }
 
   /**
+   * Get all configuration properties for a given cluster
+   * @param string $clusterName
+   * @param string $KerberosSecurity
+   * @return mixed
+   *   array (
+   *       "result" => 0,
+   *       "error" => "",
+   *       "clusterName" => $clusterName,
+   *       "sql" => array ( "rowsChanged" => 1 )
+   *      )
+   */
+  public function updateKerberosConfigs($clusterName, $kerberosSecurity) {
+    return $this -> updateServiceConfigs ($clusterName , array("kerberos_install_type" => $kerberosSecurity));
+  }
+  /**
    * Update config properties for a given cluster
    * Updates prop key if it exists or inserts a new entry if not found.
    * @param string $clusterName
@@ -1473,6 +1611,7 @@ class HMCDBAccessor {
       $error = $this->getLastDBErrorAsString();
       $response["result"] = 1;
       $response["error"] = "Failed to start DB transaction, error=".$error;
+      $this->logger->log_error($response["error"]);
       LockRelease(); return $response;
     }
     foreach ($config as $key=>$val) {

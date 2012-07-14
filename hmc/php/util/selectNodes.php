@@ -58,6 +58,17 @@ class SelectNodes {
   }
 
   /**
+   * Helper function to add Kerberos Server
+   */
+  function addKerberosServer($serviceInfo, $result, $hostInfo) {
+    if (array_key_exists("KERBEROS", $serviceInfo)) {
+
+      $result["mastersToHosts"]["KERBEROS_SERVER"] = $this->createHostMap($hostInfo);
+    }
+    return $result;
+  }
+
+  /**
    * Helper function to add SNameNode
    */
   function addSNameNode($serviceInfo, $result, $hostInfo) {
@@ -211,6 +222,9 @@ class SelectNodes {
       if (array_key_exists("HBASE", $services)) {
         array_push($excludeHosts, $masterToHost["HBASE_MASTER"][0]);
       }
+      if (array_key_exists("KERBEROS", $services)) {
+        array_push($excludeHosts, $masterToHost["KERBEROS_SERVER"][0]);
+      }
       $excludeList = $this->getExcludeHosts($allHosts, $excludeHosts);
       return $excludeList;
     }
@@ -298,6 +312,14 @@ class SelectNodes {
     $dashhostName = strtolower(exec('hostname -f'));
     $db->addHostsToComponent($clusterName, "DASHBOARD" , array($dashhostName), "ASSIGNED", "");
 
+    if (array_key_exists("KERBEROS", $services)) {
+      // Add KERBEROS_ADMIN_CLIENT to hmc server itself
+      $hmcServer = $dashhostName;
+      $db->addHostsToComponent($clusterName, "KERBEROS_ADMIN_CLIENT", array($hmcServer), "ASSIGNED", "");
+      // Add Kerberos client to all the hosts
+      $db->addHostsToComponent($clusterName, "KERBEROS_CLIENT", $allHosts, "ASSIGNED", "");
+    }
+
     $slaveList = $this->getSlaveList($allHosts, $masterToHost, $services);
     $this->logger->log_info("Slave List \n".print_r($slaveList, true));
     $this->addSlaves($db, $slaveList, $clusterName, $services, $gangliaMaster);
@@ -379,6 +401,7 @@ class SelectNodes {
     $allHostsInfoExHMC = $this->excludeHMCHost($allHostsInfo);
     $this->logger->log_debug('num nodes='.$numNodes);  
     if ( $numNodes == 1 ) {
+      $result = $this->addKerberosServer($services, $result, $allHostsInfo[0]);
       $result = $this->addNameNode($services, $result, $allHostsInfo[0]);
       $result = $this->addSNameNode($services, $result, $allHostsInfo[0]);
       $result = $this->addJobTracker($services, $result, $allHostsInfo[0]);
@@ -394,6 +417,7 @@ class SelectNodes {
     if ( $numNodes < 3) {
       $result = $this->addNameNode($services, $result, $allHostsInfo[0]);
       $result = $this->addSNameNode($services, $result, $allHostsInfo[1]);
+      $result = $this->addKerberosServer($services, $result, $allHostsInfo[1]);
       $result = $this->addJobTracker($services, $result, $allHostsInfo[1]);
       $result = $this->addHBaseMaster($services, $result, $allHostsInfo[0]);
       $result = $this->addOozieServer($services, $result, $allHostsInfo[1]);
@@ -407,6 +431,7 @@ class SelectNodes {
     if ( $numNodes <= 5) {
       $result = $this->addNameNode($services, $result, $allHostsInfo[0]);
       $result = $this->addSNameNode($services, $result, $allHostsInfo[1]);
+      $result = $this->addKerberosServer($services, $result, $allHostsInfo[1]);
       $result = $this->addJobTracker($services, $result, $allHostsInfo[1]);
       $result = $this->addHBaseMaster($services, $result, $allHostsInfo[0]);
       $result = $this->addOozieServer($services, $result, $allHostsInfo[1]);
@@ -427,6 +452,7 @@ class SelectNodes {
       $result = $this->addHBaseMaster($services, $result, $allHostsInfo[2]);
       $result = $this->addOozieServer($services, $result, $allHostsInfo[2]);
       $result = $this->addHiveServer($services, $result, $allHostsInfo[2]);
+      $result = $this->addKerberosServer($services, $result, $allHostsInfo[3]);
       $result = $this->addTempletonServer($services, $result, $allHostsInfo[2]);
       $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[0]);
       $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[1]);
@@ -442,6 +468,7 @@ class SelectNodes {
       $result = $this->addHBaseMaster($services, $result, $allHostsInfo[3]);
       $result = $this->addOozieServer($services, $result, $allHostsInfo[3]);
       $result = $this->addHiveServer($services, $result, $allHostsInfo[4]);
+      $result = $this->addKerberosServer($services, $result, $allHostsInfo[5]);
       $result = $this->addTempletonServer($services, $result, $allHostsInfo[4]);
       $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[0]);
       $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[1]);
