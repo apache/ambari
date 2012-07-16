@@ -381,14 +381,114 @@ function validateConfigs($svcConfigs) {
           $errors[$key] = $check;
         }
       } else if ($key == "hbase_master_heapsize") {
-        $check = basicNumericCheck($val, FALSE);
-        if ($check["error"] != "") {
-          $errors[$key] = $check;
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        } else {
+          $check = basicNumericCheck($val, FALSE);
+          if ($check["error"] != "") {
+            $errors[$key] = $check;
+          }
         }
       } else if ($key == "hbase_regionserver_heapsize") {
-        $check = basicNumericCheck($val, FALSE);
-        if ($check["error"] != "") {
-          $errors[$key] = $check;
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        } else {
+          $check = basicNumericCheck($val, FALSE);
+          if ($check["error"] != "") {
+            $errors[$key] = $check;
+          }
+        }
+      } else if ($key == "hstore_compactionthreshold") {
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        } else {
+          $check = basicNumericCheck($val, FALSE);
+          if ($check["error"] != "") {
+            $errors[$key] = $check;
+          }
+        }
+      } else if ($key == "hfile_blockcache_size") {
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        } else {
+          $check = basicNumericCheck($val, FALSE);
+          if ($check["error"] != "") {
+            $errors[$key] = $check;
+          } else if ($val > 1) {
+            $errors[$key] = array ( "error" => "value cannot be greater than 1");
+          }
+        }
+      } else if ($key == "hstorefile_maxsize") {
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        } else {
+          $check = basicNumericCheck($val, FALSE);
+          if ($check["error"] != "") {
+            $errors[$key] = $check;
+          }
+        }
+      } else if ($key == "regionserver_handlers") {
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        } else {
+          $check = basicNumericCheck($val, FALSE);
+          if ($check["error"] != "") {
+            $errors[$key] = $check;
+          }
+        }
+      } else if ($key == "hregion_majorcompaction") {
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        } else {
+          $check = basicNumericCheck($val, FALSE);
+          if ($check["error"] != "") {
+            $errors[$key] = $check;
+          }
+        }
+      } else if ($key == "hregion_blockmultiplier") {
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        } else {
+          $check = basicNumericCheck($val, FALSE);
+          if ($check["error"] != "") {
+            $errors[$key] = $check;
+          }
+        }
+      } else if ($key == "hregion_memstoreflushsize") {
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        } else {
+          $check = basicNumericCheck($val, FALSE);
+          if ($check["error"] != "") {
+            $errors[$key] = $check;
+          }
+        }
+      } else if ($key == "client_scannercaching") {
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        } else {
+          $check = basicNumericCheck($val, FALSE);
+          if ($check["error"] != "") {
+            $errors[$key] = $check;
+          }
+        }
+      } else if ($key == "zookeeper_sessiontimeout") {
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        } else {
+          $check = basicNumericCheck($val, FALSE);
+          if ($check["error"] != "") {
+            $errors[$key] = $check;
+          }
+        }
+      } else if ($key == "hfile_max_keyvalue_size") {
+        if ($val == "") {
+          $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
+        } else {
+          $check = basicNumericCheck($val, FALSE);
+          if ($check["error"] != "") {
+            $errors[$key] = $check;
+          }
         }
       } else if ($key == "lzo_enabled") {
         if ($val != "true" && $val != "false") {

@@ -66,6 +66,9 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-586. Add validation checks for the HBase config services value
+    entered by the user (Jaimin Jetly via yusaku)
+
     AMBARI-632. Ensure that mysql connector jar is available to sqoop (hitesh)
 
     AMBARI-633. Fix invalid HTML markup on Monitoring Dashboard (yusaku)
