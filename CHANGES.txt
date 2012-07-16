@@ -66,6 +66,9 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-637. Cluster Install Wizard: the 7-step nav goes out of sync if the
+    user goes back to Step 3 and moves forward (yusaku) 
+
     AMBARI-586. Add validation checks for the HBase config services value
     entered by the user (Jaimin Jetly via yusaku)
 
