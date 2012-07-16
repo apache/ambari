@@ -23,7 +23,6 @@ function AssignMasters() {
 
   var managerHostName;
   var allHosts;
-  var registeredAssignHostsEventHandlers = false;
   
   function getNodeInfo(nodeName) {
     // globalYui.log("nodename: " + nodeName);
@@ -124,9 +123,8 @@ function AssignMasters() {
     globalYui.log("Render assign hosts data " + globalYui.Lang.dump(clusterInfo));
     globalYui.one('#assignHostsCoreDivId').setStyle("display", "block");
     globalClusterName = clusterInfo.clusterName;
-  
-    if( !registeredAssignHostsEventHandlers ) {
-  
+
+      globalYui.one('#selectServiceMastersSubmitButtonId').detach();
       globalYui.one('#selectServiceMastersSubmitButtonId').on('click', function (e) {
         e.target.set('disabled', true);
   
@@ -196,9 +194,6 @@ function AssignMasters() {
         });
       });
   
-      registeredAssignHostsEventHandlers = true;
-    }
-  
     allHosts = clusterInfo.allHosts;
     managerHostName = clusterInfo.managerHostName;
     
@@ -253,8 +248,9 @@ function AssignMasters() {
     
     // prevValue is used to undo user selection in case we prevent the user from assigning a service
     var prevValue = '';
-    
-    $('select').click(function() {
+
+    $('#masterServicesToHosts select').off('click');
+    $('#masterServicesToHosts select').click(function() {
       prevValue = $(this).val();
     }).change(function(event) {
   	  var masterName = $(this).attr('name');

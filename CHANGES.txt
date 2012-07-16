@@ -6,6 +6,9 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-637. Cluster Install Wizard: the 7-step nav goes out of sync if
+  the user goes back to Step 3 and moves forward (yusaku) 
+
   AMBARI-632. Ensure that mysql connector jar is available to sqoop (hitesh
 via vikram)
 
