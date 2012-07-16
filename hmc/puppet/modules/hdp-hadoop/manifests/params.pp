@@ -35,6 +35,7 @@ class hdp-hadoop::params(
   ### hadoop-env
   
   $dtnode_heapsize = hdp_default("hadoop/hadoop-env/dtnode_heapsize","1024m")
+  $ttnode_heapsize = hdp_default("hadoop/hadoop-env/ttnode_heapsize","1024m")
 
   $hadoop_heapsize = hdp_default("hadoop/hadoop-env/hadoop_heapsize","1024m")
 

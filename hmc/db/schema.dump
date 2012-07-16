@@ -323,6 +323,9 @@ INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, de
 -- maps to jt_heapsize in gscluster in MB.
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "jtnode_heapsize", "1024", "JobTracker maximum Java heap size", "Maximum Java heap size for JobTracker in MB (Java option -Xmx)", "MAPREDUCE" , "TEXT", '{ "reconfigurable": true, "unit":"MB" }' );
 
+-- maps to ttnode_heapsize in gscluster in MB.
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "ttnode_heapsize", "1024", "TaskTracker maximum Java heap size", "Maximum Java heap size for TaskTracker in MB (Java option -Xmx)", "MAPREDUCE" , "TEXT", '{ "reconfigurable": true, "unit":"MB" }' );
+
 -- maps to mapred_map_tasks_max in gscluster.
 INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "mapred_map_tasks_max", "4", "Number of Map slots per node", "Number of slots that Map tasks that run simultaneously can occupy on a TaskTracker", "MAPREDUCE" , "TEXT", '{ "reconfigurable": true, "unit":"int" }' );
 

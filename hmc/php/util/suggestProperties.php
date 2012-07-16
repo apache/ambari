@@ -273,11 +273,12 @@ class SuggestProperties {
 
     // TODO fix - this should be based on heap size divided by max task
     // limit on the host
-    $heapSize = $this->allocateHeapSizeForDaemon("TASKTRACKER", $hostRoles,
-        $hostInfoMap, $allHostsToComponents, TRUE);
+    $heapSize = $this->allocateHeapSizeWithMax("TASKTRACKER", $hostRoles,
+        $hostInfoMap, $allHostsToComponents, TRUE, 2048);
     $heapSizeWithMax = $this->allocateHeapSizeWithMax("TASKTRACKER", $hostRoles,
         $hostInfoMap, $allHostsToComponents, TRUE, 3072);
     $this->logger->log_info("Maxed Heap Size for MR Child opts ".$heapSizeWithMax);
+    $result["configs"]["ttnode_heapsize"] = $heapSize;
     $result["configs"]["mapred_child_java_opts_sz"] = $heapSizeWithMax;
 
     if (array_key_exists("HBASE", $services)) {
@@ -427,6 +428,7 @@ class SuggestProperties {
         "jtnode_heapsize" => array ( "role" => "JOBTRACKER", "32bit" => FALSE),
         "dtnode_heapsize" => array ( "role" => "DATANODE", "32bit" => TRUE),
         "hadoop_heapsize" => array ( "role" => "DATANODE", "32bit" => TRUE),
+        "ttnode_heapsize" => array ( "role" => "TASKTRACKER", "32bit" => TRUE),
         "mapred_child_java_opts_sz" => array ( "role" => "TASKTRACKER", "32bit" => TRUE)
       );
 

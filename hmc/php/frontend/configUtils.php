@@ -78,7 +78,6 @@ function basicNumericCheck($val, $negativeAllowed = TRUE) {
 function validateConfigs($svcConfigs) {
   $REQUIRED_FIELD_MESSAGE = 'This is required.  Please specify.';
   $errors = array();
-//  foreach ($configs as $svc => $svcConfigs) {
     foreach ($svcConfigs as $key => $val) {
       $val = trim($val);
       if ($key == "dfs_name_dir") {
@@ -284,6 +283,11 @@ function validateConfigs($svcConfigs) {
           $errors[$key] = $check;
         }
       } else if ($key == "jtnode_heapsize") {
+        $check = basicNumericCheck($val, FALSE);
+        if ($check["error"] != "") {
+          $errors[$key] = $check;
+        }
+      } else if ($key == "ttnode_heapsize") {
         $check = basicNumericCheck($val, FALSE);
         if ($check["error"] != "") {
           $errors[$key] = $check;
@@ -507,52 +511,7 @@ function validateConfigs($svcConfigs) {
           $errors[$key] = array ( "error" => $REQUIRED_FIELD_MESSAGE);
         }
       }
-
-      /*
-      hive_mysql_host|
-      hive_database_name|
-      hive_metastore_user_name|
-      hive_metastore_user_passwd|
-      java32_home|
-      java64_home|
-      jdk_location|
-      dfs_support_append|true
-      dfs_webhdfs_enabled|false
-      scheduler_name|org.apache.hadoop.mapred.CapacityTaskScheduler
-      nagios_web_login|nagiosadmin
-      nagios_web_password|admin
-      hadoop_heapsize|1024
-      namenode_heapsize|1024
-      namenode_opt_newsize|200
-      datanode_du_reserved|1073741824
-      dtnode_heapsize|1024
-      jtnode_opt_newsize|200
-      jtnode_opt_maxnewsize|200
-      jtnode_heapsize|1024
-      mapred_map_tasks_max|4
-      mapred_red_tasks_max|2
-      mapred_cluster_map_mem_mb|-1
-      mapred_cluster_red_mem_mb|-1
-      mapred_cluster_max_map_mem_mb|-1
-      mapred_cluster_max_red_mem_mb|-1
-      mapred_job_map_mem_mb|-1
-      mapred_job_red_mem_mb|-1
-      mapred_child_java_opts_sz|768
-      io_sort_mb|200
-      io_sort_spill_percent|0.9
-      mapreduce_userlog_retainhours|24
-      maxtasks_per_job|-1
-      dfs_datanode_failed_volume_tolerated|0
-      tickTime|2000
-      initLimit|10
-      syncLimit|5
-      clientPort|2181
-      hbase_master_heapsize|1024
-      hbase_regionserver_heapsize|1024
-      */
-
     }
-//  }
   $result = 0;
   if (!empty($errors)) {
     $result = -1;

@@ -12,6 +12,9 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-616. Enable support for configuration of heapsize for TaskTracker
+    (hitesh)
+
     AMBARI-636. Support for Hadoop Security (front-end changes)
     (Jaimin Jetly via yusaku)
 
