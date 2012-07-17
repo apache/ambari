@@ -19,6 +19,26 @@
  *
 */
 
+function validate() {
+  var opts = App.ui.configureServicesUtil.generateUserOpts();
+
+  $.ajax({
+    type: 'POST',
+    url: '../php/frontend/configureServices.php?clusterName=' + App.props.clusterName + "&validateOnly=1",
+    data: JSON.stringify(opts),
+    dataType: 'json',
+    timeout: App.io.DEFAULT_AJAX_TIMEOUT_MS,
+    success: function (data) {
+      if (data.result != 0) {
+        App.ui.configureServicesUtil.handleConfigureServiceErrors(data);
+      }
+    },
+    failure: function (data) {
+      alert(App.io.DEFAULT_AJAX_ERROR_MESSAGE);
+    }
+  });
+}
+
 Y.one('#configureClusterAdvancedSubmitButtonId').on('click',function (e) {
   
   if (this.hasClass('disabled')) {
@@ -66,7 +86,7 @@ function renderConfigureServicesInternal (optionsInfo) {
   Y.one("#configureClusterAdvancedDynamicRenderDivId").setContent(App.ui.configureServicesUtil.getOptionsSummaryMarkup(optionsInfo, false));
   $('#configureServicesTabs a:first').tab('show');
   Y.one("#configureClusterAdvancedCoreDivId").show();
-  Y.one('#configureClusterAdvancedSubmitButtonId').simulate('click');  
+  validate();
   App.ui.hideLoadingOverlay();
 }
 
