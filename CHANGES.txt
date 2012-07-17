@@ -12,6 +12,8 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-642. Add jce policy file. (jitendra)
+
     AMBARI-579. Support secure hadoop installation. (jitendra)
 
     AMBARI-640. Add entrypoint to fetch info pertaining to Ganglia Clusters
