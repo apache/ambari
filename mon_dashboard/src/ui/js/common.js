@@ -34,7 +34,8 @@
   $(document).ready(function(){
     document.title = 'Ambari';
     $('#brand').html('Ambari');
-    $('#footer').html('');
+    $('#footer').html('<a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Licensed under the Apache License, Version 2.0</a>.<br><a href="/hmc/licenses/NOTICE.txt" target="_blank">See third-party tools/resources that Ambari uses and their respective authors</a>');
+    $('.navbar a.help').attr('href', 'http://incubator.apache.org/ambari/install.html');
     self.clearTimeout(to);
     a.refreshPage();
     a.setEventDelegation();
