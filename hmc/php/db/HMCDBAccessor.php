@@ -1976,6 +1976,72 @@ class HMCDBAccessor {
   }
 
   /**
+  * Get host information for all hosts mapped to any component, grouped by component.
+  *
+  * @param string $clusterName
+  * @return mixed
+  *    array (
+  *       "result" => 0,
+  *       "error" => "",
+  *       "clusterName" => $clusterName,
+  *       "components" => array (
+  *          "$componentName" => array (
+  *              "componentName" => $componentName,
+  *              "hosts" => array (
+  *                  "$hostName" => array (
+  *                      "hostName" => $hostName
+  *                      "hostIp" => $hostIp
+  *                      "rackInfo" => $rackInfo
+  *                     )
+  *                  )
+  *              )
+  *          )
+  *     )
+  */
+  public function getAllHostsInfoByComponent($clusterName) {
+    LockAcquire();
+    $response = array ( "result" => 0, "error" => "");
+    $error = "";
+    $query = "SELECT HostRoles.component_name as component_name"
+        . ", HostRoles.host_name as host_name"
+        . ", Hosts.ip as host_ip"
+        . ", Hosts.rack_info as rack_info"
+        . " FROM HostRoles JOIN Hosts"
+        . " ON HostRoles.host_name = Hosts.host_name"
+        . " WHERE HostRoles.cluster_name = " . $this->dbHandle->quote($clusterName);
+    $this->logger->log_trace("Running query: $query");
+    $pdoStmt = $this->dbHandle->query($query);
+    if ($pdoStmt === FALSE) {
+      $error = $this->getLastDBErrorAsString();
+      $this->logger->log_error("Error when executing query"
+      . ", query=".$query
+      . ", error=".$error);
+      $response["result"] = 1;
+      $response["error"] = $error;
+      LockRelease(); return $response;
+    }
+    $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
+    $response["clusterName"] = $clusterName;
+    $response["components"] = array();
+    foreach ($result as $entry) {
+      $componentName = $entry["component_name"];
+      if (!isset($response["components"][$componentName])) {
+        $response["components"][$componentName] = array();
+        $response["components"][$componentName]["componentName"] =
+            $componentName;
+        $response["components"][$componentName]["hosts"] = array();
+      }
+      $hostInfo = array();
+      $hostInfo["hostName"] = $entry["host_name"];
+      $hostInfo["hostIp"] = $entry["host_ip"];
+      $hostInfo["rackInfo"] = $entry["rack_info"];
+      $response["components"][$componentName]["hosts"]
+          [$hostInfo["hostName"]] = $hostInfo;
+    }
+    LockRelease(); return $response;
+  }
+
+  /**
    * Get all hosts mapped to all the  components
    * @param string $clusterName
    * @return mixed
@@ -2079,6 +2145,7 @@ class HMCDBAccessor {
     }
     LockRelease(); return $response;
   }
+
 
   /**
    * Set the state for specified hosts mapped to given component/role
