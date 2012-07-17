@@ -98,6 +98,7 @@ class hdp::create_smoke_user()
 {
   $smoke_group = $hdp::params::smoke_user_group
   $smoke_user = $hdp::params::smokeuser
+  $security_enabled = $hdp::params::security_enabled
 
   group { $smoke_group :
     ensure => present
@@ -111,7 +112,18 @@ class hdp::create_smoke_user()
      command => $cmd,
      unless => $check_group_cmd
   }
- 
+
+  if ($security_enabled == true) {
+    $secure_uid = $hdp::params::smoketest_user_secure_uid
+    $cmd_set_uid = "usermod -u ${secure_uid} ${smoke_user}"
+    $cmd_set_uid_check = "id -u ${smoke_user} | grep ${secure_uid}"
+     hdp::exec{ $cmd_set_uid:
+       command => $cmd_set_uid,
+       unless => $cmd_set_uid_check,
+       require => Hdp::User[$smoke_user]
+     }
+  }
+
   Group[$smoke_group] -> Hdp::User[$smoke_user] -> Hdp::Exec[$cmd] 
 }
 

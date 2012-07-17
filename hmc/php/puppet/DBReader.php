@@ -126,6 +126,10 @@ class DBReader {
     return $hostRoles;
   }
 
+  public function getComponentToPuppetClassMap() {
+    return $this->componentToPuppetClassMap;
+  }
+
   private $componentToPuppetClassMap = array (
       "NAMENODE" => "hdp-hadoop::namenode",
       "DATANODE"=> "hdp-hadoop::datanode",
@@ -154,7 +158,10 @@ class DBReader {
       "NAGIOS_SERVER" => "hdp-nagios::server",
       "GANGLIA_MONITOR_SERVER" => "hdp-ganglia::server",
       "GANGLIA_MONITOR" => "hdp-ganglia::monitor",
-      "HTTPD" => "hdp-monitor-webserver"
+      "HTTPD" => "hdp-monitor-webserver",
+      "KERBEROS_SERVER" => "hdp-kerberos::server",
+      "KERBEROS_ADMIN_CLIENT" => "hdp-kerberos::adminclient",
+      "KERBEROS_CLIENT" => "hdp-kerberos::client"
     );
 
   //Store the database key for each role
@@ -174,8 +181,10 @@ class DBReader {
         "GANGLIA_MONITOR_SERVER" => "ganglia_server_host",
         "DATANODE" => "slave_hosts",
         "TASKTRACKER" => "slave_hosts",
-        "HBASE_REGIONSERVER" => "hbase_rs_hosts"
-        );
+        "HBASE_REGIONSERVER" => "hbase_rs_hosts",
+        "KERBEROS_SERVER" => "kdc_host",
+        "KERBEROS_ADMIN_CLIENT" => "kerberos_adminclient_host"
+    );
 
   /****** Not used but may be used later *****
   //Store the database key for each configuration

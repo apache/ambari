@@ -22,7 +22,7 @@ class hdp-nagios::params() inherits hdp::params
 {   
  
   $nagios_user = "nagios"
-  $nagios_group = "nagios"
+  $nagios_group = hdp_default("smoke_user_group","nagios")
   
   $conf_dir = hdp_default("nagios_conf_dir","/etc/nagios")
 

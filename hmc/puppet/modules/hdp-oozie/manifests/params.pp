@@ -42,9 +42,14 @@ class hdp-oozie::params() inherits hdp::params
   $oozie_tmp_dir = hdp_default("hadoop/oozie-env/oozie_tmp_dir","/var/tmp/oozie")
 
   $oozie_lib_dir = hdp_default("hadoop/oozie-env/oozie_lib_dir","/var/lib/oozie/")
+
   ### oozie-site
-  $oozie_sasl_enabled = hdp_default("hadoop/oozie-site/oozie_sasl_enabled","false")
-  $oozie_security_type = hdp_default("hadoop/oozie-site/oozie_security_type","simple")
-  $realm = hdp_default("hadoop/oozie-site/realm","EXAMPLE.COM")
-  $keytab_path = hdp_default("hadoop/oozie-site/keytab_path","/etc/security/keytabs/")
+  $keytab_path = hdp_default("keytab_path","/etc/security/keytabs")
+  if ($security_enabled == true) {
+    $oozie_sasl_enabled = "true"
+    $oozie_security_type = "kerberos"
+  } else {
+    $oozie_sasl_enabled = "false"
+    $oozie_security_type = "simple"
+  }
 }

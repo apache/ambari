@@ -317,7 +317,7 @@ Kerberos principal name for the NameNode
 
   <property>
     <name>dfs.web.authentication.kerberos.keytab</name>
-    <value><%=scope.function_hdp_template_var("keytab_path")%>/nn.service.keytab</value>
+    <value><%=scope.function_hdp_template_var("keytab_path")%>/spnego.service.keytab</value>
     <description>
       The Kerberos keytab file with the credentials for the
       HTTP Kerberos principal used by Hadoop-Auth in the HTTP endpoint.
@@ -398,6 +398,16 @@ don't exist, they will be created with this permission.</description>
   <name>ipc.server.read.threadpool.size</name>
   <value>5</value>
   <description></description>
+</property>
+
+<property>
+  <name>dfs.namenode.kerberos.internal.spnego.principal</name>
+  <value>${dfs.web.authentication.kerberos.principal}</value>
+</property>
+
+<property>
+  <name>dfs.secondary.namenode.kerberos.internal.spnego.principal</name>
+  <value>${dfs.web.authentication.kerberos.principal}</value>
 </property>
 
 </configuration>

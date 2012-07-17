@@ -32,6 +32,23 @@ class hdp-hadoop::params(
   $mapred_user = $hdp::params::mapred_user
   $hdfs_user = $hdp::params::hdfs_user
   
+  ##### security related
+  $keytab_path = hdp_default("keytab_path","/etc/security/keytabs")
+ 
+  if ($hdp::params::security_enabled == true) {
+    $enable_security_authorization = true
+    $security_type = "kerberos"
+    $task_controller = "org.apache.hadoop.mapred.LinuxTaskController"
+    $dfs_datanode_address = 1019
+    $dfs_datanode_http_address = 1022
+  } else {
+    $enable_security_authorization = false
+    $security_type = "simple"
+    $task_controller = "org.apache.hadoop.mapred.DefaultTaskController"
+    $dfs_datanode_address = 50010
+    $dfs_datanode_http_address = 50075
+  }
+
   ### hadoop-env
   
   $dtnode_heapsize = hdp_default("hadoop/hadoop-env/dtnode_heapsize","1024m")
@@ -78,14 +95,10 @@ class hdp-hadoop::params(
   }
 
   ### core-site
-  $enable_security_authorization = hdp_default("hadoop/core-site/enable_security_authorization","false")
-
   $fs_checkpoint_dir = hdp_default("hadoop/core-site/fs_checkpoint_dir","/tmp/dfs/namesecondary")
 
   $proxyuser_group = hdp_default("hadoop/core-site/proxyuser_group","users")
 
-  $security_type = hdp_default("hadoop/core-site/security_type","simple")
-  
   ### hdfs-site
   $datanode_du_reserved = hdp_default("hadoop/hdfs-site/datanode_du_reserved",1073741824)
 
@@ -93,13 +106,9 @@ class hdp-hadoop::params(
 
   $dfs_data_dir = $hdp::params::dfs_data_dir
 
-  $dfs_datanode_address = hdp_default("hadoop/hdfs-site/dfs_datanode_address",50010)
-
   $dfs_datanode_data_dir_perm = hdp_default("hadoop/hdfs-site/dfs_datanode_data_dir_perm",750)
 
   $dfs_datanode_failed_volume_tolerated = hdp_default("hadoop/hdfs-site/dfs_datanode_failed_volume_tolerated",0)
-
-  $dfs_datanode_http_address = hdp_default("hadoop/hdfs-site/dfs_datanode_http_address",50075)
 
   $dfs_exclude = hdp_default("hadoop/hdfs-site/dfs_exclude","dfs.exclude")
 
@@ -155,11 +164,9 @@ class hdp-hadoop::params(
 
   $scheduler_name = hdp_default("hadoop/mapred-site/scheduler_name","org.apache.hadoop.mapred.CapacityTaskScheduler")
 
-  $task_controller = hdp_default("hadoop/mapred-site/task_controller","org.apache.hadoop.mapred.DefaultTaskController")
-
   #### health_check
 
-  $security_enabled = hdp_default("hadoop/health_check/security_enabled","false")
+  $security_enabled = $hdp::params::security_enabled
 
   $task_bin_exe = hdp_default("hadoop/health_check/task_bin_exe")
 }

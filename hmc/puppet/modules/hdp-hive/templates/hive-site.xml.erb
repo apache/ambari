@@ -71,7 +71,7 @@ limitations under the License.
 
   <property>
     <name>hive.metastore.kerberos.principal</name>
-    <value><%=scope.function_hdp_template_var("hive_metastore_principal")%></value>
+    <value>hive/_HOST@<%=scope.function_hdp_template_var("kerberos_domain")%></value>
     <description>The service principal for the metastore thrift server. The special
     string _HOST will be replaced automatically with the correct host name.</description>
   </property>

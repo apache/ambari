@@ -37,6 +37,7 @@ Requires: php53, php53-process, php53-pdo, sqlite >= 3, httpd, puppet = 2.7.9, p
 %define web_prefixdir %{_prefix}/share/hmc
 %define httpd_confdir %{_sysconfdir}/httpd/conf.d
 %define puppet_master_dir %{_sysconfdir}/puppet/master
+%define puppet_agent_dir %{_sysconfdir}/puppet/agent
 %define hmc_passwd_dir %{_sysconfdir}/hmc
 %define hmc_db_dir %{_var}/db/hmc
 %define hmc_run_dir %{_var}/run/hmc
@@ -90,6 +91,7 @@ fi
 %__cp -rf puppet/manifestloader $RPM_BUILD_ROOT/%{puppet_master_dir}
 %__cp -rf puppet/modules $RPM_BUILD_ROOT/%{puppet_master_dir}
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/modules/catalog/files
+%__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/modules/keytabs/files
 %__install -D -m0755 puppet/reports/get_revision $RPM_BUILD_ROOT/%{web_prefixdir}/bin
 %__cp -rf puppet/reports/hmcreport.rb $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
  
@@ -115,6 +117,8 @@ touch /var/run/hmc/lockfile.clusterstate
 chown puppet:apache /var/run/hmc/lockfile.clusterstate
 cp /usr/share/puppet/ext/rack/files/config.ru /etc/puppet/rack
 chown puppet /etc/puppet/rack/config.ru
+chmod 700 %{puppet_master_dir}
+chmod 700 %{puppet_agent_dir}
 
 cp $RPM_INSTALL_PREFIX0/share/hmc/puppet/conf/puppetmaster.conf.template /etc/httpd/conf.d/puppetmaster.conf
 cp $RPM_INSTALL_PREFIX0/share/hmc/conf/hmc.conf /etc/httpd/conf.d/hmc.conf

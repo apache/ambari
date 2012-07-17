@@ -41,6 +41,17 @@ class hdp-hadoop::tasktracker(
   
     #adds package, users and directories, and common hadoop configs
     include hdp-hadoop::initialize
+
+    if ( ($service_state == 'installed_and_configured') and
+         ($security_enabled == true) and ($kerberos_install_type == "AMBARI_SET_KERBEROS") ) {
+      $masterHost = $kerberos_adminclient_host[0]
+      hdp::download_keytab { 'tasktracker_service_keytab' :
+        masterhost => $masterHost,
+        keytabdst => "${$keytab_path}/tt.service.keytab",
+        keytabfile => 'tt.service.keytab',
+        owner => $hdp-hadoop::params::mapred_user
+      }
+    }
   
     hdp-hadoop::tasktracker::create_local_dirs { $mapred_local_dir: 
       service_state => $service_state

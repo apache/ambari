@@ -27,18 +27,41 @@ define hdp-hadoop::service(
 )
 {
 
+  $security_enabled = $hdp::params::security_enabled
+
   #NOTE does not work if namenode and datanode are on same host 
   $pid_dir = "${hdp-hadoop::params::hadoop_piddirprefix}/${user}"
-  $pid_file = "${pid_dir}/hadoop-${user}-${name}.pid"
+  
+  if (($security_enabled == true) and ($name == 'datanode')) {
+    $run_as_root = true
+  } else {       
+    $run_as_root = false
+  }
+
+  if (($security_enabled == true) and ($name == 'datanode')) {
+    $hdfs_user = $hdp::params::hdfs_user
+    $pid_file = "${hdp-hadoop::params::hadoop_piddirprefix}/${hdfs_user}/hadoop-${hdfs_user}-${name}.pid"
+  } else {
+    $pid_file = "${pid_dir}/hadoop-${user}-${name}.pid"
+  } 
+
   $log_dir = "${hdp-hadoop::params::hadoop_logdirprefix}/${user}"
   $hadoop_daemon = "${hdp::params::hadoop_bin}/hadoop-daemon.sh"
    
   $cmd = "${hadoop_daemon} --config ${hdp-hadoop::params::conf_dir}"
   if ($ensure == 'running') {
-    $daemon_cmd = "su - ${user} -c  '${cmd} start ${name}'"
+    if ($run_as_root == true) {
+      $daemon_cmd = "${cmd} start ${name}"
+    } else {
+      $daemon_cmd = "su - ${user} -c  '${cmd} start ${name}'"
+    }
     $service_is_up = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
-    $daemon_cmd = "su - ${user} -c  '${cmd} stop ${name}'"
+    if ($run_as_root == true) {
+      $daemon_cmd = "${cmd} stop ${name}"
+    } else {
+      $daemon_cmd = "su - ${user} -c  '${cmd} stop ${name}'"
+    }
     $service_is_up = undef
   } else {
     $daemon_cmd = undef
@@ -93,4 +116,3 @@ define hdp-hadoop::service(
     Hdp::Exec[$daemon_cmd] -> Hdp::Exec[$post_check] -> Anchor["hdp-hadoop::service::${name}::end"]
   }  
 }
-

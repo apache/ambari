@@ -154,8 +154,23 @@
        return array($hostInfo, $configInfo, $hostRolesStates, $hostAttributes);
     }
 
+    private function translateToPuppetComponents(&$clusterInfo) {
+       if (empty($clusterInfo['allComponents'])) {
+         return;
+       }
+       $dbReader = new DBReader($this->db);
+       $puppetClassMap = $dbReader->getComponentToPuppetClassMap();
+       $allComponents = $clusterInfo['allComponents'];
+       $allPuppetComponents = array();
+       foreach ($allComponents as $c => $rest) {
+         $puppetClass = $puppetClassMap[$c];
+         $allPuppetComponents[$puppetClass] = $rest;
+       } 
+       $clusterInfo['allComponents'] = $allPuppetComponents; 
+    }
+
     public function kickPuppet($nodes, $txnObj, $clusterName, $nodesComponents,
-        $globalOptions = array()) {
+        $clusterInfo = array()) {
       //Get host config from db
       $txnId = $txnObj->toString();
       $components = array_keys($nodesComponents);
@@ -165,22 +180,38 @@
       $hostRolesStates = $infoFromDb[2];
       $hostAttributes = $infoFromDb[3];
 
+      $this->translateToPuppetComponents($clusterInfo);
+
       //Treat globalOpts as configs only
-      if (!empty($globalOptions)) {
-        foreach ($globalOptions as $key => $value) {
-          $configInfo[$key] = $value;
+      if (!empty($clusterInfo)) {
+        if (!empty($clusterInfo['globalOptions'])) {
+          foreach ($clusterInfo['globalOptions'] as $key => $value) {
+            $configInfo[$key] = $value;
+          }
         }
       }
-       
+
       $manifestDir = $GLOBALS["puppetMasterModulesDirectory"] . "/catalog/files";
       $response = $this->genKickWait($nodes, $txnId, $clusterName, $hostInfo,
           $configInfo, $hostRolesStates, $hostAttributes, $manifestDir,
-          $GLOBALS["puppetKickVersionFile"], $GLOBALS["DRYRUN"]);
+          $GLOBALS["puppetKickVersionFile"], $GLOBALS["DRYRUN"], $clusterInfo);
       return $response;
     }
 
     public function kickServiceCheck($serviceCheckNodes, $txnObj, $clusterName) {
       $txnId = $txnObj->toString();
+
+      if ( (count (array_keys($serviceCheckNodes)) == 1) &&
+          (isset($serviceCheckNodes["KERBEROS"])) ) {
+        return  array (
+            "result" => 0,
+            "error" => "",
+            KICKFAILED => array(),
+            FAILEDNODES => array(),
+            SUCCESSFULLNODES => array ($serviceCheckNodes["KERBEROS"]),
+            TIMEDOUTNODES => array()
+         );
+      }
 
       $hostRolesStates = array();
       $roleDependencies = new RoleDependencies();
@@ -206,7 +237,7 @@
       $manifestDir = $GLOBALS["puppetMasterModulesDirectory"] . "/catalog/files";
       $response = $this->genKickWait($nodesToKick, $txnId, $clusterName, $hostInfo,
           $configInfo, $hostRolesStates, $hostAttributes, $manifestDir,
-          $GLOBALS["puppetKickVersionFile"], $GLOBALS["DRYRUN"]);
+          $GLOBALS["puppetKickVersionFile"], $GLOBALS["DRYRUN"], array());
       return $response;
     }
 
@@ -242,7 +273,7 @@
      */
     public function genKickWait($nodes, $txnId, $clusterId, $hostInfo,
             $configInfo, $hostRolesStates, $hostAttributes, $manifestDir, $versionFile,
-            $dryRun) {
+            $dryRun, $clusterInfo) {
       $kickFailedNodes = array();
       $failureResponseNodes = array();
       $kickedNodes = array();
@@ -260,15 +291,19 @@
       //Generate manifest
       $agentModulesDir = $GLOBALS["puppetAgentModulesDirectory"];
       ManifestGenerator::generateManifest($manifestDir, $hostInfo,
-          $configInfo, $hostRolesStates, $hostAttributes, $agentModulesDir);
+          $configInfo, $hostRolesStates, $hostAttributes, $agentModulesDir, 
+          $clusterInfo, $this->logger);
 
       //Write version file
       $this->writeVersionFile($versionFile, $txnId);
 
       if ($dryRun) {
         $successfullNodes = $nodes;
-        return $this->createGenKickWaitResponse($kickFailedNodes, $failureResponseNodes,
+        $result = $this->createGenKickWaitResponse($kickFailedNodes, $failureResponseNodes,
            $timedoutNodes, $successfullNodes, $nodes);
+        $sitePPFile = $manifestDir . "/site.pp";
+        system("mv " . $sitePPFile . " " . $GLOBALS["manifestloaderDir"] . "/site.pp-" . $txnId);
+        return $result;
       }
 
       //Tar the modules and catalog

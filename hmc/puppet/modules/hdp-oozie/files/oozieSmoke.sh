@@ -56,6 +56,12 @@ function checkOozieJobStatus {
 export oozie_conf_dir=$1
 export hadoop_conf_dir=$2
 export smoke_test_user=$3
+export security_enabled=$4
+export smoke_user_keytab=$5
+export realm=$6
+export JTHOST=$7
+export NNHOST=$8
+
 export OOZIE_EXIT_CODE=0
 export JOBTRACKER=`getValueFromField ${hadoop_conf_dir}/mapred-site.xml mapred.job.tracker`
 export NAMENODE=`getValueFromField ${hadoop_conf_dir}/core-site.xml fs.default.name`
@@ -69,12 +75,21 @@ sed -i "s|nameNode=hdfs://localhost:9000|nameNode=$NAMENODE|g"  examples/apps/ma
 sed -i "s|jobTracker=localhost:8021|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
 sed -i "s|jobTracker=localhost:9001|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
 sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.path=$NAMENODE|g" examples/apps/map-reduce/job.properties
+
+if [[ $security_enabled == "true" ]]; then
+  kinitcmd="/usr/kerberos/bin/kinit  -kt ${smoke_user_keytab} ${smoke_test_user}; "
+  echo "dfs.namenode.kerberos.principal=nn/`echo ${NNHOST} | tr '[:upper:]' '[:lower:]'`@${realm}" >> examples/apps/map-reduce/job.properties
+  echo "mapreduce.jobtracker.kerberos.principal=jt/`echo ${JTHOST} | tr '[:upper:]' '[:lower:]'`@${realm}" >> examples/apps/map-reduce/job.properties
+else 
+  kinitcmd=""
+fi
+
 su - ${smoke_test_user} -c "hadoop dfs -rmr examples"
 su - ${smoke_test_user} -c "hadoop dfs -rmr input-data"
 su - ${smoke_test_user} -c "hadoop dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
 su - ${smoke_test_user} -c "hadoop dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
 
-cmd="source ${oozie_conf_dir}/oozie-env.sh ; /usr/bin/oozie job -oozie $OOZIE_SERVER -config $OOZIE_EXAMPLES_DIR/examples/apps/map-reduce/job.properties  -run"
+cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; /usr/bin/oozie job -oozie $OOZIE_SERVER -config $OOZIE_EXAMPLES_DIR/examples/apps/map-reduce/job.properties  -run"
 job_info=`su - ${smoke_test_user} -c "$cmd" | grep "job:"`
 job_id="`echo $job_info | cut -d':' -f2`"
 checkOozieJobStatus "$job_id"

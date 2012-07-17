@@ -84,7 +84,28 @@ class hdp-hadoop(
         owner => 'root'
     }
  
-    $template_files = ['hadoop-env.sh','core-site.xml','hdfs-site.xml','hadoop-policy.xml','taskcontroller.cfg','health_check','capacity-scheduler.xml','commons-logging.properties','log4j.properties','mapred-queue-acls.xml','slaves']
+    #taskcontroller.cfg properties conditional on security
+    if ($hdp::params::security_enabled == true) {
+      file { "${hdp::params::hadoop_bin}/task-controller":
+        owner   => 'root',
+        group   => $hdp::params::hadoop_user_group,
+        mode    => '6050',
+        require => Hdp-hadoop::Package['hadoop'],
+        before  => Anchor['hdp-hadoop::end']
+      }
+      $tc_owner = 'root'
+      $tc_mode = '0400'
+    } else {
+      $tc_owner = $hdfs_user
+      $tc_mode = undef
+    }
+    hdp-hadoop::configfile { 'taskcontroller.cfg' :
+      tag   => 'common',
+      owner => $tc_owner,
+      mode  => $tc_mode
+    }
+
+    $template_files = ['hadoop-env.sh','core-site.xml','hdfs-site.xml','hadoop-policy.xml','health_check','capacity-scheduler.xml','commons-logging.properties','log4j.properties','mapred-queue-acls.xml','slaves']
     hdp-hadoop::configfile { $template_files:
       tag   => 'common', 
       owner => $hdfs_user
@@ -159,6 +180,7 @@ define hdp-hadoop::exec-hadoop(
   $unless = undef,
   $refreshonly = undef,
   $echo_yes = false,
+  $kinit_override = false,
   $tries = 1,
   $timeout = 900,
   $try_sleep = undef,
@@ -167,17 +189,36 @@ define hdp-hadoop::exec-hadoop(
 )
 {
   include hdp-hadoop::params
+  $security_enabled = $hdp::params::security_enabled
   $conf_dir = $hdp-hadoop::params::conf_dir
-  if ($echo_yes == true) {
-    $cmd = "yes Y | hadoop --config ${conf_dir} ${command}"
-  } else {
-    $cmd = "hadoop --config ${conf_dir} ${command}"     
-  }
+  $hdfs_user = $hdp-hadoop::params::hdfs_user
+
   if ($user == undef) {
-   $run_user = $hdp-hadoop::params::hdfs_user
+    $run_user = $hdfs_user
   } else {
     $run_user = $user
   }
+
+  if (($security_enabled == true) and ($kinit_override == false)) {
+    #TODO: may figure out so dont need to call kinit if auth in caceh already
+    if ($run_user in [$hdfs_user,'root']) {
+      $keytab = "${hdp-hadoop::params::keytab_path}/${hdfs_user}.headless.keytab"
+      $principal = $hdfs_user
+    } else {
+      $keytab = "${hdp-hadoop::params::keytab_path}/${user}.headless.keytab" 
+      $principal = $user
+    }
+    $kinit_if_needed = "/usr/kerberos/bin/kinit  -kt ${keytab} ${principal}; "
+  } else {
+    $kinit_if_needed = ""
+  }
+ 
+  if ($echo_yes == true) {
+    $cmd = "${kinit_if_needed}yes Y | hadoop --config ${conf_dir} ${command}"
+  } else {
+    $cmd = "${kinit_if_needed}hadoop --config ${conf_dir} ${command}"
+  }
+
   hdp::exec { $cmd:
     command     => $cmd,
     user        => $run_user,

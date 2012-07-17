@@ -22,9 +22,21 @@
 #The uri is of the form thrift://<hostname>:<port>
 HOST=$1
 PORT=$2
+JAVA_HOME=$3
+SEC_ENABLED=$4
+if [[ "$SEC_ENABLED" == "true" ]]; then
+  NAGIOS_KEYTAB=$5
+  NAGIOS_USER=$6
+  out1=`/usr/kerberos/bin/kinit -kt ${NAGIOS_KEYTAB} ${NAGIOS_USER} 2>&1`
+  if [[ "$?" -ne 0 ]]; then
+    echo "CRITICAL: Error doing kinit for nagios [$out1]";
+    exit 2;
+  fi
+fi
 HCAT_URL=-Dhive.metastore.uris="thrift://$HOST:$PORT"
+export JAVA_HOME=$JAVA_HOME
 out=`hcat $HCAT_URL -e "show databases" 2>&1`
-if [[ "$?" -ne 0 ]]; then 
+if [[ "$?" -ne 0 ]]; then
   echo "CRITICAL: Error accessing hive-metaserver status [$out]";
   exit 2;
 fi

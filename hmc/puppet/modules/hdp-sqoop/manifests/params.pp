@@ -26,4 +26,5 @@ class hdp-sqoop::params() inherits hdp::params
   $hive_home = hdp_default("hive_home","/usr")
   $zoo_conf_dir = $hdp::params::zk_conf_dir 
   $sqoop_lib = hdp_default("sqoop_lib","/usr/lib/sqoop/lib/") #TODO: should I remove and just use sqoop_dbroot
+  $keytab_path = hdp_default("keytab_path","/etc/security/keytabs")
 }

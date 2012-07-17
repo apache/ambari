@@ -23,8 +23,18 @@
 HOST=$1
 PORT=$2
 VERSION=$3
+SEC_ENABLED=$4
+if [[ "$SEC_ENABLED" == "true" ]]; then 
+  NAGIOS_KEYTAB=$5
+  NAGIOS_USER=$6
+  out1=`/usr/kerberos/bin/kinit -kt ${NAGIOS_KEYTAB} ${NAGIOS_USER} 2>&1`
+  if [[ "$?" -ne 0 ]]; then
+    echo "CRITICAL: Error doing kinit for nagios [$out1]";
+    exit 2;
+  fi
+fi
 regex="^.*\"status\":\"ok\".*<status_code:200>$"
-out=`curl http://$HOST:$PORT/templeton/$VERSION/status -w '<status_code:%{http_code}>' 2>&1`
+out=`curl --negotiate -u : -s -w '<status_code:%{http_code}>' http://$HOST:$PORT/templeton/$VERSION/status 2>&1`
 if [[ $out =~ $regex ]]; then 
   echo "OK: Templeton server status [$out]";
   exit 0;

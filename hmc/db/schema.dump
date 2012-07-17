@@ -162,7 +162,7 @@ INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, displ
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
   ( "KERBEROS", "KERBEROS_SERVER", "Kerberos Server", '{ "isMaster": true, "isClient": false }', "" );
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
-  ( "KERBEROS", "KERBEROS_ADMIN_CLIENT", "Kerberos Admin Client", '{ "isMaster": false, "isClient": false }', "" );
+  ( "KERBEROS", "KERBEROS_ADMIN_CLIENT", "Kerberos Admin Client", '{ "isMaster": false, "isClient": true }', "" );
 INSERT OR REPLACE INTO "ServiceComponents" ( service_name, component_name, display_name, attributes, description ) VALUES
   ( "KERBEROS", "KERBEROS_CLIENT", "Kerberos Client", '{ "isMaster": false, "isClient": true }', "" );
 
@@ -428,10 +428,11 @@ INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, de
 
 -- Security related properties
 
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "security_enabled", "true", "Hadoop security", "Hadoop security enabled", "KERBEROS" , "NODISPLAY", '{ "reconfigurable": true }' );
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "kerberos_realm", "", "Kerberos realm", "Kerberos realm", "KERBEROS" , "TEXT", '{ "reconfigurable": false }' );
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "keytab_path", "/etc/security/keytabs", "Keytab directory", "Keytab directory", "KERBEROS" , "TEXT", '{ "reconfigurable": false }' );
-INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "kerberos_install_type", "NONE", "Kerberos installation", "Whether it is a user-configured or Ambari-configured Kerberos", "KERBEROS" , "NODISPLAY", '{ "reconfigurable": false, "editable": false }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "security_enabled", "true", "Hadoop security", "Hadoop security enabled", "KERBEROS" , "NODISPLAY", '{ "reconfigurable": true, "noDisplay": false }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "kerberos_domain", "EXAMPLE.COM", "Kerberos realm", "Kerberos realm", "KERBEROS" , "TEXT", '{ "reconfigurable": false, "noDisplay": false }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "kadmin_pw", "bla123", "Kerberos Admin Password", "Kerberos admin password", "KERBEROS" , "SECRET", '{ "isPassword": true, "noDisplay": false, "reconfigurable": false, "displayType": "text" }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "keytab_path", "/etc/security/keytabs", "Keytab directory", "Keytab directory", "KERBEROS" , "TEXT", '{ "reconfigurable": false, "noDisplay": false }' );
+INSERT OR REPLACE INTO "ConfigProperties" ( key, default_value, display_name, description, service_name, display_type, display_attributes ) VALUES ( "kerberos_install_type", "AMBARI_SET_KERBEROS", "Kerberos installation", "Whether it is a user-configured or Ambari-configured Kerberos", "KERBEROS" , "NODISPLAY", '{ "reconfigurable": false, "editable": false, "noDisplay": false }' );
 
 --                                        Done with gsCluster.properties
 

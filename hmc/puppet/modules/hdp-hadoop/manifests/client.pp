@@ -38,6 +38,18 @@ class hdp-hadoop::client(
   } elsif ($service_state in ['installed_and_configured','uninstalled']) {
     #adds package, users and directories, and common hadoop configs
     include hdp-hadoop::initialize
+
+    if ( ($service_state == 'installed_and_configured') and
+         ($security_enabled == true) and ($kerberos_install_type == "AMBARI_SET_KERBEROS") ) {
+      $masterHost = $kerberos_adminclient_host[0]
+      hdp::download_keytab { 'hadoop_client_ambari_qa_keytab' :
+        masterhost => $masterHost,
+        keytabdst => "${$keytab_path}/ambari_qa.headless.keytab",
+        keytabfile => 'ambari_qa.headless.keytab',
+        owner => 'ambari_qa',
+        hostnameInPrincipals => 'no'
+      }
+    }
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }

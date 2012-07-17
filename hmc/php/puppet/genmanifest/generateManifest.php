@@ -27,7 +27,8 @@ include "RoleDependencies.php";
 
  class ManifestGenerator {
    public static function generateManifest($dir, $hostInfo,
-       $configInfo, $hostRoles, $hostAttributes, $modulesDir) {
+       $configInfo, $hostRoles, $hostAttributes, $modulesDir, $clusterInfo, $logger) {
+     $logger->log_debug(print_r($clusterInfo, TRUE));
      $sitePPFile = $dir . "/site.pp";
      //Delete file if exists
      if (file_exists($sitePPFile)) {
@@ -41,6 +42,18 @@ include "RoleDependencies.php";
      $hostsConfig = HostsConfigManifest::getHostsConfigManifest($hostInfo,
          $configInfo);
      fwrite($fh, $hostsConfig . "\n");
+
+     //Write keytabs
+     if ( ($configInfo['security_enabled'] == "true") 
+          && (isset($configInfo['create_principals_keytabs']))
+          && ($configInfo['create_principals_keytabs'] == "yes") ) {
+        $realm = $configInfo['kerberos_domain'];
+        $compHosts = $clusterInfo['allComponents'];
+        $keytabDirAtAdmin = $GLOBALS["puppetMasterModulesDirectory"] . "/keytabs/files" ;
+        $keytabManifest = HostsConfigManifest::getPrincipalsKeytabs($compHosts, $realm, 
+           $keytabDirAtAdmin);
+        fwrite($fh, $keytabManifest . "\n");
+     }
 
      //Write internal to external mapping if exists
      $hostsAttributeManifest = HostsConfigManifest::getHostsAttributesManifest(
@@ -271,6 +284,22 @@ include "RoleDependencies.php";
        "hdp-nagios::server" => array("hdp_mon_nagios_addons", "nagios-3.2.3", "nagios-plugins-1.4.9", "fping", "net-snmp-utils"),
        "hdp-dashboard" => array("hdp_mon_dashboard"),
    );
+
+   private static function getKeytabsPrincipalsForComponents($components, $host, $realm) {
+       $keytabs = array();
+       foreach ($components as $c)
+       if ($c == "hdp-hadoop::namenode") {
+         $keytabs["nn.headless.keytab"] = array ("nn/$host@$realm", "HTTP/$host@$realm", "HOST/$host@$realm");
+       } else if ($c == "hdp-hadoop::datanode") {
+         $keytabs["dn.headless.keytab"] = array("dn/$host@$realm");
+       } else if ($c == "hdp-hadoop::snamenode") {
+         $keytabs["sn.headless.keytab"] = array ("sn/$host@$realm", "HTTP/$host@$realm", "HOST/$host@$realm");
+       } else if ($c == "hdp-hadoop::jobtracker") {
+         $keytabs["jt.headless.keytab"] = array ("jt/$host@$realm");
+       } else if ($c == "hdp-hadoop::tasktracker") {
+         $keytabs["tt.headless.keytab"] = array ("tt/$host@$realm");
+       }
+   }
  }
 
 ?>

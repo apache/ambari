@@ -173,7 +173,7 @@
 
    <property>
      <name>local.realm</name>
-     <value><%=scope.function_hdp_template_var("realm")%></value>
+     <value><%=scope.function_hdp_template_var("kerberos_domain")%></value>
      <description>
      Kerberos Realm used by Oozie and Hadoop. Using 'local.realm' to be aligned with Hadoop configuration
      </description>
@@ -189,7 +189,7 @@
 
    <property>
      <name>oozie.service.HadoopAccessorService.kerberos.principal</name>
-     <value>oozie/<%=scope.function_hdp_host("oozie_server")%>@<%=scope.function_hdp_host("realm")%></value>
+     <value>oozie/<%=scope.function_hdp_host("oozie_server")%>@<%=scope.function_hdp_template_var("kerberos_domain")%></value>
      <description>
       Kerberos principal for Oozie service.
      </description>
@@ -212,10 +212,18 @@
     
     <property>
       <name>oozie.authentication.kerberos.principal</name>
-      <value>HTTP/<%=scope.function_hdp_host("oozie_server")%>@<%=scope.function_hdp_host("realm")%></value>
+      <value>HTTP/<%=scope.function_hdp_host("oozie_server")%>@<%=scope.function_hdp_template_var("kerberos_domain")%></value>
       <description>
        Whitelisted job tracker for Oozie service.
       </description>
+    </property>
+
+    <property>
+     <name>oozie.authentication.kerberos.keytab</name>
+     <value><%=scope.function_hdp_template_var("keytab_path")%>/spnego.service.keytab</value>
+     <description>
+       Location of the Oozie user keytab file.
+     </description>
     </property>
 
     <property>
@@ -244,6 +252,17 @@
       specify where the Pig JAR files are. Instead, the ones from the system
       library path are used.
       </description>
+    </property>
+    <property>
+      <name>oozie.authentication.kerberos.name.rules</name>
+      <value>
+        RULE:[2:$1@$0]([jt]t@.*<%=scope.function_hdp_template_var("kerberos_domain")%>)s/.*/<%=scope.function_hdp_template_var("mapred_user")%>/
+        RULE:[2:$1@$0]([nd]n@.*<%=scope.function_hdp_template_var("kerberos_domain")%>)s/.*/<%=scope.function_hdp_template_var("hdfs_user")%>/
+        RULE:[2:$1@$0](hm@.*<%=scope.function_hdp_template_var("kerberos_domain")%>)s/.*/<%=scope.function_hdp_template_var("hbase_user")%>/
+        RULE:[2:$1@$0](rs@.*<%=scope.function_hdp_template_var("kerberos_domain")%>)s/.*/<%=scope.function_hdp_template_var("hbase_user")%>/
+        DEFAULT
+        </value>
+      <description>The mapping from kerberos principal names to local OS user names.</description>
     </property>
 </configuration>
 

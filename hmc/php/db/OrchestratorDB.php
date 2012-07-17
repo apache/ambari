@@ -136,6 +136,53 @@ class OrchestratorDB {
   }
 
   /**
+   * @return true if security is enabled.
+   */
+  public function isSecurityEnabled() {
+    return $this->db->isSecurityEnabled($this->clusterName);
+  }
+
+  /**
+   * @return false if security is disabled or if an existing kerberos installation
+   * is being used.
+   */
+  public function isKerberosSetupRequired() {
+    return $this->db->isKerberosSetupRequired($this->clusterName);
+  }
+
+  /**
+   *
+   */
+  public function getNodesForKerberosComponents($krbComponents) {
+    $result = $this->db->getAllHostsByComponent($this->clusterName);
+    if ($result === FALSE || $result["result"] != 0) {
+      $this->logger->log_error("Failed to get host component mapping from DB");
+      return array ("result" => 1,
+                    "error" => "Failed to get host component mapping from DB");
+    }
+
+    $compMapping = array ();
+    $nodes = array ();
+    if (isset($result["components"])
+        && is_array($result["components"])) {
+      foreach ($result["components"] as $compName => $hostsList) {
+        if (in_array($compName, $krbComponents)) {
+          if (isset($hostsList["hosts"])
+              && !empty($hostsList["hosts"])) {
+            $compMapping[$compName] = array_keys($hostsList["hosts"]);
+            foreach ($hostsList["hosts"] as $h => $v) {
+              $nodes[$h] = 1;
+            }
+          }
+        }
+      }
+    }
+
+    return array ("result" => 0, "error" => "", "nodes" => array_keys($nodes),
+        "componentMapping" => $compMapping);
+  }
+
+  /**
    * Get the Service object corresponding to the serviceName.
    * @param serviceName service name
    * @return Service

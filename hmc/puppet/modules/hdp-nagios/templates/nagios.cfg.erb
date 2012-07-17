@@ -155,7 +155,7 @@ nagios_user=nagios
 # This determines the effective group that Nagios should run as.  
 # You can either supply a group name or a GID.
 
-nagios_group=nagios
+nagios_group=<%=scope.function_hdp_template_var("nagios_group")%>
 
 
 

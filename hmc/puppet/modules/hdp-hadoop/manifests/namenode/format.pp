@@ -30,6 +30,7 @@ class hdp-hadoop::namenode::format(
   if ($force == true) {
       hdp-hadoop::exec-hadoop { 'namenode -format' :
       command => 'namenode -format',
+      kinit_override => true,
       notify  => Hdp::Exec['set namenode mark']
     }
   } else {

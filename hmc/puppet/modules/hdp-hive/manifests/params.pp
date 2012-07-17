@@ -44,13 +44,16 @@ class hdp-hive::params() inherits hdp::params
   ### hive-site
   $hive_database_name = hdp_default("hadoop/hive-site/hive_database_name","hive")
 
-  $hive_metastore_principal = hdp_default("hadoop/hive-site/hive_metastore_principal")
+  if ($hdp::params::security_enabled == true) {
+    $hive_metastore_sasl_enabled = "true"
+  } else {
+    $hive_metastore_sasl_enabled = "false"
+  }
 
-  $hive_metastore_sasl_enabled = hdp_default("hadoop/hive-site/hive_metastore_sasl_enabled","false")
+  $keytab_path = hdp_default("keytab_path","/etc/security/keytabs")
 
-  #TODO: using instead hive_server_host in hdp::params $hive_metastore_server_host = hdp_default("hadoop/hive-site/hive_metastore_server_host")
-
-  $keytab_path = hdp_default("hadoop/hive-site/keytab_path")
+  #TODO: using instead hive_server_host in hdp::params 
+  #$hive_metastore_server_host = hdp_default("hadoop/hive-site/hive_metastore_server_host")
   
   ###mysql connector
   $download_url = $hdp::params::gpl_artifacts_download_url

@@ -97,6 +97,7 @@ class HostsConfigManifest {
       $manifest = "$" . $key . " = ";
       if ( ($key == "lzo_enabled") ||
            ($key == "snappy_enabled") || 
+           ($key == "security_enabled") ||
            ($key == "wipeoff_data") ) {
         $manifest = $manifest . $value . "\n";
       } else if ($key == "datanode_du_reserved"
@@ -109,6 +110,113 @@ class HostsConfigManifest {
       }
       return $manifest;
    }
+
+   private static $componentToKeytabMap = array (
+     "hdp-hadoop::namenode" => array("nn.service.keytab"),
+     "hdp-hadoop::snamenode" => array("nn.service.keytab"),
+     "hdp-hadoop::datanode" => array("dn.service.keytab"),
+     "hdp-hadoop::jobtracker" => array("jt.service.keytab"),
+     "hdp-hadoop::tasktracker" => array("tt.service.keytab"),
+   );
+
+   private static $keytabsToPrincipalMap = array (
+     "nn.service.keytab" => array("nn", "HTTP", "host"),
+     "dn.service.keytab" => array("dn"),
+     "jt.service.keytab" => array("jt"),
+     "tt.service.keytab" => array("tt")
+   );
+
+   private static $headlessUsersKeytab = array (
+     "hdfs.headless.keytab" => array("hdfs"),
+     "ambari_qa.headless.keytab" => array("ambari_qa")
+   );
+
+   private static function getArrayVariableManifest($arr) {
+     $manifest = "";
+     $manifest = $manifest . "[";
+     $first = TRUE;
+     foreach ($arr as $k) {
+       if (!$first) {
+         $manifest = $manifest . ",";
+       } else {
+         $first = FALSE;
+       }
+       $manifest = $manifest . "\"" . $k . "\"";
+     }
+     $manifest = $manifest . "]";
+     return $manifest;
+   }
+
+   public static function getPrincipalsKeytabs($componentHosts, $realm, $keytabDirAtAdmin) {
+     $allPrincipals = array();
+     $allKeytabs = array(); 
+     $principalsForKeytabs = array();
+     foreach ($componentHosts as $comp => $hostList) {
+       if (!isset(HostsConfigManifest::$componentToKeytabMap[$comp])) {
+         continue;
+       }
+       $keytabs = HostsConfigManifest::$componentToKeytabMap[$comp];
+       foreach ($hostList as $h) {
+         foreach ($keytabs as $k) {
+           $keytabWithPath = $keytabDirAtAdmin . "/" . $h . "." . $k;
+           $allKeytabs[] = $keytabWithPath; 
+           $shortNames = HostsConfigManifest::$keytabsToPrincipalMap[$k];
+           $principalsForKeytabs[$keytabWithPath] = array();
+           foreach ($shortNames as $s) {
+             $princ = $s . "/" . $h . "@" . $realm ;
+             $principalsForKeytabs[$keytabWithPath][] = $princ;
+             $allPrincipals[] = $princ;
+           }
+         }
+       }
+     }
+     ##Add headless users
+     foreach (HostsConfigManifest::$headlessUsersKeytab as $k => $plist) {
+       ##TODO add to a directory to download from
+       $keytabWithPath = $keytabDirAtAdmin . "/" . $k;
+       $allKeytabs[] = $keytabWithPath;
+       foreach ($plist as $s) {
+         $princ = $s . "@" . $realm ;
+         $principalsForKeytabs[$keytabWithPath][] = $princ;
+         $allPrincipals[] = $princ;
+       } 
+     }
+     $allPrincipals = array_unique($allPrincipals);
+     $allKeytabs = array_unique($allKeytabs);
+
+     $manifest = "";
+     //generate manifest for principals
+     $manifest = $manifest . "\$principals_to_create = " ;
+     $manifest = $manifest . HostsConfigManifest::getArrayVariableManifest($allPrincipals); 
+     $manifest = $manifest . "\n";
+     //generate manifest for keytabs
+     $manifest = $manifest . "\$keytabs_to_create = " ;
+     $manifest = $manifest . HostsConfigManifest::getArrayVariableManifest($allKeytabs); 
+     $manifest = $manifest . "\n";
+
+     //keytabs to principals
+     $manifest = $manifest . "\$principals_in_keytabs = {";
+     $first = TRUE;
+     foreach ($principalsForKeytabs as $k => $ps) {
+       if (!$first) {
+         $manifest = $manifest . ", ";
+       } else {
+         $first = FALSE;
+       }
+       $manifest = $manifest . "\"" . $k . "\"" . " => " . HostsConfigManifest::getArrayVariableManifest($ps) ;
+     }
+     $manifest = $manifest . "}\n";
+     return $manifest;
+   }
+
 }
+
+/***
+$compHost = array ("hdp-hadoop::namenode" => array("n1"), "hdp-hadoop::datanode" => array("n2","n3"));
+$manifest = HostsConfigManifest::getPrincipalsKeytabs($compHost, "HADOOP.COM", "/t1");
+
+print($manifest);
+***/
+
 
 ?>

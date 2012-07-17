@@ -22,6 +22,13 @@ class hdp-templeton::templeton::service_check()
 {
   include hdp-templeton::params
   $smoke_test_user = $hdp::params::smokeuser
+  $security_enabled=$hdp::params::security_enabled
+  if ($security_enabled == true) {
+    $security = "true"
+  } else {
+    $security = "false"
+  }
+  $smoke_user_keytab = "${hdp-templeton::params::keytab_path}/${smoke_test_user}.headless.keytab"
 
   $templeton_host = $hdp::params::templeton_server_host
 
@@ -43,7 +50,7 @@ define hdp-templeton::smoke_shell_file()
   }
 
   exec { '/tmp/templetonSmoke.sh':
-    command   => "sh /tmp/templetonSmoke.sh ${templeton_host} ${smoke_test_user}",
+    command   => "sh /tmp/templetonSmoke.sh ${templeton_host} ${smoke_test_user} ${smoke_user_keytab} ${security}",
     tries     => 3,
     try_sleep => 5,
     require   => File['/tmp/templetonSmoke.sh'],

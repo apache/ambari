@@ -25,6 +25,12 @@ class hdp::params()
   $cluster_service_state = hdp_default("cluster_service_state","running")
   $cluster_client_state = hdp_default("cluster_client_state","installed_and_configured")
 
+  ##### for secure install
+  $security_enabled = hdp_default("security_enabled",false)
+  $kerberos_domain = hdp_default("kerberos_domain","EXAMPLE.COM")
+  $smoketest_user_secure_uid = hdp_default("smoketest_user_secure_uid",1012)
+  ## $smoketest_user_secure_uid = 1012
+
   ###### hostnames
   $namenode_host = hdp_default("namenode_host")
   $snamenode_host = hdp_default("snamenode_host")
@@ -115,7 +121,11 @@ class hdp::params()
   $smoke_user_group = hdp_default("smoke_user_group","users")
 
   #because of Puppet user resource issue make sure that $hadoop_user is different from hadoop_user_group
-  $hadoop_user = hdp_default("hadoop_user", "hadoop_deploy")
+  if ($security_enabled == true) {
+    $hadoop_user = "root"
+  } else {
+    $hadoop_user = hdp_default("hadoop_user", "hadoop_deploy")
+  }
   $hadoop_user_group = hdp_default("hadoop_user_group","hadoop")
 
   $ganglia_enabled = hdp_default("ganglia_enabled",true) 
@@ -134,7 +144,10 @@ class hdp::params()
     32 => "jdk-6u26-linux-i586.bin",
     64 => "jdk-6u26-linux-x64.bin"
   })
-  
+
+  $jce_policy_zip = "jce_policy-6.zip"
+  $jce_location = hdp_default("jce_location","http://download.oracle.com/otn-pub/java/jce_policy/6")
+
   #####
   $hadoop_home = hdp_default("hadoop_home","/usr")
   $hadoop_lib_home = hdp_default("hadoop_lib_home","/usr/lib/hadoop/lib")

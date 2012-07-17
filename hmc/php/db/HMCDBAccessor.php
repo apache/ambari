@@ -524,6 +524,34 @@ class HMCDBAccessor {
     LockRelease(); return $response;
   }
 
+  public function isSecurityEnabled($clusterName) {
+    LockAcquire();
+    $query = "SELECT value FROM ServiceConfig WHERE"
+        . " key = " . $this->dbHandle->quote("security_enabled") 
+        . " AND cluster_name = " . $this->dbHandle->quote($clusterName) ;
+    $this->logger->log_debug("Running query: $query");
+    $pdoStmt = $this->dbHandle->query($query);
+    $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
+    LockRelease();
+    return ($result[0]["value"] == "true"); 
+  }
+
+  public function isKerberosSetupRequired($clusterName) {
+    LockAcquire();
+    $query = "SELECT value FROM ServiceConfig WHERE"
+        . " key = " . $this->dbHandle->quote("kerberos_install_type") 
+        . " AND cluster_name = " . $this->dbHandle->quote($clusterName) ;
+    $this->logger->log_debug("Running query: $query");
+    $pdoStmt = $this->dbHandle->query($query);
+    $result = $pdoStmt->fetchAll(PDO::FETCH_BOTH);
+    LockRelease();
+    if (!empty($result)) {
+      return ($result[0]["value"] == "AMBARI_SET_KERBEROS"); 
+    } else {
+      return FALSE;
+    }
+  }
+
   /**
    * Get the list of all services that are available for the given clusterName
    * @return mixed

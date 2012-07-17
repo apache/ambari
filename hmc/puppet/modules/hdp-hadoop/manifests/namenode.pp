@@ -37,6 +37,24 @@ class hdp-hadoop::namenode(
   
     #adds package, users and directories, and common hadoop configs
     include hdp-hadoop::initialize
+
+    if ( ($service_state == 'installed_and_configured') and 
+         ($security_enabled == true) and ($kerberos_install_type == "AMBARI_SET_KERBEROS") ) {
+      $masterHost = $kerberos_adminclient_host[0]
+      hdp::download_keytab { 'namenode_service_keytab' :
+        masterhost => $masterHost,
+        keytabdst => "${$keytab_path}/nn.service.keytab",
+        keytabfile => 'nn.service.keytab',
+        owner => $hdp-hadoop::params::hdfs_user
+      }
+      hdp::download_keytab { 'namenode_hdfs_headless_keytab' :   
+        masterhost => $masterHost,
+        keytabdst => "${$keytab_path}/hdfs.headless.keytab",
+        keytabfile => 'hdfs.headless.keytab', 
+        owner => $hdp-hadoop::params::hdfs_user, 
+        hostnameInPrincipals => 'no'
+      }
+    }
  
     hdp-hadoop::namenode::create_name_dirs { $dfs_name_dir: 
       service_state => $service_state
@@ -54,9 +72,15 @@ class hdp-hadoop::namenode(
       user         => $hdp-hadoop::params::hdfs_user,
       initial_wait => hdp_option_value($opts,'wait')
     }
+
+    hdp-hadoop::namenode::create_app_directories { 'create_app_directories' :
+       service_state => $service_state
+    }
+
     #top level does not need anchors
     Class['hdp-hadoop'] ->  Hdp-hadoop::Service['namenode']
-    Hdp-hadoop::Namenode::Create_name_dirs<||> -> Hdp-hadoop::Service['namenode']
+    Hdp-hadoop::Namenode::Create_name_dirs<||> -> Hdp-hadoop::Service['namenode'] 
+    Hdp-hadoop::Service['namenode'] -> Hdp-hadoop::Namenode::Create_app_directories<||>
     if ($service_state == 'running' and $format == true) {
       Class['hdp-hadoop'] -> Class['hdp-hadoop::namenode::format'] -> Hdp-hadoop::Service['namenode']
       Hdp-hadoop::Namenode::Create_name_dirs<||> -> Class['hdp-hadoop::namenode::format']
@@ -74,5 +98,34 @@ define hdp-hadoop::namenode::create_name_dirs($service_state)
     mode => '0755',
     service_state => $service_state,
     force => true
+  }
+}
+
+define hdp-hadoop::namenode::create_app_directories($service_state)
+{
+  if ($service_state == 'running') {
+    $smoke_test_user = $hdp::params::smokeuser
+    hdp-hadoop::hdfs::directory{ "/user/${smoke_test_user}":
+      service_state => $service_state,
+      owner => $smoke_test_user,
+      mode  => '770',
+      recursive_chmod => true
+    }
+   
+    hdp-hadoop::hdfs::directory{ "/tmp" :
+      service_state => $service_state,
+      owner => $hdp-hadoop::params::hdfs_user,
+      mode => '777'
+    }
+
+    hdp-hadoop::hdfs::directory{ '/mapred' :
+      service_state => $service_state,
+      owner         => $hdp-hadoop::params::mapred_user
+    }
+    hdp-hadoop::hdfs::directory{ '/mapred/system' :
+      service_state => $service_state,
+      owner         => $hdp-hadoop::params::mapred_user
+    }
+    Hdp-hadoop::Hdfs::Directory['/mapred'] -> Hdp-hadoop::Hdfs::Directory['/mapred/system']
   }
 }

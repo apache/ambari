@@ -35,6 +35,17 @@ class hdp-hadoop::jobtracker(
   
     #adds package, users and directories, and common hadoop configs
     include hdp-hadoop::initialize
+
+    if ( ($service_state == 'installed_and_configured') and
+         ($security_enabled == true) and ($kerberos_install_type == "AMBARI_SET_KERBEROS") ) {
+      $masterHost = $kerberos_adminclient_host[0]
+      hdp::download_keytab { 'jobtracker_service_keytab' :
+        masterhost => $masterHost,
+        keytabdst => "${$keytab_path}/jt.service.keytab",
+        keytabfile => 'jt.service.keytab',
+        owner => $hdp-hadoop::params::mapred_user
+      }
+    }
      
     hdp-hadoop::jobtracker::create_local_dirs { $mapred_local_dir: 
       service_state => $service_state
@@ -42,10 +53,6 @@ class hdp-hadoop::jobtracker(
 
     #TODO: cleanup 
     Hdp-Hadoop::Configfile<||>{jtnode_host => $hdp::params::host_address}
-
-    class { 'hdp-hadoop::jobtracker::hdfs-directory' : 
-      service_state => $service_state 
-    }
 
     #TODO: do we keep precondition here?
     if ($service_state == 'running' and $hdp-hadoop::params::use_preconditions == true) {
@@ -69,7 +76,6 @@ class hdp-hadoop::jobtracker(
 
     #top level does not need anchors
     Class['hdp-hadoop'] -> Hdp-hadoop::Service['jobtracker'] -> Hdp-hadoop::Service['historyserver']
-    Class['hdp-hadoop::jobtracker::hdfs-directory'] -> Hdp-hadoop::Service['jobtracker']
     Hdp-hadoop::Jobtracker::Create_local_dirs<||> -> Hdp-hadoop::Service['jobtracker']
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
@@ -86,17 +92,3 @@ define hdp-hadoop::jobtracker::create_local_dirs($service_state)
       force => true
     }
 }
-
-class hdp-hadoop::jobtracker::hdfs-directory($service_state)
-{
-  hdp-hadoop::hdfs::directory{ '/mapred' :
-    service_state => $service_state,
-    owner         => $hdp-hadoop::params::mapred_user
-  }  
-   hdp-hadoop::hdfs::directory{ '/mapred/system' :
-    service_state => $service_state,
-    owner         => $hdp-hadoop::params::mapred_user
-  }  
-  Hdp-hadoop::Hdfs::Directory['/mapred'] -> Hdp-hadoop::Hdfs::Directory['/mapred/system'] 
-}
-

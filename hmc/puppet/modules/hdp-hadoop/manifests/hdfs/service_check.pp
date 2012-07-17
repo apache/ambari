@@ -40,6 +40,7 @@ class hdp-hadoop::hdfs::service_check()
     tries     => 40,
     try_sleep => 15,
     logoutput => true,
+    user      => $hdp::params::smokeuser,
     require   => Anchor['hdp-hadoop::hdfs::service_check::begin']
   }
 
@@ -48,6 +49,7 @@ class hdp-hadoop::hdfs::service_check()
     unless    => $test_dir_exists,
     tries     => 3,
     try_sleep => 5,
+    user      => $hdp::params::smokeuser,
     require   => Hdp-hadoop::Exec-hadoop['hdfs::service_check::check_safemode']
   }
 
@@ -55,6 +57,7 @@ class hdp-hadoop::hdfs::service_check()
     command   => $create_file_cmd,
     tries     => 3,
     try_sleep => 5,
+    user      => $hdp::params::smokeuser,
     require   => Hdp-hadoop::Exec-hadoop['hdfs::service_check::create_dir'],
     notify    => Hdp-hadoop::Exec-hadoop['hdfs::service_check::test']
   }
@@ -62,6 +65,7 @@ class hdp-hadoop::hdfs::service_check()
   hdp-hadoop::exec-hadoop { 'hdfs::service_check::test':
     command     => $test_cmd,
     refreshonly => true,
+    user      => $hdp::params::smokeuser,
     require     => Hdp-hadoop::Exec-hadoop['hdfs::service_check::create_file'],
     #notify      => Hdp-hadoop::Exec-hadoop['hdfs::service_check::cleanup']  #TODO: put in after testing
     before      => Anchor['hdp-hadoop::hdfs::service_check::end'] #TODO: remove after testing
@@ -76,17 +80,4 @@ class hdp-hadoop::hdfs::service_check()
   #}
   anchor{ 'hdp-hadoop::hdfs::service_check::end':}
 
-  class { 'hdp-hadoop::hdfs-directories' :
-    service_state => running  }
-}
-
-class hdp-hadoop::hdfs-directories($service_state)
-{
-  $smoke_test_user = $hdp::params::smokeuser
-  hdp-hadoop::hdfs::directory{ "/user/${smoke_test_user}":
-    service_state => $service_state,
-    owner => $smoke_test_user,
-    mode  => '770',
-    recursive_chmod => true
-  }
 }

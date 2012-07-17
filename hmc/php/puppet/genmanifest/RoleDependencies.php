@@ -36,6 +36,10 @@
        $this->classDependencies = new PuppetClassDependencies();
 	     $this->sortedRoles = array (
 	      "hdp",
+              "hdp-java-jce",
+              "hdp-kerberos::server",
+              "hdp-kerberos::adminclient",
+              "hdp-kerberos::client",
 	      "hdp-hadoop::namenode",
 	      "hdp-hadoop::namenode::service_check",
 	      "hdp-hadoop::snamenode",

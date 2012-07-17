@@ -54,7 +54,7 @@ export HADOOP_CLIENT_OPTS="-Xmx128m ${HADOOP_CLIENT_OPTS}"
 #HADOOP_JAVA_PLATFORM_OPTS="-XX:-UsePerfData ${HADOOP_JAVA_PLATFORM_OPTS}"
 
 # On secure datanodes, user to run the datanode as after dropping privileges
-export HADOOP_SECURE_DN_USER=<%=scope.function_hdp_template_var("hdfsuser")%>
+export HADOOP_SECURE_DN_USER=<%=scope.function_hdp_template_var("hdfs_user")%>
 
 # Extra ssh options.  Empty by default.
 export HADOOP_SSH_OPTS="-o ConnectTimeout=5 -o SendEnv=HADOOP_CONF_DIR"

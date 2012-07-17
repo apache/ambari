@@ -20,9 +20,18 @@
 #
 class hdp-hcat::hcat::service_check() 
 {
+  include hdp-hcat::params
   $unique = hdp_unique_id_and_date()
   $smoke_test_user = $hdp::params::smokeuser
   $output_file = "/apps/hive/warehouse/hcatsmoke${unique}"
+  $security_enabled=$hdp::params::security_enabled
+  $smoke_user_keytab = "${hdp-hcat::params::keytab_path}/${smoke_test_user}.headless.keytab"
+
+  if ($security_enabled == true) {
+    $smoke_user_kinitcmd="/usr/kerberos/bin/kinit  -kt ${smoke_user_keytab} ${smoke_test_user}; "
+  } else {
+    $smoke_user_kinitcmd=""
+  }
 
   $test_cmd = "fs -test -e ${output_file}" 
   
@@ -35,7 +44,7 @@ class hdp-hcat::hcat::service_check()
   }
 
   exec { '/tmp/hcatSmoke.sh':
-    command   => "su - ${smoke_test_user} -c 'sh /tmp/hcatSmoke.sh hcatsmoke${unique}'",
+    command   => "su - ${smoke_test_user} -c '${smoke_user_kinitcmd}sh /tmp/hcatSmoke.sh hcatsmoke${unique}'",
     tries     => 3,
     try_sleep => 5,
     require   => File['/tmp/hcatSmoke.sh'],

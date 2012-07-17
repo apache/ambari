@@ -32,4 +32,5 @@ class hdp-hcat::params() inherits hdp::params
 
   $hcat_pid_dir = hdp_default("hadoop/hcat-env/hcat_pid_dir","/var/run/hcatalog")
 
+  $keytab_path = hdp_default("keytab_path","/etc/security/keytabs")
 }

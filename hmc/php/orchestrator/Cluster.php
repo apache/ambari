@@ -31,6 +31,7 @@ class Cluster {
   private $logger;
   private $state;
   private $currentAction;
+  private $securityEnabled;
 
   public function __construct($clusterName, $db, $puppet) {
     $this->name = $clusterName;
@@ -39,10 +40,149 @@ class Cluster {
     $this->logger = new HMCLogger("Cluster:".$clusterName);
     $this->state = "";
     $this->currentAction = "";
+    $this->securityEnabled = false;
   }
 
   public function resetSubTxnId() {
     $GLOBALS["SUB_TXN_ID"] = 1;
+  }
+
+  private function _deployKdc($transaction, $dryRun) {
+     $krbServiceName = "KERBEROS";
+     // get Kerberos svc name
+     $service = $this->db->getService($krbServiceName);
+     $result = $this->setState(State::INSTALLING, $transaction, $dryRun);
+     $installSubTxn = $transaction->createSubTransaction();
+     $result = $service->install($installSubTxn, $dryRun);
+     if ($result['result'] !== 0) {
+         $this->logger->log_error("Installing KDC failed with: " . $result['error']);
+         $this->setState(State::FAILED, $transaction, $dryRun);
+         $service->setState(State::FAILED, $installSubTxn, $dryRun, TRUE);
+         return $result;
+     }
+
+     if (!$dryRun) { 
+       // kick kdc server and admin client hosts to install rpms (first kick )
+       $result = $this->db->getNodesForKerberosComponents(array ("KERBEROS_SERVER", 
+          "KERBEROS_ADMIN_CLIENT", "KERBEROS_CLIENT") );
+       if ($result['result'] !== 0) {
+         $this->logger->log_error("Installing KDC failed with: " . $result['error']);
+         $this->setState(State::FAILED, $transaction, $dryRun);
+         $service->setState(State::FAILED, $installSubTxn, $dryRun, TRUE);
+         return $result;
+       }
+       $nodes = $result["nodes"];
+       $this->logger->log_debug("Kicking puppet for installing"
+           . " kdc=" . $this->name
+           . ", txn=" . $transaction->toString());
+       $startTime = time();
+       $result = $this->puppet->kickPuppet($nodes, $transaction, $this->name,
+           $result["componentMapping"]);
+       $this->logger->log_debug("Puppet kick response for installing"
+           . " cluster=" . $this->name
+           . ", txn=" . $transaction->toString()
+           . ", response=" . print_r($result, true));
+ 
+       // handle puppet response
+       $timeTaken = time() - $startTime;
+       $opStatus = array(
+          "stats" =>
+              array (
+                     "NODE_COUNT" => count($nodes),
+                     "TIME_TAKEN_SECS" => $timeTaken),
+          "nodeReport" =>
+              array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
+                     "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
+                     "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
+                     "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
+ 
+       $this->logger->log_info("Persisting puppet report for install KDC");
+       $this->db->persistTransactionOpStatus($transaction,
+          json_encode($opStatus));
+ 
+       if ($result['result'] != 0) {
+         $this->logger->log_error("Installing KDC failed with:  " . $result['error']);
+         $this->setState(State::FAILED, $transaction, $dryRun);
+         $service->setState(State::FAILED, $installSubTxn, $dryRun, FALSE);
+         return $result;
+       }
+
+       if (count($nodes) > 0
+           && count($result[SUCCESSFULLNODES]) != count($nodes)) {
+         $this->logger->log_error("Failed to install and run Kdc");
+         $this->setState(State::FAILED, $transaction, $dryRun);
+         $service->setState(State::FAILED, $installSubTxn, $dryRun, FALSE);
+         return array ( "result" => -3,
+                        "error" => "Failed to install and run Kdc");
+       }
+     } 
+     $result = $this->setState(State::INSTALLED, $transaction, $dryRun);
+     $result = $service->start($installSubTxn->createSubTransaction(), $dryRun);
+     return $result;
+  }
+
+  public function _createPrincipalsKeytabs($transaction, $dryRun) {
+    $this->currentAction = "Create Principals and Keytabs";
+    $result = $this->setState(State::STARTING, $transaction, $dryRun);
+    $this->logger->log_debug("Create Principals and keytabs " . $transaction->toString());
+    if (!$dryRun) {
+       $result = $this->db->getNodesForKerberosComponents(array("KERBEROS_ADMIN_CLIENT"));
+       if ($result['result'] !== 0) {
+         $this->logger->log_error("Keytab generation failed with: " . $result['error']);
+         $this->setState(State::FAILED, $transaction, $dryRun);
+         return $result;
+       }
+       $nodes = $result["nodes"];
+
+       $allNodeComponentInfo = $this->db->getAllNodes();
+
+       $this->logger->log_debug("Kicking puppet for generating keytabs, "
+           . " cluster=" . $this->name
+           . ", txn=" . $transaction->toString());
+       $startTime = time();
+       $clusterInfoForPuppet = array();
+       $clusterInfoForPuppet['globalOptions'] = array("create_principals_keytabs" => "yes");
+       $clusterInfoForPuppet['allComponents'] = $allNodeComponentInfo["componentMapping"];
+       $result = $this->puppet->kickPuppet($nodes, $transaction, $this->name,
+           $result["componentMapping"], $clusterInfoForPuppet);
+       $this->logger->log_debug("Puppet kick response for generating keytabs, "
+           . " cluster=" . $this->name
+           . ", txn=" . $transaction->toString()
+           . ", response=" . print_r($result, true));
+ 
+       // handle puppet response
+       $timeTaken = time() - $startTime;
+       $opStatus = array(
+          "stats" =>
+              array (
+                     "NODE_COUNT" => count($nodes),
+                     "TIME_TAKEN_SECS" => $timeTaken),
+          "nodeReport" =>
+              array ( "PUPPET_KICK_FAILED" => $result[KICKFAILED],
+                     "PUPPET_OPERATION_FAILED" => $result[FAILEDNODES],
+                     "PUPPET_OPERATION_TIMEDOUT" => $result[TIMEDOUTNODES],
+                     "PUPPET_OPERATION_SUCCEEDED" => $result[SUCCESSFULLNODES]));
+ 
+       $this->logger->log_info("Persisting puppet report for generating keytabs");
+       $this->db->persistTransactionOpStatus($transaction,
+          json_encode($opStatus));
+ 
+       if ($result['result'] != 0) {
+         $this->logger->log_error("Keytab generation failed with:  " . $result['error']);
+         $this->setState(State::FAILED, $transaction, $dryRun);
+         return $result;
+       }
+
+       if (count($nodes) > 0
+           && count($result[SUCCESSFULLNODES]) != count($nodes)) {
+         $this->logger->log_error("Failed to install and run Kdc");
+         $this->setState(State::FAILED, $transaction, $dryRun);
+         return array ( "result" => -3,
+                        "error" => "Failed to create keytabs and principals");
+       }
+    }
+    $result = $this->setState(State::STARTED, $transaction, $dryRun);
+    return $result;
   }
 
   /**
@@ -50,14 +190,48 @@ class Cluster {
    * @param transaction transactionId for the operation
    */
   public function deployHDP($transaction) {
+    //If security is enabled, add dependency on kdc
+    $securityEnabled = $this->db->isSecurityEnabled();
+    $kerberosInstallRequired = $this->db->isKerberosSetupRequired();
+    if ($securityEnabled && $kerberosInstallRequired) {
+      $this->logger->log_info("Security is enabled, going to install kerberos");
+      $this->securityEnabled = true;
+      $this->currentAction = "Kerberos install";
+      $result = $this->_deployKdc($transaction->getNextSubTransaction(), TRUE); 
+      if ($result['result'] !== 0) {
+        $this->logger->log_error("Failed to install kerberos");
+        return $result;
+      }
+      $result = $this->_createPrincipalsKeytabs($transaction->getNextSubTransaction(), TRUE);
+      if ($result['result'] !== 0) {
+        $this->logger->log_error("Failed to create keytabs");
+        return $result;
+      }
+    } else {
+      $this->logger->log_info("Security is not enabled, skipping kerberos");
+    }
     $this->currentAction = "Cluster install";
-    $result = $this->_deployHDP($transaction, TRUE);
+    $result = $this->_deployHDP($transaction->getNextSubTransaction(), TRUE);
     if ($result['result'] !== 0) {
       return $result;
     }
     $this->resetSubTxnId();
     $this->db->reset();
-    return $this->_deployHDP($transaction, FALSE);
+    if ($securityEnabled && $kerberosInstallRequired) {
+      $this->currentAction = "Kerberos install";
+      $result = $this->_deployKdc($transaction->getNextSubTransaction(), FALSE);
+      if ($result['result'] !== 0) {
+        $this->logger->log_error("Failed to install kerberos");
+        return $result;
+      }
+      $result = $this->_createPrincipalsKeytabs($transaction->getNextSubTransaction(), FALSE);
+      if ($result['result'] !== 0) {
+        $this->logger->log_error("Failed to create keytabs");
+        return $result;
+      }
+    }
+    $this->currentAction = "Cluster install";
+    return $this->_deployHDP($transaction->getNextSubTransaction(), FALSE);
   }
 
   private function _deployHDP($transaction, $dryRun) {
@@ -129,7 +303,7 @@ class Cluster {
          . ", txn=" . $transaction->toString());
       $startTime = time();
       $result = $this->puppet->kickPuppet($nodes, $transaction, $this->name,
-          $result["componentMapping"], array ("wipeoff_data" => $wipeoutFlag));
+          $result["componentMapping"], array ('globalOptions' => array ("wipeoff_data" => $wipeoutFlag)));
       $this->logger->log_debug("Puppet kick response for uninstalling "
           . "cluster=" . $this->name
           . ", txn=" . $transaction->toString()
@@ -685,7 +859,6 @@ class Cluster {
         return array ( "result" => -3,
                        "error" => "Puppet kick failed on all nodes");
       }
-
     }
 
     // TODO - Update DB with transaction

@@ -35,6 +35,19 @@ class hdp-hadoop::snamenode(
   
     #adds package, users and directories, and common hadoop configs
     include hdp-hadoop::initialize
+
+    if ( ($service_state == 'installed_and_configured') and
+         ($security_enabled == true) and ($kerberos_install_type == "AMBARI_SET_KERBEROS") ) {
+      if ($hdp::params::service_exists['hdp-hadoop::namenode'] != true) {
+        $masterHost = $kerberos_adminclient_host[0]
+        hdp::download_keytab { 'snamenode_service_keytab' :
+          masterhost => $masterHost,
+          keytabdst => "${$keytab_path}/nn.service.keytab",
+          keytabfile => 'nn.service.keytab',
+          owner => $hdp-hadoop::params::hdfs_user
+        }
+      }
+    }
  
     Hdp-Hadoop::Configfile<||>{snamenode_host => $hdp::params::host_address}
   

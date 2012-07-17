@@ -48,6 +48,18 @@ class hdp-hadoop::datanode(
 
     #adds package, users and directories, and common hadoop configs
     include hdp-hadoop::initialize
+
+    if ( ($service_state == 'installed_and_configured') and
+         ($security_enabled == true) and ($kerberos_install_type == "AMBARI_SET_KERBEROS") ) {
+      $masterHost = $kerberos_adminclient_host[0]
+      hdp::download_keytab { 'datanode_service_keytab' :
+        masterhost => $masterHost,
+        keytabdst => "${$keytab_path}/dn.service.keytab",
+        keytabfile => 'dn.service.keytab',
+        owner => $hdp-hadoop::params::hdfs_user
+      }
+    }
+
   
     hdp-hadoop::datanode::create_data_dirs { $dfs_data_dir: 
       service_state => $service_state

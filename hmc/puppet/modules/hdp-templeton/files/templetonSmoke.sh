@@ -22,10 +22,17 @@
 
 export ttonhost=$1
 export smoke_test_user=$2
+export smoke_user_keytab=$3
+export security_enabled=$4
 export ttonurl="http://${ttonhost}:50111/templeton/v1"
 
+if [[ $security_enabled == "true" ]]; then
+  kinitcmd="/usr/kerberos/bin/kinit  -kt ${smoke_user_keytab} ${smoke_test_user}; "
+else
+  kinitcmd=""
+fi
 
-cmd="curl -s -w 'http_code <%{http_code}>'    $ttonurl/status 2>&1"
+cmd="${kinitcmd}curl --negotiate -u : -s -w 'http_code <%{http_code}>'    $ttonurl/status 2>&1"
 retVal=`su - ${smoke_test_user} -c "$cmd"`
 httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
 
@@ -39,7 +46,7 @@ exit 0
 
 #try hcat ddl command
 echo "user.name=${smoke_test_user}&exec=show databases;" /tmp/show_db.post.txt
-cmd="curl -s -w 'http_code <%{http_code}>' -d  \@${destdir}/show_db.post.txt  $ttonurl/ddl 2>&1"
+cmd="${kinitcmd}curl --negotiate -u : -s -w 'http_code <%{http_code}>' -d  \@${destdir}/show_db.post.txt  $ttonurl/ddl 2>&1"
 retVal=`su - ${smoke_test_user} -c "$cmd"`
 httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
 
@@ -47,6 +54,12 @@ if [[ "$httpExitCode" -ne "200" ]] ; then
   echo "Templeton Smoke Test (ddl cmd): Failed. : $retVal"
   export TEMPLETON_EXIT_CODE=1
   exit  1
+fi
+
+# NOT SURE?? SUHAS
+if [[ $security_enabled == "true" ]]; then
+  echo "Templeton Pig Smoke Tests not run in secure mode"
+  exit 0
 fi
 
 #try pig query

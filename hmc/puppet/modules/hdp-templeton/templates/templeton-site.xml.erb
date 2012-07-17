@@ -117,6 +117,20 @@ limitations under the License.
     <name>templeton.streaming.jar</name>
     <value>hdfs:///apps/templeton/hadoop-streaming.jar</value>
     <description>The hdfs path to the Hadoop streaming jar file.</description>
-  </property> 
+ </property> 
 
+ <property>
+   <name>templeton.kerberos.principal</name>
+   <value>HTTP/<%=scope.function_hdp_host("templeton_server_host")%>@<%=scope.function_hdp_template_var("kerberos_domain")%></value>
+ </property>
+
+ <property>
+   <name>templeton.kerberos.keytab</name>
+   <value><%=scope.function_hdp_template_var("keytab_path")%>/spnego.service.keytab</value>
+ </property>
+
+ <property>
+   <name>templeton.kerberos.secret</name>
+   <value>secret</value>
+ </property>
 </configuration>

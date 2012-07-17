@@ -20,16 +20,30 @@
 #
 class hdp-sqoop::sqoop::service_check() 
 {
+  include hdp-sqoop::params
   $smoke_test_user = $hdp::params::smokeuser
+
+  # TODO:SUHAS Move this to hdp::params
+  $security_enabled=$hdp::params::security_enabled
+  $smoke_user_keytab = "${hdp-sqoop::params::keytab_path}/${smoke_test_user}.headless.keytab"
+  if ($security_enabled == true) {
+    $smoke_user_kinitcmd="/usr/kerberos/bin/kinit  -kt ${smoke_user_keytab} ${smoke_test_user}; "
+  } else {
+    $smoke_user_kinitcmd=""
+  }
+
+  $cmd = "${smoke_user_kinitcmd}su - ${smoke_test_user} -c 'sqoop version'"
   
   anchor { 'hdp-sqoop::sqoop::service_check::begin':}
 
   exec { 'sqoop_smoke':
-    command   => "su - ${smoke_test_user} -c 'sqoop version'",
+    command   => $cmd,
     tries     => 3,
     try_sleep => 5,
     path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-    logoutput => "true"
+    logoutput => "true",
+    require   => Anchor['hdp-sqoop::sqoop::service_check::begin'],
+    before    => Anchor['hdp-sqoop::sqoop::service_check::end']
   }
 
   anchor{ 'hdp-sqoop::sqoop::service_check::end':}
