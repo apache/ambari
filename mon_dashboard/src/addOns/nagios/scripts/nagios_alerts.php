@@ -99,7 +99,13 @@ function hdp_mon_generate_response( $response_data )
   define ("OOZIE_SERVICE_CHECK", "OOZIE::Oozie status check");
   define ("TEMPLETON_SERVICE_CHECK", "TEMPLETON::Templeton status check");
 
-  $status_file="/var/nagios/status.dat";
+  /* If SUSE, status file is under /var/lib/nagios */
+  if (file_exists("/etc/SuSE-release")) {
+    $status_file="/var/lib/nagios/status.dat";
+  } else {
+    $status_file="/var/nagios/status.dat";
+  }
+
   $q1="";
   if (array_key_exists('q1', $_GET)) {
     $q1=$_GET["q1"];
