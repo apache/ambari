@@ -12,6 +12,9 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-640. Add entrypoint to fetch info pertaining to Ganglia Clusters
+    (reznor)
+
     AMBARI-616. Enable support for configuration of heapsize for TaskTracker
     (hitesh)
 
