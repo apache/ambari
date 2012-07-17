@@ -6,6 +6,10 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-639. Monitoring Dashboard does not show the Help Link in the top
+  nav and a link to Apache 2.0 license and NOTICE file in the footer
+  (yusaku) 
+
   AMBARI-638. Weirdness with Custom Config page when the user goes back 
   to previous stages (yusaku) 
 

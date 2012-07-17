@@ -48,6 +48,10 @@ footer {
 	padding:40px 10px;
 	color:#454545;
 }
+footer a:link, footer a:visited {
+  color:#666666;
+  text-decoration:underline;
+}
 header {
 	width:1045px;
 	margin:20px 10px;
@@ -431,18 +435,17 @@ section.row > section {
 	margin-bottom:30px
 }
 .navbar .brand {
-    color: #666666;
-    display: block;
-    float: left;
-    font-size: 16px;
-    font-weight: normal;
-    line-height: 1;
-    margin-left: 0;
-    margin-right: 40px;
-    margin-top: 3px;
-    padding: 14px 10px;
-    text-decoration: none;
-    width:280px;
+  color: #666666;
+  display: block;
+  float: left;
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 1;
+  margin-left: 0;
+  margin-right: 40px;
+  margin-top: 3px;
+  padding: 14px 10px;
+  text-decoration: none;
 }
 
 .navbar-inner {
@@ -457,7 +460,8 @@ section.row > section {
 }
 .navbar .nav {
 	display:block;
-	float:left;
+	float:none;
+  overflow:hidden;
 	left:0;
 	margin:0 10px 0 0;
 	position:relative;
@@ -495,6 +499,9 @@ section.row > section {
 	background-color: transparent;
 	color: #999999;
 	text-decoration: none;
+}
+.navbar .nav > li.right {
+  float: right;
 }
 .navbar .brand {
 	margin-right:40px;
