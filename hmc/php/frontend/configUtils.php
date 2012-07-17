@@ -513,10 +513,14 @@ function sanitizeConfigs($requestObjFromUser, $logger) {
   return $finalProperties;
 }
 
-// Reused in reConfigure
-function validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $requestObjFromUser) {
-  // sanitize and persist the user entered configs *******
-  $finalProperties = sanitizeConfigs($requestObjFromUser, $logger);
+/**
+ * @param $dbAccessor HMCDBAccessor
+ * @param $logger HMCLogger
+ * @param $clusterName
+ * @param $finalProperties
+ * @return array|mixed
+ */
+function validateConfigsFromUser($dbAccessor, $logger, $clusterName, $finalProperties) {
 
   //Additional services that need to be enabled based on configuration.
   //Hack to handle mysql for hive
@@ -528,7 +532,7 @@ function validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $
   $cfgSuggestResult = $suggestProperties->verifyProperties($clusterName, $dbAccessor, $finalProperties);
   if ($cfgResult["result"] != 0 || $cfgSuggestResult["result"] != 0) {
     $mergedErrors = array( "result" => 1, "error" => "Some configuration parameters need your attention before you can proceed.",
-        "properties" => array());
+      "properties" => array());
 
     if (isset($cfgResult["properties"])) {
       $mergedErrors["properties"] = $cfgResult["properties"];
@@ -543,6 +547,23 @@ function validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $
 
     $logger->log_error("Got error when validating configs");
     return $mergedErrors;
+  }
+  return $cfgSuggestResult;
+}
+
+/**
+ * @param $dbAccessor HMCDBAccessor
+ * @param $logger HMCLogger
+ * @param $clusterName
+ * @param $finalProperties
+ * @return array|mixed
+ */
+function validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $finalProperties) {
+  // sanitize and persist the user entered configs *******
+
+  $result = validateConfigsFromUser($dbAccessor, $logger, $clusterName, $finalProperties);
+  if ($result["result"] != 0) {
+    return $result;
   }
 
   $dbResponse = $dbAccessor->updateServiceConfigs($clusterName, $finalProperties);

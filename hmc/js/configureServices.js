@@ -20,7 +20,27 @@
 */
 
 var globalOptionsInfo = null;
-           
+
+function validate() {
+  var opts = configureServicesUtil.generateUserOpts();
+
+  $.ajax({
+    type: 'POST',
+    url: '../php/frontend/configureServices.php?clusterName=' + globalOptionsInfo.clusterName + "&validateOnly=1",
+    data: JSON.stringify(opts),
+    dataType: 'json',
+    timeout: 10000,
+    success: function (data) {
+      if (data.result != 0) {
+        configureServicesUtil.handleConfigureServiceErrors(data);
+      }
+    },
+    failure: function (data) {
+      alert('Async failed');
+    }
+  });
+}
+
 Y.one('#configureClusterAdvancedSubmitButtonId').on('click',function (e) {
   
   if (this.hasClass('disabled')) {
@@ -67,7 +87,7 @@ function renderConfigureServicesInternal (optionsInfo) {
   Y.one("#configureClusterAdvancedDynamicRenderDivId").setContent(configureServicesUtil.getOptionsSummaryMarkup(optionsInfo, false));
   $('#configureServicesTabs a:first').tab('show');
   Y.one("#configureClusterAdvancedCoreDivId").show();
-  Y.one('#configureClusterAdvancedSubmitButtonId').simulate('click');  
+  validate();
   hideLoadingImg();
 }
 

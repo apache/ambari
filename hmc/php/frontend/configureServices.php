@@ -40,13 +40,25 @@ $requestObj = json_decode($requestdata, true);
 $clusterName = $_GET['clusterName'];
 // TODO: Validate clusterName
 
-$result = validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $requestObj);
-if ($result['result'] != 0) {
-  $logger->log_error("Failed to validate configs from user, error=" . $result["error"]);
-  print json_encode($result);
-  return;
-}
+$validateOnly = $_GET['validateOnly'];
 
+$finalProperties = sanitizeConfigs($requestObj, $logger);
+
+if ($validateOnly) {
+  $result = validateConfigsFromUser($dbAccessor, $logger, $clusterName, $finalProperties);
+  if ($result['result'] != 0) {
+    $logger->log_error("Failed to validate configs from user (validate only), error=" . $result["error"]);
+    print json_encode($result);
+    return;
+  }
+} else {
+  $result = validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $finalProperties);
+  if ($result['result'] != 0) {
+    $logger->log_error("Failed to validate configs from user (validate and persist), error=" . $result["error"]);
+    print json_encode($result);
+    return;
+  }
+}
 $jsonOutput = array();
 $jsonOutput['clusterName'] = $clusterName;
 
