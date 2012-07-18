@@ -19,6 +19,7 @@
 */
 ?>
 <?php require_once '../_router.php' ?>
+<!DOCTYPE html>
 <html>
 <head>
   <?php require "../_head.php" ?>
@@ -26,36 +27,38 @@
 </head>
 
 <body class="yui3-skin-sam">
-  <?php require "../_topnav.php"; ?>
+  <div id="container">
+    <?php require "../_topnav.php"; ?>
+    <?php require "../_utils.php"; ?>
+    <?php require "../_txnUtils.php"; ?>
 
-  <div id="content">
-    <?php require '_stageMenu.php'; ?>
+    <div id="content">
+      <?php require '_stageMenu.php'; ?>
 
-    <!-- Begin Wizard -->
-    <div id="upgradeStackWizard">
-      <?php require "../_utils.php"; ?>
-      <div id="deployPanel">
-        <div class="pageSummary" style="margin-top:0px">
-          <h2><?php echo $RES['upgradeStack.deploy.pageSummary.header'] ?></h2>
-          <p><?php echo $RES['upgradeStack.deploy.pageSummary.body'] ?></p>
+      <!-- Begin Wizard -->
+      <div id="upgradeStackWizard">
+        <div id="deployPanel">
+          <div class="pageSummary" style="margin-top:0px">
+            <h2><?php echo $RES['upgradeStack.deploy.pageSummary.header'] ?></h2>
+            <p><?php echo $RES['upgradeStack.deploy.pageSummary.body'] ?></p>
+          </div>
+          <div id="formStatusDivId" class="alert alert-error" style="display:none">
+          </div>
+          <form id="deployFormId">
+            <fieldset id="deployFieldSetId">
+              <!--<legend>Review your settings</legend>-->
+              <div id="deployDynamicRenderDivId"></div>
+            </fieldset>
+          </form>
+          <!--<a href="reconfigure.php" class="btn btn-large" id="backToReconfigureButton"><?php echo $RES['upgradeStack.deploy.backButton.label'] ?></a>-->
+          <a href="javascript:void 0" class="btn btn-large btn-success" id="deploySubmitButton" style="margin:0 0 40px 320px"><?php echo $RES['upgradeStack.deploy.submit.label'] ?></a>
         </div>
-        <div id="formStatusDivId" class="alert alert-error" style="display:none">
-        </div>
-        <form id="deployFormId">
-          <fieldset id="deployFieldSetId">
-            <!--<legend>Review your settings</legend>-->
-            <div id="deployDynamicRenderDivId"></div>
-          </fieldset>
-        </form>
-        <!--<a href="reconfigure.php" class="btn btn-large" id="backToReconfigureButton"><?php echo $RES['upgradeStack.deploy.backButton.label'] ?></a>-->
-        <a href="javascript:void 0" class="btn btn-large btn-success" id="deploySubmitButton" style="margin:0 0 40px 320px"><?php echo $RES['upgradeStack.deploy.submit.label'] ?></a>
       </div>
-      <?php require "../_txnUtils.php"; ?>
-    </div>
-    <!-- End Wizard -->
-  </div>
-  <?php require "../_footer.php"; ?>
+      <!-- End Wizard -->
 
+    </div>
+    <?php require "../_footer.php"; ?>
+  </div>
   <!-- Javascript Scaffolding -->
   <script type="text/javascript">
 

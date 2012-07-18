@@ -19,37 +19,37 @@
 */
 ?>
 <?php require_once "./_router.php" ?>
+<!DOCTYPE html>
 <html>
   <head>
     <?php require "./_head.php" ?>
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./_topnav.php"; ?>
+    <div id="container">
+      <?php require "./_topnav.php"; ?>
 
-    <div id="content">
-      <?php require "./_subnav.php"; ?>
-      <?php require "./_utils.php"; ?>
+      <div id="content">
+        <?php require "./_subnav.php"; ?>
+        <?php require "./_utils.php"; ?>
+        <?php require "./_txnUtils.php"; ?>
 
-      <!-- Service Management: The Main Event -->
-      <div id="serviceManagementCoreDivId">
-        <ul id="serviceManagementListId">
-          <div id="serviceManagementDynamicRenderDivId">
+        <!-- Service Management: The Main Event -->
+        <div id="serviceManagementCoreDivId">
+          <ul id="serviceManagementListId">
+            <div id="serviceManagementDynamicRenderDivId">
+            </div>
+          </ul>
+          <div id="serviceManagementGlobalActionsDivId" style="display:none">
+            <button class="btn btn-large" id="serviceManagementGlobalActionsStartAllButtonId" name="startAll" style="margin-right:10px"><i class="iconic-play" style="margin-right:10px"></i>Start All</button>
+            <button class="btn btn-large" id="serviceManagementGlobalActionsStopAllButtonId" name="stopAll"><i class="iconic-stop" style="margin-right:10px"></i>Stop All</button>
           </div>
-        </ul>
-        <div id="serviceManagementGlobalActionsDivId" style="display:none">
-          <button class="btn btn-large" id="serviceManagementGlobalActionsStartAllButtonId" name="startAll" style="margin-right:10px"><i class="iconic-play" style="margin-right:10px"></i>Start All</button>
-          <button class="btn btn-large" id="serviceManagementGlobalActionsStopAllButtonId" name="stopAll"><i class="iconic-stop" style="margin-right:10px"></i>Stop All</button>
         </div>
+        <!-- End of serviceManagementCoreDivId -->
       </div>
-      <!-- End of serviceManagementCoreDivId -->
 
-      <?php require "./_txnUtils.php"; ?>
-
+      <?php require "./_footer.php"; ?>
     </div>
-    <!-- End of contentDivId -->
-
-    <?php require "./_footer.php"; ?>
 
     <!-- Javascript Scaffolding -->
     <script type="text/javascript">

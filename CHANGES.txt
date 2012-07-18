@@ -79,6 +79,8 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-644. Fix various markup issues (yusaku) 
+
     AMBARI-639. Monitoring Dashboard does not show the Help Link in the top nav
     and a link to Apache 2.0 license and NOTICE file in the footer (yusaku) 
 

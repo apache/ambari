@@ -19,15 +19,19 @@
 */
 ?>
 <?php require_once '../_router.php' ?>
+<!DOCTYPE html>
 <html>
 <head>
   <?php require "../_head.php" ?>
   <script src="/hmc/js/ext/jquery.min.js"></script>
 </head>
 <body class="yui3-skin-sam">
-  <?php require "../_topnav.php"; ?>
-  <?php require "../_utils.php"; ?>
-  <div id="content">
+  <div id="container">
+    <?php require "../_topnav.php"; ?>
+    <?php require "../_utils.php"; ?>
+    <?php require "../_txnUtils.php"; ?>
+
+    <div id="content">
       <div class="alert alert-info" style="margin-top:40px;padding:20px">
         <h2><?php echo $RES['upgradeStack.index.pageSummary.header'] ?></h2>
         <p><?php echo $RES['upgradeStack.index.pageSummary.body'] ?></p>
@@ -40,9 +44,8 @@
         <?php */ ?>
       </div>
     </div>
-    <?php require "../_txnUtils.php"; ?>
+    <?php require "../_footer.php"; ?>
   </div>
-  <?php require "../_footer.php"; ?>
   <script type="text/javascript">
 
     var clusterName = '<?php echo $clusterName; ?>';

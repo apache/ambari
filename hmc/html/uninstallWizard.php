@@ -19,13 +19,17 @@
 */
 ?>
 <?php require_once "./_router.php" ?>
+<!DOCTYPE html>
 <html>
-  <head>
-    <?php require "./_head.php" ?>
-  </head>
+<head>
+  <?php require "./_head.php" ?>
+</head>
 
-  <body class="yui3-skin-sam">
+<body class="yui3-skin-sam">
+  <div id="container">
     <?php require "./_topnav.php"; ?>
+    <?php require "./_utils.php"; ?>
+    <?php require "./_txnUtils.php"; ?>
     <?php include_once "../php/util/clusterState.php"; ?>
     
     <div id="content">
@@ -33,7 +37,6 @@
 
       <!-- Uninstallation Wizard -->
       <div id="installationWizardDivId" style="display:block">
-        <?php require "./_utils.php"; ?>
         <div class="pageSummary" style="margin-top:0px">
           <h2><?php echo $RES['uninstallWizard.pageSummary.header'] ?></h2>
           <p><?php echo $RES['uninstallWizard.pageSummary.body'] ?></p>
@@ -63,38 +66,37 @@
               </fieldset>
             </div>
           </div>
-          <?php require "./_txnUtils.php"; ?>
-
         </div>
       </div>
       <!-- End of Uninstallation Wizard -->
     </div>            
     <?php require "./_footer.php"; ?>
+  </div>
 
-    <!-- Javascript Scaffolding -->
-    <script type="text/javascript">
+  <!-- Javascript Scaffolding -->
+  <script type="text/javascript">
 
-    var nodesAction = "uninstall";
-    var clusterName = "<?php echo $clusterName; ?>";
+  var nodesAction = "uninstall";
+  var clusterName = "<?php echo $clusterName; ?>";
 
-    var InstallationWizard = {
+  var InstallationWizard = {
 
-      AddNodes: 
-      {},
-      AddNodesProgress:
-      {}
-    };
+    AddNodes:
+    {},
+    AddNodesProgress:
+    {}
+  };
 
-    var jsFilesToLoad = [ 
-        'js/utils.js', 
-        'js/txnUtils.js',
-        'js/uninstall.js', 
-        'js/uninstallProgress.js', 
-      ];
-    </script>
+  var jsFilesToLoad = [
+      'js/utils.js',
+      'js/txnUtils.js',
+      'js/uninstall.js',
+      'js/uninstallProgress.js'
+    ];
+  </script>
 
-    <?php require "./_bootstrapJs.php"; ?>
-    <!-- End of Javascript Scaffolding -->
+  <?php require "./_bootstrapJs.php"; ?>
+  <!-- End of Javascript Scaffolding -->
 
-  </body>
+</body>
 </html> 

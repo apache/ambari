@@ -19,98 +19,98 @@
 */
 ?>
 <?php require_once "./_router.php" ?>
+<!DOCTYPE html>
 <html>
   <head>
     <?php require "./_head.php" ?>
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./_topnav.php"; ?>
+    <div id="container">
+      <?php require "./_topnav.php"; ?>
+      <?php require "./_utils.php"; ?>
+      <?php require "./_txnUtils.php"; ?>
 
-    <div id="content">
-      <?php require "./_subnav.php"; ?>
-      
-      <!-- Installation Wizard -->
-      <div name="installationWizardDiv" id="installationWizardDivId" style="display:block">
-        <div name="installationWizardProgressBarDiv" id="installationWizardProgressBarDivId">
-          <ol id="installationWizardProgressBarListId">
-            <li id="addNodesStageId" class="installationWizardCurrentStage">
-              <div>
-                <span class="installationWizardStageNumber">
-                  1   
-                </span>
-                Add nodes
+      <div id="content">
+        <?php require "./_subnav.php"; ?>
+
+        <!-- Installation Wizard -->
+        <div name="installationWizardDiv" id="installationWizardDivId" style="display:block">
+          <div name="installationWizardProgressBarDiv" id="installationWizardProgressBarDivId">
+            <ol id="installationWizardProgressBarListId">
+              <li id="addNodesStageId" class="installationWizardCurrentStage">
+                <div>
+                  <span class="installationWizardStageNumber">
+                    1
+                  </span>
+                  Add nodes
+                </div>
+              </li>
+              <li id="selectServicesStageId" class="installationWizardUnvisitedStage">
+                <div>
+                  <span class="installationWizardStageNumber">
+                    2
+                  </span>
+                  Install Services
+                </div>
+              </li>
+            </ol>
+          </div>
+
+          <div name="installationMainFormsDiv" id="installationMainFormsDivId">
+            <div id="addNodesCoreDivId" style="display:block">
+              <div class="pageSummary">
+                <h2><?php echo $RES['addNodesWizard.addNodes.pageSummary.header'] ?></h2>
+                <p><?php echo $RES['addNodesWizard.addNodes.pageSummary.body'] ?></p>
               </div>
-            </li>
-            <li id="selectServicesStageId" class="installationWizardUnvisitedStage">
-              <div>
-                <span class="installationWizardStageNumber">
-                  2   
-                </span>
-                Install Services
+              <div id="formStatusDivId" class="formStatusBar" style="display:none">
               </div>
-            </li>
-          </ol>
-        </div>
+              <div class="pageContent">
 
-        <?php require "./_utils.php"; ?>
+                <fieldset>
+                  <form id="addNodesFilesFormId" enctype="multipart/form-data" method="post">
+                    <input type="hidden" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">
+                    <p>
+                    <label for="clusterDeployUserIdentityFileId"><?php echo $RES['common.sshPrivateKeyFile.label'] ?></label>
+                    <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFileId" value="" placeholder="">
+                    </p>
+                    <br/>
+                    <p>
+                    <label for="clusterHostsFileId"><?php echo $RES['common.hostsFile.label'] ?></label>
+                    <input type="file" name="clusterHostsFile" id="clusterHostsFileId" value="" placeholder="">
+                    </p>
 
-        <div name="installationMainFormsDiv" id="installationMainFormsDivId">
-          <div id="addNodesCoreDivId" style="display:block">
-            <div class="pageSummary">
-              <h2><?php echo $RES['addNodesWizard.addNodes.pageSummary.header'] ?></h2>
-              <p><?php echo $RES['addNodesWizard.addNodes.pageSummary.body'] ?></p>
+                    <div id="fileUploadWrapperDivId">
+                      <iframe name="fileUploadTarget" id="fileUploadTargetId" src="about:blank" style="display:none"></iframe>
+                    </div>
+                  </form>
+                </fieldset>
+                <button class="btn btn-large" id="addNodesSubmitButtonId"><?php echo $RES['addNodesWizard.addNodes.submit.label'] ?></button>
+              </div>
             </div>
-            <div id="formStatusDivId" class="formStatusBar" style="display:none">					
-            </div>
-            <div class="pageContent">
- 
+
+            <div name="selectServicesCoreDiv" id="selectServicesCoreDivId" style="display:none">
+              <div class="pageSummary">
+                <h2><?php echo $RES['addNodesWizard.selectServices.pageSummary.header'] ?></h2>
+                <p><?php echo $RES['addNodesWizard.selectServices.pageSummary.body'] ?></p>
+              </div>
+              <div id="formStatusDivId" class="formStatusBar" style="display:none">
+              </div>
               <fieldset>
-                <form id="addNodesFilesFormId" enctype="multipart/form-data" method="post">
-                  <input type="hidden" name="ClusterDeployUser" id="clusterDeployUserId" value="root" placeholder="">
-                  <p>
-                  <label for="clusterDeployUserIdentityFileId"><?php echo $RES['common.sshPrivateKeyFile.label'] ?></label>
-                  <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFileId" value="" placeholder="">
-                  </p>
-                  <br/>
-                  <p>
-                  <label for="clusterHostsFileId"><?php echo $RES['common.hostsFile.label'] ?></label>
-                  <input type="file" name="clusterHostsFile" id="clusterHostsFileId" value="" placeholder="">
-                  </p>
-
-                  <div id="fileUploadWrapperDivId">
-                    <iframe name="fileUploadTarget" id="fileUploadTargetId" src="about:blank" style="display:none"></iframe>
-                  </div>
+                <!--<legend>Select Services</legend>-->
+                <form id="addNodesDataFormId">
+                  <div name="selectComponentsDynamicRenderDiv" id="selectComponentsDynamicRenderDivId"></div>
                 </form>
               </fieldset>
-              <button class="btn btn-large" id="addNodesSubmitButtonId"><?php echo $RES['addNodesWizard.addNodes.submit.label'] ?></button>
+              <button class="btn btn-large" id="deployAddedNodesSubmitButtonId"><?php echo $RES['addNodesWizard.selectServices.submit.label'] ?></button>
             </div>
           </div>
-
-          <div name="selectServicesCoreDiv" id="selectServicesCoreDivId" style="display:none">
-            <div class="pageSummary">
-              <h2><?php echo $RES['addNodesWizard.selectServices.pageSummary.header'] ?></h2>
-              <p><?php echo $RES['addNodesWizard.selectServices.pageSummary.body'] ?></p>
-            </div>
-            <div id="formStatusDivId" class="formStatusBar" style="display:none">					
-            </div>
-            <fieldset>
-              <!--<legend>Select Services</legend>-->
-              <form id="addNodesDataFormId">
-                <div name="selectComponentsDynamicRenderDiv" id="selectComponentsDynamicRenderDivId"></div>
-              </form>
-            </fieldset>
-            <button class="btn btn-large" id="deployAddedNodesSubmitButtonId"><?php echo $RES['addNodesWizard.selectServices.submit.label'] ?></button>
-          </div>
-
-          <?php require "./_txnUtils.php"; ?>
-
         </div>
-      </div>
-      <!-- End of installation Wizard -->
+        <!-- End of installation Wizard -->
 
+      </div>
+      <?php require "./_footer.php"; ?>
     </div>
-    <?php require "./_footer.php"; ?>
 
     <!-- Javascript Scaffolding -->
     <script type="text/javascript">

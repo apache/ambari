@@ -23,6 +23,10 @@ header, footer, aside, nav, article, section {
   display: block;
 }
 
+html, body {
+  height:100%;
+}
+
 body { 
   font:13px/1.231 Helvetica,Arial,sans-serif;
   *font-size:small; 
@@ -30,8 +34,21 @@ body {
   min-width: 1024px;
   font-size: 75%;
   color: #454545;
-  height:100%;
   overflow:auto;
+}
+
+#container {
+  min-height:100%;
+  height: auto !important;
+  height: 100%;
+  position:relative;
+}
+
+#content {
+  width:980px;
+  margin:0 auto;
+  background-color:#fff;
+  padding-bottom:90px;
 }
 
 h1 {
@@ -42,14 +59,22 @@ h1 {
 
 footer {
 	border-top:1px solid #e5e5e5;
-	padding:40px 0;
+	padding:30px 0;
 	background-color:#fff;
   color:#666666;
+  bottom: 0;
+  position: absolute;
+  width: 980px;
 }
 
 footer a:link, footer a:visited {
   color:#666666;
   text-decoration:underline;
+}
+
+/* override bootstrap settings to make the elements shorter */
+input, .uneditable-input {
+  height:20px;
 }
 
 select {
@@ -65,6 +90,7 @@ select {
   width:100%;
   top:0px;
   left:0px;
+  z-index:10;
 }
 
 #loadingImgId {
@@ -79,6 +105,7 @@ select {
   height: 100px;
   margin-top: -50px;
   margin-left: -50px;
+  z-index:20;
 }
 
 #installationWizardDivId {
@@ -195,15 +222,6 @@ td {
 .container {
   width:980px!important;
   margin:0 auto;
-}
-
-#content {
-  width:980px;
-  margin:0 auto;
-  padding:0;
-  background-color:#fff;
-  min-height:100%;
-  padding-top:0px;
 }
 
 #selectServicesCoreDivId label {

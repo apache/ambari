@@ -19,29 +19,31 @@
 */
 ?>
 <?php require_once "./_router.php" ?>
+<!DOCTYPE html>
 <html>
   <head>
     <?php require "./_head.php" ?>
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./_topnav.php"; ?>
-      
-    <div id="content">
-      <?php require "./_subnav.php"; ?>
+    <div id="container">
+      <?php require "./_topnav.php"; ?>
       <?php require "./_utils.php"; ?>
 
-      <div id="clusterInfo">
-        <div id="clusterInfoContent"></div>
+      <div id="content">
+        <?php require "./_subnav.php"; ?>
+
+        <div id="clusterInfo">
+          <div id="clusterInfoContent"></div>
+        </div>
+        <div id="clusterHostRoleMapping" style="display:none;margin-top:0">
+          <div id="clusterHostRoleMappingContent">
+          </div>
+        </div>
       </div>
-      <div id="clusterHostRoleMapping" style="display:none;margin-top:0">
-        <div id="clusterHostRoleMappingContent">
-        </div>      
-      </div>
-    </div>        
-    <!-- End of contentDivId -->
-    
-    <?php require "./_footer.php"; ?>
+
+      <?php require "./_footer.php"; ?>
+    </div>
 
     <!-- Javascript Scaffolding -->
     <script type="text/javascript">

@@ -19,35 +19,37 @@
 */
 ?>
 <?php require_once '../_router.php' ?>
+<!DOCTYPE html>
 <html>
 <head>
   <?php require "../_head.php" ?>
   <script src="/hmc/js/ext/jquery.min.js"></script>
 </head>
 <body class="yui3-skin-sam">
-  <?php require "../_topnav.php"; ?>
+  <div id="container">
+    <?php require "../_topnav.php"; ?>
+    <?php require "../_utils.php"; ?>
+    <?php require "../_txnUtils.php"; ?>
 
-  <div id="content">
-    <?php require '_stageMenu.php'; ?>
+    <div id="content">
+      <?php require '_stageMenu.php'; ?>
 
-    <!-- Begin Wizard -->
-    <div id="upgradeStackWizard">
-      <?php require "../_utils.php"; ?>
-      <div id="uninstallPanel">
-        <div class="pageSummary" style="margin-top:0px">
-          <h2><?php echo $RES['upgradeStack.uninstall.pageSummary.header'] ?></h2>
-          <p><?php echo $RES['upgradeStack.uninstall.pageSummary.body'] ?></p>
+      <!-- Begin Wizard -->
+      <div id="upgradeStackWizard">
+        <div id="uninstallPanel">
+          <div class="pageSummary" style="margin-top:0px">
+            <h2><?php echo $RES['upgradeStack.uninstall.pageSummary.header'] ?></h2>
+            <p><?php echo $RES['upgradeStack.uninstall.pageSummary.body'] ?></p>
+          </div>
+          <div id="formStatusDivId" class="alert alert-error" style="display:none">
+          </div>
+          <a href="javascript:void 0" class="btn btn-large btn-success" id="uninstallSubmitButton"><?php echo $RES['upgradeStack.uninstall.submit.label'] ?></a>
         </div>
-        <div id="formStatusDivId" class="alert alert-error" style="display:none">
-        </div>
-        <a href="javascript:void 0" class="btn btn-large btn-success" id="uninstallSubmitButton"><?php echo $RES['upgradeStack.uninstall.submit.label'] ?></a>
       </div>
-      <?php require "../_txnUtils.php"; ?>
+      <!-- End Wizard -->
     </div>
-    <!-- End Wizard -->
+    <?php require "../_footer.php"; ?>
   </div>
-  <?php require "../_footer.php"; ?>
-
   <!-- Javascript Scaffolding -->
   <script type="text/javascript">
 

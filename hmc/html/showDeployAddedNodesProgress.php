@@ -19,34 +19,33 @@
 */
 ?>
 <?php require_once "./_router.php" ?>
+<!DOCTYPE html>
 <html>
   <head>
     <?php require "./_head.php" ?>
   </head>
 
   <body class="yui3-skin-sam">
-    <?php require "./_topnav.php"; ?>
-
-    <div id="content">
-
+    <div id="container">
+      <?php require "./_topnav.php"; ?>
       <?php require "./_utils.php"; ?>
       <?php require "./_txnUtils.php"; ?>
 
-    </div>
-    <!-- End of contentDivId -->
+      <div id="content">
+      </div>
 
-    <?php require "./_footer.php"; ?>
+      <?php require "./_footer.php"; ?>
+    </div>
 
     <!-- Javascript Scaffolding -->
     <script type="text/javascript">
-      /* Minimal data required to bootstrap clusters.js. */
       var clusterName = '<?php echo $clusterName; ?>';
 
-      var jsFilesToLoad = [ 
+      var jsFilesToLoad = [
         'js/utils.js',
         'js/txnUtils.js',
         'js/deployAddedNodesProgress.js',
-        'js/showDeployAddedNodesProgress.js' 
+        'js/showDeployAddedNodesProgress.js'
       ];
     </script>
 
