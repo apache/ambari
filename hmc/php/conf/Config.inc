@@ -42,15 +42,8 @@ $GLOBALS["DRYRUN"] = FALSE;
 $GLOBALS["BYPASS_ROUTER"] = FALSE;
 
 $GLOBALS["HMC_LOG_DIR"] = "/var/log/hmc";
-$GLOBALS["HMC_LOG_LEVEL"] = HMCLogger::DEBUG;
+$GLOBALS["HMC_LOG_LEVEL"] = HMCLogger::INFO;
 $GLOBALS["HMC_LOG_FILE"] = $GLOBALS["HMC_LOG_DIR"] . "/hmc.log";
-
-/*
-// TODO fix - currently for testing only
-$GLOBALS["HMC_LOG_LEVEL"] = HMCLogger::DEBUG;
-$GLOBALS["HMC_LOG_FILE"] = "/tmp/orchestrator-test.log";
-$GLOBALS["HMC_CLUSTER_PATH"] = "/var/run/hmc/";
-*/
 
 /*
 For testHMC layer
