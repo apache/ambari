@@ -184,9 +184,6 @@ class PuppetClassDependencies {
 
     //Dashboard
     $this->addDependency("hdp-dashboard", SERVICE_STATE_RUNNING, "hdp-dashboard::dashboard::service_check", array());
-
-    //Kerberos client
-    $this->addDependency("hdp-kerberos::client", SERVICE_STATE_INSTALLED_AND_CONFIGURED, "hdp-java-jce", array());
   }
 
   private function addDependency($role, $serviceState, $dep, $states) {

@@ -64,9 +64,10 @@ bootPuppet() {
 checkJDK() {
   jdk64="jdk-6u26-linux-x64.bin"
   jdk32="jdk-6u26-linux-i586.bin"
+  jce="jce_policy-6.zip"
 
-  if [[ ! -f /var/run/hmc/downloads/$jdk64 || ! -f /var/run/hmc/downloads/$jdk32 ]]; then
-    echo "Please download $jdk64 and $jdk32 from Oracle to /var/run/hmc/downloads/"
+  if [[ ! -f /var/run/hmc/downloads/$jdk64 || ! -f /var/run/hmc/downloads/$jdk32 || ! -f /var/run/hmc/downloads/${jce} ]]; then
+    echo "Please download $jdk64, $jdk32 and $jce from Oracle to /var/run/hmc/downloads/"
     exit 1
   fi
 

@@ -290,6 +290,7 @@ class SuggestProperties {
     /** TODO change this to be from the UI later **/
     $hostname = strtolower(exec('hostname -f'));
     $result["configs"]["jdk_location"] = "http://".$hostname."/downloads";
+    $result["configs"]["jce_location"] = "http://".$hostname."/downloads";
 
     if ($updateDB) {
       $this->logger->log_info("Updating suggested configs into DB");
