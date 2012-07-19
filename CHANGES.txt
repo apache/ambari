@@ -12,6 +12,8 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-648. Keytab generation for hbase, hive. (jitendra)
+
     AMBARI-642. Require jce policy file. (jitendra)
 
     AMBARI-641. change the nagios status.data file location according to

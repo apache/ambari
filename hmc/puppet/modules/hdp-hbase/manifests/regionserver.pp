@@ -28,6 +28,17 @@ class hdp-hbase::regionserver(
   } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {    
     $hdp::params::service_exists['hdp-hbase::regionserver'] = true       
 
+    if ( ($service_state == 'installed_and_configured') and
+         ($security_enabled == true) and ($kerberos_install_type == "AMBARI_SET_KERBEROS") ) {
+       $masterHost = $kerberos_adminclient_host[0]
+       hdp::download_keytab { 'hbase_rs_service_keytab' :
+         masterhost => $masterHost,
+         keytabdst => "${$keytab_path}/rs.service.keytab",
+         keytabfile => 'rs.service.keytab',
+         owner => $hdp::params::hbase_user
+       }
+    }
+
     if ($hdp::params::service_exists['hdp-hbase::master'] != true) {
       #adds package, users, directories, and common configs
       class { 'hdp-hbase': 

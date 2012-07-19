@@ -117,13 +117,19 @@ class HostsConfigManifest {
      "hdp-hadoop::datanode" => array("dn.service.keytab"),
      "hdp-hadoop::jobtracker" => array("jt.service.keytab"),
      "hdp-hadoop::tasktracker" => array("tt.service.keytab"),
+     "hdp-hbase::master" => array("hm.service.keytab"),
+     "hdp-hbase::regionserver" => array("rs.service.keytab"),
+     "hdp-hive::server" => array("hive.service.keytab")
    );
 
    private static $keytabsToPrincipalMap = array (
      "nn.service.keytab" => array("nn", "HTTP", "host"),
      "dn.service.keytab" => array("dn"),
      "jt.service.keytab" => array("jt"),
-     "tt.service.keytab" => array("tt")
+     "tt.service.keytab" => array("tt"),
+     "hm.service.keytab" => array("hm"),
+     "rs.service.keytab" => array("rs"),
+     "hive.service.keytab" => array("hive")
    );
 
    private static $headlessUsersKeytab = array (

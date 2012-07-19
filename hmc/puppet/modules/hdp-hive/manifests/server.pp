@@ -29,6 +29,17 @@ class hdp-hive::server(
 
     $hdp::params::service_exists['hdp-hive::server'] = true
 
+    if ( ($service_state == 'installed_and_configured') and
+         ($security_enabled == true) and ($kerberos_install_type == "AMBARI_SET_KERBEROS") ) {
+      $masterHost = $kerberos_adminclient_host[0]
+      hdp::download_keytab { 'hive_server_service_keytab' :
+        masterhost => $masterHost,
+        keytabdst => "${$keytab_path}/hive.service.keytab",
+        keytabfile => 'hive.service.keytab',
+        owner => $hdp-hive::params::hive_user
+      }
+    }
+
     #installs package, creates user, sets configuration
     class{ 'hdp-hive' : 
       service_state => $service_state,

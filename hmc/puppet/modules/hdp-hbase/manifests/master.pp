@@ -29,6 +29,17 @@ class hdp-hbase::master(
     $hdp::params::service_exists['hdp-hbase::master'] = true
 
     $hdfs_root_dir = $hdp-hbase::params::hbase_hdfs_root_dir
+
+    if ( ($service_state == 'installed_and_configured') and
+         ($security_enabled == true) and ($kerberos_install_type == "AMBARI_SET_KERBEROS") ) {
+       $masterHost = $kerberos_adminclient_host[0]
+       hdp::download_keytab { 'hbase_master_service_keytab' :
+         masterhost => $masterHost,
+         keytabdst => "${$keytab_path}/hm.service.keytab",
+         keytabfile => 'hm.service.keytab',
+         owner => $hdp::params::hbase_user
+       }
+    }
   
     #adds package, users, directories, and common configs
     class { 'hdp-hbase': 
