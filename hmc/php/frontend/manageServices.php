@@ -80,7 +80,9 @@ function performServiceManagement( $hmc, $requestObj )
          * accordingly before attempting to call $hmc->reconfigureServices().
          */
         // re-using persistConfigs code
-        $serviceManagementResult = validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $requestObj['services']);
+
+        $finalProperties = sanitizeConfigs($requestObj['services'], $logger);
+        $serviceManagementResult = validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $finalProperties);
         if ($serviceManagementResult['result'] != 0) {
           $logger->log_error("Failed to validate configs from user, error=" . $serviceManagementResult["error"]);
           return $serviceManagementResult;

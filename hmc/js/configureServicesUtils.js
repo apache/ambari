@@ -326,17 +326,21 @@
         this.setErrorReason('#' + propKey, errorReason);
       }
 
-      var firstServiceName = null;
-      // show error counts in the tab for each service that had errors
-      for (serviceName in errorCounts) {
-        if (firstServiceName === null) {
-          firstServiceName = serviceName;
+      // if this is being invoked from cluster install wizard, update tabs with error counts.
+      // else this is being invoked from reconfigure services so there are no tabs to update.
+      var tabs = $('#configureServicesTabs');
+      if (tabs.length > 0) {
+        var firstServiceName = null;
+        // show error counts in the tab for each service that had errors
+        for (serviceName in errorCounts) {
+          if (firstServiceName === null) {
+            firstServiceName = serviceName;
+          }
+          this.updateServiceErrorCount(serviceName, errorCounts[serviceName]);
         }
-        this.updateServiceErrorCount(serviceName, errorCounts[serviceName]);
+        // open the first tab that has an error
+        tabs.find('a[href="#' + firstServiceName + '"]').tab('show');
       }
-      // open the first tab that has an error
-      $('#configureServicesTabs a[href="#' + firstServiceName + '"]').tab('show');
-
       Y.one('#formStatusDivId').scrollIntoView();
 
     }.bind(this);

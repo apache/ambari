@@ -56,7 +56,7 @@
       /* Minimal data required to bootstrap manageServices.js. */
       var clusterName = '<?php echo $clusterName; ?>';
 
-      var jsFilesToLoad = [ 
+      var jsFilesToLoad = [
         'js/utils.js',
         'js/txnUtils.js',
         'js/configureServicesUtils.js',

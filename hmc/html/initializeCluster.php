@@ -23,8 +23,6 @@
 <html>
 <head>
   <?php require "./_head.php" ?>
-  <script src="../js/ext/jquery.min.js"></script>
-  <script src="../js/ext/bootstrap.min.js"></script>
 </head>
 
 <body class="yui3-skin-sam">

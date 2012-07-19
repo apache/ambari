@@ -110,7 +110,6 @@ if (typeof clusterName !== 'undefined') {
       formStatusDivCssClass = 'statusOk';
     }
     var formStatusDiv = Y.all("#formStatusDivId");
-    formStatusDiv.setStyle("visibility", "visible");
     formStatusDiv.show();
     formStatusDiv.set('className', '');
     formStatusDiv.addClass("formStatusBar");
@@ -120,7 +119,6 @@ if (typeof clusterName !== 'undefined') {
 
   function clearFormStatus() {
     var formStatusDiv = Y.all("#formStatusDivId");
-    formStatusDiv.setStyle("visibility", "hidden");
     formStatusDiv.hide();
     formStatusDiv.set('className', '');
     formStatusDiv.addClass("formStatusBar");

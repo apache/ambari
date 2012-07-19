@@ -21,6 +21,8 @@
 <link type="text/css" rel="stylesheet" href="/hmc/css/yuiCombined.css">
 <script src="/hmc/js/ext/yui-min.js"></script>
 <script src="/hmc/js/ext/yuiCombined.js"></script>
+<script src="/hmc/js/ext/jquery.min.js"></script>
+<script src="/hmc/js/ext/bootstrap.min.js"></script>
 
 <script type="text/javascript">
   var globalYui, Y;

@@ -81,6 +81,8 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-650. Issues with Reconfigure Service (yusaku)
+
     AMBARI-647. Change back log level to INFO from DEBUG (hitesh)
 
     AMBARI-644. Fix various markup issues (yusaku) 
