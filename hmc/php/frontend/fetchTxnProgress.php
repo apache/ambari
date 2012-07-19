@@ -36,6 +36,10 @@ $clusterName = $_GET['clusterName'];
 $txnId = $_GET['txnId'];
 $deployUser = $_GET['deployUser'];
 
+if (!isset($deployUser)) {
+  $deployUser = 'root';
+}
+
 $logger = new HMCLogger("TxnProgress");
 
 $map = array(

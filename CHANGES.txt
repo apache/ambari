@@ -6,6 +6,9 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-652. Large number of spurious logs due to undefined variables
+  (yusaku)
+
   AMBARI-650. Issues with Reconfigure Service (yusaku)
 
   AMBARI-639. Monitoring Dashboard does not show the Help Link in the top

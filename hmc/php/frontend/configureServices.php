@@ -44,7 +44,7 @@ $validateOnly = $_GET['validateOnly'];
 
 $finalProperties = sanitizeConfigs($requestObj, $logger);
 
-if ($validateOnly) {
+if (isset($validateOnly)) {
   $result = validateConfigsFromUser($dbAccessor, $logger, $clusterName, $finalProperties);
   if ($result['result'] != 0) {
     $logger->log_error("Failed to validate configs from user (validate only), error=" . $result["error"]);
