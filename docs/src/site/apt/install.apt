@@ -65,7 +65,14 @@ Steps to run before you use Ambari to install Hadoop on your cluster
   2) Install ambari-agent-1.0.0-1.noarch.rpm on each of the cluster nodes by running:
 
 +--
-$ sudo rpm -Uvh ambari-agent-1.0.0-1.noarch.rpm
+$ sudo rpm -Uvh ambari-agent-1.0.0-1.noarch.rpm ( or use yum install to pull in required dependencies )
++--
+  
+    * To install ambari-agent, you may need to install puppet beforehand or point to the freely accessible HDP repo
+as it contains the required dependencies to allow the ambari-agent rpm to install successfully. To install the HDP repo, run:
+ 
++--
+$ sudo rpm -Uvh http://public-repo-1.hortonworks.com/HDP-1.0.13/repos/centos5/hdp-release-1.0.13-1.el5.noarch.rpm
 +--
 
   3) Stop iptables on the Ambari master:
@@ -99,11 +106,9 @@ How to install Ambari
 +--  
 
 $ sudo rpm -Uvh http://dl.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
-OR 
-$ sudo rpm -Uvh http://dl.fedoraproject.org/pub/epel/5/i386/epel-release-5-4.noarch.rpm
-
 $ sudo rpm -Uvh http://passenger.stealthymonkeys.com/rhel/5/passenger-release.noarch.rpm 
 $ sudo rpm -Uvh http://public-repo-1.hortonworks.com/HDP-1.0.13/repos/centos5/hdp-release-1.0.13-1.el5.noarch.rpm
+
 +--
 
   To install necessary PHP modules on Ambari master:
@@ -181,4 +186,3 @@ $ ./create_nagios_addon_rpm.sh
    * mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_ganglia_addons-0.0.1-2.noarch.rpm
    
    * mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_nagios_addons-0.0.1-2.noarch.rpm
-  

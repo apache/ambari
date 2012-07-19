@@ -81,6 +81,9 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-602. Fix install docs for 64-bit only support and how to pre-setup
+    cluster for ambari-agent for testing (hitesh)
+
     AMBARI-653. Log txn-id when reporting completion of nodes for puppet kicks in
     orchestrator (hitesh)
 
