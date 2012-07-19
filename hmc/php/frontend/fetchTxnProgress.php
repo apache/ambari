@@ -34,11 +34,7 @@ $dbPath = $GLOBALS["DB_PATH"];
 
 $clusterName = $_GET['clusterName'];
 $txnId = $_GET['txnId'];
-$deployUser = $_GET['deployUser'];
-
-if (!isset($deployUser)) {
-  $deployUser = 'root';
-}
+$deployUser = isset($_GET['deployUser']) ? $_GET['deployUser'] : 'root';
 
 $logger = new HMCLogger("TxnProgress");
 
