@@ -368,7 +368,7 @@
       while (true) {
         $this->checkForReportFiles($nodes, $txnId, $doneNodes);
         $this->logger->log_info(count($doneNodes) . " out of " . count($nodes) 
-            . " nodes have reported");
+            . " nodes have reported for txn " . $txnId);
         if (count($doneNodes) >= count($nodes)) {
           ##All nodes kicked have reported back
           break;
