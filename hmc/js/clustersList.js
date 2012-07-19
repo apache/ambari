@@ -208,7 +208,6 @@ function ClustersList() {
                       '<div id="serviceLegend">' +
                       '<span class="masterLegend">Master</span><span class="clientLegend">Client</span>' +
                       '</div>' +
-                      '</div>' +
                       '</div>';
 
                   Y.one('#clusterInfoContent').setContent(clusterInfoMarkup);

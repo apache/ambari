@@ -34,8 +34,8 @@
     <div id="content">
 
       <!-- Installation Wizard -->
-      <div name="installationWizardDiv" id="installationWizardDivId" style="display:block">
-        <div name="installationWizardProgressBarDiv" id="installationWizardProgressBarDivId">
+      <div id="installationWizardDivId" style="display:block">
+        <div id="installationWizardProgressBarDivId">
           <ol id="installationWizardProgressBarListId">
             <li id="createClusterStageId" class="installationWizardFirstStage installationWizardCurrentStage">
               <div>
@@ -148,7 +148,7 @@
               </div>
           </div>
 
-          <div name="selectServicesCoreDiv" id="selectServicesCoreDivId" style="display:none">
+          <div id="selectServicesCoreDivId" style="display:none">
             <fieldset>
             <div class="pageSummary">
               <h2><?php echo $RES['initWizard.selectServices.pageSummary.header'] ?></h2>
@@ -184,7 +184,7 @@
           </div>
           <!-- End of selectServicesCoreDivId -->
 
-          <div name="assignHostsCoreDiv" id="assignHostsCoreDivId" style="display:none">
+          <div id="assignHostsCoreDivId" style="display:none" class="clearfix">
             <div id="statusDivId">
             </div>
             <div class="pageSummary">
@@ -200,10 +200,9 @@
               </div>
               <div id="hostsToMasterServices"></div>
             </div>
-            <div style="clear:both"></div>
           </div>
 
-          <div name="configureClusterCoreDiv" id="configureClusterCoreDivId" style="display:none">
+          <div id="configureClusterCoreDivId" style="display:none" class="clearfix">
             <div class="pageSummary">
               <h2><?php echo $RES['initWizard.configureCluster.pageSummary.header'] ?></h2>
               <p><?php echo $RES['initWizard.configureCluster.pageSummary.body'] ?></p>
@@ -265,7 +264,7 @@
               </div>
             </div>
 
-            <div name="deployCoreDiv" id="deployCoreDivId" style="display:none">
+            <div id="deployCoreDivId" style="display:none">
               <div class="pageSummary">
                 <h2><?php echo $RES['initWizard.reviewAndDeploy.pageSummary.header'] ?></h2>
                 <p><?php echo $RES['initWizard.reviewAndDeploy.pageSummary.body'] ?></p>

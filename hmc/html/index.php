@@ -40,6 +40,7 @@
           <div id="clusterHostRoleMappingContent">
           </div>
         </div>
+        <div style="clear:both"></div>
       </div>
 
       <?php require "./_footer.php"; ?>

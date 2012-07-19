@@ -24,7 +24,7 @@ function generateEligibleMountPoints () {
     /* The list we're about to build up. */
     var desiredMountPoints = [];
 
-    var selections = globalYui.all("#configureClusterMountPointsDynamicRenderDivId input[type=checkbox]");
+    var selections = Y.all("#configureClusterMountPointsDynamicRenderDivId input[type=checkbox]");
     selections.each( function(selection) {
 
       if( selection.get('checked') == true ) {
@@ -32,29 +32,29 @@ function generateEligibleMountPoints () {
       }
     });
 
-    globalYui.log("desired mount points: "+globalYui.Lang.dump(desiredMountPoints));
-    var customMountPointsString = globalYui.Lang.trim( globalYui.one("#customMountPointsId").get('value') );
+    Y.log("desired mount points: "+Y.Lang.dump(desiredMountPoints));
+    var customMountPointsString = Y.Lang.trim( Y.one("#customMountPointsId").get('value') );
 
     if( customMountPointsString.length != 0 ) {
 
-      globalYui.log("custom string = " + customMountPointsString);
+      Y.log("custom string = " + customMountPointsString);
 
       /* Merge the split version of customMountPointsString into our final list
        * of mount points to send back to the server for committing...
        */
-      desiredMountPoints.push.apply( desiredMountPoints, globalYui.Array.filter(customMountPointsString.split(','), function (elem) {
-          if (globalYui.Lang.trim(elem).length > 0) {
+      desiredMountPoints.push.apply( desiredMountPoints, Y.Array.filter(customMountPointsString.split(','), function (elem) {
+          if (Y.Lang.trim(elem).length > 0) {
             return true;
           } else {
             return false;
           }
       } ));
     
-      globalYui.log(desiredMountPoints.join(','));
+      Y.log(desiredMountPoints.join(','));
     }
 
     /* ...But not before performing a de-dupe, just to be safe. */
-    return globalYui.Array.dedupe( desiredMountPoints );
+    return Y.Array.dedupe( desiredMountPoints );
 }
 
 function generateServiceDirs (servicesInfo) {
@@ -63,15 +63,15 @@ function generateServiceDirs (servicesInfo) {
 
   var eligibleMountPoints = generateEligibleMountPoints();
 
-  for (items in servicesInfo) {
-    for (serviceName in servicesInfo[items]) {
-      for (component in servicesInfo[items][serviceName]) {
+  for (var items in servicesInfo) {
+    for (var serviceName in servicesInfo[items]) {
+      for (var component in servicesInfo[items][serviceName]) {
 
       var serviceInfo = servicesInfo[items][serviceName][component];
 
       var serviceDirs = [];
 
-      for( currentDirNum = 0; currentDirNum < eligibleMountPoints.length; ++currentDirNum ) {
+      for (var currentDirNum = 0; currentDirNum < eligibleMountPoints.length; ++currentDirNum ) {
 
         /* serviceInfo.maxDirectoriesNeeded that we get from the server is a cap 
          * on how many directories need to be generated for that service - the
@@ -104,7 +104,7 @@ function generateServiceDirs (servicesInfo) {
     }
   }
 
-  globalYui.log("Generated Service Dirs: "+globalYui.Lang.dump(generatedServiceDirs));
+  Y.log("Generated Service Dirs: "+Y.Lang.dump(generatedServiceDirs));
 
   return generatedServiceDirs;
 }
@@ -134,7 +134,7 @@ function renderEffectiveClusterConfig (generatedClusterConfig) {
         } 
 
         clusterConfigDisplayMarkup += '</ul>' + '<div style="clear:both"></div></div>';
-        globalYui.log("HTML GENERATED: " + clusterConfigDisplayMarkup);
+        Y.log("HTML GENERATED: " + clusterConfigDisplayMarkup);
     }
   }
 
@@ -142,7 +142,7 @@ function renderEffectiveClusterConfig (generatedClusterConfig) {
    * sure it comes before the existing #configureClusterSubmitButtonId), thus
    * rendering it.
    */
-  globalYui.one("#configureClusterMountPointsDisplayDivId").setContent( clusterConfigDisplayMarkup );
+  Y.one("#configureClusterMountPointsDisplayDivId").setContent( clusterConfigDisplayMarkup );
 }
 
 /* Modify the working version of generatedClusterConfig to make it fit for
@@ -176,28 +176,28 @@ var registeredConfigureClusterEventHandlers = false;
 
 function renderConfigureCluster (clusterConfig) {
 
-  globalServicesInfo = globalYui.Array( clusterConfig.servicesInfo );
+  globalServicesInfo = Y.Array( clusterConfig.servicesInfo );
 
   /* Clear out the contents of #customMountPointsId each time we render this
    * screen, to maintain our guarantee of invalidating all forward pages once
    * the user moves back.
    */
-  globalYui.one("#customMountPointsId").set('value', '');
+  Y.one("#customMountPointsId").set('value', '');
 
   if( !registeredConfigureClusterEventHandlers ) {
 
-    globalYui.one('#configureClusterSubmitButtonId').on('click',function (e) {
+    Y.one('#configureClusterSubmitButtonId').on('click',function (e) {
 
         e.target.set('disabled', true);
 
         var itemsExist = false;
-        var selections = globalYui.all("#configureClusterMountPointsDynamicRenderDivId input[type=checkbox]");
+        var selections = Y.all("#configureClusterMountPointsDynamicRenderDivId input[type=checkbox]");
         selections.each( function(selection) {
           if( selection.get('checked') == true ) {
             itemsExist = true;
           }
         });
-        if (globalYui.Lang.trim( globalYui.one("#customMountPointsId").get('value') ) != '') {
+        if (Y.Lang.trim( Y.one("#customMountPointsId").get('value') ) != '') {
           itemsExist = true;
         }
         if (!itemsExist) {
@@ -214,7 +214,7 @@ function renderConfigureCluster (clusterConfig) {
             clusterConfig : polishClusterConfig(generatedClusterConfig) 
         };
 
-        globalYui.log(globalYui.Lang.dump(configureClusterRequestData.clusterConfig));
+        Y.log(Y.Lang.dump(configureClusterRequestData.clusterConfig));
 
         var url = "../php/frontend/configureCluster.php?clusterName="+clusterConfig.clusterName;
         var requestData = configureClusterRequestData;
@@ -225,10 +225,10 @@ function renderConfigureCluster (clusterConfig) {
         App.transition.submitDataAndProgressToNextScreen(url, requestData, submitButton, thisScreenId, nextScreenId, nextScreenRenderFunction);
      });
     
-    globalYui.one('#previewLinkId').on('click', function(e) {
-      previewPanel = App.ui.createInfoPanel('Preview Directories to be used by Hadoop');
+    Y.one('#previewLinkId').on('click', function(e) {
+      var previewPanel = App.ui.createInfoPanel('Preview Directories to be used by Hadoop');
       previewPanel.set('centered', true);
-      previewPanel.set('bodyContent', globalYui.one('#configureClusterDisplayDivId').getContent());
+      previewPanel.set('bodyContent', Y.one('#configureClusterDisplayDivId').getContent());
       var okButton = {
           value: 'OK',
           action: function (e) {
@@ -242,7 +242,7 @@ function renderConfigureCluster (clusterConfig) {
     });
 
     /* event on mountPoints to be checked. */
-    globalYui.one('#configureClusterMountPointsInputDivId').delegate(
+    Y.one('#configureClusterMountPointsInputDivId').delegate(
         { 
         'click': eventHandlerFunc, 
         'keyup' : eventHandlerFunc
@@ -253,11 +253,11 @@ function renderConfigureCluster (clusterConfig) {
   }
 
   /* Generate the key form elements into clusterConfigInputMarkup. */
-  var mountPoints = globalYui.Array( clusterConfig.mountPoints.sort(globalYui.ArraySort.compare) );
+  var mountPoints = Y.Array( clusterConfig.mountPoints.sort(Y.ArraySort.compare) );
 
   var clusterConfigInputMarkup = "";
 
-  globalYui.Array.each(mountPoints, function(mountPoint) {
+  Y.Array.each(mountPoints, function(mountPoint) {
 
       /* Inefficient, with all the string concatenations, but clear to read. */
       clusterConfigInputMarkup += 
@@ -267,10 +267,10 @@ function renderConfigureCluster (clusterConfig) {
     });
 
   /* Link the newly-generated clusterConfigInputMarkup into the DOM. */
-  globalYui.one("#configureClusterMountPointsDynamicRenderDivId").setContent( clusterConfigInputMarkup );
+  Y.one("#configureClusterMountPointsDynamicRenderDivId").setContent( clusterConfigInputMarkup );
 
   App.ui.hideLoadingOverlay();
-  globalYui.one('#configureClusterCoreDivId').setStyle("display", "block");
+  Y.one('#configureClusterCoreDivId').show();
 
   renderEffectiveClusterConfig(generateServiceDirs(globalServicesInfo));
 
