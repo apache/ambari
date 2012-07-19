@@ -22,6 +22,7 @@
 <html>
   <head>
     <?php require "./head.htmli" ?>
+    <script src="/hmc/js/ext/jquery.min.js"></script>
   </head>
 
   <body class="yui3-skin-sam">

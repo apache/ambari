@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-650. Issues with Reconfigure Service (yusaku)
+
   AMBARI-639. Monitoring Dashboard does not show the Help Link in the top
   nav and a link to Apache 2.0 license and NOTICE file in the footer
   (yusaku) 

@@ -141,7 +141,6 @@ function transitionToNextStage( currentStageDivSelector, currentStageData, newSt
 function clearFormStatus() {
   var formStatusDiv = globalYui.all("#formStatusDivId");
   // formStatusDiv.setContent("");
-  formStatusDiv.setStyle("visibility", "hidden");
   formStatusDiv.hide();
   formStatusDiv.set('className','');
   formStatusDiv.addClass("formStatusBar");
@@ -155,7 +154,6 @@ function setFormStatus(statusString, isError, noFade) {
     formStatusDivCssClass = 'statusOk';
   }
   var formStatusDiv = globalYui.all("#formStatusDivId");
-  formStatusDiv.setStyle("visibility", "visible");
   formStatusDiv.show();
   formStatusDiv.set('className','');
   formStatusDiv.addClass("formStatusBar");
