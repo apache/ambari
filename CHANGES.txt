@@ -81,6 +81,8 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-652. Large number of spurious logs due to undefined variables (yusaku)
+    
     AMBARI-651. Fix issues with the footer overlapping page content due to
     uncleared floats (yusaku)
 
