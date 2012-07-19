@@ -81,6 +81,9 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-654. Enter the value of the service properties that are not meant to
+    be displayed on UI in ServiceConfig table (Jaimin Jetly via yusaku) 
+
     AMBARI-602. Fix install docs for 64-bit only support and how to pre-setup
     cluster for ambari-agent for testing (hitesh)
 

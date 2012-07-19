@@ -27,7 +27,7 @@
     function convertDisplayType(displayType) {
       switch (displayType) {
         case "NODISPLAY":
-          return "NODISPLAY";
+          return "hidden";
         case "TEXT":
           return "text";
         case "PASSWORD":
@@ -58,7 +58,11 @@
 
       var checked = (type === 'checkbox' && option.value === 'true') ? 'checked' : '';
 
-      var retString = '<div class="formElement">' +
+      var retString = '<div class="formElement"';
+      if (type === "hidden") {
+        retString += 'style = "display:none"';
+      }
+      retString += '>' +
         '<label for="' + service + '">' + option.displayName + '</label>' +
         '<input class="' + unitClass + '" type="' + type + '" id="' + property + '" name="' + service + '" value="' + option.value + '" ' + checked;
       if (readOnlyFlag) {
@@ -107,9 +111,6 @@
             // service has configs, so needs render
             var type = convertDisplayType(service.properties[property].type);
             // Y.log("TYPE: " + type + "Property: " + property);
-            if (type === "NODISPLAY") {
-                continue;
-            }
             serviceNeedsRender = true;
             var unit = service.properties[property].unit;
             var displayAttributes = null;
