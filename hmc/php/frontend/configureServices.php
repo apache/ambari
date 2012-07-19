@@ -40,11 +40,11 @@ $requestObj = json_decode($requestdata, true);
 $clusterName = $_GET['clusterName'];
 // TODO: Validate clusterName
 
-$validateOnly = $_GET['validateOnly'];
+$validateOnly = isset($_GET['validateOnly']);
 
 $finalProperties = sanitizeConfigs($requestObj, $logger);
 
-if (isset($validateOnly)) {
+if ($validateOnly) {
   $result = validateConfigsFromUser($dbAccessor, $logger, $clusterName, $finalProperties);
   if ($result['result'] != 0) {
     $logger->log_error("Failed to validate configs from user (validate only), error=" . $result["error"]);
