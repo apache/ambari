@@ -19,19 +19,18 @@
 #
 #
 define hdp::java::package(
-  $size,
-  $include_artifact_dir = true
+  $size
 )
 {
     
   include hdp::params
   
+  $security_enabled = $hdp::params::security_enabled
   $jdk_bin = $hdp::params::jdk_bins[$size]
   $artifact_dir = $hdp::params::artifact_dir
   $jdk_location = $hdp::params::jdk_location
   $jdk_curl_target = "${artifact_dir}/${jdk_bin}"
  
-  
   if ($size == "32") {
     $java_home = $hdp::params::java32_home
   } else {
@@ -40,10 +39,6 @@ define hdp::java::package(
   $java_exec = "${java_home}/bin/java"
   $java_dir = regsubst($java_home,'/[^/]+$','')
    
-  if ($include_artifact_dir == true) {
-    hdp::artifact_dir{ "java::package::${name}": }
-  }
-  
   $curl_cmd = "mkdir -p ${artifact_dir} ; curl -f --retry 10 ${jdk_location}/${jdk_bin} -o ${jdk_curl_target}"
   exec{ "${curl_cmd} ${name}":
     command => $curl_cmd,
@@ -63,8 +58,14 @@ define hdp::java::package(
   ensure => present
   }   
  
-  anchor{"hdp::java::package::${name}::begin":} -> Exec["${curl_cmd} ${name}"] ->  Exec["${install_cmd} ${name}"] -> File["${java_exec} ${name}"] -> anchor{"hdp::java::package::${name}::end":}
-  if ($include_artifact_dir == true) {
-    Anchor["hdp::java::package::${name}::begin"] -> Hdp::Artifact_dir["java::package::${name}"] -> Exec["${curl_cmd} ${name}"]
+  if ($security_enabled == true) {
+    hdp::java::jce::package{ $name:
+      java_home_dir  => $java_home
+    }
+  }
+
+  anchor{"hdp::java::package::${name}::begin":} -> Exec["${curl_cmd} ${name}"] ->  Exec["${install_cmd} ${name}"] -> File["${java_exec} ${name}"] ->  anchor{"hdp::java::package::${name}::end":}
+  if ($security_enabled == true) {
+    File["${java_exec} ${name}"] -> Hdp::Java::Jce::Package[$name] 
   }
 }

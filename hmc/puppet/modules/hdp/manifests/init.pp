@@ -288,18 +288,6 @@ define hdp::wait(
   } 
 }
 
-#### artifact_dir
-define hdp::artifact_dir()
-{
-  include artifact_dir_shared
-}
-class artifact_dir_shared()
-{
-  file{ $hdp::params::artifact_dir:
-    ensure  => directory
-  }
-}
-
 ##### temp
 
 class hdp::iptables($ensure)

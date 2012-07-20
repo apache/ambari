@@ -71,8 +71,7 @@ define hdp::package::yum(
   
   if (($java_needed == true) and ($ensure == 'present')){
     hdp::java::package{ $name:
-      size                 => $size,
-      include_artifact_dir => true
+      size                 => $size
     }
   }
 

@@ -39,7 +39,7 @@ class hdp::params()
   
   $zookeeper_hosts = hdp_default("zookeeper_hosts")
 
-  $hbase_master_host = hdp_default("hbase_master_host")
+  $hbase_master_host = hdp_default("hbase_master_host", "")
   $hbase_rs_hosts = hdp_default("hbase_rs_hosts",$slave_hosts) #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 
   $hive_server_host = hdp_default("hive_server_host")
@@ -98,6 +98,8 @@ class hdp::params()
     $public_templeton_server_host = hdp_default("templeton_server_host")
   }
 
+  ############ Hdfs directories
+  $hbase_hdfs_root_dir = hdp_default("hadoop/hbase-site/hbase_hdfs_root_dir","/apps/hbase/data")
 
   ############ users
   $user_info = hdp_default("user_info",{})

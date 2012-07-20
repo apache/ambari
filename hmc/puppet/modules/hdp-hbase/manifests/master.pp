@@ -28,8 +28,6 @@ class hdp-hbase::master(
   } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {    
     $hdp::params::service_exists['hdp-hbase::master'] = true
 
-    $hdfs_root_dir = $hdp-hbase::params::hbase_hdfs_root_dir
-
     if ( ($service_state == 'installed_and_configured') and
          ($security_enabled == true) and ($kerberos_install_type == "AMBARI_SET_KERBEROS") ) {
        $masterHost = $kerberos_adminclient_host[0]
@@ -49,17 +47,12 @@ class hdp-hbase::master(
 
     Hdp-hbase::Configfile<||>{hbase_master_host => $hdp::params::host_address}
   
-    hdp-hadoop::hdfs::directory { $hdfs_root_dir:
-      owner         => $hdp-hbase::params::hbase_user,
-      service_state => $service_state
-    }    
-
     hdp-hbase::service{ 'master':
       ensure => $service_state
     }
 
     #top level does not need anchors
-    Class['hdp-hbase'] -> Hdp-hadoop::Hdfs::Directory[$hdfs_root_dir] -> Hdp-hbase::Service['master'] 
+    Class['hdp-hbase'] -> Hdp-hbase::Service['master'] 
     } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }

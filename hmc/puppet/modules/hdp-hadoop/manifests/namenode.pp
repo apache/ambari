@@ -127,5 +127,13 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
       owner         => $hdp-hadoop::params::mapred_user
     }
     Hdp-hadoop::Hdfs::Directory['/mapred'] -> Hdp-hadoop::Hdfs::Directory['/mapred/system']
+
+    if ($hbase_master_host != undef) {
+      $hdfs_root_dir = $hdp::params::hbase_hdfs_root_dir
+      hdp-hadoop::hdfs::directory { $hdfs_root_dir:
+        owner         => $hdp::params::hbase_user,
+        service_state => $service_state
+      }
+    }
   }
 }

@@ -12,6 +12,9 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-655. Move hbase directory creation in hdfs to namenode puppet 
+    module. (jitendra)
+
     AMBARI-648. Keytab generation for hbase, hive. (jitendra)
 
     AMBARI-642. Require jce policy file. (jitendra)

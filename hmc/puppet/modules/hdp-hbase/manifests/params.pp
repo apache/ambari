@@ -38,7 +38,7 @@ class hdp-hbase::params() inherits hdp::params
 
 
   ### hbase-site.xml
-  $hbase_hdfs_root_dir = hdp_default("hadoop/hbase-site/hbase_hdfs_root_dir","/apps/hbase/data")
+  $hbase_hdfs_root_dir = $hdp::params::hbase_hdfs_root_dir
 
   $hbase_tmp_dir = hdp_default("hadoop/hbase-site/hbase_tmp_dir","$hbase_log_dir")
 
