@@ -112,29 +112,34 @@ class HostsConfigManifest {
    }
 
    private static $componentToKeytabMap = array (
-     "hdp-hadoop::namenode" => array("nn.service.keytab"),
-     "hdp-hadoop::snamenode" => array("nn.service.keytab"),
+     "hdp-hadoop::namenode" => array("nn.service.keytab", "spnego.service.keytab"),
+     "hdp-hadoop::snamenode" => array("nn.service.keytab", "spnego.service.keytab"),
      "hdp-hadoop::datanode" => array("dn.service.keytab"),
      "hdp-hadoop::jobtracker" => array("jt.service.keytab"),
      "hdp-hadoop::tasktracker" => array("tt.service.keytab"),
      "hdp-hbase::master" => array("hm.service.keytab"),
      "hdp-hbase::regionserver" => array("rs.service.keytab"),
-     "hdp-hive::server" => array("hive.service.keytab")
+     "hdp-hive::server" => array("hive.service.keytab"),
+     "hdp-oozie::server" => array("oozie.service.keytab", "spnego.service.keytab"),
+     "hdp-templeton::server" => array("templeton.service.keytab", "spnego.service.keytab")
    );
 
    private static $keytabsToPrincipalMap = array (
-     "nn.service.keytab" => array("nn", "HTTP", "host"),
+     "nn.service.keytab" => array("nn", "host"),
+     "spnego.service.keytab" => array("HTTP"),
      "dn.service.keytab" => array("dn"),
      "jt.service.keytab" => array("jt"),
      "tt.service.keytab" => array("tt"),
      "hm.service.keytab" => array("hm"),
      "rs.service.keytab" => array("rs"),
-     "hive.service.keytab" => array("hive")
+     "hive.service.keytab" => array("hive"),
+     "oozie.service.keytab" => array("oozie"),
    );
 
    private static $headlessUsersKeytab = array (
      "hdfs.headless.keytab" => array("hdfs"),
-     "ambari_qa.headless.keytab" => array("ambari_qa")
+     "ambari_qa.headless.keytab" => array("ambari_qa"),
+     "templeton.headless.keytab" => array("templeton")
    );
 
    private static function getArrayVariableManifest($arr) {

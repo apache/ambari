@@ -54,6 +54,14 @@ class hdp-hadoop::namenode(
         owner => $hdp-hadoop::params::hdfs_user, 
         hostnameInPrincipals => 'no'
       }
+      hdp::download_keytab { 'namenode_spnego_keytab' :   
+        masterhost => $masterHost,
+        keytabdst => "${$keytab_path}/spnego.service.keytab",
+        keytabfile => 'spnego.service.keytab', 
+        owner => $hdp-hadoop::params::hdfs_user, 
+        mode => '0440',
+        group => 'hadoop'
+      }
     }
  
     hdp-hadoop::namenode::create_name_dirs { $dfs_name_dir: 
@@ -128,11 +136,53 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
     }
     Hdp-hadoop::Hdfs::Directory['/mapred'] -> Hdp-hadoop::Hdfs::Directory['/mapred/system']
 
-    if ($hbase_master_host != undef) {
+    if ($hdp::params::hbase_master_host != "") {
       $hdfs_root_dir = $hdp::params::hbase_hdfs_root_dir
       hdp-hadoop::hdfs::directory { $hdfs_root_dir:
         owner         => $hdp::params::hbase_user,
         service_state => $service_state
+      }
+    }
+
+    if ($hdp::params::hive_server_host != "") {
+      $hive_user = $hdp::params::hive_user
+
+      hdp-hadoop::hdfs::directory{ '/apps/hive/warehouse':
+        service_state   => $service_state,
+        owner            => $hive_user,
+        mode             => '777',
+        recursive_chmod  => true
+      }
+      hdp-hadoop::hdfs::directory{ "/user/${hive_user}":
+        service_state => $service_state,
+        owner         => $hive_user
+      }
+    }
+
+    if ($hdp::params::oozie_server != "") {
+      $oozie_user = $hdp::params::oozie_user
+      hdp-hadoop::hdfs::directory{ '/user/oozie':
+        service_state => $service_state,
+        owner => $oozie_user,
+        mode  => '770',
+        recursive_chmod => true
+      }
+    }
+    
+    if ($hdp::params::templeton_server_host != "") {
+      $templeton_user = $hdp::params::templeton_user
+      hdp-hadoop::hdfs::directory{ '/user/templeton':
+        service_state => $service_state,
+        owner => $templeton_user,
+        mode  => '755',
+        recursive_chmod => true
+      }
+
+      hdp-hadoop::hdfs::directory{ '/apps/templeton':
+        service_state => $service_state,
+        owner => $templeton_user,
+        mode  => '755',
+        recursive_chmod => true
       }
     }
   }

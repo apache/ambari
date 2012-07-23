@@ -28,13 +28,34 @@ class hdp-templeton::server(
   } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {
   $hdp::params::service_exists['hdp-templeton::server'] = true
 
+  if ( ($service_state == 'installed_and_configured') and
+       ($security_enabled == true) and ($kerberos_install_type == "AMBARI_SET_KERBEROS") ) {
+     $masterHost = $kerberos_adminclient_host[0]
+     hdp::download_keytab { 'templeton_headless_keytab' :
+       masterhost => $masterHost,
+       keytabdst => "${$keytab_path}/templeton.headless.keytab",
+       keytabfile => 'templeton.headless.keytab',
+       owner => $hdp::params::templeton_user,
+       hostnameInPrincipals => 'no' 
+     }
+
+     if ( ($hdp::params::service_exists['hdp-hadoop::namenode'] != true) and
+          ($hdp::params::service_exists['hdp-hadoop::snamenode'] != true) and
+          ($hdp::params::service_exists['hdp-oozie::server'] != true) ) {
+       hdp::download_keytab { 'templeton_spnego_service_keytab' :
+         masterhost => $masterHost,
+         keytabdst => "${$keytab_path}/spnego.service.keytab",
+         keytabfile => 'spnego.service.keytab',
+         owner => $hdp::params::templeton_user,
+         group => 'hadoop',
+         mode => '0440'
+       }
+     }
+  }
+
   class{ 'hdp-templeton' :
     service_state => $service_state,
     server        => true
-  }
-
-  class { 'hdp-templeton::hdfs-directories' : 
-    service_state => $service_state
   }
 
   class { 'hdp-templeton::copy-hdfs-directories' :
@@ -46,31 +67,11 @@ class hdp-templeton::server(
   }
   
   #top level does not need anchors
-  Class['hdp-templeton'] -> Class['hdp-templeton::hdfs-directories'] -> Class['hdp-templeton::copy-hdfs-directories'] -> Class['hdp-templeton::service']
+  Class['hdp-templeton'] -> Class['hdp-templeton::copy-hdfs-directories'] -> Class['hdp-templeton::service']
   } else { 
   hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }
 }
-
-class hdp-templeton::hdfs-directories($service_state)
-{
- $templeton_user = $hdp-templeton::params::templeton_user
- #TODO: need to make sure that hdfs service is running
-  hdp-hadoop::hdfs::directory{ '/user/templeton':
-    service_state => $service_state,
-    owner => $templeton_user,
-    mode  => '755',
-    recursive_chmod => true
-  }  
-
-  hdp-hadoop::hdfs::directory{ '/apps/templeton':
-    service_state => $service_state,
-    owner => $templeton_user,
-    mode  => '755',
-    recursive_chmod => true  
-  }
-}
-
 
 class hdp-templeton::copy-hdfs-directories($service_state)
 {

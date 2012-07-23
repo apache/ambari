@@ -42,9 +42,9 @@ class hdp::params()
   $hbase_master_host = hdp_default("hbase_master_host", "")
   $hbase_rs_hosts = hdp_default("hbase_rs_hosts",$slave_hosts) #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 
-  $hive_server_host = hdp_default("hive_server_host")
-  $oozie_server =  hdp_default("oozie_server")
-  $templeton_server_host = hdp_default("templeton_server_host")
+  $hive_server_host = hdp_default("hive_server_host", "")
+  $oozie_server =  hdp_default("oozie_server", "")
+  $templeton_server_host = hdp_default("templeton_server_host", "")
   $gateway_host = hdp_default("gateway_host")
   
   $nagios_server_host = hdp_default("nagios_server_host")

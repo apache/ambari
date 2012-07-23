@@ -46,6 +46,14 @@ class hdp-hadoop::snamenode(
           keytabfile => 'nn.service.keytab',
           owner => $hdp-hadoop::params::hdfs_user
         }
+        hdp::download_keytab { 'snamenode_spnego_keytab' :   
+          masterhost => $masterHost,
+          keytabdst => "${$keytab_path}/spnego.service.keytab",
+          keytabfile => 'spnego.service.keytab', 
+          owner => $hdp-hadoop::params::hdfs_user,
+          mode => '0440',
+          group => 'hadoop'
+        }
       }
     }
  

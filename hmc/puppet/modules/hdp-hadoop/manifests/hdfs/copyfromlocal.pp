@@ -33,7 +33,8 @@ define hdp-hadoop::hdfs::copyfromlocal(
     $copy_cmd = "fs -copyFromLocal ${name} ${dest_dir}"
     hdp-hadoop::exec-hadoop { $copy_cmd:
       command => $copy_cmd,
-      unless => "hadoop fs -ls ${dest_dir} >/dev/null 2>&1"
+      unless => "hadoop fs -ls ${dest_dir} >/dev/null 2>&1",
+      user => $owner
     }
     if ($owner == unset) {
       $chown = ""
@@ -53,7 +54,8 @@ define hdp-hadoop::hdfs::copyfromlocal(
         $chown_cmd = "fs -chown ${chown} ${dest_dir}"
       }
       hdp-hadoop::exec-hadoop {$chown_cmd :
-        command => $chown_cmd
+        command => $chown_cmd,
+        user => $owner
       }
       Hdp-hadoop::Exec-hadoop[$copy_cmd] -> Hdp-hadoop::Exec-hadoop[$chown_cmd]
     }
@@ -66,7 +68,8 @@ define hdp-hadoop::hdfs::copyfromlocal(
         $chmod_cmd = "fs -chmod ${mode} ${dest_dir}"
       }
       hdp-hadoop::exec-hadoop {$chmod_cmd :
-        command => $chmod_cmd
+        command => $chmod_cmd,
+        user => $owner
       }
       Hdp-hadoop::Exec-hadoop[$copy_cmd] -> Hdp-hadoop::Exec-hadoop[$chmod_cmd]
     }

@@ -22,6 +22,8 @@ define hdp::download_keytab(
   $keytabdst,
   $keytabfile,
   $owner,
+  $group = undef,
+  $mode = '0400',
   $hostnameInPrincipals = 'yes'
 )
 {
@@ -31,11 +33,11 @@ define hdp::download_keytab(
   } else {
     $keytabsrc = "puppet://${masterhost}/modules/keytabs/${keytabfile}"
   }
-  notice($keytabsrc)
   file { $keytabdst :
     ensure => present,
     source => $keytabsrc,
-    mode => '0700',
-    owner => $owner
+    mode => $mode,
+    owner => $owner,
+    group => $group
   }
 }
