@@ -285,10 +285,10 @@ class hdp::params()
       64 =>  ['extjs-2.2-1']
     },
     templeton-tar-hive => {
-      64 => ['templeton-tar-hive-0.0.1-1']
+      64 => ['templeton-tar-hive-0.0.1.14-1']
     },
     templeton-tar-pig => {
-      64 => ['templeton-tar-pig-0.0.1-1']
+      64 => ['templeton-tar-pig-0.0.1.14-1']
     }
   }
   $packages = 'bigtop' 

@@ -58,5 +58,5 @@ class hdp-hive::params() inherits hdp::params
   ###mysql connector
   $download_url = $hdp::params::gpl_artifacts_download_url
   $mysql_connector_url = "${download_url}/mysql-connector-java-5.1.18.zip"
-  $hive_aux_jars_path =  hdp_default("hive_aux_jars_path","/usr/lib/hcatalog/share/hcatalog/hcatalog-0.4.0.jar")
+  $hive_aux_jars_path =  hdp_default("hive_aux_jars_path","/usr/lib/hcatalog/share/hcatalog/hcatalog-0.4.0.14.jar")
 }

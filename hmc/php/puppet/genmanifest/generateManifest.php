@@ -275,7 +275,7 @@ include "RoleDependencies.php";
        "hdp-oozie::server" => array("oozie.noarch", "extjs-2.2-1"),
        "hdp-oozie::client" => array("oozie-client.noarch"),
        "hdp-mysql::server" => array("mysql-server"),
-       "hdp-templeton::server" => array("templeton", "templeton-tar-pig-0.0.1-1", "templeton-tar-hive-0.0.1-1"),
+       "hdp-templeton::server" => array("templeton", "templeton-tar-pig-0.0.1.14-1", "templeton-tar-hive-0.0.1.14-1"),
        "hdp-templeton::client" => array("templeton"),
        "lzo" => array("lzo", "lzo", "lzo-devel", "lzo-devel"),
        "snappy" => array("snappy", "snappy-devel"),

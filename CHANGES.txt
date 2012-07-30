@@ -86,6 +86,8 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-661. Deploy cluster fails during Hive/HCatalog test (mahadev via yusaku)
+
     AMBARI-654. Enter the value of the service properties that are not meant to
     be displayed on UI in ServiceConfig table (Jaimin Jetly via yusaku) 
 
