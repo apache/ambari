@@ -276,7 +276,7 @@ class SuggestProperties {
     $heapSize = $this->allocateHeapSizeWithMax("TASKTRACKER", $hostRoles,
         $hostInfoMap, $allHostsToComponents, TRUE, 2048);
     $heapSizeWithMax = $this->allocateHeapSizeWithMax("TASKTRACKER", $hostRoles,
-        $hostInfoMap, $allHostsToComponents, TRUE, 3072);
+        $hostInfoMap, $allHostsToComponents, TRUE, 2048);
     $this->logger->log_info("Maxed Heap Size for MR Child opts ".$heapSizeWithMax);
     $result["configs"]["ttnode_heapsize"] = $heapSize;
     $result["configs"]["mapred_child_java_opts_sz"] = $heapSizeWithMax;

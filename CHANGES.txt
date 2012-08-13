@@ -86,6 +86,8 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-664. Fix mapred io sort mb and heap size for map/reduce. (mahadev)
+
     AMBARI-661. Deploy cluster fails during Hive/HCatalog test (mahadev via yusaku)
 
     AMBARI-654. Enter the value of the service properties that are not meant to

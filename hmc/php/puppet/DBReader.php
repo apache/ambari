@@ -239,7 +239,6 @@ class DBReader {
      "jtnode_heapsize" => "m",
      "ttnode_heapsize" => "m",
      "mapred_child_java_opts_sz" => "m",
-     "io_sort_mb" => "m",
      "hbase_master_heapsize" => "m",
      "hbase_regionserver_heapsize" => "m"
   );
