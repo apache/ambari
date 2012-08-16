@@ -147,6 +147,9 @@ Trunk (unreleased changes)
 
 Release 0.9.0
 
+  AMBARI-668. Ambari should install yum priorities plugin on all nodes to ensure repo
+  priorities are adhered to. (hitesh)
+
   AMBARI-618. Fix RAT warnings on docs directory (vinodkv via vikram)
 
   AMBARI-617. Missing some files in rat-excludes (vikram via vinodkv)

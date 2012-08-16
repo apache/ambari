@@ -219,6 +219,24 @@ else
   echo "Skipping epel check+install as local repo mode is enabled"
 fi
 
+echo "Installing yum priorities plugin"
+if [[ "x${osMajorVersion}" == "x5" ]]; then
+  out=`yum install -y yum-priorities`
+  ret=$?
+  if [[ "$ret" != "0" ]]; then
+    echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
+    exit 1
+  fi
+fi
+if [[ "x${osMajorVersion}" == "x6" ]]; then
+  out=`yum install -y yum-plugin-priorities`
+  ret=$?
+  if [[ "$ret" != "0" ]]; then
+    echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
+    exit 1
+  fi
+fi
+
 echo "Installing puppet using yum"
 out=`yum install -y hmc-agent`
 ret=$?
