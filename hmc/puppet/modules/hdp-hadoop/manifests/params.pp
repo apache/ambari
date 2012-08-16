@@ -118,7 +118,7 @@ class hdp-hadoop::params(
 
   $mapred_system_dir = '/mapred/system'
 
-  $io_sort_mb = hdp_default("hadoop/mapred-site/io_sort_mb","200m")
+  $io_sort_mb = hdp_default("hadoop/mapred-site/io_sort_mb","200")
 
   $io_sort_spill_percent = hdp_default("hadoop/mapred-site/io_sort_spill_percent","0.9")
 
