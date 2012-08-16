@@ -24,7 +24,7 @@ export hdfs_user=$1
 shift
 export conf_dir=$1
 shift
-export mark_file=$1
+export mark_dir=$1
 shift
 export name_dirs=$*
 
@@ -32,9 +32,15 @@ export EXIT_CODE=0
 export command="namenode -format"
 export list_of_non_empty_dirs=""
 
-if [[ ! -f $mark_file ]] ; then 
+mark_file=/var/run/hadoop/hdfs/namenode-formatted
+if [[ -f ${mark_file} ]] ; then
+  rm -f ${mark_file}
+  mkdir -p ${mark_dir}
+fi
+
+if [[ ! -d $mark_dir ]] ; then
   for dir in `echo $name_dirs | tr ',' ' '` ; do
-    echo "DIrname = $dir"
+    echo "NameNode Dirname = $dir"
     cmd="ls $dir | wc -l  | grep -q ^0$"
     eval $cmd
     if [[ $? -ne 0 ]] ; then
@@ -43,11 +49,13 @@ if [[ ! -f $mark_file ]] ; then
     fi
   done
 
-  if [[ $EXIT_CODE == 0 ]] ; then 
+  if [[ $EXIT_CODE == 0 ]] ; then
     su - ${hdfs_user} -c "yes Y | hadoop --config ${conf_dir} ${command}"
   else
     echo "ERROR: Namenode directory(s) is non empty. Will not format the namenode. List of non-empty namenode dirs ${list_of_non_empty_dirs}"
   fi
+else
+  echo "${mark_dir} exists. Namenode DFS already formatted"
 fi
 
 exit $EXIT_CODE

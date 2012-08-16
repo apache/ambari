@@ -41,9 +41,9 @@ class hdp-hadoop::params(
   $hadoop_logdirprefix = hdp_default("hadoop/hadoop-env/hadoop_logdirprefix","/var/log/hadoop")
 
   $hadoop_piddirprefix = hdp_default("hadoop/hadoop-env/hadoop_piddirprefix","/var/run/hadoop")
-  $run_dir = $hadoop_piddirprefix 
-  $namenode_formatted_mark_file = "${run_dir}/hdfs/namenode-formatted"
+  $run_dir = $hadoop_piddirprefix
 
+  $namenode_formatted_mark_dir = "${run_dir}/hdfs/namenode/formatted/"
 
   $jtnode_heapsize = hdp_default("hadoop/hadoop-env/jtnode_heapsize","1024m")
 

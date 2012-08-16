@@ -22,7 +22,7 @@ class hdp-hadoop::namenode::format(
   $force = false
 )
 {
-  $mark_file = $hdp-hadoop::params::namenode_formatted_mark_file
+  $mark_dir = $hdp-hadoop::params::namenode_formatted_mark_dir
   $dfs_name_dir = $hdp-hadoop::params::dfs_name_dir
   $hdfs_user = $hdp::params::hdfs_user
   $hadoop_conf_dir = $hdp-hadoop::params::conf_dir
@@ -40,8 +40,8 @@ class hdp-hadoop::namenode::format(
     }
 
     exec { '/tmp/checkForFormat.sh':
-      command   => "sh /tmp/checkForFormat.sh ${hdfs_user} ${hadoop_conf_dir} ${mark_file} ${dfs_name_dir} ",
-      unless   => "test -f ${mark_file}",
+      command   => "sh /tmp/checkForFormat.sh ${hdfs_user} ${hadoop_conf_dir} ${mark_dir} ${dfs_name_dir} ",
+      unless   => "test -d ${mark_dir}",
       require   => File['/tmp/checkForFormat.sh'],
       path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
       logoutput => "true",
@@ -50,7 +50,7 @@ class hdp-hadoop::namenode::format(
   }
 
   hdp::exec { 'set namenode mark' :
-    command     => "touch ${mark_file}",
+    command     => "mkdir -p ${mark_dir}",
     refreshonly => true
   }
 }
