@@ -6,6 +6,9 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-668. Ambari should install yum priorities plugin on all nodes to ensure repo
+  priorities are adhered to. (hitesh)
+
   AMBARI-661. Deploy cluster fails during Hive/HCatalog test (yusaku)
 
   AMBARI-664. Fix mapred io sort mb and heap size for map/reduce (mahadev via
