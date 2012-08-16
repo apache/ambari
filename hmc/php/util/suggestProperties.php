@@ -277,9 +277,13 @@ class SuggestProperties {
         $hostInfoMap, $allHostsToComponents, TRUE, 2048);
     $heapSizeWithMax = $this->allocateHeapSizeWithMax("TASKTRACKER", $hostRoles,
         $hostInfoMap, $allHostsToComponents, TRUE, 2048);
-    $this->logger->log_info("Maxed Heap Size for MR Child opts ".$heapSizeWithMax);
     $result["configs"]["ttnode_heapsize"] = $heapSize;
-    $result["configs"]["mapred_child_java_opts_sz"] = $heapSizeWithMax;
+
+    $mrHeapSizeWithMax = $this->allocateHeapSizeWithMax("TASKTRACKER", $hostRoles,
+       $hostInfoMap, $allHostsToComponents, TRUE, 1024);
+
+    $this->logger->log_info("Maxed Heap Size for MR Child opts ".$mrHeapSizeWithMax);
+    $result["configs"]["mapred_child_java_opts_sz"] = $mrHeapSizeWithMax;
 
     if (array_key_exists("HBASE", $services)) {
       $heapSize = $this->allocateHeapSizeForDaemon("HBASE_REGIONSERVER", $hostRoles,
