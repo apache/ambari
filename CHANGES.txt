@@ -6,6 +6,9 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-672. Hardcoded -Xmn value for hbase causes region servers to fail to start in
+  machines with less memory (hitesh)
+
   AMBARI-667. After reboots, namenode start fails as it thinks dfs is not formatted (hitesh)
 
   AMBARI-668. Ambari should install yum priorities plugin on all nodes to ensure repo
