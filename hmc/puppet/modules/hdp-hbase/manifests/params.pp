@@ -36,9 +36,10 @@ class hdp-hbase::params() inherits hdp::params
 
   $hbase_regionserver_heapsize = hdp_default("hadoop/hbase-env/hbase_regionserver_heapsize","1000m")
 
+  $hbase_regionserver_xmn_size = hdp_calc_xmn_from_xms("$hbase_regionserver_heapsize","0.2","512")
 
   ### hbase-site.xml
-  $hbase_hdfs_root_dir = $hdp::params::hbase_hdfs_root_dir
+  $hbase_hdfs_root_dir = hdp_default("hadoop/hbase-site/hbase_hdfs_root_dir","/apps/hbase/data")
 
   $hbase_tmp_dir = hdp_default("hadoop/hbase-site/hbase_tmp_dir","$hbase_log_dir")
 
