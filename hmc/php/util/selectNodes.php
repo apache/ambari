@@ -263,6 +263,24 @@ class SelectNodes {
     }
     $services_tmp = $servicesDBInfo["services"];
     $services = $this->filterEnabledServices($services_tmp);
+    $clusterInfo = $db->getClusterState($clusterName);
+    if ($clusterInfo["result"] != 0) {
+      $this->logger->log_error("Error getting cluster state ". $clusterInfo["error"]);
+      $return["result"] = $clusterInfo["result"];
+      $return["error"] = $clusterInfo["error"];
+      return $return;
+    }
+    $clusterState = json_decode($clusterInfo[state],true);
+    if($clusterState[state] == "CONFIGURATION_IN_PROGRESS") {
+      $hostRolesResult = $db->cleanAllHostRoles($clusterName);
+      if ($hostRolesResult["result"] != 0) {
+        $this->logger->log_error("Issue cleaning all host roles ".$hostRolesResult["error"]);
+        $return["result"] = $hostRolesResult["result"];
+        $return["error"] = $hostRolesResult["error"];
+        return $return;
+      }
+    }
+
     $allHosts = $this->convertHostInfoToList($allHosts_t);
     foreach($masterToHost as $componentName=>$hostNames) {
       $this->logger->log_info("For cluster  $clusterName setting $componentName to host \n". print_r($hostNames, true));

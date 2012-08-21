@@ -6,6 +6,9 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-673. Going back to step 3 from step 5 in UI breaks DB
+  (Jaimin Jetly via yusaku)
+
   AMBARI-672. Hardcoded -Xmn value for hbase causes region servers to fail to start in
   machines with less memory (hitesh)
 
