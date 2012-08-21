@@ -3736,6 +3736,27 @@ class HMCDBAccessor {
     $this->cleanupHosts($clusterName);
   }
 
+public function cleanAllHostRoles($clusterName) {
+  LockAcquire();
+
+  $response = array ("result" => 0, "error" => "");
+  $query = "DELETE from " . HostRoles. " WHERE cluster_name = "
+           . $this->dbHandle->quote($clusterName);
+  $this->logger->log_trace("Running query: $query");
+  $pdoStmt = $this->dbHandle->query($query);
+  if ($pdoStmt == FALSE) {
+    $error = $this->getLastDBErrorAsString();
+    $this->logger->log_error("Error when executing query"
+      . ", query=".$query
+      . ", error=".$error);
+    $response["result"] = 1;
+    $response["error"] = $error;
+    LockRelease(); return $response;
+  }
+  LockRelease(); return $response;
+
+}
+
   public function wipeOutClusters () {
     $this->deleteAllInTable("Clusters");
     $this->deleteAllInTable("ServiceComponentInfo");
