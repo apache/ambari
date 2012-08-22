@@ -25,7 +25,9 @@ class hdp(
 {
   import 'params.pp'
   include hdp::params
-  
+
+  Exec { logoutput => 'on_failure' }
+
   group { $hdp::params::hadoop_user_group :
     ensure => present
   }
@@ -221,7 +223,7 @@ define hdp::exec(
   $timeout = 900,
   $try_sleep = undef,
   $initial_wait = undef,
-  $logoutput = undef,
+  $logoutput = 'on_failure',
   $cwd = undef
 )
 {
