@@ -12,6 +12,9 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-679. Have Monitoring Dashboard display Puppet Agent related alerts
+    (yusaku)
+
     AMBARI-678. Enable nagios add-on to send back information for puppet agents
     being down (hitesh)
   

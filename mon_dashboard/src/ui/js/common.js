@@ -92,7 +92,7 @@
       context = "dashboard";
       collection = "hdp";
       collection2 = "all";
-      alertParam = "nok";
+      alertParam = "all";
     } else if (page == "HDFS"){
       context = "hdfs";
       collection = "hdp";
@@ -513,7 +513,7 @@
       a.hideGraphPopup();
     } else if(target.parentNode){
       var targetParentId = target.parentNode.id;
-      if (targetParentId == "HDFS" || targetParentId == "MAPREDUCE" || targetParentId == "HBASE" || targetParentId == "ZOOKEEPER" || targetParentId == "HIVE-METASTORE" || targetParentId == "OOZIE" || targetParentId == "TEMPLETON") {
+      if (targetParentId == "HDFS" || targetParentId == "MAPREDUCE" || targetParentId == "HBASE" || targetParentId == "ZOOKEEPER" || targetParentId == "HIVE-METASTORE" || targetParentId == "OOZIE" || targetParentId == "PUPPET") {
         a.showAlerts(target);
       }
     }
@@ -685,7 +685,7 @@
       var hdfsCritCount = 0, hdfsWarnCount = 0, mrCritCount = 0, mrWarnCount = 0, 
       hbaseCritCount = 0, hbaseWarnCount = 0, zkCritCount = 0, zkWarnCount = 0, 
       hcatCritCount = 0, hcatWarnCount = 0, oozieWarnCount = 0, oozieCritCount = 0,
-                        templetonWarnCount = 0, templetonCritCount = 0;
+                        puppetWarnCount = 0, puppetCritCount = 0;
       
       //Set firstService in the table
       var servicestates = response.servicestates;
@@ -743,11 +743,14 @@
               converted.last_hard_state_change = a.convertToDDHHMM(actualTime - alerts[i].last_hard_state_change);
               
               // Plugin Output
-              converted.plugin_output = alerts[i].plugin_output;
-              
+              if (alerts[i].service_type === 'PUPPET' && alerts[i].plugin_output.toLowerCase().indexOf('connection refused') >= 0) {
+                converted.plugin_output = 'Puppet agent down on ' + alerts[i].host_name;
+              } else {
+                converted.plugin_output = alerts[i].plugin_output;
+              }
               filtered.push(converted);
             }
-            
+
             // Step 2 out of 3: Increment Counters for Alert Summary Table
             if (alerts[i].last_hard_state == 1) {
               if(alerts[i].service_type == "HDFS"){
@@ -762,8 +765,8 @@
                 hcatWarnCount++;
               } else if(alerts[i].service_type == "OOZIE"){
                 oozieWarnCount++;
-              } else if(alerts[i].service_type == "TEMPLETON"){
-                templetonWarnCount++;
+              } else if(alerts[i].service_type == "PUPPET"){
+                puppetWarnCount++;
               }
             } else if (alerts[i].last_hard_state == 2) {
               if(alerts[i].service_type == "HDFS"){
@@ -778,8 +781,8 @@
                 hcatCritCount++;
               } else if(alerts[i].service_type == "OOZIE"){
                 oozieCritCount++;
-              } else if(alerts[i].service_type == "TEMPLETON"){
-                templetonCritCount++;
+              } else if(alerts[i].service_type == "PUPPET"){
+                puppetCritCount++;
               }
             }
             
@@ -925,9 +928,9 @@
               } else {
                 criticalAlerts.className = "critical";
               }
-            } else if(key == "TEMPLETON"){
-              criticalAlerts.innerHTML = templetonCritCount;
-              if(templetonCritCount > 0) {
+            } else if(key == "PUPPET"){
+              criticalAlerts.innerHTML = puppetCritCount;
+              if(puppetCritCount > 0) {
                 criticalAlerts.className = "highlighted-red critical";
               } else {
                 criticalAlerts.className = "critical";
@@ -979,9 +982,9 @@
               } else {
                 warnAlerts.className = "warning";
               }
-            } else if(key == "TEMPLETON"){
-              warnAlerts.innerHTML = templetonWarnCount;
-              if(templetonWarnCount > 0) {
+            } else if(key == "PUPPET"){
+              warnAlerts.innerHTML = puppetWarnCount;
+              if(puppetWarnCount > 0) {
                 warnAlerts.className = "highlighted-orage warning";
               } else {
                 warnAlerts.className = "warning";
