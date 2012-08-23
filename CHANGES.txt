@@ -12,6 +12,9 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-678. Enable nagios add-on to send back information for puppet agents
+    being down (hitesh)
+  
     AMBARI-656. Separate keytab for HTTP principal. (jitendra)
 
     AMBARI-655. Move hbase directory creation in hdfs to namenode puppet 
