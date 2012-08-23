@@ -20,3 +20,4 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-680. Fix pom structure. (hitesh)
