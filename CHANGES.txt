@@ -156,6 +156,8 @@ Trunk (unreleased changes)
     AMBARI-614. The database set up script has a duplicate definition of
     AmbariConfig so install fails (yusaku) 
 
+    AMBARI-681. Stopping of hive server fails. (jitendra)
+
 Release 0.9.0
 
   AMBARI-675. Make puppet generate more logs on command failures (hitesh)
