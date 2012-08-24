@@ -158,6 +158,8 @@ Trunk (unreleased changes)
 
     AMBARI-681. Stopping of hive server fails. (jitendra)
 
+    AMBARI-682. Fix log location for gc logs. (jitendra)
+
 Release 0.9.0
 
   AMBARI-675. Make puppet generate more logs on command failures (hitesh)
