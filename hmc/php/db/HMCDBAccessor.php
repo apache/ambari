@@ -3348,7 +3348,7 @@ public function cleanAllHostRoles($clusterName) {
   LockAcquire();
 
   $response = array ("result" => 0, "error" => "");
-  $query = "DELETE from " . HostRoles. " WHERE cluster_name = "
+  $query = "DELETE from HostRoles WHERE cluster_name = "
            . $this->dbHandle->quote($clusterName);
   $this->logger->log_trace("Running query: $query");
   $pdoStmt = $this->dbHandle->query($query);
