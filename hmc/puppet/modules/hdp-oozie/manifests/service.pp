@@ -35,7 +35,7 @@ class hdp-oozie::service(
   $ext_js_path = "/tmp/HDP-artifacts/${hdp-oozie::params::ext_zip_name}"
 
   if ($ensure == 'running') {
-    $daemon_cmd = "su - ${user} -c  'cd ${oozie_tmp} ; /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path; /usr/lib/oozie/bin/oozie-start.sh'"
+    $daemon_cmd = "su - ${user} -c  'cd ${oozie_tmp} ; /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path; /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run Validate DB Connection; /usr/lib/oozie/bin/oozie-start.sh'"
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
     $daemon_cmd  = "su - ${user} -c  'cd ${oozie_tmp} ; /usr/lib/oozie/bin/oozie-stop.sh'"
