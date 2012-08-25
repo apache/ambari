@@ -6,6 +6,9 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-686. Update documentation for RHEL/CentOS 6 install steps and a more streamlined
+  procedure in general (yusaku)
+
   AMBARI-675. Make puppet generate more logs on command failures (hitesh)
 
   AMBARI-673. Going back to step 3 from step 5 in UI breaks DB
