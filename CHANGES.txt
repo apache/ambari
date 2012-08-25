@@ -66,6 +66,9 @@ Trunk (unreleased changes)
 
   IMPROVEMENTS
 
+    AMBARI-686. Update documentation for RHEL/CentOS 6 install steps and a more
+    streamlined procedure in general (yusaku)
+
     AMBARI-635. Add Nodes Progress: for partial failure that lets the user
     continue, display an orange bar rather than a red bar in the progress popup
     (yusaku)

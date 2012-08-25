@@ -70,7 +70,7 @@ Introduction
 
 Ambari Installation
 
-  Follow the {{{./install.html} installation guide}}.
+  Follow the {{{./install.html} installation guide for trunk}} or {{{./install-0.9.html} installation guide for 0.9}}.
 
 Roadmap
 

@@ -14,17 +14,14 @@ Supported Operating Systems
 
   * Ambari currently supports:
   
-    * 64-bit RHEL 5.*
-    
-    * 64-bit CentOS 5.*
+    * RHEL/CentOS 5.*, 64-bit version
 
-  RHEL/CentOS 6.* support is coming shortly.
-
+    * RHEL/CentOS 6.*, 64-bit version
 
 Getting Ambari
 
-  The source can be checked out anonymously from SVN with this command:
-  
+  The source can be checked out anonymously from SVN with the following command:
+
 +--
 $ svn checkout http://svn.apache.org/repos/asf/incubator/ambari/trunk ambari
 +--
@@ -35,122 +32,98 @@ How to build Ambari
 
 +--
 $ yum install rpm-build
-$ cd hmc/package/rpm
+$ cd ambari/hmc/package/rpm
 $ ./create_hmc_rpm.sh
 
-$ cd mon_dashboard/package/rpm
+$ cd ambari/mon_dashboard/package/rpm
 $ ./create_dashboard_rpm.sh
 +--
 
   When this succeeds, you will find following RPMs inside the ambari directory:
 
-  1) hmc/package/rpm/build/rpmbuild/RPMS/noarch/ambari-1.0.0-1.noarch.rpm
+  1) ambari/hmc/package/rpm/build/rpmbuild/RPMS/noarch/ambari-1.0.0-1[.el6].noarch.rpm
 
-  2) hmc/package/rpm/build/rpmbuild/RPMS/noarch/ambari-agent-1.0.0-1.noarch.rpm
+  2) ambari/hmc/package/rpm/build/rpmbuild/RPMS/noarch/ambari-agent-1.0.0-1[.el6].noarch.rpm
 
-  3) mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_dashboard-0.0.1-2.noarch.rpm
+  3) ambari/mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_dashboard-0.0.1-2.noarch.rpm
 
 
-Steps to run before you use Ambari to install Hadoop on your cluster
-  
+Installing Ambari
+
   We will refer to the node running the Ambari server as <Ambari master>
   and the nodes to which Hadoop services will be installed as <cluster nodes>.
 
   1) Set up password-less SSH for root on all your cluster nodes.
 
-    * Copy root's SSH public key to all the cluster nodes in the <authorized_keys> file.
+    * Copy root's SSH public key to all the cluster nodes in the .ssh/authorized_keys file.
 
     * Save the corresponding SSH private key file locally.  You will be prompted by Ambari UI to upload it during cluster installation.
 
-  2) Install ambari-agent-1.0.0-1.noarch.rpm on each of the cluster nodes by running:
+  2) Install ambari-agent on each of the cluster nodes.
+
+    * To install ambari-agent, point to the freely accessible HDP repo
+that contains the required dependencies (e.g., Puppet).  Then use yum to install ambari-agent RPM and all of its dependencies.
+
+    On RHEL/CentOS 5:
 
 +--
-$ sudo rpm -Uvh ambari-agent-1.0.0-1.noarch.rpm ( or use yum install to pull in required dependencies )
-+--
-  
-    * To install ambari-agent, you may need to install puppet beforehand or point to the freely accessible HDP repo
-as it contains the required dependencies to allow the ambari-agent rpm to install successfully. To install the HDP repo, run:
- 
-+--
-$ sudo rpm -Uvh http://public-repo-1.hortonworks.com/HDP-1.0.13/repos/centos5/hdp-release-1.0.13-1.el5.noarch.rpm
+$ sudo rpm -Uvh http://public-repo-1.hortonworks.com/HDP-1.0.1.14/repos/centos5/hdp-release-1.0.1.14-1.el5.noarch.rpm
+$ sudo yum install epel-release
+$ sudo yum install ambari-agent-1.0.0-1.noarch.rpm --nogpgcheck
 +--
 
-  3) Stop iptables on the Ambari master:
+    On RHEL/CentOS 6:
+
++--
+$ sudo rpm -Uvh http://public-repo-1.hortonworks.com/HDP-1.0.1.14/repos/centos6/hdp-release-1.0.1.14-1.el6.noarch.rpm
+$ sudo yum install epel-release
+$ sudo yum install ambari-agent-1.0.0-1.el6.noarch.rpm
++--
+
+  3) Stop iptables on Ambari master:
+
+    * Run the following command on the Ambari master:
 
 +--
 $ sudo service iptables stop
 +--
 
+  4) Install Ambari server on Ambari master:
 
-How to install Ambari
+    * To install Ambari server, point to the freely accessible HDP repo that contains the required dependencies (e.g., Puppet, PHP, Ruby, etc).  Then use yum to install Ambari RPMs and all of the dependencies.
 
-  Ambari has several external runtime dependencies.  Major dependencies are:
-
-  1) puppet
-
-  2) php
-
-  3) ruby
-
-  To simplify the installation of the dependencies, you should enable the following
-  yum repos. To do that, you can simply install the corresponding RPMs.
-
-  1) EPEL repo
-
-  2) Puppet Passenger
-
-  3) Hadoop repo
-
-  You should run the following at the command line on Ambari master:
-  
-+--  
-
-$ sudo rpm -Uvh http://dl.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
-$ sudo rpm -Uvh http://passenger.stealthymonkeys.com/rhel/5/passenger-release.noarch.rpm 
-$ sudo rpm -Uvh http://public-repo-1.hortonworks.com/HDP-1.0.13/repos/centos5/hdp-release-1.0.13-1.el5.noarch.rpm
+    On RHEL/CentOS 5:
 
 +--
-
-  To install necessary PHP modules on Ambari master:
-
-+--
-$ sudo yum install php-pecl-json  # version 1.2.1 compatible with php-5.1 or php-5.2
-$ sudo yum install php-pdo
-$ php -m | grep posix
+$ sudo rpm -Uvh http://public-repo-1.hortonworks.com/HDP-1.0.1.14/repos/centos5/hdp-release-1.0.1.14-1.el5.noarch.rpm
+$ sudo yum install epel-release
+$ sudo yum install php-pecl-json
+$ sudo yum install ambari-1.0.0-1.noarch.rpm --nogpgcheck
+$ sudo yum install hdp_mon_dashboard-0.0.1-2.noarch.rpm --nogpgcheck
 +--
 
-   If the posix module is not found, run:
-
-+--   
-$ sudo yum install php-process
-+--
-
-  Depending on which packages you have already installed, you may need to run following on Ambari master:
-  
-+--
-$ sudo yum install pdsh
-$ sudo yum install httpd-devel
-$ sudo yum install mod_passenger
-$ sudo yum install puppet-2.7.9
-$ sudo yum install ruby-devel
-+--
-
-  To install Ambari on Ambari master:
+    On RHEL/CentOS 6:
 
 +--
-$ sudo rpm -iv ambari-1.0.0-1.noarch.rpm 
-$ sudo rpm -iv hdp_mon_dashboard-0.0.1-2.noarch.rpm
+$ sudo rpm -Uvh http://public-repo-1.hortonworks.com/HDP-1.0.1.14/repos/centos6/hdp-release-1.0.1.14-1.el6.noarch.rpm
+$ sudo yum install epel-release
+$ sudo yum install ambari-1.0.0-1.el6.noarch.rpm
+$ sudo yum install hdp_mon_dashboard-0.0.1-2.noarch.rpm
 +--
 
-  Hadoop requires JDK.  You can download following files from the Oracle website: 
-  {{{http://www.oracle.com/technetwork/java/javase/downloads/jdk-6u26-download-400750.html} http://www.oracle.com/technetwork/java/javase/downloads/jdk-6u26-download-400750.html}}
-  After accepting the license and downloading the files, copy them to /var/run/hmc/downloads/ directory on the 
-  Ambari master (Note: Upon download, these files may have .sh extension, so make sure you remove the .sh extension 
-  from the filenames and also set the execute permission on them)
+    * Hadoop requires JDK.  You can download the JDK files from the Oracle website:
+      {{{http://www.oracle.com/technetwork/java/javase/downloads/jdk-6u26-download-400750.html} http://www.oracle.com/technetwork/java/javase/downloads/jdk-6u26-download-400750.html}}
+      After accepting the license and downloading the files, copy them to /var/run/hmc/downloads/ directory on the
+      Ambari master (Note: Upon download, these files may have .sh extension, so make sure you remove the .sh extension
+      from the filenames and also set the execute permission on them).
+      Also, JCE Policy Files 6 needs to be downloaded and uploaded to the same directory on the Ambari master server (/var/run/hmc/downloads/).
+      You can download it from {{{http://www.oracle.com/technetwork/java/javase/downloads/jce-6-download-429243.html} http://www.oracle.com/technetwork/java/javase/downloads/jce-6-download-429243.html}}
 
-  1) jdk-6u26-linux-x64.bin
+      1) jdk-6u26-linux-x64.bin
 
-  2) jdk-6u26-linux-i586.bin
+      2) jdk-6u26-linux-i586.bin
+
+      3) jce_policy-6.jar
 
 
 How to run Ambari
@@ -162,16 +135,16 @@ $ sudo service ambari start
   Now that Ambari server is installed and started, you can start installing Apache Hadoop and its ecosystem components on your cluster nodes by visiting:
 
   http://AMBARIMASTER/hmc/html/
-  
-  from your browser.  
+
+  from your browser.
 
 
 Notes for Developers
 
-  If you have made any changes to Nagios or Ganglia addons code (mon_dashboard/src/addOns/[ganglia|nagios]), you will also have to install 
-  hdp_mon_ganglia_addons-0.0.1-2.noarch.rpm and hdp_mon_nagios_addons-0.0.1-2.noarch.rpm on the hosts running 
+  If you have made any changes to Nagios or Ganglia addons code (mon_dashboard/src/addOns/[ganglia|nagios]), you will also have to install
+  hdp_mon_ganglia_addons-0.0.1-2.noarch.rpm and hdp_mon_nagios_addons-0.0.1-2.noarch.rpm on the hosts running
   Ganglia and Nagios server, respectively, to make your changes effective.
-  After your Hadoop cluster is installed using Ambari, go to the host(s) running Nagios and Ganglia server, 
+  After your Hadoop cluster is installed using Ambari, go to the host(s) running Nagios and Ganglia server,
   remove these pre-installed addon RPMs for Nagios and Ganglia, and install the new ones built from the source.
   To build these RPMs from the source, run:
 
@@ -180,9 +153,9 @@ $ cd mon_dashboard/package/rpm
 $ ./create_ganglia_addon_rpm.sh
 $ ./create_nagios_addon_rpm.sh
 +--
-  
+
   Running the above creates the following two RPMs:
 
    * mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_ganglia_addons-0.0.1-2.noarch.rpm
-   
+
    * mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_nagios_addons-0.0.1-2.noarch.rpm
