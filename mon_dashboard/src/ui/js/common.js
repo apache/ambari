@@ -513,7 +513,7 @@
       a.hideGraphPopup();
     } else if(target.parentNode){
       var targetParentId = target.parentNode.id;
-      if (targetParentId == "HDFS" || targetParentId == "MAPREDUCE" || targetParentId == "HBASE" || targetParentId == "ZOOKEEPER" || targetParentId == "HIVE-METASTORE" || targetParentId == "OOZIE" || targetParentId == "PUPPET") {
+      if (targetParentId == "HDFS" || targetParentId == "MAPREDUCE" || targetParentId == "HBASE" || targetParentId == "ZOOKEEPER" || targetParentId == "HIVE-METASTORE" || targetParentId == "OOZIE" || targetParentId == "TEMPLETON" || targetParentId == "PUPPET") {
         a.showAlerts(target);
       }
     }
@@ -685,7 +685,7 @@
       var hdfsCritCount = 0, hdfsWarnCount = 0, mrCritCount = 0, mrWarnCount = 0, 
       hbaseCritCount = 0, hbaseWarnCount = 0, zkCritCount = 0, zkWarnCount = 0, 
       hcatCritCount = 0, hcatWarnCount = 0, oozieWarnCount = 0, oozieCritCount = 0,
-                        puppetWarnCount = 0, puppetCritCount = 0;
+      templetonWarnCount = 0, templetonCritCount = 0, puppetWarnCount = 0, puppetCritCount = 0;
       
       //Set firstService in the table
       var servicestates = response.servicestates;
@@ -765,6 +765,8 @@
                 hcatWarnCount++;
               } else if(alerts[i].service_type == "OOZIE"){
                 oozieWarnCount++;
+              } else if(alerts[i].service_type == "TEMPLETON"){
+                templetonWarnCount++;
               } else if(alerts[i].service_type == "PUPPET"){
                 puppetWarnCount++;
               }
@@ -781,6 +783,8 @@
                 hcatCritCount++;
               } else if(alerts[i].service_type == "OOZIE"){
                 oozieCritCount++;
+              } else if(alerts[i].service_type == "TEMPLETON"){
+                templetonCritCount++;
               } else if(alerts[i].service_type == "PUPPET"){
                 puppetCritCount++;
               }
@@ -928,6 +932,13 @@
               } else {
                 criticalAlerts.className = "critical";
               }
+            } else if(key == "TEMPLETON"){
+              criticalAlerts.innerHTML = templetonCritCount;
+              if(templetonCritCount > 0) {
+                criticalAlerts.className = "highlighted-red critical";
+              } else {
+                criticalAlerts.className = "critical";
+              }
             } else if(key == "PUPPET"){
               criticalAlerts.innerHTML = puppetCritCount;
               if(puppetCritCount > 0) {
@@ -978,6 +989,13 @@
             } else if(key == "OOZIE"){
               warnAlerts.innerHTML = oozieWarnCount;
               if(oozieWarnCount > 0) {
+                warnAlerts.className = "highlighted-orage warning";
+              } else {
+                warnAlerts.className = "warning";
+              }
+            } else if(key == "TEMPLETON"){
+              warnAlerts.innerHTML = templetonWarnCount;
+              if(templetonWarnCount > 0) {
                 warnAlerts.className = "highlighted-orage warning";
               } else {
                 warnAlerts.className = "warning";

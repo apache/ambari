@@ -95,6 +95,9 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-687. Monitoring Dashboard is not showing alerts for Templeton 
+    (yusaku)
+
     AMBARI-674. Nagios uninstall should cleanup temporary directories. (jitendra)
 
     AMBARI-673. Going back to step 3 from step 5 in UI breaks DB
