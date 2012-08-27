@@ -65,7 +65,7 @@ Trunk (unreleased changes)
     upgrades (yusaku) 
 
   IMPROVEMENTS
-
+    
     AMBARI-686. Update documentation for RHEL/CentOS 6 install steps and a more
     streamlined procedure in general (yusaku)
 
@@ -94,6 +94,9 @@ Trunk (unreleased changes)
   OPTIMIZATIONS
 
   BUG FIXES
+
+    AMBARI-688. Documentation typo: jce_policy-6.zip needs to be uploaded to
+    Ambari master, not jce_policy-6.jar (yusaku)
 
     AMBARI-687. Monitoring Dashboard is not showing alerts for Templeton 
     (yusaku)

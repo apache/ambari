@@ -123,7 +123,7 @@ $ sudo yum install hdp_mon_dashboard-0.0.1-2.noarch.rpm
 
       2) jdk-6u26-linux-i586.bin
 
-      3) jce_policy-6.jar
+      3) jce_policy-6.zip
 
 
 How to run Ambari
