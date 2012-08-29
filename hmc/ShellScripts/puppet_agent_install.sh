@@ -238,7 +238,7 @@ if [[ "x${osMajorVersion}" == "x6" ]]; then
 fi
 
 echo "Installing puppet using yum"
-out=`yum install -y hmc-agent`
+out=`yum install -y ambari-agent`
 ret=$?
 if [[ "$ret" != "0" ]]; then
   echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
@@ -252,7 +252,7 @@ if [[ "$ret" != "0" ]]; then
   echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
   exit 1
 fi
-out=`echo $master > /etc/hmc/hmc-agent.conf`
+out=`echo $master > /etc/hmc/ambari-agent.conf`
 out=`mkdir -p /etc/puppet/agent 2>&1`
 agent_auth_conf="path /run\nauth any\nallow $master\n\npath /\nauth any"
 out=`echo -e $agent_auth_conf > /etc/puppet/agent/auth.conf`
@@ -267,18 +267,18 @@ fi
 
 #TODO clean this up for better fix. For now make sure we stop puppet agent. The issue here is we do not know if we started this puppet agent during our run or not.
 echo "Stopping puppet agent using service stop command"
-out=`service hmc-agent stop`
+out=`service ambari-agent stop`
 ret=$?
 
 echo "Starting puppet agent for HMC"
-out=`service hmc-agent start`
+out=`service ambari-agent start`
 ret=$?
 if [[ "$ret" != "0" ]]; then
   echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2
   exit 1
 fi
 echo "Setting chkconfig for HMC"
-out=`chkconfig --add hmc-agent`
+out=`chkconfig --add ambari-agent`
 ret=$?
 #if [[ "$ret" != "0" ]]; then
 #  echo "$host:_ERROR_:retcode:[$ret], CMD:[$pp_cmd]: OUT:[$out]" >&2

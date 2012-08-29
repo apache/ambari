@@ -47,7 +47,7 @@ if status | grep -q -- '-p' 2>/dev/null; then
     daemonopts="--pidfile $pidfile"
     pidopts="-p $pidfile"
 fi
-hmc_server=`cat /etc/hmc/hmc-agent.conf`
+hmc_server=`cat /etc/hmc/ambari-agent.conf`
 PUPPET_OPTS="agent --verbose --confdir=/etc/puppet/agent --listen --runinterval 5 --server $hmc_server --report --no-client --waitforcert 10 --configtimeout 600 --debug --logdest=/var/log/puppet_agent.log --httplog /var/log/puppet_agent_http.log --autoflush --use_cached_catalog"
 
 start() {

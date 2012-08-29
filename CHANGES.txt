@@ -6,6 +6,8 @@ characters wide.
 
 Release 0.9.0 - unreleased
 
+  AMBARI-689. Fix ambari agent init.d scripts and the bootstrapping. (mahadev)
+
   AMBARI-686. Update documentation for RHEL/CentOS 6 install steps and a more streamlined
   procedure in general (yusaku)
 
