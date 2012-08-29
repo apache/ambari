@@ -1,0 +1,9 @@
+package org.apache.ambari.server.fsm;
+
+public enum NodeEventType {
+  NODE_REGISTRATION_REQUEST,
+  NODE_VERIFIED,
+  NODE_HEARTBEAT_HEALTHY,
+  NODE_HEARTBEAT_TIMED_OUT,
+  NODE_HEARTBEAT_UNHEALTHY
+}

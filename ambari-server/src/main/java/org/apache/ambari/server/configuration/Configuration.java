@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.configuration;
+package org.apache.ambari.server.configuration;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -27,7 +27,6 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.inject.Inject;
 
 /**
  * Ambari configuration.
@@ -36,28 +35,27 @@ import com.google.inject.Inject;
 public class Configuration {
   private static final String AMBARI_CONF_VAR = "AMBARI_CONF_DIR";
   private static final String CONFIG_FILE = "ambari.properties";
-  
+
   private static final Log LOG = LogFactory.getLog(Configuration.class);
-  
+
   private final URI dataStore;
-  
-  @Inject
+
   Configuration() {
     this(readConfigFile());
   }
-  
+
   protected Configuration(Properties properties) {
     // get the data store
-    String dataStoreString = properties.getProperty("data.store", 
+    String dataStoreString = properties.getProperty("data.store",
                                                     "test://test/");
     try {
       dataStore = new URI(dataStoreString);
     } catch (URISyntaxException e) {
-      throw new IllegalArgumentException("Can't parse data.store: " + 
+      throw new IllegalArgumentException("Can't parse data.store: " +
                                          dataStoreString, e);
-    }    
+    }
   }
-  
+
   /**
    * Find, read, and parse the configuration file.
    * @return the properties that were found or empty if no file was found
@@ -71,17 +69,17 @@ public class Configuration {
       confDir = "/etc/ambari";
     }
     String filename = confDir + "/" + CONFIG_FILE;
-    
+
     // load the properties
     try {
       properties.load(new FileInputStream(filename));
     } catch (FileNotFoundException fnf) {
       LOG.info("No configuration file " + filename + " found.", fnf);
     } catch (IOException ie) {
-      throw new IllegalArgumentException("Can't read configuration file " + 
+      throw new IllegalArgumentException("Can't read configuration file " +
                                          filename, ie);
     }
-    return properties;  
+    return properties;
   }
 
   /**
