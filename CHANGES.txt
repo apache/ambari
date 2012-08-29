@@ -95,6 +95,9 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-689. Fix ambari agent init.d scripts and the bootstrapping.
+    (mahadev)
+
     AMBARI-688. Documentation typo: jce_policy-6.zip needs to be uploaded to
     Ambari master, not jce_policy-6.jar (yusaku)
 
