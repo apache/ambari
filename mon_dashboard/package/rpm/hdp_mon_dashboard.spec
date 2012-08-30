@@ -24,9 +24,9 @@
 
 Summary: HDP Monitoring Dashboard Frontend
 Name: hdp_mon_dashboard
-Version: 0.0.1
+Version: 0.0.2.14
 URL: http://incubator.apache.org/projects/ambari.html
-Release: 2 
+Release: 1
 License: Apache License, Version 2.0
 Vendor: Apache Software Foundation (ambari-dev@incubator.apache.org)
 Group: System Environment/Base
