@@ -95,6 +95,9 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-690. Monitoring Dashboard - update the RPM version and documentation
+    (yusaku)
+
     AMBARI-689. Fix ambari agent init.d scripts and the bootstrapping.
     (mahadev)
 
