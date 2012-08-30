@@ -22,4 +22,6 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-684. Remove non-required dependencies from pom files (hitesh via jitendra)
+
   AMBARI-680. Fix pom structure. (hitesh)
