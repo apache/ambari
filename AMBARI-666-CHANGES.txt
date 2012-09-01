@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-693. Classes for request objects. (jitendra)
+
   AMBARI-685. Basic classes. (hitesh via jitendra)
 
   AMBARI-676. Seperate directory for ambari-server. (jitendra)
