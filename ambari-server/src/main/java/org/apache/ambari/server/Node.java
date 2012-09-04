@@ -197,4 +197,11 @@ public interface Node {
    */
   public NodeState getNodeState();
 
+  /**
+   * Get the list of Actions that are currently being tracked at the
+   * Node level
+   * @return List of Actions
+   */
+  public List<Job> getActions();
+
 }

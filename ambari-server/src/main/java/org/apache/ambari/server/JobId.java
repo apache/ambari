@@ -1,6 +1,6 @@
 package org.apache.ambari.server;
 
 // TODO
-public class ActionId {
+public class JobId {
 
 }

@@ -21,7 +21,7 @@ package org.apache.ambari.server.fsm;
 // TODO
 public class InvalidStateTransitonException extends Exception {
 
- private Enum<?> currentState;
+  private Enum<?> currentState;
   private Enum<?> event;
 
   public InvalidStateTransitonException(Enum<?> currentState, Enum<?> event) {

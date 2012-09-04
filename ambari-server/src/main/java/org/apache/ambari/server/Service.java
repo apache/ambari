@@ -1,6 +1,6 @@
 package org.apache.ambari.server;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Service Interface for representing various products in the
@@ -20,21 +20,28 @@ public interface Service {
   public ServiceType getType();
 
   /**
-   * Get the ServiceComponents for this Service
-   * @return ServiceComponents mapped by their names
+   * Get the ServiceComponents enabled for this Service
+   * @return List of ServiceComponents
    */
-  public Map<String, ServiceComponent> getServiceComponents();
+  public List<ServiceComponent> getServiceComponents();
 
   /**
    * Get the list of services that this Service depends on
-   * @return Services mapped by their names
+   * @return List of Services
    */
-  public Map<String, Service> getDependencies();
+  public List<Service> getDependencies();
 
   /**
    * Get the list of services that depend on this Service
-   * @return Services mapped by their names
+   * @return List of Services
    */
-  public Map<String, Service> getDependents();
+  public List<Service> getDependents();
+
+  /**
+   * Get the list of Actions that are currently being tracked at the
+   * Service level
+   * @return List of Actions
+   */
+  public List<Job> getActions();
 
 }

@@ -1,6 +1,6 @@
 package org.apache.ambari.server;
 
-public enum ActionState {
+public enum JobState {
   /**
    * Initial state for the Action.
    * When a new action is triggered or set in motion.

@@ -44,6 +44,12 @@ public class NodeFSMImpl implements NodeFSM {
        NodeEventType.NODE_HEARTBEAT_TIMED_OUT)
    .installTopology();
 
+  private final StateMachine<NodeState, NodeEventType, NodeEvent> stateMachine;
+
+  public NodeFSMImpl() {
+    super();
+    this.stateMachine = stateMachineFactory.make(this);
+  }
 
   static class NodeVerifiedTransition
       implements SingleArcTransition<NodeFSMImpl, NodeEvent> {
@@ -53,6 +59,25 @@ public class NodeFSMImpl implements NodeFSM {
       // TODO Auto-generated method stub
     }
 
+  }
+
+  @Override
+  public NodeState getState() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void setState(NodeState state) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void handleEvent(NodeEvent event)
+      throws InvalidStateTransitonException {
+    // TODO Auto-generated method stub
+    stateMachine.doTransition(event.getType(), event);
   }
 
 }
