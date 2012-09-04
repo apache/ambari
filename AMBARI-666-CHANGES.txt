@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-694. Class to encapsulate stage. (jitendra)
+
   AMBARI-691. More basic classes for new design. (hitesh)
 
   AMBARI-693. Classes for request objects. (jitendra)
