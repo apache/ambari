@@ -1,12 +1,10 @@
-package org.apache.ambari.server;
+package org.apache.ambari.server.state.live;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * Interface for Node of a Cluster. Encapsulates all the required information
- * about a given node.
- */
+import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+
 public interface Node {
 
   /**
@@ -198,10 +196,29 @@ public interface Node {
   public NodeState getNodeState();
 
   /**
-   * Get the list of Actions that are currently being tracked at the
+   * Get the list of Jobs that are currently being tracked at the
    * Node level
-   * @return List of Actions
+   * @return List of Jobs
    */
-  public List<Job> getActions();
+  public List<Job> getJobs();
 
+  /**
+   * Get Node State
+   * @return NodeState
+   */
+  public NodeState getState();
+
+  /**
+   * Set the State of the Node
+   * @param state Node State
+   */
+  public void setState(NodeState state);
+
+  /**
+   * Send an event to the Node's StateMachine
+   * @param event NodeEvent
+   * @throws InvalidStateTransitonException
+   */
+  public void handleEvent(NodeEvent event)
+      throws InvalidStateTransitonException;
 }

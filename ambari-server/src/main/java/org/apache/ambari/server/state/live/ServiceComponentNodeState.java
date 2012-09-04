@@ -1,4 +1,4 @@
-package org.apache.ambari.server;
+package org.apache.ambari.server.state.live;
 
 public enum ServiceComponentNodeState {
   /**

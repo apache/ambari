@@ -1,4 +1,4 @@
-package org.apache.ambari.server;
+package org.apache.ambari.server.state.live;
 
 /**
  * Information about a mounted disk on a given node
@@ -25,6 +25,11 @@ public class DiskInfo {
   /**
    * Capacity of the disk in bytes
    */
-  long capacityBytes;
+  long totalCapacityBytes;
+  
+  /**
+   * Current capacity in bytes
+   */
+  long currentCapacityBytes;
 
 }

@@ -16,26 +16,20 @@
 * limitations under the License.
 */
 
-package org.apache.ambari.server.fsm;
+package org.apache.ambari.server.state.fsm;
 
-// TODO
-public class InvalidStateTransitonException extends Exception {
-
-  private Enum<?> currentState;
-  private Enum<?> event;
-
-  public InvalidStateTransitonException(Enum<?> currentState, Enum<?> event) {
-    super("Invalid event: " + event + " at " + currentState);
-    this.currentState = currentState;
-    this.event = event;
-  }
-
-  public Enum<?> getCurrentState() {
-    return currentState;
-  }
-
-  public Enum<?> getEvent() {
-    return event;
-  }
+/**
+ * Hook for Transition. This lead to state machine to move to
+ * the post state as registered in the state machine.
+ */
+public interface SingleArcTransition<OPERAND, EVENT> {
+  /**
+   * Transition hook.
+   *
+   * @param operand the entity attached to the FSM, whose internal
+   *                state may change.
+   * @param event causal event
+   */
+  public void transition(OPERAND operand, EVENT event);
 
 }

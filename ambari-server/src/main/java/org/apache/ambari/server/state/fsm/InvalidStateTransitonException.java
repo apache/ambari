@@ -16,24 +16,26 @@
 * limitations under the License.
 */
 
-package org.apache.ambari.server.fsm;
+package org.apache.ambari.server.state.fsm;
 
-/**
- * Hook for Transition.
- * Post state is decided by Transition hook. Post state must be one of the
- * valid post states registered in StateMachine.
- */
-public interface MultipleArcTransition
-        <OPERAND, EVENT, STATE extends Enum<STATE>> {
+// TODO
+public class InvalidStateTransitonException extends Exception {
 
-  /**
-   * Transition hook.
-   * @return the postState. Post state must be one of the
-   *                      valid post states registered in StateMachine.
-   * @param operand the entity attached to the FSM, whose internal
-   *                state may change.
-   * @param event causal event
-   */
-  public STATE transition(OPERAND operand, EVENT event);
+  private Enum<?> currentState;
+  private Enum<?> event;
+
+  public InvalidStateTransitonException(Enum<?> currentState, Enum<?> event) {
+    super("Invalid event: " + event + " at " + currentState);
+    this.currentState = currentState;
+    this.event = event;
+  }
+
+  public Enum<?> getCurrentState() {
+    return currentState;
+  }
+
+  public Enum<?> getEvent() {
+    return event;
+  }
 
 }

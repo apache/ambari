@@ -16,7 +16,7 @@
 * limitations under the License.
 */
 
-package org.apache.ambari.server.fsm;
+package org.apache.ambari.server.state.fsm;
 
 public interface StateMachine
                  <STATE extends Enum<STATE>,

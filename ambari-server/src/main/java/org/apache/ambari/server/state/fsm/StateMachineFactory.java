@@ -16,7 +16,7 @@
 * limitations under the License.
 */
 
-package org.apache.ambari.server.fsm;
+package org.apache.ambari.server.state.fsm;
 
 import java.util.EnumMap;
 import java.util.HashMap;

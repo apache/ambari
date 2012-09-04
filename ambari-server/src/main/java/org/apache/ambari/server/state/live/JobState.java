@@ -1,13 +1,13 @@
-package org.apache.ambari.server;
+package org.apache.ambari.server.state.live;
 
 public enum JobState {
   /**
-   * Initial state for the Action.
+   * Initial state for the Job.
    * When a new action is triggered or set in motion.
    */
   INIT,
   /**
-   * State when the action is triggered on the cluster,
+   * State when the job is triggered on the cluster,
    */
   IN_PROGRESS,
   /**
@@ -15,7 +15,7 @@ public enum JobState {
    */
   COMPLETED,
   /**
-   * Action failed to complete successfully
+   * Job failed to complete successfully
    */
   FAILED
 }

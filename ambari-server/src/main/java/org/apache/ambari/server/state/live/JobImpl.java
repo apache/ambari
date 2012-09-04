@@ -1,37 +1,38 @@
-package org.apache.ambari.server.fsm;
+package org.apache.ambari.server.state.live;
 
-import org.apache.ambari.server.JobState;
-import org.apache.ambari.server.fsm.StateMachineFactory;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.StateMachine;
+import org.apache.ambari.server.state.fsm.StateMachineFactory;
 
-public class JobFSMImpl implements JobFSM {
+public class JobImpl implements Job {
 
   private static final StateMachineFactory
-    <JobFSMImpl, JobState, JobEventType, JobEvent>
+    <JobImpl, JobState, JobEventType, JobEvent>
       stateMachineFactory
-        = new StateMachineFactory<JobFSMImpl, JobState,
+        = new StateMachineFactory<JobImpl, JobState,
           JobEventType, JobEvent>
             (JobState.INIT)
 
-    // define the state machine of a Action
+    // define the state machine of a Job
 
     .addTransition(JobState.INIT, JobState.IN_PROGRESS,
-        JobEventType.ACTION_IN_PROGRESS)
+        JobEventType.JOB_IN_PROGRESS)
     .addTransition(JobState.IN_PROGRESS, JobState.IN_PROGRESS,
-        JobEventType.ACTION_IN_PROGRESS)
+        JobEventType.JOB_IN_PROGRESS)
     .addTransition(JobState.IN_PROGRESS, JobState.COMPLETED,
-        JobEventType.ACTION_COMPLETED)
+        JobEventType.JOB_COMPLETED)
     .addTransition(JobState.IN_PROGRESS, JobState.FAILED,
-        JobEventType.ACTION_FAILED)
+        JobEventType.JOB_FAILED)
     .addTransition(JobState.COMPLETED, JobState.INIT,
-        JobEventType.ACTION_INIT)
+        JobEventType.JOB_INIT)
     .addTransition(JobState.FAILED, JobState.INIT,
-        JobEventType.ACTION_INIT)
+        JobEventType.JOB_INIT)
     .installTopology();
 
   private final StateMachine<JobState, JobEventType, JobEvent>
       stateMachine;
 
-  public JobFSMImpl() {
+  public JobImpl() {
     super();
     this.stateMachine = stateMachineFactory.make(this);
   }
@@ -53,6 +54,12 @@ public class JobFSMImpl implements JobFSM {
       throws InvalidStateTransitonException {
     // TODO
     stateMachine.doTransition(event.getType(), event);
+  }
+
+  @Override
+  public JobId getId() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

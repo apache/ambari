@@ -1,15 +1,19 @@
-package org.apache.ambari.server.fsm;
+package org.apache.ambari.server.state.live;
 
-import org.apache.ambari.server.ServiceComponentNodeState;
-import org.apache.ambari.server.fsm.StateMachineFactory;
+import java.util.List;
 
-public class ServiceComponentNodeFSMImpl implements ServiceComponentNodeFSM {
+import org.apache.ambari.server.state.ConfigVersion;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.StateMachine;
+import org.apache.ambari.server.state.fsm.StateMachineFactory;
+
+public class ServiceComponentNodeImpl implements ServiceComponentNode {
 
   private static final StateMachineFactory
-  <ServiceComponentNodeFSMImpl, ServiceComponentNodeState,
+  <ServiceComponentNodeImpl, ServiceComponentNodeState,
   ServiceComponentNodeEventType, ServiceComponentNodeEvent>
     daemonStateMachineFactory
-      = new StateMachineFactory<ServiceComponentNodeFSMImpl,
+      = new StateMachineFactory<ServiceComponentNodeImpl,
           ServiceComponentNodeState, ServiceComponentNodeEventType,
           ServiceComponentNodeEvent>
           (ServiceComponentNodeState.INIT)
@@ -101,10 +105,10 @@ public class ServiceComponentNodeFSMImpl implements ServiceComponentNodeFSM {
      .installTopology();
 
   private static final StateMachineFactory
-  <ServiceComponentNodeFSMImpl, ServiceComponentNodeState,
+  <ServiceComponentNodeImpl, ServiceComponentNodeState,
   ServiceComponentNodeEventType, ServiceComponentNodeEvent>
     clientStateMachineFactory
-      = new StateMachineFactory<ServiceComponentNodeFSMImpl,
+      = new StateMachineFactory<ServiceComponentNodeImpl,
           ServiceComponentNodeState, ServiceComponentNodeEventType,
           ServiceComponentNodeEvent>
           (ServiceComponentNodeState.INIT)
@@ -164,7 +168,7 @@ public class ServiceComponentNodeFSMImpl implements ServiceComponentNodeFSM {
   private final StateMachine<ServiceComponentNodeState,
       ServiceComponentNodeEventType, ServiceComponentNodeEvent> stateMachine;
 
-  public ServiceComponentNodeFSMImpl(boolean isClient) {
+  public ServiceComponentNodeImpl(boolean isClient) {
     super();
     if (isClient) {
       this.stateMachine = clientStateMachineFactory.make(this);
@@ -189,6 +193,30 @@ public class ServiceComponentNodeFSMImpl implements ServiceComponentNodeFSM {
       throws InvalidStateTransitonException {
     // TODO
     stateMachine.doTransition(event.getType(), event);
+  }
+
+  @Override
+  public ConfigVersion getConfigVersion() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<Job> getJobs() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String getServiceComponentName() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String getNodeName() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }
