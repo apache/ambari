@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-696. Add interface for ActionManager to access live state. (hitesh)
+
   AMBARI-698. Add a simple server and artifact generation to run a server with
   a simple api check. (mahadev)
 
