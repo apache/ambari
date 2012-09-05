@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-697. Ambari Web (browser-based UI) skeleton. (Jaimin Jetly and yusaku)
+
   AMBARI-695. More basic class restructuring for new design. (hitesh)
 
   AMBARI-694. Class to encapsulate stage. (jitendra)
