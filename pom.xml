@@ -23,7 +23,6 @@
   <name>ambari</name>
   <version>0.10.0-SNAPSHOT</version>
   <description>Ambari</description>
-  
   <pluginRepositories>
     <pluginRepository>
       <id>maven2-repository.dev.java.net</id>
@@ -37,11 +36,21 @@
       <url>http://download.java.net/maven/glassfish/</url>
     </pluginRepository>
   </pluginRepositories>
-
   <modules>
     <module>ambari-project</module>
     <module>ambari-server</module>
     <module>ambari-agent</module>
   </modules>
-
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptors>
+            <descriptor>ambari-project/src/main/assemblies/empty.xml</descriptor>
+          </descriptors>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
