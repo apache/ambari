@@ -12,6 +12,9 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-700. Add a link to the Confluence Wiki in the upper-right nav on
+    the Ambari project webpages (yusaku) 
+
     AMBARI-679. Have Monitoring Dashboard display Puppet Agent related alerts
     (yusaku)
 

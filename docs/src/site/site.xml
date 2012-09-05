@@ -47,6 +47,7 @@
     <links>
       <item name="JIRA" href="https://issues.apache.org/jira/browse/AMBARI" />
       <item name="SVN" href="https://svn.apache.org/repos/asf/incubator/ambari/" />
+      <item name="WIKI" href="https://cwiki.apache.org/confluence/display/AMBARI/Ambari" />
     </links>
 
     <menu name="Ambari">
