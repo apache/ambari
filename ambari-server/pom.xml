@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>0.10.0-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -21,7 +21,7 @@
   <artifactId>ambari-server</artifactId>
   <packaging>jar</packaging>
   <name>ambari-server</name>
-  <version>0.10.0-SNAPSHOT</version>
+  <version>1.0.3-SNAPSHOT</version>
   <description>Ambari Server</description>
   <build>
     <plugins>

@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-702. Add skeleton for Ambari agent that talks to the server and
+  collects information for host. (mahadev)
+
   AMBARI-696. Add interface for ActionManager to access live state. (hitesh)
 
   AMBARI-698. Add a simple server and artifact generation to run a server with

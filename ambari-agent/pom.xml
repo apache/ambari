@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<!--
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
    this work for additional information regarding copyright ownership.
@@ -15,28 +16,91 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-agent</artifactId>
-  <version>0.10.0-SNAPSHOT</version>
-  <name>ambari-agent</name>
-  <url>http://maven.apache.org</url>
-  <parent>
-    <groupId>org.apache.ambari</groupId>
-    <version>0.10.0-SNAPSHOT</version>
-    <artifactId>ambari-project</artifactId>
-    <relativePath>../ambari-project</relativePath>
-  </parent>
-  <dependencies>
-    <!-- TEST SCOPE DEPENDENCIES -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-  </dependencies>
+  <packaging>pom</packaging>
+  <version>1.0.3-SNAPSHOT</version>
+  <name>agent</name>
+  <description>Ambari Agent</description>
+  <properties>
+    <final.name>${project.artifactId}-${project.version}</final.name>
+    <package.release>1</package.release>
+    <package.prefix>/usr</package.prefix>
+    <package.conf.dir>/etc/ambari</package.conf.dir>
+    <package.log.dir>/var/log/ambari</package.log.dir>
+    <package.pid.dir>/var/run/ambari</package.pid.dir>
+  </properties>
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <tarLongFileMode>gnu</tarLongFileMode>
+          <descriptors>
+            <descriptor>src/packages/tarball/all.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>build-tarball</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <configuration>
+              <executable>python2.6</executable>
+              <workingDirectory>src/test/python</workingDirectory>
+              <arguments>
+                <argument>unitTests.py</argument>
+              </arguments>
+              <environmentVariables>
+                <PYTHONPATH>../../main/python:$PYTHONPATH</PYTHONPATH>
+              </environmentVariables>
+              <skip>true</skip>
+            </configuration>
+            <id>python-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+          <execution>
+            <configuration>
+              <executable>python2.6</executable>
+              <workingDirectory>target/ambari-agent-${project.version}</workingDirectory>
+              <arguments>
+                <argument>${project.basedir}/src/main/python/setup.py</argument>
+                <argument>clean</argument>
+                <argument>bdist_dumb</argument>
+              </arguments>
+              <environmentVariables>
+                <PYTHONPATH>target/ambari-agent-${project.version}:$PYTHONPATH</PYTHONPATH>
+              </environmentVariables>
+            </configuration>
+            <id>python-package</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh-external</artifactId>
+      </extension>
+    </extensions>
   </build>
 </project>
