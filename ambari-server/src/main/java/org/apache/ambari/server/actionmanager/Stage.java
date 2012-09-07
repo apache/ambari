@@ -18,12 +18,15 @@
 package org.apache.ambari.server.actionmanager;
 
 import java.util.List;
+import java.util.Map;
 
 //This class encapsulates the stage. The stage encapsulates all the information 
 //required to persist an action.
 public class Stage {
   private long requestId;
   private long stageId = -1;
-  private List<HostRole> hostRoles;
+  
+  //Map of host to host-roles
+  private Map<String, HostAction> action;
   private String logDir;
 }

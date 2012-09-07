@@ -15,28 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.actionmanager;
+package org.apache.ambari.server.agentprotocol;
 
-import java.util.Map;
-
-import org.apache.ambari.server.Role;
-
-/** 
- * This class encapsulates all the information for an action
- * on a host for a particular role. This class will be used to schedule, persist and track
- * an action.
- */
-public class HostRole {
-  private final String host;
-  private final Role role;
-  private Map<String, String> params = null;
-  private final float successFactor;
-  private HostRoleStatus status = HostRoleStatus.PENDING;
-  private String manifest = null;
-  
-  public  HostRole(String host, Role role, float successFactor) {
-    this.host = host;
-    this.role = role;
-    this.successFactor = successFactor;
-  }
+public class ComponentStatus {
+  String componentName;
+  String msg;
+  String status;
 }

@@ -15,23 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server;
+package org.apache.ambari.server.actionmanager;
 
-//This enumerates all the roles that the server can handle.
-//Each component or a job maps to a particular role. 
-public enum Role {
-  ZOOKEEPER_SERVER,
-  ZOOKEEPER_CLIENT,
-  NAMENODE,
-  NAMENODE_SERVICE_CHECK,
-  DATANODE,
-  HDFS_SERVICE_CHECK,
-  SECONDARY_NAMENODE,
-  HDFS_CLIENT,
-  HBASE_MASTER,
-  HBASE_REGIONSERVER,
-  HBASE_CLIENT,
-  JOBTRACKER,
-  TASKTRACKER,
-  MAPREDUCE_CLIENT
+import java.util.List;
+import java.util.Map;
+
+public class HostAction {
+  private final String host;
+  private Map<String, String> params = null;
+  private String manifest = null;
+  private List<HostRoleCommand> roles;
+  
+  public HostAction(String host) {
+    this.host = host;
+  }
 }

@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-703. Heartbeat handler classes. (jitendra)
+
   AMBARI-702. Add skeleton for Ambari agent that talks to the server and
   collects information for host. (mahadev)
 

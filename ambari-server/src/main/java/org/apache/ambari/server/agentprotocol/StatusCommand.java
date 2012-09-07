@@ -15,23 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server;
+package org.apache.ambari.server.agentprotocol;
 
-//This enumerates all the roles that the server can handle.
-//Each component or a job maps to a particular role. 
-public enum Role {
-  ZOOKEEPER_SERVER,
-  ZOOKEEPER_CLIENT,
-  NAMENODE,
-  NAMENODE_SERVICE_CHECK,
-  DATANODE,
-  HDFS_SERVICE_CHECK,
-  SECONDARY_NAMENODE,
-  HDFS_CLIENT,
-  HBASE_MASTER,
-  HBASE_REGIONSERVER,
-  HBASE_CLIENT,
-  JOBTRACKER,
-  TASKTRACKER,
-  MAPREDUCE_CLIENT
+import java.util.List;
+
+public class StatusCommand extends AgentCommand {
+  List<String> actionIds;
 }

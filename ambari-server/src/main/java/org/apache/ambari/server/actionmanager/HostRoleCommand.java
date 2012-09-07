@@ -15,23 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server;
+package org.apache.ambari.server.actionmanager;
 
-//This enumerates all the roles that the server can handle.
-//Each component or a job maps to a particular role. 
-public enum Role {
-  ZOOKEEPER_SERVER,
-  ZOOKEEPER_CLIENT,
-  NAMENODE,
-  NAMENODE_SERVICE_CHECK,
-  DATANODE,
-  HDFS_SERVICE_CHECK,
-  SECONDARY_NAMENODE,
-  HDFS_CLIENT,
-  HBASE_MASTER,
-  HBASE_REGIONSERVER,
-  HBASE_CLIENT,
-  JOBTRACKER,
-  TASKTRACKER,
-  MAPREDUCE_CLIENT
+import java.util.Map;
+
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+
+/** 
+ * This class encapsulates all the information for an action
+ * on a host for a particular role. This class will be used to schedule, persist and track
+ * an action.
+ */
+public class HostRoleCommand {
+  private final Role role;
+  private Map<String, String> params = null;
+  private final float successFactor;
+  private HostRoleStatus status = HostRoleStatus.PENDING;
+  private final RoleCommand cmd;
+  //private HostRoleFSMEvent event;
+
+  public HostRoleCommand(String host, Role role, float successFactor,
+      RoleCommand cmd) {
+    this.role = role;
+    this.successFactor = successFactor;
+    this.cmd = cmd;
+  }
 }
