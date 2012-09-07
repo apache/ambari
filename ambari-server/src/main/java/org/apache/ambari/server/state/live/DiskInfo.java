@@ -50,4 +50,22 @@ public class DiskInfo {
    */
   long currentCapacityBytes;
 
+  /**
+   * Default constructor
+   * @param device
+   * @param fsType
+   * @param mountPath
+   * @param totalCapacityBytes
+   * @param currentCapacityBytes
+   */
+  public DiskInfo(String device, String fsType, String mountPath,
+      long totalCapacityBytes, long currentCapacityBytes) {
+    super();
+    this.device = device;
+    this.fsType = fsType;
+    this.mountPath = mountPath;
+    this.totalCapacityBytes = totalCapacityBytes;
+    this.currentCapacityBytes = currentCapacityBytes;
+  }
+
 }

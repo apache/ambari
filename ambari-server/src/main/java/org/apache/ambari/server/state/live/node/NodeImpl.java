@@ -257,6 +257,7 @@ public class NodeImpl implements Node {
     @Override
     public void transition(NodeImpl node, NodeEvent event) {
       NodeHealthyHeartbeatEvent e = (NodeHealthyHeartbeatEvent) event;
+      node.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
       LOG.info("Node transitioned to a healthy state"
           + ", node=" + e.nodeName
@@ -271,11 +272,12 @@ public class NodeImpl implements Node {
     @Override
     public void transition(NodeImpl node, NodeEvent event) {
       NodeUnhealthyHeartbeatEvent e = (NodeUnhealthyHeartbeatEvent) event;
+      node.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
       LOG.info("Node transitioned to an unhealthy state"
           + ", node=" + e.nodeName
           + ", heartbeatTime=" + e.getHeartbeatTime()
-          + ", healthStatis=" + e.getHealthStatus());
+          + ", healthStatus=" + e.getHealthStatus());
       node.setHealthStatus(e.getHealthStatus());
     }
   }
@@ -294,7 +296,7 @@ public class NodeImpl implements Node {
     }
   } 
 
-  private void importNodeInfo(NodeInfo nodeInfo) {
+  void importNodeInfo(NodeInfo nodeInfo) {
     try {
       writeLock.lock();
       this.hostName = nodeInfo.hostName;
