@@ -520,18 +520,28 @@ function validateConfigs($svcConfigs) {
 }
 
 ////////////Helper function definitions
-function handleHiveMysql($clusterName, &$finalProperties,
-    $dbAccessor, $logHandle) {
+function handleHiveMysql($clusterName, $dbAccessor, $logHandle) {
   $services = $dbAccessor->getAllServicesInfo($clusterName);
+  $configs = $dbAccessor->getServiceConfig($clusterName);
   $hostForMysql = $dbAccessor->getHostsForComponent($clusterName, "HIVE_MYSQL");
   if ( ($services["services"]["HIVE"]["isEnabled"] == 1) &&
-      (empty($finalProperties["hive_mysql_host"])) && (empty($hostForMysql["hosts"])) ) {
+       ( isset($configs["properties"])
+         && ( !isset($configs["properties"]["hive_mysql_host"])
+              || empty($configs["properties"]["hive_mysql_host"])) ) &&
+       (empty($hostForMysql["hosts"])) ) {
     $logHandle->log_debug("Hive is enabled but mysql server is not set, set it up on hive server itself");
     $hostComponents = $dbAccessor->getHostsForComponent($clusterName, "HIVE_SERVER");
     $hiveServerHosts = array_keys($hostComponents["hosts"]);
-    $finalProperties["hive_mysql_host"] = "localhost";
+    $newConfig = array ( "hive_mysql_host" => "localhost" );  
+    $dbAccessor->updateServiceConfigs($clusterName, $newConfig);
     $dbAccessor->addHostsToComponent($clusterName, "HIVE_MYSQL",
           $hiveServerHosts, "ASSIGNED", "");
+  } else {
+    if (isset($configs["properties"])
+        && isset($configs["properties"]["hive_mysql_host"])
+        && $configs["properties"]["hive_mysql_host"] != "localhost") {
+      $dbAccessor->removeAllHostsFromComponent($clusterName, "HIVE_MYSQL");
+    }
   }
 }
 
@@ -589,10 +599,6 @@ function sanitizeConfigs($requestObjFromUser, $logger) {
  */
 function validateConfigsFromUser($dbAccessor, $logger, $clusterName, $finalProperties) {
 
-  //Additional services that need to be enabled based on configuration.
-  //Hack to handle mysql for hive
-  handleHiveMysql($clusterName, $finalProperties, $dbAccessor, $logger);
-
   // Validate/verify configs
   $cfgResult = validateConfigs($finalProperties);
   $suggestProperties = new SuggestProperties();
@@ -626,6 +632,7 @@ function validateConfigsFromUser($dbAccessor, $logger, $clusterName, $finalPrope
  * @return array|mixed
  */
 function validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $finalProperties) {
+
   // sanitize and persist the user entered configs *******
 
   $result = validateConfigsFromUser($dbAccessor, $logger, $clusterName, $finalProperties);
@@ -646,6 +653,11 @@ function validateAndPersistConfigsFromUser($dbAccessor, $logger, $clusterName, $
     $logger->log_error("Got error while persisting configs: ".$dbResponse["error"]);
     return $dbResponse;
   }
+
+  //Additional services that need to be enabled based on configuration.
+  //Hack to handle mysql for hive
+  handleHiveMysql($clusterName, $dbAccessor, $logger);
+
   // finished persisting the configs *******
   return array("result" => 0, "error" => 0);
 }

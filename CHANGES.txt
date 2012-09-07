@@ -98,6 +98,8 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-701. Ambari does not handle a pre-setup user-supplied Hive Metastore. (hitesh)
+
     AMBARI-690. Monitoring Dashboard - update the RPM version and documentation
     (yusaku)
 
