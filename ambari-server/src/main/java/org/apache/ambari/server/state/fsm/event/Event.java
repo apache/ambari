@@ -16,15 +16,15 @@
 * limitations under the License.
 */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.fsm.event;
 
-public interface Clusters {
+/**
+ * Interface defining events api.
+ *
+ */
+public interface Event<TYPE extends Enum<TYPE>> {
 
-  /**
-   * Get the Cluster given the cluster name
-   * @param clusterName Name of the Cluster to retrieve
-   * @return
-   */
-  public Cluster getCluster(String clusterName);
-  
+  TYPE getType();
+  long getTimestamp();
+  String toString();
 }

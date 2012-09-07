@@ -16,55 +16,25 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
 
-public enum ServiceComponentNodeState {
-  /**
-   * Initial/Clean state
-   */
-  INIT,
-  /**
-   * In the process of installing.
-   */
-  INSTALLING,
-  /**
-   * Install failed
-   */
-  INSTALL_FAILED,
-  /**
-   * State when install completed successfully
-   */
-  INSTALLED,
-  /**
-   * In the process of starting.
-   */
-  STARTING,
-  /**
-   * Start failed.
-   */
-  START_FAILED,
-  /**
-   * State when start completed successfully.
-   */
-  STARTED,
-  /**
-   * In the process of stopping.
-   */
-  STOPPING,
-  /**
-   * Stop failed
-   */
-  STOP_FAILED,
-  /**
-   * In the process of uninstalling.
-   */
-  UNINSTALLING,
-  /**
-   * Uninstall failed.
-   */
-  UNINSTALL_FAILED,
-  /**
-   * State when uninstall completed successfully.
-   */
-  UNINSTALLED
+package org.apache.ambari.server.state.live.node;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ambari.server.state.live.DiskInfo;
+
+public class NodeInfo {
+  public String hostName;
+  public String ipv4;
+  public String ipv6;
+  public int cpuCount;
+  public String osArch;
+  public String osType;
+  public String osInfo;
+  public long availableMemBytes;
+  public long totalMemBytes;
+  public List<DiskInfo> disksInfo;
+  public String rackInfo;
+  public Map<String, String> hostAttributes;
 }

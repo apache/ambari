@@ -16,15 +16,15 @@
 * limitations under the License.
 */
 
-package org.apache.ambari.server.fsm.event;
+package org.apache.ambari.server.state.fsm.event;
 
 /**
- * Interface defining events api.
+ * Interface for handling events of type T
  *
+ * @param <T> paremeterized event of type T
  */
-public interface Event<TYPE extends Enum<TYPE>> {
+public interface EventHandler<T extends Event<?> > {
 
-  TYPE getType();
-  long getTimestamp();
-  String toString();
+  void handle(T event);
+
 }

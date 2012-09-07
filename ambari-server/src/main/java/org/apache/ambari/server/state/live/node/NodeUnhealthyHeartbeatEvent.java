@@ -16,55 +16,33 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.node;
 
-public enum ServiceComponentNodeState {
+public class NodeUnhealthyHeartbeatEvent extends NodeEvent {
+
+  private final long heartbeatTime;
+  
+  private final NodeHealthStatus healthStatus;
+
+  public NodeUnhealthyHeartbeatEvent(String nodeName, long heartbeatTime,
+      NodeHealthStatus healthStatus) {
+    super(nodeName, NodeEventType.NODE_HEARTBEAT_UNHEALTHY);
+    this.heartbeatTime = heartbeatTime;
+    this.healthStatus = healthStatus;
+  }
+
   /**
-   * Initial/Clean state
+   * @return the heartbeatTime
    */
-  INIT,
+  public long getHeartbeatTime() {
+    return heartbeatTime;
+  }
+
   /**
-   * In the process of installing.
+   * @return the healthStatus
    */
-  INSTALLING,
-  /**
-   * Install failed
-   */
-  INSTALL_FAILED,
-  /**
-   * State when install completed successfully
-   */
-  INSTALLED,
-  /**
-   * In the process of starting.
-   */
-  STARTING,
-  /**
-   * Start failed.
-   */
-  START_FAILED,
-  /**
-   * State when start completed successfully.
-   */
-  STARTED,
-  /**
-   * In the process of stopping.
-   */
-  STOPPING,
-  /**
-   * Stop failed
-   */
-  STOP_FAILED,
-  /**
-   * In the process of uninstalling.
-   */
-  UNINSTALLING,
-  /**
-   * Uninstall failed.
-   */
-  UNINSTALL_FAILED,
-  /**
-   * State when uninstall completed successfully.
-   */
-  UNINSTALLED
+  public NodeHealthStatus getHealthStatus() {
+    return healthStatus;
+  }
+
 }

@@ -16,7 +16,7 @@
 * limitations under the License.
 */
 
-package org.apache.ambari.server.fsm.event;
+package org.apache.ambari.server.state.fsm.event;
 
 /**
  * parent class of all the events. All events extend this class.

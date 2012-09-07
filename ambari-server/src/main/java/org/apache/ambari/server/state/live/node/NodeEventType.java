@@ -16,14 +16,27 @@
 * limitations under the License.
 */
 
-package org.apache.ambari.server.fsm.event;
-/**
- * Interface for handling events of type T
- *
- * @param <T> paremeterized event of type T
- */
-public interface EventHandler<T extends Event> {
+package org.apache.ambari.server.state.live.node;
 
-  void handle(T event);
-
+public enum NodeEventType {
+  /**
+   * Event to denote when a registration request is received from a Node
+   */
+  NODE_REGISTRATION_REQUEST,
+  /**
+   * Node authenticated/verified.
+   */
+  NODE_VERIFIED,
+  /**
+   * A healthy heartbeat event received from the Node.
+   */
+  NODE_HEARTBEAT_HEALTHY,
+  /**
+   * No heartbeat received from the Node within the defined expiry interval.
+   */
+  NODE_HEARTBEAT_TIMED_OUT,
+  /**
+   * A non-healthy heartbeat event received from the Node.
+   */
+  NODE_HEARTBEAT_UNHEALTHY
 }

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state.fsm;
 
 // TODO
+@SuppressWarnings("serial")
 public class InvalidStateTransitonException extends Exception {
 
   private Enum<?> currentState;

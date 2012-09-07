@@ -16,55 +16,35 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.node;
 
-public enum ServiceComponentNodeState {
+public enum NodeState {
   /**
-   * Initial/Clean state
+   * New node state
    */
   INIT,
   /**
-   * In the process of installing.
+   * State when a registration request is received from the Node but
+   * the node has not been verified/authenticated.
    */
-  INSTALLING,
+  WAITING_FOR_VERIFICATION,
   /**
-   * Install failed
+   * State when the node has been verified/authenticated
    */
-  INSTALL_FAILED,
+  VERIFIED,
   /**
-   * State when install completed successfully
+   * State when the server is receiving heartbeats regularly from the Node
+   * and the state of the Node is healthy
    */
-  INSTALLED,
+  HEALTHY,
   /**
-   * In the process of starting.
+   * State when the server has not received a heartbeat from the Node in the
+   * configured heartbeat expiry window.
    */
-  STARTING,
+  HEARTBEAT_LOST,
   /**
-   * Start failed.
+   * Node is in unhealthy state as reported either by the Node itself or via
+   * any other additional means ( monitoring layer )
    */
-  START_FAILED,
-  /**
-   * State when start completed successfully.
-   */
-  STARTED,
-  /**
-   * In the process of stopping.
-   */
-  STOPPING,
-  /**
-   * Stop failed
-   */
-  STOP_FAILED,
-  /**
-   * In the process of uninstalling.
-   */
-  UNINSTALLING,
-  /**
-   * Uninstall failed.
-   */
-  UNINSTALL_FAILED,
-  /**
-   * State when uninstall completed successfully.
-   */
-  UNINSTALLED
+  UNHEALTHY
 }

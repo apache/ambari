@@ -16,55 +16,24 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.node;
 
-public enum ServiceComponentNodeState {
-  /**
-   * Initial/Clean state
-   */
-  INIT,
-  /**
-   * In the process of installing.
-   */
-  INSTALLING,
-  /**
-   * Install failed
-   */
-  INSTALL_FAILED,
-  /**
-   * State when install completed successfully
-   */
-  INSTALLED,
-  /**
-   * In the process of starting.
-   */
-  STARTING,
-  /**
-   * Start failed.
-   */
-  START_FAILED,
-  /**
-   * State when start completed successfully.
-   */
-  STARTED,
-  /**
-   * In the process of stopping.
-   */
-  STOPPING,
-  /**
-   * Stop failed
-   */
-  STOP_FAILED,
-  /**
-   * In the process of uninstalling.
-   */
-  UNINSTALLING,
-  /**
-   * Uninstall failed.
-   */
-  UNINSTALL_FAILED,
-  /**
-   * State when uninstall completed successfully.
-   */
-  UNINSTALLED
+import org.apache.ambari.server.state.live.AgentVersion;
+
+public class NodeRegistrationRequestEvent extends NodeEvent {
+
+  final long registrationTime;
+  
+  final NodeInfo nodeInfo;
+  
+  final AgentVersion agentVersion;
+  
+  public NodeRegistrationRequestEvent(String nodeName,
+      AgentVersion agentVersion, long registrationTime, NodeInfo nodeInfo) {
+    super(nodeName, NodeEventType.NODE_REGISTRATION_REQUEST);
+    this.registrationTime = registrationTime;
+    this.nodeInfo = nodeInfo;
+    this.agentVersion = agentVersion;
+  }
+
 }
