@@ -4,6 +4,12 @@ Note: Committers should be listed using their login and non-committers
 should be listed by their full name. Please keep the file to a max of 80
 characters wide.
 
+Release 0.9.1 - unreleased
+
+  BUGS
+
+    AMBARI-701. Ambari does not handle a pre-setup user-supplied Hive Metastore. (hitesh)
+
 Release 0.9.0 - unreleased
 
   AMBARI-690. Monitoring Dashboard - update the RPM version and documentation (yusaku)

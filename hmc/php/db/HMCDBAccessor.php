@@ -3429,5 +3429,54 @@ public function cleanAllHostRoles($clusterName) {
     LockRelease(); return $response;
   }
 
+ /**
+   * Remove host-role mappings for given hostnames from the specified component
+   * @param string $clusterName
+   * @param string $componentName
+   * @param array $hosts Array of hostnames
+   * @return mixed
+   *    array (
+   *       "result" => 0,
+   *       "error" => ""
+   *     )
+   */
+  public function removeAllHostsFromComponent($clusterName, $componentName) {
+    LockAcquire();
+    $response = array ( "result" => 0, "error" => "");
+
+    $error = "";
+    $ret = $this->dbHandle->beginTransaction();
+    if (!$ret) {
+      $error = $this->getLastDBErrorAsString();
+      $response["result"] = 1;
+      $response["error"] = "Failed to start DB transaction, error=".$error;
+      LockRelease(); return $response;
+    }
+    $query = "DELETE FROM HostRoles WHERE "
+        . " cluster_name = " . $this->dbHandle->quote($clusterName)
+        . " AND component_name = " . $this->dbHandle->quote($componentName);
+    $this->logger->log_trace("Running query: $query");
+    $ret = $this->dbHandle->exec($query);
+    if (FALSE === $ret) {
+      $error = $this->getLastDBErrorAsString();
+      $ret = $this->dbHandle->rollBack();
+      $this->logger->log_error("Error when executing query"
+          . ", query=".$query
+          . ", error=".$error);
+      $response["result"] = 1;
+      $response["error"] = $error;
+      LockRelease(); return $response;
+    }
+    $ret = $this->dbHandle->commit();
+    if (!$ret) {
+      $error = $this->getLastDBErrorAsString();
+      $this->logger->log_error("Failed to commit DB transaction, error=".$error);
+      $response["result"] = 1;
+      $response["error"] = "Failed to commit DB transaction, error=". $error;
+      LockRelease(); return $response;
+    }
+    LockRelease(); return $response;
+  }
+
 }
 ?>
