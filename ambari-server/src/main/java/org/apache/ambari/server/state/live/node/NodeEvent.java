@@ -20,12 +20,16 @@ package org.apache.ambari.server.state.live.node;
 
 import org.apache.ambari.server.state.fsm.event.AbstractEvent;
 
+/**
+ * Base class for all events that affect the Node FSM
+ */
 public class NodeEvent extends AbstractEvent<NodeEventType> {
 
+  /**
+   * Hostname of the Node
+   */
   final String nodeName;
   
-  // TODO
-  // this should have some node identifier
   public NodeEvent(String nodeName, NodeEventType type) {
     super(type);
     this.nodeName = nodeName;

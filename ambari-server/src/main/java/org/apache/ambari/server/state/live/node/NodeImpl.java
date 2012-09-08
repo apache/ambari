@@ -33,6 +33,7 @@ import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.live.AgentVersion;
 import org.apache.ambari.server.state.live.DiskInfo;
 import org.apache.ambari.server.state.live.Job;
+import org.apache.ambari.server.state.live.node.NodeHealthStatus.HealthStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -205,6 +206,7 @@ public class NodeImpl implements Node {
     ReadWriteLock rwLock = new ReentrantReadWriteLock();
     this.readLock = rwLock.readLock();
     this.writeLock = rwLock.writeLock();
+    this.healthStatus = new NodeHealthStatus(HealthStatus.UNKNOWN, "");
   }
 
   static class NodeRegistrationReceived
@@ -262,7 +264,7 @@ public class NodeImpl implements Node {
       LOG.info("Node transitioned to a healthy state"
           + ", node=" + e.nodeName
           + ", heartbeatTime=" + e.getHeartbeatTime());
-      // TODO update health status to healthy
+      node.getHealthStatus().setHealthStatus(HealthStatus.HEALTHY);      
     }
   }
 
@@ -292,7 +294,7 @@ public class NodeImpl implements Node {
       LOG.info("Node transitioned to heartbeat timed out state"
           + ", node=" + e.nodeName
           + ", lastHeartbeatTime=" + node.getLastHeartbeatTime());
-      // TODO update health status to ???
+      node.getHealthStatus().setHealthStatus(HealthStatus.UNKNOWN);
     }
   } 
 

@@ -12,7 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
-  AMBARI-706. Basic tests for Node FSM (hitesh)
+  AMBARI-707. More work on Node FSM and additional tests/cleanup. (hitesh)
+
+  AMBARI-706. Basic tests for Node FSM. (hitesh)
 
   AMBARI-705. Initial work on Node FSM. (hitesh)
 

@@ -16,9 +16,40 @@
  * limitations under the License.
  */
 
-
 package org.apache.ambari.server.state.live.node;
 
-public interface NodeHealthStatus {
+public class NodeHealthStatus {
 
+  private HealthStatus healthStatus;
+  
+  private String healthReport;
+  
+  public NodeHealthStatus(HealthStatus healthStatus, String healthReport) {
+    super();
+    this.healthStatus = healthStatus;
+    this.healthReport = healthReport;
+  }
+
+  public synchronized HealthStatus getHealthStatus() {
+    return healthStatus;
+  }
+  
+  public synchronized void setHealthStatus(HealthStatus healthStatus) {
+    this.healthStatus = healthStatus;
+  }
+  
+  public synchronized void setHealthReport(String healthReport) {
+    this.healthReport = healthReport;
+  }
+
+  public synchronized String getHealthReport() {
+    return healthReport;
+  }
+  
+  public static enum HealthStatus {
+    UNKNOWN,
+    HEALTHY,
+    UNHEALTHY
+  }
+  
 }

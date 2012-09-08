@@ -29,7 +29,7 @@ public interface Job {
   public JobId getId();
 
   // TODO requires some form of JobType to ensure only one running
-  // action per action type
+  // job per job type
   // There may be gotchas such as de-commissioning should be allowed to happen
   // on more than one node at a time  
   

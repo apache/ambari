@@ -18,7 +18,22 @@
 
 package org.apache.ambari.server.state.live;
 
-// TODO
+/**
+ * Agent Version representation
+ */
 public class AgentVersion {
 
-}
+  private final String version;
+  
+  public AgentVersion(String version) {
+    this.version = version;
+  }
+
+  /**
+   * @return the version
+   */
+  public String getVersion() {
+    return version;
+  }
+  
+} 

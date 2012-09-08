@@ -20,12 +20,18 @@ package org.apache.ambari.server.state.live;
 
 import org.apache.ambari.server.state.fsm.event.AbstractEvent;
 
+/**
+ * Base class for all events that affect the Job FSM
+ */
 public class JobEvent extends AbstractEvent<JobEventType> {
 
-  // TODO
-  // this should have some action identifier
-  public JobEvent(JobEventType type) {
+  /**
+   * JobId identifying the job
+   */
+  final JobId jobId;
+  
+  public JobEvent(JobEventType type, JobId jobId) {
     super(type);
-    // TODO Auto-generated constructor stub
+    this.jobId = jobId;
   }
 }

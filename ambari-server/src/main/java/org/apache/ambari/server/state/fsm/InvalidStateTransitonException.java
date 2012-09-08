@@ -18,7 +18,10 @@
 
 package org.apache.ambari.server.state.fsm;
 
-// TODO
+/**
+ * Exception thrown when a StateMachine encounters an invalid 
+ * event at its current state.
+ */
 @SuppressWarnings("serial")
 public class InvalidStateTransitonException extends Exception {
 

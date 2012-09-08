@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import org.apache.ambari.server.state.live.AgentVersion;
 import org.apache.ambari.server.state.live.DiskInfo;
+import org.apache.ambari.server.state.live.node.NodeHealthStatus.HealthStatus;
 
 public class TestNodeImpl {
 
@@ -91,7 +92,8 @@ public class TestNodeImpl {
   }
 
   private void sendUnhealthyHeartbeat(NodeImpl node, long counter) throws Exception {
-    NodeHealthStatus healthStatus = null;
+    NodeHealthStatus healthStatus = new NodeHealthStatus(HealthStatus.UNHEALTHY,
+        "Unhealthy server");
     NodeUnhealthyHeartbeatEvent e = new NodeUnhealthyHeartbeatEvent(
         node.getHostName(), counter, healthStatus);
     node.handleEvent(e);
@@ -158,38 +160,56 @@ public class TestNodeImpl {
     sendHealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.HEALTHY);
     Assert.assertEquals(node.getLastHeartbeatTime(), counter);
+    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
+        HealthStatus.HEALTHY);
 
     sendUnhealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.UNHEALTHY);
     Assert.assertEquals(node.getLastHeartbeatTime(), counter);
+    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
+        HealthStatus.UNHEALTHY);
 
     sendUnhealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.UNHEALTHY);
     Assert.assertEquals(node.getLastHeartbeatTime(), counter);
+    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
+        HealthStatus.UNHEALTHY);
 
     sendHealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.HEALTHY);
     Assert.assertEquals(node.getLastHeartbeatTime(), counter);
+    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
+        HealthStatus.HEALTHY);
     
     timeoutNode(node);
     verifyNodeState(node, NodeState.HEARTBEAT_LOST);
     Assert.assertEquals(node.getLastHeartbeatTime(), counter);
+    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
+        HealthStatus.UNKNOWN);
 
     timeoutNode(node);
     verifyNodeState(node, NodeState.HEARTBEAT_LOST);
     Assert.assertEquals(node.getLastHeartbeatTime(), counter);
+    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
+        HealthStatus.UNKNOWN);
 
     sendUnhealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.UNHEALTHY);
     Assert.assertEquals(node.getLastHeartbeatTime(), counter);
+    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
+        HealthStatus.UNHEALTHY);
     
     timeoutNode(node);
     verifyNodeState(node, NodeState.HEARTBEAT_LOST);
     Assert.assertEquals(node.getLastHeartbeatTime(), counter);
+    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
+        HealthStatus.UNKNOWN);
 
     sendHealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.HEALTHY);
     Assert.assertEquals(node.getLastHeartbeatTime(), counter);    
+    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
+        HealthStatus.HEALTHY);
     
   }
 }

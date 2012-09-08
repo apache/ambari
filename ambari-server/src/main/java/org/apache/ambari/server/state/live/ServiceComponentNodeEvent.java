@@ -20,12 +20,27 @@ package org.apache.ambari.server.state.live;
 
 import org.apache.ambari.server.state.fsm.event.AbstractEvent;
 
+/**
+ * Base class for all events that affect the ServiceComponentNode FSM
+ */
 public class ServiceComponentNodeEvent
     extends AbstractEvent<ServiceComponentNodeEventType> {
 
-  public ServiceComponentNodeEvent(ServiceComponentNodeEventType type) {
+  /**
+   * ServiceComponent that this event relates to
+   */
+  final String serviceComponentName;
+
+  /**
+   * Hostname of the Node that this event relates to
+   */
+  final String nodeName;
+  
+  public ServiceComponentNodeEvent(ServiceComponentNodeEventType type,
+      String serviceComponentName, String nodeName) {
     super(type);
-    // TODO Auto-generated constructor stub
+    this.serviceComponentName = serviceComponentName;
+    this.nodeName = nodeName;
   }
 
 }
