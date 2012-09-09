@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-709. Getting hardware info on disks/cpu/others using facter and using
+  it during registeration. (mahadev)
+
   AMBARI-707. More work on Node FSM and additional tests/cleanup. (hitesh)
 
   AMBARI-706. Basic tests for Node FSM. (hitesh)

@@ -35,8 +35,8 @@ prefix=/tmp/ambari
 installprefix=/var/ambari/
 
 [puppet]
-puppet_home=/usr/local/bin
-facter_home=/usr/local/bin
+puppet_home=/root/workspace/puppet-install/puppet-2.7.9
+facter_home=/root/workspace/puppet-install/facter-1.6.10
 
 [command]
 maxretries=2
