@@ -22,5 +22,5 @@ public class CommandReport {
   String stdout;
   String stderr;
   String status;
-  String exitCode;
+  int exitCode;
 }

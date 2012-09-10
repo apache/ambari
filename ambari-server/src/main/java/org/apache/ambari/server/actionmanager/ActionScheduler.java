@@ -15,17 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.agentprotocol;
+package org.apache.ambari.server.actionmanager;
 
-/**
- * This class handles the heartbeats coming from the agent, passes on the information
- * to other modules and processes the queue to send heartbeat response.
- */
-public class HeartbeatHandler {
-  private String lastCompletedActionId;
+//This class encapsulates the action scheduler thread. 
+//Action schedule frequently looks at action database and determines if
+//there is an action that can be scheduled.
+public class ActionScheduler implements Runnable {
   
-  public HeartbeatResponse handleHeartBeat(Heartbeat heartbeat) {
-    System.out.println(heartbeat.toString());
-    return null;
+  private final long actionTimeout;
+  private final long sleepTime;
+  
+  public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec) {
+    this.sleepTime = sleepTimeMilliSec;
+    this.actionTimeout = actionTimeoutMilliSec;
+  }
+  
+  @Override
+  public void run() {
+    try {
+      //Check db for any pending actions and determine if something can be scheduled.
+      Thread.sleep(sleepTime);
+    } catch (InterruptedException ex) {
+      //Shutting down;
+      return;
+    }
   }
 }
