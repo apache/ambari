@@ -50,7 +50,7 @@ class Controller(threading.Thread):
     #  self.credential = { 'user' : config.get('controller', 'user'),
     #                      'password' : config.get('controller', 'password')
     #  }
-    self.url = config.get('server', 'url') + '/agent/heartbeat/' + socket.gethostname()
+    self.url = config.get('server', 'url') + '/agent/register/' + socket.gethostname()
 
   def start(self):
     self.actionQueue = ActionQueue(self.config)
@@ -70,7 +70,7 @@ class Controller(threading.Thread):
       try:
         if retry==False:
           data = json.dumps(self.heartbeat.build(id))
-          logger.debug(data)
+          logger.info(data)
         req = urllib2.Request(self.url, data, {'Content-Type': 'application/json'})
         f = urllib2.urlopen(req)
         response = f.read()

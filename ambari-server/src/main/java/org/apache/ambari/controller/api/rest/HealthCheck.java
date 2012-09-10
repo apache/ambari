@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.controller.rest.resources;
+package org.apache.ambari.controller.api.rest;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
