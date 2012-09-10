@@ -24,7 +24,7 @@ package org.apache.ambari.server.state.live;
 public class AgentVersion {
 
   private final String version;
-  
+
   public AgentVersion(String version) {
     this.version = version;
   }
@@ -35,5 +35,5 @@ public class AgentVersion {
   public String getVersion() {
     return version;
   }
-  
-} 
+
+}

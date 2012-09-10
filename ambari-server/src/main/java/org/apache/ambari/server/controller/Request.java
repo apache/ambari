@@ -20,19 +20,19 @@ package org.apache.ambari.server.controller;
 import java.util.Map;
 
 public class Request {
-  
+
   public enum Method {
     GET,
     PUT,
     POST,
     DELETE
   }
-  
+
   private long requestId;
   private Map<String, String> params;
   private Method method;
-  
-  
+
+
   public Request(long requestId, Method m) {
     this(requestId, m, null);
   }

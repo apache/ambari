@@ -26,13 +26,13 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * 
+ *
  * Data model for Ambari Agent to send heartbeat to Ambari Controller.
  *
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {"responseId","timestamp", 
+@XmlType(name = "", propOrder = {"responseId","timestamp",
     "hostname", "hardwareProfile", "installedRoleStates", "installScriptHash",
     "actionResults", "firstContact", "idle"})
 public class HeartBeat {
@@ -50,61 +50,61 @@ public class HeartBeat {
   private boolean firstContact;
   @XmlElement
   private boolean idle;
-  
+
   public short getResponseId() {
     return responseId;
   }
-  
+
   public void setResponseId(short responseId) {
     this.responseId=responseId;
   }
-  
+
   public long getTimestamp() {
     return timestamp;
   }
-  
+
   public String getHostname() {
     return hostname;
   }
-  
+
   public boolean getFirstContact() {
     return firstContact;
   }
-  
+
   public boolean getIdle() {
     return idle;
   }
-  
+
   public HardwareProfile getHardwareProfile() {
     return hardwareProfile;
   }
-  
-  
+
+
   public int getInstallScriptHash() {
     return installScriptHash;
   }
-  
+
   public void setTimestamp(long timestamp) {
     this.timestamp = timestamp;
   }
-  
+
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
- 
+
   public void setHardwareProfile(HardwareProfile hardwareProfile) {
-    this.hardwareProfile = hardwareProfile;    
+    this.hardwareProfile = hardwareProfile;
   }
-  
-  
+
+
   public void setFirstContact(boolean firstContact) {
     this.firstContact = firstContact;
   }
-  
+
   public void setIdle(boolean idle) {
     this.idle = idle;
   }
-  
+
   public void setInstallScriptHash(int hash) {
     this.installScriptHash = hash;
   }

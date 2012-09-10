@@ -29,7 +29,7 @@ public class NodeEvent extends AbstractEvent<NodeEventType> {
    * Hostname of the Node
    */
   final String nodeName;
-  
+
   public NodeEvent(String nodeName, NodeEventType type) {
     super(type);
     this.nodeName = nodeName;

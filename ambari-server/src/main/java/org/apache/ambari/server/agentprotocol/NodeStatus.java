@@ -22,7 +22,7 @@ public class NodeStatus {
     HEALTHY,
     UNHEALTHY
   }
-  
+
   Status status;
-  String cause;  
+  String cause;
 }

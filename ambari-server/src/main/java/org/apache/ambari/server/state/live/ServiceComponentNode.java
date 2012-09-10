@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.ambari.server.state.ConfigVersion;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.live.job.Job;
 
 
 public interface ServiceComponentNode {
@@ -31,14 +32,14 @@ public interface ServiceComponentNode {
    * @return Name of the ServiceComponent
    */
   public String getServiceComponentName();
-  
+
   /**
    * Get the Node this object maps to
    * @return Node's hostname
    */
   public String getNodeName();
-  
-  
+
+
   /**
    * Get the Config Version
    * @return ConfigVersion
@@ -51,8 +52,8 @@ public interface ServiceComponentNode {
    * @return List of Jobs
    */
   public List<Job> getJobs();
-  
-  
+
+
   /**
    * Get ServiceComponent-Node State
    * @return ServiceComponentNodeState

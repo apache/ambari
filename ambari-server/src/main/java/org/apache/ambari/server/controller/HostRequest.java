@@ -26,10 +26,10 @@ import java.util.Map;
  */
 public class HostRequest extends Request {
   private List<String> hosts;
-  
-  public HostRequest(long requestId, Request.Method m, List<String> hostList, 
+
+  public HostRequest(long requestId, Request.Method m, List<String> hostList,
       Map<String, String> params) {
     super(requestId, m, params);
     hosts = hostList;
-  }  
+  }
 }

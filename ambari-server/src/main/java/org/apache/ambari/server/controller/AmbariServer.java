@@ -39,7 +39,7 @@ public class AmbariServer {
  public static int CLIENT_PORT = 4080;
  private Server server = null;
  public volatile boolean running = true; // true while controller runs
- 
+
  public void run() {
    server = new Server(CLIENT_PORT);
 
@@ -47,25 +47,25 @@ public class AmbariServer {
      Context root = new Context(server, "/", Context.SESSIONS);
      ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
      rootServlet.setInitOrder(1);
-     
+
      ServletHolder sh = new ServletHolder(ServletContainer.class);
-     sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass", 
+     sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
        "com.sun.jersey.api.core.PackagesResourceConfig");
-     sh.setInitParameter("com.sun.jersey.config.property.packages", 
+     sh.setInitParameter("com.sun.jersey.config.property.packages",
        "org.apache.ambari.controller.api.rest");
      root.addServlet(sh, "/api/*");
      sh.setInitOrder(2);
 
      ServletHolder agent = new ServletHolder(ServletContainer.class);
-     agent.setInitParameter("com.sun.jersey.config.property.resourceConfigClass", 
+     agent.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
        "com.sun.jersey.api.core.PackagesResourceConfig");
-     agent.setInitParameter("com.sun.jersey.config.property.packages", 
+     agent.setInitParameter("com.sun.jersey.config.property.packages",
        "org.apache.ambari.controller.agent.rest");
      root.addServlet(agent, "/agent/*");
      agent.setInitOrder(3);
-     
+
      server.setStopAtShutdown(true);
-     
+
      /*
       * Start the server after controller state is recovered.
       */
@@ -75,10 +75,10 @@ public class AmbariServer {
      LOG.info("Joined the Server");
    } catch (Exception e) {
      LOG.error("Error in the server", e);
-     
+
    }
  }
- 
+
  public void stop() throws Exception {
    try {
      server.stop();

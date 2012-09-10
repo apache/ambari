@@ -32,7 +32,7 @@ import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.live.AgentVersion;
 import org.apache.ambari.server.state.live.DiskInfo;
-import org.apache.ambari.server.state.live.Job;
+import org.apache.ambari.server.state.live.job.Job;
 import org.apache.ambari.server.state.live.node.NodeHealthStatus.HealthStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,7 +43,7 @@ public class NodeImpl implements Node {
 
   private final Lock readLock;
   private final Lock writeLock;
-  
+
   /**
    * Node hostname
    */
@@ -58,17 +58,17 @@ public class NodeImpl implements Node {
    * Node IP if ipv6 interface available
    */
   private String ipv6;
-  
+
   /**
    * Count of cores on Node
    */
   private int cpuCount;
-  
+
   /**
    * Os Architecture
    */
   private String osArch;
-  
+
   /**
    * OS Type
    */
@@ -83,7 +83,7 @@ public class NodeImpl implements Node {
    * Amount of available memory for the Node
    */
   private long availableMemBytes;
-  
+
   /**
    * Amount of physical memory for the Node
    */
@@ -108,7 +108,7 @@ public class NodeImpl implements Node {
    * Rack to which the Node belongs to
    */
   private String rackInfo;
-  
+
   /**
    * Additional Node attributes
    */
@@ -118,12 +118,12 @@ public class NodeImpl implements Node {
    * Version of agent running on the Node
    */
   private AgentVersion agentVersion;
-  
+
   /**
    * Node Health Status
    */
   private NodeHealthStatus healthStatus;
-  
+
   private static final StateMachineFactory
     <NodeImpl, NodeState, NodeEventType, NodeEvent>
       stateMachineFactory
@@ -133,17 +133,17 @@ public class NodeImpl implements Node {
    // define the state machine of a Node
 
    // Transition from INIT state
-   // when the initial registration request is received        
+   // when the initial registration request is received
    .addTransition(NodeState.INIT, NodeState.WAITING_FOR_VERIFICATION,
        NodeEventType.NODE_REGISTRATION_REQUEST, new NodeRegistrationReceived())
 
    // Transition from WAITING_FOR_VERIFICATION state
-   // when the node is authenticated    
+   // when the node is authenticated
    .addTransition(NodeState.WAITING_FOR_VERIFICATION, NodeState.VERIFIED,
        NodeEventType.NODE_VERIFIED, new NodeVerifiedTransition())
 
    // Transitions from VERIFIED state
-   // when a normal heartbeat is received    
+   // when a normal heartbeat is received
    .addTransition(NodeState.VERIFIED, NodeState.HEALTHY,
        NodeEventType.NODE_HEARTBEAT_HEALTHY,
        new NodeBecameHealthyTransition())
@@ -151,13 +151,13 @@ public class NodeImpl implements Node {
    .addTransition(NodeState.VERIFIED, NodeState.HEARTBEAT_LOST,
        NodeEventType.NODE_HEARTBEAT_TIMED_OUT,
        new NodeHeartbeatTimedOutTransition())
-   // when a heartbeart denoting node as unhealthy is received    
+   // when a heartbeart denoting node as unhealthy is received
    .addTransition(NodeState.VERIFIED, NodeState.UNHEALTHY,
        NodeEventType.NODE_HEARTBEAT_UNHEALTHY,
-       new NodeBecameUnhealthyTransition())       
-       
+       new NodeBecameUnhealthyTransition())
+
    // Transitions from HEALTHY state
-   // when a normal heartbeat is received    
+   // when a normal heartbeat is received
    .addTransition(NodeState.HEALTHY, NodeState.HEALTHY,
        NodeEventType.NODE_HEARTBEAT_HEALTHY,
        new NodeHeartbeatReceivedTransition())
@@ -165,17 +165,17 @@ public class NodeImpl implements Node {
    .addTransition(NodeState.HEALTHY, NodeState.HEARTBEAT_LOST,
        NodeEventType.NODE_HEARTBEAT_TIMED_OUT,
        new NodeHeartbeatTimedOutTransition())
-   // when a heartbeart denoting node as unhealthy is received    
+   // when a heartbeart denoting node as unhealthy is received
    .addTransition(NodeState.HEALTHY, NodeState.UNHEALTHY,
        NodeEventType.NODE_HEARTBEAT_UNHEALTHY,
        new NodeBecameUnhealthyTransition())
 
    // Transitions from UNHEALTHY state
-   // when a normal heartbeat is received    
+   // when a normal heartbeat is received
    .addTransition(NodeState.UNHEALTHY, NodeState.HEALTHY,
        NodeEventType.NODE_HEARTBEAT_HEALTHY,
        new NodeBecameHealthyTransition())
-   // when a heartbeart denoting node as unhealthy is received    
+   // when a heartbeart denoting node as unhealthy is received
    .addTransition(NodeState.UNHEALTHY, NodeState.UNHEALTHY,
        NodeEventType.NODE_HEARTBEAT_UNHEALTHY,
        new NodeHeartbeatReceivedTransition())
@@ -185,11 +185,11 @@ public class NodeImpl implements Node {
        new NodeHeartbeatTimedOutTransition())
 
    // Transitions from HEARTBEAT_LOST state
-   // when a normal heartbeat is received    
+   // when a normal heartbeat is received
    .addTransition(NodeState.HEARTBEAT_LOST, NodeState.HEALTHY,
        NodeEventType.NODE_HEARTBEAT_HEALTHY,
        new NodeBecameHealthyTransition())
-   // when a heartbeart denoting node as unhealthy is received    
+   // when a heartbeart denoting node as unhealthy is received
    .addTransition(NodeState.HEARTBEAT_LOST, NodeState.UNHEALTHY,
        NodeEventType.NODE_HEARTBEAT_UNHEALTHY,
        new NodeBecameUnhealthyTransition())
@@ -220,7 +220,7 @@ public class NodeImpl implements Node {
       node.setAgentVersion(e.agentVersion);
     }
   }
-  
+
   static class NodeVerifiedTransition
       implements SingleArcTransition<NodeImpl, NodeEvent> {
 
@@ -229,7 +229,7 @@ public class NodeImpl implements Node {
       // TODO Auto-generated method stub
     }
   }
-  
+
   static class NodeHeartbeatReceivedTransition
     implements SingleArcTransition<NodeImpl, NodeEvent> {
 
@@ -247,12 +247,12 @@ public class NodeImpl implements Node {
           break;
       }
       if (0 == heartbeatTime) {
-        // TODO handle error        
+        // TODO handle error
       }
       node.setLastHeartbeatTime(heartbeatTime);
     }
-  }  
-  
+  }
+
   static class NodeBecameHealthyTransition
       implements SingleArcTransition<NodeImpl, NodeEvent> {
 
@@ -264,7 +264,7 @@ public class NodeImpl implements Node {
       LOG.info("Node transitioned to a healthy state"
           + ", node=" + e.nodeName
           + ", heartbeatTime=" + e.getHeartbeatTime());
-      node.getHealthStatus().setHealthStatus(HealthStatus.HEALTHY);      
+      node.getHealthStatus().setHealthStatus(HealthStatus.HEALTHY);
     }
   }
 
@@ -296,7 +296,7 @@ public class NodeImpl implements Node {
           + ", lastHeartbeatTime=" + node.getLastHeartbeatTime());
       node.getHealthStatus().setHealthStatus(HealthStatus.UNKNOWN);
     }
-  } 
+  }
 
   void importNodeInfo(NodeInfo nodeInfo) {
     try {
@@ -315,10 +315,10 @@ public class NodeImpl implements Node {
       this.hostAttributes = nodeInfo.hostAttributes;
     }
     finally {
-      writeLock.unlock();      
+      writeLock.unlock();
     }
   }
-   
+
   @Override
   public NodeState getState() {
     try {

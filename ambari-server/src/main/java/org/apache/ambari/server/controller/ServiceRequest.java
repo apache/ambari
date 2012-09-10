@@ -31,16 +31,16 @@ public class ServiceRequest extends Request {
   private String service;
   private String configVersion;
   private String hostComponentMapVersion;
-  
+
   public class ComponentRequest {
     private String componentName;
     private Map<String, String> params = new HashMap<String, String>();
   }
-  
+
   public void addComponentRequest(ComponentRequest c) {
     components.add(c);
   }
-  
+
   public ServiceRequest(long requestId, Request.Method m, String clusterName,
       String service, String configVersion, String hostComponentMapVersion) {
     super(requestId, m);
@@ -49,6 +49,6 @@ public class ServiceRequest extends Request {
     this.configVersion = configVersion;
     this.hostComponentMapVersion = hostComponentMapVersion;
   }
-  
+
   private List<ComponentRequest> components = new ArrayList<ComponentRequest>();
 }

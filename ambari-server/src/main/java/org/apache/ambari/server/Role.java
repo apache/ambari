@@ -19,7 +19,7 @@
 package org.apache.ambari.server;
 
 //This enumerates all the roles that the server can handle.
-//Each component or a job maps to a particular role. 
+//Each component or a job maps to a particular role.
 public enum Role {
   ZOOKEEPER_SERVER,
   ZOOKEEPER_CLIENT,

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.job;
 
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 
@@ -31,8 +31,28 @@ public interface Job {
   // TODO requires some form of JobType to ensure only one running
   // job per job type
   // There may be gotchas such as de-commissioning should be allowed to happen
-  // on more than one node at a time  
-  
+  // on more than one node at a time
+
+
+  /**
+   * Get Start Time of the job
+   * @return Start time as a unix timestamp
+   */
+  public long getStartTime();
+
+  /**
+   * Get the last update time of the Job when its progress status
+   * was updated
+   * @return Last Update Time as a unix timestamp
+   */
+  public long getLastUpdateTime();
+
+  /**
+   * Time when the Job completed
+   * @return Completion Time as a unix timestamp
+   */
+  public long getCompletionTime();
+
   /**
    * Get the current state of the Job
    * @return JobState

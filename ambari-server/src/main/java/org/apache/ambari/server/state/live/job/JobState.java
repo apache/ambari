@@ -16,22 +16,24 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.job;
 
-import org.apache.ambari.server.state.fsm.event.AbstractEvent;
-
-/**
- * Base class for all events that affect the Job FSM
- */
-public class JobEvent extends AbstractEvent<JobEventType> {
-
+public enum JobState {
   /**
-   * JobId identifying the job
+   * Initial state for the Job.
+   * When a new action is triggered or set in motion.
    */
-  final JobId jobId;
-  
-  public JobEvent(JobEventType type, JobId jobId) {
-    super(type);
-    this.jobId = jobId;
-  }
+  INIT,
+  /**
+   * State when the job is triggered on the cluster,
+   */
+  IN_PROGRESS,
+  /**
+   * State of successful completion
+   */
+  COMPLETED,
+  /**
+   * Job failed to complete successfully
+   */
+  FAILED
 }

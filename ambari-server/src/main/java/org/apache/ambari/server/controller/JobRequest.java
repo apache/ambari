@@ -29,7 +29,7 @@ public class JobRequest extends Request {
 
   final private String job;
   final private String serviceName; //can be null if action is at host level
-  final private List<String> hosts; 
+  final private List<String> hosts;
 
   public JobRequest(long requestId, Request.Method m, String job, String serviceName,
       List<String> hosts, Map<String, String> params) {

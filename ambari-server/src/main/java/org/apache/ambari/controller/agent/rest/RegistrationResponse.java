@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * 
+ *
  * Controller to Agent response data model.
  *
  */
@@ -35,12 +35,12 @@ import javax.xml.bind.annotation.XmlType;
 public class RegistrationResponse {
   @XmlElement
   public short responseId;
- 
+
 
   public short getResponseId() {
     return responseId;
   }
-  
+
   public void setResponseId(short responseId) {
     this.responseId=responseId;
   }

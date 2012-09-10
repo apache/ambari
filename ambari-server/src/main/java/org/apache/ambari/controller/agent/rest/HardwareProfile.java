@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * 
+ *
  * Data model for Ambari Agent to send hardware profile to Ambari Server.
  *
  */
@@ -114,16 +114,16 @@ public class HardwareProfile {
   @XmlElement
   private long uptime_days;
   @XmlElement
-  private long uptime_hours;   
-  
+  private long uptime_hours;
+
   public long getUpTimeDays() {
     return this.uptime_days;
   }
-  
+
   public void setUpTimeDays(long uptime_days) {
     this.uptime_days = uptime_days;
   }
-  
+
   public String toString() {
     return "memory=" + this.memorytotal + "\n" +
            "uptime_hours=" + this.uptime_hours;

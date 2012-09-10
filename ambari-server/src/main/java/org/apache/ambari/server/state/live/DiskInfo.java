@@ -44,7 +44,7 @@ public class DiskInfo {
    * Capacity of the disk in bytes
    */
   long totalCapacityBytes;
-  
+
   /**
    * Current capacity in bytes
    */

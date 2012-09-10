@@ -21,9 +21,9 @@ package org.apache.ambari.server.state.live.node;
 public class NodeHealthStatus {
 
   private HealthStatus healthStatus;
-  
+
   private String healthReport;
-  
+
   public NodeHealthStatus(HealthStatus healthStatus, String healthReport) {
     super();
     this.healthStatus = healthStatus;
@@ -33,11 +33,11 @@ public class NodeHealthStatus {
   public synchronized HealthStatus getHealthStatus() {
     return healthStatus;
   }
-  
+
   public synchronized void setHealthStatus(HealthStatus healthStatus) {
     this.healthStatus = healthStatus;
   }
-  
+
   public synchronized void setHealthReport(String healthReport) {
     this.healthReport = healthReport;
   }
@@ -45,11 +45,11 @@ public class NodeHealthStatus {
   public synchronized String getHealthReport() {
     return healthReport;
   }
-  
+
   public static enum HealthStatus {
     UNKNOWN,
     HEALTHY,
     UNHEALTHY
   }
-  
+
 }

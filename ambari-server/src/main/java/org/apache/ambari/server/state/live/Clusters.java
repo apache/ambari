@@ -26,5 +26,5 @@ public interface Clusters {
    * @return
    */
   public Cluster getCluster(String clusterName);
-  
+
 }

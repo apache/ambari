@@ -26,13 +26,13 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * 
+ *
  * Data model for Ambari Agent to send heartbeat to Ambari Controller.
  *
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {"responseId","timestamp", 
+@XmlType(name = "", propOrder = {"responseId","timestamp",
     "hostname", "hardwareProfile"})
 public class Register {
   @XmlElement
@@ -43,39 +43,39 @@ public class Register {
   private String hostname;
   @XmlElement
   private HardwareProfile hardwareProfile;
-  
+
   public short getResponseId() {
     return responseId;
   }
-  
+
   public void setResponseId(short responseId) {
     this.responseId=responseId;
   }
-  
+
   public long getTimestamp() {
     return timestamp;
   }
-  
+
   public String getHostname() {
     return hostname;
   }
- 
+
   public HardwareProfile getHardwareProfile() {
     return hardwareProfile;
   }
-  
+
   public void setTimestamp(long timestamp) {
     this.timestamp = timestamp;
   }
-  
+
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
- 
+
   public void setHardwareProfile(HardwareProfile hardwareProfile) {
-    this.hardwareProfile = hardwareProfile;    
+    this.hardwareProfile = hardwareProfile;
   }
-  
+
   @Override
   public String toString() {
     return "responseId=" + responseId + "\n" +

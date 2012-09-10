@@ -18,5 +18,5 @@
 package org.apache.ambari.server.agentprotocol;
 
 public class AgentCommand {
-  private String commandId;  
+  private String commandId;
 }

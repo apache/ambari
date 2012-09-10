@@ -16,9 +16,20 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.job;
 
 // TODO
 public class JobId {
+
+  final long jobId;
+
+  final JobType jobType;
+
+  public JobId(long jobId, JobType jobType) {
+    super();
+    this.jobId = jobId;
+    this.jobType = jobType;
+  }
+
 
 }

@@ -35,7 +35,7 @@ public class ServiceComponentNodeEvent
    * Hostname of the Node that this event relates to
    */
   final String nodeName;
-  
+
   public ServiceComponentNodeEvent(ServiceComponentNodeEventType type,
       String serviceComponentName, String nodeName) {
     super(type);

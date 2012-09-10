@@ -21,7 +21,7 @@ package org.apache.ambari.server.state.live.node;
 public class NodeUnhealthyHeartbeatEvent extends NodeEvent {
 
   private final long heartbeatTime;
-  
+
   private final NodeHealthStatus healthStatus;
 
   public NodeUnhealthyHeartbeatEvent(String nodeName, long heartbeatTime,

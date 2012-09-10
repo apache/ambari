@@ -19,7 +19,7 @@
 package org.apache.ambari.server.state.fsm;
 
 /**
- * Exception thrown when a StateMachine encounters an invalid 
+ * Exception thrown when a StateMachine encounters an invalid
  * event at its current state.
  */
 @SuppressWarnings("serial")

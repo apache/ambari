@@ -30,14 +30,14 @@ public interface Cluster {
    * @return
    */
   public NodeState getNodeState(String nodeName);
-  
+
   /**
    * Set the State for a given Node
    * @param nodeName Node's hostname for which state is to be set
    * @param state NodeState to set
    */
   public void setNodeState(String nodeName, NodeState state);
-  
+
   /**
    * Send event to the given Node
    * @param nodeName Node's hostname
@@ -45,7 +45,7 @@ public interface Cluster {
    */
   public void handleNodeEvent(String nodeName, NodeEvent event)
       throws InvalidStateTransitonException;
-  
+
   /**
    * Get the State for a given ServiceComponentNode
    * @param service Service name
@@ -77,5 +77,5 @@ public interface Cluster {
   public void handleServiceComponentNodeEvent(String service,
       String serviceComponent, String nodeName,
       ServiceComponentNodeEvent event) throws InvalidStateTransitonException;
-  
+
 }

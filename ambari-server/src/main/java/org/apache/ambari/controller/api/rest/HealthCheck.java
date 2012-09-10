@@ -52,5 +52,5 @@ public class HealthCheck {
     return "<html> " + "<title>" + "Status" + "</title>"
         + "<body><h1>" + status + "</body></h1>" + "</html> ";
   }
-} 
+}
 

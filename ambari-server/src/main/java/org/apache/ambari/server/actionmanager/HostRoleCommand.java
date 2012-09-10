@@ -22,7 +22,7 @@ import java.util.Map;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 
-/** 
+/**
  * This class encapsulates all the information for an action
  * on a host for a particular role. This class will be used to schedule, persist and track
  * an action.

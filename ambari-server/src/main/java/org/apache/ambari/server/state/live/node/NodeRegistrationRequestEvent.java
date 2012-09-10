@@ -23,11 +23,11 @@ import org.apache.ambari.server.state.live.AgentVersion;
 public class NodeRegistrationRequestEvent extends NodeEvent {
 
   final long registrationTime;
-  
+
   final NodeInfo nodeInfo;
-  
+
   final AgentVersion agentVersion;
-  
+
   public NodeRegistrationRequestEvent(String nodeName,
       AgentVersion agentVersion, long registrationTime, NodeInfo nodeInfo) {
     super(nodeName, NodeEventType.NODE_REGISTRATION_REQUEST);

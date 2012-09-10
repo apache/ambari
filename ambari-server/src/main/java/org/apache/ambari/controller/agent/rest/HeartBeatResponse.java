@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * 
+ *
  * Controller to Agent response data model.
  *
  */
@@ -37,22 +37,22 @@ public class HeartBeatResponse {
   public short responseId;
   @XmlElement
   public String clusterId;
- 
+
 
   public short getResponseId() {
     return responseId;
   }
-  
+
   public void setResponseId(short responseId) {
     this.responseId=responseId;
   }
-  
+
   public String getClusterId() {
     return clusterId;
   }
-  
+
   public void setClusterId(String clusterId) {
     this.clusterId = clusterId;
   }
-  
+
 }

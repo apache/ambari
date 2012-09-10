@@ -24,6 +24,7 @@ import org.apache.ambari.server.state.ConfigVersion;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
+import org.apache.ambari.server.state.live.job.Job;
 
 public class ServiceComponentNodeImpl implements ServiceComponentNode {
 

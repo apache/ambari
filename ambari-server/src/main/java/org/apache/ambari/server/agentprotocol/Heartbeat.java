@@ -26,8 +26,8 @@ public class Heartbeat {
   List<ComponentStatus> componentStatus;
   NodeInfo nodeInfo;
   NodeStatus nodeStatus;
-  
+
   public class NodeInfo {
-    
+
   }
 }

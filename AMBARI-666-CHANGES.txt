@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-713. Initial work on Job FSM. (hitesh)
+
   AMBARI-712. Action manager skeleton. (jitendra)
 
   AMBARI-710. Basic registration and heartbeat protocol implementation between

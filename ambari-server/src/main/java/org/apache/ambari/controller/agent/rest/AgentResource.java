@@ -33,10 +33,10 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
 
-/** 
+/**
  * Agent Resource represents Ambari agent controller.
  * It provides API for Ambari agents to get the cluster configuration changes
- * as well as report the node attributes and state of services running the on 
+ * as well as report the node attributes and state of services running the on
  * the cluster nodes
  */
 @Path("/")
@@ -50,7 +50,7 @@ public class AgentResource {
   }
 
   /**
-   * Register information about the host (Internal API to be used for 
+   * Register information about the host (Internal API to be used for
    * Ambari Agent)
    * @response.representation.200.doc This API is invoked by Ambari agent running
    *  on a cluster to register with the server.
@@ -58,37 +58,37 @@ public class AgentResource {
    * @response.representation.406.doc Error in register message format
    * @response.representation.408.doc Request Timed out
    * @param message Register message
-   * @throws Exception 
+   * @throws Exception
    */
   @Path("register/{hostName}")
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-  public RegistrationResponse register(Register message, 
-      @Context HttpServletRequest req)  
+  public RegistrationResponse register(Register message,
+      @Context HttpServletRequest req)
       throws WebApplicationException {
     LOG.info("Post input = " + req.toString());
     RegistrationResponse response = new RegistrationResponse();
     LOG.info("Received message from agent " + message.toString());
     return response;
   }
-  
-  /** 
+
+  /**
    * Update state of the node (Internal API to be used by Ambari agent).
-   *  
+   *
    * @response.representation.200.doc This API is invoked by Ambari agent running
    *  on a cluster to update the state of various services running on the node.
    * @response.representation.200.mediaType application/json
    * @response.representation.406.doc Error in heartbeat message format
    * @response.representation.408.doc Request Timed out
    * @param message Heartbeat message
-   * @throws Exception 
+   * @throws Exception
    */
   @Path("heartbeat/{hostname}")
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-  public HeartBeatResponse heartbeat(HeartBeat message) 
+  public HeartBeatResponse heartbeat(HeartBeat message)
       throws WebApplicationException {
     HeartBeatResponse heartBeatResponse = new HeartBeatResponse();
     try {

@@ -27,9 +27,9 @@ import java.util.Map;
 public class ServiceConfigurationRequest extends Request {
   final private String clusterName;
   final private String serviceName;
-  
+
   //The complete set of desired configurations can be derived as
-  //properties corresponding to baseConfigVersion overridden with 
+  //properties corresponding to baseConfigVersion overridden with
   //desiredProperties.
   final private String baseConfigVersion;
   private Map<String, String> desiredProperties = null;

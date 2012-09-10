@@ -25,7 +25,7 @@ public class HostAction {
   private Map<String, String> params = null;
   private String manifest = null;
   private List<HostRoleCommand> roles;
-  
+
   public HostAction(String host) {
     this.host = host;
   }

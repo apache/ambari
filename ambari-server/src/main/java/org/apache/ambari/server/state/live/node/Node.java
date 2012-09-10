@@ -24,7 +24,7 @@ import java.util.Map;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.AgentVersion;
 import org.apache.ambari.server.state.live.DiskInfo;
-import org.apache.ambari.server.state.live.Job;
+import org.apache.ambari.server.state.live.job.Job;
 
 public interface Node {
 
