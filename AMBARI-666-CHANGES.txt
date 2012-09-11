@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-721. Remove Hardwareprofile class since its not needed anymore.
+  (mahadev)
+
   AMBARI-720. Tweak basic styles for Installer. (yusaku)
 
   AMBARI-719. Enable Responsive Design. (yusaku)
