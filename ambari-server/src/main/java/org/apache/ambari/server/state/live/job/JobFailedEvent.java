@@ -5,7 +5,7 @@ public class JobFailedEvent extends JobEvent {
   private final long completionTime;
 
   // TODO
-  // need to add job failed reason
+  // need to add job report
 
   public JobFailedEvent(JobId jobId, long completionTime) {
     super(JobEventType.JOB_FAILED, jobId);

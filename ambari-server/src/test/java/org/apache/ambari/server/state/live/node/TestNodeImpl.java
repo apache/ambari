@@ -23,7 +23,7 @@ public class TestNodeImpl {
     mounts.add(new DiskInfo("/dev/sda", "/mnt/disk1",
         "5000000", "4000000", "10%", "size"));
     info.setMounts(mounts);
-    
+
     info.setHostName("foo");
     info.setInterfaces("fip_4");
     info.setArchitecture("os_arch");
@@ -32,7 +32,7 @@ public class TestNodeImpl {
 
     NodeImpl node = new NodeImpl();
     node.importNodeInfo(info);
-   
+
     Assert.assertEquals(info.getHostName(), node.getHostName());
     Assert.assertEquals(info.getFreeMemory(), node.getAvailableMemBytes());
     Assert.assertEquals(info.getMemoryTotal(), node.getTotalMemBytes());
@@ -50,7 +50,7 @@ public class TestNodeImpl {
     mounts.add(new DiskInfo("/dev/sda", "/mnt/disk1",
         "5000000", "4000000", "10%", "size"));
     info.setMounts(mounts);
-    
+
     info.setHostName("foo");
     info.setInterfaces("fip_4");
     info.setArchitecture("os_arch");
@@ -64,7 +64,7 @@ public class TestNodeImpl {
         new NodeRegistrationRequestEvent("foo", agentVersion, currentTime,
             info);
     node.handleEvent(e);
-    Assert.assertEquals(node.getLastRegistrationTime(), currentTime);
+    Assert.assertEquals(currentTime, node.getLastRegistrationTime());
   }
 
   private void verifyNode(NodeImpl node) throws Exception {
@@ -73,7 +73,7 @@ public class TestNodeImpl {
   }
 
   private void verifyNodeState(NodeImpl node, NodeState state) {
-    Assert.assertEquals(node.getState(), state);
+    Assert.assertEquals(state, node.getState());
   }
 
   private void sendHealthyHeartbeat(NodeImpl node, long counter) throws Exception {
@@ -146,61 +146,61 @@ public class TestNodeImpl {
     long counter = 0;
     sendHealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.HEALTHY);
-    Assert.assertEquals(node.getLastHeartbeatTime(), counter);
+    Assert.assertEquals(counter, node.getLastHeartbeatTime());
 
     sendHealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.HEALTHY);
-    Assert.assertEquals(node.getLastHeartbeatTime(), counter);
-    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
-        HealthStatus.HEALTHY);
+    Assert.assertEquals(counter, node.getLastHeartbeatTime());
+    Assert.assertEquals(HealthStatus.HEALTHY,
+        node.getHealthStatus().getHealthStatus());
 
     sendUnhealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.UNHEALTHY);
-    Assert.assertEquals(node.getLastHeartbeatTime(), counter);
-    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
-        HealthStatus.UNHEALTHY);
+    Assert.assertEquals(counter, node.getLastHeartbeatTime());
+    Assert.assertEquals(HealthStatus.UNHEALTHY,
+        node.getHealthStatus().getHealthStatus());
 
     sendUnhealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.UNHEALTHY);
-    Assert.assertEquals(node.getLastHeartbeatTime(), counter);
-    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
-        HealthStatus.UNHEALTHY);
+    Assert.assertEquals(counter, node.getLastHeartbeatTime());
+    Assert.assertEquals(HealthStatus.UNHEALTHY,
+        node.getHealthStatus().getHealthStatus());
 
     sendHealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.HEALTHY);
-    Assert.assertEquals(node.getLastHeartbeatTime(), counter);
-    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
-        HealthStatus.HEALTHY);
+    Assert.assertEquals(counter, node.getLastHeartbeatTime());
+    Assert.assertEquals(HealthStatus.HEALTHY,
+        node.getHealthStatus().getHealthStatus());
 
     timeoutNode(node);
     verifyNodeState(node, NodeState.HEARTBEAT_LOST);
-    Assert.assertEquals(node.getLastHeartbeatTime(), counter);
-    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
-        HealthStatus.UNKNOWN);
+    Assert.assertEquals(counter, node.getLastHeartbeatTime());
+    Assert.assertEquals(HealthStatus.UNKNOWN,
+        node.getHealthStatus().getHealthStatus());
 
     timeoutNode(node);
     verifyNodeState(node, NodeState.HEARTBEAT_LOST);
-    Assert.assertEquals(node.getLastHeartbeatTime(), counter);
-    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
-        HealthStatus.UNKNOWN);
+    Assert.assertEquals(counter, node.getLastHeartbeatTime());
+    Assert.assertEquals(HealthStatus.UNKNOWN,
+        node.getHealthStatus().getHealthStatus());
 
     sendUnhealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.UNHEALTHY);
-    Assert.assertEquals(node.getLastHeartbeatTime(), counter);
-    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
-        HealthStatus.UNHEALTHY);
+    Assert.assertEquals(counter, node.getLastHeartbeatTime());
+    Assert.assertEquals(HealthStatus.UNHEALTHY,
+        node.getHealthStatus().getHealthStatus());
 
     timeoutNode(node);
     verifyNodeState(node, NodeState.HEARTBEAT_LOST);
-    Assert.assertEquals(node.getLastHeartbeatTime(), counter);
-    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
-        HealthStatus.UNKNOWN);
+    Assert.assertEquals(counter, node.getLastHeartbeatTime());
+    Assert.assertEquals(HealthStatus.UNKNOWN,
+        node.getHealthStatus().getHealthStatus());
 
     sendHealthyHeartbeat(node, ++counter);
     verifyNodeState(node, NodeState.HEALTHY);
-    Assert.assertEquals(node.getLastHeartbeatTime(), counter);
-    Assert.assertEquals(node.getHealthStatus().getHealthStatus(),
-        HealthStatus.HEALTHY);
+    Assert.assertEquals(counter, node.getLastHeartbeatTime());
+    Assert.assertEquals(HealthStatus.HEALTHY,
+        node.getHealthStatus().getHealthStatus());
 
   }
 }

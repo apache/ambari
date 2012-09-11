@@ -31,5 +31,8 @@ public class JobId {
     this.jobType = jobType;
   }
 
-
+  public String toString() {
+    return "[ jobId=" + jobId
+        + ", jobType=" + jobType + "]";
+  }
 }

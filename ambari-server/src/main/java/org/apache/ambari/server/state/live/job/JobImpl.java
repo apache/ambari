@@ -43,7 +43,7 @@ public class JobImpl implements Job {
   private long completionTime;
 
   // TODO
-  // need to add job failed reason
+  // need to add job report
 
   private static final StateMachineFactory
     <JobImpl, JobState, JobEventType, JobEvent>
@@ -54,6 +54,12 @@ public class JobImpl implements Job {
 
     // define the state machine of a Job
 
+    .addTransition(JobState.INIT, JobState.IN_PROGRESS,
+        JobEventType.JOB_IN_PROGRESS, new JobProgressUpdateTransition())
+    .addTransition(JobState.INIT, JobState.COMPLETED,
+        JobEventType.JOB_COMPLETED, new JobCompletedTransition())
+    .addTransition(JobState.INIT, JobState.FAILED,
+        JobEventType.JOB_FAILED, new JobFailedTransition())
     .addTransition(JobState.INIT, JobState.IN_PROGRESS,
         JobEventType.JOB_IN_PROGRESS, new JobProgressUpdateTransition())
     .addTransition(JobState.IN_PROGRESS, JobState.IN_PROGRESS,
@@ -71,16 +77,28 @@ public class JobImpl implements Job {
   private final StateMachine<JobState, JobEventType, JobEvent>
       stateMachine;
 
-  public JobImpl(JobId id) {
+  public JobImpl(JobId id, long startTime) {
     super();
     this.id = id;
     this.stateMachine = stateMachineFactory.make(this);
     ReadWriteLock rwLock = new ReentrantReadWriteLock();
     this.readLock = rwLock.readLock();
     this.writeLock = rwLock.writeLock();
-    startTime = -1;
-    lastUpdateTime = -1;
-    completionTime = -1;
+    this.startTime = startTime;
+    this.lastUpdateTime = -1;
+    this.completionTime = -1;
+  }
+
+  private void reset() {
+    try {
+      writeLock.lock();
+      this.startTime = -1;
+      this.lastUpdateTime = -1;
+      this.completionTime = -1;
+    }
+    finally {
+      writeLock.unlock();
+    }
   }
 
   static class NewJobTransition
@@ -90,6 +108,7 @@ public class JobImpl implements Job {
     public void transition(JobImpl job, JobEvent event) {
       NewJobEvent e = (NewJobEvent) event;
       // TODO audit logs
+      job.reset();
       job.setId(e.getJobId());
       job.setStartTime(e.getStartTime());
       LOG.info("Launching a new Job"

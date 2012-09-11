@@ -4,9 +4,9 @@ public class NewJobEvent extends JobEvent {
 
   private final long startTime;
 
-  public NewJobEvent(JobId jobId, long creationTime) {
+  public NewJobEvent(JobId jobId, long startTime) {
     super(JobEventType.JOB_INIT, jobId);
-    this.startTime = creationTime;
+    this.startTime = startTime;
   }
 
   /**
