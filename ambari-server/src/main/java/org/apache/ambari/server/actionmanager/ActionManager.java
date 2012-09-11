@@ -19,7 +19,8 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.List;
 
-import org.apache.ambari.server.agentprotocol.CommandReport;
+import org.apache.ambari.server.agent.CommandReport;
+
 
 /**
  * This class acts as the interface for action manager with other components.

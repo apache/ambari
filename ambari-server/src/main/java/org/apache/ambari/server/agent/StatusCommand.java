@@ -15,17 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.agentprotocol;
+package org.apache.ambari.server.agent;
 
-/**
- * This class handles the heartbeats coming from the agent, passes on the information
- * to other modules and processes the queue to send heartbeat response.
- */
-public class HeartbeatHandler {
-  private String lastCompletedActionId;
-  
-  public HeartbeatResponse handleHeartBeat(Heartbeat heartbeat) {
-    System.out.println(heartbeat.toString());
-    return null;
-  }
+import java.util.List;
+
+public class StatusCommand extends AgentCommand {
+  List<String> actionIds;
 }

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state.live.node;
 
+import org.apache.ambari.server.agent.NodeInfo;
 import org.apache.ambari.server.state.live.AgentVersion;
 
 public class NodeRegistrationRequestEvent extends NodeEvent {

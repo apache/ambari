@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.controller.agent.rest;
+package org.apache.ambari.server.agent;
+
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -24,10 +26,10 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
  *
- * Data model for Ambari Agent to send heartbeat to Ambari Controller.
+ * 
+ * Data model for Ambari Agent to send heartbeat to Ambari Server.
  *
  */
 @XmlRootElement
@@ -36,14 +38,19 @@ import javax.xml.bind.annotation.XmlType;
     "hostname", "hardwareProfile", "installedRoleStates", "installScriptHash",
     "actionResults", "firstContact", "idle"})
 public class HeartBeat {
+  //TODO add serialization
+  List<CommandReport> reports;
+  //TODO add serialization
+  List<ComponentStatus> componentStatus;
+  //TODO add serialization
+  NodeStatus nodeStatus;
+  
   @XmlElement
   private short responseId = -1;
   @XmlElement
   private long timestamp;
   @XmlElement
   private String hostname;
-  @XmlElement
-  private HardwareProfile hardwareProfile;
   @XmlElement
   private int installScriptHash;
   @XmlElement
@@ -73,13 +80,8 @@ public class HeartBeat {
 
   public boolean getIdle() {
     return idle;
-  }
-
-  public HardwareProfile getHardwareProfile() {
-    return hardwareProfile;
-  }
-
-
+  }  
+  
   public int getInstallScriptHash() {
     return installScriptHash;
   }
@@ -91,11 +93,6 @@ public class HeartBeat {
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
-
-  public void setHardwareProfile(HardwareProfile hardwareProfile) {
-    this.hardwareProfile = hardwareProfile;
-  }
-
 
   public void setFirstContact(boolean firstContact) {
     this.firstContact = firstContact;

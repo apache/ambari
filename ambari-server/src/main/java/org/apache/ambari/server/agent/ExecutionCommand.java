@@ -15,11 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.agentprotocol;
+package org.apache.ambari.server.agent;
 
-import java.util.List;
-
-public class HeartbeatResponse {
-  String lastCompletedActionId;
-  List<AgentCommand> cmds = null;
+public class ExecutionCommand extends AgentCommand {
+  String manifest;
 }

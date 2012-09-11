@@ -15,33 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.agent;
 
-package org.apache.ambari.controller.agent.rest;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
-/**
- *
- * Controller to Agent response data model.
- *
- */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
-public class RegistrationResponse {
-  @XmlElement
-  public short responseId;
-
-
-  public short getResponseId() {
-    return responseId;
-  }
-
-  public void setResponseId(short responseId) {
-    this.responseId=responseId;
-  }
+public class AgentCommand {
+  private String commandId;
 }

@@ -15,10 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.agentprotocol;
+package org.apache.ambari.server.agent;
 
-import java.util.List;
+public class NodeStatus {
+  public enum Status {
+    HEALTHY,
+    UNHEALTHY
+  }
 
-public class StatusCommand extends AgentCommand {
-  List<String> actionIds;
+  Status status;
+  String cause;
 }

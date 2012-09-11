@@ -15,19 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.agentprotocol;
 
-import java.util.List;
+package org.apache.ambari.server.agent.rest;
 
-public class Heartbeat {
-  String hostname;
-  long timestamp;
-  List<CommandReport> reports;
-  List<ComponentStatus> componentStatus;
-  NodeInfo nodeInfo;
-  NodeStatus nodeStatus;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
-  public class NodeInfo {
+/**
+ *
+ * Controller to Agent response data model.
+ *
+ */
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "", propOrder = {})
+public class RegistrationResponse {
+  @XmlElement
+  public short responseId;
 
+
+  public short getResponseId() {
+    return responseId;
+  }
+
+  public void setResponseId(short responseId) {
+    this.responseId=responseId;
   }
 }

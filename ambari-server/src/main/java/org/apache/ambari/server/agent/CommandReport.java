@@ -15,14 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.agentprotocol;
+package org.apache.ambari.server.agent;
 
-public class NodeStatus {
-  public enum Status {
-    HEALTHY,
-    UNHEALTHY
-  }
-
-  Status status;
-  String cause;
+public class CommandReport {
+  String actionId;
+  String stdout;
+  String stderr;
+  String status;
+  int exitCode;
 }

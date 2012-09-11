@@ -26,12 +26,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.agent.NodeInfo;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.live.AgentVersion;
-import org.apache.ambari.server.state.live.DiskInfo;
 import org.apache.ambari.server.state.live.job.Job;
 import org.apache.ambari.server.state.live.node.NodeHealthStatus.HealthStatus;
 import org.apache.commons.logging.Log;
@@ -301,6 +302,7 @@ public class NodeImpl implements Node {
   void importNodeInfo(NodeInfo nodeInfo) {
     try {
       writeLock.lock();
+      /*
       this.hostName = nodeInfo.hostName;
       this.ipv4 = nodeInfo.ipv4;
       this.ipv6 = nodeInfo.ipv6;
@@ -313,6 +315,7 @@ public class NodeImpl implements Node {
       this.disksInfo = nodeInfo.disksInfo;
       this.rackInfo = nodeInfo.rackInfo;
       this.hostAttributes = nodeInfo.hostAttributes;
+      */
     }
     finally {
       writeLock.unlock();

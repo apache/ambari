@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.controller.agent.rest;
+package org.apache.ambari.server.agent.rest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -27,7 +27,9 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.ambari.server.agentprotocol.HeartbeatHandler;
+import org.apache.ambari.server.agent.HeartBeat;
+import org.apache.ambari.server.agent.HeartBeatHandler;
+import org.apache.ambari.server.agent.Register;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -41,11 +43,11 @@ import com.google.inject.Inject;
  */
 @Path("/")
 public class AgentResource {
-  private static HeartbeatHandler hh;
+  private static HeartBeatHandler hh;
   private static Log LOG = LogFactory.getLog(AgentResource.class);
 
   @Inject
-  static void setHandler(HeartbeatHandler handler) {
+  static void setHandler(HeartBeatHandler handler) {
     hh = handler;
   }
 

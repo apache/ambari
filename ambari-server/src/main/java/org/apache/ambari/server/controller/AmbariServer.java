@@ -51,16 +51,16 @@ public class AmbariServer {
      ServletHolder sh = new ServletHolder(ServletContainer.class);
      sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
        "com.sun.jersey.api.core.PackagesResourceConfig");
-     sh.setInitParameter("com.sun.jersey.config.property.packages",
-       "org.apache.ambari.controller.api.rest");
+     sh.setInitParameter("com.sun.jersey.config.property.packages", 
+       "org.apache.ambari.server.api.rest");
      root.addServlet(sh, "/api/*");
      sh.setInitOrder(2);
 
      ServletHolder agent = new ServletHolder(ServletContainer.class);
      agent.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
        "com.sun.jersey.api.core.PackagesResourceConfig");
-     agent.setInitParameter("com.sun.jersey.config.property.packages",
-       "org.apache.ambari.controller.agent.rest");
+     agent.setInitParameter("com.sun.jersey.config.property.packages", 
+       "org.apache.ambari.server.agent.rest");
      root.addServlet(agent, "/agent/*");
      agent.setInitOrder(3);
 

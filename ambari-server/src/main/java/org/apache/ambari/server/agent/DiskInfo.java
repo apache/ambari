@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.controller.agent.rest;
+package org.apache.ambari.server.agent;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -24,63 +24,44 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- *
- * Data model for Ambari Agent to send heartbeat to Ambari Controller.
- *
+ * Information about a mounted disk on a given node
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {"responseId","timestamp",
-    "hostname", "hardwareProfile"})
-public class Register {
+@XmlType(name = "", propOrder = {})
+public class DiskInfo {
   @XmlElement
-  private short responseId = -1;
+  String available;
   @XmlElement
-  private long timestamp;
+  String mountpount;
   @XmlElement
-  private String hostname;
+  String used;
   @XmlElement
-  private HardwareProfile hardwareProfile;
-
-  public short getResponseId() {
-    return responseId;
+  String percent;
+  @XmlElement
+  String size;
+  
+  public String getAvailable() {
+    return this.available;
   }
-
-  public void setResponseId(short responseId) {
-    this.responseId=responseId;
+  
+  public String getMountPoint() {
+    return this.mountpount;
   }
-
-  public long getTimestamp() {
-    return timestamp;
+  
+  public String getUsed() {
+    return this.used;
   }
-
-  public String getHostname() {
-    return hostname;
+  
+  public String getPercent() {
+    return this.percent;
   }
-
-  public HardwareProfile getHardwareProfile() {
-    return hardwareProfile;
-  }
-
-  public void setTimestamp(long timestamp) {
-    this.timestamp = timestamp;
-  }
-
-  public void setHostname(String hostname) {
-    this.hostname = hostname;
-  }
-
-  public void setHardwareProfile(HardwareProfile hardwareProfile) {
-    this.hardwareProfile = hardwareProfile;
-  }
-
+  
   @Override
   public String toString() {
-    return "responseId=" + responseId + "\n" +
-           "timestamp=" + timestamp + "\n" +
-           "hostname="  + hostname + "\n" +
-           "hardwareprofile=" + this.hardwareProfile.toString();
+    return "available=" + this.available + " mountpoint=" + this.mountpount
+         + " used=" + this.used + " percent=" + this.percent + " size=" + 
+        this.size;
   }
 }
