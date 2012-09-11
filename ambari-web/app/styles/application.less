@@ -16,6 +16,39 @@
  * limitations under the License.
  */
 
+html, body {
+    height: 100%;
+}
+
+#wrapper {
+    min-height: 100%;
+}
+
+@footer-height: 100px;
+
+#main {
+    overflow: auto;
+    padding-bottom: @footer-height;
+}
+
+footer {
+    position: relative;
+    border-top: 1px solid #e5e5e5;
+    padding: 30px 0;
+    background-color: #fff;
+    color: #666666;
+    margin-top: -1 * @footer-height;
+    height: @footer-height - 60px;
+}
+
+footer .container {
+    margin: 0 auto;
+    width: 980px;
+}
+
+#content {
+    padding: 20px 0;
+}
 
 @green: #69BE28;
 
@@ -23,10 +56,21 @@ h1 {
   color: @green;
 }
 
-footer {
-    margin-top: 40px;
+
+.navbar .container {
+    width: 940px;
+}
+
+.login.well {
+    width: 300px;
+    margin: 20px auto;
+    padding: 25px;
 }
 
 .login h2 {
     margin-bottom: 20px;
+}
+
+.login .btn {
+    margin-top: 15px;
 }

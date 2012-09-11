@@ -31,3 +31,6 @@ require('templates/installer/step5');
 require('templates/installer/step6');
 require('templates/installer/step7');
 require('templates/installer/step8');
+require('templates/installer/step9');
+require('templates/installer/step10');
+

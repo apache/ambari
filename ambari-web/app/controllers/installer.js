@@ -281,6 +281,13 @@ App.InstallerController = Em.Controller.extend({
     return this.get('currentStep') == '8';
   }.property('currentStep'),
 
+  isStep9: function () {
+    return this.get('currentStep') == '9';
+  }.property('currentStep'),
+
+  isStep10: function () {
+    return this.get('currentStep') == '10';
+  }.property('currentStep'),
 
   /**
    *

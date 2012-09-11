@@ -29,3 +29,16 @@ App.InstallerStep7View = Em.View.extend({
   }
 
 });
+
+App.ServiceConfigsByCategoryView = Ember.View.extend({
+  viewName: 'serviceConfigs',
+  content: null,
+
+  category: null,
+  serviceConfigs: null,  // General, Advanced, NameNode, SNameNode, DataNode, etc.
+  //require('templates/installer/serviceConfigsByCategory'),
+
+  categoryConfigs: function() {
+    return this.get("serviceConfigs").filterProperty('category', this.get('category'))
+  }.property('categoryConfigs.@each').cacheable()
+});

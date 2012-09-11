@@ -32,3 +32,5 @@ require('views/installer/step5');
 require('views/installer/step6');
 require('views/installer/step7');
 require('views/installer/step8');
+require('views/installer/step9');
+require('views/installer/step10');

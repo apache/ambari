@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-717. Starter implementation for Installer Customize Services page.
+  Stylize top nav and implement static footer.  Stylize login page. (yusaku)
+
   AMBARI-711. Create utility functions related to localStorage for first two
   steps: cluster name and Install options. Also develop view logic with
   preliminary validations for these two steps. (Jaimin Jetly via yusaku)

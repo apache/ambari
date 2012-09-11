@@ -127,13 +127,34 @@ module.exports = Em.Route.extend({
   }),
 
   step8: Em.Route.extend({
-    route: '/step8',
+    route: '/step7',
+
     connectOutlets: function (router, context) {
       router.setInstallerCurrentStep('8', false);
       router.get('installerController').connectOutlet('installerStep8');
     },
-
     back: Em.Router.transitionTo('step7'),
+    next: Em.Router.transitionTo('step9')
+  }),
+
+  step9: Em.Route.extend({
+    route: '/step7',
+    connectOutlets: function (router, context) {
+      router.setInstallerCurrentStep('9', false);
+      router.get('installerController').connectOutlet('installerStep9');
+    },
+    back: Em.Router.transitionTo('step8'),
+    next: Em.Router.transitionTo('step10')
+  }),
+
+  step10: Em.Route.extend({
+    route: '/step8',
+    connectOutlets: function (router, context) {
+      router.setInstallerCurrentStep('10', false);
+      router.get('installerController').connectOutlet('installerStep10');
+    },
+
+    back: Em.Router.transitionTo('step9'),
 
     complete: function (router, context) {
       if (true) {   // this function will be moved to installerController where it will validate
@@ -160,6 +181,10 @@ module.exports = Em.Route.extend({
 
   gotoStep7: Em.Router.transitionTo('step7'),
 
-  gotoStep8: Em.Router.transitionTo('step8')
+  gotoStep8: Em.Router.transitionTo('step8'),
+
+  gotoStep9: Em.Router.transitionTo('step9'),
+
+  gotoStep10: Em.Router.transitionTo('step10')
 
 });

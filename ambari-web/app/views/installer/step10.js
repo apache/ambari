@@ -17,9 +17,10 @@
  */
 
 
-// load all controllers here
+var App = require('app');
 
-require('controllers/application');
-require('controllers/login');
-require('controllers/installer');
-require('controllers/installer/step7');
+App.InstallerStep10View = Em.View.extend({
+
+  templateName: require('templates/installer/step10')
+
+});

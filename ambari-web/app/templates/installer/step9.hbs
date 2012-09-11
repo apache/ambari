@@ -16,24 +16,6 @@
 * limitations under the License.
 -->
 
-<div class="well login">
-<h2>{{App.messages.login_header}}</h2>
-{{#if errorMessage}}
-<div class="alert alert-error">
-    {{errorMessage}}
-</div>
-{{/if}}
-<div>
-    {{App.messages.username_label}}
-</div>
-{{view Ember.TextField valueBinding="loginName" class="span4"}}
-<div>
-    {{App.messages.password_label}}
-</div>
-{{view Ember.TextField type="password" valueBinding="password" class="span4"}}
-<div>
-</div>
-<div>
-  <a class="btn btn-success" {{action "submit" target="controller"}}>{{App.messages.login_button}}</a>
-</div>
-</div>
+<h2>{{App.messages.step9_header}}</h2>
+<a class="btn" {{action back}}>Back</a>
+<a class="btn btn-success" {{action complete}}>Complete</a>
