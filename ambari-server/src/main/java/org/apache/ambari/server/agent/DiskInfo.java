@@ -24,17 +24,21 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+
 /**
  * Information about a mounted disk on a given node
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
+//TODO convert the type safe ints/longs for used/percent/size.  
 public class DiskInfo {
   @XmlElement
   String available;
   @XmlElement
-  String mountpount;
+  String mountpoint;
+  @XmlElement
+  String device;
   @XmlElement
   String used;
   @XmlElement
@@ -42,12 +46,35 @@ public class DiskInfo {
   @XmlElement
   String size;
   
+  /**
+   * DiskInfo object that tracks information about a disk.
+   * @param mountpoint 
+   * @param available
+   * @param used
+   * @param percent
+   * @param size
+   */
+  public DiskInfo(String device, String mountpoint, String available, 
+      String used, String percent, String size) {
+    this.device = device;
+    this.mountpoint = mountpoint;
+    this.available = available;
+    this.used = used;
+    this.percent = percent;
+    this.size = size;
+  }
+  
+  /**
+   * Needed for JAXB
+   */
+  public DiskInfo() {}
+  
   public String getAvailable() {
     return this.available;
   }
   
   public String getMountPoint() {
-    return this.mountpount;
+    return this.mountpoint;
   }
   
   public String getUsed() {
@@ -60,8 +87,8 @@ public class DiskInfo {
   
   @Override
   public String toString() {
-    return "available=" + this.available + " mountpoint=" + this.mountpount
-         + " used=" + this.used + " percent=" + this.percent + " size=" + 
-        this.size;
+    return "available=" + this.available + ",mountpoint=" + this.mountpoint
+         + ",used=" + this.used + ",percent=" + this.percent + ",size=" + 
+        this.size + ",device=" + this.device;
   }
 }

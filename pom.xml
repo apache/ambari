@@ -20,7 +20,7 @@
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari</artifactId>
   <packaging>pom</packaging>
-  <name>ambari</name>
+  <name>Ambari Main</name>
   <version>1.0.3-SNAPSHOT</version>
   <description>Ambari</description>
   <pluginRepositories>

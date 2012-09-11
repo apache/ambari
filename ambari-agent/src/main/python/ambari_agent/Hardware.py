@@ -25,6 +25,8 @@ import os.path
 import shell
 import logging
 import subprocess
+import pprint
+import traceback
 
 logger = logging.getLogger()
 
@@ -41,7 +43,7 @@ class Hardware:
     """ Run df to find out the disks on the host. Only works on linux 
     platforms. Note that this parser ignores any filesystems with spaces 
     and any mounts with spaces. """
-    mounts = {}
+    mounts = []
     df = subprocess.Popen(["df", "-kP"], stdout=subprocess.PIPE)
     dfdata = df.communicate()[0]
     lines = dfdata.splitlines()
@@ -50,13 +52,15 @@ class Hardware:
       """ this ignores any spaces in the filesystemname and mounts """
       if (len(split)) == 6:
         device, size, used, available, percent, mountpoint = split
-        mountinfo = { 'size' : size,
-             'used' : used,
-             'available' : available,
-             'percent' : percent,
-             'mountpoint' : mountpoint}
+        mountinfo = { 
+                     'size' : size,
+                     'used' : used,
+                     'available' : available,
+                     'percent' : percent,
+                     'mountpoint' : mountpoint,
+                     'device' : device }
 
-        mounts[device ] = mountinfo
+        mounts.append(mountinfo)
         pass
       pass
     return mounts
@@ -77,9 +81,22 @@ class Hardware:
       if (len(keyValue) == 2):
         """Ignoring values that are just spaces or do not confirm to the 
         format"""
-        retDict[keyValue[0].strip()] = keyValue[1].strip()
+        strippedKey = keyValue[0].strip()
+        logger.info("Stripped key is " + strippedKey)
+        if strippedKey in ["memoryfree", "memorysize", "memorytotal"]:
+          value = keyValue[1].strip()
+          """Convert to KB"""
+          parts = value.split()
+          #TODO need better parsing for detecting KB/GB
+          mem_in_kb = long(float(parts[0]) * 1024 * 1024);
+          retDict[strippedKey] = mem_in_kb
+          pass
+        else:
+          retDict[strippedKey] = keyValue[1].strip()
+          pass
         pass
       pass
+    logger.info("Facter info : \n" + pprint.pformat(retDict))
     return retDict
   
   def facterInfo(self):   
@@ -87,31 +104,35 @@ class Hardware:
     facterEnv = os.environ
     logger.info("Using facter home as: " + facterHome)
     facterInfo = {}
-    if os.path.exists(facterHome):
-      rubyLib = ""
-      if os.environ.has_key("RUBYLIB"):
-        rubyLib = os.environ["RUBYLIB"]
-        logger.info("Ruby Lib env from Env " + rubyLib)
-      rubyLib = rubyLib + ":" + self.facterLib(facterHome)
-      facterEnv["RUBYLIB"] = rubyLib
-      logger.info("Setting RUBYLIB as: " + rubyLib)
-      facter = subprocess.Popen([self.facterBin(facterHome)],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 env=facterEnv)
-      stderr_out = facter.communicate()
-      if facter.returncode != 0:
-        logging.error("Error getting facter info: " + stderr_out[1])
+    try:
+      if os.path.exists(facterHome):
+        rubyLib = ""
+        if os.environ.has_key("RUBYLIB"):
+          rubyLib = os.environ["RUBYLIB"]
+          logger.info("Ruby Lib env from Env " + rubyLib)
+        rubyLib = rubyLib + ":" + self.facterLib(facterHome)
+        facterEnv["RUBYLIB"] = rubyLib
+        logger.info("Setting RUBYLIB as: " + rubyLib)
+        facter = subprocess.Popen([self.facterBin(facterHome)],
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE,
+                                  env=facterEnv)
+        stderr_out = facter.communicate()
+        if facter.returncode != 0:
+          logging.error("Error getting facter info: " + stderr_out[1])
+          pass
+        facterOutput = stderr_out[0]
+        infoDict = self.parseFacterOutput(facterOutput)
+        facterInfo = infoDict
         pass
-      facterOutput = stderr_out[0]
-      infoDict = self.parseFacterOutput(facterOutput)
-      facterInfo = infoDict
-    else:
+      else:
+        pass
+    except:
+      logger.info("Traceback " + traceback.format_exc())
       pass
     return facterInfo
   
   def get(self):
-    logger.info("Hardware Info for the agent: " + str(self.hardware))
     return self.hardware
 
 def main(argv=None):

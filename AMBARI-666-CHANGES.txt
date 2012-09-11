@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-716. Add back TestNodeImpl and fix memory types and disk info
+  serialization. (mahadev)
+
   AMBARI-717. Starter implementation for Installer Customize Services page.
   Stylize top nav and implement static footer.  Stylize login page. (yusaku)
 

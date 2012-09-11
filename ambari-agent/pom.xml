@@ -21,7 +21,7 @@
   <artifactId>ambari-agent</artifactId>
   <packaging>pom</packaging>
   <version>1.0.3-SNAPSHOT</version>
-  <name>agent</name>
+  <name>Ambari Agent</name>
   <description>Ambari Agent</description>
   <properties>
     <final.name>${project.artifactId}-${project.version}</final.name>

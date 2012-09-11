@@ -20,7 +20,7 @@
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-server</artifactId>
   <packaging>jar</packaging>
-  <name>ambari-server</name>
+  <name>Ambari Server</name>
   <version>1.0.3-SNAPSHOT</version>
   <description>Ambari Server</description>
   <build>

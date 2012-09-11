@@ -302,20 +302,13 @@ public class NodeImpl implements Node {
   void importNodeInfo(NodeInfo nodeInfo) {
     try {
       writeLock.lock();
-      /*
-      this.hostName = nodeInfo.hostName;
-      this.ipv4 = nodeInfo.ipv4;
-      this.ipv6 = nodeInfo.ipv6;
-      this.availableMemBytes = nodeInfo.availableMemBytes;
-      this.totalMemBytes = nodeInfo.totalMemBytes;
-      this.cpuCount = nodeInfo.cpuCount;
-      this.osArch = nodeInfo.osArch;
-      this.osType = nodeInfo.osType;
-      this.osInfo = nodeInfo.osInfo;
-      this.disksInfo = nodeInfo.disksInfo;
-      this.rackInfo = nodeInfo.rackInfo;
-      this.hostAttributes = nodeInfo.hostAttributes;
-      */
+      this.hostName = nodeInfo.getHostName();
+      this.availableMemBytes = nodeInfo.getFreeMemory();
+      this.totalMemBytes = nodeInfo.getMemoryTotal();
+      this.cpuCount = nodeInfo.getProcessorCount();
+      this.osArch = nodeInfo.getArchitecture();
+      this.osType = nodeInfo.getOS();
+      this.disksInfo = nodeInfo.getMounts();
     }
     finally {
       writeLock.unlock();

@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.agent;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -67,13 +67,13 @@ public class NodeInfo {
   @XmlElement
   private String macaddress;
   @XmlElement
-  private String memoryfree;
+  private long memoryfree;
   @XmlElement
-  private String memorysize;
+  private long memorysize;
   @XmlElement
-  private HashMap<String, DiskInfo> mounts;
+  private List<DiskInfo> mounts = new ArrayList<DiskInfo>();
   @XmlElement
-  private String memorytotal;
+  private long memorytotal;
   @XmlElement
   private String netmask;
   @XmlElement
@@ -221,35 +221,35 @@ public class NodeInfo {
     this.macaddress = macaddress;
   }
 
-  public String getFreeMemory() {
+  public long getFreeMemory() {
     return this.memoryfree;
   }
 
-  public void setFreeMemory(String memoryfree) {
+  public void setFreeMemory(long memoryfree) {
     this.memoryfree = memoryfree;
   }
 
-  public String getMemorySize() {
+  public long getMemorySize() {
     return this.memorysize;
   }
 
-  public void setMemorySize(String memorysize) {
+  public void setMemorySize(long memorysize) {
     this.memorysize = memorysize;
   }
 
-  public Map<String, DiskInfo> getMounts() {
+  public List<DiskInfo> getMounts() {
     return this.mounts;
   }
 
-  public void setMounts(HashMap<String, DiskInfo> mounts) {
+  public void setMounts(List<DiskInfo> mounts) {
     this.mounts = mounts;
   }
 
-  public String getMemoryTotal() {
+  public long getMemoryTotal() {
     return this.memorytotal;
   }
 
-  public void setMemoryTotal(String memorytotal) {
+  public void setMemoryTotal(long memorytotal) {
     this.memorytotal = memorytotal;
   }
 
@@ -359,15 +359,16 @@ public class NodeInfo {
 
   private String getDiskString() {
     String ret = "";
-    for (Map.Entry<String, DiskInfo> entry: mounts.entrySet()) {
-      ret = ret + " diskname = " + entry.getKey() + "value=" + entry.getValue();
+    for (DiskInfo diskInfo : mounts) {
+      ret = ret + "(" + diskInfo.toString() + ")";
     }
     return ret;
   }
   
   public String toString() {
-    return "memory=" + this.memorytotal + "\n" +
-        "uptime_hours=" + this.uptime_hours + "\n" +
-        "operatingsystem=" + this.operatingsystem + "\n";
+    return "[memory=" + this.memorytotal + "," +
+        "uptime_hours=" + this.uptime_hours + "," +
+        "operatingsystem=" + this.operatingsystem + "," +
+        "mounts=" + getDiskString() + "]\n";
   }
 }
