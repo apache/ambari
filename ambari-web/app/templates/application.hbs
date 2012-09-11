@@ -16,18 +16,18 @@
 * limitations under the License.
 -->
 <div id="main">
-    <div class="navbar">
+    <div class="navbar navbar-static-top">
         <div class="navbar-inner">
             <div class="container">
-            <a {{action gotoStep1}}><img id="logo" src="/img/logo-small.gif"></a>
-            <a class="brand" href="#">{{App.messages.app_name}}</a>
-            <ul class="nav">
-                <li class="right"><a class="help" {{bindAttr href="App.messages.topnav_help_link"}} target="_blank">Help</a></li>
-                {{#if App.router.loggedIn}}
-                <li class="right"><a class="help" href="" {{action logoff}}>Sign out</a></li>
-                {{/if}}
-                <li class="right">{{loginName}}</li>
-            </ul>
+                <a {{action gotoStep1}}><img id="logo" src="/img/logo-small.gif"></a>
+                <a class="brand" href="#">{{App.messages.app_name}}</a>
+                <ul class="nav">
+                    <li class="right"><a class="help" {{bindAttr href="App.messages.topnav_help_link"}} target="_blank">Help</a></li>
+                    {{#if App.router.loggedIn}}
+                    <li class="right"><a class="help" href="" {{action logoff}}>Sign out</a></li>
+                    {{/if}}
+                    <li class="right">{{loginName}}</li>
+                </ul>
             </div>
         </div>
     </div>

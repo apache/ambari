@@ -41,13 +41,8 @@ footer {
     height: @footer-height - 60px;
 }
 
-footer .container {
-    margin: 0 auto;
-    width: 980px;
-}
-
 #content {
-    padding: 20px 0;
+    padding: 40px 0;
 }
 
 @green: #69BE28;
@@ -56,21 +51,27 @@ h1 {
   color: @green;
 }
 
-
-.navbar .container {
-    width: 940px;
-}
-
-.login.well {
-    width: 300px;
+.login.well.span4 {
     margin: 20px auto;
     padding: 25px;
+    float: none;
 }
 
-.login h2 {
-    margin-bottom: 20px;
+.login {
+    h2 {
+        margin-bottom: 20px;
+    }
+    .btn {
+        margin-top: 15px;
+    }
 }
 
-.login .btn {
-    margin-top: 15px;
+#installer {
+    .content {
+        background-color: #fff;
+    }
+    .btn.btn-success {
+        /* float: right; */
+    }
 }
+

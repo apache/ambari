@@ -16,37 +16,35 @@
 * limitations under the License.
 -->
 
-
-<div class="container">
-    <div class="container-fluid">
-        <div class="row-fluid">
-            <div class="span3">
-                <!--Sidebar content-->
-                <div class="well">
-                    <ul class="nav nav-pills nav-stacked">
-                        <li {{bindAttr class="isStep1:active"}}><a {{action gotoStep1}}>{{App.messages.step1_header}}</a></li>
-                        <li {{bindAttr class="isStep2:active"}}><a {{action gotoStep2}}>{{App.messages.step2_header}}</a></li>
-                        <li {{bindAttr class="isStep3:active"}}><a {{action gotoStep3}}>{{App.messages.step3_header}}</a></li>
-                        <li {{bindAttr class="isStep4:active"}}><a {{action gotoStep4}}>{{App.messages.step4_header}}</a></li>
-                        <li {{bindAttr class="isStep5:active"}}><a {{action gotoStep5}}>{{App.messages.step5_header}}</a></li>
-                        <li {{bindAttr class="isStep6:active"}}><a {{action gotoStep6}}>{{App.messages.step6_header}}</a></li>
-                        <li {{bindAttr class="isStep7:active"}}><a {{action gotoStep7}}>{{App.messages.step7_header}}</a></li>
-                        <li {{bindAttr class="isStep8:active"}}><a {{action gotoStep8}}>{{App.messages.step8_header}}</a></li>
-                        <li {{bindAttr class="isStep9:active"}}><a {{action gotoStep9}}>{{App.messages.step9_header}}</a></li>
-                        <li {{bindAttr class="isStep10:active"}}><a {{action gotoStep10}}>{{App.messages.step10_header}}</a></li>
-                    </ul>
+<div id="installer">
+    <div class="container">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span3">
+                    <!--Sidebar content-->
+                    <div class="well">
+                        <ul class="nav nav-pills nav-stacked">
+                            <li {{bindAttr class="isStep1:active"}}><a {{action gotoStep1}}>{{App.messages.step1_header}}</a></li>
+                            <li {{bindAttr class="isStep2:active"}}><a {{action gotoStep2}}>{{App.messages.step2_header}}</a></li>
+                            <li {{bindAttr class="isStep3:active"}}><a {{action gotoStep3}}>{{App.messages.step3_header}}</a></li>
+                            <li {{bindAttr class="isStep4:active"}}><a {{action gotoStep4}}>{{App.messages.step4_header}}</a></li>
+                            <li {{bindAttr class="isStep5:active"}}><a {{action gotoStep5}}>{{App.messages.step5_header}}</a></li>
+                            <li {{bindAttr class="isStep6:active"}}><a {{action gotoStep6}}>{{App.messages.step6_header}}</a></li>
+                            <li {{bindAttr class="isStep7:active"}}><a {{action gotoStep7}}>{{App.messages.step7_header}}</a></li>
+                            <li {{bindAttr class="isStep8:active"}}><a {{action gotoStep8}}>{{App.messages.step8_header}}</a></li>
+                            <li {{bindAttr class="isStep9:active"}}><a {{action gotoStep9}}>{{App.messages.step9_header}}</a></li>
+                            <li {{bindAttr class="isStep10:active"}}><a {{action gotoStep10}}>{{App.messages.step10_header}}</a></li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-            <div class="span9">
-                <!--Body content-->
-                <div>
-                   {{#unless currentStep}}
-                   <h4> {{App.messages.installer_welcome}} </h4>
+                <div class="well span9 content">
+                    {{#unless currentStep}}
+                    <h4>{{App.messages.installer_welcome}}</h4>
 
                     <!--  below gotoStep1 call should be replaced by a function in installerController that checks
                          the existing incomplete installation and cleans all the local stored data related to it -->
 
-                    <a class="btn btn-success"  {{action "gotoStep1"}}>New cluster</a>
+                    <a class="btn btn-success" {{action "gotoStep1"}}>New cluster</a>
 
                     {{/unless}}
                     {{outlet}}
