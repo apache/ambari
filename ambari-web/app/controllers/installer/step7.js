@@ -29,6 +29,8 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
         displayName: 'Prop1',
         value: '',
         defaultValue: '100',
+        description: 'This is Prop1',
+        unit: 'MB',
         category: 'General'
       }, {
         name: 'dfs.prop2',

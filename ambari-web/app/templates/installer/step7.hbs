@@ -35,7 +35,9 @@
         <div class="accordion-body collapse in">
             <div class="accordion-inner">
             {{#each view.categoryConfigs}}
-                <label>{{displayName}} ({{name}})</label> {{#view Ember.TextField}}{{/view}} (default: {{defaultValue}})
+                <label>{{displayName}} - {{name}}</label>
+                <div class="input-append">{{#view Ember.TextField}}{{/view}}{{#if unit}}<span class="add-on">{{unit}}</span>{{/if}}</div>
+                {{description}}
             {{/each}}
             </div>
         </div>
@@ -44,5 +46,7 @@
     {{/each}}
 </div>
 {{/each}}
-<a class="btn" {{action back}}>Back</a>
-<a class="btn btn-success" style="float:right" {{action next}}>Next</a>
+<div class="btn-area">
+    <a class="btn" {{action back}}>Back</a>
+    <a class="btn btn-success" style="float:right" {{action next}}>Next</a>
+</div>

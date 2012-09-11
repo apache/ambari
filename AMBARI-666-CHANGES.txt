@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-720. Tweak basic styles for Installer. (yusaku)
+
   AMBARI-719. Enable Responsive Design. (yusaku)
 
   AMBARI-716. Add back TestNodeImpl and fix memory types and disk info
