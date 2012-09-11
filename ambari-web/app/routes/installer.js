@@ -127,7 +127,7 @@ module.exports = Em.Route.extend({
   }),
 
   step8: Em.Route.extend({
-    route: '/step7',
+    route: '/step8',
 
     connectOutlets: function (router, context) {
       router.setInstallerCurrentStep('8', false);
@@ -138,7 +138,7 @@ module.exports = Em.Route.extend({
   }),
 
   step9: Em.Route.extend({
-    route: '/step7',
+    route: '/step9',
     connectOutlets: function (router, context) {
       router.setInstallerCurrentStep('9', false);
       router.get('installerController').connectOutlet('installerStep9');
@@ -148,7 +148,7 @@ module.exports = Em.Route.extend({
   }),
 
   step10: Em.Route.extend({
-    route: '/step8',
+    route: '/step10',
     connectOutlets: function (router, context) {
       router.setInstallerCurrentStep('10', false);
       router.get('installerController').connectOutlet('installerStep10');
