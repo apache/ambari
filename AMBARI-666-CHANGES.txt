@@ -12,6 +12,10 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-711. Create utility functions related to localStorage for first two
+  steps: cluster name and Install options. Also develop view logic with
+  preliminary validations for these two steps. (Jaimin Jetly via yusaku)
+
   AMBARI-715. Integrate domain objects and Rest serialized objects. (mahadev)
 
   AMBARI-713. Initial work on Job FSM. (hitesh)

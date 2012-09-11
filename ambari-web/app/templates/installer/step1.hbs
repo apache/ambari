@@ -18,10 +18,31 @@
 
 
 <h2>{{App.messages.step1_header}}</h2>
+{{#view App.Step1ParentView}}
+
+{{#if validClusterName}}
+{{#view App.Step1ChildView}}
 <div>
-    Name of your cluster
+    <label><strong>Name of Your Cluster</strong></label>
+    {{view Ember.TextField  valueBinding="clusterName" target="controller"}}
 </div>
-{{view Ember.TextField valueBinding="clusterName" target="controller"}}
+{{/view}}
+
+{{else}}
+{{#view App.Step1ChildErrView}}
+<div class="control-group error">
+    <label class="control-label" for="inputError"><strong>Name of Your Cluster</strong></label>
+
+    <div class="controls">
+        {{view Ember.TextField id="inputError" valueBinding="clusterName" target="controller"}}
+        <p class="help-inline">{{errorMsg_clusterName}}</p>
+    </div>
+</div>
+{{/view}}
+{{/if}}
+
+
 <div>
-<a class="btn btn-success" {{action submit target="view"}}>Next</a>
+    <a class="btn btn-success" {{action next}}>Next</a>
 </div>
+{{/view}}

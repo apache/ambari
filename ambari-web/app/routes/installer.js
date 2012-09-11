@@ -23,10 +23,13 @@ module.exports = Em.Route.extend({
     console.log('in /installer:enter');
 
     if (router.getAuthenticated()) {
+      console.log('In installer and its authenticated!!!');
       Ember.run.next(function () {
         router.transitionTo('step' + router.getInstallerCurrentStep());
       });
     } else {
+      console.log('In installer but its not authenticated');
+      console.log('value of authenticated is: ' + router.getAuthenticated());
       Ember.run.next(function () {
         router.transitionTo('login');
       });
@@ -45,7 +48,16 @@ module.exports = Em.Route.extend({
       router.setInstallerCurrentStep('1', false);
       router.get('installerController').connectOutlet('installerStep1');
     },
-    next: Em.Router.transitionTo('step2')
+    next: function (router, context) {
+      console.log('In step1 transiting to step2');
+      var result = router.get('installerController').evaluateStep1();
+      if (result === true) {
+        App.InstallerStep1View.remove;
+        router.transitionTo('step2');
+      } else {
+        router.get('installerController').connectOutlet('installerStep1');
+      }
+    }
   }),
 
   step2: Em.Route.extend({
@@ -55,7 +67,13 @@ module.exports = Em.Route.extend({
       router.get('installerController').connectOutlet('installerStep2');
     },
     back: Em.Router.transitionTo('step1'),
-    next: Em.Router.transitionTo('step3')
+    next: function (router, context) {
+      console.log('In step2 transiting to step3');
+      var result = router.get('installerController').evaluateStep2();
+      if (result) {
+        router.transitionTo('step3');
+      }
+    }
   }),
 
   step3: Em.Route.extend({

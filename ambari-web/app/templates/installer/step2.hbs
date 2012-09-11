@@ -16,7 +16,85 @@
 * limitations under the License.
 -->
 
-
 <h2>{{App.messages.step2_header}}</h2>
-<a class="btn" {{action back}}>Back</a>
-<a class="btn btn-success" {{action next}}>Next</a>
+{{#view App.Step2_parentView}}
+
+
+{{#view App.Step2_child_HostManageView}}
+
+<h5 {{bindAttr class="hostManageErr:text-error"}}> {{App.messages.step2_targetHosts_label}}</h5>
+{{{App.messages.step2_targetHosts}}}
+{{view Ember.TextArea valueBinding="hostNames" rows="5"}}
+{{#if hostNameEmptyError}}
+<p class="text-error">{{App.messages.step2_hostNameEmptyError}}</p>
+{{/if}}
+{{#if hostNameNotRequireErr}}
+<p class="text-error">{{App.messages.step2_hostNameNotRequireErr}}</p>
+{{/if}}
+
+<div id="hostConnectId">
+
+    <p>Install Ambari agents automatically via passwordless SSH</p>
+
+    <div class="ambari-agents">
+        <ul class="unstyled">
+            <li>{{view Ember.TextField type="text" placeholder="ssh private key" valueBinding="sshKey"}}</li>
+            {{#if chooseFile}}
+            <form name='hostConnectOption' enctype="multipart/form-data" method="post">
+                <fieldset>
+                    <input type="file" name="clusterDeployUserIdentityFile" id="clusterDeployUserIdentityFileId"
+                           value="">
+                </fieldset>
+            </form>
+            {{/if}}
+
+            {{#if sshKeyNullErr}}
+            <p class="text-error">{{App.messages.step2_sshKeyNullErr}}</p>
+            {{/if}}
+
+            <li>{{view Ember.TextField type="text" placeholder="passphrase" valueBinding="passphrase"}} </li>
+
+
+            <li>{{view Ember.TextField type="text" placeholder="confirm passphrase" valueBinding="confirmPassphrase"}}</li>
+
+            {{#if passphraseMatchErr}}
+            <p class="text-error">{{App.messages.step2_passphraseMatchErr}}</p>
+            {{/if}}
+        </ul>
+    </div>
+
+</div>
+{{/view}}
+
+
+<!--style="position:relative;"-->
+{{#view App.Step2_child_AdvOpt}}
+
+<h5 {{bindAttr class="advOptErr:text-error"}}>{{App.messages.step2_advancedOption_label}}</h5>
+<label class="checkbox">
+    Manually install Ambari agents on all the hosts <a href="javascript:void 0">Learn more</a>
+    {{view Ember.Checkbox checkedBinding="manualInstall"}}
+</label>
+<label class="checkbox">
+    use a local software repository <a href="javascript:void 0">Learn more</a>
+    {{view Ember.Checkbox checkedBinding="localRepo"}}
+</label>
+{{#if localRepo}}
+<div>
+    <label>{{App.messages.step2_repoConf_label}}</label>
+    {{view Ember.TextField type="text" placeholder="/etc/yum/repos.d/hdp" valueBinding="localRepoPath"}}
+    {{#if softRepoLocalPathNullErr}}
+    <p class="text-error">Local repository file path cannot be null</p>
+    {{/if}}
+    {{{App.messages.step2_localRepoExplan}}}
+</div>
+{{/if}}
+{{/view}}
+
+{{/view}}
+<a class="btn" {{action back}}>Previous</a>
+<a class="btn btn-success" {{action next}}>Discover and Validate</a>
+
+
+
+

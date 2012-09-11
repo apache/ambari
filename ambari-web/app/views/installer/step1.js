@@ -21,10 +21,21 @@ var App = require('app');
 
 App.InstallerStep1View = Em.View.extend({
 
-  templateName: require('templates/installer/step1'),
+  templateName: require('templates/installer/step1')
 
-  submit: function(e) {
-    //alert(this.get('controller.clusterName'));
-    App.router.transitionTo('step2');
-  }
+});
+
+App.Step1ParentView = Em.View.extend({
+
+});
+
+App.Step1ChildView = Em.View.extend({
+  classNameBindings: ['isEnabled::disabled'],
+  isEnabled: false
+
+});
+
+App.Step1ChildErrView = Em.View.extend({
+  classNameBindings: ['isEnabled::enabled'],
+  isEnabled: true
 });

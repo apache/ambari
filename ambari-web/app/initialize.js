@@ -20,6 +20,7 @@
 window.App = require('app');
 
 require('messages');
+require('utils/db');
 require('templates');
 require('models');
 require('controllers');

@@ -29,10 +29,10 @@ App.LoginController = Em.Object.extend({
     this.set('errorMessage', '');
 
     if (this.validateCredentials()) {
-      console.log("Logging in as: " + this.get('loginName'));
+      console.log('Logging in as: ' + this.get('loginName'));
       App.get('router').login(this.get('loginName'));
     } else {
-      console.log("Failed to login as: " + this.get('loginName'));
+      console.log('Failed to login as: ' + this.get('loginName'));
       this.set('errorMessage', App.messages.login_error);
     }
 

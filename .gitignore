@@ -1,4 +1,9 @@
 .classpath
 .project
 .settings
+.idea/
+.iml/
+.DS_Store
 target
+/ambari-web/public/
+/ambari-web/node_modules/

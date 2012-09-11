@@ -29,10 +29,10 @@ module.exports = Em.Route.extend({
     if (router.getAuthenticated()) {
       // TODO: redirect to last known state
       /*
-      Ember.run.next(function () {
-        router.transitionTo('step' + router.getInstallerCurrentStep());
-      });
-      */
+       Ember.run.next(function () {
+       router.transitionTo('step' + router.getInstallerCurrentStep());
+       });
+       */
     } else {
       Ember.run.next(function () {
         router.transitionTo('login');

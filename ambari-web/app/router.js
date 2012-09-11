@@ -22,14 +22,13 @@ App.Router = Em.Router.extend({
 
   setInstallerCurrentStep: function (currentStep, completed) {
     var loginName = this.getLoginName();
-    localStorage.setItem(loginName + 'Installer' + 'currentStep', currentStep);
-    localStorage.setItem(loginName + 'Installer' + 'completed', completed);
+    App.db.setInstallerCurrentStep(currentStep, completed);
     this.set('installerController.currentStep', currentStep);
   },
 
   getInstallerCurrentStep: function () {
     var loginName = this.getLoginName();
-    var currentStep = localStorage.getItem(loginName + 'Installer' + 'currentStep');
+    var currentStep = App.db.getInstallerCurrentStep();
     console.log('getInstallerCurrentStep: loginName=' + loginName + ", currentStep=" + currentStep);
     if (!currentStep) {
       currentStep = '1';
@@ -42,44 +41,53 @@ App.Router = Em.Router.extend({
 
   getAuthenticated: function () {
     // TODO: this needs to be hooked up with server authentication
-    var auth = localStorage.getItem('Ambari' + 'authenticated');
-    var authResp = (auth && auth === 'true');
+    var auth = App.db.getAuthenticated();
+    var authResp = (auth && auth === true);
     this.set('loggedIn', authResp);
     return authResp;
   },
 
   setAuthenticated: function (authenticated) {
     // TODO: this needs to be hooked up with server authentication
-    localStorage.setItem('Ambari' + 'authenticated', authenticated);
+    console.log("TRACE: Entering router:setAuthenticated function");
+    App.db.setAuthenticated(authenticated);
     this.set('loggedIn', authenticated);
   },
 
   getLoginName: function () {
     // TODO: this needs to be hooked up with server authentication
-    return localStorage.getItem('Ambari' + 'loginName');
+    return App.db.getLoginName();
+    //return localStorage.getItem('Ambari' + 'loginName');
   },
 
   setLoginName: function (loginName) {
     // TODO: this needs to be hooked up with server authentication
-    localStorage.setItem('Ambari' + 'loginName', loginName);
+    App.db.setLoginName(loginName);
+    //localStorage.setItem('Ambari' + 'loginName', loginName);
   },
 
   login: function (loginName) {
     // TODO: this needs to be hooked up with server authentication
+    console.log("In login function");
     this.setAuthenticated(true);
     this.setLoginName(loginName);
     this.transitionTo(this.getSection());
+
   },
 
   defaultSection: 'installer',
 
   getSection: function () {
+    var section = App.db.getSection();
+    console.log("The section is: " + section);
     var section = localStorage.getItem(this.getLoginName() + 'section');
+
     return section || this.defaultSection;
+
   },
 
-  setSection: function(section) {
-    localStorage.setItem(this.getLoginName() + 'section', section);
+  setSection: function (section) {
+    App.db.setSection(section);
   },
 
   root: Em.Route.extend({
@@ -107,7 +115,6 @@ App.Router = Em.Router.extend({
         console.log('/login:connectOutlet');
         console.log('currentStep is: ' + router.getInstallerCurrentStep());
         console.log('authenticated is: ' + router.getAuthenticated());
-
         router.get('applicationController').connectOutlet('login', App.LoginView);
       }
     }),
@@ -118,8 +125,7 @@ App.Router = Em.Router.extend({
 
     logoff: function (router, context) {
       console.log('logging off');
-      router.setAuthenticated(false);
-      router.setLoginName('');
+      App.db.cleanUp();
       router.set('loginController.loginName', '');
       router.set('loginController.password', '');
       router.transitionTo('login', context);
