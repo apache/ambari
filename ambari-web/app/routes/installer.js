@@ -50,7 +50,7 @@ module.exports = Em.Route.extend({
     },
     next: function (router, context) {
       console.log('In step1 transiting to step2');
-      var result = router.get('installerController').evaluateStep1();
+      var result = router.get('installerStep1Controller').evaluateStep1();
       if (result === true) {
         App.InstallerStep1View.remove;
         router.transitionTo('step2');
@@ -69,7 +69,8 @@ module.exports = Em.Route.extend({
     back: Em.Router.transitionTo('step1'),
     next: function (router, context) {
       console.log('In step2 transiting to step3');
-      var result = router.get('installerController').evaluateStep2();
+      $('#myModal').modal('hide');
+      var result = router.get('installerStep2Controller').evaluateStep2();
       if (result) {
         router.transitionTo('step3');
       }

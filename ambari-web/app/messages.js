@@ -20,56 +20,63 @@
 var App = require('app');
 
 App.messages = {
-	'app_name': 'Ambari',
-	'page_title': 'Ambari',
-	'installer_welcome': 'Welcome to Ambari installation wizard',
-	'login_error': 'Invalid username/password combination.',
-	'login_header': 'Sign in',
-	'username_label': 'Username',
-	'password_label': 'Password',
-	'login_button': 'Sign in',
-
-  "step1_header": "Welcome",
-  "step2_header": "Install Options",
-  "step3_header": "Confirm Hosts",
-  "step4_header": "Choose Services",
-  "step5_header": "Assign Masters",
-  "step6_header": "Assign Slaves",
-  "step7_header": "Customize Services",
-  "step8_header": "Review",
-  "step9_header": "Install, Start and Test",
-  "step10_header": "Summary",
-	'page_footer_body': '<a href = \"http://www.apache.org/licenses/LICENSE-2.0\" target = \"_blank\">Licensed under the ' +
-		'Apache License, Version 2.0</a>.<br><a href = \"/licenses/NOTICE.txt\" target = \"_blank\">See third-party ' +
-		'tools/resources that Ambari uses and their respective authors</a>',
-	'step1_clusterName_error_null': 'Cluster Name cannot be null value',
-	'step1_clusterName_error_Whitespaces': 'Cluster Name cannot contain white spaces',
-	'step1_clusterName_error_specialChar': 'Cluster Name cannot have hyphen as first or last alphabet',
-	'topnav_help_link': 'http://incubator.apache.org/ambari/install.html',
-	'welcome_header': 'Welcome to Ambari!',
-	'step2_targetHosts': '<p>Enter a list of host names, one per line. Or use <a href=\"javascript:void 0\"> ' +
-		'Pattern expression</a> </p>',
-	'step2_targetHosts_label': 'Specify Hosts to Manage',
-	'step2_hostNameEmptyError': 'host names cannot be left empty',
-	'step2_sshKeyNullErr': 'ssh key cannot be empty' ,
-	'step2_passphraseMatchErr': '\"Confirm passphrase\" doesn\'t matches \"passphrase\" value',
-	'step2_hostNameNotRequireErr' : 'Host names not required for manual install of ambari agents',
-	'step2_softRepo_default_localPath': '/etc/yum/repos.d/hdp',
-	'step2_softRepo_remotePath': '',
-	'step2_advancedOption_label': 'Advanced Options',
-	'step2_repoConf_label': 'Yum Repository Configuration File Path',
-	'step2_localRepoExplan': '<p>The repository configuration file should be installed on each host in your cluster. ' +
-		'This file instructs package manager to use your local software repository to retrieve software packages,instead of ' +
-		'using internet.</p>',
-	'welcome_body': '<p>Ambari makes it easy for you to install, configure, and manage your Hadoop cluster.<br>First, ' +
-		'we will walk you through setting up your cluster with a step-by-step wizard.</p>',
-	'welcome_note': 'Before you proceed, make sure you have performed all the pre-installation steps.',
-	'welcome_submit_label': 'Get started',
-	'installFailed_header': 'Cluster installation failed',
-	'installFailed_body': 'Cluster installation failed.  To continue, you will need to uninstall the cluster first and ' +
-		're-install the cluster.',
-	'installFailed_submit_label': 'Start the uninstall process',
-	'uninstallFailed_header': 'Cluster uninstallation failed',
-	'uninstallFailed_body': 'Failed to uninstall the cluster'
+  'app_name': 'Ambari',
+  'page_title': 'Ambari',
+  'installer_welcome': 'Welcome to Ambari installation wizard',
+  'login_error': 'Invalid username/password combination.',
+  'login_header': 'Sign in',
+  'username_label': 'Username',
+  'password_label': 'Password',
+  'login_button': 'Sign in',
+  'step1_header': 'Ambari Cluster Install Wizard',
+  'step1_body': 'Welcome to Apache Ambari<br>' +
+    'Ambari makes it really easy to install,manage, and monitor Hadoop clusters.<br\>' +
+    'We will walk you through the cluster installation process with this ' +
+    'step-by-step wizard.',
+  'step2_header': 'Install Options',
+  'step3_header': 'Confirm Hosts',
+  'step3_body': 'Here are the results of the host discovery process.<br/> ' +
+    'Please verify and remove the ones that you do not want to be the part of the cluster.',
+  'step4_header': 'Choose Services',
+  'step5_header': 'Assign Masters',
+  'step6_header': 'Assign Slaves',
+  'step7_header': 'Customize Services',
+  'step8_header': 'Review',
+  'step9_header': 'Install, Start and Test',
+  'step10_header': 'Summary',
+  'step1_clusterName_error_required': 'Cluster Name is required',
+  'step1_clusterName_error_whitespaces': 'Cluster Name cannot contain white spaces',
+  'step1_clusterName_error_specialChar': 'Cluster Name cannot contain special character',
+  'topnav_help_link': 'http://incubator.apache.org/ambari/install.html',
+  'welcome_header': 'Welcome to Ambari!',
+  'step2_targetHosts': 'Enter a list of host names, one per line. Or use',
+  'step2_targetHosts_label': 'Specify Hosts to Manage',
+  'step2_hostNameEmptyError': 'host names cannot be left empty',
+  'step2_sshKeyNullErr': 'ssh key cannot be empty',
+  'step2_passphraseMatchErr': '\"Confirm passphrase\" doesn\'t matches \"passphrase\" value',
+  'step2_hostNameNotRequireErr': 'Host names not required for ssh-less install of ambari agents',
+  'step2_manualInstallOpt': 'Do not use SSH to automatically configure the hosts ',
+  'step2_localRepoOpt': '',
+  'step2_softRepo_default_localPath': '/etc/yum/repos.d/hdp',
+  'step2_softRepo_remotePath': '',
+  'step2_advancedOption_label': 'Advanced Options',
+  'step2_repoConf_label': 'Software Repository Configuration File Path',
+  'step2_localRepoOpt': 'use a local software repository',
+  'step2_localRepoExplan': '<p class=\"text-info\">The repository configuration file should be installed on each host in your cluster. ' +
+    'This file instructs package manager to use your local software repository to retrieve software packages,instead of ' +
+    'using internet.</p>',
+  'step2_manualInstallExplain': 'Ambari agents will not be installed ' +
+    'automatically. You will require to install it manually on each host of ' +
+    'your cluster. Agents should be started before you step to next stage.',
+  'welcome_body': '<p>Ambari makes it easy for you to install, configure, and manage your Hadoop cluster.<br>First, ' +
+    'we will walk you through setting up your cluster with a step-by-step wizard.</p>',
+  'welcome_note': 'Before you proceed, make sure you have performed all the pre-installation steps.',
+  'welcome_submit_label': 'Get started',
+  'installFailed_header': 'Cluster installation failed',
+  'installFailed_body': 'Cluster installation failed.  To continue, you will need to uninstall the cluster first and ' +
+    're-install the cluster.',
+  'installFailed_submit_label': 'Start the uninstall process',
+  'uninstallFailed_header': 'Cluster uninstallation failed',
+  'uninstallFailed_body': 'Failed to uninstall the cluster'
 };
 

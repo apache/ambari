@@ -22,4 +22,7 @@
 require('controllers/application');
 require('controllers/login');
 require('controllers/installer');
+require('controllers/installer/step1');
+require('controllers/installer/step2');
+require('controllers/installer/step3');
 require('controllers/installer/step7');

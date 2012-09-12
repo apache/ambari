@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-723. Implement Installer Welcome page and Install Options page
+ (Jaimin Jetly via yusaku)
+
   AMBARI-726. ORM-based data access layer for new design (Jaimin Jetly via hitesh)
 
   AMBARI-728. Initial work on ServiceComponentNode FSM. (hitesh)

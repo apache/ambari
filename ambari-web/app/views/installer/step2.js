@@ -23,15 +23,8 @@ App.InstallerStep2View = Em.View.extend({
 
   templateName: require('templates/installer/step2'),
 
-  doManualInstall: function (router, event) {
-    if (typeof jQuery != 'undefined') {
+  didInsertElement: function () {
 
-      console.log('jQuery library is loaded!');
-
-    }
-    console.log('value is: ' + $('#hostConnectId h2').text());
-    console.log('over here');
-    //alert('value is:' +  $('hostConnectId').('connect-opt').value);
   }
 
 });
@@ -40,16 +33,10 @@ App.Step2_parentView = Em.View.extend({
   isVisible: true,
   click: function () {
     console.log('parent of step2');
-  }
-});
+  },
+  didInsertElement: function () {
+    $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
 
-App.Step2_parent_TargetHostView = Em.View.extend({
-  ///
-
-  ///
-  isVisible: true,
-  click: function () {
-    console.log('target hosts: child of step2');
   }
 });
 
@@ -64,7 +51,8 @@ App.Step2_child_HostManageView = Em.View.extend({
 
 App.Step2_child_AdvOpt = Em.View.extend({
   isVisible: true,
+
   click: function () {
-    console.log('Soft Repo: parent of step2');
+    console.log('Advance option : child of step2');
   }
 });
