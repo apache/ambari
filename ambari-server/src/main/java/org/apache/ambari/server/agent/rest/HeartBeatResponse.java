@@ -38,13 +38,13 @@ import org.apache.ambari.server.agent.AgentCommand;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
 public class HeartBeatResponse {
-  
+
   String lastCompletedActionId;
   @XmlElement
   public short responseId;
   @XmlElement
   public String clusterId;
-  
+
   List<AgentCommand> cmds = null;
 
   public short getResponseId() {

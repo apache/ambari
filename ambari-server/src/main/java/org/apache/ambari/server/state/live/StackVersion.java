@@ -16,15 +16,27 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.job;
+package org.apache.ambari.server.state.live;
 
-public class JobType {
+public class StackVersion {
+  private String stackVersion;
 
-  public final String jobName;
-
-  public JobType(String jobName) {
+  public StackVersion(String stackVersion) {
     super();
-    this.jobName = jobName;
+    this.stackVersion = stackVersion;
   }
 
+  /**
+   * @return the stackVersion
+   */
+  public String getStackVersion() {
+    return stackVersion;
+  }
+
+  /**
+   * @param stackVersion the stackVersion to set
+   */
+  public void setStackVersion(String stackVersion) {
+    this.stackVersion = stackVersion;
+  }
 }

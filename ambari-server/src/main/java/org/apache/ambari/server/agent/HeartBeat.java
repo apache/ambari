@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  *
- * 
+ *
  * Data model for Ambari Agent to send heartbeat to Ambari Server.
  *
  */
@@ -44,7 +44,7 @@ public class HeartBeat {
   List<ComponentStatus> componentStatus;
   //TODO add serialization
   NodeStatus nodeStatus;
-  
+
   @XmlElement
   private short responseId = -1;
   @XmlElement
@@ -80,8 +80,8 @@ public class HeartBeat {
 
   public boolean getIdle() {
     return idle;
-  }  
-  
+  }
+
   public int getInstallScriptHash() {
     return installScriptHash;
   }

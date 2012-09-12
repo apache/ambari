@@ -19,205 +19,268 @@
 package org.apache.ambari.server.state.live;
 
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.ambari.server.state.ConfigVersion;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.live.job.Job;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class ServiceComponentNodeImpl implements ServiceComponentNode {
 
+  private static final Log LOG =
+      LogFactory.getLog(ServiceComponentNodeImpl.class);
+
+  private final Lock readLock;
+  private final Lock writeLock;
+
+  private ServiceComponentNodeState state;
+
+  private final String serviceComponentName;
+  private final String hostName;
+
   private static final StateMachineFactory
-  <ServiceComponentNodeImpl, ServiceComponentNodeState,
+  <ServiceComponentNodeImpl, ServiceComponentNodeLiveState,
   ServiceComponentNodeEventType, ServiceComponentNodeEvent>
     daemonStateMachineFactory
       = new StateMachineFactory<ServiceComponentNodeImpl,
-          ServiceComponentNodeState, ServiceComponentNodeEventType,
+          ServiceComponentNodeLiveState, ServiceComponentNodeEventType,
           ServiceComponentNodeEvent>
-          (ServiceComponentNodeState.INIT)
+          (ServiceComponentNodeLiveState.INIT)
 
-  // define the state machine of a NodeServiceComponent
+  // define the state machine of a NodeServiceComponent for runnable
+  // components
 
-     .addTransition(ServiceComponentNodeState.INIT,
-         ServiceComponentNodeState.INSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.INIT,
+         ServiceComponentNodeLiveState.INSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_INSTALL)
 
-     .addTransition(ServiceComponentNodeState.INSTALLING,
-         ServiceComponentNodeState.INSTALLED,
+     .addTransition(ServiceComponentNodeLiveState.INSTALLING,
+         ServiceComponentNodeLiveState.INSTALLED,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_SUCCEEDED)
-     .addTransition(ServiceComponentNodeState.INSTALLING,
-         ServiceComponentNodeState.INSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.INSTALLING,
+         ServiceComponentNodeLiveState.INSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_IN_PROGRESS)
-     .addTransition(ServiceComponentNodeState.INSTALLING,
-         ServiceComponentNodeState.INSTALL_FAILED,
+     .addTransition(ServiceComponentNodeLiveState.INSTALLING,
+         ServiceComponentNodeLiveState.INSTALL_FAILED,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_FAILED)
 
-     .addTransition(ServiceComponentNodeState.INSTALL_FAILED,
-         ServiceComponentNodeState.INSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.INSTALL_FAILED,
+         ServiceComponentNodeLiveState.INSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_RESTART)
 
-     .addTransition(ServiceComponentNodeState.INSTALLED,
-         ServiceComponentNodeState.STARTING,
+     .addTransition(ServiceComponentNodeLiveState.INSTALLED,
+         ServiceComponentNodeLiveState.STARTING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_START)
-     .addTransition(ServiceComponentNodeState.INSTALLED,
-         ServiceComponentNodeState.UNINSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.INSTALLED,
+         ServiceComponentNodeLiveState.UNINSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_UNINSTALL)
-     .addTransition(ServiceComponentNodeState.INSTALLED,
-         ServiceComponentNodeState.INSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.INSTALLED,
+         ServiceComponentNodeLiveState.INSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_INSTALL)
 
-     .addTransition(ServiceComponentNodeState.STARTING,
-         ServiceComponentNodeState.STARTING,
+     .addTransition(ServiceComponentNodeLiveState.STARTING,
+         ServiceComponentNodeLiveState.STARTING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_IN_PROGRESS)
-     .addTransition(ServiceComponentNodeState.STARTING,
-         ServiceComponentNodeState.STARTED,
+     .addTransition(ServiceComponentNodeLiveState.STARTING,
+         ServiceComponentNodeLiveState.STARTED,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_SUCCEEDED)
-     .addTransition(ServiceComponentNodeState.STARTING,
-         ServiceComponentNodeState.START_FAILED,
+     .addTransition(ServiceComponentNodeLiveState.STARTING,
+         ServiceComponentNodeLiveState.START_FAILED,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_FAILED)
 
-     .addTransition(ServiceComponentNodeState.START_FAILED,
-         ServiceComponentNodeState.STARTING,
+     .addTransition(ServiceComponentNodeLiveState.START_FAILED,
+         ServiceComponentNodeLiveState.STARTING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_RESTART)
 
-     .addTransition(ServiceComponentNodeState.STARTED,
-         ServiceComponentNodeState.STOPPING,
+     .addTransition(ServiceComponentNodeLiveState.STARTED,
+         ServiceComponentNodeLiveState.STOPPING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_STOP)
 
-     .addTransition(ServiceComponentNodeState.STOPPING,
-         ServiceComponentNodeState.STOPPING,
+     .addTransition(ServiceComponentNodeLiveState.STOPPING,
+         ServiceComponentNodeLiveState.STOPPING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_IN_PROGRESS)
-     .addTransition(ServiceComponentNodeState.STOPPING,
-         ServiceComponentNodeState.INSTALLED,
+     .addTransition(ServiceComponentNodeLiveState.STOPPING,
+         ServiceComponentNodeLiveState.INSTALLED,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_SUCCEEDED)
-     .addTransition(ServiceComponentNodeState.STOPPING,
-         ServiceComponentNodeState.STOP_FAILED,
+     .addTransition(ServiceComponentNodeLiveState.STOPPING,
+         ServiceComponentNodeLiveState.STOP_FAILED,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_FAILED)
 
-     .addTransition(ServiceComponentNodeState.STOP_FAILED,
-         ServiceComponentNodeState.STOPPING,
+     .addTransition(ServiceComponentNodeLiveState.STOP_FAILED,
+         ServiceComponentNodeLiveState.STOPPING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_RESTART)
 
-     .addTransition(ServiceComponentNodeState.UNINSTALLING,
-         ServiceComponentNodeState.UNINSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.UNINSTALLING,
+         ServiceComponentNodeLiveState.UNINSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_IN_PROGRESS)
-     .addTransition(ServiceComponentNodeState.UNINSTALLING,
-         ServiceComponentNodeState.UNINSTALLED,
+     .addTransition(ServiceComponentNodeLiveState.UNINSTALLING,
+         ServiceComponentNodeLiveState.UNINSTALLED,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_SUCCEEDED)
-     .addTransition(ServiceComponentNodeState.UNINSTALLING,
-         ServiceComponentNodeState.UNINSTALL_FAILED,
+     .addTransition(ServiceComponentNodeLiveState.UNINSTALLING,
+         ServiceComponentNodeLiveState.UNINSTALL_FAILED,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_FAILED)
 
-     .addTransition(ServiceComponentNodeState.UNINSTALL_FAILED,
-         ServiceComponentNodeState.UNINSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.UNINSTALL_FAILED,
+         ServiceComponentNodeLiveState.UNINSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_RESTART)
 
-     .addTransition(ServiceComponentNodeState.UNINSTALLED,
-         ServiceComponentNodeState.INSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.UNINSTALLED,
+         ServiceComponentNodeLiveState.INSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_INSTALL)
 
-     .addTransition(ServiceComponentNodeState.UNINSTALLED,
-         ServiceComponentNodeState.INIT,
+     .addTransition(ServiceComponentNodeLiveState.UNINSTALLED,
+         ServiceComponentNodeLiveState.INIT,
          ServiceComponentNodeEventType.NODE_SVCCOMP_WIPEOUT)
 
      .installTopology();
 
   private static final StateMachineFactory
-  <ServiceComponentNodeImpl, ServiceComponentNodeState,
+  <ServiceComponentNodeImpl, ServiceComponentNodeLiveState,
   ServiceComponentNodeEventType, ServiceComponentNodeEvent>
     clientStateMachineFactory
       = new StateMachineFactory<ServiceComponentNodeImpl,
-          ServiceComponentNodeState, ServiceComponentNodeEventType,
+          ServiceComponentNodeLiveState, ServiceComponentNodeEventType,
           ServiceComponentNodeEvent>
-          (ServiceComponentNodeState.INIT)
+          (ServiceComponentNodeLiveState.INIT)
 
-  // define the state machine of a NodeServiceComponent
+  // define the state machine of a NodeServiceComponent for client only
+  // components
 
-     .addTransition(ServiceComponentNodeState.INIT,
-         ServiceComponentNodeState.INSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.INIT,
+         ServiceComponentNodeLiveState.INSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_INSTALL)
 
-     .addTransition(ServiceComponentNodeState.INSTALLING,
-         ServiceComponentNodeState.INSTALLED,
+     .addTransition(ServiceComponentNodeLiveState.INSTALLING,
+         ServiceComponentNodeLiveState.INSTALLED,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_SUCCEEDED)
-     .addTransition(ServiceComponentNodeState.INSTALLING,
-         ServiceComponentNodeState.INSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.INSTALLING,
+         ServiceComponentNodeLiveState.INSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_IN_PROGRESS)
-     .addTransition(ServiceComponentNodeState.INSTALLING,
-         ServiceComponentNodeState.INSTALL_FAILED,
+     .addTransition(ServiceComponentNodeLiveState.INSTALLING,
+         ServiceComponentNodeLiveState.INSTALL_FAILED,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_FAILED)
 
-     .addTransition(ServiceComponentNodeState.INSTALL_FAILED,
-         ServiceComponentNodeState.INSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.INSTALL_FAILED,
+         ServiceComponentNodeLiveState.INSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_RESTART)
 
-     .addTransition(ServiceComponentNodeState.INSTALLED,
-         ServiceComponentNodeState.UNINSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.INSTALLED,
+         ServiceComponentNodeLiveState.UNINSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_UNINSTALL)
-     .addTransition(ServiceComponentNodeState.INSTALLED,
-         ServiceComponentNodeState.INSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.INSTALLED,
+         ServiceComponentNodeLiveState.INSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_INSTALL)
 
-     .addTransition(ServiceComponentNodeState.UNINSTALLING,
-         ServiceComponentNodeState.UNINSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.UNINSTALLING,
+         ServiceComponentNodeLiveState.UNINSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_IN_PROGRESS)
-     .addTransition(ServiceComponentNodeState.UNINSTALLING,
-         ServiceComponentNodeState.UNINSTALLED,
+     .addTransition(ServiceComponentNodeLiveState.UNINSTALLING,
+         ServiceComponentNodeLiveState.UNINSTALLED,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_SUCCEEDED)
-     .addTransition(ServiceComponentNodeState.UNINSTALLING,
-         ServiceComponentNodeState.UNINSTALL_FAILED,
+     .addTransition(ServiceComponentNodeLiveState.UNINSTALLING,
+         ServiceComponentNodeLiveState.UNINSTALL_FAILED,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_FAILED)
 
-     .addTransition(ServiceComponentNodeState.UNINSTALL_FAILED,
-         ServiceComponentNodeState.UNINSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.UNINSTALL_FAILED,
+         ServiceComponentNodeLiveState.UNINSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_OP_RESTART)
 
-     .addTransition(ServiceComponentNodeState.UNINSTALLED,
-         ServiceComponentNodeState.INSTALLING,
+     .addTransition(ServiceComponentNodeLiveState.UNINSTALLED,
+         ServiceComponentNodeLiveState.INSTALLING,
          ServiceComponentNodeEventType.NODE_SVCCOMP_INSTALL)
 
-     .addTransition(ServiceComponentNodeState.UNINSTALLED,
-         ServiceComponentNodeState.INIT,
+     .addTransition(ServiceComponentNodeLiveState.UNINSTALLED,
+         ServiceComponentNodeLiveState.INIT,
          ServiceComponentNodeEventType.NODE_SVCCOMP_WIPEOUT)
 
      .installTopology();
 
 
-  private final StateMachine<ServiceComponentNodeState,
+  private final StateMachine<ServiceComponentNodeLiveState,
       ServiceComponentNodeEventType, ServiceComponentNodeEvent> stateMachine;
 
-  public ServiceComponentNodeImpl(boolean isClient) {
+  public ServiceComponentNodeImpl(String serviceComponentName,
+      String hostName, boolean isClient) {
     super();
     if (isClient) {
       this.stateMachine = clientStateMachineFactory.make(this);
     } else {
       this.stateMachine = daemonStateMachineFactory.make(this);
     }
+    ReadWriteLock rwLock = new ReentrantReadWriteLock();
+    this.readLock = rwLock.readLock();
+    this.writeLock = rwLock.writeLock();
+    this.serviceComponentName = serviceComponentName;
+    this.hostName = hostName;
   }
 
   @Override
   public ServiceComponentNodeState getState() {
-    // TODO Auto-generated method stub
-    return null;
+    try {
+      readLock.lock();
+      return state;
+    }
+    finally {
+      readLock.unlock();
+    }
   }
 
   @Override
   public void setState(ServiceComponentNodeState state) {
-    // TODO Auto-generated method stub
+    try {
+      writeLock.lock();
+      this.state = state;
+      stateMachine.setCurrentState(state.getLiveState());
+    }
+    finally {
+      writeLock.unlock();
+    }
   }
 
   @Override
   public void handleEvent(ServiceComponentNodeEvent event)
       throws InvalidStateTransitonException {
-    // TODO
-    stateMachine.doTransition(event.getType(), event);
-  }
-
-  @Override
-  public ConfigVersion getConfigVersion() {
-    // TODO Auto-generated method stub
-    return null;
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Handling ServiceComponentNodeEvent event,"
+          + " eventType=" + event.getType().name()
+          + ", event=" + event.toString());
+    }
+    ServiceComponentNodeState oldState = getState();
+    try {
+      writeLock.lock();
+      try {
+        stateMachine.doTransition(event.getType(), event);
+        state.setState(stateMachine.getCurrentState());
+      } catch (InvalidStateTransitonException e) {
+        LOG.error("Can't handle ServiceComponentNodeEvent event at"
+            + " current state"
+            + ", serviceComponentName=" + this.getServiceComponentName()
+            + ", hostName=" + this.getNodeName()
+            + ", currentState=" + oldState
+            + ", eventType=" + event.getType()
+            + ", event=" + event);
+        throw e;
+      }
+    }
+    finally {
+      writeLock.unlock();
+    }
+    if (oldState.getLiveState() != getState().getLiveState()) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("ServiceComponentNode transitioned to a new state"
+            + ", serviceComponentName=" + this.getServiceComponentName()
+            + ", hostName=" + this.getNodeName()
+            + ", oldState=" + oldState
+            + ", currentState=" + getState()
+            + ", eventType=" + event.getType().name()
+            + ", event=" + event);
+      }
+    }
   }
 
   @Override
@@ -228,14 +291,13 @@ public class ServiceComponentNodeImpl implements ServiceComponentNode {
 
   @Override
   public String getServiceComponentName() {
-    // TODO Auto-generated method stub
-    return null;
+    return serviceComponentName;
   }
 
   @Override
   public String getNodeName() {
-    // TODO Auto-generated method stub
-    return null;
+    return hostName;
   }
+
 
 }

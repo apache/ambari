@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * 
+ *
  * Data model for Ambari Agent to send hardware profile to Ambari Server.
  *
  */
@@ -99,7 +99,7 @@ public class NodeInfo {
   @XmlElement
   private long uptime_days;
   @XmlElement
-  private long uptime_hours;   
+  private long uptime_hours;
 
   public String getArchitecture() {
     return this.architecture;
@@ -325,7 +325,7 @@ public class NodeInfo {
     this.swapsize = swapsize;
   }
 
-  public String getTimeZone() { 
+  public String getTimeZone() {
     return this.timezone;
   }
 
@@ -364,7 +364,7 @@ public class NodeInfo {
     }
     return ret;
   }
-  
+
   public String toString() {
     return "[memory=" + this.memorytotal + "," +
         "uptime_hours=" + this.uptime_hours + "," +

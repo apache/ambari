@@ -21,13 +21,13 @@ import java.util.List;
 
 public class ActionDBAccessor {
   public void persistAction(HostAction ha) {
-    
+
   }
-  
+
   public Stage getAction(String actionId) {
     return null;
   }
-  
+
   public List<Stage> getAllStages(String requestId) {
     return null;
   }

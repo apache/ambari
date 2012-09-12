@@ -25,7 +25,7 @@ import org.apache.ambari.server.agent.rest.HeartBeatResponse;
  */
 public class HeartBeatHandler {
   private String lastCompletedActionId;
-  
+
   public HeartBeatResponse handleHeartBeat(HeartBeat heartbeat) {
     System.out.println(heartbeat.toString());
     return null;

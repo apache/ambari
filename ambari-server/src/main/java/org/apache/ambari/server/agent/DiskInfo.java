@@ -31,7 +31,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
-//TODO convert the type safe ints/longs for used/percent/size.  
+//TODO convert the type safe ints/longs for used/percent/size.
 public class DiskInfo {
   @XmlElement
   String available;
@@ -45,16 +45,16 @@ public class DiskInfo {
   String percent;
   @XmlElement
   String size;
-  
+
   /**
    * DiskInfo object that tracks information about a disk.
-   * @param mountpoint 
+   * @param mountpoint
    * @param available
    * @param used
    * @param percent
    * @param size
    */
-  public DiskInfo(String device, String mountpoint, String available, 
+  public DiskInfo(String device, String mountpoint, String available,
       String used, String percent, String size) {
     this.device = device;
     this.mountpoint = mountpoint;
@@ -63,32 +63,32 @@ public class DiskInfo {
     this.percent = percent;
     this.size = size;
   }
-  
+
   /**
    * Needed for JAXB
    */
   public DiskInfo() {}
-  
+
   public String getAvailable() {
     return this.available;
   }
-  
+
   public String getMountPoint() {
     return this.mountpoint;
   }
-  
+
   public String getUsed() {
     return this.used;
   }
-  
+
   public String getPercent() {
     return this.percent;
   }
-  
+
   @Override
   public String toString() {
     return "available=" + this.available + ",mountpoint=" + this.mountpoint
-         + ",used=" + this.used + ",percent=" + this.percent + ",size=" + 
+         + ",used=" + this.used + ",percent=" + this.percent + ",size=" +
         this.size + ",device=" + this.device;
   }
 }

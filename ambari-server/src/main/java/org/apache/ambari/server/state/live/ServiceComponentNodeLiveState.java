@@ -16,15 +16,55 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.job;
+package org.apache.ambari.server.state.live;
 
-public class JobType {
-
-  public final String jobName;
-
-  public JobType(String jobName) {
-    super();
-    this.jobName = jobName;
-  }
-
+public enum ServiceComponentNodeLiveState {
+  /**
+   * Initial/Clean state
+   */
+  INIT,
+  /**
+   * In the process of installing.
+   */
+  INSTALLING,
+  /**
+   * Install failed
+   */
+  INSTALL_FAILED,
+  /**
+   * State when install completed successfully
+   */
+  INSTALLED,
+  /**
+   * In the process of starting.
+   */
+  STARTING,
+  /**
+   * Start failed.
+   */
+  START_FAILED,
+  /**
+   * State when start completed successfully.
+   */
+  STARTED,
+  /**
+   * In the process of stopping.
+   */
+  STOPPING,
+  /**
+   * Stop failed
+   */
+  STOP_FAILED,
+  /**
+   * In the process of uninstalling.
+   */
+  UNINSTALLING,
+  /**
+   * Uninstall failed.
+   */
+  UNINSTALL_FAILED,
+  /**
+   * State when uninstall completed successfully.
+   */
+  UNINSTALLED
 }

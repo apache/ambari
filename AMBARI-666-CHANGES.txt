@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-728. Initial work on ServiceComponentNode FSM. (hitesh)
+
   AMBARI-724. Add tabs, dynamic form generation, validation errors, and info
   popovers for Customize Services page in Installer (yusaku) 
 

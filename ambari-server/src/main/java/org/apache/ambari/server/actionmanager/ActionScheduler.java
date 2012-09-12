@@ -17,19 +17,19 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-//This class encapsulates the action scheduler thread. 
+//This class encapsulates the action scheduler thread.
 //Action schedule frequently looks at action database and determines if
 //there is an action that can be scheduled.
 public class ActionScheduler implements Runnable {
-  
+
   private final long actionTimeout;
   private final long sleepTime;
-  
+
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec) {
     this.sleepTime = sleepTimeMilliSec;
     this.actionTimeout = actionTimeoutMilliSec;
   }
-  
+
   @Override
   public void run() {
     try {

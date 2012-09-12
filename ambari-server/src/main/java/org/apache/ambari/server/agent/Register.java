@@ -44,7 +44,7 @@ public class Register {
   private String hostname;
   @XmlElement
   private NodeInfo hardwareProfile;
-  
+
   public short getResponseId() {
     return responseId;
   }
@@ -60,7 +60,7 @@ public class Register {
   public String getHostname() {
     return hostname;
   }
- 
+
   public NodeInfo getHardwareProfile() {
     return hardwareProfile;
   }
@@ -72,9 +72,9 @@ public class Register {
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
- 
+
   public void setHardwareProfile(NodeInfo hardwareProfile) {
-    this.hardwareProfile = hardwareProfile;    
+    this.hardwareProfile = hardwareProfile;
   }
 
   @Override

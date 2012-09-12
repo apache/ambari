@@ -18,53 +18,56 @@
 
 package org.apache.ambari.server.state.live;
 
-public enum ServiceComponentNodeState {
+import org.apache.ambari.server.state.ConfigVersion;
+
+public class ServiceComponentNodeState {
+
+  private ConfigVersion configVersion;
+  private StackVersion stackVersion;
+  private ServiceComponentNodeLiveState state;
+
+  public ServiceComponentNodeState(ConfigVersion configVersion,
+      StackVersion stackVersion, ServiceComponentNodeLiveState state) {
+    super();
+    this.configVersion = configVersion;
+    this.stackVersion = stackVersion;
+    this.state = state;
+  }
+
   /**
-   * Initial/Clean state
+   * @return the configVersion
    */
-  INIT,
+  public ConfigVersion getConfigVersion() {
+    return configVersion;
+  }
   /**
-   * In the process of installing.
+   * @param configVersion the configVersion to set
    */
-  INSTALLING,
+  public void setConfigVersion(ConfigVersion configVersion) {
+    this.configVersion = configVersion;
+  }
   /**
-   * Install failed
+   * @return the stackVersion
    */
-  INSTALL_FAILED,
+  public StackVersion getStackVersion() {
+    return stackVersion;
+  }
   /**
-   * State when install completed successfully
+   * @param stackVersion the stackVersion to set
    */
-  INSTALLED,
+  public void setStackVersion(StackVersion stackVersion) {
+    this.stackVersion = stackVersion;
+  }
   /**
-   * In the process of starting.
+   * @return the state
    */
-  STARTING,
+  public ServiceComponentNodeLiveState getLiveState() {
+    return state;
+  }
   /**
-   * Start failed.
+   * @param state the state to set
    */
-  START_FAILED,
-  /**
-   * State when start completed successfully.
-   */
-  STARTED,
-  /**
-   * In the process of stopping.
-   */
-  STOPPING,
-  /**
-   * Stop failed
-   */
-  STOP_FAILED,
-  /**
-   * In the process of uninstalling.
-   */
-  UNINSTALLING,
-  /**
-   * Uninstall failed.
-   */
-  UNINSTALL_FAILED,
-  /**
-   * State when uninstall completed successfully.
-   */
-  UNINSTALLED
+  public void setState(ServiceComponentNodeLiveState state) {
+    this.state = state;
+  }
 }

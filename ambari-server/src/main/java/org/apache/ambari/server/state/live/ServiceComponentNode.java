@@ -20,7 +20,6 @@ package org.apache.ambari.server.state.live;
 
 import java.util.List;
 
-import org.apache.ambari.server.state.ConfigVersion;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.job.Job;
 
@@ -38,13 +37,6 @@ public interface ServiceComponentNode {
    * @return Node's hostname
    */
   public String getNodeName();
-
-
-  /**
-   * Get the Config Version
-   * @return ConfigVersion
-   */
-  public ConfigVersion getConfigVersion();
 
   /**
    * Get the list of Jobs that are currently being tracked at the

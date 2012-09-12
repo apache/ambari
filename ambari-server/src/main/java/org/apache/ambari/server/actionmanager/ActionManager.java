@@ -29,16 +29,16 @@ public class ActionManager {
   public void sendActions(List<Stage> stages) {
     //Store all these actions to the db
   }
-  
+
   public List<Stage> getRequestStatus(String requestId) {
     return null;
   }
-  
+
   public Stage getActionStatus(String actionId) {
     //fetch the action information from the db
     return null;
   }
-  
+
   public void actionResponse(String hostname, List<CommandReport> report) {
     //persist the action response into the db.
   }
