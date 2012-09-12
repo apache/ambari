@@ -24,7 +24,6 @@ App.InstallerStep7View = Em.View.extend({
   templateName: require('templates/installer/step7'),
 
   submit: function(e) {
-    alert(this.get('controller.clusterName'));
     App.router.transitionTo('step8');
   }
 
@@ -36,9 +35,59 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
 
   category: null,
   serviceConfigs: null,  // General, Advanced, NameNode, SNameNode, DataNode, etc.
-  //require('templates/installer/serviceConfigsByCategory'),
 
   categoryConfigs: function() {
-    return this.get("serviceConfigs").filterProperty('category', this.get('category'))
+    return this.get('serviceConfigs').filterProperty('category', this.get('category'))
   }.property('categoryConfigs.@each').cacheable()
+});
+
+App.ServiceConfigTabs = Ember.View.extend({
+
+  selectService: function(event) {
+    this.set('controller.selectedService', event.context);
+  },
+
+  didInsertElement: function() {
+    this.$('a:first').tab('show');
+  }
+
+});
+
+App.ServiceConfigTextField = Ember.TextField.extend({
+
+  serviceConfig: null,
+  valueBinding: 'serviceConfig.value',
+  classNames: ['span6'],
+
+  didInsertElement: function() {
+    this.$().popover({
+      title: this.get('serviceConfig.name'),
+      content: this.get('serviceConfig.description'),
+      placement: 'right',
+      trigger: 'hover'
+    });
+  }
+
+});
+
+App.ServiceConfigTextArea = Ember.TextArea.extend({
+
+  serviceConfig: null,
+  valueBinding: 'serviceConfig.value',
+  rows: 4,
+  classNames: ['span6'],
+
+  didInsertElement: function() {
+    this.$().popover({
+      title: this.get('serviceConfig.name'),
+      content: this.get('serviceConfig.description'),
+      placement: 'right',
+      trigger: 'hover'
+    });
+  }
+
+});
+
+App.ServiceConfigBigTextArea = App.ServiceConfigTextArea.extend({
+  rows: 10
 });

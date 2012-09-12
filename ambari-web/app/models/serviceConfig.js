@@ -16,8 +16,34 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
-// load all models here
+App.ServiceConfig = Ember.Object.extend({
+  serviceName: '',
+  configCategories: []
+});
 
-require('models/cluster');
-require('models/serviceConfig')
+App.ServiceConfigProperty = Ember.Object.extend({
+
+  name: '',
+  displayName: '',
+  value: '',
+  defaultValue: '',
+  description: '',
+  displayType: 'string',
+  unit: '',
+  category: 'General',
+  isRequired: true,
+  errorMessage: '',
+
+  viewClass: function() {
+    if (this.get('displayType') === 'directories') {
+      return App.ServiceConfigTextArea;
+    } else if (this.get('displayType') === 'custom') {
+      return App.ServiceConfigBigTextArea;
+    } else {
+      return App.ServiceConfigTextField;
+    }
+  }.property('displayType')
+
+});

@@ -15,38 +15,45 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-
+<div id="serviceConfig">
 <h2>{{App.messages.step7_header}}</h2>
+{{#view App.ServiceConfigTabs}}
 <ul class="nav nav-tabs">
-{{#each controller}}
-    <li><a href="#" data-toggle="tab">{{serviceName}}</a></li>
+{{#each service in controller}}
+    <li><a href="#" data-toggle="tab" {{action selectService service on="click" target="view"}}>{{service.serviceName}}</a></li>
 {{/each}}
 </ul>
-{{#each service in controller}}
+{{/view}}
 <div class="accordion">
-    {{#each category in service.configCategories}}
+    {{#each category in selectedService.configCategories}}
     <div class="accordion-group">
         <div class="accordion-heading">
             <a class="accordion-toggle">
                 {{category}}
             </a>
         </div>
-        {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="service.configs"}}
+        {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs"}}
         <div class="accordion-body collapse in">
             <div class="accordion-inner">
-            {{#each view.categoryConfigs}}
-                <label>{{displayName}} - {{name}}</label>
-                <div class="input-append">{{#view Ember.TextField}}{{/view}}{{#if unit}}<span class="add-on">{{unit}}</span>{{/if}}</div>
-                {{description}}
-            {{/each}}
+                <form class="form-horizontal">
+                    {{#each view.categoryConfigs}}
+                        <div {{bindAttr class="errorMessage:error: :control-group"}}>
+                            <label class="control-label">{{displayName}}</label>
+                            <div class="controls">
+                                {{view viewClass serviceConfigBinding="this"}}
+                                <span class="help-inline">{{errorMessage}}</span>
+                            </div>
+                        </div>
+                    {{/each}}
+                </form>
             </div>
         </div>
         {{/view}}
     </div>
     {{/each}}
 </div>
-{{/each}}
 <div class="btn-area">
     <a class="btn" {{action back}}>Back</a>
-    <a class="btn btn-success" style="float:right" {{action next}}>Next</a>
+    <a class="btn btn-success" style="float:right" {{action submit target="controller"}}>Next</a>
+</div>
 </div>

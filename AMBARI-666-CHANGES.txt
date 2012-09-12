@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-724. Add tabs, dynamic form generation, validation errors, and info
+  popovers for Customize Services page in Installer (yusaku) 
+
   AMBARI-714. Job FSM Impl and tests. (hitesh)
 
   AMBARI-721. Remove Hardwareprofile class since its not needed anymore.
