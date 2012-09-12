@@ -16,18 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.agent.rest;
-
-import java.util.List;
+package org.apache.ambari.server.agent;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-
-import org.apache.ambari.server.agent.AgentCommand;
-
 
 /**
  *
@@ -37,30 +32,16 @@ import org.apache.ambari.server.agent.AgentCommand;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
-public class HeartBeatResponse {
-
-  String lastCompletedActionId;
+public class RegistrationResponse {
   @XmlElement
-  public short responseId;
-  @XmlElement
-  public String clusterId;
+  public RegistrationStatus response;
 
-  List<AgentCommand> cmds = null;
 
-  public short getResponseId() {
-    return responseId;
+  public RegistrationStatus getResponseStatus() {
+    return response;
   }
 
-  public void setResponseId(short responseId) {
-    this.responseId=responseId;
+  public void setResponseStatus(RegistrationStatus response) {
+    this.response = response;
   }
-
-  public String getClusterId() {
-    return clusterId;
-  }
-
-  public void setClusterId(String clusterId) {
-    this.clusterId = clusterId;
-  }
-
 }

@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-725. Add commandstatus/result/error objects into the rest API between
+  server and agent. (mahadev)
+
   AMBARI-723. Implement Installer Welcome page and Install Options page
  (Jaimin Jetly via yusaku)
 

@@ -18,19 +18,19 @@
 
 package org.apache.ambari.server.state.live.node;
 
-import org.apache.ambari.server.agent.NodeInfo;
+import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.state.live.AgentVersion;
 
 public class NodeRegistrationRequestEvent extends NodeEvent {
 
   final long registrationTime;
 
-  final NodeInfo nodeInfo;
+  final HostInfo nodeInfo;
 
   final AgentVersion agentVersion;
 
   public NodeRegistrationRequestEvent(String nodeName,
-      AgentVersion agentVersion, long registrationTime, NodeInfo nodeInfo) {
+      AgentVersion agentVersion, long registrationTime, HostInfo nodeInfo) {
     super(nodeName, NodeEventType.NODE_REGISTRATION_REQUEST);
     this.registrationTime = registrationTime;
     this.nodeInfo = nodeInfo;

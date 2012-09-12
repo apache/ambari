@@ -27,7 +27,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.agent.DiskInfo;
-import org.apache.ambari.server.agent.NodeInfo;
+import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
@@ -299,7 +299,7 @@ public class NodeImpl implements Node {
     }
   }
 
-  void importNodeInfo(NodeInfo nodeInfo) {
+  void importNodeInfo(HostInfo nodeInfo) {
     try {
       writeLock.lock();
       this.hostName = nodeInfo.getHostName();

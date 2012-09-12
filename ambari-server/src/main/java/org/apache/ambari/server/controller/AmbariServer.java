@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller;
 
 import java.io.IOException;
 
+import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Server;

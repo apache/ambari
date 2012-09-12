@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.server.agent.DiskInfo;
-import org.apache.ambari.server.agent.NodeInfo;
+import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.state.live.AgentVersion;
 import org.apache.ambari.server.state.live.node.NodeHealthStatus.HealthStatus;
 import org.junit.Assert;
@@ -34,7 +34,7 @@ public class TestNodeImpl {
 
   @Test
   public void testNodeInfoImport() {
-    NodeInfo info = new NodeInfo();
+    HostInfo info = new HostInfo();
     info.setMemorySize(100);
     info.setProcessorCount(10);
     List<DiskInfo> mounts = new ArrayList<DiskInfo>();
@@ -61,7 +61,7 @@ public class TestNodeImpl {
   }
 
   private void registerNode(NodeImpl node) throws Exception {
-    NodeInfo info = new NodeInfo();
+    HostInfo info = new HostInfo();
     info.setMemorySize(100);
     info.setProcessorCount(10);
     List<DiskInfo> mounts = new ArrayList<DiskInfo>();

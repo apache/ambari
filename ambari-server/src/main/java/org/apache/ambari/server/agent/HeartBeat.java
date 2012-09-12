@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.agent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -34,35 +35,26 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {"responseId","timestamp",
-    "hostname", "hardwareProfile", "installedRoleStates", "installScriptHash",
-    "actionResults", "firstContact", "idle"})
+@XmlType(name = "", propOrder = {})
 public class HeartBeat {
-  //TODO add serialization
-  List<CommandReport> reports;
-  //TODO add serialization
-  List<ComponentStatus> componentStatus;
-  //TODO add serialization
-  NodeStatus nodeStatus;
-
   @XmlElement
-  private short responseId = -1;
+  private long responseId = -1;
   @XmlElement
   private long timestamp;
   @XmlElement
   private String hostname;
   @XmlElement
-  private int installScriptHash;
+  List<CommandReport> reports = new ArrayList<CommandReport>();
   @XmlElement
-  private boolean firstContact;
+  List<ComponentStatus> componentStatus = new ArrayList<ComponentStatus>();
   @XmlElement
-  private boolean idle;
-
-  public short getResponseId() {
+  HostStatus nodeStatus;
+  
+  public long getResponseId() {
     return responseId;
   }
 
-  public void setResponseId(short responseId) {
+  public void setResponseId(long responseId) {
     this.responseId=responseId;
   }
 
@@ -74,35 +66,11 @@ public class HeartBeat {
     return hostname;
   }
 
-  public boolean getFirstContact() {
-    return firstContact;
-  }
-
-  public boolean getIdle() {
-    return idle;
-  }
-
-  public int getInstallScriptHash() {
-    return installScriptHash;
-  }
-
   public void setTimestamp(long timestamp) {
     this.timestamp = timestamp;
   }
 
   public void setHostname(String hostname) {
     this.hostname = hostname;
-  }
-
-  public void setFirstContact(boolean firstContact) {
-    this.firstContact = firstContact;
-  }
-
-  public void setIdle(boolean idle) {
-    this.idle = idle;
-  }
-
-  public void setInstallScriptHash(int hash) {
-    this.installScriptHash = hash;
   }
 }

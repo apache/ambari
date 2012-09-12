@@ -65,7 +65,7 @@ public class DiskInfo {
   }
 
   /**
-   * Needed for JAXB
+   * Needed for Serialization
    */
   public DiskInfo() {}
 

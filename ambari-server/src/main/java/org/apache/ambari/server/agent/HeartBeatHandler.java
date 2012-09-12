@@ -17,17 +17,28 @@
  */
 package org.apache.ambari.server.agent;
 
-import org.apache.ambari.server.agent.rest.HeartBeatResponse;
+import java.util.ArrayList;
+
+import com.google.inject.Singleton;
+
 
 /**
  * This class handles the heartbeats coming from the agent, passes on the information
  * to other modules and processes the queue to send heartbeat response.
  */
+@Singleton
 public class HeartBeatHandler {
-  private String lastCompletedActionId;
-
   public HeartBeatResponse handleHeartBeat(HeartBeat heartbeat) {
-    System.out.println(heartbeat.toString());
-    return null;
+    HeartBeatResponse response = new HeartBeatResponse();
+    response.setAgentCommands(new ArrayList<AgentCommand>());
+    response.setClusterId("test");
+    response.setResponseId(999L);
+    return response;    
+  }
+  
+  public RegistrationResponse handleRegistration(Register register) {
+    RegistrationResponse registrationResponse = new RegistrationResponse();
+    registrationResponse.setResponseStatus(RegistrationStatus.OK);
+    return registrationResponse;
   }
 }

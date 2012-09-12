@@ -29,7 +29,9 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.ambari.server.agent.HeartBeat;
 import org.apache.ambari.server.agent.HeartBeatHandler;
+import org.apache.ambari.server.agent.HeartBeatResponse;
 import org.apache.ambari.server.agent.Register;
+import org.apache.ambari.server.agent.RegistrationResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -47,10 +49,10 @@ public class AgentResource {
   private static Log LOG = LogFactory.getLog(AgentResource.class);
 
   @Inject
-  static void setHandler(HeartBeatHandler handler) {
-    hh = handler;
+  static void init(HeartBeatHandler instance) {
+    hh = instance;
   }
-
+  
   /**
    * Register information about the host (Internal API to be used for
    * Ambari Agent)
@@ -69,9 +71,9 @@ public class AgentResource {
   public RegistrationResponse register(Register message,
       @Context HttpServletRequest req)
       throws WebApplicationException {
-    LOG.info("Post input = " + req.toString());
-    RegistrationResponse response = new RegistrationResponse();
     LOG.info("Received message from agent " + message.toString());
+    /* Call into the heartbeat handler */
+    RegistrationResponse response = hh.handleRegistration(message);
     return response;
   }
 
@@ -86,15 +88,16 @@ public class AgentResource {
    * @param message Heartbeat message
    * @throws Exception
    */
-  @Path("heartbeat/{hostname}")
+  @Path("heartbeat/{hostName}")
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public HeartBeatResponse heartbeat(HeartBeat message)
       throws WebApplicationException {
+    LOG.info("Received Heartbeat message " + message);
     HeartBeatResponse heartBeatResponse = new HeartBeatResponse();
     try {
-      heartBeatResponse = new HeartBeatResponse();
+      heartBeatResponse = hh.handleHeartBeat(message);
     } catch (Exception e) {
       LOG.info("Error in HeartBeat", e);
       throw new WebApplicationException(500);

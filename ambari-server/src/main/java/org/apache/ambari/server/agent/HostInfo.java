@@ -35,7 +35,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
-public class NodeInfo {
+public class HostInfo {
   @XmlElement
   private String architecture;
   @XmlElement

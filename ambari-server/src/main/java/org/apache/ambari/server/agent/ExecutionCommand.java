@@ -17,6 +17,24 @@
  */
 package org.apache.ambari.server.agent;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "", propOrder = {})
 public class ExecutionCommand extends AgentCommand {
+  @XmlElement
   String manifest;
+  
+  public String getManifest() {
+    return this.manifest;
+  }
+  
+  public void setManifest(String manifest) {
+    this.manifest = manifest;
+  }
 }

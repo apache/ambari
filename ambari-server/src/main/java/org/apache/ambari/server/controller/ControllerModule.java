@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 package org.apache.ambari.server.controller;
+import org.apache.ambari.server.agent.rest.AgentResource;
+
 import com.google.inject.AbstractModule;
 
 /**
@@ -26,5 +28,6 @@ public class ControllerModule extends AbstractModule {
 
   @Override
   protected void configure() {
+    requestStaticInjection(AgentResource.class);
   }
 }

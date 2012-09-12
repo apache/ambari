@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.agent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -28,60 +31,42 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  *
- * Data model for Ambari Agent to send heartbeat to Ambari Controller.
+ * Controller to Agent response data model.
  *
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {"responseId","timestamp",
-    "hostname", "hardwareProfile"})
-public class Register {
+@XmlType(name = "", propOrder = {})
+public class HeartBeatResponse {
+
   @XmlElement
-  private short responseId = -1;
+  private long responseId;
   @XmlElement
-  private long timestamp;
+  private String clusterId;
   @XmlElement
-  private String hostname;
-  @XmlElement
-  private HostInfo hardwareProfile;
-  
-  public short getResponseId() {
+  List<AgentCommand> cmds = new ArrayList<AgentCommand>();
+
+  public long getResponseId() {
     return responseId;
   }
 
-  public void setResponseId(short responseId) {
+  public void setResponseId(long responseId) {
     this.responseId=responseId;
   }
 
-  public long getTimestamp() {
-    return timestamp;
+  public String getClusterId() {
+    return clusterId;
   }
 
-  public String getHostname() {
-    return hostname;
-  }
- 
-  public HostInfo getHardwareProfile() {
-    return hardwareProfile;
+  public void setClusterId(String clusterId) {
+    this.clusterId = clusterId;
   }
 
-  public void setTimestamp(long timestamp) {
-    this.timestamp = timestamp;
+  public List<AgentCommand> getAgentCommands() {
+    return this.cmds;
   }
-
-  public void setHostname(String hostname) {
-    this.hostname = hostname;
-  }
- 
-  public void setHardwareProfile(HostInfo hardwareProfile) {
-    this.hardwareProfile = hardwareProfile;    
-  }
-
-  @Override
-  public String toString() {
-    return "responseId=" + responseId + "\n" +
-           "timestamp=" + timestamp + "\n" +
-           "hostname="  + hostname + "\n" +
-           "hardwareprofile=" + this.hardwareProfile.toString();
+  
+  public void setAgentCommands(List<AgentCommand> cmds) {
+    this.cmds = cmds;
   }
 }

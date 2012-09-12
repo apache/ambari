@@ -25,34 +25,27 @@ from ServerStatus import ServerStatus
 import socket
 import time
 
-firstContact = True
-class Heartbeat:
 
-  def __init__(self, actionQueue):
-    self.actionQueue = actionQueue
-    self.reports = []
-    self.componentStatus = []
+firstContact = True
+class Register:
+  """ Registering with the server. Get the hardware profile and 
+  declare success for now """
+  def __init__(self):
+    self.hardware = Hardware()
 
   def build(self, id='-1'):
     global clusterId, clusterDefinitionRevision, firstContact
-    serverStatus = ServerStatus()
     timestamp = int(time.time()*1000)
-    queueResult = self.actionQueue.result()
-    installedRoleStates = serverStatus.build()
-    heartbeat = { 'responseId'        : int(id),
+    register = { 'responseId'        : int(id),
                   'timestamp'         : timestamp,
                   'hostname'          : socket.gethostname(),
-                  'reports'           : self.reports,
-                  'componentStatus'   : self.componentStatus
+                  'hardwareProfile'   : self.hardware.get(),
                 }
+    return register
   
-    
-    return heartbeat
-
 def main(argv=None):
-  actionQueue = ActionQueue()
-  heartbeat = Heartbeat(actionQueue)
-  print json.dumps(heartbeat.build())
+  register = Register()
+  print json.dumps(register.build())
 
 if __name__ == '__main__':
   main()

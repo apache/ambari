@@ -17,8 +17,44 @@
  */
 package org.apache.ambari.server.agent;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "", propOrder = {})
 public class ComponentStatus {
+  @XmlElement
   String componentName;
+  @XmlElement
   String msg;
+  @XmlElement
   String status;
+
+  public String getComponentName() {
+    return this.componentName;
+  }
+
+  public void setComponentName(String componentName) {
+    this.componentName = componentName;
+  }
+  
+  public String getMessage() {
+    return this.msg;
+  }
+  
+  public void setMessage(String msg) {
+    this.msg = msg;
+  }
+  
+  public String getStatus() {
+    return this.status;
+  }
+  
+  public void setStatus(String status) {
+    this.status = status;
+  }
 }

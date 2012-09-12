@@ -17,12 +17,12 @@
  */
 package org.apache.ambari.server.agent;
 
-public class NodeStatus {
-  public enum Status {
-    HEALTHY,
-    UNHEALTHY
-  }
+import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.bind.annotation.XmlType;
 
-  Status status;
-  String cause;
+@XmlType(name="registrationstatus")
+@XmlEnum
+public enum RegistrationStatus {
+  OK,
+  FAILED
 }
