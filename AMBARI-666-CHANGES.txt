@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-726. ORM-based data access layer for new design (Jaimin Jetly via hitesh)
+
   AMBARI-728. Initial work on ServiceComponentNode FSM. (hitesh)
 
   AMBARI-724. Add tabs, dynamic form generation, validation errors, and info

@@ -38,6 +38,12 @@
       <url>http://download.java.net/maven/glassfish/</url>
     </pluginRepository>
   </pluginRepositories>
+  <repositories>
+    <repository>
+      <id>EclipseLink</id>
+      <url>http://download.eclipse.org/rt/eclipselink/maven.repo</url>
+    </repository>
+  </repositories>
   <profiles>
     <profile>
       <id>dist</id>
@@ -87,6 +93,26 @@
         <groupId>com.google.inject.extensions</groupId>
         <artifactId>guice-assistedinject</artifactId>
         <version>3.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.inject.extensions</groupId>
+        <artifactId>guice-persist</artifactId>
+        <version>3.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.derby</groupId>
+        <artifactId>derby</artifactId>
+        <version>10.9.1.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.persistence</groupId>
+        <artifactId>eclipselink</artifactId>
+        <version>2.4.0</version>
+      </dependency>
+      <dependency>
+        <groupId>postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>9.1-901.jdbc4</version>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
