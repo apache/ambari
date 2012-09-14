@@ -42,6 +42,67 @@ module.exports = Em.Route.extend({
 
   connectOutlets: function (router, context) {
     router.get('applicationController').connectOutlet('main');
+  },
+
+  charts:Em.Route.extend({
+    route:'/charts',
+    connectOutlets:function (router, context) {
+      router.get('mainController').connectOutlet('mainCharts');
+    }
+  }),
+
+  hosts:Em.Route.extend({
+    route:'/hosts',
+    connectOutlets:function (router, context) {
+      router.get('mainController').connectOutlet('mainHosts');
+    }
+  }),
+
+  admin:Em.Route.extend({
+    route:'/admin',
+    connectOutlets:function (router, context) {
+      router.get('mainController').connectOutlet('mainAdmin');
+    }
+  }),
+
+  dashboard:Em.Route.extend({
+    route:'/dashboard',
+    connectOutlets:function (router, context) {
+      router.get('mainController').connectOutlet('mainDashboard');
+    }
+  }),
+
+  service:Em.Route.extend({
+    route:'/services',
+    enter:function (router) {
+      Ember.run.next(function () {
+        var service = router.get('mainServiceItemController.content');
+        if (!service) {
+          service = App.Service.find(1); // getting the first service to display
+        }
+        router.transitionTo('advanced', service);
+      });
+    },
+
+    connectOutlets:function (router, context) {
+      router.get('mainController').connectOutlet('mainService');
+    },
+
+    advanced:Em.Route.extend({
+      route:'/:name',
+      connectOutlets:function (router, service) {
+        router.get('mainServiceController').connectOutlet('mainServiceItem', service);
+      }
+    }),
+
+    showService: Em.Router.transitionTo('advanced')
+  }),
+
+  navigate:function (router, event) {
+    var parent = event.view._parentView;
+    parent.deactivateChildViews();
+    event.view.set('active', "active");
+    router.transitionTo(event.context);
   }
 
   // TODO: create new routes here

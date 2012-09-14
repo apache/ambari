@@ -22,6 +22,13 @@
 require('templates/application');
 require('templates/login');
 require('templates/main');
+require('templates/main/admin');
+require('templates/main/charts');
+require('templates/main/dashboard');
+require('templates/main/hosts');
+require('templates/main/menu');
+require('templates/main/service');
+require('templates/main/service/item');
 require('templates/installer');
 require('templates/installer/step1');
 require('templates/installer/step2');

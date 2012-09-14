@@ -18,70 +18,198 @@
 
 
 .navbar {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .navbar .brand {
-  color: #666666;
-  display: block;
-  font-size: 16px;
-  font-weight: normal;
-  line-height: 1;
-  margin-left: 0;
-  margin-right: 40px;
-  margin-top: 3px;
-  padding: 14px 10px;
+    color: #666666;
+    display: block;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 1;
+    margin-left: 0;
+    margin-right: 40px;
+    margin-top: 3px;
+    padding: 14px 10px;
 }
 
 .navbar-inner {
-  background: linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
-  background: -moz-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
-  background: -webkit-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
-  border-radius: 0;
-  border: 1px solid #bbb;
-  border-width: 0 0 1px 0;
+    background: linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+    background: -moz-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+    background: -webkit-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+    border-radius: 0;
+    border: 1px solid #bbb;
+    border-width: 0 0 1px 0;
 }
 
 .navbar .nav {
-  float: none;
-  overflow: hidden;
+    float: none;
+    overflow: hidden;
 }
 
 .navbar .nav .active > a, .navbar .nav .active > a:hover {
-  background-color: #999999;
-  color: #FFFFFF;
-  text-decoration: none;
+    background-color: #999999;
+    color: #FFFFFF;
+    text-decoration: none;
 }
 
 .navbar .nav > li > a {
-  border-radius: 8px;
-  -webkit-border-radius: 8px;
-  -moz-border-radius: 8px;
-  font-size: 13px;
-  font-weight: bold;
-  line-height: 19px;
-  margin: 6px 10px 6px 0;
-  padding: 8px 14px;
-  text-decoration: none;
-  text-shadow: none;
+    border-radius: 8px;
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 19px;
+    margin: 6px 10px 6px 0;
+    padding: 8px 14px;
+    text-decoration: none;
+    text-shadow: none;
 }
 
 .navbar .nav > li > a:hover {
-  background-color: transparent;
-  color: #999999;
-  text-decoration: none;
+    background-color: transparent;
+    color: #999999;
+    text-decoration: none;
 }
 
 .navbar .brand {
-  margin-right: 40px;
+    margin-right: 40px;
 }
 
 .navbar #logo {
-  float: left;
-  padding-top: 7px;
-  height: 36px;
+    float: left;
+    padding-top: 7px;
+    height: 36px;
 }
 
 .navbar .nav > li.right {
-  float: right;
+    float: right;
 }
+
+/*Box styles*/
+.box {
+    border: 1px solid #5fa3c3;
+    margin-bottom: 20px;
+}
+.box-header,
+.box-footer {
+    padding: 10px;
+    background: #dedede;
+}
+.box-footer hr {
+    margin: 0px;
+}
+.box-header:after,
+.box-footer:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+.box-header .btn-group {
+    float: right;
+}
+.box-header h4 {
+    float: left;
+}
+
+.alerts {
+    margin: 0px;
+}
+.alerts li {
+    border-bottom: 1px solid #b7b9bb;
+    list-style: none;
+    padding: 5px 10px 5px 43px;
+}
+.alerts li.status-ok {
+    background: url("../img/status-ok.jpg") no-repeat 14px 9px;
+}
+.alerts li.status-corrupt {
+    background: url("../img/status-corrupt.jpg") no-repeat 14px 9px;
+}
+.alerts li .date-time {
+    float: right;
+}
+.go-to {
+    float: right;
+    background: url("../img/arrow-right.png") no-repeat right center;
+    padding-right: 40px;
+    margin-top: 20px;
+}
+/*Services*/
+.service-summary {
+    background: #F6FAFD;
+}
+.service-block {
+    padding: 10px;
+}
+.service-configuration {
+    padding: 10px;
+}
+.service-summary .service-block.span8{
+    margin-left: 0;
+    border-right: 1px solid #5fa3c3;
+}
+.service-summary .service-block.span3{
+    padding-left: 0;
+}
+.service-summary .service-content{
+    padding: 5px 0 0 10px;
+}
+.service-summary h5{
+    color: #0088CC;
+    font-size: 14px;
+}
+.service-summary .service-links{
+    padding: 5px 0 10px 0;
+}
+.service-summary .service-content .service-links{
+    padding: 5px 0;
+}
+.service-configuration .dl-horizontal dt{
+    width: 90px;
+    line-height: 19px;
+}
+.service-configuration .dl-horizontal dd{
+    margin-left: 100px;
+    line-height: 19px;
+}
+.service-button {
+    text-align: right;
+    margin-bottom: 5px;
+}
+.add-service-button {
+    position: relative;
+}
+.add-service-button a{
+    position: absolute;
+    right: 0;
+    top: -55px;
+}
+/*End Services*/
+
+/*Hosts*/
+#hosts .box-header .btn-group {
+    float: left;
+}
+#hosts .box-header .btn.decommission{
+    margin-left: 5px;
+}
+#hosts .box-header .btn.add-host-button{
+    float: right;
+}
+#hosts .table{
+    margin-bottom: 0;
+}
+#hosts .table thead{
+    background: #EDF5FC;
+}
+#hosts .nav-pills li.disabled{
+    display: block;
+    margin: 2px 0;
+    padding: 8px 12px;
+    line-height: 14px;
+}
+#hosts .box-footer .footer-pagination{
+    float: right;
+}
+/*End Hosts*/

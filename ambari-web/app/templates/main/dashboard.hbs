@@ -1,0 +1,123 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+
+<div class="row">
+	<div class="span6">
+		<div class="row">
+			<div class="span6">
+				<div class="box">
+					<div class="box-header">
+						<h4>Summary</h4>
+					</div>
+					<div id="myCarousel" class="carousel">
+						<div class="carousel-inner">
+							<div class="active item">
+								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tempor facilisis nisl, a tempor mi dictum vitae. In sed elit erat. Fusce lorem diam, lacinia in placerat vitae, posuere fringilla sem. Quisque dignissim, ligula tincidunt rhoncus gravida, sem mauris pharetra justo, at consectetur orci ante eu elit. Maecenas sem enim, scelerisque eget consequat vel, ornare vitae velit. Nullam mattis neque eu ipsum tincidunt pellentesque. Morbi sed mi ac ligula rhoncus auctor ac a enim. Etiam commodo sagittis volutpat. Mauris posuere rhoncus consectetur. Pellentesque quis sodales dui. Donec porta ipsum at nunc lacinia dictum. Cras faucibus ullamcorper sapien, sed egestas tellus interdum a. Suspendisse scelerisque pulvinar orci, vitae auctor tellus fermentum sit amet.
+							</div>
+							<div class="item">
+								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tempor facilisis nisl, a tempor mi dictum vitae. In sed elit erat. Fusce lorem diam, lacinia in placerat vitae, posuere fringilla sem. Quisque dignissim, ligula tincidunt rhoncus gravida, sem mauris pharetra justo, at consectetur orci ante eu elit. Maecenas sem enim, scelerisque eget consequat vel, ornare vitae velit. Nullam mattis neque eu ipsum tincidunt pellentesque. Morbi sed mi ac ligula rhoncus auctor ac a enim. Etiam commodo sagittis volutpat. Mauris posuere rhoncus consectetur. Pellentesque quis sodales dui. Donec porta ipsum at nunc lacinia dictum. Cras faucibus ullamcorper sapien, sed egestas tellus interdum a. Suspendisse scelerisque pulvinar orci, vitae auctor tellus fermentum sit amet.
+								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tempor facilisis nisl, a tempor mi dictum vitae. In sed elit erat. Fusce lorem diam, lacinia in placerat vitae, posuere fringilla sem. Quisque dignissim, ligula tincidunt rhoncus gravida, sem mauris pharetra justo, at consectetur orci ante eu elit. Maecenas sem enim,
+							</div>
+							<div class="item">
+								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tempor facilisis nisl, a tempor mi dictum vitae. In sed elit erat. Fusce lorem diam, lacinia in placerat vitae, posuere fringilla sem. Quisque dignissim, ligula tincidunt rhoncus gravida, sem mauris pharetra justo, at consectetur orci ante eu elit. Maecenas sem enim, scelerisque eget consequat vel, ornare vitae velit. Nullam mattis neque eu ipsum tincidunt pellentesque. Morbi sed mi ac ligula rhoncus auctor ac a enim. Etiam commodo sagittis volutpat. Mauris posuere rhoncus consectetur. Pellentesque quis sodales dui. Donec porta ipsum at nunc lacinia dictum. Cras faucibus ullamcorper sapien, sed egestas tellus interdum a. Suspendisse scelerisque pulvinar orci, vitae auctor tellus fermentum sit amet.
+								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tempor facilisis nisl, a tempor mi dictum vitae. In sed elit erat. Fusce lorem diam, lacinia in placerat vitae, posuere fringilla sem. Quisque dignissim,
+							</div>
+						</div>
+						<a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
+						<a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
+					</div>
+					<div class="box-footer"></div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="span6">
+				<div class="box">
+					<div class="box-header">
+						<h4>Services</h4>
+					</div>
+					<ul>
+						{{#each view.services}}
+							<li><a href="#">{{label}}</a></li>
+						{{/each}}
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="span6">
+		<div class="box">
+			<div class="box-header">
+				<h4>Alerts</h4>
+				<div class="btn-group">
+					<button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">HDFS <span class="caret"></span></button>
+					<ul class="dropdown-menu">
+						<li><a href="#">HDFS</a></li>
+						<li><a href="#">MapReduce</a></li>
+						<li><a href="#">HBase</a></li>
+						<li><a href="#">Zookeeper</a></li>
+						<li><a href="#">Oozie</a></li>
+						<li><a href="#">Hive</a></li>
+					</ul>
+				</div>
+			</div>
+			<ul class="alerts">
+				<li class="status-ok">
+					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
+					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
+				</li>
+				<li class="status-ok">
+					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
+					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
+				</li>
+				<li class="status-ok">
+					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
+					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
+				</li>
+				<li class="status-corrupt">
+					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
+					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
+				</li>
+				<li class="status-ok">
+					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
+					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
+				</li>
+				<li class="status-corrupt">
+					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
+					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
+				</li>
+				<li class="status-corrupt">
+					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
+					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
+				</li>
+				<li class="status-ok">
+					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
+					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
+				</li>
+				<li class="status-corrupt">
+					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
+					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
+				</li>
+			</ul>
+			<div class="box-footer">
+				<hr />
+				<a class="go-to" href="#">Go to Nagios</a>
+			</div>
+		</div>
+	</div>
+</div>

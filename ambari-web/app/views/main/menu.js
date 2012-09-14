@@ -16,17 +16,29 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
-// load all controllers here
+App.MainMenuView = Em.CollectionView.extend({
+  tagName: 'ul',
+  classNames: ["nav", "nav-tabs"],
+  content:[
+    { label:'My Cluster', routing:'cluster'},
+    { label:'Dashboard', routing:'dashboard', active:"active"},
+    { label:'Charts', routing:'charts'},
+    { label:'Services', routing:'service'},
+    { label:'Hosts', routing:'hosts'},
+    { label:'Admin', routing:'admin'}
+  ],
 
-require('controllers/application');
-require('controllers/login');
-require('controllers/installer');
-require('controllers/installer/step1');
-require('controllers/installer/step2');
-require('controllers/installer/step3');
-require('controllers/installer/step7');
-require('controllers/main');
-require('controllers/main/service');
-require('controllers/main/service/item');
-require('controllers/main/alert');
+  deactivateChildViews: function() {
+    $.each(this._childViews, function(){
+      this.set('active', "");
+    });
+  },
+
+  itemViewClass: Em.View.extend({
+    classNameBindings: ["active"],
+    active: "",
+    template: Ember.Handlebars.compile('<a {{action navigate view.content.routing }} href="#"> {{unbound view.content.label}}</a>')
+  })
+});

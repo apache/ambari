@@ -23,6 +23,14 @@
 require('views/application');
 require('views/login');
 require('views/main');
+require('views/main/menu');
+require('views/main/charts');
+require('views/main/hosts');
+require('views/main/admin');
+require('views/main/dashboard');
+require('views/main/service');
+require('views/main/service/menu');
+require('views/main/service/item');
 require('views/installer');
 require('views/installer/step1');
 require('views/installer/step2');

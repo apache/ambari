@@ -16,17 +16,11 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
-// load all controllers here
-
-require('controllers/application');
-require('controllers/login');
-require('controllers/installer');
-require('controllers/installer/step1');
-require('controllers/installer/step2');
-require('controllers/installer/step3');
-require('controllers/installer/step7');
-require('controllers/main');
-require('controllers/main/service');
-require('controllers/main/service/item');
-require('controllers/main/alert');
+App.MainDashboardView = Em.View.extend({
+  templateName: require('templates/main/dashboard'),
+  services:function(){
+    return App.router.get('mainServiceController.content');
+  }.property('App.router.mainServiceController.content')
+});

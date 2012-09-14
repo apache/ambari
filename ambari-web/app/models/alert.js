@@ -16,17 +16,32 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
-// load all controllers here
+App.Alert = DS.Model.extend({
+  title: DS.attr('string'),
+  service: DS.belongsTo('App.Service'),
+  date: DS.attr('date'),
+  status: DS.attr('string'),
+  message: DS.attr('string')
+});
 
-require('controllers/application');
-require('controllers/login');
-require('controllers/installer');
-require('controllers/installer/step1');
-require('controllers/installer/step2');
-require('controllers/installer/step3');
-require('controllers/installer/step7');
-require('controllers/main');
-require('controllers/main/service');
-require('controllers/main/service/item');
-require('controllers/main/alert');
+App.Alert.FIXTURES = [
+  {
+    id: 1,
+    title: 'Corrupt/Missing Block',
+    service_id: 1,
+    date: 'August 29, 2012 17:00',
+    status: 'all bad',
+    message: 'message'
+  },
+
+  {
+    id: 2,
+    title: 'Corrupt/Missing Block',
+    service_id: 2,
+    date: 'August 29, 2012 17:00',
+    status: 'all bad',
+    message: 'message'
+  }
+];

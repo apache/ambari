@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-736. Initial work on Cluster Management pages. (yusaku)
+
   AMBARI-733. Add Jersey Resource for BootStrapping and JAXB elements for API
   entities. (mahadev)
 

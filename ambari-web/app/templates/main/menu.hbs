@@ -15,8 +15,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-
-        <!--Monitoring and managing services -->
-<h2>Main Application</h2>
-{{view App.MainMenuView }}
-{{outlet}}
+<ul class="nav nav-tabs">
+	{{#each view.items}}
+	<li {{bindAttr class="active"}} ><a {{action navigate routing }} href="#">{{unbound label}}</a></li>
+	{{/each}}
+</ul>
