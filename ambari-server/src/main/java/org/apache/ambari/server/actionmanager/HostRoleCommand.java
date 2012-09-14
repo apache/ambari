@@ -30,15 +30,39 @@ import org.apache.ambari.server.RoleCommand;
 public class HostRoleCommand {
   private final Role role;
   private Map<String, String> params = null;
-  private final float successFactor;
   private HostRoleStatus status = HostRoleStatus.PENDING;
   private final RoleCommand cmd;
-  //private HostRoleFSMEvent event;
+  private long startTime;
+  private long expiryTime;
+  private final String host;
 
-  public HostRoleCommand(String host, Role role, float successFactor,
-      RoleCommand cmd) {
+  public HostRoleCommand(String host, Role role, RoleCommand cmd) {
+    this.host = host;
     this.role = role;
-    this.successFactor = successFactor;
     this.cmd = cmd;
+  }
+
+  public Role getRole() {
+    return role;
+  }
+
+  public HostRoleStatus getStatus() {
+    return status;
+  }
+  
+  public long getStartTime() {
+    return startTime;
+  }
+  
+  public long getExpiryTime() {
+    return expiryTime;
+  }
+  
+  public void setExpiryTime(long t) {
+    expiryTime = t;
+  }
+
+  public String getHostName() {
+    return this.host;
   }
 }

@@ -17,16 +17,77 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+
+import org.apache.ambari.server.Role;
 
 //This class encapsulates the stage. The stage encapsulates all the information
 //required to persist an action.
 public class Stage {
-  private long requestId;
+  private final long requestId;
   private long stageId = -1;
+  
+  //Map of roles to successFactors for this stage. Default is 1 i.e. 100%
+  private Map<Role, Float> successFactors = new HashMap<Role, Float>();
 
   //Map of host to host-roles
-  private Map<String, HostAction> action;
-  private String logDir;
+  private Map<String, HostAction> hostActions = new TreeMap<String, HostAction>();
+  private final String logDir;
+  
+  public Stage(long requestId, String logDir) {
+    this.requestId = requestId;
+    this.logDir = logDir;
+  }
+  
+  public synchronized void setStageId(long stageId) {
+    if (this.stageId != -1) {
+      throw new RuntimeException("Attempt to set stageId again! Not allowed.");
+    }
+    this.stageId = stageId;
+  }
+  
+  public synchronized long getStageId() {
+    return stageId;
+  }
+  
+  public String getActionId() {
+    return "" + requestId + "-" + stageId;
+  }
+  
+  synchronized void addHostAction(String host, HostAction ha) {
+    hostActions.put(host, ha);
+  }
+  
+  synchronized HostAction getHostAction(String host) {
+    return hostActions.get(host);
+  }
+  
+  /**
+   * Returns an internal data structure, please don't modify it.
+   * TODO: Ideally should return an iterator.
+   */
+  synchronized Map<String, HostAction> getHostActions() {
+    return hostActions;
+  }
+  
+  synchronized float getSuccessFactor(Role r) {
+    Float f = successFactors.get(r);
+    if (f == null) {
+      return 1;
+    } else {
+      return f;
+    }
+  }
+
+  public long getRequestId() {
+    return requestId;
+  }
+
+  public String getManifest(String hostName) {
+    // TODO Auto-generated method stub
+    return getHostAction(hostName).getManifest();
+  }
 }

@@ -19,6 +19,7 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.List;
 
+import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 
 
@@ -26,6 +27,24 @@ import org.apache.ambari.server.agent.CommandReport;
  * This class acts as the interface for action manager with other components.
  */
 public class ActionManager {
+  private final ActionScheduler scheduler;
+  private final ActionDBAccessor db;
+  private final ActionQueue actionQueue;
+  public ActionManager(long schedulerSleepTime, long actionTimeout, ActionQueue aq) {
+    this.actionQueue = aq;
+    db = new ActionDBAccessor();
+    scheduler = new ActionScheduler(schedulerSleepTime,
+        actionTimeout, db, actionQueue);
+  }
+  
+  public void initialize() {
+    scheduler.start();
+  }
+  
+  public void shutdown() {
+    scheduler.stop();
+  }
+  
   public void sendActions(List<Stage> stages) {
     //Store all these actions to the db
   }

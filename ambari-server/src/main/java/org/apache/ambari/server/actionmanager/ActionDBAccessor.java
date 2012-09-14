@@ -19,9 +19,13 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.List;
 
-public class ActionDBAccessor {
-  public void persistAction(HostAction ha) {
+import org.apache.ambari.server.Role;
 
+public class ActionDBAccessor {
+  
+  private long stageId = 0;
+  
+  public void persistAction(HostAction ha) {
   }
 
   public Stage getAction(String actionId) {
@@ -30,5 +34,35 @@ public class ActionDBAccessor {
 
   public List<Stage> getAllStages(String requestId) {
     return null;
+  }
+  
+  /**
+   * Returns all the actions that have been queued but not completed yet.
+   * This is used by scheduler to find all pending actions.
+   */
+  public List<Stage> getQueuedStages() {
+    return null;
+  }
+  
+  /**
+   * Returns all the actions that have not been queued yet.
+   */
+  public List<Stage> getNotQueuedStages() {
+    return null;
+  }
+  
+  /**
+   * Returns next stage id in the sequence, must be persisted.
+   */
+  public synchronized long getNextStageId() {
+    return ++stageId ;
+  }
+
+  public void abortOperation(long requestId) {
+    //Mark all pending or queued actions for this request as aborted.
+  }
+
+  public void timeoutHostRole(long requestId, long stageId, Role role) {
+    // TODO Auto-generated method stub
   }
 }

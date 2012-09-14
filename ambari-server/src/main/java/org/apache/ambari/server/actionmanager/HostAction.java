@@ -29,4 +29,15 @@ public class HostAction {
   public HostAction(String host) {
     this.host = host;
   }
+  
+  public List<HostRoleCommand> getRoleCommands() {
+    return roles;
+  }
+
+  public String getManifest() {
+    if (manifest == null) {
+      //generate manifest
+    }
+    return manifest;
+  }
 }
