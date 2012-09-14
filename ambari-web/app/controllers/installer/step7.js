@@ -26,16 +26,23 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
 
   selectedService: null,
 
-  submit: function () {
-    // validate all fields
-    this.get('content');
-  },
+  selectedSlaveHosts: null,
+
+  isSubmitDisabled: function() {
+    return !this.everyProperty('errorCount', 0);
+  }.property('@each.errorCount'),
 
   init: function () {
     var mockData = [
       {
         serviceName: 'HDFS',
-        configCategories: [ 'General', 'NameNode', 'SNameNode', 'DataNode', 'Advanced' ],
+        configCategories: [
+          App.ServiceConfigCategory.create({ name: 'General'}),
+          App.ServiceConfigCategory.create({ name: 'NameNode'}),
+          App.ServiceConfigCategory.create({ name: 'SNameNode'}),
+          App.ServiceConfigCategory.create({ name: 'DataNode'}),
+          App.ServiceConfigCategory.create({ name: 'Advanced'})
+        ],
         configs: [
           {
             name: 'dfs.prop1',
@@ -43,18 +50,18 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
             value: '',
             defaultValue: '100',
             description: 'This is Prop1',
-            displayType: 'string',
+            displayType: 'digits',
             unit: 'MB',
-            category: 'General',
-            errorMessage: 'Prop1 validation error'
+            category: 'General'
           },
           {
             name: 'dfs.prop2',
             displayName: 'Prop2',
             value: '',
             defaultValue: '0',
-            description: 'This is Prop2',
-            displayType: 'int',
+            description: 'This is Prop2 (Optional)',
+            displayType: 'number',
+            isRequired: false,
             category: 'General'
           },
           {
@@ -64,6 +71,7 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
             defaultValue: '100',
             description: 'This is Adv Prop1',
             displayType: 'int',
+            isRequired: false,
             category: 'Advanced'
           },
           {
@@ -72,16 +80,27 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
             value: '',
             displayType: 'string',
             defaultValue: 'This is Adv Prop2',
+            isRequired: false,
             category: 'Advanced'
           },
           {
             name: 'hdfs-site.xml',
-            displayName: 'hdfs-site.xml',
+            displayName: 'Custom HDFS Configs',
             value: '',
             defaultValue: '',
-            description: 'Custom configurations that you want to put in hdfs-site.xml.<br>The text you specify here will be injected into hdfs-site.xml verbatim.',
+            description: 'If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into hdfs-site.xml verbatim.',
             displayType: 'custom',
+            isRequired: false,
             category: 'Advanced'
+          },
+          {
+            name: 'ambari.namenode.host',
+            displayName: 'NameNode host',
+            value: 'host0001.com.com',
+            defaultValue: '',
+            description: 'The host that has been assigned to run NameNode',
+            displayType: 'masterHost',
+            category: 'NameNode'
           },
           {
             name: 'dfs.namenode.dir',
@@ -99,6 +118,15 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
             category: 'NameNode'
           },
           {
+            name: 'ambari.snamenode.host',
+            displayName: 'SNameNode host',
+            value: 'host0002.com.com',
+            defaultValue: '',
+            description: 'The host that has been assigned to run Secondary NameNode',
+            displayType: 'masterHost',
+            category: 'SNameNode'
+          },
+          {
             name: 'fs.checkpoint.dir',
             displayName: 'SNameNode directories',
             value: '',
@@ -112,6 +140,15 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
             value: '',
             defaultValue: 'default (snn)',
             category: 'SNameNode'
+          },
+          {
+            name: 'ambari.datanode.hosts',
+            displayName: 'DataNode hosts',
+            value: [ 'host0003.com.com', 'host0004.com.com', 'host0005.com.com' ],
+            defaultValue: '',
+            description: 'The hosts that have been assigned to run DataNodes',
+            displayType: 'slaveHosts',
+            category: 'DataNode'
           },
           {
             name: 'dfs.data.dir',
@@ -132,26 +169,31 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
       },
       {
         serviceName: 'MapReduce',
-        configCategories: [ 'General', 'JobTracker', 'TaskTracker', 'Advanced' ],
+        configCategories: [
+          App.ServiceConfigCategory.create({ name: 'General'}),
+          App.ServiceConfigCategory.create({ name: 'JobTracker'}),
+          App.ServiceConfigCategory.create({ name: 'TaskTracker'}),
+          App.ServiceConfigCategory.create({ name: 'Advanced'})
+        ],
         configs: [
           {
             name: 'mapred.prop1',
             displayName: 'Prop1',
-            value: '',
+            value: '1',
             defaultValue: '0',
             category: 'General'
           },
           {
             name: 'jt.prop1',
             displayName: 'JT Prop1',
-            value: '',
+            value: '2',
             defaultValue: '128',
             category: 'JobTracker'
           },
           {
             name: 'tt.prop1',
             displayName: 'TT Prop1',
-            value: '',
+            value: '3',
             defaultValue: '256',
             category: 'TaskTracker'
           },
@@ -176,7 +218,9 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
       });
       _serviceConfig.configs.forEach(function(_serviceConfigProperty) {
         var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
+        serviceConfigProperty.serviceConfig = serviceConfig;
         serviceConfig.configs.pushObject(serviceConfigProperty);
+        serviceConfigProperty.validate();
       });
 
       console.log('pushing ' + serviceConfig.serviceName);
@@ -184,7 +228,32 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
     });
 
     this.set('selectedService', this.objectAt(0));
+  },
+
+  submit: function() {
+    if (!this.get('isSubmitDisabled')) {
+      App.get('router').transitionTo('step8');
+    }
+  },
+
+  showSlaveHosts: function(event) {
+    this.set('selectedSlaveHosts', event.context);
+    App.ModalPopup.show({
+      header: 'Slave Hosts',
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/installer/slaveHostsMatrix')
+      })
+    });
+  },
+
+  addSlaveComponentGroup: function(event) {
+    App.ModalPopup.show({
+      header: 'Add a ' + event.context + ' Group',
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/installer/slaveHostsMatrix')
+      })
+    });
   }
 
-})
-;
+});
+

@@ -1,0 +1,9 @@
+{{#if view.hasNoHosts}}
+No host assigned
+{{/if}}
+{{#if view.hasOneHost}}
+{{value}}
+{{/if}}
+{{#if view.hasMultipleHosts}}
+<a href="#" {{action showSlaveHosts value target="controller"}}>{{value.firstObject}} and {{view.otherLength}} others</a>
+{{/if}}

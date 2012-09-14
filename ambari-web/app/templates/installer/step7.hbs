@@ -16,11 +16,11 @@
 * limitations under the License.
 -->
 <div id="serviceConfig">
-<h2>{{App.messages.step7_header}}</h2>
+<h2>{{App.messages.step7_header}}{{isValid}}</h2>
 {{#view App.ServiceConfigTabs}}
 <ul class="nav nav-tabs">
 {{#each service in controller}}
-    <li><a href="#" data-toggle="tab" {{action selectService service on="click" target="view"}}>{{service.serviceName}}</a></li>
+    <li><a href="#" data-toggle="tab" {{action selectService service on="click" target="view"}}>{{service.serviceName}}{{#if service.errorCount}}<span class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a></li>
 {{/each}}
 </ul>
 {{/view}}
@@ -29,7 +29,7 @@
     <div class="accordion-group">
         <div class="accordion-heading">
             <a class="accordion-toggle">
-                {{category}}
+                {{category.name}}
             </a>
         </div>
         {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs"}}
@@ -50,10 +50,15 @@
         </div>
         {{/view}}
     </div>
+    {{#if category.isForSlaveComponent}}
+    {{#view App.AddSlaveComponentGroupButton slaveComponentNameBinding="category.name"}}
+    <a class="btn add-slave-component-group" {{action addSlaveComponentGroup category.name target="controller"}}><i class="icon-plus-sign"></i> Add a {{category.name}} Group</a>
+    {{/view}}
+    {{/if}}
     {{/each}}
 </div>
 <div class="btn-area">
     <a class="btn" {{action back}}>Back</a>
-    <a class="btn btn-success" style="float:right" {{action submit target="controller"}}>Next</a>
+    <a {{bindAttr class=":btn :btn-success"}} {{bindAttr disabled="isSubmitDisabled"}} style="float:right" {{action submit target="controller"}}>Next</a>
 </div>
 </div>

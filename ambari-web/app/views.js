@@ -21,6 +21,7 @@
 // load all views here
 
 require('views/application');
+require('views/common/modalPopup');
 require('views/login');
 require('views/main');
 require('views/main/menu');
