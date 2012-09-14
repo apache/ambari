@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-730. Add unit tests for jersey apis on the server. (mahadev)
+
   AMBARI-725. Add commandstatus/result/error objects into the rest API between
   server and agent. (mahadev)
 

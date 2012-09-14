@@ -32,7 +32,7 @@ public class HeartBeatHandler {
     HeartBeatResponse response = new HeartBeatResponse();
     response.setAgentCommands(new ArrayList<AgentCommand>());
     response.setClusterId("test");
-    response.setResponseId(999L);
+    response.setResponseId(0L);
     return response;    
   }
   

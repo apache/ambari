@@ -79,9 +79,12 @@ public class Register {
 
   @Override
   public String toString() {
-    return "responseId=" + responseId + "\n" +
-           "timestamp=" + timestamp + "\n" +
-           "hostname="  + hostname + "\n" +
-           "hardwareprofile=" + this.hardwareProfile.toString();
+    String ret = "responseId=" + responseId + "\n" +
+             "timestamp=" + timestamp + "\n" +
+             "hostname="  + hostname + "\n";
+      
+    if (hardwareProfile != null) 
+      ret = ret + "hardwareprofile=" + this.hardwareProfile.toString();
+    return ret;
   }
 }
