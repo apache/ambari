@@ -16,16 +16,35 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.host;
 
-public class ServiceComponentNodeOpRestartedEvent extends
-    ServiceComponentNodeEvent {
-
-  public ServiceComponentNodeOpRestartedEvent(String serviceComponentName,
-      String nodeName, long opTimestamp) {
-    super(ServiceComponentNodeEventType.NODE_SVCCOMP_OP_RESTART,
-        serviceComponentName, nodeName, opTimestamp);
-    // TODO Auto-generated constructor stub
-  }
-
+public enum HostState {
+  /**
+   * New host state
+   */
+  INIT,
+  /**
+   * State when a registration request is received from the Host but
+   * the host has not been verified/authenticated.
+   */
+  WAITING_FOR_VERIFICATION,
+  /**
+   * State when the host has been verified/authenticated
+   */
+  VERIFIED,
+  /**
+   * State when the server is receiving heartbeats regularly from the Host
+   * and the state of the Host is healthy
+   */
+  HEALTHY,
+  /**
+   * State when the server has not received a heartbeat from the Host in the
+   * configured heartbeat expiry window.
+   */
+  HEARTBEAT_LOST,
+  /**
+   * Host is in unhealthy state as reported either by the Host itself or via
+   * any other additional means ( monitoring layer )
+   */
+  UNHEALTHY
 }

@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.state.live;
 
-public class ServiceComponentNodeOpInProgressEvent extends
-    ServiceComponentNodeEvent {
+public class ServiceComponentHostOpSucceededEvent extends
+    ServiceComponentHostEvent {
 
-  public ServiceComponentNodeOpInProgressEvent(String serviceComponentName,
-      String nodeName, long opTimestamp) {
-    super(ServiceComponentNodeEventType.NODE_SVCCOMP_OP_IN_PROGRESS,
-        serviceComponentName, nodeName, opTimestamp);
+  public ServiceComponentHostOpSucceededEvent(String serviceComponentName,
+      String hostName, long opTimestamp) {
+    super(ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+        serviceComponentName, hostName, opTimestamp);
     // TODO Auto-generated constructor stub
   }
 

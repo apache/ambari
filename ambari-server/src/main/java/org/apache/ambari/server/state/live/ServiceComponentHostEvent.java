@@ -21,10 +21,10 @@ package org.apache.ambari.server.state.live;
 import org.apache.ambari.server.state.fsm.event.AbstractEvent;
 
 /**
- * Base class for all events that affect the ServiceComponentNode FSM
+ * Base class for all events that affect the ServiceComponentHost FSM
  */
-public class ServiceComponentNodeEvent
-    extends AbstractEvent<ServiceComponentNodeEventType> {
+public class ServiceComponentHostEvent
+    extends AbstractEvent<ServiceComponentHostEventType> {
 
   /**
    * ServiceComponent that this event relates to
@@ -32,20 +32,20 @@ public class ServiceComponentNodeEvent
   private final String serviceComponentName;
 
   /**
-   * Hostname of the Node that this event relates to
+   * Hostname of the Host that this event relates to
    */
-  private final String nodeName;
+  private final String hostName;
 
   /**
    * Time when the event was triggered
    */
   private final long opTimestamp;
 
-  public ServiceComponentNodeEvent(ServiceComponentNodeEventType type,
-      String serviceComponentName, String nodeName, long opTimestamp) {
+  public ServiceComponentHostEvent(ServiceComponentHostEventType type,
+      String serviceComponentName, String hostName, long opTimestamp) {
     super(type);
     this.serviceComponentName = serviceComponentName;
-    this.nodeName = nodeName;
+    this.hostName = hostName;
     this.opTimestamp = opTimestamp;
   }
 
@@ -57,10 +57,10 @@ public class ServiceComponentNodeEvent
   }
 
   /**
-   * @return the nodeName
+   * @return the hostName
    */
-  public String getNodeName() {
-    return nodeName;
+  public String getHostName() {
+    return hostName;
   }
 
   /**

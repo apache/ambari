@@ -17,7 +17,7 @@
  */
 
 
-package org.apache.ambari.server.state.live.node;
+package org.apache.ambari.server.state.live.host;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,34 +34,34 @@ import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.live.AgentVersion;
 import org.apache.ambari.server.state.live.job.Job;
-import org.apache.ambari.server.state.live.node.NodeHealthStatus.HealthStatus;
+import org.apache.ambari.server.state.live.host.HostHealthStatus.HealthStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class NodeImpl implements Node {
+public class HostImpl implements Host {
 
-  private static final Log LOG = LogFactory.getLog(NodeImpl.class);
+  private static final Log LOG = LogFactory.getLog(HostImpl.class);
 
   private final Lock readLock;
   private final Lock writeLock;
 
   /**
-   * Node hostname
+   * Host hostname
    */
   private String hostName;
 
   /**
-   * Node IP if ipv4 interface available
+   * Host IP if ipv4 interface available
    */
   private String ipv4;
 
   /**
-   * Node IP if ipv6 interface available
+   * Host IP if ipv6 interface available
    */
   private String ipv6;
 
   /**
-   * Count of cores on Node
+   * Count of cores on Host
    */
   private int cpuCount;
 
@@ -81,168 +81,168 @@ public class NodeImpl implements Node {
   private String osInfo;
 
   /**
-   * Amount of available memory for the Node
+   * Amount of available memory for the Host
    */
   private long availableMemBytes;
 
   /**
-   * Amount of physical memory for the Node
+   * Amount of physical memory for the Host
    */
   private long totalMemBytes;
 
   /**
-   * Disks mounted on the Node
+   * Disks mounted on the Host
    */
   private List<DiskInfo> disksInfo;
 
   /**
-   * Last heartbeat timestamp from the Node
+   * Last heartbeat timestamp from the Host
    */
   private long lastHeartbeatTime;
 
   /**
-   * Last registration timestamp for the Node
+   * Last registration timestamp for the Host
    */
   private long lastRegistrationTime;
 
   /**
-   * Rack to which the Node belongs to
+   * Rack to which the Host belongs to
    */
   private String rackInfo;
 
   /**
-   * Additional Node attributes
+   * Additional Host attributes
    */
   private Map<String, String> hostAttributes;
 
   /**
-   * Version of agent running on the Node
+   * Version of agent running on the Host
    */
   private AgentVersion agentVersion;
 
   /**
-   * Node Health Status
+   * Host Health Status
    */
-  private NodeHealthStatus healthStatus;
+  private HostHealthStatus healthStatus;
 
   private static final StateMachineFactory
-    <NodeImpl, NodeState, NodeEventType, NodeEvent>
+    <HostImpl, HostState, HostEventType, HostEvent>
       stateMachineFactory
-        = new StateMachineFactory<NodeImpl, NodeState, NodeEventType, NodeEvent>
-        (NodeState.INIT)
+        = new StateMachineFactory<HostImpl, HostState, HostEventType, HostEvent>
+        (HostState.INIT)
 
-   // define the state machine of a Node
+   // define the state machine of a Host
 
    // Transition from INIT state
    // when the initial registration request is received
-   .addTransition(NodeState.INIT, NodeState.WAITING_FOR_VERIFICATION,
-       NodeEventType.NODE_REGISTRATION_REQUEST, new NodeRegistrationReceived())
+   .addTransition(HostState.INIT, HostState.WAITING_FOR_VERIFICATION,
+       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())
 
    // Transition from WAITING_FOR_VERIFICATION state
-   // when the node is authenticated
-   .addTransition(NodeState.WAITING_FOR_VERIFICATION, NodeState.VERIFIED,
-       NodeEventType.NODE_VERIFIED, new NodeVerifiedTransition())
+   // when the host is authenticated
+   .addTransition(HostState.WAITING_FOR_VERIFICATION, HostState.VERIFIED,
+       HostEventType.HOST_VERIFIED, new HostVerifiedTransition())
 
    // Transitions from VERIFIED state
    // when a normal heartbeat is received
-   .addTransition(NodeState.VERIFIED, NodeState.HEALTHY,
-       NodeEventType.NODE_HEARTBEAT_HEALTHY,
-       new NodeBecameHealthyTransition())
+   .addTransition(HostState.VERIFIED, HostState.HEALTHY,
+       HostEventType.HOST_HEARTBEAT_HEALTHY,
+       new HostBecameHealthyTransition())
    // when a heartbeat is not received within the configured timeout period
-   .addTransition(NodeState.VERIFIED, NodeState.HEARTBEAT_LOST,
-       NodeEventType.NODE_HEARTBEAT_TIMED_OUT,
-       new NodeHeartbeatTimedOutTransition())
-   // when a heartbeart denoting node as unhealthy is received
-   .addTransition(NodeState.VERIFIED, NodeState.UNHEALTHY,
-       NodeEventType.NODE_HEARTBEAT_UNHEALTHY,
-       new NodeBecameUnhealthyTransition())
+   .addTransition(HostState.VERIFIED, HostState.HEARTBEAT_LOST,
+       HostEventType.HOST_HEARTBEAT_TIMED_OUT,
+       new HostHeartbeatTimedOutTransition())
+   // when a heartbeart denoting host as unhealthy is received
+   .addTransition(HostState.VERIFIED, HostState.UNHEALTHY,
+       HostEventType.HOST_HEARTBEAT_UNHEALTHY,
+       new HostBecameUnhealthyTransition())
 
    // Transitions from HEALTHY state
    // when a normal heartbeat is received
-   .addTransition(NodeState.HEALTHY, NodeState.HEALTHY,
-       NodeEventType.NODE_HEARTBEAT_HEALTHY,
-       new NodeHeartbeatReceivedTransition())
+   .addTransition(HostState.HEALTHY, HostState.HEALTHY,
+       HostEventType.HOST_HEARTBEAT_HEALTHY,
+       new HostHeartbeatReceivedTransition())
    // when a heartbeat is not received within the configured timeout period
-   .addTransition(NodeState.HEALTHY, NodeState.HEARTBEAT_LOST,
-       NodeEventType.NODE_HEARTBEAT_TIMED_OUT,
-       new NodeHeartbeatTimedOutTransition())
-   // when a heartbeart denoting node as unhealthy is received
-   .addTransition(NodeState.HEALTHY, NodeState.UNHEALTHY,
-       NodeEventType.NODE_HEARTBEAT_UNHEALTHY,
-       new NodeBecameUnhealthyTransition())
+   .addTransition(HostState.HEALTHY, HostState.HEARTBEAT_LOST,
+       HostEventType.HOST_HEARTBEAT_TIMED_OUT,
+       new HostHeartbeatTimedOutTransition())
+   // when a heartbeart denoting host as unhealthy is received
+   .addTransition(HostState.HEALTHY, HostState.UNHEALTHY,
+       HostEventType.HOST_HEARTBEAT_UNHEALTHY,
+       new HostBecameUnhealthyTransition())
 
    // Transitions from UNHEALTHY state
    // when a normal heartbeat is received
-   .addTransition(NodeState.UNHEALTHY, NodeState.HEALTHY,
-       NodeEventType.NODE_HEARTBEAT_HEALTHY,
-       new NodeBecameHealthyTransition())
-   // when a heartbeart denoting node as unhealthy is received
-   .addTransition(NodeState.UNHEALTHY, NodeState.UNHEALTHY,
-       NodeEventType.NODE_HEARTBEAT_UNHEALTHY,
-       new NodeHeartbeatReceivedTransition())
+   .addTransition(HostState.UNHEALTHY, HostState.HEALTHY,
+       HostEventType.HOST_HEARTBEAT_HEALTHY,
+       new HostBecameHealthyTransition())
+   // when a heartbeart denoting host as unhealthy is received
+   .addTransition(HostState.UNHEALTHY, HostState.UNHEALTHY,
+       HostEventType.HOST_HEARTBEAT_UNHEALTHY,
+       new HostHeartbeatReceivedTransition())
    // when a heartbeat is not received within the configured timeout period
-   .addTransition(NodeState.UNHEALTHY, NodeState.HEARTBEAT_LOST,
-       NodeEventType.NODE_HEARTBEAT_TIMED_OUT,
-       new NodeHeartbeatTimedOutTransition())
+   .addTransition(HostState.UNHEALTHY, HostState.HEARTBEAT_LOST,
+       HostEventType.HOST_HEARTBEAT_TIMED_OUT,
+       new HostHeartbeatTimedOutTransition())
 
    // Transitions from HEARTBEAT_LOST state
    // when a normal heartbeat is received
-   .addTransition(NodeState.HEARTBEAT_LOST, NodeState.HEALTHY,
-       NodeEventType.NODE_HEARTBEAT_HEALTHY,
-       new NodeBecameHealthyTransition())
-   // when a heartbeart denoting node as unhealthy is received
-   .addTransition(NodeState.HEARTBEAT_LOST, NodeState.UNHEALTHY,
-       NodeEventType.NODE_HEARTBEAT_UNHEALTHY,
-       new NodeBecameUnhealthyTransition())
+   .addTransition(HostState.HEARTBEAT_LOST, HostState.HEALTHY,
+       HostEventType.HOST_HEARTBEAT_HEALTHY,
+       new HostBecameHealthyTransition())
+   // when a heartbeart denoting host as unhealthy is received
+   .addTransition(HostState.HEARTBEAT_LOST, HostState.UNHEALTHY,
+       HostEventType.HOST_HEARTBEAT_UNHEALTHY,
+       new HostBecameUnhealthyTransition())
    // when a heartbeat is not received within the configured timeout period
-   .addTransition(NodeState.HEARTBEAT_LOST, NodeState.HEARTBEAT_LOST,
-       NodeEventType.NODE_HEARTBEAT_TIMED_OUT)
+   .addTransition(HostState.HEARTBEAT_LOST, HostState.HEARTBEAT_LOST,
+       HostEventType.HOST_HEARTBEAT_TIMED_OUT)
    .installTopology();
 
-  private final StateMachine<NodeState, NodeEventType, NodeEvent> stateMachine;
+  private final StateMachine<HostState, HostEventType, HostEvent> stateMachine;
 
-  public NodeImpl() {
+  public HostImpl() {
     super();
     this.stateMachine = stateMachineFactory.make(this);
     ReadWriteLock rwLock = new ReentrantReadWriteLock();
     this.readLock = rwLock.readLock();
     this.writeLock = rwLock.writeLock();
-    this.healthStatus = new NodeHealthStatus(HealthStatus.UNKNOWN, "");
+    this.healthStatus = new HostHealthStatus(HealthStatus.UNKNOWN, "");
   }
 
-  static class NodeRegistrationReceived
-      implements SingleArcTransition<NodeImpl, NodeEvent> {
+  static class HostRegistrationReceived
+      implements SingleArcTransition<HostImpl, HostEvent> {
 
     @Override
-    public void transition(NodeImpl node, NodeEvent event) {
-      NodeRegistrationRequestEvent e = (NodeRegistrationRequestEvent) event;
-      node.importNodeInfo(e.nodeInfo);
-      node.setLastRegistrationTime(e.registrationTime);
-      node.setAgentVersion(e.agentVersion);
+    public void transition(HostImpl host, HostEvent event) {
+      HostRegistrationRequestEvent e = (HostRegistrationRequestEvent) event;
+      host.importHostInfo(e.hostInfo);
+      host.setLastRegistrationTime(e.registrationTime);
+      host.setAgentVersion(e.agentVersion);
     }
   }
 
-  static class NodeVerifiedTransition
-      implements SingleArcTransition<NodeImpl, NodeEvent> {
+  static class HostVerifiedTransition
+      implements SingleArcTransition<HostImpl, HostEvent> {
 
     @Override
-    public void transition(NodeImpl node, NodeEvent event) {
+    public void transition(HostImpl host, HostEvent event) {
       // TODO Auto-generated method stub
     }
   }
 
-  static class NodeHeartbeatReceivedTransition
-    implements SingleArcTransition<NodeImpl, NodeEvent> {
+  static class HostHeartbeatReceivedTransition
+    implements SingleArcTransition<HostImpl, HostEvent> {
 
     @Override
-    public void transition(NodeImpl node, NodeEvent event) {
+    public void transition(HostImpl host, HostEvent event) {
       long heartbeatTime = 0;
       switch (event.getType()) {
-        case NODE_HEARTBEAT_HEALTHY:
-          heartbeatTime = ((NodeHealthyHeartbeatEvent)event).getHeartbeatTime();
+        case HOST_HEARTBEAT_HEALTHY:
+          heartbeatTime = ((HostHealthyHeartbeatEvent)event).getHeartbeatTime();
           break;
-        case NODE_HEARTBEAT_UNHEALTHY:
-          heartbeatTime = ((NodeUnhealthyHeartbeatEvent)event).getHeartbeatTime();
+        case HOST_HEARTBEAT_UNHEALTHY:
+          heartbeatTime = ((HostUnhealthyHeartbeatEvent)event).getHeartbeatTime();
           break;
         default:
           break;
@@ -250,65 +250,65 @@ public class NodeImpl implements Node {
       if (0 == heartbeatTime) {
         // TODO handle error
       }
-      node.setLastHeartbeatTime(heartbeatTime);
+      host.setLastHeartbeatTime(heartbeatTime);
     }
   }
 
-  static class NodeBecameHealthyTransition
-      implements SingleArcTransition<NodeImpl, NodeEvent> {
+  static class HostBecameHealthyTransition
+      implements SingleArcTransition<HostImpl, HostEvent> {
 
     @Override
-    public void transition(NodeImpl node, NodeEvent event) {
-      NodeHealthyHeartbeatEvent e = (NodeHealthyHeartbeatEvent) event;
-      node.setLastHeartbeatTime(e.getHeartbeatTime());
+    public void transition(HostImpl host, HostEvent event) {
+      HostHealthyHeartbeatEvent e = (HostHealthyHeartbeatEvent) event;
+      host.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
-      LOG.info("Node transitioned to a healthy state"
-          + ", node=" + e.nodeName
+      LOG.info("Host transitioned to a healthy state"
+          + ", host=" + e.hostName
           + ", heartbeatTime=" + e.getHeartbeatTime());
-      node.getHealthStatus().setHealthStatus(HealthStatus.HEALTHY);
+      host.getHealthStatus().setHealthStatus(HealthStatus.HEALTHY);
     }
   }
 
-  static class NodeBecameUnhealthyTransition
-      implements SingleArcTransition<NodeImpl, NodeEvent> {
+  static class HostBecameUnhealthyTransition
+      implements SingleArcTransition<HostImpl, HostEvent> {
 
     @Override
-    public void transition(NodeImpl node, NodeEvent event) {
-      NodeUnhealthyHeartbeatEvent e = (NodeUnhealthyHeartbeatEvent) event;
-      node.setLastHeartbeatTime(e.getHeartbeatTime());
+    public void transition(HostImpl host, HostEvent event) {
+      HostUnhealthyHeartbeatEvent e = (HostUnhealthyHeartbeatEvent) event;
+      host.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
-      LOG.info("Node transitioned to an unhealthy state"
-          + ", node=" + e.nodeName
+      LOG.info("Host transitioned to an unhealthy state"
+          + ", host=" + e.hostName
           + ", heartbeatTime=" + e.getHeartbeatTime()
           + ", healthStatus=" + e.getHealthStatus());
-      node.setHealthStatus(e.getHealthStatus());
+      host.setHealthStatus(e.getHealthStatus());
     }
   }
 
-  static class NodeHeartbeatTimedOutTransition
-      implements SingleArcTransition<NodeImpl, NodeEvent> {
+  static class HostHeartbeatTimedOutTransition
+      implements SingleArcTransition<HostImpl, HostEvent> {
 
     @Override
-    public void transition(NodeImpl node, NodeEvent event) {
-      NodeHeartbeatTimedOutEvent e = (NodeHeartbeatTimedOutEvent) event;
+    public void transition(HostImpl host, HostEvent event) {
+      HostHeartbeatTimedOutEvent e = (HostHeartbeatTimedOutEvent) event;
       // TODO Audit logs
-      LOG.info("Node transitioned to heartbeat timed out state"
-          + ", node=" + e.nodeName
-          + ", lastHeartbeatTime=" + node.getLastHeartbeatTime());
-      node.getHealthStatus().setHealthStatus(HealthStatus.UNKNOWN);
+      LOG.info("Host transitioned to heartbeat timed out state"
+          + ", host=" + e.hostName
+          + ", lastHeartbeatTime=" + host.getLastHeartbeatTime());
+      host.getHealthStatus().setHealthStatus(HealthStatus.UNKNOWN);
     }
   }
 
-  void importNodeInfo(HostInfo nodeInfo) {
+  void importHostInfo(HostInfo hostInfo) {
     try {
       writeLock.lock();
-      this.hostName = nodeInfo.getHostName();
-      this.availableMemBytes = nodeInfo.getFreeMemory();
-      this.totalMemBytes = nodeInfo.getMemoryTotal();
-      this.cpuCount = nodeInfo.getProcessorCount();
-      this.osArch = nodeInfo.getArchitecture();
-      this.osType = nodeInfo.getOS();
-      this.disksInfo = nodeInfo.getMounts();
+      this.hostName = hostInfo.getHostName();
+      this.availableMemBytes = hostInfo.getFreeMemory();
+      this.totalMemBytes = hostInfo.getMemoryTotal();
+      this.cpuCount = hostInfo.getProcessorCount();
+      this.osArch = hostInfo.getArchitecture();
+      this.osType = hostInfo.getOS();
+      this.disksInfo = hostInfo.getMounts();
     }
     finally {
       writeLock.unlock();
@@ -316,7 +316,7 @@ public class NodeImpl implements Node {
   }
 
   @Override
-  public NodeState getState() {
+  public HostState getState() {
     try {
       readLock.lock();
       return stateMachine.getCurrentState();
@@ -327,7 +327,7 @@ public class NodeImpl implements Node {
   }
 
   @Override
-  public void setState(NodeState state) {
+  public void setState(HostState state) {
     try {
       writeLock.lock();
       stateMachine.setCurrentState(state);
@@ -338,20 +338,20 @@ public class NodeImpl implements Node {
   }
 
   @Override
-  public void handleEvent(NodeEvent event)
+  public void handleEvent(HostEvent event)
       throws InvalidStateTransitonException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Handling Node event, eventType=" + event.getType().name()
+      LOG.debug("Handling Host event, eventType=" + event.getType().name()
           + ", event=" + event.toString());
     }
-    NodeState oldState = getState();
+    HostState oldState = getState();
     try {
       writeLock.lock();
       try {
         stateMachine.doTransition(event.getType(), event);
       } catch (InvalidStateTransitonException e) {
-        LOG.error("Can't handle Node event at current state"
-            + ", node=" + this.getHostName()
+        LOG.error("Can't handle Host event at current state"
+            + ", host=" + this.getHostName()
             + ", currentState=" + oldState
             + ", eventType=" + event.getType()
             + ", event=" + event);
@@ -363,8 +363,8 @@ public class NodeImpl implements Node {
     }
     if (oldState != getState()) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Node transitioned to a new state"
-            + ", node=" + this.getHostName()
+        LOG.debug("Host transitioned to a new state"
+            + ", host=" + this.getHostName()
             + ", oldState=" + oldState
             + ", currentState=" + getState()
             + ", eventType=" + event.getType().name()
@@ -594,7 +594,7 @@ public class NodeImpl implements Node {
   }
 
   @Override
-  public NodeHealthStatus getHealthStatus() {
+  public HostHealthStatus getHealthStatus() {
     try {
       readLock.lock();
       return healthStatus;
@@ -605,7 +605,7 @@ public class NodeImpl implements Node {
   }
 
   @Override
-  public void setHealthStatus(NodeHealthStatus healthStatus) {
+  public void setHealthStatus(HostHealthStatus healthStatus) {
     try {
       writeLock.lock();
       this.healthStatus = healthStatus;

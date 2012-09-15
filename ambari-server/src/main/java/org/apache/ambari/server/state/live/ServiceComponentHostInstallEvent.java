@@ -16,14 +16,16 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.node;
+package org.apache.ambari.server.state.live;
 
-public class NodeVerifiedEvent extends NodeEvent {
+public class ServiceComponentHostInstallEvent extends
+    ServiceComponentHostEvent {
 
-  // TODO need to add any additional information required for verification
-  // tracking
-  public NodeVerifiedEvent(String nodeName) {
-    super(nodeName, NodeEventType.NODE_VERIFIED);
+
+  public ServiceComponentHostInstallEvent(String serviceComponentName,
+      String hostName, long opTimestamp) {
+    super(ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
+        serviceComponentName, hostName, opTimestamp);
   }
 
 }

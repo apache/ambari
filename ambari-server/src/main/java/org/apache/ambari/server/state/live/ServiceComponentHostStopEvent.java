@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.state.live;
 
-public class ServiceComponentNodeStopEvent extends
-    ServiceComponentNodeEvent {
+public class ServiceComponentHostStopEvent extends
+    ServiceComponentHostEvent {
 
-  public ServiceComponentNodeStopEvent(String serviceComponentName,
-      String nodeName, long opTimestamp) {
-    super(ServiceComponentNodeEventType.NODE_SVCCOMP_STOP,
-        serviceComponentName, nodeName, opTimestamp);
+  public ServiceComponentHostStopEvent(String serviceComponentName,
+      String hostName, long opTimestamp) {
+    super(ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
+        serviceComponentName, hostName, opTimestamp);
     // TODO Auto-generated constructor stub
   }
 

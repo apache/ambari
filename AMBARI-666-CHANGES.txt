@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-738. s/Node/Host/g. (hitesh)
+
   AMBARI-737. ServiceComponentNode FSM implementation. (hitesh)
 
   AMBARI-734. Initial work for adding DataNode/TaskTracker/RegionServer

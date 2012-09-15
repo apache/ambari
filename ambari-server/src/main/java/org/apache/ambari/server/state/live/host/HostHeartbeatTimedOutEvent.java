@@ -16,16 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
 
-public class ServiceComponentNodeOpSucceededEvent extends
-    ServiceComponentNodeEvent {
+package org.apache.ambari.server.state.live.host;
 
-  public ServiceComponentNodeOpSucceededEvent(String serviceComponentName,
-      String nodeName, long opTimestamp) {
-    super(ServiceComponentNodeEventType.NODE_SVCCOMP_OP_SUCCEEDED,
-        serviceComponentName, nodeName, opTimestamp);
-    // TODO Auto-generated constructor stub
+public class HostHeartbeatTimedOutEvent extends HostEvent {
+
+  public HostHeartbeatTimedOutEvent(String hostName) {
+    super(hostName, HostEventType.HOST_HEARTBEAT_TIMED_OUT);
   }
 
 }

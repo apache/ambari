@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.state.live;
 
-public enum ServiceComponentNodeLiveState {
+public enum ServiceComponentHostLiveState {
   /**
    * Initial/Clean state
    */

@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.state.live;
 
-public class ServiceComponentNodeUninstallEvent extends
-    ServiceComponentNodeEvent {
+public class ServiceComponentHostUninstallEvent extends
+    ServiceComponentHostEvent {
 
-  public ServiceComponentNodeUninstallEvent(String serviceComponentName,
-      String nodeName, long opTimestamp) {
-    super(ServiceComponentNodeEventType.NODE_SVCCOMP_UNINSTALL,
-        serviceComponentName, nodeName, opTimestamp);
+  public ServiceComponentHostUninstallEvent(String serviceComponentName,
+      String hostName, long opTimestamp) {
+    super(ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
+        serviceComponentName, hostName, opTimestamp);
     // TODO Auto-generated constructor stub
   }
 

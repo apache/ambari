@@ -16,16 +16,33 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.host;
 
-public class ServiceComponentNodeStartEvent extends
-    ServiceComponentNodeEvent {
+public class HostUnhealthyHeartbeatEvent extends HostEvent {
 
-  public ServiceComponentNodeStartEvent(String serviceComponentName,
-      String nodeName, long opTimestamp) {
-    super(ServiceComponentNodeEventType.NODE_SVCCOMP_START,
-        serviceComponentName, nodeName, opTimestamp);
-    // TODO Auto-generated constructor stub
+  private final long heartbeatTime;
+
+  private final HostHealthStatus healthStatus;
+
+  public HostUnhealthyHeartbeatEvent(String hostName, long heartbeatTime,
+      HostHealthStatus healthStatus) {
+    super(hostName, HostEventType.HOST_HEARTBEAT_UNHEALTHY);
+    this.heartbeatTime = heartbeatTime;
+    this.healthStatus = healthStatus;
+  }
+
+  /**
+   * @return the heartbeatTime
+   */
+  public long getHeartbeatTime() {
+    return heartbeatTime;
+  }
+
+  /**
+   * @return the healthStatus
+   */
+  public HostHealthStatus getHealthStatus() {
+    return healthStatus;
   }
 
 }

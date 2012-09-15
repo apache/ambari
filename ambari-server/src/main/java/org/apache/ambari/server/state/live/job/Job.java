@@ -31,7 +31,7 @@ public interface Job {
   // TODO requires some form of JobType to ensure only one running
   // job per job type
   // There may be gotchas such as de-commissioning should be allowed to happen
-  // on more than one node at a time
+  // on more than one host at a time
 
 
   /**

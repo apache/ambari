@@ -16,27 +16,27 @@
 * limitations under the License.
 */
 
-package org.apache.ambari.server.state.live.node;
+package org.apache.ambari.server.state.live.host;
 
-public enum NodeEventType {
+public enum HostEventType {
   /**
-   * Event to denote when a registration request is received from a Node
+   * Event to denote when a registration request is received from a Host
    */
-  NODE_REGISTRATION_REQUEST,
+  HOST_REGISTRATION_REQUEST,
   /**
-   * Node authenticated/verified.
+   * Host authenticated/verified.
    */
-  NODE_VERIFIED,
+  HOST_VERIFIED,
   /**
-   * A healthy heartbeat event received from the Node.
+   * A healthy heartbeat event received from the Host.
    */
-  NODE_HEARTBEAT_HEALTHY,
+  HOST_HEARTBEAT_HEALTHY,
   /**
-   * No heartbeat received from the Node within the defined expiry interval.
+   * No heartbeat received from the Host within the defined expiry interval.
    */
-  NODE_HEARTBEAT_TIMED_OUT,
+  HOST_HEARTBEAT_TIMED_OUT,
   /**
-   * A non-healthy heartbeat event received from the Node.
+   * A non-healthy heartbeat event received from the Host.
    */
-  NODE_HEARTBEAT_UNHEALTHY
+  HOST_HEARTBEAT_UNHEALTHY
 }

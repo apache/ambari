@@ -16,15 +16,40 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.host;
 
-public class ServiceComponentNodeOpFailedEvent extends
-    ServiceComponentNodeEvent {
+public class HostHealthStatus {
 
-  public ServiceComponentNodeOpFailedEvent(String serviceComponentName,
-      String nodeName, long opTimestamp) {
-    super(ServiceComponentNodeEventType.NODE_SVCCOMP_OP_FAILED,
-        serviceComponentName, nodeName, opTimestamp);
-    // TODO Auto-generated constructor stub
+  private HealthStatus healthStatus;
+
+  private String healthReport;
+
+  public HostHealthStatus(HealthStatus healthStatus, String healthReport) {
+    super();
+    this.healthStatus = healthStatus;
+    this.healthReport = healthReport;
   }
+
+  public synchronized HealthStatus getHealthStatus() {
+    return healthStatus;
+  }
+
+  public synchronized void setHealthStatus(HealthStatus healthStatus) {
+    this.healthStatus = healthStatus;
+  }
+
+  public synchronized void setHealthReport(String healthReport) {
+    this.healthReport = healthReport;
+  }
+
+  public synchronized String getHealthReport() {
+    return healthReport;
+  }
+
+  public static enum HealthStatus {
+    UNKNOWN,
+    HEALTHY,
+    UNHEALTHY
+  }
+
 }

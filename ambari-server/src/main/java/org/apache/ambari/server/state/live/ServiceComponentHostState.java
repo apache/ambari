@@ -21,25 +21,25 @@ package org.apache.ambari.server.state.live;
 import org.apache.ambari.server.state.ConfigVersion;
 import org.apache.ambari.server.state.StackVersion;
 
-public class ServiceComponentNodeState {
+public class ServiceComponentHostState {
 
   private ConfigVersion configVersion;
   private StackVersion stackVersion;
-  private ServiceComponentNodeLiveState state;
+  private ServiceComponentHostLiveState state;
 
-  public ServiceComponentNodeState(ConfigVersion configVersion,
-      StackVersion stackVersion, ServiceComponentNodeLiveState state) {
+  public ServiceComponentHostState(ConfigVersion configVersion,
+      StackVersion stackVersion, ServiceComponentHostLiveState state) {
     super();
     this.configVersion = configVersion;
     this.stackVersion = stackVersion;
     this.state = state;
   }
 
-  public ServiceComponentNodeState() {
+  public ServiceComponentHostState() {
     super();
     this.configVersion = null;
     this.stackVersion = null;
-    this.state = ServiceComponentNodeLiveState.INIT;
+    this.state = ServiceComponentHostLiveState.INIT;
   }
 
 
@@ -70,13 +70,13 @@ public class ServiceComponentNodeState {
   /**
    * @return the state
    */
-  public ServiceComponentNodeLiveState getLiveState() {
+  public ServiceComponentHostLiveState getLiveState() {
     return state;
   }
   /**
    * @param state the state to set
    */
-  public void setState(ServiceComponentNodeLiveState state) {
+  public void setState(ServiceComponentHostLiveState state) {
     this.state = state;
   }
 

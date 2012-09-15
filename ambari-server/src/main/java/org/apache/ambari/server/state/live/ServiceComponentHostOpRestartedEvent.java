@@ -16,25 +16,16 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.node;
+package org.apache.ambari.server.state.live;
 
-import org.apache.ambari.server.agent.HostInfo;
-import org.apache.ambari.server.state.live.AgentVersion;
+public class ServiceComponentHostOpRestartedEvent extends
+    ServiceComponentHostEvent {
 
-public class NodeRegistrationRequestEvent extends NodeEvent {
-
-  final long registrationTime;
-
-  final HostInfo nodeInfo;
-
-  final AgentVersion agentVersion;
-
-  public NodeRegistrationRequestEvent(String nodeName,
-      AgentVersion agentVersion, long registrationTime, HostInfo nodeInfo) {
-    super(nodeName, NodeEventType.NODE_REGISTRATION_REQUEST);
-    this.registrationTime = registrationTime;
-    this.nodeInfo = nodeInfo;
-    this.agentVersion = agentVersion;
+  public ServiceComponentHostOpRestartedEvent(String serviceComponentName,
+      String hostName, long opTimestamp) {
+    super(ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
+        serviceComponentName, hostName, opTimestamp);
+    // TODO Auto-generated constructor stub
   }
 
 }

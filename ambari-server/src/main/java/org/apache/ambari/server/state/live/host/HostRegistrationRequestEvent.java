@@ -16,16 +16,25 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.host;
 
-public class ServiceComponentNodeWipeoutEvent extends
-    ServiceComponentNodeEvent {
+import org.apache.ambari.server.agent.HostInfo;
+import org.apache.ambari.server.state.live.AgentVersion;
 
-  public ServiceComponentNodeWipeoutEvent(String serviceComponentName,
-      String nodeName, long opTimestamp) {
-    super(ServiceComponentNodeEventType.NODE_SVCCOMP_WIPEOUT,
-        serviceComponentName, nodeName, opTimestamp);
-    // TODO Auto-generated constructor stub
+public class HostRegistrationRequestEvent extends HostEvent {
+
+  final long registrationTime;
+
+  final HostInfo hostInfo;
+
+  final AgentVersion agentVersion;
+
+  public HostRegistrationRequestEvent(String hostName,
+      AgentVersion agentVersion, long registrationTime, HostInfo hostInfo) {
+    super(hostName, HostEventType.HOST_REGISTRATION_REQUEST);
+    this.registrationTime = registrationTime;
+    this.hostInfo = hostInfo;
+    this.agentVersion = agentVersion;
   }
 
 }

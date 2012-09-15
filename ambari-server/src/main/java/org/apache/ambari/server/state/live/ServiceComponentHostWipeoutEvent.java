@@ -16,23 +16,16 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.node;
+package org.apache.ambari.server.state.live;
 
-import org.apache.ambari.server.state.fsm.event.AbstractEvent;
+public class ServiceComponentHostWipeoutEvent extends
+    ServiceComponentHostEvent {
 
-/**
- * Base class for all events that affect the Node FSM
- */
-public class NodeEvent extends AbstractEvent<NodeEventType> {
-
-  /**
-   * Hostname of the Node
-   */
-  final String nodeName;
-
-  public NodeEvent(String nodeName, NodeEventType type) {
-    super(type);
-    this.nodeName = nodeName;
+  public ServiceComponentHostWipeoutEvent(String serviceComponentName,
+      String hostName, long opTimestamp) {
+    super(ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
+        serviceComponentName, hostName, opTimestamp);
+    // TODO Auto-generated constructor stub
   }
 
 }

@@ -18,14 +18,14 @@
 
 package org.apache.ambari.server.state.live;
 
-public class ServiceComponentNodeInstallEvent extends
-    ServiceComponentNodeEvent {
+public class ServiceComponentHostStartEvent extends
+    ServiceComponentHostEvent {
 
-
-  public ServiceComponentNodeInstallEvent(String serviceComponentName,
-      String nodeName, long opTimestamp) {
-    super(ServiceComponentNodeEventType.NODE_SVCCOMP_INSTALL,
-        serviceComponentName, nodeName, opTimestamp);
+  public ServiceComponentHostStartEvent(String serviceComponentName,
+      String hostName, long opTimestamp) {
+    super(ServiceComponentHostEventType.HOST_SVCCOMP_START,
+        serviceComponentName, hostName, opTimestamp);
+    // TODO Auto-generated constructor stub
   }
 
 }

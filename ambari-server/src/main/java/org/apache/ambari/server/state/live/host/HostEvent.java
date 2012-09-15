@@ -16,23 +16,23 @@
  * limitations under the License.
  */
 
+package org.apache.ambari.server.state.live.host;
 
-package org.apache.ambari.server.state.live.node;
+import org.apache.ambari.server.state.fsm.event.AbstractEvent;
 
-public class NodeHealthyHeartbeatEvent extends NodeEvent {
-
-  private final long heartbeatTime;
-
-  public NodeHealthyHeartbeatEvent(String nodeName, long heartbeatTime) {
-    super(nodeName, NodeEventType.NODE_HEARTBEAT_HEALTHY);
-    this.heartbeatTime = heartbeatTime;
-  }
+/**
+ * Base class for all events that affect the Host FSM
+ */
+public class HostEvent extends AbstractEvent<HostEventType> {
 
   /**
-   * @return the heartbeatTime
+   * Hostname of the Host
    */
-  public long getHeartbeatTime() {
-    return heartbeatTime;
+  final String hostName;
+
+  public HostEvent(String hostName, HostEventType type) {
+    super(type);
+    this.hostName = hostName;
   }
 
 }

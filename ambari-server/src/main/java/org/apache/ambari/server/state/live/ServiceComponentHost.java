@@ -24,7 +24,7 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.job.Job;
 
 
-public interface ServiceComponentNode {
+public interface ServiceComponentHost {
 
   /**
    * Get the ServiceComponent this object maps to
@@ -33,37 +33,37 @@ public interface ServiceComponentNode {
   public String getServiceComponentName();
 
   /**
-   * Get the Node this object maps to
-   * @return Node's hostname
+   * Get the Host this object maps to
+   * @return Host's hostname
    */
-  public String getNodeName();
+  public String getHostName();
 
   /**
    * Get the list of Jobs that are currently being tracked at the
-   * ServiceComponentNode level
+   * ServiceComponentHost level
    * @return List of Jobs
    */
   public List<Job> getJobs();
 
 
   /**
-   * Get ServiceComponent-Node State
-   * @return ServiceComponentNodeState
+   * Get ServiceComponent-Host State
+   * @return ServiceComponentHostState
    */
-  public ServiceComponentNodeState getState();
+  public ServiceComponentHostState getState();
 
   /**
-   * Set the State for this ServiceComponent-Node
-   * @param state ServiceComponentNodeState to set to
+   * Set the State for this ServiceComponent-Host
+   * @param state ServiceComponentHostState to set to
    */
-  public void setState(ServiceComponentNodeState state);
+  public void setState(ServiceComponentHostState state);
 
   /**
-   * Send a ServiceComponentNodeState event to the StateMachine
+   * Send a ServiceComponentHostState event to the StateMachine
    * @param event Event to handle
    * @throws InvalidStateTransitonException
    */
-  public void handleEvent(ServiceComponentNodeEvent event)
+  public void handleEvent(ServiceComponentHostEvent event)
       throws InvalidStateTransitonException;
 
 }

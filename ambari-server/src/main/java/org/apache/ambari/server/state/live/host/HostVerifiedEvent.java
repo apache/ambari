@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
+package org.apache.ambari.server.state.live.host;
 
-package org.apache.ambari.server.state.live.node;
+public class HostVerifiedEvent extends HostEvent {
 
-public class NodeHeartbeatTimedOutEvent extends NodeEvent {
-
-  public NodeHeartbeatTimedOutEvent(String nodeName) {
-    super(nodeName, NodeEventType.NODE_HEARTBEAT_TIMED_OUT);
+  // TODO need to add any additional information required for verification
+  // tracking
+  public HostVerifiedEvent(String hostName) {
+    super(hostName, HostEventType.HOST_VERIFIED);
   }
 
 }

@@ -16,19 +16,16 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.node;
 
-public class NodeUnhealthyHeartbeatEvent extends NodeEvent {
+package org.apache.ambari.server.state.live.host;
+
+public class HostHealthyHeartbeatEvent extends HostEvent {
 
   private final long heartbeatTime;
 
-  private final NodeHealthStatus healthStatus;
-
-  public NodeUnhealthyHeartbeatEvent(String nodeName, long heartbeatTime,
-      NodeHealthStatus healthStatus) {
-    super(nodeName, NodeEventType.NODE_HEARTBEAT_UNHEALTHY);
+  public HostHealthyHeartbeatEvent(String hostName, long heartbeatTime) {
+    super(hostName, HostEventType.HOST_HEARTBEAT_HEALTHY);
     this.heartbeatTime = heartbeatTime;
-    this.healthStatus = healthStatus;
   }
 
   /**
@@ -36,13 +33,6 @@ public class NodeUnhealthyHeartbeatEvent extends NodeEvent {
    */
   public long getHeartbeatTime() {
     return heartbeatTime;
-  }
-
-  /**
-   * @return the healthStatus
-   */
-  public NodeHealthStatus getHealthStatus() {
-    return healthStatus;
   }
 
 }

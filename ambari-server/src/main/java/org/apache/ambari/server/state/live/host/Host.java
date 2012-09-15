@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.node;
+package org.apache.ambari.server.state.live.host;
 
 import java.util.List;
 import java.util.Map;
@@ -26,7 +26,7 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.AgentVersion;
 import org.apache.ambari.server.state.live.job.Job;
 
-public interface Node {
+public interface Host {
 
   /**
    * @return the hostName
@@ -39,7 +39,7 @@ public interface Node {
   public void setHostName(String hostName);
 
   /**
-   * IPv4 assigned to the Node
+   * IPv4 assigned to the Host
    * @return the ip or null if no IPv4 interface
    */
   public String getIPv4();
@@ -50,7 +50,7 @@ public interface Node {
   public void setIPv4(String ip);
 
   /**
-   * IPv6 assigned to the Node
+   * IPv6 assigned to the Host
    * @return the ip or null if no IPv6 interface
    */
   public String getIPv6();
@@ -71,28 +71,28 @@ public interface Node {
   public void setCpuCount(int cpuCount);
 
   /**
-   * Get the Amount of physical memory for the Node.
+   * Get the Amount of physical memory for the Host.
    * @return the totalMemBytes
    */
   public long getTotalMemBytes();
 
   /**
-   * Set the Amount of physical memory for the Node.
+   * Set the Amount of physical memory for the Host.
    * @param totalMemBytes the totalMemBytes to set
    */
   public void setTotalMemBytes(long totalMemBytes);
 
   /**
-   * Get the Amount of available memory for the Node.
+   * Get the Amount of available memory for the Host.
    * In most cases, available should be same as total unless
-   * the agent on the node is configured to not use all
+   * the agent on the host is configured to not use all
    * available memory
    * @return the availableMemBytes
    */
   public long getAvailableMemBytes();
 
   /**
-   * Set the Amount of available memory for the Node.
+   * Set the Amount of available memory for the Host.
    * @param availableMemBytes the availableMemBytes to set
    */
   public void setAvailableMemBytes(long availableMemBytes);
@@ -134,7 +134,7 @@ public interface Node {
   public void setOsType(String osType);
 
   /**
-   * Get information on disks available on the node.
+   * Get information on disks available on the host.
    * @return the disksInfo
    */
   public List<DiskInfo> getDisksInfo();
@@ -147,12 +147,12 @@ public interface Node {
   /**
    * @return the healthStatus
    */
-  public NodeHealthStatus getHealthStatus();
+  public HostHealthStatus getHealthStatus();
 
   /**
    * @param healthStatus the healthStatus to set
    */
-  public void setHealthStatus(NodeHealthStatus healthStatus);
+  public void setHealthStatus(HostHealthStatus healthStatus);
 
   /**
    * Get additional host attributes
@@ -176,7 +176,7 @@ public interface Node {
   public void setRackInfo(String rackInfo);
 
   /**
-   * Last time the node registered with the Ambari Server
+   * Last time the host registered with the Ambari Server
    * ( Unix timestamp )
    * @return the lastRegistrationTime
    */
@@ -188,7 +188,7 @@ public interface Node {
   public void setLastRegistrationTime(long lastRegistrationTime);
 
   /**
-   * Last time the Ambari Server received a heartbeat from the Node
+   * Last time the Ambari Server received a heartbeat from the Host
    * ( Unix timestamp )
    * @return the lastHeartbeatTime
    */
@@ -200,7 +200,7 @@ public interface Node {
   public void setLastHeartbeatTime(long lastHeartbeatTime);
 
   /**
-   * Version of the Ambari Agent running on the node
+   * Version of the Ambari Agent running on the host
    * @return the agentVersion
    */
   public AgentVersion getAgentVersion();
@@ -212,28 +212,28 @@ public interface Node {
 
   /**
    * Get the list of Jobs that are currently being tracked at the
-   * Node level
+   * Host level
    * @return List of Jobs
    */
   public List<Job> getJobs();
 
   /**
-   * Get Current Node State
-   * @return NodeState
+   * Get Current Host State
+   * @return HostState
    */
-  public NodeState getState();
+  public HostState getState();
 
   /**
-   * Set the State of the Node
-   * @param state Node State
+   * Set the State of the Host
+   * @param state Host State
    */
-  public void setState(NodeState state);
+  public void setState(HostState state);
 
   /**
-   * Send an event to the Node's StateMachine
-   * @param event NodeEvent
+   * Send an event to the Host's StateMachine
+   * @param event HostEvent
    * @throws InvalidStateTransitonException
    */
-  public void handleEvent(NodeEvent event)
+  public void handleEvent(HostEvent event)
       throws InvalidStateTransitonException;
 }
