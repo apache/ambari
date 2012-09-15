@@ -29,18 +29,45 @@ public class ServiceComponentNodeEvent
   /**
    * ServiceComponent that this event relates to
    */
-  final String serviceComponentName;
+  private final String serviceComponentName;
 
   /**
    * Hostname of the Node that this event relates to
    */
-  final String nodeName;
+  private final String nodeName;
+
+  /**
+   * Time when the event was triggered
+   */
+  private final long opTimestamp;
 
   public ServiceComponentNodeEvent(ServiceComponentNodeEventType type,
-      String serviceComponentName, String nodeName) {
+      String serviceComponentName, String nodeName, long opTimestamp) {
     super(type);
     this.serviceComponentName = serviceComponentName;
     this.nodeName = nodeName;
+    this.opTimestamp = opTimestamp;
+  }
+
+  /**
+   * @return the serviceComponentName
+   */
+  public String getServiceComponentName() {
+    return serviceComponentName;
+  }
+
+  /**
+   * @return the nodeName
+   */
+  public String getNodeName() {
+    return nodeName;
+  }
+
+  /**
+   * @return the opTimestamp
+   */
+  public long getOpTimestamp() {
+    return opTimestamp;
   }
 
 }

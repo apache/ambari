@@ -53,7 +53,7 @@ public interface Cluster {
    * @param nodeName Node name
    * @return ServiceComponentNodeState
    */
-  public ServiceComponentNodeLiveState getServiceComponentNodeState(String service,
+  public ServiceComponentNodeState getServiceComponentNodeState(String service,
       String serviceComponent, String nodeName);
 
   /**
@@ -65,7 +65,7 @@ public interface Cluster {
    */
   public void setServiceComponentNodeState(String service,
       String serviceComponent, String nodeName,
-      ServiceComponentNodeLiveState state);
+      ServiceComponentNodeState state);
 
   /**
    * Send an Event to a given ServiceComponentNode

@@ -18,25 +18,13 @@
 
 package org.apache.ambari.server.state.live;
 
-public class StackVersion {
-  private String stackVersion;
+public class ServiceComponentNodeOpFailedEvent extends
+    ServiceComponentNodeEvent {
 
-  public StackVersion(String stackVersion) {
-    super();
-    this.stackVersion = stackVersion;
-  }
-
-  /**
-   * @return the stackVersion
-   */
-  public String getStackVersion() {
-    return stackVersion;
-  }
-
-  /**
-   * @param stackVersion the stackVersion to set
-   */
-  public void setStackVersion(String stackVersion) {
-    this.stackVersion = stackVersion;
+  public ServiceComponentNodeOpFailedEvent(String serviceComponentName,
+      String nodeName, long opTimestamp) {
+    super(ServiceComponentNodeEventType.NODE_SVCCOMP_OP_FAILED,
+        serviceComponentName, nodeName, opTimestamp);
+    // TODO Auto-generated constructor stub
   }
 }

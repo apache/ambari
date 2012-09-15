@@ -16,28 +16,16 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state;
+package org.apache.ambari.server.state.live;
 
-public class ConfigVersion {
-  private String configVersion;
+public class ServiceComponentNodeOpRestartedEvent extends
+    ServiceComponentNodeEvent {
 
-  public ConfigVersion(String configVersion) {
-    super();
-    this.configVersion = configVersion;
-  }
-
-  /**
-   * @return the configVersion
-   */
-  public String getConfigVersion() {
-    return configVersion;
-  }
-
-  /**
-   * @param configVersion the configVersion to set
-   */
-  public void setConfigVersion(String configVersion) {
-    this.configVersion = configVersion;
+  public ServiceComponentNodeOpRestartedEvent(String serviceComponentName,
+      String nodeName, long opTimestamp) {
+    super(ServiceComponentNodeEventType.NODE_SVCCOMP_OP_RESTART,
+        serviceComponentName, nodeName, opTimestamp);
+    // TODO Auto-generated constructor stub
   }
 
 }

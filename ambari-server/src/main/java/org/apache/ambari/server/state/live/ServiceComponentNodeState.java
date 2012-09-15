@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state.live;
 
 import org.apache.ambari.server.state.ConfigVersion;
+import org.apache.ambari.server.state.StackVersion;
 
 public class ServiceComponentNodeState {
 
@@ -33,6 +34,14 @@ public class ServiceComponentNodeState {
     this.stackVersion = stackVersion;
     this.state = state;
   }
+
+  public ServiceComponentNodeState() {
+    super();
+    this.configVersion = null;
+    this.stackVersion = null;
+    this.state = ServiceComponentNodeLiveState.INIT;
+  }
+
 
   /**
    * @return the configVersion
@@ -69,5 +78,24 @@ public class ServiceComponentNodeState {
    */
   public void setState(ServiceComponentNodeLiveState state) {
     this.state = state;
+  }
+
+
+  public String toString() {
+    String out = "[";
+    out += " StackVersion=";
+    if (stackVersion != null) {
+      out += stackVersion;
+    } else {
+      out += "null";
+    }
+    out += ", ConfigVersion=";
+    if (configVersion != null) {
+      out += configVersion;
+    } else {
+      out += "null";
+    }
+    out += ", state=" + state;
+    return out;
   }
 }

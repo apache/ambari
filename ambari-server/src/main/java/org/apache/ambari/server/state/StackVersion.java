@@ -18,26 +18,25 @@
 
 package org.apache.ambari.server.state;
 
-public class ConfigVersion {
-  private String configVersion;
+public class StackVersion {
+  private String stackVersion;
 
-  public ConfigVersion(String configVersion) {
+  public StackVersion(String stackVersion) {
     super();
-    this.configVersion = configVersion;
+    this.stackVersion = stackVersion;
   }
 
   /**
-   * @return the configVersion
+   * @return the stackVersion
    */
-  public String getConfigVersion() {
-    return configVersion;
+  public String getStackVersion() {
+    return stackVersion;
   }
 
   /**
-   * @param configVersion the configVersion to set
+   * @param stackVersion the stackVersion to set
    */
-  public void setConfigVersion(String configVersion) {
-    this.configVersion = configVersion;
+  public void setStackVersion(String stackVersion) {
+    this.stackVersion = stackVersion;
   }
-
 }

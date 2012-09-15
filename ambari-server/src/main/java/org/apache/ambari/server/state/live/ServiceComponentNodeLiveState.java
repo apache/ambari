@@ -66,5 +66,13 @@ public enum ServiceComponentNodeLiveState {
   /**
    * State when uninstall completed successfully.
    */
-  UNINSTALLED
+  UNINSTALLED,
+  /**
+   * In the process of wiping out the install
+   */
+  WIPING_OUT,
+  /**
+   * State when wipeout fails
+   */
+  WIPEOUT_FAILED
 }
