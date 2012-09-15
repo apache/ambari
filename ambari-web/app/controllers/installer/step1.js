@@ -22,10 +22,9 @@ App.InstallerStep1Controller = Em.Controller.extend({
   name: 'installerStep1Controller',
   content: [],
   clusterName: '',
-  validClusterName: true,
+  invalidClusterName: false,
   clusterNameError: '',
-
-  evaluateStep1: function () {
+  validateStep1: function () {
     //TODO: Done
     //task1 =  checks on valid cluster name
     //task2 (prereq(task1 says it's a valid cluster name)) =  storing cluster name in localstorage
@@ -33,22 +32,22 @@ App.InstallerStep1Controller = Em.Controller.extend({
     console.log('TRACE: Entering controller:InstallerStep1:evaluateStep1 function');
     if (this.get('clusterName') == '') {
       this.set('clusterNameError', App.messages.step1_clusterName_error_required);
-      this.set('validClusterName', false);
+      this.set('invalidClusterName', true);
       result = false;
     } else if (/\s/.test(this.get('clusterName'))) {
       console.log('White spaces not allowed for cluster name');
       this.set('clusterNameError', App.messages.step1_clusterName_error_whitespaces);
-      this.set('validClusterName', false);
+      this.set('invalidClusterName', true);
       result = false;
     } else if (/[^\w\s]/gi.test(this.get('clusterName'))) {
       console.log('Special characters are not allowed for the cluster name');
       this.set('clusterNameError', App.messages.step1_clusterName_error_specialChar);
-      this.set('validClusterName', false);
+      this.set('invalidClusterName', true);
       result = false;
     } else {
       console.log('value of clusterNmae is: ' + this.get('clusterName'));
       this.set('clusterNameError', '');
-      this.set('validClusterName', true);
+      this.set('invalidClusterName', false);
       result = true;
     }
     if (result === true) {
@@ -57,4 +56,5 @@ App.InstallerStep1Controller = Em.Controller.extend({
     console.log('Exiting the evaluatestep1 function');
     return result;
   }.observes('clusterName')
+
 })

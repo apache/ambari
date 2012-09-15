@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-735. Clean up Installer Welcome page and Install Options page.
+  (Jaimin Jetly via yusaku)
+
   AMBARI-738. s/Node/Host/g. (hitesh)
 
   AMBARI-737. ServiceComponentNode FSM implementation. (hitesh)

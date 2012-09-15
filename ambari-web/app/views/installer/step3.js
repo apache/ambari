@@ -21,10 +21,12 @@ var App = require('app');
 
 App.InstallerStep3View = Em.View.extend({
 
-    templateName: require('templates/installer/step3'),
+  templateName: require('templates/installer/step3'),
 
-    submit: function(router, event) {
-        alert('form3 submitted');
-    }
+  didInsertElement: function () {
+    $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
+    var result = this.get('controller');
+    result.checkBootstrap();
+  }
 
 });

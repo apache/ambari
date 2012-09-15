@@ -30,6 +30,6 @@ require('router');
 App.initialize();
 
 console.log('after initialize');
-console.log('localStorage:Ambari.authenticated=' + localStorage.getItem('Ambari' + 'authenticated'));
-console.log('localStorage:currentStep=' + localStorage.getItem(App.get('router').getLoginName() + 'Installer' + 'currentStep'));
-console.log('router.authenticated=' + App.get('router.loggedIn'));
+console.log('TRACE: app.js-> localStorage:Ambari.authenticated=' + localStorage.getItem('Ambari' + 'authenticated'));
+console.log('TRACE: app.js-> localStorage:currentStep=' + localStorage.getItem(App.get('router').getLoginName() + 'Installer' + 'currentStep'));
+console.log('TRACE: app.js-> router.authenticated=' + App.get('router.loggedIn'));

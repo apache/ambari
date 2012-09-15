@@ -48,9 +48,10 @@ module.exports = Em.Route.extend({
       router.setInstallerCurrentStep('1', false);
       router.get('installerController').connectOutlet('installerStep1');
     },
+
     next: function (router, context) {
       console.log('In step1 transiting to step2');
-      var result = router.get('installerStep1Controller').evaluateStep1();
+      var result = router.get('installerStep1Controller').validateStep1();
       if (result === true) {
         App.InstallerStep1View.remove;
         router.transitionTo('step2');
@@ -68,11 +69,9 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step1'),
     next: function (router, context) {
-      console.log('In step2 transiting to step3');
-      $('#myModal').modal('hide');
       var result = router.get('installerStep2Controller').evaluateStep2();
-      if (result) {
-        router.transitionTo('step3');
+      if (result === false) {
+        console.log('ERROR: error in evaluateStep2 function');
       }
     }
   }),
@@ -84,7 +83,13 @@ module.exports = Em.Route.extend({
       router.get('installerController').connectOutlet('installerStep3');
     },
     back: Em.Router.transitionTo('step2'),
-    next: Em.Router.transitionTo('step4')
+    next: function (router, context) {
+      var result = router.get('installerStep3Controller').evaluateStep3();
+      if (result) {
+        console.log('In step3 transiting to step4');
+        router.transitionTo('step4');
+      }
+    }
   }),
 
   step4: Em.Route.extend({

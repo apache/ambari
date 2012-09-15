@@ -24,35 +24,8 @@ App.InstallerStep2View = Em.View.extend({
   templateName: require('templates/installer/step2'),
 
   didInsertElement: function () {
-
-  }
-
-});
-
-App.Step2_parentView = Em.View.extend({
-  isVisible: true,
-  click: function () {
-    console.log('parent of step2');
-  },
-  didInsertElement: function () {
     $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
-
   }
 });
 
-App.Step2_child_HostManageView = Em.View.extend({
-  isVisible: true,
-  click: function () {
-    console.log('host management: child of step2');
-  }
 
-});
-
-
-App.Step2_child_AdvOpt = Em.View.extend({
-  isVisible: true,
-
-  click: function () {
-    console.log('Advance option : child of step2');
-  }
-});

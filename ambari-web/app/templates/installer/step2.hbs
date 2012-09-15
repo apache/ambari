@@ -17,26 +17,21 @@
 -->
 
 <h2>{{App.messages.step2_header}}</h2>
-{{#view App.Step2_parentView}}
 
 <h5 {{bindAttr class="hostManageErr:text-error"}}>{{App.messages.step2_targetHosts_label}}</h5>
-{{#view App.Step2_child_HostManageView}}
 
-<div {{bindAttr class="hostNamesErr:error :control-group"}}>
+<div {{bindAttr class="hostNameErrMsg:error :control-group"}}>
   <p>{{App.messages.step2_targetHosts}}
     <a href="javascript:void(null)"
        rel="popover"
        title="Delimiters"
-       data-content="Space, tabs or new line can be used as delimineter">
+      {{bindAttr data-content= "App.messages.step2_hostPatternPop"}}>
       Pattern expressions</a></p>
 
   <div class="controls">
     {{view Ember.TextArea class="span6" valueBinding="hostNames" rows="5" placeholder="host names"}}
-    {{#if hostNameEmptyError}}
-    <p class="help-inline">{{App.messages.step2_hostNameEmptyError}}</p>
-    {{/if}}
-    {{#if hostNameNotRequireErr}}
-    <p class="help-inline">{{App.messages.step2_hostNameNotRequireErr}}</p>
+    {{#if hostNameErrMsg}}
+    <p class="help-inline">{{hostNameErrMsg}}</p>
     {{/if}}
   </div>
 </div>
@@ -70,19 +65,14 @@
   </div>
 
 </div>
-{{/view}}
 
-
-{{#view App.Step2_child_AdvOpt}}
 <h5 {{bindAttr class="advOptErr:text-error"}}>{{App.messages.step2_advancedOption_label}}</h5>
 <label class="checkbox">
   {{App.messages.step2_manualInstallOpt}}
   <a href="javascript:void(null)"
      rel="popover"
      title="Manual Install"
-     data-content="Ambari agents will not be installed automatically. You will require
-     to install it manually on each host of your cluster. Agents should be
-     started before you move to next stage.">
+    {{bindAttr data-content= "App.messages.step2_manualInstallExplain"}}>
     Learn more</a>
   {{view Ember.Checkbox checkedBinding="manualInstall"}}
 </label>
@@ -91,56 +81,36 @@
   <a href="javascript:void(null)"
      rel="popover"
      title="Local repository"
-     data-content="The repository configuration file should be installed on each host
-     in your cluster. This file instructs package manager to use your local
-     software repository to retrieve software packages,instead of using internet.">
+    {{bindAttr data-content= "App.messages.step2_localRepoPop"}}>
     Learn more</a>
   {{view Ember.Checkbox checkedBinding="localRepo"}}
 </label>
+
 {{#if localRepo}}
-<div>
-  <label>{{App.messages.step2_repoConf_label}}</label>
-  {{view Ember.TextField type="text" placeholder="/etc/yum/repos.d/hdp" valueBinding="localRepoPath"}}
-  {{#if softRepoLocalPathNullErr}}
-  <p class="text-error">Local repository file path cannot be null</p>
-  {{/if}}
+<div {{bindAttr class="softRepoLocalPathNullErr:error :control-group"}}>
+  <div class="controls">
+    {{view Ember.TextField type="text" placeholder="/etc/yum/repos.d/hdp" valueBinding="localRepoPath"}}
+    {{#if softRepoLocalPathNullErr}}
+    <p class="help-inline">{{App.messages.step2_localRepoErr}}</p>
+    {{/if}}
+  </div>
   <div class="alert alert-info">
     {{{App.messages.step2_localRepoExplan}}}
   </div>
 </div>
 {{/if}}
-{{/view}}
+
 
 <div class="btn-area">
   <a class="btn" {{action back}}>Previous</a>
   {{#if manualInstall}}
-  <a href="#manualInstallModal" role="button" class="btn btn-success"
-     data-toggle="modal" {{action "clickHandler" target="view"}}>Validate</a>
+  <a role="button" class="btn btn-success"
+     style="float:right"
+     data-toggle="modal" {{action evaluateStep2 target="controller"}}>Validate</a>
   {{else}}
-  <a class="btn btn-success" {{action next}}> Discover and Validate </a>
+  <a class="btn btn-success" style="float:right" {{action next}}> Discover and
+    Validate </a>
   {{/if}}
 </div>
-
-<div class="modal" id="manualInstallModal" tabindex="-1" role="dialog"
-     aria-labelledby="myModalLabel" style="display: none;" aria-hidden="true">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-      x
-    </button>
-    <h3 id="manualInstallModalLabel">Manual Install</h3>
-  </div>
-  <div class="modal-body">
-    <p>Ambari agents shoud be manually installed before you proceed ahead.</p>
-  </div>
-  <div class="modal-footer">
-    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary" data-dismiss="modal"
-            aria-hidden="true" {{action next}} >Proceed
-    </button>
-  </div>
-</div>
-
-{{/view}}
-
 
 

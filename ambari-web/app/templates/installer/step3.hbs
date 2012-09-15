@@ -16,13 +16,118 @@
 * limitations under the License.
 -->
 
-
 <h2>{{App.messages.step3_header}} </h2>
 <p class="alert alert-info">{{{App.messages.step3_body}}}</p>
-
-<a class="btn" {{action retry}}>Retry</a>
-<a class="btn" {{action remove}}>Remove</a> <br/>
+<div id="hosts" class="box">
+  <div class="box-header">
+    <div class="button-section">
+      <a class="btn btn-primary decommission" href="#" {{action retry}}><i
+        class="icon-repeat icon-white"></i>
+        Retry
+      </a>
+      <a class="btn btn-primary" href="#" {{action remove}}><i
+        class="icon-trash icon-white"></i>
+        Remove
+      </a>
+    </div>
+  </div>
+  <table class="table table-bordered table-striped">
+    <!--<colgroup>-->
+    <!--<col class="span1">-->
+    <!--<col class="span7">-->
+    <!--</colgroup>-->
+    <thead>
+    <tr>
+      <th>
+        <label class="checkbox">
+          <input type="checkbox">
+        </label>
+      </th>
+      <th>Status</th>
+      <!--  given by the parsing function that parses data from bootstrap call -->
+      <th>Name</th>
+      <!-- retrieved from local storage initially -->
+      <th>Message</th>
+      <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
+      <th>Delete</th>
+      <!-- trash icon -->
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="warning">
+      <td>
+        <label class="checkbox">
+          <input type="checkbox">
+        </label>
+      </td>
+      <td></td>
+      <td>ip-12-12-12-1231.co2.ama.internal</td>
+      <td>Verifying SSH connection</td>
+      <td>
+        <a href="javascript:void(null)" {{action remove}}><i class="icon-trash"></i></a>
+      </td>
+    </tr>
+    <tr class="success">
+      <td>
+        <label class="checkbox">
+          <input type="checkbox">
+        </label>
+      </td>
+      <td></td>
+      <td>ip-12-12-12-1232.co2.ama.internal</td>
+      <td>Succeed</td>
+      <td>
+        <a href="javascript:void(null)" {{action remove}}><i class="icon-trash"></i></a>
+      </td>
+    </tr>
+    <tr class="warning">
+      <td>
+        <label class="checkbox">
+          <input type="checkbox">
+        </label>
+      </td>
+      <td></td>
+      <td>ip-12-12-12-1233.co2.ama.internal</td>
+      <td>Verifying SSH connection</td>
+      <td>
+        <a href="javascript:void(null)" {{action remove}}><i class="icon-trash"></i></a>
+      </td>
+    </tr>
+    <tr class="warning">
+      <td>
+        <label class="checkbox">
+          <input type="checkbox">
+        </label>
+      </td>
+      <td></td>
+      <td>ip-12-12-12-1234.co2.ama.internal</td>
+      <td>Verifying SSH connection</td>
+      <td>
+        <a href="javascript:void(null)" {{action remove}}><i class="icon-trash"></i></a>
+      </td>
+    </tr>
+    <tr class="error">
+      <td>
+        <label class="checkbox">
+          <input type="checkbox">
+        </label>
+      </td>
+      <td></td>
+      <td>ip-12-12-12-1235.co2.ama.internal</td>
+      <td>ssh connection failed</td>
+      <td>
+        <a href="javascript:void(null)" {{action remove}}><i class="icon-trash"></i></a>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <div class="box-footer">
+    <hr/>
+    <div class="footer-pagination">
+    </div>
+  </div>
+</div>
 <div class="btn-area">
-    <a class="btn" {{action back}}>Back</a>
-    <a class="btn btn-success" {{action next}}>Next</a>
+  <a class="btn" {{action back}}>Previous</a>
+  <a class="btn btn-success" style="float:right" {{action next}}>Next</a>
 </div>
