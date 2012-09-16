@@ -40,7 +40,8 @@ public class BootStrapStatus {
   @XmlType(name="status")
   @XmlEnum
   public enum BSStat {
-    OK,
+    RUNNING,
+    SUCCESS,
     ERROR
   }
   
@@ -49,6 +50,9 @@ public class BootStrapStatus {
   
   @XmlElement
   private List<BSHostStatus> hostsStatus;
+  
+  @XmlElement
+  private String log;
   
   public void setStatus(BSStat status) {
     this.status = status;
@@ -64,5 +68,13 @@ public class BootStrapStatus {
   
   public List<BSHostStatus> getHostsStatus() {
     return this.hostsStatus;
+  }
+  
+  public void setLog(String log) {
+    this.log = log;
+  }
+  
+  public String getLog() {
+    return this.log;
   }
 }

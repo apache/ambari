@@ -57,4 +57,15 @@ public class SshHostInfo {
   public List<String> getHosts() {
     return this.hosts;
   }
+  
+  public String hostListAsString() {
+    String ret = "";
+    if (this.hosts == null) {
+      return "";
+    }
+    for (String host : this.hosts) {
+      ret = ret + host + ":";
+    }
+    return ret;
+  }
 }

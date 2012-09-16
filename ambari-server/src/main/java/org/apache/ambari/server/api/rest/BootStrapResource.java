@@ -22,16 +22,30 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
-
-import org.apache.ambari.server.bootstrap.BootStrapPostStatus;
+import javax.ws.rs.core.Response;
+import org.apache.ambari.server.bootstrap.BSResponse;
+import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.bootstrap.BootStrapStatus;
 import org.apache.ambari.server.bootstrap.SshHostInfo;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.google.inject.Inject;
 
 @Path("/bootstrap")
 public class BootStrapResource {
   
+  private static BootStrapImpl bsImpl;
+  private static Log LOG = LogFactory.getLog(BootStrapResource.class);
+  
+  @Inject
+  static void init(BootStrapImpl instance) {
+    bsImpl = instance;
+  }
   /**
    * Run bootstrap on a list of hosts.
    * @response.representation.200.doc 
@@ -44,9 +58,8 @@ public class BootStrapResource {
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML}) 
-  public BootStrapPostStatus bootStrap(SshHostInfo sshInfo) {
-    
-    return new BootStrapPostStatus();
+  public BSResponse bootStrap(SshHostInfo sshInfo) {
+    return bsImpl.runBootStrap(sshInfo);
   }
   
   /**
@@ -59,8 +72,13 @@ public class BootStrapResource {
    * @throws Exception
    */
   @GET
+  @Path("/{requestId}")
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML}) 
-  public BootStrapStatus getBootStrapStatus() {
-    return new BootStrapStatus();
+  public BootStrapStatus getBootStrapStatus(@PathParam("requestId") 
+  long requestId) {
+    BootStrapStatus status = bsImpl.getStatus(0);
+    if (status == null) 
+      throw new WebApplicationException(Response.Status.NO_CONTENT);
+    return status;
   }
 }

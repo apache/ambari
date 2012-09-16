@@ -17,11 +17,10 @@
  */
 package org.apache.ambari.server.configuration;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -35,25 +34,24 @@ import org.apache.commons.logging.LogFactory;
 public class Configuration {
   private static final String AMBARI_CONF_VAR = "AMBARI_CONF_DIR";
   private static final String CONFIG_FILE = "ambari.properties";
+  private static final String BOOTSTRAP_DIR = "bootstrap.dir";
+  private static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
 
   private static final Log LOG = LogFactory.getLog(Configuration.class);
 
-  private final URI dataStore;
-
+  private Properties properties;
+  
   Configuration() {
     this(readConfigFile());
   }
 
-  protected Configuration(Properties properties) {
-    // get the data store
-    String dataStoreString = properties.getProperty("data.store",
-                                                    "test://test/");
-    try {
-      dataStore = new URI(dataStoreString);
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException("Can't parse data.store: " +
-                                         dataStoreString, e);
-    }
+  /**
+   * For Testing only. This is to be able to create Configuration object 
+   * for testing.
+   * @param properties properties to use for testing using the Conf object.
+   */
+  public Configuration(Properties properties) {
+    this.properties = properties;
   }
 
   /**
@@ -81,12 +79,20 @@ public class Configuration {
     }
     return properties;
   }
-
-  /**
-   * Get the URI for the persistent data store.
-   * @return the data store URI
-   */
-  public URI getDataStore() {
-    return dataStore;
+  
+  public File getBootStrapDir() {
+    String fileName = properties.getProperty(BOOTSTRAP_DIR);
+    if (fileName == null) {
+      return new File("/var/run/ambari/bootstrap");
+    }
+    return new File(fileName);
+  }
+  
+  public String getBootStrapScript() {
+    String bootscript = properties.getProperty(BOOTSTRAP_SCRIPT);
+    if (bootscript == null) {
+      return "/usr/bin/ambari_bootstrap";
+    }
+    return bootscript;
   }
 }

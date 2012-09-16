@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-742. Implement running a bootstrap api, keep a fifo queue and logic
+  for getting a request. (mahadev)
+
   AMBARI-741. Use ember-i18n to externalize string resources in Ambari Web.
   (yusaku)
 

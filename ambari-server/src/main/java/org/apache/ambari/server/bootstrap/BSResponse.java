@@ -32,16 +32,16 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
-public class BootStrapPostStatus {
+public class BSResponse {
   @XmlType(name="status")
   @XmlEnum
-  public enum BSPostStat {
+  public enum BSRunStat {
     OK,
     ERROR
   }
   
   @XmlElement 
-  private BSPostStat postStatus;
+  private BSRunStat status;
   @XmlElement 
   private String log;
   @XmlElement 
@@ -55,12 +55,12 @@ public class BootStrapPostStatus {
     this.requestId = requestId;
   }
   
-  public BSPostStat getStatus() {
-    return this.postStatus;
+  public BSRunStat getStatus() {
+    return this.status;
   }
   
-  public void setStatus(BSPostStat status) {
-    this.postStatus  = status;
+  public void setStatus(BSRunStat status) {
+    this.status  = status;
   }
   
   public String getLog() {
