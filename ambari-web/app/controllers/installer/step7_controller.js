@@ -205,7 +205,71 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
             category: 'Advanced'
           }
         ]
+      },
+      {
+        serviceName: 'HBase',
+        configCategories: [
+          App.ServiceConfigCategory.create({ name: 'General'}),
+          App.ServiceConfigCategory.create({ name: 'HBaseMaster'}),
+          App.ServiceConfigCategory.create({ name: 'RegionServer'}),
+          App.ServiceConfigCategory.create({ name: 'Advanced'})
+        ],
+        configs: []
+      },
+      {
+        serviceName: 'Hive/HCat',
+        configCategories: [
+          App.ServiceConfigCategory.create({ name: 'Hive Metastore'})
+        ],
+        configs: []
+      },
+      {
+        serviceName: 'ZooKeeper',
+        configCategories: [
+          App.ServiceConfigCategory.create({ name: 'General'})
+        ],
+        configs: []
+      },
+      {
+        serviceName: 'Nagios',
+        configCategories: [
+          App.ServiceConfigCategory.create({ name: 'General'})
+        ],
+        configs: [
+          {
+            name: 'nagios_web_login',
+            displayName: 'Nagios Admin username',
+            value: 'nagiosadmin',
+            description: 'Nagios Web UI Admin username'
+          },
+          {
+            name: 'nagios_web_password',
+            displayName: 'Nagios Admin password',
+            value: '',
+            description: 'Nagios Web UI Admin password'
+          },
+          {
+            name: 'nagios_contact',
+            displayName: 'Alert email address',
+            description: 'Email address to which alert notifications will be sent'
+          }
+        ]
+      },
+      {
+        serviceName: 'Oozie',
+        configCategories: [
+          App.ServiceConfigCategory.create({ name: 'General'})
+        ],
+        configs: []
+      },
+      {
+        serviceName: 'Misc',
+        configCategories: [
+          App.ServiceConfigCategory.create({ name: 'General'})
+        ],
+        configs: []
       }
+
     ];
 
     var self = this;

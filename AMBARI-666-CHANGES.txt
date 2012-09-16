@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-743. Add unit testing framework for Ambari Web. (yusaku)
+
   AMBARI-742. Implement running a bootstrap api, keep a fifo queue and logic
   for getting a request. (mahadev)
 

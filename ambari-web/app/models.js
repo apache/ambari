@@ -20,6 +20,6 @@
 // load all models here
 
 require('models/cluster');
-require('models/serviceConfig');
 require('models/service');
+require('models/service_config');
 require('models/alert');

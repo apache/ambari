@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.LoginController = Em.Object.extend({
 
   name: 'loginController',
@@ -43,4 +45,4 @@ App.LoginController = Em.Object.extend({
     return (this.get('loginName').trim() !== '' && this.get('loginName') === this.get('password'));
   }
 
-})
+});

@@ -21,7 +21,7 @@
 // load all views here
 
 require('views/application');
-require('views/common/modalPopup');
+require('views/common/modal_popup');
 require('views/login');
 require('views/main');
 require('views/main/menu');
@@ -39,7 +39,7 @@ require('views/installer/step3');
 require('views/installer/step4');
 require('views/installer/step5');
 require('views/installer/step6');
-require('views/installer/step7');
+require('views/installer/step7_view');
 require('views/installer/step8');
 require('views/installer/step9');
 require('views/installer/step10');

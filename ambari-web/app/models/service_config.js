@@ -18,6 +18,12 @@
 
 var App = require('app');
 
+App.ConfigProperties = Ember.ArrayProxy.extend({
+  content: null
+  // content: require('data/config_properties').configProperties
+});
+
+
 App.ServiceConfig = Ember.Object.extend({
   serviceName: '',
   configCategories: [],
@@ -114,3 +120,4 @@ App.ServiceConfigProperty = Ember.Object.extend({
   }.observes('value')
 
 });
+

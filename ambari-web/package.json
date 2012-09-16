@@ -24,7 +24,9 @@
   },
   "devDependencies": {
     "mocha": "0.14.0",
-    "expect.js": "0.1.2",
+    "chai": "1.2.0",
+    "sinon": "1.4.2",
+    "sinon-chai": "2.1.2",
     "express": "2.5.8"
   }
 }

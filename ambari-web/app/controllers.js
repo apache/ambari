@@ -20,12 +20,12 @@
 // load all controllers here
 
 require('controllers/application');
-require('controllers/login');
+require('controllers/login_controller');
 require('controllers/installer');
 require('controllers/installer/step1');
 require('controllers/installer/step2');
 require('controllers/installer/step3');
-require('controllers/installer/step7');
+require('controllers/installer/step7_controller');
 require('controllers/main');
 require('controllers/main/service');
 require('controllers/main/service/item');
