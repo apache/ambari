@@ -19,8 +19,7 @@
 var App = require('app');
 
 App.ConfigProperties = Ember.ArrayProxy.extend({
-  content: null
-  // content: require('data/config_properties').configProperties
+  content: require('data/config_properties').configProperties
 });
 
 
