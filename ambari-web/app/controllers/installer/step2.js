@@ -26,7 +26,7 @@ App.InstallerStep2Controller = Em.Controller.extend({
   hostNameEmptyError: false,
   hostNameErr: false,
   manualInstall: false,
-  hostNameNotRequireErr: false,
+  hostNameNotRequiredErr: false,
   hostNameErrMsg: '',
   sshKey: '',
   passphrase: '',
@@ -52,49 +52,43 @@ App.InstallerStep2Controller = Em.Controller.extend({
     }
   }.observes('localRepo'),
 
-  checkHostNames: function () {
+  validateHostNames: function () {
     this.hostNameArr = this.get('hostNames').split(new RegExp("\\s"));
     for (var i = 0; i < this.hostNameArr.length; i++) {
       //TODO: other validation for hostnames will be covered over here
-      // For now hostname that are starting or ending with '-' are not allowed
+      // For now hostnames that start or end with '-' are not allowed
       if (/^\-/.test(this.hostNameArr[i]) || /\-$/.test(this.hostNameArr[i])) {
         console.log('Invalid host name: ' + this.hostNameArr[i]);
-        var hostNameErrMsg = App.messages.step2_hostNameErr;
-        this.set('hostNameErrMsg', hostNameErrMsg);
+        this.set('hostNameErrMsg', Em.I18n.t('installer.step2.hostName.error.invalid'));
         this.set('hostNameErr', true);
         this.set('hostNameEmptyError', false);
-        this.set('hostNameNotRequireErr', false);
+        this.set('hostNameNotRequiredErr', false);
         return false;
       }
     }
-    this.set('hostNameErrMsg', '');
-    this.set('hostNameEmptyError', false);
-    this.set('hostNameNotRequireErr', false);
-    this.set('hostNameErr', false);
     return true;
   },
 
-  hostErr: function () {
+  validateHosts: function () {
     if (this.get('hostNames') === '' && this.get('manualInstall') === false) {
       this.set('hostNameEmptyError', true);
-      this.set('hostNameNotRequireErr', false);
+      this.set('hostNameNotRequiredErr', false);
       this.set('hostNameErr', false);
-      this.set('hostNameErrMsg', App.messages.step2_hostNameEmptyError);
+      this.set('hostNameErrMsg', Em.I18n.t('installer.step2.hostName.error.required'));
     } else if (this.get('hostNames') !== '' && this.get('manualInstall') === true) {
-      this.set('hostNameNotRequireErr', true);
+      this.set('hostNameNotRequiredErr', true);
       this.set('hostNameEmptyError', false);
       this.set('hostNameErr', false);
-      this.set('hostNameErrMsg', App.messages.step2_hostNameNotRequireErr);
+      this.set('hostNameErrMsg', Em.I18n.t('installer.step2.hostName.error.notRequired'));
     } else {
       this.set('hostNameErr', false);
       this.set('hostNameEmptyError', false);
-      this.set('hostNameNotRequireErr', false);
+      this.set('hostNameNotRequiredErr', false);
       this.set('hostNameErrMsg', '');
     }
-
   }.observes('hostNames', 'manualInstall'),
 
-  sshKeyErr: function () {
+  validateSSHKey: function () {
     if (this.get('manualInstall') === false) {
       if (this.get('sshKey') === '') {
         this.set('sshKeyNullErr', true);
@@ -106,7 +100,7 @@ App.InstallerStep2Controller = Em.Controller.extend({
 
   }.observes('manualInstall', 'sshKey'),
 
-  passphraseErr: function () {
+  validatePassphrase: function () {
     if (this.get('manualInstall') === false) {
       if (this.get('passphrase') !== this.get('confirmPassphrase')) {
         this.set('passphraseMatchErr', true);
@@ -116,7 +110,7 @@ App.InstallerStep2Controller = Em.Controller.extend({
     }
   }.observes('manualInstall', 'passphrase', 'confirmPassphrase'),
 
-  localRepoErr: function () {
+  validateLocalRepo: function () {
     if (this.get('localRepo') === true) {
       if (this.get('localRepoPath') === '') {
         this.set('softRepoLocalPathNullErr', true);
@@ -129,16 +123,15 @@ App.InstallerStep2Controller = Em.Controller.extend({
   }.observes('localRepoPath'),
 
   validateStep2: function () {
-    this.hostErr();
-    this.sshKeyErr();
-    this.passphraseErr();
-    this.localRepoErr();
-    return (this.checkHostNames());
+    this.validateHosts();
+    this.validateSSHKey();
+    this.validatePassphrase();
+    this.validateLocalRepo();
+    return this.validateHostNames();
   },
 
-
   hostManageErr: function () {
-    return (this.get('hostNameEmptyError') || this.get('hostNameNotRequireErr') ||
+    return (this.get('hostNameEmptyError') || this.get('hostNameNotRequiredErr') ||
       this.get('hostNameErr') || this.get('sshKeyNullErr') || this.get('passphraseMatchErr'));
   }.property('hostNameErrMsg', 'sshKeyNullErr', 'passphraseMatchErr'),
 
@@ -178,12 +171,12 @@ App.InstallerStep2Controller = Em.Controller.extend({
     //task4 = Storing ambari agent Install type in localStorage (installType maps at host level and so every host will have this as an property)
     //task5 = Storing path of software repository(remote/local repo) to localStorage
     //task6 = call to rest API: @Post http://ambari_server/api/bootstrap
-    //task7 = On manual Install, next button click pops up a warning with "proceed" and "close" buttons
-    //task8 =  On faliure of the previous call, show 'error injecting host information in server db'
-    //task9 =  On success of the previous call, go to step 3(awesome....)
+    //task7 = On Manual Install, next button click pops up a warning with "proceed" and "close" buttons
+    //task8 = On faliure of the previous call, show 'error injecting host information in server db'
+    //task9 = On success of the previous call, go to step 3
 
     console.log('TRACE: Entering controller:InstallerStep2:evaluateStep2 function');
-    /**                 task1                **/
+
     console.log('value of manual install is: ' + this.get('manualInstall'));
 
     var validateResult = this.validateStep2();
@@ -198,33 +191,22 @@ App.InstallerStep2Controller = Em.Controller.extend({
       }
     }
 
-
     var hostInfo = {};
     for (var i = 0; i < this.hostNameArr.length; i++) {
-      hostInfo[this.hostNameArr[i]] = {'name': this.hostNameArr[i]};
-      // hostInfo[this.hostNameArr[i]].name =  this.hostNameArr[i];
-      hostInfo[this.hostNameArr[i]].installType = this.get('installType');
+      hostInfo[this.hostNameArr[i]] = {
+        name: this.hostNameArr[i],
+        installType: this.get('installType')
+      };
     }
     App.db.setHosts(hostInfo);
 
-
-    /**                     task5                    **/
-    var repoType;
-    var repoPath;
     if (this.get('localRepo') === false) {
-      repoType = 'remote';
-      repoPath = null;
+      App.db.setSoftRepo({ 'repoType': 'remote', 'repoPath': null});
     } else {
-      repoType = 'local';
-      repoPath = this.get('localRepoPath');
+      App.db.setSoftRepo({ 'repoType': 'local', 'repoPath': this.get('localRepoPath') });
     }
-    var softRepoInfo = {'type': repoType, 'path': repoPath};
-    App.db.setSoftRepo(softRepoInfo);
 
-
-    /**                      task6                  **/
-
-    //just an additional check. If manualInstall is true, program should have not reached over here
+    // Just an additional check. If manualInstall is true, program should have not reached over here
     if (this.get('manualInstall') === false) {
       // For now using mock jquery call
       //TODO: hook up with bootstrap call
@@ -251,7 +233,6 @@ App.InstallerStep2Controller = Em.Controller.extend({
             console.log("TRACE: In faliure function for the post bootstrap function");
             //Remove below line, once bootstrap has been implemented
             App.router.transitionTo('step3');
-
             return true;
           }
         },
@@ -263,10 +244,9 @@ App.InstallerStep2Controller = Em.Controller.extend({
 
   },
 
-
   manualInstallPopup: function (event) {
     App.ModalPopup.show({
-      header: 'Manual Install',
+      header: Em.I18n.t('installer.step2.manualInstall.popup.header'),
       onPrimary: function () {
         this.hide();
         App.router.transitionTo('step3');

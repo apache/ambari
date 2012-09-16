@@ -16,17 +16,18 @@
 * limitations under the License.
 -->
 
-<h2>{{App.messages.step2_header}}</h2>
+<h2>{{t installer.step2.header}}</h2>
 
-<h5 {{bindAttr class="hostManageErr:text-error"}}>{{App.messages.step2_targetHosts_label}}</h5>
+<h5 {{bindAttr class="hostManageErr:text-error"}}>{{t installer.step2.targetHosts}}</h5>
 
 <div {{bindAttr class="hostNameErrMsg:error :control-group"}}>
-  <p>{{App.messages.step2_targetHosts}}
+  <p>{{t installer.step2.targetHosts.info}}.  Or use
     <a href="javascript:void(null)"
        rel="popover"
-       title="Delimiters"
-      {{bindAttr data-content= "App.messages.step2_hostPatternPop"}}>
-      Pattern expressions</a></p>
+       {{translateAttr title="installer.step2.hostPattern.tooltip.title" data-content="installer.step2.hostPattern.tooltip.content"}}>
+      {{t installer.step2.hostPattern.tooltip.title}}
+    </a>
+  </p>
 
   <div class="controls">
     {{view Ember.TextArea class="span6" valueBinding="hostNames" rows="5" placeholder="host names"}}
@@ -39,12 +40,11 @@
 <div id="hostConnectId">
   <div class="ambari-agents">
 
-    <!-- <ul class="unstyled"> -->
     <div {{bindAttr class="sshKeyNullErr:error :control-group"}}>
       <div class="controls">
         {{view Ember.TextArea class="span6" rows="4" placeholder="ssh private key" valueBinding="sshKey"}}
         {{#if sshKeyNullErr}}
-        <span class="help-inline">{{App.messages.step2_sshKeyNullErr}}</span>
+        <span class="help-inline">{{t installer.step2.sshKey.error.required}}</span>
         {{/if}}
       </div>
     </div>
@@ -56,50 +56,46 @@
         {{view Ember.TextField type="text" placeholder="confirm passphrase" valueBinding="confirmPassphrase"}}
 
         {{#if passphraseMatchErr}}
-        <p class="help-inline">{{App.messages.step2_passphraseMatchErr}}</p>
+        <p class="help-inline">{{t installer.step2.passphrase.error.match}}</p>
         {{/if}}
       </div>
     </div>
 
-    </ul>
   </div>
 
 </div>
 
-<h5 {{bindAttr class="advOptErr:text-error"}}>{{App.messages.step2_advancedOption_label}}</h5>
+<h5 {{bindAttr class="advOptErr:text-error"}}>{{t installer.step2.advancedOption}}</h5>
 <label class="checkbox">
-  {{App.messages.step2_manualInstallOpt}}
+  {{t installer.step2.manualInstallOption}}
   <a href="javascript:void(null)"
      rel="popover"
-     title="Manual Install"
-    {{bindAttr data-content= "App.messages.step2_manualInstallExplain"}}>
+    {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content"}}>
     Learn more</a>
   {{view Ember.Checkbox checkedBinding="manualInstall"}}
 </label>
 <label class="checkbox">
-  {{App.messages.step2_localRepoOpt}}
+  {{t installer.step2.localRepoOption}}
   <a href="javascript:void(null)"
      rel="popover"
-     title="Local repository"
-    {{bindAttr data-content= "App.messages.step2_localRepoPop"}}>
+    {{translateAttr title="installer.step2.localRepo.tooltip.title" data-content="installer.step2.localRepo.tooltip.content"}}>
     Learn more</a>
   {{view Ember.Checkbox checkedBinding="localRepo"}}
 </label>
 
 {{#if localRepo}}
 <div {{bindAttr class="softRepoLocalPathNullErr:error :control-group"}}>
-  <div class="controls">
-    {{view Ember.TextField type="text" placeholder="/etc/yum/repos.d/hdp" valueBinding="localRepoPath"}}
-    {{#if softRepoLocalPathNullErr}}
-    <p class="help-inline">{{App.messages.step2_localRepoErr}}</p>
-    {{/if}}
-  </div>
   <div class="alert alert-info">
-    {{{App.messages.step2_localRepoExplan}}}
+    {{t installer.step2.localRepo.info}}
+  </div>
+  <div class="controls">
+    {{view Ember.TextField type="text" class="span6" placeholder="Local repo file path (e.g., /etc/yum/repos.d/hdp)" valueBinding="localRepoPath"}}
+    {{#if softRepoLocalPathNullErr}}
+    <p class="help-inline">{{t installer.step2.localRepo.error.required}}</p>
+    {{/if}}
   </div>
 </div>
 {{/if}}
-
 
 <div class="btn-area">
   <a class="btn" {{action back}}>Previous</a>

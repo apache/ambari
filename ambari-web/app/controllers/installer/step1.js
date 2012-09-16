@@ -24,37 +24,34 @@ App.InstallerStep1Controller = Em.Controller.extend({
   clusterName: '',
   invalidClusterName: false,
   clusterNameError: '',
+
+  /**
+   * Returns true if the cluster name is valid and stores it in localStorage.
+   * Returns false otherwise, and sets appropriate field error message.
+   */
   validateStep1: function () {
-    //TODO: Done
-    //task1 =  checks on valid cluster name
-    //task2 (prereq(task1 says it's a valid cluster name)) =  storing cluster name in localstorage
-    var result;
-    console.log('TRACE: Entering controller:InstallerStep1:evaluateStep1 function');
+    console.log('TRACE: Entering controller:InstallerStep1:validateStep1 function');
     if (this.get('clusterName') == '') {
-      this.set('clusterNameError', App.messages.step1_clusterName_error_required);
+      this.set('clusterNameError', Em.I18n.t('installer.step1.clusterName.error.required'));
       this.set('invalidClusterName', true);
-      result = false;
+      return false;
     } else if (/\s/.test(this.get('clusterName'))) {
       console.log('White spaces not allowed for cluster name');
-      this.set('clusterNameError', App.messages.step1_clusterName_error_whitespaces);
+      this.set('clusterNameError', Em.I18n.t('installer.step1.clusterName.error.whitespaces'));
       this.set('invalidClusterName', true);
-      result = false;
+      return false;
     } else if (/[^\w\s]/gi.test(this.get('clusterName'))) {
       console.log('Special characters are not allowed for the cluster name');
-      this.set('clusterNameError', App.messages.step1_clusterName_error_specialChar);
+      this.set('clusterNameError', Em.I18n.t('installer.step1.clusterName.error.specialChar'));
       this.set('invalidClusterName', true);
-      result = false;
+      return false;
     } else {
-      console.log('value of clusterNmae is: ' + this.get('clusterName'));
+      console.log('value of clusterName is: ' + this.get('clusterName'));
       this.set('clusterNameError', '');
       this.set('invalidClusterName', false);
-      result = true;
-    }
-    if (result === true) {
       App.db.setClusterName(this.get('clusterName'));
+      return true;
     }
-    console.log('Exiting the evaluatestep1 function');
-    return result;
   }.observes('clusterName')
 
 })

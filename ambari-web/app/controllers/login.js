@@ -33,7 +33,7 @@ App.LoginController = Em.Object.extend({
       App.get('router').login(this.get('loginName'));
     } else {
       console.log('Failed to login as: ' + this.get('loginName'));
-      this.set('errorMessage', App.messages.login_error);
+      this.set('errorMessage', Em.I18n.t('login.error'));
     }
 
   },

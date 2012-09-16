@@ -17,17 +17,15 @@
 -->
 
 
-<h2>{{App.messages.step1_header}}</h2>
-<p class="alert alert-info">{{{App.messages.step1_body}}}</p>
+<h2>{{t installer.step1.header}}</h2>
+<p class="alert alert-info">{{t installer.step1.body}}</p>
 <div {{bindAttr class="invalidClusterName:error :control-group"}}>
-  <label class="control-label" for="cluster-name">Name of Your Cluster
+  <label class="control-label" for="cluster-name">{{t installer.step1.clusterName}}
     <a href="javascript:void(null)"
        rel="popover"
-       title="Cluster name"
-      {{bindAttr data-content= "App.messages.step1_clusterPop"}}>
-      Learn more</a>
+      {{translateAttr title="installer.step1.clusterName.tooltip.title"
+       data-content="installer.step1.clusterName.tooltip.content"}}>Learn more</a>
   </label>
-
 
   <div class="controls">
     {{view Ember.TextField id="cluster-name" valueBinding="clusterName" placeholder="cluster name" target="controller"}}
@@ -36,8 +34,7 @@
 </div>
 
 <div class="btn-area">
-  <a
-    class="btn btn-success" {{bindAttr disabled= "invalidClusterName"}} {{action next}}>Next</a>
+  <a class="btn btn-success" {{bindAttr disabled= "invalidClusterName"}} {{action next}}>Next</a>
 </div>
 
 

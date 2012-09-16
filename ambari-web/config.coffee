@@ -38,6 +38,7 @@ exports.config =
           'vendor/scripts/handlebars-1.0.0.beta.6.js',
           'vendor/scripts/ember-latest.js',
           'vendor/scripts/ember-data-latest.js',
+          'vendor/scripts/ember-i18n-1.2.0.js',
           'vendor/scripts/bootstrap.js',
           'vendor/scripts/sinon-1.4.2.js'
           ]

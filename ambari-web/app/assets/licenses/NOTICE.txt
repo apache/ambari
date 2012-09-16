@@ -20,3 +20,6 @@ This product includes LESS (http://lesscss.org - Apache License v2.0.)
 
 This product includes Sinon.JS (http://sinonjs.org - BSD license)
 Copyright (c) 2010-2012, Christian Johansen.
+
+This product includes ember-i18n (http://github.com/zendesk/ember-i18n - MIT license)
+Copyright (C) 2011 by James A. Rosen; Zendesk, Inc.
