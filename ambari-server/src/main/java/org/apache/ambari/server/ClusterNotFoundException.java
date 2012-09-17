@@ -18,12 +18,9 @@
 
 package org.apache.ambari.server;
 
-import java.io.IOException;
+public class ClusterNotFoundException extends AmbariException {
 
-// TODO
-public class AmbariException extends IOException {
-
-  public AmbariException(String message) {
-    super(message);
+  public ClusterNotFoundException(String clusterName) {
+    super("Cluster not found, clusterName=" + clusterName);
   }
 }

@@ -18,13 +18,21 @@
 
 package org.apache.ambari.server.state.live;
 
+import org.apache.ambari.server.AmbariException;
+
 public interface Clusters {
+
+  /**
+   * Add a new Cluster
+   * @param clusterName
+   */
+  public void addCluster(String clusterName) throws AmbariException;
 
   /**
    * Get the Cluster given the cluster name
    * @param clusterName Name of the Cluster to retrieve
    * @return
    */
-  public Cluster getCluster(String clusterName);
+  public Cluster getCluster(String clusterName) throws AmbariException;
 
 }

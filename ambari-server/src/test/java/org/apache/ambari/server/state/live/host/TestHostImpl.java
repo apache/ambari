@@ -48,7 +48,7 @@ public class TestHostImpl {
     info.setOS("os_type");
     info.setMemoryTotal(10);
 
-    HostImpl host = new HostImpl();
+    HostImpl host = new HostImpl("foo");
     host.importHostInfo(info);
 
     Assert.assertEquals(info.getHostName(), host.getHostName());
@@ -116,13 +116,13 @@ public class TestHostImpl {
 
   @Test
   public void testHostFSMInit() {
-    HostImpl host = new HostImpl();
+    HostImpl host = new HostImpl("foo");
     verifyHostState(host, HostState.INIT);
   }
 
   @Test
   public void testHostRegistrationFlow() throws Exception {
-    HostImpl host = new HostImpl();
+    HostImpl host = new HostImpl("foo");
     registerHost(host);
     verifyHostState(host, HostState.WAITING_FOR_VERIFICATION);
 
@@ -154,7 +154,7 @@ public class TestHostImpl {
 
   @Test
   public void testHostHeartbeatFlow() throws Exception {
-    HostImpl host = new HostImpl();
+    HostImpl host = new HostImpl("foo");
     registerHost(host);
     verifyHost(host);
 

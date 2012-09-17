@@ -18,12 +18,14 @@
 
 package org.apache.ambari.server;
 
-import java.io.IOException;
+public class ServiceComponentHostNotFoundException extends AmbariException {
 
-// TODO
-public class AmbariException extends IOException {
-
-  public AmbariException(String message) {
-    super(message);
+  public ServiceComponentHostNotFoundException(String serviceName,
+      String serviceComponentName, String hostName) {
+    super("ServiceComponentHost not found"
+        + ", serviceName=" + serviceName
+        + ", serviceComponentName=" + serviceComponentName
+        + ", hostName=" + hostName);
   }
+
 }

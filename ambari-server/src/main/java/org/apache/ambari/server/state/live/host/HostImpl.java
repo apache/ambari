@@ -201,8 +201,9 @@ public class HostImpl implements Host {
 
   private final StateMachine<HostState, HostEventType, HostEvent> stateMachine;
 
-  public HostImpl() {
+  public HostImpl(String hostName) {
     super();
+    this.hostName = hostName;
     this.stateMachine = stateMachineFactory.make(this);
     ReadWriteLock rwLock = new ReentrantReadWriteLock();
     this.readLock = rwLock.readLock();

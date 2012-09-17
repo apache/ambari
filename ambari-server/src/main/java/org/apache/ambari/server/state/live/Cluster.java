@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state.live;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.host.HostEvent;
 import org.apache.ambari.server.state.live.host.HostState;
@@ -25,18 +26,41 @@ import org.apache.ambari.server.state.live.host.HostState;
 public interface Cluster {
 
   /**
+   * Get the Cluster Name
+   */
+  public String getClusterName();
+
+  /**
+   * Add a new host to the cluster
+   * @throws AmbariException
+   */
+  public void addHost(String host) throws AmbariException;
+
+  /**
+   * Add a new ServiceComponentHost to the cluster
+   * @param serviceName
+   * @param componentName
+   * @param hostName
+   * @param isClient
+   */
+  public void addServiceComponentHost(String serviceName, String componentName,
+      String hostName, boolean isClient) throws AmbariException;
+
+  /**
    * Get the State for a given Host
    * @param hostName Host hostname for which to retrieve state
    * @return
+   * @throws AmbariException
    */
-  public HostState getHostState(String hostName);
+  public HostState getHostState(String hostName) throws AmbariException;
 
   /**
    * Set the State for a given Host
    * @param hostName Host's hostname for which state is to be set
    * @param state HostState to set
    */
-  public void setHostState(String hostName, HostState state);
+  public void setHostState(String hostName, HostState state)
+      throws AmbariException;
 
   /**
    * Send event to the given Host
@@ -44,7 +68,7 @@ public interface Cluster {
    * @param event Event to be handled
    */
   public void handleHostEvent(String hostName, HostEvent event)
-      throws InvalidStateTransitonException;
+      throws AmbariException, InvalidStateTransitonException;
 
   /**
    * Get the State for a given ServiceComponentHost
@@ -54,7 +78,7 @@ public interface Cluster {
    * @return ServiceComponentHostState
    */
   public ServiceComponentHostState getServiceComponentHostState(String service,
-      String serviceComponent, String hostName);
+      String serviceComponent, String hostName) throws AmbariException;
 
   /**
    * Set the State for a given ServiceComponentHost
@@ -65,7 +89,7 @@ public interface Cluster {
    */
   public void setServiceComponentHostState(String service,
       String serviceComponent, String hostName,
-      ServiceComponentHostState state);
+      ServiceComponentHostState state) throws AmbariException;
 
   /**
    * Send an Event to a given ServiceComponentHost
@@ -76,6 +100,7 @@ public interface Cluster {
    */
   public void handleServiceComponentHostEvent(String service,
       String serviceComponent, String hostName,
-      ServiceComponentHostEvent event) throws InvalidStateTransitonException;
+      ServiceComponentHostEvent event)
+          throws AmbariException, InvalidStateTransitonException;
 
 }
