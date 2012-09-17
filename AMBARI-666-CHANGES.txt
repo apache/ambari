@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-745. Add unit tests for Installer Step 1 (Welcome page). (yusaku)
+
   AMBARI-744. Add definition for service config properties. (yusaku)
 
   AMBARI-743. Add unit testing framework for Ambari Web. (yusaku)

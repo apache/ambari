@@ -36,7 +36,7 @@ App.InstallerStep2Controller = Em.Controller.extend({
   localRepo: false,
   localRepoPath: '',
   softRepoLocalPathNullErr: false,
-  isSubmitDisabled: true,
+  isSubmitDisabled: false,
 
   installType: function () {
     if (this.get('manualInstall') === true) {
@@ -97,7 +97,6 @@ App.InstallerStep2Controller = Em.Controller.extend({
         this.set('sshKeyNullErr', false);
       }
     }
-
   }.observes('manualInstall', 'sshKey'),
 
   validatePassphrase: function () {
@@ -176,7 +175,6 @@ App.InstallerStep2Controller = Em.Controller.extend({
     //task9 = On success of the previous call, go to step 3
 
     console.log('TRACE: Entering controller:InstallerStep2:evaluateStep2 function');
-
     console.log('value of manual install is: ' + this.get('manualInstall'));
 
     var validateResult = this.validateStep2();

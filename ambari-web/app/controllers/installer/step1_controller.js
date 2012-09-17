@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var db = require('utils/db');
 
 App.InstallerStep1Controller = Em.Controller.extend({
   name: 'installerStep1Controller',
@@ -49,7 +50,7 @@ App.InstallerStep1Controller = Em.Controller.extend({
       console.log('value of clusterName is: ' + this.get('clusterName'));
       this.set('clusterNameError', '');
       this.set('invalidClusterName', false);
-      App.db.setClusterName(this.get('clusterName'));
+      db.setClusterName(this.get('clusterName'));
       return true;
     }
   }.observes('clusterName')

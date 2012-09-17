@@ -22,8 +22,8 @@
 require('controllers/application');
 require('controllers/login_controller');
 require('controllers/installer');
-require('controllers/installer/step1');
-require('controllers/installer/step2');
+require('controllers/installer/step1_controller');
+require('controllers/installer/step2_controller');
 require('controllers/installer/step3');
 require('controllers/installer/step7_controller');
 require('controllers/main');

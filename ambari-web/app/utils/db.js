@@ -18,16 +18,31 @@
 var App = require('app');
 App.db = {};
 
+if (typeof Storage !== 'undefined') {
+  Storage.prototype.setObject = function(key,value) {
+    this.setItem(key, JSON.stringify(value));
+  }
 
-Storage.prototype.setObject = function(key,value) {
-  this.setItem(key, JSON.stringify(value));
+  Storage.prototype.getObject = function(key) {
+    var value = this.getItem(key);
+    return value && JSON.parse(value);
+  }
+} else {
+  // stub for unit testing purposes
+  window.localStorage = {};
+  localStorage.setItem = function (key, val) {
+    this[key] = val;
+  }
+  localStorage.getItem = function (key) {
+    return this[key];
+  }
+  window.localStorage.setObject = function(key, value) {
+    this[key] = value;
+  };
+  window.localStorage.getObject = function(key, value) {
+    return this[key];
+  };
 }
-
-Storage.prototype.getObject = function(key) {
-  var value = this.getItem(key);
-  return value && JSON.parse(value);
-}
-
 
 App.db.cleanUp = function() {
   console.log('TRACE: Entering db:cleanup function');
@@ -208,3 +223,4 @@ App.db.getHosts = function(name,hostInfo) {
   return App.db.data[user].Installer.hostInfo;
 }
 
+module.exports = App.db;
