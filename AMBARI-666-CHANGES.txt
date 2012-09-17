@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-747. Add unit tests for step2 (Install option page) of installer.
+  (Jaimin Jetly via yusaku)
+
   AMBARI-746. Integrate configuration properties and custom configuration 
   file overrides in Customize Services page. (yusaku)
 

@@ -17,16 +17,19 @@
  */
 
 
-// load all controllers here
+var App = require('app');
 
-require('controllers/application');
-require('controllers/login_controller');
-require('controllers/installer');
-require('controllers/installer/step1_controller');
-require('controllers/installer/step2_controller');
-require('controllers/installer/step3_controller');
-require('controllers/installer/step7_controller');
-require('controllers/main');
-require('controllers/main/service');
-require('controllers/main/service/item');
-require('controllers/main/alert');
+App.InstallerStep3View = Em.View.extend({
+
+  templateName: require('templates/installer/step3'),
+
+  didInsertElement: function () {
+    $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
+    var result = this.get('controller');
+    console.log("TRACE: step3->didInsetElement");
+    var result = this.get('controller');
+    result.renderHosts();
+    console.log("TRACE: Back to step3 view");
+  }
+
+});

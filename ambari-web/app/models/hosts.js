@@ -16,17 +16,13 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
-// load all controllers here
+App.HostInfo = Ember.Object.extend({
+  hostName: '',
+  status: 'info',
+  cpu: '',
+  memory: '',
+  message: 'starting'
+});
 
-require('controllers/application');
-require('controllers/login_controller');
-require('controllers/installer');
-require('controllers/installer/step1_controller');
-require('controllers/installer/step2_controller');
-require('controllers/installer/step3_controller');
-require('controllers/installer/step7_controller');
-require('controllers/main');
-require('controllers/main/service');
-require('controllers/main/service/item');
-require('controllers/main/alert');

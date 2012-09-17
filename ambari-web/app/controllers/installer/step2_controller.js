@@ -179,7 +179,7 @@ App.InstallerStep2Controller = Em.Controller.extend({
 
     var validateResult = this.validateStep2();
 
-    if (this.get('isSubmitDisabled') === true || validateResult === false) {
+    if (this.get('isSubmitDisabled') === true ) {
       console.log("ERROR: error in validation");
       return false;
     } else {
