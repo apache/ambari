@@ -49,24 +49,63 @@ App.ServiceConfigTabs = Ember.View.extend({
 
 });
 
+var popover = function (view) {
+  view.$().popover({
+    title: view.get('serviceConfig.displayName') + '<br><small>' + view.get('serviceConfig.name') + '</small>',
+    content: view.get('serviceConfig.description'),
+    placement: 'right',
+    trigger: 'hover'
+  });
+
+};
+
 App.ServiceConfigTextField = Ember.TextField.extend({
 
   serviceConfig: null,
+  isPopoverEnabled: true,
   valueBinding: 'serviceConfig.value',
-  classNames: ['span6'],
+  classNames: [ 'input-xlarge' ],
 
   disabled: function() {
     return !this.get('serviceConfig.isEditable');
   }.property('serviceConfig.isEditable'),
 
   didInsertElement: function() {
-    this.$().popover({
-      title: this.get('serviceConfig.displayName') + '<br><small>' + this.get('serviceConfig.name') + '</small>',
-      content: this.get('serviceConfig.description'),
-      placement: 'left',
-      trigger: 'hover'
-    });
+    if (this.get('isPopoverEnabled')) {
+      popover(this);
+    }
   }
+});
+
+App.ServiceConfigTextFieldWithUnit = Ember.View.extend({
+  serviceConfig: null,
+  valueBinding: 'serviceConfig.value',
+  classNames: [ 'input-append' ],
+
+  template: Ember.Handlebars.compile('{{view App.ServiceConfigTextField serviceConfigBinding="view.serviceConfig" isPopoverEnabledBinding="false"}}<span class="add-on">{{view.serviceConfig.unit}}</span>'),
+
+  disabled: function() {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable'),
+
+  didInsertElement: function() {
+    popover(this);
+  }
+});
+
+App.ServiceConfigPasswordField = Ember.TextField.extend({
+  serviceConfig: null,
+  type: 'password',
+  valueBinding: 'serviceConfig.value',
+  classNames: [ 'input-medium' ],
+
+  template: Ember.Handlebars.compile('{{view view.retypePasswordView placeholder="Retype password"}}'),
+
+  retypePasswordView: Ember.TextField.extend({
+    type: 'password',
+    classNames: [ 'input-medium', 'retyped-password' ],
+    valueBinding: 'parentView.serviceConfig.retypedPassword'
+  })
 
 });
 
@@ -78,12 +117,7 @@ App.ServiceConfigTextArea = Ember.TextArea.extend({
   classNames: ['span6'],
 
   didInsertElement: function() {
-    this.$().popover({
-      title: this.get('serviceConfig.displayName') + '<br><small>' + this.get('serviceConfig.name') + '</small>',
-      content: this.get('serviceConfig.description'),
-      placement: 'left',
-      trigger: 'hover'
-    });
+    popover(this);
   }
 
 });
@@ -92,27 +126,42 @@ App.ServiceConfigBigTextArea = App.ServiceConfigTextArea.extend({
   rows: 10
 });
 
+var hostPopover = function (view) {
+  view.$().popover({
+    title: view.get('serviceConfig.displayName'),
+    content: view.get('serviceConfig.description'),
+    placement: 'right',
+    trigger: 'hover'
+  });
+};
+
+App.ServiceConfigCheckbox = Ember.Checkbox.extend({
+
+  serviceConfig: null,
+  checkedBinding: 'serviceConfig.value',
+
+  diInsertElement: function() {
+    popover(this);
+  }
+
+});
+
 App.ServiceConfigMasterHostView = Ember.View.extend({
 
   serviceConfig: null,
-  classNames: ['master-host'],
+  classNames: ['master-host', 'span6'],
   valueBinding: 'serviceConfig.value',
 
   template: Ember.Handlebars.compile('{{value}}'),
 
   didInsertElement: function() {
-    this.$().popover({
-      title: this.get('serviceConfig.displayName'),
-      content: this.get('serviceConfig.description'),
-      placement: 'left',
-      trigger: 'hover'
-    });
+    hostPopover(this);
   }
  });
 
 App.ServiceConfigSlaveHostsView = Ember.View.extend({
 
-  classNames: ['slave-hosts'],
+  classNames: ['slave-hosts', 'span6'],
   valueBinding: 'serviceConfig.value',
 
   templateName: require('templates/installer/slaveHosts'),
@@ -134,12 +183,7 @@ App.ServiceConfigSlaveHostsView = Ember.View.extend({
   }.property('value'),
 
   didInsertElement: function() {
-    this.$().popover({
-      title: this.get('serviceConfig.displayName'),
-      content: this.get('serviceConfig.description'),
-      placement: 'left',
-      trigger: 'hover'
-    });
+    hostPopover(this);
   }
 
 });
@@ -155,7 +199,7 @@ App.AddSlaveComponentGroupButton = Ember.View.extend({
       title: 'Add a ' + this.get('slaveComponentName') + ' Group',
       content: 'If you need different settings on certain ' + this.get('slaveComponentName') + 's, you can add a ' + this.get('slaveComponentName') + ' group.<br>' +
         'All ' + this.get('slaveComponentName') + 's within the same group will have the same set of settings.  You can create multiple groups.',
-      placement: 'left',
+      placement: 'right',
       trigger: 'hover'
     });
   }

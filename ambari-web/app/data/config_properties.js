@@ -33,15 +33,20 @@
  *     The default value of the config property.
  *     E.g., "1"
  *
- *   reconfigurable:
+ *   isReconfigurable:
  *     Whether the config property can be reconfigured after it has been initially set and deployed.
+ *     If this is unspecified, true is assumed.
+ *     E.g., true, false
+ *
+ *   isRequired:
+ *     Whether the config property is required or not.
  *     If this is unspecified, true is assumed.
  *     E.g., true, false
  *
  *   displayType:
  *     How the config property is to be rendered for user input.
  *     If this is left unspecified, "string" is assumed
- *     E.g., "string", "int", "float", "checkbox", "directories", "custom"
+ *     E.g., "string", "int", "float", "checkbox", "directories", "custom", "email", "masterHost", "slaveHosts"
  *
  *   unit
  *     The unit for the config property.
@@ -60,28 +65,51 @@ module.exports =
 {
   "configProperties": [
     {
+      "name": "hbasemaster.host",
+      "displayName": "HBase Master host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run HBase Master",
+      "displayType": "masterHost",
+      "serviceName": "HBASE",
+      "category": "HBase Master"
+    },
+    {
+      "name": "regionserver.hosts",
+      "displayName": "RegionServer hosts",
+      "value": "",
+      "defaultValue": "",
+      "description": "The hosts that have been assigned to run RegionServer",
+      "displayType": "slaveHosts",
+      "serviceName": "HBASE",
+      "category": "RegionServer"
+    },
+    {
       "name": "hbase_log_dir",
-      "displayName": "HBase Log DIR",
+      "displayName": "HBase Log Dir",
       "description": "Directory for HBase logs",
       "defaultValue": "/var/log/hbase",
-      "reconfigurable": false,
-      "serviceName": "HBASE"
+      "isReconfigurable": false,
+      "serviceName": "HBASE",
+      "category": "Advanced"
     },
     {
       "name": "hbase_pid_dir",
-      "displayName": "HBase PID DIR",
+      "displayName": "HBase PID Dir",
       "description": "Directory in which the pid files for HBase processes will be created",
       "defaultValue": "/var/run/hbase",
-      "reconfigurable": false,
-      "serviceName": "HBASE"
+      "isReconfigurable": false,
+      "serviceName": "HBASE",
+      "category": "Advanced"
     },
     {
       "name": "hbase_user",
-      "displayName": "HBase User Name",
+      "displayName": "HBase User",
       "description": "User to run HBase as",
       "defaultValue": "hbase",
-      "reconfigurable": false,
-      "serviceName": "HBASE"
+      "isReconfigurable": false,
+      "serviceName": "HBASE",
+      "category": "Advanced"
     },
     {
       "name": "hbase_regionserver_heapsize",
@@ -90,7 +118,8 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
-      "serviceName": "HBASE"
+      "serviceName": "HBASE",
+      "category": "RegionServer"
     },
     {
       "name": "hbase_master_heapsize",
@@ -99,7 +128,8 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
-      "serviceName": "HBASE"
+      "serviceName": "HBASE",
+      "category": "HBase Master"
     },
     {
       "name": "hstore_compactionthreshold",
@@ -132,7 +162,8 @@ module.exports =
       "description": "Count of RPC Listener instances spun up on RegionServers",
       "defaultValue": "30",
       "displayType": "int",
-      "serviceName": "HBASE"
+      "serviceName": "HBASE",
+      "category": "RegionServer"
     },
     {
       "name": "hregion_majorcompaction",
@@ -141,7 +172,8 @@ module.exports =
       "defaultValue": "86400000",
       "displayType": "int",
       "unit": "ms",
-      "serviceName": "HBASE"
+      "serviceName": "HBASE",
+      "category": "RegionServer"
     },
     {
       "name": "hregion_blockmultiplier",
@@ -149,7 +181,8 @@ module.exports =
       "description": "Block updates if memstore has \"Multiplier * HBase Region Memstore Flush Size\" bytes. Useful preventing runaway memstore during spikes in update traffic",
       "defaultValue": "2",
       "displayType": "int",
-      "serviceName": "HBASE"
+      "serviceName": "HBASE",
+      "category": "RegionServer"
     },
     {
       "name": "hregion_memstoreflushsize",
@@ -158,7 +191,8 @@ module.exports =
       "defaultValue": "134217728",
       "displayType": "int",
       "unit": "bytes",
-      "serviceName": "HBASE"
+      "serviceName": "HBASE",
+      "category": "RegionServer"
     },
     {
       "name": "client_scannercaching",
@@ -188,44 +222,106 @@ module.exports =
       "serviceName": "HBASE"
     },
     {
+      "name": "hbase-site.xml",
+      "displayName": "Custom HBase Configs",
+      "description": "If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into hbase-site.xml verbatim.",
+      "defaultValue": "",
+      "isRequired": false,
+      "displayType": "custom",
+      "serviceName": "HBASE",
+      "category": "Advanced"
+    },
+    {
+      "name": "namenode.host",
+      "displayName": "NameNode host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run NameNode",
+      "displayType": "masterHost",
+      "serviceName": "HDFS",
+      "category": "NameNode"
+    },
+    {
       "name": "dfs_name_dir",
       "displayName": "NameNode directories",
       "description": "NameNode directories for HDFS to store the file system image",
       "defaultValue": "",
-      "reconfigurable": false,
-      "serviceName": "HDFS"
+      "isReconfigurable": false,
+      "displayType": "directories",
+      "serviceName": "HDFS",
+      "category": "NameNode"
     },
     {
-      "name": "dfs_data_dir",
-      "displayName": "DataNode directories",
-      "description": "DataNode directories for HDFS to store the data blocks",
+      "name": "snamenode.host",
+      "displayName": "SNameNode host",
+      "value": "",
       "defaultValue": "",
-      "reconfigurable": false,
-      "serviceName": "HDFS"
+      "description": "The host that has been assigned to run SecondaryNameNode",
+      "displayType": "masterHost",
+      "serviceName": "HDFS",
+      "category": "SNameNode"
     },
     {
       "name": "fs_checkpoint_dir",
       "displayName": "SecondaryNameNode Checkpoint directory",
       "description": "Directory on the local filesystem where the Secondary NameNode should store the temporary images to merge",
       "defaultValue": "",
-      "reconfigurable": false,
-      "displayType": "text",
-      "serviceName": "HDFS"
+      "isReconfigurable": false,
+      "serviceName": "HDFS",
+      "category": "SNameNode"
+    },
+    {
+      "name": "datanode.hosts",
+      "displayName": "DataNode hosts",
+      "value": "",
+      "defaultValue": "",
+      "description": "The hosts that have been assigned to run DataNode",
+      "displayType": "slaveHosts",
+      "serviceName": "HDFS",
+      "category": "DataNode"
+    },
+    {
+      "name": "dfs_data_dir",
+      "displayName": "DataNode directories",
+      "description": "DataNode directories for HDFS to store the data blocks",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "displayType": "directories",
+      "serviceName": "HDFS",
+      "category": "DataNode"
+    },
+    {
+      "name": "hdfs_log_dir",
+      "displayName": "HDFS Log Dir",
+      "description": "Directory for HDFS log files",
+      "defaultValue": "/var/log/hdfs",
+      "isReconfigurable": false,
+      "serviceName": "HDFS",
+      "category": "Advanced"
+    },
+    {
+      "name": "hdfs_pid_dir",
+      "displayName": "HDFS PID Dir",
+      "description": "Directory in which the PID files for HDFS processes will be created",
+      "defaultValue": "/var/run/hdfs",
+      "isReconfigurable": false,
+      "serviceName": "HDFS",
+      "category": "Advanced"
     },
     {
       "name": "hdfs_user",
-      "displayName": "HDFS User Name",
+      "displayName": "HDFS User",
       "description": "User to run HDFS as",
       "defaultValue": "hdfs",
-      "reconfigurable": false,
-      "displayType": "text",
-      "serviceName": "HDFS"
+      "isReconfigurable": false,
+      "serviceName": "HDFS",
+      "category": "Advanced"
     },
     {
       "name": "dfs_support_append",
       "displayName": "Append enabled",
-      "description": "Whether enable HDFS Append feature",
-      "defaultValue": "true",
+      "description": "Whether to enable HDFS Append feature",
+      "defaultValue": true,
       "displayType": "checkbox",
       "serviceName": "HDFS"
     },
@@ -233,7 +329,7 @@ module.exports =
       "name": "dfs_webhdfs_enabled",
       "displayName": "WebHDFS enabled",
       "description": "Whether to enable WebHDFS feature",
-      "defaultValue": "false",
+      "defaultValue": false,
       "displayType": "checkbox",
       "serviceName": "HDFS"
     },
@@ -253,7 +349,8 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
-      "serviceName": "HDFS"
+      "serviceName": "HDFS",
+      "category": "NameNode"
     },
     {
       "name": "namenode_opt_newsize",
@@ -262,7 +359,8 @@ module.exports =
       "defaultValue": "200",
       "displayType": "int",
       "unit": "MB",
-      "serviceName": "HDFS"
+      "serviceName": "HDFS",
+      "category": "NameNode"
     },
     {
       "name": "datanode_du_reserved",
@@ -280,22 +378,24 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
-      "serviceName": "HDFS"
+      "serviceName": "HDFS",
+      "category": "DataNode"
     },
     {
       "name": "dfs_datanode_failed_volume_tolerated",
       "displayName": "DataNode volumes failure toleration",
-      "description": "The number of volumes that are allowed to fail before a datanode stops offering service",
+      "description": "The number of volumes that are allowed to fail before a DataNode stops offering service",
       "defaultValue": "0",
       "displayType": "int",
-      "serviceName": "HDFS"
+      "serviceName": "HDFS",
+      "category": "DataNode"
     },
     {
       "name": "fs_checkpoint_period",
       "displayName": "HDFS Maximum Checkpoint Delay",
       "description": "Maximum delay between two consecutive checkpoints for HDFS",
       "defaultValue": "21600",
-      "reconfigurable": false,
+      "isReconfigurable": false,
       "displayType": "int",
       "unit": "seconds",
       "serviceName": "HDFS"
@@ -305,75 +405,188 @@ module.exports =
       "displayName": "HDFS Maximum Edit Log Size for Checkpointing",
       "description": "Maximum size of the edits log file that forces an urgent checkpoint even if the maximum checkpoint delay is not reached",
       "defaultValue": "0.5",
-      "reconfigurable": false,
+      "isReconfigurable": false,
       "displayType": "float",
       "unit": "GB",
       "serviceName": "HDFS"
+    },
+    {
+      "name": "hdfs-site.xml",
+      "displayName": "Custom HDFS Configs",
+      "description": "If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into hdfs-site.xml verbatim.",
+      "defaultValue": "",
+      "isRequired": false,
+      "displayType": "custom",
+      "serviceName": "HDFS",
+      "category": "Advanced"
+    },
+    {
+      "name": "hivemetastore.host",
+      "displayName": "Hive Metastore host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run Hive Metastore",
+      "displayType": "masterHost",
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
     },
     {
       "name": "hive_mysql_host",
       "displayName": "MySQL host",
       "description": "MySQL host on which the Hive Metastore is hosted. If left empty, the metastore will be set up on the same host as the Hive Server using the database name and user credentials specified",
       "defaultValue": "",
-      "reconfigurable": false,
-      "serviceName": "HIVE"
+      "isRequired": false,
+      "isReconfigurable": false,
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
     },
     {
       "name": "hive_database_name",
-      "displayName": "MySQL Database Name",
-      "description": "MySQL Database name used as the Hive Metastore",
+      "displayName": "MySQL database name",
+      "description": "MySQL database name used as the Hive Metastore",
       "defaultValue": "hive",
-      "reconfigurable": false,
-      "serviceName": "HIVE"
+      "isReconfigurable": false,
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
     },
     {
       "name": "hive_metastore_user_name",
       "displayName": "MySQL user",
-      "description": "MySQL username to use to connect to the MySQL database",
+      "description": "MySQL user to use to connect to the MySQL database",
       "defaultValue": "hive",
-      "reconfigurable": false,
-      "serviceName": "HIVE"
+      "isReconfigurable": false,
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
     },
     {
       "name": "hive_metastore_user_passwd",
       "displayName": "MySQL password",
       "description": "MySQL password to use to connect to the MySQL database",
       "defaultValue": "",
-      "reconfigurable": false,
+      "isReconfigurable": false,
       "displayType": "password",
-      "serviceName": "HIVE"
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
     },
     {
-      "name": "hcat_logdirprefix",
-      "displayName": "HCAT Log Dir",
-      "description": "Directory in which the pid files for hcatalog processes will be created",
+      "name": "hive_log_dir",
+      "displayName": "Hive Log Dir",
+      "description": "Directory for Hive log files",
+      "defaultValue": "/var/log/hive",
+      "isReconfigurable": false,
+      "serviceName": "HIVE",
+      "category": "Advanced"
+    },
+    {
+      "name": "hive_pid_dir",
+      "displayName": "Hive PID Dir",
+      "description": "Directory in which the PID files for Hive processes will be created",
+      "defaultValue": "/var/run/hive",
+      "isReconfigurable": false,
+      "serviceName": "HIVE",
+      "category": "Advanced"
+    },
+    {
+      "name": "hive_user",
+      "displayName": "Hive User",
+      "description": "User to run Hive as",
+      "defaultValue": "hive",
+      "isReconfigurable": false,
+      "serviceName": "HIVE",
+      "category": "Advanced"
+    },
+    {
+      "name": "hcat_log_dir",
+      "displayName": "HCat Log Dir",
+      "description": "Directory for HCatalog log files",
       "defaultValue": "/var/log/hcatalog",
-      "reconfigurable": false,
-      "serviceName": "HIVE"
+      "isReconfigurable": false,
+      "serviceName": "HIVE",
+      "category": "Advanced"
+    },
+    {
+      "name": "hcat_pid_dir",
+      "displayName": "HCat PID Dir",
+      "description": "Directory in which the PID files for HCatalog processes will be created",
+      "defaultValue": "/var/run/hcatalog",
+      "isReconfigurable": false,
+      "serviceName": "HIVE",
+      "category": "Advanced"
     },
     {
       "name": "hcat_user",
-      "displayName": "HCAT User Name",
+      "displayName": "HCat User",
       "description": "User to run HCatalog as",
       "defaultValue": "hcat",
-      "reconfigurable": false,
-      "serviceName": "HIVE"
+      "isReconfigurable": false,
+      "serviceName": "HIVE",
+      "category": "Advanced"
+    },
+    {
+      "name": "hive-site.xml",
+      "displayName": "Custom Hive Configs",
+      "description": "If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into hive-site.xml verbatim.",
+      "defaultValue": "",
+      "isRequired": false,
+      "displayType": "custom",
+      "serviceName": "HIVE",
+      "category": "Advanced"
+    },
+    {
+      "name": "jobtracker.host",
+      "displayName": "JobTracker host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run JobTracker",
+      "displayType": "masterHost",
+      "serviceName": "MAPREDUCE",
+      "category": "JobTracker"
+    },
+    {
+      "name": "tasktracker.hosts",
+      "displayName": "TaskTracer hosts",
+      "value": "",
+      "defaultValue": "",
+      "description": "The hosts that have been assigned to run TaskTracker",
+      "displayType": "slaveHosts",
+      "serviceName": "MAPREDUCE",
+      "category": "TaskTracker"
     },
     {
       "name": "mapred_local_dir",
       "displayName": "MapReduce local directories",
       "description": "Directories for MapReduce to store intermediate data files",
       "defaultValue": "",
-      "reconfigurable": false,
+      "displayType": "directories",
+      "isReconfigurable": false,
       "serviceName": "MAPREDUCE"
     },
     {
+      "name": "mapred_log_dir",
+      "displayName": "MapReduce Log Dir",
+      "description": "Directory for MapReduce log files",
+      "defaultValue": "/var/log/mapred",
+      "isReconfigurable": false,
+      "serviceName": "MAPREDUCE",
+      "category": "Advanced"
+    },
+    {
+      "name": "mapred_pid_dir",
+      "displayName": "MapReduce PID Dir",
+      "description": "Directory in which the PID files for MapReduce processes will be created",
+      "defaultValue": "/var/run/mapred",
+      "isReconfigurable": false,
+      "serviceName": "MAPREDUCE",
+      "category": "Advanced"
+    },
+    {
       "name": "mapred_user",
-      "displayName": "MapRed User Name",
+      "displayName": "MapReduce User",
       "description": "User to run MapReduce as",
       "defaultValue": "mapred",
-      "reconfigurable": false,
-      "serviceName": "MAPREDUCE"
+      "isReconfigurable": false,
+      "serviceName": "MAPREDUCE",
+      "category": "Advanced"
     },
     {
       "name": "scheduler_name",
@@ -385,20 +598,22 @@ module.exports =
     {
       "name": "jtnode_opt_newsize",
       "displayName": "JobTracker new generation size",
-      "description": "Default size of Java new generation size for JobTracker (Java option -XX:NewSize)",
+      "description": "Default size of Java new generation size for JobTracker in MB (Java option -XX:NewSize)",
       "defaultValue": "200",
       "displayType": "int",
       "unit": "MB",
-      "serviceName": "MAPREDUCE"
+      "serviceName": "MAPREDUCE",
+      "category": "JobTracker"
     },
     {
       "name": "jtnode_opt_maxnewsize",
       "displayName": "JobTracker maximum new generation size",
-      "description": "Maximum size of Java new generation for JobTracker (Java option -XX:MaxNewSize)",
+      "description": "Maximum size of Java new generation for JobTracker in MB (Java option -XX:MaxNewSize)",
       "defaultValue": "200",
       "displayType": "int",
       "unit": "MB",
-      "serviceName": "MAPREDUCE"
+      "serviceName": "MAPREDUCE",
+      "category": "JobTracker"
     },
     {
       "name": "jtnode_heapsize",
@@ -407,7 +622,8 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
-      "serviceName": "MAPREDUCE"
+      "serviceName": "MAPREDUCE",
+      "category": "JobTracker"
     },
     {
       "name": "mapred_map_tasks_max",
@@ -415,7 +631,8 @@ module.exports =
       "description": "Number of slots that Map tasks that run simultaneously can occupy on a TaskTracker",
       "defaultValue": "4",
       "displayType": "int",
-      "serviceName": "MAPREDUCE"
+      "serviceName": "MAPREDUCE",
+      "category": "TaskTracker"
     },
     {
       "name": "mapred_red_tasks_max",
@@ -423,7 +640,8 @@ module.exports =
       "description": "Number of slots that Reduce tasks that run simultaneously can occupy on a TaskTracker.",
       "defaultValue": "2",
       "displayType": "int",
-      "serviceName": "MAPREDUCE"
+      "serviceName": "MAPREDUCE",
+      "category": "TaskTracker"
     },
     {
       "name": "mapred_cluster_map_mem_mb",
@@ -526,7 +744,7 @@ module.exports =
       "name": "lzo_enabled",
       "displayName": "LZO compression",
       "description": "LZO compression enabled",
-      "defaultValue": "false",
+      "defaultValue": false,
       "displayType": "checkbox",
       "serviceName": "MAPREDUCE"
     },
@@ -534,67 +752,81 @@ module.exports =
       "name": "snappy_enabled",
       "displayName": "Snappy compression",
       "description": "Snappy compression enabled",
-      "defaultValue": "true",
-      "reconfigurable": false,
+      "defaultValue": true,
+      "isReconfigurable": false,
       "displayType": "checkbox",
       "serviceName": "MAPREDUCE"
     },
     {
+      "name": "mapred-site.xml",
+      "displayName": "Custom MapReduce Configs",
+      "description": "If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into mapred-site.xml verbatim.",
+      "defaultValue": "",
+      "isRequired": false,
+      "displayType": "custom",
+      "serviceName": "MAPREDUCE",
+      "category": "Advanced"
+    },
+    {
       "name": "jdk_location",
       "displayName": "URL to download 64-bit JDK",
-      "description": "URL from where the Java JDK binary can be downloaded",
+      "description": "URL from where the 64-bit JDK binary can be downloaded",
       "defaultValue": "",
-      "reconfigurable": false,
+      "isRequired": false,
+      "isReconfigurable": false,
       "displayType": "url",
-      "serviceName": "MISCELLANEOUS"
+      "serviceName": "MISC"
     },
     {
       "name": "java64_home",
       "displayName": "Path to 64-bit JAVA_HOME",
       "description": "Path to 64-bit JAVA_HOME",
       "defaultValue": "",
-      "reconfigurable": false,
-      "serviceName": "MISCELLANEOUS"
+      "isRequired": false,
+      "isReconfigurable": false,
+      "serviceName": "MISC"
     },
     {
-      "name": "hadoop_logdirprefix",
-      "displayName": "Hadoop Log DIR",
-      "description": "Directory for hadoop log files",
+      "name": "hadoop_log_dir",
+      "displayName": "Hadoop Log Dir",
+      "description": "Directory for Hadoop log files",
       "defaultValue": "/var/log/hadoop",
-      "reconfigurable": false,
-      "serviceName": "MISCELLANEOUS"
+      "isReconfigurable": false,
+      "serviceName": "MISC",
+      "category": "Advanced"
     },
     {
-      "name": "hadoop_piddirprefix",
-      "displayName": "Hadoop PID DIR",
-      "description": "Directory in which the pid files for hadoop processes will be created",
+      "name": "hadoop_pid_dir",
+      "displayName": "Hadoop PID Dir",
+      "description": "Directory in which the pid files for Hadoop processes will be created",
       "defaultValue": "/var/run/hadoop",
-      "reconfigurable": false,
-      "serviceName": "MISCELLANEOUS"
+      "isReconfigurable": false,
+      "serviceName": "MISC",
+      "category": "Advanced"
     },
     {
       "name": "yum_repo_file",
-      "displayName": "Path to YUM Repo file",
-      "description": "Path to YUM Repo file",
+      "displayName": "Path to local repo file",
+      "description": "Path to local repository file that configures from where to download software packages",
       "defaultValue": "/etc/yum.repos.d/hdp.repo",
-      "reconfigurable": false,
-      "serviceName": "MISCELLANEOUS"
+      "isReconfigurable": false,
+      "serviceName": "MISC"
     },
     {
       "name": "using_local_repo",
       "displayName": "Whether a local repo is being used",
       "description": "Whether a local repo is being used",
-      "defaultValue": "false",
-      "reconfigurable": false,
+      "defaultValue": false,
+      "isReconfigurable": false,
       "displayType": "checkbox",
-      "serviceName": "MISCELLANEOUS"
+      "serviceName": "MISC"
     },
     {
       "name": "nagios_web_login",
       "displayName": "Nagios Admin username",
       "description": "Nagios Web UI Admin username",
       "defaultValue": "nagiosadmin",
-      "reconfigurable": false,
+      "isReconfigurable": false,
       "serviceName": "NAGIOS"
     },
     {
@@ -602,7 +834,7 @@ module.exports =
       "displayName": "Nagios Admin password",
       "description": "Nagios Web UI Admin password",
       "defaultValue": "",
-      "reconfigurable": false,
+      "isReconfigurable": false,
       "displayType": "password",
       "serviceName": "NAGIOS"
     },
@@ -615,92 +847,143 @@ module.exports =
       "serviceName": "NAGIOS"
     },
     {
+      "name": "oozieserver.host",
+      "displayName": "Oozie Server host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run Oozie Server",
+      "displayType": "masterHost",
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    {
       "name": "oozie_data_dir",
       "displayName": "Oozie DB directory",
       "description": "Data directory in which the Oozie DB exists",
       "defaultValue": "",
-      "reconfigurable": false,
-      "serviceName": "OOZIE"
+      "isReconfigurable": false,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
     },
     {
       "name": "oozie_log_dir",
       "displayName": "Oozie Log Dir",
       "description": "Directory for oozie logs",
       "defaultValue": "/var/log/oozie",
-      "reconfigurable": false,
-      "serviceName": "OOZIE"
+      "isReconfigurable": false,
+      "serviceName": "OOZIE",
+      "category": "Advanced"
     },
     {
       "name": "oozie_pid_dir",
       "displayName": "Oozie PID Dir",
       "description": "Directory in which the pid files for oozie processes will be created",
-      "defaultValue": "/var/pid/oozie",
-      "reconfigurable": false,
-      "serviceName": "OOZIE"
+      "defaultValue": "/var/run/oozie",
+      "isReconfigurable": false,
+      "serviceName": "OOZIE",
+      "category": "Advanced"
     },
     {
       "name": "oozie_user",
-      "displayName": "Oozie User Name",
+      "displayName": "Oozie User",
       "description": "User to run Oozie as",
       "defaultValue": "oozie",
-      "reconfigurable": false,
-      "serviceName": "OOZIE"
+      "isReconfigurable": false,
+      "serviceName": "OOZIE",
+      "category": "Advanced"
+    },
+    {
+      "name": "oozie-site.xml",
+      "displayName": "Custom Oozie Configs",
+      "description": "If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into oozie-site.xml verbatim.",
+      "defaultValue": "",
+      "isRequired": false,
+      "displayType": "custom",
+      "serviceName": "OOZIE",
+      "category": "Advanced"
+    },
+    {
+      "name": "templetonserver.host",
+      "displayName": "Templeton Server host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run Templeton Server",
+      "displayType": "masterHost",
+      "serviceName": "TEMPLETON",
+      "category": "Templeton Server"
     },
     {
       "name": "templeton_user",
-      "displayName": "Templeton User Name",
+      "displayName": "Templeton User",
       "description": "User to run Templeton as",
       "defaultValue": "templeton",
-      "reconfigurable": false,
-      "serviceName": "TEMPLETON"
+      "isReconfigurable": false,
+      "serviceName": "TEMPLETON",
+      "category": "Advanced"
     },
     {
       "name": "templeton_pid_dir",
       "displayName": "Templeton PID Dir",
       "description": "Directory in which the pid files for templeton processes will be created",
       "defaultValue": "/var/run/templeton",
-      "reconfigurable": false,
-      "serviceName": "TEMPLETON"
+      "isReconfigurable": false,
+      "serviceName": "TEMPLETON",
+      "category": "Advanced"
     },
     {
       "name": "templeton_log_dir",
       "displayName": "Templeton Log Dir",
       "description": "Directory for templeton logs",
       "defaultValue": "/var/log/templeton",
-      "reconfigurable": false,
-      "serviceName": "TEMPLETON"
+      "isReconfigurable": false,
+      "serviceName": "TEMPLETON",
+      "category": "Advanced"
+    },
+    {
+      "name": "templeton-site.xml",
+      "displayName": "Custom Templeton Configs",
+      "description": "If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into templeton-site.xml verbatim.",
+      "defaultValue": "",
+      "isRequired": false,
+      "displayType": "custom",
+      "serviceName": "TEMPLETON",
+      "category": "Advanced"
     },
     {
       "name": "zk_data_dir",
       "displayName": "ZooKeeper directory",
       "description": "Data directory for ZooKeeper",
       "defaultValue": "",
-      "reconfigurable": false,
-      "serviceName": "ZOOKEEPER"
+      "isReconfigurable": false,
+      "serviceName": "ZOOKEEPER",
+      "category": "ZooKeeper Server"
     },
     {
       "name": "zk_log_dir",
-      "displayName": "ZooKeeper Log directory",
+      "displayName": "ZooKeeper Log Dir",
       "description": "Directory for ZooKeeper log files",
       "defaultValue": "/var/log/zookeeper",
-      "reconfigurable": false,
-      "serviceName": "ZOOKEEPER"
+      "isReconfigurable": false,
+      "serviceName": "ZOOKEEPER",
+      "category": "Advanced"
     },
     {
       "name": "zk_pid_dir",
-      "displayName": "ZooKeeper PID directory",
+      "displayName": "ZooKeeper PID Dir",
       "description": "Directory in which the pid files for zookeeper processes will be created",
       "defaultValue": "/var/run/zookeeper",
-      "reconfigurable": false,
-      "serviceName": "ZOOKEEPER"
+      "isReconfigurable": false,
+      "serviceName": "ZOOKEEPER",
+      "category": "Advanced"
     },
     {
       "name": "zk_user",
       "displayName": "ZooKeeper User",
       "description": "User to run ZooKeeper as",
       "defaultValue": "zookeeper",
-      "reconfigurable": false,
-      "serviceName": "ZOOKEEPER"
+      "isReconfigurable": false,
+      "serviceName": "ZOOKEEPER",
+      "category": "Advanced"
     },
     {
       "name": "tickTime",
@@ -709,7 +992,8 @@ module.exports =
       "defaultValue": "2000",
       "displayType": "int",
       "unit": "ms",
-      "serviceName": "ZOOKEEPER"
+      "serviceName": "ZOOKEEPER",
+      "category": "ZooKeeper Server"
     },
     {
       "name": "initLimit",
@@ -717,15 +1001,17 @@ module.exports =
       "description": "Amount of time, in ticks to allow followers to connect and sync to a leader",
       "defaultValue": "10",
       "displayType": "int",
-      "serviceName": "ZOOKEEPER"
+      "serviceName": "ZOOKEEPER",
+      "category": "ZooKeeper Server"
     },
     {
       "name": "syncLimit",
       "displayName": "Ticks to allow for sync at Runtime",
-      "description": "Amount of time, in ticks to allow followers to connect an",
+      "description": "Amount of time, in ticks to allow followers to connect",
       "defaultValue": "5",
       "displayType": "int",
-      "serviceName": "ZOOKEEPER"
+      "serviceName": "ZOOKEEPER",
+      "category": "ZooKeeper Server"
     },
     {
       "name": "clientPort",
@@ -733,7 +1019,8 @@ module.exports =
       "description": "Port for running ZooKeeper server",
       "defaultValue": "2181",
       "displayType": "int",
-      "serviceName": "ZOOKEEPER"
+      "serviceName": "ZOOKEEPER",
+      "category": "ZooKeeper Server"
     }
   ]
 };

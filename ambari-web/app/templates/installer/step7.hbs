@@ -17,6 +17,14 @@
 -->
 <div id="serviceConfig">
 <h2>{{t installer.step7.header}}</h2>
+<div class="alert alert-info">
+  {{t installer.step7.body}}
+</div>
+<div id="attention">
+{{#if isSubmitDisabled}}
+<div class="alert">{{t installer.step7.attentionNeeded}}</div>
+{{/if}}
+</div>
 {{#view App.ServiceConfigTabs}}
 <ul class="nav nav-tabs">
 {{#each service in controller}}
@@ -59,6 +67,11 @@
 </div>
 <div class="btn-area">
     <a class="btn" {{action back}}>Back</a>
-    <a {{bindAttr class=":btn :btn-success"}} {{bindAttr disabled="isSubmitDisabled"}} style="float:right" {{action submit target="controller"}}>Next</a>
+    <div style="float:right">
+      {{#if isSubmitDisabled}}
+        <span class="alert" style="margin-right:10px">{{t installer.step7.attentionNeeded}}</span>
+      {{/if}}
+      <a {{bindAttr class=":btn :btn-success"}} {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next</a>
+    </div>
 </div>
 </div>

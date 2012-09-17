@@ -17,9 +17,14 @@
  */
 
 var App = require('app');
+var validator = require('utils/validator');
 
 App.ConfigProperties = Ember.ArrayProxy.extend({
-  content: require('data/config_properties').configProperties
+  content: require('data/config_properties').configProperties,
+
+  init: function() {
+
+  }
 });
 
 
@@ -35,6 +40,13 @@ App.ServiceConfig = Ember.Object.extend({
 
 App.ServiceConfigCategory = Ember.Object.extend({
   name: null,
+
+  isForMasterComponent: function () {
+    var masterServices = [ 'NameNode', 'SNameNode', 'JobTracker', 'HBase Master', 'Oozie Master',
+      'Hive Metastore', 'Templeton Server', 'ZooKeeper Server', 'Nagios', 'Ganglia' ];
+
+    return (masterServices.contains(this.get('name')));
+  }.property('name'),
 
   isForSlaveComponent: function () {
     return this.get('name') === 'DataNode' || this.get('name') === 'TaskTracker' ||
@@ -53,9 +65,65 @@ App.ServiceConfigProperty = Ember.Object.extend({
   unit: '',
   category: 'General',
   isRequired: true,  // by default a config property is required
+  isReconfigurable: true, // by default a config property is reconfigurable
   isEditable: true, // by default a config property is editable
   errorMessage: '',
   serviceConfig: null, // points to the parent App.ServiceConfig object
+
+  init: function() {
+    this.set('value', this.get('defaultValue'));
+    // TODO: remove mock data
+    switch (this.get('name')) {
+      case 'mapred_local_dir':
+        this.set('value', '/grid/0/hadoop/mapred\n/grid/1/hadoop/mapred\n');
+        break;
+      case 'zk_data_dir':
+        this.set('value', '/grid/0/hadoop/zookeeper');
+        break;
+      case 'oozie_data_dir':
+        this.set('value', '/grid/0/hadoop/oozie');
+        break;
+      case 'dfs_name_dir':
+        this.set('value', '/grid/0/hadoop/hdfs/namenode\n/grid/1/hadoop/hdfs/namenode\n');
+        break;
+      case 'fs_checkpoint_dir':
+        this.set('value', '/grid/0/hadoop/hdfs/namesecondary');
+        break;
+      case 'dfs_data_dir':
+        this.set('value', '/grid/0/hadoop/hdfs/data\n/grid/1/hadoop/hdfs/data\n');
+        break;
+      case 'namenode.host':
+        this.set('value', 'namenode.company.com');
+        break;
+      case 'snamenode.host':
+        this.set('value', 'snamenode.company.com');
+        break;
+      case 'datanode.hosts':
+        this.set('value', [ 'host0001.company.com', 'host0002.company.com', 'host0003.company.com' ]);
+        break;
+      case 'jobtracker.host':
+        this.set('value', 'jobtracker.company.com');
+        break;
+      case 'tasktracker.hosts':
+        this.set('value', [ 'host0001.company.com', 'host0002.company.com', 'host0003.company.com' ]);
+        break;
+      case 'hbasemaster.host':
+        this.set('value', 'hbase.company.com');
+        break;
+      case 'regionserver.hosts':
+        this.set('value', [ 'host0001.company.com', 'host0002.company.com', 'host0003.company.com' ]);
+        break;
+      case 'hivemetastore.host':
+        this.set('value', 'hive.company.com');
+        break;
+      case 'oozieserver.host':
+        this.set('value', 'oozie.company.com');
+        break;
+      case 'templetonserver.host':
+        this.set('value', 'templeton.company.com');
+        break;
+    }
+  },
 
   isValid: function() {
     return this.get('errorMessage') === '';
@@ -63,6 +131,10 @@ App.ServiceConfigProperty = Ember.Object.extend({
 
   viewClass: function() {
     switch (this.get('displayType')) {
+      case 'checkbox':
+        return App.ServiceConfigCheckbox;
+      case 'password':
+        return App.ServiceConfigPasswordField;
       case 'directories':
         return App.ServiceConfigTextArea;
       case 'custom':
@@ -72,13 +144,15 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'slaveHosts':
         return App.ServiceConfigSlaveHostsView;
       default:
-        return App.ServiceConfigTextField;
+        if (this.get('unit')) {
+          return App.ServiceConfigTextFieldWithUnit;
+        } else {
+          return App.ServiceConfigTextField;
+        }
     }
   }.property('displayType'),
 
   validate: function() {
-    var digitsRegex = /^\d+$/;
-    var numberRegex = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
 
     var value = this.get('value');
 
@@ -88,35 +162,47 @@ App.ServiceConfigProperty = Ember.Object.extend({
       if (typeof value === 'string' && value.trim().length === 0) {
         this.set('errorMessage', 'This is required');
         isError = true;
-        console.log('required');
       }
     }
 
     if (!isError) {
       switch (this.get('displayType')) {
-        case 'digits':
-          if (!digitsRegex.test(value)) {
+        case 'int':
+          if (!validator.isValidInt(value)) {
             this.set('errorMessage', 'Must contain digits only');
             isError = true;
           }
           break;
-        case 'number':
-          if (!numberRegex.test(value)) {
+        case 'float':
+          if (!validator.isValidFloat(value)) {
             this.set('errorMessage', 'Must be a valid number');
             isError = true;
           }
+          break;
+        case 'checkbox':
           break;
         case 'directories':
           break;
         case 'custom':
           break;
+        case 'email':
+          if (!validator.isValidEmail(value)) {
+            this.set('errorMessage', 'Must be a valid email address');
+            isError = true;
+          }
+          break;
+        case 'password':
+          // retypedPassword is set by the retypePasswordView child view of App.ServiceConfigPasswordField
+          if (value !== this.get('retypedPassword')) {
+            this.set('errorMessage', 'Passwords do not match');
+            isError = true;
+          }
       }
     }
     if (!isError) {
       this.set('errorMessage', '');
-      console.log('setting errorMessage to blank');
     }
-  }.observes('value')
+  }.observes('value', 'retypedPassword')
 
 });
 
