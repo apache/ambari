@@ -132,6 +132,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-750. Fix build compilation issue. (mahadev)
+
   AMBARI-718. Fix installer navigation. (yusaku)
 
   AMBARI-684. Remove non-required dependencies from pom files (hitesh via jitendra)

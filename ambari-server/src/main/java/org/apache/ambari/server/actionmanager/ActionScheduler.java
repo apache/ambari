@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -82,7 +83,7 @@ class ActionScheduler implements Runnable {
     }
   }
   
-  private void doWork() {
+  private void doWork() throws AmbariException {
     List<Stage> stages = db.getPendingStages();
     if (stages == null || stages.isEmpty()) {
       //Nothing to do
@@ -119,7 +120,7 @@ class ActionScheduler implements Runnable {
   }
 
   private void processPendingsAndReschedule(Stage stage,
-      Map<String, HostRoleCommand> hrcMap) {
+      Map<String, HostRoleCommand> hrcMap) throws AmbariException {
     for (String host : hrcMap.keySet()) {
       HostRoleCommand hrc = hrcMap.get(host);
       if ( (hrc.getStatus() != HostRoleStatus.PENDING) &&
@@ -153,7 +154,7 @@ class ActionScheduler implements Runnable {
     }
   }
 
-  private void scheduleHostRole(Stage s, HostRoleCommand hrc) {
+  private void scheduleHostRole(Stage s, HostRoleCommand hrc) throws AmbariException {
     LOG.info("Host:"+hrc.getHostName()+", role:"+hrc.getRole()+", actionId:"+s.getActionId()+" being scheduled");
     long now = System.currentTimeMillis();
     if (hrc.getStartTime() < 0) {
