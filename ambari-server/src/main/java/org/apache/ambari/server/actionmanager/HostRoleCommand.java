@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.state.live.ServiceComponentHostEvent;
 
 /**
  * This class encapsulates all the information for an action
@@ -32,14 +33,18 @@ public class HostRoleCommand {
   private Map<String, String> params = null;
   private HostRoleStatus status = HostRoleStatus.PENDING;
   private final RoleCommand cmd;
-  private long startTime;
-  private long expiryTime;
+  private long startTime = -1;
+  private long lastAttemptTime = -1;
+  private short attemptCount = 0;
   private final String host;
+  private final ServiceComponentHostEvent event;
 
-  public HostRoleCommand(String host, Role role, RoleCommand cmd) {
+  public HostRoleCommand(String host, Role role, RoleCommand cmd,
+      ServiceComponentHostEvent event) {
     this.host = host;
     this.role = role;
     this.cmd = cmd;
+    this.event = event;
   }
 
   public Role getRole() {
@@ -54,15 +59,30 @@ public class HostRoleCommand {
     return startTime;
   }
   
-  public long getExpiryTime() {
-    return expiryTime;
+  public long getLastAttemptTime() {
+    return this.lastAttemptTime;
   }
   
-  public void setExpiryTime(long t) {
-    expiryTime = t;
+  public void setLastAttemptTime(long t) {
+    this.lastAttemptTime = t;
   }
 
   public String getHostName() {
     return this.host;
+  }
+  
+  public ServiceComponentHostEvent getEvent() {
+    return event;
+  }
+  public void incrementAttemptCount() {
+    this.attemptCount ++;
+  }
+  
+  public short getAttemptCount() {
+    return this.attemptCount;
+  }
+  
+  void setStatus(HostRoleStatus status) {
+    this.status = status;
   }
 }

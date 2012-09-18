@@ -18,6 +18,8 @@ AMBARI-666 branch (unreleased changes)
   AMBARI-746. Integrate configuration properties and custom configuration 
   file overrides in Customize Services page. (yusaku)
 
+  AMBARI-732. Action scheduler unit tests. (jitendra)
+
   AMBARI-739. Cluster fsm implementation. (hitesh)
 
   AMBARI-745. Add unit tests for Installer Step 1 (Welcome page). (yusaku)

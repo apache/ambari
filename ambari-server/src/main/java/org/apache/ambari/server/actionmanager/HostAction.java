@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -24,14 +25,26 @@ public class HostAction {
   private final String host;
   private Map<String, String> params = null;
   private String manifest = null;
-  private List<HostRoleCommand> roles;
+  private final List<HostRoleCommand> roles;
 
   public HostAction(String host) {
     this.host = host;
+    roles = new ArrayList<HostRoleCommand>();
+  }
+  
+  public void addHostRoleCommand(HostRoleCommand cmd) {
+    roles.add(cmd);
   }
   
   public List<HostRoleCommand> getRoleCommands() {
     return roles;
+  }
+  
+  public void setManifest(String manifest) {
+    if (this.manifest != null) {
+      throw new RuntimeException("Not allowed to set manifest twice");
+    }
+    this.manifest = manifest;
   }
 
   public String getManifest() {

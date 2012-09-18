@@ -23,28 +23,38 @@ import java.util.TreeMap;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.ActionQueue;
-import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.live.Clusters;
+import org.apache.ambari.server.state.live.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.live.ServiceComponentHostEventType;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 //This class encapsulates the action scheduler thread. 
 //Action schedule frequently looks at action database and determines if
 //there is an action that can be scheduled.
 class ActionScheduler implements Runnable {
   
+  private static Log LOG = LogFactory.getLog(ActionScheduler.class);
   private final long actionTimeout;
   private final long sleepTime;
   private volatile boolean shouldRun = true;
   private Thread schedulerThread = null;
   private final ActionDBAccessor db;
-  private final short maxAttempts = 2;
+  private final short maxAttempts;
   private final ActionQueue actionQueue;
+  private final Clusters fsmObject;
   
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
-      ActionDBAccessor db, ActionQueue actionQueue) {
+      ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
+      int maxAttempts) {
     this.sleepTime = sleepTimeMilliSec;
     this.actionTimeout = actionTimeoutMilliSec;
     this.db = db;
     this.actionQueue = actionQueue;
+    this.fsmObject = fsmObject;
+    this.maxAttempts = (short) maxAttempts;
   }
   
   public void start() {
@@ -73,7 +83,7 @@ class ActionScheduler implements Runnable {
   }
   
   private void doWork() {
-    List<Stage> stages = db.getQueuedStages();
+    List<Stage> stages = db.getPendingStages();
     if (stages == null || stages.isEmpty()) {
       //Nothing to do
       return;
@@ -112,23 +122,51 @@ class ActionScheduler implements Runnable {
       Map<String, HostRoleCommand> hrcMap) {
     for (String host : hrcMap.keySet()) {
       HostRoleCommand hrc = hrcMap.get(host);
+      if ( (hrc.getStatus() != HostRoleStatus.PENDING) &&
+           (hrc.getStatus() != HostRoleStatus.QUEUED) ) {
+        //This task has been executed
+        continue;
+      }
       long now = System.currentTimeMillis();
-      if (now > hrc.getExpiryTime()) {
-        // expired
-        if (now > hrc.getStartTime() + actionTimeout * maxAttempts) {
+      if (now > hrc.getLastAttemptTime()+actionTimeout) {
+        LOG.info("Host:"+host+", role:"+hrc.getRole()+", actionId:"+stage.getActionId()+" timed out");
+        if (hrc.getAttemptCount() >= maxAttempts) {
+          LOG.warn("Host:"+host+", role:"+hrc.getRole()+", actionId:"+stage.getActionId()+" expired");
           // final expired
-          db.timeoutHostRole(stage.getRequestId(), stage.getStageId(), hrc.getRole());
+          ServiceComponentHostEvent timeoutEvent = new ServiceComponentHostEvent(
+              ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED, hrc
+                  .getRole().toString(), hrc.getHostName(), now);
+          try {
+            fsmObject.getCluster(stage.getClusterName())
+                .handleServiceComponentHostEvent("", hrc.getRole().toString(),
+                    hrc.getHostName(), timeoutEvent);
+          } catch (InvalidStateTransitonException e) {
+            // Propagate exception
+            e.printStackTrace();
+          }
+          db.timeoutHostRole(stage.getRequestId(), stage.getStageId(),
+              hrc.getRole());
         } else {
-          rescheduleHostRole(stage, hrc);
+          scheduleHostRole(stage, hrc);
         }
       }
     }
   }
 
-  private void rescheduleHostRole(Stage s,
-      HostRoleCommand hrc) {
+  private void scheduleHostRole(Stage s, HostRoleCommand hrc) {
+    LOG.info("Host:"+hrc.getHostName()+", role:"+hrc.getRole()+", actionId:"+s.getActionId()+" being scheduled");
     long now = System.currentTimeMillis();
-    hrc.setExpiryTime(now);
+    if (hrc.getStartTime() < 0) {
+      try {
+        fsmObject.getCluster(s.getClusterName())
+            .handleServiceComponentHostEvent("", "", hrc.getHostName(),
+                hrc.getEvent());
+      } catch (InvalidStateTransitonException e) {
+        e.printStackTrace();
+      }
+    }
+    hrc.setLastAttemptTime(now);
+    hrc.incrementAttemptCount();
     ExecutionCommand cmd = new ExecutionCommand();
     cmd.setCommandId(s.getActionId());
     cmd.setManifest(s.getManifest(hrc.getHostName()));

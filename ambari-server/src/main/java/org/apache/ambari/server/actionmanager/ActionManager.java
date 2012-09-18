@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.state.live.Clusters;
 
 
 /**
@@ -30,11 +31,15 @@ public class ActionManager {
   private final ActionScheduler scheduler;
   private final ActionDBAccessor db;
   private final ActionQueue actionQueue;
-  public ActionManager(long schedulerSleepTime, long actionTimeout, ActionQueue aq) {
+  private final Clusters fsm;
+
+  public ActionManager(long schedulerSleepTime, long actionTimeout,
+      ActionQueue aq, Clusters fsm) {
     this.actionQueue = aq;
     db = new ActionDBAccessor();
-    scheduler = new ActionScheduler(schedulerSleepTime,
-        actionTimeout, db, actionQueue);
+    scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
+        actionQueue, fsm, 2);
+    this.fsm = fsm;
   }
   
   public void initialize() {
@@ -46,10 +51,11 @@ public class ActionManager {
   }
   
   public void sendActions(List<Stage> stages) {
-    //Store all these actions to the db
+    db.persistActions(stages);
   }
 
   public List<Stage> getRequestStatus(String requestId) {
+    //fetch status from db
     return null;
   }
 

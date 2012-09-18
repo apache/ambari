@@ -38,7 +38,6 @@ public class ActionDBAccessor {
   
   /**
    * Returns all the actions that have been queued but not completed yet.
-   * This is used by scheduler to find all pending actions.
    */
   public List<Stage> getQueuedStages() {
     return null;
@@ -64,5 +63,17 @@ public class ActionDBAccessor {
 
   public void timeoutHostRole(long requestId, long stageId, Role role) {
     // TODO Auto-generated method stub
+  }
+
+  /**
+   * Returns all the pending stages, including queued and not-queued.
+   */
+  public List<Stage> getPendingStages() {
+    return null;
+  }
+
+  public void persistActions(List<Stage> stages) {
+    // TODO Auto-generated method stub
+    
   }
 }

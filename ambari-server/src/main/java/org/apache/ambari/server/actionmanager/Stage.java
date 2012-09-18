@@ -18,7 +18,6 @@
 package org.apache.ambari.server.actionmanager;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -28,6 +27,7 @@ import org.apache.ambari.server.Role;
 //required to persist an action.
 public class Stage {
   private final long requestId;
+  private final String clusterName;
   private long stageId = -1;
   
   //Map of roles to successFactors for this stage. Default is 1 i.e. 100%
@@ -37,9 +37,10 @@ public class Stage {
   private Map<String, HostAction> hostActions = new TreeMap<String, HostAction>();
   private final String logDir;
   
-  public Stage(long requestId, String logDir) {
+  public Stage(long requestId, String logDir, String clusterName) {
     this.requestId = requestId;
     this.logDir = logDir;
+    this.clusterName = clusterName;
   }
   
   public synchronized void setStageId(long stageId) {
@@ -89,5 +90,9 @@ public class Stage {
   public String getManifest(String hostName) {
     // TODO Auto-generated method stub
     return getHostAction(hostName).getManifest();
+  }
+  
+  public String getClusterName() {
+    return clusterName;
   }
 }

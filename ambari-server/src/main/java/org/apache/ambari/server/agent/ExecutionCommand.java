@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "", propOrder = {})
 public class ExecutionCommand extends AgentCommand {
   @XmlElement
-  String manifest;
+  String manifest ="";
   
   public String getManifest() {
     return this.manifest;
@@ -37,4 +37,19 @@ public class ExecutionCommand extends AgentCommand {
   public void setManifest(String manifest) {
     this.manifest = manifest;
   }
-}
+  
+  @Override //Object
+  public boolean equals(Object other) {
+    if (!(other instanceof ExecutionCommand)) {
+      return false;
+    }
+    ExecutionCommand o = (ExecutionCommand)other;
+    return  this.manifest.equals(o.getManifest());
+  }
+  
+  @Override //Object
+  public int hashCode() {
+    //Assume two different actions will always have a different manifest
+    return manifest.hashCode();
+  }
+ }

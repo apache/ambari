@@ -18,14 +18,26 @@
 package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+import java.util.TreeMap;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class ActionQueue {
+  
+  private static Log LOG = LogFactory.getLog(ActionQueue.class);
+  
   Map<String, Queue<AgentCommand>> hostQueues;
 
+  public ActionQueue() {
+    hostQueues = new TreeMap<String, Queue<AgentCommand>>();
+  }
+  
   private synchronized Queue<AgentCommand> getQueue(String hostname) {
     return hostQueues.get(hostname);
   }
@@ -35,7 +47,16 @@ public class ActionQueue {
   }
 
   public void enqueue(String hostname, AgentCommand cmd) {
+    
     Queue<AgentCommand> q = getQueue(hostname);
+    if (q == null) {
+      q = new LinkedList<AgentCommand>();
+      addQueue(hostname, q);
+    }
+    if (q.contains(cmd)) {
+      LOG.warn("cmd already exists in the queue, not adding again");
+      return;
+    }
     synchronized (q) {
       q.add(cmd);
     }
@@ -43,6 +64,9 @@ public class ActionQueue {
 
   public AgentCommand dequeue(String hostname) {
     Queue<AgentCommand> q = getQueue(hostname);
+    if (q == null) {
+      return null;
+    }
     synchronized (q) {
       return q.remove();
     }
