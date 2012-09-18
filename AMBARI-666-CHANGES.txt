@@ -134,6 +134,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-753. Fix broken compile as a result of re-factor of FSM layout. (hitesh)
+
   AMBARI-752. Add missing license header to TestServiceComponentHostState. (hitesh)
 
   AMBARI-750. Fix build compilation issue. (mahadev)

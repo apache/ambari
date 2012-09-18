@@ -49,7 +49,7 @@ public class StackVersion {
       return true;
     }
     StackVersion s = (StackVersion) object;
-    return s.equals(this.stackVersion);
+    return stackVersion.equals(s.stackVersion);
   }
 
   @Override

@@ -50,7 +50,7 @@ public class ConfigVersion {
       return true;
     }
     ConfigVersion c = (ConfigVersion) object;
-    return c.equals(this.configVersion);
+    return configVersion.equals(c.configVersion);
   }
 
   @Override

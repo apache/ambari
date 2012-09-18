@@ -27,8 +27,8 @@ import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.Clusters;
-import org.apache.ambari.server.state.live.ServiceComponentHostEvent;
-import org.apache.ambari.server.state.live.ServiceComponentHostEventType;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEventType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

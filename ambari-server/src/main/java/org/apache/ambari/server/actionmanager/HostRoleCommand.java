@@ -21,7 +21,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.state.live.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
 
 /**
  * This class encapsulates all the information for an action
