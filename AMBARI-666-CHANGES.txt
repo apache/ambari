@@ -134,6 +134,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-752. Add missing license header to TestServiceComponentHostState. (hitesh)
+
   AMBARI-750. Fix build compilation issue. (mahadev)
 
   AMBARI-718. Fix installer navigation. (yusaku)
