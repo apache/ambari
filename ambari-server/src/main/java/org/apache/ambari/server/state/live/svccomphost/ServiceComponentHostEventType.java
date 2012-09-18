@@ -16,15 +16,43 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.svccomphost;
 
-public class ServiceComponentHostOpFailedEvent extends
-    ServiceComponentHostEvent {
-
-  public ServiceComponentHostOpFailedEvent(String serviceComponentName,
-      String hostName, long opTimestamp) {
-    super(ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
-        serviceComponentName, hostName, opTimestamp);
-    // TODO Auto-generated constructor stub
-  }
+public enum ServiceComponentHostEventType {
+  /**
+   * Operation in progress
+   */
+  HOST_SVCCOMP_OP_IN_PROGRESS,
+  /**
+   * Operation succeeded
+   */
+  HOST_SVCCOMP_OP_SUCCEEDED,
+  /**
+   * Operation failed.
+   */
+  HOST_SVCCOMP_OP_FAILED,
+  /**
+   * Re-starting a failed operation.
+   */
+  HOST_SVCCOMP_OP_RESTART,
+  /**
+   * Triggering an install.
+   */
+  HOST_SVCCOMP_INSTALL,
+  /**
+   * Triggering a start.
+   */
+  HOST_SVCCOMP_START,
+  /**
+   * Triggering a stop.
+   */
+  HOST_SVCCOMP_STOP,
+  /**
+   * Triggering an uninstall.
+   */
+  HOST_SVCCOMP_UNINSTALL,
+  /**
+   * Triggering a wipe-out ( restore to clean state ).
+   */
+  HOST_SVCCOMP_WIPEOUT
 }

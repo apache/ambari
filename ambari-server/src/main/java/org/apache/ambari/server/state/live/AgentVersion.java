@@ -36,4 +36,23 @@ public class AgentVersion {
     return version;
   }
 
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof AgentVersion)) {
+      return false;
+    }
+    if (this == object) {
+      return true;
+    }
+    AgentVersion a = (AgentVersion) object;
+    return a.equals(this.version);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = version != null ? version.hashCode() : 0;
+    return result;
+  }
+
+
 }

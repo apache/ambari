@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.svccomphost;
 
-public class ServiceComponentHostOpSucceededEvent extends
+public class ServiceComponentHostStopEvent extends
     ServiceComponentHostEvent {
 
-  public ServiceComponentHostOpSucceededEvent(String serviceComponentName,
+  public ServiceComponentHostStopEvent(String serviceComponentName,
       String hostName, long opTimestamp) {
-    super(ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+    super(ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
         serviceComponentName, hostName, opTimestamp);
     // TODO Auto-generated constructor stub
   }

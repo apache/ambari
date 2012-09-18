@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-751. Re-structure servicecomponenthost fsm layout. (hitesh)
+
   AMBARI-747. Add unit tests for step2 (Install option page) of installer.
   (Jaimin Jetly via yusaku)
 

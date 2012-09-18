@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state;
 
 public class ConfigVersion {
+
   private String configVersion;
 
   public ConfigVersion(String configVersion) {
@@ -38,6 +39,24 @@ public class ConfigVersion {
    */
   public void setConfigVersion(String configVersion) {
     this.configVersion = configVersion;
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof ConfigVersion)) {
+      return false;
+    }
+    if (this == object) {
+      return true;
+    }
+    ConfigVersion c = (ConfigVersion) object;
+    return c.equals(this.configVersion);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = configVersion != null ? configVersion.hashCode() : 0;
+    return result;
   }
 
 }

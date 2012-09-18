@@ -22,6 +22,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.host.HostEvent;
 import org.apache.ambari.server.state.live.host.HostState;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostState;
 
 public interface Cluster {
 

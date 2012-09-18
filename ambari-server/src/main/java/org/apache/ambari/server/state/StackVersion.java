@@ -39,4 +39,23 @@ public class StackVersion {
   public void setStackVersion(String stackVersion) {
     this.stackVersion = stackVersion;
   }
+
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof StackVersion)) {
+      return false;
+    }
+    if (this == object) {
+      return true;
+    }
+    StackVersion s = (StackVersion) object;
+    return s.equals(this.stackVersion);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = stackVersion != null ? stackVersion.hashCode() : 0;
+    return result;
+  }
+
 }

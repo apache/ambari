@@ -29,6 +29,10 @@ import org.apache.ambari.server.state.live.host.Host;
 import org.apache.ambari.server.state.live.host.HostEvent;
 import org.apache.ambari.server.state.live.host.HostImpl;
 import org.apache.ambari.server.state.live.host.HostState;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHost;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostState;
 
 public class ClusterImpl implements Cluster {
 

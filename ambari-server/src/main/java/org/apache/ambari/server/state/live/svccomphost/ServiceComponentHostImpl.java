@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.svccomphost;
 
 import java.util.List;
 import java.util.concurrent.locks.Lock;

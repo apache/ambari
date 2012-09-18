@@ -16,16 +16,16 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.svccomphost;
 
-public class ServiceComponentHostWipeoutEvent extends
+public class ServiceComponentHostInstallEvent extends
     ServiceComponentHostEvent {
 
-  public ServiceComponentHostWipeoutEvent(String serviceComponentName,
+
+  public ServiceComponentHostInstallEvent(String serviceComponentName,
       String hostName, long opTimestamp) {
-    super(ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
+    super(ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
         serviceComponentName, hostName, opTimestamp);
-    // TODO Auto-generated constructor stub
   }
 
 }

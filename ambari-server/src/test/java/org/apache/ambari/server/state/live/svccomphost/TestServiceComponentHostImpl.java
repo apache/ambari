@@ -16,8 +16,16 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.svccomphost;
 
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEventType;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostLiveState;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpFailedEvent;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpInProgressEvent;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpRestartedEvent;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state.live.svccomphost;
 
 public class ServiceComponentHostUninstallEvent extends
     ServiceComponentHostEvent {
