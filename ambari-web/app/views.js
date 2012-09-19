@@ -36,7 +36,7 @@ require('views/installer');
 require('views/installer/step1_view');
 require('views/installer/step2_view');
 require('views/installer/step3_view');
-require('views/installer/step4');
+require('views/installer/step4_view');
 require('views/installer/step5');
 require('views/installer/step6');
 require('views/installer/step7_view');

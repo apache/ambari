@@ -18,6 +18,16 @@
 
 var App = require('app');
 
+/**
+ * Controller for Step 7 of the Installer Wizard.
+ * By Step 7, we have the following information stored in App.db (localStorage) and set on this
+ * controller by the router.
+ *
+ *   selectedServices: App.db.selectedServices (the services that the user selected in Step 4)
+ *   masterComponentHosts: App.db.masterComponentHosts (master-components-to-hosts mapping the user selected in Step 5)
+ *   slaveComponentHosts: App.db.slaveComponentHosts (slave-components-to-hosts mapping the user selected in Step 6)
+ *
+ */
 App.InstallerStep7Controller = Em.ArrayController.extend({
 
   name: 'installerStep7Controller',
@@ -26,177 +36,128 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
 
   selectedService: null,
 
-  selectedSlaveHosts: null,
+  slaveHostToGroup: null,
 
   isSubmitDisabled: function() {
     return !this.everyProperty('errorCount', 0);
   }.property('@each.errorCount'),
 
-  init: function () {
-    // TODO: get selected services from previous step
+  // TODO: set attributes from localStorage in router
+  // var selectedServiceNames = App.db.getSelectedServiceNames();
+  selectedServiceNames: [ 'HDFS', 'MAPREDUCE', 'GANGLIA', 'NAGIOS', 'HBASE', 'PIG', 'SQOOP', 'OOZIE', 'HIVE', 'ZOOKEEPER'],
+  masterComponentHosts: '',
+  slaveComponentHosts: '',
 
-    var selectedServices = [ 'HDFS', 'MapReduce', 'Ganglia', 'Nagios', 'HBase', 'Pig', 'Sqoop', 'Oozie', 'Hive', 'Templeton', 'ZooKeeper'];
+  doInit: true,
 
-    var configProperties = App.ConfigProperties.create();
-    var mockData = [
-      {
-        serviceName: 'Nagios',
-        configCategories: [
-          App.ServiceConfigCategory.create({ name: 'General'})
-        ],
-        configs: configProperties.filterProperty('serviceName', 'NAGIOS')
-      },
-      {
-        serviceName: 'Hive/HCat',
-        configCategories: [
-          App.ServiceConfigCategory.create({ name: 'Hive Metastore'}),
-          App.ServiceConfigCategory.create({ name: 'Advanced'})
-        ],
-        configs: configProperties.filterProperty('serviceName', 'HIVE')
-      },
-      {
-        serviceName: 'HDFS',
-        configCategories: [
-          App.ServiceConfigCategory.create({ name: 'NameNode'}),
-          App.ServiceConfigCategory.create({ name: 'SNameNode'}),
-          App.ServiceConfigCategory.create({ name: 'DataNode'}),
-          App.ServiceConfigCategory.create({ name: 'General'}),
-          App.ServiceConfigCategory.create({ name: 'Advanced'})
-        ],
-        configs: configProperties.filterProperty('serviceName', 'HDFS')
-        /*
-        [
-          {
-            name: 'ambari.namenode.host',
-            displayName: 'NameNode host',
-            value: 'host0001.com.com',
-            defaultValue: '',
-            description: 'The host that has been assigned to run NameNode',
-            displayType: 'masterHost',
-            category: 'NameNode'
-          },
-          {
-            name: 'ambari.snamenode.host',
-            displayName: 'SNameNode host',
-            value: 'host0002.com.com',
-            defaultValue: '',
-            description: 'The host that has been assigned to run Secondary NameNode',
-            displayType: 'masterHost',
-            category: 'SNameNode'
-          },
-          {
-            name: 'ambari.datanode.hosts',
-            displayName: 'DataNode hosts',
-            value: [ 'host0003.com.com', 'host0004.com.com', 'host0005.com.com' ],
-            defaultValue: '',
-            description: 'The hosts that have been assigned to run DataNodes',
-            displayType: 'slaveHosts',
-            category: 'DataNode'
-          }
-        ]
-        */
-      },
-      {
-        serviceName: 'MapReduce',
-        configCategories: [
-          App.ServiceConfigCategory.create({ name: 'JobTracker'}),
-          App.ServiceConfigCategory.create({ name: 'TaskTracker'}),
-          App.ServiceConfigCategory.create({ name: 'General'}),
-          App.ServiceConfigCategory.create({ name: 'Advanced'})
-        ],
-        configs: configProperties.filterProperty('serviceName', 'MAPREDUCE')
-      },
-      {
-        serviceName: 'HBase',
-        configCategories: [
-          App.ServiceConfigCategory.create({ name: 'HBase Master'}),
-          App.ServiceConfigCategory.create({ name: 'RegionServer'}),
-          App.ServiceConfigCategory.create({ name: 'General'}),
-          App.ServiceConfigCategory.create({ name: 'Advanced'})
-        ],
-        configs: configProperties.filterProperty('serviceName', 'HBASE')
-      },
-      {
-        serviceName: 'ZooKeeper',
-        configCategories: [
-          App.ServiceConfigCategory.create({ name: 'ZooKeeper Server'}),
-          App.ServiceConfigCategory.create({ name: 'Advanced'})
-        ],
-        configs: configProperties.filterProperty('serviceName', 'ZOOKEEPER')
-      },
-      {
-        serviceName: 'Oozie',
-        configCategories: [
-          App.ServiceConfigCategory.create({ name: 'Oozie Server'}),
-          App.ServiceConfigCategory.create({ name: 'Advanced'})
-        ],
-        configs: configProperties.filterProperty('serviceName', 'OOZIE')
-      },
-      {
-        serviceName: 'Templeton',
-        configCategories: [
-          App.ServiceConfigCategory.create({ name: 'Templeton Server'}),
-          App.ServiceConfigCategory.create({ name: 'Advanced'})
-        ],
-        configs: configProperties.filterProperty('serviceName', 'TEMPLETON')
-      },
-      {
-        serviceName: 'Misc',
-        configCategories: [
-          App.ServiceConfigCategory.create({ name: 'General'}),
-          App.ServiceConfigCategory.create({ name: 'Advanced'})
-        ],
-        configs: configProperties.filterProperty('serviceName', 'MISC')
-      }
+  loadConfigs: function() {
 
-    ];
+    var selectedServiceNamesInDB = App.db.getSelectedServiceNames();
+    if (selectedServiceNamesInDB !== undefined) {
+      this.set('selectedServiceNames', selectedServiceNamesInDB);
+    }
+    // TODO: check App.db to see if configs have been saved already
+    if (this.doInit) {
+      var serviceConfigs = require('data/service_configs');
 
-    var self = this;
+      var self = this;
 
-    mockData.forEach(function(_serviceConfig) {
-      var serviceConfig = App.ServiceConfig.create({
-        serviceName: _serviceConfig.serviceName,
-        configCategories: _serviceConfig.configCategories,
-        configs: []
-      });
-      _serviceConfig.configs.forEach(function(_serviceConfigProperty) {
-        var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
-        serviceConfigProperty.serviceConfig = serviceConfig;
-        serviceConfig.configs.pushObject(serviceConfigProperty);
-        serviceConfigProperty.validate();
+      this.set('content', []);
+
+      serviceConfigs.forEach(function(_serviceConfig) {
+        var serviceConfig = App.ServiceConfig.create({
+          serviceName: _serviceConfig.serviceName,
+          displayName: _serviceConfig.displayName,
+          configCategories: _serviceConfig.configCategories,
+          configs: []
+        });
+
+        if (self.selectedServiceNames.contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
+          _serviceConfig.configs.forEach(function(_serviceConfigProperty) {
+            var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
+            serviceConfigProperty.serviceConfig = serviceConfig;
+            serviceConfig.configs.pushObject(serviceConfigProperty);
+            serviceConfigProperty.validate();
+          });
+
+          console.log('pushing ' + serviceConfig.serviceName);
+          self.content.pushObject(serviceConfig);
+        } else {
+          console.log('skipping ' + serviceConfig.serviceName);
+        }
       });
 
-      console.log('pushing ' + serviceConfig.serviceName);
-      self.content.pushObject(serviceConfig);
-    });
-
-    this.set('selectedService', this.objectAt(0));
+      this.set('selectedService', this.objectAt(0));
+      this.doInit = false;
+    }
   },
 
   submit: function() {
     if (!this.get('isSubmitDisabled')) {
+      // TODO:
+      // save service configs in App.db (localStorage)
       App.get('router').transitionTo('step8');
     }
   },
 
-  showSlaveHosts: function(event) {
-    this.set('selectedSlaveHosts', event.context);
+  showMasterHosts: function(event) {
+    var serviceConfig = event.context;
     App.ModalPopup.show({
-      header: 'Slave Hosts',
+      header: serviceConfig.category + ' Hosts',
       bodyClass: Ember.View.extend({
-        templateName: require('templates/installer/slaveHostsMatrix')
+        serviceConfig: serviceConfig,
+        templateName: require('templates/installer/master_hosts_popup')
       })
     });
   },
 
-  addSlaveComponentGroup: function(event) {
+  showSlaveHosts: function(event) {
+    var serviceConfig = event.context;
     App.ModalPopup.show({
-      header: 'Add a ' + event.context + ' Group',
+      header: serviceConfig.category + ' Hosts',
       bodyClass: Ember.View.extend({
-        templateName: require('templates/installer/slaveHostsMatrix')
+        serviceConfig: serviceConfig,
+        templateName: require('templates/installer/slave_hosts_popup')
       })
     });
   }
 
 });
 
+App.SlaveComponentGroupsController = Ember.ArrayController.extend({
+
+  name: 'slaveComponentGroupsController',
+
+  // TODO: Set up binding to use actual data
+  //contentBinding: 'App.router.installerStep7Controller.slaveComponentHosts',
+  content: require('data/mock/slave_component_hosts'),
+
+  selectedComponentName: 'DataNode',
+
+  showAddSlaveComponentGroup: function (event) {
+    var componentName = event.context;
+    this.set('selectedComponentName', componentName);
+    App.ModalPopup.show({
+      header: componentName + ' Groups',
+      bodyClass: Ember.View.extend({
+        controllerBinding: 'App.router.slaveComponentGroupsController',
+        templateName: require('templates/installer/slave_hosts_popup')
+      }),
+      onPrimary: function() {
+      }
+    });
+  },
+
+  showEditSlaveComponentGroups: function(event) {
+    this.showAddSlaveComponentGroup(event);
+  },
+
+  hosts: function() {
+    return this.filterProperty('componentName', this.get('selectedComponentName'))[0].hosts;
+  }.property('@each.hosts'),
+
+  groups: function() {
+    return this.filterProperty('componentName', this.get('selectedComponentName'))[0].hosts.mapProperty('group').uniq();
+  }.property('@each.hosts')
+
+});

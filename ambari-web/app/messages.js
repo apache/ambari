@@ -26,6 +26,17 @@ Em.I18n.translations = {
   'login.loginButton': 'Sign in',
   'login.error': 'Invalid username/password combination.',
 
+  'services.nagios.description': 'Nagios desc',
+  'services.ganglia.description': 'Ganglia desc',
+  'services.hdfs.description': 'HDFS desc',
+  'services.mapreduce.description': 'MapReduce desc',
+  'services.sqoop.description': 'Sqoop desc',
+  'services.pig.description': 'Pig desc',
+  'services.hive.description': 'Hive/HCat desc',
+  'services.oozie.description': 'Oozie desc',
+  'services.zookeeper.description': 'ZooKeeper desc',
+  'services.hbase.description': 'HBase desc',
+
   'topnav.help.href': 'http://incubator.apache.org/ambari/install.html',
 
   'installer.step1.header': 'Ambari Cluster Install Wizard',
@@ -45,7 +56,7 @@ Em.I18n.translations = {
   'installer.step2.hostPattern.tooltip.title': 'Pattern Expressions',
   'installer.step2.hostPattern.tooltip.content': 'You can use pattern expressions to specify a number of target hosts.  Explain brackets.',
   'installer.step2.hostName.error.required': 'Host Names cannot be left empty',
-  'installer.step2.hostName.error.notRequired': 'Host Names will be ignored for if not using SSH to automatically configure hosts',
+  'installer.step2.hostName.error.notRequired': 'Host Names will be ignored if not using SSH to automatically configure hosts',
   'installer.step2.hostName.error.invalid': 'Invalid Host Name(s) - cannot start or end with a hyphen',
   'installer.step2.sshKey.error.required': 'SSH Private Key is required',
   'installer.step2.passphrase.error.match': 'Passphrases do not match',
@@ -73,6 +84,7 @@ Em.I18n.translations = {
     'Please verify and remove the ones that you do not want to be the part of the cluster.',
 
   'installer.step4.header': 'Choose Services',
+  'installer.step4.body': 'Choose which services you want to install on your cluster.<br>Note that some services have dependencies (e.g., HBase requires ZooKeeper.)',
 
   'installer.step5.header': 'Assign Masters',
 

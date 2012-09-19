@@ -99,7 +99,13 @@ module.exports = Em.Route.extend({
       router.get('installerController').connectOutlet('installerStep4');
     },
     back: Em.Router.transitionTo('step3'),
-    next: Em.Router.transitionTo('step5')
+    next: function (router, context) {
+      // TODO:
+      // since the service selection could have changed, invalidate service configs
+      // this is a little aggressive and unfriendly - to be optimized later
+      router.set('installerStep7Controller.doInit', true);
+      router.transitionTo('step5');
+    }
   }),
 
   step5: Em.Route.extend({
@@ -126,6 +132,7 @@ module.exports = Em.Route.extend({
     route: '/step7',
     connectOutlets: function (router, context) {
       router.setInstallerCurrentStep('7', false);
+      router.get('installerStep7Controller').loadConfigs();
       router.get('installerController').connectOutlet('installerStep7');
     },
     back: Em.Router.transitionTo('step6'),

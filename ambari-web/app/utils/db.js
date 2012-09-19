@@ -141,7 +141,7 @@ App.db.setHosts = function(hostInfo) {
 	console.log('TRACE: Entering db:setHosts function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
-  if(App.db.data[user] == undefined) {
+  if (App.db.data[user] == undefined) {
     App.db.data[user] = {'name':user};
   }
   App.db.data[user].Installer.hostInfo = hostInfo;
@@ -157,9 +157,14 @@ App.db.setSoftRepo = function(softRepo) {
 		App.db.data[user].Installer.softRepo = softRepo;
 		localStorage.setObject('ambari',App.db.data);
 	}
-
 }
 
+App.db.setSelectedServiceNames = function(serviceNames) {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  App.db.data[user].Installer.selectedServiceNames = serviceNames;
+  localStorage.setObject('ambari', App.db.data);
+}
 
 /*
  *  getter methods
@@ -221,6 +226,12 @@ App.db.getHosts = function(name,hostInfo) {
 		return 0;
 	}
   return App.db.data[user].Installer.hostInfo;
+}
+
+App.db.getSelectedServiceNames = function() {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  return App.db.data[user].Installer.selectedServiceNames;
 }
 
 module.exports = App.db;

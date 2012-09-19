@@ -16,16 +16,48 @@
  * limitations under the License.
  */
 
-
-var App = require('app');
-
-App.InstallerStep4View = Em.View.extend({
-
-  templateName: require('templates/installer/step4'),
-
-  submit: function(e) {
-    alert(this.get('controller.clusterName'));
-    App.router.transitionTo('step5');
+module.exports = [
+  {
+    componentName: 'DataNode',
+    hosts: [
+      {
+        hostname: 'host0001.company.com',
+        group: 'Default'
+      },
+      {
+        hostname: 'host0002.company.com',
+        group: 'Default'
+      },
+      {
+        hostname: 'host0003.company.com',
+        group: 'Default'
+      }
+    ]
+  },
+  {
+    componentName: 'RegionServer',
+    hosts: [
+      {
+        hostname: 'host0001.company.com',
+        group: 'Default'
+      },
+      {
+        hostname: 'host0002.company.com',
+        group: 'Default'
+      }
+    ]
+  },
+  {
+    componentName: 'TaskTracker',
+    hosts: [
+      {
+        hostname: 'host0002.company.com',
+        group: 'Default'
+      },
+      {
+        hostname: 'host0003.company.com',
+        group: 'Default'
+      }
+    ]
   }
-
-});
+]

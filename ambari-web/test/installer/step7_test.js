@@ -16,4 +16,20 @@
  * limitations under the License.
  */
 
-// TODO
+var App = require('app');
+require('controllers/installer/step7_controller');
+
+describe('App.InstallerStep7Controller', function () {
+
+  /*
+  describe('#validateStep1()', function () {
+    it('should return false and sets invalidClusterName to true if cluster name is empty', function () {
+      var controller = App.InstallerStep1Controller.create();
+      controller.set('clusterName', '');
+      expect(controller.validateStep1()).to.equal(false);
+      expect(controller.get('invalidClusterName')).to.equal(true);
+    })
+  })
+  */
+
+})

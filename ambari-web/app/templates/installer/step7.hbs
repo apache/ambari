@@ -20,15 +20,10 @@
 <div class="alert alert-info">
   {{t installer.step7.body}}
 </div>
-<div id="attention">
-{{#if isSubmitDisabled}}
-<div class="alert">{{t installer.step7.attentionNeeded}}</div>
-{{/if}}
-</div>
 {{#view App.ServiceConfigTabs}}
 <ul class="nav nav-tabs">
 {{#each service in controller}}
-    <li><a href="#" data-toggle="tab" {{action selectService service on="click" target="view"}}>{{service.serviceName}}{{#if service.errorCount}}<span class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a></li>
+    <li><a class="active" {{bindAttr href="service.serviceName"}} data-toggle="tab" {{action selectService service on="click" target="view"}}>{{service.displayName}}{{#if service.errorCount}}<span class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a></li>
 {{/each}}
 </ul>
 {{/view}}
@@ -60,17 +55,17 @@
     </div>
     {{#if category.isForSlaveComponent}}
     {{#view App.AddSlaveComponentGroupButton slaveComponentNameBinding="category.name"}}
-    <a class="btn add-slave-component-group" {{action addSlaveComponentGroup category.name target="controller"}}><i class="icon-plus-sign"></i> Add a {{category.name}} Group</a>
+    <a class="btn add-slave-component-group" {{action showAddSlaveComponentGroup category.name target="App.router.slaveComponentGroupsController"}}><i class="icon-plus-sign"></i> Add a {{category.name}} Group</a>
     {{/view}}
     {{/if}}
     {{/each}}
 </div>
+{{#if isSubmitDisabled}}
+<div class="alert">{{t installer.step7.attentionNeeded}}</div>
+{{/if}}
 <div class="btn-area">
     <a class="btn" {{action back}}>Back</a>
     <div style="float:right">
-      {{#if isSubmitDisabled}}
-        <span class="alert" style="margin-right:10px">{{t installer.step7.attentionNeeded}}</span>
-      {{/if}}
       <a {{bindAttr class=":btn :btn-success"}} {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next</a>
     </div>
 </div>

@@ -17,18 +17,10 @@
  */
 
 
-window.App = require('app');
+var App = require('app');
 
-require('messages');
-require('utils/db');
-require('models');
-require('controllers');
-require('views');
-require('router');
+App.InstallerStep4View = Em.View.extend({
 
-App.initialize();
+  templateName: require('templates/installer/step4')
 
-console.log('after initialize');
-console.log('TRACE: app.js-> localStorage:Ambari.authenticated=' + localStorage.getItem('Ambari' + 'authenticated'));
-console.log('TRACE: app.js-> localStorage:currentStep=' + localStorage.getItem(App.get('router').getLoginName() + 'Installer' + 'currentStep'));
-console.log('TRACE: app.js-> router.authenticated=' + App.get('router.loggedIn'));
+});

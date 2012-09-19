@@ -1,0 +1,9 @@
+{{#if view.hasNoHosts}}
+No host assigned
+{{/if}}
+{{#if view.hasOneHost}}
+{{value}}
+{{/if}}
+{{#if view.hasMultipleHosts}}
+<a href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="App.router.slaveComponentGroupsController"}}>{{value.firstObject}} and {{view.otherLength}} others</a>
+{{/if}}

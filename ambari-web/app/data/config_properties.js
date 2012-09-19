@@ -90,6 +90,7 @@ module.exports =
       "description": "Directory for HBase logs",
       "defaultValue": "/var/log/hbase",
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -99,15 +100,7 @@ module.exports =
       "description": "Directory in which the pid files for HBase processes will be created",
       "defaultValue": "/var/run/hbase",
       "isReconfigurable": false,
-      "serviceName": "HBASE",
-      "category": "Advanced"
-    },
-    {
-      "name": "hbase_user",
-      "displayName": "HBase User",
-      "description": "User to run HBase as",
-      "defaultValue": "hbase",
-      "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -267,6 +260,7 @@ module.exports =
       "description": "Directory on the local filesystem where the Secondary NameNode should store the temporary images to merge",
       "defaultValue": "",
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "HDFS",
       "category": "SNameNode"
     },
@@ -291,29 +285,22 @@ module.exports =
       "category": "DataNode"
     },
     {
-      "name": "hdfs_log_dir",
-      "displayName": "HDFS Log Dir",
-      "description": "Directory for HDFS log files",
-      "defaultValue": "/var/log/hdfs",
+      "name": "hdfs_log_dir_prefix",
+      "displayName": "HDFS Log Dir Prefix",
+      "description": "The parent directory for HDFS log files.  The actual directory will be ${hdfs_log_dir_prefix}/${hdfs_user}",
+      "defaultValue": "/var/log/hadoop",
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
     {
-      "name": "hdfs_pid_dir",
-      "displayName": "HDFS PID Dir",
-      "description": "Directory in which the PID files for HDFS processes will be created",
-      "defaultValue": "/var/run/hdfs",
+      "name": "hdfs_pid_dir_prefix",
+      "displayName": "HDFS PID Dir Prefix",
+      "description": "The parent directory in which the PID files for HDFS processes will be created.  The actual directory will be ${hdfs_log_dir_prefix}/${hdfs_user}",
+      "defaultValue": "/var/run/hadoop",
       "isReconfigurable": false,
-      "serviceName": "HDFS",
-      "category": "Advanced"
-    },
-    {
-      "name": "hdfs_user",
-      "displayName": "HDFS User",
-      "description": "User to run HDFS as",
-      "defaultValue": "hdfs",
-      "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -437,6 +424,7 @@ module.exports =
       "defaultValue": "",
       "isRequired": false,
       "isReconfigurable": false,
+      "displayType": "host",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
@@ -446,6 +434,7 @@ module.exports =
       "description": "MySQL database name used as the Hive Metastore",
       "defaultValue": "hive",
       "isReconfigurable": false,
+      "displayType": "host",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
@@ -455,6 +444,7 @@ module.exports =
       "description": "MySQL user to use to connect to the MySQL database",
       "defaultValue": "hive",
       "isReconfigurable": false,
+      "displayType": "user",
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
@@ -474,6 +464,7 @@ module.exports =
       "description": "Directory for Hive log files",
       "defaultValue": "/var/log/hive",
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -483,15 +474,7 @@ module.exports =
       "description": "Directory in which the PID files for Hive processes will be created",
       "defaultValue": "/var/run/hive",
       "isReconfigurable": false,
-      "serviceName": "HIVE",
-      "category": "Advanced"
-    },
-    {
-      "name": "hive_user",
-      "displayName": "Hive User",
-      "description": "User to run Hive as",
-      "defaultValue": "hive",
-      "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -501,6 +484,7 @@ module.exports =
       "description": "Directory for HCatalog log files",
       "defaultValue": "/var/log/hcatalog",
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -510,15 +494,7 @@ module.exports =
       "description": "Directory in which the PID files for HCatalog processes will be created",
       "defaultValue": "/var/run/hcatalog",
       "isReconfigurable": false,
-      "serviceName": "HIVE",
-      "category": "Advanced"
-    },
-    {
-      "name": "hcat_user",
-      "displayName": "HCat User",
-      "description": "User to run HCatalog as",
-      "defaultValue": "hcat",
-      "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -562,29 +538,22 @@ module.exports =
       "serviceName": "MAPREDUCE"
     },
     {
-      "name": "mapred_log_dir",
-      "displayName": "MapReduce Log Dir",
-      "description": "Directory for MapReduce log files",
-      "defaultValue": "/var/log/mapred",
+      "name": "mapred_log_dir_prefix",
+      "displayName": "MapReduce Log Dir Prefix",
+      "description": "The parent directory for MapReduce log files.  The actual directory will be ${mapred_log_dir_prefix}/${mapred_user}",
+      "defaultValue": "/var/log/hadoop",
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "MAPREDUCE",
       "category": "Advanced"
     },
     {
-      "name": "mapred_pid_dir",
-      "displayName": "MapReduce PID Dir",
-      "description": "Directory in which the PID files for MapReduce processes will be created",
-      "defaultValue": "/var/run/mapred",
+      "name": "mapred_pid_dir_prefix",
+      "displayName": "MapReduce PID Dir Prefix",
+      "description": "The parent directory in which the PID files for MapReduce processes will be created.  The actual directory will be ${mapred_log_dir_prefix}/${mapred_user}",
+      "defaultValue": "/var/run/hadoop",
       "isReconfigurable": false,
-      "serviceName": "MAPREDUCE",
-      "category": "Advanced"
-    },
-    {
-      "name": "mapred_user",
-      "displayName": "MapReduce User",
-      "description": "User to run MapReduce as",
-      "defaultValue": "mapred",
-      "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "MAPREDUCE",
       "category": "Advanced"
     },
@@ -593,6 +562,7 @@ module.exports =
       "displayName": "MapReduce Capacity Scheduler",
       "description": "The scheduler to use for scheduling of MapReduce jobs",
       "defaultValue": "org.apache.hadoop.mapred.CapacityTaskScheduler",
+      "displayType": "directory",
       "serviceName": "MAPREDUCE"
     },
     {
@@ -784,14 +754,17 @@ module.exports =
       "defaultValue": "",
       "isRequired": false,
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "MISC"
     },
+    /*
     {
       "name": "hadoop_log_dir",
       "displayName": "Hadoop Log Dir",
       "description": "Directory for Hadoop log files",
       "defaultValue": "/var/log/hadoop",
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "MISC",
       "category": "Advanced"
     },
@@ -801,17 +774,11 @@ module.exports =
       "description": "Directory in which the pid files for Hadoop processes will be created",
       "defaultValue": "/var/run/hadoop",
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "MISC",
       "category": "Advanced"
     },
-    {
-      "name": "yum_repo_file",
-      "displayName": "Path to local repo file",
-      "description": "Path to local repository file that configures from where to download software packages",
-      "defaultValue": "/etc/yum.repos.d/hdp.repo",
-      "isReconfigurable": false,
-      "serviceName": "MISC"
-    },
+    */
     {
       "name": "using_local_repo",
       "displayName": "Whether a local repo is being used",
@@ -822,11 +789,121 @@ module.exports =
       "serviceName": "MISC"
     },
     {
+      "name": "yum_repo_file",
+      "displayName": "Path to local repo file",
+      "description": "Path to local repository file that configures from where to download software packages",
+      "defaultValue": "/etc/yum.repos.d/hdp.repo",
+      "isReconfigurable": false,
+      "displayType": "directory",
+      "serviceName": "MISC"
+    },
+    {
+      "name": "hdfs_user",
+      "displayName": "HDFS User",
+      "description": "User to run HDFS as",
+      "defaultValue": "hdfs",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "serviceName": "MISC",
+      "category": "Users/Groups"
+    },
+    {
+      "name": "mapred_user",
+      "displayName": "MapReduce User",
+      "description": "User to run MapReduce as",
+      "defaultValue": "mapred",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "serviceName": "MISC",
+      "category": "Users/Groups"
+    },
+    {
+      "name": "hbase_user",
+      "displayName": "HBase User",
+      "description": "User to run HBase as",
+      "defaultValue": "hbase",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "serviceName": "MISC",
+      "category": "Users/Groups"
+    },
+    {
+      "name": "hive_user",
+      "displayName": "Hive User",
+      "description": "User to run Hive as",
+      "defaultValue": "hive",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "serviceName": "MISC",
+      "category": "Users/Groups"
+    },
+    {
+      "name": "hcat_user",
+      "displayName": "HCat User",
+      "description": "User to run HCatalog as",
+      "defaultValue": "hcat",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "serviceName": "MISC",
+      "category": "Users/Groups"
+    },
+    {
+      "name": "oozie_user",
+      "displayName": "Oozie User",
+      "description": "User to run Oozie as",
+      "defaultValue": "oozie",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "serviceName": "MISC",
+      "category": "Users/Groups"
+    },
+    {
+      "name": "pig_user",
+      "displayName": "Pig User",
+      "description": "User to run Pig as",
+      "defaultValue": "pig",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "serviceName": "MISC",
+      "category": "Users/Groups"
+    },
+    {
+      "name": "sqoop_user",
+      "displayName": "Sqoop User",
+      "description": "User to run Sqoop as",
+      "defaultValue": "sqoop",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "serviceName": "MISC",
+      "category": "Users/Groups"
+    },
+    {
+      "name": "zk_user",
+      "displayName": "ZooKeeper User",
+      "description": "User to run ZooKeeper as",
+      "defaultValue": "zookeeper",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "serviceName": "MISC",
+      "category": "Users/Groups"
+    },
+    {
+      "name": "user_group",
+      "displayName": "Group",
+      "description": "Group that the users specified above belong to",
+      "defaultValue": "hadoop",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "serviceName": "MISC",
+      "category": "Users/Groups"
+    },
+    {
       "name": "nagios_web_login",
       "displayName": "Nagios Admin username",
       "description": "Nagios Web UI Admin username",
       "defaultValue": "nagiosadmin",
       "isReconfigurable": false,
+      "displayType": "user",
       "serviceName": "NAGIOS"
     },
     {
@@ -862,6 +939,7 @@ module.exports =
       "description": "Data directory in which the Oozie DB exists",
       "defaultValue": "",
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
@@ -871,6 +949,7 @@ module.exports =
       "description": "Directory for oozie logs",
       "defaultValue": "/var/log/oozie",
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
@@ -880,15 +959,7 @@ module.exports =
       "description": "Directory in which the pid files for oozie processes will be created",
       "defaultValue": "/var/run/oozie",
       "isReconfigurable": false,
-      "serviceName": "OOZIE",
-      "category": "Advanced"
-    },
-    {
-      "name": "oozie_user",
-      "displayName": "Oozie User",
-      "description": "User to run Oozie as",
-      "defaultValue": "oozie",
-      "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
@@ -903,51 +974,14 @@ module.exports =
       "category": "Advanced"
     },
     {
-      "name": "templetonserver.host",
-      "displayName": "Templeton Server host",
+      "name": "zookeeperserver.hosts",
+      "displayName": "ZooKeeper Server hosts",
       "value": "",
       "defaultValue": "",
-      "description": "The host that has been assigned to run Templeton Server",
-      "displayType": "masterHost",
-      "serviceName": "TEMPLETON",
-      "category": "Templeton Server"
-    },
-    {
-      "name": "templeton_user",
-      "displayName": "Templeton User",
-      "description": "User to run Templeton as",
-      "defaultValue": "templeton",
-      "isReconfigurable": false,
-      "serviceName": "TEMPLETON",
-      "category": "Advanced"
-    },
-    {
-      "name": "templeton_pid_dir",
-      "displayName": "Templeton PID Dir",
-      "description": "Directory in which the pid files for templeton processes will be created",
-      "defaultValue": "/var/run/templeton",
-      "isReconfigurable": false,
-      "serviceName": "TEMPLETON",
-      "category": "Advanced"
-    },
-    {
-      "name": "templeton_log_dir",
-      "displayName": "Templeton Log Dir",
-      "description": "Directory for templeton logs",
-      "defaultValue": "/var/log/templeton",
-      "isReconfigurable": false,
-      "serviceName": "TEMPLETON",
-      "category": "Advanced"
-    },
-    {
-      "name": "templeton-site.xml",
-      "displayName": "Custom Templeton Configs",
-      "description": "If you wish to set configuration parameters not exposed through this page, you can specify them here.<br>The text you specify here will be injected into templeton-site.xml verbatim.",
-      "defaultValue": "",
-      "isRequired": false,
-      "displayType": "custom",
-      "serviceName": "TEMPLETON",
-      "category": "Advanced"
+      "description": "The host that has been assigned to run ZooKeeper Server",
+      "displayType": "masterHosts",
+      "serviceName": "ZOOKEEPER",
+      "category": "ZooKeeper Server"
     },
     {
       "name": "zk_data_dir",
@@ -955,6 +989,7 @@ module.exports =
       "description": "Data directory for ZooKeeper",
       "defaultValue": "",
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
     },
@@ -964,6 +999,7 @@ module.exports =
       "description": "Directory for ZooKeeper log files",
       "defaultValue": "/var/log/zookeeper",
       "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "ZOOKEEPER",
       "category": "Advanced"
     },
@@ -973,15 +1009,7 @@ module.exports =
       "description": "Directory in which the pid files for zookeeper processes will be created",
       "defaultValue": "/var/run/zookeeper",
       "isReconfigurable": false,
-      "serviceName": "ZOOKEEPER",
-      "category": "Advanced"
-    },
-    {
-      "name": "zk_user",
-      "displayName": "ZooKeeper User",
-      "description": "User to run ZooKeeper as",
-      "defaultValue": "zookeeper",
-      "isReconfigurable": false,
+      "displayType": "directory",
       "serviceName": "ZOOKEEPER",
       "category": "Advanced"
     },

@@ -20,13 +20,8 @@ var App = require('app');
 var validator = require('utils/validator');
 
 App.ConfigProperties = Ember.ArrayProxy.extend({
-  content: require('data/config_properties').configProperties,
-
-  init: function() {
-
-  }
+  content: require('data/config_properties').configProperties
 });
-
 
 App.ServiceConfig = Ember.Object.extend({
   serviceName: '',
@@ -113,14 +108,14 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'regionserver.hosts':
         this.set('value', [ 'host0001.company.com', 'host0002.company.com', 'host0003.company.com' ]);
         break;
+      case 'zookeeperserver.hosts':
+        this.set('value', [ 'zk1.company.com', 'zk2.company.com', 'zk3.company.com' ]);
+        break;
       case 'hivemetastore.host':
         this.set('value', 'hive.company.com');
         break;
       case 'oozieserver.host':
         this.set('value', 'oozie.company.com');
-        break;
-      case 'templetonserver.host':
-        this.set('value', 'templeton.company.com');
         break;
     }
   },
@@ -141,6 +136,8 @@ App.ServiceConfigProperty = Ember.Object.extend({
         return App.ServiceConfigBigTextArea;
       case 'masterHost':
         return App.ServiceConfigMasterHostView;
+      case 'masterHosts':
+        return App.ServiceConfigMasterHostsView;
       case 'slaveHosts':
         return App.ServiceConfigSlaveHostsView;
       default:

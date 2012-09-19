@@ -71,15 +71,23 @@ h1 {
     h2 {
         margin-top: 0;
     }
-    .content {
-        padding: 25px;
-        background-color: #fff;
-    }
     .btn.btn-success {
         /* float: right; */
     }
     .btn-area {
         margin-top: 20px;
+    }
+    #installer-content {
+        padding: 25px;
+        background-color: #fff;
+
+    }
+    #step4 {
+        a.selected {
+            color: #333;
+        }
+        a.deselected {
+        }
     }
     #serviceConfig {
         .accordion-heading {
@@ -100,7 +108,7 @@ h1 {
         .add-slave-component-group {
             margin-bottom: 20px;
         }
-        .master-host, .slave-hosts {
+        .master-host, .master-hosts, .slave-hosts {
             padding-top: 5px;
             line-height: 20px;
         }
@@ -108,7 +116,12 @@ h1 {
             margin: 20px 0;
         }
         .retyped-password {
-            margin-left: 10px;
+            margin-left: 14px;
+        }
+        #slave-hosts-popup {
+            ul {
+                list-style-type: none;
+            }
         }
     }
 }
