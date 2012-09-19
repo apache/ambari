@@ -34,8 +34,8 @@ import org.apache.commons.logging.LogFactory;
 public class Configuration {
   private static final String AMBARI_CONF_VAR = "AMBARI_CONF_DIR";
   private static final String CONFIG_FILE = "ambari.properties";
-  private static final String BOOTSTRAP_DIR = "bootstrap.dir";
-  private static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
+  public static final String BOOTSTRAP_DIR = "bootstrap.dir";
+  public static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
 
   private static final Log LOG = LogFactory.getLog(Configuration.class);
 

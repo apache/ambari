@@ -18,22 +18,104 @@
 
 package org.apache.ambari.server.bootstrap;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
+import junit.framework.Assert;
 import junit.framework.TestCase;
 
+import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+
 /**
  * Test BootStrap Implementation.
  */
 public class BootStrapTest extends TestCase {
+  private static Log LOG = LogFactory.getLog(BootStrapTest.class);
+  public TemporaryFolder temp = new TemporaryFolder();
+  
+  @Before
+  public void setUp() throws IOException {
+    temp.create();
+  }
+  
+  @After
+  public void tearDown() throws IOException {
+    temp.delete();
+  }
   
   @Test
   public void testRun() throws Exception {
     Properties properties = new Properties();
+    String bootdir =  temp.newFolder("bootdir").toString();
+    LOG.info("Bootdir is " + bootdir);
+    properties.setProperty(Configuration.BOOTSTRAP_DIR, 
+       bootdir);
+    properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, "echo");
     Configuration conf = new Configuration(properties);
     BootStrapImpl impl = new BootStrapImpl(conf);
+    impl.init();
+    SshHostInfo info = new SshHostInfo();
+    info.setSshKey("xyz");
+    ArrayList<String> hosts = new ArrayList<String>();
+    hosts.add("host1");
+    hosts.add("host2");
+    info.setHosts(hosts);
+    BSResponse response = impl.runBootStrap(info);
+    LOG.info("Response id from bootstrap " + response.getRequestId());
+    /* do a query */
+    BootStrapStatus status = impl.getStatus(response.getRequestId());
+    LOG.info("Status " + status.getStatus());
+    int num = 0;
+    while ((status.getStatus() != BSStat.SUCCESS) && (num < 10000)) {
+        status = impl.getStatus(response.getRequestId());
+        Thread.sleep(100);
+        num++;
+    }
+    LOG.info("Status: log " + status.getLog() + " status=" + status.getStatus() 
+        );
+    /* Note its an echo command so it should echo host1,host2 */
+    Assert.assertTrue(status.getLog().contains("host1,host2"));
+    Assert.assertEquals(BSStat.SUCCESS, status.getStatus());
+  }
+  
+  
+  @Test
+  public void testPolling() throws Exception {
+    File tmpFolder = temp.newFolder("bootstrap");
+    /* create log and done files */
+    FileUtils.writeStringToFile(new File(tmpFolder, "host1.done"), "output");
+    FileUtils.writeStringToFile(new File(tmpFolder, "host1.log"), "err_log_1");
+    FileUtils.writeStringToFile(new File(tmpFolder, "host2.done"), "output");
+    FileUtils.writeStringToFile(new File(tmpFolder, "host2.log"), "err_log_2");
+
+    List<String> listHosts = new ArrayList<String>();
+    listHosts.add("host1");
+    listHosts.add("host2");
+    BSHostStatusCollector collector = new BSHostStatusCollector(tmpFolder,
+        listHosts);
+    collector.run();
+    List<BSHostStatus> polledHostStatus = collector.getHostStatus();
+    Assert.assertTrue(polledHostStatus.size() == 2);
+    Assert.assertEquals(polledHostStatus.get(0).getHostName(), "host1");
+    Assert.assertEquals(polledHostStatus.get(0).getLog(), "err_log_1");
+    Assert.assertEquals(polledHostStatus.get(0).getStatus(), "DONE");
+    Assert.assertEquals(polledHostStatus.get(1).getHostName(), "host2");
+    Assert.assertEquals(polledHostStatus.get(1).getLog(), "err_log_2");
+    Assert.assertEquals(polledHostStatus.get(1).getStatus(), "DONE");
+    
+
   }
   
 }

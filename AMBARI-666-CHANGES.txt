@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-749. Complete Java side implementation of bootstrapping agent hosts.
+  (mahadev)
+
   AMBARI-757. Implement Installer Step 4 (Select Services). (yusaku)
 
   AMBARI-751. Re-structure servicecomponenthost fsm layout. (hitesh)
