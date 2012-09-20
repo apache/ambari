@@ -5,5 +5,5 @@ No host assigned
 {{value}}
 {{/if}}
 {{#if view.hasMultipleHosts}}
-<a href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="App.router.slaveComponentGroupsController"}}>{{value.firstObject}} and {{view.otherLength}} others</a>
+<a href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="App.router.slaveComponentGroupsController"}}>{{hosts.firstObject.hostname}} and {{view.otherLength}}</a>
 {{/if}}

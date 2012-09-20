@@ -158,8 +158,6 @@ App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopover
 
 App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHostPopoverSupport, {
 
-  valueBinding: 'serviceConfig.value',
-
   hasNoHosts: function() {
     return this.get('value').length === 0;
   }.property('value'),
@@ -173,12 +171,19 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
   }.property('value'),
 
   otherLength: function() {
-    return this.get('value').length - 1;
+    var len = this.get('value').length;
+    if (len > 2) {
+      return (len - 1) + ' others';
+    } else {
+      return '1 other';
+    }
   }.property('value')
 
 })
 
 App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, {
+
+  valueBinding: 'serviceConfig.value',
 
   classNames: ['master-hosts', 'span6'],
   templateName: require('templates/installer/master_hosts')
@@ -188,7 +193,10 @@ App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHo
 App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, {
 
   classNames: ['slave-hosts', 'span6'],
-  templateName: require('templates/installer/slave_hosts')
+  templateName: require('templates/installer/slave_hosts'),
+
+  controllerBinding: 'App.router.slaveComponentGroupsController',
+  valueBinding: 'App.router.slaveComponentGroupsController.hosts'
 
 });
 

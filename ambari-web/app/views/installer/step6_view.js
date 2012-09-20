@@ -17,29 +17,10 @@
  */
 
 
+var App = require('app');
 
-// load all views here
+App.InstallerStep6View = Em.View.extend({
 
-require('views/application');
-require('views/common/modal_popup');
-require('views/login');
-require('views/main');
-require('views/main/menu');
-require('views/main/charts');
-require('views/main/hosts');
-require('views/main/admin');
-require('views/main/dashboard');
-require('views/main/service');
-require('views/main/service/menu');
-require('views/main/service/item');
-require('views/installer');
-require('views/installer/step1_view');
-require('views/installer/step2_view');
-require('views/installer/step3_view');
-require('views/installer/step4_view');
-require('views/installer/step5');
-require('views/installer/step6_view');
-require('views/installer/step7_view');
-require('views/installer/step8');
-require('views/installer/step9');
-require('views/installer/step10');
+  templateName: require('templates/installer/step6')
+
+});

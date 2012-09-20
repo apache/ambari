@@ -16,9 +16,41 @@
 * limitations under the License.
 -->
 
+<div id="step6">
+  <h2>{{t installer.step6.header}}</h2>
 
-<h2>{{t installer.step6.header}}</h2>
-<div class="btn-area">
+  <div class="alert alert-info">{{t installer.step6.body}}</div>
+  {{#if errorMessage}}
+  <div class="alert alert-error">{{errorMessage}}</div>
+  {{/if}}
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      <th>Host</th>
+      <th>
+        <a href="#" {{bindAttr class="isAllDataNodes:selected:deselected"}} {{action selectAllDataNodes target="controller"}}>all</a> | <a href="#" {{bindAttr class="isNoDataNodes:selected:deselected"}} {{action deselectAllDataNodes target="controller"}}>none</a>
+      </th>
+      <th>
+        <a href="#" {{bindAttr class="isAllTaskTrackers:selected:deselected"}} {{action selectAllTaskTrackers target="controller"}}>all</a> | <a href="#" {{bindAttr class="isNoTaskTrackers:selected:deselected"}} {{action deselectAllTaskTrackers target="controller"}}>none</a>
+      </th>
+      <th>
+        <a href="#" {{bindAttr class="isAllRegionServers:selected:deselected"}} {{action selectAllRegionServers target="controller"}}>all</a> | <a href="#" {{bindAttr class="isNoRegionServers:selected:deselected"}} {{action deselectAllRegionServers target="controller"}}>none</a>
+      </th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#each hosts}}
+    <tr>
+      <td>{{hostname}}</td>
+      <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isDataNode"}}DataNode</label></td>
+      <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isTaskTracker"}}TaskTracker</label></td>
+      <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isRegionServer"}}RegionServer</label></td>
+    </tr>
+    {{/each}}
+    </tbody>
+  </table>
+  <div class="btn-area">
     <a class="btn" {{action back}}>Back</a>
-    <a class="btn btn-success" {{action next}}>Next</a>
+    <a class="btn btn-success" style="float:right" {{action submit target="controller"}}>Next</a>
+  </div>
 </div>

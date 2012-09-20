@@ -87,8 +87,11 @@ Em.I18n.translations = {
   'installer.step4.body': 'Choose which services you want to install on your cluster.<br>Note that some services have dependencies (e.g., HBase requires ZooKeeper.)',
 
   'installer.step5.header': 'Assign Masters',
+  'installer.step5.body': 'Assign master components to hosts you want to run them on.',
 
   'installer.step6.header': 'Assign Slaves',
+  'installer.step6.body': 'Assign slave components to hosts you want to run them on.',
+  'installer.step6.error.mustSelectOne': 'You must assign at least one host to each.',
 
   'installer.step7.header': 'Customize Services',
   'installer.step7.body': 'We have come up with recommended configurations for the services you selected.  Customize them as you see fit.',

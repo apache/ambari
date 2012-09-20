@@ -19,8 +19,7 @@
 var App = require('app');
 
 /**
- * Controller for Step 7 of the Installer Wizard.
- * By Step 7, we have the following information stored in App.db (localStorage) and set on this
+ * By Step 7, we have the following information stored in App.db and set on this
  * controller by the router.
  *
  *   selectedServices: App.db.selectedServices (the services that the user selected in Step 4)
@@ -43,19 +42,28 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
   }.property('@each.errorCount'),
 
   // TODO: set attributes from localStorage in router
-  // var selectedServiceNames = App.db.getSelectedServiceNames();
   selectedServiceNames: [ 'HDFS', 'MAPREDUCE', 'GANGLIA', 'NAGIOS', 'HBASE', 'PIG', 'SQOOP', 'OOZIE', 'HIVE', 'ZOOKEEPER'],
-  masterComponentHosts: '',
-  slaveComponentHosts: '',
+  masterComponentHosts: require('data/mock/master_component_hosts'),
+  slaveComponentHosts: require('data/mock/slave_component_hosts'),
 
   doInit: true,
 
   loadConfigs: function() {
 
+    // load dependent data from the database
     var selectedServiceNamesInDB = App.db.getSelectedServiceNames();
     if (selectedServiceNamesInDB !== undefined) {
       this.set('selectedServiceNames', selectedServiceNamesInDB);
     }
+    var masterComponentHostsInDB = App.db.getMasterComponentHosts();
+    if (masterComponentHostsInDB != undefined) {
+      this.set('masterComponentHosts', masterComponentHostsInDB);
+    }
+    var slaveComponentHostsInDB = App.db.getSlaveComponentHosts();
+    if (slaveComponentHostsInDB != undefined) {
+      this.set('slaveComponentHosts', slaveComponentHostsInDB);
+    }
+
     // TODO: check App.db to see if configs have been saved already
     if (this.doInit) {
       var serviceConfigs = require('data/service_configs');
@@ -128,15 +136,22 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
 
   name: 'slaveComponentGroupsController',
 
-  // TODO: Set up binding to use actual data
-  //contentBinding: 'App.router.installerStep7Controller.slaveComponentHosts',
-  content: require('data/mock/slave_component_hosts'),
+  contentBinding: 'App.router.installerStep7Controller.slaveComponentHosts',
 
-  selectedComponentName: 'DataNode',
+  selectedComponentName: function() {
+    switch (App.router.get('installerStep7Controller.selectedService.serviceName')) {
+      case 'HDFS':
+        return 'DataNode';
+      case 'MAPREDUCE':
+        return 'TaskTracker';
+      case 'HBASE':
+        return 'RegionServer';
+    }
+
+  }.property('App.router.installerStep7Controller.selectedService'),
 
   showAddSlaveComponentGroup: function (event) {
     var componentName = event.context;
-    this.set('selectedComponentName', componentName);
     App.ModalPopup.show({
       header: componentName + ' Groups',
       bodyClass: Ember.View.extend({
@@ -153,11 +168,11 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
   },
 
   hosts: function() {
-    return this.filterProperty('componentName', this.get('selectedComponentName'))[0].hosts;
-  }.property('@each.hosts'),
+    return this.findProperty('componentName', this.get('selectedComponentName')).hosts;
+  }.property('@each.hosts', 'selectedComponentName'),
 
   groups: function() {
-    return this.filterProperty('componentName', this.get('selectedComponentName'))[0].hosts.mapProperty('group').uniq();
-  }.property('@each.hosts')
+    return this.findProperty('componentName', this.get('selectedComponentName')).hosts.mapProperty('group').uniq();
+  }.property('@each.hosts', 'selectedComponentName')
 
 });

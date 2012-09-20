@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-763. Implement Installer Step 6 (Assign Slaves). (yusaku)
+
   AMBARI-760. Fix injection in data access objects to use guice provider.
   (mahadev)
 

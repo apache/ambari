@@ -166,6 +166,27 @@ App.db.setSelectedServiceNames = function(serviceNames) {
   localStorage.setObject('ambari', App.db.data);
 }
 
+App.db.setMasterComponentHosts = function(masterComponentHosts) {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  App.db.data[user].Installer.masterComponentHosts = masterComponentHosts;
+  localStorage.setObject('ambari', App.db.data);
+}
+
+App.db.setHostSlaveComponents = function(hostSlaveComponents) {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  App.db.data[user].Installer.hostSlaveComponents = hostSlaveComponents;
+  localStorage.setObject('ambari', App.db.data);
+}
+
+App.db.setSlaveComponentHosts = function(slaveComponentHosts) {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  App.db.data[user].Installer.slaveComponentHosts = slaveComponentHosts;
+  localStorage.setObject('ambari', App.db.data);
+}
+
 /*
  *  getter methods
  */
@@ -232,6 +253,24 @@ App.db.getSelectedServiceNames = function() {
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
   return App.db.data[user].Installer.selectedServiceNames;
+}
+
+App.db.getMasterComponentHosts = function() {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  return App.db.data[user].Installer.masterComponentHosts;
+}
+
+App.db.getHostSlaveComponents = function() {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  return App.db.data[user].Installer.hostSlaveComponents;
+}
+
+App.db.getSlaveComponentHosts = function() {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  return App.db.data[user].Installer.slaveComponentHosts;
 }
 
 module.exports = App.db;

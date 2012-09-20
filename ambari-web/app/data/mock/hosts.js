@@ -16,16 +16,20 @@
  * limitations under the License.
  */
 
-
-var App = require('app');
-
-App.InstallerStep6View = Em.View.extend({
-
-  templateName: require('templates/installer/step6'),
-
-  submit: function(e) {
-    alert(this.get('controller.clusterName'));
-    App.router.transitionTo('step7');
+module.exports = [
+  {
+    hostname: 'host0001.company.com'
+  },
+  {
+    hostname: 'host0002.company.com'
+  },
+  {
+    hostname: 'host0003.company.com'
+  },
+  {
+    hostname: 'host0004.company.com'
+  },
+  {
+    hostname: 'host0005.company.com'
   }
-
-});
+];
