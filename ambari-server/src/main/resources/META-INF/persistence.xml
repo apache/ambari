@@ -33,9 +33,11 @@
     <class>org.apache.ambari.server.orm.entities.ServiceConfigEntity</class>
     <class>org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.ServiceStateEntity</class>
+    <class>org.apache.ambari.server.orm.entities.RoleEntity</class>
+    <class>org.apache.ambari.server.orm.entities.UserEntity</class>
 
     <properties>
-      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari"/>
+      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/postgres"/>
       <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
       <property name="javax.persistence.jdbc.user" value="ambari-server"/>
       <property name="javax.persistence.jdbc.password" value="bigdata"/>
@@ -58,6 +60,8 @@
     <class>org.apache.ambari.server.orm.entities.ServiceConfigEntity</class>
     <class>org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.ServiceStateEntity</class>
+    <class>org.apache.ambari.server.orm.entities.RoleEntity</class>
+    <class>org.apache.ambari.server.orm.entities.UserEntity</class>
 
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:myDB;create=true"/>

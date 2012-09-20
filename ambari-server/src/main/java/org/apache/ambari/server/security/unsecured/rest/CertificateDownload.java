@@ -15,21 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.controller;
-import org.apache.ambari.server.agent.rest.AgentResource;
-import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
+package org.apache.ambari.server.security.unsecured.rest;
 
-import com.google.inject.AbstractModule;
 
-/**
- * Used for injection purposes.
- *
- */
-public class ControllerModule extends AbstractModule {
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
-  @Override
-  protected void configure() {
-    requestStaticInjection(AgentResource.class);
-    requestStaticInjection(CertificateDownload.class);
+import org.apache.ambari.server.security.CertificateManager;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.google.inject.Inject;
+
+@Path("/ca")
+public class CertificateDownload {
+  private static Log LOG = LogFactory.getLog(CertificateDownload.class);
+  private static CertificateManager certMan;
+  
+  @Inject
+  static void init(CertificateManager instance) {
+    certMan = instance;
+  }
+  
+  @GET
+  @Produces({MediaType.TEXT_PLAIN})
+  public String downloadSrvrCrt() {
+    return certMan.getServerCert();
   }
 }

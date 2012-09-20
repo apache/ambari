@@ -12,6 +12,10 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-759. Add puppet scripts to the agent for configuring/installing
+  various services and add security aspects to api's and server/agent.
+  (mahadev)
+
   AMBARI-749. Complete Java side implementation of bootstrapping agent hosts.
   (mahadev)
 
