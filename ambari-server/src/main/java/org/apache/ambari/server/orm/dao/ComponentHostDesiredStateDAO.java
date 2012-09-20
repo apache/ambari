@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.ComponentHostDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ComponentHostDesiredStateEntityPK;
@@ -27,25 +28,25 @@ import javax.persistence.EntityManager;
 
 public class ComponentHostDesiredStateDAO {
   @Inject
-  EntityManager entityManager;
+  Provider<EntityManager> entityManagerProvider;
 
   public ComponentHostDesiredStateEntity findByPK(ComponentHostDesiredStateEntityPK primaryKey) {
-    return entityManager.find(ComponentHostDesiredStateEntity.class, primaryKey);
+    return entityManagerProvider.get().find(ComponentHostDesiredStateEntity.class, primaryKey);
   }
 
   @Transactional
   public void create(ComponentHostDesiredStateEntity componentHostDesiredStateEntity) {
-    entityManager.persist(componentHostDesiredStateEntity);
+    entityManagerProvider.get().persist(componentHostDesiredStateEntity);
   }
 
   @Transactional
   public ComponentHostDesiredStateEntity merge(ComponentHostDesiredStateEntity componentHostDesiredStateEntity) {
-    return entityManager.merge(componentHostDesiredStateEntity);
+    return entityManagerProvider.get().merge(componentHostDesiredStateEntity);
   }
 
   @Transactional
   public void remove(ComponentHostDesiredStateEntity componentHostDesiredStateEntity) {
-    entityManager.remove(componentHostDesiredStateEntity);
+    entityManagerProvider.get().remove(componentHostDesiredStateEntity);
   }
 
   @Transactional

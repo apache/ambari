@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.commons.logging.Log;
@@ -30,24 +31,24 @@ public class ClusterDAO {
   private static final Log log = LogFactory.getLog(ClusterDAO.class);
 
   @Inject
-  EntityManager entityManager;
+  Provider<EntityManager> entityManagerProvider;
 
   public ClusterEntity findByName(String clusterName) {
-    return entityManager.find(ClusterEntity.class, clusterName);
+    return entityManagerProvider.get().find(ClusterEntity.class, clusterName);
   }
 
   public void create(ClusterEntity clusterEntity) {
-    entityManager.persist(clusterEntity);
+    entityManagerProvider.get().persist(clusterEntity);
   }
 
   @Transactional
   public ClusterEntity merge(ClusterEntity clusterEntity) {
-    return entityManager.merge(clusterEntity);
+    return entityManagerProvider.get().merge(clusterEntity);
   }
 
   @Transactional
   public void remove(ClusterEntity clusterEntity) {
-    entityManager.remove(clusterEntity);
+    entityManagerProvider.get().remove(clusterEntity);
   }
 
   @Transactional

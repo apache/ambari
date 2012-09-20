@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.ServiceStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceStateEntityPK;
@@ -27,25 +28,25 @@ import javax.persistence.EntityManager;
 
 public class ServiceStateDAO {
   @Inject
-  EntityManager entityManager;
+  Provider<EntityManager> entityManagerProvider;
 
   public ServiceStateEntity findByPK(ServiceStateEntityPK primaryKey) {
-    return entityManager.find(ServiceStateEntity.class, primaryKey);
+    return entityManagerProvider.get().find(ServiceStateEntity.class, primaryKey);
   }
 
   @Transactional
   public void create(ServiceStateEntity serviceStateEntity) {
-    entityManager.persist(serviceStateEntity);
+    entityManagerProvider.get().persist(serviceStateEntity);
   }
 
   @Transactional
   public ServiceStateEntity merge(ServiceStateEntity serviceStateEntity) {
-    return entityManager.merge(serviceStateEntity);
+    return entityManagerProvider.get().merge(serviceStateEntity);
   }
 
   @Transactional
   public void remove(ServiceStateEntity serviceStateEntity) {
-    entityManager.remove(serviceStateEntity);
+    entityManagerProvider.get().remove(serviceStateEntity);
   }
 
   @Transactional

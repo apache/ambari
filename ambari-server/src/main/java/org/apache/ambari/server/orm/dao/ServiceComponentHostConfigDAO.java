@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.ServiceComponentHostConfigEntity;
 
@@ -26,25 +27,25 @@ import javax.persistence.EntityManager;
 
 public class ServiceComponentHostConfigDAO {
   @Inject
-  EntityManager entityManager;
+  Provider<EntityManager> entityManagerProvider;
 
   public ServiceComponentHostConfigEntity findByPK(Integer primaryKey) {
-    return entityManager.find(ServiceComponentHostConfigEntity.class, primaryKey);
+    return entityManagerProvider.get().find(ServiceComponentHostConfigEntity.class, primaryKey);
   }
 
   @Transactional
   public void create(ServiceComponentHostConfigEntity serviceComponentHostConfigEntity) {
-    entityManager.persist(serviceComponentHostConfigEntity);
+    entityManagerProvider.get().persist(serviceComponentHostConfigEntity);
   }
 
   @Transactional
   public ServiceComponentHostConfigEntity merge(ServiceComponentHostConfigEntity serviceComponentHostConfigEntity) {
-    return entityManager.merge(serviceComponentHostConfigEntity);
+    return entityManagerProvider.get().merge(serviceComponentHostConfigEntity);
   }
 
   @Transactional
   public void remove(ServiceComponentHostConfigEntity serviceComponentHostConfigEntity) {
-    entityManager.remove(serviceComponentHostConfigEntity);
+    entityManagerProvider.get().remove(serviceComponentHostConfigEntity);
   }
 
   @Transactional

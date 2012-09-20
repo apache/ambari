@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.HostEntity;
 
@@ -27,25 +28,25 @@ import javax.persistence.EntityManager;
 public class HostDAO {
 
   @Inject
-  EntityManager entityManager;
+  Provider<EntityManager> entityManagerProvider;
 
   public HostEntity findByName(String hostName) {
-    return entityManager.find(HostEntity.class, hostName);
+    return entityManagerProvider.get().find(HostEntity.class, hostName);
   }
 
   @Transactional
   public void create(HostEntity hostEntity) {
-    entityManager.persist(hostEntity);
+    entityManagerProvider.get().persist(hostEntity);
   }
 
   @Transactional
   public HostEntity merge(HostEntity hostEntity) {
-    return entityManager.merge(hostEntity);
+    return entityManagerProvider.get().merge(hostEntity);
   }
 
   @Transactional
   public void remove(HostEntity hostEntity) {
-    entityManager.remove(hostEntity);
+    entityManagerProvider.get().remove(hostEntity);
   }
 
   @Transactional

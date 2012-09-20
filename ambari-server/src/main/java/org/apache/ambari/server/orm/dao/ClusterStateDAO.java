@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 
@@ -26,25 +27,25 @@ import javax.persistence.EntityManager;
 
 public class ClusterStateDAO {
   @Inject
-  EntityManager entityManager;
+  Provider<EntityManager> entityManagerProvider;
 
   public ClusterStateEntity findByPK(String clusterName) {
-    return entityManager.find(ClusterStateEntity.class, clusterName);
+    return entityManagerProvider.get().find(ClusterStateEntity.class, clusterName);
   }
 
   @Transactional
   public void create(ClusterStateEntity clusterStateEntity) {
-    entityManager.persist(clusterStateEntity);
+    entityManagerProvider.get().persist(clusterStateEntity);
   }
 
   @Transactional
   public ClusterStateEntity merge(ClusterStateEntity clusterStateEntity) {
-    return entityManager.merge(clusterStateEntity);
+    return entityManagerProvider.get().merge(clusterStateEntity);
   }
 
   @Transactional
   public void remove(ClusterStateEntity clusterStateEntity) {
-    entityManager.remove(clusterStateEntity);
+    entityManagerProvider.get().remove(clusterStateEntity);
   }
 
   @Transactional

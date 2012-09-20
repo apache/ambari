@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
@@ -29,14 +30,14 @@ import java.util.List;
 
 public class ServiceConfigDAO {
   @Inject
-  EntityManager entityManager;
+  Provider<EntityManager> entityManagerProvider;
 
   public ServiceConfigEntity findByPK(Integer primaryKey) {
-    return entityManager.find(ServiceConfigEntity.class, primaryKey);
+    return entityManagerProvider.get().find(ServiceConfigEntity.class, primaryKey);
   }
 
   public List<ServiceConfigEntity> findByClusterService(ClusterServiceEntity clusterServiceEntity) {
-    TypedQuery<ServiceConfigEntity> query = entityManager.createQuery("select config " +
+    TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().createQuery("select config " +
             "from ServiceConfigEntity config " +
             "join config.clusterServiceEntity clusterService " +
             "where clusterService = :service", ServiceConfigEntity.class);
@@ -45,24 +46,24 @@ public class ServiceConfigDAO {
   }
 
   public List<ServiceConfigEntity> findAll() {
-    TypedQuery<ServiceConfigEntity> query = entityManager.createQuery("select c from ServiceConfigEntity c"
+    TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().createQuery("select c from ServiceConfigEntity c"
             , ServiceConfigEntity.class);
     return query.getResultList();
   }
 
   @Transactional
   public void create(ServiceConfigEntity serviceConfigEntity) {
-    entityManager.persist(serviceConfigEntity);
+    entityManagerProvider.get().persist(serviceConfigEntity);
   }
 
   @Transactional
   public ServiceConfigEntity merge(ServiceConfigEntity serviceConfigEntity) {
-    return entityManager.merge(serviceConfigEntity);
+    return entityManagerProvider.get().merge(serviceConfigEntity);
   }
 
   @Transactional
   public void remove(ServiceConfigEntity serviceConfigEntity) {
-    entityManager.remove(serviceConfigEntity);
+    entityManagerProvider.get().remove(serviceConfigEntity);
   }
 
   @Transactional

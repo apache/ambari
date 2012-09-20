@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-760. Fix injection in data access objects to use guice provider.
+  (mahadev)
+
   AMBARI-759. Add puppet scripts to the agent for configuring/installing
   various services and add security aspects to api's and server/agent.
   (mahadev)
