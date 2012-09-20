@@ -146,6 +146,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-761. Fix broken build for adding guice servlet dependency. (mahadev)
+
   AMBARI-753. Fix broken compile as a result of re-factor of FSM layout. (hitesh)
 
   AMBARI-752. Add missing license header to TestServiceComponentHostState. (hitesh)
