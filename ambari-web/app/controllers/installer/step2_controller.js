@@ -53,14 +53,16 @@ App.InstallerStep2Controller = Em.Controller.extend({
   }.observes('localRepo'),
 
   validateHostNames: function () {
-    this.hostNameArr = this.get('hostNames').split(new RegExp("\\s"));
-    for (var i = 0; i < this.hostNameArr.length; i++) {
+    this.hostNameArr = this.get('hostNames').trim().split(new RegExp("\\s+","g"));
+   // this.hostNameArr = this.get('hostNames').trim().match(/\w+|"[^"]+"/g);
+    for (var index in this.hostNameArr) {
+      console.log("host name is: " + this.hostNameArr[index]);
       //TODO: other validation for hostnames will be covered over here
       // For now hostnames that start or end with '-' are not allowed
-      if (/^\-/.test(this.hostNameArr[i]) || /\-$/.test(this.hostNameArr[i])) {
-        console.log('Invalid host name: ' + this.hostNameArr[i]);
-        this.set('hostNameErrMsg', Em.I18n.t('installer.step2.hostName.error.invalid'));
+      if (/^\-/.test(this.hostNameArr[index]) || /\-$/.test(this.hostNameArr[index])) {
+        console.log('Invalid host name: ' + this.hostNameArr[index]);
         this.set('hostNameErr', true);
+        this.set('hostNameErrMsg', Em.I18n.t('installer.step2.hostName.error.invalid'));
         this.set('hostNameEmptyError', false);
         this.set('hostNameNotRequiredErr', false);
         return false;
@@ -163,10 +165,6 @@ App.InstallerStep2Controller = Em.Controller.extend({
 
 
   evaluateStep2: function () {
-
-    //task1 = do primary validations on whole step before executing any further steps
-    //task2 = parsing hostnames string to hostnames json array
-    //task3 = check validation for every hostname and store it in localstorage
     //task4 = Storing ambari agent Install type in localStorage (installType maps at host level and so every host will have this as an property)
     //task5 = Storing path of software repository(remote/local repo) to localStorage
     //task6 = call to rest API: @Post http://ambari_server/api/bootstrap
@@ -177,7 +175,7 @@ App.InstallerStep2Controller = Em.Controller.extend({
     console.log('TRACE: Entering controller:InstallerStep2:evaluateStep2 function');
     console.log('value of manual install is: ' + this.get('manualInstall'));
 
-    var validateResult = this.validateStep2();
+    var validateResult = !this.validateStep2();
 
     if (this.get('isSubmitDisabled') === true ) {
       console.log("ERROR: error in validation");

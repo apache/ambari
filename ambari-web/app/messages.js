@@ -82,6 +82,8 @@ Em.I18n.translations = {
   'installer.step3.header': 'Confirm Hosts',
   'installer.step3.body': 'Here are the results of the host discovery process.<br>' +
     'Please verify and remove the ones that you do not want to be the part of the cluster.',
+  'installer.step3.hostLog.popup.header': 'Log file for the host',
+  'installer.step3.hostLog.popup.body': 'Placeholder for the log file',
 
   'installer.step4.header': 'Choose Services',
   'installer.step4.body': 'Choose which services you want to install on your cluster.<br>Note that some services have dependencies (e.g., HBase requires ZooKeeper.)',

@@ -83,7 +83,7 @@
   {{view Ember.Checkbox checkedBinding="localRepo"}}
 </label>
 
-{{#if localRepo}}
+{{#if "localRepo"}}
 <div {{bindAttr class="softRepoLocalPathNullErr:error :control-group"}}>
   <div class="alert alert-info">
     {{t installer.step2.localRepo.info}}
@@ -98,14 +98,13 @@
 {{/if}}
 
 <div class="btn-area">
-  <a class="btn" {{action back}}>Previous</a>
+  <a class="btn pull-left" {{action back}}>&larr; Back</a>
   {{#if manualInstall}}
-  <a role="button" class="btn btn-success"
-     style="float:right"
-     data-toggle="modal" {{action evaluateStep2 target="controller"}}>Validate</a>
+  <a role="button" class="btn btn-success pull-right"
+     data-toggle="modal" {{action evaluateStep2 target="controller"}}>Validate &rarr;</a>
   {{else}}
-  <a class="btn btn-success" style="float:right" {{action next}}> Discover and
-    Validate </a>
+  <a class="btn btn-success pull-right" {{action next}}> Discover and
+    Validate &rarr; </a>
   {{/if}}
 </div>
 

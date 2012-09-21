@@ -21,16 +21,29 @@
 <div id="hosts" class="box">
   <div class="box-header">
     <div class="button-section">
-      <a class="btn btn-primary decommission"
+      <a class="btn btn-primary decommission" {{bindAttr disabled="isSubmitDisabled"}}
          href="#" {{action retry target="controller"}}><i
         class="icon-repeat icon-white"></i>
         Retry
       </a>
-      <a class="btn btn-primary"
-         href="#" {{action remove target="controller" }}><i
+      <a class="btn btn-primary" {{bindAttr disabled="isSubmitDisabled"}}
+         href="#" {{action removeHosts target="controller" }}><i
         class="icon-trash icon-white"></i>
         Remove
       </a>
+      <a class="btn btn-info"
+         href="#" {{action mockBtn target="controller" }}>
+        Mock Data
+      </a>
+
+      <div class="dropdown pull-right">
+        {{view Ember.Select class="pull-right"
+       contentBinding="controller.categories"
+       selectionBinding="controller.category"
+       }}
+        <h5 class="pull-right text-info">Filter By: &nbsp</h5>
+      </div>
+
     </div>
   </div>
 
@@ -39,9 +52,8 @@
     <thead>
     <tr>
       <th>
-        <label class="checkbox">
-          <input type="checkbox">
-        </label>
+        {{view Ember.Checkbox checkedBinding="allChecked"}}
+        {{controller.category}}
       </th>
       <th>Status</th>
       <!--  given by the parsing function that parses data from bootstrap call -->
@@ -56,105 +68,40 @@
 
 
     <tbody>
+
     {{#each host in controller}}
+    {{#view App.HostView categoryBinding="controller.category" hostInfoBinding="host"}}
+    {{#if view.isVisible}}
     <tr {{bindAttr class = "host.status"}}>
       <td>
-        <label class="checkbox">
-          <input type="checkbox">
-        </label>
+        {{view Ember.Checkbox checkedBinding="host.isChecked"}}
       </td>
       <td>
+        {{host.status}}
       </td>
-      </td>
+
       <td>
         {{host.hostName}}
       </td>
       <td>
-        {{host.message}}
+       <a href=""></a>
+
+        <a  href="javascript:void(null)" data-toggle="modal" {{action "hostLogPopup" target="controller"}}>{{host.message}}</a>
+
       </td>
       <td>
-        <a href="javascript:void(null)" {{action remove}}><i
+        <a href="javascript:void(null)" {{action removeItem target="view"}}><i
           class="icon-trash"></i></a>
       </td>
     </tr>
+    {{/if}}
+    {{/view}}
+
+
+
     {{/each}}
     </tbody>
   </table>
-
-  <!--
-    <tr class="warning">
-      <td>
-        <label class="checkbox">
-          <input type="checkbox">
-        </label>
-      </td>
-      <td></td>
-      <td>ip-12-12-12-1231.co2.ama.internal</td>
-      <td>Verifying SSH connection</td>
-      <td>
-        <a href="javascript:void(null)" {{action remove}}><i
-          class="icon-trash"></i></a>
-      </td>
-    </tr>
-    <tr class="success">
-      <td>
-        <label class="checkbox">
-          <input type="checkbox">
-        </label>
-      </td>
-      <td></td>
-      <td>ip-12-12-12-1232.co2.ama.internal</td>
-      <td>Succeed</td>
-      <td>
-        <a href="javascript:void(null)" {{action remove}}><i
-          class="icon-trash"></i></a>
-      </td>
-    </tr>
-    <tr class="warning">
-      <td>
-        <label class="checkbox">
-          <input type="checkbox">
-        </label>
-      </td>
-      <td></td>
-      <td>ip-12-12-12-1233.co2.ama.internal</td>
-      <td>Verifying SSH connection</td>
-      <td>
-        <a href="javascript:void(null)" {{action remove}}><i
-          class="icon-trash"></i></a>
-      </td>
-    </tr>
-    <tr class="warning">
-      <td>
-        <label class="checkbox">
-          <input type="checkbox">
-        </label>
-      </td>
-      <td></td>
-      <td>ip-12-12-12-1234.co2.ama.internal</td>
-      <td>Verifying SSH connection</td>
-      <td>
-        <a href="javascript:void(null)" {{action remove}}><i
-          class="icon-trash"></i></a>
-      </td>
-    </tr>
-    <tr class="error">
-      <td>
-        <label class="checkbox">
-          <input type="checkbox">
-        </label>
-      </td>
-      <td></td>
-      <td>ip-12-12-12-1235.co2.ama.internal</td>
-      <td>ssh connection failed</td>
-      <td>
-        <a href="javascript:void(null)" {{action remove}}><i
-          class="icon-trash"></i></a>
-      </td>
-    </tr>
-    </tbody>
-  </table>
-  -->
   <div class="box-footer">
     <hr/>
     <div class="footer-pagination">
@@ -162,6 +109,6 @@
   </div>
 </div>
 <div class="btn-area">
-  <a class="btn" {{action back}}>Previous</a>
-  <a class="btn btn-success" style="float:right" {{action next}}>Next</a>
+  <a class="btn pull-left" {{bindAttr disabled="isSubmitDisabled"}} {{action back}}>&larr; Previous</a>
+  <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
 </div>

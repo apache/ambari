@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-762. Implement Confirm Hosts page for Ambari installer
+  (Jaimin Jetly via yusaku)
+
   AMBARI-763. Implement Installer Step 6 (Assign Slaves). (yusaku)
 
   AMBARI-760. Fix injection in data access objects to use guice provider.

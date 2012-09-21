@@ -84,7 +84,6 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step2'),
     next: function (router, context) {
-      var result = router.get('installerStep3Controller').evaluateStep3();
       if (result) {
         console.log('In step3 transiting to step4');
         router.transitionTo('step4');

@@ -22,14 +22,43 @@ var App = require('app');
 App.InstallerStep3View = Em.View.extend({
 
   templateName: require('templates/installer/step3'),
+  category: '',
 
   didInsertElement: function () {
     $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
-    var result = this.get('controller');
     console.log("TRACE: step3->didInsetElement");
-    var result = this.get('controller');
-    result.renderHosts();
+    var controller = this.get('controller');
+    var hosts = controller.loadHosts();
+    controller.renderHosts(hosts);
+    controller.startBootstrap();
     console.log("TRACE: Back to step3 view");
   }
+});
 
+App.HostView = Em.View.extend({
+
+  isVisible: true,
+  category: 'Hosts',
+  removeItem: function () {
+    var hostInfo = this.get('hostInfo');
+    this.get('controller').removeElement(hostInfo);
+
+  },
+
+  hideItem: function () {
+    var controller = this.get('controller');
+    var hostInfo = this.get('hostInfo');
+    var category = this.get('category');
+    if (category === "Hosts") {
+      this.set('isVisible', true);
+    } else if (category === "Succeeded" && hostInfo.get('status') == "success") {
+      this.set('isVisible', true);
+      return true;
+    } else if (category === "Failed" && hostInfo.get('status') == "error") {
+      this.set('isVisible', true);
+    } else {
+      console.log("TRACE: In View->hideItem->false condition item....");
+      this.set('isVisible', false);
+    }
+  }.observes('category')
 });

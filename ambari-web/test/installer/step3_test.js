@@ -16,4 +16,91 @@
  * limitations under the License.
  */
 
-// TODO
+
+var Ember = require('ember');
+var App = require('app');
+require('models/hosts');
+require('controllers/installer/step3_controller');
+
+describe('App.InstallerStep3Controller', function () {
+  //var controller = App.InstallerStep3Controller.create();
+
+  describe('#parseHostInfo', function () {
+    var controller = App.InstallerStep3Controller.create();
+    it('should return true if there is no host with pending status in the data provided by REST bootstrap call.It should also update the status on the client side', function () {
+      var hostFrmServer = [
+        {
+          name: '192.168.1.1',
+          status: 'error'
+        },
+        {
+          name: '192.168.1.2',
+          status: 'success'
+        },
+        {
+          name: '192.168.1.3',
+          status: 'error'
+        },
+        {
+          name: '192.168.1.4',
+          status: 'success'
+        }
+      ];
+      controller.content.pushObject(App.HostInfo.create({
+        hostName: '192.168.1.1',
+        status: 'error'
+      }));
+      controller.content.pushObject(App.HostInfo.create({
+        hostName: '192.168.1.2',
+        status: 'success'
+      }));
+      controller.content.pushObject(App.HostInfo.create({
+        hostName: '192.168.1.3',
+        status: 'pending'        //status should be overriden to 'error' after the parseHostInfo call
+      }));
+      controller.content.pushObject(App.HostInfo.create({
+        hostName: '192.168.1.4',
+        status: 'success'
+      }));
+
+      var result = controller.parseHostInfo(hostFrmServer, controller.content);
+      var host = controller.content.findProperty('hostName', '192.168.1.3');
+      expect(result).to.equal(true);
+      expect(host.status).to.equal('error');
+    })
+  })
+
+
+  describe('#onAllChecked', function () {
+    var controller = App.InstallerStep3Controller.create();
+    it('should set all hosts to true on checking a global checkbox', function () {
+      controller.content.pushObject(App.HostInfo.create({
+        hostName: '192.168.1.1',
+        status: 'error',
+        isChecked: false
+      }));
+      controller.content.pushObject(App.HostInfo.create({
+        hostName: '192.168.1.2',
+        status: 'success',
+        isChecked: false
+      }));
+      controller.content.pushObject(App.HostInfo.create({
+        hostName: '192.168.1.3',
+        status: 'pending', //status should be overriden to 'error' after the parseHostInfo call
+        isChecked: true
+      }));
+      controller.content.pushObject(App.HostInfo.create({
+        hostName: '192.168.1.4',
+        status: 'success',
+        isChecked: false
+      }));
+      controller.onAllChecked();
+      controller.content.forEach(function (hostName) {
+        var result = hostName.isChecked;
+        expect(result).to.equal(true);
+      });
+
+    })
+  })
+})
+

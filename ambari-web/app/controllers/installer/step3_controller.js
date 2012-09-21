@@ -19,116 +19,141 @@ var App = require('app');
 
 App.InstallerStep3Controller = Em.ArrayController.extend({
   name: 'installerStep3Controller',
-  hostInfo: [],
-  hostNames: [],
-  category: 'All',
   content: [],
-  /*
-   This flag is "true" While bootstrapping is in process.
-   Parsing function or timeout on bootstrap rest call can make it false.
-   */
-  bootstrap: '',
-  mockData:{},
+  bootHosts: [],
+  isSubmitDisabled: false,
+  categories: ['Hosts', 'Succeeded', 'Failed'],
+  category: 'Hosts',
+  allChecked: true,
 
+  onAllChecked: function () {
+    var hosts = this.visibleHosts();
+    if (this.get('allChecked') === true) {
+      hosts.setEach('isChecked', true);
+    } else {
+      hosts.setEach('isChecked', false);
+    }
+  }.observes('allChecked'),
 
-  renderHosts: function() {
+  mockData: require('data/mock/step3_hosts'),
+  mockRetryData: require('data/mock/step3_retry_hosts'),
+
+  /* Loads the hostinfo from localStorage on the insertion of view. It's being called from view */
+  loadHosts: function () {
+    this.clear();
     var hostInfo = [];
     hostInfo = App.db.getHosts();
-    this.hostNames.clear();
-    this.clear();
+    var hosts = new Ember.Set();
+    for (var index in hostInfo) {
+      hostInfo[index].status = "pending";
+      hosts.add(hostInfo[index]);
+    }
+    hosts.forEach(function (_host) {
+      console.log("TRACE: host name is: " + _host.name);
+    });
+    return hosts;
+  },
 
-    this.hostNames = new Ember.Set();
-    for(var index in hostInfo) {
-      this.hostNames.add(hostInfo[index].name);
-     // alert(hostInfo[index].name);
-    }
-    /*hostInfo.forEach(function(_hostNames) {
-      hostNames.add = _hostNames.name;
-    });*/
-    console.log("TRACE: step3->controller->renderHosts");
-/*
-   this.hostInfo = [
-    {
-      hostName: 'jaimin',
-      status:'success'
-    },
-    {
-      hostName: 'jetly',
-      status:'success'
-    },
-    {
-      hostName: 'villa',
-      status:'Verifying SSH connection'
-    },
-    {
-      hostName: 'jack',
-      status:'SSH connection failed'
-    },
-    {
-      hostName: 'george',
-      status:'success'
-    },
-    {
-      hostName: 'maria',
-      status:'success'
-    },
-    {
-      hostName: 'adam',
-      status:'Verifying SSH connection'
-    },
-    {
-      hostName: 'jennifer',
-      status:'SSH connection failed'
-    },
-    {
-      hostName: 'john',
-      status:'success'
-    },
-    {
-      hostName: 'tom',
-      status:'success'
-    },
-    {
-      hostName: 'harry',
-      status:'success'
-    },
-    {
-      hostName: 'susan',
-      status:'success'
-    }
-  ];
-  */
-  var self = this;
-    this.hostNames.forEach(function(_hostInfo) {
-        var hostInfo = App.HostInfo.create({
-          hostName: _hostInfo
-        });
+  /* renders the set of passed hosts */
+  renderHosts: function (hostsInfo) {
+    var self = this;
+    hostsInfo.forEach(function (_hostInfo) {
+      var hostInfo = App.HostInfo.create({
+        hostName: _hostInfo.name,
+        status: _hostInfo.status
+      });
 
       console.log('pushing ' + hostInfo.hostName);
-      //self.set('content',hostInfo);
-      //self.replaceContent(0, hostInfo.get('length'), hostInfo);
       self.content.pushObject(hostInfo);
     });
-
-  //this.startBootstrap();
   },
 
-  /*
-   * Below function will be called on successfully leaving step2 and entering
-   * step3. "Retry" button shall also make use of it.
+  /* Below function parses and updates the content, and governs the possibility
+   of the next doBootstrap (polling) call
    */
 
-  startBootstrap: function () {
-    console.log("TRACE: Entering controller->installer->step3->startBootstrap() function");
-    var self = this;
-    this.set('bootstrap',window.setInterval(function () {
-      self.doBootstrap()
-    }, 5000));
+  parseHostInfo: function (hostsFrmServer, hostsFrmContent) {
+    var result = true;                    // default value as true implies if the data rendered by REST API has no hosts, polling will stop
+    hostsFrmServer.forEach(function (_hostFrmServer) {
+      var host = hostsFrmContent.findProperty('hostName', _hostFrmServer.name);
+      if (host !== null && host !== undefined) { // check if hostname extracted from REST API data matches any hostname in content
+        host.set('status', _hostFrmServer.status);
+      }
+    });
+    result = !this.content.someProperty('status', 'pending');
+    return result;
+  },
+
+  /* Below function returns the current set of visible hosts on view (All,succeded,failed) */
+  visibleHosts: function () {
+    var result;
+    if (this.get('category') === 'Succeeded') {
+      return (this.filterProperty('status', 'success'));
+    } else if (this.get('category') === 'Failed') {
+      return (this.filterProperty('status', 'error'));
+    } else if (this.get('category') === 'Hosts') {
+      return this.content;
+    }
+  },
+
+  /* Below function removes a single element on the trsah icon click. Being called from view */
+  removeElement: function (hostInfo) {
+    console.log('TRACE: In removeElement');
+    var hosts = [hostInfo];
+    App.db.removeHosts(hosts);    // remove from localStorage
+    this.removeObject(hostInfo);     // remove from the content to rerender the view
   },
 
 
-  stopBootstrap: function () {
-    window.clearInterval(this.bootstrap);
+  retry: function () {
+    if (this.get('isSubmitDisabled')) {
+      return;
+    }
+    var hosts = this.visibleHosts();
+    var selectedHosts = hosts.filterProperty('isChecked', true);
+    selectedHosts.forEach(function (_host) {
+      console.log('Retrying:  ' + _host.hostName);
+    });
+
+    //TODO: uncomment below code to hookup with @GET bootstrap API
+    /*
+     this.set('bootHosts',selectedHosts);
+     this.doBootstrap();
+     */
+
+    //TODO: comment below lines while hooking up with actual @GET bootstrap API
+    var mockHosts = this.mockRetryData;
+    mockHosts.forEach(function (_host) {
+      console.log('Retrying:  ' + _host.name);
+    });
+    this.parseHostInfo(mockHosts, selectedHosts);
+  },
+
+
+  /* Below function checks the category selected and then collects all the
+   selected hosts in that category and deletes them from localStorage,
+   in-memory data structure and controller content
+   */
+
+  /* Removes set of selected visisble hosts on the remove button click */
+  removeHosts: function () {
+    if (this.get('isSubmitDisabled')) {
+      return;
+    }
+    var hostResult = this.visibleHosts();
+    var selectedHosts = hostResult.filterProperty('isChecked', true);
+    selectedHosts.forEach(function (_hostInfo) {
+      console.log('Removing:  ' + _hostInfo.hostName);
+    });
+    App.db.removeHosts(selectedHosts);
+    this.removeObjects(selectedHosts);
+  },
+
+
+  startBootstrap: function () {
+    this.set('isSubmitDisabled', true);
+    this.set('bootHosts', this.get('content'));
+    this.doBootstrap();
   },
 
   doBootstrap: function () {
@@ -137,62 +162,59 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
       type: 'GET',
       url: '/ambari_server/api/bootstrap',
       async: false,
-      timeout: 2000,
+      timeout: 5000,
       success: function (data) {
         console.log("TRACE: In success function for the GET bootstrap call");
-
-
+        var result = self.parseHostInfo(data, this.get('bootHosts'));
+        if (result !== true) {
+          window.setTimeout(self.doBootstrap, 3000);
+        } else {
+          self.stopBootstrap();
+        }
       },
+
       error: function () {
         console.log("ERROR");
-
-        self.stopBootstrap(); //Never toggle this for now, flow goes in infinite loop
+        self.stopBootstrap();
       },
+
       statusCode: {
         404: function () {
           console.log("URI not found.");
-          alert("URI not found");
-          result = false;
+          //alert("URI not found");
         }
       },
+
       dataType: 'application/json'
     });
 
   },
 
-
-
-
-  retry: function () {
-    this.doBootstrap();
+  stopBootstrap: function () {
+    //TODO: uncomment following line after the hook up with the API call
+    // this.set('isSubmitDisabled',false);
   },
 
-  remove: function () {
-
+  submit: function () {
+    if (!this.get('isSubmitDisabled')) {
+      App.get('router').transitionTo('step4');
+    }
+  },
+  hostLogPopup: function (event) {
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step3.hostLog.popup.header'),
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/installer/step3HostLogPopup')
+      })
+    });
   },
 
-  evaluateStep3: function () {
-    // TODO: evaluation at the end of step3
-    /* Not sure if below tasks are to be covered over here
-     * as these functions are meant to be called at the end of a step
-     * and the following tasks are interactive to the page and not on clicking next button.
-     *
-     *
-     * task2 will be a parsing function that on reaching a particular condition(all hosts are in success or faliue status)  will stop task1
-     * task3 will be a function binded to remove button
-     * task4 will be a function binded to retry button
-     *
-     *
-     * keeping it over here for now
-     */
-
-
-    //task1 = start polling with rest API @Get http://ambari_server/api/bootstrap.
-    //task2 = stop polling when all the hosts have either success or failure status.
-    //task3(prerequisite = remove) = Remove set of selected hosts from the localStorage
-    //task4(prerequisite = retry) = temporarily store list of checked host and call to rest API: @Post http://ambari_server/api/bootstrap
-
-    return true;
+  // TODO: dummy button. Remove this after the hook up with actual REST API.
+  mockBtn: function () {
+    this.set('isSubmitDisabled', false);
+    var hostInfo = this.mockData;
+    this.renderHosts(hostInfo);
   }
+
 });
 

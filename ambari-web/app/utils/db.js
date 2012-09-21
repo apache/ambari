@@ -154,9 +154,19 @@ App.db.setSoftRepo = function(softRepo) {
 	var user = App.db.data.app.loginName;
 	if(App.db.data[user] == undefined) {
 		App.db.data[user] = {'name':user};
-		App.db.data[user].Installer.softRepo = softRepo;
-		localStorage.setObject('ambari',App.db.data);
 	}
+  App.db.data[user].Installer.softRepo = softRepo;
+  localStorage.setObject('ambari',App.db.data);
+}
+
+App.db.removeHosts = function(hostInfo) {
+  console.log('TRACE: Entering db:setSoftRepo function');
+  var hostList = App.db.getHosts();
+  hostInfo.forEach(function(_hostInfo) {
+    var host = _hostInfo.hostName;
+    delete hostList[host];
+  });
+  App.db.setHosts(hostList);
 }
 
 App.db.setSelectedServiceNames = function(serviceNames) {
@@ -238,7 +248,7 @@ App.db.isCompleted = function() {
   return App.db.data[user].Installer.completed;
 }
 
-App.db.getHosts = function(name,hostInfo) {
+App.db.getHosts = function() {
 	console.log('TRACE: Entering db:getHosts function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;

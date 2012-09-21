@@ -23,6 +23,8 @@ App.HostInfo = Ember.Object.extend({
   status: 'info',
   cpu: '',
   memory: '',
-  message: 'starting'
+  message: 'Information',
+  isChecked: true
+
 });
 
