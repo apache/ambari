@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-764. Integrate REST API (Tom Beerbower via mahadev)
+
   AMBARI-762. Implement Confirm Hosts page for Ambari installer
   (Jaimin Jetly via yusaku)
 
