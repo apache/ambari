@@ -12,6 +12,8 @@ Trunk (unreleased changes)
 
   NEW FEATURES
 
+    AMBARI-766. Add privacy policy in web site. (Olivier Lamy via yusaku)
+
     AMBARI-765. Update project site documentation to point to the 0.9
     release. Also update the style. (yusaku) 
 
