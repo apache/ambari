@@ -60,17 +60,17 @@ Introduction
 
   * Monitor a Hadoop Cluster
   
-    * Ambari provides a dashboard for monitoring health and status of the Hadoop cluster.  Ambari leverages {{{http://ganglia.sourceforge.net/} Ganglia}} to render graphs.
+    * Ambari provides a dashboard for monitoring health and status of the Hadoop cluster.  Ambari leverages {{{http://ganglia.sourceforge.net/} Ganglia}} to collect system metrics.
     
     * Ambari sends email alerts when your attention is needed (e.g., a node goes down, remaining disk space is low, etc).  Ambari leverages {{{http://www.nagios.org/} Nagios}} to monitor and trigger alerts.
   
   []
   
-  In the future, Ambari will allow third-party tool developers to integrate Hadoop cluster management and monitoring capabilities via its RESTful interface. 
+  In the near future, Ambari will allow third-party tool developers to integrate Hadoop cluster management and monitoring capabilities via its RESTful interface.
 
 Ambari Installation
 
-  Follow the {{{./install.html} installation guide for trunk}} or {{{./install-0.9.html} installation guide for 0.9}}.
+  Follow the  {{{./install-0.9.html} installation guide for 0.9 (stable)}} or {{{./install.html} installation guide for trunk}}.
 
 Roadmap
 
@@ -79,31 +79,40 @@ Roadmap
   []
   
   * Support for various operating systems
-  
-    * Ambari currently supports:
-    
-      * 64-bit RHEL 5.*
-      
-      * 64-bit CentOS 5.*
-      
-    * Support for RHEL/CentOS 6.* is coming soon.
-      Contributions to support other operating systems are welcome.
 
-  []
-  
-  * Support for more granular configurations
-   
-   * Ambari currently applies configurations at the cluster-level.  To allow for more flexibility,
-     Ambari needs to allow for configurations in a more granular manner (e.g., apply a set of configurations to a specific group of nodes, etc.) 
-   
-  []  
+    * Ambari currently supports 64-bit RHEL/CentOS 5.* and 6.*
 
-  * Interactive visualization of current and historical states of the cluster
-  
+    * Support for other operating systems are being worked on (SLES 11.* support will be coming soon)
+
   []
 
   * RESTful API for third-party integration
   
     * Ambari will expose a unified, RESTful API to enable third-party applications to integrate Hadoop cluster management
-      and monitoring capabilities.
-      
+      and monitoring capabilities.  This is an area of active development.  We will publish the API docs soon.
+
+  []
+
+  * Granular configurations
+
+      * Ambari currently applies configurations at the cluster-level.  To allow for more flexibility, Ambari will allow for configurations in a more granular manner (e.g., apply a set of configurations to a specific group of nodes, etc.)
+
+  []
+
+  * Security
+
+      * Easy installation of secure Hadoop clusters (Kerberos-based)
+
+      * Role-based user authentication, authorization, and auditing
+
+      * Support for LDAP and Active Directory
+
+  []
+
+  * Visualization
+
+      * Interactive visualization of current and historical states of the cluster for a number of key metrics
+
+      * Interactive visualization of Pig, Hive, and MapReduce jobs
+
+  []

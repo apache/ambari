@@ -17,12 +17,29 @@
    limitations under the License.
 -->
 
-<project name="Ambari">
+<project xmlns="http://maven.apache.org/DECORATION/1.3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/DECORATION/1.3.0 http://maven.apache.org/xsd/decoration-1.3.0.xsd"
+         name="Ambari">
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>1.3.0</version>
+  </skin>
+  <custom>
+    <fluidoSkin>
+      <topBarEnabled>true</topBarEnabled>
+      <sideBarEnabled>false</sideBarEnabled>
+    </fluidoSkin>
+  </custom>
   <bannerLeft>
     <name>Ambari</name>
     <src>http://incubator.apache.org/ambari/images/apache-ambari-project.png</src>
     <href>http://incubator.apache.org/ambari</href>
   </bannerLeft>
+
+  <publishDate position="right"/>
+  <version position="right"/>
+
   <body>
     <head>
        <!-- Start of Google analytics -->
@@ -50,12 +67,27 @@
       <item name="WIKI" href="https://cwiki.apache.org/confluence/display/AMBARI/Ambari" />
     </links>
 
+    <breadcrumbs>
+      <item name="Ambari" href="index.html"/>
+    </breadcrumbs>
+
     <menu name="Ambari">
       <item name="About" href="index.html"/>
-      <item name="Installation Guide" href="install.html"/>
+      <item name="Wiki" href="https://cwiki.apache.org/confluence/display/AMBARI/Ambari"/>
+      <item name="Project Team" href="team-list.html"/>
+      <item name="Mailing Lists" href="mail-lists.html"/>
+      <item name="Issue Tracking" href="issue-tracking.html"/>
+      <item name="Project License" href="license.html"/>
     </menu>
 
-    <menu ref="reports"/>
+    <menu name="Releases">
+        <item name="0.9 (stable)" href="http://www.apache.org/dist/incubator/ambari/ambari-0.9-incubating/"/>
+    </menu>
+
+    <menu name="Documentation">
+        <item name="Install Guide for 0.9 (stable)" href="install-0.9.html"/>
+        <item name="Install Guide for trunk" href="install.html"/>
+    </menu>
 
   </body>
 </project>

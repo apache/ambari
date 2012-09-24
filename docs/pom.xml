@@ -19,7 +19,7 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <name>ambari</name>
+    <name>Ambari</name>
     <description>
       Ambari is a web-based tool for performing installation, management, and monitoring of Apache Hadoop clusters. The stack of components that are currently supported by
       Ambari includes HBase, HCatalog, HDFS, Hive, MapReduce, Oozie, Pig, Scoop, Templeton, and Zookeeper.
@@ -148,7 +148,7 @@
             <email>hitesh@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks                
@@ -172,7 +172,7 @@
             <email>jitendra@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks                
@@ -196,7 +196,7 @@
             <email>mahadev@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks                
@@ -208,16 +208,16 @@
             <email>ramya@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks                
             </organization>            
         </developer>        
         <developer>
-            <id>varun</id>
+            <id>reznor</id>
             <name>Varun Kapoor</name>
-            <email>varun@apache.org</email>
+            <email>reznor@apache.org</email>
             <timezone>-8</timezone>
             <roles>
                 <role>Committer</role>
