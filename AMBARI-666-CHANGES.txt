@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-767. Add bootstrap script to ssh in parallel and setup agents on a
+  list of hosts. (mahadev)
+
   AMBARI-764. Integrate REST API (Tom Beerbower via mahadev)
 
   AMBARI-762. Implement Confirm Hosts page for Ambari installer
