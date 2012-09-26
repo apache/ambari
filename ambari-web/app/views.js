@@ -41,5 +41,5 @@ require('views/installer/step5_view');
 require('views/installer/step6_view');
 require('views/installer/step7_view');
 require('views/installer/step8');
-require('views/installer/step9');
+require('views/installer/step9_view');
 require('views/installer/step10');

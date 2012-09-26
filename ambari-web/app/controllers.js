@@ -29,6 +29,7 @@ require('controllers/installer/step4_controller');
 require('controllers/installer/step5_controller');
 require('controllers/installer/step6_controller');
 require('controllers/installer/step7_controller');
+require('controllers/installer/step9_controller');
 require('controllers/main');
 require('controllers/main/service');
 require('controllers/main/service/item');

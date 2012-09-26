@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-769. Implement step 9 (Install,start and test) of installer wizard.
+  (Jaimin Jetly via yusaku)
+
   AMBARI-768. Implement step 5 of installer wizard (Assign Masters).
   (Ananya Sen via yusaku)
 

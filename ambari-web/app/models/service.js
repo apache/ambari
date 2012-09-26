@@ -19,6 +19,17 @@
 
 var App = require('app');
 
+App.ServiceInfo = Ember.Object.extend({
+  elementId: 'service',
+  serviceName: '',
+  displayName: '',
+  isDisabled: '',
+  isHidden: '',
+  isSelected: 'true',
+  description: ''
+});
+
+
 /*App.User = Em.Object.extend({
  username: null
  });*/

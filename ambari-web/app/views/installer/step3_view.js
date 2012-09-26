@@ -26,12 +26,10 @@ App.InstallerStep3View = Em.View.extend({
 
   didInsertElement: function () {
     $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
-    console.log("TRACE: step3->didInsetElement");
     var controller = this.get('controller');
     var hosts = controller.loadHosts();
     controller.renderHosts(hosts);
     controller.startBootstrap();
-    console.log("TRACE: Back to step3 view");
   }
 });
 
@@ -57,7 +55,6 @@ App.HostView = Em.View.extend({
     } else if (category === "Failed" && hostInfo.get('status') == "error") {
       this.set('isVisible', true);
     } else {
-      console.log("TRACE: In View->hideItem->false condition item....");
       this.set('isVisible', false);
     }
   }.observes('category')

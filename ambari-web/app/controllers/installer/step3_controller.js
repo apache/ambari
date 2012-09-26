@@ -44,13 +44,12 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     var hostInfo = [];
     hostInfo = App.db.getHosts();
     var hosts = new Ember.Set();
-    for (var index in hostInfo) {
+    for( var index in hostInfo) {
       hostInfo[index].status = "pending";
       hosts.add(hostInfo[index]);
+      console.log("TRACE: host name is: " + hostInfo[index].name);
     }
-    hosts.forEach(function (_host) {
-      console.log("TRACE: host name is: " + _host.name);
-    });
+
     return hosts;
   },
 
@@ -59,11 +58,10 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     var self = this;
     hostsInfo.forEach(function (_hostInfo) {
       var hostInfo = App.HostInfo.create({
-        hostName: _hostInfo.name,
-        status: _hostInfo.status
+        name: _hostInfo.name
       });
 
-      console.log('pushing ' + hostInfo.hostName);
+      console.log('pushing ' + hostInfo.name);
       self.content.pushObject(hostInfo);
     });
   },
@@ -75,7 +73,7 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
   parseHostInfo: function (hostsFrmServer, hostsFrmContent) {
     var result = true;                    // default value as true implies if the data rendered by REST API has no hosts, polling will stop
     hostsFrmServer.forEach(function (_hostFrmServer) {
-      var host = hostsFrmContent.findProperty('hostName', _hostFrmServer.name);
+      var host = hostsFrmContent.findProperty('name', _hostFrmServer.name);
       if (host !== null && host !== undefined) { // check if hostname extracted from REST API data matches any hostname in content
         host.set('status', _hostFrmServer.status);
       }
@@ -112,7 +110,7 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     var hosts = this.visibleHosts();
     var selectedHosts = hosts.filterProperty('isChecked', true);
     selectedHosts.forEach(function (_host) {
-      console.log('Retrying:  ' + _host.hostName);
+      console.log('Retrying:  ' + _host.name);
     });
 
     //TODO: uncomment below code to hookup with @GET bootstrap API
@@ -129,24 +127,22 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     this.parseHostInfo(mockHosts, selectedHosts);
   },
 
+  removeHosts: function (hosts) {
+    App.db.removeHosts(hosts);
+    this.removeObjects(hosts);
+  },
 
-  /* Below function checks the category selected and then collects all the
-   selected hosts in that category and deletes them from localStorage,
-   in-memory data structure and controller content
-   */
-
-  /* Removes set of selected visisble hosts on the remove button click */
-  removeHosts: function () {
+  removeBtn: function() {
     if (this.get('isSubmitDisabled')) {
       return;
     }
     var hostResult = this.visibleHosts();
     var selectedHosts = hostResult.filterProperty('isChecked', true);
     selectedHosts.forEach(function (_hostInfo) {
-      console.log('Removing:  ' + _hostInfo.hostName);
+      console.log('Removing:  ' + _hostInfo.name);
     });
-    App.db.removeHosts(selectedHosts);
-    this.removeObjects(selectedHosts);
+
+    this.removeHosts(selectedHosts);
   },
 
 
@@ -181,7 +177,6 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
       statusCode: {
         404: function () {
           console.log("URI not found.");
-          //alert("URI not found");
         }
       },
 
@@ -197,12 +192,18 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
 
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
+      var erroneousHosts = this.filterProperty('status', 'error');
+      console.log("INFO: Removing erroneous hosts before moving to step4");
+      this.removeHosts(erroneousHosts);
       App.get('router').transitionTo('step4');
     }
   },
   hostLogPopup: function (event) {
     App.ModalPopup.show({
       header: Em.I18n.t('installer.step3.hostLog.popup.header'),
+      onPrimary: function () {
+        this.hide();
+      },
       bodyClass: Ember.View.extend({
         templateName: require('templates/installer/step3HostLogPopup')
       })

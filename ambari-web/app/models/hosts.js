@@ -19,11 +19,15 @@
 var App = require('app');
 
 App.HostInfo = Ember.Object.extend({
-  hostName: '',
+  elementId: 'host',
+  name: '',
   status: 'info',
   cpu: '',
   memory: '',
   message: 'Information',
+  progress: '0',
+  barColor: 'progress-info',
+  //barColor: true,
   isChecked: true
 
 });

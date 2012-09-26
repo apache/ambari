@@ -18,7 +18,7 @@
 
 <h2>{{t installer.step3.header}}</h2>
 <p class="alert alert-info">{{t installer.step3.body}}</p>
-<div id="hosts" class="box">
+<div class="box">
   <div class="box-header">
     <div class="button-section">
       <a class="btn btn-primary decommission" {{bindAttr disabled="isSubmitDisabled"}}
@@ -27,7 +27,7 @@
         Retry
       </a>
       <a class="btn btn-primary" {{bindAttr disabled="isSubmitDisabled"}}
-         href="#" {{action removeHosts target="controller" }}><i
+         href="#" {{action removeBtn target="controller" }}><i
         class="icon-trash icon-white"></i>
         Remove
       </a>
@@ -57,7 +57,7 @@
       </th>
       <th>Status</th>
       <!--  given by the parsing function that parses data from bootstrap call -->
-      <th>Name</th>
+      <th>Host</th>
       <!-- retrieved from local storage initially -->
       <th>Message</th>
       <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
@@ -65,7 +65,6 @@
       <!-- trash icon -->
     </tr>
     </thead>
-
 
     <tbody>
 
@@ -81,13 +80,10 @@
       </td>
 
       <td>
-        {{host.hostName}}
+        {{host.name}}
       </td>
       <td>
-       <a href=""></a>
-
         <a  href="javascript:void(null)" data-toggle="modal" {{action "hostLogPopup" target="controller"}}>{{host.message}}</a>
-
       </td>
       <td>
         <a href="javascript:void(null)" {{action removeItem target="view"}}><i
@@ -96,11 +92,10 @@
     </tr>
     {{/if}}
     {{/view}}
-
-
-
     {{/each}}
+
     </tbody>
+
   </table>
   <div class="box-footer">
     <hr/>

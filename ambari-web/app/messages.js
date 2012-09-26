@@ -102,6 +102,12 @@ Em.I18n.translations = {
   'installer.step8.header': 'Review',
 
   'installer.step9.header': 'Install, Start and Test',
+  'installer.step9.body': 'Wait to complete the cluster installation. Installing, Starting and Testing selected services',
+  'installer.step9.status.success': 'Successfully installed the cluster',
+  'installer.step9.status.failed': 'Failure in installation',
+  'installer.step9.host.status.success': 'success',
+  'installer.step9.host.status.warning': 'tolerable failures encountered',
+  'installer.step9.host.status.failed': 'failures encountered',
 
   'installer.step10.header': 'Summary'
 };

@@ -47,24 +47,24 @@ describe('App.InstallerStep3Controller', function () {
         }
       ];
       controller.content.pushObject(App.HostInfo.create({
-        hostName: '192.168.1.1',
+        name: '192.168.1.1',
         status: 'error'
       }));
       controller.content.pushObject(App.HostInfo.create({
-        hostName: '192.168.1.2',
+        name: '192.168.1.2',
         status: 'success'
       }));
       controller.content.pushObject(App.HostInfo.create({
-        hostName: '192.168.1.3',
+        name: '192.168.1.3',
         status: 'pending'        //status should be overriden to 'error' after the parseHostInfo call
       }));
       controller.content.pushObject(App.HostInfo.create({
-        hostName: '192.168.1.4',
+        name: '192.168.1.4',
         status: 'success'
       }));
 
       var result = controller.parseHostInfo(hostFrmServer, controller.content);
-      var host = controller.content.findProperty('hostName', '192.168.1.3');
+      var host = controller.content.findProperty('name', '192.168.1.3');
       expect(result).to.equal(true);
       expect(host.status).to.equal('error');
     })
@@ -75,22 +75,22 @@ describe('App.InstallerStep3Controller', function () {
     var controller = App.InstallerStep3Controller.create();
     it('should set all hosts to true on checking a global checkbox', function () {
       controller.content.pushObject(App.HostInfo.create({
-        hostName: '192.168.1.1',
+        name: '192.168.1.1',
         status: 'error',
         isChecked: false
       }));
       controller.content.pushObject(App.HostInfo.create({
-        hostName: '192.168.1.2',
+        name: '192.168.1.2',
         status: 'success',
         isChecked: false
       }));
       controller.content.pushObject(App.HostInfo.create({
-        hostName: '192.168.1.3',
+        name: '192.168.1.3',
         status: 'pending', //status should be overriden to 'error' after the parseHostInfo call
         isChecked: true
       }));
       controller.content.pushObject(App.HostInfo.create({
-        hostName: '192.168.1.4',
+        name: '192.168.1.4',
         status: 'success',
         isChecked: false
       }));
