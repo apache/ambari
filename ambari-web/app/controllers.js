@@ -26,6 +26,7 @@ require('controllers/installer/step1_controller');
 require('controllers/installer/step2_controller');
 require('controllers/installer/step3_controller');
 require('controllers/installer/step4_controller');
+require('controllers/installer/step5_controller');
 require('controllers/installer/step6_controller');
 require('controllers/installer/step7_controller');
 require('controllers/main');

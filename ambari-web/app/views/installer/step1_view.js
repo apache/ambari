@@ -25,4 +25,5 @@ App.InstallerStep1View = Em.View.extend({
   didInsertElement: function () {
     $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
   }
+
 });

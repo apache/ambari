@@ -16,9 +16,65 @@
 * limitations under the License.
 -->
 
-
 <h2>{{t installer.step5.header}}</h2>
+<div class="alert alert-info">
+  {{t installer.step5.body}}
+</div>
+<div class="assign-masters">
+  <div class="select-hosts">
+    <form class="form-horizontal">
+      <!-- View for array controller -->
+      {{#each selectedServicesMasters}}
+      <div class="control-group">
+        <label class="control-label">{{component_name}}:</label>
+
+        <div class="controls">
+          {{view App.SelectHostView
+            contentBinding="availableHosts"
+            optionValuePath="content.host_name"
+            optionLabelPath="content.host_info"
+            selectedHostBinding="selectedHost"
+            serviceNameBinding="component_name"
+            zIdBinding="zId"
+          }}
+
+          {{#if showAddControl}}
+          {{view App.AddControlView
+            componentNameBinding="component_name"
+          }}
+          {{/if}}
+          {{#if showRemoveControl}}
+          {{view App.RemoveControlView
+            zIdBinding="zId"
+          }}
+          {{/if}}
+
+        </div>
+      </div>
+      {{/each}}
+
+    </form>
+  </div>
+
+  <div class="host-assignments">
+    {{#each masterHostMapping}}
+    <div class="mapping-box round-corners well">
+      <div class="hostString"><span><strong>{{host_name}}</strong></span><span>{{hostInfo}}</span></div>
+      {{#each masterServices}}
+      <span class="assignedService round-corners">{{component_name}}</span>
+      {{/each}}
+
+    </div>
+    {{/each}}
+
+    {{#if remainingHosts}}
+    <div class="remaining-hosts round-corners well">
+      <span><strong>{{remainingHosts}}</strong> {{t installer.step5.attention}}</span></div>
+    {{/if}}
+  </div>
+  <div style="clear: both;"></div>
+</div>
 <div class="btn-area">
-    <a class="btn" {{action back}}>Back</a>
-    <a class="btn btn-success" {{action next}}>Next</a>
+  <a class="btn" {{action back}}>Back</a>
+  <a class="btn btn-success" {{action next}}>Next</a>
 </div>
