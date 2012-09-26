@@ -17,6 +17,5 @@
  */
 
 App.MainAlertController = Em.ArrayController.extend({
-  name:'mainAlertController',
-  content: App.Alert.find()
+  name:'mainAlertController'
 })

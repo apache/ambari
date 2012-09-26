@@ -21,6 +21,7 @@ window.App = require('app');
 
 require('messages');
 require('utils/db');
+require('utils/helper');
 require('models');
 require('controllers');
 require('views');

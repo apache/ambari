@@ -18,5 +18,44 @@
 
 App.MainServiceItemController = Em.Controller.extend({
   name: 'mainServiceItemController',
-  content: null
+//  content: App.Service.find(1),
+  showRebalancer: function() {
+    if(this.content.get('serviceName') == 'hdfs') {
+      return true;
+    } else {
+      return false;
+    }
+  }.property('content'),
+  startConfirmPopup: function (event) {
+    App.ModalPopup.show({
+      header: Em.I18n.t('services.service.start.popup.header'),
+      body: Em.I18n.t('services.service.start.popup.body'),
+      primary: 'Yes',
+      secondary: 'No',
+      onPrimary: function() {
+        alert('do');
+        this.hide();
+      },
+      onSecondary: function() {
+        alert('not do');
+        this.hide();
+      }
+    });
+  },
+  stopConfirmPopup: function (event) {
+    App.ModalPopup.show({
+      header: Em.I18n.t('services.service.stop.popup.header'),
+      body: Em.I18n.t('services.service.stop.popup.body'),
+      primary: 'Yes',
+      secondary: 'No',
+      onPrimary: function() {
+        alert('do');
+        this.hide();
+      },
+      onSecondary: function() {
+        alert('not do');
+        this.hide();
+      }
+    });
+  }
 })

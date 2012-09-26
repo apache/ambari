@@ -18,9 +18,53 @@
 
 var App = require('app');
 
-App.userModel = Em.Object.extend({
-
-  firstName : null,
-  id  : 0
-
+App.UserModel = Em.Object.extend({
+  userName:null,
+  id:0
 });
+
+App.User = DS.Model.extend({
+  userName:DS.attr('string'),
+  admin:DS.attr('boolean'),
+  password:DS.attr('string'),
+  auditItems:DS.hasMany('App.ServiceAudit')
+});
+
+App.UserForm = App.Form.extend({
+  className:App.User,
+  fieldsOptions:[
+    { name:"userName", displayName:"Username" },
+    { name:"password", displayName:"Password", displayType:"password", disableRequiredOnExistent:true },
+    { name:"passwordRetype", displayName:"Retype Password", displayType:"passwordRetype", disableRequiredOnExistent:true },
+    { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false }
+  ],
+  fields:[],
+  disableUsername:function () {
+    var field = this.getField("userName");
+    if (field) field.set("disabled", this.get('isObjectNew') ? false : "disabled");
+  }.observes('isObjectNew')
+});
+
+App.User.FIXTURES = [
+  {
+    id:1,
+    user_name:'admin',
+    password: 'admin',
+    admin:1
+  },
+  {
+    id:2,
+    user_name:'vrossi',
+    admin:1
+  },
+  {
+    id:3,
+    user_name:'casey.stoner',
+    admin:0
+  },
+  {
+    id:4,
+    user_name:'danip',
+    admin:0
+  }
+];

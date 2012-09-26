@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-770. Cluster Management pages for Ambari Web. (yusaku)
+
   AMBARI-769. Implement step 9 (Install,start and test) of installer wizard.
   (Jaimin Jetly via yusaku)
 

@@ -17,107 +17,82 @@
 -->
 
 <div class="row">
-	<div class="span6">
-		<div class="row">
-			<div class="span6">
-				<div class="box">
-					<div class="box-header">
-						<h4>Summary</h4>
-					</div>
-					<div id="myCarousel" class="carousel">
-						<div class="carousel-inner">
-							<div class="active item">
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tempor facilisis nisl, a tempor mi dictum vitae. In sed elit erat. Fusce lorem diam, lacinia in placerat vitae, posuere fringilla sem. Quisque dignissim, ligula tincidunt rhoncus gravida, sem mauris pharetra justo, at consectetur orci ante eu elit. Maecenas sem enim, scelerisque eget consequat vel, ornare vitae velit. Nullam mattis neque eu ipsum tincidunt pellentesque. Morbi sed mi ac ligula rhoncus auctor ac a enim. Etiam commodo sagittis volutpat. Mauris posuere rhoncus consectetur. Pellentesque quis sodales dui. Donec porta ipsum at nunc lacinia dictum. Cras faucibus ullamcorper sapien, sed egestas tellus interdum a. Suspendisse scelerisque pulvinar orci, vitae auctor tellus fermentum sit amet.
-							</div>
-							<div class="item">
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tempor facilisis nisl, a tempor mi dictum vitae. In sed elit erat. Fusce lorem diam, lacinia in placerat vitae, posuere fringilla sem. Quisque dignissim, ligula tincidunt rhoncus gravida, sem mauris pharetra justo, at consectetur orci ante eu elit. Maecenas sem enim, scelerisque eget consequat vel, ornare vitae velit. Nullam mattis neque eu ipsum tincidunt pellentesque. Morbi sed mi ac ligula rhoncus auctor ac a enim. Etiam commodo sagittis volutpat. Mauris posuere rhoncus consectetur. Pellentesque quis sodales dui. Donec porta ipsum at nunc lacinia dictum. Cras faucibus ullamcorper sapien, sed egestas tellus interdum a. Suspendisse scelerisque pulvinar orci, vitae auctor tellus fermentum sit amet.
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tempor facilisis nisl, a tempor mi dictum vitae. In sed elit erat. Fusce lorem diam, lacinia in placerat vitae, posuere fringilla sem. Quisque dignissim, ligula tincidunt rhoncus gravida, sem mauris pharetra justo, at consectetur orci ante eu elit. Maecenas sem enim,
-							</div>
-							<div class="item">
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tempor facilisis nisl, a tempor mi dictum vitae. In sed elit erat. Fusce lorem diam, lacinia in placerat vitae, posuere fringilla sem. Quisque dignissim, ligula tincidunt rhoncus gravida, sem mauris pharetra justo, at consectetur orci ante eu elit. Maecenas sem enim, scelerisque eget consequat vel, ornare vitae velit. Nullam mattis neque eu ipsum tincidunt pellentesque. Morbi sed mi ac ligula rhoncus auctor ac a enim. Etiam commodo sagittis volutpat. Mauris posuere rhoncus consectetur. Pellentesque quis sodales dui. Donec porta ipsum at nunc lacinia dictum. Cras faucibus ullamcorper sapien, sed egestas tellus interdum a. Suspendisse scelerisque pulvinar orci, vitae auctor tellus fermentum sit amet.
-								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tempor facilisis nisl, a tempor mi dictum vitae. In sed elit erat. Fusce lorem diam, lacinia in placerat vitae, posuere fringilla sem. Quisque dignissim,
-							</div>
-						</div>
-						<a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
-						<a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
-					</div>
-					<div class="box-footer"></div>
-				</div>
-			</div>
-		</div>
-		<div class="row">
-			<div class="span6">
-				<div class="box">
-					<div class="box-header">
-						<h4>Services</h4>
-					</div>
-					<ul>
-						{{#each view.services}}
-							<li><a href="#">{{label}}</a></li>
-						{{/each}}
-					</ul>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="span6">
-		<div class="box">
-			<div class="box-header">
-				<h4>Alerts</h4>
-				<div class="btn-group">
-					<button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">HDFS <span class="caret"></span></button>
-					<ul class="dropdown-menu">
-						<li><a href="#">HDFS</a></li>
-						<li><a href="#">MapReduce</a></li>
-						<li><a href="#">HBase</a></li>
-						<li><a href="#">Zookeeper</a></li>
-						<li><a href="#">Oozie</a></li>
-						<li><a href="#">Hive</a></li>
-					</ul>
-				</div>
-			</div>
-			<ul class="alerts">
-				<li class="status-ok">
-					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
-					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
-				</li>
-				<li class="status-ok">
-					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
-					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
-				</li>
-				<li class="status-ok">
-					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
-					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
-				</li>
-				<li class="status-corrupt">
-					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
-					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
-				</li>
-				<li class="status-ok">
-					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
-					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
-				</li>
-				<li class="status-corrupt">
-					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
-					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
-				</li>
-				<li class="status-corrupt">
-					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
-					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
-				</li>
-				<li class="status-ok">
-					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
-					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
-				</li>
-				<li class="status-corrupt">
-					<p class="title">Corrupt/Missing Blocks <a href="#">HDFS</a><span class="date-time">Sep 11, 2012 14:22</span></p>
-					<p class="message">OK: corrupt_blocks: <0>, missing_blocks: <0>, total_blocks: <282></p>
-				</li>
-			</ul>
-			<div class="box-footer">
-				<hr />
-				<a class="go-to" href="#">Go to Nagios</a>
-			</div>
-		</div>
-	</div>
+  <div class="span6">
+    <div class="row">
+      <div class="span6">
+        <div class="box">
+          <div class="box-header">
+            <h4>Summary</h4>
+          </div>
+          <div id="myCarousel" class="carousel">
+            <div class="carousel-inner">
+              <div class="active item">
+
+              </div>
+              <div class="item">
+
+              </div>
+              <div class="item">
+
+              </div>
+            </div>
+            <a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
+            <a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
+          </div>
+          <div class="box-footer"></div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="span6">
+        <div class="box">
+          <div class="box-header">
+            <h4>Services</h4>
+          </div>
+          <ul class="services">
+            {{#each service in controller.services}}
+              <li class="health-status-{{unbound service.healthStatus}}">
+                <a {{action selectService service href=true}} href="javascript:void(null)">{{service.label}}</a> -
+                {{#each component in service.components}}
+                  {{#if component.type}}
+                    <a {{action selectHost component.host href=true}} href="javascript:void(null)">{{component.componentName}}</a>,
+                  {{else}}
+                    <a {{action filterHosts component}} href="javascript:void(null)">{{component.componentName}}</a>
+                  {{/if}}
+                {{/each}}
+              </li>
+            {{/each}}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="span6">
+    <div class="box">
+      <div class="box-header">
+        <h4>Alerts</h4>
+        <div class="btn-group">
+          <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">{{controller.alertsFilteredBy}} <span class="caret"></span></button>
+          <ul class="dropdown-menu">
+            <li><a {{action alertsFilter target="controller"}} href="javascript:void(null)">All</a></li>
+            {{#each service in controller.services}}
+              <li><a {{action alertsFilter service target="controller"}} href="javascript:void(null)">{{service.label}}</a></li>
+            {{/each}}
+          </ul>
+        </div>
+      </div>
+      <ul class="alerts">
+        {{#each controller.alerts}}
+        <li class="status-{{unbound status}}">
+          <p><span class="title">{{title}}</span> <a href="javascript:void(null)">{{service.label}}</a><span class="date-time">{{date}}</span></p>
+          <p><span>{{status}}:</span> <span>{{message}}</span></p>
+        </li>
+        {{/each}}
+      </ul>
+      <div class="box-footer">
+        <hr />
+        <a class="go-to" href="javascript:void(null)">Go to Nagios</a>
+      </div>
+    </div>
+  </div>
 </div>

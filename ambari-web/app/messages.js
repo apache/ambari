@@ -89,6 +89,7 @@ Em.I18n.translations = {
   'installer.step4.body': 'Choose which services you want to install on your cluster.<br>Note that some services have dependencies (e.g., HBase requires ZooKeeper.)',
 
   'installer.step5.header': 'Assign Masters',
+  'installer.step5.attention': 'more hosts without master service',
   'installer.step5.body': 'Assign master components to hosts you want to run them on.',
 
   'installer.step6.header': 'Assign Slaves',
@@ -108,6 +109,80 @@ Em.I18n.translations = {
   'installer.step9.host.status.success': 'success',
   'installer.step9.host.status.warning': 'tolerable failures encountered',
   'installer.step9.host.status.failed': 'failures encountered',
+  'installer.step10.header': 'Summary',
 
-  'installer.step10.header': 'Summary'
+  'form.create': 'Create',
+  'form.save': 'Save',
+  'form.cancel': 'Cancel',
+  'form.password':'Password',
+  'form.passwordRetype':'Retype Password',
+  'form.saveSuccess':'Successfully saved.',
+  'form.saveError':'Sorry, errors occured.',
+
+  'form.validator.invalidIp':'Please enter valid ip address',
+
+  'admin.advanced.title':'Advanced',
+  'admin.advanced.caution':'This section is for advanced user only.<br/>Proceed with caution.',
+  'admin.advanced.button.uninstallIncludingData':'Uninstall cluster including all data.',
+  'admin.advanced.button.uninstallKeepData':'Uninstall cluster but keep data.',
+
+  'admin.advanced.popup.header':'Uninstall Cluster',
+  /*'admin.advanced.popup.text':'Uninstall Cluster',*/
+
+  'admin.audit.grid.date':"Date/Time",
+  'admin.audit.grid.category':"Category",
+  'admin.audit.grid.operationName':"Operation",
+  'admin.audit.grid.performedBy':"Performed By",
+
+  'admin.authentication.form.method.database':'Use Ambari Database to authenticate users',
+  'admin.authentication.form.method.ldap':'Use LDAP/Active Directory to authenticate',
+  'admin.authentication.form.primaryServer':'Primary Server',
+  'admin.authentication.form.secondaryServer':'Secondary Server',
+  'admin.authentication.form.useSsl':'Use SSL',
+  'admin.authentication.form.bind.anonymously':"Bind Anonymously",
+  'admin.authentication.form.bind.useCrenedtials':"Use Credentials To Bind",
+  'admin.authentication.form.bindUserDN':'Bind User DN',
+  'admin.authentication.form.searchBaseDN':'Search Base DN',
+  'admin.authentication.form.usernameAttribute':'Username Attribute',
+
+  'admin.authentication.form.userDN':'User DN',
+  'admin.authentication.form.password':'Password',
+  'admin.authentication.form.configurationTest':'Configuration Test',
+  'admin.authentication.form.testConfiguration':'Test Configuration',
+
+  'admin.authentication.form.test.success':'The configuration passes the test',
+  'admin.authentication.form.test.fail':'The configuration fails the test',
+
+  'admin.security.title':'Kerberos Security has not been enabled on this cluster.',
+  'admin.security.button.enable':'Kerberos Security has not been enabled on this cluster.',
+
+  'admin.users.ldapAuthentionUsed':'LDAP Authentication is being used to authenticate users',
+  'admin.users.addButton': 'Add User',
+  'admin.users.delete': 'delete',
+  'admin.users.edit': 'edit',
+  'admin.users.privileges': 'Admin',
+  'admin.users.password': 'Password',
+  'admin.users.passwordRetype': 'Retype Password',
+  'admin.users.username': 'Username',
+
+  'question.sure': 'Are you sure?',
+
+  'services.service.start': 'Start',
+  'services.service.stop': 'Stop',
+  'services.service.start.popup.header': 'Confirmation',
+  'services.service.stop.popup.header': 'Confirmation',
+  'services.service.start.popup.body': 'Are you sure?',
+  'services.service.stop.popup.body': 'Are you sure?',
+
+  'hosts.host.start.popup.header': 'Confirmation',
+  'hosts.host.stop.popup.header': 'Confirmation',
+  'hosts.host.start.popup.body': 'Are you sure?',
+  'hosts.host.stop.popup.body': 'Are you sure?',
+  'hosts.assignedToRack.popup.body': 'Are you sure?',
+  'hosts.assignedToRack.popup.header': 'Confirmation',
+  'hosts.decommission.popup.body': 'Are you sure?',
+  'hosts.decommission.popup.header': 'Confirmation',
+  'hosts.delete.popup.body': 'Are you sure?',
+  'hosts.delete.popup.header': 'Confirmation'
 };
+

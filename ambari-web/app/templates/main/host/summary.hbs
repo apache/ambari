@@ -1,0 +1,41 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+<div class="row">
+    <div class="span5 host-configuration">
+        <dl class="dl-horizontal">
+            <dt>IP:</dt><dd>{{view.content.ip}}</dd>
+            <dt>CPU:</dt><dd>{{view.content.cpu}}</dd>
+            <dt>OS:</dt><dd>type</dd>
+            <dt>Disk Usage:</dt><dd>{{view.content.diskUsage}}</dd>
+            <dt>Memory:</dt><dd>{{view.content.memory}}</dd>
+            <dt>Load Avg:</dt><dd>{{view.content.loadAvg}}</dd>
+            <dt>Agent:</dt><dd>running</dd>
+        </dl>
+    </div>
+    {{#if view.content.components.length}}
+    <div class="span3 host-components pull-right">
+        {{#each component in view.content.components}}
+          <button class="btn btn-{{bind view.buttonClass}}">
+            {{component.componentName}}
+            <i class="icon-{{unbound view.content.iconClass}}"></i>
+          </button>
+        {{/each}}
+    </div>
+    {{/if}}
+</div>
+

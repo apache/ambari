@@ -1,0 +1,40 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+<div id="host-details" class="row">
+    <a class="btn back" {{action backToHostsList}}>← Back to Hosts</a>
+    <div class="box ">
+        <div class="box-header">
+            <div class="span1 host-title health-status-{{unbound view.content.healthStatus}}">{{unbound view.content.hostName}}</div>
+            <div class="button-section pull-right clearfix">
+              <button {{bindAttr disabled="controller.startComponents"}} class="btn btn-success" data-toggle="modal" {{action "startConfirmPopup" target="controller"}}>
+                <i class="icon-play"></i>
+                Start
+              </button>
+              <button {{bindAttr disabled="controller.stopComponents"}} class="btn btn-danger" data-toggle="modal" {{action "stopConfirmPopup" target="controller"}}>
+                <i class="icon-stop"></i>
+                Stop
+              </button>
+            </div>
+            <hr />
+        </div>
+        <div class="content">
+            {{view App.MainHostMenuView}}
+            {{outlet}}
+        </div>
+    </div>
+</div>

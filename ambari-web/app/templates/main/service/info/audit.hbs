@@ -1,0 +1,51 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+
+<h5>Audit</h5>
+<table class="table table-bordered table-striped">
+  <thead>
+		<tr>
+      <th>Date/Time</th>
+			<th>Category</th>
+			<th>Operation</th>
+			<th>
+        <div class="btn-group">
+          <button class="btn dropdown-toggle" data-toggle="dropdown">Performed By <span class="caret"></span></button>
+          <ul class="dropdown-menu">
+            <li><label>{{view Ember.Checkbox classNames="applicaton-specific-checkbox"}}All</label></li>
+            {{#each controller.performedBy}}
+              <li><label>{{view Ember.Checkbox classNames="applicaton-specific-checkbox"}}{{userName}}</label></li>
+            {{/each}}
+            {{!view Ember.Checkbox checkedBinding="manualInstall"}}
+            {{!view Ember.Checkbox checkedBinding="localRepo"}}
+          </ul>
+        </div>
+      </th>
+		</tr>
+	</thead>
+	<tbody>
+    {{#each controller.content.serviceAudit}}
+      <tr>
+        <td>{{date}}</td>
+        <td>{{controller.content.label}}</td>
+        <td>{{controller.content.label}} {{operationName}}</td>
+        <td>{{user.userName}}</td>
+      </tr>
+    {{/each}}
+	</tbody>
+</table>

@@ -19,8 +19,5 @@
 var App = require('app');
 
 App.MainDashboardView = Em.View.extend({
-  templateName: require('templates/main/dashboard'),
-  services:function(){
-    return App.router.get('mainServiceController.content');
-  }.property('App.router.mainServiceController.content')
+  templateName: require('templates/main/dashboard')
 });

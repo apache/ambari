@@ -1,0 +1,136 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+
+
+<div>
+    <fieldset class="fieldset">
+     <legend>General</legend>
+        <div class="row">
+           <div class="span2"> <b>Some HDFS config</b> </div>
+           <div class="span2"><input type="text"></div>
+        </div>
+    </fieldset>
+
+</div>
+
+<br>
+
+<div>
+       <fieldset class="fieldset">
+        <legend>NameNode</legend>
+          <div class="row">
+            <div class="span2"><b>NameNodeSet</b> </div>
+            <div class="span2">host0001.com.com</div>
+
+        </div>
+<br>
+        <div class="row">
+            <div class="span2"><b>NameNode directories</b> dfs.name.dir </div>
+            <div class="span2"><textarea placeholder="/grid/hadoop/namenode"></textarea></div>
+
+        </div>
+<br>
+        <div class="row">
+            <div class="span2"><b>Some NameNode config</b> dfs.name.some </div>
+            <div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="2048"><span class="add-on">MB</span></div>
+            <div class="span2"></div>
+
+        </div>
+    </fieldset>
+</div>
+<br>
+<div>
+    <fieldset class="fieldset">
+        <legend>SNameNode</legend>
+        <div class="row">
+            <div class="span2"><b>Some NameNode host</b> </div>
+            <div class="span2">host0002.com.com</div>
+        </div>
+    </fieldset>
+</div>
+<br>
+<div>
+    <fieldset class="fieldset">
+        <legend>DataNode (Default)</legend>
+        <div class="row">
+            <div class="span2"><b>DataNode hosts</b> </div>
+            <div class="span3"><a href="#">host003.com.com and 89 more</a> </div>
+
+        </div>
+        <br>
+        <div class="row">
+            <div class="span2"><b>DataNode directories</b> dfs.data.dir</div>
+             <div class="span2"><textarea placeholder="/grid/0/hadoop/datanode
+                                                      /grid/1/hadoop/datanode
+                                                      /grid/2/hadoop/datanode"></textarea></div>
+
+        </div>
+        <br>
+        <div class="row">
+            <div class="span2"><b>Some DataNode config</b> dfs.data.some </div>
+            <div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="1024"><span class="add-on">MB</span></div>
+            <div class="span2"></div>
+
+        </div>
+        <br>
+        <div class="row">
+            <div class="span2"><b>Another DataNode config</b> dfs.data.another</div>
+            <div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="512"><span class="add-on">MB</span></div>
+
+        </div>
+   </fieldset>
+</div>
+<br>
+<div>
+    <fieldset class="fieldset">
+        <legend>DataNode Group A</legend>
+        <div class="row">
+            <div class="span2"><b>DataNode hosts</b> </div>
+            <div class="span3"><a href="#">host0090.com.com and 90 more</a> </div>
+
+        </div>
+        <br>
+        <div class="row">
+            <div class="span2"><b>DataNode directories</b> dfs.data.dir</div>
+            <div class="span2"><textarea placeholder="/grid/0/hadoop/datanode
+                                                      /grid/1/hadoop/datanode
+                                                      /grid/2/hadoop/datanode
+                                                      /grid/3/hadoop/datanode"></textarea></div>
+
+        </div>
+        <br>
+        <div class="row">
+            <div class="span2"><b>Some DataNode config</b> dfs.data.another</div>
+            <div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="2048"><span class="add-on">MB</span></div>
+            <div class="span2"></div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="span2"><b>Another DataNode config</b> dfs.data.another</div>
+            <div class="span2 input-append"><input class="span2" id="appendedInput" type="text" placeholder="128"><span class="add-on">MB</span></div>
+        </div>
+    </fieldset>
+</div>
+<br>
+      <p align="right"> Need a different settings on certain DataNodes? <a href="#">Add a DataNode group</a>
+      <br>
+      <br>
+      <input class="btn btn-primary" type="button" value="Save and apply changes">
+    </p>
+     </div>
+{{outlet}}

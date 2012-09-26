@@ -140,7 +140,7 @@
     background: #F6FAFD;
 }
 .service-block {
-    padding: 10px;
+    margin-top: 20px;
 }
 .service-configuration {
     padding: 10px;
@@ -176,6 +176,7 @@
 .service-button {
     text-align: right;
     margin-bottom: 5px;
+    margin-top: -57px;
 }
 .add-service-button {
     position: relative;
@@ -203,6 +204,32 @@
 #hosts .table thead{
     background: #EDF5FC;
 }
+#hosts .table th,#hosts .table td{
+    width: 130px;
+}
+#hosts .table th.first,#hosts .table td.first{
+    width: 30px;
+}
+#hosts .table td.first label{
+    padding-top: 3px;
+}
+#hosts .table td.first label span{
+    display: block;
+    height: 13px;
+    margin: 3px 0 0 3px;
+    width: 13px;
+}
+#hosts .table ul.filter-components li{
+    display: block;
+    padding: 3px 0 3px 5px;
+    line-height: 20px;
+}
+#hosts .table ul.filter-components li input[type="checkbox"]{
+    margin-top: 0;
+    margin-right: 2px;
+    margin-bottom: 2px;
+    margin: 0 2px 2px;
+}
 #hosts .nav-pills li.disabled{
     display: block;
     margin: 2px 0;
@@ -212,4 +239,87 @@
 #hosts .box-footer .footer-pagination{
     float: right;
 }
+#hosts .box-footer .footer-pagination .nav{
+    margin-bottom: 0;
+}
+#hosts .box-footer .footer-pagination .dropdown{
+    margin-top: 3px;
+}#hosts .box-footer .footer-pagination .dropdown{
+     margin-top: 3px;
+ }
+#hosts .box-footer .footer-pagination .dropdown select{
+    width: 60px;
+}
+#hosts .box-footer .footer-pagination .page-listing a{
+    line-height: 0;
+    border: none;
+    margin: 0;
+    margin-right: 10px;
+    cursor: pointer;
+    color: #0088CC;
+    padding: 8px 0;
+    float: left;
+    text-decoration: underline;
+}
+#hosts .box-footer .footer-pagination .page-listing a:hover{
+    text-decoration: none;
+}
+#hosts .box-footer .footer-pagination .page-listing{
+    width: 100px;
+}
+
+#host-details .back{
+    display: block;
+    width: 105px;
+    margin-bottom: 5px;
+}
+#host-details .box-header .host-title{
+    margin:0;
+    padding-left: 17px;
+}
+#host-details .box-header .button-section{
+    margin-bottom: 5px;
+}
+#host-details hr{
+    margin-bottom: 0;
+    clear: both;
+}
+#host-details .content{
+    padding: 10px;
+    background: #F6FAFD;
+}
+#host-details .host-configuration .dl-horizontal dt{
+    width: 90px;
+    line-height: 20px;
+}
+#host-details .host-configuration .dl-horizontal dd{
+    margin-left: 100px;
+    line-height: 20px;
+}
+#host-details .host-components{
+    padding: 10px;
+    padding-bottom: 0;
+    border: 1px solid #DEDEDE;
+    background: #fff;
+}
+#host-details .host-components .btn{
+    margin:0 5px 10px 0;
+}
 /*End Hosts*/
+/*fieldset begin*/
+.fieldset {
+    border: 2px solid black;
+    padding: 10px;
+} 
+.fieldset legend {
+    border-bottom: none;
+    width: auto;
+    font-size: 14px;
+}
+/*fieldset end*/
+/*Start Carousel*/
+.carousel-inner {
+    height: 80px;
+}
+/*End Carousel*//*End Hosts*/
+

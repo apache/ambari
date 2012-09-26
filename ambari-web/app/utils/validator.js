@@ -34,6 +34,24 @@ module.exports = {
     }
     var floatRegex = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
     return floatRegex.test(value);
-  }
+  },
 
+  isIpAddress: function(value) {
+    var ipRegex = /^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\:[0-9]{1,5}$/;
+    return ipRegex.test(value);
+  },
+
+  empty:function (e) {
+    switch (e) {
+      case "":
+      case 0:
+      case "0":
+      case null:
+      case false:
+      case typeof this == "undefined":
+        return true;
+      default :
+        return false;
+    }
+}
 };

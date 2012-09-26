@@ -19,5 +19,5 @@
 var App = require('app');
 
 App.MainAdminView = Em.View.extend({
-    templateName: require('templates/main/admin')
+    templateName: require('templates/main/admin'),
 });

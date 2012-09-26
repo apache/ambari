@@ -26,7 +26,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
   init: function(){ this._super(); this.activateView(); },
 
   tagName:'ul',
-  classNames:["nav", "nav-tabs"],
+  classNames:["nav", "nav-tabs", "nav-services"],
 
   activateView:function () {
     var service = App.router.get('mainServiceItemController.content');
@@ -38,6 +38,6 @@ App.MainServiceMenuView = Em.CollectionView.extend({
   itemViewClass:Em.View.extend({
     classNameBindings:["active"],
     active:"",
-    template:Ember.Handlebars.compile('<a {{action showService view.content}} href="#"> {{unbound view.content.label}}</a>')
+    template:Ember.Handlebars.compile('<a {{action showService view.content}} href="#" class="health-status-{{unbound view.content.healthStatus}}"> {{unbound view.content.label}}</a>')
   })
 });

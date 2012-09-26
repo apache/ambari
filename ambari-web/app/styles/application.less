@@ -130,6 +130,76 @@ a:focus {
     outline: none;
 }
 
+@status-live-marker: url("../img/health-status-live.png");
+@status-dead-marker: url("../img/health-status-dead.png");
+
+/*Dashboard*/
+
+.services {
+  margin-left: 5px;
+  .tab-marker-position {
+    padding-left: 25px;
+    background-position: 6px 5px;
+    background-repeat: no-repeat;
+    list-style: none;
+  }
+  .health-status-LIVE {
+    .tab-marker-position;
+    background-image: @status-live-marker;
+  }
+  .health-status-DEAD {
+    .tab-marker-position;
+    background-image: @status-dead-marker;
+  }
+}
+
+
+/*Services*/
+.nav-tabs {
+  .tab-marker-position {
+    padding-left: 25px;
+    padding-right: 25px;
+    background-position: 8px 12px;
+    background-repeat: no-repeat;
+  }
+  .health-status-LIVE {
+    .tab-marker-position;
+    background-image: @status-live-marker;
+  }
+  .health-status-DEAD {
+    .tab-marker-position;
+    background-image: @status-dead-marker;
+  }
+}
+.nav-pills.move {
+  float: right;
+  margin-top: -48px;
+}
+/*End Services*/
+
+/*Hosts*/
+#hosts {
+  .health-status-LIVE {
+    background-image: @status-live-marker;
+  }
+  .health-status-DEAD {
+    background-image: @status-dead-marker;
+  }
+}
+#host-details {
+  .health-status-LIVE {
+    background-image: @status-live-marker;
+    background-repeat:no-repeat;
+    background-position: 0px 4px;
+  }
+  .health-status-DEAD {
+    background-image: @status-dead-marker;
+    background-repeat:no-repeat;
+    background-position: 0px 4px;
+  }
+}
+/*End Hosts*/
+
 /*assign masters*/
 
 .assign-masters {
@@ -218,3 +288,7 @@ a:focus {
 
 /*end assign masters*/
 
+/*Dashboard*/
+.alerts-count {
+  margin-left: 5px;
+}

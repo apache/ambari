@@ -1,9 +1,12 @@
 {{#if view.hasNoHosts}}
 No host assigned
-{{/if}}
+{{else}}
+<a href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="App.router.slaveComponentGroupsController"}}>
 {{#if view.hasOneHost}}
-{{value}}
+  {{hosts.firstObject.hostname}}
 {{/if}}
 {{#if view.hasMultipleHosts}}
-<a href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="App.router.slaveComponentGroupsController"}}>{{hosts.firstObject.hostname}} and {{view.otherLength}}</a>
+  {{hosts.firstObject.hostname}} and {{view.otherLength}}
+{{/if}}
+</a>
 {{/if}}

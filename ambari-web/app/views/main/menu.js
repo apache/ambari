@@ -18,6 +18,10 @@
 
 var App = require('app');
 
+/**
+ * this menu extended by other with modifying content and itemViewClass.template
+ * @type {*}
+ */
 App.MainMenuView = Em.CollectionView.extend({
   tagName: 'ul',
   classNames: ["nav", "nav-tabs"],
@@ -25,20 +29,25 @@ App.MainMenuView = Em.CollectionView.extend({
     { label:'My Cluster', routing:'cluster'},
     { label:'Dashboard', routing:'dashboard', active:"active"},
     { label:'Charts', routing:'charts'},
-    { label:'Services', routing:'service'},
+    { label:'Services', routing:'services'},
     { label:'Hosts', routing:'hosts'},
     { label:'Admin', routing:'admin'}
   ],
 
-  deactivateChildViews: function() {
-    $.each(this._childViews, function(){
-      this.set('active', "");
+  deactivateChildViews:function (content) {
+    $.each(this._childViews, function () {
+      this.set('active', this.get('content') == content ? "active" : "");
     });
   },
 
   itemViewClass: Em.View.extend({
     classNameBindings: ["active"],
     active: "",
-    template: Ember.Handlebars.compile('<a {{action navigate view.content.routing }} href="#"> {{unbound view.content.label}}</a>')
+    alertsCount: function() {
+      if(this.get('content').routing == 'dashboard'){
+        return App.router.get('mainDashboardController.alertsCount');
+      }
+    }.property(),
+    template: Ember.Handlebars.compile('<a {{action navigate view.content}} href="#"> {{unbound view.content.label}}{{#if view.alertsCount}}<span class="label label-important alerts-count">{{view.alertsCount}}</span>{{/if}}</a>')
   })
 });

@@ -19,8 +19,14 @@
 
 // load all models here
 
+require('models/form'); // should be the 1st
+require('models/authentication');
 require('models/cluster');
 require('models/hosts');
 require('models/service');
 require('models/service_config');
+require('models/service_audit');
+require('models/service_metrics');
 require('models/alert');
+require('models/user');
+require('models/pagination');
