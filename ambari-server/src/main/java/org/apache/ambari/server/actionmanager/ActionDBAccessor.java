@@ -21,59 +21,38 @@ import java.util.List;
 
 import org.apache.ambari.server.Role;
 
-public class ActionDBAccessor {
-  
-  private long stageId = 0;
-  
-  public void persistAction(HostAction ha) {
-  }
+public interface ActionDBAccessor {
 
-  public Stage getAction(String actionId) {
-    return null;
-  }
+  public void persistAction(HostAction ha);
 
-  public List<Stage> getAllStages(String requestId) {
-    return null;
-  }
-  
+  public Stage getAction(String actionId);
+
+  public List<Stage> getAllStages(String requestId);
+
   /**
    * Returns all the actions that have been queued but not completed yet.
    */
-  public List<Stage> getQueuedStages() {
-    return null;
-  }
-  
+  public List<Stage> getQueuedStages();
+
   /**
    * Returns all the actions that have not been queued yet.
    */
-  public List<Stage> getNotQueuedStages() {
-    return null;
-  }
-  
+  public List<Stage> getNotQueuedStages();
+
   /**
    * Returns next stage id in the sequence, must be persisted.
    */
-  public synchronized long getNextStageId() {
-    return ++stageId ;
-  }
+  public long getNextStageId();
 
-  public void abortOperation(long requestId) {
-    //Mark all pending or queued actions for this request as aborted.
-  }
+  public void abortOperation(long requestId);
 
-  public void timeoutHostRole(long requestId, long stageId, Role role) {
-    // TODO Auto-generated method stub
-  }
+  public void timeoutHostRole(String host, long requestId, long stageId, Role role);
 
   /**
    * Returns all the pending stages, including queued and not-queued.
    */
-  public List<Stage> getPendingStages() {
-    return null;
-  }
+  public List<Stage> getPendingStages();
 
-  public void persistActions(List<Stage> stages) {
-    // TODO Auto-generated method stub
-    
-  }
+  public void persistActions(List<Stage> stages);
+
 }

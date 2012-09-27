@@ -42,5 +42,15 @@ public enum HostState {
    * Host is in unhealthy state as reported either by the Host itself or via
    * any other additional means ( monitoring layer )
    */
-  UNHEALTHY
+  UNHEALTHY;
+
+  public long getTimeInState() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  public long getLastHeartbeat() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
 }

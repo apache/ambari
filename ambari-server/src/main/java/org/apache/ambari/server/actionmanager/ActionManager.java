@@ -23,20 +23,25 @@ import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.live.Clusters;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 
 /**
  * This class acts as the interface for action manager with other components.
  */
+@Singleton
 public class ActionManager {
   private final ActionScheduler scheduler;
   private final ActionDBAccessor db;
   private final ActionQueue actionQueue;
   private final Clusters fsm;
 
+  @Inject
   public ActionManager(long schedulerSleepTime, long actionTimeout,
       ActionQueue aq, Clusters fsm) {
     this.actionQueue = aq;
-    db = new ActionDBAccessor();
+    db = new ActionDBAccessorImpl();
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
         actionQueue, fsm, 2);
     this.fsm = fsm;
@@ -66,5 +71,10 @@ public class ActionManager {
 
   public void actionResponse(String hostname, List<CommandReport> report) {
     //persist the action response into the db.
+  }
+
+  public void handleLostHost(String host) {
+    // TODO Auto-generated method stub
+    
   }
 }

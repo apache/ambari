@@ -15,42 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.utils;
 
-package org.apache.ambari.server.state.live;
+import java.util.List;
 
-/**
- * Agent Version representation
- */
-public class AgentVersion {
+import javax.xml.bind.annotation.XmlElement;
 
-  private final String version;
+public class JaxbMapKeyMap {
+  @XmlElement public String  key;
+  @XmlElement public List<JaxbMapKeyVal> value;
 
-  public AgentVersion(String version) {
-    this.version = version;
-  }
-
-  /**
-   * @return the version
-   */
-  public String getVersion() {
-    return version;
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (!(object instanceof AgentVersion)) {
-      return false;
-    }
-    if (this == object) {
-      return true;
-    }
-    AgentVersion a = (AgentVersion) object;
-    return a.equals(this.version);
-  }
-
-  @Override
-  public int hashCode() {
-    int result = version != null ? version.hashCode() : 0;
-    return result;
+  private JaxbMapKeyMap() {} 
+  
+  public JaxbMapKeyMap(String key, List<JaxbMapKeyVal> value)
+  {
+    this.key   = key;
+    this.value = value;
   }
 }

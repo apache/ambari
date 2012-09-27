@@ -73,4 +73,8 @@ public class HeartBeat {
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
+
+  public List<CommandReport> getCommandReports() {
+    return this.reports;
+  }
 }

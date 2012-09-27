@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.agent.AgentCommand;
 
 //This class encapsulates the stage. The stage encapsulates all the information
 //required to persist an action.
@@ -48,6 +49,9 @@ public class Stage {
       throw new RuntimeException("Attempt to set stageId again! Not allowed.");
     }
     this.stageId = stageId;
+    for (String host: this.hostActions.keySet()) {
+      this.hostActions.get(host).setCommandId(this.requestId, this.stageId);
+    }
   }
   
   public synchronized long getStageId() {
@@ -59,6 +63,7 @@ public class Stage {
   }
   
   synchronized void addHostAction(String host, HostAction ha) {
+    ha.setCommandId(requestId, stageId);
     hostActions.put(host, ha);
   }
   
@@ -94,5 +99,29 @@ public class Stage {
   
   public String getClusterName() {
     return clusterName;
+  }
+
+  public long getLastAttemptTime(String host) {
+    return getHostAction(host).getLastAttemptTime();
+  }
+
+  public short getAttemptCount(String host) {
+    return getHostAction(host).getAttemptCount();
+  }
+
+  public void incrementAttemptCount(String hostname) {
+    getHostAction(hostname).incrementAttemptCount();
+  }
+
+  public void setLastAttemptTime(String hostname, long t) {
+    getHostAction(hostname).setLastAttemptTime(t);
+  }
+
+  public AgentCommand getExecutionCommand(String hostname) {
+    return getHostAction(hostname).getCommandToHost();
+  }
+
+  public long getStartTime(String hostname) {
+    return getHostAction(hostname).getStartTime();
   }
 }

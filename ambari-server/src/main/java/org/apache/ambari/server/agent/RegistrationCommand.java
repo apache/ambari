@@ -15,56 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.agent;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-/**
- *
- * Controller to Agent response data model.
- *
- */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
-public class HeartBeatResponse {
-
-  @XmlElement
-  private long responseId;
-  @XmlElement
-  private String clusterId;
-  @XmlElement
-  List<AgentCommand> cmds = new ArrayList<AgentCommand>();
-
-  public long getResponseId() {
-    return responseId;
-  }
-
-  public void setResponseId(long responseId) {
-    this.responseId=responseId;
-  }
-
-  public String getClusterId() {
-    return clusterId;
-  }
-
-  public void setClusterId(String clusterId) {
-    this.clusterId = clusterId;
-  }
-
-  public List<AgentCommand> getAgentCommands() {
-    return this.cmds;
-  }
+public class RegistrationCommand extends AgentCommand {
   
-  public void setAgentCommands(List<AgentCommand> cmds) {
-    this.cmds = cmds;
+  public RegistrationCommand() {
+    super(AgentCommandType.REGISTRATION_COMMAND);
   }
 }

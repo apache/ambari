@@ -34,8 +34,9 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "", propOrder = {})
 public class RegistrationResponse {
   @XmlElement
-  public RegistrationStatus response;
-
+  private RegistrationStatus response;
+  
+  private AgentCommand command = null;
 
   public RegistrationStatus getResponseStatus() {
     return response;

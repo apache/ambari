@@ -17,25 +17,61 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.apache.ambari.server.utils.JaxbMapKeyListAdapter;
+import org.apache.ambari.server.utils.JaxbMapKeyMapAdapter;
+import org.apache.ambari.server.utils.JaxbMapKeyValAdapter;
+
+
+/**
+ * Execution commands are scheduled by action manager, and these are 
+ * persisted in the database for recovery.
+ */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
 public class ExecutionCommand extends AgentCommand {
-  @XmlElement
-  String manifest ="";
   
-  public String getManifest() {
-    return this.manifest;
+  public ExecutionCommand() {
+    super(AgentCommandType.EXECUTION_COMMAND);
   }
   
-  public void setManifest(String manifest) {
-    this.manifest = manifest;
+  @XmlElement
+  private String commandId;
+  
+  @XmlElement
+  private String hostname;
+  
+  @XmlElement
+  @XmlJavaTypeAdapter(JaxbMapKeyValAdapter.class)
+  private Map<String, String> params = null;
+  
+  @XmlElement
+  @XmlJavaTypeAdapter(JaxbMapKeyListAdapter.class)
+  private Map<String, List<String>> clusterHostInfo = null;
+  
+  @XmlElement
+  private List<RoleExecution> rolesCommands;
+  
+  @XmlElement
+  @XmlJavaTypeAdapter(JaxbMapKeyMapAdapter.class)
+  private Map<String, Map<String, String>> configurations;
+  
+  public String getCommandId() {
+    return this.commandId;
+  }
+  
+  public void setCommandId(String commandId) {
+    this.commandId = commandId;
   }
   
   @Override //Object
@@ -43,13 +79,58 @@ public class ExecutionCommand extends AgentCommand {
     if (!(other instanceof ExecutionCommand)) {
       return false;
     }
-    ExecutionCommand o = (ExecutionCommand)other;
-    return  this.manifest.equals(o.getManifest());
+    ExecutionCommand o = (ExecutionCommand) other;
+    return (this.commandId == o.commandId &&
+            this.hostname == o.hostname);
   }
   
   @Override //Object
   public int hashCode() {
-    //Assume two different actions will always have a different manifest
-    return manifest.hashCode();
+    return (hostname + commandId).hashCode();
   }
- }
+  
+  public void setHostName(String host) {
+    this.hostname = host;
+  }
+  
+  @XmlRootElement
+  @XmlAccessorType(XmlAccessType.FIELD)
+  @XmlType(name = "", propOrder = {})
+  static class RoleExecution {
+    
+    @XmlElement
+    private String role;
+    
+    //These params are at role level
+    @XmlElement
+    @XmlJavaTypeAdapter(JaxbMapKeyValAdapter.class)
+    private Map<String, String> roleParams = null;
+    
+    @XmlElement
+    private String cmd;
+    
+    public String getRole() {
+      return role;
+    }
+
+    public void setRole(String role) {
+      this.role = role;
+    }
+
+    public Map<String, String> getRoleParams() {
+      return roleParams;
+    }
+
+    public void setRoleParams(Map<String, String> roleParams) {
+      this.roleParams = roleParams;
+    }
+
+    public String getCmd() {
+      return cmd;
+    }
+
+    public void setCmd(String cmd) {
+      this.cmd = cmd;
+    }
+  }
+}

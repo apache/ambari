@@ -24,7 +24,6 @@ import java.util.TreeMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.ActionQueue;
-import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.Clusters;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
@@ -75,10 +74,10 @@ class ActionScheduler implements Runnable {
         doWork();
         Thread.sleep(sleepTime);
       } catch (InterruptedException ex) {
+        LOG.warn("Scheduler thread is interrupted going to stop", ex);
         shouldRun = false;
       } catch (Exception ex) {
-        //ignore
-        //Log the exception
+        LOG.warn("Exception received", ex);
       }
     }
   }
@@ -129,49 +128,53 @@ class ActionScheduler implements Runnable {
         continue;
       }
       long now = System.currentTimeMillis();
-      if (now > hrc.getLastAttemptTime()+actionTimeout) {
+      if (now > stage.getLastAttemptTime(host)+actionTimeout) {
         LOG.info("Host:"+host+", role:"+hrc.getRole()+", actionId:"+stage.getActionId()+" timed out");
-        if (hrc.getAttemptCount() >= maxAttempts) {
+        if (stage.getAttemptCount(host) >= maxAttempts) {
           LOG.warn("Host:"+host+", role:"+hrc.getRole()+", actionId:"+stage.getActionId()+" expired");
           // final expired
           ServiceComponentHostEvent timeoutEvent = new ServiceComponentHostEvent(
               ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED, hrc
-                  .getRole().toString(), hrc.getHostName(), now);
+                  .getRole().toString(), host, now);
           try {
             fsmObject.getCluster(stage.getClusterName())
                 .handleServiceComponentHostEvent("", hrc.getRole().toString(),
-                    hrc.getHostName(), timeoutEvent);
+                    host, timeoutEvent);
           } catch (InvalidStateTransitonException e) {
             // Propagate exception
             e.printStackTrace();
+          } catch (AmbariException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
           }
-          db.timeoutHostRole(stage.getRequestId(), stage.getStageId(),
+          db.timeoutHostRole(host, stage.getRequestId(), stage.getStageId(),
               hrc.getRole());
         } else {
-          scheduleHostRole(stage, hrc);
+          scheduleHostRole(stage, host, hrc);
         }
       }
     }
   }
 
-  private void scheduleHostRole(Stage s, HostRoleCommand hrc) throws AmbariException {
-    LOG.info("Host:"+hrc.getHostName()+", role:"+hrc.getRole()+", actionId:"+s.getActionId()+" being scheduled");
+  private void scheduleHostRole(Stage s, String hostname, HostRoleCommand hrc) {
+    LOG.info("Host:" + hostname + ", role:" + hrc.getRole() + ", actionId:"
+        + s.getActionId() + " being scheduled");
     long now = System.currentTimeMillis();
-    if (hrc.getStartTime() < 0) {
+    if (s.getStartTime(hostname) < 0) {
       try {
         fsmObject.getCluster(s.getClusterName())
-            .handleServiceComponentHostEvent("", "", hrc.getHostName(),
+            .handleServiceComponentHostEvent("", "", hostname,
                 hrc.getEvent());
       } catch (InvalidStateTransitonException e) {
         e.printStackTrace();
+      } catch (AmbariException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
     }
-    hrc.setLastAttemptTime(now);
-    hrc.incrementAttemptCount();
-    ExecutionCommand cmd = new ExecutionCommand();
-    cmd.setCommandId(s.getActionId());
-    cmd.setManifest(s.getManifest(hrc.getHostName()));
-    actionQueue.enqueue(hrc.getHostName(), cmd);
+    s.setLastAttemptTime(hostname, now);
+    s.incrementAttemptCount(hostname);
+    actionQueue.enqueue(hostname, s.getExecutionCommand(hostname));
   }
 
   private RoleStatus getRoleStatus(

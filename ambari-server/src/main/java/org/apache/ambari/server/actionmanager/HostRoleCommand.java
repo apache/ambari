@@ -17,33 +17,23 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.util.Map;
 
 import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
 
 /**
- * This class encapsulates all the information for an action
- * on a host for a particular role. This class will be used to schedule, persist and track
- * an action.
+ * This class encapsulates the information for an task on a host for a
+ * particular role which action manager needs. It doesn't capture actual
+ * command and parameters, but just the stuff enough for action manager.
+ * For the actual command refer {@link HostAction#commandToHost}
  */
 public class HostRoleCommand {
   private final Role role;
-  private Map<String, String> params = null;
   private HostRoleStatus status = HostRoleStatus.PENDING;
-  private final RoleCommand cmd;
-  private long startTime = -1;
-  private long lastAttemptTime = -1;
-  private short attemptCount = 0;
-  private final String host;
   private final ServiceComponentHostEvent event;
 
-  public HostRoleCommand(String host, Role role, RoleCommand cmd,
-      ServiceComponentHostEvent event) {
-    this.host = host;
+  public HostRoleCommand(Role role, ServiceComponentHostEvent event) {
     this.role = role;
-    this.cmd = cmd;
     this.event = event;
   }
 
@@ -55,31 +45,8 @@ public class HostRoleCommand {
     return status;
   }
   
-  public long getStartTime() {
-    return startTime;
-  }
-  
-  public long getLastAttemptTime() {
-    return this.lastAttemptTime;
-  }
-  
-  public void setLastAttemptTime(long t) {
-    this.lastAttemptTime = t;
-  }
-
-  public String getHostName() {
-    return this.host;
-  }
-  
   public ServiceComponentHostEvent getEvent() {
     return event;
-  }
-  public void incrementAttemptCount() {
-    this.attemptCount ++;
-  }
-  
-  public short getAttemptCount() {
-    return this.attemptCount;
   }
   
   void setStatus(HostRoleStatus status) {

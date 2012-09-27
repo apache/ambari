@@ -19,17 +19,47 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+import org.apache.ambari.server.agent.AgentCommand;
+import org.apache.ambari.server.agent.ExecutionCommand;
+
+/**
+ * Encapsulates entire task for a host for a stage or action. This class
+ * contains all the information to generate an
+ * {@link org.apache.ambari.server.agent.ExecutionCommand} that will be 
+ * scheduled for a host.
+ */
 public class HostAction {
   private final String host;
-  private Map<String, String> params = null;
-  private String manifest = null;
-  private final List<HostRoleCommand> roles;
+  private List<HostRoleCommand> roles;
+  private long startTime = -1;
+  private long lastAttemptTime = -1;
+  private short attemptCount = 0;
+  
+  /**
+   * This object will be serialized and sent to the agent.
+   */
+  private ExecutionCommand commandToHost;
 
+  public String getManifest() {
+    //generate manifest
+    return null;
+  }
+  
   public HostAction(String host) {
     this.host = host;
     roles = new ArrayList<HostRoleCommand>();
+    commandToHost = new ExecutionCommand();
+    commandToHost.setHostName(host);
+  }
+  
+  public HostAction(HostAction ha) {
+    this.host = ha.host;
+    this.roles = ha.roles;
+    this.startTime = ha.startTime;
+    this.lastAttemptTime = ha.lastAttemptTime;
+    this.attemptCount = ha.attemptCount;
+    this.commandToHost = ha.commandToHost;
   }
   
   public void addHostRoleCommand(HostRoleCommand cmd) {
@@ -40,17 +70,31 @@ public class HostAction {
     return roles;
   }
   
-  public void setManifest(String manifest) {
-    if (this.manifest != null) {
-      throw new RuntimeException("Not allowed to set manifest twice");
-    }
-    this.manifest = manifest;
+  public long getStartTime() {
+    return startTime;
+  }
+  
+  public long getLastAttemptTime() {
+    return this.lastAttemptTime;
+  }
+  
+  public void setLastAttemptTime(long t) {
+    this.lastAttemptTime = t;
+  }
+  
+  public void incrementAttemptCount() {
+    this.attemptCount ++;
+  }
+  
+  public short getAttemptCount() {
+    return this.attemptCount;
   }
 
-  public String getManifest() {
-    if (manifest == null) {
-      //generate manifest
-    }
-    return manifest;
+  public AgentCommand getCommandToHost() {
+    return this.commandToHost;
+  }
+
+  public synchronized void setCommandId(long requestId, long stageId) {
+    commandToHost.setCommandId(requestId+ "-" + stageId);
   }
 }

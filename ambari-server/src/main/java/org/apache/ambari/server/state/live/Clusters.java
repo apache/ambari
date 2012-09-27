@@ -18,7 +18,10 @@
 
 package org.apache.ambari.server.state.live;
 
+import java.util.List;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.state.live.host.HostState;
 
 public interface Clusters {
 
@@ -34,5 +37,21 @@ public interface Clusters {
    * @return
    */
   public Cluster getCluster(String clusterName) throws AmbariException;
+
+  public boolean handleHeartbeat(String hostname, long timestamp);
+
+  public void updateStatus(String hostname, String status);
+
+  public HostState getHostState(String host);
+
+  public List<String> getAllHosts();
+
+  public boolean isNodeActive(String hostname);
+
+  public List<String> getHostComponents(String hostname);
+
+  public void handleRegistration(String hostname);
+
+  public List<String> getClusters(String hostname);
 
 }

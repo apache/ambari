@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -44,17 +43,17 @@ public class TestActionScheduler {
     Clusters fsm = mock(Clusters.class);
     Cluster oneClusterMock = mock(Cluster.class);
     when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
-    ActionDBAccessor db = mock(ActionDBAccessor.class);
+    ActionDBAccessor db = mock(ActionDBAccessorImpl.class);
     List<Stage> stages = new ArrayList<Stage>();
     Stage s = new Stage(1, "/bogus", "clusterName");
     s.setStageId(977);
     stages.add(s);
     String hostname = "ahost.ambari.apache.org";
     HostAction ha = new HostAction(hostname);
-    HostRoleCommand hrc = new HostRoleCommand(hostname, Role.DATANODE,
-        RoleCommand.START, null);
+    HostRoleCommand hrc = new HostRoleCommand(Role.DATANODE,
+        null);
     ha.addHostRoleCommand(hrc);
-    ha.setManifest("1-977-manifest");
+   // ha.setManifest("1-977-manifest");
     s.addHostAction(hostname, ha);
     when(db.getPendingStages()).thenReturn(stages);
     
@@ -68,14 +67,14 @@ public class TestActionScheduler {
     List<AgentCommand> ac = aq.dequeueAll(hostname);
     assertEquals(1, ac.size());
     assertTrue(ac.get(0) instanceof ExecutionCommand);
-    assertEquals(ac.get(0).getCommandId(), "1-977");
+    assertEquals("1-977", ((ExecutionCommand) (ac.get(0))).getCommandId());
     
     //The action status has not changed, it should be queued again.
     Thread.sleep(1000);
     ac = aq.dequeueAll(hostname);
     assertEquals(1, ac.size());
     assertTrue(ac.get(0) instanceof ExecutionCommand);
-    assertEquals(ac.get(0).getCommandId(), "1-977");
+    assertEquals("1-977", ((ExecutionCommand) (ac.get(0))).getCommandId());
     
     //Now change the action status
     hrc.setStatus(HostRoleStatus.COMPLETED);
@@ -96,17 +95,17 @@ public class TestActionScheduler {
     Clusters fsm = mock(Clusters.class);
     Cluster oneClusterMock = mock(Cluster.class);
     when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
-    ActionDBAccessor db = mock(ActionDBAccessor.class);
+    ActionDBAccessorImpl db = mock(ActionDBAccessorImpl.class);
     List<Stage> stages = new ArrayList<Stage>();
     Stage s = new Stage(1, "/bogus", "clusterName");
     s.setStageId(977);
     stages.add(s);
     String hostname = "ahost.ambari.apache.org";
     HostAction ha = new HostAction(hostname);
-    HostRoleCommand hrc = new HostRoleCommand(hostname, Role.DATANODE,
-        RoleCommand.START, null);
+    HostRoleCommand hrc = new HostRoleCommand(Role.DATANODE,
+        null);
     ha.addHostRoleCommand(hrc);
-    ha.setManifest("1-977-manifest");
+    // ha.setManifest("1-977-manifest");
     s.addHostAction(hostname, ha);
     when(db.getPendingStages()).thenReturn(stages);
     
@@ -119,7 +118,6 @@ public class TestActionScheduler {
     Thread.sleep(500);
     //TODO timeoutHostRole must be called exactly once but in this case the state
     //in the db continues to be pending therefore it is processed multiple times.
-    verify(db, atLeastOnce()).timeoutHostRole(1, 977, Role.DATANODE);
+    verify(db, atLeastOnce()).timeoutHostRole(hostname, 1, 977, Role.DATANODE);
   }
-  
 }
