@@ -24,9 +24,9 @@ public enum HostEventType {
    */
   HOST_REGISTRATION_REQUEST,
   /**
-   * Host authenticated/verified.
+   * Host status check response received.
    */
-  HOST_VERIFIED,
+  HOST_STATUS_UPDATES_RECEIVED,
   /**
    * A healthy heartbeat event received from the Host.
    */
@@ -34,7 +34,7 @@ public enum HostEventType {
   /**
    * No heartbeat received from the Host within the defined expiry interval.
    */
-  HOST_HEARTBEAT_TIMED_OUT,
+  HOST_HEARTBEAT_LOST,
   /**
    * A non-healthy heartbeat event received from the Host.
    */

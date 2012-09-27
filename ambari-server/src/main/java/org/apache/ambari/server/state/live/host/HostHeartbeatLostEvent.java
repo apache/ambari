@@ -16,14 +16,13 @@
  * limitations under the License.
  */
 
+
 package org.apache.ambari.server.state.live.host;
 
-public class HostVerifiedEvent extends HostEvent {
+public class HostHeartbeatLostEvent extends HostEvent {
 
-  // TODO need to add any additional information required for verification
-  // tracking
-  public HostVerifiedEvent(String hostName) {
-    super(hostName, HostEventType.HOST_VERIFIED);
+  public HostHeartbeatLostEvent(String hostName) {
+    super(hostName, HostEventType.HOST_HEARTBEAT_LOST);
   }
 
 }

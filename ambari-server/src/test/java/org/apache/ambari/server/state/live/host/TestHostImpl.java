@@ -85,8 +85,9 @@ public class TestHostImpl {
     Assert.assertEquals(currentTime, host.getLastRegistrationTime());
   }
 
-  private void verifyHost(HostImpl host) throws Exception {
-    HostVerifiedEvent e = new HostVerifiedEvent(host.getHostName());
+  private void ensureHostUpdatesReceived(HostImpl host) throws Exception {
+    HostStatusUpdatesReceivedEvent e =
+        new HostStatusUpdatesReceivedEvent(host.getHostName(), 1);
     host.handleEvent(e);
   }
 
@@ -94,13 +95,15 @@ public class TestHostImpl {
     Assert.assertEquals(state, host.getState());
   }
 
-  private void sendHealthyHeartbeat(HostImpl host, long counter) throws Exception {
+  private void sendHealthyHeartbeat(HostImpl host, long counter)
+      throws Exception {
     HostHealthyHeartbeatEvent e = new HostHealthyHeartbeatEvent(
         host.getHostName(), counter);
     host.handleEvent(e);
   }
 
-  private void sendUnhealthyHeartbeat(HostImpl host, long counter) throws Exception {
+  private void sendUnhealthyHeartbeat(HostImpl host, long counter)
+      throws Exception {
     HostHealthStatus healthStatus = new HostHealthStatus(HealthStatus.UNHEALTHY,
         "Unhealthy server");
     HostUnhealthyHeartbeatEvent e = new HostUnhealthyHeartbeatEvent(
@@ -109,7 +112,7 @@ public class TestHostImpl {
   }
 
   private void timeoutHost(HostImpl host) throws Exception {
-    HostHeartbeatTimedOutEvent e = new HostHeartbeatTimedOutEvent(
+    HostHeartbeatLostEvent e = new HostHeartbeatLostEvent(
         host.getHostName());
     host.handleEvent(e);
   }
@@ -124,7 +127,7 @@ public class TestHostImpl {
   public void testHostRegistrationFlow() throws Exception {
     HostImpl host = new HostImpl("foo");
     registerHost(host);
-    verifyHostState(host, HostState.WAITING_FOR_VERIFICATION);
+    verifyHostState(host, HostState.WAITING_FOR_HOST_STATUS_UPDATES);
 
     boolean exceptionThrown = false;
     try {
@@ -137,12 +140,12 @@ public class TestHostImpl {
       fail("Expected invalid transition exception to be thrown");
     }
 
-    verifyHost(host);
-    verifyHostState(host, HostState.VERIFIED);
+    ensureHostUpdatesReceived(host);
+    verifyHostState(host, HostState.HEALTHY);
 
     exceptionThrown = false;
     try {
-      verifyHost(host);
+      ensureHostUpdatesReceived(host);
     } catch (Exception e) {
       // Expected
       exceptionThrown = true;
@@ -156,7 +159,7 @@ public class TestHostImpl {
   public void testHostHeartbeatFlow() throws Exception {
     HostImpl host = new HostImpl("foo");
     registerHost(host);
-    verifyHost(host);
+    ensureHostUpdatesReceived(host);
 
     // TODO need to verify audit logs generated
     // TODO need to verify health status updated properly
@@ -202,23 +205,51 @@ public class TestHostImpl {
     Assert.assertEquals(HealthStatus.UNKNOWN,
         host.getHealthStatus().getHealthStatus());
 
+    try {
+      sendUnhealthyHeartbeat(host, ++counter);
+      fail("Invalid event should have triggered an exception");
+    } catch (Exception e) {
+      // Expected
+    }       
+    verifyHostState(host, HostState.HEARTBEAT_LOST);
+
+    try {
+      sendHealthyHeartbeat(host, ++counter);
+      fail("Invalid event should have triggered an exception");
+    } catch (Exception e) {
+      // Expected
+    }       
+    verifyHostState(host, HostState.HEARTBEAT_LOST);
+  }
+  
+  @Test
+  public void testHostRegistrationsInAnyState() throws Exception {
+    HostImpl host = new HostImpl("foo");
+    long counter = 0;
+
+    registerHost(host);
+    
+    ensureHostUpdatesReceived(host);
+    registerHost(host);
+    
+    ensureHostUpdatesReceived(host);
+    sendHealthyHeartbeat(host, ++counter);
+    verifyHostState(host, HostState.HEALTHY);
+    registerHost(host);
+    ensureHostUpdatesReceived(host);
+
     sendUnhealthyHeartbeat(host, ++counter);
     verifyHostState(host, HostState.UNHEALTHY);
-    Assert.assertEquals(counter, host.getLastHeartbeatTime());
-    Assert.assertEquals(HealthStatus.UNHEALTHY,
-        host.getHealthStatus().getHealthStatus());
+    registerHost(host);
+    ensureHostUpdatesReceived(host);
 
     timeoutHost(host);
     verifyHostState(host, HostState.HEARTBEAT_LOST);
-    Assert.assertEquals(counter, host.getLastHeartbeatTime());
-    Assert.assertEquals(HealthStatus.UNKNOWN,
-        host.getHealthStatus().getHealthStatus());
-
-    sendHealthyHeartbeat(host, ++counter);
-    verifyHostState(host, HostState.HEALTHY);
-    Assert.assertEquals(counter, host.getLastHeartbeatTime());
-    Assert.assertEquals(HealthStatus.HEALTHY,
-        host.getHealthStatus().getHealthStatus());
-
+    registerHost(host);
+    ensureHostUpdatesReceived(host);
+    
+    host.setState(HostState.INIT);
+    registerHost(host);
+    
   }
 }

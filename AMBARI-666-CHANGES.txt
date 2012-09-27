@@ -169,6 +169,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-773. Change Host FSM as per new requirements of heartbeat handler. (hitesh)
+
   AMBARI-761. Fix broken build for adding guice servlet dependency. (mahadev)
 
   AMBARI-753. Fix broken compile as a result of re-factor of FSM layout. (hitesh)

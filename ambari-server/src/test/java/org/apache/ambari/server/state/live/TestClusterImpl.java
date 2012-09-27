@@ -31,6 +31,7 @@ import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.state.ConfigVersion;
 import org.apache.ambari.server.state.StackVersion;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.live.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.live.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.live.host.HostState;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostInstallEvent;
@@ -126,14 +127,13 @@ public class TestClusterImpl {
     c1.handleHostEvent(h1, new HostRegistrationRequestEvent(h1, agentVersion,
         currentTime, hostInfo));
 
-    Assert.assertEquals(HostState.WAITING_FOR_VERIFICATION,
+    Assert.assertEquals(HostState.WAITING_FOR_HOST_STATUS_UPDATES,
         c1.getHostState(h1));
 
-    c1.setHostState(h1, HostState.VERIFIED);
+    c1.setHostState(h1, HostState.HEARTBEAT_LOST);
 
     try {
-      c1.handleHostEvent(h1, new HostRegistrationRequestEvent(h1, agentVersion,
-          currentTime, hostInfo));
+      c1.handleHostEvent(h1, new HostHealthyHeartbeatEvent(h1, currentTime));
       fail("Exception should be thrown on invalid event");
     }
     catch (InvalidStateTransitonException e) {

@@ -25,13 +25,9 @@ public enum HostState {
   INIT,
   /**
    * State when a registration request is received from the Host but
-   * the host has not been verified/authenticated.
+   * the host has not responded to its status update check.
    */
-  WAITING_FOR_VERIFICATION,
-  /**
-   * State when the host has been verified/authenticated
-   */
-  VERIFIED,
+  WAITING_FOR_HOST_STATUS_UPDATES,
   /**
    * State when the server is receiving heartbeats regularly from the Host
    * and the state of the Host is healthy

@@ -135,27 +135,25 @@ public class HostImpl implements Host {
 
    // Transition from INIT state
    // when the initial registration request is received
-   .addTransition(HostState.INIT, HostState.WAITING_FOR_VERIFICATION,
-       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())
-
-   // Transition from WAITING_FOR_VERIFICATION state
-   // when the host is authenticated
-   .addTransition(HostState.WAITING_FOR_VERIFICATION, HostState.VERIFIED,
-       HostEventType.HOST_VERIFIED, new HostVerifiedTransition())
-
-   // Transitions from VERIFIED state
+   .addTransition(HostState.INIT, HostState.WAITING_FOR_HOST_STATUS_UPDATES,
+       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())       
+       
+   // Transition from WAITING_FOR_STATUS_UPDATES state
+   // when the host has responded to its status update requests
+   // TODO this will create problems if the host is not healthy
+   // TODO Based on discussion with Jitendra, ignoring this for now    
+   .addTransition(HostState.WAITING_FOR_HOST_STATUS_UPDATES, HostState.HEALTHY,
+       HostEventType.HOST_STATUS_UPDATES_RECEIVED,
+       new HostStatusUpdatesReceivedTransition())
    // when a normal heartbeat is received
-   .addTransition(HostState.VERIFIED, HostState.HEALTHY,
-       HostEventType.HOST_HEARTBEAT_HEALTHY,
-       new HostBecameHealthyTransition())
-   // when a heartbeat is not received within the configured timeout period
-   .addTransition(HostState.VERIFIED, HostState.HEARTBEAT_LOST,
-       HostEventType.HOST_HEARTBEAT_TIMED_OUT,
-       new HostHeartbeatTimedOutTransition())
+   .addTransition(HostState.WAITING_FOR_HOST_STATUS_UPDATES,
+       HostState.WAITING_FOR_HOST_STATUS_UPDATES,
+       HostEventType.HOST_HEARTBEAT_HEALTHY)
    // when a heartbeart denoting host as unhealthy is received
-   .addTransition(HostState.VERIFIED, HostState.UNHEALTHY,
+   .addTransition(HostState.WAITING_FOR_HOST_STATUS_UPDATES,
+       HostState.WAITING_FOR_HOST_STATUS_UPDATES,
        HostEventType.HOST_HEARTBEAT_UNHEALTHY,
-       new HostBecameUnhealthyTransition())
+       new HostHeartbeatReceivedTransition())
 
    // Transitions from HEALTHY state
    // when a normal heartbeat is received
@@ -164,12 +162,16 @@ public class HostImpl implements Host {
        new HostHeartbeatReceivedTransition())
    // when a heartbeat is not received within the configured timeout period
    .addTransition(HostState.HEALTHY, HostState.HEARTBEAT_LOST,
-       HostEventType.HOST_HEARTBEAT_TIMED_OUT,
-       new HostHeartbeatTimedOutTransition())
+       HostEventType.HOST_HEARTBEAT_LOST,
+       new HostHeartbeatLostTransition())
    // when a heartbeart denoting host as unhealthy is received
    .addTransition(HostState.HEALTHY, HostState.UNHEALTHY,
        HostEventType.HOST_HEARTBEAT_UNHEALTHY,
        new HostBecameUnhealthyTransition())
+   // if a new registration request is received   
+   .addTransition(HostState.HEALTHY,
+       HostState.WAITING_FOR_HOST_STATUS_UPDATES,
+       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())       
 
    // Transitions from UNHEALTHY state
    // when a normal heartbeat is received
@@ -182,21 +184,22 @@ public class HostImpl implements Host {
        new HostHeartbeatReceivedTransition())
    // when a heartbeat is not received within the configured timeout period
    .addTransition(HostState.UNHEALTHY, HostState.HEARTBEAT_LOST,
-       HostEventType.HOST_HEARTBEAT_TIMED_OUT,
-       new HostHeartbeatTimedOutTransition())
+       HostEventType.HOST_HEARTBEAT_LOST,
+       new HostHeartbeatLostTransition())
+   // if a new registration request is received   
+   .addTransition(HostState.UNHEALTHY,
+       HostState.WAITING_FOR_HOST_STATUS_UPDATES,
+       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())       
 
    // Transitions from HEARTBEAT_LOST state
-   // when a normal heartbeat is received
-   .addTransition(HostState.HEARTBEAT_LOST, HostState.HEALTHY,
-       HostEventType.HOST_HEARTBEAT_HEALTHY,
-       new HostBecameHealthyTransition())
-   // when a heartbeart denoting host as unhealthy is received
-   .addTransition(HostState.HEARTBEAT_LOST, HostState.UNHEALTHY,
-       HostEventType.HOST_HEARTBEAT_UNHEALTHY,
-       new HostBecameUnhealthyTransition())
    // when a heartbeat is not received within the configured timeout period
    .addTransition(HostState.HEARTBEAT_LOST, HostState.HEARTBEAT_LOST,
-       HostEventType.HOST_HEARTBEAT_TIMED_OUT)
+       HostEventType.HOST_HEARTBEAT_LOST)
+   // if a new registration request is received   
+   .addTransition(HostState.HEARTBEAT_LOST,
+       HostState.WAITING_FOR_HOST_STATUS_UPDATES,
+       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())       
+       
    .installTopology();
 
   private final StateMachine<HostState, HostEventType, HostEvent> stateMachine;
@@ -223,12 +226,17 @@ public class HostImpl implements Host {
     }
   }
 
-  static class HostVerifiedTransition
+  static class HostStatusUpdatesReceivedTransition
       implements SingleArcTransition<HostImpl, HostEvent> {
 
     @Override
     public void transition(HostImpl host, HostEvent event) {
-      // TODO Auto-generated method stub
+      HostStatusUpdatesReceivedEvent e = (HostStatusUpdatesReceivedEvent)event;
+      // TODO Audit logs
+      LOG.debug("Host transition to host status updates received state"
+          + ", host=" + e.hostName
+          + ", heartbeatTime=" + e.getTimestamp());
+      host.getHealthStatus().setHealthStatus(HealthStatus.HEALTHY);
     }
   }
 
@@ -240,10 +248,12 @@ public class HostImpl implements Host {
       long heartbeatTime = 0;
       switch (event.getType()) {
         case HOST_HEARTBEAT_HEALTHY:
-          heartbeatTime = ((HostHealthyHeartbeatEvent)event).getHeartbeatTime();
+          heartbeatTime =
+            ((HostHealthyHeartbeatEvent)event).getHeartbeatTime();
           break;
         case HOST_HEARTBEAT_UNHEALTHY:
-          heartbeatTime = ((HostUnhealthyHeartbeatEvent)event).getHeartbeatTime();
+          heartbeatTime =
+            ((HostUnhealthyHeartbeatEvent)event).getHeartbeatTime();
           break;
         default:
           break;
@@ -263,7 +273,7 @@ public class HostImpl implements Host {
       HostHealthyHeartbeatEvent e = (HostHealthyHeartbeatEvent) event;
       host.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
-      LOG.info("Host transitioned to a healthy state"
+      LOG.debug("Host transitioned to a healthy state"
           + ", host=" + e.hostName
           + ", heartbeatTime=" + e.getHeartbeatTime());
       host.getHealthStatus().setHealthStatus(HealthStatus.HEALTHY);
@@ -278,7 +288,7 @@ public class HostImpl implements Host {
       HostUnhealthyHeartbeatEvent e = (HostUnhealthyHeartbeatEvent) event;
       host.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
-      LOG.info("Host transitioned to an unhealthy state"
+      LOG.debug("Host transitioned to an unhealthy state"
           + ", host=" + e.hostName
           + ", heartbeatTime=" + e.getHeartbeatTime()
           + ", healthStatus=" + e.getHealthStatus());
@@ -286,14 +296,14 @@ public class HostImpl implements Host {
     }
   }
 
-  static class HostHeartbeatTimedOutTransition
+  static class HostHeartbeatLostTransition
       implements SingleArcTransition<HostImpl, HostEvent> {
 
     @Override
     public void transition(HostImpl host, HostEvent event) {
-      HostHeartbeatTimedOutEvent e = (HostHeartbeatTimedOutEvent) event;
+      HostHeartbeatLostEvent e = (HostHeartbeatLostEvent) event;
       // TODO Audit logs
-      LOG.info("Host transitioned to heartbeat timed out state"
+      LOG.debug("Host transitioned to heartbeat lost state"
           + ", host=" + e.hostName
           + ", lastHeartbeatTime=" + host.getLastHeartbeatTime());
       host.getHealthStatus().setHealthStatus(HealthStatus.UNKNOWN);

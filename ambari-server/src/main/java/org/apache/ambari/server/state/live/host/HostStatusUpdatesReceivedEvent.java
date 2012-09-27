@@ -16,13 +16,25 @@
  * limitations under the License.
  */
 
-
 package org.apache.ambari.server.state.live.host;
 
-public class HostHeartbeatTimedOutEvent extends HostEvent {
+public class HostStatusUpdatesReceivedEvent extends HostEvent {
 
-  public HostHeartbeatTimedOutEvent(String hostName) {
-    super(hostName, HostEventType.HOST_HEARTBEAT_TIMED_OUT);
+  private final long timestamp;
+  
+  // TODO need to add any additional information required for verification
+  // tracking
+  public HostStatusUpdatesReceivedEvent(String hostName,
+      long timestamp) {
+    super(hostName, HostEventType.HOST_STATUS_UPDATES_RECEIVED);
+    this.timestamp = timestamp;
+  }
+
+  /**
+   * @return the timestamp
+   */
+  public long getTimestamp() {
+    return timestamp;
   }
 
 }
