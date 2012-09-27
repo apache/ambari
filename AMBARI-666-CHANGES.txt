@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-771. Add security between the server and agent and authentication for
+  the API. (mahadev)
+
   AMBARI-770. Cluster Management pages for Ambari Web. (yusaku)
 
   AMBARI-769. Implement step 9 (Install,start and test) of installer wizard.

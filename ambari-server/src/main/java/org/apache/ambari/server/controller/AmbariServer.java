@@ -28,6 +28,7 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.security.CertificateManager;
+import org.apache.ambari.server.security.SecurityFilter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Server;
@@ -52,8 +53,8 @@ import java.util.Map;
 public class AmbariServer {
   public static final String PERSISTENCE_PROVIDER = "ambari-postgres";
   private static Log LOG = LogFactory.getLog(AmbariServer.class);
-  public static int CLIENT_PORT = 4080;
-  public static int CLIENT_SECURED_PORT = 8443;
+  public static int CLIENT_ONE_WAY = 4080;
+  public static int CLIENT_TWO_WAY = 8443;
   private Server server = null;
   public volatile boolean running = true; // true while controller runs
 
@@ -71,7 +72,7 @@ public class AmbariServer {
   Injector injector;
 
   public void run() {
-    server = new Server(CLIENT_PORT);
+    server = new Server();
 
     try {
       ClassPathXmlApplicationContext parentSpringAppContext = new ClassPathXmlApplicationContext();
@@ -90,6 +91,7 @@ public class AmbariServer {
 
       webAppContext.getServletContext().setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, springWebAppContext);
 
+      
       server.setHandler(webAppContext);
 
       certMan.initRootCert();
@@ -99,26 +101,42 @@ public class AmbariServer {
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitOrder(1);
-
-
+    
+      root.addFilter(SecurityFilter.class, "/*", 1);
       //Secured connector for 2-way auth
-      SslSocketConnector sslConnector = new SslSocketConnector();
-      sslConnector.setPort(CLIENT_SECURED_PORT);
+      SslSocketConnector sslConnectorTwoWay = new SslSocketConnector();
+      sslConnectorTwoWay.setPort(CLIENT_TWO_WAY);
 
       Map<String, String> configsMap = configs.getConfigsMap();
       String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) + File.separator + configsMap.get(Configuration.KSTR_NAME_KEY);
       String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
 
-      sslConnector.setKeystore(keystore);
-      sslConnector.setTruststore(keystore);
-      sslConnector.setPassword(srvrCrtPass);
-      sslConnector.setKeyPassword(srvrCrtPass);
-      sslConnector.setTrustPassword(srvrCrtPass);
-      sslConnector.setKeystoreType("PKCS12");
-      sslConnector.setTruststoreType("PKCS12");
-      sslConnector.setNeedClientAuth(true);
+      sslConnectorTwoWay.setKeystore(keystore);
+      sslConnectorTwoWay.setTruststore(keystore);
+      sslConnectorTwoWay.setPassword(srvrCrtPass);
+      sslConnectorTwoWay.setKeyPassword(srvrCrtPass);
+      sslConnectorTwoWay.setTrustPassword(srvrCrtPass);
+      sslConnectorTwoWay.setKeystoreType("PKCS12");
+      sslConnectorTwoWay.setTruststoreType("PKCS12");
+      sslConnectorTwoWay.setNeedClientAuth(true);
+      
+      //Secured connector for 1-way auth
+      SslSocketConnector sslConnectorOneWay = new SslSocketConnector();
+      sslConnectorOneWay.setPort(CLIENT_ONE_WAY);
+      
+      sslConnectorOneWay.setKeystore(keystore);
+      sslConnectorOneWay.setTruststore(keystore);
+      sslConnectorOneWay.setPassword(srvrCrtPass);
+      sslConnectorOneWay.setKeyPassword(srvrCrtPass);
+      sslConnectorOneWay.setTrustPassword(srvrCrtPass);
+      sslConnectorOneWay.setKeystoreType("PKCS12");
+      sslConnectorOneWay.setTruststoreType("PKCS12");
+      sslConnectorOneWay.setNeedClientAuth(false);
+      
+      
 
-      server.addConnector(sslConnector);
+      server.addConnector(sslConnectorOneWay);
+      server.addConnector(sslConnectorTwoWay);
 
       ServletHolder sh = new ServletHolder(ServletContainer.class);
       sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
@@ -143,6 +161,14 @@ public class AmbariServer {
               "org.apache.ambari.server.security.unsecured.rest");
       root.addServlet(cert, "/cert/*");
       cert.setInitOrder(4);
+      
+      ServletHolder certs = new ServletHolder(ServletContainer.class);
+      certs.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
+        "com.sun.jersey.api.core.PackagesResourceConfig");
+      certs.setInitParameter("com.sun.jersey.config.property.packages",
+        "org.apache.ambari.server.security.unsecured.rest");
+      root.addServlet(cert, "/certs/*");
+      certs.setInitOrder(5);
 
       server.setStopAtShutdown(true);
 

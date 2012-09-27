@@ -2,10 +2,16 @@ package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Set;
 
+@IdClass(UserEntityPK.class)
 @javax.persistence.Table(name = "users", schema = "ambari", catalog = "")
 @Entity
+@NamedQueries({
+        @NamedQuery(name = "localUserByName", query = "SELECT user FROM UserEntity user where user.userName=:username AND user.ldapUser=false"),
+        @NamedQuery(name = "ldapUserByName", query = "SELECT user FROM UserEntity user where user.userName=:username AND user.ldapUser=true")
+})
 public class UserEntity {
 
   private String userName;
@@ -20,6 +26,18 @@ public class UserEntity {
     this.userName = userName;
   }
 
+  private Boolean ldapUser = false;
+
+  @javax.persistence.Column(name = "ldap_user")
+  @Id
+  public Boolean getLdapUser() {
+    return ldapUser;
+  }
+
+  public void setLdapUser(Boolean ldapUser) {
+    this.ldapUser = ldapUser;
+  }
+
   private String userPassword;
 
   @javax.persistence.Column(name = "user_password")
@@ -32,27 +50,16 @@ public class UserEntity {
     this.userPassword = userPassword;
   }
 
-  private Boolean ldapUser;
-
-  @javax.persistence.Column(name = "ldap_user")
-  @Basic
-  public Boolean getLdapUser() {
-    return ldapUser;
-  }
-
-  public void setLdapUser(Boolean ldapUser) {
-    this.ldapUser = ldapUser;
-  }
-
-  private Timestamp createTime;
+  private Date createTime = new Date();
 
   @javax.persistence.Column(name = "create_time")
   @Basic
-  public Timestamp getCreateTime() {
+  @Temporal(value = TemporalType.TIMESTAMP)
+  public Date getCreateTime() {
     return createTime;
   }
 
-  public void setCreateTime(Timestamp createTime) {
+  public void setCreateTime(Date createTime) {
     this.createTime = createTime;
   }
 
@@ -82,7 +89,10 @@ public class UserEntity {
 
   private Set<RoleEntity> roleEntities;
 
-  @javax.persistence.JoinTable(name = "user_roles", catalog = "", schema = "ambari", joinColumns = {@JoinColumn(name = "user_name")}, inverseJoinColumns = {@JoinColumn(name = "user_name")})
+  @javax.persistence.JoinTable(name = "user_roles", catalog = "", schema = "ambari",
+          joinColumns = {@JoinColumn(name = "user_name", referencedColumnName = "user_name"),
+                  @JoinColumn(name = "ldap_user", referencedColumnName = "ldap_user")},
+          inverseJoinColumns = {@JoinColumn(name = "role_name", referencedColumnName = "role_name")})
   @ManyToMany
   public Set<RoleEntity> getRoleEntities() {
     return roleEntities;

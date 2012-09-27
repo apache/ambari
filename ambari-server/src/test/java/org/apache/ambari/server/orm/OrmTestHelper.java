@@ -20,28 +20,33 @@ package org.apache.ambari.server.orm;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostStateEntity;
+import org.apache.ambari.server.orm.dao.RoleDAO;
+import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
+@Singleton
 public class OrmTestHelper {
 
   @Inject
-  EntityManager entityManager;
+  public Provider<EntityManager> entityManagerProvider;
   @Inject
-  Injector injector;
+  public Injector injector;
+  @Inject
+  public UserDAO userDAO;
+  @Inject
+  public RoleDAO roleDAO;
 
   public EntityManager getEntityManager() {
-    return entityManager;
+    return entityManagerProvider.get();
   }
 
   /**
@@ -91,13 +96,42 @@ public class OrmTestHelper {
     clusterServiceEntities.add(clusterServiceEntity);
     clusterEntity.setClusterServiceEntities(clusterServiceEntities);
 
+    getEntityManager().persist(host1);
+    getEntityManager().persist(host2);
+    getEntityManager().persist(clusterEntity);
+    getEntityManager().persist(hostStateEntity1);
+    getEntityManager().persist(hostStateEntity2);
+    getEntityManager().persist(clusterServiceEntity);
 
-    entityManager.persist(host1);
-    entityManager.persist(host2);
-    entityManager.persist(clusterEntity);
-    entityManager.persist(hostStateEntity1);
-    entityManager.persist(hostStateEntity2);
-    entityManager.persist(clusterServiceEntity);
+  }
+
+  @Transactional
+  public void createTestUsers() {
+    PasswordEncoder encoder = injector.getInstance(PasswordEncoder.class);
+
+    RoleEntity adminRole = new RoleEntity();
+    adminRole.setRoleName("admin");
+
+    UserEntity admin = new UserEntity();
+    admin.setUserName("administrator");
+    admin.setUserPassword(encoder.encode("admin"));
+
+    Set<RoleEntity> roles = new HashSet<RoleEntity>();
+    Set<UserEntity> users = new HashSet<UserEntity>();
+
+    roles.add(adminRole);
+    users.add(admin);
+
+    admin.setRoleEntities(roles);
+    adminRole.setUserEntities(users);
+
+    userDAO.create(admin);
+    roleDAO.create(adminRole);
+
+    UserEntity userWithoutRoles = new UserEntity();
+    userWithoutRoles.setUserName("userWithoutRoles");
+    userWithoutRoles.setUserPassword(encoder.encode("test"));
+    userDAO.create(userWithoutRoles);
 
   }
 
@@ -105,12 +139,12 @@ public class OrmTestHelper {
   public void performTransactionMarkedForRollback() {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     clusterDAO.removeByName("test_cluster1");
-    entityManager.getTransaction().setRollbackOnly();
+    getEntityManager().getTransaction().setRollbackOnly();
   }
 
   public int getClusterSizeByHostName(String hostName) {
 
-    Query query = entityManager.createQuery(
+    Query query = getEntityManager().createQuery(
             "SELECT host2 from HostEntity host join host.clusterEntity cluster join cluster.hostEntities host2 where host.hostName=:hostName");
     query.setParameter("hostName", hostName);
 

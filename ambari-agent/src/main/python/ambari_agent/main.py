@@ -31,6 +31,7 @@ from Controller import Controller
 from shell import getTempFiles
 from shell import killstaleprocesses 
 import AmbariConfig
+from security import CertificateManager
 
 logger = logging.getLogger()
 agentPid = os.getpid()
@@ -132,6 +133,13 @@ def main():
 
   killstaleprocesses()
   logger.info("Connecting to Server at: "+config.get('server', 'url'))
+
+
+  #Initiate security
+  
+  certMan = CertificateManager(config)
+  
+  certMan.initSecurity()
 
   # Launch Controller communication
   controller = Controller(config) 

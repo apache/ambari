@@ -28,6 +28,8 @@ import time
 import threading
 import urllib2
 from urllib2 import Request, urlopen, URLError
+import httplib
+import ssl
 import AmbariConfig
 import pprint
 from Heartbeat import Heartbeat
@@ -35,8 +37,10 @@ from Register import Register
 from ActionQueue import ActionQueue
 from optparse import OptionParser
 from wsgiref.simple_server import ServerHandler
+import security
 
 logger = logging.getLogger()
+
 
 class Controller(threading.Thread):
 
@@ -53,9 +57,9 @@ class Controller(threading.Thread):
     #                      'password' : config.get('controller', 'password')
     #  }
     self.hostname = socket.gethostname()
-    self.registerUrl = config.get('server', 'url') + \
+    self.registerUrl = config.get('server', 'secured_url') + \
       '/agent/register/' + self.hostname
-    self.heartbeatUrl = config.get('server', 'url') + \
+    self.heartbeatUrl = config.get('server', 'secured_url') + \
        '/agent/heartbeat/' + self.hostname
      
   def start(self):
@@ -80,7 +84,7 @@ class Controller(threading.Thread):
         data = json.dumps(self.register.build(id))
         req = urllib2.Request(self.registerUrl, data, {'Content-Type': 
                                                       'application/json'})
-        stream = urllib2.urlopen(req)
+        stream = security.secured_url_open(req)
         response = stream.read()
         stream.close()
         ret = json.loads(response)
@@ -103,8 +107,12 @@ class Controller(threading.Thread):
       try:
         if retry==False:
           data = json.dumps(self.heartbeat.build(id))
+
         req = urllib2.Request(self.heartbeatUrl, data, {'Content-Type': 'application/json'})
-        f = urllib2.urlopen(req)
+        
+        logger.info(data)
+        
+        f = security.secured_url_open(req)
         response = f.read()
         f.close()
         data = json.loads(response)

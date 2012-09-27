@@ -15,11 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.security;
+package org.apache.ambari.server.security.authorization;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -31,27 +32,34 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.ldap.userdetails.LdapUserDetailsService;
 
+import javax.persistence.NoResultException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AmbariUserDetailsService implements UserDetailsService {
-  private static final Logger log = LoggerFactory.getLogger(AmbariUserDetailsService.class);
+public class AmbariLocalUserDetailsService implements UserDetailsService {
+  private static final Logger log = LoggerFactory.getLogger(AmbariLocalUserDetailsService.class);
 
   Injector injector;
   Configuration configuration;
+  private AuthorizationHelper authorizationHelper;
   UserDAO userDAO;
-
+  RoleDAO roleDAO;
 
   @Inject
-  public AmbariUserDetailsService(Injector injector, Configuration configuration, UserDAO userDAO) {
+  public AmbariLocalUserDetailsService(Injector injector, Configuration configuration,
+                                       AuthorizationHelper authorizationHelper, UserDAO userDAO, RoleDAO roleDAO) {
     this.injector = injector;
     this.configuration = configuration;
+    this.authorizationHelper = authorizationHelper;
     this.userDAO = userDAO;
+    this.roleDAO = roleDAO;
   }
 
   /**
    * Loads Spring Security UserDetails from identity storage according to Configuration
+   *
    * @param username username
    * @return UserDetails
    * @throws UsernameNotFoundException when user not found or have empty roles
@@ -60,37 +68,18 @@ public class AmbariUserDetailsService implements UserDetailsService {
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     log.info("Loading user by name: " + username);
 
-    UserEntity user = null;
-    try {
-      user = userDAO.findByName(username);
-    } catch (Exception e) {
-      System.err.println(e);
-    }
-
-    if (isLdapEnabled() && (user == null || user.getLdapUser())) {
-      //TODO implement LDAP
-    }
+    UserEntity user = userDAO.findLocalUserByName(username);
 
     if (user == null) {
       log.info("user not found ");
       throw new UsernameNotFoundException("Username " + username + " not found");
-    }else if (user.getRoleEntities().isEmpty()) {
-      System.err.println("no roles ex");
+    } else if (user.getRoleEntities().isEmpty()) {
+      log.info("No authorities for user");
       throw new UsernameNotFoundException("Username " + username + " has no roles");
     }
 
-    List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>(user.getRoleEntities().size());
-
-    System.err.println("Authorities number = " + user.getRoleEntities().size());
-    for (RoleEntity roleEntity : user.getRoleEntities()) {
-      authorities.add(new SimpleGrantedAuthority(roleEntity.getRoleName().toUpperCase()));
-    }
-
-    return new User(user.getUserName(), user.getUserPassword(), authorities);
-  }
-
-  private boolean isLdapEnabled() {
-    return ClientSecurityType.fromString(configuration.getConfigsMap().get(Configuration.CLIENT_SECURITY_KEY)) == ClientSecurityType.LDAP;
+    return new User(user.getUserName(), user.getUserPassword(),
+            authorizationHelper.convertRolesToAuthorities(user.getRoleEntities()));
   }
 
 }

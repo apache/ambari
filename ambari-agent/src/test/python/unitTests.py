@@ -21,6 +21,8 @@ limitations under the License.
 import unittest
 import doctest
 
+
+
 class TestAgent(unittest.TestSuite):
   def run(self, result):
     run = unittest.TestSuite.run
@@ -34,8 +36,9 @@ def all_tests_suite():
     'TestServerStatus',
     'TestFileUtil',
     'TestActionQueue',
-    'TestAmbariComponent',
-    'TestAgentActions'
+    #'TestAmbariComponent',
+    'TestAgentActions',
+    'TestCertGeneration'
   ])
   return TestAgent([suite])
 
@@ -48,4 +51,6 @@ if __name__ == '__main__':
   import os
   import sys
   sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+  sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + os.sep + 'main' + os.sep + 'python')
+  sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent')
   main()

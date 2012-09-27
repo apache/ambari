@@ -29,11 +29,6 @@
       <outputDirectory>ambari-server-${project.version}/lib</outputDirectory>
     </file>
 
-    <file>
-      <source>${basedir}/src/main/resources/pass.txt</source>
-      <outputDirectory>/ambari-server-${project.version}</outputDirectory>
-    </file>
-
   </files>
   <fileSets>
     <!-- Distro files, readme, licenses, etc -->
@@ -54,6 +49,17 @@
       <fileMode>0755</fileMode>
     </fileSet>
     -->
+
+    <fileSet>
+      <directory>${basedir}/src/main/resources/</directory>
+      <outputDirectory>/ambari-server-${project.version}/keystore</outputDirectory>
+      <includes>
+        <include>db/*</include>
+        <include>ca.config</include>
+	<include>pass.txt</include>
+      </includes>
+    </fileSet>
+
   </fileSets>
   <dependencySets>
     <dependencySet>

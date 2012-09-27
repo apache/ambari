@@ -21,18 +21,44 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.orm.entities.UserEntityPK;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 
 public class UserDAO {
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
-  public UserEntity findByName(String userName) {
-    return entityManagerProvider.get().find(UserEntity.class, userName);
+  @Transactional
+  public UserEntity findByPK(UserEntityPK userPK) {
+    return entityManagerProvider.get().find(UserEntity.class, userPK);
   }
 
+  @Transactional
+  public UserEntity findLocalUserByName(String userName) {
+    TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("localUserByName", UserEntity.class);
+    query.setParameter("username", userName);
+    try {
+      return query.getSingleResult();
+    } catch (NoResultException e) {
+      return null;
+    }
+  }
+
+  public UserEntity findLdapUserByName(String userName) {
+    TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("ldapUserByName", UserEntity.class);
+    query.setParameter("username", userName);
+    try {
+      return query.getSingleResult();
+    } catch (NoResultException e) {
+      return null;
+    }
+  }
+
+  @Transactional
   public void create(UserEntity userName) {
     entityManagerProvider.get().persist(userName);
   }
@@ -48,8 +74,8 @@ public class UserDAO {
   }
 
   @Transactional
-  public void removeByName(String userName) {
-    remove(findByName(userName));
+  public void removeByPK(UserEntityPK userPK) {
+    remove(findByPK(userPK));
   }
 
 }

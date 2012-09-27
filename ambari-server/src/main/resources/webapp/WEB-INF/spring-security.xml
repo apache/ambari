@@ -23,8 +23,7 @@
                     http://www.springframework.org/schema/security/spring-security-3.1.xsd">
 
   <http use-expressions="true" auto-config="true"
-        disable-url-rewriting="true"
-          >
+        disable-url-rewriting="true">
     <http-basic/>
     <intercept-url pattern="/api/*" access="hasRole('ADMIN')"/>
     <intercept-url pattern="/**" access="isAuthenticated()"/>
@@ -34,19 +33,30 @@
 
   <authentication-manager>
 
-    <authentication-provider user-service-ref="ambariUserService">
-
+    <authentication-provider user-service-ref="ambariLocalUserService">
+      <password-encoder ref="passwordEncoder"/>
     </authentication-provider>
+
+    <authentication-provider ref="ambariLdapAuthenticationProvider"/>
 
   </authentication-manager>
 
-  <beans:bean id="ambariUserService"
-              class="org.springframework.security.core.userdetails.UserDetailsService"
+  <beans:bean id="ambariLocalUserService"
+              class="org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService"
               factory-bean="guiceInjector"
-              factory-method="getInstance"
-              lazy-init="true">
-    <beans:constructor-arg type="java.lang.Class" value="org.apache.ambari.server.security.AmbariUserDetailsService"/>
+              factory-method="getInstance">
+    <beans:constructor-arg type="java.lang.Class"
+                           value="org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService"/>
   </beans:bean>
 
+  <beans:bean id="ambariLdapAuthenticationProvider"
+              class="org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider"
+              factory-bean="guiceInjector"
+              factory-method="getInstance">
+    <beans:constructor-arg type="java.lang.Class"
+                           value="org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider"/>
+  </beans:bean>
 
+  <beans:bean id="passwordEncoder"
+              class="org.springframework.security.crypto.password.StandardPasswordEncoder"/>
 </beans:beans>

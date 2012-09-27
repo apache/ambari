@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
+import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 
 import com.google.inject.AbstractModule;
 
@@ -31,5 +32,6 @@ public class ControllerModule extends AbstractModule {
   protected void configure() {
     requestStaticInjection(AgentResource.class);
     requestStaticInjection(CertificateDownload.class);
+    requestStaticInjection(CertificateSign.class);
   }
 }

@@ -33,6 +33,7 @@ public class RoleDAO {
     return entityManagerProvider.get().find(RoleEntity.class, roleName);
   }
 
+  @Transactional
   public void create(RoleEntity roleName) {
     entityManagerProvider.get().persist(roleName);
   }

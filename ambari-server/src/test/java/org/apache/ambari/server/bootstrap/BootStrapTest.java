@@ -63,6 +63,7 @@ public class BootStrapTest extends TestCase {
     properties.setProperty(Configuration.BOOTSTRAP_DIR, 
        bootdir);
     properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, "echo");
+    properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, "target" + File.separator + "classes");
     Configuration conf = new Configuration(properties);
     BootStrapImpl impl = new BootStrapImpl(conf);
     impl.init();

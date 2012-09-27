@@ -15,35 +15,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.security.unsecured.rest;
+
+package org.apache.ambari.server.security;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
-import org.apache.ambari.server.security.CertificateManager;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+/**
+ *
+ * Sign certificate request data model.
+ *
+ */
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "", propOrder = {})
+public class SignMessage {
 
-import com.google.inject.Inject;
-
-@Path("/ca")
-public class CertificateDownload {
-  private static Log LOG = LogFactory.getLog(CertificateDownload.class);
-  private static CertificateManager certMan;
-  
-  @Inject
-  static void init(CertificateManager instance) {
-    certMan = instance;
+  @XmlElement
+  private String csr;
+  @XmlElement
+  private String passphrase;
+  public String getCsr() {
+    return csr;
   }
-  
-  @GET
-  @Produces({MediaType.TEXT_PLAIN})
-  public String downloadSrvrCrt() {
-    return certMan.getServerCert();
+  public void setCsr(String csr) {
+    this.csr = csr;
   }
-  
-  
+  public String getPassphrase() {
+    return passphrase;
+  }
+  public void setPassphrase(String passphrase) {
+    this.passphrase = passphrase;
+  }
 }
+

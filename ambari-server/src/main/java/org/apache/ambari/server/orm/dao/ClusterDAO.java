@@ -37,6 +37,7 @@ public class ClusterDAO {
     return entityManagerProvider.get().find(ClusterEntity.class, clusterName);
   }
 
+  @Transactional
   public void create(ClusterEntity clusterEntity) {
     entityManagerProvider.get().persist(clusterEntity);
   }
