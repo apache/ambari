@@ -15,8 +15,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-
-        <!--Monitoring and managing services -->
-<h2>Main Application</h2>
-{{view App.MainMenuView }}
+<div id="main-nav">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <a class="brand" href="#">My Cluster</a>
+      {{view App.MainMenuView}}
+    </div>
+  </div>
+</div>
 {{outlet}}

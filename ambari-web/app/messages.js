@@ -39,8 +39,10 @@ Em.I18n.translations = {
 
   'topnav.help.href': 'http://incubator.apache.org/ambari/install.html',
 
-  'installer.step1.header': 'Ambari Cluster Install Wizard',
-  'installer.step1.body': 'Welcome to Apache Ambari!<br>' +
+  'installer.header': 'Cluster Install Wizard',
+  'installer.step1.header': 'Welcome',
+  'installer.step1.body.header': 'Welcome to Apache Ambari!',
+  'installer.step1.body':
     'Ambari makes it easy to install, manage, and monitor Hadoop clusters.<br>' +
     'We will walk you through the cluster installation process with this step-by-step wizard.',
   'installer.step1.clusterName': 'Name your cluster',

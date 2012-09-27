@@ -24,10 +24,9 @@ var App = require('app');
  */
 App.MainMenuView = Em.CollectionView.extend({
   tagName: 'ul',
-  classNames: ["nav", "nav-tabs"],
+  classNames: ['nav'],
   content:[
-    { label:'My Cluster', routing:'cluster'},
-    { label:'Dashboard', routing:'dashboard', active:"active"},
+    { label:'Dashboard', routing:'dashboard', active:'active'},
     { label:'Charts', routing:'charts'},
     { label:'Services', routing:'services'},
     { label:'Hosts', routing:'hosts'},
@@ -41,13 +40,16 @@ App.MainMenuView = Em.CollectionView.extend({
   },
 
   itemViewClass: Em.View.extend({
-    classNameBindings: ["active"],
-    active: "",
+
+    classNameBindings: ['active', ':span2'],
+    active: '',
+
     alertsCount: function() {
       if(this.get('content').routing == 'dashboard'){
         return App.router.get('mainDashboardController.alertsCount');
       }
     }.property(),
-    template: Ember.Handlebars.compile('<a {{action navigate view.content}} href="#"> {{unbound view.content.label}}{{#if view.alertsCount}}<span class="label label-important alerts-count">{{view.alertsCount}}</span>{{/if}}</a>')
+
+    template: Ember.Handlebars.compile('<a {{action navigate view.content}} href="#">{{unbound view.content.label}}{{#if view.alertsCount}}<span class="label label-important alerts-count">{{view.alertsCount}}</span>{{/if}}</a>')
   })
 });

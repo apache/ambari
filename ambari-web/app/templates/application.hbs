@@ -15,27 +15,30 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
+
 <div id="main">
+  <div id="top-nav">
     <div class="navbar navbar-static-top">
-        <div class="navbar-inner">
-            <div class="container">
-                <a {{action gotoStep1}}><img id="logo" src="/img/logo-small.gif"></a>
-                <a class="brand" href="#">{{t app.name}}</a>
-                <ul class="nav">
-                    <li class="right"><a class="help" {{translateAttr href="topnav.help.href"}} target="_blank">Help</a></li>
-                    {{#if App.router.loggedIn}}
-                    <li class="right"><a class="help" href="" {{action logoff}}>Sign out</a></li>
-                    {{/if}}
-                    <li class="right">{{loginName}}</li>
-                </ul>
-            </div>
+      <div class="navbar-inner">
+        <div class="container">
+          <a {{action gotoStep1}}><img id="logo" src="/img/logo-small.gif"></a>
+          <a class="brand" href="#">{{t app.name}}</a>
+          <ul class="nav">
+            <li class="right"><a class="help" {{translateAttr href="topnav.help.href"}} target="_blank">Help</a></li>
+            {{#if App.router.loggedIn}}
+            <li class="right"><a class="help" href="" {{action logoff}}>Sign out</a></li>
+            {{/if}}
+            <li class="right">{{loginName}}</li>
+          </ul>
         </div>
+      </div>
     </div>
-    <div class="container">
-        <div id="content">
-            {{outlet}}
-        </div>
+  </div>
+  <div class="container">
+    <div id="content">
+      {{outlet}}
     </div>
+  </div>
 </div>
 
 

@@ -24,6 +24,7 @@
           <!--Sidebar content-->
           <div class="well">
             <ul class="nav nav-pills nav-stacked">
+              <li class="nav-header">{{t installer.header}}</li>
               <li {{bindAttr class="isStep1:active"}}><a {{action gotoStep1}}>{{t installer.step1.header}}</a></li>
               <li {{bindAttr class="isStep2:active"}}><a {{action gotoStep2}}>{{t installer.step2.header}}</a></li>
               <li {{bindAttr class="isStep3:active"}}><a {{action gotoStep3}}>{{t installer.step3.header}}</a></li>

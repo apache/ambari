@@ -17,32 +17,122 @@
  */
 
 html, body {
-    height: 100%;
+  height: 100%;
 }
 
 #wrapper {
-    min-height: 100%;
+  min-height: 100%;
 }
 
 @footer-height: 100px;
 
 #main {
-    overflow: auto;
-    padding-bottom: @footer-height;
+  overflow: auto;
+  padding-bottom: @footer-height;
 }
 
 footer {
-    position: relative;
-    border-top: 1px solid #e5e5e5;
-    padding: 30px 0;
-    background-color: #fff;
-    color: #666666;
-    margin-top: -1 * @footer-height;
-    height: @footer-height - 60px;
+  position: relative;
+  border-top: 1px solid #e5e5e5;
+  padding: 30px 0;
+  background-color: #fff;
+  color: #666666;
+  margin-top: -1 * @footer-height;
+  height: @footer-height - 60px;
 }
 
 #content {
-    padding: 40px 0;
+  padding: 40px 0;
+}
+
+#top-nav {
+  .navbar {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  .navbar .brand {
+    color: #666666;
+    display: block;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 1;
+    margin-left: 0;
+    margin-right: 40px;
+    margin-top: 3px;
+    padding: 14px 10px;
+  }
+/*
+  .navbar-inner {
+      background: linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+      background: -moz-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+      background: -webkit-linear-gradient(#FAFAFA, #EAEAEA) repeat scroll 0 0 transparent;
+      border-radius: 0;
+      border: 1px solid #bbb;
+      border-width: 0 0 1px 0;
+  }
+*/
+  .navbar .nav {
+    float: none;
+    overflow: hidden;
+  }
+
+  .navbar .nav .active > a, .navbar .nav .active > a:hover {
+  /*background-color: #999999;*/
+    color: #FFFFFF;
+    text-decoration: none;
+  }
+
+  .navbar .nav > li > a {
+    border-radius: 8px;
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 19px;
+    margin: 6px 10px 6px 0;
+    padding: 8px 14px;
+    text-decoration: none;
+    text-shadow: none;
+  }
+
+  .navbar .nav > li > a:hover {
+    background-color: transparent;
+    color: #999999;
+    text-decoration: none;
+  }
+
+  .navbar .brand {
+    margin-right: 40px;
+  }
+
+  .navbar #logo {
+    float: left;
+    padding-top: 7px;
+    height: 36px;
+  }
+
+  .navbar .nav > li.right {
+    float: right;
+  }
+}
+
+#main-nav {
+  .brand {
+    font-size: 17px;
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  li {
+    font-size: 15px;
+    border-left: 1px solid #fefefe;
+    border-right: 1px solid #f0f0f0;
+    text-align: center;
+  }
+  li.span2 {
+    padding: 0;
+    margin: 0;
+  }
+
+  margin-bottom:40px;
 }
 
 @green: #69BE28;
@@ -52,82 +142,86 @@ h1 {
 }
 
 .login.well.span4 {
-    margin: 20px auto;
-    padding: 25px;
-    float: none;
+  margin: 20px auto;
+  padding: 25px;
+  float: none;
 }
 
 .login {
-    h2 {
-        margin-top: 0;
-        margin-bottom: 20px;
-    }
-    .btn {
-        margin-top: 15px;
-    }
+  h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+  .btn {
+    margin-top: 15px;
+  }
 }
 
 #installer {
-    h2 {
-        margin-top: 0;
-    }
-    .btn.btn-success {
-        /* float: right; */
-    }
-    .btn-area {
-        margin-top: 20px;
-    }
-    #installer-content {
-        padding: 25px;
-        background-color: #fff;
+  h2 {
+    margin-top: 0;
+  }
+  .btn.btn-success {
+  /* float: right; */
+  }
+  .btn-area {
+    margin-top: 20px;
+  }
+  #installer-content {
+    padding: 25px;
+    background-color: #fff;
 
+  }
+  .nav-header {
+    font-size: 13px;
+    padding-left: 0;
+  }
+  #step4, #step6 {
+    a.selected {
+      color: #333;
     }
-    #step4, #step6 {
-        a.selected {
-            color: #333;
-        }
-        a.deselected {
-        }
+    a.deselected {
     }
-    #serviceConfig {
-        .accordion-heading {
-            background-color: #f0f0f0;
-        }
-        .accordion-group {
-            margin-bottom: 20px;
-            .control-group {
-                margin: 10px 0;
-            }
-            form {
-                margin-bottom: 0;
-            }
-        }
-        .badge {
-            margin-left: 4px;
-        }
-        .add-slave-component-group {
-            margin-bottom: 20px;
-        }
-        .master-host, .master-hosts, .slave-hosts {
-            padding-top: 5px;
-            line-height: 20px;
-        }
-        #attention {
-            margin: 20px 0;
-        }
-        .retyped-password {
-            margin-left: 14px;
-        }
-        #slave-hosts-popup {
-            ul {
-                list-style-type: none;
-            }
-        }
+  }
+  #serviceConfig {
+    .accordion-heading {
+      background-color: #f0f0f0;
     }
+    .accordion-group {
+      margin-bottom: 20px;
+      .control-group {
+        margin: 10px 0;
+      }
+      form {
+        margin-bottom: 0;
+      }
+    }
+    .badge {
+      margin-left: 4px;
+    }
+    .add-slave-component-group {
+      margin-bottom: 20px;
+    }
+    .master-host, .master-hosts, .slave-hosts {
+      padding-top: 5px;
+      line-height: 20px;
+    }
+    #attention {
+      margin: 20px 0;
+    }
+    .retyped-password {
+      margin-left: 14px;
+    }
+    #slave-hosts-popup {
+      ul {
+        list-style-type: none;
+      }
+    }
+  }
 }
 
 a:focus {
-    outline: none;
+  outline: none;
 }
 
 @status-live-marker: url("../img/health-status-live.png");
@@ -153,7 +247,6 @@ a:focus {
   }
 }
 
-
 /*Services*/
 .nav-tabs {
   .tab-marker-position {
@@ -171,10 +264,12 @@ a:focus {
     background-image: @status-dead-marker;
   }
 }
+
 .nav-pills.move {
   float: right;
   margin-top: -48px;
 }
+
 /*End Services*/
 
 /*Hosts*/
@@ -186,64 +281,66 @@ a:focus {
     background-image: @status-dead-marker;
   }
 }
+
 #host-details {
   .health-status-LIVE {
     background-image: @status-live-marker;
-    background-repeat:no-repeat;
+    background-repeat: no-repeat;
     background-position: 0px 4px;
   }
   .health-status-DEAD {
     background-image: @status-dead-marker;
-    background-repeat:no-repeat;
+    background-repeat: no-repeat;
     background-position: 0px 4px;
   }
 }
+
 /*End Hosts*/
 
 /*assign masters*/
 
 .assign-masters {
-  .select-hosts{
-    width:50%;
-    float:left;
-    white-space:nowrap;
+  .select-hosts {
+    width: 50%;
+    float: left;
+    white-space: nowrap;
   }
 
-  .round-corners{
+  .round-corners {
     border-radius: 8px;
     -webkit-border-radius: 8px;
     -moz-border-radius: 8px;
   }
 
-  .host-assignments{
-    float:right;
-    width:45%;
+  .host-assignments {
+    float: right;
+    width: 45%;
   }
 
-  .remaining-hosts{
-    padding:25px;
-    border-top:solid 1px #cccccc;
-    border-left:solid 1px #cccccc;
-    border-right:groove 5px #cccccc;
-    border-bottom:groove 5px #cccccc;
-    margin-top:20px;
+  .remaining-hosts {
+    padding: 25px;
+    border-top: solid 1px #cccccc;
+    border-left: solid 1px #cccccc;
+    border-right: groove 5px #cccccc;
+    border-bottom: groove 5px #cccccc;
+    margin-top: 20px;
     background-color: #FCF8E3;
     color: #C09853;
   }
 
-  .host-assignments .mapping-box{
-    border:solid 1px #cccccc;
+  .host-assignments .mapping-box {
+    border: solid 1px #cccccc;
     padding: 8px;
-    margin-bottom:10px;
+    margin-bottom: 10px;
     background-color: #FFFAFA;
   }
 
-  .host-assignments .assignedService{
-    padding:5px;
-    border:solid 1px #cccccc;
-    margin:2px;
+  .host-assignments .assignedService {
+    padding: 5px;
+    border: solid 1px #cccccc;
+    margin: 2px;
     background-color: #69BE28;
-    color:white;
+    color: white;
     white-space: nowrap;
     font-size: 0.9em;
   }
@@ -253,20 +350,20 @@ a:focus {
   }
 
   .form-horizontal .control-label {
-    width:100px;
+    width: 100px;
   }
 
   .form-horizontal .control-group select {
-    width:75%;
-    min-width:100px;
-    max-width:250px;
+    width: 75%;
+    min-width: 100px;
+    max-width: 250px;
   }
 
-  .hostString{
+  .hostString {
     margin-bottom: 5px;
   }
 
-  .controls .badge{
+  .controls .badge {
     background-color: #ADC299;
     color: #ffffff;
     cursor: pointer;
@@ -274,11 +371,11 @@ a:focus {
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   }
 
-  .assign-master  .controls .badge:hover{
+  .assign-master  .controls .badge:hover {
     background-color: #99B280;
   }
 
-  .alertFlag{
+  .alertFlag {
     font-size: 1.3em;
     color: #B94A48;
     font-weight: bold;

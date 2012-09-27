@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-772. Stylize main nav. (yusaku)
+
   AMBARI-771. Add security between the server and agent and authentication for
   the API. (mahadev)
 
