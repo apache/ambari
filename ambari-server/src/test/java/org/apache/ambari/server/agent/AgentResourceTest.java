@@ -19,7 +19,8 @@
 package org.apache.ambari.server.agent;
 
 import static org.mockito.Mockito.mock;
-
+import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
 import javax.ws.rs.core.MediaType;
 
 import junit.framework.Assert;
@@ -56,13 +57,24 @@ public class AgentResourceTest extends JerseyTest {
   }
   
   public class MockModule extends AbstractModule {
-
+    
+    RegistrationResponse response = new RegistrationResponse();
+    HeartBeatResponse hresponse = new HeartBeatResponse();
+    
     @Override
     protected void configure() {
+      handler = mock(HeartBeatHandler.class);
+      response.setResponseStatus(RegistrationStatus.OK);
+      hresponse.setResponseId(0L);
+      when(handler.handleRegistration(any(Register.class))).thenReturn(
+          response);
+      when(handler.handleHeartBeat(any(HeartBeat.class))).thenReturn(hresponse);
       requestStaticInjection(AgentResource.class);
       bind(Clusters.class).to(ClustersImpl.class);
       actionManager = mock(ActionManager.class);
       bind(ActionManager.class).toInstance(actionManager);
+      bind(AgentCommand.class).to(ExecutionCommand.class);
+      bind(HeartBeatHandler.class).toInstance(handler);
     }    
   }
   
@@ -90,7 +102,7 @@ public class AgentResourceTest extends JerseyTest {
     return json;
   }
   
-  //@Test
+  @Test
   public void agentRegistration() throws UniformInterfaceException, JSONException {
     RegistrationResponse response;
     WebResource webResource = resource();
@@ -100,7 +112,7 @@ public class AgentResourceTest extends JerseyTest {
     Assert.assertEquals(response.getResponseStatus(), RegistrationStatus.OK);
   }
   
-  //@Test
+  @Test
   public void agentHeartBeat() throws UniformInterfaceException, JSONException {
     HeartBeatResponse response;
     WebResource resource = resource();

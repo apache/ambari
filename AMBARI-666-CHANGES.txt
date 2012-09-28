@@ -171,6 +171,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-774. Renable and fix AgentResourceTest. (mahadev) 
+
   AMBARI-773. Change Host FSM as per new requirements of heartbeat handler. (hitesh)
 
   AMBARI-761. Fix broken build for adding guice servlet dependency. (mahadev)
