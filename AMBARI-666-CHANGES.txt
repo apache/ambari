@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-776. Puppet scripts for all the modules to install/configure the
+  stack. (mahadev)
+
   AMBARI-756. Heartbeat handler: Handle heartbeat timeout. (jitendra)
 
   AMBARI-772. Stylize main nav. (yusaku)

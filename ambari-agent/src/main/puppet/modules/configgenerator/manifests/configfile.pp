@@ -34,21 +34,28 @@
 #   </property>
 # </configuration>
 #
+# Params:
+# - configname - name of the config file (class title by default)
+# - modulespath - modules path ('/etc/puppet/modules' by default)
+# - module - module name
+# - properties - set of the key-value pairs (puppet hash) which corresponds to property name - property value pairs of config file
+#
+# Note: Set correct $modulespath in the configgenerator (or pass it as parameter)
+#
 
-define configgenerator::configfile ($configname=$title, $module, $properties) {
-    $configcontent => inline_template( "
-	  <configuration>
-	  <% properties.each do |key,value| -%>
-     <property>
-	  <name><%=key %></name><value><%=value %></value>
-     </property>
-	  <% end -%>
-	  </configuration>
-	")
+define configgenerator::configfile ($configname=$title, $modulespath='/etc/puppet/modules', $module, $properties) {
+  $configcontent = inline_template('<configuration>
+  <% properties.each do |key,value| -%>
+  <property>
+    <name><%=key %></name>
+    <value><%=value %></value>
+  </property>
+  <% end -%>
+</configuration>')
  
-	file {'config':
-       ensure  => present,
-       content => $configcontent,
-		path => "/etc/puppet/agent/modules/${module}/templates/${configname}",
-     }
-	) 
+file {'config':
+  ensure  => present,
+  content => $configcontent,
+  path => "${modulespath}/${module}/templates/${configname}",
+}
+} 

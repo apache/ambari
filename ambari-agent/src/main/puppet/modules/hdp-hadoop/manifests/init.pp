@@ -37,23 +37,45 @@ class hdp-hadoop::initialize()
   }
   hdp-hadoop::common { 'common':}
   anchor{'hdp-hadoop::initialize::begin':} -> Hdp-hadoop::Common['common'] -> anchor{'hdp-hadoop::initialize::end':}
+
+#Configs generation  
+  include manifestloader
+
+  configgenerator::configfile{'hdfs-site.xml': 
+    module => 'hdp-hadoop',
+    properties => $manifestloader::hdp_hadoop_hdfs_site_props
+  }
+
+  configgenerator::configfile{'capacity-scheduler.xml': 
+    module => 'hdp-hadoop',
+    properties => $manifestloader::hdp_hadoop_capacity_scheduler_props
+  }
+
+  configgenerator::configfile{'mapred-site.xml': 
+    module => 'hdp-hadoop',
+    properties => $manifestloader::hdp_hadoop_mapred_site_props
+  }
+      
+  configgenerator::configfile{'core-site.xml': 
+    module => 'hdp-hadoop',
+    properties => $manifestloader::hdp_hadoop_core_site_props
+  }
+      
+  configgenerator::configfile{'hadoop-policy.xml': 
+    module => 'hdp-hadoop',
+    properties => $manifestloader::hdp_hadoop_policy_props
+  }
+      
+  configgenerator::configfile{'mapred-queue-acls.xml.erb': 
+    module => 'hdp-hadoop',
+    properties => $manifestloader::hdp_hadoop_mapred_queue_acls_props
+  }
 }
 
 class hdp-hadoop(
   $service_states  = []
 )
 {
-  include configgenerator
-
-  configgenerator::configfile('hdfs-site.xml': 
-    module => 'hdp-hadoop',
-    properties => {'dfs.name.dir' => '<%=scope.function_hdp_template_var("dfs_name_dir")%>',
-      'dfs.support.append' => '<%=scope.function_hdp_template_var("dfs_support_append")%>',
-      'dfs.webhdfs.enabled' => '<%=scope.function_hdp_template_var("dfs_webhdfs_enabled")%>',
-      'dfs.datanode.failed.volumes.tolerated' => '<%=scope.function_hdp_template_var("dfs_datanode_failed_volume_tolerated")%>',
-      'dfs.block.local-path-access.user' => '<%=scope.function_hdp_template_var("dfs_block_local_path_access_user")%>',
-      'dfs.data.dir' => '<%=scope.function_hdp_template_var("dfs_data_dir")%>'},)
-  
   include hdp-hadoop::params
   $hadoop_config_dir = $hdp-hadoop::params::conf_dir
   $mapred_user = $hdp-hadoop::params::mapred_user  
