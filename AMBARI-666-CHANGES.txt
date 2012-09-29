@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-777. Add NOTICE file for copyright of stdlib from puppetlabs.
+  (mahadev)
+
   AMBARI-776. Puppet scripts for all the modules to install/configure the
   stack. (mahadev)
 

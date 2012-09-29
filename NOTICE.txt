@@ -1,0 +1,11 @@
+Apache [2012]
+Copyright [2012] The Apache Software Foundation
+
+This product includes software developed by The Apache Software
+Foundation (http://www.apache.org/).
+
+Component stdlib in puppet modules are under the following copyright: 
+Copyright (C) 2011 Puppet Labs Inc
+and some parts:
+Copyright (C) 2011 Krzysztof Wilczynski
+
