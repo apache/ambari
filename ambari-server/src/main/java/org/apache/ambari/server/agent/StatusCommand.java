@@ -42,6 +42,8 @@ public class StatusCommand extends AgentCommand {
   @XmlElement
   List<String> roles;
 
+  @XmlElement
+  private String clusterName;
   
   public List<String> getRoles() {
     return roles;

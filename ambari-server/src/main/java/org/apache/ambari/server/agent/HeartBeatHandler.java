@@ -20,8 +20,18 @@ package org.apache.ambari.server.agent;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.live.Cluster;
 import org.apache.ambari.server.state.live.Clusters;
+import org.apache.ambari.server.state.live.host.Host;
+import org.apache.ambari.server.state.live.host.HostEvent;
+import org.apache.ambari.server.state.live.host.HostEventType;
+import org.apache.ambari.server.state.live.host.HostState;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHost;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostLiveState;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostState;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -51,19 +61,18 @@ public class HeartBeatHandler {
     heartbeatMonitor.start();
   }
   
-  public HeartBeatResponse handleHeartBeat(HeartBeat heartbeat) {
+  public HeartBeatResponse handleHeartBeat(HeartBeat heartbeat) throws AmbariException {
 
     HeartBeatResponse response = new HeartBeatResponse();
-    response.setClusterId("test");
     response.setResponseId(0L);
-    List<String> clusterNames = clusterFsm.getClusters(heartbeat.getHostname()); 
+    String hostname = heartbeat.getHostname();
+    Host hostObject = clusterFsm.getHost(hostname);
     try {
-      clusterFsm.handleHeartbeat(heartbeat.getHostname(),
-          heartbeat.getTimestamp());
-    } catch (Exception ex) {
-      // Unexpected heartbeat, reset to init state
-      // send registration command
-      clusterFsm.updateStatus(heartbeat.getHostname(), "GO_TO_INIT");
+      // TODO: handle unhealthy heartbeat as well
+      hostObject.handleEvent(new HostEvent(hostname,
+          HostEventType.HOST_HEARTBEAT_HEALTHY));
+    } catch (InvalidStateTransitonException ex) {
+      hostObject.setState(HostState.INIT);
       RegistrationCommand regCmd = new RegistrationCommand();
       List<AgentCommand> cmds = new ArrayList<AgentCommand>();
       cmds.add(regCmd);
@@ -71,34 +80,46 @@ public class HeartBeatHandler {
       return response;
     }
 
-    // Examine heartbeat for command reports
+    //Examine heartbeat for command reports
     List<CommandReport> reports = heartbeat.getCommandReports();
-    actionManager.actionResponse(heartbeat.getHostname(), reports);
+    actionManager.actionResponse(hostname, reports);
 
     // Examine heartbeart for component status
-    for (ComponentStatus status : heartbeat.componentStatus) {
-      clusterFsm.updateStatus(heartbeat.getHostname(), status.status);
+    List<Cluster> clusters = clusterFsm.getClusters(hostname);
+    for (Cluster cl : clusters) {
+      for (ComponentStatus status : heartbeat.componentStatus) {
+        if (status.getClusterName() == cl.getClusterName()) {
+          ServiceComponentHost scHost = cl.getServiceComponentHost(
+              status.getServiceName(), status.getComponentName(), hostname);
+          ServiceComponentHostState currentState = scHost.getState();
+          ServiceComponentHostLiveState liveState = ServiceComponentHostLiveState
+              .valueOf(ServiceComponentHostLiveState.class, status.getStatus());
+          // Hack
+          scHost.setState(new ServiceComponentHostState(currentState
+              .getConfigVersion(), currentState.getStackVersion(), liveState));
+        }
+      }
     }
-    
-    //TODO: Check if heartbeat is unhealthy
 
-    //Send commands if node is active
-    if (clusterFsm.isNodeActive(heartbeat.getHostname())) {
+    // Send commands if node is active
+    if (hostObject.getState().equals(HostState.HEALTHY)) {
       List<AgentCommand> cmds = actionQueue.dequeueAll(heartbeat.getHostname());
       response.setAgentCommands(cmds);
     }
     return response;
   }
   
-  public RegistrationResponse handleRegistration(Register register) {
-    List<String> roles = clusterFsm.getHostComponents(register.getHostname());
-    try {
-      clusterFsm.handleRegistration(register.getHostname());
-    } catch (Exception ex) {
-      //Go to status check state
-      clusterFsm.updateStatus(register.getHostname(), "GO TO STATUS CHECK");
-    }
+  public RegistrationResponse handleRegistration(Register register)
+      throws InvalidStateTransitonException, AmbariException {
+    String hostname = register.getHostname();
+    List<String> roles = clusterFsm.getHostComponents(hostname);
+    Host hostObject = clusterFsm.getHost(hostname);
     RegistrationResponse response = new RegistrationResponse();
+    StatusCommand statusCmd = new StatusCommand();
+    statusCmd.setRoles(roles);
+    response.setCommand(statusCmd);
+    hostObject.handleEvent(new HostEvent(hostname,
+        HostEventType.HOST_REGISTRATION_REQUEST));
     return response;
   }
 }

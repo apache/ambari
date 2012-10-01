@@ -24,7 +24,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.state.live.host.HostState;
+import org.apache.ambari.server.state.live.host.Host;
 
 public class ClustersImpl implements Clusters {
 
@@ -68,21 +68,9 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public HostState getHostState(String host) {
+  public List<Host> getAllHosts() {
     // TODO Auto-generated method stub
     return null;
-  }
-
-  @Override
-  public List<String> getAllHosts() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public boolean isNodeActive(String hostname) {
-    // TODO Auto-generated method stub
-    return false;
   }
 
   @Override
@@ -98,7 +86,13 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public List<String> getClusters(String hostname) {
+  public List<Cluster> getClusters(String hostname) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Host getHost(String host) throws AmbariException {
     // TODO Auto-generated method stub
     return null;
   }

@@ -25,6 +25,8 @@ import java.util.List;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.state.live.Clusters;
+import org.apache.ambari.server.state.live.host.Host;
+import org.apache.ambari.server.state.live.host.HostEvent;
 import org.apache.ambari.server.state.live.host.HostState;
 import org.junit.Test;
 
@@ -36,10 +38,13 @@ public class TestHeartbeatMonitor {
     ActionQueue aq = new ActionQueue();
     ActionManager am = mock(ActionManager.class);
     HostState hs = HostState.WAITING_FOR_HOST_STATUS_UPDATES;
-    List<String> allHosts = new ArrayList<String>();
-    allHosts.add("host1");
+    List<Host> allHosts = new ArrayList<Host>();
+    Host hostObj = mock(Host.class);
+    allHosts.add(hostObj);
     when(fsm.getAllHosts()).thenReturn(allHosts);
-    when(fsm.getHostState("host1")).thenReturn(hs);
+    when(fsm.getHost("host1")).thenReturn(hostObj);
+    when(hostObj.getState()).thenReturn(hs);
+    when(hostObj.getHostName()).thenReturn("host1");
     aq.enqueue("host1", new ExecutionCommand());
     HeartbeatMonitor hm = new HeartbeatMonitor(fsm, aq, am, 100);
     hm.start();
@@ -47,7 +52,8 @@ public class TestHeartbeatMonitor {
     //Heartbeat must have expired for host1, action queue must be flushed
     assertEquals(0, aq.dequeueAll("host1").size());
     verify(am, times(1)).handleLostHost("host1");
-    verify(fsm, times(2)).updateStatus(eq("host1"), anyString());
+    verify(hostObj, times(1)).handleEvent(any(HostEvent.class));
+    verify(hostObj, times(1)).setState(HostState.INIT);
     hm.shutdown();
   }
 

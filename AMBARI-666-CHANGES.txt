@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-755. Heartbeat handler: Update state as reported in heartbeat.
+  (jitendra)
+
   AMBARI-777. Add NOTICE file for copyright of stdlib from puppetlabs.
   (mahadev)
 

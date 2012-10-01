@@ -46,6 +46,9 @@ public class ExecutionCommand extends AgentCommand {
   }
   
   @XmlElement
+  private String clusterName;
+  
+  @XmlElement
   private String commandId;
   
   @XmlElement

@@ -19,8 +19,13 @@ package org.apache.ambari.server.agent;
 
 import java.util.List;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.Clusters;
+import org.apache.ambari.server.state.live.host.Host;
+import org.apache.ambari.server.state.live.host.HostEvent;
+import org.apache.ambari.server.state.live.host.HostEventType;
 import org.apache.ambari.server.state.live.host.HostState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,7 +53,6 @@ public class HeartbeatMonitor implements Runnable {
   public void shutdown() {
     shouldRun = false;
   }
-  
 
   public void start() {
     monitorThread = new Thread(this);
@@ -73,28 +77,35 @@ public class HeartbeatMonitor implements Runnable {
   //Go through all the nodes, check for last heartbeat or any waiting state
   //If heartbeat is lost, update node fsm state, purge the action queue
   //notify action manager for node failure.
-  private void doWork() {
-    List<String> allHosts = fsm.getAllHosts();
+  private void doWork() throws InvalidStateTransitonException {
+    List<Host> allHosts = fsm.getAllHosts();
     long now = System.currentTimeMillis();
-    for (String host : allHosts) {
-      HostState hostState = fsm.getHostState(host);
-      long lastHeartbeat = hostState.getLastHeartbeat();
+    for (Host hostObj : allHosts) {
+      String host = hostObj.getHostName();
+      HostState hostState = hostObj.getState();
+      
+      long lastHeartbeat = 0;
+      try {
+        lastHeartbeat = fsm.getHost(host).getLastHeartbeatTime();
+      } catch (AmbariException e) {
+        LOG.warn("Exception in getting host object; Is it fatal?", e);
+      }
       if (lastHeartbeat + 5*threadWakeupInterval < now) {
+        LOG.warn("Hearbeat lost from host "+host);
         //Heartbeat is expired
-        fsm.updateStatus(host, "HEARTBEAT_EXPIRED");
+        hostObj.handleEvent(new HostEvent(host, HostEventType.HOST_HEARTBEAT_LOST));
         //Purge action queue
         actionQueue.dequeueAll(host);
         //notify action manager
         actionManager.handleLostHost(host);
       }
       if (hostState == HostState.WAITING_FOR_HOST_STATUS_UPDATES) {
-        long timeSpentInState = hostState.getTimeInState();
+        long timeSpentInState = hostObj.getTimeInState();
         if (timeSpentInState + 5*threadWakeupInterval < now) {
-          //Ask to register again
-          fsm.updateStatus(host, "GO_BACK_TO_INIT");
+          //Go back to init, the agent will be asked to register again in the next heartbeat
+          hostObj.setState(HostState.INIT);
         }
       }
     }
   }
-
 }

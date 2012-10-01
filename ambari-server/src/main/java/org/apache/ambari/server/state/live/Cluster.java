@@ -22,6 +22,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.host.HostEvent;
 import org.apache.ambari.server.state.live.host.HostState;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHost;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostState;
 
@@ -37,7 +38,7 @@ public interface Cluster {
    * @throws AmbariException
    */
   public void addHost(String host) throws AmbariException;
-
+  
   /**
    * Add a new ServiceComponentHost to the cluster
    * @param serviceName
@@ -104,5 +105,8 @@ public interface Cluster {
       String serviceComponent, String hostName,
       ServiceComponentHostEvent event)
           throws AmbariException, InvalidStateTransitonException;
+
+  public ServiceComponentHost getServiceComponentHost(String serviceName,
+      String componentName, String hostname) throws AmbariException;
 
 }

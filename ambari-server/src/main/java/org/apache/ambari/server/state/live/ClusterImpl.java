@@ -55,7 +55,7 @@ public class ClusterImpl implements Cluster {
     return hosts.get(hostName);
   }
 
-  private ServiceComponentHost getServiceComponentHost(String serviceName,
+  public ServiceComponentHost getServiceComponentHost(String serviceName,
       String serviceComponentName, String hostName) throws AmbariException {
     if (!serviceComponentHosts.containsKey(serviceName)
         || !serviceComponentHosts.get(serviceName)

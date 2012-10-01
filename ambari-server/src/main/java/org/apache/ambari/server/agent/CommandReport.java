@@ -37,6 +37,9 @@ public class CommandReport {
   String status;
   @XmlElement
   int exitCode;
+  
+  @XmlElement
+  private String clusterName;
  
   public String getActionId() {
     return this.actionId;

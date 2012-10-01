@@ -33,7 +33,11 @@ public class ComponentStatus {
   String msg;
   @XmlElement
   String status;
-
+  @XmlElement
+  String serviceName;
+  @XmlElement
+  String clusterName;
+  
   public String getComponentName() {
     return this.componentName;
   }
@@ -56,5 +60,29 @@ public class ComponentStatus {
   
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public String getMsg() {
+    return msg;
+  }
+
+  public void setMsg(String msg) {
+    this.msg = msg;
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
+  }
+
+  public String getClusterName() {
+    return clusterName;
+  }
+
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
   }
 }

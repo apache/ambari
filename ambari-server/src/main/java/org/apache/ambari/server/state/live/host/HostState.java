@@ -43,14 +43,4 @@ public enum HostState {
    * any other additional means ( monitoring layer )
    */
   UNHEALTHY;
-
-  public long getTimeInState() {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  public long getLastHeartbeat() {
-    // TODO Auto-generated method stub
-    return 0;
-  }
 }

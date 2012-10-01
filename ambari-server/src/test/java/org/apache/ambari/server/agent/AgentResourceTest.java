@@ -25,6 +25,7 @@ import javax.ws.rs.core.MediaType;
 
 import junit.framework.Assert;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.state.live.Clusters;
@@ -66,9 +67,14 @@ public class AgentResourceTest extends JerseyTest {
       handler = mock(HeartBeatHandler.class);
       response.setResponseStatus(RegistrationStatus.OK);
       hresponse.setResponseId(0L);
-      when(handler.handleRegistration(any(Register.class))).thenReturn(
-          response);
-      when(handler.handleHeartBeat(any(HeartBeat.class))).thenReturn(hresponse);
+      try {
+        when(handler.handleRegistration(any(Register.class))).thenReturn(
+            response);
+        when(handler.handleHeartBeat(any(HeartBeat.class))).thenReturn(
+            hresponse);
+      } catch (Exception ex) {
+        // The test will fail anyway
+      }
       requestStaticInjection(AgentResource.class);
       bind(Clusters.class).to(ClustersImpl.class);
       actionManager = mock(ActionManager.class);

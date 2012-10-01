@@ -236,4 +236,10 @@ public interface Host {
    */
   public void handleEvent(HostEvent event)
       throws InvalidStateTransitonException;
+
+  /**
+   * Get time spent in the current state i.e. the time since last state change.
+   * @return Time spent in current state.
+   */
+  public long getTimeInState();
 }

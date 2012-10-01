@@ -45,4 +45,12 @@ public class RegistrationResponse {
   public void setResponseStatus(RegistrationStatus response) {
     this.response = response;
   }
+
+  public AgentCommand getCommand() {
+    return command;
+  }
+
+  public void setCommand(AgentCommand command) {
+    this.command = command;
+  }
 }

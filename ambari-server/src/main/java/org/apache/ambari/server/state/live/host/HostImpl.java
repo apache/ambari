@@ -742,4 +742,10 @@ public class HostImpl implements Host {
     return null;
   }
 
+  @Override
+  public long getTimeInState() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
 }
