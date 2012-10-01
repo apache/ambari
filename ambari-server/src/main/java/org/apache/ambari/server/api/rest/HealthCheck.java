@@ -32,7 +32,7 @@ import javax.ws.rs.core.MediaType;
 public class HealthCheck {
   private  final String status = "RUNNING";
   // This method is called if TEXT_PLAIN is request
- 
+
   @GET
   @Produces(MediaType.TEXT_PLAIN)
   public String plainTextCheck() {

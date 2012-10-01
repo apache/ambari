@@ -30,20 +30,20 @@ public class Stage {
   private final long requestId;
   private final String clusterName;
   private long stageId = -1;
-  
+
   //Map of roles to successFactors for this stage. Default is 1 i.e. 100%
   private Map<Role, Float> successFactors = new HashMap<Role, Float>();
 
   //Map of host to host-roles
   private Map<String, HostAction> hostActions = new TreeMap<String, HostAction>();
   private final String logDir;
-  
+
   public Stage(long requestId, String logDir, String clusterName) {
     this.requestId = requestId;
     this.logDir = logDir;
     this.clusterName = clusterName;
   }
-  
+
   public synchronized void setStageId(long stageId) {
     if (this.stageId != -1) {
       throw new RuntimeException("Attempt to set stageId again! Not allowed.");
@@ -53,24 +53,24 @@ public class Stage {
       this.hostActions.get(host).setCommandId(this.requestId, this.stageId);
     }
   }
-  
+
   public synchronized long getStageId() {
     return stageId;
   }
-  
+
   public String getActionId() {
     return "" + requestId + "-" + stageId;
   }
-  
+
   synchronized void addHostAction(String host, HostAction ha) {
     ha.setCommandId(requestId, stageId);
     hostActions.put(host, ha);
   }
-  
+
   synchronized HostAction getHostAction(String host) {
     return hostActions.get(host);
   }
-  
+
   /**
    * Returns an internal data structure, please don't modify it.
    * TODO: Ideally should return an iterator.
@@ -78,7 +78,7 @@ public class Stage {
   synchronized Map<String, HostAction> getHostActions() {
     return hostActions;
   }
-  
+
   synchronized float getSuccessFactor(Role r) {
     Float f = successFactors.get(r);
     if (f == null) {
@@ -96,7 +96,7 @@ public class Stage {
     // TODO Auto-generated method stub
     return getHostAction(hostName).getManifest();
   }
-  
+
   public String getClusterName() {
     return clusterName;
   }

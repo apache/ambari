@@ -52,7 +52,7 @@ public class Configuration {
   public static final String SRVR_CRT_PASS_KEY = "security.server.crt_pass";
   public static final String PASSPHRASE_ENV_KEY = "security.server.passphrase_env_var";
   public static final String PASSPHRASE_KEY = "security.server.passphrase";
- 
+
   public static final String CLIENT_SECURITY_KEY = "client.security";
   public static final String LDAP_USE_SSL_KEY = "authorization.ldap.useSSL";
   public static final String LDAP_PRIMARY_URL_KEY = "authorization.ldap.primaryUrl";
@@ -70,8 +70,8 @@ public class Configuration {
   public static final String KSTR_NAME_DEFAULT = "keystore.p12";
   private static final String SRVR_CRT_PASS_FILE_DEFAULT ="pass.txt";
   private static final String PASSPHRASE_ENV_DEFAULT = "AMBARI_PASSPHRASE";
-  
-  
+
+
   private static final String CLIENT_SECURITY_DEFAULT = "local";
 
   private static final String LDAP_USER_SEARCH_FILTER_DEFAULT = "({attribute}={0})";
@@ -85,7 +85,7 @@ public class Configuration {
 
 
 
-  
+
   private static final Log LOG = LogFactory.getLog(Configuration.class);
 
   private static Configuration instance;
@@ -101,7 +101,7 @@ public class Configuration {
   }
 
   /**
-   * For Testing only. This is to be able to create Configuration object 
+   * For Testing only. This is to be able to create Configuration object
    * for testing.
    * @param properties properties to use for testing using the Conf object.
    */
@@ -122,7 +122,7 @@ public class Configuration {
     configsMap.put(LDAP_USER_DEFAULT_ROLE_KEY, properties.getProperty(LDAP_USER_DEFAULT_ROLE_KEY, LDAP_USER_DEFAULT_ROLE_DEFAULT));
 
     try {
-        File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator 
+        File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
             + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
         if (passFile.exists()) {
           String srvrCrtPass = FileUtils.readFileToString(passFile);
@@ -180,7 +180,7 @@ public class Configuration {
     }
     return bootscript;
   }
-  
+
   /**
    * Get the map with server config parameters.
    * Keys - public constants of this class

@@ -51,7 +51,7 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
   }
 
   public static ResourceProvider getResourceProvider(Resource.Type type, Set<PropertyId> propertyIds, ManagementController managementController)  {
-  
+
     switch (type) {
       case Cluster:
         return new ClusterResourceProvider(propertyIds, managementController);

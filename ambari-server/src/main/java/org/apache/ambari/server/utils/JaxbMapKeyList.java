@@ -25,8 +25,8 @@ public class JaxbMapKeyList {
   @XmlElement public String  key;
   @XmlElement public List<String> value;
 
-  private JaxbMapKeyList() {} 
-  
+  private JaxbMapKeyList() {}
+
   public JaxbMapKeyList(String key, List<String> value)
   {
     this.key   = key;

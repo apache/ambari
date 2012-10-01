@@ -27,6 +27,17 @@ import org.apache.ambari.server.state.live.job.Job;
 public interface ServiceComponentHost {
 
   /**
+   * Get the Cluster that this object maps to
+   */
+  public long getClusterId();
+
+  /**
+   * Get the Service this object maps to
+   * @return Name of the Service
+   */
+  public String getServiceName();
+
+  /**
    * Get the ServiceComponent this object maps to
    * @return Name of the ServiceComponent
    */

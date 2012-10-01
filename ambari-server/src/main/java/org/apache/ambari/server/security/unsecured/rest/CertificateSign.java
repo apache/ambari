@@ -38,12 +38,12 @@ import com.google.inject.Inject;
 public class CertificateSign {
   private static Log LOG = LogFactory.getLog(CertificateSign.class);
   private static CertificateManager certMan;
-  
+
   @Inject
   static void init(CertificateManager instance) {
     certMan = instance;
   }
-  
+
   /**
    * Signs agent certificate
    * @response.representation.200.doc This API is invoked by Ambari agent running

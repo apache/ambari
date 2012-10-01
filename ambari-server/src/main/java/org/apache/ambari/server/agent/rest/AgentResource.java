@@ -53,7 +53,7 @@ public class AgentResource {
   static void init(HeartBeatHandler instance) {
     hh = instance;
   }
-  
+
   /**
    * Register information about the host (Internal API to be used for
    * Ambari Agent)
@@ -63,8 +63,8 @@ public class AgentResource {
    * @response.representation.406.doc Error in register message format
    * @response.representation.408.doc Request Timed out
    * @param message Register message
-   * @throws InvalidStateTransitonException 
-   * @throws AmbariException 
+   * @throws InvalidStateTransitonException
+   * @throws AmbariException
    * @throws Exception
    */
   @Path("register/{hostName}")

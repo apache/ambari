@@ -31,11 +31,11 @@ import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-//This class encapsulates the action scheduler thread. 
+//This class encapsulates the action scheduler thread.
 //Action schedule frequently looks at action database and determines if
 //there is an action that can be scheduled.
 class ActionScheduler implements Runnable {
-  
+
   private static Log LOG = LogFactory.getLog(ActionScheduler.class);
   private final long actionTimeout;
   private final long sleepTime;
@@ -45,7 +45,7 @@ class ActionScheduler implements Runnable {
   private final short maxAttempts;
   private final ActionQueue actionQueue;
   private final Clusters fsmObject;
-  
+
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
       ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
       int maxAttempts) {
@@ -56,12 +56,12 @@ class ActionScheduler implements Runnable {
     this.fsmObject = fsmObject;
     this.maxAttempts = (short) maxAttempts;
   }
-  
+
   public void start() {
     schedulerThread = new Thread(this);
     schedulerThread.start();
   }
-  
+
   public void stop() {
     shouldRun = false;
     schedulerThread.interrupt();
@@ -81,19 +81,19 @@ class ActionScheduler implements Runnable {
       }
     }
   }
-  
+
   private void doWork() throws AmbariException {
     List<Stage> stages = db.getPendingStages();
     if (stages == null || stages.isEmpty()) {
       //Nothing to do
       return;
     }
-    
+
     //First discover completions and timeouts.
     boolean operationFailure = false;
     for (Stage s : stages) {
       Map<Role, Map<String, HostRoleCommand>> roleToHrcMap = getInvertedRoleMap(s);
-      
+
       //Iterate for completion
       boolean moveToNextStage = true;
       for (Role r: roleToHrcMap.keySet()) {
@@ -223,7 +223,7 @@ class ActionScheduler implements Runnable {
     }
     return roleToHrcMap;
   }
-  
+
   static class RoleStatus {
     int numQueued = 0;
     int numSucceeded = 0;
@@ -233,12 +233,12 @@ class ActionScheduler implements Runnable {
     int numAborted = 0;
     final int totalHosts;
     final float successFactor;
-    
+
     RoleStatus(int total, float successFactor) {
       this.totalHosts = total;
       this.successFactor = successFactor;
     }
-    
+
     boolean isRoleSuccessful() {
       if (successFactor <= (1.0*numSucceeded)/totalHosts) {
         return true;
@@ -246,11 +246,11 @@ class ActionScheduler implements Runnable {
         return false;
       }
     }
-    
+
     boolean isRoleInProgress() {
       return (numPending+numQueued > 0);
     }
-    
+
     boolean isRoleFailed() {
       if ((!isRoleInProgress()) && (!isRoleSuccessful())) {
         return false;

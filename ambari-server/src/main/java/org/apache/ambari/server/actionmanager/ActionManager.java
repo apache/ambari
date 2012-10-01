@@ -46,15 +46,15 @@ public class ActionManager {
         actionQueue, fsm, 2);
     this.fsm = fsm;
   }
-  
+
   public void initialize() {
     scheduler.start();
   }
-  
+
   public void shutdown() {
     scheduler.stop();
   }
-  
+
   public void sendActions(List<Stage> stages) {
     db.persistActions(stages);
   }
@@ -75,6 +75,6 @@ public class ActionManager {
 
   public void handleLostHost(String host) {
     // TODO Auto-generated method stub
-    
+
   }
 }

@@ -51,17 +51,17 @@ import com.sun.jersey.test.framework.WebAppDescriptor;
  *  Testing bootstrap API.
  */
 public class BootStrapResourceTest extends JerseyTest {
-  
+
   static String PACKAGE_NAME = "org.apache.ambari.server.api.rest";
   private static Log LOG = LogFactory.getLog(AgentResourceTest.class);
   Injector injector;
   BootStrapImpl bsImpl;
-  
+
   public BootStrapResourceTest() {
     super(new WebAppDescriptor.Builder(PACKAGE_NAME).servletClass(ServletContainer.class)
         .build());
   }
-  
+
   public class MockModule extends AbstractModule {
     @Override
     protected void configure() {
@@ -70,22 +70,22 @@ public class BootStrapResourceTest extends JerseyTest {
       when(bsImpl.runBootStrap(any(SshHostInfo.class))).thenReturn(generateBSResponse());
       bind(BootStrapImpl.class).toInstance(bsImpl);
       requestStaticInjection(BootStrapResource.class);
-    }    
+    }
   }
-  
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
     injector = Guice.createInjector(new MockModule());
   }
-  
+
   protected JSONObject createDummySshInfo() throws JSONException {
     JSONObject json = new JSONObject();
     json.put("sshkey", "awesome");
     json.put("hosts", new ArrayList<String>());
     return json;
   }
-  
+
   protected BSResponse generateBSResponse() {
     BSResponse response = new BSResponse();
     response.setLog("Logging");
@@ -93,7 +93,7 @@ public class BootStrapResourceTest extends JerseyTest {
     response.setStatus(BSRunStat.OK);
     return response;
   }
-  
+
   protected BootStrapStatus generateDummyBSStatus() {
     BootStrapStatus status = new BootStrapStatus();
     status.setLog("Logging ");
@@ -101,24 +101,24 @@ public class BootStrapResourceTest extends JerseyTest {
     status.setHostsStatus(new ArrayList<BSHostStatus>());
     return status;
   }
-  
+
   @Test
   public void bootStrapGet() throws UniformInterfaceException, JSONException {
     WebResource webResource = resource();
     BootStrapStatus status = webResource.path("/bootstrap/0").type(
         MediaType.APPLICATION_JSON)
         .get(BootStrapStatus.class);
-    LOG.info("GET Response from the API " + status.getLog() + " " + 
+    LOG.info("GET Response from the API " + status.getLog() + " " +
         status.getStatus());
     Assert.assertEquals(status.getStatus(), BSStat.ERROR);
   }
-  
+
   @Test
   public void bootStrapPost() throws UniformInterfaceException, JSONException {
     WebResource webResource = resource();
     JSONObject object = webResource.path("/bootstrap").type(
         MediaType.APPLICATION_JSON).post(JSONObject.class, createDummySshInfo());
-    
+
     Assert.assertEquals("OK", object.get("status"));
   }
 }

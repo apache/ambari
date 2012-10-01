@@ -21,7 +21,7 @@ package org.apache.ambari.server.state.live.host;
 public class HostStatusUpdatesReceivedEvent extends HostEvent {
 
   private final long timestamp;
-  
+
   // TODO need to add any additional information required for verification
   // tracking
   public HostStatusUpdatesReceivedEvent(String hostName,

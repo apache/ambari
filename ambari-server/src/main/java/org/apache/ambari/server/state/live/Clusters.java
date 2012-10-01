@@ -22,8 +22,11 @@ import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.live.host.Host;
-import org.apache.ambari.server.state.live.host.HostState;
 
+/**
+ * Single entity that tracks all clusters and hosts that are managed
+ * by the Ambari server
+ */
 public interface Clusters {
 
   /**
@@ -39,26 +42,48 @@ public interface Clusters {
    */
   public Cluster getCluster(String clusterName) throws AmbariException;
 
-  public boolean handleHeartbeat(String hostname, long timestamp);
-
-  public void updateStatus(String hostname, String status);
-
+  /**
+   * Get all hosts being tracked by the Ambari server
+   * @return
+   */
   public List<Host> getAllHosts();
-
-  public List<String> getHostComponents(String hostname);
-
-  public void handleRegistration(String hostname);
 
   /**
    * Returns all the cluster names for this hostname.
    * @param hostname
    * @return List of cluster names
+   * @throws AmbariException
    */
-  public List<Cluster> getClusters(String hostname);
+  public List<Cluster> getClustersForHost(String hostname)
+      throws AmbariException;
 
   /**
-   * Get a Host object
+   * Get a Host object managed by this server
+   * @param hostname Name of the host requested
+   * @return Host object
+   * @throws AmbariException
    */
-  public Host getHost(String host) throws AmbariException;
+  public Host getHost(String hostname) throws AmbariException;
+
+  /**
+   * Add a Host object to be managed by this server
+   * @param hostname Host to be added
+   * @throws AmbariException
+   */
+  public void addHost(String hostname) throws AmbariException;
+
+  /**
+   * Map host to the given cluster.
+   * A host can belong to multiple clusters.
+   * @param hostname
+   * @param clusterName
+   * @throws AmbariException
+   */
+  public void mapHostToCluster(String hostname, String clusterName)
+      throws AmbariException;
+
+  // TODO for Jitendra to fix in Heartbeat Handler as this function
+  // will not be supported
+  public List<String> getHostComponents(String hostname);
 
 }

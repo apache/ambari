@@ -38,18 +38,18 @@ import com.google.inject.Inject;
 
 @Path("/bootstrap")
 public class BootStrapResource {
-  
+
   private static BootStrapImpl bsImpl;
   private static Log LOG = LogFactory.getLog(BootStrapResource.class);
-  
+
   @Inject
   static void init(BootStrapImpl instance) {
     bsImpl = instance;
   }
   /**
    * Run bootstrap on a list of hosts.
-   * @response.representation.200.doc 
-   * 
+   * @response.representation.200.doc
+   *
    * @response.representation.200.mediaType application/json
    * @response.representation.406.doc Error in format
    * @response.representation.408.doc Request Timed out
@@ -57,15 +57,15 @@ public class BootStrapResource {
    */
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML}) 
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public BSResponse bootStrap(SshHostInfo sshInfo) {
     return bsImpl.runBootStrap(sshInfo);
   }
-  
+
   /**
    * Current BootStrap Information thats running.
-   * @response.representation.200.doc 
-   * 
+   * @response.representation.200.doc
+   *
    * @response.representation.200.mediaType application/json
    * @response.representation.406.doc Error in format
    * @response.representation.408.doc Request Timed out
@@ -73,11 +73,11 @@ public class BootStrapResource {
    */
   @GET
   @Path("/{requestId}")
-  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML}) 
-  public BootStrapStatus getBootStrapStatus(@PathParam("requestId") 
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+  public BootStrapStatus getBootStrapStatus(@PathParam("requestId")
   long requestId) {
     BootStrapStatus status = bsImpl.getStatus(0);
-    if (status == null) 
+    if (status == null)
       throw new WebApplicationException(Response.Status.NO_CONTENT);
     return status;
   }

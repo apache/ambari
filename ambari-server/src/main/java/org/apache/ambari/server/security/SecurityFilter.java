@@ -46,9 +46,9 @@ public class SecurityFilter implements Filter {
 
     HttpServletRequest req = (HttpServletRequest) serReq;
     String reqUrl = req.getRequestURL().toString();
-    
+
     System.out.println("req url:" + reqUrl);
-    
+
     //req.getC
 	
     if (serReq.getLocalPort() == AmbariServer.CLIENT_ONE_WAY) {
@@ -69,12 +69,12 @@ public class SecurityFilter implements Filter {
   private boolean isRequestAllowed(String reqUrl) {
 	try {
       boolean isMatch = Pattern.matches("https://[A-z]*:[0-9]*/cert/ca[/]*", reqUrl);
-		 
+		
       if (isMatch)
     	  return true;
-		 
+		
 		 isMatch = Pattern.matches("https://[A-z]*:[0-9]*/certs/[A-z0-9-]*", reqUrl);
-		 
+		
 		 if (isMatch)
 			 return true;
 		

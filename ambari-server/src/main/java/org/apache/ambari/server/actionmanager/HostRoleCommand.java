@@ -44,11 +44,11 @@ public class HostRoleCommand {
   public HostRoleStatus getStatus() {
     return status;
   }
-  
+
   public ServiceComponentHostEvent getEvent() {
     return event;
   }
-  
+
   void setStatus(HostRoleStatus status) {
     this.status = status;
   }

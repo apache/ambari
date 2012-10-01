@@ -33,17 +33,17 @@ import com.google.inject.Inject;
 public class CertificateDownload {
   private static Log LOG = LogFactory.getLog(CertificateDownload.class);
   private static CertificateManager certMan;
-  
+
   @Inject
   static void init(CertificateManager instance) {
     certMan = instance;
   }
-  
+
   @GET
   @Produces({MediaType.TEXT_PLAIN})
   public String downloadSrvrCrt() {
     return certMan.getServerCert();
   }
-  
-  
+
+
 }

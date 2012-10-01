@@ -49,7 +49,7 @@ public class HeartBeat {
   List<ComponentStatus> componentStatus = new ArrayList<ComponentStatus>();
   @XmlElement
   HostStatus nodeStatus;
-  
+
   public long getResponseId() {
     return responseId;
   }

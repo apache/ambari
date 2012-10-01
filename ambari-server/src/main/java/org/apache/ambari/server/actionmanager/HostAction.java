@@ -26,7 +26,7 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 /**
  * Encapsulates entire task for a host for a stage or action. This class
  * contains all the information to generate an
- * {@link org.apache.ambari.server.agent.ExecutionCommand} that will be 
+ * {@link org.apache.ambari.server.agent.ExecutionCommand} that will be
  * scheduled for a host.
  */
 public class HostAction {
@@ -35,7 +35,7 @@ public class HostAction {
   private long startTime = -1;
   private long lastAttemptTime = -1;
   private short attemptCount = 0;
-  
+
   /**
    * This object will be serialized and sent to the agent.
    */
@@ -45,14 +45,14 @@ public class HostAction {
     //generate manifest
     return null;
   }
-  
+
   public HostAction(String host) {
     this.host = host;
     roles = new ArrayList<HostRoleCommand>();
     commandToHost = new ExecutionCommand();
     commandToHost.setHostName(host);
   }
-  
+
   public HostAction(HostAction ha) {
     this.host = ha.host;
     this.roles = ha.roles;
@@ -61,31 +61,31 @@ public class HostAction {
     this.attemptCount = ha.attemptCount;
     this.commandToHost = ha.commandToHost;
   }
-  
+
   public void addHostRoleCommand(HostRoleCommand cmd) {
     roles.add(cmd);
   }
-  
+
   public List<HostRoleCommand> getRoleCommands() {
     return roles;
   }
-  
+
   public long getStartTime() {
     return startTime;
   }
-  
+
   public long getLastAttemptTime() {
     return this.lastAttemptTime;
   }
-  
+
   public void setLastAttemptTime(long t) {
     this.lastAttemptTime = t;
   }
-  
+
   public void incrementAttemptCount() {
     this.attemptCount ++;
   }
-  
+
   public short getAttemptCount() {
     return this.attemptCount;
   }

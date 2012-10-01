@@ -41,6 +41,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   private ServiceComponentHostState state;
 
+  private final long clusterId;
+  private final String serviceName;
   private final String serviceComponentName;
   private final String hostName;
 
@@ -357,7 +359,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
   }
 
-  public ServiceComponentHostImpl(String serviceComponentName,
+  public ServiceComponentHostImpl(long clusterId,
+      String serviceName, String serviceComponentName,
       String hostName, boolean isClient) {
     super();
     if (isClient) {
@@ -368,6 +371,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     ReadWriteLock rwLock = new ReentrantReadWriteLock();
     this.readLock = rwLock.readLock();
     this.writeLock = rwLock.writeLock();
+    this.clusterId = clusterId;
+    this.serviceName = serviceName;
     this.serviceComponentName = serviceComponentName;
     this.hostName = hostName;
     this.state = new ServiceComponentHostState();
@@ -531,6 +536,16 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     finally {
       writeLock.unlock();
     }
+  }
+
+  @Override
+  public long getClusterId() {
+    return clusterId;
+  }
+
+  @Override
+  public String getServiceName() {
+    return serviceName;
   }
 
 }

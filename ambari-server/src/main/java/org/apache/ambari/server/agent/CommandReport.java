@@ -37,38 +37,38 @@ public class CommandReport {
   String status;
   @XmlElement
   int exitCode;
-  
+
   @XmlElement
   private String clusterName;
- 
+
   public String getActionId() {
     return this.actionId;
   }
- 
+
   public void setActionId(String actionId) {
     this.actionId = actionId;
   }
-  
+
   public String getStdErr() {
     return this.stderr;
   }
-  
+
   public void setStdErr(String stderr) {
     this.stderr = stderr;
   }
-  
+
   public int getExitCode() {
     return this.exitCode;
   }
-  
+
   public void setExitCode(int exitCode) {
     this.exitCode = exitCode;
   }
-  
+
   public String getStdOut() {
     return this.stdout;
   }
-  
+
   public void setStdOut(String stdout) {
     this.stdout = stdout;
   }

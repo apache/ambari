@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
 public class RegistrationCommand extends AgentCommand {
-  
+
   public RegistrationCommand() {
     super(AgentCommandType.REGISTRATION_COMMAND);
   }

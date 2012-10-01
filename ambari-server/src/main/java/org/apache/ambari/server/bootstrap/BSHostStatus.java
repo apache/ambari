@@ -33,31 +33,31 @@ import javax.xml.bind.annotation.XmlType;
 public class BSHostStatus {
   @XmlElement
   private String status;
-  @XmlElement 
+  @XmlElement
   private String hostName;
   @XmlElement
   private String log;
-  
+
   public void setStatus(String status) {
     this.status = status;
   }
-  
+
   public String getStatus() {
     return this.status;
   }
-  
+
   public void setHostName(String hostName) {
     this.hostName = hostName;
   }
-  
+
   public String getHostName() {
     return this.hostName;
   }
-  
+
   public String getLog() {
     return this.log;
   }
-  
+
   public void setLog(String log) {
     this.log = log;
   }

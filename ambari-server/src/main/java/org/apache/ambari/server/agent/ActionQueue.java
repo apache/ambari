@@ -29,15 +29,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 public class ActionQueue {
-  
+
   private static Log LOG = LogFactory.getLog(ActionQueue.class);
-  
+
   Map<String, Queue<AgentCommand>> hostQueues;
 
   public ActionQueue() {
     hostQueues = new TreeMap<String, Queue<AgentCommand>>();
   }
-  
+
   private synchronized Queue<AgentCommand> getQueue(String hostname) {
     return hostQueues.get(hostname);
   }
@@ -47,7 +47,7 @@ public class ActionQueue {
   }
 
   public void enqueue(String hostname, AgentCommand cmd) {
-    
+
     Queue<AgentCommand> q = getQueue(hostname);
     if (q == null) {
       q = new LinkedList<AgentCommand>();

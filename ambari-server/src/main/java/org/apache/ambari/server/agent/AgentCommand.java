@@ -28,18 +28,18 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
 public abstract class AgentCommand {
-  
+
   @XmlElement
   private AgentCommandType commandType;
-  
+
   public AgentCommand() {
     this.commandType = AgentCommandType.STATUS_COMMAND;
   }
-  
+
   public AgentCommand(AgentCommandType type) {
     this.commandType = type;
   }
-  
+
   @XmlType
   @XmlEnum
   public enum AgentCommandType {

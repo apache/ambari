@@ -29,35 +29,35 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * Information that the API needs to provide to run bootstrap on hosts.
- * 
+ *
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
 public class SshHostInfo {
-  
+
   @XmlElement
   private String sshKey;
-  
-  @XmlElement 
+
+  @XmlElement
   private List<String>  hosts = new ArrayList<String>();
-  
+
   public String getSshKey() {
     return sshKey;
   }
-  
+
   public void setSshKey(String sshKey) {
     this.sshKey = sshKey;
   }
-  
+
   public void setHosts(List<String> hosts) {
     this.hosts = hosts;
   }
-  
+
   public List<String> getHosts() {
     return this.hosts;
   }
-  
+
   public String hostListAsString() {
     String ret = "";
     if (this.hosts == null) {

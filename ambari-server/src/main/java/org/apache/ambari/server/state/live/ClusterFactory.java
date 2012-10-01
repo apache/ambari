@@ -16,22 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.bootstrap;
+package org.apache.ambari.server.state.live;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 
 /**
- * Only Store the most recent 100 Key Value Pairs.
- *
+ * Factory interface for Guice injections
  */
-@SuppressWarnings("serial")
-public class FifoLinkedHashMap<K, V> extends
-LinkedHashMap<K, V> {
-  public static final int MAX_ENTRIES = 100;
-  protected boolean removeEldestEntry(Map.Entry<K,
-      V> eldest) {
-    return size() > MAX_ENTRIES;
-  }
-
+public interface ClusterFactory {
+  Cluster create(ClusterEntity clusterEntity);
 }

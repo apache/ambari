@@ -27,7 +27,7 @@ import org.apache.ambari.server.Role;
 public class ActionDBInMemoryImpl implements ActionDBAccessor {
 
   List<Stage> stageList = new ArrayList<Stage>();
- 
+
   @Override
   public void persistAction(HostAction ha) {
     // TODO Auto-generated method stub

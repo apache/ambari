@@ -44,23 +44,23 @@ import org.junit.rules.TemporaryFolder;
 public class BootStrapTest extends TestCase {
   private static Log LOG = LogFactory.getLog(BootStrapTest.class);
   public TemporaryFolder temp = new TemporaryFolder();
-  
+
   @Before
   public void setUp() throws IOException {
     temp.create();
   }
-  
+
   @After
   public void tearDown() throws IOException {
     temp.delete();
   }
-  
+
   @Test
   public void testRun() throws Exception {
     Properties properties = new Properties();
     String bootdir =  temp.newFolder("bootdir").toString();
     LOG.info("Bootdir is " + bootdir);
-    properties.setProperty(Configuration.BOOTSTRAP_DIR, 
+    properties.setProperty(Configuration.BOOTSTRAP_DIR,
        bootdir);
     properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, "echo");
     properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, "target" + File.separator + "classes");
@@ -84,14 +84,14 @@ public class BootStrapTest extends TestCase {
         Thread.sleep(100);
         num++;
     }
-    LOG.info("Status: log " + status.getLog() + " status=" + status.getStatus() 
+    LOG.info("Status: log " + status.getLog() + " status=" + status.getStatus()
         );
     /* Note its an echo command so it should echo host1,host2 */
     Assert.assertTrue(status.getLog().contains("host1,host2"));
     Assert.assertEquals(BSStat.SUCCESS, status.getStatus());
   }
-  
-  
+
+
   @Test
   public void testPolling() throws Exception {
     File tmpFolder = temp.newFolder("bootstrap");
@@ -115,8 +115,8 @@ public class BootStrapTest extends TestCase {
     Assert.assertEquals(polledHostStatus.get(1).getHostName(), "host2");
     Assert.assertEquals(polledHostStatus.get(1).getLog(), "err_log_2");
     Assert.assertEquals(polledHostStatus.get(1).getStatus(), "DONE");
-    
+
 
   }
-  
+
 }

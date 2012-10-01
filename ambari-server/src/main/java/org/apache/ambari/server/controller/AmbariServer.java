@@ -91,7 +91,7 @@ public class AmbariServer {
 
       webAppContext.getServletContext().setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, springWebAppContext);
 
-      
+
       server.setHandler(webAppContext);
 
       certMan.initRootCert();
@@ -101,7 +101,7 @@ public class AmbariServer {
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitOrder(1);
-    
+
       root.addFilter(SecurityFilter.class, "/*", 1);
       //Secured connector for 2-way auth
       SslSocketConnector sslConnectorTwoWay = new SslSocketConnector();
@@ -119,11 +119,11 @@ public class AmbariServer {
       sslConnectorTwoWay.setKeystoreType("PKCS12");
       sslConnectorTwoWay.setTruststoreType("PKCS12");
       sslConnectorTwoWay.setNeedClientAuth(true);
-      
+
       //Secured connector for 1-way auth
       SslSocketConnector sslConnectorOneWay = new SslSocketConnector();
       sslConnectorOneWay.setPort(CLIENT_ONE_WAY);
-      
+
       sslConnectorOneWay.setKeystore(keystore);
       sslConnectorOneWay.setTruststore(keystore);
       sslConnectorOneWay.setPassword(srvrCrtPass);
@@ -132,8 +132,8 @@ public class AmbariServer {
       sslConnectorOneWay.setKeystoreType("PKCS12");
       sslConnectorOneWay.setTruststoreType("PKCS12");
       sslConnectorOneWay.setNeedClientAuth(false);
-      
-      
+
+
 
       server.addConnector(sslConnectorOneWay);
       server.addConnector(sslConnectorTwoWay);
@@ -161,7 +161,7 @@ public class AmbariServer {
               "org.apache.ambari.server.security.unsecured.rest");
       root.addServlet(cert, "/cert/*");
       cert.setInitOrder(4);
-      
+
       ServletHolder certs = new ServletHolder(ServletContainer.class);
       certs.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
         "com.sun.jersey.api.core.PackagesResourceConfig");

@@ -73,11 +73,11 @@ public class CertificateManager {
     String srvrKstrDir = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY);
     String srvrCrtName = configsMap.get(Configuration.SRVR_CRT_NAME_KEY);
     File certFile = new File(srvrKstrDir + File.separator + srvrCrtName);
-    
+
 	return certFile.exists();
 	}
-  
-  
+
+
   /**
    * Runs os command
    */
@@ -88,11 +88,11 @@ public class CertificateManager {
       try {
         process = Runtime.getRuntime().exec(command);
         BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        
+
         while ((line = br.readLine()) != null) {
           LOG.info(line);
         }
-        
+
         try {
           process.waitFor();
         }
@@ -103,19 +103,19 @@ public class CertificateManager {
       catch (IOException e){
         e.printStackTrace();
       }
-	  
+	
   }
-  
+
   private void generateServerCertificate() {
     LOG.info("Generation of server certificate");
-    
+
     Map<String, String> configsMap = configs.getConfigsMap();
     String srvrKstrDir = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY);
     String srvrCrtName = configsMap.get(Configuration.SRVR_CRT_NAME_KEY);
     String srvrKeyName = configsMap.get(Configuration.SRVR_KEY_NAME_KEY);
     String kstrName = configsMap.get(Configuration.KSTR_NAME_KEY);
     String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
-    
+
     Object[] scriptArgs = {srvrCrtPass, srvrKstrDir, srvrKeyName,
 			               srvrCrtName, kstrName};
 
@@ -139,16 +139,16 @@ public class CertificateManager {
    */
   public String getServerCert() {
     Map<String, String> configsMap = configs.getConfigsMap();
-    File certFile = new File(configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) + File.separator + configsMap.get(Configuration.SRVR_CRT_NAME_KEY));  
+    File certFile = new File(configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) + File.separator + configsMap.get(Configuration.SRVR_CRT_NAME_KEY));
     String srvrCrtContent = null;
     try {
       srvrCrtContent = FileUtils.readFileToString(certFile);
 	} catch (IOException e) {
         LOG.error(e.getMessage());
-	}   
+	}
     return srvrCrtContent;
 	}
-  
+
   /**
    * Signs agent certificate
    * Adds agent certificate to server keystore
@@ -157,19 +157,19 @@ public class CertificateManager {
   public String signAgentCrt(String agentHostname, String agentCrtReqContent, String passphraseAgent) {
     LOG.info("Signing of agent certificate");
     LOG.info("Verifying passphrase");
-    
-    
-    
+
+
+
     String passphraseSrvr = configs.getConfigsMap().get(Configuration.PASSPHRASE_KEY);
-    
+
     System.out.println(passphraseSrvr);
     System.out.println(passphraseAgent);
-    
+
     if (!passphraseAgent.equals(passphraseSrvr)) {
       LOG.warn("Incorrect passphrase from agent");
       return "";
     }
-    
+
     Map<String, String> configsMap = configs.getConfigsMap();
     String srvrKstrDir = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY);
     String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
@@ -177,8 +177,8 @@ public class CertificateManager {
     String srvrKeyName = configsMap.get(Configuration.SRVR_KEY_NAME_KEY);
     String agentCrtReqName = agentHostname + ".csr";
     String agentCrtName = agentHostname + ".crt";
-    
-    
+
+
     File agentCrtReqFile = new File(srvrKstrDir + File.separator + agentCrtReqName);
     try {
 		FileUtils.writeStringToFile(agentCrtReqFile, agentCrtReqContent);
@@ -190,9 +190,9 @@ public class CertificateManager {
     					   srvrCrtPass,srvrKeyName,srvrCrtName};
 
     String command = MessageFormat.format(SIGN_AGENT_CRT,scriptArgs);
-    
+
     LOG.error(command);
-    
+
 	runCommand(command);
 	
 	File agentCrtFile = new File(srvrKstrDir + File.separator + agentCrtName);
@@ -203,7 +203,7 @@ public class CertificateManager {
 		e.printStackTrace();
 		LOG.error("Error reading signed agent certificate");
 	}
-    
+
     return agentCrtContent;
 	}
 }

@@ -28,7 +28,7 @@ public class JaxbMapKeyMapAdapter extends
     XmlAdapter<List<JaxbMapKeyMap>, Map<String, Map<String, String>>> {
 
   private static JaxbMapKeyValAdapter mapAdapter = new JaxbMapKeyValAdapter();
-  
+
   @Override
   public List<JaxbMapKeyMap> marshal(Map<String, Map<String, String>> map)
       throws Exception {

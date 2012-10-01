@@ -29,7 +29,7 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * Status of a bootstrap operation. Operation is successful or error 
+ * Status of a bootstrap operation. Operation is successful or error
  * and explains all the info regarding the operation on each host.
  *
  */
@@ -44,36 +44,36 @@ public class BootStrapStatus {
     SUCCESS,
     ERROR
   }
-  
-  @XmlElement 
+
+  @XmlElement
   private BSStat status;
-  
+
   @XmlElement
   private List<BSHostStatus> hostsStatus;
-  
+
   @XmlElement
   private String log;
-  
+
   public void setStatus(BSStat status) {
     this.status = status;
   }
-  
+
   public BSStat getStatus() {
     return this.status;
   }
-  
+
   public void setHostsStatus(List<BSHostStatus> hostsStatus) {
     this.hostsStatus = hostsStatus;
   }
-  
+
   public List<BSHostStatus> getHostsStatus() {
     return this.hostsStatus;
   }
-  
+
   public void setLog(String log) {
     this.log = log;
   }
-  
+
   public String getLog() {
     return this.log;
   }

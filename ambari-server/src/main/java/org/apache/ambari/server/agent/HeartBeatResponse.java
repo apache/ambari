@@ -63,7 +63,7 @@ public class HeartBeatResponse {
   public List<AgentCommand> getAgentCommands() {
     return this.cmds;
   }
-  
+
   public void setAgentCommands(List<AgentCommand> cmds) {
     this.cmds = cmds;
   }

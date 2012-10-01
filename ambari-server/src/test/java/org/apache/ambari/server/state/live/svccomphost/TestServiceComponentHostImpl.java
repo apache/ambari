@@ -31,10 +31,12 @@ import org.junit.Test;
 
 public class TestServiceComponentHostImpl {
 
-  private ServiceComponentHostImpl createNewServiceComponentHost(String svcComponent,
+  private ServiceComponentHostImpl createNewServiceComponentHost(long clusterId,
+      String svc,
+      String svcComponent,
       String hostName, boolean isClient) {
-    ServiceComponentHostImpl impl = new ServiceComponentHostImpl(svcComponent,
-        hostName, isClient);
+    ServiceComponentHostImpl impl = new ServiceComponentHostImpl(clusterId, svc,
+        svcComponent, hostName, isClient);
     Assert.assertEquals(ServiceComponentHostLiveState.INIT,
         impl.getState().getLiveState());
     return impl;
@@ -42,8 +44,8 @@ public class TestServiceComponentHostImpl {
 
   @Test
   public void testNewServiceComponentHostImpl() {
-    createNewServiceComponentHost("svcComp", "h1", false);
-    createNewServiceComponentHost("svcComp", "h1", true);
+    createNewServiceComponentHost(1, "svc", "svcComp", "h1", false);
+    createNewServiceComponentHost(1, "svc", "svcComp", "h1", true);
   }
 
   private ServiceComponentHostEvent createEvent(ServiceComponentHostImpl impl,
@@ -52,8 +54,6 @@ public class TestServiceComponentHostImpl {
           impl.getServiceComponentName(), impl.getHostName(), timestamp);
     return event;
   }
-
-
 
   private void runStateChanges(ServiceComponentHostImpl impl,
       ServiceComponentHostEventType startEvent,
@@ -160,8 +160,8 @@ public class TestServiceComponentHostImpl {
 
   @Test
   public void testClientStateFlow() throws Exception {
-    ServiceComponentHostImpl impl = createNewServiceComponentHost("svcComp",
-        "h1", true);
+    ServiceComponentHostImpl impl = createNewServiceComponentHost(1, "svc",
+        "svcComp", "h1", true);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
         ServiceComponentHostLiveState.INIT,
@@ -198,8 +198,8 @@ public class TestServiceComponentHostImpl {
 
   @Test
   public void testDaemonStateFlow() throws Exception {
-    ServiceComponentHostImpl impl = createNewServiceComponentHost("svcComp",
-        "h1", false);
+    ServiceComponentHostImpl impl = createNewServiceComponentHost(1, "svc",
+        "svcComp", "h1", false);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
         ServiceComponentHostLiveState.INIT,

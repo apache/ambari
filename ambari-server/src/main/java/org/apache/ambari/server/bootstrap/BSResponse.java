@@ -39,34 +39,34 @@ public class BSResponse {
     OK,
     ERROR
   }
-  
-  @XmlElement 
+
+  @XmlElement
   private BSRunStat status;
-  @XmlElement 
+  @XmlElement
   private String log;
-  @XmlElement 
+  @XmlElement
   private long requestId;
-  
+
   public long getRequestId() {
     return this.requestId;
   }
-  
+
   public void setRequestId(long requestId) {
     this.requestId = requestId;
   }
-  
+
   public BSRunStat getStatus() {
     return this.status;
   }
-  
+
   public void setStatus(BSRunStat status) {
     this.status  = status;
   }
-  
+
   public String getLog() {
     return this.log;
   }
-  
+
   public void setLog(String log) {
     this.log = log;
   }

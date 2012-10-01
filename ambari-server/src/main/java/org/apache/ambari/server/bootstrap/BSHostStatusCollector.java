@@ -37,18 +37,18 @@ class BSHostStatusCollector {
   static String logFileFilter = ".log";
   static String doneFileFilter = ".done";
   private static Log LOG = LogFactory.getLog(BSHostStatusCollector.class);
-  
+
   private List<String> hosts;
 
   public BSHostStatusCollector(File requestIdDir, List<String> hosts) {
     this.requestIdDir = requestIdDir;
     this.hosts = hosts;
   }
-  
+
   public List<BSHostStatus> getHostStatus() {
     return hostStatus;
   }
-  
+
   public void run() {
     LOG.info("Request directory " + requestIdDir);
     hostStatus = new ArrayList<BSHostStatus>();
@@ -64,9 +64,9 @@ class BSHostStatusCollector {
       status.setHostName(host);
       done = new File(requestIdDir, host + doneFileFilter);
       log = new File(requestIdDir, host + logFileFilter);
-      if (!done.exists()) 
+      if (!done.exists())
         status.setStatus("RUNNING");
-      else 
+      else
         status.setStatus("DONE");
       if (!log.exists()) {
         status.setLog("");

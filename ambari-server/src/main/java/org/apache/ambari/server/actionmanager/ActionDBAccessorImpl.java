@@ -22,13 +22,13 @@ import java.util.List;
 import org.apache.ambari.server.Role;
 
 public class ActionDBAccessorImpl implements ActionDBAccessor {
-  
+
   private long stageId = 0;
-  
+
   public ActionDBAccessorImpl() {
     //this.stageId = greatest stage id in the database + 1
   }
-  
+
   /* (non-Javadoc)
    * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#persistAction(org.apache.ambari.server.actionmanager.HostAction)
    */
@@ -51,7 +51,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   public List<Stage> getAllStages(String requestId) {
     return null;
   }
-  
+
   /* (non-Javadoc)
    * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#getQueuedStages()
    */
@@ -59,7 +59,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   public List<Stage> getQueuedStages() {
     return null;
   }
-  
+
   /* (non-Javadoc)
    * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#getNotQueuedStages()
    */
@@ -67,7 +67,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   public List<Stage> getNotQueuedStages() {
     return null;
   }
-  
+
   /* (non-Javadoc)
    * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#getNextStageId()
    */
@@ -106,6 +106,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public void persistActions(List<Stage> stages) {
     // TODO Auto-generated method stub
-    
+
   }
 }

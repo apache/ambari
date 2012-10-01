@@ -18,23 +18,33 @@
 
 package org.apache.ambari.server.state.live;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.state.live.host.Host;
+import org.apache.ambari.server.state.live.host.HostImpl;
 
 public class ClustersImpl implements Clusters {
 
   private Map<String, Cluster> clusters;
-
-  // TODO
-  // private Map<String, Host> hosts;
+  private Map<Long, Cluster> clustersById;
+  private Map<String, Host> hosts;
+  private Map<String, Set<Cluster>> hostClusterMap;
 
   public ClustersImpl() {
     clusters = new HashMap<String, Cluster>();
+    clustersById = new HashMap<Long, Cluster>();
+    hosts = new HashMap<String, Host>();
+    hostClusterMap = new HashMap<String, Set<Cluster>>();
+
   }
 
   @Override
@@ -44,11 +54,18 @@ public class ClustersImpl implements Clusters {
       throw new AmbariException("Duplicate entry for Cluster"
           + ", clusterName= " + clusterName);
     }
-    clusters.put(clusterName, new ClusterImpl(clusterName));
+    // TODO persist cluster into DB
+    // retrieve new cluster id
+    // add cluster id -> cluster mapping into clustersById
+    long clusterId = 0;
+    Cluster impl = new ClusterImpl(this, clusterId, clusterName);
+    clusters.put(clusterName, impl);
+    clustersById.put(clusterId, impl);
   }
 
   @Override
-  public Cluster getCluster(String clusterName) throws AmbariException {
+  public synchronized Cluster getCluster(String clusterName)
+      throws AmbariException {
     if (!clusters.containsKey(clusterName)) {
       throw new ClusterNotFoundException(clusterName);
     }
@@ -56,43 +73,49 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public boolean handleHeartbeat(String hostname, long timestamp) {
-    // TODO Auto-generated method stub
-    return false;
+  public synchronized List<Host> getAllHosts() {
+    return new ArrayList<Host>(hosts.values());
   }
 
   @Override
-  public void updateStatus(String hostname, String status) {
-    // TODO Auto-generated method stub
-    
+  public synchronized List<Cluster> getClustersForHost(String hostname)
+      throws AmbariException {
+    if (!hostClusterMap.containsKey(hostname)) {
+      throw new HostNotFoundException(hostname);
+    }
+    List<Cluster> cList = new ArrayList<Cluster>();
+    cList.addAll(hostClusterMap.get(hostname));
+    return cList;
   }
 
   @Override
-  public List<Host> getAllHosts() {
-    // TODO Auto-generated method stub
-    return null;
+  public synchronized Host getHost(String hostname) throws AmbariException {
+    return hosts.get(hostname);
+  }
+
+  @Override
+  public synchronized void addHost(String hostname) throws AmbariException {
+    if (hosts.containsKey(hostname)) {
+      throw new AmbariException("Duplicate entry for Host"
+          + ", hostName= " + hostname);
+    }
+    hosts.put(hostname, new HostImpl(hostname));
+    hostClusterMap.put(hostname, new HashSet<Cluster>());
+  }
+
+  @Override
+  public synchronized void mapHostToCluster(String hostname,
+      String clusterName) throws AmbariException {
+    getCluster(clusterName);
+    getHost(hostname);
+    if (!hostClusterMap.containsKey(hostname)) {
+      throw new HostNotFoundException(hostname);
+    }
+    hostClusterMap.get(hostname).add(getCluster(clusterName));
   }
 
   @Override
   public List<String> getHostComponents(String hostname) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public void handleRegistration(String hostname) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public List<Cluster> getClusters(String hostname) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public Host getHost(String host) throws AmbariException {
     // TODO Auto-generated method stub
     return null;
   }

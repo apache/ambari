@@ -42,24 +42,24 @@ public class CertGenerationTest extends TestCase {
 	
   private static Log LOG = LogFactory.getLog(CertGenerationTest.class);
   public TemporaryFolder temp = new TemporaryFolder();
-  
+
   Injector injector;
-  
+
   private static CertificateManager certMan;
-  
+
   @Inject
   static void init(CertificateManager instance) {
     certMan = instance;
   }
 
-  
+
   private class SecurityModule extends AbstractModule {
     @Override
     protected void configure() {
       requestStaticInjection(CertGenerationTest.class);
     }
   }
-	  
+	
   @Before
   public void setUp() throws IOException {
     temp.create();
@@ -69,37 +69,37 @@ public class CertGenerationTest extends TestCase {
     FileOutputStream out = new FileOutputStream(temp.getRoot().getAbsolutePath() + File.separator + Configuration.CONFIG_FILE);
     props.store(out, "");
     out.close();
-  
+
     injector = Guice.createInjector(new SecurityModule());
     certMan = injector.getInstance(CertificateManager.class);
-  
+
     certMan.initRootCert();
   }
-	  
+	
   @After
   public void tearDown() throws IOException {
 	  temp.delete();
   }
-	  
+	
   @Test
   public void testServerCertGen() throws Exception {
-    
+
     File serverCrt = new File(temp.getRoot().getAbsoluteFile() +
     						  File.separator + Configuration.SRVR_CRT_NAME_DEFAULT);
     assertTrue(serverCrt.exists());
   }
-  
+
   @Test
   public void testServerKeyGen() throws Exception {
-    
+
     File serverKey = new File(temp.getRoot().getAbsoluteFile() +
     						  File.separator + Configuration.SRVR_KEY_NAME_DEFAULT);
     assertTrue(serverKey.exists());
   }
-  
+
   @Test
   public void testServerKeystoreGen() throws Exception {
-    
+
     File serverKeyStrore = new File(temp.getRoot().getAbsoluteFile() +
     						  File.separator + Configuration.KSTR_NAME_DEFAULT);
     assertTrue(serverKeyStrore.exists());

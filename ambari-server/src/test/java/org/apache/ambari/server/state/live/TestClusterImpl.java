@@ -56,7 +56,8 @@ public class TestClusterImpl {
     clusters.addCluster("c1");
     c1 = clusters.getCluster("c1");
     Assert.assertEquals("c1", c1.getClusterName());
-    c1.addHost(h1);
+    clusters.addHost(h1);
+    clusters.mapHostToCluster(h1, "c1");
     c1.addServiceComponentHost(s1, sc1, h1, false);
   }
 
@@ -68,10 +69,10 @@ public class TestClusterImpl {
 
   @Test
   public void testAddHost() throws AmbariException {
-    c1.addHost("h2");
+    clusters.addHost("h2");
 
     try {
-      c1.addHost("h2");
+      clusters.addHost("h2");
       fail("Duplicate add should fail");
     }
     catch (AmbariException e) {
@@ -82,6 +83,16 @@ public class TestClusterImpl {
 
   @Test
   public void testAddServiceComponentHost() throws AmbariException {
+    try {
+      c1.addServiceComponentHost("s2", "sc2", "h2", false);
+      fail("Expected failure on invalid cluster/host");
+    } catch (Exception e) {
+      // Expected
+    }
+
+    clusters.addCluster("c2");
+    clusters.addHost("h2");
+    clusters.mapHostToCluster("h2", "c2");
     c1.addServiceComponentHost("s2", "sc2", "h2", false);
 
     try {
@@ -96,13 +107,14 @@ public class TestClusterImpl {
 
   @Test
   public void testGetHostState() throws AmbariException {
-    Assert.assertEquals(HostState.INIT, c1.getHostState(h1));
+    Assert.assertEquals(HostState.INIT, clusters.getHost(h1).getState());
   }
 
   @Test
   public void testSetHostState() throws AmbariException {
-    c1.setHostState(h1, HostState.HEARTBEAT_LOST);
-    Assert.assertEquals(HostState.HEARTBEAT_LOST, c1.getHostState(h1));
+    clusters.getHost(h1).setState(HostState.HEARTBEAT_LOST);
+    Assert.assertEquals(HostState.HEARTBEAT_LOST,
+        clusters.getHost(h1).getState());
   }
 
   @Test
@@ -124,16 +136,17 @@ public class TestClusterImpl {
     AgentVersion agentVersion = new AgentVersion("0.0.x");
     long currentTime = 1001;
 
-    c1.handleHostEvent(h1, new HostRegistrationRequestEvent(h1, agentVersion,
-        currentTime, hostInfo));
+    clusters.getHost(h1).handleEvent(new HostRegistrationRequestEvent(
+        h1, agentVersion, currentTime, hostInfo));
 
     Assert.assertEquals(HostState.WAITING_FOR_HOST_STATUS_UPDATES,
-        c1.getHostState(h1));
+        clusters.getHost(h1).getState());
 
-    c1.setHostState(h1, HostState.HEARTBEAT_LOST);
+    clusters.getHost(h1).setState(HostState.HEARTBEAT_LOST);
 
     try {
-      c1.handleHostEvent(h1, new HostHealthyHeartbeatEvent(h1, currentTime));
+      clusters.getHost(h1).handleEvent(
+          new HostHealthyHeartbeatEvent(h1, currentTime));
       fail("Exception should be thrown on invalid event");
     }
     catch (InvalidStateTransitonException e) {

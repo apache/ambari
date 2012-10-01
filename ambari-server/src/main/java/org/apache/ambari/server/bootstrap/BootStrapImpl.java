@@ -57,14 +57,14 @@ public class BootStrapImpl {
   public BootStrapImpl(Configuration conf) {
     this.conf = conf;
     this.bootStrapDir = conf.getBootStrapDir();
-    this.bootScript = conf.getBootStrapScript();   
+    this.bootScript = conf.getBootStrapScript();
     this.bsStatus = new FifoLinkedHashMap<Long, BootStrapStatus>();
   }
 
   /**
    * Return {@link BootStrapStatus} for a given responseId.
    * @param requestId the responseId for which the status needs to be returned.
-   * @return status for a specific response id. A response Id of -1 means the 
+   * @return status for a specific response id. A response Id of -1 means the
    * latest responseId.
    */
   public synchronized BootStrapStatus getStatus(long requestId) {
@@ -85,7 +85,7 @@ public class BootStrapImpl {
 
 
   /**
-   * Run the bs script to ssh to a list of hosts 
+   * Run the bs script to ssh to a list of hosts
    * with a ssh key.
    */
   class BSRunner extends Thread {
@@ -119,7 +119,7 @@ public class BootStrapImpl {
     private class BSStatusCollector implements Runnable {
       @Override
       public void run() {
-        BSHostStatusCollector collector = new BSHostStatusCollector(requestIdDir, 
+        BSHostStatusCollector collector = new BSHostStatusCollector(requestIdDir,
             sshHostInfo.getHosts());
         collector.run();
         List<BSHostStatus> hostStatus = collector.getHostStatus();
@@ -178,7 +178,7 @@ public class BootStrapImpl {
       try {
         createRunDir();
         writeSshKeyFile(sshHostInfo.getSshKey());
-        /* Running command: 
+        /* Running command:
          * script hostlist bsdir sshkeyfile
          */
         commands[0] = this.bsScript;
@@ -188,13 +188,13 @@ public class BootStrapImpl {
         LOG.info("Host= " + hostString + " bs=" + this.bsScript + " requestDir=" +
             requestIdDir + " keyfile=" + this.sshKeyFile);
         Process process = Runtime.getRuntime().exec(commands);
-        /** Startup a scheduled executor service to look through the logs 
+        /** Startup a scheduled executor service to look through the logs
          */
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         BSStatusCollector statusCollector = new BSStatusCollector();
-        ScheduledFuture<?> handle = scheduler.scheduleWithFixedDelay(statusCollector, 
+        ScheduledFuture<?> handle = scheduler.scheduleWithFixedDelay(statusCollector,
             0, 10, TimeUnit.SECONDS);
-        LOG.info("Kicking off the scheduler for polling on logs in " + 
+        LOG.info("Kicking off the scheduler for polling on logs in " +
             this.requestIdDir);
         try {
           int exitCode = process.waitFor();
@@ -259,7 +259,7 @@ public class BootStrapImpl {
       response.setLog("BootStrap in Progress: Cannot Run more than one.");
       response.setStatus(BSRunStat.ERROR);
       return response;
-    } 
+    }
     requestId++;
 
     bsRunner = new BSRunner(info, bootStrapDir.toString(),

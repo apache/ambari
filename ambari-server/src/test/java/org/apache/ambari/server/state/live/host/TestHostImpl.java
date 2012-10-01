@@ -210,7 +210,7 @@ public class TestHostImpl {
       fail("Invalid event should have triggered an exception");
     } catch (Exception e) {
       // Expected
-    }       
+    }
     verifyHostState(host, HostState.HEARTBEAT_LOST);
 
     try {
@@ -218,20 +218,20 @@ public class TestHostImpl {
       fail("Invalid event should have triggered an exception");
     } catch (Exception e) {
       // Expected
-    }       
+    }
     verifyHostState(host, HostState.HEARTBEAT_LOST);
   }
-  
+
   @Test
   public void testHostRegistrationsInAnyState() throws Exception {
     HostImpl host = new HostImpl("foo");
     long counter = 0;
 
     registerHost(host);
-    
+
     ensureHostUpdatesReceived(host);
     registerHost(host);
-    
+
     ensureHostUpdatesReceived(host);
     sendHealthyHeartbeat(host, ++counter);
     verifyHostState(host, HostState.HEALTHY);
@@ -247,9 +247,9 @@ public class TestHostImpl {
     verifyHostState(host, HostState.HEARTBEAT_LOST);
     registerHost(host);
     ensureHostUpdatesReceived(host);
-    
+
     host.setState(HostState.INIT);
     registerHost(host);
-    
+
   }
 }

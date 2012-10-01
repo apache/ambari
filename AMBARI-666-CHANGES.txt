@@ -182,6 +182,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-780. Make FSM related changes for heartbeat handler. (hitesh)
+
   AMBARI-774. Renable and fix AgentResourceTest. (mahadev) 
 
   AMBARI-773. Change Host FSM as per new requirements of heartbeat handler. (hitesh)

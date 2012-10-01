@@ -56,36 +56,36 @@ public class TestActionScheduler {
    // ha.setManifest("1-977-manifest");
     s.addHostAction(hostname, ha);
     when(db.getPendingStages()).thenReturn(stages);
-    
+
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(1000, 100, db, aq, fsm, 10000);
     // Start the thread
     scheduler.start();
-    
+
     Thread.sleep(1000);
     List<AgentCommand> ac = aq.dequeueAll(hostname);
     assertEquals(1, ac.size());
     assertTrue(ac.get(0) instanceof ExecutionCommand);
     assertEquals("1-977", ((ExecutionCommand) (ac.get(0))).getCommandId());
-    
+
     //The action status has not changed, it should be queued again.
     Thread.sleep(1000);
     ac = aq.dequeueAll(hostname);
     assertEquals(1, ac.size());
     assertTrue(ac.get(0) instanceof ExecutionCommand);
     assertEquals("1-977", ((ExecutionCommand) (ac.get(0))).getCommandId());
-    
+
     //Now change the action status
     hrc.setStatus(HostRoleStatus.COMPLETED);
     ac = aq.dequeueAll(hostname);
-    
+
     //Wait for sometime, it shouldn't be scheduled this time.
     Thread.sleep(1000);
     ac = aq.dequeueAll(hostname);
     assertEquals(0, ac.size());
   }
-  
+
   /**
    * Test whether scheduler times out an action
    */
@@ -108,13 +108,13 @@ public class TestActionScheduler {
     // ha.setManifest("1-977-manifest");
     s.addHostAction(hostname, ha);
     when(db.getPendingStages()).thenReturn(stages);
-    
+
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm, 3);
     // Start the thread
     scheduler.start();
-    
+
     Thread.sleep(500);
     //TODO timeoutHostRole must be called exactly once but in this case the state
     //in the db continues to be pending therefore it is processed multiple times.

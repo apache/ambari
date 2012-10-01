@@ -43,12 +43,12 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class HeartBeatHandler {
-  
+
   private final Clusters clusterFsm;
   private final ActionQueue actionQueue;
   private final ActionManager actionManager;
   private HeartbeatMonitor heartbeatMonitor;
-  
+
   @Inject
   public HeartBeatHandler(Clusters fsm, ActionQueue aq, ActionManager am) {
     this.clusterFsm = fsm;
@@ -56,11 +56,11 @@ public class HeartBeatHandler {
     this.actionManager = am;
     this.heartbeatMonitor = new HeartbeatMonitor(fsm, aq, am, 60000);
   }
-  
+
   public void start() {
     heartbeatMonitor.start();
   }
-  
+
   public HeartBeatResponse handleHeartBeat(HeartBeat heartbeat) throws AmbariException {
 
     HeartBeatResponse response = new HeartBeatResponse();
@@ -85,7 +85,7 @@ public class HeartBeatHandler {
     actionManager.actionResponse(hostname, reports);
 
     // Examine heartbeart for component status
-    List<Cluster> clusters = clusterFsm.getClusters(hostname);
+    List<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
     for (Cluster cl : clusters) {
       for (ComponentStatus status : heartbeat.componentStatus) {
         if (status.getClusterName() == cl.getClusterName()) {
@@ -108,7 +108,7 @@ public class HeartBeatHandler {
     }
     return response;
   }
-  
+
   public RegistrationResponse handleRegistration(Register register)
       throws InvalidStateTransitonException, AmbariException {
     String hostname = register.getHostname();

@@ -30,8 +30,8 @@ public class JaxbMapKeyVal {
   @XmlElement public String  key;
   @XmlElement public String value;
 
-  private JaxbMapKeyVal() {} 
-  
+  private JaxbMapKeyVal() {}
+
   public JaxbMapKeyVal(String key, String value)
   {
     this.key   = key;

@@ -136,12 +136,12 @@ public class HostImpl implements Host {
    // Transition from INIT state
    // when the initial registration request is received
    .addTransition(HostState.INIT, HostState.WAITING_FOR_HOST_STATUS_UPDATES,
-       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())       
-       
+       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())
+
    // Transition from WAITING_FOR_STATUS_UPDATES state
    // when the host has responded to its status update requests
    // TODO this will create problems if the host is not healthy
-   // TODO Based on discussion with Jitendra, ignoring this for now    
+   // TODO Based on discussion with Jitendra, ignoring this for now
    .addTransition(HostState.WAITING_FOR_HOST_STATUS_UPDATES, HostState.HEALTHY,
        HostEventType.HOST_STATUS_UPDATES_RECEIVED,
        new HostStatusUpdatesReceivedTransition())
@@ -168,10 +168,10 @@ public class HostImpl implements Host {
    .addTransition(HostState.HEALTHY, HostState.UNHEALTHY,
        HostEventType.HOST_HEARTBEAT_UNHEALTHY,
        new HostBecameUnhealthyTransition())
-   // if a new registration request is received   
+   // if a new registration request is received
    .addTransition(HostState.HEALTHY,
        HostState.WAITING_FOR_HOST_STATUS_UPDATES,
-       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())       
+       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())
 
    // Transitions from UNHEALTHY state
    // when a normal heartbeat is received
@@ -186,20 +186,20 @@ public class HostImpl implements Host {
    .addTransition(HostState.UNHEALTHY, HostState.HEARTBEAT_LOST,
        HostEventType.HOST_HEARTBEAT_LOST,
        new HostHeartbeatLostTransition())
-   // if a new registration request is received   
+   // if a new registration request is received
    .addTransition(HostState.UNHEALTHY,
        HostState.WAITING_FOR_HOST_STATUS_UPDATES,
-       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())       
+       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())
 
    // Transitions from HEARTBEAT_LOST state
    // when a heartbeat is not received within the configured timeout period
    .addTransition(HostState.HEARTBEAT_LOST, HostState.HEARTBEAT_LOST,
        HostEventType.HOST_HEARTBEAT_LOST)
-   // if a new registration request is received   
+   // if a new registration request is received
    .addTransition(HostState.HEARTBEAT_LOST,
        HostState.WAITING_FOR_HOST_STATUS_UPDATES,
-       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())       
-       
+       HostEventType.HOST_REGISTRATION_REQUEST, new HostRegistrationReceived())
+
    .installTopology();
 
   private final StateMachine<HostState, HostEventType, HostEvent> stateMachine;

@@ -41,7 +41,7 @@ public class HeartbeatMonitor implements Runnable {
   private final int threadWakeupInterval; //1 minute
   private volatile boolean shouldRun = true;
   private Thread monitorThread = null;
-  
+
   public HeartbeatMonitor(Clusters fsm, ActionQueue aq, ActionManager am,
       int threadWakeupInterval) {
     this.fsm = fsm;
@@ -58,7 +58,7 @@ public class HeartbeatMonitor implements Runnable {
     monitorThread = new Thread(this);
     monitorThread.start();
   }
-  
+
   @Override
   public void run() {
     while (shouldRun) {
@@ -83,7 +83,7 @@ public class HeartbeatMonitor implements Runnable {
     for (Host hostObj : allHosts) {
       String host = hostObj.getHostName();
       HostState hostState = hostObj.getState();
-      
+
       long lastHeartbeat = 0;
       try {
         lastHeartbeat = fsm.getHost(host).getLastHeartbeatTime();

@@ -51,17 +51,17 @@ public class AgentResourceTest extends JerseyTest {
   HeartBeatHandler handler;
   ActionManager actionManager;
   Injector injector;
-  
+
   public AgentResourceTest() {
     super(new WebAppDescriptor.Builder(PACKAGE_NAME).servletClass(ServletContainer.class)
         .build());
   }
-  
+
   public class MockModule extends AbstractModule {
-    
+
     RegistrationResponse response = new RegistrationResponse();
     HeartBeatResponse hresponse = new HeartBeatResponse();
-    
+
     @Override
     protected void configure() {
       handler = mock(HeartBeatHandler.class);
@@ -81,9 +81,9 @@ public class AgentResourceTest extends JerseyTest {
       bind(ActionManager.class).toInstance(actionManager);
       bind(AgentCommand.class).to(ExecutionCommand.class);
       bind(HeartBeatHandler.class).toInstance(handler);
-    }    
+    }
   }
-  
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -91,7 +91,7 @@ public class AgentResourceTest extends JerseyTest {
     injector = Guice.createInjector(new MockModule());
     injector.injectMembers(handler);
   }
-  
+
   private JSONObject createDummyJSONRegister() throws JSONException {
     JSONObject json = new JSONObject();
     json.append("responseId" , -1);
@@ -99,7 +99,7 @@ public class AgentResourceTest extends JerseyTest {
     json.append("hostname",   "dummyHost");
     return json;
   }
-  
+
   private JSONObject createDummyHeartBeat() throws JSONException {
     JSONObject json = new JSONObject();
     json.put("responseId", -1);
@@ -107,7 +107,7 @@ public class AgentResourceTest extends JerseyTest {
     json.put("hostname", "dummyHost");
     return json;
   }
-  
+
   @Test
   public void agentRegistration() throws UniformInterfaceException, JSONException {
     RegistrationResponse response;
@@ -117,14 +117,14 @@ public class AgentResourceTest extends JerseyTest {
     LOG.info("Returned from Server " + response.getResponseStatus());
     Assert.assertEquals(response.getResponseStatus(), RegistrationStatus.OK);
   }
-  
+
   @Test
   public void agentHeartBeat() throws UniformInterfaceException, JSONException {
     HeartBeatResponse response;
     WebResource resource = resource();
     response = resource.path("/heartbeat/dummyhost").type(MediaType.APPLICATION_JSON)
         .post(HeartBeatResponse.class, createDummyHeartBeat());
-    LOG.info("Returned from Server: " + "clusterid = " + response.getClusterId() 
+    LOG.info("Returned from Server: " + "clusterid = " + response.getClusterId()
         + " responseid=" +   response.getResponseId());
     Assert.assertEquals(response.getResponseId(), 0L);
   }

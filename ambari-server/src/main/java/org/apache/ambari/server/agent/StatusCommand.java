@@ -38,13 +38,13 @@ public class StatusCommand extends AgentCommand {
   public StatusCommand() {
     super(AgentCommandType.STATUS_COMMAND);
   }
-  
+
   @XmlElement
   List<String> roles;
 
   @XmlElement
   private String clusterName;
-  
+
   public List<String> getRoles() {
     return roles;
   }
