@@ -28,6 +28,15 @@ import java.util.Set;
  * for a given request.
  */
 public interface ResourceProvider {
+
+  /**
+   * Create the resources defined by the properties in the given request object.
+   *
+   * @param request  the request object which defines the set of properties
+   *                 for the resources to be created
+   */
+  public void createResources(Request request);
+
   /**
    * Get a set of {@link Resource resources} based on the given request and predicate
    * information.
@@ -44,12 +53,31 @@ public interface ResourceProvider {
    * the resources of a given type and allow the calling cluster controller to filter
    * based on the predicate.
    *
-   * @param request   the request object which defines the desired set of properties
-   * @param predicate the predicate object which can be used to filter which
-   *                  resources are returned
+   * @param request    the request object which defines the desired set of properties
+   * @param predicate  the predicate object which can be used to filter which
+   *                   resources are returned
    * @return a set of resources based on the given request and predicate information
    */
   public Set<Resource> getResources(Request request, Predicate predicate);
+
+  /**
+   * Update the resources selected by the given predicate with the properties
+   * from the given request object.
+   *
+   * @param request    the request object which defines the set of properties
+   *                   for the resources to be updated
+   * @param predicate  the predicate object which can be used to filter which
+   *                   resources are updated
+   */
+  public void updateResources(Request request, Predicate predicate);
+
+  /**
+   * Delete the resources selected by the given predicate.
+   *
+   * @param predicate the predicate object which can be used to filter which
+   *                  resources are deleted
+   */
+  public void deleteResources(Predicate predicate);
 
   /**
    * Get the set of property ids for the properties that this provider can provide.

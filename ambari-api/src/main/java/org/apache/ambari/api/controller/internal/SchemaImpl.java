@@ -34,16 +34,13 @@ import java.util.Set;
  * Default schema implementation.
  */
 public class SchemaImpl implements Schema {
-  private final Resource.Type type;
   private final ResourceProvider resourceProvider;
   private final List<PropertyProvider> propertyProviders;
-  private final Map<String, PropertyId> keyPropertyIds;
+  private final Map<Resource.Type, PropertyId> keyPropertyIds;
 
-  public SchemaImpl(Resource.Type type,
-                    ResourceProvider resourceProvider,
+  public SchemaImpl(ResourceProvider resourceProvider,
                     List<PropertyProvider> propertyProviders,
-                    Map<String, PropertyId> keyPropertyIds) {
-    this.type = type;
+                    Map<Resource.Type, PropertyId> keyPropertyIds) {
     this.resourceProvider = resourceProvider;
     this.propertyProviders = propertyProviders;
     this.keyPropertyIds = keyPropertyIds;
@@ -51,7 +48,7 @@ public class SchemaImpl implements Schema {
 
   @Override
   public PropertyId getKeyPropertyId(Resource.Type type) {
-    return keyPropertyIds.get(type.toString());
+    return keyPropertyIds.get(type);
   }
 
   @Override

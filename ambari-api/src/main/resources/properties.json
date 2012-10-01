@@ -26,7 +26,17 @@
     "DB":[
       {
         "name":"service_name",
-        "category":"Services",
+        "category":"ServiceInfo",
+        "temporal":false
+      },
+      {
+        "name":"cluster_name",
+        "category":"ServiceInfo",
+        "temporal":false
+      },
+      {
+        "name":"state",
+        "category":"ServiceInfo",
         "temporal":false
       },
       {
@@ -42,16 +52,6 @@
       {
         "name":"attributes",
         "category":"Services",
-        "temporal":false
-      },
-      {
-        "name":"cluster_name",
-        "category":"ServiceInfo",
-        "temporal":false
-      },
-      {
-        "name":"state",
-        "category":"ServiceInfo",
         "temporal":false
       }
     ],
@@ -107,22 +107,12 @@
     "DB":[
       {
         "name":"service_name",
-        "category":"ServiceComponents",
+        "category":"ServiceComponentInfo",
         "temporal":false
       },
       {
         "name":"component_name",
-        "category":"ServiceComponents",
-        "temporal":false
-      },
-      {
-        "name":"display_name",
-        "category":"ServiceComponents",
-        "temporal":false
-      },
-      {
-        "name":"description",
-        "category":"ServiceComponents",
+        "category":"ServiceComponentInfo",
         "temporal":false
       },
       {
@@ -133,6 +123,16 @@
       {
         "name":"state",
         "category":"ServiceComponentInfo",
+        "temporal":false
+      },
+      {
+        "name":"display_name",
+        "category":"ServiceComponents",
+        "temporal":false
+      },
+      {
+        "name":"description",
+        "category":"ServiceComponents",
         "temporal":false
       }
     ],
@@ -169,7 +169,7 @@
         "temporal":false
       }
     ],
-    "JMX":[
+      "JMX":[
       {
         "name":"memNonHeapUsedM",
         "category":"jvm",

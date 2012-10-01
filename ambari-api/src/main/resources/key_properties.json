@@ -14,7 +14,7 @@
     },
     "Service":{
       "name":"service_name",
-      "category":"Services",
+      "category":"ServiceInfo",
       "temporal":false
     }
   },
@@ -38,12 +38,12 @@
     },
     "Service":{
       "name":"service_name",
-      "category":"ServiceComponents",
+      "category":"ServiceComponentInfo",
       "temporal":false
     },
     "Component":{
       "name":"component_name",
-      "category":"ServiceComponents",
+      "category":"ServiceComponentInfo",
       "temporal":false
     }
   },

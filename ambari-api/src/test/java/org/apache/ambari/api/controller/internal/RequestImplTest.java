@@ -43,7 +43,7 @@ public class RequestImplTest {
 
   @Test
   public void testGetPropertyIds() {
-    Request request = new RequestImpl(propertyIds);
+    Request request = new RequestImpl(propertyIds, null);
 
     Assert.assertEquals(propertyIds, request.getPropertyIds());
   }

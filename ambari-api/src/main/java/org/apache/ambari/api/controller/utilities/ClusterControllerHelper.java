@@ -19,11 +19,13 @@
 package org.apache.ambari.api.controller.utilities;
 
 import org.apache.ambari.api.controller.internal.ClusterControllerImpl;
+import org.apache.ambari.api.controller.internal.PropertyIdImpl;
+import org.apache.ambari.api.controller.internal.ResourceProviderImpl;
 import org.apache.ambari.api.controller.internal.SchemaImpl;
-import org.apache.ambari.api.controller.jdbc.ConnectionFactory;
-import org.apache.ambari.api.controller.jdbc.JDBCResourceProvider;
-import org.apache.ambari.api.controller.jdbc.SQLiteConnectionFactory;
+import org.apache.ambari.api.controller.jdbc.JDBCManagementController;
 import org.apache.ambari.api.controller.spi.ClusterController;
+import org.apache.ambari.api.controller.spi.ManagementController;
+import org.apache.ambari.api.controller.spi.PropertyId;
 import org.apache.ambari.api.controller.spi.PropertyProvider;
 import org.apache.ambari.api.controller.spi.Resource;
 import org.apache.ambari.api.controller.spi.ResourceProvider;
@@ -40,11 +42,7 @@ import java.util.Map;
 public class ClusterControllerHelper {
   private static ClusterController controller;
 
-  public static final ConnectionFactory CONNECTION_FACTORY = new SQLiteConnectionFactory();
-
-
   public static synchronized ClusterController getClusterController() {
-
     if (controller == null) {
       controller = new ClusterControllerImpl(getResourceSchemas());
     }
@@ -55,15 +53,22 @@ public class ClusterControllerHelper {
     Map<Resource.Type, Schema> schemas = new HashMap<Resource.Type, Schema>();
 
     schemas.put(Resource.Type.Cluster, getResourceSchema(Resource.Type.Cluster));
+    schemas.put(Resource.Type.Service, getResourceSchema(Resource.Type.Service));
+    schemas.put(Resource.Type.Host, getResourceSchema(Resource.Type.Host));
+    schemas.put(Resource.Type.Component, getResourceSchema(Resource.Type.Component));
+    schemas.put(Resource.Type.HostComponent, getResourceSchema(Resource.Type.HostComponent));
 
     return schemas;
   }
 
   private static Schema getResourceSchema(Resource.Type type) {
 
-    ResourceProvider resourceProvider =  JDBCResourceProvider.create(CONNECTION_FACTORY, type);
+    ManagementController managementController = new JDBCManagementController(DBHelper.CONNECTION_FACTORY);
+
+    ResourceProvider resourceProvider = ResourceProviderImpl.getResourceProvider(type, Properties.getPropertyIds(type, "DB"), managementController);
+
     List<PropertyProvider> propertyProviders = new LinkedList<PropertyProvider>();
 
-    return new SchemaImpl(type, resourceProvider, propertyProviders, Properties.getKeyPropertyIds(type));
+    return new SchemaImpl(resourceProvider, propertyProviders, Properties.getKeyPropertyIds(type));
   }
 }

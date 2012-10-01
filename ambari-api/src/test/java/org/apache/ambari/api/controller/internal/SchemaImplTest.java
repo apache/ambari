@@ -57,6 +57,21 @@ public class SchemaImplTest {
     }
 
     @Override
+    public void createResources(Request request) {
+      //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void updateResources(Request request, Predicate predicate) {
+      //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void deleteResources(Predicate predicate) {
+      //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
     public Set<PropertyId> getPropertyIds() {
       return resourceProviderProperties;
     }
@@ -89,17 +104,17 @@ public class SchemaImplTest {
     propertyProviders.add(propertyProvider);
   }
 
-  private static final Map<String, PropertyId> keyPropertyIds = new HashMap<String, PropertyId>();
+  private static final Map<Resource.Type, PropertyId> keyPropertyIds = new HashMap<Resource.Type, PropertyId>();
 
   static {
-    keyPropertyIds.put(Resource.Type.Cluster.toString(), Properties.getPropertyId("p1", "c1"));
-    keyPropertyIds.put(Resource.Type.Host.toString(), Properties.getPropertyId("p2", "c1"));
-    keyPropertyIds.put(Resource.Type.Component.toString(), Properties.getPropertyId("p3", "c1"));
+    keyPropertyIds.put(Resource.Type.Cluster, Properties.getPropertyId("p1", "c1"));
+    keyPropertyIds.put(Resource.Type.Host, Properties.getPropertyId("p2", "c1"));
+    keyPropertyIds.put(Resource.Type.Component, Properties.getPropertyId("p3", "c1"));
   }
 
   @Test
   public void testGetKeyPropertyId() {
-    Schema schema = new SchemaImpl(Resource.Type.HostComponent, resourceProvider, propertyProviders, keyPropertyIds);
+    Schema schema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
 
     Assert.assertEquals(Properties.getPropertyId("p1", "c1"), schema.getKeyPropertyId(Resource.Type.Cluster));
     Assert.assertEquals(Properties.getPropertyId("p2", "c1"), schema.getKeyPropertyId(Resource.Type.Host));
@@ -108,7 +123,7 @@ public class SchemaImplTest {
 
   @Test
   public void testGetCategories() {
-    Schema schema = new SchemaImpl(Resource.Type.HostComponent, resourceProvider, propertyProviders, keyPropertyIds);
+    Schema schema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
 
     Map<String, Set<String>> categories = schema.getCategories();
     Assert.assertEquals(4, categories.size());
@@ -140,14 +155,14 @@ public class SchemaImplTest {
 
   @Test
   public void testGetResourceProvider() {
-    Schema schema = new SchemaImpl(Resource.Type.HostComponent, resourceProvider, propertyProviders, keyPropertyIds);
+    Schema schema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
 
     Assert.assertSame(resourceProvider, schema.getResourceProvider());
   }
 
   @Test
   public void testGetPropertyProviders() {
-    Schema schema = new SchemaImpl(Resource.Type.HostComponent, resourceProvider, propertyProviders, keyPropertyIds);
+    Schema schema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
 
     Assert.assertSame(propertyProviders, schema.getPropertyProviders());
   }

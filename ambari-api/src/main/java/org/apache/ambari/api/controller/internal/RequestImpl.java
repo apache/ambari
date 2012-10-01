@@ -22,6 +22,8 @@ import org.apache.ambari.api.controller.spi.PropertyId;
 import org.apache.ambari.api.controller.spi.Request;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -30,14 +32,21 @@ import java.util.Set;
 public class RequestImpl implements Request {
 
   private final Set<PropertyId> propertyIds;
+  private final Set<Map<PropertyId, String>> properties;
 
-  public RequestImpl(Set<PropertyId> propertyIds) {
-    this.propertyIds = Collections.unmodifiableSet(propertyIds);
+  public RequestImpl(Set<PropertyId> propertyIds, Set<Map<PropertyId, String>> properties) {
+    this.propertyIds = propertyIds == null ? Collections.unmodifiableSet(new HashSet<PropertyId>()) : Collections.unmodifiableSet(propertyIds);
+    this.properties = properties == null ? Collections.unmodifiableSet(new HashSet<Map<PropertyId, String>>()) : Collections.unmodifiableSet(properties);
   }
 
   @Override
   public Set<PropertyId> getPropertyIds() {
     return propertyIds;
+  }
+
+  @Override
+  public Set<Map<PropertyId, String>> getProperties() {
+    return properties;
   }
 
   @Override

@@ -159,7 +159,7 @@ public class QueryImpl implements Query {
         setProperties.add(new PropertyIdImpl(property, group, false));
       }
     }
-    return new RequestImpl(setProperties);
+    return new RequestImpl(setProperties, null);
   }
 
   //todo

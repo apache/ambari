@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-779. Introduce ManagementController interface. (Tom Beerbower via hitesh)
+
   AMBARI-755. Heartbeat handler: Update state as reported in heartbeat.
   (jitendra)
 

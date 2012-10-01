@@ -28,10 +28,10 @@ import org.apache.ambari.api.controller.spi.Resource;
 import org.apache.ambari.api.controller.spi.ResourceProvider;
 import org.apache.ambari.api.controller.spi.Schema;
 import org.apache.ambari.api.controller.utilities.PredicateBuilder;
-import org.apache.ambari.api.controller.utilities.PredicateHelper;
 import org.apache.ambari.api.controller.utilities.Properties;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -70,6 +70,21 @@ public class ClusterControllerImplTest {
       }
 
       return resources;
+    }
+
+    @Override
+    public void createResources(Request request) {
+      //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void updateResources(Request request, Predicate predicate) {
+      //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void deleteResources(Predicate predicate) {
+      //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
@@ -114,12 +129,22 @@ public class ClusterControllerImplTest {
     propertyProviders.add(propertyProvider);
   }
 
-  private static final Map<String, PropertyId> keyPropertyIds = new HashMap<String, PropertyId>();
+  private static final Map<Resource.Type, PropertyId> keyPropertyIds = new HashMap<Resource.Type, PropertyId>();
 
   private static Map<Resource.Type, Schema> schemas = new HashMap<Resource.Type, Schema>();
 
+  private static final SchemaImpl hostSchema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
+  private static final SchemaImpl serviceSchema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
+  private static final SchemaImpl clusterSchema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
+  private static final SchemaImpl componentSchema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
+  private static final SchemaImpl hostComponentSchema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
+
   static {
-    schemas.put(Resource.Type.Host, new SchemaImpl(Resource.Type.HostComponent, resourceProvider, propertyProviders, keyPropertyIds));
+    schemas.put(Resource.Type.Host, hostSchema);
+    schemas.put(Resource.Type.Service, serviceSchema);
+    schemas.put(Resource.Type.Cluster, clusterSchema);
+    schemas.put(Resource.Type.Component, componentSchema);
+    schemas.put(Resource.Type.HostComponent, hostComponentSchema);
   }
 
   private static final Set<PropertyId> propertyIds = new HashSet<PropertyId>();
@@ -137,7 +162,7 @@ public class ClusterControllerImplTest {
   public void testGetResources() {
     ClusterController controller = new ClusterControllerImpl(schemas);
 
-    Request request = new RequestImpl(propertyIds);
+    Request request = new RequestImpl(propertyIds, null);
 
     Iterable<Resource> iterable = controller.getResources(Resource.Type.Host, request, null);
 
@@ -153,7 +178,7 @@ public class ClusterControllerImplTest {
   public void testGetResourcesWithPredicate() {
     ClusterController controller = new ClusterControllerImpl(schemas);
 
-    Request request = new RequestImpl(propertyIds);
+    Request request = new RequestImpl(propertyIds, null);
 
     Predicate predicate = new PredicateBuilder().property("p2", "c1").equals(1).toPredicate();
 
@@ -165,6 +190,17 @@ public class ClusterControllerImplTest {
       ++cnt;
     }
     Assert.assertEquals(2, cnt);
+  }
+
+  @Test
+  public void testGetSchema() {
+    ClusterController controller = new ClusterControllerImpl(schemas);
+
+    Assert.assertSame(hostSchema, controller.getSchema(Resource.Type.Host));
+    Assert.assertSame(serviceSchema, controller.getSchema(Resource.Type.Service));
+    Assert.assertSame(clusterSchema, controller.getSchema(Resource.Type.Cluster));
+    Assert.assertSame(componentSchema, controller.getSchema(Resource.Type.Component));
+    Assert.assertSame(hostComponentSchema, controller.getSchema(Resource.Type.HostComponent));
   }
 }
 

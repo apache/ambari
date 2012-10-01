@@ -19,6 +19,7 @@ package org.apache.ambari.api.controller.utilities;
 
 import org.apache.ambari.api.controller.spi.PropertyId;
 import org.apache.ambari.api.controller.spi.Resource;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Map;
@@ -29,26 +30,30 @@ import java.util.Set;
  */
 public class PropertiesTest {
 
+  @Ignore
   @Test
   public void testGetPropertyIds() throws Exception {
 
 
     Set<PropertyId> propertyIds = Properties.getPropertyIds(Resource.Type.HostComponent, "DB");
 
+    System.out.println("DB");
     for (PropertyId propertyId : propertyIds) {
-//            System.out.println(propertyId);
+            System.out.println(propertyId);
     }
 
     propertyIds = Properties.getPropertyIds(Resource.Type.HostComponent, "JMX");
 
+    System.out.println("JMX");
     for (PropertyId propertyId : propertyIds) {
-//            System.out.println(propertyId);
+            System.out.println(propertyId);
     }
 
     propertyIds = Properties.getPropertyIds(Resource.Type.HostComponent, "GANGLIA");
 
+    System.out.println("GANGLIA");
     for (PropertyId propertyId : propertyIds) {
-//            System.out.println(propertyId);
+            System.out.println(propertyId);
     }
   }
 
@@ -56,7 +61,7 @@ public class PropertiesTest {
   @Test
   public void testGetKeyPropertyIds() throws Exception {
 
-    Map<String, PropertyId> keyProperties = Properties.getKeyPropertyIds(Resource.Type.Service);
+    Map<Resource.Type, PropertyId> keyProperties = Properties.getKeyPropertyIds(Resource.Type.Service);
 
     System.out.println(keyProperties);
   }

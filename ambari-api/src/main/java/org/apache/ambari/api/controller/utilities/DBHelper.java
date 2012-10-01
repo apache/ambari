@@ -34,8 +34,9 @@ import java.util.Map;
  *
  */
 public class DBHelper {
+  private static String DB_FILE_NAME = System.getProperty("ambariapi.dbfile", "src/test/resources/data.db");
 
-  public static final ConnectionFactory CONNECTION_FACTORY = new SQLiteConnectionFactory();
+  public static final ConnectionFactory CONNECTION_FACTORY = new SQLiteConnectionFactory(DB_FILE_NAME);
 
   private static final Map<String, String> HOSTS = readHosts();
 

@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.api.controller.spi;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -34,6 +35,7 @@ public interface Request {
    */
   public Set<PropertyId> getPropertyIds();
 
+  public Set<Map<PropertyId, String>> getProperties();
   /**
    * Get the {@link TemporalInfo temporal information} for the given property
    * id for this request, if any.
