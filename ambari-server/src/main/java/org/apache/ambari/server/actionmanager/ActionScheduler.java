@@ -83,7 +83,7 @@ class ActionScheduler implements Runnable {
   }
 
   private void doWork() throws AmbariException {
-    List<Stage> stages = db.getPendingStages();
+    List<Stage> stages = db.getStagesInProgress();
     if (stages == null || stages.isEmpty()) {
       //Nothing to do
       return;

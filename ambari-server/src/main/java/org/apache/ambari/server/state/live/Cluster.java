@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.state.live;
 
+import java.util.List;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHost;
@@ -94,5 +96,7 @@ public interface Cluster {
    */
   public ServiceComponentHost getServiceComponentHost(String serviceName,
       String componentName, String hostname) throws AmbariException;
+
+  public List<ServiceComponentHost> getServiceComponentHosts(String hostname);
 
 }

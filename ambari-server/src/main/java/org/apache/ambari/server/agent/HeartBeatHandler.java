@@ -23,12 +23,16 @@ import java.util.List;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.live.AgentVersion;
 import org.apache.ambari.server.state.live.Cluster;
 import org.apache.ambari.server.state.live.Clusters;
 import org.apache.ambari.server.state.live.host.Host;
 import org.apache.ambari.server.state.live.host.HostEvent;
 import org.apache.ambari.server.state.live.host.HostEventType;
+import org.apache.ambari.server.state.live.host.HostHealthyHeartbeatEvent;
+import org.apache.ambari.server.state.live.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.live.host.HostState;
+import org.apache.ambari.server.state.live.host.HostUnhealthyHeartbeatEvent;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHost;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostLiveState;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostState;
@@ -67,10 +71,14 @@ public class HeartBeatHandler {
     response.setResponseId(0L);
     String hostname = heartbeat.getHostname();
     Host hostObject = clusterFsm.getHost(hostname);
+    long now = System.currentTimeMillis();
     try {
-      // TODO: handle unhealthy heartbeat as well
-      hostObject.handleEvent(new HostEvent(hostname,
-          HostEventType.HOST_HEARTBEAT_HEALTHY));
+      if (heartbeat.getNodeStatus().getStatus()
+          .equals(HostStatus.Status.HEALTHY)) {
+        hostObject.handleEvent(new HostHealthyHeartbeatEvent(hostname, now));
+      } else {
+        hostObject.handleEvent(new HostUnhealthyHeartbeatEvent(hostname, now, null));
+      }
     } catch (InvalidStateTransitonException ex) {
       hostObject.setState(HostState.INIT);
       RegistrationCommand regCmd = new RegistrationCommand();
@@ -112,14 +120,25 @@ public class HeartBeatHandler {
   public RegistrationResponse handleRegistration(Register register)
       throws InvalidStateTransitonException, AmbariException {
     String hostname = register.getHostname();
-    List<String> roles = clusterFsm.getHostComponents(hostname);
+    long now = System.currentTimeMillis();
+    List<StatusCommand> cmds = new ArrayList<StatusCommand>();
+    for (Cluster cl : clusterFsm.getClustersForHost(hostname)) {
+      List<ServiceComponentHost> roleList = cl
+          .getServiceComponentHosts(hostname);
+      List<String> roles = new ArrayList<String>();
+      for (ServiceComponentHost sch : roleList) {
+        roles.add(sch.getServiceComponentName());
+      }
+      StatusCommand statusCmd = new StatusCommand();
+      statusCmd.setRoles(roles);
+      cmds.add(statusCmd);
+    }
     Host hostObject = clusterFsm.getHost(hostname);
     RegistrationResponse response = new RegistrationResponse();
-    StatusCommand statusCmd = new StatusCommand();
-    statusCmd.setRoles(roles);
-    response.setCommand(statusCmd);
-    hostObject.handleEvent(new HostEvent(hostname,
-        HostEventType.HOST_REGISTRATION_REQUEST));
+    response.setCommand(cmds);
+
+    hostObject.handleEvent(new HostRegistrationRequestEvent(hostname,
+        new AgentVersion("v1"), now, register.getHardwareProfile()));
     return response;
   }
 }

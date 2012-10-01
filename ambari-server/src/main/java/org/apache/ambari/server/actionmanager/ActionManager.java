@@ -39,9 +39,9 @@ public class ActionManager {
 
   @Inject
   public ActionManager(long schedulerSleepTime, long actionTimeout,
-      ActionQueue aq, Clusters fsm) {
+      ActionQueue aq, Clusters fsm, ActionDBAccessor db) {
     this.actionQueue = aq;
-    db = new ActionDBAccessorImpl();
+    this.db = db;
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
         actionQueue, fsm, 2);
     this.fsm = fsm;

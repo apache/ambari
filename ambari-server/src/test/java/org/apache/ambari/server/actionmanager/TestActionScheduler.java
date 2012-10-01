@@ -55,8 +55,8 @@ public class TestActionScheduler {
     ha.addHostRoleCommand(hrc);
    // ha.setManifest("1-977-manifest");
     s.addHostAction(hostname, ha);
-    when(db.getPendingStages()).thenReturn(stages);
-
+    when(db.getStagesInProgress()).thenReturn(stages);
+    
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(1000, 100, db, aq, fsm, 10000);
@@ -107,8 +107,8 @@ public class TestActionScheduler {
     ha.addHostRoleCommand(hrc);
     // ha.setManifest("1-977-manifest");
     s.addHostAction(hostname, ha);
-    when(db.getPendingStages()).thenReturn(stages);
-
+    when(db.getStagesInProgress()).thenReturn(stages);
+    
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm, 3);

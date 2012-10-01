@@ -28,6 +28,14 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {})
 public class HostStatus {
+  public HostStatus(Status status, String cause) {
+    super();
+    this.status = status;
+    this.cause = cause;
+  }
+  public HostStatus() {
+    super();
+  }
   @XmlType
   @XmlEnum
   public enum Status {
@@ -38,4 +46,16 @@ public class HostStatus {
   Status status;
   @XmlElement
   String cause;
+  public Status getStatus() {
+    return status;
+  }
+  public void setStatus(Status status) {
+    this.status = status;
+  }
+  public String getCause() {
+    return cause;
+  }
+  public void setCause(String cause) {
+    this.cause = cause;
+  }
 }

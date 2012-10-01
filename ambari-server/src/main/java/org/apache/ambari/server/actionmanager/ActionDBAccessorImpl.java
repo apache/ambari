@@ -30,13 +30,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   /* (non-Javadoc)
-   * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#persistAction(org.apache.ambari.server.actionmanager.HostAction)
-   */
-  @Override
-  public void persistAction(HostAction ha) {
-  }
-
-  /* (non-Javadoc)
    * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#getAction(java.lang.String)
    */
   @Override
@@ -48,32 +41,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#getAllStages(java.lang.String)
    */
   @Override
-  public List<Stage> getAllStages(String requestId) {
+  public List<Stage> getAllStages(long requestId) {
     return null;
-  }
-
-  /* (non-Javadoc)
-   * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#getQueuedStages()
-   */
-  @Override
-  public List<Stage> getQueuedStages() {
-    return null;
-  }
-
-  /* (non-Javadoc)
-   * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#getNotQueuedStages()
-   */
-  @Override
-  public List<Stage> getNotQueuedStages() {
-    return null;
-  }
-
-  /* (non-Javadoc)
-   * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#getNextStageId()
-   */
-  @Override
-  public synchronized long getNextStageId() {
-    return ++stageId ;
   }
 
   /* (non-Javadoc)
@@ -96,7 +65,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#getPendingStages()
    */
   @Override
-  public List<Stage> getPendingStages() {
+  public List<Stage> getStagesInProgress() {
     return null;
   }
 

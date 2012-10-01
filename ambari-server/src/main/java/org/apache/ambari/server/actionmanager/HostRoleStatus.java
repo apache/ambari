@@ -18,10 +18,11 @@
 package org.apache.ambari.server.actionmanager;
 
 public enum HostRoleStatus {
-  PENDING,
-  QUEUED,
-  COMPLETED,
-  FAILED,
-  TIMEDOUT,
-  ABORTED
+  PENDING, //Not queued for a host
+  QUEUED, //Queued for a host
+  IN_PROGRESS, //Host reported it is working
+  COMPLETED, //Host reported success
+  FAILED, //Failed
+  TIMEDOUT, //Host did not respond in time
+  ABORTED //Operation was abandoned
 }

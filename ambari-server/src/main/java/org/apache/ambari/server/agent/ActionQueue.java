@@ -53,11 +53,11 @@ public class ActionQueue {
       q = new LinkedList<AgentCommand>();
       addQueue(hostname, q);
     }
-    if (q.contains(cmd)) {
-      LOG.warn("cmd already exists in the queue, not adding again");
-      return;
-    }
     synchronized (q) {
+      if (q.contains(cmd)) {
+        LOG.warn("cmd already exists in the queue, not adding again");
+        return;
+      }
       q.add(cmd);
     }
   }
@@ -74,6 +74,9 @@ public class ActionQueue {
 
   public List<AgentCommand> dequeueAll(String hostname) {
     Queue<AgentCommand> q = getQueue(hostname);
+    if (q == null) {
+      return null;
+    }
     List<AgentCommand> l = new ArrayList<AgentCommand>();
     synchronized (q) {
       while (true) {

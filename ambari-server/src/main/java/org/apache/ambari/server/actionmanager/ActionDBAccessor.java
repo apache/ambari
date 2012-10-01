@@ -23,26 +23,9 @@ import org.apache.ambari.server.Role;
 
 public interface ActionDBAccessor {
 
-  public void persistAction(HostAction ha);
-
   public Stage getAction(String actionId);
 
-  public List<Stage> getAllStages(String requestId);
-
-  /**
-   * Returns all the actions that have been queued but not completed yet.
-   */
-  public List<Stage> getQueuedStages();
-
-  /**
-   * Returns all the actions that have not been queued yet.
-   */
-  public List<Stage> getNotQueuedStages();
-
-  /**
-   * Returns next stage id in the sequence, must be persisted.
-   */
-  public long getNextStageId();
+  public List<Stage> getAllStages(long requestId);
 
   public void abortOperation(long requestId);
 
@@ -50,8 +33,9 @@ public interface ActionDBAccessor {
 
   /**
    * Returns all the pending stages, including queued and not-queued.
+   * A stage is considered in progress if it is in progress for any host.
    */
-  public List<Stage> getPendingStages();
+  public List<Stage> getStagesInProgress();
 
   public void persistActions(List<Stage> stages);
 

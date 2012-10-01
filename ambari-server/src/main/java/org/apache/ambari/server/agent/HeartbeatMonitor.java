@@ -26,6 +26,7 @@ import org.apache.ambari.server.state.live.Clusters;
 import org.apache.ambari.server.state.live.host.Host;
 import org.apache.ambari.server.state.live.host.HostEvent;
 import org.apache.ambari.server.state.live.host.HostEventType;
+import org.apache.ambari.server.state.live.host.HostHeartbeatLostEvent;
 import org.apache.ambari.server.state.live.host.HostState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -93,7 +94,7 @@ public class HeartbeatMonitor implements Runnable {
       if (lastHeartbeat + 5*threadWakeupInterval < now) {
         LOG.warn("Hearbeat lost from host "+host);
         //Heartbeat is expired
-        hostObj.handleEvent(new HostEvent(host, HostEventType.HOST_HEARTBEAT_LOST));
+        hostObj.handleEvent(new HostHeartbeatLostEvent(host));
         //Purge action queue
         actionQueue.dequeueAll(host);
         //notify action manager

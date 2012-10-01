@@ -19,8 +19,6 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import org.apache.ambari.server.Role;
 
@@ -29,58 +27,63 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   List<Stage> stageList = new ArrayList<Stage>();
 
   @Override
-  public void persistAction(HostAction ha) {
-    // TODO Auto-generated method stub
-  }
-
-  @Override
-  public Stage getAction(String actionId) {
-    // TODO Auto-generated method stub
+  public synchronized Stage getAction(String actionId) {
+    for (Stage s: stageList) {
+      if (s.getActionId().equals(actionId)) {
+        return s;
+      }
+    }
     return null;
   }
-
   @Override
-  public List<Stage> getAllStages(String requestId) {
-    // TODO Auto-generated method stub
-    return null;
+  public synchronized List<Stage> getAllStages(long requestId) {
+    List<Stage> l = new ArrayList<Stage>();
+    for (Stage s: stageList) {
+      if (s.getRequestId() == requestId) {
+        l.add(s);
+      }
+    }
+    return l;
   }
 
   @Override
-  public List<Stage> getQueuedStages() {
-    // TODO Auto-generated method stub
-    return null;
+  public synchronized void abortOperation(long requestId) {
+    for (Stage s : stageList) {
+      if (s.getRequestId() == requestId) {
+        for(String host: s.getHostActions().keySet()) {
+          for (HostRoleCommand role : s.getHostActions().get(host).getRoleCommands()) {
+            role.setStatus(HostRoleStatus.ABORTED);
+          }
+        }
+      }
+    }
   }
 
   @Override
-  public List<Stage> getNotQueuedStages() {
-    // TODO Auto-generated method stub
-    return null;
+  public synchronized void timeoutHostRole(String host, long requestId,
+      long stageId, Role role) {
+    for (Stage s : stageList) {
+      for (HostRoleCommand r : s.getHostActions().get(host).getRoleCommands()) {
+        if (r.getRole().equals(role)) {
+          r.setStatus(HostRoleStatus.TIMEDOUT);
+        }
+      }
+    }
   }
 
   @Override
-  public long getNextStageId() {
-    // TODO Auto-generated method stub
-    return 0;
+  public synchronized List<Stage> getStagesInProgress() {
+    List<Stage> l = new ArrayList<Stage>();
+    for (Stage s: stageList) {
+      if (s.isStageInProgress()) {
+        l.add(s);
+      }
+    }
+    return l;
   }
 
   @Override
-  public void abortOperation(long requestId) {
-    // TODO Auto-generated method stub
-  }
-
-  @Override
-  public void timeoutHostRole(String host, long requestId, long stageId, Role role) {
-    // TODO Auto-generated method stub
-  }
-
-  @Override
-  public List<Stage> getPendingStages() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public void persistActions(List<Stage> stages) {
+  public synchronized void persistActions(List<Stage> stages) {
     for (Stage s: stages) {
       stageList.add(s);
     }

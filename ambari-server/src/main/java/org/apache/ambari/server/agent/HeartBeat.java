@@ -77,4 +77,12 @@ public class HeartBeat {
   public List<CommandReport> getCommandReports() {
     return this.reports;
   }
+
+  public HostStatus getNodeStatus() {
+    return nodeStatus;
+  }
+
+  public void setNodeStatus(HostStatus nodeStatus) {
+    this.nodeStatus = nodeStatus;
+  }
 }

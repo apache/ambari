@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-754. Heartbeat handler: Registration response should query component 
+  status. (jitendra)
+
   AMBARI-779. Introduce ManagementController interface. (Tom Beerbower via hitesh)
 
   AMBARI-755. Heartbeat handler: Update state as reported in heartbeat.

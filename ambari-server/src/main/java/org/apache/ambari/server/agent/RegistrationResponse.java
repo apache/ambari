@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.agent;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -35,8 +37,8 @@ import javax.xml.bind.annotation.XmlType;
 public class RegistrationResponse {
   @XmlElement
   private RegistrationStatus response;
-
-  private AgentCommand command = null;
+  
+  private List<StatusCommand> commands = null;
 
   public RegistrationStatus getResponseStatus() {
     return response;
@@ -46,11 +48,11 @@ public class RegistrationResponse {
     this.response = response;
   }
 
-  public AgentCommand getCommand() {
-    return command;
+  public List<StatusCommand> getCommand() {
+    return commands;
   }
 
-  public void setCommand(AgentCommand command) {
-    this.command = command;
+  public void setCommand(List<StatusCommand> commands) {
+    this.commands = commands;
   }
 }

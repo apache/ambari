@@ -52,4 +52,12 @@ public class StatusCommand extends AgentCommand {
   public void setRoles(List<String> roles) {
     this.roles = roles;
   }
+
+  public String getClusterName() {
+    return clusterName;
+  }
+
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+  }
 }

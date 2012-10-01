@@ -168,5 +168,11 @@ public class ClusterImpl implements Cluster {
   public long getClusterId() {
     return clusterId;
   }
+  
+  @Override
+  public List<ServiceComponentHost> getServiceComponentHosts(String hostname) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
 }

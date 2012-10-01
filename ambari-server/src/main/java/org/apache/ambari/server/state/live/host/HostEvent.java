@@ -23,7 +23,7 @@ import org.apache.ambari.server.state.fsm.event.AbstractEvent;
 /**
  * Base class for all events that affect the Host FSM
  */
-public class HostEvent extends AbstractEvent<HostEventType> {
+public abstract class HostEvent extends AbstractEvent<HostEventType> {
 
   /**
    * Hostname of the Host

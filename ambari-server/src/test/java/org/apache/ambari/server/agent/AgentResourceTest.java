@@ -25,7 +25,6 @@ import javax.ws.rs.core.MediaType;
 
 import junit.framework.Assert;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.state.live.Clusters;

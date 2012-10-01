@@ -124,4 +124,17 @@ public class Stage {
   public long getStartTime(String hostname) {
     return getHostAction(hostname).getStartTime();
   }
+  
+  public synchronized boolean isStageInProgress() {
+    for(String host: hostActions.keySet()) {
+      for (HostRoleCommand role : hostActions.get(host).getRoleCommands()) {
+        if (role.getStatus().equals(HostRoleStatus.PENDING) ||
+            role.getStatus().equals(HostRoleStatus.QUEUED) || 
+            role.getStatus().equals(HostRoleStatus.IN_PROGRESS)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }
