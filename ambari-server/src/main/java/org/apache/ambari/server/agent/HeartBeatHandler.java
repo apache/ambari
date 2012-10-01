@@ -32,6 +32,7 @@ import org.apache.ambari.server.state.live.host.HostEventType;
 import org.apache.ambari.server.state.live.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.live.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.live.host.HostState;
+import org.apache.ambari.server.state.live.host.HostStatusUpdatesReceivedEvent;
 import org.apache.ambari.server.state.live.host.HostUnhealthyHeartbeatEvent;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHost;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostLiveState;
@@ -134,11 +135,16 @@ public class HeartBeatHandler {
       cmds.add(statusCmd);
     }
     Host hostObject = clusterFsm.getHost(hostname);
-    RegistrationResponse response = new RegistrationResponse();
-    response.setCommand(cmds);
-
     hostObject.handleEvent(new HostRegistrationRequestEvent(hostname,
         new AgentVersion("v1"), now, register.getHardwareProfile()));
+    RegistrationResponse response = new RegistrationResponse();
+    if (cmds.isEmpty()) {
+      //No status commands needed let the fsm know that status step is done
+      hostObject.handleEvent(new HostStatusUpdatesReceivedEvent(hostname,
+          now));
+    } else {
+      response.setCommand(cmds);
+    }
     return response;
   }
 }

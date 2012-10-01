@@ -24,6 +24,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBInMemoryImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.HostStatus.Status;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.Clusters;
 import org.apache.ambari.server.state.live.host.Host;
 import org.apache.ambari.server.state.live.host.HostImpl;
@@ -53,6 +54,27 @@ public class TestHeartbeatHandler {
     handler.handleHeartBeat(hb);
     assertEquals(HostState.HEALTHY, hostObject.getState());
     assertEquals(0, aq.dequeueAll(hostname).size());
+  }
+  
+  @Test
+  public void testRegistration() throws AmbariException,
+      InvalidStateTransitonException {
+    ActionManager am = new ActionManager(0, 0, null, null,
+        new ActionDBInMemoryImpl());
+    Clusters fsm = mock(Clusters.class);
+    String hostname = "host1";
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am);
+    Host hostObject = new HostImpl(hostname);
+    when(fsm.getHost(hostname)).thenReturn(hostObject);
+    
+    Register reg = new Register();
+    HostInfo hi = new HostInfo();
+    hi.setOS("MegaOperatingSystem");
+    reg.setHostname(hostname);
+    reg.setHardwareProfile(hi);
+    handler.handleRegistration(reg);
+    assertEquals(hostObject.getState(), HostState.HEALTHY);
+    assertEquals("MegaOperatingSystem", hostObject.getOsType());
   }
 
 }

@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-781. Registration unit test. (jitendra)
+
   AMBARI-754. Heartbeat handler: Registration response should query component 
   status. (jitendra)
 
