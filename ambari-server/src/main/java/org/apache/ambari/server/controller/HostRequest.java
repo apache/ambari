@@ -15,21 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.controller;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * This class encapsulates any request at a host level but not referring to any
- * service or component.
- */
-public class HostRequest extends Request {
-  private List<String> hosts;
+public class HostRequest {
 
-  public HostRequest(long requestId, Request.Method m, List<String> hostList,
-      Map<String, String> params) {
-    super(requestId, m, params);
-    hosts = hostList;
+  List<PerHostRequest> hosts;
+  
+  public static class PerHostRequest {
+    String hostname;
+    
+    List<String> clusterNames; // CREATE/UPDATE 
+    
+    Map<String, String> hostAttributes; // CREATE/UPDATE  
   }
 }

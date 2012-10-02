@@ -15,17 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.controller;
 
-/**
- * Used for create Cluster
- */
-public class ClusterRequest {
+import java.util.List;
+import java.util.Map;
 
-  Long clusterId; // for GET
+/**
+ * This class encapsulates a configuration update request.
+ * The configuration properties are grouped at service level. It is assumed that
+ * different components of a service don't overload same property name.
+ */
+public class ConfigurationRequest {
+
+  String clusterName;
   
-  String clusterName; // for GET/CREATE/UPDATE
+  List<PerConfigurationRequest> configs;
   
-  String stackVersion; // for CREATE/UPDATE
+  public static class PerConfigurationRequest {
+    
+    String type;
+    
+    String versionTag;
+    
+    Map<String, String> configs;
+  }
+
 }

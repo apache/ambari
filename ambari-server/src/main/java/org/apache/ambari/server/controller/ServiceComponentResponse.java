@@ -18,14 +18,29 @@
 
 package org.apache.ambari.server.controller;
 
-/**
- * Used for create Cluster
- */
-public class ClusterRequest {
+import java.util.List;
+import java.util.Map;
 
-  Long clusterId; // for GET
+public class ServiceComponentResponse {
+
+  Long clusterId; // REF
+
+  String clusterName; // REF
   
-  String clusterName; // for GET/CREATE/UPDATE
-  
-  String stackVersion; // for CREATE/UPDATE
+  List<PerServiceComponentResponse> components;
+
+  public static class PerServiceComponentResponse {
+
+    String serviceName; // GET/CREATE/UPDATE/DELETE
+    
+    String componentName; // GET/CREATE/UPDATE/DELETE
+        
+    // Config type -> version mapping
+    Map<String, String> configVersions; // CREATE/UPDATE
+    
+    // hostname -> ServiceComponentHost mapping
+    Map<String, ServiceComponentHostResponse> serviceComponentHosts;
+    
+  }
+
 }

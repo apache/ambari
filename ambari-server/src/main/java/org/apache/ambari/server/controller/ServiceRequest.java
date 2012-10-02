@@ -17,38 +17,24 @@
  */
 package org.apache.ambari.server.controller;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * This class encapsulates any request relating to a state change or action in
- * a service or its components.
- */
-public class ServiceRequest extends Request {
-  private String clusterName;
-  private String service;
-  private String configVersion;
-  private String hostComponentMapVersion;
+public class ServiceRequest {
 
-  public class ComponentRequest {
-    private String componentName;
-    private Map<String, String> params = new HashMap<String, String>();
+  String clusterName; // REF
+
+  List<PerServiceRequest> services;
+
+  public static class PerServiceRequest {
+
+    String serviceName; // GET/CREATE/UPDATE/DELETE
+    
+    // Config type -> version mapping
+    Map<String, String> configVersions; // CREATE/UPDATE
+    
+    String desiredState; // CREATE/UPDATE
+    
   }
-
-  public void addComponentRequest(ComponentRequest c) {
-    components.add(c);
-  }
-
-  public ServiceRequest(long requestId, Request.Method m, String clusterName,
-      String service, String configVersion, String hostComponentMapVersion) {
-    super(requestId, m);
-    this.clusterName = clusterName;
-    this.service = service;
-    this.configVersion = configVersion;
-    this.hostComponentMapVersion = hostComponentMapVersion;
-  }
-
-  private List<ComponentRequest> components = new ArrayList<ComponentRequest>();
+  
 }

@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,26 +25,19 @@ import java.util.Map;
  * The configuration properties are grouped at service level. It is assumed that
  * different components of a service don't overload same property name.
  */
-public class ServiceConfigurationRequest extends Request {
-  final private String clusterName;
-  final private String serviceName;
+public class ConfigurationResponse {
 
-  //The complete set of desired configurations can be derived as
-  //properties corresponding to baseConfigVersion overridden with
-  //desiredProperties.
-  final private String baseConfigVersion;
-  private Map<String, String> desiredProperties = null;
-  private Map<String, String> hostComponentMap = null;
-
-  public ServiceConfigurationRequest(long requestId, Request.Method m,
-      String clusterName, String serviceName, String baseConfigVersion,
-      Map<String, String> desiredProperties,
-      Map<String, String> hostComponentMap) {
-    super(requestId, m);
-    this.clusterName = clusterName;
-    this.serviceName = serviceName;
-    this.baseConfigVersion = baseConfigVersion;
-    this.desiredProperties = desiredProperties;
-    this.hostComponentMap = hostComponentMap;
+  String clusterName;
+  
+  List<PerConfigurationResponse> configs;
+  
+  public static class PerConfigurationResponse {
+    
+    String type;
+    
+    String versionTag;
+    
+    Map<String, String> configs;
   }
+
 }

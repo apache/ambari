@@ -15,32 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.controller;
 
+import java.util.List;
 import java.util.Map;
 
-public class Request {
+public class ServiceResponse {
 
-  public enum Method {
-    GET,
-    PUT,
-    POST,
-    DELETE
-  }
+  Long clusterId; // REF
 
-  private long requestId;
-  private Map<String, String> params;
-  private Method method;
+  String clusterName; // REF
 
-
-  public Request(long requestId, Method m) {
-    this(requestId, m, null);
-  }
-
-
-  public Request(long requestId, Method m, Map<String, String> p) {
-    this.requestId = requestId;
-    this.method = m;
-    this.params = p;
+  List<PerServiceResponse> services;
+  
+  public static class PerServiceResponse {
+    
+    String serviceName;
+    
+    String currentStackVersion;
+    
+    Map<String, ServiceComponentResponse> components;
+    
   }
 }

@@ -15,27 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.controller;
 
-import java.util.List;
 import java.util.Map;
 
 /**
- * JobRequest encapsulates the requests for an action on the cluster.
- * An action on the cluster are operations that don't change the state of
- * any service.
+ * Used for create Cluster
  */
-public class JobRequest extends Request {
+public class ClusterResponse {
 
-  final private String job;
-  final private String serviceName; //can be null if action is at host level
-  final private List<String> hosts;
-
-  public JobRequest(long requestId, Request.Method m, String job, String serviceName,
-      List<String> hosts, Map<String, String> params) {
-    super(requestId, m, params);
-    this.job = job;
-    this.serviceName = serviceName;
-    this.hosts = hosts;
-  }
+  Long clusterId; // for GET
+  
+  String clusterName; // for GET/CREATE/UPDATE
+  
+  Map<String, ServiceResponse> services; // for GET
+  
+  Map<String, HostResponse> hosts; // for GET
 }
