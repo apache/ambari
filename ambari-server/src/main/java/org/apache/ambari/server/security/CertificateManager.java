@@ -44,11 +44,19 @@ public class CertificateManager {
   private static final Log LOG = LogFactory.getLog(CertificateManager.class);
 	
 	
-  private static final String GEN_SRVR_KEY = "openssl genrsa -des3 -passout pass:{0} -out {1}/{2} 4096 ";
-  private static final String GEN_SRVR_REQ = "openssl req -passin pass:{0} -new -key {1}/{2} -out {1}/{3} -batch";
-  private static final String SIGN_SRVR_CRT = "openssl x509 -passin pass:{0} -req -days 365 -in {1}/{3} -signkey {1}/{2} -out {1}/{3} \n";
-  private static final String EXPRT_KSTR = "openssl pkcs12 -export -in {1}/{3} -inkey {1}/{2} -certfile {1}/{3} -out {1}/{4} -password pass:{0} -passin pass:{0} \n";
-  private static final String SIGN_AGENT_CRT = "openssl ca -config {0}/ca.config -in {0}/{1} -out {0}/{2} -batch -passin pass:{3} -keyfile {0}/{4} -cert {0}/{5}"; /**
+  private static final String GEN_SRVR_KEY = "openssl genrsa -des3 " +
+  		"-passout pass:{0} -out {1}/{2} 4096 ";
+  private static final String GEN_SRVR_REQ = "openssl req -passin pass:{0} " +
+  		"-new -key {1}/{2} -out {1}/{3} -batch";
+  private static final String SIGN_SRVR_CRT = "openssl x509 " +
+  		"-passin pass:{0} -req -days 365 -in {1}/{3} -signkey {1}/{2} " +
+  		"-out {1}/{3} \n";
+  private static final String EXPRT_KSTR = "openssl pkcs12 -export" +
+  		" -in {1}/{3} -inkey {1}/{2} -certfile {1}/{3} -out {1}/{4} " +
+  		"-password pass:{0} -passin pass:{0} \n";
+  private static final String SIGN_AGENT_CRT = "openssl ca -config " +
+  		"{0}/ca.config -in {0}/{1} -out {0}/{2} -batch -passin pass:{3} " +
+  		"-keyfile {0}/{4} -cert {0}/{5}"; /**
    * Verify that root certificate exists, generate it otherwise.
    */
   public void initRootCert() {
@@ -60,7 +68,7 @@ public class CertificateManager {
 		
 	if (!certExists) {
       generateServerCertificate();
-	}
+	  }
   }
 	
   /**
@@ -87,7 +95,8 @@ public class CertificateManager {
       Process process = null;
       try {
         process = Runtime.getRuntime().exec(command);
-        BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        BufferedReader br = new BufferedReader(new InputStreamReader(
+            process.getInputStream()));
 
         while ((line = br.readLine()) != null) {
           LOG.info(line);
@@ -139,7 +148,8 @@ public class CertificateManager {
    */
   public String getServerCert() {
     Map<String, String> configsMap = configs.getConfigsMap();
-    File certFile = new File(configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) + File.separator + configsMap.get(Configuration.SRVR_CRT_NAME_KEY));
+    File certFile = new File(configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) + 
+        File.separator + configsMap.get(Configuration.SRVR_CRT_NAME_KEY));
     String srvrCrtContent = null;
     try {
       srvrCrtContent = FileUtils.readFileToString(certFile);
@@ -160,7 +170,8 @@ public class CertificateManager {
 
 
 
-    String passphraseSrvr = configs.getConfigsMap().get(Configuration.PASSPHRASE_KEY);
+    String passphraseSrvr = configs.getConfigsMap().get(Configuration.
+        PASSPHRASE_KEY);
 
     System.out.println(passphraseSrvr);
     System.out.println(passphraseAgent);
@@ -179,7 +190,8 @@ public class CertificateManager {
     String agentCrtName = agentHostname + ".crt";
 
 
-    File agentCrtReqFile = new File(srvrKstrDir + File.separator + agentCrtReqName);
+    File agentCrtReqFile = new File(srvrKstrDir + File.separator + 
+        agentCrtReqName);
     try {
 		FileUtils.writeStringToFile(agentCrtReqFile, agentCrtReqContent);
 	} catch (IOException e1) {

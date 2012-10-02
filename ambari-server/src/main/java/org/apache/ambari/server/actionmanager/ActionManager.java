@@ -25,6 +25,7 @@ import org.apache.ambari.server.state.live.Clusters;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 
 /**
@@ -38,7 +39,8 @@ public class ActionManager {
   private final Clusters fsm;
 
   @Inject
-  public ActionManager(long schedulerSleepTime, long actionTimeout,
+  public ActionManager(@Named("schedulerSleeptime") long schedulerSleepTime,
+      @Named("actionTimeout") long actionTimeout,
       ActionQueue aq, Clusters fsm, ActionDBAccessor db) {
     this.actionQueue = aq;
     this.db = db;

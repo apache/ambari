@@ -75,7 +75,7 @@ def debug(sig, frame):
     d.update(frame.f_globals)  # Unless shadowed by global
     d.update(frame.f_locals)
 
-    message  = "Signal recieved : entering python shell.\nTraceback:\n"
+    message  = "Signal received : entering python shell.\nTraceback:\n"
     message += ''.join(traceback.format_stack(frame))
     logger.info(message)
 
@@ -136,11 +136,11 @@ def main():
 
 
   #Initiate security
-  
+  """ Check if security is enable if not then disable it"""
+  logger.info("Creating certs")
   certMan = CertificateManager(config)
-  
   certMan.initSecurity()
-
+  
   # Launch Controller communication
   controller = Controller(config) 
   controller.start()

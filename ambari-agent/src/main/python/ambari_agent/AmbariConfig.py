@@ -42,6 +42,10 @@ facter_home=/root/workspace/puppet-install/facter-1.6.10
 maxretries=2
 sleepBetweenRetries=1
 
+[security]
+keysdir="/tmp/"
+server_crt=ca.crt
+passphrase_env_name=AMBARI_PASSPHRASE
 """
 s = StringIO.StringIO(content)
 config.readfp(s)

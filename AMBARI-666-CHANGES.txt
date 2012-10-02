@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-783. Fix guice injection in the server. (mahadev)
+
   AMBARI-784. Add Resource download API on the server. (mahadev)
 
   AMBARI-781. Registration unit test. (jitendra)

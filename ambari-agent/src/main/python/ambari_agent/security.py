@@ -24,9 +24,13 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
     if self._tunnel_host:
       self.sock = sock
       self._tunnel()
-    agent_key = AmbariConfig.config.get('security', 'keysdir') + os.sep + socket.gethostname() + ".key"
-    agent_crt = AmbariConfig.config.get('security', 'keysdir') + os.sep + socket.gethostname() + ".crt"
-    server_crt = AmbariConfig.config.get('security', 'keysdir') + os.sep + "ca.crt"
+    agent_key = AmbariConfig.config.get('security', 'keysdir') + os.sep + \
+     socket.gethostname() + ".key"
+    agent_crt = AmbariConfig.config.get('security', 'keysdir') + os.sep \
+    + socket.gethostname() + ".crt" 
+    server_crt = AmbariConfig.config.get('security', 'keysdir') + os.sep \
+    + "ca.crt"
+    
     self.sock = ssl.wrap_socket(sock,
                                 keyfile=agent_key,
                                 certfile=agent_crt,
@@ -45,6 +49,7 @@ def secured_url_open(req):
   url_opener = urllib2.build_opener(https_handler)
   stream = url_opener.open(req)
   return stream
+
 class CertificateManager():
   def __init__(self, config):
     self.config = config
