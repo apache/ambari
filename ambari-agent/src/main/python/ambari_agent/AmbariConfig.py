@@ -25,8 +25,10 @@ import StringIO
 
 config = ConfigParser.RawConfigParser()
 content = """
+
 [server]
-url=http://localhost:4080
+url=https://localhost:4080
+secured_url=https://localhost:8443
 
 [agent]
 prefix=/tmp/ambari
@@ -43,9 +45,9 @@ maxretries=2
 sleepBetweenRetries=1
 
 [security]
-keysdir="/tmp/"
+keysdir=/tmp/ambari-agent
 server_crt=ca.crt
-passphrase_env_name=AMBARI_PASSPHRASE
+passphrase_env_var_name=AMBARI_PASSPHRASE
 """
 s = StringIO.StringIO(content)
 config.readfp(s)

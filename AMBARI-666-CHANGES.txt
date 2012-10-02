@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-788. Fix server and agent startup for end to end testing. (mahadev)
+
   AMBARI-785. Action response unit test. (jitendra)
 
   AMBARI-783. Fix guice injection in the server. (mahadev)

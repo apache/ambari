@@ -58,7 +58,8 @@ public class CertificateSign {
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-  public SignCertResponse signAgentCrt(@PathParam("hostName") String hostname,SignMessage message, @Context HttpServletRequest req) {
+  public SignCertResponse signAgentCrt(@PathParam("hostName") String hostname,
+      SignMessage message, @Context HttpServletRequest req) {
 	  SignCertResponse response = new SignCertResponse();
 	  String signedCa;
 	  signedCa = certMan.signAgentCrt(hostname, message.getCsr(), message.getPassphrase());

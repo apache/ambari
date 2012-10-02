@@ -54,7 +54,10 @@ public class AmbariServer {
   private static Log LOG = LogFactory.getLog(AmbariServer.class);
   public static int CLIENT_ONE_WAY = 4080;
   public static int CLIENT_TWO_WAY = 8443;
+  public static int CLIENT_API_PORT = 8080;
   private Server server = null;
+  private Server serverForAgent = null;
+  
   public volatile boolean running = true; // true while controller runs
 
   final String WEB_APP_DIR = "webapp";
@@ -72,8 +75,9 @@ public class AmbariServer {
   Injector injector;
 
   public void run() {
-    server = new Server();
-
+    server = new Server(CLIENT_API_PORT);
+    serverForAgent = new Server();
+  
     try {
       ClassPathXmlApplicationContext parentSpringAppContext = 
           new ClassPathXmlApplicationContext();
@@ -102,10 +106,16 @@ public class AmbariServer {
 
       certMan.initRootCert();
       Context root =
-//              new Context(webAppContext, "/", Context.SESSIONS);
               webAppContext;
+      
+      Context agentroot =
+                       new Context(serverForAgent, "/", Context.SESSIONS);
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
+      rootServlet.setInitOrder(1);
+      
+      /* Configure default servlet for agent server */
+      rootServlet = agentroot.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitOrder(1);
 
       root.addFilter(SecurityFilter.class, "/*", 1);
@@ -142,8 +152,8 @@ public class AmbariServer {
 
 
 
-      server.addConnector(sslConnectorOneWay);
-      server.addConnector(sslConnectorTwoWay);
+      serverForAgent.addConnector(sslConnectorOneWay);
+      serverForAgent.addConnector(sslConnectorTwoWay);
 
       ServletHolder sh = new ServletHolder(ServletContainer.class);
       sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
@@ -158,7 +168,7 @@ public class AmbariServer {
               "com.sun.jersey.api.core.PackagesResourceConfig");
       agent.setInitParameter("com.sun.jersey.config.property.packages",
               "org.apache.ambari.server.agent.rest");
-      root.addServlet(agent, "/agent/*");
+      agentroot.addServlet(agent, "/agent/*");
       agent.setInitOrder(3);
 
       ServletHolder cert = new ServletHolder(ServletContainer.class);
@@ -166,7 +176,7 @@ public class AmbariServer {
               "com.sun.jersey.api.core.PackagesResourceConfig");
       cert.setInitParameter("com.sun.jersey.config.property.packages",
               "org.apache.ambari.server.security.unsecured.rest");
-      root.addServlet(cert, "/cert/*");
+      agentroot.addServlet(cert, "/cert/*");
       cert.setInitOrder(4);
 
       ServletHolder certs = new ServletHolder(ServletContainer.class);
@@ -174,7 +184,7 @@ public class AmbariServer {
         "com.sun.jersey.api.core.PackagesResourceConfig");
       certs.setInitParameter("com.sun.jersey.config.property.packages",
         "org.apache.ambari.server.security.unsecured.rest");
-      root.addServlet(cert, "/certs/*");
+      agentroot.addServlet(cert, "/certs/*");
       certs.setInitOrder(5);
 
       ServletHolder resources = new ServletHolder(ServletContainer.class);
@@ -186,12 +196,14 @@ public class AmbariServer {
       resources.setInitOrder(6);
 
       server.setStopAtShutdown(true);
-
+      serverForAgent.setStopAtShutdown(true);
       springAppContext.start();
       /*
        * Start the server after controller state is recovered.
        */
       server.start();
+      serverForAgent.start();
+      
       LOG.info("Started Server");
       server.join();
       LOG.info("Joined the Server");
