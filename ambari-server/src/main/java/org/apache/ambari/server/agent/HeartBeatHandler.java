@@ -122,6 +122,10 @@ public class HeartBeatHandler {
       throws InvalidStateTransitonException, AmbariException {
     String hostname = register.getHostname();
     long now = System.currentTimeMillis();
+    if (clusterFsm.getHost(hostname) == null) {
+      clusterFsm.addHost(hostname);
+    }
+    Host hostObject = clusterFsm.getHost(hostname);
     List<StatusCommand> cmds = new ArrayList<StatusCommand>();
     for (Cluster cl : clusterFsm.getClustersForHost(hostname)) {
       List<ServiceComponentHost> roleList = cl
@@ -134,7 +138,7 @@ public class HeartBeatHandler {
       statusCmd.setRoles(roles);
       cmds.add(statusCmd);
     }
-    Host hostObject = clusterFsm.getHost(hostname);
+    
     hostObject.handleEvent(new HostRegistrationRequestEvent(hostname,
         new AgentVersion("v1"), now, register.getHardwareProfile()));
     RegistrationResponse response = new RegistrationResponse();
