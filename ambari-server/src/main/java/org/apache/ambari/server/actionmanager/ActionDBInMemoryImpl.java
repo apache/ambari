@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.agent.CommandReport;
 
 public class ActionDBInMemoryImpl implements ActionDBAccessor {
 
@@ -86,6 +87,20 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   public synchronized void persistActions(List<Stage> stages) {
     for (Stage s: stages) {
       stageList.add(s);
+    }
+  }
+  @Override
+  public synchronized void updateHostRoleState(String hostname, long requestId,
+      long stageId, String role, CommandReport report) {
+    for (Stage s : stageList) {
+      for (HostRoleCommand r : s.getHostActions().get(hostname).getRoleCommands()) {
+        if (r.getRole().toString().equals(role)) {
+          r.setStatus(HostRoleStatus.valueOf(report.getStatus()));
+          r.setExitCode(report.getExitCode());
+          r.setStderr(report.getStdErr());
+          r.setStdout(report.getStdOut());
+        }
+      }
     }
   }
 }

@@ -15,32 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.actionmanager;
+package org.apache.ambari.server.utils;
 
-import java.util.List;
+public class StageUtils {
+  public static String getActionId(long requestId, long stageId) {
+    return requestId + "-" + stageId;
+  }
 
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.agent.CommandReport;
-
-public interface ActionDBAccessor {
-
-  public Stage getAction(String actionId);
-
-  public List<Stage> getAllStages(long requestId);
-
-  public void abortOperation(long requestId);
-
-  public void timeoutHostRole(String host, long requestId, long stageId, Role role);
-
-  /**
-   * Returns all the pending stages, including queued and not-queued.
-   * A stage is considered in progress if it is in progress for any host.
-   */
-  public List<Stage> getStagesInProgress();
-
-  public void persistActions(List<Stage> stages);
-
-  public void updateHostRoleState(String hostname, long requestId,
-      long stageId, String role, CommandReport report);
-
+  public static long[] getRequestStage(String actionId) {
+    String [] fields = actionId.split("-");
+    long[] requestStageIds = new long[2];
+    requestStageIds[0] = Long.parseLong(fields[0]);
+    requestStageIds[1] = Long.parseLong(fields[1]);
+    return requestStageIds;
+  }
 }

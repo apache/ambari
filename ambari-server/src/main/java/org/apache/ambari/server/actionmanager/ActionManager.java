@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.live.Clusters;
+import org.apache.ambari.server.utils.StageUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -61,22 +62,30 @@ public class ActionManager {
     db.persistActions(stages);
   }
 
-  public List<Stage> getRequestStatus(String requestId) {
-    //fetch status from db
-    return null;
+  public List<Stage> getRequestStatus(long requestId) {
+    return db.getAllStages(requestId);
   }
 
-  public Stage getActionStatus(String actionId) {
-    //fetch the action information from the db
-    return null;
+  public Stage getAction(long requestId, long stageId) {
+    return db.getAction(StageUtils.getActionId(requestId, stageId));
   }
 
-  public void actionResponse(String hostname, List<CommandReport> report) {
+  public void actionResponse(String hostname, List<CommandReport> reports) {
     //persist the action response into the db.
+    for (CommandReport report : reports) {
+      String actionId = report.getActionId();
+      long [] requestStageIds = StageUtils.getRequestStage(actionId);
+      long requestId = requestStageIds[0];    
+      long stageId = requestStageIds[1];
+      db.updateHostRoleState(hostname, requestId, stageId, report.getRole(),
+          report);
+    }
   }
 
   public void handleLostHost(String host) {
-    // TODO Auto-generated method stub
-
+    //Do nothing, the task will timeout anyway.
+    //The actions can be failed faster as an optimization
+    //if action timeout happens to be much larger than
+    //heartbeat timeout.
   }
 }

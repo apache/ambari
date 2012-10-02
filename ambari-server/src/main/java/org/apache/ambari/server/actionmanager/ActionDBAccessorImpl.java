@@ -20,6 +20,7 @@ package org.apache.ambari.server.actionmanager;
 import java.util.List;
 
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.agent.CommandReport;
 
 public class ActionDBAccessorImpl implements ActionDBAccessor {
 
@@ -76,5 +77,12 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   public void persistActions(List<Stage> stages) {
     // TODO Auto-generated method stub
 
+  }
+
+  @Override
+  public void updateHostRoleState(String hostname, long requestId,
+      long stageId, String role, CommandReport report) {
+    // TODO Auto-generated method stub
+    
   }
 }

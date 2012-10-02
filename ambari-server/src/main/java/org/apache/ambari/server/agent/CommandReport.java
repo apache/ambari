@@ -28,6 +28,8 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "", propOrder = {})
 public class CommandReport {
   @XmlElement
+  String role;
+  @XmlElement
   String actionId;
   @XmlElement
   String stdout;
@@ -71,5 +73,21 @@ public class CommandReport {
 
   public void setStdOut(String stdout) {
     this.stdout = stdout;
+  }
+
+  public String getRole() {
+    return role;
+  }
+
+  public void setRole(String role) {
+    this.role = role;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
   }
 }

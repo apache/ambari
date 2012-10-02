@@ -17,19 +17,22 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
 
 /**
  * This class encapsulates the information for an task on a host for a
  * particular role which action manager needs. It doesn't capture actual
- * command and parameters, but just the stuff enough for action manager.
+ * command and parameters, but just the stuff enough for action manager to
+ * track the request.
  * For the actual command refer {@link HostAction#commandToHost}
  */
 public class HostRoleCommand {
   private final Role role;
   private HostRoleStatus status = HostRoleStatus.PENDING;
+  private String stdout = "";
+  private String stderr = "";
+  private int exitCode = 999; //Default is unknown
   private final ServiceComponentHostEvent event;
 
   public HostRoleCommand(Role role, ServiceComponentHostEvent event) {
@@ -51,5 +54,29 @@ public class HostRoleCommand {
 
   void setStatus(HostRoleStatus status) {
     this.status = status;
+  }
+
+  public String getStdout() {
+    return stdout;
+  }
+
+  public void setStdout(String stdout) {
+    this.stdout = stdout;
+  }
+
+  public String getStderr() {
+    return stderr;
+  }
+
+  public void setStderr(String stderr) {
+    this.stderr = stderr;
+  }
+
+  public int getExitCode() {
+    return exitCode;
+  }
+
+  public void setExitCode(int exitCode) {
+    this.exitCode = exitCode;
   }
 }

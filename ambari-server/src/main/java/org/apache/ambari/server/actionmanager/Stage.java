@@ -23,6 +23,7 @@ import java.util.TreeMap;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.AgentCommand;
+import org.apache.ambari.server.utils.StageUtils;
 
 //This class encapsulates the stage. The stage encapsulates all the information
 //required to persist an action.
@@ -59,7 +60,7 @@ public class Stage {
   }
 
   public String getActionId() {
-    return "" + requestId + "-" + stageId;
+    return StageUtils.getActionId(requestId, stageId);
   }
 
   synchronized void addHostAction(String host, HostAction ha) {
