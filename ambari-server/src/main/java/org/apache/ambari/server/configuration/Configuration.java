@@ -52,6 +52,7 @@ public class Configuration {
   public static final String SRVR_CRT_PASS_KEY = "security.server.crt_pass";
   public static final String PASSPHRASE_ENV_KEY = "security.server.passphrase_env_var";
   public static final String PASSPHRASE_KEY = "security.server.passphrase";
+  public static final String RESOURCES_DIR_KEY = "resources.dir";
 
   public static final String CLIENT_SECURITY_KEY = "client.security";
   public static final String LDAP_USE_SSL_KEY = "authorization.ldap.useSSL";
@@ -70,6 +71,7 @@ public class Configuration {
   public static final String KSTR_NAME_DEFAULT = "keystore.p12";
   private static final String SRVR_CRT_PASS_FILE_DEFAULT ="pass.txt";
   private static final String PASSPHRASE_ENV_DEFAULT = "AMBARI_PASSPHRASE";
+  private static final String RESOURCES_DIR_DEFAULT = "res";
 
 
   private static final String CLIENT_SECURITY_DEFAULT = "local";
@@ -120,7 +122,7 @@ public class Configuration {
 	configsMap.put(PASSPHRASE_KEY, System.getenv(configsMap.get(PASSPHRASE_ENV_KEY)));
     configsMap.put(CLIENT_SECURITY_KEY, properties.getProperty(CLIENT_SECURITY_KEY, CLIENT_SECURITY_DEFAULT));
     configsMap.put(LDAP_USER_DEFAULT_ROLE_KEY, properties.getProperty(LDAP_USER_DEFAULT_ROLE_KEY, LDAP_USER_DEFAULT_ROLE_DEFAULT));
-
+    configsMap.put(RESOURCES_DIR_KEY, properties.getProperty(RESOURCES_DIR_KEY, RESOURCES_DIR_DEFAULT));
     try {
         File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
             + configsMap.get(SRVR_CRT_PASS_FILE_KEY));

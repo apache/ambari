@@ -170,6 +170,14 @@ public class AmbariServer {
       root.addServlet(cert, "/certs/*");
       certs.setInitOrder(5);
 
+      ServletHolder resources = new ServletHolder(ServletContainer.class);
+      resources.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
+        "com.sun.jersey.api.core.PackagesResourceConfig");
+      resources.setInitParameter("com.sun.jersey.config.property.packages",
+        "org.apache.ambari.server.resources.api.rest");
+      root.addServlet(resources, "/resources/*");
+      resources.setInitOrder(6);
+
       server.setStopAtShutdown(true);
 
       springAppContext.start();

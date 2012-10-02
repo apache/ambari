@@ -26,4 +26,8 @@ public class AmbariException extends IOException {
   public AmbariException(String message) {
     super(message);
   }
+
+  public AmbariException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

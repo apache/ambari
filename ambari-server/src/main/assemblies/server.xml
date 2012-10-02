@@ -28,7 +28,6 @@
       <source>${project.build.directory}/${artifact.artifactId}-${artifact.version}.jar</source>
       <outputDirectory>ambari-server-${project.version}/lib</outputDirectory>
     </file>
-
   </files>
   <fileSets>
     <!-- Distro files, readme, licenses, etc -->
@@ -58,6 +57,14 @@
         <include>ca.config</include>
 	<include>pass.txt</include>
       </includes>
+    </fileSet>
+
+    <fileSet>
+      <directory>src/main/assemblies</directory>
+      <outputDirectory>/ambari-server-${project.version}/res</outputDirectory>
+      <excludes>
+        <exclude>*</exclude>
+      </excludes>
     </fileSet>
 
   </fileSets>
