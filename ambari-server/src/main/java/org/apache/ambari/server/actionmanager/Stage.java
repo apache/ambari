@@ -23,6 +23,7 @@ import java.util.TreeMap;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.AgentCommand;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.utils.StageUtils;
 
 //This class encapsulates the stage. The stage encapsulates all the information
@@ -63,7 +64,7 @@ public class Stage {
     return StageUtils.getActionId(requestId, stageId);
   }
 
-  synchronized void addHostAction(String host, HostAction ha) {
+  public synchronized void addHostAction(String host, HostAction ha) {
     ha.setCommandId(requestId, stageId);
     hostActions.put(host, ha);
   }
@@ -118,7 +119,7 @@ public class Stage {
     getHostAction(hostname).setLastAttemptTime(t);
   }
 
-  public AgentCommand getExecutionCommand(String hostname) {
+  public ExecutionCommand getExecutionCommand(String hostname) {
     return getHostAction(hostname).getCommandToHost();
   }
 

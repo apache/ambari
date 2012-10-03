@@ -85,4 +85,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     // TODO Auto-generated method stub
     
   }
+
+  @Override
+  public void abortHostRole(String host, long requestId, long stageId, Role role) {
+    // TODO Auto-generated method stub
+    
+  }
 }

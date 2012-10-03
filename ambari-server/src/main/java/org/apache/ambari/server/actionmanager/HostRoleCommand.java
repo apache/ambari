@@ -52,7 +52,7 @@ public class HostRoleCommand {
     return event;
   }
 
-  void setStatus(HostRoleStatus status) {
+  public void setStatus(HostRoleStatus status) {
     this.status = status;
   }
 

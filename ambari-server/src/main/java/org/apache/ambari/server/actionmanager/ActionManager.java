@@ -77,6 +77,9 @@ public class ActionManager {
   }
 
   public void actionResponse(String hostname, List<CommandReport> reports) {
+    if (reports == null) {
+      return;
+    }
     //persist the action response into the db.
     for (CommandReport report : reports) {
       String actionId = report.getActionId();

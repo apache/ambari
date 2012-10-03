@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.utils.StageUtils;
 
 /**
  * Encapsulates entire task for a host for a stage or action. This class
@@ -50,7 +51,7 @@ public class HostAction {
     this.host = host;
     roles = new ArrayList<HostRoleCommand>();
     commandToHost = new ExecutionCommand();
-    commandToHost.setHostName(host);
+    commandToHost.setHostname(host);
   }
 
   public HostAction(HostAction ha) {
@@ -90,11 +91,11 @@ public class HostAction {
     return this.attemptCount;
   }
 
-  public AgentCommand getCommandToHost() {
+  public ExecutionCommand getCommandToHost() {
     return this.commandToHost;
   }
 
   public synchronized void setCommandId(long requestId, long stageId) {
-    commandToHost.setCommandId(requestId+ "-" + stageId);
+    commandToHost.setCommandId(StageUtils.getActionId(requestId, stageId));
   }
 }

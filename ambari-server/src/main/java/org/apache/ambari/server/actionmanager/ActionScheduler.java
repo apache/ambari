@@ -140,35 +140,41 @@ class ActionScheduler implements Runnable {
                 .handleServiceComponentHostEvent("", hrc.getRole().toString(),
                     host, timeoutEvent);
           } catch (InvalidStateTransitonException e) {
-            // Propagate exception
-            e.printStackTrace();
-          } catch (AmbariException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOG.info("Transition failed for host: "+host+", role: "+hrc.getRole(), e);
           }
           db.timeoutHostRole(host, stage.getRequestId(), stage.getStageId(),
               hrc.getRole());
         } else {
-          scheduleHostRole(stage, host, hrc);
+          try {
+            scheduleHostRole(stage, host, hrc);
+          } catch (InvalidStateTransitonException ex) {
+            LOG.info("Cannot make this transition..aborting host role", ex);
+            db.abortHostRole(host, stage.getRequestId(), stage.getStageId(),
+                hrc.getRole());
+          }
         }
       }
     }
   }
 
-  private void scheduleHostRole(Stage s, String hostname, HostRoleCommand hrc) {
+  private void scheduleHostRole(Stage s, String hostname, HostRoleCommand hrc)
+      throws InvalidStateTransitonException, AmbariException {
     LOG.info("Host:" + hostname + ", role:" + hrc.getRole() + ", actionId:"
         + s.getActionId() + " being scheduled");
     long now = System.currentTimeMillis();
     if (s.getStartTime(hostname) < 0) {
       try {
         fsmObject.getCluster(s.getClusterName())
-            .handleServiceComponentHostEvent("", "", hostname,
-                hrc.getEvent());
+            .handleServiceComponentHostEvent("", "", hostname, hrc.getEvent());
       } catch (InvalidStateTransitonException e) {
-        e.printStackTrace();
+        LOG.info(
+            "Transition failed for host: " + hostname + ", role: "
+                + hrc.getRole(), e);
+        throw e;
       } catch (AmbariException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        LOG.info("Exception in fsm: " + hostname + ", role: " + hrc.getRole(),
+            e);
+        throw e;
       }
     }
     s.setLastAttemptTime(hostname, now);

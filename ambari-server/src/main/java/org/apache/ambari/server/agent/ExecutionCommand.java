@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +78,15 @@ public class ExecutionCommand extends AgentCommand {
     this.commandId = commandId;
   }
 
+  public synchronized void addRoleCommand(String role, String cmd,
+      Map<String, String> roleParams) {
+    RoleExecution rec = new RoleExecution(role, cmd, roleParams);
+    if (rolesCommands == null) {
+      rolesCommands = new ArrayList<RoleExecution>();
+    }
+    rolesCommands.add(rec);
+  }
+
   @Override //Object
   public boolean equals(Object other) {
     if (!(other instanceof ExecutionCommand)) {
@@ -90,10 +100,6 @@ public class ExecutionCommand extends AgentCommand {
   @Override //Object
   public int hashCode() {
     return (hostname + commandId).hashCode();
-  }
-
-  public void setHostName(String host) {
-    this.hostname = host;
   }
 
   @XmlRootElement
@@ -111,6 +117,13 @@ public class ExecutionCommand extends AgentCommand {
 
     @XmlElement
     private String cmd;
+
+    public RoleExecution(String role, String cmd,
+        Map<String, String> roleParams) {
+      this.role = role;
+      this.cmd = cmd;
+      this.roleParams = roleParams;
+    }
 
     public String getRole() {
       return role;
@@ -135,5 +148,45 @@ public class ExecutionCommand extends AgentCommand {
     public void setCmd(String cmd) {
       this.cmd = cmd;
     }
+  }
+
+  public String getClusterName() {
+    return clusterName;
+  }
+
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+  }
+
+  public String getHostname() {
+    return hostname;
+  }
+
+  public void setHostname(String hostname) {
+    this.hostname = hostname;
+  }
+
+  public Map<String, String> getParams() {
+    return params;
+  }
+
+  public void setParams(Map<String, String> params) {
+    this.params = params;
+  }
+
+  public Map<String, List<String>> getClusterHostInfo() {
+    return clusterHostInfo;
+  }
+
+  public void setClusterHostInfo(Map<String, List<String>> clusterHostInfo) {
+    this.clusterHostInfo = clusterHostInfo;
+  }
+  
+  public Map<String, Map<String, String>> getConfigurations() {
+    return configurations;
+  }
+
+  public void setConfigurations(Map<String, Map<String, String>> configurations) {
+    this.configurations = configurations;
   }
 }

@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.utils.StageUtils;
 
 public class ActionDBInMemoryImpl implements ActionDBAccessor {
 
@@ -80,6 +81,17 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
         l.add(s);
       }
     }
+    //TODO: Remove this code
+    //HACK to add a stage so that something is sent to the agent
+    long requestId = 1;
+    long stageId = 1;
+    if (l.isEmpty()) {
+      requestId = stageList.get(stageList.size() - 1).getRequestId() + 1;
+      stageId = stageList.get(stageList.size() - 1).getStageId() + 1;
+    }
+    Stage s = StageUtils.getATestStage(requestId, stageId);
+    stageList.add(s);
+    l.add(s);
     return l;
   }
 
@@ -102,5 +114,14 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
         }
       }
     }
+  }
+  @Override
+  public void abortHostRole(String host, long requestId, long stageId, Role role) {
+    CommandReport report = new CommandReport();
+    report.setExitCode(999);
+    report.setStdErr("Host Role in invalid state");
+    report.setStdOut("");
+    report.setStatus("ABORTED");
+    updateHostRoleState(host, requestId, stageId, role.toString(), report);
   }
 }

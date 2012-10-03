@@ -43,7 +43,7 @@ public class TestHeartbeatHandler {
     ActionQueue aq = new ActionQueue();
     ExecutionCommand execCmd = new ExecutionCommand();
     execCmd.setCommandId("2-34");
-    execCmd.setHostName(hostname);
+    execCmd.setHostname(hostname);
     aq.enqueue(hostname, new ExecutionCommand());
     HeartBeatHandler handler = new HeartBeatHandler(fsm, aq, am);
     HeartBeat hb = new HeartBeat();

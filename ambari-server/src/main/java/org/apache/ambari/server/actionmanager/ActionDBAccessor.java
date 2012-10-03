@@ -43,4 +43,6 @@ public interface ActionDBAccessor {
   public void updateHostRoleState(String hostname, long requestId,
       long stageId, String role, CommandReport report);
 
+  public void abortHostRole(String host, long requestId, long stageId, Role role);
+
 }
