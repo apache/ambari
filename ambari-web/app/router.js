@@ -66,11 +66,20 @@ App.Router = Em.Router.extend({
     //localStorage.setItem('Ambari' + 'loginName', loginName);
   },
 
-  login: function (loginName) {
+  // that works incorrectly
+  setUser: function(user){ App.db.setUser(user); },
+  // that works incorrectly
+  getUser: function(){ return App.db.getUser(); },
+
+  login: function (loginName, user) {
     // TODO: this needs to be hooked up with server authentication
     console.log("In login function");
     this.setAuthenticated(true);
     this.setLoginName(loginName);
+
+//    refactor to get user attributes
+//    this.setUser(user);
+
     this.transitionTo(this.getSection());
 
   },

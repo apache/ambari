@@ -20,29 +20,40 @@ var App = require('app');
 
 App.LoginController = Em.Object.extend({
 
-  name: 'loginController',
-  loginName: '',
-  password: '',
-  errorMessage: '',
+  name:'loginController',
+  loginName:'',
+  password:'',
+  errorMessage:'',
 
-  submit: function (e) {
+  submit:function (e) {
     console.log('Login: ' + this.get('loginName') + ' Password: ' + this.get('password'));
 
     this.set('errorMessage', '');
 
-    if (this.validateCredentials()) {
-      console.log('Logging in as: ' + this.get('loginName'));
-      App.get('router').login(this.get('loginName'));
+    var userId = this.validateCredentials();
+    if (userId) {
+      App.get('router').login(this.get('loginName'), App.User.find(userId));
     } else {
       console.log('Failed to login as: ' + this.get('loginName'));
       this.set('errorMessage', Em.I18n.t('login.error'));
     }
-
   },
 
-  validateCredentials: function () {
+  /**
+   *
+   * @return {number} user by credentials || {undefined}
+   */
+  validateCredentials:function () {
     //TODO: REST api that validates the login
-    return (this.get('loginName').trim() !== '' && this.get('loginName') === this.get('password'));
+    var thisController = this;
+
+    var user = App.store.filter(App.User, function (data) {
+      return data.get('user_name') == thisController.get('loginName') && data.get('password') == thisController.get('password')
+    });
+
+    console.log(user, user.content[0]);
+
+    return user.content[0];
   }
 
 });

@@ -24,6 +24,11 @@
     {{/each}}
   </tr>
   </thead>
+  <tbody>
+  {{#each row in view.rows}}
+    {{view row}}
+  {{/each}}
+  </tbody>
 </table>
 <div class="pagination">
   <ul>

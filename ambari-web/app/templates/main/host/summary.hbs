@@ -30,10 +30,26 @@
     {{#if view.content.components.length}}
     <div class="span3 host-components pull-right">
         {{#each component in view.content.components}}
-          <button class="btn btn-{{bind view.buttonClass}}">
-            {{component.componentName}}
-            <i class="icon-{{unbound view.content.iconClass}}"></i>
-          </button>
+          {{#view view.ComponentButtonView contentBinding="component"}}
+            <div class="btn-group">
+              <button {{bindAttr class="view.buttonClass"}} data-toggle="dropdown">
+                {{unbound view.content.componentName}}
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li>
+                  <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
+                    Start
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:void(null)" data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
+                    Stop
+                  </a>
+                </li>
+              </ul>
+            </div>
+          {{/view}}
         {{/each}}
     </div>
     {{/if}}

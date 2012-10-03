@@ -19,20 +19,61 @@
 App.MainHostDetailsController = Em.Controller.extend({
   name: 'mainHostDetailsController',
   content: null,
-  startComponents: function(){
+
+  isFromHosts: false,
+
+  isStarting: function(){
     return this.get('content.workStatus');
   }.property('content.workStatus'),
-  stopComponents: function(){
-    return !this.get('startComponents');
-  }.property('startComponents'),
-  changeWorkStatus: function(){
-    if (this.get('startComponents')) {
-      this.set('iconClass', 'play');
-    } else {
-      this.set('iconClass', 'stop');
-    }
-  }.observes('startComponents'),
-  iconClass: '',
+  isStopping: function(){
+    return !this.get('isStarting');
+  }.property('isStarting'),
+
+  setBack: function(isFromHosts){
+    this.set('isFromHosts', isFromHosts);
+  },
+
+  startComponent: function(event){
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('hosts.host.start.popup.header'),
+      body: Em.I18n.t('hosts.host.start.popup.body'),
+      primary: 'Yes',
+      secondary: 'No',
+      onPrimary: function() {
+        var component = event.context;
+        component.set('workStatus', true);
+        var stopped = self.get('content.components').filterProperty('workStatus', false);
+        if (stopped.length == 0)
+          self.set('content.workStatus', true);
+        this.hide();
+      },
+      onSecondary: function() {
+        this.hide();
+      }
+    });
+  },
+  stopComponent: function(event){
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('hosts.host.start.popup.header'),
+      body: Em.I18n.t('hosts.host.start.popup.body'),
+      primary: 'Yes',
+      secondary: 'No',
+      onPrimary: function() {
+        var component = event.context;
+        component.set('workStatus', false);
+        var started = self.get('content.components').filterProperty('workStatus', true);
+        if (started.length == 0)
+          self.set('content.workStatus', false);
+        this.hide();
+      },
+      onSecondary: function() {
+        this.hide();
+      }
+    });
+
+  },
 
   startConfirmPopup: function (event) {
     var self = this;
@@ -42,11 +83,8 @@ App.MainHostDetailsController = Em.Controller.extend({
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
-        console.log(self.get('content.components').getEach('workStatus'));
-        self.get('content.components').setEach('workStatus', self.get('content.workStatus'));
-
+        self.get('content.components').setEach('workStatus', true);
         self.set('content.workStatus', !self.get('content.workStatus'));
-
         this.hide();
       },
       onSecondary: function() {
@@ -62,8 +100,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
-        console.log(self.get('content.components').getEach('workStatus'));
-        self.get('content.components').setEach('workStatus', self.get('content.workStatus'));
+        self.get('content.components').setEach('workStatus', false);
         self.set('content.workStatus', !self.get('content.workStatus'));
         this.hide();
       },

@@ -31,6 +31,10 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   allChecked: false,
   selectedHostsIds: [],
   sortingAsc: true,
+  isSort: false,
+  sortClass: function(){
+    return this.get('sortingAsc')? 'icon-arrow-down' : 'icon-arrow-up';
+  }.property('sortingAsc'),
 
   isDisabled:true,
 
@@ -187,6 +191,7 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
       return 0;
     });
     this.set('fullContent', objects);
+    this.set('isSort', true);
     this.set('sortingAsc', !this.get('sortingAsc'));
     this.changeContent();
   }

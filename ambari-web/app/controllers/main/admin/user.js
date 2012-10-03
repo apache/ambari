@@ -19,6 +19,12 @@
 App.MainAdminUserController = Em.Controller.extend({
   name:'mainAdminUserController',
   deleteRecord:function (event) {
+
+    if(event.context.get('userName') == App.get('router').getLoginName()) {
+      alert(Em.I18n.t('admin.users.deleteYourselfMessage'));
+      return ;
+    }
+
     if (Em.I18n.t('question.sure')) {
       event.context.deleteRecord();
       App.store.commit();
