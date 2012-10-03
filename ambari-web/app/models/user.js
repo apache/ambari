@@ -42,15 +42,6 @@ App.UserForm = App.Form.extend({
   disableUsername:function () {
     var field = this.getField("userName");
     if (field) field.set("disabled", this.get('isObjectNew') ? false : "disabled");
-
-  }.observes('isObjectNew'),
-  disableAdminCheckbox:function () {
-    var object = this.get('object');
-    var field = this.getField("admin");
-    if (field) {
-      field.set("disabled", object.get('userName') == App.get('router').getLoginName() ? "disabled" : false);
-    }
-
   }.observes('isObjectNew')
 });
 
@@ -58,7 +49,7 @@ App.User.FIXTURES = [
   {
     id:1,
     user_name:'admin',
-    password:'admin',
+    password: 'admin',
     admin:1
   },
   {

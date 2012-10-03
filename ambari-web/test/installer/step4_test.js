@@ -21,8 +21,8 @@ require('controllers/installer/step4_controller');
 
 describe('App.InstallerStep4Controller', function () {
 
-  var DEFAULT_SERVICES = ['HDFS'];
-  var OPTIONAL_SERVICES = ['MAPREDUCE', 'NAGIOS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SQOOP', 'ZOOKEEPER', 'HCATALOG'];
+  var DEFAULT_SERVICES = ['HDFS', 'MAPREDUCE', 'NAGIOS', 'GANGLIA'];
+  var OPTIONAL_SERVICES = ['OOZIE', 'HIVE', 'HBASE', 'PIG', 'SQOOP', 'ZOOKEEPER', 'HCATALOG'];
 
   var controller = App.InstallerStep4Controller.create();
 
@@ -93,48 +93,6 @@ describe('App.InstallerStep4Controller', function () {
 
   })
 
-  describe('#needToAddMapReduce', function() {
-
-    describe('mapreduce not selected', function() {
-      beforeEach(function() {
-        controller.findProperty('serviceName', 'MAPREDUCE').set('isSelected', false);
-      })
-
-      it('should return true if Hive is selected and MapReduce is not selected', function() {
-        controller.findProperty('serviceName', 'HIVE').set('isSelected', true);
-        expect(controller.needToAddMapReduce()).to.equal(true);
-      })
-      it('should return true if Pig is selected and MapReduce is not selected', function() {
-        controller.findProperty('serviceName', 'PIG').set('isSelected', true);
-        expect(controller.needToAddMapReduce()).to.equal(true);
-      })
-      it('should return true if Oozie is selected and MapReduce is not selected', function() {
-        controller.findProperty('serviceName', 'OOZIE').set('isSelected', true);
-        expect(controller.needToAddMapReduce()).to.equal(true);
-      })
-    })
-
-    describe('mapreduce not selected', function() {
-      beforeEach(function() {
-        controller.findProperty('serviceName', 'MAPREDUCE').set('isSelected', true);
-      })
-
-      it('should return false if Hive is selected and MapReduce is selected', function() {
-        controller.findProperty('serviceName', 'HIVE').set('isSelected', true);
-        expect(controller.needToAddMapReduce()).to.equal(false);
-      })
-      it('should return false if Pig is selected and MapReduce is not selected', function() {
-        controller.findProperty('serviceName', 'PIG').set('isSelected', true);
-        expect(controller.needToAddMapReduce()).to.equal(false);
-      })
-      it('should return false if Oozie is selected and MapReduce is not selected', function() {
-        controller.findProperty('serviceName', 'OOZIE').set('isSelected', true);
-        expect(controller.needToAddMapReduce()).to.equal(false);
-      })
-    })
-
-  })
-
   describe('#saveSelectedServiceNamesToDB', function() {
 
     beforeEach(function() {
@@ -150,9 +108,9 @@ describe('App.InstallerStep4Controller', function () {
       App.db.setLoginName('tester');
       App.db.setClusterName('test');
       controller.saveSelectedServiceNamesToDB();
-      // console.log('controller length=' + controller.get('length'));
+      console.log('controller length=' + controller.get('length'));
       var selectedServiceNames = App.db.getSelectedServiceNames();
-      // console.log('service length=' + selectedServiceNames.get('length'));
+      console.log('service length=' + selectedServiceNames.get('length'));
       expect(selectedServiceNames.length === DEFAULT_SERVICES.length + OPTIONAL_SERVICES.length).to.equal(true);
     })
 

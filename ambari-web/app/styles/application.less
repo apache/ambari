@@ -227,36 +227,8 @@ a:focus {
 @status-live-marker: url("../img/health-status-live.png");
 @status-dead-marker: url("../img/health-status-dead.png");
 
-/*****start styles for boxes*****/
-.box {
-  border: 1px solid #5fa3c3;
-  margin-bottom: 20px;
-}
-.box-header,
-.box-footer {
-  padding: 10px;
-  background: #dedede;
-}
-.box-footer hr {
-  margin: 0px;
-}
-.box-header:after,
-.box-footer:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-.box-header .btn-group {
-  float: right;
-}
-.box-header h4 {
-  float: left;
-}
-/*****end styles for boxes*****/
+/*Dashboard*/
 
-/*****start styles for dashboard page*****/
-
-/*start services summary*/
 .services {
   margin-left: 5px;
   .tab-marker-position {
@@ -273,43 +245,7 @@ a:focus {
     .tab-marker-position;
     background-image: @status-dead-marker;
   }
-  dt {
-    text-align: left;
-    width: 120px;
-  }
-  dd{
-    margin-left: 145px;
-  }
 }
-/*end services summary*/
-
-/*start alerts summary*/
-.alerts {
-  margin: 0px;
-}
-.alerts li {
-  border-bottom: 1px solid #b7b9bb;
-  list-style: none;
-  padding: 5px 10px 5px 43px;
-}
-.alerts li.status-ok {
-  background: url("../img/status-ok.jpg") no-repeat 14px 9px;
-}
-.alerts li.status-corrupt {
-  background: url("../img/status-corrupt.jpg") no-repeat 14px 9px;
-}
-.alerts li .date-time {
-  float: right;
-}
-.go-to {
-  float: right;
-  background: url("../img/arrow-right.png") no-repeat right center;
-  padding-right: 40px;
-  margin-top: 20px;
-}
-/*end alerts summary*/
-
-/*****end styles for dashboard page*****/
 
 /*Services*/
 .nav-tabs {

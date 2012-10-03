@@ -60,7 +60,7 @@ App.Component = DS.Model.extend({
   type:DS.attr('boolean'),
   service:DS.belongsTo('App.Service'),
   host:DS.belongsTo('App.Host'),
-  workStatus: DS.attr('boolean')
+  workStatus:DS.attr('string')
 });
 
 App.Component.FIXTURES = [
@@ -71,7 +71,7 @@ App.Component.FIXTURES = [
     type: true,
     service_id:1,
     host_id:1,
-    work_status:false
+    work_status:true
   },
   {
     id:2,
@@ -80,7 +80,7 @@ App.Component.FIXTURES = [
     type: true,
     service_id:1,
     host_id:2,
-    work_status:true
+    work_status:false
   },
   {
     id:3,
@@ -88,8 +88,7 @@ App.Component.FIXTURES = [
     label: 'DN',
     service_id:1,
     type: false,
-    host_id:2,
-    work_status:true
+    host_id:2
   },
   {
     id:4,
@@ -106,8 +105,7 @@ App.Component.FIXTURES = [
     label: 'JT',
     type: false,
     service_id:2,
-    host_id:4,
-    work_status:true
+    host_id:4
   },
   {
     id:6,
@@ -115,8 +113,7 @@ App.Component.FIXTURES = [
     label: 'HBM',
     type: true,
     service_id:3,
-    host_id:4,
-    work_status:true
+    host_id:4
   },
   {
     id:7,
@@ -124,8 +121,7 @@ App.Component.FIXTURES = [
     label: 'RS',
     type: false,
     service_id:3,
-    host_id:2,
-    work_status:true
+    host_id:2
   }
 ];
 

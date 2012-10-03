@@ -49,22 +49,20 @@
           <div class="box-header">
             <h4>Services</h4>
           </div>
-          <dl class="dl-horizontal services">
+          <ul class="services">
             {{#each service in controller.services}}
-              <dt class="health-status-{{unbound service.healthStatus}}">
-                <a {{action selectService service href=true}}>{{service.label}}</a> -
-              </dt>
-              <dd>
+              <li class="health-status-{{unbound service.healthStatus}}">
+                <a {{action selectService service href=true}} href="javascript:void(null)">{{service.label}}</a> -
                 {{#each component in service.components}}
                   {{#if component.type}}
-                    <a {{action selectHost component.host href=true}}>{{component.componentName}}</a>,
+                    <a {{action selectHost component.host href=true}} href="javascript:void(null)">{{component.componentName}}</a>,
                   {{else}}
-                    <a {{action filterHosts component}}>{{component.componentName}}</a>
+                    <a {{action filterHosts component}} href="javascript:void(null)">{{component.componentName}}</a>
                   {{/if}}
                 {{/each}}
-              </dd>
+              </li>
             {{/each}}
-          </dl>
+          </ul>
         </div>
       </div>
     </div>

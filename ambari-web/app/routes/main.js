@@ -56,10 +56,7 @@ module.exports = Em.Route.extend({
       router.get('mainController').connectOutlet('mainHost');
     },
 
-    showDetails: function(router, event){
-      router.get('mainHostDetailsController').setBack(true);
-      router.transitionTo('hostDetails.index', event.context)
-    }
+    showDetails:Em.Router.transitionTo('hostDetails.index')
 
   }),
 
@@ -216,6 +213,12 @@ module.exports = Em.Route.extend({
     route:'/dashboard',
     connectOutlets:function (router, context) {
       router.get('mainController').connectOutlet('mainDashboard');
+    },
+    selectService: Em.Route.transitionTo('services.service'),
+    selectHost: Em.Router.transitionTo('hostDetails.index'),
+    filterHosts: function(router, component) {
+      router.get('mainHostController').set('filters.components', [component.context.get('id')]);
+      router.transitionTo('hosts');
     }
   }),
 
@@ -276,6 +279,12 @@ module.exports = Em.Route.extend({
           router.get('mainServiceItemController').connectOutlet('mainServiceInfoAudit', item);
         }
       }),
+      selectService: Em.Route.transitionTo('services.service'),
+      selectHost: Em.Router.transitionTo('hostDetails.index'),
+      filterHosts: function(router, component) {
+        router.get('mainHostController').set('filters.components', [component.context.get('id')]);
+        router.transitionTo('hosts');
+      },
       showInfo:function (router, event) {
         var parent = event.view._parentView;
         parent.deactivateChildViews();
@@ -289,18 +298,19 @@ module.exports = Em.Route.extend({
     showService:Em.Router.transitionTo('service')
   }),
 
-  selectService: Em.Route.transitionTo('services.service'),
-  selectHost: function(router, event) {
-    router.get('mainHostDetailsController').setBack(true);
-    router.transitionTo('hostDetails.index');
-  },
-  filterHosts: function(router, component) {
-    router.get('mainHostController').filterByComponentId(component.context.get('id'));
-    router.transitionTo('hosts');
-  },
   navigate:function (router, event) {
     var parent = event.view._parentView;
     parent.deactivateChildViews(event.context);
     router.transitionTo(event.context.routing);
   }
+
+  // TODO: create new routes here
+  // dashboard
+  // charts
+  // hosts
+  // hosts/:hostname
+  // admin
+  // etc...
+
+
 });

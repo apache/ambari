@@ -55,9 +55,6 @@
             </th>
             <th>
               <a href="#" {{action sortByName target="controller" }}>Name</a>
-              {{#if controller.isSort}}
-                <i class="icon-arrow-up"{{bindAttr class="controller.sortClass"}}></i>
-              {{/if}}
             </th>
             <th>Rack</th>
             <th>CPU</th>
@@ -89,12 +86,10 @@
             <td class="first">
                 <label class="checkbox">
                   {{view view.HostCheckboxView checkedBinding="host.isChecked" contentBinding="host"}}
+                  <span class="health-status-{{unbound host.healthStatus}}"></span>
                 </label>
             </td>
-            <td class="name">
-              <span class="health-status-{{unbound host.healthStatus}}"></span>
-              <a href="#" {{action "showDetails" host}}>{{unbound host.hostName}}</a>
-            </td>
+            <td><a href="#" {{action showDetails host}}>{{unbound host.hostName}}</a></td>
             <td>{{host.cluster.clusterName}}</td>
             <td>{{host.cpu}}</td>
             <td>{{host.memory}}</td>

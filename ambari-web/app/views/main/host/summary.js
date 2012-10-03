@@ -23,11 +23,7 @@ App.MainHostSummaryView = Em.View.extend({
   content:function(){
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
-  ComponentButtonView: Em.View.extend({
-    content: null,
-    buttonClass: function(){
-      return this.get('content.workStatus') ? 'btn btn-success dropdown-toggle' : 'btn btn-danger dropdown-toggle';
-    }.property('content.workStatus')
-  })
-
+  buttonClass: function(){
+    return this.get('startComponents') ? 'success' : 'danger';
+  }.property('startComponents')
 });
