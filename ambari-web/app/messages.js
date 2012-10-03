@@ -89,6 +89,10 @@ Em.I18n.translations = {
 
   'installer.step4.header': 'Choose Services',
   'installer.step4.body': 'Choose which services you want to install on your cluster.<br>Note that some services have dependencies (e.g., HBase requires ZooKeeper.)',
+  'installer.step4.mapreduceCheck.popup.header': 'MapReduce Needed',
+  'installer.step4.mapreduceCheck.popup.body': 'You did not select MapReduce, but it is needed by other services you selected.  We will automatically add MapReduce.  Is this OK?',
+  'installer.step4.monitoringCheck.popup.header': 'Limited Functionality Warning',
+  'installer.step4.monitoringCheck.popup.body': 'You did not select Nagios and/or Ganglia.  If both are not selected, monitoring and alerts will not function properly.  Is this OK?',
 
   'installer.step5.header': 'Assign Masters',
   'installer.step5.attention': 'more hosts without master service',

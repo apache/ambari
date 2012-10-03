@@ -31,19 +31,19 @@ App.InstallerStep4Controller = Em.ArrayController.extend({
     {
       serviceName: 'MAPREDUCE',
       displayName: 'MapReduce',
-      isDisabled: true,
+      isDisabled: false,
       description: Em.I18n.t('services.mapreduce.description')
     },
     {
       serviceName: 'NAGIOS',
       displayName: 'Nagios',
-      isDisabled: true,
+      isDisabled: false,
       description: Em.I18n.t('services.nagios.description')
     },
     {
       serviceName: 'GANGLIA',
       displayName: 'Ganglia',
-      isDisabled: true,
+      isDisabled: false,
       description: Em.I18n.t('services.ganglia.description')
     },
     {
@@ -136,7 +136,61 @@ App.InstallerStep4Controller = Em.ArrayController.extend({
     db.setSelectedServiceNames(serviceNames);
   },
 
-  submit: function() {
+  needToAddMapReduce: function () {
+    if (this.findProperty('serviceName', 'MAPREDUCE').get('isSelected') === false) {
+      var mapreduceDependentServices = this.filter(function (item) {
+        return ['PIG', 'OOZIE', 'HIVE'].contains(item.get('serviceName')) && item.get('isSelected', true);
+      });
+      return (mapreduceDependentServices.get('length') > 0);
+    } else {
+      return false;
+    }
+  },
+
+  gangliaOrNagiosNotSelected: function () {
+    return (this.findProperty('serviceName', 'GANGLIA').get('isSelected') === false || this.findProperty('serviceName', 'NAGIOS').get('isSelected') === false);
+  },
+
+  submit: function () {
+    var self = this;
+    if (this.needToAddMapReduce()) {
+      App.ModalPopup.show({
+        header: Em.I18n.t('installer.step4.mapreduceCheck.popup.header'),
+        body: Em.I18n.t('installer.step4.mapreduceCheck.popup.body'),
+        onPrimary: function () {
+          self.findProperty('serviceName', 'MAPREDUCE').set('isSelected', true);
+          this.hide();
+          self.validateMonitoring();
+        },
+        onSecondary: function () {
+          this.hide();
+        }
+      });
+    } else {
+      self.validateMonitoring();
+    }
+  },
+
+  validateMonitoring: function () {
+    var self = this;
+    if (this.gangliaOrNagiosNotSelected()) {
+      App.ModalPopup.show({
+        header: Em.I18n.t('installer.step4.monitoringCheck.popup.header'),
+        body: Em.I18n.t('installer.step4.monitoringCheck.popup.body'),
+        onPrimary: function () {
+          this.hide();
+          self.proceed();
+        },
+        onSecondary: function () {
+          this.hide();
+        }
+      });
+    } else {
+      self.proceed();
+    }
+  },
+
+  proceed: function () {
     this.saveSelectedServiceNamesToDB();
     App.router.send('next');
   }

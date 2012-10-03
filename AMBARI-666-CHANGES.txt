@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-793. Make MapReduce, Nagios, and Ganglia optional during cluster
+  install. (yusaku)
+
   AMBARI-794. Add log4j properties for logging at the server. (mahadev)
 
   AMBARI-790. OK in registration response. (jitendra)
