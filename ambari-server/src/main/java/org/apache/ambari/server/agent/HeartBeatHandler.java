@@ -27,8 +27,6 @@ import org.apache.ambari.server.state.live.AgentVersion;
 import org.apache.ambari.server.state.live.Cluster;
 import org.apache.ambari.server.state.live.Clusters;
 import org.apache.ambari.server.state.live.host.Host;
-import org.apache.ambari.server.state.live.host.HostEvent;
-import org.apache.ambari.server.state.live.host.HostEventType;
 import org.apache.ambari.server.state.live.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.live.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.live.host.HostState;

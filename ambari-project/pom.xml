@@ -204,6 +204,26 @@
         <artifactId>servlet-api</artifactId>
         <version>2.5</version>
       </dependency>
+       <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-core</artifactId>
+        <version>1.8</version>
+      </dependency>
+       <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-grizzly</artifactId>
+        <version>1.8</version>
+      </dependency>
+       <dependency>
+        <groupId>com.sun.grizzly</groupId>
+        <artifactId>grizzly-comet-webserver</artifactId>
+        <version>1.9.36</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-bundle</artifactId>
+        <version>1.8</version>
+      </dependency>
       <dependency>
         <groupId>com.sun.jersey</groupId>
         <artifactId>jersey-json</artifactId>

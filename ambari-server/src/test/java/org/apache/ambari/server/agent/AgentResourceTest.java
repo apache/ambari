@@ -18,9 +18,10 @@
 
 package org.apache.ambari.server.agent;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.any;
+
 import javax.ws.rs.core.MediaType;
 
 import junit.framework.Assert;
@@ -55,7 +56,7 @@ public class AgentResourceTest extends JerseyTest {
     super(new WebAppDescriptor.Builder(PACKAGE_NAME).servletClass(ServletContainer.class)
         .build());
   }
-
+  
   public class MockModule extends AbstractModule {
 
     RegistrationResponse response = new RegistrationResponse();
