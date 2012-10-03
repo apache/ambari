@@ -25,7 +25,7 @@ import java.util.List;
 
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
-import org.apache.ambari.server.state.live.AgentVersion;
+import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.live.host.HostHealthStatus.HealthStatus;
 import org.junit.Assert;
 import org.junit.Test;

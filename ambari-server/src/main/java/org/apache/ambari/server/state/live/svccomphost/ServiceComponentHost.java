@@ -20,6 +20,7 @@ package org.apache.ambari.server.state.live.svccomphost;
 
 import java.util.List;
 
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.job.Job;
 
@@ -61,13 +62,13 @@ public interface ServiceComponentHost {
    * Get ServiceComponent-Host State
    * @return ServiceComponentHostState
    */
-  public ServiceComponentHostState getState();
+  public State getState();
 
   /**
    * Set the State for this ServiceComponent-Host
    * @param state ServiceComponentHostState to set to
    */
-  public void setState(ServiceComponentHostState state);
+  public void setState(State state);
 
   /**
    * Send a ServiceComponentHostState event to the StateMachine

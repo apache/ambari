@@ -23,21 +23,121 @@ import java.util.Map;
 
 public class ServiceComponentRequest {
 
-  String clusterName; // REF
+  private String clusterName; // REF
   
-  List<PerServiceComponentRequest> components;
+  private List<PerServiceComponentRequest> components;
+  
+  public ServiceComponentRequest(String clusterName,
+      List<PerServiceComponentRequest> components) {
+    super();
+    this.clusterName = clusterName;
+    this.components = components;
+  }
 
   public static class PerServiceComponentRequest {
 
-    String serviceName; // GET/CREATE/UPDATE/DELETE
+    private String serviceName; // GET/CREATE/UPDATE/DELETE
     
-    String componentName; // GET/CREATE/UPDATE/DELETE
+    private String componentName; // GET/CREATE/UPDATE/DELETE
         
     // Config type -> version mapping
-    Map<String, String> configVersions; // CREATE/UPDATE
+    private Map<String, String> configVersions; // CREATE/UPDATE
     
-    String desiredState; // CREATE/UPDATE
+    private String desiredState; // CREATE/UPDATE
+
+    public PerServiceComponentRequest(String serviceName, String componentName,
+        Map<String, String> configVersions, String desiredState) {
+      super();
+      this.serviceName = serviceName;
+      this.componentName = componentName;
+      this.configVersions = configVersions;
+      this.desiredState = desiredState;
+    }
+
+    /**
+     * @return the serviceName
+     */
+    public String getServiceName() {
+      return serviceName;
+    }
+
+    /**
+     * @param serviceName the serviceName to set
+     */
+    public void setServiceName(String serviceName) {
+      this.serviceName = serviceName;
+    }
+
+    /**
+     * @return the componentName
+     */
+    public String getComponentName() {
+      return componentName;
+    }
+
+    /**
+     * @param componentName the componentName to set
+     */
+    public void setComponentName(String componentName) {
+      this.componentName = componentName;
+    }
+
+    /**
+     * @return the configVersions
+     */
+    public Map<String, String> getConfigVersions() {
+      return configVersions;
+    }
+
+    /**
+     * @param configVersions the configVersions to set
+     */
+    public void setConfigVersions(Map<String, String> configVersions) {
+      this.configVersions = configVersions;
+    }
+
+    /**
+     * @return the desiredState
+     */
+    public String getDesiredState() {
+      return desiredState;
+    }
+
+    /**
+     * @param desiredState the desiredState to set
+     */
+    public void setDesiredState(String desiredState) {
+      this.desiredState = desiredState;
+    }
     
+  }
+
+  /**
+   * @return the clusterName
+   */
+  public String getClusterName() {
+    return clusterName;
+  }
+
+  /**
+   * @param clusterName the clusterName to set
+   */
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+  }
+
+  /**
+   * @return the components
+   */
+  public List<PerServiceComponentRequest> getComponents() {
+    return components;
+  }
+
+  /**
+   * @param components the components to set
+   */
+  public void setComponents(List<PerServiceComponentRequest> components) {
+    this.components = components;
   }
 
 }

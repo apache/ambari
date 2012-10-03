@@ -18,18 +18,30 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.Map;
-
-/**
- * Used for create Cluster
- */
 public class ClusterResponse {
 
-  Long clusterId; // for GET
+  private final Long clusterId;
   
-  String clusterName; // for GET/CREATE/UPDATE
+  private final String clusterName;
+
+  public ClusterResponse(Long clusterId, String clusterName) {
+    super();
+    this.clusterId = clusterId;
+    this.clusterName = clusterName;
+  }
+
+  /**
+   * @return the clusterId
+   */
+  public Long getClusterId() {
+    return clusterId;
+  }
+
+  /**
+   * @return the clusterName
+   */
+  public String getClusterName() {
+    return clusterName;
+  }
   
-  Map<String, ServiceResponse> services; // for GET
-  
-  Map<String, HostResponse> hosts; // for GET
 }

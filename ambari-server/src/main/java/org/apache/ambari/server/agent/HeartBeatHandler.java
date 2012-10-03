@@ -22,8 +22,10 @@ import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.DeployState;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
-import org.apache.ambari.server.state.live.AgentVersion;
 import org.apache.ambari.server.state.live.Cluster;
 import org.apache.ambari.server.state.live.Clusters;
 import org.apache.ambari.server.state.live.host.Host;
@@ -33,8 +35,6 @@ import org.apache.ambari.server.state.live.host.HostState;
 import org.apache.ambari.server.state.live.host.HostStatusUpdatesReceivedEvent;
 import org.apache.ambari.server.state.live.host.HostUnhealthyHeartbeatEvent;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHost;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostLiveState;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostState;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -98,11 +98,11 @@ public class HeartBeatHandler {
         if (status.getClusterName() == cl.getClusterName()) {
           ServiceComponentHost scHost = cl.getServiceComponentHost(
               status.getServiceName(), status.getComponentName(), hostname);
-          ServiceComponentHostState currentState = scHost.getState();
-          ServiceComponentHostLiveState liveState = ServiceComponentHostLiveState
-              .valueOf(ServiceComponentHostLiveState.class, status.getStatus());
+          State currentState = scHost.getState();
+          DeployState liveState = DeployState
+              .valueOf(DeployState.class, status.getStatus());
           // Hack
-          scHost.setState(new ServiceComponentHostState(currentState
+          scHost.setState(new State(currentState
               .getConfigVersion(), currentState.getStackVersion(), liveState));
         }
       }

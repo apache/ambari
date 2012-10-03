@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
-import org.apache.ambari.server.state.live.AgentVersion;
 import org.apache.ambari.server.state.live.job.Job;
 
 public interface Host {

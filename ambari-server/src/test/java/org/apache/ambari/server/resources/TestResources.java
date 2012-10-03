@@ -70,7 +70,7 @@ public class TestResources extends TestCase {
 	props.store(out, "");
 	out.close();
     resourceFile = tempFolder.newFile(RESOURCE_FILE_NAME);
-    FileUtils.write(resourceFile, RESOURCE_FILE_CONTENT);
+    FileUtils.writeStringToFile(resourceFile, RESOURCE_FILE_CONTENT);
     injector = Guice.createInjector(new ResourceModule());
     resMan = injector.getInstance(ResourceManager.class);
   }

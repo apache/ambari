@@ -24,11 +24,12 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHost;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostImpl;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostState;
 
 public class ClusterImpl implements Cluster {
 
@@ -140,7 +141,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public synchronized ServiceComponentHostState getServiceComponentHostState(String service,
+  public synchronized State getServiceComponentHostState(String service,
       String serviceComponent, String hostname) throws AmbariException {
     return
         getServiceComponentHost(service, serviceComponent, hostname).getState();
@@ -149,7 +150,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public synchronized void setServiceComponentHostState(String service,
       String serviceComponent, String hostname,
-      ServiceComponentHostState state) throws AmbariException {
+      State state) throws AmbariException {
     getServiceComponentHost(service, serviceComponent, hostname)
       .setState(state);
   }
@@ -173,6 +174,12 @@ public class ClusterImpl implements Cluster {
   public List<ServiceComponentHost> getServiceComponentHosts(String hostname) {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public void addService(Service service) {
+    // TODO Auto-generated method stub
+    
   }
 
 }

@@ -16,63 +16,95 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.svccomphost;
+package org.apache.ambari.server.state;
 
-public enum ServiceComponentHostLiveState {
+public enum DeployState {
   /**
    * Initial/Clean state
    */
-  INIT,
+  INIT(0),
   /**
    * In the process of installing.
    */
-  INSTALLING,
+  INSTALLING(1),
   /**
    * Install failed
    */
-  INSTALL_FAILED,
+  INSTALL_FAILED(2),
   /**
    * State when install completed successfully
    */
-  INSTALLED,
+  INSTALLED(3),
   /**
    * In the process of starting.
    */
-  STARTING,
+  STARTING(4),
   /**
    * Start failed.
    */
-  START_FAILED,
+  START_FAILED(5),
   /**
    * State when start completed successfully.
    */
-  STARTED,
+  STARTED(6),
   /**
    * In the process of stopping.
    */
-  STOPPING,
+  STOPPING(7),
   /**
    * Stop failed
    */
-  STOP_FAILED,
+  STOP_FAILED(8),
   /**
    * In the process of uninstalling.
    */
-  UNINSTALLING,
+  UNINSTALLING(9),
   /**
    * Uninstall failed.
    */
-  UNINSTALL_FAILED,
+  UNINSTALL_FAILED(10),
   /**
    * State when uninstall completed successfully.
    */
-  UNINSTALLED,
+  UNINSTALLED(11),
   /**
    * In the process of wiping out the install
    */
-  WIPING_OUT,
+  WIPING_OUT(12),
   /**
    * State when wipeout fails
    */
-  WIPEOUT_FAILED
+  WIPEOUT_FAILED(13);
+  
+  private final int state;
+  
+  private DeployState(int state) {
+    this.state = state;
+  }
+  
+  public boolean isValidDesiredState() {
+    switch (DeployState.values()[this.state]) {
+      case INIT:
+      case INSTALLED:
+      case STARTED:
+      case UNINSTALLED:
+        return true;
+      default:
+        return false;
+    }
+  }
+  
+  public boolean isInProgressState() {
+    switch (DeployState.values()[this.state]) {
+      case INSTALLING:
+      case STARTING:
+      case STOPPING:
+      case UNINSTALLING:
+      case WIPING_OUT:
+        return true;
+      default:
+        return false;
+    }
+  }
+  
 }

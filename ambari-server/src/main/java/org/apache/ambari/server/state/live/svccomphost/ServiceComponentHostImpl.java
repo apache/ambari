@@ -23,23 +23,25 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.ambari.server.state.DeployState;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.live.job.Job;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServiceComponentHostImpl implements ServiceComponentHost {
 
-  private static final Log LOG =
-      LogFactory.getLog(ServiceComponentHostImpl.class);
+  private static final Logger LOG =
+      LoggerFactory.getLogger(ServiceComponentHostImpl.class);
 
   private final Lock readLock;
   private final Lock writeLock;
 
-  private ServiceComponentHostState state;
+  private State state;
 
   private final long clusterId;
   private final String serviceName;
@@ -51,233 +53,233 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private long lastOpLastUpdateTime;
 
   private static final StateMachineFactory
-  <ServiceComponentHostImpl, ServiceComponentHostLiveState,
+  <ServiceComponentHostImpl, DeployState,
   ServiceComponentHostEventType, ServiceComponentHostEvent>
     daemonStateMachineFactory
       = new StateMachineFactory<ServiceComponentHostImpl,
-          ServiceComponentHostLiveState, ServiceComponentHostEventType,
+          DeployState, ServiceComponentHostEventType,
           ServiceComponentHostEvent>
-          (ServiceComponentHostLiveState.INIT)
+          (DeployState.INIT)
 
   // define the state machine of a HostServiceComponent for runnable
   // components
 
-     .addTransition(ServiceComponentHostLiveState.INIT,
-         ServiceComponentHostLiveState.INSTALLING,
+     .addTransition(DeployState.INIT,
+         DeployState.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
          new ServiceComponentHostOpStartedTransition())
-     .addTransition(ServiceComponentHostLiveState.INSTALLING,
-         ServiceComponentHostLiveState.INSTALLED,
+     .addTransition(DeployState.INSTALLING,
+         DeployState.INSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
-     .addTransition(ServiceComponentHostLiveState.INSTALLING,
-         ServiceComponentHostLiveState.INSTALLING,
+     .addTransition(DeployState.INSTALLING,
+         DeployState.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
-     .addTransition(ServiceComponentHostLiveState.INSTALLING,
-         ServiceComponentHostLiveState.INSTALL_FAILED,
+     .addTransition(DeployState.INSTALLING,
+         DeployState.INSTALL_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.INSTALL_FAILED,
-         ServiceComponentHostLiveState.INSTALLING,
+     .addTransition(DeployState.INSTALL_FAILED,
+         DeployState.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.INSTALLED,
-         ServiceComponentHostLiveState.STARTING,
+     .addTransition(DeployState.INSTALLED,
+         DeployState.STARTING,
          ServiceComponentHostEventType.HOST_SVCCOMP_START,
          new ServiceComponentHostOpStartedTransition())
-     .addTransition(ServiceComponentHostLiveState.INSTALLED,
-         ServiceComponentHostLiveState.UNINSTALLING,
+     .addTransition(DeployState.INSTALLED,
+         DeployState.UNINSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
          new ServiceComponentHostOpStartedTransition())
-     .addTransition(ServiceComponentHostLiveState.INSTALLED,
-         ServiceComponentHostLiveState.INSTALLING,
+     .addTransition(DeployState.INSTALLED,
+         DeployState.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.STARTING,
-         ServiceComponentHostLiveState.STARTING,
+     .addTransition(DeployState.STARTING,
+         DeployState.STARTING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
-     .addTransition(ServiceComponentHostLiveState.STARTING,
-         ServiceComponentHostLiveState.STARTED,
+     .addTransition(DeployState.STARTING,
+         DeployState.STARTED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
-     .addTransition(ServiceComponentHostLiveState.STARTING,
-         ServiceComponentHostLiveState.START_FAILED,
+     .addTransition(DeployState.STARTING,
+         DeployState.START_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.START_FAILED,
-         ServiceComponentHostLiveState.STARTING,
+     .addTransition(DeployState.START_FAILED,
+         DeployState.STARTING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.STARTED,
-         ServiceComponentHostLiveState.STOPPING,
+     .addTransition(DeployState.STARTED,
+         DeployState.STOPPING,
          ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.STOPPING,
-         ServiceComponentHostLiveState.STOPPING,
+     .addTransition(DeployState.STOPPING,
+         DeployState.STOPPING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
-     .addTransition(ServiceComponentHostLiveState.STOPPING,
-         ServiceComponentHostLiveState.INSTALLED,
+     .addTransition(DeployState.STOPPING,
+         DeployState.INSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
-     .addTransition(ServiceComponentHostLiveState.STOPPING,
-         ServiceComponentHostLiveState.STOP_FAILED,
+     .addTransition(DeployState.STOPPING,
+         DeployState.STOP_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.STOP_FAILED,
-         ServiceComponentHostLiveState.STOPPING,
+     .addTransition(DeployState.STOP_FAILED,
+         DeployState.STOPPING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.UNINSTALLING,
-         ServiceComponentHostLiveState.UNINSTALLING,
+     .addTransition(DeployState.UNINSTALLING,
+         DeployState.UNINSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
-     .addTransition(ServiceComponentHostLiveState.UNINSTALLING,
-         ServiceComponentHostLiveState.UNINSTALLED,
+     .addTransition(DeployState.UNINSTALLING,
+         DeployState.UNINSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
-     .addTransition(ServiceComponentHostLiveState.UNINSTALLING,
-         ServiceComponentHostLiveState.UNINSTALL_FAILED,
+     .addTransition(DeployState.UNINSTALLING,
+         DeployState.UNINSTALL_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.UNINSTALL_FAILED,
-         ServiceComponentHostLiveState.UNINSTALLING,
+     .addTransition(DeployState.UNINSTALL_FAILED,
+         DeployState.UNINSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.UNINSTALLED,
-         ServiceComponentHostLiveState.INSTALLING,
+     .addTransition(DeployState.UNINSTALLED,
+         DeployState.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.UNINSTALLED,
-         ServiceComponentHostLiveState.WIPING_OUT,
+     .addTransition(DeployState.UNINSTALLED,
+         DeployState.WIPING_OUT,
          ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.WIPING_OUT,
-         ServiceComponentHostLiveState.WIPING_OUT,
+     .addTransition(DeployState.WIPING_OUT,
+         DeployState.WIPING_OUT,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
-     .addTransition(ServiceComponentHostLiveState.WIPING_OUT,
-         ServiceComponentHostLiveState.INIT,
+     .addTransition(DeployState.WIPING_OUT,
+         DeployState.INIT,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
-     .addTransition(ServiceComponentHostLiveState.WIPING_OUT,
-         ServiceComponentHostLiveState.WIPEOUT_FAILED,
+     .addTransition(DeployState.WIPING_OUT,
+         DeployState.WIPEOUT_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
-     .addTransition(ServiceComponentHostLiveState.WIPEOUT_FAILED,
-         ServiceComponentHostLiveState.WIPING_OUT,
+     .addTransition(DeployState.WIPEOUT_FAILED,
+         DeployState.WIPING_OUT,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
 
      .installTopology();
 
   private static final StateMachineFactory
-  <ServiceComponentHostImpl, ServiceComponentHostLiveState,
+  <ServiceComponentHostImpl, DeployState,
   ServiceComponentHostEventType, ServiceComponentHostEvent>
     clientStateMachineFactory
       = new StateMachineFactory<ServiceComponentHostImpl,
-          ServiceComponentHostLiveState, ServiceComponentHostEventType,
+          DeployState, ServiceComponentHostEventType,
           ServiceComponentHostEvent>
-          (ServiceComponentHostLiveState.INIT)
+          (DeployState.INIT)
 
   // define the state machine of a HostServiceComponent for client only
   // components
 
-     .addTransition(ServiceComponentHostLiveState.INIT,
-         ServiceComponentHostLiveState.INSTALLING,
+     .addTransition(DeployState.INIT,
+         DeployState.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.INSTALLING,
-         ServiceComponentHostLiveState.INSTALLED,
+     .addTransition(DeployState.INSTALLING,
+         DeployState.INSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
-     .addTransition(ServiceComponentHostLiveState.INSTALLING,
-         ServiceComponentHostLiveState.INSTALLING,
+     .addTransition(DeployState.INSTALLING,
+         DeployState.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
-     .addTransition(ServiceComponentHostLiveState.INSTALLING,
-         ServiceComponentHostLiveState.INSTALL_FAILED,
+     .addTransition(DeployState.INSTALLING,
+         DeployState.INSTALL_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.INSTALL_FAILED,
-         ServiceComponentHostLiveState.INSTALLING,
+     .addTransition(DeployState.INSTALL_FAILED,
+         DeployState.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.INSTALLED,
-         ServiceComponentHostLiveState.UNINSTALLING,
+     .addTransition(DeployState.INSTALLED,
+         DeployState.UNINSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
          new ServiceComponentHostOpStartedTransition())
-     .addTransition(ServiceComponentHostLiveState.INSTALLED,
-         ServiceComponentHostLiveState.INSTALLING,
+     .addTransition(DeployState.INSTALLED,
+         DeployState.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.UNINSTALLING,
-         ServiceComponentHostLiveState.UNINSTALLING,
+     .addTransition(DeployState.UNINSTALLING,
+         DeployState.UNINSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
-     .addTransition(ServiceComponentHostLiveState.UNINSTALLING,
-         ServiceComponentHostLiveState.UNINSTALLED,
+     .addTransition(DeployState.UNINSTALLING,
+         DeployState.UNINSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
-     .addTransition(ServiceComponentHostLiveState.UNINSTALLING,
-         ServiceComponentHostLiveState.UNINSTALL_FAILED,
+     .addTransition(DeployState.UNINSTALLING,
+         DeployState.UNINSTALL_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.UNINSTALL_FAILED,
-         ServiceComponentHostLiveState.UNINSTALLING,
+     .addTransition(DeployState.UNINSTALL_FAILED,
+         DeployState.UNINSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.UNINSTALLED,
-         ServiceComponentHostLiveState.INSTALLING,
+     .addTransition(DeployState.UNINSTALLED,
+         DeployState.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.UNINSTALLED,
-         ServiceComponentHostLiveState.WIPING_OUT,
+     .addTransition(DeployState.UNINSTALLED,
+         DeployState.WIPING_OUT,
          ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
          new ServiceComponentHostOpStartedTransition())
 
-     .addTransition(ServiceComponentHostLiveState.WIPING_OUT,
-         ServiceComponentHostLiveState.WIPING_OUT,
+     .addTransition(DeployState.WIPING_OUT,
+         DeployState.WIPING_OUT,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
-     .addTransition(ServiceComponentHostLiveState.WIPING_OUT,
-         ServiceComponentHostLiveState.INIT,
+     .addTransition(DeployState.WIPING_OUT,
+         DeployState.INIT,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
-     .addTransition(ServiceComponentHostLiveState.WIPING_OUT,
-         ServiceComponentHostLiveState.WIPEOUT_FAILED,
+     .addTransition(DeployState.WIPING_OUT,
+         DeployState.WIPEOUT_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
-     .addTransition(ServiceComponentHostLiveState.WIPEOUT_FAILED,
-         ServiceComponentHostLiveState.WIPING_OUT,
+     .addTransition(DeployState.WIPEOUT_FAILED,
+         DeployState.WIPING_OUT,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
 
      .installTopology();
 
 
-  private final StateMachine<ServiceComponentHostLiveState,
+  private final StateMachine<DeployState,
       ServiceComponentHostEventType, ServiceComponentHostEvent> stateMachine;
 
   static class ServiceComponentHostOpCompletedTransition
@@ -375,12 +377,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     this.serviceName = serviceName;
     this.serviceComponentName = serviceComponentName;
     this.hostName = hostName;
-    this.state = new ServiceComponentHostState();
+    this.state = new State();
     this.resetLastOpInfo();
   }
 
   @Override
-  public ServiceComponentHostState getState() {
+  public State getState() {
     try {
       readLock.lock();
       return state;
@@ -391,7 +393,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public void setState(ServiceComponentHostState state) {
+  public void setState(State state) {
     try {
       writeLock.lock();
       this.state = state;
@@ -410,7 +412,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           + " eventType=" + event.getType().name()
           + ", event=" + event.toString());
     }
-    ServiceComponentHostState oldState = getState();
+    State oldState = getState();
     try {
       writeLock.lock();
       try {

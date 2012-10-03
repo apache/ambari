@@ -16,20 +16,22 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.svccomphost;
+package org.apache.ambari.server.state;
 
 import junit.framework.Assert;
 
 import org.apache.ambari.server.state.ConfigVersion;
+import org.apache.ambari.server.state.DeployState;
 import org.apache.ambari.server.state.StackVersion;
+import org.apache.ambari.server.state.State;
 import org.junit.Test;
 
-public class TestServiceComponentHostState {
+public class DeployStateTest {
 
   @Test
   public void testEquals() {
-    ServiceComponentHostState s1 = new ServiceComponentHostState();
-    ServiceComponentHostState s2 = new ServiceComponentHostState();
+    State s1 = new State();
+    State s2 = new State();
 
     Assert.assertTrue(s1.equals(s2));
 
@@ -55,7 +57,7 @@ public class TestServiceComponentHostState {
     Assert.assertFalse(s1.equals(s2));
     Assert.assertFalse(s2.equals(s1));
 
-    s1.setState(ServiceComponentHostLiveState.INSTALLED);
+    s1.setState(DeployState.INSTALLED);
     Assert.assertFalse(s1.equals(s2));
 
   }

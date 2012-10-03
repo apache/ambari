@@ -19,7 +19,7 @@
 package org.apache.ambari.server.state.live.host;
 
 import org.apache.ambari.server.agent.HostInfo;
-import org.apache.ambari.server.state.live.AgentVersion;
+import org.apache.ambari.server.state.AgentVersion;
 
 public class HostRegistrationRequestEvent extends HostEvent {
 

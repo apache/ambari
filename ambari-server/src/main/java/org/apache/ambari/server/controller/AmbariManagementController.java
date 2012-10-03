@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller;
 import java.util.Set;
 
 import org.apache.ambari.api.controller.spi.Predicate;
+import org.apache.ambari.server.AmbariException;
 
 /**
  * Management controller interface.
@@ -30,21 +31,22 @@ public interface AmbariManagementController {
 
   // ----- Create -----------------------------------------------------------
 
-  public ClusterResponse createCluster(ClusterRequest request);
+  public void createCluster(ClusterRequest request) throws AmbariException;
 
-  public ServiceResponse createServices(ServiceRequest request);
+  public void createServices(ServiceRequest request) throws AmbariException;
 
-  public ServiceComponentResponse createComponents(ServiceComponentRequest request);
+  public void createComponents(ServiceComponentRequest request)
+      throws AmbariException;
 
-  public HostResponse createHosts(HostRequest request);
+  public void createHosts(HostRequest request) throws AmbariException;
 
-  public ServiceComponentHostResponse createHostComponents(ServiceComponentHostRequest request);
+  public void createHostComponents(ServiceComponentHostRequest request)
+      throws AmbariException;
 
 
   // ----- Read -------------------------------------------------------------
 
-  public ClusterResponse getCluster(ClusterRequest request);
-  public Set<ClusterResponse> getAllClusters();
+  public Set<ClusterResponse> getCluster(ClusterRequest request, Predicate predicate);
 
   public ServiceResponse getServices(ServiceRequest request, Predicate predicate);
 
@@ -57,15 +59,15 @@ public interface AmbariManagementController {
 
   // ----- Update -----------------------------------------------------------
 
-  public ClusterResponse updateCluster(ClusterRequest request);
+  public void updateCluster(ClusterRequest request);
 
-  public ServiceResponse updateServices(ServiceRequest request, Predicate predicate);
+  public void updateServices(ServiceRequest request, Predicate predicate);
 
-  public ServiceComponentResponse updateComponents(ServiceComponentRequest request, Predicate predicate);
+  public void updateComponents(ServiceComponentRequest request, Predicate predicate);
 
-  public HostResponse updateHosts(HostRequest request, Predicate predicate);
+  public void updateHosts(HostRequest request, Predicate predicate);
 
-  public ServiceComponentHostResponse updateHostComponents(ServiceComponentHostRequest request, Predicate predicate);
+  public void updateHostComponents(ServiceComponentHostRequest request, Predicate predicate);
 
 
   // ----- Delete -----------------------------------------------------------

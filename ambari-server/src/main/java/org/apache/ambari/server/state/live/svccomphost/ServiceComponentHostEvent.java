@@ -23,7 +23,7 @@ import org.apache.ambari.server.state.fsm.event.AbstractEvent;
 /**
  * Base class for all events that affect the ServiceComponentHost FSM
  */
-public class ServiceComponentHostEvent
+public abstract class ServiceComponentHostEvent
     extends AbstractEvent<ServiceComponentHostEventType> {
 
   /**

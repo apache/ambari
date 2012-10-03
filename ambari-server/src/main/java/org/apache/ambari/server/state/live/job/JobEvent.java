@@ -23,7 +23,7 @@ import org.apache.ambari.server.state.fsm.event.AbstractEvent;
 /**
  * Base class for all events that affect the Job FSM
  */
-public class JobEvent extends AbstractEvent<JobEventType> {
+public abstract class JobEvent extends AbstractEvent<JobEventType> {
 
   /**
    * JobId identifying the job

@@ -24,8 +24,6 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.Clusters;
 import org.apache.ambari.server.state.live.host.Host;
-import org.apache.ambari.server.state.live.host.HostEvent;
-import org.apache.ambari.server.state.live.host.HostEventType;
 import org.apache.ambari.server.state.live.host.HostHeartbeatLostEvent;
 import org.apache.ambari.server.state.live.host.HostState;
 import org.apache.commons.logging.Log;

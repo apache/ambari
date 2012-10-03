@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.state.live.svccomphost;
 
+import org.apache.ambari.server.state.DeployState;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEventType;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostImpl;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostLiveState;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpRestartedEvent;
@@ -37,7 +37,7 @@ public class TestServiceComponentHostImpl {
       String hostName, boolean isClient) {
     ServiceComponentHostImpl impl = new ServiceComponentHostImpl(clusterId, svc,
         svcComponent, hostName, isClient);
-    Assert.assertEquals(ServiceComponentHostLiveState.INIT,
+    Assert.assertEquals(DeployState.INIT,
         impl.getState().getLiveState());
     return impl;
   }
@@ -50,17 +50,44 @@ public class TestServiceComponentHostImpl {
 
   private ServiceComponentHostEvent createEvent(ServiceComponentHostImpl impl,
       long timestamp, ServiceComponentHostEventType eventType) {
-    ServiceComponentHostEvent event = new ServiceComponentHostEvent(eventType,
-          impl.getServiceComponentName(), impl.getHostName(), timestamp);
-    return event;
+    switch (eventType) {
+      case HOST_SVCCOMP_INSTALL:
+        return new ServiceComponentHostInstallEvent(
+            impl.getServiceComponentName(), impl.getHostName(), timestamp);
+      case HOST_SVCCOMP_START:
+        return new ServiceComponentHostStartEvent(
+            impl.getServiceComponentName(), impl.getHostName(), timestamp);
+      case HOST_SVCCOMP_STOP:
+        return new ServiceComponentHostStopEvent(
+            impl.getServiceComponentName(), impl.getHostName(), timestamp);
+      case HOST_SVCCOMP_UNINSTALL:
+        return new ServiceComponentHostUninstallEvent(
+            impl.getServiceComponentName(), impl.getHostName(), timestamp);
+      case HOST_SVCCOMP_OP_FAILED:
+        return new ServiceComponentHostOpFailedEvent(
+            impl.getServiceComponentName(), impl.getHostName(), timestamp);
+      case HOST_SVCCOMP_OP_SUCCEEDED:
+        return new ServiceComponentHostOpSucceededEvent(
+            impl.getServiceComponentName(), impl.getHostName(), timestamp);
+      case HOST_SVCCOMP_OP_IN_PROGRESS:
+        return new ServiceComponentHostOpInProgressEvent(
+            impl.getServiceComponentName(), impl.getHostName(), timestamp);
+      case HOST_SVCCOMP_OP_RESTART:
+        return new ServiceComponentHostOpRestartedEvent(
+            impl.getServiceComponentName(), impl.getHostName(), timestamp);
+      case HOST_SVCCOMP_WIPEOUT:
+        return new ServiceComponentHostWipeoutEvent(
+            impl.getServiceComponentName(), impl.getHostName(), timestamp);
+    }
+    return null;
   }
 
   private void runStateChanges(ServiceComponentHostImpl impl,
       ServiceComponentHostEventType startEvent,
-      ServiceComponentHostLiveState startState,
-      ServiceComponentHostLiveState inProgressState,
-      ServiceComponentHostLiveState failedState,
-      ServiceComponentHostLiveState completedState)
+      DeployState startState,
+      DeployState inProgressState,
+      DeployState failedState,
+      DeployState completedState)
     throws Exception {
     long timestamp = 0;
 
@@ -164,18 +191,18 @@ public class TestServiceComponentHostImpl {
         "svcComp", "h1", true);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
-        ServiceComponentHostLiveState.INIT,
-        ServiceComponentHostLiveState.INSTALLING,
-        ServiceComponentHostLiveState.INSTALL_FAILED,
-        ServiceComponentHostLiveState.INSTALLED);
+        DeployState.INIT,
+        DeployState.INSTALLING,
+        DeployState.INSTALL_FAILED,
+        DeployState.INSTALLED);
 
     boolean exceptionThrown = false;
     try {
       runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_START,
-        ServiceComponentHostLiveState.INSTALLED,
-        ServiceComponentHostLiveState.STARTING,
-        ServiceComponentHostLiveState.START_FAILED,
-        ServiceComponentHostLiveState.STARTED);
+        DeployState.INSTALLED,
+        DeployState.STARTING,
+        DeployState.START_FAILED,
+        DeployState.STARTED);
     }
     catch (Exception e) {
       exceptionThrown = true;
@@ -183,16 +210,16 @@ public class TestServiceComponentHostImpl {
     Assert.assertTrue("Exception not thrown on invalid event", exceptionThrown);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
-        ServiceComponentHostLiveState.INSTALLED,
-        ServiceComponentHostLiveState.UNINSTALLING,
-        ServiceComponentHostLiveState.UNINSTALL_FAILED,
-        ServiceComponentHostLiveState.UNINSTALLED);
+        DeployState.INSTALLED,
+        DeployState.UNINSTALLING,
+        DeployState.UNINSTALL_FAILED,
+        DeployState.UNINSTALLED);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
-        ServiceComponentHostLiveState.UNINSTALLED,
-        ServiceComponentHostLiveState.WIPING_OUT,
-        ServiceComponentHostLiveState.WIPEOUT_FAILED,
-        ServiceComponentHostLiveState.INIT);
+        DeployState.UNINSTALLED,
+        DeployState.WIPING_OUT,
+        DeployState.WIPEOUT_FAILED,
+        DeployState.INIT);
 
   }
 
@@ -202,34 +229,34 @@ public class TestServiceComponentHostImpl {
         "svcComp", "h1", false);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
-        ServiceComponentHostLiveState.INIT,
-        ServiceComponentHostLiveState.INSTALLING,
-        ServiceComponentHostLiveState.INSTALL_FAILED,
-        ServiceComponentHostLiveState.INSTALLED);
+        DeployState.INIT,
+        DeployState.INSTALLING,
+        DeployState.INSTALL_FAILED,
+        DeployState.INSTALLED);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_START,
-      ServiceComponentHostLiveState.INSTALLED,
-      ServiceComponentHostLiveState.STARTING,
-      ServiceComponentHostLiveState.START_FAILED,
-      ServiceComponentHostLiveState.STARTED);
+      DeployState.INSTALLED,
+      DeployState.STARTING,
+      DeployState.START_FAILED,
+      DeployState.STARTED);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
-      ServiceComponentHostLiveState.STARTED,
-      ServiceComponentHostLiveState.STOPPING,
-      ServiceComponentHostLiveState.STOP_FAILED,
-      ServiceComponentHostLiveState.INSTALLED);
+      DeployState.STARTED,
+      DeployState.STOPPING,
+      DeployState.STOP_FAILED,
+      DeployState.INSTALLED);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
-        ServiceComponentHostLiveState.INSTALLED,
-        ServiceComponentHostLiveState.UNINSTALLING,
-        ServiceComponentHostLiveState.UNINSTALL_FAILED,
-        ServiceComponentHostLiveState.UNINSTALLED);
+        DeployState.INSTALLED,
+        DeployState.UNINSTALLING,
+        DeployState.UNINSTALL_FAILED,
+        DeployState.UNINSTALLED);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
-        ServiceComponentHostLiveState.UNINSTALLED,
-        ServiceComponentHostLiveState.WIPING_OUT,
-        ServiceComponentHostLiveState.WIPEOUT_FAILED,
-        ServiceComponentHostLiveState.INIT);
+        DeployState.UNINSTALLED,
+        DeployState.WIPING_OUT,
+        DeployState.WIPEOUT_FAILED,
+        DeployState.INIT);
 
   }
 

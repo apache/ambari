@@ -28,16 +28,17 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
+import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.ConfigVersion;
+import org.apache.ambari.server.state.DeployState;
 import org.apache.ambari.server.state.StackVersion;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.live.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.live.host.HostState;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostInstallEvent;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostLiveState;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpRestartedEvent;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostState;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -158,7 +159,7 @@ public class TestClusterImpl {
   @Test
   public void testGetServiceComponentHostState() throws AmbariException {
     Assert.assertNotNull(c1.getServiceComponentHostState(s1, sc1, h1));
-    Assert.assertEquals(ServiceComponentHostLiveState.INIT,
+    Assert.assertEquals(DeployState.INIT,
         c1.getServiceComponentHostState(s1, sc1, h1).getLiveState());
   }
 
@@ -166,17 +167,17 @@ public class TestClusterImpl {
   public void testSetServiceComponentHostState() throws AmbariException {
     ConfigVersion cVersion = new ConfigVersion("0.0.c");
     StackVersion sVersion = new StackVersion("hadoop-x.y.z");
-    ServiceComponentHostLiveState liveState =
-        ServiceComponentHostLiveState.INSTALL_FAILED;
-    ServiceComponentHostState expected =
-        new ServiceComponentHostState(cVersion, sVersion, liveState);
+    DeployState liveState =
+        DeployState.INSTALL_FAILED;
+    State expected =
+        new State(cVersion, sVersion, liveState);
     c1.setServiceComponentHostState(s1, sc1, h1, expected);
 
-    ServiceComponentHostState actual =
+    State actual =
         c1.getServiceComponentHostState(s1, sc1, h1);
 
     Assert.assertEquals(expected, actual);
-    Assert.assertEquals(ServiceComponentHostLiveState.INSTALL_FAILED,
+    Assert.assertEquals(DeployState.INSTALL_FAILED,
         actual.getLiveState());
 
   }
@@ -186,10 +187,10 @@ public class TestClusterImpl {
       throws AmbariException, InvalidStateTransitonException {
     ConfigVersion cVersion = new ConfigVersion("0.0.c");
     StackVersion sVersion = new StackVersion("hadoop-x.y.z");
-    ServiceComponentHostLiveState liveState =
-        ServiceComponentHostLiveState.INSTALL_FAILED;
-    ServiceComponentHostState expected =
-        new ServiceComponentHostState(cVersion, sVersion, liveState);
+    DeployState liveState =
+        DeployState.INSTALL_FAILED;
+    State expected =
+        new State(cVersion, sVersion, liveState);
     c1.setServiceComponentHostState(s1, sc1, h1, expected);
 
     try {
@@ -204,7 +205,7 @@ public class TestClusterImpl {
     c1.handleServiceComponentHostEvent(s1, sc1, h1,
         new ServiceComponentHostOpRestartedEvent(sc1, h1, 1002));
 
-    Assert.assertEquals(ServiceComponentHostLiveState.INSTALLING,
+    Assert.assertEquals(DeployState.INSTALLING,
         c1.getServiceComponentHostState(s1, sc1, h1).getLiveState());
 
   }

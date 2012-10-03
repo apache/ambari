@@ -27,17 +27,82 @@ import java.util.Map;
  */
 public class ConfigurationResponse {
 
-  String clusterName;
+  private final String clusterName;
   
-  List<PerConfigurationResponse> configs;
+  private final List<PerConfigurationResponse> configs;
   
-  public static class PerConfigurationResponse {
-    
-    String type;
-    
-    String versionTag;
-    
-    Map<String, String> configs;
+  public ConfigurationResponse(String clusterName,
+      List<PerConfigurationResponse> configs) {
+    super();
+    this.clusterName = clusterName;
+    this.configs = configs;
   }
 
+  public static class PerConfigurationResponse {
+    
+    private final String type;
+    
+    private String versionTag;
+    
+    private Map<String, String> configs;
+
+    public PerConfigurationResponse(String type, String versionTag,
+        Map<String, String> configs) {
+      super();
+      this.type = type;
+      this.versionTag = versionTag;
+      this.configs = configs;
+    }
+
+    /**
+     * @return the versionTag
+     */
+    public String getVersionTag() {
+      return versionTag;
+    }
+
+    /**
+     * @param versionTag the versionTag to set
+     */
+    public void setVersionTag(String versionTag) {
+      this.versionTag = versionTag;
+    }
+
+    /**
+     * @return the configs
+     */
+    public Map<String, String> getConfigs() {
+      return configs;
+    }
+
+    /**
+     * @param configs the configs to set
+     */
+    public void setConfigs(Map<String, String> configs) {
+      this.configs = configs;
+    }
+
+    /**
+     * @return the type
+     */
+    public String getType() {
+      return type;
+    }
+    
+  }
+
+  /**
+   * @return the clusterName
+   */
+  public String getClusterName() {
+    return clusterName;
+  }
+
+  /**
+   * @return the configs
+   */
+  public List<PerConfigurationResponse> getConfigs() {
+    return configs;
+  }
+  
 }

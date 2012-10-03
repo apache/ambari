@@ -26,8 +26,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.Clusters;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEventType;
+import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -133,9 +132,9 @@ class ActionScheduler implements Runnable {
         if (stage.getAttemptCount(host) >= maxAttempts) {
           LOG.warn("Host:"+host+", role:"+hrc.getRole()+", actionId:"+stage.getActionId()+" expired");
           // final expired
-          ServiceComponentHostEvent timeoutEvent = new ServiceComponentHostEvent(
-              ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED, hrc
-                  .getRole().toString(), host, now);
+          ServiceComponentHostOpFailedEvent timeoutEvent =
+              new ServiceComponentHostOpFailedEvent(hrc.getRole().toString(),
+                  host, now);
           try {
             fsmObject.getCluster(stage.getClusterName())
                 .handleServiceComponentHostEvent("", hrc.getRole().toString(),

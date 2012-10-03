@@ -23,9 +23,60 @@ package org.apache.ambari.server.controller;
  */
 public class ClusterRequest {
 
-  Long clusterId; // for GET
+  private Long clusterId; // for GET
   
-  String clusterName; // for GET/CREATE/UPDATE
+  private String clusterName; // for GET/CREATE/UPDATE
   
-  String stackVersion; // for CREATE/UPDATE
+  private String stackVersion; // for CREATE/UPDATE
+
+  public ClusterRequest(Long clusterId, String clusterName, String stackVersion) {
+    super();
+    this.clusterId = clusterId;
+    this.clusterName = clusterName;
+    this.stackVersion = stackVersion;
+  }
+
+  /**
+   * @return the clusterId
+   */
+  public Long getClusterId() {
+    return clusterId;
+  }
+
+  /**
+   * @return the clusterName
+   */
+  public String getClusterName() {
+    return clusterName;
+  }
+
+  /**
+   * @return the stackVersion
+   */
+  public String getStackVersion() {
+    return stackVersion;
+  }
+
+  /**
+   * @param clusterId the clusterId to set
+   */
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
+  }
+
+  /**
+   * @param clusterName the clusterName to set
+   */
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+  }
+
+  /**
+   * @param stackVersion the stackVersion to set
+   */
+  public void setStackVersion(String stackVersion) {
+    this.stackVersion = stackVersion;
+  }
+  
+  
 }

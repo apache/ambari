@@ -27,17 +27,109 @@ import java.util.Map;
  */
 public class ConfigurationRequest {
 
-  String clusterName;
+  private String clusterName;
   
-  List<PerConfigurationRequest> configs;
+  private List<PerConfigurationRequest> configs;
   
+  public ConfigurationRequest(String clusterName,
+      List<PerConfigurationRequest> configs) {
+    super();
+    this.clusterName = clusterName;
+    this.configs = configs;
+  }
+
   public static class PerConfigurationRequest {
     
-    String type;
+    private String type;
     
-    String versionTag;
+    private String versionTag;
     
-    Map<String, String> configs;
+    private Map<String, String> configs;
+
+    public PerConfigurationRequest(String type, String versionTag,
+        Map<String, String> configs) {
+      super();
+      this.type = type;
+      this.versionTag = versionTag;
+      this.configs = configs;
+    }
+
+    /**
+     * @return the type
+     */
+    public String getType() {
+      return type;
+    }
+
+    /**
+     * @param type the type to set
+     */
+    public void setType(String type) {
+      this.type = type;
+    }
+
+    /**
+     * @return the versionTag
+     */
+    public String getVersionTag() {
+      return versionTag;
+    }
+
+    /**
+     * @param versionTag the versionTag to set
+     */
+    public void setVersionTag(String versionTag) {
+      this.versionTag = versionTag;
+    }
+
+    /**
+     * @return the configs
+     */
+    public Map<String, String> getConfigs() {
+      return configs;
+    }
+
+    /**
+     * @param configs the configs to set
+     */
+    public void setConfigs(Map<String, String> configs) {
+      this.configs = configs;
+    }
+    
+  }
+
+  /**
+   * @return the clusterName
+   */
+  public String getClusterName() {
+    return clusterName;
+  }
+
+
+
+  /**
+   * @param clusterName the clusterName to set
+   */
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+  }
+
+
+
+  /**
+   * @return the configs
+   */
+  public List<PerConfigurationRequest> getConfigs() {
+    return configs;
+  }
+
+
+
+  /**
+   * @param configs the configs to set
+   */
+  public void setConfigs(List<PerConfigurationRequest> configs) {
+    this.configs = configs;
   }
 
 }

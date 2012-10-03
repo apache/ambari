@@ -16,32 +16,30 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.svccomphost;
+package org.apache.ambari.server.state;
 
-import org.apache.ambari.server.state.ConfigVersion;
-import org.apache.ambari.server.state.StackVersion;
 
-public class ServiceComponentHostState {
+public class State {
 
   private final int hashCodePrime = 131;
 
   private ConfigVersion configVersion;
   private StackVersion stackVersion;
-  private ServiceComponentHostLiveState liveState;
+  private DeployState deployState;
 
-  public ServiceComponentHostState(ConfigVersion configVersion,
-      StackVersion stackVersion, ServiceComponentHostLiveState state) {
+  public State(ConfigVersion configVersion,
+      StackVersion stackVersion, DeployState state) {
     super();
     this.configVersion = configVersion;
     this.stackVersion = stackVersion;
-    this.liveState = state;
+    this.deployState = state;
   }
 
-  public ServiceComponentHostState() {
+  public State() {
     super();
     this.configVersion = null;
     this.stackVersion = null;
-    this.liveState = ServiceComponentHostLiveState.INIT;
+    this.deployState = DeployState.INIT;
   }
 
 
@@ -72,14 +70,14 @@ public class ServiceComponentHostState {
   /**
    * @return the state
    */
-  public ServiceComponentHostLiveState getLiveState() {
-    return liveState;
+  public DeployState getLiveState() {
+    return deployState;
   }
   /**
    * @param state the state to set
    */
-  public void setState(ServiceComponentHostLiveState state) {
-    this.liveState = state;
+  public void setState(DeployState state) {
+    this.deployState = state;
   }
 
 
@@ -97,19 +95,19 @@ public class ServiceComponentHostState {
     } else {
       out += "null";
     }
-    out += ", state=" + liveState;
+    out += ", state=" + deployState;
     return out;
   }
 
   @Override
   public boolean equals(Object object) {
-    if (!(object instanceof ServiceComponentHostState)) {
+    if (!(object instanceof State)) {
       return false;
     }
     if (this == object) {
       return true;
     }
-    ServiceComponentHostState s = (ServiceComponentHostState) object;
+    State s = (State) object;
 
     if (configVersion != null ?
         !configVersion.equals(s.configVersion) : s.configVersion != null) {
@@ -119,7 +117,7 @@ public class ServiceComponentHostState {
         !stackVersion.equals(s.stackVersion) : s.stackVersion != null) {
       return false;
     }
-    return liveState.equals(s.liveState);
+    return deployState.equals(s.deployState);
   }
 
   @Override
@@ -127,7 +125,7 @@ public class ServiceComponentHostState {
     int result = configVersion != null ? configVersion.hashCode() : 0;
     result += hashCodePrime * result +
         ( stackVersion != null ? stackVersion.hashCode() : 0 );
-    result += liveState.hashCode();
+    result += deployState.hashCode();
     return result;
   }
 
