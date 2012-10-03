@@ -76,6 +76,14 @@ App.db.setLoginName = function(name) {
   localStorage.setObject('ambari',App.db.data);
 }
 
+// that works incorrectly
+App.db.setUser = function(user) {
+  console.log('TRACE: Entering db:setUser function');
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.app.user = user;
+  localStorage.setObject('ambari',App.db.data);
+}
+
 App.db.setAuthenticated = function(authenticated) {
   console.log('TRACE: Entering db:setAuthenticated function');
 
@@ -212,6 +220,13 @@ App.db.setServiceConfigProperties = function(configProperties) {
 /*
  *  getter methods
  */
+
+// that works incorrectly
+App.db.getUser = function() {
+  console.log('TRACE: Entering db:getUser function');
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.app.user;
+}
 
 App.db.getLoginName = function() {
   console.log('Trace: Entering db:getLoginName function');

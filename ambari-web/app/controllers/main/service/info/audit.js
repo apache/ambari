@@ -16,17 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.MainServiceInfoAuditController = Em.Controller.extend({
-  name: 'mainServiceInfoAuditController',
-  users: App.User.find(),
-  performedBy: function() {
-    var auditItems = this.content.get('serviceAudit');
-    var itemUsers = auditItems.getEach('user');
-    var result = [];
-    this.users.forEach(function(item, index, self) {
-      if (res = itemUsers.findProperty ('id', item.get('id')))
-        result.push(res);
-    });
-    return result;
-  }.property('content')
+  name: 'mainServiceInfoAuditController'
 })

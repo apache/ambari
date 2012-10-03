@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.MainAdminItemController = Em.Controller.extend({
   name:'mainAdminItemController'
 })

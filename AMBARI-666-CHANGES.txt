@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-802. Enhance Cluster Management pages. (yusaku)
+
   AMBARI-800. Hack to add a stage for testing in in-memory db. (jitendra)
 
   AMBARI-801. Fix heartbeat message from the agent which is causing NPE at the

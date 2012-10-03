@@ -16,26 +16,42 @@
 * limitations under the License.
 -->
 <div class="row">
-    <div class="span5 host-configuration">
-        <dl class="dl-horizontal">
-            <dt>IP:</dt><dd>{{view.content.ip}}</dd>
-            <dt>CPU:</dt><dd>{{view.content.cpu}}</dd>
-            <dt>OS:</dt><dd>type</dd>
-            <dt>Disk Usage:</dt><dd>{{view.content.diskUsage}}</dd>
-            <dt>Memory:</dt><dd>{{view.content.memory}}</dd>
-            <dt>Load Avg:</dt><dd>{{view.content.loadAvg}}</dd>
-            <dt>Agent:</dt><dd>running</dd>
-        </dl>
+  <div class="span5 host-configuration">
+    <dl class="dl-horizontal">
+      <dt>IP:</dt><dd>{{view.content.ip}}</dd>
+      <dt>CPU:</dt><dd>{{view.content.cpu}}</dd>
+      <dt>OS:</dt><dd>type</dd>
+      <dt>Disk Usage:</dt><dd>{{view.content.diskUsage}}</dd>
+      <dt>Memory:</dt><dd>{{view.content.memory}}</dd>
+      <dt>Load Avg:</dt><dd>{{view.content.loadAvg}}</dd>
+      <dt>Agent:</dt><dd>running</dd>
+    </dl>
+  </div>
+  {{#if view.content.components.length}}
+  <div class="span3 host-components pull-right">
+    {{#each component in view.content.components}}
+    {{#view view.ComponentButtonView contentBinding="component"}}
+    <div class="btn-group">
+      <button {{bindAttr class="view.buttonClass"}} data-toggle="dropdown">
+        {{unbound view.content.componentName}}
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li>
+          <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
+            Start
+          </a>
+        </li>
+        <li>
+          <a href="javascript:void(null)" data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
+            Stop
+          </a>
+        </li>
+      </ul>
     </div>
-    {{#if view.content.components.length}}
-    <div class="span3 host-components pull-right">
-        {{#each component in view.content.components}}
-          <button class="btn btn-{{bind view.buttonClass}}">
-            {{component.componentName}}
-            <i class="icon-{{unbound view.content.iconClass}}"></i>
-          </button>
-        {{/each}}
-    </div>
-    {{/if}}
+    {{/view}}
+    {{/each}}
+  </div>
+  {{/if}}
 </div>
 

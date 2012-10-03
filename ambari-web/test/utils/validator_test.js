@@ -137,5 +137,66 @@ describe('validator', function () {
     })
 
   })
+  /*describe('#isIpAddress(value)', function () {
+    it('"127.0.0.1" - valid IP', function () {
+      expect(validator.isIpAddress('127.0.0.1')).to.equal(true);
+    })
+    it('"227.3.67.196" - valid IP', function () {
+      expect(validator.isIpAddress('227.3.67.196')).to.equal(true);
+    })
+    it('"327.0.0.0" - invalid IP', function () {
+      expect(validator.isIpAddress('327.0.0.0')).to.equal(false);
+    })
+    it('"127.0.0." - invalid IP', function () {
+      expect(validator.isIpAddress('127.0.0.')).to.equal(false);
+    })
+    it('"127.0." - invalid IP', function () {
+      expect(validator.isIpAddress('127.0.')).to.equal(false);
+    })
+    it('"127" - invalid IP', function () {
+      expect(validator.isIpAddress('127')).to.equal(false);
+    })
+    it('"127.333.0.1" - invalid IP', function () {
+      expect(validator.isIpAddress('127.333.0.1')).to.equal(false);
+    })
+    it('"127.0.333.1" - invalid IP', function () {
+      expect(validator.isIpAddress('127.0.333.1')).to.equal(false);
+    })
+    it('"127.0.1.333" - invalid IP', function () {
+      expect(validator.isIpAddress('127.0.1.333')).to.equal(false);
+    })
+    it('"127.0.0.0:45555" - valid IP', function () {
+      expect(validator.isIpAddress('127.0.0.0:45555')).to.equal(true);
+    })
+    it('"327.0.0.0:45555" - invalid IP', function () {
+      expect(validator.isIpAddress('327.0.0.0:45555')).to.equal(false);
+    })
+    it('"0.0.0.0" - invalid IP', function () {
+      expect(validator.isIpAddress('0.0.0.0')).to.equal(false);
+    })
+    it('"0.0.0.0:12" - invalid IP', function () {
+      expect(validator.isIpAddress('0.0.0.0:12')).to.equal(false);
+    })
+    it('"1.0.0.0:0" - invalid IP', function () {
+      expect(validator.isIpAddress('1.0.0.0:0')).to.equal(false);
+    })
+  })*/
+  describe('#isDomainName(value)', function () {
+    it('"google.com" - valid Domain Name', function () {
+      expect(validator.isDomainName('google.com')).to.equal(true);
+    })
+    it('"google" - invalid Domain Name', function () {
+      expect(validator.isDomainName('google')).to.equal(false);
+    })
+    it('"123.123" - invalid Domain Name', function () {
+      expect(validator.isDomainName('123.123')).to.equal(false);
+    })
+    it('"4goog.le" - valid Domain Name', function () {
+      expect(validator.isDomainName('4goog.le')).to.equal(true);
+    })
+    it('"55454" - invalid Domain Name', function () {
+      expect(validator.isDomainName('55454')).to.equal(false);
+    })
+  })
 
 })

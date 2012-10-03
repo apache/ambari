@@ -27,7 +27,6 @@ App.Pagination = Em.Mixin.create({
   total: 0,
   rangeStart: 0,
   pageSize: 0,
-//  didRequestRange: Em.K,
 
   rangeStop: function() {
     var rangeStop = this.get('rangeStart') + this.get('pageSize'),
@@ -63,8 +62,10 @@ App.Pagination = Em.Mixin.create({
   }.property('rangeStop', 'pageSize').cacheable(),
 
   startPosition: function() {
+    if (this.get('total') == 0)
+      return 0;
     return this.get('rangeStart')  + 1;
-  }.property('rangeStart').cacheable(),
+  }.property('rangeStart', 'total').cacheable(),
 
   totalPages: function() {
     return Math.ceil(this.get('total') / this.get('pageSize'));

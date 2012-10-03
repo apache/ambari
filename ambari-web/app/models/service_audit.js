@@ -30,36 +30,42 @@ App.ServiceAudit.FIXTURES = [
     id: 1,
     date: 'September 12, 2012 17:00',
     operation_name: 'Reconfigure',
-    user_id: 2
+    user_id: 2,
+    service_id: 1
   },
   {
     id: 2,
     date: 'September 13, 2012 17:00',
     operation_name: 'Start',
-    user_id: 1
+    user_id: 1,
+    service_id: 1
   },
   {
     id: 3,
     date: 'September 14, 2012 17:00',
     operation_name: 'Install',
-    user_id: 1
+    user_id: 1,
+    service_id: 1
   },
   {
     id: 4,
     date: 'September 12, 2012 17:00',
     operation_name: 'Reconfigure',
-    user_id: 2
+    user_id: 2,
+    service_id: 2
   },
   {
     id: 5,
     date: 'September 13, 2012 17:00',
     operation_name: 'Start',
-    user_id: 1
+    user_id: 1,
+    service_id: 2
   },
   {
     id: 6,
     date: 'September 14, 2012 17:00',
     operation_name: 'Install',
-    user_id: 1
+    user_id: 1,
+    service_id: 2
   }
 ];

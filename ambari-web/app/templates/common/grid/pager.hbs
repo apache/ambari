@@ -15,21 +15,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-
-<table class="table table-striped">
-  <thead>
-  <tr>
-    {{#each column in view.columns}}
-    {{view column}}
-    {{/each}}
-  </tr>
-  </thead>
-  <tbody>
-  {{#each row in view.rows}}
-  {{view row}}
+<ul>
+    <li {{bindAttr class="view.prevPageDisabled"}}><a {{action activatePrevPage target="view"}} href="#">Prev</a></li>
+  {{#each page in view.pages}}
+    <li {{bindAttr class="page.activeClass"}} ><a {{action activatePage page target="view" }} href="#">{{page.number}}</a></li>
   {{/each}}
-  </tbody>
-</table>
-{{#if view.pager}}
-  {{view view.pager}}
-{{/if}}
+    <li {{bindAttr class="view.nextPageDisabled"}}><a {{action activateNextPage target="view"}} href="#">Next</a></li>
+</ul>

@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.MainDashboardController = Em.Controller.extend({
   name:'mainDashboardController',
   alerts: App.Alert.find(),
@@ -33,6 +35,6 @@ App.MainDashboardController = Em.Controller.extend({
     }
   },
   alertsCount: function() {
-    return this.alerts.get('content').length;
+    return this.alerts.filterProperty('status', 'corrupt').length;
   }.property()
 })

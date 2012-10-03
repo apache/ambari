@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.MainServiceController = Em.ArrayController.extend({
   name:'mainServiceController',
   content: App.Service.find()

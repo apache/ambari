@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.MainAdminAdvancedController = Em.Controller.extend({
   name:'mainAdminAdvancedController',
   uninstall: function(event){

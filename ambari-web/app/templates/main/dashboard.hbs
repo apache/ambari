@@ -49,20 +49,22 @@
           <div class="box-header">
             <h4>Services</h4>
           </div>
-          <ul class="services">
+          <dl class="dl-horizontal services">
             {{#each service in controller.services}}
-              <li class="health-status-{{unbound service.healthStatus}}">
-                <a {{action selectService service href=true}} href="javascript:void(null)">{{service.label}}</a> -
+              <dt class="health-status-{{unbound service.healthStatus}}">
+                <a {{action selectService service href=true}}>{{service.label}}</a> -
+              </dt>
+              <dd>
                 {{#each component in service.components}}
                   {{#if component.type}}
-                    <a {{action selectHost component.host href=true}} href="javascript:void(null)">{{component.componentName}}</a>,
+                    <a href="#" {{action selectHost component.host}}>{{component.componentName}}</a>,
                   {{else}}
-                    <a {{action filterHosts component}} href="javascript:void(null)">{{component.componentName}}</a>
+                    <a href="#" {{action filterHosts component}}>{{component.componentName}}</a>
                   {{/if}}
                 {{/each}}
-              </li>
+              </dd>
             {{/each}}
-          </ul>
+          </dl>
         </div>
       </div>
     </div>
@@ -84,7 +86,7 @@
       <ul class="alerts">
         {{#each controller.alerts}}
         <li class="status-{{unbound status}}">
-          <p><span class="title">{{title}}</span> <a href="javascript:void(null)">{{service.label}}</a><span class="date-time">{{date}}</span></p>
+          <p><span class="title">{{title}}</span> <a {{action selectService service href=true}}>{{service.label}}</a><span class="date-time">{{date}}</span></p>
           <p><span>{{status}}:</span> <span>{{message}}</span></p>
         </li>
         {{/each}}

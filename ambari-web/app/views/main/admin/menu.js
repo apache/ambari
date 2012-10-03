@@ -35,24 +35,32 @@ App.MainAdminMenuView = Em.CollectionView.extend({
     {
       route:'audit',
       label:'Audit'
-    },
+    }
+    /*,
     {
       route:'advanced',
       label:'Advanced'
     }
+    */
   ],
   tagName: "ul",
-  classNames: ["nav", "nav-list", "span2"],
+  classNames: ["nav", "nav-stacked", "nav-pills"],
 
-  activateView:function (route) {
+  init: function(){
+    this._super();
+    this.activateView(); // default selected menu
+  },
+
+  activateView:function () {
+    var route = App.get('router.mainAdminController.category');
     $.each(this._childViews, function () {
       this.set('active', (this.get('content.route') == route ? "active" : ""));
     });
-  },
+  }.observes('App.router.mainAdminController.category'),
 
   itemViewClass:Em.View.extend({
     classNameBindings:["active"],
     active:"",
-    template:Ember.Handlebars.compile('<a {{action adminNavigate view.content }} href="#"> {{unbound view.content.label}}</a>')
+    template:Ember.Handlebars.compile('<a {{action adminNavigate view.content.route }} href="#"> {{unbound view.content.label}}</a>')
   })
 });

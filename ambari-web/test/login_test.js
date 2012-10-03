@@ -21,22 +21,23 @@ require('controllers/login_controller');
 
 describe('App.LoginController', function () {
 
+  var loginController = App.LoginController.create();
+
   describe('#validateCredentials()', function () {
-    it('should return false if no username is present', function () {
-      var loginController = App.LoginController.create();
+    it('should return undefined if no username is present', function () {
       loginController.set('loginName', '');
-      expect(loginController.validateCredentials()).to.equal(false);
+      expect(loginController.validateCredentials()).to.equal(undefined);
     })
-    it('should return false if no password is present', function () {
-      var loginController = App.LoginController.create();
+    it('should return undefined if no password is present', function () {
       loginController.set('password', '');
-      expect(loginController.validateCredentials()).to.equal(false);
+      expect(loginController.validateCredentials()).to.equal(undefined);
     })
-    it('should return true if username and password are the same (dummy until actual integration)', function () {
-      var loginController = App.LoginController.create();
-      loginController.set('loginName', 'abc');
-      loginController.set('password', 'abc');
-      expect(loginController.validateCredentials()).to.equal(true);
+    /*
+    it('should return the user object with the specified username and password (dummy until actual integration)', function () {
+      loginController.set('loginName', 'admin');
+      loginController.set('password', 'admin');
+      expect(loginController.validateCredentials().get('loginName'), 'admin');
     })
+    */
   })
 })

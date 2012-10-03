@@ -60,7 +60,6 @@ App.Host = DS.Model.extend({
   loadAvg: DS.attr('string'),
   os: DS.attr('string'),
   ip: DS.attr('string'),
-  isChecked: false,
   healthStatus: DS.attr('string'),
   workStatus: DS.attr('boolean')
 });
@@ -70,7 +69,7 @@ App.Host.FIXTURES = [
     id: 1,
     host_name: 'z_host1',
     cluster_id: 1,
-    components:[1, 2, 3, 4],
+    components:[1, 2, 4],
     cpu: '2x2.5GHz',
     memory: '8GB',
     disk_usage: '40',
@@ -104,6 +103,7 @@ App.Host.FIXTURES = [
     id: 4,
     host_name: 'b_host4',
     cluster_id: 2,
+    components:[1, 2, 4, 5],
     health_status: 'DEAD',
     work_status: false
   },
@@ -111,7 +111,7 @@ App.Host.FIXTURES = [
     id: 5,
     host_name: 'host5',
     cluster_id: 1,
-    components:[4, 5],
+    components:[3, 4, 5],
     cpu: '2x2.5GHz',
     memory: '8GB',
     disk_usage: '20',
@@ -138,7 +138,7 @@ App.Host.FIXTURES = [
     id: 7,
     host_name: 'host7',
     cluster_id: 1,
-    components:[4, 5],
+    components:[3, 4, 7],
     cpu: '2x2.5GHz',
     memory: '8GB',
     disk_usage: '20',

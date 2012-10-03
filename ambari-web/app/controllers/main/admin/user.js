@@ -16,10 +16,18 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.MainAdminUserController = Em.Controller.extend({
   name:'mainAdminUserController',
   deleteRecord:function (event) {
-    if (Em.I18n.t('question.sure')) {
+
+    if (event.context.get('userName') == App.get('router').getLoginName()) {
+      alert(Em.I18n.t('admin.users.deleteYourselfMessage'));
+      return;
+    }
+
+    if (confirm(Em.I18n.t('question.sure'))) {
       event.context.deleteRecord();
       App.store.commit();
     }

@@ -34,9 +34,9 @@ module.exports = Em.Route.extend({
     }
   },
 
-  index: Ember.Route.extend({
-    route: '/',
-    redirectsTo: 'dashboard'
+  index:Ember.Route.extend({
+    route:'/',
+    redirectsTo:'dashboard'
   }),
 
   connectOutlets:function (router, context) {
@@ -56,7 +56,10 @@ module.exports = Em.Route.extend({
       router.get('mainController').connectOutlet('mainHost');
     },
 
-    showDetails:Em.Router.transitionTo('hostDetails.index')
+    showDetails:function (router, event) {
+      router.get('mainHostDetailsController').setBack(true);
+      router.transitionTo('hostDetails.index', event.context)
+    }
 
   }),
 
@@ -106,31 +109,40 @@ module.exports = Em.Route.extend({
 
   admin:Em.Route.extend({
     route:'/admin',
-    enter:function (router) {
-      Ember.run.next(function () {
-        router.transitionTo('adminUser');
-      });
+
+    enter: function(router) {
+      if(router.get('currentState.name') != 'main') { // is user comes from main -> navigate to users
+        Em.run.next(function () {
+          router.transitionTo('adminUser');
+        });
+      }
+    },
+
+    connectOutlets:function (router, context) {
+      router.get('mainController').connectOutlet('mainAdmin');
     },
 
     adminUser:Em.Route.extend({
       route:'/user',
       enter:function (router) {
-        Ember.run.next(function () {
-          router.transitionTo('all');
+        router.set('mainAdminController.category', "user");
+        Em.run.next(function () {
+          router.transitionTo('allUsers');
         });
       },
-      connectOutlets:function (router) {
-        console.log("ADMIN USER RECONNECTED");
-      },
 
-      all:Em.Route.extend({
+      // events
+      gotoUsers:Em.Router.transitionTo("allUsers"),
+      gotoCreateUser:Em.Router.transitionTo("createUser"),
+      gotoEditUser:function (router, event) { router.transitionTo("editUser", event.context) },
+
+      // states
+      allUsers:Em.Route.extend({
         route:'/',
         connectOutlets:function (router) {
           router.get('mainAdminController').connectOutlet('mainAdminUser');
         }
       }),
-
-      gotoUsers:Em.Router.transitionTo("all"),
 
       createUser:Em.Route.extend({
         route:'/create',
@@ -139,8 +151,6 @@ module.exports = Em.Route.extend({
         }
       }),
 
-      gotoCreateUser:Em.Router.transitionTo("createUser"),
-
       editUser:Em.Route.extend({
         route:'/edit/:userName',
         connectOutlets:function (router, user) {
@@ -148,15 +158,12 @@ module.exports = Em.Route.extend({
           router.get('mainAdminController').connectOutlet('mainAdminUserEdit', user);
         }
       }),
-
-      gotoEditUser:function (router, event) {
-        router.transitionTo("editUser", event.context);
-      }
     }),
 
     adminAuthentication:Em.Route.extend({
       route:'/authentication',
       connectOutlets:function (router) {
+        router.set('mainAdminController.category', "authentication");
         router.get('mainAdminController').connectOutlet('mainAdminAuthentication');
       }
     }),
@@ -164,6 +171,7 @@ module.exports = Em.Route.extend({
     adminSecurity:Em.Route.extend({
       route:'/security',
       connectOutlets:function (router) {
+        router.set('mainAdminController.category', "security");
         router.get('mainAdminController').connectOutlet('mainAdminSecurity');
       }
     }),
@@ -171,6 +179,7 @@ module.exports = Em.Route.extend({
     adminAdvanced:Em.Route.extend({
       route:'/advanced',
       connectOutlets:function (router) {
+        router.set('mainAdminController.category', "advanced");
         router.get('mainAdminController').connectOutlet('mainAdminAdvanced');
       }
     }),
@@ -178,33 +187,14 @@ module.exports = Em.Route.extend({
     adminAudit:Em.Route.extend({
       route:'/audit',
       connectOutlets:function (router) {
+        router.set('mainAdminController.category', "audit");
         router.get('mainAdminController').connectOutlet('mainAdminAudit');
       }
     }),
 
-    connectOutlets:function (router, context) {
-      router.get('mainController').connectOutlet('mainAdmin');
-    },
-
-//    adminDetails:Em.Route.extend({
-//      route:'/:route',
-//      connectOutlets:function (router, menu) {
-//        router.get('mainAdminController').connectOutlet('mainAdmin' + menu.route.capitalize(), menu);
-//      }
-//    }),
-
-//    advanced:Em.Route.extend({
-//      route:'/:name',
-//      connectOutlets:function (router, service) {
-//        router.get('mainServiceController').connectOutlet('mainServiceItem', service);
-//      }
-//    }),
-
     adminNavigate:function (router, object) {
-      object.view._parentView.activateView(object.context.route);
-      console.log(object.context.route);
       Em.run.next(function () {
-        router.transitionTo('admin' + object.context.route.capitalize());
+        router.transitionTo('admin' + object.context.capitalize());
       });
     }
   }),
@@ -213,12 +203,6 @@ module.exports = Em.Route.extend({
     route:'/dashboard',
     connectOutlets:function (router, context) {
       router.get('mainController').connectOutlet('mainDashboard');
-    },
-    selectService: Em.Route.transitionTo('services.service'),
-    selectHost: Em.Router.transitionTo('hostDetails.index'),
-    filterHosts: function(router, component) {
-      router.get('mainHostController').set('filters.components', [component.context.get('id')]);
-      router.transitionTo('hosts');
     }
   }),
 
@@ -233,7 +217,7 @@ module.exports = Em.Route.extend({
         if (!service) {
           service = App.Service.find(1); // getting the first service to display
         }
-        router.transitionTo('service', service);
+        router.transitionTo('service.summary', service);
       });
     },
     connectOutlets:function (router, context) {
@@ -279,12 +263,6 @@ module.exports = Em.Route.extend({
           router.get('mainServiceItemController').connectOutlet('mainServiceInfoAudit', item);
         }
       }),
-      selectService: Em.Route.transitionTo('services.service'),
-      selectHost: Em.Router.transitionTo('hostDetails.index'),
-      filterHosts: function(router, component) {
-        router.get('mainHostController').set('filters.components', [component.context.get('id')]);
-        router.transitionTo('hosts');
-      },
       showInfo:function (router, event) {
         var parent = event.view._parentView;
         parent.deactivateChildViews();
@@ -292,25 +270,21 @@ module.exports = Em.Route.extend({
         router.transitionTo(event.context);
       }
     }),
-    connectOutlets:function (router, context) {
-      router.get('mainController').connectOutlet('mainService');
-    },
     showService:Em.Router.transitionTo('service')
   }),
 
+  selectService:Em.Route.transitionTo('services.service'),
+  selectHost:function (router, event) {
+    router.get('mainHostDetailsController').setBack(false);
+    router.transitionTo('hostDetails.index', event.context);
+  },
+  filterHosts:function (router, component) {
+    router.get('mainHostController').filterByComponent(component.context);
+    router.transitionTo('hosts');
+  },
   navigate:function (router, event) {
     var parent = event.view._parentView;
     parent.deactivateChildViews(event.context);
     router.transitionTo(event.context.routing);
   }
-
-  // TODO: create new routes here
-  // dashboard
-  // charts
-  // hosts
-  // hosts/:hostname
-  // admin
-  // etc...
-
-
 });

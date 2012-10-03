@@ -42,8 +42,7 @@ Em.I18n.translations = {
   'installer.header': 'Cluster Install Wizard',
   'installer.step1.header': 'Welcome',
   'installer.step1.body.header': 'Welcome to Apache Ambari!',
-  'installer.step1.body':
-    'Ambari makes it easy to install, manage, and monitor Hadoop clusters.<br>' +
+  'installer.step1.body': 'Ambari makes it easy to install, manage, and monitor Hadoop clusters.<br>' +
     'We will walk you through the cluster installation process with this step-by-step wizard.',
   'installer.step1.clusterName': 'Name your cluster',
   'installer.step1.clusterName.tooltip.title': 'Cluster Name',
@@ -115,54 +114,57 @@ Em.I18n.translations = {
   'installer.step9.host.status.success': 'success',
   'installer.step9.host.status.warning': 'tolerable failures encountered',
   'installer.step9.host.status.failed': 'failures encountered',
+
   'installer.step10.header': 'Summary',
 
   'form.create': 'Create',
   'form.save': 'Save',
   'form.cancel': 'Cancel',
-  'form.password':'Password',
-  'form.passwordRetype':'Retype Password',
-  'form.saveSuccess':'Successfully saved.',
-  'form.saveError':'Sorry, errors occured.',
+  'form.password': 'Password',
+  'form.passwordRetype': 'Retype Password',
+  'form.saveSuccess': 'Successfully saved.',
+  'form.saveError': 'Sorry, errors occured.',
 
-  'form.validator.invalidIp':'Please enter valid ip address',
+  'form.validator.invalidIp': 'Please enter valid ip address',
 
-  'admin.advanced.title':'Advanced',
-  'admin.advanced.caution':'This section is for advanced user only.<br/>Proceed with caution.',
-  'admin.advanced.button.uninstallIncludingData':'Uninstall cluster including all data.',
-  'admin.advanced.button.uninstallKeepData':'Uninstall cluster but keep data.',
+  'admin.advanced.title': 'Advanced',
+  'admin.advanced.caution': 'This section is for advanced user only.<br/>Proceed with caution.',
+  'admin.advanced.button.uninstallIncludingData': 'Uninstall cluster including all data.',
+  'admin.advanced.button.uninstallKeepData': 'Uninstall cluster but keep data.',
 
-  'admin.advanced.popup.header':'Uninstall Cluster',
+  'admin.advanced.popup.header': 'Uninstall Cluster',
   /*'admin.advanced.popup.text':'Uninstall Cluster',*/
 
-  'admin.audit.grid.date':"Date/Time",
-  'admin.audit.grid.category':"Category",
-  'admin.audit.grid.operationName':"Operation",
-  'admin.audit.grid.performedBy':"Performed By",
+  'admin.audit.grid.date': "Date/Time",
+  'admin.audit.grid.category': "Category",
+  'admin.audit.grid.operationName': "Operation",
+  'admin.audit.grid.performedBy': "Performed By",
+  'admin.audit.grid.service': "Category",
 
-  'admin.authentication.form.method.database':'Use Ambari Database to authenticate users',
-  'admin.authentication.form.method.ldap':'Use LDAP/Active Directory to authenticate',
-  'admin.authentication.form.primaryServer':'Primary Server',
-  'admin.authentication.form.secondaryServer':'Secondary Server',
-  'admin.authentication.form.useSsl':'Use SSL',
-  'admin.authentication.form.bind.anonymously':"Bind Anonymously",
-  'admin.authentication.form.bind.useCrenedtials':"Use Credentials To Bind",
-  'admin.authentication.form.bindUserDN':'Bind User DN',
-  'admin.authentication.form.searchBaseDN':'Search Base DN',
-  'admin.authentication.form.usernameAttribute':'Username Attribute',
+  'admin.authentication.form.method.database': 'Use Ambari Database to authenticate users',
+  'admin.authentication.form.method.ldap': 'Use LDAP/Active Directory to authenticate',
+  'admin.authentication.form.primaryServer': 'Primary Server',
+  'admin.authentication.form.secondaryServer': 'Secondary Server',
+  'admin.authentication.form.useSsl': 'Use SSL',
+  'admin.authentication.form.bind.anonymously': "Bind Anonymously",
+  'admin.authentication.form.bind.useCrenedtials': "Use Credentials To Bind",
+  'admin.authentication.form.bindUserDN': 'Bind User DN',
+  'admin.authentication.form.searchBaseDN': 'Search Base DN',
+  'admin.authentication.form.usernameAttribute': 'Username Attribute',
 
-  'admin.authentication.form.userDN':'User DN',
-  'admin.authentication.form.password':'Password',
-  'admin.authentication.form.configurationTest':'Configuration Test',
-  'admin.authentication.form.testConfiguration':'Test Configuration',
+  'admin.authentication.form.userDN': 'User DN',
+  'admin.authentication.form.password': 'Password',
+  'admin.authentication.form.configurationTest': 'Configuration Test',
+  'admin.authentication.form.testConfiguration': 'Test Configuration',
 
-  'admin.authentication.form.test.success':'The configuration passes the test',
-  'admin.authentication.form.test.fail':'The configuration fails the test',
+  'admin.authentication.form.test.success': 'The configuration passes the test',
+  'admin.authentication.form.test.fail': 'The configuration fails the test',
 
-  'admin.security.title':'Kerberos Security has not been enabled on this cluster.',
-  'admin.security.button.enable':'Kerberos Security has not been enabled on this cluster.',
+  'admin.security.title': 'Kerberos Security has not been enabled on this cluster.',
+  'admin.security.button.enable': 'Enable Kerberos Security on this cluster',
 
-  'admin.users.ldapAuthentionUsed':'LDAP Authentication is being used to authenticate users',
+  'admin.users.ldapAuthentionUsed': 'LDAP Authentication is being used to authenticate users',
+  'admin.users.deleteYourselfMessage': 'You can\'t delete yourself',
   'admin.users.addButton': 'Add User',
   'admin.users.delete': 'delete',
   'admin.users.edit': 'edit',
@@ -191,4 +193,3 @@ Em.I18n.translations = {
   'hosts.delete.popup.body': 'Are you sure?',
   'hosts.delete.popup.header': 'Confirmation'
 };
-

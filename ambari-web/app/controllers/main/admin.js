@@ -16,6 +16,9 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.MainAdminController = Em.Controller.extend({
-  name:'mainAdminController'
+  name:'mainAdminController',
+  category:'user'
 })

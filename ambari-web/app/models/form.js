@@ -45,9 +45,8 @@ App.Form = Em.View.extend({
           thisForm.set("field." + field.get('name'), field);
         });
   },
-  getField:function (name) {
-//    return this.fields[name];
 
+  getField:function (name) {
     var field = false;
     $.each(this.fields, function () {
       if (this.get('name') == name) {
@@ -55,14 +54,15 @@ App.Form = Em.View.extend({
       }
     });
     return field;
-
   },
+
   isValid:function () {
     var isValid = true;
     $.each(this.fields, function () {
       this.validate();
       if (!this.get('isValid')) {
         isValid = false;
+        console.warn(this.get('name') + " IS INVALID : " + this.get('errorMessage'));
       }
     })
 
@@ -78,7 +78,7 @@ App.Form = Em.View.extend({
     var object = this.get('object');
     if (object instanceof Em.Object) {
       $.each(this.fields, function () {
-        this.set('value', object.get(this.get('name')));
+        this.set('value', this.get('displayType') == 'password' ? '' : object.get(this.get('name')));
       });
     } else {
       this.clearValues();
@@ -92,7 +92,8 @@ App.Form = Em.View.extend({
   getValues:function () {
     var values = {};
     $.each(this.fields, function () {
-      values[this.get('name')] = this.get('value');
+      if(!(this.get('displayType') == 'password') && validator.empty(this.get('value'))) // if this is not empty password field
+        values[this.get('name')] = this.get('value');
     });
     return values;
   },
@@ -163,7 +164,7 @@ App.FormField = Em.Object.extend({ // try to realize this as view
   form:false,
   isRequired:true, // by default a config property is required
   unit:'',
-  value:null,
+  value:'',
 
   isValid:function () {
     return this.get('errorMessage') === '';
@@ -181,13 +182,10 @@ App.FormField = Em.Object.extend({ // try to realize this as view
         element = Em.Select;
         options.content = this.get('values');
         options.valueBinding = "value";
-        options.optionValuePath="content.value";
-        options.optionLabelPath="content.label";
+        options.optionValuePath = "content.value";
+        options.optionLabelPath = "content.label";
         break;
       case 'password':
-        options['type'] = 'password';
-        break;
-      case 'passwordRetype':
         options['type'] = 'password';
         break;
       case 'textarea':
@@ -201,31 +199,41 @@ App.FormField = Em.Object.extend({ // try to realize this as view
   validate:function () {
     var digitsRegex = /^\d+$/;
     var numberRegex = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
-
     var value = this.get('value');
-
     var isError = false;
+    this.set('errorMessage', '');
 
-    if (!(!this.get('form.isObjectNew') && this.get('disableRequiredOnExistent')) && this.get('isRequired')) {
-      if (typeof value === 'string' && value.trim().length === 0) {
-        this.set('errorMessage', 'This is required');
-        isError = true;
-      }
+    if (this.get('isRequired') && (typeof value === 'string' && value.trim().length === 0)) {
+      this.set('errorMessage', 'This is required');
+      isError = true;
+    }
+
+    if (typeof value === 'string' && value.trim().length === 0) { // this is not to validate empty field.
+      isError = true;
     }
 
     if (!isError) {
-
       switch (this.get('validator')) {
         case 'ipaddress':
-          if (!validator.isIpAddress(value)) {
+          if (!validator.isIpAddress(value) && !validator.isDomainName(value)) {
             isError = true;
             this.set('errorMessage', Em.I18n.t("form.validator.invalidIp"));
-          };
+          }
+          break;
+        case 'passwordRetype':
+          var form = this.get('form');
+          var passwordField = form.getField('password');
+          if (passwordField.get('isValid')
+            && (passwordField.get('value') != this.get('value'))
+            && passwordField.get('value') && this.get('value')
+            ) {
+            this.set('errorMessage', "Passwords are different");
+            isError = true;
+          }
           break;
         default:
           break;
       }
-
 
       switch (this.get('displayType')) {
         case 'digits':
@@ -245,18 +253,6 @@ App.FormField = Em.Object.extend({ // try to realize this as view
         case 'custom':
           break;
         case 'password':
-          break;
-        case 'passwordRetype':
-          var form = this.get('form');
-          var passwordField = form.getField('password');
-          if (passwordField.get('isValid')
-            && (passwordField.get('value') != this.get('value'))
-            && passwordField.get('value') && this.get('value')
-            ) {
-            this.set('errorMessage', "Passwords are different");
-            isError = true;
-          }
-
           break;
       }
     }

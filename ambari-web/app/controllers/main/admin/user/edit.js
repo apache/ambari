@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.MainAdminUserEditController = Em.Controller.extend({
   name:'mainAdminUserEditController',
   content:false

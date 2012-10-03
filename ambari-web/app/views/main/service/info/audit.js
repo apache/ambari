@@ -18,7 +18,55 @@
 
 var App = require('app');
 
-App.MainServiceInfoAuditView = Em.View.extend({
-  templateName: require('templates/main/service/info/audit'),
-  content: App.ServiceAudit.find()
+require('views/common/grid');
+
+App.MainServiceInfoAuditView = App.Grid.extend({
+//  audits: function() {
+//    return App.router.get('mainServiceInfoAuditController.content').get('serviceAudit');
+//  }.property('App.router.mainServiceInfoAuditController.content'),
+
+  prepareCollection:function () {
+    var audits = App.router.get('mainServiceInfoAuditController.content').get('serviceAudit');
+    console.warn(" AUDITS: ", audits);
+    this.set('collection', audits);
+  },
+
+  addFilters: function(field, values){
+    var filters = this.get('appliedFilters');
+    filters[field] = values;
+    var collection = App.router.get('mainServiceInfoAuditController.content').get('serviceAudit');
+    arrayCollection = collection.filter(function(data) {
+      var oneFilterFail = false;
+      $.each(filters, function(fieldname, values){
+        if(values.indexOf(data.get(fieldname)) == -1) {
+          return oneFilterFail = true;
+        }
+      });
+      return !oneFilterFail;
+    });
+
+    this.set('filteredArray', arrayCollection);
+  },
+
+  _collection: {className: App.ServiceAudit},
+  prepareColumns:function () {
+    this._super();
+
+    this.addColumn({
+      name:"date",
+      label:Em.I18n.t("admin.audit.grid.date")
+    });
+    this.addColumn({
+      name:"service.label",
+      label:Em.I18n.t("admin.audit.grid.service")
+    });
+    this.addColumn({
+      name:"operationName",
+      label:Em.I18n.t("admin.audit.grid.operationName")
+    });
+    this.addColumn({
+      name:"user.userName",
+      label:Em.I18n.t("admin.audit.grid.performedBy")
+    });
+  }
 });

@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
 App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   name:'mainHostController',
   content: [],
   fullContent: App.Host.find(),
   clusters: App.Cluster.find(),
-  allComponents: App.Component.find(),
+  componentsForFilter: App.Component.find(),
   totalBinding: 'fullContent.length',
   filters: {components:[]},
   pageSize: 3,
@@ -31,7 +32,10 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   allChecked: false,
   selectedHostsIds: [],
   sortingAsc: true,
-
+  isSort: false,
+  sortClass: function(){
+    return this.get('sortingAsc')? 'icon-arrow-down' : 'icon-arrow-up';
+  }.property('sortingAsc'),
   isDisabled:true,
 
   onAllChecked: function () {
@@ -42,11 +46,12 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
     this.set('selectedHostsIds', selectedHostsIds);
   }.observes('allChecked'),
 
-  onHostChecked: function (checked, hostId) {
+  onHostChecked: function (host) {
     var selected = this.get('selectedHostsIds');
-    if (checked) selected.push(hostId);
+    host.set('isChecked', !host.get('isChecked'));
+    if (host.get('isChecked')) selected.push(host.get('id'));
     else {
-      var index = selected.indexOf(hostId);
+      var index = selected.indexOf(host.get('id'));
       if(index!=-1) selected.splice(index, 1);
     }
     this.set('isDisabled', selected.length == 0);
@@ -63,19 +68,20 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
     this.set('selectedHostsIds', selectedHosts.getEach('id'));
   },
 
-  setFilters: function(checked, componentId) {
-    var filters = this.get('filters.components');
-    if (checked){
-      filters.push(componentId);
-    } else {
-      var index = filters.indexOf(componentId);
-      if(index!=-1) filters.splice(index, 1);
-    }
+  filterByComponentsIds: function(componentsIds) {
+    this.set('filters.components', componentsIds);
+    this.get('componentsForFilter').forEach(function(component) {
+      if (componentsIds.indexOf(component.get('id')) == -1){
+        component.set('isChecked', false);
+      } else component.set('isChecked', true);
+    });
     this.changeContent();
   },
 
-  filterByComponentId: function(componentId) {
-    this.set('filters.components', [componentId]);
+  filterByComponent: function(component) {
+    this.get('componentsForFilter').setEach('isChecked', false);
+    component.set('isChecked', true);
+    this.set('filters.components', [component.get('id')]);
     this.changeContent();
   },
 
@@ -84,10 +90,10 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
     var filters = this.get('filters.components');
     if (filters.length){
       this.get('fullContent').forEach(function(item) {
-        var inFilters = true;
-        $.each(filters, function (i, componentId) {
-          if (item.get('components').getEach('id').indexOf(componentId) == -1){
-            inFilters = false;
+        var inFilters = false;
+        item.get('components').forEach(function(component) {
+          if (filters.indexOf(component.get('id')) != -1){
+            inFilters = true;
           }
         });
         if (inFilters){
@@ -102,7 +108,7 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
     var content = items.slice(this.get('rangeStart'), this.get('rangeStop'));
     this.replace(0, this.get('length'), content);
     this.changeSelectedHosts();
-  }.observes('rangeStart', 'rangeStop', 'filters.components', 'total'),
+  }.observes('rangeStart', 'rangeStop', 'total'),
 
   showNextPage: function() {
     this.nextPage();
@@ -187,6 +193,7 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
       return 0;
     });
     this.set('fullContent', objects);
+    this.set('isSort', true);
     this.set('sortingAsc', !this.get('sortingAsc'));
     this.changeContent();
   }

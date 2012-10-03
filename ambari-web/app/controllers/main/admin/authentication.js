@@ -16,19 +16,23 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.MainAdminAuthenticationController = Em.Controller.extend({
   name:'mainAdminAuthenticationController',
   save:function (event) {
     var form = event.context;
-    form.save();
-    App.ModalPopup.show({
-      header: Em.I18n.t('admin.authentication.form.testConfiguration'),
-      body:form.get('resultText'),
-      secondary:false,
-      onPrimary: function(){
-        this.hide();
-      }
-    });
+    if (form.isValid()) {
+      form.save();
+      App.ModalPopup.show({
+        header:Em.I18n.t('admin.authentication.form.testConfiguration'),
+        body:form.get('resultText'),
+        secondary:false,
+        onPrimary:function () {
+          this.hide();
+        }
+      });
+    }
   },
   content:App.Authentication.find(1)
 })

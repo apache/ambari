@@ -25,3 +25,15 @@ Em.CoreObject.reopen({
     return Em.I18n.t(key, attrs)
   }
 });
+
+
+//Em.Object.getMixinProperties = function(){
+//  var properties = {};
+//  this.PrototypeMixin.mixins.forEach(function(i,mix){
+//    if(mix.properties) {
+//      properties = mix.properties;
+//    }
+//  });
+//
+//  return properties;
+//}

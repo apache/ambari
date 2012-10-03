@@ -15,4 +15,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-{{view.label}}<i {{action doFilter target="view"}} class="icon-filter"></i>
+{{view.label}}<i {{action toggleFilter target="view"}} class="icon-filter"></i>
+{{#if view.showFilter}}
+{{view view.filter}}
+  <a {{action applyFilter target="view"}}>apply</a>
+{{/if}}

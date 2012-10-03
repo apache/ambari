@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var validator = require('utils/validator');
 
 App.UserModel = Em.Object.extend({
   userName:null,
@@ -34,22 +35,62 @@ App.UserForm = App.Form.extend({
   className:App.User,
   fieldsOptions:[
     { name:"userName", displayName:"Username" },
-    { name:"password", displayName:"Password", displayType:"password", disableRequiredOnExistent:true },
-    { name:"passwordRetype", displayName:"Retype Password", displayType:"passwordRetype", disableRequiredOnExistent:true },
+    { name:"password", displayName:"Password", displayType:"password", isRequired: function(){ return this.get('form.isObjectNew'); }.property('form.isObjectNew') },
+    { name:"passwordRetype", displayName:"Retype Password", displayType:"password", validator:"passwordRetype", isRequired: false },
     { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false }
   ],
   fields:[],
   disableUsername:function () {
     var field = this.getField("userName");
     if (field) field.set("disabled", this.get('isObjectNew') ? false : "disabled");
-  }.observes('isObjectNew')
+
+  }.observes('isObjectNew'),
+  disableAdminCheckbox:function () {
+    if (!this.get('isObjectNew')) {
+      var object = this.get('object');
+      var field = this.getField("admin");
+      if (field) {
+        field.set("disabled", object.get('userName') == App.get('router').getLoginName() ? "disabled" : false);
+      }
+    }
+  }.observes('isObjectNew'),
+
+  isValid: function(){
+    var isValid = this._super();
+    thisForm = this;
+
+    var passField = this.get('field.password');
+    var passRetype = this.get('field.passwordRetype');
+
+    if(!validator.empty(passField.get('value'))) {
+      if(passField.get('value') != passRetype.get('value')) {
+        passRetype.set('errorMessage', "Passwords are different");
+        isValid = false;
+      }
+    }
+
+    if(isValid && this.get('isObjectNew')) {
+      var users = App.User.find();
+      var userNameField = this.getField('userName');
+      var userName = userNameField.get('value');
+
+      users.forEach(function(user){
+        if(userName == user.get('userName')) {
+          userNameField.set('errorMessage', 'User with the same name is already exists');
+          return isValid = false;
+        }
+      });
+    }
+    
+    return isValid;
+  }
 });
 
 App.User.FIXTURES = [
   {
     id:1,
     user_name:'admin',
-    password: 'admin',
+    password:'admin',
     admin:1
   },
   {

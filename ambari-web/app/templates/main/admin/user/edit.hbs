@@ -27,8 +27,10 @@
   </div>
   {{/each}}
   <div class="control-group">
-    <button type="submit" class="btn" {{action gotoUsers}}>{{t form.cancel}}</button>
-    <button type="submit"
-            class="btn btn-primary" {{action create target="view"}}>{{view.userForm.saveButtonText}}</button>
+    <div class="controls">
+      <button type="submit" class="btn" {{action gotoUsers}}>{{t form.cancel}}</button>
+      <button type="submit"
+              class="btn btn-primary" {{action create target="view"}}>{{view.userForm.saveButtonText}}</button>
+    </div>
   </div>
 </form>

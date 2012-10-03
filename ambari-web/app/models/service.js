@@ -62,7 +62,7 @@ App.Component = DS.Model.extend({
   type:DS.attr('boolean'),
   service:DS.belongsTo('App.Service'),
   host:DS.belongsTo('App.Host'),
-  workStatus:DS.attr('string')
+  workStatus: DS.attr('boolean')
 });
 
 App.Component.FIXTURES = [
@@ -73,7 +73,7 @@ App.Component.FIXTURES = [
     type: true,
     service_id:1,
     host_id:1,
-    work_status:true
+    work_status:false
   },
   {
     id:2,
@@ -82,7 +82,7 @@ App.Component.FIXTURES = [
     type: true,
     service_id:1,
     host_id:2,
-    work_status:false
+    work_status:true
   },
   {
     id:3,
@@ -90,12 +90,13 @@ App.Component.FIXTURES = [
     label: 'DN',
     service_id:1,
     type: false,
-    host_id:2
+    host_id:2,
+    work_status:true
   },
   {
     id:4,
     component_name:'JobTracker',
-    label: 'TT',
+    label: 'JT',
     type: true,
     service_id:2,
     host_id:4,
@@ -104,10 +105,11 @@ App.Component.FIXTURES = [
   {
     id:5,
     component_name:'TaskTracker',
-    label: 'JT',
+    label: 'TT',
     type: false,
     service_id:2,
-    host_id:4
+    host_id:4,
+    work_status:true
   },
   {
     id:6,
@@ -115,7 +117,8 @@ App.Component.FIXTURES = [
     label: 'HBM',
     type: true,
     service_id:3,
-    host_id:4
+    host_id:4,
+    work_status:true
   },
   {
     id:7,
@@ -123,7 +126,8 @@ App.Component.FIXTURES = [
     label: 'RS',
     type: false,
     service_id:3,
-    host_id:2
+    host_id:2,
+    work_status:true
   }
 ];
 

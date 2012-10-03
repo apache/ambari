@@ -16,6 +16,13 @@
  * limitations under the License.
  */
 
+.gradient(@color: #FAFAFA, @start: #FFFFFF, @stop: #F2F2F2) {
+  background: @color;
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, @start), color-stop(1, @stop));
+  background: -ms-linear-gradient(top, @start, @stop);
+  background: -moz-linear-gradient(center top, @start 0%, @stop 100%);
+}
+
 html, body {
   height: 100%;
 }
@@ -226,9 +233,51 @@ a:focus {
 
 @status-live-marker: url("../img/health-status-live.png");
 @status-dead-marker: url("../img/health-status-dead.png");
+@status-ok-marker: url("../img/status-ok.jpg");
+@status-corrupt-marker: url("../img/status-corrupt.jpg");
+@arrow-right: url("../img/arrow-right.png");
 
-/*Dashboard*/
+/*****start styles for boxes*****/
+.box {
+  border: 1px solid #D4D4D4;
+  border-radius: 4px;
+  margin-bottom: 20px;
 
+  .box-header {
+    border-bottom: 1px solid #D4D4D4;
+    border-radius: 4px 4px 0 0;
+  }
+  .box-header,
+  .box-footer {
+    padding: 10px;
+    /*background: #dedede;*/
+    .gradient(#dedede, #ffffff, #dedede)
+  }
+  .box-header:after,
+  .box-footer:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  .box-header {
+    .btn-group {
+      float: right;
+    }
+    h4 {
+      float: left;
+    }
+  }
+  .box-footer {
+    hr {
+      margin: 0px;
+    }
+  }
+}
+/*****end styles for boxes*****/
+
+/*****start styles for dashboard page*****/
+
+/*start services summary*/
 .services {
   margin-left: 5px;
   .tab-marker-position {
@@ -245,7 +294,50 @@ a:focus {
     .tab-marker-position;
     background-image: @status-dead-marker;
   }
+  dt {
+    text-align: left;
+    width: 120px;
+  }
+  dd{
+    margin-left: 145px;
+  }
 }
+/*end services summary*/
+
+/*start alerts summary*/
+.alerts {
+  margin: 0px;
+  li {
+    border-bottom: 1px solid #b7b9bb;
+    list-style: none;
+    padding: 5px 10px 5px 43px;
+    background-position: 14px 9px;
+    background-repeat: no-repeat;
+    .date-time {
+      float: right;
+    }
+    p {
+      margin-bottom: 2px;
+    }
+  }
+  li.status-ok {
+    background-image: @status-ok-marker;
+  }
+  li.status-corrupt {
+    background-image: @status-corrupt-marker;
+  }
+}
+.go-to {
+  float: right;
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-image: @arrow-right;
+  padding-right: 40px;
+  margin-top: 10px;
+}
+/*end alerts summary*/
+
+/*****end styles for dashboard page*****/
 
 /*Services*/
 .nav-tabs {
@@ -332,17 +424,18 @@ a:focus {
     border: solid 1px #cccccc;
     padding: 8px;
     margin-bottom: 10px;
-    background-color: #FFFAFA;
+    background-color: #fafafa;
   }
 
   .host-assignments .assignedService {
-    padding: 5px;
+    padding: 2px 8px;
     border: solid 1px #cccccc;
     margin: 2px;
-    background-color: #69BE28;
+    background-color: @green;
     color: white;
     white-space: nowrap;
     font-size: 0.9em;
+    display: inline-block;
   }
 
   .form-horizontal .controls {
@@ -364,7 +457,7 @@ a:focus {
   }
 
   .controls .badge {
-    background-color: #ADC299;
+    background-color: @green;
     color: #ffffff;
     cursor: pointer;
     font-weight: bold;
@@ -372,7 +465,7 @@ a:focus {
   }
 
   .assign-master  .controls .badge:hover {
-    background-color: #99B280;
+    background-color: @green;
   }
 
   .alertFlag {
@@ -388,4 +481,23 @@ a:focus {
 /*Dashboard*/
 .alerts-count {
   margin-left: 5px;
+}
+
+ul.filter {
+  background: #ffffff;
+  list-style: none;
+  position: absolute;
+  padding: 10px;
+}
+
+#main-admin-menu {
+  margin-left: 0;
+
+  ul {
+    margin-bottom: 0;
+  }
+}
+
+#user-auth-method select {
+  width: 320px;
 }

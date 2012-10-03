@@ -16,114 +16,123 @@
 * limitations under the License.
 -->
 <div id="hosts" class="box">
-    <div class="box-header">
-        <div class="button-section">
-            <div class="btn-group">
-                <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                    Rack
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    {{#each clusters}}
-                    <li>
-                      <a href="javascript:void(null)" data-toggle="modal" {{action "assignedToRackPopup" this target="controller"}}>
-                        {{clusterName}}
-                      </a>
-                    </li>
-                    {{/each}}
-                </ul>
-            </div>
-            <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary decommission" data-toggle="modal" {{action "decommissionButtonPopup" target="controller"}}>
-              Decommission
-            </button>
-            <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary" data-toggle="modal" {{action "deleteButtonPopup" target="controller"}}>
-              Delete
-            </button>
-            <button class="btn btn-inverse add-host-button" disabled="disabled">
-                <i class="icon-plus icon-white"></i>
-                Add New Host
-            </button>
-        </div>
+  <div class="box-header">
+    <div class="button-section">
+      <div class="btn-group">
+        <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+          Rack
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          {{#each clusters}}
+          <li>
+            <a href="javascript:void(null)" data-toggle="modal" {{action "assignedToRackPopup" this target="controller"}}>
+              {{clusterName}}
+            </a>
+          </li>
+          {{/each}}
+        </ul>
+      </div>
+      <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary decommission" data-toggle="modal" {{action "decommissionButtonPopup" target="controller"}}>
+        Decommission
+      </button>
+      <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary" data-toggle="modal" {{action "deleteButtonPopup" target="controller"}}>
+        Delete
+      </button>
+      <button class="btn btn-inverse add-host-button" disabled="disabled">
+        <i class="icon-plus icon-white"></i>
+        Add New Host
+      </button>
     </div>
-    <table class="table table-bordered table-striped">
-        <thead>
-        <tr>
-            <th class="first">
-                <label class="checkbox">
-                  {{view Ember.Checkbox checkedBinding="allChecked" class="checkbox"}}
-                </label>
-            </th>
-            <th>
-              <a href="#" {{action sortByName target="controller" }}>Name</a>
-            </th>
-            <th>Rack</th>
-            <th>CPU</th>
-            <th>RAM</th>
-            <th>Disk Usage</th>
-            <th>Load Avg</th>
-            <th>
-                <div class="btn-group">
-                    <button class="btn btn-info dropdown-toggle" data-toggle="dropdown">
-                        Components
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu filter-components">
-                        {{#each component in allComponents}}
-                        <li>
-                            <label>
-                                {{view view.ComponentCheckboxView checkedBinding="this.isChecked"contentBinding="component.id"}}                                {{component.componentName}}
-                            </label>
-                        </li>
-                        {{/each}}
-                    </ul>
-                </div>
-            </th>
-        </tr>
-        </thead>
-        <tbody>
-        {{#each host in controller}}
-        <tr>
-            <td class="first">
-                <label class="checkbox">
-                  {{view view.HostCheckboxView checkedBinding="host.isChecked" contentBinding="host"}}
-                  <span class="health-status-{{unbound host.healthStatus}}"></span>
-                </label>
-            </td>
-            <td><a href="#" {{action showDetails host}}>{{unbound host.hostName}}</a></td>
-            <td>{{host.cluster.clusterName}}</td>
-            <td>{{host.cpu}}</td>
-            <td>{{host.memory}}</td>
-            <td>{{host.diskUsage}}</td>
-            <td>{{host.loadAvg}}</td>
-            <td>
-                {{#each component in host.components}}
-                  {{component.label}},
-                {{/each}}
-            </td>
-        </tr>
-        {{/each}}
-        </tbody>
-    </table>
-    <div class="box-footer">
-        <hr />
-        <div class="footer-pagination">
-            <ul class="nav nav-pills">
-                <li class="disabled">Show Hosts</li>
-                <li class="dropdown">
-                    {{view Em.Select contentBinding="pageSizeRange"
+  </div>
+  <table class="table table-bordered table-striped">
+    <thead>
+    <tr>
+      <th class="first">
+        <label class="checkbox">
+          {{view Ember.Checkbox checkedBinding="allChecked" class="checkbox"}}
+        </label>
+      </th>
+      <th>
+        <a href="#" {{action sortByName target="controller" }}>Name</a>
+        {{#if controller.isSort}}
+        <i class="icon-arrow-up"{{bindAttr class="controller.sortClass"}}></i>
+        {{/if}}
+      </th>
+      <th>Rack</th>
+      <th>CPU</th>
+      <th>RAM</th>
+      <th>Disk Usage</th>
+      <th>Load Avg</th>
+      <th>
+        <div {{bindAttr class="view.btnGroupClass"}} >
+          <button class="btn btn-info" {{action "clickFilterButton" target="view"}}>
+            Components
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu filter-components" id="filter-dropdown">
+            {{#each component in componentsForFilter}}
+            <li>
+              <label>
+                {{view view.ComponentCheckboxView contentBinding="component"}}                                {{unbound component.componentName}}
+              </label>
+            </li>
+            {{/each}}
+          </ul>
+          <button {{bindAttr disabled="view.isApplyDisabled"}} class="btn" {{action "applyFilters" target="view"}}>
+            Apply
+          </button>
+        </div>
+
+      </th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#each host in controller}}
+    {{#view view.HostView contentBinding="host"}}
+    <tr>
+      <td class="first">
+        <label class="checkbox">
+          {{view view.HostCheckboxView checkedBinding="host.isChecked" contentBinding="host"}}
+        </label>
+      </td>
+      <td class="name">
+        <span class="health-status-{{unbound host.healthStatus}}"></span>
+        <a href="#" {{action "showDetails" host}}>{{unbound host.hostName}}</a>
+      </td>
+      <td>{{host.cluster.clusterName}}</td>
+      <td>{{host.cpu}}</td>
+      <td>{{host.memory}}</td>
+      <td>{{host.diskUsage}}</td>
+      <td>{{host.loadAvg}}</td>
+      <td>
+        {{view.labels}}
+      </td>
+    </tr>
+    {{/view}}
+    {{/each}}
+    </tbody>
+  </table>
+  <div class="box-footer">
+    <hr />
+    <div class="footer-pagination">
+      <ul class="nav nav-pills">
+        <li class="disabled">Show Hosts</li>
+        <li class="dropdown">
+          {{view Em.Select contentBinding="pageSizeRange"
                     selectionBinding="pageSize"
                     optionValuePath="this"}}
-                </li>
-                <li class="disabled">{{startPosition}}-{{rangeStop}} of {{total}}</li>
-                <li class="disabled page-listing">
-                    {{#if hasPrevious}}
-                    <a href="#" {{action showPreviousPage target="controller"}}>previous</a>
-                    {{/if}}
-                    {{#if hasNext}}
-                    <a href="#" {{action showNextPage target="controller"}}>next</a>
-                    {{/if}}
-                </li>
-            </ul>
-        </div>
+        </li>
+        <li class="disabled">{{startPosition}}-{{rangeStop}} of {{total}}</li>
+        <li class="disabled page-listing">
+          {{#if hasPrevious}}
+          <a href="#" {{action showPreviousPage target="controller"}}>previous</a>
+          {{/if}}
+          {{#if hasNext}}
+          <a href="#" {{action showNextPage target="controller"}}>next</a>
+          {{/if}}
+        </li>
+      </ul>
     </div>
+  </div>
 </div>

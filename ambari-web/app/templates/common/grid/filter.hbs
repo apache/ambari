@@ -15,21 +15,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-
-<table class="table table-striped">
-  <thead>
-  <tr>
-    {{#each column in view.columns}}
-    {{view column}}
-    {{/each}}
-  </tr>
-  </thead>
-  <tbody>
-  {{#each row in view.rows}}
-  {{view row}}
-  {{/each}}
-  </tbody>
-</table>
-{{#if view.pager}}
-  {{view view.pager}}
-{{/if}}
+{{#each filter in view.filters}}
+<li>
+  <label class="checkbox">
+    {{view Em.Checkbox checkedBinding="filter.checked"}} {{filter.label}}
+  </label>
+</li>
+{{/each}}

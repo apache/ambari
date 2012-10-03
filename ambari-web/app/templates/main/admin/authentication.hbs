@@ -16,7 +16,7 @@
 * limitations under the License.
 -->
 
-{{view App.FormFieldTemplate fieldBinding="view.form.field.method"}}
+{{view App.FormFieldTemplate fieldBinding="view.form.field.method" id="user-auth-method"}}
 
 {{#if view.ldapChecked}}
   {{view App.FormFieldTemplate fieldBinding="view.form.field.primaryServer"}}
@@ -42,8 +42,7 @@
       <p {{bindAttr class="view.form.testConfigurationClass"}}>{{view.form.testConfigurationMessage}}</p>
     {{/if}}
 {{/if}}
-<div class="span3"></div>
-<div>
+<div style="margin:40px 0">
   <button {{action updateValues target="view.form"}} class="btn">{{t form.cancel}}</button>
   <button {{action save view.form target="App.router.mainAdminAuthenticationController"}} class="btn btn-primary">{{t form.save}}</button>
 </div>

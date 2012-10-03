@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.MainServiceInfoMetricsController = Em.Controller.extend({
   name: 'mainServiceInfoMetricsController',
   content: 'Metrics'

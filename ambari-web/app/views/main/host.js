@@ -20,23 +20,79 @@ var App = require('app');
 
 App.MainHostView = Em.View.extend({
   templateName: require('templates/main/host'),
-  content: [],
+  content:function(){
+    return App.router.get('mainHostController.content');
+  }.property('App.router.mainHostController.content'),
+  componentsIds: [],
+  isFilterOpen: false,
+  isApplyDisabled: function(){
+    return !this.get('isFilterOpen')
+  }.property('isFilterOpen'),
+  btnGroupClass: function(){
+    return this.get('isFilterOpen') ? 'btn-group open' : 'btn-group';
+  }.property('isFilterOpen'),
 
+  applyFilters: function(){
+    this.set('isFilterOpen', false);
+    App.router.get('mainHostController').filterByComponentsIds(this.get('componentsIds'));
+  },
+
+  clickFilterButton: function(){
+    var self = this;
+    this.set('isFilterOpen', !this.get('isFilterOpen'));
+    if (this.get('isFilterOpen')){
+      var filters = App.router.get('mainHostController.filters.components');
+      $('.filter-component').each(function () {
+        var componentId = parseInt($(this).attr('id').replace('component-',''));
+        var index = filters.indexOf(componentId);
+        $(this).attr('checked', index!=-1);
+      });
+      this.set('componentsIds', filters.toArray());
+
+      var dropDown = $('#filter-dropdown');
+      var firstClick = true;
+      $(document).bind('click', function(e) {
+        if (!firstClick && $(e.target).closest(dropDown).length == 0) {
+          self.set('isFilterOpen', false);
+          $(document).unbind('click');
+        }
+        firstClick = false;
+      });
+    }
+  },
+  HostView: Em.View.extend({
+    content: null,
+    labels: '',
+    init: function(){
+      this._super();
+      var labels = this.get('content.components').getEach('label');
+      this.set('labels', labels.join(', '));
+    },
+    HostCheckboxView: Em.Checkbox.extend({
+      content: null,
+      isChecked: false,
+      change: function(event) {
+        this.set('isChecked', !this.get('content.isChecked'));
+        App.router.get('mainHostController').onHostChecked(this.get('content'));
+      }
+    })
+  }),
   ComponentCheckboxView: Em.Checkbox.extend({
     content: null,
-    isChecked: false,
+    elementId: function(){
+      return 'component-' + this.get('content.id');
+    }.property('content.id'),
+    classNames: ['filter-component'],
+    parentView: function(){
+      return this._parentView.templateData.view;
+    }.property(),
     change: function(event) {
-      this.set('isChecked', !this.get('isChecked'));
-      App.router.get('mainHostController').setFilters(this.get('isChecked'), this.get('content'));
-    }
-  }),
-  HostCheckboxView: Em.Checkbox.extend({
-    content: null,
-    isChecked: false,
-    change: function(event) {
-      this.set('isChecked', !this.get('content.isChecked'));
-      App.router.get('mainHostController').onHostChecked(this.get('isChecked'), this.get('content.id'));
+      var parent = this._parentView.templateData.view;
+      var componentsIds = parent.get('componentsIds');
+      var componentId = this.get('content.id');
+      var index = componentsIds.indexOf(componentId);
+      if(index==-1) componentsIds.push(componentId);
+      else componentsIds.splice(index, 1);
     }
   })
-
 });

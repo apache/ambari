@@ -36,9 +36,24 @@ module.exports = {
     return floatRegex.test(value);
   },
 
+  /**
+   * validate ip address with port
+   * @param value
+   * @return {Boolean}
+   */
   isIpAddress: function(value) {
-    var ipRegex = /^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\:[0-9]{1,5}$/;
+    var ipRegex = /^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(\:[0-9]{1,5})?$/;
     return ipRegex.test(value);
+  },
+
+  /**
+   * validate domain name with port
+   * @param value
+   * @return {Boolean}
+   */
+  isDomainName: function(value) {
+    var domainRegex = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
+    return domainRegex.test(value);
   },
 
   empty:function (e) {

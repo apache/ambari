@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.MainServiceInfoSummaryController = Em.Controller.extend({
   name: 'mainServiceInfoSummaryController'
 })

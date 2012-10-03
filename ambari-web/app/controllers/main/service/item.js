@@ -16,9 +16,11 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.MainServiceItemController = Em.Controller.extend({
   name: 'mainServiceItemController',
-//  content: App.Service.find(1),
+  content: App.Service.find(1),
   showRebalancer: function() {
     if(this.content.get('serviceName') == 'hdfs') {
       return true;

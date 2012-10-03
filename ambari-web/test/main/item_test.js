@@ -15,9 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 var App = require('app');
+require('views/common/modal_popup');
+require('controllers/main/service/item');
 
-App.MainController = Em.Controller.extend({
-  name: 'mainController'
+describe('App.MainServiceItemController', function () {
+
+    describe('#showRebalancer', function () {
+        it('should return true if serviceName is hdfs', function () {
+            var mainServiceItemController = App.MainServiceItemController.create({
+            });
+            mainServiceItemController.content.set('serviceName', 'hdfs');
+            expect(mainServiceItemController.get('showRebalancer')).to.equal(true);
+        })
+    })
 })
