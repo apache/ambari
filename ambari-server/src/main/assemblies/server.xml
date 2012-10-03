@@ -48,17 +48,19 @@
       <fileMode>0755</fileMode>
     </fileSet>
     -->
-
     <fileSet>
       <directory>${basedir}/src/main/resources/</directory>
       <outputDirectory>/ambari-server-${project.version}/keystore</outputDirectory>
       <includes>
         <include>db/*</include>
         <include>ca.config</include>
-	<include>pass.txt</include>
+        <include>pass.txt</include>
       </includes>
     </fileSet>
-
+    <fileSet>
+      <directory>src/main/conf</directory>
+      <outputDirectory>/ambari-server-${project.version}/conf</outputDirectory>
+    </fileSet>
     <fileSet>
       <directory>src/main/assemblies</directory>
       <outputDirectory>/ambari-server-${project.version}/res</outputDirectory>
@@ -66,7 +68,6 @@
         <exclude>*</exclude>
       </excludes>
     </fileSet>
-
   </fileSets>
   <dependencySets>
     <dependencySet>

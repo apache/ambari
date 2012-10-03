@@ -28,14 +28,15 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.security.SslSocketConnector;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.DefaultServlet;
 import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.jetty.webapp.WebAppContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.spi.LoggerFactoryBinder;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
@@ -51,7 +52,7 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 @Singleton
 public class AmbariServer {
   public static final String PERSISTENCE_PROVIDER = "ambari-postgres";
-  private static Log LOG = LogFactory.getLog(AmbariServer.class);
+  private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
   public static int CLIENT_ONE_WAY = 4080;
   public static int CLIENT_TWO_WAY = 8443;
   public static int CLIENT_API_PORT = 8080;
@@ -194,7 +195,6 @@ public class AmbariServer {
         "org.apache.ambari.server.resources.api.rest");
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(6);
-
       server.setStopAtShutdown(true);
       serverForAgent.setStopAtShutdown(true);
       springAppContext.start();
@@ -204,7 +204,8 @@ public class AmbariServer {
       server.start();
       serverForAgent.start();
       
-      LOG.info("Started Server");
+      LOG.info("********* Started Server **********");
+      
       server.join();
       LOG.info("Joined the Server");
     } catch (Exception e) {
