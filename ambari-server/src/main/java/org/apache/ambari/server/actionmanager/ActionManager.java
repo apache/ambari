@@ -21,8 +21,13 @@ import java.util.List;
 
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.state.live.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -38,7 +43,8 @@ public class ActionManager {
   private final ActionDBAccessor db;
   private final ActionQueue actionQueue;
   private final Clusters fsm;
-
+  private static Logger LOG = LoggerFactory.getLogger(ActionManager.class);
+  
   @Inject
   public ActionManager(@Named("schedulerSleeptime") long schedulerSleepTime,
       @Named("actionTimeout") long actionTimeout,

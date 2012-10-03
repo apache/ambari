@@ -107,7 +107,8 @@ class Controller(threading.Thread):
       try:
         if retry==False:
           data = json.dumps(self.heartbeat.build(id))
-
+          pass
+        logger.info("Sending HeartBeat " + pprint.pformat(data))
         req = urllib2.Request(self.heartbeatUrl, data, {'Content-Type': 'application/json'})
         
         logger.info(data)
