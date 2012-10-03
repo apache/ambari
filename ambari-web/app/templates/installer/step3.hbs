@@ -33,7 +33,11 @@
       </a>
       <a class="btn btn-info"
          href="#" {{action mockBtn target="controller" }}>
-        Mock Data
+        mockData
+      </a>
+      <a class="btn btn-info"
+         href="#" {{action pollBtn target="controller" }}>
+         pollData
       </a>
 
       <div class="dropdown pull-right">
@@ -104,6 +108,6 @@
   </div>
 </div>
 <div class="btn-area">
-  <a class="btn pull-left" {{bindAttr disabled="isSubmitDisabled"}} {{action back}}>&larr; Previous</a>
+  <a class="btn pull-left" {{bindAttr disabled="isSubmitDisabled"}} {{action back}}>&larr; Back</a>
   <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
 </div>

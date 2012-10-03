@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var db = require('utils/db');
 
 /**
  * By Step 7, we have the following information stored in App.db and set on this
@@ -27,6 +28,7 @@ var App = require('app');
  *   slaveComponentHosts: App.db.slaveComponentHosts (slave-components-to-hosts mapping the user selected in Step 6)
  *
  */
+
 App.InstallerStep7Controller = Em.ArrayController.extend({
 
   name: 'installerStep7Controller',
@@ -37,7 +39,7 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
 
   slaveHostToGroup: null,
 
-  isSubmitDisabled: function() {
+  isSubmitDisabled: function () {
     return !this.everyProperty('errorCount', 0);
   }.property('@each.errorCount'),
 
@@ -48,18 +50,18 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
 
   doInit: true,
 
-  loadConfigs: function() {
+  loadConfigs: function () {
 
     // load dependent data from the database
-    var selectedServiceNamesInDB = App.db.getSelectedServiceNames();
+    var selectedServiceNamesInDB = db.getSelectedServiceNames();
     if (selectedServiceNamesInDB !== undefined) {
       this.set('selectedServiceNames', selectedServiceNamesInDB);
     }
-    var masterComponentHostsInDB = App.db.getMasterComponentHosts();
+    var masterComponentHostsInDB = db.getMasterComponentHosts();
     if (masterComponentHostsInDB != undefined) {
       this.set('masterComponentHosts', masterComponentHostsInDB);
     }
-    var slaveComponentHostsInDB = App.db.getSlaveComponentHosts();
+    var slaveComponentHostsInDB = db.getSlaveComponentHosts();
     if (slaveComponentHostsInDB != undefined) {
       this.set('slaveComponentHosts', slaveComponentHostsInDB);
     }
@@ -72,7 +74,7 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
 
       this.set('content', []);
 
-      serviceConfigs.forEach(function(_serviceConfig) {
+      serviceConfigs.forEach(function (_serviceConfig) {
         var serviceConfig = App.ServiceConfig.create({
           serviceName: _serviceConfig.serviceName,
           displayName: _serviceConfig.displayName,
@@ -81,7 +83,7 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
         });
 
         if (self.selectedServiceNames.contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
-          _serviceConfig.configs.forEach(function(_serviceConfigProperty) {
+          _serviceConfig.configs.forEach(function (_serviceConfigProperty) {
             var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
             serviceConfigProperty.serviceConfig = serviceConfig;
             serviceConfig.configs.pushObject(serviceConfigProperty);
@@ -100,15 +102,28 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
     }
   },
 
-  submit: function() {
+  submit: function () {
     if (!this.get('isSubmitDisabled')) {
       // TODO:
       // save service configs in App.db (localStorage)
-      App.get('router').transitionTo('step8');
+      var serviceConfigProperties = [];
+      this.content.forEach(function(_content){
+        var config = [];
+        config = _content.configs;
+        config.forEach(function(_configProperties){
+          serviceConfigProperties.push(_configProperties);
+          console.log('TRACE: pushing: ' + _configProperties.name);
+          console.log('INFO: value: ' + _configProperties.value);
+        },this);
+
+      },this);
+      db.setServiceConfigProperties(serviceConfigProperties);
+      App.router.send('next');
+      //App.get('router').transitionTo('step8');
     }
   },
 
-  showMasterHosts: function(event) {
+  showMasterHosts: function (event) {
     var serviceConfig = event.context;
     App.ModalPopup.show({
       header: serviceConfig.category + ' Hosts',
@@ -119,7 +134,7 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
     });
   },
 
-  showSlaveHosts: function(event) {
+  showSlaveHosts: function (event) {
     var serviceConfig = event.context;
     App.ModalPopup.show({
       header: serviceConfig.category + ' Hosts',
@@ -138,7 +153,7 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
 
   contentBinding: 'App.router.installerStep7Controller.slaveComponentHosts',
 
-  selectedComponentName: function() {
+  selectedComponentName: function () {
     switch (App.router.get('installerStep7Controller.selectedService.serviceName')) {
       case 'HDFS':
         return 'DataNode';
@@ -158,20 +173,20 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
         controllerBinding: 'App.router.slaveComponentGroupsController',
         templateName: require('templates/installer/slave_hosts_popup')
       }),
-      onPrimary: function() {
+      onPrimary: function () {
       }
     });
   },
 
-  showEditSlaveComponentGroups: function(event) {
+  showEditSlaveComponentGroups: function (event) {
     this.showAddSlaveComponentGroup(event);
   },
 
-  hosts: function() {
+  hosts: function () {
     return this.findProperty('componentName', this.get('selectedComponentName')).hosts;
   }.property('@each.hosts', 'selectedComponentName'),
 
-  groups: function() {
+  groups: function () {
     return this.findProperty('componentName', this.get('selectedComponentName')).hosts.mapProperty('group').uniq();
   }.property('@each.hosts', 'selectedComponentName')
 

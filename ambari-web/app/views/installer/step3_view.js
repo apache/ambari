@@ -25,7 +25,6 @@ App.InstallerStep3View = Em.View.extend({
   category: '',
 
   didInsertElement: function () {
-    $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
     var controller = this.get('controller');
     var hosts = controller.loadHosts();
     controller.renderHosts(hosts);

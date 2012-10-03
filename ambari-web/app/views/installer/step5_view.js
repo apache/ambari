@@ -23,8 +23,9 @@ App.InstallerStep5View = Em.View.extend({
 
   templateName: require('templates/installer/step5'),
 
-  submit: function (e) {
-    App.router.transitionTo('step6');
+  didInsertElement: function () {
+    var controller = this.get('controller');
+    controller.loadStep();
   }
 
 });
@@ -36,7 +37,7 @@ App.SelectHostView = Em.Select.extend({
   serviceName: null,
 
   change: function () {
-    App.router.get('installerStep5Controller').assignHostToMaster(this.get("serviceName"), this.get("value"), this.get("zId"));
+    this.get('controller').assignHostToMaster(this.get("serviceName"), this.get("value"), this.get("zId"));
   },
 
   didInsertElement: function () {
@@ -51,7 +52,7 @@ App.AddControlView = Em.View.extend({
   template: Ember.Handlebars.compile('+'),
 
   click: function (event) {
-    App.router.get('installerStep5Controller').addZookeepers();
+    this.get('controller').addZookeepers();
   }
 });
 
@@ -62,6 +63,6 @@ App.RemoveControlView = Em.View.extend({
   template: Ember.Handlebars.compile('-'),
 
   click: function (event) {
-    App.router.get('installerStep5Controller').removeZookeepers(this.get("zId"));
+    this.get('controller').removeZookeepers(this.get("zId"));
   }
 });

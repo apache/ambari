@@ -54,6 +54,7 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
   },
 
   /* renders the set of passed hosts */
+
   renderHosts: function (hostsInfo) {
     var self = this;
     hostsInfo.forEach(function (_hostInfo) {
@@ -76,6 +77,8 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
       var host = hostsFrmContent.findProperty('name', _hostFrmServer.name);
       if (host !== null && host !== undefined) { // check if hostname extracted from REST API data matches any hostname in content
         host.set('status', _hostFrmServer.status);
+        host.set('cpu', _hostFrmServer.cpu);
+        host.set('memory', _hostFrmServer.memory);
       }
     });
     result = !this.content.someProperty('status', 'pending');
@@ -119,12 +122,6 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
      this.doBootstrap();
      */
 
-    //TODO: comment below lines while hooking up with actual @GET bootstrap API
-    var mockHosts = this.mockRetryData;
-    mockHosts.forEach(function (_host) {
-      console.log('Retrying:  ' + _host.name);
-    });
-    this.parseHostInfo(mockHosts, selectedHosts);
   },
 
   removeHosts: function (hosts) {
@@ -190,12 +187,23 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     // this.set('isSubmitDisabled',false);
   },
 
+  saveHostInfoToDb: function() {
+    var hostInfo = {};
+    var succededHosts = this.filterProperty('status', 'success');
+    succededHosts.forEach(function(_host){
+      hostInfo[_host.name] = {
+        name: _host.name,
+        cpu: _host.cpu,
+        memory: _host.memory
+      };
+    });
+    App.db.setHosts(hostInfo);
+  },
+
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      var erroneousHosts = this.filterProperty('status', 'error');
-      console.log("INFO: Removing erroneous hosts before moving to step4");
-      this.removeHosts(erroneousHosts);
-      App.get('router').transitionTo('step4');
+      this.saveHostInfoToDb();
+      App.router.send('next');
     }
   },
   hostLogPopup: function (event) {
@@ -215,7 +223,26 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     this.set('isSubmitDisabled', false);
     var hostInfo = this.mockData;
     this.renderHosts(hostInfo);
+  },
+
+  pollBtn: function () {
+    if (this.get('isSubmitDisabled')) {
+      return;
+    }
+    var hosts = this.visibleHosts();
+    var selectedHosts = hosts.filterProperty('isChecked', true);
+    selectedHosts.forEach(function (_host) {
+      console.log('Retrying:  ' + _host.name);
+    });
+
+    var mockHosts = this.mockRetryData;
+    mockHosts.forEach(function (_host) {
+      console.log('Retrying:  ' + _host.name);
+    });
+    if(this.parseHostInfo(mockHosts, selectedHosts)) {
+      this.saveHostInfoToDb();
+    }
   }
 
-});
+  });
 

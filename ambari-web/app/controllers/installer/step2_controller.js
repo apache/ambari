@@ -54,7 +54,6 @@ App.InstallerStep2Controller = Em.Controller.extend({
 
   validateHostNames: function () {
     this.hostNameArr = this.get('hostNames').trim().split(new RegExp("\\s+","g"));
-   // this.hostNameArr = this.get('hostNames').trim().match(/\w+|"[^"]+"/g);
     for (var index in this.hostNameArr) {
       console.log("host name is: " + this.hostNameArr[index]);
       //TODO: other validation for hostnames will be covered over here
@@ -165,12 +164,6 @@ App.InstallerStep2Controller = Em.Controller.extend({
 
 
   evaluateStep2: function () {
-    //task4 = Storing ambari agent Install type in localStorage (installType maps at host level and so every host will have this as an property)
-    //task5 = Storing path of software repository(remote/local repo) to localStorage
-    //task6 = call to rest API: @Post http://ambari_server/api/bootstrap
-    //task7 = On Manual Install, next button click pops up a warning with "proceed" and "close" buttons
-    //task8 = On faliure of the previous call, show 'error injecting host information in server db'
-    //task9 = On success of the previous call, go to step 3
 
     console.log('TRACE: Entering controller:InstallerStep2:evaluateStep2 function');
     console.log('value of manual install is: ' + this.get('manualInstall'));
@@ -202,7 +195,6 @@ App.InstallerStep2Controller = Em.Controller.extend({
       App.db.setSoftRepo({ 'repoType': 'local', 'repoPath': this.get('localRepoPath') });
     }
 
-    // Just an additional check. If manualInstall is true, program should have not reached over here
     if (this.get('manualInstall') === false) {
       // For now using mock jquery call
       //TODO: hook up with bootstrap call

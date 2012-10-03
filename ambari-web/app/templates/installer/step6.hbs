@@ -33,24 +33,29 @@
       <th>
         <a href="#" {{bindAttr class="isAllTaskTrackers:selected:deselected"}} {{action selectAllTaskTrackers target="controller"}}>all</a> | <a href="#" {{bindAttr class="isNoTaskTrackers:selected:deselected"}} {{action deselectAllTaskTrackers target="controller"}}>none</a>
       </th>
+      {{#if showHbase}}
       <th>
         <a href="#" {{bindAttr class="isAllRegionServers:selected:deselected"}} {{action selectAllRegionServers target="controller"}}>all</a> | <a href="#" {{bindAttr class="isNoRegionServers:selected:deselected"}} {{action deselectAllRegionServers target="controller"}}>none</a>
       </th>
+      {{/if}}
     </tr>
     </thead>
     <tbody>
+
     {{#each hosts}}
     <tr>
       <td>{{hostname}}</td>
       <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isDataNode"}}DataNode</label></td>
       <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isTaskTracker"}}TaskTracker</label></td>
+      {{#if controller.showHbase}}
       <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isRegionServer"}}RegionServer</label></td>
+      {{/if}}
     </tr>
     {{/each}}
     </tbody>
   </table>
   <div class="btn-area">
-    <a class="btn" {{action back}}>Back</a>
-    <a class="btn btn-success" style="float:right" {{action submit target="controller"}}>Next</a>
+    <a class="btn" {{action back}}>&larr; Back</a>
+    <a class="btn btn-success" style="float:right" {{action submit target="controller"}}>Next &rarr;</a>
   </div>
 </div>

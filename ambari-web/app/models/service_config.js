@@ -28,7 +28,7 @@ App.ServiceConfig = Ember.Object.extend({
   configCategories: [],
   configs: null,
 
-  errorCount: function() {
+  errorCount: function () {
     return this.get('configs').filterProperty('isValid', false).get('length');
   }.property('configs.@each.isValid')
 });
@@ -56,16 +56,16 @@ App.ServiceConfigProperty = Ember.Object.extend({
   value: '',
   defaultValue: '',
   description: '',
-  displayType: 'string',  // string, digits, number, directories, custom
+  displayType: 'string', // string, digits, number, directories, custom
   unit: '',
   category: 'General',
-  isRequired: true,  // by default a config property is required
+  isRequired: true, // by default a config property is required
   isReconfigurable: true, // by default a config property is reconfigurable
   isEditable: true, // by default a config property is editable
   errorMessage: '',
   serviceConfig: null, // points to the parent App.ServiceConfig object
 
-  init: function() {
+  init: function () {
     this.set('value', this.get('defaultValue'));
     // TODO: remove mock data
     switch (this.get('name')) {
@@ -120,11 +120,11 @@ App.ServiceConfigProperty = Ember.Object.extend({
     }
   },
 
-  isValid: function() {
+  isValid: function () {
     return this.get('errorMessage') === '';
   }.property('errorMessage'),
 
-  viewClass: function() {
+  viewClass: function () {
     switch (this.get('displayType')) {
       case 'checkbox':
         return App.ServiceConfigCheckbox;
@@ -149,7 +149,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
     }
   }.property('displayType'),
 
-  validate: function() {
+  validate: function () {
 
     var value = this.get('value');
 

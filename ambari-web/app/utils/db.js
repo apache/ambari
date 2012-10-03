@@ -67,6 +67,8 @@ if(localStorage.getObject('ambari') == null) {
  * setter methods
  */
 
+
+
 App.db.setLoginName = function(name) {
   console.log('TRACE: Entering db:setLoginName function');
   App.db.data = localStorage.getObject('ambari');
@@ -183,6 +185,7 @@ App.db.setMasterComponentHosts = function(masterComponentHosts) {
   localStorage.setObject('ambari', App.db.data);
 }
 
+
 App.db.setHostSlaveComponents = function(hostSlaveComponents) {
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
@@ -196,6 +199,15 @@ App.db.setSlaveComponentHosts = function(slaveComponentHosts) {
   App.db.data[user].Installer.slaveComponentHosts = slaveComponentHosts;
   localStorage.setObject('ambari', App.db.data);
 }
+
+App.db.setServiceConfigProperties = function(configProperties) {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  App.db.data[user].Installer.configProperties = configProperties;
+  localStorage.setObject('ambari', App.db.data);
+}
+
+
 
 /*
  *  getter methods
@@ -281,6 +293,12 @@ App.db.getSlaveComponentHosts = function() {
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
   return App.db.data[user].Installer.slaveComponentHosts;
+}
+
+App.db.setServiceConfigProperties = function() {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  return App.db.data[user].Installer.configProperties;
 }
 
 module.exports = App.db;

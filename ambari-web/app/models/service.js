@@ -23,6 +23,8 @@ App.ServiceInfo = Ember.Object.extend({
   elementId: 'service',
   serviceName: '',
   displayName: '',
+  isMaster: '',
+  isClient: '',
   isDisabled: '',
   isHidden: '',
   isSelected: 'true',

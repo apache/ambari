@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var db = require('utils/db');
 
 /**
  * By Step 6, we have the following information stored in App.db and set on this
@@ -35,81 +36,114 @@ App.InstallerStep6Controller = Em.Controller.extend({
 
   hosts: [],
   // TODO: hook up with user host selection
-  rawHosts: require('data/mock/hosts'),
+  rawHosts: [],
   selectedServiceNames: null,
   masterComponentHosts: require('data/mock/master_component_hosts'),
+  showHbase: false,
 
-  hasMasterComponents: function(hostname) {
+  hasMasterComponents: function (hostname) {
     var hasMaster = false;
-    this.get('masterComponentHosts').forEach(function(masterComponent) {
-      if (masterComponent.hosts.contains(hostname)) {
-        hasMaster = true;
-      }
-    });
-    return hasMaster;
+    var masterComponentHosts = db.getMasterComponentHosts();
+    return masterComponentHosts.someProperty('hostName', hostname);
   },
 
-  isAllDataNodes: function() {
+
+  isAllDataNodes: function () {
     return this.get('hosts').everyProperty('isDataNode', true);
   }.property('hosts.@each.isDataNode'),
 
-  isAllTaskTrackers: function() {
+  isAllTaskTrackers: function () {
     return this.get('hosts').everyProperty('isTaskTracker', true);
   }.property('hosts.@each.isTaskTracker'),
 
-  isAllRegionServers: function() {
+  isAllRegionServers: function () {
     return this.get('hosts').everyProperty('isRegionServer', true);
   }.property('hosts.@each.isRegionServer'),
 
-  isNoDataNodes: function() {
+  isNoDataNodes: function () {
     return this.get('hosts').everyProperty('isDataNode', false);
   }.property('hosts.@each.isDataNode'),
 
-  isNoTaskTrackers: function() {
+  isNoTaskTrackers: function () {
     return this.get('hosts').everyProperty('isTaskTracker', false);
   }.property('hosts.@each.isTaskTracker'),
 
-  isNoRegionServers: function() {
+  isNoRegionServers: function () {
     return this.get('hosts').everyProperty('isRegionServer', false);
   }.property('hosts.@each.isRegionServer'),
 
-  selectAllDataNodes: function() {
+  isHbaseSelected: function () {
+    var services = db.getSelectedServiceNames();
+    console.log('isHbase selected is: ' + services.contains('HBASE'));
+    return services.contains('HBASE');
+  },
+
+
+  selectAllDataNodes: function () {
     this.get('hosts').setEach('isDataNode', true);
   },
 
-  selectAllTaskTrackers: function() {
+  selectAllTaskTrackers: function () {
     this.get('hosts').setEach('isTaskTracker', true);
   },
 
-  selectAllRegionServers: function() {
+  selectAllRegionServers: function () {
     this.get('hosts').setEach('isRegionServer', true);
   },
 
-  deselectAllDataNodes: function() {
+  deselectAllDataNodes: function () {
     this.get('hosts').setEach('isDataNode', false);
   },
 
-  deselectAllTaskTrackers: function() {
+  deselectAllTaskTrackers: function () {
     this.get('hosts').setEach('isTaskTracker', false);
   },
 
-  deselectAllRegionServers: function() {
+  deselectAllRegionServers: function () {
     this.get('hosts').setEach('isRegionServer', false);
   },
 
-  init: function() {
-    this._super();
-    this.get('rawHosts').forEach(function(host) {
-      host.isDataNode = host.isTaskTracker = host.isRegionServer = !this.hasMasterComponents(host.hostname);
-      this.get('hosts').pushObject(Ember.Object.create(host));
-    }, this);
+  loadStep: function () {
+    this.set('hosts',[]);
+    this.set('showHbase',this.isHbaseSelected());
+    this.setSlaveHost(this.getHostNames());
   },
 
-  validate: function() {
+  setSlaveHost: function (hostNames) {
+    hostNames.forEach(function (_hostName) {
+      this.get('hosts').pushObject(Ember.Object.create({
+        hostname: _hostName,
+        isDataNode: !this.hasMasterComponents(_hostName),
+        isTaskTracker: !this.hasMasterComponents(_hostName),
+        isRegionServer: !this.hasMasterComponents(_hostName)
+      }));
+    },this);
+  },
+
+  getHostNames: function () {
+    var hostInfo = db.getHosts();
+    var hostNames = [];
+    for (var index in hostInfo) {
+      hostNames.push(hostInfo[index].name);
+
+    }
+    return hostNames;
+  },
+
+
+  /*  init: function () {
+   this._super();
+   this.get('rawHosts').forEach(function (host) {
+   host.isDataNode = host.isTaskTracker = host.isRegionServer = !this.hasMasterComponents(host.hostname);
+   this.get('hosts').pushObject(Ember.Object.create(host));
+   }, this);
+   },
+   */
+  validate: function () {
     return !(this.get('isNoDataNodes') || this.get('isNoTaskTrackers') || this.get('isNoRegionServers'));
   },
 
-  submit: function() {
+  submit: function () {
     if (!this.validate()) {
       this.set('errorMessage', Ember.I18n.t('installer.step6.error.mustSelectOne'));
       return;
@@ -133,13 +167,13 @@ App.InstallerStep6Controller = Em.Controller.extend({
           group: 'Default'
         });
       }
-      if (host.get('isRegionServer')) {
+      if (this.isHbaseSelected() && host.get('isRegionServer')) {
         regionServerHosts.push({
           hostname: host.hostname,
           group: 'Default'
         });
       }
-    });
+    },this);
 
     var slaveComponentHosts = [];
     slaveComponentHosts.push({
@@ -150,10 +184,12 @@ App.InstallerStep6Controller = Em.Controller.extend({
       componentName: 'TaskTracker',
       hosts: taskTrackerHosts
     });
-    slaveComponentHosts.push({
-      componentName: 'RegionServer',
-      hosts: regionServerHosts
-    });
+    if (this.isHbaseSelected()) {
+      slaveComponentHosts.push({
+        componentName: 'RegionServer',
+        hosts: regionServerHosts
+      });
+    }
 
     App.db.setSlaveComponentHosts(slaveComponentHosts);
 

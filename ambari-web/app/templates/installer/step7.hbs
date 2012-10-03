@@ -15,58 +15,67 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
+
 <div id="serviceConfig">
-<h2>{{t installer.step7.header}}</h2>
-<div class="alert alert-info">
-  {{t installer.step7.body}}
-</div>
-{{#view App.ServiceConfigTabs}}
-<ul class="nav nav-tabs">
-{{#each service in controller}}
-    <li><a class="active" {{bindAttr href="service.serviceName"}} data-toggle="tab" {{action selectService service on="click" target="view"}}>{{service.displayName}}{{#if service.errorCount}}<span class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a></li>
-{{/each}}
-</ul>
-{{/view}}
-<div class="accordion">
+  <h2>{{t installer.step7.header}}</h2>
+
+  <div class="alert alert-info">
+    {{t installer.step7.body}}
+  </div>
+  {{#view App.ServiceConfigTabs}}
+  <ul class="nav nav-tabs">
+    {{#each service in controller}}
+    <li><a class="active" {{bindAttr href="service.serviceName"}}
+           data-toggle="tab" {{action selectService service on="click" target="view"}}>{{service.displayName}}{{#if service.errorCount}}<span
+      class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a>
+    </li>
+    {{/each}}
+  </ul>
+  {{/view}}
+  <div class="accordion">
     {{#each category in selectedService.configCategories}}
     <div class="accordion-group">
-        <div class="accordion-heading">
-            <a class="accordion-toggle">
-                {{category.name}}
-            </a>
-        </div>
-        {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs"}}
-        <div class="accordion-body collapse in">
-            <div class="accordion-inner">
-                <form class="form-horizontal">
-                    {{#each view.categoryConfigs}}
-                        <div {{bindAttr class="errorMessage:error: :control-group"}}>
-                            <label class="control-label">{{displayName}}</label>
-                            <div class="controls">
-                                {{view viewClass serviceConfigBinding="this"}}
-                                <span class="help-inline">{{errorMessage}}</span>
-                            </div>
-                        </div>
-                    {{/each}}
-                </form>
+      <div class="accordion-heading">
+        <a class="accordion-toggle">
+          {{category.name}}
+        </a>
+      </div>
+      {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs"}}
+      <div class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <form class="form-horizontal">
+            {{#each view.categoryConfigs}}
+            <div {{bindAttr class="errorMessage:error: :control-group"}}>
+              <label class="control-label">{{displayName}}</label>
+
+              <div class="controls">
+                {{view viewClass serviceConfigBinding="this"}}
+                <span class="help-inline">{{errorMessage}}</span>
+              </div>
             </div>
+            {{/each}}
+          </form>
         </div>
-        {{/view}}
+      </div>
+      {{/view}}
     </div>
     {{#if category.isForSlaveComponent}}
     {{#view App.AddSlaveComponentGroupButton slaveComponentNameBinding="category.name"}}
-    <a class="btn add-slave-component-group" {{action showAddSlaveComponentGroup category.name target="App.router.slaveComponentGroupsController"}}><i class="icon-plus-sign"></i> Add a {{category.name}} Group</a>
+    <a
+      class="btn add-slave-component-group" {{action showAddSlaveComponentGroup category.name target="App.router.slaveComponentGroupsController"}}><i
+      class="icon-plus-sign"></i> Add a {{category.name}} Group</a>
     {{/view}}
     {{/if}}
     {{/each}}
-</div>
-{{#if isSubmitDisabled}}
-<div class="alert">{{t installer.step7.attentionNeeded}}</div>
-{{/if}}
-<div class="btn-area">
-    <a class="btn" {{action back}}>Back</a>
+  </div>
+  {{#if isSubmitDisabled}}
+  <div class="alert">{{t installer.step7.attentionNeeded}}</div>
+  {{/if}}
+  <div class="btn-area">
+    <a class="btn" {{action back}}>&larr; Back</a>
+
     <div style="float:right">
-      <a {{bindAttr class=":btn :btn-success"}} {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next</a>
+      <a {{bindAttr class=":btn :btn-success"}} {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
     </div>
-</div>
+  </div>
 </div>

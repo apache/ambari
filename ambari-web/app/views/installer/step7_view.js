@@ -30,28 +30,27 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   content: null,
 
   category: null,
-  serviceConfigs: null,  // General, Advanced, NameNode, SNameNode, DataNode, etc.
+  serviceConfigs: null, // General, Advanced, NameNode, SNameNode, DataNode, etc.
 
-  categoryConfigs: function() {
+  categoryConfigs: function () {
     return this.get('serviceConfigs').filterProperty('category', this.get('category.name'))
   }.property('serviceConfigs.@each').cacheable()
 });
 
 App.ServiceConfigTabs = Ember.View.extend({
 
-  selectService: function(event) {
+  selectService: function (event) {
     this.set('controller.selectedService', event.context);
   },
 
-  didInsertElement: function() {
+  didInsertElement: function () {
     var serviceName = this.get('controller.selectedService').serviceName;
     this.$('a[href="' + serviceName + '"]').tab('show');
   }
-
 });
 
 App.ServiceConfigPopoverSupport = Ember.Mixin.create({
-  didInsertElement: function() {
+  didInsertElement: function () {
     if (this.get('isPopoverEnabled') !== 'false') {
       this.$().popover({
         title: this.get('serviceConfig.displayName') + '<br><small>' + this.get('serviceConfig.name') + '</small>',
@@ -70,16 +69,16 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
   valueBinding: 'serviceConfig.value',
   classNameBindings: 'textFieldClassName',
 
-  textFieldClassName: function() {
+  textFieldClassName: function () {
     // sets the width of the field depending on display type
-    if (['directory','url','email','user','host'].contains(this.get('serviceConfig.displayType'))) {
+    if (['directory', 'url', 'email', 'user', 'host'].contains(this.get('serviceConfig.displayType'))) {
       return ['span6'];
     } else {
       return ['input-small'];
     }
   }.property('serviceConfig.displayType'),
 
-  disabled: function() {
+  disabled: function () {
     return !this.get('serviceConfig.isEditable');
   }.property('serviceConfig.isEditable')
 
@@ -92,7 +91,7 @@ App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverS
 
   template: Ember.Handlebars.compile('{{view App.ServiceConfigTextField serviceConfigBinding="view.serviceConfig" isPopoverEnabled="false"}}<span class="add-on">{{view.serviceConfig.unit}}</span>'),
 
-  disabled: function() {
+  disabled: function () {
     return !this.get('serviceConfig.isEditable');
   }.property('serviceConfig.isEditable')
 
@@ -136,7 +135,7 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
 });
 
 App.ServiceConfigHostPopoverSupport = Ember.Mixin.create({
-  didInsertElement: function() {
+  didInsertElement: function () {
     this.$().popover({
       title: this.get('serviceConfig.displayName'),
       content: this.get('serviceConfig.description'),
@@ -158,19 +157,19 @@ App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopover
 
 App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHostPopoverSupport, {
 
-  hasNoHosts: function() {
+  hasNoHosts: function () {
     return this.get('value').length === 0;
   }.property('value'),
 
-  hasOneHost: function() {
+  hasOneHost: function () {
     return this.get('value').length === 1;
   }.property('value'),
 
-  hasMultipleHosts: function() {
+  hasMultipleHosts: function () {
     return this.get('value').length > 1;
   }.property('value'),
 
-  otherLength: function() {
+  otherLength: function () {
     var len = this.get('value').length;
     if (len > 2) {
       return (len - 1) + ' others';

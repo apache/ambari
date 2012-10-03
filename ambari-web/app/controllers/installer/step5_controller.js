@@ -18,88 +18,305 @@
 
 var App = require('app');
 
-//mock data
-
-//input
-App.selectedServices = [ 'HDFS', 'MapReduce', 'Ganglia', 'Nagios', 'HBase', 'Pig', 'Sqoop', 'Oozie', 'Hive', 'ZooKeeper'];
-
-App.hosts = [
-  {
-    host_name: 'host1',
-    cluster_name: "test",
-    total_mem: 7,
-    cpu_count: 2
-  },
-  {
-    host_name: 'host2',
-    cluster_name: "test",
-    total_mem: 4,
-    cpu_count: 2
-  },
-  {
-    host_name: 'host3',
-    cluster_name: "test",
-    total_mem: 8,
-    cpu_count: 2
-  },
-  {
-    host_name: 'host4',
-    cluster_name: "test",
-    total_mem: 8,
-    cpu_count: 2
-  },
-  {
-    host_name: 'host5',
-    cluster_name: "test",
-    total_mem: 8,
-    cpu_count: 2
-  }
-];
-
-App.masterServices = [
-  {
-    component_name: "NameNode",
-    selectedHost: 'host1',
-    availableHosts: [] // filled dynAmically
-  },
-  {
-    component_name: "ZooKeeper",
-    selectedHost: 'host3',
-    availableHosts: [] // filled dynAmically
-  },
-  {
-    component_name: "JobTracker",
-    selectedHost: 'host2',
-    availableHosts: [] // filled dynAmically
-  },
-  {
-    component_name: "HBase Master",
-    selectedHost: 'host3',
-    availableHosts: [] // filled dynAmically
-  }
-];
-
-//mapping format
-//masterHostMapping = [
-//    {
-//      host_name: 'host1',
-//      masterServices: [{component_name:"NamedNode"}, {component_name:"Jobtracker"}]
-//    },
-//    {
-//      host_name: 'host2',
-//      masterServices: [{component_name:"NamedNode"}, {component_name:"Jobtracker"}]
-//    }
-//  ];
-
-//end - mock data
-
 App.InstallerStep5Controller = Em.Controller.extend({
   //properties
   name: "installerStep5Controller",
-
   hosts: [],
   selectedServices: [],
   selectedServicesMasters: [],
+  components: require('data/mock/service_components'),
+
+  /*
+   Below function retrieves host information from local storage
+   */
+
+  clearStep: function () {
+    this.set('hosts', []);
+    this.set('selectedServices', []);
+    this.set('selectedServicesMasters', []);
+    //this.selectedServices = [];
+    //this.selectedServicesMasters = [];
+  },
+
+  loadStep: function () {
+    this.clearStep();
+    this.renderHostInfo(this.loadHostInfo());
+    this.renderComponents(this.loadComponents(this.loadServices()));
+  },
+
+  loadHostInfo: function () {
+    //this.clear();
+    var hostInfo = [];
+    hostInfo = App.db.getHosts();
+    var hosts = new Ember.Set();
+    for (var index in hostInfo) {
+      hosts.add(hostInfo[index]);
+      console.log("TRACE: host name is: " + hostInfo[index].name);
+    }
+    return hosts;
+  },
+
+  renderHostInfo: function (hostsInfo) {
+
+    var zookeeperComponent = null, componentObj = null, hostObj = null;
+    // this._super();
+
+    //wrap the model data into
+
+    hostsInfo.forEach(function (_host) {
+      var hostObj = Ember.Object.create({
+        host_name: _host.name,
+        cpu: _host.cpu,
+        memory: _host.memory
+      });
+      console.log('pushing ' + hostObj.host_name);
+      hostObj.set("host_info", "" + hostObj.get("host_name") + " ( " + hostObj.get("memory") + "GB" + " " + hostObj.get("cpu") + "cores )");
+      this.get("hosts").pushObject(hostObj);
+    }, this);
+  },
+
+
+  loadServices: function () {
+    var services = App.db.getSelectedServiceNames();
+    services.forEach(function (item) {
+      console.log("TRACE: service name is: " + item);
+      this.get("selectedServices").pushObject(Ember.Object.create({service_name: item}));
+    }, this);
+
+    return services;
+
+  },
+
+  loadComponents: function (services) {
+    var self = this;
+    var components = new Ember.Set();
+
+    var masterComponents = self.components.filterProperty('isMaster', true);
+    for (var index in services) {
+      var componentInfo = masterComponents.filterProperty('service_name', services[index]);
+      componentInfo.forEach(function (_componentInfo) {
+        console.log("TRACE: master component name is: " + _componentInfo.display_name);
+        var componentObj = {};
+        componentObj.component_name = _componentInfo.display_name;
+        componentObj.selectedHost = this.selectHost(_componentInfo.component_name);   // call the method that plays selectNode algorithm or fetches from server
+        componentObj.availableHosts = [];
+        components.add(componentObj);
+      }, this);
+    }
+
+    return components;
+  },
+
+  renderComponents: function (masterComponents) {
+    var self = this;
+    var zookeeperComponent = null, componentObj = null;
+
+    masterComponents.forEach(function (item) {
+      //add the zookeeper component at the end if exists
+      if (item.component_name === "ZooKeeper") {
+        zookeeperComponent = Ember.Object.create(item);
+      } else {
+        componentObj = Ember.Object.create(item);
+        componentObj.set("availableHosts", this.get("hosts").slice(0));
+        self.get("selectedServicesMasters").pushObject(componentObj);
+      }
+    }, this);
+
+    //while initialization of the controller there will be only 1 zookeeper server
+
+    if (zookeeperComponent) {
+      zookeeperComponent.set("showAddControl", true);
+      zookeeperComponent.set("showRemoveControl", false);
+      zookeeperComponent.set("zId", 1);
+      zookeeperComponent.set("availableHosts", this.get("hosts").slice(0));
+      this.get("selectedServicesMasters").pushObject(Ember.Object.create(zookeeperComponent));
+    }
+
+  },
+
+  getKerberosServer: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    if (noOfHosts === 1) {
+      return hosts[0];
+    } else if (noOfHosts < 3) {
+      return hosts[1];
+    } else if (noOfHosts <= 5) {
+      return hosts[1];
+    } else if (noOfHosts <= 30) {
+      return hosts[3];
+    } else {
+      return hosts[5];
+    }
+  },
+
+  getNameNode: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    return hosts[0];
+  },
+
+  getSNameNode: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    if (noOfHosts === 1) {
+      return hosts[0];
+    } else {
+      return hosts[1];
+    }
+  },
+
+  getJobTracker: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    if (noOfHosts === 1) {
+      return hosts[0];
+    } else if (noOfHosts < 3) {
+      return hosts[1];
+    } else if (noOfHosts <= 5) {
+      return hosts[1];
+    } else if (noOfHosts <= 30) {
+      return hosts[1];
+    } else {
+      return hosts[2];
+    }
+  },
+
+  getHBaseMaster: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    if (noOfHosts === 1) {
+      return hosts[0];
+    } else if (noOfHosts < 3) {
+      return hosts[0];
+    } else if (noOfHosts <= 5) {
+      return hosts[0];
+    } else if (noOfHosts <= 30) {
+      return hosts[2];
+    } else {
+      return hosts[3];
+    }
+  },
+
+  getOozieServer: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    if (noOfHosts === 1) {
+      return hosts[0];
+    } else if (noOfHosts < 3) {
+      return hosts[1];
+    } else if (noOfHosts <= 5) {
+      return hosts[1];
+    } else if (noOfHosts <= 30) {
+      return hosts[2];
+    } else {
+      return hosts[3];
+    }
+  },
+
+  getOozieServer: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    if (noOfHosts === 1) {
+      return hosts[0];
+    } else if (noOfHosts < 3) {
+      return hosts[1];
+    } else if (noOfHosts <= 5) {
+      return hosts[1];
+    } else if (noOfHosts <= 30) {
+      return hosts[2];
+    } else {
+      return hosts[3];
+    }
+  },
+
+  getHiveServer: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    if (noOfHosts === 1) {
+      return hosts[0];
+    } else if (noOfHosts < 3) {
+      return hosts[1];
+    } else if (noOfHosts <= 5) {
+      return hosts[1];
+    } else if (noOfHosts <= 30) {
+      return hosts[2];
+    } else {
+      return hosts[4];
+    }
+  },
+
+  getTempletonServer: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    if (noOfHosts === 1) {
+      return hosts[0];
+    } else if (noOfHosts < 3) {
+      return hosts[1];
+    } else if (noOfHosts <= 5) {
+      return hosts[1];
+    } else if (noOfHosts <= 30) {
+      return hosts[2];
+    } else {
+      return hosts[4];
+    }
+  },
+
+  getZooKeeperServer: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    return hosts[0];
+  },
+
+  getGangliaServer: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    var hostnames = [];
+    var inc = 0;
+    hosts.forEach(function (_hostname) {
+      hostnames[inc] = _hostname.host_name;
+      inc++;
+    });
+    var hostExcAmbari = hostnames.without(location.hostname);
+    if (hostExcAmbari !== null || hostExcAmbari !== undefined || hostExcAmbari.length !== 0) {
+      return hostExcAmbari[0];
+    } else {
+      return hostnames[0];
+    }
+  },
+
+  getNagiosServer: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    var hostnames = [];
+    var inc = 0;
+    hosts.forEach(function (_hostname) {
+      hostnames[inc] = _hostname.host_name;
+      inc++;
+    });
+    var hostExcAmbari = hostnames.without(location.hostname);
+    if (hostExcAmbari !== null || hostExcAmbari !== undefined || hostExcAmbari.length !== 0) {
+      return hostExcAmbari[0];
+    } else {
+      return hostnames[0];
+    }
+  },
+
+  selectHost: function (componentName) {
+    var noOfHosts = this.get('hosts').length;
+    if (componentName === 'KERBEROS_SERVER') {
+      return this.getKerberosServer(noOfHosts).host_name;
+    } else if (componentName === 'NAMENODE') {
+      return this.getNameNode(noOfHosts).host_name;
+    } else if (componentName === 'SNAMENODE') {
+      return this.getSNameNode(noOfHosts).host_name;
+    } else if (componentName === 'JOBTRACKER') {
+      return this.getJobTracker(noOfHosts).host_name;
+    } else if (componentName === 'HBASE_MASTER') {
+      return this.getHBaseMaster(noOfHosts).host_name;
+    } else if (componentName === 'OOZIE_SERVER') {
+      return this.getOozieServer(noOfHosts).host_name;
+    } else if (componentName === 'HIVE_SERVER') {
+      return this.getHiveServer(noOfHosts).host_name;
+    } else if (componentName === 'TEMPLETON_SERVER') {
+      return this.getTempletonServer(noOfHosts).host_name;
+    } else if (componentName === 'ZOOKEEPER_SERVER') {
+      return this.getZooKeeperServer(noOfHosts).host_name;
+    } else if (componentName === 'GANGLIA_MONITOR_SERVER') {
+      return this.getGangliaServer(noOfHosts);
+    } else if (componentName === 'NAGIOS_SERVER') {
+      return this.getNagiosServer(noOfHosts);
+    }
+  },
+
 
   masterHostMapping: function () {
     var mapping = [], mappingObject, self = this, mappedHosts, hostObj, hostInfo;
@@ -109,7 +326,7 @@ App.InstallerStep5Controller = Em.Controller.extend({
 
     mappedHosts.forEach(function (item) {
       hostObj = self.get("hosts").findProperty("host_name", item);
-      hostInfo = " ( " + hostObj.get("total_mem") + "GB" + " " + hostObj.get("cpu_count") + "cores )";
+      hostInfo = " ( " + hostObj.get("memory") + "GB" + " " + hostObj.get("cpu") + "cores )";
 
       mappingObject = Ember.Object.create({
         host_name: item,
@@ -175,6 +392,7 @@ App.InstallerStep5Controller = Em.Controller.extend({
      * minimum 1 ZooKeeper master in total, and
      * maximum 1 ZooKeeper on every host
      */
+
     var maxNumZooKeepers = this.get("hosts.length"),
       currentZooKeepers = this.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper"),
       newZookeeper = null,
@@ -182,13 +400,15 @@ App.InstallerStep5Controller = Em.Controller.extend({
       suggestedHost = null,
       i = 0,
       lastZoo = null;
-
+    console.log('hosts legth is: ' + maxNumZooKeepers);
     //work only if the Zookeeper service is selected in previous step
-    if (!this.get("selectedServices").mapProperty("service_name").contains("ZooKeeper")) {
+    if (!this.get("selectedServices").mapProperty("service_name").contains("ZOOKEEPER")) {
+      console.log('ALERT: Zookeeper service was not selected');
       return false;
     }
 
     if (currentZooKeepers.get("length") < maxNumZooKeepers) {
+      console.log('currentZookeeper length less than maximum. Its: ' + currentZooKeepers.get("length"))
       currentZooKeepers.set("lastObject.showAddControl", false);
       if (currentZooKeepers.get("length") > 1) {
         currentZooKeepers.set("lastObject.showRemoveControl", true);
@@ -234,7 +454,7 @@ App.InstallerStep5Controller = Em.Controller.extend({
     var currentZooKeepers;
 
     //work only if the Zookeeper service is selected in previous step
-    if (!this.get("selectedServices").mapProperty("service_name").contains("ZooKeeper")) {
+    if (!this.get("selectedServices").mapProperty("service_name").contains("ZOOKEEPER")) {
       return false;
     }
 
@@ -283,7 +503,7 @@ App.InstallerStep5Controller = Em.Controller.extend({
 
   sortHostsByConfig: function (a, b) {
     //currently handling only total memory on the host
-    if (a.total_mem < b.total_mem) {
+    if (a.memory < b.memory) {
       return 1;
     }
     else {
@@ -300,51 +520,28 @@ App.InstallerStep5Controller = Em.Controller.extend({
     }
   },
 
-  /*
-   * Initialize the model data
-   */
-  init: function () {
-    var zookeeperComponent = null, componentObj = null, hostObj = null;
-    this._super();
+  saveComponentHostsToDb: function () {
+    var obj = this.get('selectedServicesMasters');
+    var masterComponentHosts = [];
+    var inc = 0;
+    var array = [];
+    obj.forEach(function (_component) {
+      var hostArr = [];
+      masterComponentHosts.push({
+        component: _component.component_name,
+        hostName: _component.selectedHost
+      });
+    });
 
-    //wrap the model data into
+    App.db.setMasterComponentHosts(masterComponentHosts);
 
-    App.hosts.forEach(function (item) {
-      hostObj = Ember.Object.create(item);
-      hostObj.set("host_info", "" + hostObj.get("host_name") + " ( " + hostObj.get("total_mem") + "GB" + " " + hostObj.get("cpu_count") + "cores )");
-      this.get("hosts").pushObject(hostObj);
-    }, this);
+  },
 
-    //sort the hosts
-    this.get("hosts").sort(this.sortHostsByConfig);
-
-    //todo: build masters from config instead
-    App.masterServices.forEach(function (item) {
-      //add the zookeeper component at the end if exists
-      if (item.component_name === "ZooKeeper") {
-        zookeeperComponent = Ember.Object.create(item);
-      } else {
-        componentObj = Ember.Object.create(item);
-        componentObj.set("availableHosts", this.get("hosts").slice(0));
-        this.get("selectedServicesMasters").pushObject(componentObj);
-      }
-    }, this);
-
-    //while initialization of the controller there will be only 1 zookeeper server
-
-    if (zookeeperComponent) {
-      zookeeperComponent.set("showAddControl", true);
-      zookeeperComponent.set("showRemoveControl", false);
-      zookeeperComponent.set("zId", 1);
-      zookeeperComponent.set("availableHosts", this.get("hosts").slice(0));
-      this.get("selectedServicesMasters").pushObject(Ember.Object.create(zookeeperComponent));
-    }
-
-    App.selectedServices.forEach(function (item) {
-      this.get("selectedServices").pushObject(Ember.Object.create({service_name: item}));
-    }, this);
-
+  submit: function () {
+    this.saveComponentHostsToDb();
+    App.router.send('next');
   }
+
 
 });
 
