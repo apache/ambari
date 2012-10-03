@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-799. Prototype for management spi part 3. (hitesh)
+
   AMBARI-797. Prototype for management spi interface continued. (hitesh)
 
   AMBARI-795. Fix failing tests for AgentResource and BootStrap. (mahadev)
