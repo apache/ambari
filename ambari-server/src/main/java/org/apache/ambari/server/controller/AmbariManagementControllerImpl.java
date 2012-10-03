@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.api.controller.spi.Predicate;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceRequest.PerServiceRequest;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DeployState;
 import org.apache.ambari.server.state.ServiceImpl;
