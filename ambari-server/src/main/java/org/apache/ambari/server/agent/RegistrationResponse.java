@@ -38,6 +38,11 @@ public class RegistrationResponse {
   @XmlElement
   private RegistrationStatus response;
   
+  //Response id to start with, usually zero.
+  @XmlElement
+  private long responseId;
+  
+  @XmlElement
   private List<StatusCommand> commands = null;
 
   public RegistrationStatus getResponseStatus() {
@@ -48,11 +53,19 @@ public class RegistrationResponse {
     this.response = response;
   }
 
-  public List<StatusCommand> getCommand() {
+  public List<StatusCommand> getCommands() {
     return commands;
   }
 
-  public void setCommand(List<StatusCommand> commands) {
+  public void setCommands(List<StatusCommand> commands) {
     this.commands = commands;
+  }
+
+  public long getResponseId() {
+    return responseId;
+  }
+
+  public void setResponseId(long responseId) {
+    this.responseId = responseId;
   }
 }

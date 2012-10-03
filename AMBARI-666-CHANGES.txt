@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-790. OK in registration response. (jitendra)
+
   AMBARI-789. Prototype for management spi interface. (hitesh)
 
   AMBARI-787. Registration throws HostNotFoundException for new hosts. (jitendra)

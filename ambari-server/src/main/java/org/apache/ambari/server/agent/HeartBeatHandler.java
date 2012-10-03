@@ -147,8 +147,10 @@ public class HeartBeatHandler {
       hostObject.handleEvent(new HostStatusUpdatesReceivedEvent(hostname,
           now));
     } else {
-      response.setCommand(cmds);
+      response.setCommands(cmds);
     }
+    response.setResponseStatus(RegistrationStatus.OK);
+    response.setResponseId(0);
     return response;
   }
 }

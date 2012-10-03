@@ -90,9 +90,12 @@ public class TestHeartbeatHandler {
     hi.setOS("MegaOperatingSystem");
     reg.setHostname(hostname);
     reg.setHardwareProfile(hi);
-    handler.handleRegistration(reg);
+    RegistrationResponse response = handler.handleRegistration(reg);
     Host hostObject = fsm.getHost(hostname);
     assertEquals(hostObject.getState(), HostState.HEALTHY);
     assertEquals("MegaOperatingSystem", hostObject.getOsType());
+    assertEquals(RegistrationStatus.OK, response.getResponseStatus());
+    assertEquals(0, response.getResponseId());
+    assertEquals(null, response.getCommands());
   }
 }
