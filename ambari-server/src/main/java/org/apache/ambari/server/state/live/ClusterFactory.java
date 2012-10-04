@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state.live;
 
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.state.Cluster;
 
 /**
  * Factory interface for Guice injections

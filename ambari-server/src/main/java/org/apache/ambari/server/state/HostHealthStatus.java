@@ -16,31 +16,40 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.host;
+package org.apache.ambari.server.state;
 
-public enum HostState {
-  /**
-   * New host state
-   */
-  INIT,
-  /**
-   * State when a registration request is received from the Host but
-   * the host has not responded to its status update check.
-   */
-  WAITING_FOR_HOST_STATUS_UPDATES,
-  /**
-   * State when the server is receiving heartbeats regularly from the Host
-   * and the state of the Host is healthy
-   */
-  HEALTHY,
-  /**
-   * State when the server has not received a heartbeat from the Host in the
-   * configured heartbeat expiry window.
-   */
-  HEARTBEAT_LOST,
-  /**
-   * Host is in unhealthy state as reported either by the Host itself or via
-   * any other additional means ( monitoring layer )
-   */
-  UNHEALTHY;
+public class HostHealthStatus {
+
+  private HealthStatus healthStatus;
+
+  private String healthReport;
+
+  public HostHealthStatus(HealthStatus healthStatus, String healthReport) {
+    super();
+    this.healthStatus = healthStatus;
+    this.healthReport = healthReport;
+  }
+
+  public synchronized HealthStatus getHealthStatus() {
+    return healthStatus;
+  }
+
+  public synchronized void setHealthStatus(HealthStatus healthStatus) {
+    this.healthStatus = healthStatus;
+  }
+
+  public synchronized void setHealthReport(String healthReport) {
+    this.healthReport = healthReport;
+  }
+
+  public synchronized String getHealthReport() {
+    return healthReport;
+  }
+
+  public static enum HealthStatus {
+    UNKNOWN,
+    HEALTHY,
+    UNHEALTHY
+  }
+
 }

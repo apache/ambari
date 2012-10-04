@@ -22,7 +22,7 @@ import java.util.List;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.rest.AgentResource;
-import org.apache.ambari.server.state.live.Clusters;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

@@ -24,12 +24,12 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBInMemoryImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.HostStatus.Status;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
-import org.apache.ambari.server.state.live.Clusters;
 import org.apache.ambari.server.state.live.ClustersImpl;
-import org.apache.ambari.server.state.live.host.Host;
 import org.apache.ambari.server.state.live.host.HostImpl;
-import org.apache.ambari.server.state.live.host.HostState;
 import org.junit.Test;
 
 public class TestHeartbeatHandler {

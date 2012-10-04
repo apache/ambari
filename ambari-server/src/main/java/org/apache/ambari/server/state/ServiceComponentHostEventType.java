@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.svccomphost;
+package org.apache.ambari.server.state;
 
 public enum ServiceComponentHostEventType {
   /**

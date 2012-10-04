@@ -20,7 +20,6 @@ package org.apache.ambari.server.state;
 
 import java.util.Map;
 
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHost;
 
 public interface ServiceComponent {
 
@@ -43,6 +42,8 @@ public interface ServiceComponent {
   public void setStackVersion(StackVersion stackVersion);
   
   public Map<String, ServiceComponentHost> getServiceComponentHosts();
+  
+  public ServiceComponentHost getServiceComponentHost(String hostname);
   
   public void addServiceComponentHosts(Map<String, ServiceComponentHost>
       hostComponents);

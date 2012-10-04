@@ -24,10 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.state.live.Clusters;
-import org.apache.ambari.server.state.live.host.Host;
-import org.apache.ambari.server.state.live.host.HostEvent;
-import org.apache.ambari.server.state.live.host.HostState;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostEvent;
+import org.apache.ambari.server.state.HostState;
 import org.junit.Test;
 
 public class TestHeartbeatMonitor {

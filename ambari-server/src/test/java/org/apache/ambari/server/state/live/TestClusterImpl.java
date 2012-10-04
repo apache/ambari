@@ -29,16 +29,16 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigVersion;
 import org.apache.ambari.server.state.DeployState;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.StackVersion;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.live.host.HostRegistrationRequestEvent;
-import org.apache.ambari.server.state.live.host.HostState;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostInstallEvent;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpRestartedEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,7 +59,6 @@ public class TestClusterImpl {
     Assert.assertEquals("c1", c1.getClusterName());
     clusters.addHost(h1);
     clusters.mapHostToCluster(h1, "c1");
-    c1.addServiceComponentHost(s1, sc1, h1, false);
   }
 
   @After
@@ -82,29 +81,6 @@ public class TestClusterImpl {
 
   }
 
-  @Test
-  public void testAddServiceComponentHost() throws AmbariException {
-    try {
-      c1.addServiceComponentHost("s2", "sc2", "h2", false);
-      fail("Expected failure on invalid cluster/host");
-    } catch (Exception e) {
-      // Expected
-    }
-
-    clusters.addCluster("c2");
-    clusters.addHost("h2");
-    clusters.mapHostToCluster("h2", "c2");
-    c1.addServiceComponentHost("s2", "sc2", "h2", false);
-
-    try {
-      c1.addServiceComponentHost("s2", "sc2", "h2", false);
-      fail("Duplicate add should fail");
-    }
-    catch (AmbariException e) {
-      // Expected
-    }
-
-  }
 
   @Test
   public void testGetHostState() throws AmbariException {
@@ -156,58 +132,5 @@ public class TestClusterImpl {
 
   }
 
-  @Test
-  public void testGetServiceComponentHostState() throws AmbariException {
-    Assert.assertNotNull(c1.getServiceComponentHostState(s1, sc1, h1));
-    Assert.assertEquals(DeployState.INIT,
-        c1.getServiceComponentHostState(s1, sc1, h1).getLiveState());
-  }
-
-  @Test
-  public void testSetServiceComponentHostState() throws AmbariException {
-    ConfigVersion cVersion = new ConfigVersion("0.0.c");
-    StackVersion sVersion = new StackVersion("hadoop-x.y.z");
-    DeployState liveState =
-        DeployState.INSTALL_FAILED;
-    State expected =
-        new State(cVersion, sVersion, liveState);
-    c1.setServiceComponentHostState(s1, sc1, h1, expected);
-
-    State actual =
-        c1.getServiceComponentHostState(s1, sc1, h1);
-
-    Assert.assertEquals(expected, actual);
-    Assert.assertEquals(DeployState.INSTALL_FAILED,
-        actual.getLiveState());
-
-  }
-
-  @Test
-  public void testServiceComponentHostEvent()
-      throws AmbariException, InvalidStateTransitonException {
-    ConfigVersion cVersion = new ConfigVersion("0.0.c");
-    StackVersion sVersion = new StackVersion("hadoop-x.y.z");
-    DeployState liveState =
-        DeployState.INSTALL_FAILED;
-    State expected =
-        new State(cVersion, sVersion, liveState);
-    c1.setServiceComponentHostState(s1, sc1, h1, expected);
-
-    try {
-      c1.handleServiceComponentHostEvent(s1, sc1, h1,
-          new ServiceComponentHostInstallEvent(sc1, h1, 1001));
-      fail("Exception should be thrown on invalid event");
-    }
-    catch (InvalidStateTransitonException e) {
-      // Expected
-    }
-
-    c1.handleServiceComponentHostEvent(s1, sc1, h1,
-        new ServiceComponentHostOpRestartedEvent(sc1, h1, 1002));
-
-    Assert.assertEquals(DeployState.INSTALLING,
-        c1.getServiceComponentHostState(s1, sc1, h1).getLiveState());
-
-  }
 
 }

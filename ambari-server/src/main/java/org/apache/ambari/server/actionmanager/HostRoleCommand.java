@@ -18,7 +18,7 @@
 package org.apache.ambari.server.actionmanager;
 
 import org.apache.ambari.server.Role;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
 
 /**
  * This class encapsulates the information for an task on a host for a

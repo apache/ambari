@@ -26,7 +26,9 @@ import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.state.live.host.Host;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

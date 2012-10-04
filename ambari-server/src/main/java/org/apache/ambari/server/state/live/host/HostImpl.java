@@ -29,12 +29,17 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostEvent;
+import org.apache.ambari.server.state.HostEventType;
+import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.live.job.Job;
-import org.apache.ambari.server.state.live.host.HostHealthStatus.HealthStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -234,7 +239,7 @@ public class HostImpl implements Host {
       HostStatusUpdatesReceivedEvent e = (HostStatusUpdatesReceivedEvent)event;
       // TODO Audit logs
       LOG.debug("Host transition to host status updates received state"
-          + ", host=" + e.hostName
+          + ", host=" + e.getHostName()
           + ", heartbeatTime=" + e.getTimestamp());
       host.getHealthStatus().setHealthStatus(HealthStatus.HEALTHY);
     }
@@ -274,7 +279,7 @@ public class HostImpl implements Host {
       host.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
       LOG.debug("Host transitioned to a healthy state"
-          + ", host=" + e.hostName
+          + ", host=" + e.getHostName()
           + ", heartbeatTime=" + e.getHeartbeatTime());
       host.getHealthStatus().setHealthStatus(HealthStatus.HEALTHY);
     }
@@ -289,7 +294,7 @@ public class HostImpl implements Host {
       host.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
       LOG.debug("Host transitioned to an unhealthy state"
-          + ", host=" + e.hostName
+          + ", host=" + e.getHostName()
           + ", heartbeatTime=" + e.getHeartbeatTime()
           + ", healthStatus=" + e.getHealthStatus());
       host.setHealthStatus(e.getHealthStatus());
@@ -304,7 +309,7 @@ public class HostImpl implements Host {
       HostHeartbeatLostEvent e = (HostHeartbeatLostEvent) event;
       // TODO Audit logs
       LOG.debug("Host transitioned to heartbeat lost state"
-          + ", host=" + e.hostName
+          + ", host=" + e.getHostName()
           + ", lastHeartbeatTime=" + host.getLastHeartbeatTime());
       host.getHealthStatus().setHealthStatus(HealthStatus.UNKNOWN);
     }

@@ -16,44 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.svccomphost;
+package org.apache.ambari.server.state;
 
 import org.apache.ambari.server.state.fsm.event.AbstractEvent;
 
 /**
- * Base class for all events that affect the ServiceComponentHost FSM
+ * Base class for all events that affect the Host FSM
  */
-public abstract class ServiceComponentHostEvent
-    extends AbstractEvent<ServiceComponentHostEventType> {
+public abstract class HostEvent extends AbstractEvent<HostEventType> {
 
   /**
-   * ServiceComponent that this event relates to
-   */
-  private final String serviceComponentName;
-
-  /**
-   * Hostname of the Host that this event relates to
+   * Hostname of the Host
    */
   private final String hostName;
 
-  /**
-   * Time when the event was triggered
-   */
-  private final long opTimestamp;
-
-  public ServiceComponentHostEvent(ServiceComponentHostEventType type,
-      String serviceComponentName, String hostName, long opTimestamp) {
+  public HostEvent(String hostName, HostEventType type) {
     super(type);
-    this.serviceComponentName = serviceComponentName;
     this.hostName = hostName;
-    this.opTimestamp = opTimestamp;
-  }
-
-  /**
-   * @return the serviceComponentName
-   */
-  public String getServiceComponentName() {
-    return serviceComponentName;
   }
 
   /**
@@ -61,13 +40,6 @@ public abstract class ServiceComponentHostEvent
    */
   public String getHostName() {
     return hostName;
-  }
-
-  /**
-   * @return the opTimestamp
-   */
-  public long getOpTimestamp() {
-    return opTimestamp;
   }
 
 }

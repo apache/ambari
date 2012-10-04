@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.server.state.live.Cluster;
 
 public class ServiceImpl implements Service {
 
@@ -121,6 +120,11 @@ public class ServiceImpl implements Service {
   public synchronized void addServiceComponents(
       Map<String, ServiceComponent> components) {
     this.components.putAll(components);
+  }
+
+  @Override
+  public ServiceComponent getServiceComponent(String componentName) {
+    return this.components.get(componentName);
   }
 
 }

@@ -19,6 +19,9 @@
 
 package org.apache.ambari.server.state.live.host;
 
+import org.apache.ambari.server.state.HostEvent;
+import org.apache.ambari.server.state.HostEventType;
+
 public class HostHealthyHeartbeatEvent extends HostEvent {
 
   private final long heartbeatTime;

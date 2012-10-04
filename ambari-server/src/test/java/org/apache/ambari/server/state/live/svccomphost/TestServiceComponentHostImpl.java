@@ -19,8 +19,8 @@
 package org.apache.ambari.server.state.live.svccomphost;
 
 import org.apache.ambari.server.state.DeployState;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEventType;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceComponentHostEventType;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpInProgressEvent;

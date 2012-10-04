@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.state.live.svccomphost;
 
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceComponentHostEventType;
+
 public class ServiceComponentHostOpSucceededEvent extends
     ServiceComponentHostEvent {
 

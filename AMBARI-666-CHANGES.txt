@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-803. FSM initial refactoring for eventual live/desired objects. (hitesh)
+
   AMBARI-802. Enhance Cluster Management pages. (yusaku)
 
   AMBARI-800. Hack to add a stage for testing in in-memory db. (jitendra)

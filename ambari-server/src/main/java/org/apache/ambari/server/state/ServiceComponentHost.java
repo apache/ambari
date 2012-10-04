@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state.live.svccomphost;
+package org.apache.ambari.server.state;
 
 import java.util.List;
 
-import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.job.Job;
 

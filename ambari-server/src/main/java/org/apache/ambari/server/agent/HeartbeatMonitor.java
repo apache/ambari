@@ -21,11 +21,11 @@ import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
-import org.apache.ambari.server.state.live.Clusters;
-import org.apache.ambari.server.state.live.host.Host;
 import org.apache.ambari.server.state.live.host.HostHeartbeatLostEvent;
-import org.apache.ambari.server.state.live.host.HostState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

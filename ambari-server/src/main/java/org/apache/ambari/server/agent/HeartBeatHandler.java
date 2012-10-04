@@ -23,18 +23,20 @@ import java.util.List;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.DeployState;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
-import org.apache.ambari.server.state.live.Cluster;
-import org.apache.ambari.server.state.live.Clusters;
-import org.apache.ambari.server.state.live.host.Host;
 import org.apache.ambari.server.state.live.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.live.host.HostRegistrationRequestEvent;
-import org.apache.ambari.server.state.live.host.HostState;
 import org.apache.ambari.server.state.live.host.HostStatusUpdatesReceivedEvent;
 import org.apache.ambari.server.state.live.host.HostUnhealthyHeartbeatEvent;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHost;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -96,8 +98,11 @@ public class HeartBeatHandler {
     for (Cluster cl : clusters) {
       for (ComponentStatus status : heartbeat.componentStatus) {
         if (status.getClusterName() == cl.getClusterName()) {
-          ServiceComponentHost scHost = cl.getServiceComponentHost(
-              status.getServiceName(), status.getComponentName(), hostname);
+          Service svc = cl.getService(status.getServiceName());
+          ServiceComponent svcComp = svc.getServiceComponent(
+              status.getComponentName());
+          ServiceComponentHost scHost = svcComp.getServiceComponentHost(
+              hostname);
           State currentState = scHost.getState();
           DeployState liveState = DeployState
               .valueOf(DeployState.class, status.getStatus());

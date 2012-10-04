@@ -24,7 +24,7 @@ import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
-import org.apache.ambari.server.state.live.Clusters;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.live.ClustersImpl;
 
 import com.google.inject.AbstractModule;

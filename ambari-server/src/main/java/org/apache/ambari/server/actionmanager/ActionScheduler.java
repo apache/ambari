@@ -24,8 +24,12 @@ import java.util.TreeMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.ActionQueue;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
-import org.apache.ambari.server.state.live.Clusters;
 import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -136,9 +140,14 @@ class ActionScheduler implements Runnable {
               new ServiceComponentHostOpFailedEvent(hrc.getRole().toString(),
                   host, now);
           try {
-            fsmObject.getCluster(stage.getClusterName())
-                .handleServiceComponentHostEvent("", hrc.getRole().toString(),
-                    host, timeoutEvent);
+            // TODO fix service name
+            Cluster c = fsmObject.getCluster(stage.getClusterName());
+            Service svc = c.getService("");
+            ServiceComponent svcComp = svc.getServiceComponent(
+                hrc.getRole().toString());
+            ServiceComponentHost svcCompHost =
+                svcComp.getServiceComponentHost(host);
+            svcCompHost.handleEvent(timeoutEvent);
           } catch (InvalidStateTransitonException e) {
             LOG.info("Transition failed for host: "+host+", role: "+hrc.getRole(), e);
           }
@@ -164,8 +173,13 @@ class ActionScheduler implements Runnable {
     long now = System.currentTimeMillis();
     if (s.getStartTime(hostname) < 0) {
       try {
-        fsmObject.getCluster(s.getClusterName())
-            .handleServiceComponentHostEvent("", "", hostname, hrc.getEvent());
+        Cluster c = fsmObject.getCluster(s.getClusterName());
+        // TODO fix service name, component name     
+        Service svc = c.getService("");
+        ServiceComponent svcComp = svc.getServiceComponent("");
+        ServiceComponentHost svcCompHost =
+            svcComp.getServiceComponentHost(hostname);
+        svcCompHost.handleEvent(hrc.getEvent());
       } catch (InvalidStateTransitonException e) {
         LOG.info(
             "Transition failed for host: " + hostname + ", role: "

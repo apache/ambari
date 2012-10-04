@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHost;
 
 public class ServiceComponentImpl implements ServiceComponent {
 
@@ -111,7 +110,13 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public synchronized void addServiceComponentHosts(
       Map<String, ServiceComponentHost> hostComponents) {
+    // TODO
     this.hostComponents.putAll(hostComponents);
+  }
+
+  @Override
+  public ServiceComponentHost getServiceComponentHost(String hostname) {
+    return this.hostComponents.get(hostname);
   }
 
 }

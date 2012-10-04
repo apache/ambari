@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.state.AgentVersion;
-import org.apache.ambari.server.state.live.host.HostHealthStatus;
+import org.apache.ambari.server.state.HostHealthStatus;
 
 public class HostResponse {
 

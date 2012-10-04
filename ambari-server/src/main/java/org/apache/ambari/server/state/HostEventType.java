@@ -16,7 +16,7 @@
 * limitations under the License.
 */
 
-package org.apache.ambari.server.state.live.host;
+package org.apache.ambari.server.state;
 
 public enum HostEventType {
   /**

@@ -25,11 +25,11 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceRequest.PerServiceRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DeployState;
 import org.apache.ambari.server.state.ServiceImpl;
-import org.apache.ambari.server.state.live.Cluster;
-import org.apache.ambari.server.state.live.Clusters;
 import org.apache.ambari.server.state.live.ClustersImpl;
 
 public class AmbariManagementControllerImpl implements

@@ -16,12 +16,11 @@
 * limitations under the License.
 */
 
-package org.apache.ambari.server.state.live;
+package org.apache.ambari.server.state;
 
 import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.state.live.host.Host;
 
 /**
  * Single entity that tracks all clusters and hosts that are managed

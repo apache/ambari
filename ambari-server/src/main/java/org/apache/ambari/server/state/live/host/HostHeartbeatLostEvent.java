@@ -19,6 +19,9 @@
 
 package org.apache.ambari.server.state.live.host;
 
+import org.apache.ambari.server.state.HostEvent;
+import org.apache.ambari.server.state.HostEventType;
+
 public class HostHeartbeatLostEvent extends HostEvent {
 
   public HostHeartbeatLostEvent(String hostName) {

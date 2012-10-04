@@ -18,34 +18,52 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.List;
 import java.util.Map;
 
-public interface Service {
+import org.apache.ambari.server.AmbariException;
 
-  public String getName();
-  
+public interface Cluster {
+
+  /**
+   * Get the cluster ID
+   */
   public long getClusterId();
-  
-  public long getCurrentHostComponentMappingVersion();
 
-  public void setCurrentHostComponentMappingVersion(long version);
+  /**
+   * Get the Cluster Name
+   */
+  public String getClusterName();
 
-  public ServiceComponent getServiceComponent(String componentName);
+  /**
+   * Set the Cluster Name
+   */
+  public void setClusterName(String clusterName);
 
-  public Map<String, ServiceComponent> getServiceComponents();
+  /**
+   * Add a service to a cluster
+   * @param service
+   */
+  public void addService(Service service) throws AmbariException;
 
-  public void addServiceComponents(Map<String, ServiceComponent> components);
+  /**
+   * Get a service
+   * @param serviceName
+   * @return
+   */
+  public Service getService(String serviceName) throws AmbariException;
 
-  public DeployState getState();
-  
-  public void setState(DeployState state);
+  /**
+   * Get all services
+   * @return
+   */
+  public Map<String, Service> getServices();
 
-  public Map<String, Config> getConfigs();
+  /**
+   * Get all ServiceComponentHosts on a given host
+   * @param hostname
+   * @return
+   */
+  public List<ServiceComponentHost> getServiceComponentHosts(String hostname);
 
-  public void updateConfigs(Map<String, Config> configs);
-  
-  public StackVersion getStackVersion();
-  
-  public void setStackVersion(StackVersion stackVersion);
-  
 }

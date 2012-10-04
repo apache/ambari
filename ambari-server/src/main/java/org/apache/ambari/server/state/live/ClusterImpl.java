@@ -18,18 +18,18 @@
 
 package org.apache.ambari.server.state.live;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHost;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostEvent;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.state.ServiceComponentHost;
 
 public class ClusterImpl implements Cluster {
 
@@ -38,7 +38,9 @@ public class ClusterImpl implements Cluster {
   private final long clusterId;
 
   private String clusterName;
-
+  
+  private Map<String, Service> services;
+  
   /**
    * [ ServiceName -> [ ServiceComponentName -> [ HostName -> [ ... ] ] ] ]
    */
@@ -48,7 +50,7 @@ public class ClusterImpl implements Cluster {
   /**
    * [ HostName -> [ ... ] ]
    */
-  private Map<String, Map<String, Map<String, ServiceComponentHost>>>
+  private Map<String, List<ServiceComponentHost>>
       serviceComponentHostsByHost;
 
   public ClusterImpl(Clusters clusters, long clusterId, String clusterName) {
@@ -58,7 +60,7 @@ public class ClusterImpl implements Cluster {
     this.serviceComponentHosts = new HashMap<String,
         Map<String,Map<String,ServiceComponentHost>>>();
     this.serviceComponentHostsByHost = new HashMap<String,
-        Map<String,Map<String,ServiceComponentHost>>>();
+        List<ServiceComponentHost>>();
   }
 
   public ServiceComponentHost getServiceComponentHost(String serviceName,
@@ -85,10 +87,11 @@ public class ClusterImpl implements Cluster {
     this.clusterName = clusterName;
   }
 
-  @Override
-  public synchronized void addServiceComponentHost(String serviceName,
-      String componentName, String hostname, boolean isClient)
+  synchronized void addServiceComponentHost(ServiceComponentHost svcCompHost)
       throws AmbariException {
+    final String hostname = svcCompHost.getHostName();
+    final String serviceName = svcCompHost.getServiceName();
+    final String componentName = svcCompHost.getServiceComponentName();
     List<Cluster> cs = clusters.getClustersForHost(hostname);
     boolean clusterFound = false;
     for (Cluster c : cs) {
@@ -123,46 +126,12 @@ public class ClusterImpl implements Cluster {
 
     if (!serviceComponentHostsByHost.containsKey(hostname)) {
       serviceComponentHostsByHost.put(hostname,
-          new HashMap<String, Map<String,ServiceComponentHost>>());
+          new ArrayList<ServiceComponentHost>());
     }
-    if (!serviceComponentHostsByHost.get(hostname).containsKey(serviceName)) {
-      serviceComponentHostsByHost.get(hostname).put(serviceName,
-          new HashMap<String, ServiceComponentHost>());
-    }
-
-    ServiceComponentHost impl =
-        new ServiceComponentHostImpl(clusterId,
-            serviceName, componentName, hostname, isClient);
 
     serviceComponentHosts.get(serviceName).get(componentName).put(hostname,
-        impl);
-    serviceComponentHostsByHost.get(hostname).get(serviceName).put(
-        componentName, impl);
-  }
-
-  @Override
-  public synchronized State getServiceComponentHostState(String service,
-      String serviceComponent, String hostname) throws AmbariException {
-    return
-        getServiceComponentHost(service, serviceComponent, hostname).getState();
-  }
-
-  @Override
-  public synchronized void setServiceComponentHostState(String service,
-      String serviceComponent, String hostname,
-      State state) throws AmbariException {
-    getServiceComponentHost(service, serviceComponent, hostname)
-      .setState(state);
-  }
-
-  @Override
-  public synchronized void handleServiceComponentHostEvent(String service,
-      String serviceComponent, String hostname,
-      ServiceComponentHostEvent event)
-      throws AmbariException, InvalidStateTransitonException {
-    getServiceComponentHost(service, serviceComponent, hostname)
-      .handleEvent(event);
-
+        svcCompHost);
+    serviceComponentHostsByHost.get(hostname).add(svcCompHost);
   }
 
   @Override
@@ -171,15 +140,28 @@ public class ClusterImpl implements Cluster {
   }
   
   @Override
-  public List<ServiceComponentHost> getServiceComponentHosts(String hostname) {
-    // TODO Auto-generated method stub
-    return null;
+  public synchronized List<ServiceComponentHost> getServiceComponentHosts(
+      String hostname) {
+    return Collections.unmodifiableList(
+        serviceComponentHostsByHost.get(hostname));
   }
 
   @Override
-  public void addService(Service service) {
-    // TODO Auto-generated method stub
+  public synchronized void addService(Service service) {
     
+    
+    this.services.put(service.getName(), service);
+  }
+
+  @Override
+  public synchronized Service getService(String serviceName)
+      throws AmbariException {
+    return services.get(serviceName);
+  }
+
+  @Override
+  public synchronized Map<String, Service> getServices() {
+    return Collections.unmodifiableMap(services);
   }
 
 }
