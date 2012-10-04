@@ -29,9 +29,9 @@ public interface ServiceComponent {
 
   public long getClusterId();
   
-  public DeployState getState();
+  public State getState();
   
-  public void setState(DeployState state);
+  public void setState(State state);
 
   public Map<String, Config> getConfigs();
 

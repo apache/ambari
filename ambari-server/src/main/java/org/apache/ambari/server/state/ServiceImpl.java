@@ -27,7 +27,7 @@ public class ServiceImpl implements Service {
 
   private final Cluster cluster;
   private final String serviceName;
-  private DeployState state;
+  private State state;
   private Map<String, Config> configs;
   private Map<String, ServiceComponent> components;
   private StackVersion stackVersion;
@@ -38,7 +38,7 @@ public class ServiceImpl implements Service {
   }
   
   public ServiceImpl(Cluster cluster, String serviceName,
-      DeployState state, Map<String, Config> configs) {
+      State state, Map<String, Config> configs) {
     this.cluster = cluster;
     this.serviceName = serviceName;
     this.state = state;
@@ -53,11 +53,11 @@ public class ServiceImpl implements Service {
 
   public ServiceImpl(Cluster cluster, String serviceName,
       Map<String, Config> configs) {
-    this(cluster, serviceName, DeployState.INIT, configs);
+    this(cluster, serviceName, State.INIT, configs);
   }
   
   public ServiceImpl(Cluster cluster, String serviceName) {
-    this(cluster, serviceName, DeployState.INIT, null);
+    this(cluster, serviceName, State.INIT, null);
   }
   
   @Override
@@ -82,12 +82,12 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public synchronized DeployState getState() {
+  public synchronized State getState() {
     return state;
   }
 
   @Override
-  public synchronized void setState(DeployState state) {
+  public synchronized void setState(State state) {
     this.state = state;
   }
 

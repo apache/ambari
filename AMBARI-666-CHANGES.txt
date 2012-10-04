@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-806. Remove State object as configs/stack version/running state are
+  handled as standalone entities. (hitesh)
+
   AMBARI-805. Add requestId tracking objects for management spi. (hitesh)
 
   AMBARI-803. FSM initial refactoring for eventual live/desired objects. (hitesh)

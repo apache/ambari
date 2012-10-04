@@ -29,7 +29,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   
   private final String componentName;
   
-  private DeployState state;
+  private State state;
   
   private Map<String, Config> configs;
 
@@ -43,7 +43,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
   
   public ServiceComponentImpl(Service service,
-      String componentName, DeployState state, Map<String, Config> configs) {
+      String componentName, State state, Map<String, Config> configs) {
     this.service = service;
     this.componentName = componentName;
     this.state = state;
@@ -55,6 +55,12 @@ public class ServiceComponentImpl implements ServiceComponent {
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
     init();
   }
+  
+  public ServiceComponentImpl(Service service,
+      String componentName) {
+    this(service, componentName, State.INIT, null);
+  }
+  
   
   @Override
   public synchronized String getName() {
@@ -72,12 +78,12 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public synchronized DeployState getState() {
+  public synchronized State getState() {
     return state;
   }
 
   @Override
-  public synchronized void setState(DeployState state) {
+  public synchronized void setState(State state) {
     this.state = state;
   }
 

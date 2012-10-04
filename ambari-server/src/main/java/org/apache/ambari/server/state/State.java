@@ -18,115 +18,93 @@
 
 package org.apache.ambari.server.state;
 
-
-public class State {
-
-  private final int hashCodePrime = 131;
-
-  private ConfigVersion configVersion;
-  private StackVersion stackVersion;
-  private DeployState deployState;
-
-  public State(ConfigVersion configVersion,
-      StackVersion stackVersion, DeployState state) {
-    super();
-    this.configVersion = configVersion;
-    this.stackVersion = stackVersion;
-    this.deployState = state;
-  }
-
-  public State() {
-    super();
-    this.configVersion = null;
-    this.stackVersion = null;
-    this.deployState = DeployState.INIT;
-  }
-
-
+public enum State {
   /**
-   * @return the configVersion
+   * Initial/Clean state
    */
-  public ConfigVersion getConfigVersion() {
-    return configVersion;
-  }
+  INIT(0),
   /**
-   * @param configVersion the configVersion to set
+   * In the process of installing.
    */
-  public void setConfigVersion(ConfigVersion configVersion) {
-    this.configVersion = configVersion;
-  }
+  INSTALLING(1),
   /**
-   * @return the stackVersion
+   * Install failed
    */
-  public StackVersion getStackVersion() {
-    return stackVersion;
-  }
+  INSTALL_FAILED(2),
   /**
-   * @param stackVersion the stackVersion to set
+   * State when install completed successfully
    */
-  public void setStackVersion(StackVersion stackVersion) {
-    this.stackVersion = stackVersion;
-  }
+  INSTALLED(3),
   /**
-   * @return the state
+   * In the process of starting.
    */
-  public DeployState getLiveState() {
-    return deployState;
-  }
+  STARTING(4),
   /**
-   * @param state the state to set
+   * Start failed.
    */
-  public void setState(DeployState state) {
-    this.deployState = state;
+  START_FAILED(5),
+  /**
+   * State when start completed successfully.
+   */
+  STARTED(6),
+  /**
+   * In the process of stopping.
+   */
+  STOPPING(7),
+  /**
+   * Stop failed
+   */
+  STOP_FAILED(8),
+  /**
+   * In the process of uninstalling.
+   */
+  UNINSTALLING(9),
+  /**
+   * Uninstall failed.
+   */
+  UNINSTALL_FAILED(10),
+  /**
+   * State when uninstall completed successfully.
+   */
+  UNINSTALLED(11),
+  /**
+   * In the process of wiping out the install
+   */
+  WIPING_OUT(12),
+  /**
+   * State when wipeout fails
+   */
+  WIPEOUT_FAILED(13);
+  
+  private final int state;
+  
+  private State(int state) {
+    this.state = state;
   }
-
-
-  public String toString() {
-    String out = "[";
-    out += " StackVersion=";
-    if (stackVersion != null) {
-      out += stackVersion;
-    } else {
-      out += "null";
+  
+  public boolean isValidDesiredState() {
+    switch (State.values()[this.state]) {
+      case INIT:
+      case INSTALLED:
+      case STARTED:
+      case UNINSTALLED:
+        return true;
+      default:
+        return false;
     }
-    out += ", ConfigVersion=";
-    if (configVersion != null) {
-      out += configVersion;
-    } else {
-      out += "null";
-    }
-    out += ", state=" + deployState;
-    return out;
   }
-
-  @Override
-  public boolean equals(Object object) {
-    if (!(object instanceof State)) {
-      return false;
+  
+  public boolean isInProgressState() {
+    switch (State.values()[this.state]) {
+      case INSTALLING:
+      case STARTING:
+      case STOPPING:
+      case UNINSTALLING:
+      case WIPING_OUT:
+        return true;
+      default:
+        return false;
     }
-    if (this == object) {
-      return true;
-    }
-    State s = (State) object;
-
-    if (configVersion != null ?
-        !configVersion.equals(s.configVersion) : s.configVersion != null) {
-      return false;
-    }
-    if (stackVersion != null ?
-        !stackVersion.equals(s.stackVersion) : s.stackVersion != null) {
-      return false;
-    }
-    return deployState.equals(s.deployState);
   }
-
-  @Override
-  public int hashCode() {
-    int result = configVersion != null ? configVersion.hashCode() : 0;
-    result += hashCodePrime * result +
-        ( stackVersion != null ? stackVersion.hashCode() : 0 );
-    result += deployState.hashCode();
-    return result;
-  }
-
+  
 }

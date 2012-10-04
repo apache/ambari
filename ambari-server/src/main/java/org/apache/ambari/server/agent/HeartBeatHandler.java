@@ -25,13 +25,12 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.DeployState;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.live.host.HostRegistrationRequestEvent;
@@ -103,12 +102,11 @@ public class HeartBeatHandler {
               status.getComponentName());
           ServiceComponentHost scHost = svcComp.getServiceComponentHost(
               hostname);
-          State currentState = scHost.getState();
-          DeployState liveState = DeployState
-              .valueOf(DeployState.class, status.getStatus());
+          State liveState = State
+              .valueOf(State.class, status.getStatus());
           // Hack
-          scHost.setState(new State(currentState
-              .getConfigVersion(), currentState.getStackVersion(), liveState));
+          scHost.setState(liveState);
+          // TODO need to get config version and stack version from live state
         }
       }
     }

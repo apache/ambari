@@ -28,7 +28,7 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.DeployState;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.live.ClustersImpl;
 
@@ -64,7 +64,7 @@ public class AmbariManagementControllerImpl implements
       // TODO initialize configs based off service.configVersions
       // TODO error check if service is already added and/or enabled/deployed      
       cluster.addService(new ServiceImpl(cluster, service.getServiceName(),
-          DeployState.valueOf(service.getDesiredState()), configs));
+          State.valueOf(service.getDesiredState()), configs));
       
       // TODO take action based on desired state
     }

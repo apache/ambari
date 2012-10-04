@@ -36,9 +36,9 @@ public interface Service {
 
   public void addServiceComponents(Map<String, ServiceComponent> components);
 
-  public DeployState getState();
+  public State getState();
   
-  public void setState(DeployState state);
+  public void setState(State state);
 
   public Map<String, Config> getConfigs();
 

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.live.job.Job;
@@ -56,19 +57,6 @@ public interface ServiceComponentHost {
    */
   public List<Job> getJobs();
 
-
-  /**
-   * Get ServiceComponent-Host State
-   * @return ServiceComponentHostState
-   */
-  public State getState();
-
-  /**
-   * Set the State for this ServiceComponent-Host
-   * @param state ServiceComponentHostState to set to
-   */
-  public void setState(State state);
-
   /**
    * Send a ServiceComponentHostState event to the StateMachine
    * @param event Event to handle
@@ -77,4 +65,16 @@ public interface ServiceComponentHost {
   public void handleEvent(ServiceComponentHostEvent event)
       throws InvalidStateTransitonException;
 
+  public State getState();
+  
+  public void setState(State state);
+
+  public Map<String, Config> getConfigs();
+
+  public void updateConfigs(Map<String, Config> configs);
+  
+  public StackVersion getStackVersion();
+  
+  public void setStackVersion(StackVersion stackVersion);
+  
 }
