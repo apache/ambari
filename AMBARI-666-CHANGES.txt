@@ -224,6 +224,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-804. Fix routing issues with Admin pages. (yusaku)
+
   AMBARI-798. Fix import issue due to move of Predicate class. (hitesh)
 
   AMBARI-780. Make FSM related changes for heartbeat handler. (hitesh)

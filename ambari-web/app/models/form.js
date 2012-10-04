@@ -118,7 +118,7 @@ App.Form = Em.View.extend({
       });
     } else {
       if (this.get('className'))
-        App.store.createRecord(App.User, this.getValues())
+        App.store.createRecord(this.get('className'), this.getValues())
       else
         console.log("Please define class name for your form " + this.constructor);
     }

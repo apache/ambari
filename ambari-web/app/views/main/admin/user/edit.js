@@ -24,7 +24,7 @@ App.MainAdminUserEditView = Em.View.extend({
   create: function(event){
     var form = this.get("userForm");
     if(form.isValid() && form.save()) {
-      App.router.transitionTo("all");
+      App.router.transitionTo("allUsers");
     }
   },
 
