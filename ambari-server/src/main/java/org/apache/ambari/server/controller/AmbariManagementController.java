@@ -31,16 +31,16 @@ public interface AmbariManagementController {
 
   // ----- Create -----------------------------------------------------------
 
-  public void createCluster(ClusterRequest request) throws AmbariException;
+  public TrackActionResponse createCluster(ClusterRequest request) throws AmbariException;
 
-  public void createServices(ServiceRequest request) throws AmbariException;
+  public TrackActionResponse createServices(ServiceRequest request) throws AmbariException;
 
-  public void createComponents(ServiceComponentRequest request)
+  public TrackActionResponse createComponents(ServiceComponentRequest request)
       throws AmbariException;
 
-  public void createHosts(HostRequest request) throws AmbariException;
+  public TrackActionResponse createHosts(HostRequest request) throws AmbariException;
 
-  public void createHostComponents(ServiceComponentHostRequest request)
+  public TrackActionResponse createHostComponents(ServiceComponentHostRequest request)
       throws AmbariException;
 
 
@@ -59,27 +59,27 @@ public interface AmbariManagementController {
 
   // ----- Update -----------------------------------------------------------
 
-  public void updateCluster(ClusterRequest request);
+  public TrackActionResponse updateCluster(ClusterRequest request);
 
-  public void updateServices(ServiceRequest request, Predicate predicate);
+  public TrackActionResponse updateServices(ServiceRequest request, Predicate predicate);
 
-  public void updateComponents(ServiceComponentRequest request, Predicate predicate);
+  public TrackActionResponse updateComponents(ServiceComponentRequest request, Predicate predicate);
 
-  public void updateHosts(HostRequest request, Predicate predicate);
+  public TrackActionResponse updateHosts(HostRequest request, Predicate predicate);
 
-  public void updateHostComponents(ServiceComponentHostRequest request, Predicate predicate);
+  public TrackActionResponse updateHostComponents(ServiceComponentHostRequest request, Predicate predicate);
 
 
   // ----- Delete -----------------------------------------------------------
 
-  public void deleteCluster(ClusterRequest request);
+  public TrackActionResponse deleteCluster(ClusterRequest request);
 
-  public void deleteServices(ServiceRequest request);
+  public TrackActionResponse deleteServices(ServiceRequest request);
 
-  public void deleteComponents(ServiceComponentRequest request);
+  public TrackActionResponse deleteComponents(ServiceComponentRequest request);
 
-  public void deleteHosts(HostRequest request);
+  public TrackActionResponse deleteHosts(HostRequest request);
 
 
-  public void deleteHostComponents(ServiceComponentHostRequest request);
+  public TrackActionResponse deleteHostComponents(ServiceComponentHostRequest request);
 }

@@ -42,16 +42,18 @@ public class AmbariManagementControllerImpl implements
   }
   
   @Override
-  public void createCluster(ClusterRequest request) throws AmbariException {
+  public TrackActionResponse createCluster(ClusterRequest request) throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
       // TODO throw error
     }
     clusters.addCluster(request.getClusterName());
+    // TODO
+    return null;
   }
 
   @Override
-  public void createServices(ServiceRequest request) throws AmbariException {
+  public TrackActionResponse createServices(ServiceRequest request) throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
       // TODO throw error
@@ -66,23 +68,30 @@ public class AmbariManagementControllerImpl implements
       
       // TODO take action based on desired state
     }
+    // TODO
+    return null;
   }
 
   @Override
-  public void createComponents(
+  public TrackActionResponse createComponents(
       ServiceComponentRequest request) throws AmbariException {
     // TODO Auto-generated method stub
+    return null;
   }
 
   @Override
-  public void createHosts(HostRequest request) throws AmbariException {
+  public TrackActionResponse createHosts(HostRequest request) throws AmbariException {
     // TODO Auto-generated method stub
+    // TODO
+    return null;
   }
 
   @Override
-  public void createHostComponents(
+  public TrackActionResponse createHostComponents(
       ServiceComponentHostRequest request) throws AmbariException {
     // TODO Auto-generated method stub
+    // TODO
+    return null;
   }
 
   @Override
@@ -119,60 +128,76 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public void updateCluster(ClusterRequest request) {
+  public TrackActionResponse updateCluster(ClusterRequest request) {
     // TODO Auto-generated method stub
+    // TODO
+    return null;
   }
 
   @Override
-  public void updateServices(ServiceRequest request,
+  public TrackActionResponse updateServices(ServiceRequest request,
       Predicate predicate) {
     // TODO Auto-generated method stub
+    // TODO
+    return null;
   }
 
   @Override
-  public void updateComponents(
+  public TrackActionResponse updateComponents(
       ServiceComponentRequest request, Predicate predicate) {
     // TODO Auto-generated method stub
+    // TODO
+    return null;
   }
 
   @Override
-  public void updateHosts(HostRequest request, Predicate predicate) {
+  public TrackActionResponse updateHosts(HostRequest request, Predicate predicate) {
     // TODO Auto-generated method stub
+    // TODO
+    return null;
   }
 
   @Override
-  public void updateHostComponents(
+  public TrackActionResponse updateHostComponents(
       ServiceComponentHostRequest request, Predicate predicate) {
     // TODO Auto-generated method stub
+    // TODO
+    return null;
   }
 
   @Override
-  public void deleteCluster(ClusterRequest request) {
+  public TrackActionResponse deleteCluster(ClusterRequest request) {
     // TODO Auto-generated method stub
+    // TODO
+    return null;
   }
 
   @Override
-  public void deleteServices(ServiceRequest request) {
+  public TrackActionResponse deleteServices(ServiceRequest request) {
     // TODO Auto-generated method stub
-
+    // TODO
+    return null;
   }
 
   @Override
-  public void deleteComponents(ServiceComponentRequest request) {
+  public TrackActionResponse deleteComponents(ServiceComponentRequest request) {
     // TODO Auto-generated method stub
-
+    // TODO
+    return null;
   }
 
   @Override
-  public void deleteHosts(HostRequest request) {
+  public TrackActionResponse deleteHosts(HostRequest request) {
     // TODO Auto-generated method stub
-
+    // TODO
+    return null;
   }
 
   @Override
-  public void deleteHostComponents(ServiceComponentHostRequest request) {
+  public TrackActionResponse deleteHostComponents(ServiceComponentHostRequest request) {
     // TODO Auto-generated method stub
-
+    // TODO
+    return null;
   }
 
 }
