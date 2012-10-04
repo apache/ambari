@@ -28,6 +28,7 @@ App.InstallerStep9View = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
+    controller.loadStep();
     controller.clear();
     var hosts = controller.loadHosts();
     controller.renderHosts(hosts);
@@ -43,10 +44,8 @@ App.InstallerStep9View = Em.View.extend({
 
   onStatus: function () {
     if (this.get('controller.status') === 'info') {
-      console.log('TRACE: Inside info view step9');
       this.set('barColor', 'progress-info');
     } else if (this.get('controller.status') === 'warning') {
-      console.log('TRACE: Inside warning view step9');
       this.set('barColor', 'progress-warning');
     } else if (this.get('controller.status') === 'failed') {
       this.set('barColor', 'progress-danger');
@@ -89,29 +88,29 @@ App.HostStatusView = Em.View.extend({
     }
   }.observes('obj.status'),
 
-  isFailed: function() {
-    if(this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'failed') {
+  isFailed: function () {
+    if (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'failed') {
       return true;
     } else {
       return false;
     }
-  }.property('controller.isStepCompleted','controller.status'),
+  }.property('controller.isStepCompleted', 'controller.status'),
 
-  isSuccess: function() {
-    if(this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'success') {
+  isSuccess: function () {
+    if (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'success') {
       return true;
     } else {
       return false;
     }
-  }.property('controller.isStepCompleted','controller.status'),
+  }.property('controller.isStepCompleted', 'controller.status'),
 
-  isWarning: function() {
-    if(this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'warning') {
+  isWarning: function () {
+    if (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'warning') {
       return true;
     } else {
       return false;
     }
-  }.property('controller.isStepCompleted','controller.status')
+  }.property('controller.isStepCompleted', 'controller.status')
 
 });
 

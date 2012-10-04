@@ -23,26 +23,34 @@ App.InstallerController = Em.Controller.extend({
 
   name: 'installerController',
 
-  evaluateStep4: function () {
-    // TODO: evaluation at the end of step4
+  isStepDisabled: [],
 
-  },
-  evaluateStep5: function () {
-    // TODO: evaluation at the end of step5
+  totalSteps: 10,
 
+  init: function () {
+    this.clusters = App.Cluster.find();
+    this.isStepDisabled.pushObject(Ember.Object.create({
+      step: 1,
+      value: false
+    }));
+    for (var i = 2; i <= this.totalSteps; i++) {
+      this.isStepDisabled.pushObject(Ember.Object.create({
+        step: i,
+        value: true
+      }));
+    }
   },
-  evaluateStep6: function () {
-    // TODO: evaluation at the end of step6
 
-  },
-  evaluateStep7: function () {
-    // TODO: evaluation at the end of step7
-
-  },
-  evaluateStep8: function () {
-    // TODO: evaluation at the end of step8
-
-  },
+  setStepsEnable: function () {
+    for (var i = 2; i <= this.totalSteps; i++) {
+      var step = this.get('isStepDisabled').findProperty('step', i);
+      if (i <= this.get('currentStep')) {
+        step.set('value', false);
+      } else {
+        step.set('value', true);
+      }
+    }
+  }.observes('currentStep'),
 
   prevInstallStatus: function () {
     console.log('Inside the prevInstallStep function: The name is ' + App.router.get('loginController.loginName'));
@@ -58,49 +66,130 @@ App.InstallerController = Em.Controller.extend({
 
   clusters: null,
 
-  init: function () {
-    this.clusters = App.Cluster.find();
-  },
-
   isStep1: function () {
-    return this.get('currentStep') == '1';
+    return this.get('currentStep') == 1;
   }.property('currentStep'),
 
   isStep2: function () {
-    return this.get('currentStep') == '2';
+    return this.get('currentStep') == 2;
   }.property('currentStep'),
 
   isStep3: function () {
-    return this.get('currentStep') == '3';
+    return this.get('currentStep') == 3;
   }.property('currentStep'),
 
   isStep4: function () {
-    return this.get('currentStep') == '4';
+    return this.get('currentStep') == 4;
   }.property('currentStep'),
 
   isStep5: function () {
-    return this.get('currentStep') == '5';
+    return this.get('currentStep') == 5;
   }.property('currentStep'),
 
   isStep6: function () {
-    return this.get('currentStep') == '6';
+    return this.get('currentStep') == 6;
   }.property('currentStep'),
 
   isStep7: function () {
-    return this.get('currentStep') == '7';
+    return this.get('currentStep') == 7;
   }.property('currentStep'),
 
   isStep8: function () {
-    return this.get('currentStep') == '8';
+    return this.get('currentStep') == 8;
   }.property('currentStep'),
 
   isStep9: function () {
-    return this.get('currentStep') == '9';
+    return this.get('currentStep') == 9;
   }.property('currentStep'),
 
   isStep10: function () {
-    return this.get('currentStep') == '10';
+    return this.get('currentStep') == 10;
   }.property('currentStep'),
+
+  gotoStep1: function () {
+    if (this.get('isStepDisabled').findProperty('step', 1).get('value') === true) {
+      return;
+    } else {
+      App.router.send('gotoStep1');
+    }
+
+  },
+
+  gotoStep2: function () {
+    if (this.get('isStepDisabled').findProperty('step', 2).get('value') === true) {
+      return;
+    } else {
+      App.router.send('gotoStep2');
+    }
+
+  },
+
+  gotoStep3: function () {
+    if (this.get('isStepDisabled').findProperty('step', 3).get('value') === true) {
+      return;
+    } else {
+      App.router.send('gotoStep3');
+    }
+
+  },
+
+  gotoStep4: function () {
+
+    if (this.get('isStepDisabled').findProperty('step', 4).get('value') === true) {
+      return;
+    } else {
+      App.router.send('gotoStep4');
+    }
+  },
+
+  gotoStep5: function () {
+    if (this.get('isStepDisabled').findProperty('step', 5).get('value') === true) {
+      return;
+    } else {
+      App.router.send('gotoStep5');
+    }
+  },
+
+  gotoStep6: function () {
+    if (this.get('isStepDisabled').findProperty('step', 6).get('value') === true) {
+      return;
+    } else {
+      App.router.send('gotoStep6');
+    }
+
+  },
+
+  gotoStep7: function () {
+    if (this.get('isStepDisabled').findProperty('step', 7).get('value') === true) {
+      return;
+    } else {
+      App.router.send('gotoStep7');
+    }
+  },
+
+  gotoStep8: function () {
+    if (this.get('isStepDisabled').findProperty('step', 8).get('value') === true) {
+      return;
+    } else {
+      App.router.send('gotoStep8');
+    }
+  },
+
+  gotoStep9: function () {
+    if (this.get('isStepDisabled').findProperty('step', 9).get('value') === true) {
+      return;
+    } else {
+      App.router.send('gotoStep9');
+    }
+  },
+
+  gotoStep10: function () {
+    if (this.get('isStepDisabled').findProperty('step', 10).get('value') === true) {
+      return;
+    } else {
+      App.router.send('gotoStep10');
+    }
+  },
 
   /**
    *

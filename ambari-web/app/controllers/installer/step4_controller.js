@@ -21,84 +21,18 @@ var db = require('utils/db');
 
 App.InstallerStep4Controller = Em.ArrayController.extend({
   name: 'installerStep4Controller',
-  rawContent: [
-    {
-      serviceName: 'HDFS',
-      displayName: 'HDFS',
-      isDisabled: true,
-      description: Em.I18n.t('services.hdfs.description')
-    },
-    {
-      serviceName: 'MAPREDUCE',
-      displayName: 'MapReduce',
-      isDisabled: false,
-      description: Em.I18n.t('services.mapreduce.description')
-    },
-    {
-      serviceName: 'NAGIOS',
-      displayName: 'Nagios',
-      isDisabled: false,
-      description: Em.I18n.t('services.nagios.description')
-    },
-    {
-      serviceName: 'GANGLIA',
-      displayName: 'Ganglia',
-      isDisabled: false,
-      description: Em.I18n.t('services.ganglia.description')
-    },
-    {
-      serviceName: 'HIVE',
-      displayName: 'Hive + HCatalog',
-      isDisabled: false,
-      description: Em.I18n.t('services.hive.description')
-    },
-    {
-      serviceName: 'HBASE',
-      displayName: 'HBase + ZooKeeper',
-      isDisabled: false,
-      description: Em.I18n.t('services.hbase.description')
-    },
-    {
-      serviceName: 'PIG',
-      displayName: 'Pig',
-      isDisabled: false,
-      description: Em.I18n.t('services.pig.description')
-    },
-    {
-      serviceName: 'SQOOP',
-      displayName: 'Sqoop',
-      isDisabled: false,
-      description: Em.I18n.t('services.sqoop.description')
-    },
-    {
-      serviceName: 'OOZIE',
-      displayName: 'Oozie',
-      isDisabled: false,
-      description: Em.I18n.t('services.oozie.description')
-    },
-    {
-      serviceName: 'ZOOKEEPER',
-      isDisabled: false,
-      isHidden: true
-    },
-    {
-      serviceName: 'HCATALOG',
-      isDisabled: false,
-      isHidden: true
-    }
-  ],
-
+  rawContent: require('data/mock/services'),
   content: [],
 
-  isAll: function() {
+  isAll: function () {
     return this.everyProperty('isSelected', true);
   }.property('@each.isSelected'),
 
-  isMinimum: function() {
+  isMinimum: function () {
     return this.filterProperty('isDisabled', false).everyProperty('isSelected', false);
   }.property('@each.isSelected'),
 
-  checkDependencies: function() {
+  checkDependencies: function () {
     var hbase = this.findProperty('serviceName', 'HBASE');
     var zookeeper = this.findProperty('serviceName', 'ZOOKEEPER');
     if (hbase && zookeeper) {
@@ -111,26 +45,32 @@ App.InstallerStep4Controller = Em.ArrayController.extend({
     }
   }.observes('@each.isSelected'),
 
-  init: function() {
-    this._super();
-    // wrap each item with Ember.Object
-    this.rawContent.forEach(function(item) {
+  loadStep: function () {
+    if (App.router.get('isFwdNavigation') === true) {
+      console.log("MASTER TRACE: Loading step4: Choose Services");
+      this.clear();
+      this.renderStep(this.rawContent);
+    }
+  },
+
+  renderStep: function (rawContent) {
+    rawContent.forEach(function (item) {
       item.isSelected = true;
       this.pushObject(Ember.Object.create(item));
     }, this);
   },
 
-  selectAll: function() {
+  selectAll: function () {
     this.setEach('isSelected', true);
   },
 
-  selectMinimum: function() {
+  selectMinimum: function () {
     this.filterProperty('isDisabled', false).setEach('isSelected', false);
   },
 
-  saveSelectedServiceNamesToDB: function() {
+  saveSelectedServiceNamesToDB: function () {
     var serviceNames = [];
-    this.filterProperty('isSelected', true).forEach(function(item){
+    this.filterProperty('isSelected', true).forEach(function (item) {
       serviceNames.push(item.serviceName);
     });
     db.setSelectedServiceNames(serviceNames);
@@ -194,5 +134,4 @@ App.InstallerStep4Controller = Em.ArrayController.extend({
     this.saveSelectedServiceNamesToDB();
     App.router.send('next');
   }
-
 })

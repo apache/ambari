@@ -69,6 +69,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
     this.set('value', this.get('defaultValue'));
     // TODO: remove mock data
     switch (this.get('name')) {
+      case 'datanode.hosts':
+        this.set('value', [ 'host0001.company.com', 'host0002.company.com', 'host0003.company.com' ]);
+        break;
       case 'mapred_local_dir':
         this.set('value', '/grid/0/hadoop/mapred\n/grid/1/hadoop/mapred\n');
         break;
@@ -87,18 +90,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'dfs_data_dir':
         this.set('value', '/grid/0/hadoop/hdfs/data\n/grid/1/hadoop/hdfs/data\n');
         break;
-      case 'namenode.host':
-        this.set('value', 'namenode.company.com');
-        break;
-      case 'snamenode.host':
-        this.set('value', 'snamenode.company.com');
-        break;
-      case 'datanode.hosts':
-        this.set('value', [ 'host0001.company.com', 'host0002.company.com', 'host0003.company.com' ]);
-        break;
-      case 'jobtracker.host':
-        this.set('value', 'jobtracker.company.com');
-        break;
       case 'tasktracker.hosts':
         this.set('value', [ 'host0001.company.com', 'host0002.company.com', 'host0003.company.com' ]);
         break;
@@ -111,11 +102,34 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'zookeeperserver.hosts':
         this.set('value', [ 'zk1.company.com', 'zk2.company.com', 'zk3.company.com' ]);
         break;
+    }
+  },
+
+  initialValue: function() {
+    var masterComponentHostsInDB = App.db.getMasterComponentHosts();
+    switch (this.get('name')) {
+      case 'namenode.host':
+        var temp = masterComponentHostsInDB.findProperty('component','NameNode');
+        console.log("this is temp: " + temp.hostName);
+        this.set('value', temp.hostName);
+        break;
+      case 'snamenode.host':
+        this.set('value', masterComponentHostsInDB.findProperty('component','SNameNode').hostName);
+        break;
+      case 'jobtracker.host':
+        this.set('value', masterComponentHostsInDB.findProperty('component','JobTracker').hostName);
+        break;
+      case 'hbasemaster.host':
+        this.set('value', masterComponentHostsInDB.findProperty('component','HBase Master').hostName);
+        break;
+      case 'zookeeperserver.hosts':
+        this.set('value', masterComponentHostsInDB.filterProperty('component','ZooKeeper').mapProperty('hostName'));
+        break;
       case 'hivemetastore.host':
-        this.set('value', 'hive.company.com');
+        this.set('value', masterComponentHostsInDB.findProperty('component','Hive Metastore').hostName);
         break;
       case 'oozieserver.host':
-        this.set('value', 'oozie.company.com');
+        this.set('value', masterComponentHostsInDB.findProperty('component','Oozie Server').hostName);
         break;
     }
   },

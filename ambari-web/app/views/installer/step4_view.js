@@ -21,6 +21,11 @@ var App = require('app');
 
 App.InstallerStep4View = Em.View.extend({
 
-  templateName: require('templates/installer/step4')
+  templateName: require('templates/installer/step4'),
+
+  didInsertElement: function () {
+    var controller = this.get('controller');
+    controller.loadStep();
+  }
 
 });

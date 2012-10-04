@@ -104,9 +104,12 @@ App.InstallerStep6Controller = Em.Controller.extend({
   },
 
   loadStep: function () {
-    this.set('hosts',[]);
-    this.set('showHbase',this.isHbaseSelected());
-    this.setSlaveHost(this.getHostNames());
+    if (App.router.get('isFwdNavigation') === true) {
+      console.log("TRACE: Loading step6: Assign Slaves");
+      this.set('hosts', []);
+      this.set('showHbase', this.isHbaseSelected());
+      this.setSlaveHost(this.getHostNames());
+    }
   },
 
   setSlaveHost: function (hostNames) {
@@ -117,7 +120,7 @@ App.InstallerStep6Controller = Em.Controller.extend({
         isTaskTracker: !this.hasMasterComponents(_hostName),
         isRegionServer: !this.hasMasterComponents(_hostName)
       }));
-    },this);
+    }, this);
   },
 
   getHostNames: function () {
@@ -130,15 +133,6 @@ App.InstallerStep6Controller = Em.Controller.extend({
     return hostNames;
   },
 
-
-  /*  init: function () {
-   this._super();
-   this.get('rawHosts').forEach(function (host) {
-   host.isDataNode = host.isTaskTracker = host.isRegionServer = !this.hasMasterComponents(host.hostname);
-   this.get('hosts').pushObject(Ember.Object.create(host));
-   }, this);
-   },
-   */
   validate: function () {
     return !(this.get('isNoDataNodes') || this.get('isNoTaskTrackers') || this.get('isNoRegionServers'));
   },
@@ -173,7 +167,7 @@ App.InstallerStep6Controller = Em.Controller.extend({
           group: 'Default'
         });
       }
-    },this);
+    }, this);
 
     var slaveComponentHosts = [];
     slaveComponentHosts.push({

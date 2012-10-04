@@ -45,15 +45,14 @@ module.exports = Em.Route.extend({
     route: '/step1',
     connectOutlets: function (router, context) {
       console.log('in installer.step1:connectOutlets');
+      router.setNavigationFlow('step1');
       router.setInstallerCurrentStep('1', false);
       router.get('installerController').connectOutlet('installerStep1');
     },
 
     next: function (router, context) {
-      console.log('In step1 transiting to step2');
       var result = router.get('installerStep1Controller').validateStep1();
       if (result === true) {
-        App.InstallerStep1View.remove;
         router.transitionTo('step2');
       } else {
         router.get('installerController').connectOutlet('installerStep1');
@@ -64,6 +63,7 @@ module.exports = Em.Route.extend({
   step2: Em.Route.extend({
     route: '/step2',
     connectOutlets: function (router, context) {
+      router.setNavigationFlow('step2');
       router.setInstallerCurrentStep('2', false);
       router.get('installerController').connectOutlet('installerStep2');
     },
@@ -79,6 +79,7 @@ module.exports = Em.Route.extend({
   step3: Em.Route.extend({
     route: '/step3',
     connectOutlets: function (router, context) {
+      router.setNavigationFlow('step3');
       router.setInstallerCurrentStep('3', false);
       router.get('installerController').connectOutlet('installerStep3');
     },
@@ -89,15 +90,12 @@ module.exports = Em.Route.extend({
   step4: Em.Route.extend({
     route: '/step4',
     connectOutlets: function (router, context) {
+      router.setNavigationFlow('step4');
       router.setInstallerCurrentStep('4', false);
       router.get('installerController').connectOutlet('installerStep4');
     },
     back: Em.Router.transitionTo('step3'),
     next: function (router, context) {
-      // TODO:
-      // since the service selection could have changed, invalidate service configs
-      // this is a little aggressive and unfriendly - to be optimized later
-      router.set('installerStep7Controller.doInit', true);
       router.transitionTo('step5');
     }
   }),
@@ -105,6 +103,7 @@ module.exports = Em.Route.extend({
   step5: Em.Route.extend({
     route: '/step5',
     connectOutlets: function (router, context) {
+      router.setNavigationFlow('step5');
       router.setInstallerCurrentStep('5', false);
       router.get('installerController').connectOutlet('installerStep5');
     },
@@ -115,6 +114,7 @@ module.exports = Em.Route.extend({
   step6: Em.Route.extend({
     route: '/step6',
     connectOutlets: function (router, context) {
+      router.setNavigationFlow('step6');
       router.setInstallerCurrentStep('6', false);
       router.get('installerController').connectOutlet('installerStep6');
     },
@@ -125,8 +125,8 @@ module.exports = Em.Route.extend({
   step7: Em.Route.extend({
     route: '/step7',
     connectOutlets: function (router, context) {
+      router.setNavigationFlow('step7');
       router.setInstallerCurrentStep('7', false);
-      router.get('installerStep7Controller').loadConfigs();
       router.get('installerController').connectOutlet('installerStep7');
     },
     back: Em.Router.transitionTo('step6'),
@@ -137,6 +137,7 @@ module.exports = Em.Route.extend({
     route: '/step8',
 
     connectOutlets: function (router, context) {
+      router.setNavigationFlow('step8');
       router.setInstallerCurrentStep('8', false);
       router.get('installerController').connectOutlet('installerStep8');
     },
@@ -147,6 +148,7 @@ module.exports = Em.Route.extend({
   step9: Em.Route.extend({
     route: '/step9',
     connectOutlets: function (router, context) {
+      router.setNavigationFlow('step9');
       router.setInstallerCurrentStep('9', false);
       router.get('installerController').connectOutlet('installerStep9');
     },
@@ -157,10 +159,10 @@ module.exports = Em.Route.extend({
   step10: Em.Route.extend({
     route: '/step10',
     connectOutlets: function (router, context) {
+      router.setNavigationFlow('step10');
       router.setInstallerCurrentStep('10', false);
       router.get('installerController').connectOutlet('installerStep10');
     },
-
     back: Em.Router.transitionTo('step9'),
 
     complete: function (router, context) {

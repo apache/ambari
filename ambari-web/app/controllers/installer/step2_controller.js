@@ -38,6 +38,22 @@ App.InstallerStep2Controller = Em.Controller.extend({
   softRepoLocalPathNullErr: false,
   isSubmitDisabled: false,
 
+
+  clearStep: function() {
+    this.set('hostNames','');
+    this.set('sshKey','');
+    this.set('passphrase','');
+    this.set('confirmPassphrase','');
+    this.set('localRepoPath','');
+  },
+
+  loadStep: function() {
+    if (App.router.get('isFwdNavigation') === true) {
+      console.log("MASTER TRACE: Loading step2: Install Options");
+      this.clearStep();
+    }
+  },
+
   installType: function () {
     if (this.get('manualInstall') === true) {
       return 'manualDriven';
@@ -53,7 +69,7 @@ App.InstallerStep2Controller = Em.Controller.extend({
   }.observes('localRepo'),
 
   validateHostNames: function () {
-    this.hostNameArr = this.get('hostNames').trim().split(new RegExp("\\s+","g"));
+    this.hostNameArr = this.get('hostNames').trim().split(new RegExp("\\s+", "g"));
     for (var index in this.hostNameArr) {
       console.log("host name is: " + this.hostNameArr[index]);
       //TODO: other validation for hostnames will be covered over here
@@ -170,7 +186,7 @@ App.InstallerStep2Controller = Em.Controller.extend({
 
     var validateResult = !this.validateStep2();
 
-    if (this.get('isSubmitDisabled') === true ) {
+    if (this.get('isSubmitDisabled') === true) {
       console.log("ERROR: error in validation");
       return false;
     } else {
@@ -207,7 +223,7 @@ App.InstallerStep2Controller = Em.Controller.extend({
         timeout: 2000,
         success: function () {
           console.log("TRACE: In success function for the post bootstrap function");
-          App.transitionTo('step3');
+          App.router.transitionTo('step3');
         },
         error: function () {
           console.log("ERROR: bootstrap post call failed");

@@ -26,9 +26,7 @@ App.InstallerStep3View = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
-    var hosts = controller.loadHosts();
-    controller.renderHosts(hosts);
-    controller.startBootstrap();
+    controller.loadStep();
   }
 });
 

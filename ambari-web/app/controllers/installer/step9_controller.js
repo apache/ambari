@@ -23,7 +23,7 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
   progress: '0',
   // result: 'pending', // val = pending or success or failed
   isStepCompleted: false,
-  isSubmitDisabled: function() {
+  isSubmitDisabled: function () {
     return !this.get('isStepCompleted');
   }.property('isStepCompleted'),
 
@@ -32,6 +32,14 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
   pollData_1: require('data/mock/step9_pollData_1'),
   pollData_2: require('data/mock/step9_pollData_2'),
   pollDataCounter: 0,
+
+  loadStep: function () {
+    if (App.router.get('isFwdNavigation') === true) {
+      console.log("TRACE: Loading step9: Install, Start and Test");
+      this.clear();
+      this.renderHosts(this.loadHosts());
+    }
+  },
 
   loadHosts: function () {
     var hostInfo = [];
@@ -112,7 +120,7 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
   },
 
 
-  getFailedHostsForFailedRoles: function(polledData) {
+  getFailedHostsForFailedRoles: function (polledData) {
     var hostArr = new Ember.Set();
     polledData.forEach(function (_polledData) {
       var successFactor = _polledData.sf;
@@ -120,10 +128,10 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
       var actionsFailed = actionsPerRole.filterProperty('status', 'failed');
       var actionsAborted = actionsPerRole.filterProperty('status', 'aborted');
       if ((((actionsFailed.length + actionsAborted.length) / actionsPerRole.length) * 100) <= successFactor) {
-        actionsFailed.forEach(function(_actionFailed) {
+        actionsFailed.forEach(function (_actionFailed) {
           hostArr.add(_actionFailed.name);
         });
-        actionsAborted.forEach(function(_actionFailed) {
+        actionsAborted.forEach(function (_actionFailed) {
           hostArr.add(_actionFailed.name);
         });
       }
@@ -131,11 +139,11 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
     return hostArr;
   },
 
-  setHostsStatus: function(hosts,status) {
+  setHostsStatus: function (hosts, status) {
     var self = this;
-    hosts.forEach(function(_host){
-      var host = self.findProperty('name',_host);
-      host.set('status',status);
+    hosts.forEach(function (_host) {
+      var host = self.findProperty('name', _host);
+      host.set('status', status);
     });
   },
 
@@ -150,10 +158,10 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
       } else {
         if (this.isStepFailed(polledData)) {
           self.set('status', 'failed');
-          this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData),'failed');
+          this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData), 'failed');
         }
       }
-      this.set('isStepCompleted',true);
+      this.set('isStepCompleted', true);
     }
   },
 
@@ -165,7 +173,7 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
     var totalProgress = 0;
     this.forEach(function (_content) {
       var actions = polledData.filterProperty('name', _content.name);
-      if(actions.length === 0) {
+      if (actions.length === 0) {
         alert('For testing with mockData follow the sequence: hit referesh,"mockData btn", "pollData btn", again "pollData btn"');
         //exit();
       }

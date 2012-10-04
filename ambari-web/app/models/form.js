@@ -23,17 +23,17 @@ App.Form = Em.View.extend({
   /**
    * generating fields from fieldsOptions
    */
-  classNames:["form-horizontal"],
-  i18nprefix:'form.',
-  fields:[],
-  field:{},
-  messages:[],
-  object:false,
-  result:0, // save result var (-1 - error; 0 - init; 1 - success)
-  templateName:require('templates/common/form'),
-  tagName:'form',
+  classNames: ["form-horizontal"],
+  i18nprefix: 'form.',
+  fields: [],
+  field: {},
+  messages: [],
+  object: false,
+  result: 0, // save result var (-1 - error; 0 - init; 1 - success)
+  templateName: require('templates/common/form'),
+  tagName: 'form',
 
-  init:function () {
+  init: function () {
     this._super();
     var thisForm = this;
     if (!this.fields.length)
@@ -46,7 +46,7 @@ App.Form = Em.View.extend({
         });
   },
 
-  getField:function (name) {
+  getField: function (name) {
     var field = false;
     $.each(this.fields, function () {
       if (this.get('name') == name) {
@@ -56,7 +56,7 @@ App.Form = Em.View.extend({
     return field;
   },
 
-  isValid:function () {
+  isValid: function () {
     var isValid = true;
     $.each(this.fields, function () {
       this.validate();
@@ -69,12 +69,12 @@ App.Form = Em.View.extend({
     return isValid;
   },
 
-  isObjectNew:function () {
+  isObjectNew: function () {
     var object = this.get('object');
     return !(object instanceof DS.Model && object.get('id'));
   }.property("object"),
 
-  updateValues:function () {
+  updateValues: function () {
     var object = this.get('object');
     if (object instanceof Em.Object) {
       $.each(this.fields, function () {
@@ -89,16 +89,17 @@ App.Form = Em.View.extend({
   /**
    *
    */
-  getValues:function () {
+
+  getValues: function () {
     var values = {};
     $.each(this.fields, function () {
-      if(!(this.get('displayType') == 'password') && validator.empty(this.get('value'))) // if this is not empty password field
+      if (!(this.get('displayType') == 'password') && validator.empty(this.get('value'))) // if this is not empty password field
         values[this.get('name')] = this.get('value');
     });
     return values;
   },
 
-  clearValues:function () {
+  clearValues: function () {
     $.each(this.fields, function () {
       this.set('value', '');
     });
@@ -108,7 +109,7 @@ App.Form = Em.View.extend({
    * need to refactor for integration
    * @return {Boolean}
    */
-  save:function () {
+  save: function () {
     var thisForm = this;
     var object = this.get('object');
     if (!this.get('isObjectNew')) {
@@ -128,7 +129,7 @@ App.Form = Em.View.extend({
     return true;
   },
 
-  resultText:function () {
+  resultText: function () {
     var text = "";
     switch (this.get('result')) {
       case -1:
@@ -142,7 +143,7 @@ App.Form = Em.View.extend({
     return text;
   }.property('result'),
 
-  saveButtonText:function () {
+  saveButtonText: function () {
     return Em.I18n.t(this.get('i18nprefix') + (this.get('isObjectNew') ? "create" : "save"));
   }.property('isObjectNew')
 
@@ -153,24 +154,24 @@ App.Form = Em.View.extend({
 });
 
 App.FormField = Em.Object.extend({ // try to realize this as view
-  name:'',
-  displayName:'',
+  name: '',
+  displayName: '',
 //  defaultValue:'', NOT REALIZED YET
-  description:'',
-  disabled:false,
-  displayType:'string', // string, digits, number, directories, textarea, checkbox
-  disableRequiredOnPresent:false,
-  errorMessage:'',
-  form:false,
-  isRequired:true, // by default a config property is required
-  unit:'',
-  value:'',
+  description: '',
+  disabled: false,
+  displayType: 'string', // string, digits, number, directories, textarea, checkbox
+  disableRequiredOnPresent: false,
+  errorMessage: '',
+  form: false,
+  isRequired: true, // by default a config property is required
+  unit: '',
+  value: '',
 
-  isValid:function () {
+  isValid: function () {
     return this.get('errorMessage') === '';
   }.property('errorMessage'),
 
-  viewClass:function () {
+  viewClass: function () {
     var options = {};
     var element = Em.TextField;
     switch (this.get('displayType')) {
@@ -196,9 +197,9 @@ App.FormField = Em.Object.extend({ // try to realize this as view
     return element.extend(options);
   }.property('displayType'),
 
-  validate:function () {
+  validate: function () {
     var digitsRegex = /^\d+$/;
-    var numberRegex = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
+    var numberRegex = /^[-,+]?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
     var value = this.get('value');
     var isError = false;
     this.set('errorMessage', '');

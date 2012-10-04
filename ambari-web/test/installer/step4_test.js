@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+var Ember = require('ember');
 var App = require('app');
 require('controllers/installer/step4_controller');
 
@@ -25,6 +26,10 @@ describe('App.InstallerStep4Controller', function () {
   var OPTIONAL_SERVICES = ['MAPREDUCE', 'NAGIOS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SQOOP', 'ZOOKEEPER', 'HCATALOG'];
 
   var controller = App.InstallerStep4Controller.create();
+  controller.rawContent.forEach(function(item){
+    item.isSelected = true;
+    controller.pushObject(Ember.Object.create(item));
+    });
 
   describe('#selectMinimum()', function () {
     it('should set isSelected is false on all non-default services and isSelected is true on all default services', function() {

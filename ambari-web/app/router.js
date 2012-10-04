@@ -15,10 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 var App = require('app');
 App.Router = Em.Router.extend({
 
   enableLogging: true,
+  isFwdNavigation: true,
+
+  setNavigationFlow: function (step) {
+    var newStep = parseInt(step.slice(-1));
+    var previousStep = parseInt(this.getInstallerCurrentStep());
+    if (newStep >= previousStep) {
+      this.set('isFwdNavigation', true);
+    } else {
+      this.set('isFwdNavigation', false);
+    }
+  },
 
   setInstallerCurrentStep: function (currentStep, completed) {
     var loginName = this.getLoginName();
@@ -67,9 +79,13 @@ App.Router = Em.Router.extend({
   },
 
   // that works incorrectly
-  setUser: function(user){ App.db.setUser(user); },
+  setUser: function (user) {
+    App.db.setUser(user);
+  },
   // that works incorrectly
-  getUser: function(){ return App.db.getUser(); },
+  getUser: function () {
+    return App.db.getUser();
+  },
 
   login: function (loginName, user) {
     // TODO: this needs to be hooked up with server authentication

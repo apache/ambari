@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 var App = require('app');
 
 App.InstallerStep3Controller = Em.ArrayController.extend({
@@ -38,13 +39,20 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
   mockData: require('data/mock/step3_hosts'),
   mockRetryData: require('data/mock/step3_retry_hosts'),
 
+  loadStep: function () {
+    if (App.router.get('isFwdNavigation') === true) {
+      this.clear();
+      this.renderHosts(this.loadHosts());
+      this.startBootstrap();
+    }
+  },
+
   /* Loads the hostinfo from localStorage on the insertion of view. It's being called from view */
   loadHosts: function () {
-    this.clear();
     var hostInfo = [];
     hostInfo = App.db.getHosts();
     var hosts = new Ember.Set();
-    for( var index in hostInfo) {
+    for (var index in hostInfo) {
       hostInfo[index].status = "pending";
       hosts.add(hostInfo[index]);
       console.log("TRACE: host name is: " + hostInfo[index].name);
@@ -129,7 +137,7 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     this.removeObjects(hosts);
   },
 
-  removeBtn: function() {
+  removeBtn: function () {
     if (this.get('isSubmitDisabled')) {
       return;
     }
@@ -187,10 +195,10 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     // this.set('isSubmitDisabled',false);
   },
 
-  saveHostInfoToDb: function() {
+  saveHostInfoToDb: function () {
     var hostInfo = {};
     var succededHosts = this.filterProperty('status', 'success');
-    succededHosts.forEach(function(_host){
+    succededHosts.forEach(function (_host) {
       hostInfo[_host.name] = {
         name: _host.name,
         cpu: _host.cpu,
@@ -221,6 +229,7 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
   // TODO: dummy button. Remove this after the hook up with actual REST API.
   mockBtn: function () {
     this.set('isSubmitDisabled', false);
+    this.clear();
     var hostInfo = this.mockData;
     this.renderHosts(hostInfo);
   },
@@ -239,10 +248,10 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     mockHosts.forEach(function (_host) {
       console.log('Retrying:  ' + _host.name);
     });
-    if(this.parseHostInfo(mockHosts, selectedHosts)) {
+    if (this.parseHostInfo(mockHosts, selectedHosts)) {
       this.saveHostInfoToDb();
     }
   }
 
-  });
+});
 

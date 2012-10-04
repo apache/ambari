@@ -21,10 +21,10 @@
 <h5 {{bindAttr class="hostManageErr:text-error"}}>{{t installer.step2.targetHosts}}</h5>
 
 <div {{bindAttr class="hostNameErrMsg:error :control-group"}}>
-  <p>{{t installer.step2.targetHosts.info}}.  Or use
+  <p>{{t installer.step2.targetHosts.info}}. Or use
     <a href="javascript:void(null)"
        rel="popover"
-       {{translateAttr title="installer.step2.hostPattern.tooltip.title" data-content="installer.step2.hostPattern.tooltip.content"}}>
+      {{translateAttr title="installer.step2.hostPattern.tooltip.title" data-content="installer.step2.hostPattern.tooltip.content"}}>
       {{t installer.step2.hostPattern.tooltip.title}}
     </a>
   </p>
@@ -44,7 +44,8 @@
       <div class="controls">
         {{view Ember.TextArea class="span6" rows="4" placeholder="ssh private key" valueBinding="sshKey"}}
         {{#if sshKeyNullErr}}
-        <span class="help-inline">{{t installer.step2.sshKey.error.required}}</span>
+        <span
+          class="help-inline">{{t installer.step2.sshKey.error.required}}</span>
         {{/if}}
       </div>
     </div>

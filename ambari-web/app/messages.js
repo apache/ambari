@@ -70,7 +70,7 @@ Em.I18n.translations = {
     'This file instructs package manager to use your local software repository to retrieve software packages, instead of ' +
     'downloading from the internet.</p>',
   'installer.step2.localRepo.tooltip.title': 'Local Software Repository',
-  'installer.step2.localRepo.tooltip.content': 'The repository configuration file should be installed on each host' +
+  'installer.step2.localRepo.tooltip.content': 'The repository configuration file should be installed on each host ' +
     'in your cluster. This file instructs package manager to use your local' +
     'software repository to retrieve software packages, instead of using the internet.',
   'installer.step2.manualInstall.tooltip.title': 'Not Using SSH (Manual Install)',

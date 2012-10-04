@@ -46,9 +46,21 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
   // TODO: set attributes from localStorage in router
   selectedServiceNames: [ 'HDFS', 'MAPREDUCE', 'GANGLIA', 'NAGIOS', 'HBASE', 'PIG', 'SQOOP', 'OOZIE', 'HIVE', 'ZOOKEEPER'],
   masterComponentHosts: require('data/mock/master_component_hosts'),
-  slaveComponentHosts: require('data/mock/slave_component_hosts'),
+  slaveComponentHosts: [],
 
-  doInit: true,
+  clearStep: function () {
+    this.clear();
+    this.selectedServiceNames.clear();
+    this.masterComponentHosts.clear();
+    this.slaveComponentHosts.clear();
+  },
+
+  loadStep: function () {
+    if (App.router.get('isFwdNavigation') === true) {
+      this.clearStep();
+      this.renderConfigs(this.loadConfigs());
+    }
+  },
 
   loadConfigs: function () {
 
@@ -65,58 +77,59 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
     if (slaveComponentHostsInDB != undefined) {
       this.set('slaveComponentHosts', slaveComponentHostsInDB);
     }
+    var serviceConfigs = require('data/service_configs');
+    return serviceConfigs;
 
-    // TODO: check App.db to see if configs have been saved already
-    if (this.doInit) {
-      var serviceConfigs = require('data/service_configs');
+  },
 
-      var self = this;
+  renderConfigs: function(serviceConfigs) {
+    var self = this;
 
-      this.set('content', []);
-
-      serviceConfigs.forEach(function (_serviceConfig) {
-        var serviceConfig = App.ServiceConfig.create({
-          serviceName: _serviceConfig.serviceName,
-          displayName: _serviceConfig.displayName,
-          configCategories: _serviceConfig.configCategories,
-          configs: []
-        });
-
-        if (self.selectedServiceNames.contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
-          _serviceConfig.configs.forEach(function (_serviceConfigProperty) {
-            var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
-            serviceConfigProperty.serviceConfig = serviceConfig;
-            serviceConfig.configs.pushObject(serviceConfigProperty);
-            serviceConfigProperty.validate();
-          });
-
-          console.log('pushing ' + serviceConfig.serviceName);
-          self.content.pushObject(serviceConfig);
-        } else {
-          console.log('skipping ' + serviceConfig.serviceName);
-        }
+    serviceConfigs.forEach(function (_serviceConfig) {
+      var serviceConfig = App.ServiceConfig.create({
+        serviceName: _serviceConfig.serviceName,
+        displayName: _serviceConfig.displayName,
+        configCategories: _serviceConfig.configCategories,
+        configs: []
       });
 
-      this.set('selectedService', this.objectAt(0));
-      this.doInit = false;
-    }
+      if (self.selectedServiceNames.contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
+        _serviceConfig.configs.forEach(function (_serviceConfigProperty) {
+          var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
+          serviceConfigProperty.serviceConfig = serviceConfig;
+          serviceConfigProperty.initialValue();
+          serviceConfig.configs.pushObject(serviceConfigProperty);
+          serviceConfigProperty.validate();
+        });
+
+        console.log('pushing ' + serviceConfig.serviceName);
+        self.content.pushObject(serviceConfig);
+      } else {
+        console.log('skipping ' + serviceConfig.serviceName);
+      }
+    });
+
+    this.set('selectedService', this.objectAt(0));
+
   },
+
+
 
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
       // TODO:
       // save service configs in App.db (localStorage)
       var serviceConfigProperties = [];
-      this.content.forEach(function(_content){
+      this.content.forEach(function (_content) {
         var config = [];
         config = _content.configs;
-        config.forEach(function(_configProperties){
+        config.forEach(function (_configProperties) {
           serviceConfigProperties.push(_configProperties);
           console.log('TRACE: pushing: ' + _configProperties.name);
           console.log('INFO: value: ' + _configProperties.value);
-        },this);
+        }, this);
 
-      },this);
+      }, this);
       db.setServiceConfigProperties(serviceConfigProperties);
       App.router.send('next');
       //App.get('router').transitionTo('step8');
@@ -161,6 +174,8 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
         return 'TaskTracker';
       case 'HBASE':
         return 'RegionServer';
+      default:
+        return null;
     }
 
   }.property('App.router.installerStep7Controller.selectedService'),
@@ -183,11 +198,15 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
   },
 
   hosts: function () {
-    return this.findProperty('componentName', this.get('selectedComponentName')).hosts;
+    if (this.get('selectedComponentName') !== null) {
+      return this.findProperty('componentName', this.get('selectedComponentName')).hosts;
+    }
   }.property('@each.hosts', 'selectedComponentName'),
 
   groups: function () {
-    return this.findProperty('componentName', this.get('selectedComponentName')).hosts.mapProperty('group').uniq();
+    if (this.get('selectedComponentName') !== null) {
+      return this.findProperty('componentName', this.get('selectedComponentName')).hosts.mapProperty('group').uniq();
+    }
   }.property('@each.hosts', 'selectedComponentName')
 
 });
