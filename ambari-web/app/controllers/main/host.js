@@ -17,6 +17,9 @@
  */
 
 var App = require('app');
+require('models/service');
+require('models/cluster');
+require('models/host');
 
 App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   name:'mainHostController',

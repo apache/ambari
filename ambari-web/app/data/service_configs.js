@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+require('models/service_config')
 
 var configProperties = App.ConfigProperties.create();
 

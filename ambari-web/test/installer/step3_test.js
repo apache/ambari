@@ -27,7 +27,7 @@ describe('App.InstallerStep3Controller', function () {
 
   describe('#parseHostInfo', function () {
     var controller = App.InstallerStep3Controller.create();
-    it('should return true if there is no host with pending status in the data provided by REST bootstrap call.It should also update the status on the client side', function () {
+    it('should return true if there is no host with pending status in the data provided by REST bootstrap call.  It should also update the status on the client side', function () {
       var hostFrmServer = [
         {
           name: '192.168.1.1',

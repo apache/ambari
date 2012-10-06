@@ -235,6 +235,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-817. Fix import dependencies so that unit test suites can be run
+  again for Ambari Web. (yusaku)
+
   AMBARI-804. Fix routing issues with Admin pages. (yusaku)
 
   AMBARI-798. Fix import issue due to move of Predicate class. (hitesh)

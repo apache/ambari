@@ -22,7 +22,6 @@ require('models/service');
 require('models/pagination');
 require('controllers/main/host');
 
-
 describe('MainHostController', function () {
     describe('#sortByName()', function () {
         it('should change isSort value to true', function () {
