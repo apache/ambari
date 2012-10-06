@@ -59,14 +59,6 @@
     margin-bottom: 5px;
     margin-top: -55px;
 }
-.add-service-button {
-    position: relative;
-}
-.add-service-button a{
-    position: absolute;
-    right: 0;
-    top: -55px;
-}
 /*End Services*/
 
 /*Hosts*/

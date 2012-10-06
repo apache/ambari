@@ -15,7 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<div class="row service-block">
+<div class="row-fluid service-block">
 	<div class="span6">
     <ul class="nav nav-pills move">
       <li class="dropdown">
@@ -27,7 +27,7 @@
         </ul>
       </li>
     </ul>
-		<h4>Service Summary</h4>
+		<h4>{{controller.content.label}} Summary</h4>
 		<div class="service-content">
 			{{#each component in controller.content.components}}
         {{#if component.type}}

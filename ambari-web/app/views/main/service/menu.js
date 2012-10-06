@@ -26,7 +26,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
   init: function(){ this._super(); this.activateView(); },
 
   tagName:'ul',
-  classNames:["nav", "nav-tabs", "nav-services"],
+  classNames:["nav", "nav-list", "nav-services"],
 
   activateView:function () {
     var service = App.router.get('mainServiceItemController.content');

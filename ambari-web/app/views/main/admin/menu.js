@@ -44,7 +44,7 @@ App.MainAdminMenuView = Em.CollectionView.extend({
     */
   ],
   tagName: "ul",
-  classNames: ["nav", "nav-stacked", "nav-pills"],
+  classNames: ["nav", "nav-list"],
 
   init: function(){
     this._super();

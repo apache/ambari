@@ -16,9 +16,13 @@
 * limitations under the License.
 -->
 
-<div id="main-admin-menu" class="well span2">
-{{view App.MainAdminMenuView}}
-</div>
-<div class="span9">
-  {{outlet}}
+<div class="row-fluid">
+  <div id="main-admin-menu" class="well span2">
+  {{view App.MainAdminMenuView}}
+  </div>
+  <div class="span10">
+    <div class="row-fluid">
+      {{outlet}}
+    </div>
+  </div>
 </div>

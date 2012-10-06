@@ -340,23 +340,30 @@ a:focus {
 /*****end styles for dashboard page*****/
 
 /*Services*/
-.nav-tabs {
-  .tab-marker-position {
-    padding-left: 25px;
-    padding-right: 25px;
-    background-position: 8px 12px;
-    background-repeat: no-repeat;
+#services-menu {
+  .nav-list {
+    .tab-marker-position {
+      padding-left: 30px;
+      padding-right: 30px;
+      background-position: 12px 9px;
+      background-repeat: no-repeat;
+    }
+    .health-status-LIVE {
+      .tab-marker-position;
+      background-image: @status-live-marker;
+    }
+    .health-status-DEAD {
+      .tab-marker-position;
+      background-image: @status-dead-marker;
+    }
+    li {
+      line-height: 24px;
+    }
   }
-  .health-status-LIVE {
-    .tab-marker-position;
-    background-image: @status-live-marker;
-  }
-  .health-status-DEAD {
-    .tab-marker-position;
-    background-image: @status-dead-marker;
+  .add-service-button {
+    margin: 20px 20px 10px;
   }
 }
-
 .nav-pills.move {
   float: right;
   margin-top: -48px;
@@ -491,10 +498,12 @@ ul.filter {
 }
 
 #main-admin-menu {
-  margin-left: 0;
-
+  padding: 8px 0;
   ul {
     margin-bottom: 0;
+    li {
+      line-height: 24px;
+    }
   }
 }
 

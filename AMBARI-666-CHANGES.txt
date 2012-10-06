@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-816. Update Cluster Management -> Services pages to use a left nav 
+  rather than tabs for service selection. (yusaku)
+
   AMBARI-815. Ensure data persistence during navigation, refresh and
   ensure necessary restrictions. (Jaimin Jetly via yusaku)
 

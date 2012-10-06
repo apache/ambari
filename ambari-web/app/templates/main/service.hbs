@@ -16,5 +16,17 @@
 * limitations under the License.
 -->
 
-{{view App.MainServiceMenuView}}
-{{outlet}}
+<div class="row-fluid">
+  <div id="services-menu" class="well span2" style="padding: 8px 0">
+    {{view App.MainServiceMenuView}}
+    <div class="add-service-button">
+      <a class="btn" href="javascript:void(null)">
+        <i class="icon-plus"></i>
+        Add Service
+      </a>
+    </div>
+  </div>
+  <div class="span10">
+    {{outlet}}
+  </div>
+</div>

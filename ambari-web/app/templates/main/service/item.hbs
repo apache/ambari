@@ -16,37 +16,31 @@
 * limitations under the License.
 -->
 
-<div class="add-service-button">
-    <a class="btn btn-inverse" href="javascript:void(null)">
-        <i class="icon-plus icon-white"></i>
-        Add Service
-    </a>
-</div>
 {{view App.MainServiceInfoMenuView}}
 <div class="service-button">
+  {{#if showRebalancer}}
+  <a class="btn" href="javascript:void(null)">
+    <i class="icon-play-circle"></i>
+    Run Rebalancer
+  </a>
+  {{/if}}
   {{#if controller.content.workStatus}}
     <a href="javascript:void(null)" class="btn disabled">
       <i class="icon-play"></i>
       Start
     </a>
     <a href="javascript:void(null)" class="btn btn-danger" data-toggle="modal" {{action "stopConfirmPopup" target="controller"}}>
-      <i class="icon-stop"></i>
+      <i class="icon-stop icon-white"></i>
       Stop
     </a>
   {{else}}
     <a href="javascript:void(null)" class="btn btn-success" data-toggle="modal" {{action "startConfirmPopup" target="controller"}}>
-      <i class="icon-play"></i>
+      <i class="icon-play icon-white"></i>
       Start
     </a>
     <a href="javascript:void(null)" class="btn disabled">
       <i class="icon-stop"></i>
       Stop
-    </a>
-  {{/if}}
-  {{#if showRebalancer}}
-    <a class="btn" href="javascript:void(null)">
-        <i class="icon-play-circle"></i>
-        Run Rebalancer
     </a>
   {{/if}}
 </div>
