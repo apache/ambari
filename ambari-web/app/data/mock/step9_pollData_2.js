@@ -306,5 +306,21 @@ module.exports = new Ember.Set([
     sf: '100',
     role: 'Pig Client',
     message: 'completed 19%'
+  },
+  {
+    actionId: '37',
+    name: '192.168.1.13',
+    status: 'completed',
+    sf: '100',
+    role: 'Pig Client',
+    message: 'starting pig client'
+  },
+  {
+    actionId: '38',
+    name: '192.168.1.13',
+    status: 'completed',
+    sf: '100',
+    role: 'Pig Client',
+    message: 'starting pig client'
   }
 ]);

@@ -23,8 +23,9 @@ module.exports = Em.Route.extend({
     console.log('in /installer:enter');
 
     if (router.getAuthenticated()) {
-      console.log('In installer and its authenticated!!!');
+      console.log('In installer with successful authenticated');
       Ember.run.next(function () {
+        router.loadAllPriorSteps(router.getInstallerCurrentStep());
         router.transitionTo('step' + router.getInstallerCurrentStep());
       });
     } else {
@@ -36,6 +37,18 @@ module.exports = Em.Route.extend({
     }
   },
 
+  routePath: function (router, event) {
+    console.log("INFO: value of router is: " + router);
+    console.log("INFO: value of event is: " + event);
+    router.setNavigationFlow(event);
+    if (!router.isFwdNavigation) {
+      this._super(router,event);
+    } else {
+      router.set('backBtnForHigherStep',true);
+      router.transitionTo('step' + router.getInstallerCurrentStep());
+    }
+  },
+
   connectOutlets: function (router, context) {
     console.log('in /installer:connectOutlets');
     router.get('applicationController').connectOutlet('installer');
@@ -43,6 +56,9 @@ module.exports = Em.Route.extend({
 
   step1: Em.Route.extend({
     route: '/step1',
+    enter: function (router) {
+
+    },
     connectOutlets: function (router, context) {
       console.log('in installer.step1:connectOutlets');
       router.setNavigationFlow('step1');
@@ -90,6 +106,7 @@ module.exports = Em.Route.extend({
   step4: Em.Route.extend({
     route: '/step4',
     connectOutlets: function (router, context) {
+
       router.setNavigationFlow('step4');
       router.setInstallerCurrentStep('4', false);
       router.get('installerController').connectOutlet('installerStep4');

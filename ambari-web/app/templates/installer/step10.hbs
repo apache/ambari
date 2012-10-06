@@ -18,6 +18,9 @@
 
 <h2>{{t installer.step10.header}}</h2>
 <div class="btn-area">
-    <a class="btn" {{action back}}>Back</a>
-    <a class="btn btn-success" {{action complete}}>Complete</a>
+  <a
+    class="btn pull-left" {{bindAttr disabled="isSubmitDisabled"}} {{action back}}>&larr;
+    Back</a>
+  <a
+    class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action complete}}>Complete &rarr;</a>
 </div>

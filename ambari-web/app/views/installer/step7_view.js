@@ -25,7 +25,7 @@ App.InstallerStep7View = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
-    controller.loadStep();
+    controller.navigateStep();
   }
 
 });
@@ -42,15 +42,17 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   }.property('serviceConfigs.@each').cacheable()
 });
 
-App.ServiceConfigTabs = Ember.View.extend({
+App.ServiceConfigTab = Ember.View.extend({
+
+  tagName: 'li',
 
   selectService: function (event) {
     this.set('controller.selectedService', event.context);
   },
 
   didInsertElement: function () {
-    var serviceName = this.get('controller.selectedService').serviceName;
-    this.$('a[href="' + serviceName + '"]').tab('show');
+    var serviceName = this.get('controller.selectedService.serviceName');
+    this.$('a[href="#' + serviceName + '"]').tab('show');
   }
 });
 

@@ -16,11 +16,28 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.InstallerStep10View = Em.View.extend({
+App.InstallerStep8Controller = Em.ArrayController.extend({
+  name: 'installerStep8Controller',
+  content: [],
 
-  templateName: require('templates/installer/step10')
+  clearStep: function () {
+    this.clear();
+  },
+
+  loadStep: function () {
+    console.log("TRACE: Loading step8: Review Page");
+    this.clearStep();
+
+  },
+
+  navigateStep: function () {
+    if (App.router.get('isFwdNavigation') === true) {
+      this.loadStep();
+    }
+  }
 
 });
+
+

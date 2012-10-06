@@ -22,18 +22,14 @@ var App = require('app');
 App.InstallerStep9View = Em.View.extend({
 
   templateName: require('templates/installer/step9'),
-  barColor: 'progress-info',
+  barColor: '',
   resultMsg: '',
   resultMsgColor: '',
 
   didInsertElement: function () {
     var controller = this.get('controller');
-    controller.loadStep();
-    controller.clear();
-    var hosts = controller.loadHosts();
-    controller.renderHosts(hosts);
-    //TODO: uncomment following line after the hook up with the API call
-    //controller.startPolling();
+    this.onStatus();
+    controller.navigateStep();
   },
 
   barWidth: function () {
@@ -44,6 +40,7 @@ App.InstallerStep9View = Em.View.extend({
 
   onStatus: function () {
     if (this.get('controller.status') === 'info') {
+      this.set('resultMsg', '');
       this.set('barColor', 'progress-info');
     } else if (this.get('controller.status') === 'warning') {
       this.set('barColor', 'progress-warning');
@@ -65,9 +62,12 @@ App.InstallerStep9View = Em.View.extend({
 App.HostStatusView = Em.View.extend({
   tagName: 'tr',
   obj: 'null',
-  barColor: 'progress-info',
+  barColor: '',
 
-
+  didInsertElement: function () {
+    var controller = this.get('controller');
+    this.onStatus();
+  },
   barWidth: function () {
     var barWidth = 'width: ' + this.get('obj.progress') + '%;';
     return barWidth;

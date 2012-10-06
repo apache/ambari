@@ -37,14 +37,24 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
   }.observes('allChecked'),
 
   mockData: require('data/mock/step3_hosts'),
-  mockRetryData: require('data/mock/step3_retry_hosts'),
+  mockRetryData: require('data/mock/step3_pollData'),
 
-  loadStep: function () {
-    if (App.router.get('isFwdNavigation') === true) {
-      this.clear();
-      this.renderHosts(this.loadHosts());
+  navigateStep: function () {
+    if (App.router.get('isFwdNavigation') === true && !App.router.get('backBtnForHigherStep')) {
+      this.loadStep('pending');
       this.startBootstrap();
     }
+    App.router.set('backBtnForHigherStep', false);
+  },
+
+  loadStep: function (bootStatus) {
+    console.log("TRACE: Loading step3: Confirm Hosts");
+    this.clear();
+    var hosts = this.loadHosts();
+    if(bootStatus === 'pending') {
+    hosts.setEach('bootStatus','pending');
+    }
+    this.renderHosts(hosts);
   },
 
   /* Loads the hostinfo from localStorage on the insertion of view. It's being called from view */
@@ -53,7 +63,6 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     hostInfo = App.db.getHosts();
     var hosts = new Ember.Set();
     for (var index in hostInfo) {
-      hostInfo[index].status = "pending";
       hosts.add(hostInfo[index]);
       console.log("TRACE: host name is: " + hostInfo[index].name);
     }
@@ -67,7 +76,8 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     var self = this;
     hostsInfo.forEach(function (_hostInfo) {
       var hostInfo = App.HostInfo.create({
-        name: _hostInfo.name
+        name: _hostInfo.name,
+        bootStatus: _hostInfo.bootStatus
       });
 
       console.log('pushing ' + hostInfo.name);
@@ -84,12 +94,12 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     hostsFrmServer.forEach(function (_hostFrmServer) {
       var host = hostsFrmContent.findProperty('name', _hostFrmServer.name);
       if (host !== null && host !== undefined) { // check if hostname extracted from REST API data matches any hostname in content
-        host.set('status', _hostFrmServer.status);
+        host.set('bootStatus', _hostFrmServer.status);
         host.set('cpu', _hostFrmServer.cpu);
         host.set('memory', _hostFrmServer.memory);
       }
     });
-    result = !this.content.someProperty('status', 'pending');
+    result = !this.content.someProperty('bootStatus', 'pending');
     return result;
   },
 
@@ -97,15 +107,15 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
   visibleHosts: function () {
     var result;
     if (this.get('category') === 'Succeeded') {
-      return (this.filterProperty('status', 'success'));
+      return (this.filterProperty('bootStatus', 'success'));
     } else if (this.get('category') === 'Failed') {
-      return (this.filterProperty('status', 'error'));
+      return (this.filterProperty('bootStatus', 'error'));
     } else if (this.get('category') === 'Hosts') {
       return this.content;
     }
   },
 
-  /* Below function removes a single element on the trsah icon click. Being called from view */
+  /* Below function removes a single element on the trash icon click. Being called from view */
   removeElement: function (hostInfo) {
     console.log('TRACE: In removeElement');
     var hosts = [hostInfo];
@@ -197,12 +207,12 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
 
   saveHostInfoToDb: function () {
     var hostInfo = {};
-    var succededHosts = this.filterProperty('status', 'success');
-    succededHosts.forEach(function (_host) {
+    this.forEach(function (_host) {
       hostInfo[_host.name] = {
         name: _host.name,
         cpu: _host.cpu,
-        memory: _host.memory
+        memory: _host.memory,
+        bootStatus: _host.bootStatus
       };
     });
     App.db.setHosts(hostInfo);
@@ -249,7 +259,7 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
       console.log('Retrying:  ' + _host.name);
     });
     if (this.parseHostInfo(mockHosts, selectedHosts)) {
-      this.saveHostInfoToDb();
+      // this.saveHostInfoToDb();
     }
   }
 

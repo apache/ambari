@@ -21,14 +21,44 @@ App.Router = Em.Router.extend({
 
   enableLogging: true,
   isFwdNavigation: true,
+  backBtnForHigherStep: false,
 
   setNavigationFlow: function (step) {
-    var newStep = parseInt(step.slice(-1));
+    var matches = step.match(/\d+$/);
+    var newStep;
+    if(matches){
+      newStep = parseInt(matches[0]);
+    }
     var previousStep = parseInt(this.getInstallerCurrentStep());
     if (newStep >= previousStep) {
       this.set('isFwdNavigation', true);
     } else {
       this.set('isFwdNavigation', false);
+    }
+  },
+
+  loadAllPriorSteps: function(step) {
+  var stepVal = parseInt(step);
+    switch(step){
+      case '10':
+        this.get('installerStep9Controller').loadStep(false);
+      case '9':
+        this.get('installerStep8Controller').loadStep();
+      case '8':
+        this.get('installerStep7Controller').loadStepFrmDb();
+      case '7':
+        this.get('installerStep6Controller').loadStep();
+      case '6':
+        this.get('installerStep5Controller').loadStep();
+      case '5':
+        this.get('installerStep4Controller').loadStepFromDb();
+      case '4':
+        this.get('installerStep3Controller').loadStep('retainValue');
+      case '3':
+        this.get('installerStep2Controller').loadStep();
+      case '2':
+      case '1':
+
     }
   },
 

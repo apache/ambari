@@ -286,8 +286,8 @@ module.exports =
     },
     {
       "name": "hdfs_log_dir_prefix",
-      "displayName": "HDFS Log Dir Prefix",
-      "description": "The parent directory for HDFS log files.  The actual directory will be ${hdfs_log_dir_prefix}/${hdfs_user}",
+      "displayName": "Hadoop Log Dir Prefix",
+      "description": "The parent directory for Hadoop log files.  The HDFS log directory will be ${hadoop_log_dir_prefix} / ${hdfs_user} and the MapReduce log directory will be ${hadoop_log_dir_prefix} / ${mapred_user}.",
       "defaultValue": "/var/log/hadoop",
       "isReconfigurable": false,
       "displayType": "directory",
@@ -295,9 +295,9 @@ module.exports =
       "category": "Advanced"
     },
     {
-      "name": "hdfs_pid_dir_prefix",
-      "displayName": "HDFS PID Dir Prefix",
-      "description": "The parent directory in which the PID files for HDFS processes will be created.  The actual directory will be ${hdfs_log_dir_prefix}/${hdfs_user}",
+      "name": "hadoop_pid_dir_prefix",
+      "displayName": "Hadoop PID Dir Prefix",
+      "description": "The parent directory in which the PID files for Hadoop processes will be created.  The HDFS PID directory will be ${hadoop_pid_dir_prefix} / ${hdfs_user} and the MapReduce PID directory will be ${hadoop_pid_dir_prefix} / ${mapred_user}.",
       "defaultValue": "/var/run/hadoop",
       "isReconfigurable": false,
       "displayType": "directory",
@@ -536,26 +536,6 @@ module.exports =
       "displayType": "directories",
       "isReconfigurable": false,
       "serviceName": "MAPREDUCE"
-    },
-    {
-      "name": "mapred_log_dir_prefix",
-      "displayName": "MapReduce Log Dir Prefix",
-      "description": "The parent directory for MapReduce log files.  The actual directory will be ${mapred_log_dir_prefix}/${mapred_user}",
-      "defaultValue": "/var/log/hadoop",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "serviceName": "MAPREDUCE",
-      "category": "Advanced"
-    },
-    {
-      "name": "mapred_pid_dir_prefix",
-      "displayName": "MapReduce PID Dir Prefix",
-      "description": "The parent directory in which the PID files for MapReduce processes will be created.  The actual directory will be ${mapred_log_dir_prefix}/${mapred_user}",
-      "defaultValue": "/var/run/hadoop",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "serviceName": "MAPREDUCE",
-      "category": "Advanced"
     },
     {
       "name": "scheduler_name",
@@ -935,7 +915,7 @@ module.exports =
     },
     {
       "name": "oozie_data_dir",
-      "displayName": "Oozie DB directory",
+      "displayName": "Oozie Data Dir",
       "description": "Data directory in which the Oozie DB exists",
       "defaultValue": "",
       "isReconfigurable": false,

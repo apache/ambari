@@ -103,16 +103,72 @@ App.InstallerStep6Controller = Em.Controller.extend({
     this.get('hosts').setEach('isRegionServer', false);
   },
 
-  loadStep: function () {
-    if (App.router.get('isFwdNavigation') === true) {
-      console.log("TRACE: Loading step6: Assign Slaves");
-      this.set('hosts', []);
-      this.set('showHbase', this.isHbaseSelected());
+
+  clearStep: function () {
+    this.set('hosts', []);
+  },
+
+  loadStep: function (reload) {
+    console.log("TRACE: Loading step6: Assign Slaves");
+    this.clearStep();
+    this.set('showHbase', this.isHbaseSelected());
+    if (reload === true) {
       this.setSlaveHost(this.getHostNames());
+    } else {
+      this.loadSlaveHost(this.getSlaveHosts());
     }
   },
 
+  navigateStep: function () {
+    if (App.router.get('isFwdNavigation') === true && !App.router.get('backBtnForHigherStep')) {
+      this.loadStep(true);
+    }
+    App.router.set('backBtnForHigherStep', false);
+  },
+
+  getSlaveHosts: function () {
+    var slaveHosts = App.db.getSlaveComponentHosts();
+    var hostNames = this.getHostNames();
+    var hostObjs = new Ember.Set();
+    hostNames.forEach(function (_hostName) {
+      hostObjs.add({
+        hostname: _hostName
+      });
+    });
+    var datanodes = slaveHosts.findProperty('componentName', 'DataNode');
+    datanodes.hosts.forEach(function (_datanode) {
+      var datanode = hostObjs.findProperty('hostname', _datanode.hostname);
+      if (datanode !== null) {
+        datanode.isDataNode = true;
+      }
+    });
+    var taskTrackers = slaveHosts.findProperty('componentName', 'TaskTracker');
+    taskTrackers.hosts.forEach(function (_taskTracker) {
+      var taskTracker = hostObjs.findProperty('hostname', _taskTracker.hostname);
+      if (taskTracker !== null) {
+        taskTracker.isTaskTracker = true;
+      }
+    });
+    if (this.isHbaseSelected()) {
+      var regionServers = slaveHosts.findProperty('componentName', 'RegionServer');
+      regionServers.hosts.forEach(function (_regionServer) {
+        var regionServer = hostObjs.findProperty('hostname', _regionServer.hostname);
+        if (regionServer !== null) {
+          regionServer.isRegionServer = true;
+        }
+      });
+    }
+    return hostObjs;
+  },
+
+  loadSlaveHost: function (hostObj) {
+    hostObj.forEach(function (_hostObj) {
+      this.get('hosts').pushObject(Ember.Object.create(_hostObj));
+    }, this);
+  },
+
   setSlaveHost: function (hostNames) {
+
     hostNames.forEach(function (_hostName) {
       this.get('hosts').pushObject(Ember.Object.create({
         hostname: _hostName,
@@ -127,8 +183,8 @@ App.InstallerStep6Controller = Em.Controller.extend({
     var hostInfo = db.getHosts();
     var hostNames = [];
     for (var index in hostInfo) {
-      hostNames.push(hostInfo[index].name);
-
+      if (hostInfo[index].bootStatus === 'success')
+        hostNames.push(hostInfo[index].name);
     }
     return hostNames;
   },

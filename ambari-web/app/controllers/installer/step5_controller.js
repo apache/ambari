@@ -39,11 +39,15 @@ App.InstallerStep5Controller = Em.Controller.extend({
   },
 
   loadStep: function () {
+    console.log("TRACE: Loading step5: Assign Masters");
+    this.clearStep();
+    this.renderHostInfo(this.loadHostInfo());
+    this.renderComponents(this.loadComponents(this.loadServices()));
+  },
+
+  navigateStep: function () {
     if (App.router.get('isFwdNavigation') === true) {
-      console.log("TRACE: Loading step5: Assign Masters");
-      this.clearStep();
-      this.renderHostInfo(this.loadHostInfo());
-      this.renderComponents(this.loadComponents(this.loadServices()));
+      this.loadStep();
     }
   },
 
@@ -56,7 +60,7 @@ App.InstallerStep5Controller = Em.Controller.extend({
       hosts.add(hostInfo[index]);
       console.log("TRACE: host name is: " + hostInfo[index].name);
     }
-    return hosts;
+    return hosts.filterProperty('bootStatus','success');
   },
 
 

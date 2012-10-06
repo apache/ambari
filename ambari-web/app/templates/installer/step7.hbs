@@ -22,16 +22,15 @@
   <div class="alert alert-info">
     {{t installer.step7.body}}
   </div>
-  {{#view App.ServiceConfigTabs}}
   <ul class="nav nav-tabs">
     {{#each service in controller}}
-    <li><a class="active" {{bindAttr href="service.serviceName"}}
-           data-toggle="tab" {{action selectService service on="click" target="view"}}>{{service.displayName}}{{#if service.errorCount}}<span
+    {{#view App.ServiceConfigTab}}
+    <a class="active" href="#{{unbound service.serviceName}}"
+           data-toggle="tab" {{action selectService service target="view"}}>{{service.displayName}}{{#if service.errorCount}}<span
       class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a>
-    </li>
+    {{/view}}
     {{/each}}
   </ul>
-  {{/view}}
   <div class="accordion">
     {{#each category in selectedService.configCategories}}
     <div class="accordion-group">
@@ -47,7 +46,6 @@
             {{#each view.categoryConfigs}}
             <div {{bindAttr class="errorMessage:error: :control-group"}}>
               <label class="control-label">{{displayName}}</label>
-
               <div class="controls">
                 {{view viewClass serviceConfigBinding="this"}}
                 <span class="help-inline">{{errorMessage}}</span>

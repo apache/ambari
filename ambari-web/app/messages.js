@@ -94,7 +94,7 @@ Em.I18n.translations = {
   'installer.step4.monitoringCheck.popup.body': 'You did not select Nagios and/or Ganglia.  If both are not selected, monitoring and alerts will not function properly.  Is this OK?',
 
   'installer.step5.header': 'Assign Masters',
-  'installer.step5.attention': 'more hosts without master service',
+  'installer.step5.attention': ' hosts not running master services',
   'installer.step5.body': 'Assign master components to hosts you want to run them on.',
 
   'installer.step6.header': 'Assign Slaves',

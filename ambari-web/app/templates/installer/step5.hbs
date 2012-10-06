@@ -37,7 +37,6 @@
             serviceNameBinding="component_name"
             zIdBinding="zId"
           }}
-
           {{#if showAddControl}}
           {{view App.AddControlView
             componentNameBinding="component_name"
@@ -48,11 +47,9 @@
             zIdBinding="zId"
           }}
           {{/if}}
-
         </div>
       </div>
       {{/each}}
-
     </form>
   </div>
 
@@ -63,7 +60,6 @@
       {{#each masterServices}}
       <span class="assignedService round-corners">{{component_name}}</span>
       {{/each}}
-
     </div>
     {{/each}}
 

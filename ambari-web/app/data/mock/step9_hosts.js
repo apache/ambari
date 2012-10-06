@@ -78,5 +78,10 @@ module.exports = new Ember.Set([
     name: '192.168.1.12',
     progress: '0',
     message: 'starting'
+  },
+  {
+    name: '192.168.1.13',
+    progress: '0',
+    message: 'starting'
   }
 ]);

@@ -26,7 +26,7 @@ App.InstallerStep3View = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
-    controller.loadStep();
+    controller.navigateStep();
   }
 });
 
@@ -46,10 +46,10 @@ App.HostView = Em.View.extend({
     var category = this.get('category');
     if (category === "Hosts") {
       this.set('isVisible', true);
-    } else if (category === "Succeeded" && hostInfo.get('status') == "success") {
+    } else if (category === "Succeeded" && hostInfo.get('bootStatus') == "success") {
       this.set('isVisible', true);
       return true;
-    } else if (category === "Failed" && hostInfo.get('status') == "error") {
+    } else if (category === "Failed" && hostInfo.get('bootStatus') == "error") {
       this.set('isVisible', true);
     } else {
       this.set('isVisible', false);

@@ -47,6 +47,7 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
   selectedServiceNames: [ 'HDFS', 'MAPREDUCE', 'GANGLIA', 'NAGIOS', 'HBASE', 'PIG', 'SQOOP', 'OOZIE', 'HIVE', 'ZOOKEEPER'],
   masterComponentHosts: require('data/mock/master_component_hosts'),
   slaveComponentHosts: [],
+  serviceConfigs: require('data/service_configs'),
 
   clearStep: function () {
     this.clear();
@@ -55,15 +56,47 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
     this.slaveComponentHosts.clear();
   },
 
-  loadStep: function () {
-    if (App.router.get('isFwdNavigation') === true) {
-      this.clearStep();
-      this.renderConfigs(this.loadConfigs());
+  navigateStep: function () {
+    if (App.router.get('isFwdNavigation') === true && !App.router.get('backBtnForHigherStep')) {
+      this.loadStep();
+    } else {
+      this.loadStepFromDb();
     }
+    App.router.set('backBtnForHigherStep', false);
+  },
+
+  loadStep: function () {
+    console.log("TRACE: Loading step7: Configure Services");
+    this.clearStep();
+    this.loadConfigs();
+    this.renderServiceConfigs(this.serviceConfigs);
+  },
+
+  loadStepFromDb: function () {
+    console.log("TRACE: Loading step7 from localstorage data: Configure Services");
+    this.loadStep();
+    var storedServices = db.getServiceConfigProperties();
+    var configs = new Ember.Set();
+    var configProperties = new Ember.Set();
+    this.forEach(function (_content) {
+      _content.get('configs').forEach(function (_config) {
+        configs.add(_config);
+      }, this);
+    }, this);
+
+    var configProperties = new Ember.Set();
+    configs.forEach(function (_config) {
+      var temp = {name: _config.get('name'),
+        value: _config.get('value')};
+      configProperties.add(temp);
+      if (storedServices.someProperty('name', _config.get('name'))) {
+        var componentVal = storedServices.findProperty('name', _config.get('name'));
+        _config.set('value', componentVal.value)
+      }
+    }, this);
   },
 
   loadConfigs: function () {
-
     // load dependent data from the database
     var selectedServiceNamesInDB = db.getSelectedServiceNames();
     if (selectedServiceNamesInDB !== undefined) {
@@ -77,12 +110,9 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
     if (slaveComponentHostsInDB != undefined) {
       this.set('slaveComponentHosts', slaveComponentHostsInDB);
     }
-    var serviceConfigs = require('data/service_configs');
-    return serviceConfigs;
-
   },
 
-  renderConfigs: function(serviceConfigs) {
+  renderServiceConfigs: function (serviceConfigs) {
     var self = this;
 
     serviceConfigs.forEach(function (_serviceConfig) {
@@ -94,25 +124,26 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
       });
 
       if (self.selectedServiceNames.contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
-        _serviceConfig.configs.forEach(function (_serviceConfigProperty) {
-          var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
-          serviceConfigProperty.serviceConfig = serviceConfig;
-          serviceConfigProperty.initialValue();
-          serviceConfig.configs.pushObject(serviceConfigProperty);
-          serviceConfigProperty.validate();
-        });
-
-        console.log('pushing ' + serviceConfig.serviceName);
-        self.content.pushObject(serviceConfig);
+        self.renderComponentConfigs(_serviceConfig, serviceConfig);
       } else {
         console.log('skipping ' + serviceConfig.serviceName);
       }
-    });
-
-    this.set('selectedService', this.objectAt(0));
-
+    }, this);
   },
 
+  renderComponentConfigs: function (_componentConfig, componentConfig) {
+    _componentConfig.configs.forEach(function (_serviceConfigProperty) {
+      var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
+      serviceConfigProperty.serviceConfig = componentConfig;
+      serviceConfigProperty.initialValue();
+      componentConfig.configs.pushObject(serviceConfigProperty);
+      serviceConfigProperty.validate();
+    }, this);
+
+    console.log('pushing ' + componentConfig.serviceName);
+    this.content.pushObject(componentConfig);
+    this.set('selectedService', this.objectAt(0));
+  },
 
 
   submit: function () {
@@ -122,17 +153,16 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
       var serviceConfigProperties = [];
       this.content.forEach(function (_content) {
         var config = [];
-        config = _content.configs;
+        config = _content.get('configs');
         config.forEach(function (_configProperties) {
-          serviceConfigProperties.push(_configProperties);
-          console.log('TRACE: pushing: ' + _configProperties.name);
-          console.log('INFO: value: ' + _configProperties.value);
+          var configProperty = {name: _configProperties.get('name'),
+            value: _configProperties.get('value')};
+          serviceConfigProperties.push(configProperty);
         }, this);
 
       }, this);
       db.setServiceConfigProperties(serviceConfigProperties);
       App.router.send('next');
-      //App.get('router').transitionTo('step8');
     }
   },
 
@@ -158,7 +188,8 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
     });
   }
 
-});
+})
+;
 
 App.SlaveComponentGroupsController = Ember.ArrayController.extend({
 
@@ -198,14 +229,20 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
   },
 
   hosts: function () {
-    if (this.get('selectedComponentName') !== null) {
-      return this.findProperty('componentName', this.get('selectedComponentName')).hosts;
+    if (this.get('selectedComponentName') !== null && this.get('selectedComponentName') !== undefined) {
+      var component = this.findProperty('componentName', this.get('selectedComponentName'));
+      if (component !== undefined && component !== null) {
+        return component.hosts;
+      }
     }
   }.property('@each.hosts', 'selectedComponentName'),
 
   groups: function () {
     if (this.get('selectedComponentName') !== null) {
-      return this.findProperty('componentName', this.get('selectedComponentName')).hosts.mapProperty('group').uniq();
+      var component = this.findProperty('componentName', this.get('selectedComponentName'));
+      if (component !== undefined && component !== null) {
+        return component.hosts.mapProperty('group').uniq();
+      }
     }
   }.property('@each.hosts', 'selectedComponentName')
 

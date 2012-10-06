@@ -18,15 +18,22 @@
 
 var App = require('app');
 
-App.HostInfo = Ember.Object.extend({
-  elementId: 'host',
-  name: '',
-  bootStatus: 'pending',
-  cpu: '2',
-  memory: '2',
-  message: 'Information',
-  //progress: '0',
-  barColor: 'progress-info',
-  isChecked: true
+App.InstallerStep10Controller = Em.ArrayController.extend({
+  name: 'installerStep10Controller',
+  content: [],
+
+  clearStep: function() {
+    this.clear();
+  },
+
+  loadStep: function() {
+    console.log("TRACE: Loading step10: Summary Page");
+    this.clearStep();
+
+  },
+
+  navigateStep: function() {
+    this.loadStep();
+  }
 });
 

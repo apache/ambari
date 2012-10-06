@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-815. Ensure data persistence during navigation, refresh and
+  ensure necessary restrictions. (Jaimin Jetly via yusaku)
+
   AMBARI-806. Remove State object as configs/stack version/running state are
   handled as standalone entities. (hitesh)
 

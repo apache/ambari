@@ -39,6 +39,9 @@ App.InstallerController = Em.Controller.extend({
         value: true
       }));
     }
+   // window.onbeforeunload = function () {
+     // return "You have not saved your document yet.  If you continue, your work will not be saved."
+    //}
   },
 
   setStepsEnable: function () {

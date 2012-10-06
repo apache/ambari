@@ -310,7 +310,7 @@ App.db.getSlaveComponentHosts = function() {
   return App.db.data[user].Installer.slaveComponentHosts;
 }
 
-App.db.setServiceConfigProperties = function() {
+App.db.getServiceConfigProperties = function() {
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
   return App.db.data[user].Installer.configProperties;

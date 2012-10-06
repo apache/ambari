@@ -25,7 +25,7 @@ App.InstallerStep2View = Em.View.extend({
 
   didInsertElement: function () {
     $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
-    this.get('controller').loadStep();
+    this.get('controller').navigateStep();
   }
 
 });

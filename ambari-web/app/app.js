@@ -20,7 +20,6 @@
 
 module.exports = Em.Application.create({
   name: 'Ambari Web',
-
   rootElement: '#wrapper',
 
   store: DS.Store.create({

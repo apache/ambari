@@ -22,23 +22,6 @@ var configProperties = App.ConfigProperties.create();
 
 module.exports = [
   {
-    serviceName: 'NAGIOS',
-    displayName: 'Nagios',
-    configCategories: [
-      App.ServiceConfigCategory.create({ name: 'General'})
-    ],
-    configs: configProperties.filterProperty('serviceName', 'NAGIOS')
-  },
-  {
-    serviceName: 'HIVE',
-    displayName: 'Hive/HCat',
-    configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Hive Metastore'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced'})
-    ],
-    configs: configProperties.filterProperty('serviceName', 'HIVE')
-  },
-  {
     serviceName: 'HDFS',
     displayName: 'HDFS',
     configCategories: [
@@ -50,6 +33,7 @@ module.exports = [
     ],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
+
   {
     serviceName: 'MAPREDUCE',
     displayName: 'MapReduce',
@@ -61,6 +45,17 @@ module.exports = [
     ],
     configs: configProperties.filterProperty('serviceName', 'MAPREDUCE')
   },
+
+  {
+    serviceName: 'HIVE',
+    displayName: 'Hive/HCat',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Hive Metastore'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced'})
+    ],
+    configs: configProperties.filterProperty('serviceName', 'HIVE')
+  },
+
   {
     serviceName: 'HBASE',
     displayName: 'HBase',
@@ -72,6 +67,7 @@ module.exports = [
     ],
     configs: configProperties.filterProperty('serviceName', 'HBASE')
   },
+
   {
     serviceName: 'ZOOKEEPER',
     displayName: 'ZooKeeper',
@@ -81,6 +77,7 @@ module.exports = [
     ],
     configs: configProperties.filterProperty('serviceName', 'ZOOKEEPER')
   },
+
   {
     serviceName: 'OOZIE',
     displayName: 'Oozie',
@@ -90,6 +87,16 @@ module.exports = [
     ],
     configs: configProperties.filterProperty('serviceName', 'OOZIE')
   },
+
+  {
+    serviceName: 'NAGIOS',
+    displayName: 'Nagios',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'General'})
+    ],
+    configs: configProperties.filterProperty('serviceName', 'NAGIOS')
+  },
+
   {
     serviceName: 'MISC',
     displayName: 'Misc',

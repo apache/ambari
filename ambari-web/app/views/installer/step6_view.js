@@ -25,7 +25,7 @@ App.InstallerStep6View = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
-    controller.loadStep();
+    controller.navigateStep();
   }
 
 });

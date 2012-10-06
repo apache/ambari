@@ -47,11 +47,15 @@ App.InstallerStep2Controller = Em.Controller.extend({
     this.set('localRepoPath','');
   },
 
-  loadStep: function() {
+  navigateStep: function() {
     if (App.router.get('isFwdNavigation') === true) {
-      console.log("MASTER TRACE: Loading step2: Install Options");
-      this.clearStep();
+      this.loadStep();
     }
+  },
+
+  loadStep: function() {
+    console.log("TRACE: Loading step2: Install Options");
+    this.clearStep();
   },
 
   installType: function () {
@@ -200,7 +204,8 @@ App.InstallerStep2Controller = Em.Controller.extend({
     for (var i = 0; i < this.hostNameArr.length; i++) {
       hostInfo[this.hostNameArr[i]] = {
         name: this.hostNameArr[i],
-        installType: this.get('installType')
+        installType: this.get('installType'),
+        bootStatus: 'pending'
       };
     }
     App.db.setHosts(hostInfo);

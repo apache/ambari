@@ -75,12 +75,12 @@
     {{#each host in controller}}
     {{#view App.HostView categoryBinding="controller.category" hostInfoBinding="host"}}
     {{#if view.isVisible}}
-    <tr {{bindAttr class = "host.status"}}>
+    <tr {{bindAttr class = "host.bootStatus"}}>
       <td>
         {{view Ember.Checkbox checkedBinding="host.isChecked"}}
       </td>
       <td>
-        {{host.status}}
+        {{host.bootStatus}}
       </td>
 
       <td>

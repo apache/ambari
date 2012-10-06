@@ -60,6 +60,6 @@ require('views/installer/step4_view');
 require('views/installer/step5_view');
 require('views/installer/step6_view');
 require('views/installer/step7_view');
-require('views/installer/step8');
+require('views/installer/step8_view');
 require('views/installer/step9_view');
-require('views/installer/step10');
+require('views/installer/step10_view');

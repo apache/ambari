@@ -16,17 +16,16 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
 
-App.HostInfo = Ember.Object.extend({
-  elementId: 'host',
-  name: '',
-  bootStatus: 'pending',
-  cpu: '2',
-  memory: '2',
-  message: 'Information',
-  //progress: '0',
-  barColor: 'progress-info',
-  isChecked: true
-});
+App.InstallerStep10View = Em.View.extend({
 
+  templateName: require('templates/installer/step10'),
+
+  didInsertElement: function () {
+    var controller = this.get('controller');
+    controller.navigateStep();
+  }
+
+});
