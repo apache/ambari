@@ -18,25 +18,51 @@
 
 package org.apache.ambari.api.controller.internal;
 
-import org.apache.ambari.api.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.PropertyId;
 
 /**
- *
+ * Simple PropertyId implementation.
  */
 public class PropertyIdImpl implements PropertyId {
+  /**
+   * The property name.
+   */
   private String name;
+
+  /**
+   * The category name.
+   */
   private String category;
+
+  /**
+   * Indicates whether or not this property is temporal.
+   */
   private boolean temporal;
 
-  public PropertyIdImpl() {
 
+  // ----- Constructors ------------------------------------------------------
+
+  /**
+   * Create a property id.  Required for JSON serialization.
+   */
+  public PropertyIdImpl() {
   }
 
+  /**
+   * Create a property id.
+   *
+   * @param name      the property name.
+   * @param category  the property category.
+   * @param temporal  a temporal indicator
+   */
   public PropertyIdImpl(String name, String category, boolean temporal) {
-    this.name = name;
+    this.name     = name;
     this.category = category;
     this.temporal = temporal;
   }
+
+
+  // ----- PropertyId --------------------------------------------------------
 
   public String getName() {
     return name;
@@ -50,17 +76,27 @@ public class PropertyIdImpl implements PropertyId {
     return temporal;
   }
 
+
+  // ----- Object overrides --------------------------------------------------
+
   @Override
   public int hashCode() {
-    return name.hashCode() + (category == null ? 0 : category.hashCode()) + (temporal ? 1 : 0);
+    return name.hashCode() +
+        (category == null ? 0 : category.hashCode()) +
+        (temporal ? 1 : 0);
   }
 
   @Override
   public boolean equals(Object o) {
 
-    if (!(o instanceof PropertyIdImpl)) {
+    if (this == o) {
+      return true;
+    }
+
+    if (!(o.getClass().equals(PropertyIdImpl.class))) {
       return false;
     }
+
     PropertyIdImpl that = (PropertyIdImpl) o;
 
     return this.name.equals(that.getName()) &&
@@ -68,21 +104,18 @@ public class PropertyIdImpl implements PropertyId {
         this.isTemporal() == that.isTemporal();
   }
 
+  @Override
+  public String toString() {
+    return "PropertyId[" + category + ", " + name + "]";
+  }
+
+
+  // ----- helper methods ----------------------------------------------------
+
   private static boolean equals(Object o1, Object o2) {
     if (o1 == null) {
       return o2 == null;
     }
-
-    if (o2 == null) {
-      return o1 == null;
-    }
-
-    return o1.equals(o2);
-  }
-
-
-  @Override
-  public String toString() {
-    return "PropertyId[" + category + ", " + name + "]";
+    return o2 != null && o1.equals(o2);
   }
 }

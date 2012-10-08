@@ -67,7 +67,7 @@ public class ComponentService extends BaseService {
   public Response getComponent(@Context HttpHeaders headers, @Context UriInfo ui,
                                @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, ui, Request.RequestType.GET,
+    return handleRequest(headers, ui, Request.Type.GET,
         createResourceDefinition(componentName, m_clusterName, m_serviceName));
   }
 
@@ -82,7 +82,7 @@ public class ComponentService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, ui, Request.RequestType.GET,
+    return handleRequest(headers, ui, Request.Type.GET,
         createResourceDefinition(null, m_clusterName, m_serviceName));
   }
 

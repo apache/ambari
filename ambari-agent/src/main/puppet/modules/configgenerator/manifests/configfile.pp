@@ -43,9 +43,9 @@
 # Note: Set correct $modulespath in the configgenerator (or pass it as parameter)
 #
 
-define configgenerator::configfile ($configname=$title, $modulespath='/etc/puppet/modules', $module, $properties) {
+define configgenerator::configfile ($modulespath='/etc/puppet/modules', $configuration) {
   $configcontent = inline_template('<configuration>
-  <% properties.each do |key,value| -%>
+  <% configuration.props.each do |key,value| -%>
   <property>
     <name><%=key %></name>
     <value><%=value %></value>
@@ -56,6 +56,12 @@ define configgenerator::configfile ($configname=$title, $modulespath='/etc/puppe
 file {'config':
   ensure  => present,
   content => $configcontent,
-  path => "${modulespath}/${module}/templates/${configname}",
+  path => "${modulespath}/${configuration::modulename}/templates/${configuration::configfile}",
 }
 } 
+
+define configgenerator::configfile::configuration($filename, $module, $nameproperties) {
+  $configfile = $filename
+  $modulename = $module
+  $props = $properties
+}

@@ -27,9 +27,8 @@ class hdp-hcat(
 
 #Configs generation  
 
-  configgenerator::configfile{'hive-site.xml': 
-    module => 'hdp-hcat-old',
-    properties => $manifestloader::hdp_hcat_old_hive_site_props
+  configgenerator::configfile{'hive_site_xml': 
+    configuration => $manifestloader::Hdp_hcat_old__hive_site
   }
 
   $hcat_user = $hdp::params::hcat_user

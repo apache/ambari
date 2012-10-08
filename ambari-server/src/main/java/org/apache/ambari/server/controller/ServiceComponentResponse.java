@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.List;
 import java.util.Map;
 
 public class ServiceComponentResponse {
@@ -26,76 +25,66 @@ public class ServiceComponentResponse {
   private Long clusterId; // REF
 
   private String clusterName; // REF
-  
-  private List<PerServiceComponentResponse> components;
+
+  private String serviceName; // GET/CREATE/UPDATE/DELETE
+
+  private String componentName; // GET/CREATE/UPDATE/DELETE
+
+  // Config type -> version mapping
+  private Map<String, String> configVersions; // CREATE/UPDATE
+
 
   public ServiceComponentResponse(Long clusterId, String clusterName,
-      List<PerServiceComponentResponse> components) {
+                                  String serviceName,
+                                  String componentName, Map<String, String> configVersions) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
-    this.components = components;
+    this.serviceName = serviceName;
+    this.componentName = componentName;
+    this.configVersions = configVersions;
   }
 
-  public static class PerServiceComponentResponse {
+  /**
+   * @return the serviceName
+   */
+  public String getServiceName() {
+    return serviceName;
+  }
 
-    private String serviceName; // GET/CREATE/UPDATE/DELETE
-    
-    private String componentName; // GET/CREATE/UPDATE/DELETE
-        
-    // Config type -> version mapping
-    private Map<String, String> configVersions; // CREATE/UPDATE
+  /**
+   * @param serviceName the serviceName to set
+   */
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
+  }
 
-    public PerServiceComponentResponse(String serviceName,
-        String componentName, Map<String, String> configVersions) {
-      super();
-      this.serviceName = serviceName;
-      this.componentName = componentName;
-      this.configVersions = configVersions;
-    }
+  /**
+   * @return the componentName
+   */
+  public String getComponentName() {
+    return componentName;
+  }
 
-    /**
-     * @return the serviceName
-     */
-    public String getServiceName() {
-      return serviceName;
-    }
+  /**
+   * @param componentName the componentName to set
+   */
+  public void setComponentName(String componentName) {
+    this.componentName = componentName;
+  }
 
-    /**
-     * @param serviceName the serviceName to set
-     */
-    public void setServiceName(String serviceName) {
-      this.serviceName = serviceName;
-    }
+  /**
+   * @return the configVersions
+   */
+  public Map<String, String> getConfigVersions() {
+    return configVersions;
+  }
 
-    /**
-     * @return the componentName
-     */
-    public String getComponentName() {
-      return componentName;
-    }
-
-    /**
-     * @param componentName the componentName to set
-     */
-    public void setComponentName(String componentName) {
-      this.componentName = componentName;
-    }
-
-    /**
-     * @return the configVersions
-     */
-    public Map<String, String> getConfigVersions() {
-      return configVersions;
-    }
-
-    /**
-     * @param configVersions the configVersions to set
-     */
-    public void setConfigVersions(Map<String, String> configVersions) {
-      this.configVersions = configVersions;
-    }
-    
+  /**
+   * @param configVersions the configVersions to set
+   */
+  public void setConfigVersions(Map<String, String> configVersions) {
+    this.configVersions = configVersions;
   }
 
   /**
@@ -125,19 +114,4 @@ public class ServiceComponentResponse {
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
-
-  /**
-   * @return the components
-   */
-  public List<PerServiceComponentResponse> getComponents() {
-    return components;
-  }
-
-  /**
-   * @param components the components to set
-   */
-  public void setComponents(List<PerServiceComponentResponse> components) {
-    this.components = components;
-  }
-
 }

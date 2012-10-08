@@ -18,38 +18,26 @@
 
 package org.apache.ambari.server.agent;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
-
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  *
  * Data model for Ambari Agent to send heartbeat to Ambari Controller.
  *
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {"responseId","timestamp",
-    "hostname", "hardwareProfile"})
 public class Register {
-  @XmlElement
-  private short responseId = -1;
-  @XmlElement
+  private int responseId = -1;
   private long timestamp;
-  @XmlElement
   private String hostname;
-  @XmlElement
   private HostInfo hardwareProfile;
 
-  public short getResponseId() {
+  @JsonProperty("responseId")
+  public int getResponseId() {
     return responseId;
   }
 
-  public void setResponseId(short responseId) {
+  @JsonProperty("responseId")
+  public void setResponseId(int responseId) {
     this.responseId=responseId;
   }
 

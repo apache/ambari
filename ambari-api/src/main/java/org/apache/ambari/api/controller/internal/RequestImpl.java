@@ -18,8 +18,8 @@
 
 package org.apache.ambari.api.controller.internal;
 
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Request;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -31,13 +31,39 @@ import java.util.Set;
  */
 public class RequestImpl implements Request {
 
+  /**
+   * The property ids associated with this request.  Used for requests that
+   * get resource values.
+   */
   private final Set<PropertyId> propertyIds;
-  private final Set<Map<PropertyId, String>> properties;
 
-  public RequestImpl(Set<PropertyId> propertyIds, Set<Map<PropertyId, String>> properties) {
-    this.propertyIds = propertyIds == null ? Collections.unmodifiableSet(new HashSet<PropertyId>()) : Collections.unmodifiableSet(propertyIds);
-    this.properties = properties == null ? Collections.unmodifiableSet(new HashSet<Map<PropertyId, String>>()) : Collections.unmodifiableSet(properties);
+  /**
+   * The properties associated with this request.  Used for requests that create
+   * resources or update resource values.
+   */
+  private final Set<Map<PropertyId, Object>> properties;
+
+
+  // ----- Constructors ------------------------------------------------------
+
+  /**
+   * Create a request.
+   *
+   * @param propertyIds  the property ids associated with the request; may be null
+   * @param properties   the properties associated with the request; may be null
+   */
+  public RequestImpl(Set<PropertyId> propertyIds, Set<Map<PropertyId, Object>> properties) {
+    this.propertyIds = propertyIds == null ?
+        Collections.unmodifiableSet(new HashSet<PropertyId>()) :
+        Collections.unmodifiableSet(propertyIds);
+
+    this.properties = properties == null ?
+        Collections.unmodifiableSet(new HashSet<Map<PropertyId, Object>>()) :
+        Collections.unmodifiableSet(properties);
   }
+
+
+  // ----- Request -----------------------------------------------------------
 
   @Override
   public Set<PropertyId> getPropertyIds() {
@@ -45,7 +71,7 @@ public class RequestImpl implements Request {
   }
 
   @Override
-  public Set<Map<PropertyId, String>> getProperties() {
+  public Set<Map<PropertyId, Object>> getProperties() {
     return properties;
   }
 

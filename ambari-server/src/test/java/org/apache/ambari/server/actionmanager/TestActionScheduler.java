@@ -29,7 +29,10 @@ import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.junit.Ignore;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.junit.Test;
 
 public class TestActionScheduler {
@@ -39,13 +42,19 @@ public class TestActionScheduler {
    * shows up in the action queue.
    */
   @Test
-  // TODO fix
-  @Ignore
   public void testActionSchedule() throws Exception {
     ActionQueue aq = new ActionQueue();
     Clusters fsm = mock(Clusters.class);
     Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
     when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+
     ActionDBAccessor db = mock(ActionDBAccessorImpl.class);
     List<Stage> stages = new ArrayList<Stage>();
     Stage s = new Stage(1, "/bogus", "clusterName");
@@ -53,13 +62,12 @@ public class TestActionScheduler {
     stages.add(s);
     String hostname = "ahost.ambari.apache.org";
     HostAction ha = new HostAction(hostname);
-    HostRoleCommand hrc = new HostRoleCommand(Role.DATANODE,
-        null);
+    HostRoleCommand hrc = new HostRoleCommand("HDFS", Role.DATANODE,
+        new ServiceComponentHostInstallEvent(Role.DATANODE.toString(), hostname, 35678901));
     ha.addHostRoleCommand(hrc);
-   // ha.setManifest("1-977-manifest");
     s.addHostAction(hostname, ha);
     when(db.getStagesInProgress()).thenReturn(stages);
-    
+
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(1000, 100, db, aq, fsm, 10000);
@@ -93,13 +101,19 @@ public class TestActionScheduler {
    * Test whether scheduler times out an action
    */
   @Test
-  // TODO fix
-  @Ignore
   public void testActionTimeout() throws Exception {
     ActionQueue aq = new ActionQueue();
     Clusters fsm = mock(Clusters.class);
     Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
     when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+
     ActionDBAccessorImpl db = mock(ActionDBAccessorImpl.class);
     List<Stage> stages = new ArrayList<Stage>();
     Stage s = new Stage(1, "/bogus", "clusterName");
@@ -107,13 +121,12 @@ public class TestActionScheduler {
     stages.add(s);
     String hostname = "ahost.ambari.apache.org";
     HostAction ha = new HostAction(hostname);
-    HostRoleCommand hrc = new HostRoleCommand(Role.DATANODE,
+    HostRoleCommand hrc = new HostRoleCommand("HDFS", Role.DATANODE,
         null);
     ha.addHostRoleCommand(hrc);
-    // ha.setManifest("1-977-manifest");
     s.addHostAction(hostname, ha);
     when(db.getStagesInProgress()).thenReturn(stages);
-    
+
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm, 3);

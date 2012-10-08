@@ -15,17 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.api.controller.internal;
 
-import org.apache.ambari.api.controller.spi.ClusterController;
-import org.apache.ambari.api.controller.spi.Predicate;
-import org.apache.ambari.api.controller.spi.PropertyProvider;
-import org.apache.ambari.api.controller.spi.Request;
-import org.apache.ambari.api.controller.spi.Resource;
-import org.apache.ambari.api.controller.spi.ResourceProvider;
-import org.apache.ambari.api.controller.spi.Schema;
+import org.apache.ambari.api.controller.ProviderModule;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.Schema;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -36,16 +40,32 @@ import java.util.Set;
  */
 public class ClusterControllerImpl implements ClusterController {
 
-  private final Map<Resource.Type, Schema> schemas;
+  /**
+   * Module of providers for this controller.
+   */
+  private final ProviderModule providerModule;
 
-  public ClusterControllerImpl(Map<Resource.Type, Schema> schemas) {
-    this.schemas = schemas;
+  /**
+   * Map of resource providers keyed by resource type.
+   */
+  private final Map<Resource.Type, ResourceProvider> resourceProviders;
+
+
+  // ----- Constructors ------------------------------------------------------
+
+  public ClusterControllerImpl(ProviderModule providerModule) {
+    this.providerModule = providerModule;
+    this.resourceProviders = getResourceSchemas();
   }
 
+
+  // ----- ClusterController -------------------------------------------------
+
   @Override
-  public Iterable<Resource> getResources(Resource.Type type, Request request, Predicate predicate) {
-    ResourceProvider provider = schemas.get(type).getResourceProvider();
-    Set<Resource> resources = null;
+  public Iterable<Resource> getResources(Resource.Type type, Request request, Predicate predicate)
+      throws AmbariException{
+    ResourceProvider provider = resourceProviders.get(type);
+    Set<Resource> resources;
 
     if (provider == null) {
       resources = Collections.emptySet();
@@ -58,30 +78,90 @@ public class ClusterControllerImpl implements ClusterController {
 
   @Override
   public Schema getSchema(Resource.Type type) {
-    return schemas.get(type);
+    return resourceProviders.get(type).getSchema();
   }
+
+  @Override
+  public void createResources(Resource.Type type, Request request) throws AmbariException {
+    ResourceProvider provider = resourceProviders.get(type);
+    if (provider != null) {
+      provider.createResources(request);
+    }
+  }
+
+  @Override
+  public void updateResources(Resource.Type type, Request request, Predicate predicate) throws AmbariException {
+    ResourceProvider provider = resourceProviders.get(type);
+    if (provider != null) {
+      provider.updateResources(request, predicate);
+    }
+  }
+
+  @Override
+  public void deleteResources(Resource.Type type, Predicate predicate) throws AmbariException {
+    ResourceProvider provider = resourceProviders.get(type);
+    if (provider != null) {
+      provider.deleteResources(predicate);
+    }
+  }
+
+
+  // ----- helper methods ----------------------------------------------------
 
   private Set<Resource> populateResources(Resource.Type type,
                                           Set<Resource> resources,
                                           Request request,
-                                          Predicate predicate) {
+                                          Predicate predicate) throws AmbariException{
     Set<Resource> keepers = resources;
 
-    for (PropertyProvider propertyProvider : schemas.get(type).getPropertyProviders()) {
+    for (PropertyProvider propertyProvider : resourceProviders.get(type).getPropertyProviders()) {
       //TODO : only call the provider if it provides properties that we need ...
       keepers = propertyProvider.populateResources(keepers, request, predicate);
     }
     return keepers;
   }
 
+  private Map<Resource.Type, ResourceProvider> getResourceSchemas() {
+    Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<Resource.Type, ResourceProvider>();
+
+    resourceProviders.put(Resource.Type.Cluster, providerModule.getResourceProvider(Resource.Type.Cluster));
+    resourceProviders.put(Resource.Type.Service, providerModule.getResourceProvider(Resource.Type.Service));
+    resourceProviders.put(Resource.Type.Host, providerModule.getResourceProvider(Resource.Type.Host));
+    resourceProviders.put(Resource.Type.Component, providerModule.getResourceProvider(Resource.Type.Component));
+    resourceProviders.put(Resource.Type.HostComponent, providerModule.getResourceProvider(Resource.Type.HostComponent));
+
+    return resourceProviders;
+  }
+
+
+  // ----- ResourceIterable inner class --------------------------------------
+
   private static class ResourceIterable implements Iterable<Resource> {
+
+    /**
+     * The resources to iterate over.
+     */
     private final Set<Resource> resources;
+
+    /**
+     * The predicate used to filter the set.
+     */
     private final Predicate predicate;
 
+    // ----- Constructors ----------------------------------------------------
+
+    /**
+     * Create a ResourceIterable.
+     *
+     * @param resources  the set of resources to iterate over
+     * @param predicate  the predicate used to filter the set of resources
+     */
     private ResourceIterable(Set<Resource> resources, Predicate predicate) {
       this.resources = resources;
       this.predicate = predicate;
     }
+
+    // ----- Iterable --------------------------------------------------------
 
     @Override
     public Iterator<Resource> iterator() {
@@ -89,17 +169,42 @@ public class ClusterControllerImpl implements ClusterController {
     }
   }
 
+
+  // ----- ResourceIterator inner class --------------------------------------
+
   private static class ResourceIterator implements Iterator<Resource> {
 
+    /**
+     * The underlying iterator.
+     */
     private final Iterator<Resource> iterator;
+
+    /**
+     * The predicate used to filter the resource being iterated over.
+     */
     private final Predicate predicate;
+
+    /**
+     * The next resource.
+     */
     private Resource nextResource;
 
+
+    // ----- Constructors ----------------------------------------------------
+
+    /**
+     * Create a new ResourceIterator.
+     *
+     * @param resources  the set of resources to iterate over
+     * @param predicate  the predicate used to filter the set of resources
+     */
     private ResourceIterator(Set<Resource> resources, Predicate predicate) {
-      this.iterator = resources.iterator();
-      this.predicate = predicate;
+      this.iterator     = resources.iterator();
+      this.predicate    = predicate;
       this.nextResource = getNextResource();
     }
+
+    // ----- Iterator --------------------------------------------------------
 
     @Override
     public boolean hasNext() {
@@ -123,6 +228,13 @@ public class ClusterControllerImpl implements ClusterController {
       throw new UnsupportedOperationException("Remove not supported.");
     }
 
+    // ----- helper methods --------------------------------------------------
+
+    /**
+     * Get the next resource.
+     *
+     * @return the next resource.
+     */
     private Resource getNextResource() {
       while (iterator.hasNext()) {
         Resource next = iterator.next();

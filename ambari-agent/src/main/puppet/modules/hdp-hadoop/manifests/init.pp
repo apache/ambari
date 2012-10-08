@@ -41,34 +41,28 @@ class hdp-hadoop::initialize()
 #Configs generation  
   include manifestloader
 
-  configgenerator::configfile{'hdfs-site.xml': 
-    module => 'hdp-hadoop',
-    properties => $manifestloader::hdp_hadoop_hdfs_site_props
+  configgenerator::configfile{'mapred_queue_acls_xml': 
+    configuration => $manifestloader::Hdp_hadoop__mapred_queue_acls
+  }
+  
+  configgenerator::configfile{'hadoop_policy_xml': 
+    configuration => $manifestloader::Hdp_hadoop__hadoop_policy
+  }
+  
+  configgenerator::configfile{'core_site_xml': 
+    configuration => $manifestloader::Hdp_hadoop__core_site
   }
 
-  configgenerator::configfile{'capacity-scheduler.xml': 
-    module => 'hdp-hadoop',
-    properties => $manifestloader::hdp_hadoop_capacity_scheduler_props
+  configgenerator::configfile{'mapred_site_xml': 
+    configuration => $manifestloader::Hdp_hadoop__mapred_site
+  }
+  
+  configgenerator::configfile{'capacity_scheduler_xml': 
+    configuration => $manifestloader::Hdp_hadoop__capacity_scheduler
   }
 
-  configgenerator::configfile{'mapred-site.xml': 
-    module => 'hdp-hadoop',
-    properties => $manifestloader::hdp_hadoop_mapred_site_props
-  }
-      
-  configgenerator::configfile{'core-site.xml': 
-    module => 'hdp-hadoop',
-    properties => $manifestloader::hdp_hadoop_core_site_props
-  }
-      
-  configgenerator::configfile{'hadoop-policy.xml': 
-    module => 'hdp-hadoop',
-    properties => $manifestloader::hdp_hadoop_policy_props
-  }
-      
-  configgenerator::configfile{'mapred-queue-acls.xml.erb': 
-    module => 'hdp-hadoop',
-    properties => $manifestloader::hdp_hadoop_mapred_queue_acls_props
+  configgenerator::configfile{'hdfs_site_xml': 
+    configuration => $manifestloader::Hdp_hadoop__hdfs_site
   }
 }
 

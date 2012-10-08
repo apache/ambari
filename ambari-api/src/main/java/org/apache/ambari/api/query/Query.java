@@ -19,25 +19,37 @@
 package org.apache.ambari.api.query;
 
 import org.apache.ambari.api.services.Result;
-import org.apache.ambari.api.controller.spi.PropertyId;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.spi.PropertyId;
 
-import java.util.Map;
-import java.util.Set;
 
 /**
- *
+ * Responsible for querying the back end for read requests
  */
 public interface Query {
-  public void addAllProperties(Map<String, Set<String>> setProperties);
 
-  public void addProperty(String path, String property);
+  /**
+   * Add a property to the query.
+   * This is the select portion of the query.
+   *
+   * @param group    the group name that contains the property
+   * @param property the property name
+   */
+  public void addProperty(String group, String property);
 
+  /**
+   * Add a property to the query.
+   * This is the select portion of the query.
+   *
+   * @param property the property id which contains the group, property name
+   *                 and whether the property is temporal
+   */
   public void addProperty(PropertyId property);
 
-  //todo: signature - need path
-  public void retainAllProperties(Set<String> setFields);
-
-  public void clearAllProperties();
-
-  public Result execute();
+  /**
+   * Execute the query.
+   *
+   * @return the result of the query.
+   */
+  public Result execute() throws AmbariException;
 }

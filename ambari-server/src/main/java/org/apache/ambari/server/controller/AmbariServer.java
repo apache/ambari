@@ -21,9 +21,9 @@ package org.apache.ambari.server.controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Map;
 
+import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.security.CertificateManager;
@@ -32,11 +32,10 @@ import org.mortbay.jetty.Server;
 import org.mortbay.jetty.security.SslSocketConnector;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.DefaultServlet;
+import org.mortbay.jetty.servlet.FilterHolder;
 import org.mortbay.jetty.servlet.ServletHolder;
-import org.mortbay.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.spi.LoggerFactoryBinder;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
@@ -48,6 +47,7 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.jpa.JpaPersistModule;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
+import org.springframework.web.filter.DelegatingFilterProxy;
 
 @Singleton
 public class AmbariServer {
@@ -58,14 +58,11 @@ public class AmbariServer {
   public static int CLIENT_API_PORT = 8080;
   private Server server = null;
   private Server serverForAgent = null;
-  
+
   public volatile boolean running = true; // true while controller runs
 
-  final String WEB_APP_DIR = "webapp";
-  final URL warUrl = this.getClass().getClassLoader().getResource(WEB_APP_DIR);
-  final String warUrlString = warUrl.toExternalForm();
   final String CONTEXT_PATH = "/";
-  final String SPRING_CONTEXT_LOCATION = 
+  final String SPRING_CONTEXT_LOCATION =
       "classpath:/webapp/WEB-INF/spring-security.xml";
 
   @Inject
@@ -78,54 +75,53 @@ public class AmbariServer {
   public void run() {
     server = new Server(CLIENT_API_PORT);
     serverForAgent = new Server();
-  
+
     try {
-      ClassPathXmlApplicationContext parentSpringAppContext = 
+      ClassPathXmlApplicationContext parentSpringAppContext =
           new ClassPathXmlApplicationContext();
       parentSpringAppContext.refresh();
       ConfigurableListableBeanFactory factory = parentSpringAppContext.
           getBeanFactory();
-      factory.registerSingleton("guiceInjector", injector); 
+      factory.registerSingleton("guiceInjector", injector);
       //Spring Security xml config depends on this Bean
 
       String[] contextLocations = {SPRING_CONTEXT_LOCATION};
-      ClassPathXmlApplicationContext springAppContext = new 
+      ClassPathXmlApplicationContext springAppContext = new
           ClassPathXmlApplicationContext(contextLocations, parentSpringAppContext);
 
-      WebAppContext webAppContext = new WebAppContext(warUrlString, CONTEXT_PATH);
+      Context root = new Context(server, CONTEXT_PATH, Context.ALL);
 
       GenericWebApplicationContext springWebAppContext = new GenericWebApplicationContext();
-      springWebAppContext.setServletContext(webAppContext.getServletContext());
+      springWebAppContext.setServletContext(root.getServletContext());
       springWebAppContext.setParent(springAppContext);
 
-      webAppContext.getServletContext().setAttribute(
-          WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, 
+      root.getServletContext().setAttribute(
+          WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
           springWebAppContext);
 
-
-      server.setHandler(webAppContext);
-
       certMan.initRootCert();
-      Context root =
-              webAppContext;
-      
-      Context agentroot =
-                       new Context(serverForAgent, "/", Context.SESSIONS);
+
+      Context agentroot = new Context(serverForAgent, "/", Context.SESSIONS);
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitOrder(1);
-      
+
       /* Configure default servlet for agent server */
       rootServlet = agentroot.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitOrder(1);
 
-      root.addFilter(SecurityFilter.class, "/*", 1);
+      //Spring Security Filter initialization
+      DelegatingFilterProxy springSecurityFilter = new DelegatingFilterProxy();
+      springSecurityFilter.setTargetBeanName("springSecurityFilterChain");
+      root.addFilter(new FilterHolder(springSecurityFilter), "/*", 1);
+
+      agentroot.addFilter(SecurityFilter.class, "/*", 1);
       //Secured connector for 2-way auth
       SslSocketConnector sslConnectorTwoWay = new SslSocketConnector();
       sslConnectorTwoWay.setPort(CLIENT_TWO_WAY);
 
       Map<String, String> configsMap = configs.getConfigsMap();
-      String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) + 
+      String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) +
           File.separator + configsMap.get(Configuration.KSTR_NAME_KEY);
       String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
 
@@ -169,6 +165,8 @@ public class AmbariServer {
               "com.sun.jersey.api.core.PackagesResourceConfig");
       agent.setInitParameter("com.sun.jersey.config.property.packages",
               "org.apache.ambari.server.agent.rest");
+      agent.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
+          "true");
       agentroot.addServlet(agent, "/agent/*");
       agent.setInitOrder(3);
 
@@ -182,7 +180,7 @@ public class AmbariServer {
 
       ServletHolder certs = new ServletHolder(ServletContainer.class);
       certs.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
-        "com.sun.jersey.api.core.PackagesResourceConfig");
+              "com.sun.jersey.api.core.PackagesResourceConfig");
       certs.setInitParameter("com.sun.jersey.config.property.packages",
         "org.apache.ambari.server.security.unsecured.rest");
       agentroot.addServlet(cert, "/certs/*");
@@ -190,7 +188,7 @@ public class AmbariServer {
 
       ServletHolder resources = new ServletHolder(ServletContainer.class);
       resources.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
-        "com.sun.jersey.api.core.PackagesResourceConfig");
+              "com.sun.jersey.api.core.PackagesResourceConfig");
       resources.setInitParameter("com.sun.jersey.config.property.packages",
         "org.apache.ambari.server.resources.api.rest");
       root.addServlet(resources, "/resources/*");
@@ -203,9 +201,11 @@ public class AmbariServer {
        */
       server.start();
       serverForAgent.start();
-      
+
+      //Start action scheduler
       LOG.info("********* Started Server **********");
-      
+      ActionManager manager = injector.getInstance(ActionManager.class);
+      manager.start();
       server.join();
       LOG.info("Joined the Server");
     } catch (Exception e) {
@@ -222,7 +222,7 @@ public class AmbariServer {
   }
 
   public static void main(String[] args) throws IOException {
-    Injector injector = Guice.createInjector(new ControllerModule(), 
+    Injector injector = Guice.createInjector(new ControllerModule(),
         new JpaPersistModule(PERSISTENCE_PROVIDER));
 
     try {

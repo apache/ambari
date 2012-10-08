@@ -20,9 +20,9 @@ package org.apache.ambari.api.controller.utilities;
 import junit.framework.Assert;
 import org.apache.ambari.api.controller.internal.PropertyIdImpl;
 import org.apache.ambari.api.controller.internal.ResourceImpl;
-import org.apache.ambari.api.controller.spi.Predicate;
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
 /**

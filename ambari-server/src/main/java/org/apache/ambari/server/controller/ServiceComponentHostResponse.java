@@ -18,151 +18,138 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.List;
 import java.util.Map;
 
 public class ServiceComponentHostResponse {
 
   private String clusterName; // REF
-  
-  private List<PerServiceComponentHostResponse> hostComponents;
-  
-  public ServiceComponentHostResponse(String clusterName,
-      List<PerServiceComponentHostResponse> hostComponents) {
+
+  private String serviceName;
+
+  private String componentName;
+
+  private String hostname;
+
+  // Config type -> version mapping
+  private Map<String, String> configVersions;
+
+  private String liveState;
+
+  private String stackVersion;
+
+  private String desiredState;
+
+  public ServiceComponentHostResponse(String clusterName, String serviceName,
+                                      String componentName, String hostname,
+                                      Map<String, String> configVersions, String liveState,
+                                      String stackVersion, String desiredState) {
     super();
     this.clusterName = clusterName;
-    this.hostComponents = hostComponents;
+    this.serviceName = serviceName;
+    this.componentName = componentName;
+    this.hostname = hostname;
+    this.configVersions = configVersions;
+    this.liveState = liveState;
+    this.stackVersion = stackVersion;
+    this.desiredState = desiredState;
   }
 
-  public static class PerServiceComponentHostResponse {
-    
-    private String serviceName; 
-    
-    private String componentName;
-    
-    private String hostname;
-    
-    // Config type -> version mapping
-    private Map<String, String> configVersions;
+  /**
+   * @return the serviceName
+   */
+  public String getServiceName() {
+    return serviceName;
+  }
 
-    private String liveState;
+  /**
+   * @param serviceName the serviceName to set
+   */
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
+  }
 
-    private String stackVersion;
+  /**
+   * @return the componentName
+   */
+  public String getComponentName() {
+    return componentName;
+  }
 
-    private String desiredState;
+  /**
+   * @param componentName the componentName to set
+   */
+  public void setComponentName(String componentName) {
+    this.componentName = componentName;
+  }
 
-    public PerServiceComponentHostResponse(String serviceName,
-        String componentName, String hostname,
-        Map<String, String> configVersions, String liveState,
-        String stackVersion, String desiredState) {
-      super();
-      this.serviceName = serviceName;
-      this.componentName = componentName;
-      this.hostname = hostname;
-      this.configVersions = configVersions;
-      this.liveState = liveState;
-      this.stackVersion = stackVersion;
-      this.desiredState = desiredState;
-    }
+  /**
+   * @return the hostname
+   */
+  public String getHostname() {
+    return hostname;
+  }
 
-    /**
-     * @return the serviceName
-     */
-    public String getServiceName() {
-      return serviceName;
-    }
+  /**
+   * @param hostname the hostname to set
+   */
+  public void setHostname(String hostname) {
+    this.hostname = hostname;
+  }
 
-    /**
-     * @param serviceName the serviceName to set
-     */
-    public void setServiceName(String serviceName) {
-      this.serviceName = serviceName;
-    }
+  /**
+   * @return the configVersions
+   */
+  public Map<String, String> getConfigVersions() {
+    return configVersions;
+  }
 
-    /**
-     * @return the componentName
-     */
-    public String getComponentName() {
-      return componentName;
-    }
+  /**
+   * @param configVersions the configVersions to set
+   */
+  public void setConfigVersions(Map<String, String> configVersions) {
+    this.configVersions = configVersions;
+  }
 
-    /**
-     * @param componentName the componentName to set
-     */
-    public void setComponentName(String componentName) {
-      this.componentName = componentName;
-    }
+  /**
+   * @return the liveState
+   */
+  public String getLiveState() {
+    return liveState;
+  }
 
-    /**
-     * @return the hostname
-     */
-    public String getHostname() {
-      return hostname;
-    }
+  /**
+   * @param liveState the liveState to set
+   */
+  public void setLiveState(String liveState) {
+    this.liveState = liveState;
+  }
 
-    /**
-     * @param hostname the hostname to set
-     */
-    public void setHostname(String hostname) {
-      this.hostname = hostname;
-    }
+  /**
+   * @return the stackVersion
+   */
+  public String getStackVersion() {
+    return stackVersion;
+  }
 
-    /**
-     * @return the configVersions
-     */
-    public Map<String, String> getConfigVersions() {
-      return configVersions;
-    }
+  /**
+   * @param stackVersion the stackVersion to set
+   */
+  public void setStackVersion(String stackVersion) {
+    this.stackVersion = stackVersion;
+  }
 
-    /**
-     * @param configVersions the configVersions to set
-     */
-    public void setConfigVersions(Map<String, String> configVersions) {
-      this.configVersions = configVersions;
-    }
+  /**
+   * @return the desiredState
+   */
+  public String getDesiredState() {
+    return desiredState;
+  }
 
-    /**
-     * @return the liveState
-     */
-    public String getLiveState() {
-      return liveState;
-    }
-
-    /**
-     * @param liveState the liveState to set
-     */
-    public void setLiveState(String liveState) {
-      this.liveState = liveState;
-    }
-
-    /**
-     * @return the stackVersion
-     */
-    public String getStackVersion() {
-      return stackVersion;
-    }
-
-    /**
-     * @param stackVersion the stackVersion to set
-     */
-    public void setStackVersion(String stackVersion) {
-      this.stackVersion = stackVersion;
-    }
-
-    /**
-     * @return the desiredState
-     */
-    public String getDesiredState() {
-      return desiredState;
-    }
-
-    /**
-     * @param desiredState the desiredState to set
-     */
-    public void setDesiredState(String desiredState) {
-      this.desiredState = desiredState;
-    }
-    
+  /**
+   * @param desiredState the desiredState to set
+   */
+  public void setDesiredState(String desiredState) {
+    this.desiredState = desiredState;
   }
 
   /**
@@ -178,24 +165,4 @@ public class ServiceComponentHostResponse {
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
-
-
-
-  /**
-   * @return the hostComponents
-   */
-  public List<PerServiceComponentHostResponse> getHostComponents() {
-    return hostComponents;
-  }
-
-
-
-  /**
-   * @param hostComponents the hostComponents to set
-   */
-  public void setHostComponents(
-      List<PerServiceComponentHostResponse> hostComponents) {
-    this.hostComponents = hostComponents;
-  }
-
 }

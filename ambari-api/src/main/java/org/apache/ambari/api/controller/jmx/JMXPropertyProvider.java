@@ -19,11 +19,11 @@
 package org.apache.ambari.api.controller.jmx;
 
 import org.apache.ambari.api.controller.internal.PropertyIdImpl;
-import org.apache.ambari.api.controller.spi.Predicate;
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.PropertyProvider;
-import org.apache.ambari.api.controller.spi.Request;
-import org.apache.ambari.api.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.api.controller.utilities.PredicateHelper;
 import org.apache.ambari.api.controller.utilities.Properties;
 

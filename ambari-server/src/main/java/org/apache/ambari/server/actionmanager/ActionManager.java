@@ -24,8 +24,6 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +54,7 @@ public class ActionManager {
     this.fsm = fsm;
   }
 
-  public void initialize() {
+  public void start() {
     scheduler.start();
   }
 

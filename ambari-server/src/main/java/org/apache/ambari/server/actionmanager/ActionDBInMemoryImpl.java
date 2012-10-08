@@ -24,6 +24,9 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.utils.StageUtils;
 
+import com.google.inject.Singleton;
+
+@Singleton
 public class ActionDBInMemoryImpl implements ActionDBAccessor {
 
   List<Stage> stageList = new ArrayList<Stage>();
@@ -81,17 +84,19 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
         l.add(s);
       }
     }
-    //TODO: Remove this code
-    //HACK to add a stage so that something is sent to the agent
-    long requestId = 1;
-    long stageId = 1;
+    // TODO: Remove this code
+    // HACK to add a stage so that something is sent to the agent
     if (l.isEmpty()) {
-      requestId = stageList.get(stageList.size() - 1).getRequestId() + 1;
-      stageId = stageList.get(stageList.size() - 1).getStageId() + 1;
+      long requestId = 1;
+      long stageId = 1;
+      if (!stageList.isEmpty()) {
+        requestId = stageList.get(stageList.size() - 1).getRequestId() + 1;
+        stageId = stageList.get(stageList.size() - 1).getStageId() + 1;
+      }
+      Stage s = StageUtils.getATestStage(requestId, stageId);
+      stageList.add(s);
+      l.add(s);
     }
-    Stage s = StageUtils.getATestStage(requestId, stageId);
-    stageList.add(s);
-    l.add(s);
     return l;
   }
 

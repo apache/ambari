@@ -19,16 +19,17 @@
 package org.apache.ambari.api.services;
 
 
-import org.apache.ambari.api.controller.spi.Resource;
-
-import java.util.List;
-import java.util.Map;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.api.util.TreeNode;
 
 /**
- *
+ * Represents a result from a request handler invocation.
  */
 public interface Result {
-  public void addResources(String groupName, List<Resource> listResources);
-
-  public Map<String, List<Resource>> getResources();
+  /**
+   * the results of the request invocation as a Tree structure.
+   *
+   * @return the results of the request a a Tree structure
+   */
+  public TreeNode<Resource> getResultTree();
 }

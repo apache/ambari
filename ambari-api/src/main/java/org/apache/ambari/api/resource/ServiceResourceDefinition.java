@@ -18,22 +18,32 @@
 
 package org.apache.ambari.api.resource;
 
-import org.apache.ambari.api.services.formatters.CollectionFormatter;
-import org.apache.ambari.api.services.formatters.ResultFormatter;
-import org.apache.ambari.api.services.formatters.ServiceInstanceFormatter;
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
- *
+ * Service resource definition.
  */
 public class ServiceResourceDefinition extends BaseResourceDefinition {
 
+  /**
+   * value of cluster id foreign key
+   */
   private String m_clusterId;
+
+  /**
+   * Constructor.
+   *
+   * @param id        service id value
+   * @param clusterId cluster id value
+   */
+  public ServiceResourceDefinition(String id, String clusterId) {
+    super(Resource.Type.Service, id);
+    m_clusterId = clusterId;
+    setResourceId(Resource.Type.Cluster, m_clusterId);
+  }
 
   @Override
   public String getPluralName() {
@@ -45,33 +55,16 @@ public class ServiceResourceDefinition extends BaseResourceDefinition {
     return "service";
   }
 
-  public ServiceResourceDefinition(String id, String clusterId) {
-    super(Resource.Type.Service, id);
-    m_clusterId = clusterId;
-    setResourceId(Resource.Type.Cluster, m_clusterId);
-  }
-
   @Override
-  public Set<ResourceDefinition> getChildren() {
-    Set<ResourceDefinition> setChildren = new HashSet<ResourceDefinition>();
+  public Map<String, ResourceDefinition> getSubResources() {
+    Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
     // for component collection need id property
     ComponentResourceDefinition componentResourceDefinition =
         new ComponentResourceDefinition(null, m_clusterId, getId());
     PropertyId componentIdProperty = getClusterController().getSchema(
         Resource.Type.Component).getKeyPropertyId(Resource.Type.Component);
     componentResourceDefinition.getQuery().addProperty(componentIdProperty);
-    setChildren.add(componentResourceDefinition);
-    return setChildren;
-  }
-
-  @Override
-  public Set<ResourceDefinition> getRelations() {
-    return Collections.emptySet();
-  }
-
-  @Override
-  public ResultFormatter getResultFormatter() {
-    //todo: instance formatter
-    return getId() == null ? new CollectionFormatter(this) : new ServiceInstanceFormatter(this);
+    mapChildren.put(componentResourceDefinition.getPluralName(), componentResourceDefinition);
+    return mapChildren;
   }
 }

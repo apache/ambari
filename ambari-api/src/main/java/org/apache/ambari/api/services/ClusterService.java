@@ -21,11 +21,9 @@ package org.apache.ambari.api.services;
 import org.apache.ambari.api.resource.ClusterResourceDefinition;
 import org.apache.ambari.api.resource.ResourceDefinition;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+
 
 /**
  * Service responsible for cluster resource requests.
@@ -34,7 +32,7 @@ import javax.ws.rs.core.*;
 public class ClusterService extends BaseService {
 
   /**
-   * Handles URL: /clusters/{clusterID}
+   * Handles: GET /clusters/{clusterID}
    * Get a specific cluster.
    *
    * @param headers     http headers
@@ -48,11 +46,11 @@ public class ClusterService extends BaseService {
   public Response getCluster(@Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("clusterName") String clusterName) {
 
-    return handleRequest(headers, ui, Request.RequestType.GET, createResourceDefinition(clusterName));
+    return handleRequest(headers, ui, Request.Type.GET, createResourceDefinition(clusterName));
   }
 
   /**
-   * Handles URL:  /clusters
+   * Handles: GET  /clusters
    * Get all clusters.
    *
    * @param headers http headers
@@ -62,7 +60,58 @@ public class ClusterService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getClusters(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, ui, Request.RequestType.GET, createResourceDefinition(null));
+    return handleRequest(headers, ui, Request.Type.GET, createResourceDefinition(null));
+  }
+
+  /**
+   * Handles: PUT /clusters/{clusterID}
+   * Create a specific cluster.
+   *
+   * @param headers     http headers
+   * @param ui          uri info
+   * @param clusterName cluster id
+   * @return information regarding the created cluster
+   */
+  @PUT
+  @Produces("text/plain")
+  public Response createCluster(@Context HttpHeaders headers, @Context UriInfo ui,
+                                @PathParam("clusterName") String clusterName) {
+
+    return handleRequest(headers, ui, Request.Type.PUT, createResourceDefinition(clusterName));
+  }
+
+  /**
+   * Handles: POST /clusters/{clusterID}
+   * Update a specific cluster.
+   *
+   * @param headers     http headers
+   * @param ui          uri info
+   * @param clusterName cluster id
+   * @return information regarding the updated cluster
+   */
+  @POST
+  @Produces("text/plain")
+  public Response updateCluster(@Context HttpHeaders headers, @Context UriInfo ui,
+                                @PathParam("clusterName") String clusterName) {
+
+    return handleRequest(headers, ui, Request.Type.POST, createResourceDefinition(clusterName));
+  }
+
+  /**
+   * Handles: DELETE /clusters/{clusterID}
+   * Delete a specific cluster.
+   *
+   * @param headers     http headers
+   * @param ui          uri info
+   * @param clusterName cluster id
+   * @return information regarding the deleted cluster
+   */
+  @DELETE
+  @Produces("text/plain")
+  public Response deleteCluster(@Context HttpHeaders headers, @Context UriInfo ui,
+                                @PathParam("clusterName") String clusterName) {
+
+    return handleRequest(headers, ui, Request.Type.DELETE, createResourceDefinition(clusterName));
   }
 
   /**

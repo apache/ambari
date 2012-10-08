@@ -18,8 +18,8 @@
 package org.apache.ambari.api.controller.utilities;
 
 import org.apache.ambari.api.controller.internal.PropertyIdImpl;
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 

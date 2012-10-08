@@ -27,12 +27,11 @@ class hdp-oozie(
   include hdp-oozie::params 
   include manifestloader
  
-   configgenerator::configfile{'oozie-site.xml': 
-    module => 'hdp-oozie',
-    properties => $manifestloader::hdp_oozie_oozie_site_props
+  configgenerator::configfile{'oozie_site_xml': 
+    configuration => $manifestloader::Hdp_oozie__oozie_site
   }
 
- $oozie_user = $hdp-oozie::params::oozie_user
+  $oozie_user = $hdp-oozie::params::oozie_user
   $oozie_config_dir = $hdp-oozie::params::conf_dir
   
   if ($service_state == 'uninstalled') {

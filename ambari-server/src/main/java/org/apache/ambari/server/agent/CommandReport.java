@@ -17,32 +17,24 @@
  */
 package org.apache.ambari.server.agent;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
 public class CommandReport {
-  @XmlElement
   String role;
-  @XmlElement
   String actionId;
-  @XmlElement
   String stdout;
-  @XmlElement
   String stderr;
-  @XmlElement
   String status;
-  @XmlElement
   int exitCode;
-
-  @XmlElement
   private String clusterName;
-
+  
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+  }
+  
+  public String getClusterName() {
+    return this.clusterName;
+  }
+  
   public String getActionId() {
     return this.actionId;
   }

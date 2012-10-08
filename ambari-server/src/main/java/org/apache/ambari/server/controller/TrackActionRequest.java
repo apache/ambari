@@ -19,7 +19,7 @@
 package org.apache.ambari.server.controller;
 
 public class TrackActionRequest {
-  
+
   private final Long requestId;
 
   public TrackActionRequest(Long requestId) {

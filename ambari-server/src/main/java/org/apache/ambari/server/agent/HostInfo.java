@@ -21,86 +21,44 @@ package org.apache.ambari.server.agent;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
 /**
  *
  * Data model for Ambari Agent to send hardware profile to Ambari Server.
  *
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
 public class HostInfo {
-  @XmlElement
   private String architecture;
-  @XmlElement
   private String domain;
-  @XmlElement
   private String fqdn;
-  @XmlElement
   private String hardwareisa;
-  @XmlElement
   private String hardwaremodel;
-  @XmlElement
   private String hostname;
-  @XmlElement
   private String id;
-  @XmlElement
   private String interfaces;
-  @XmlElement
   private String ipaddress;
-  @XmlElement
-  private boolean is_virtual;
-  @XmlElement
   private String kernel;
-  @XmlElement
   private String kernelmajversion;
-  @XmlElement
   private String kernelrelease;
-  @XmlElement
   private String kernelversion;
-  @XmlElement
   private String macaddress;
-  @XmlElement
   private long memoryfree;
-  @XmlElement
   private long memorysize;
-  @XmlElement
   private List<DiskInfo> mounts = new ArrayList<DiskInfo>();
-  @XmlElement
   private long memorytotal;
-  @XmlElement
   private String netmask;
-  @XmlElement
   private String operatingsystem;
-  @XmlElement
   private String operatingsystemrelease;
-  @XmlElement
   private String osfamily;
-  @XmlElement
   private int physicalprocessorcount;
-  @XmlElement
   private int processorcount;
-  @XmlElement
   private boolean selinux;
-  @XmlElement
   private String swapfree;
-  @XmlElement
   private String swapsize;
-  @XmlElement
   private String timezone;
-  @XmlElement
   private String uptime;
-  @XmlElement
   private long uptime_days;
-  @XmlElement
   private long uptime_hours;
-
+ 
   public String getArchitecture() {
     return this.architecture;
   }
@@ -171,14 +129,6 @@ public class HostInfo {
 
   public void setIPAddress(String ipaddress) {
     this.ipaddress = ipaddress;
-  }
-
-  public boolean isVirtual() {
-    return this.is_virtual;
-  }
-
-  public void setVirtual(boolean is_virtual) {
-    this.is_virtual = is_virtual;
   }
 
   public String getKernel() {

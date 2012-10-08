@@ -17,80 +17,68 @@
  */
 package org.apache.ambari.server.controller;
 
-import java.util.List;
 import java.util.Map;
 
 public class ServiceRequest {
 
   private String clusterName; // REF
 
-  private List<PerServiceRequest> services;
+  private String serviceName; // GET/CREATE/UPDATE/DELETE
 
-  public ServiceRequest(String clusterName, List<PerServiceRequest> services) {
+  // Config type -> version mapping
+  private Map<String, String> configVersions; // CREATE/UPDATE
+
+  private String desiredState; // CREATE/UPDATE
+
+  public ServiceRequest(String clusterName, String serviceName,
+                        Map<String, String> configVersions, String desiredState) {
     super();
     this.clusterName = clusterName;
-    this.services = services;
+    this.serviceName = serviceName;
+    this.configVersions = configVersions;
+    this.desiredState = desiredState;
   }
 
-  public static class PerServiceRequest {
+  /**
+   * @return the serviceName
+   */
+  public String getServiceName() {
+    return serviceName;
+  }
 
-    private String serviceName; // GET/CREATE/UPDATE/DELETE
-    
-    // Config type -> version mapping
-    private Map<String, String> configVersions; // CREATE/UPDATE
-    
-    private String desiredState; // CREATE/UPDATE
+  /**
+   * @param serviceName the serviceName to set
+   */
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
+  }
 
-    public PerServiceRequest(String serviceName,
-        Map<String, String> configVersions, String desiredState) {
-      super();
-      this.serviceName = serviceName;
-      this.configVersions = configVersions;
-      this.desiredState = desiredState;
-    }
+  /**
+   * @return the configVersions
+   */
+  public Map<String, String> getConfigVersions() {
+    return configVersions;
+  }
 
-    /**
-     * @return the serviceName
-     */
-    public String getServiceName() {
-      return serviceName;
-    }
+  /**
+   * @param configVersions the configVersions to set
+   */
+  public void setConfigVersions(Map<String, String> configVersions) {
+    this.configVersions = configVersions;
+  }
 
-    /**
-     * @param serviceName the serviceName to set
-     */
-    public void setServiceName(String serviceName) {
-      this.serviceName = serviceName;
-    }
+  /**
+   * @return the desiredState
+   */
+  public String getDesiredState() {
+    return desiredState;
+  }
 
-    /**
-     * @return the configVersions
-     */
-    public Map<String, String> getConfigVersions() {
-      return configVersions;
-    }
-
-    /**
-     * @param configVersions the configVersions to set
-     */
-    public void setConfigVersions(Map<String, String> configVersions) {
-      this.configVersions = configVersions;
-    }
-
-    /**
-     * @return the desiredState
-     */
-    public String getDesiredState() {
-      return desiredState;
-    }
-
-    /**
-     * @param desiredState the desiredState to set
-     */
-    public void setDesiredState(String desiredState) {
-      this.desiredState = desiredState;
-    }
-    
+  /**
+   * @param desiredState the desiredState to set
+   */
+  public void setDesiredState(String desiredState) {
+    this.desiredState = desiredState;
   }
 
   /**
@@ -106,19 +94,4 @@ public class ServiceRequest {
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
-
-  /**
-   * @return the services
-   */
-  public List<PerServiceRequest> getServices() {
-    return services;
-  }
-
-  /**
-   * @param services the services to set
-   */
-  public void setServices(List<PerServiceRequest> services) {
-    this.services = services;
-  }
-  
 }

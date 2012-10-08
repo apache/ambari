@@ -54,7 +54,6 @@ public class DBHelper {
         String sql = "select attributes from hosts";
 
         Statement statement = connection.createStatement();
-        statement.setQueryTimeout(30);  // set timeout to 30 sec.
 
         ResultSet rs = statement.executeQuery(sql);
 

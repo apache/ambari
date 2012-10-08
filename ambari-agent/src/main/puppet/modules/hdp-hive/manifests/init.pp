@@ -29,9 +29,8 @@ class hdp-hive(
   $hive_user = $hdp-hive::params::hive_user
   $hive_config_dir = $hdp-hive::params::hive_conf_dir
 
-  configgenerator::configfile{'hive-site.xml.erb': 
-    module => 'hdp-hive',
-    properties => $manifestloader::hdp_hive_hive_site_props
+  configgenerator::configfile{'hive_site_xml': 
+    configuration => $manifestloader::Hdp_hive__hive_site
   }
 
   anchor { 'hdp-hive::begin': }

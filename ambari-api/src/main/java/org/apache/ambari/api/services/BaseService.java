@@ -21,33 +21,62 @@ package org.apache.ambari.api.services;
 import org.apache.ambari.api.handlers.DelegatingRequestHandler;
 import org.apache.ambari.api.handlers.RequestHandler;
 import org.apache.ambari.api.resource.ResourceDefinition;
+import org.apache.ambari.api.services.serializers.ResultSerializer;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 /**
- *
+ * Provides common functionality to all services.
  */
-public class BaseService {
+public abstract class BaseService {
 
-  protected Response handleRequest(HttpHeaders headers, UriInfo uriInfo, Request.RequestType requestType,
+  /**
+   * All requests are funneled through this method so that common logic can be executed.
+   * This consists of creating a {@link Request} instance, invoking the correct {@link RequestHandler} and
+   * applying the proper {@link ResultSerializer} to the result.
+   *
+   * @param headers            http headers
+   * @param uriInfo            uri information
+   * @param requestType        http request type
+   * @param resourceDefinition resource definition that is being acted on
+   * @return the response of the operation in serialized form
+   */
+  protected Response handleRequest(HttpHeaders headers, UriInfo uriInfo, Request.Type requestType,
                                    ResourceDefinition resourceDefinition) {
 
-    Request req = getRequestFactory().createRequest(headers, uriInfo, requestType, resourceDefinition);
-    Result result = getRequestHandler().handleRequest(req);
-    Object formattedResult = resourceDefinition.getResultFormatter().format(result, uriInfo);
-    return getResponseFactory().createResponse(req.getSerializer().serialize(formattedResult));
+    Request request = getRequestFactory().createRequest(headers, uriInfo, requestType, resourceDefinition);
+    Result result = getRequestHandler().handleRequest(request);
+
+    return getResponseFactory().createResponse(request.getResultSerializer().serialize(result, uriInfo));
   }
 
+  /**
+   * Obtain the factory from which to create Request instances.
+   *
+   * @return the Request factory
+   */
   RequestFactory getRequestFactory() {
     return new RequestFactory();
   }
 
+  /**
+   * Obtain the factory from which to create Response instances.
+   *
+   * @return the Response factory
+   */
   ResponseFactory getResponseFactory() {
     return new ResponseFactory();
   }
 
+  /**
+   * Obtain the appropriate RequestHandler for the request.  At this time all requests are funneled through
+   * a delegating request handler which will ultimately delegate the request to the appropriate concrete
+   * request handler.
+   *
+   * @return the request handler to invoke
+   */
   RequestHandler getRequestHandler() {
     return new DelegatingRequestHandler();
   }

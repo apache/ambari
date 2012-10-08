@@ -26,6 +26,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.HeartBeat;
@@ -70,12 +71,13 @@ public class AgentResource {
   @Path("register/{hostName}")
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+  @Produces({MediaType.APPLICATION_JSON})
   public RegistrationResponse register(Register message,
       @Context HttpServletRequest req)
       throws WebApplicationException, AmbariException, InvalidStateTransitonException {
     LOG.info("Received message from agent " + message.toString());
     /* Call into the heartbeat handler */
+    
     RegistrationResponse response = hh.handleRegistration(message);
     return response;
   }
@@ -94,7 +96,7 @@ public class AgentResource {
   @Path("heartbeat/{hostName}")
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+  @Produces({MediaType.APPLICATION_JSON})
   public HeartBeatResponse heartbeat(HeartBeat message)
       throws WebApplicationException {
     LOG.info("Received Heartbeat message " + message);

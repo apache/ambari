@@ -19,8 +19,8 @@
 package org.apache.ambari.api.controller.internal;
 
 import junit.framework.Assert;
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.api.controller.utilities.Properties;
 import org.junit.Test;
 

@@ -34,10 +34,13 @@ public class HostRoleCommand {
   private String stderr = "";
   private int exitCode = 999; //Default is unknown
   private final ServiceComponentHostEvent event;
+  private String serviceName;
 
-  public HostRoleCommand(Role role, ServiceComponentHostEvent event) {
+  public HostRoleCommand(String serviceName, Role role,
+      ServiceComponentHostEvent event) {
     this.role = role;
     this.event = event;
+    this.serviceName = serviceName;
   }
 
   public Role getRole() {
@@ -78,5 +81,9 @@ public class HostRoleCommand {
 
   public void setExitCode(int exitCode) {
     this.exitCode = exitCode;
+  }
+
+  public String getServiceName() {
+    return serviceName;
   }
 }

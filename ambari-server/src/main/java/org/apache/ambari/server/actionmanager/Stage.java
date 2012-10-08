@@ -17,12 +17,13 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.Role;
-import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.utils.StageUtils;
 
@@ -80,6 +81,18 @@ public class Stage {
   synchronized Map<String, HostAction> getHostActions() {
     return hostActions;
   }
+  
+  /**
+   * 
+   * @return list of hosts
+   */
+  public synchronized List<String> getHosts() {
+    List<String> hlist = new ArrayList<String>();
+    for (String h : getHostActions().keySet()) {
+      hlist.add(h);
+    }
+    return hlist;
+  }
 
   synchronized float getSuccessFactor(Role r) {
     Float f = successFactors.get(r);
@@ -125,6 +138,10 @@ public class Stage {
 
   public long getStartTime(String hostname) {
     return getHostAction(hostname).getStartTime();
+  }
+  
+  public void setStartTime(String hostname, long startTime) {
+    getHostAction(hostname).setStartTime(startTime);
   }
   
   public synchronized boolean isStageInProgress() {

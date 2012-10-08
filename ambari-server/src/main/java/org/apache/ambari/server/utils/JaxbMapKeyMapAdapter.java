@@ -25,27 +25,28 @@ import java.util.TreeMap;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 public class JaxbMapKeyMapAdapter extends
-    XmlAdapter<List<JaxbMapKeyMap>, Map<String, Map<String, String>>> {
+    XmlAdapter<JaxbMapKeyMap[], Map<String, Map<String, String>>> {
 
   private static JaxbMapKeyValAdapter mapAdapter = new JaxbMapKeyValAdapter();
 
   @Override
-  public List<JaxbMapKeyMap> marshal(Map<String, Map<String, String>> map)
+  public JaxbMapKeyMap[] marshal(Map<String, Map<String, String>> map)
       throws Exception {
     if (map == null) {
       return null;
     }
-    List<JaxbMapKeyMap> list = new ArrayList<JaxbMapKeyMap>();
+    JaxbMapKeyMap[] list = new JaxbMapKeyMap[map.size()];
+    int index=0;
     for (String key : map.keySet()) {
       Map<String, String> value = map.get(key);
-      List<JaxbMapKeyVal> keyValList = mapAdapter.marshal(value);
-      list.add(new JaxbMapKeyMap(key, keyValList));
+      JaxbMapKeyVal[] keyValList = mapAdapter.marshal(value);
+      list[index++] = new JaxbMapKeyMap(key, keyValList);
     }
     return list;
   }
 
   @Override
-  public Map<String, Map<String, String>> unmarshal(List<JaxbMapKeyMap> list)
+  public Map<String, Map<String, String>> unmarshal(JaxbMapKeyMap[] list)
       throws Exception {
     if (list == null) {
       return null;

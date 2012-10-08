@@ -20,32 +20,50 @@ package org.apache.ambari.server.state;
 
 import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.ServiceResponse;
+
 public interface Service {
 
   public String getName();
-  
+
   public long getClusterId();
-  
-  public long getCurrentHostComponentMappingVersion();
 
-  public void setCurrentHostComponentMappingVersion(long version);
+  public Cluster getCluster();
 
-  public ServiceComponent getServiceComponent(String componentName);
+  public ServiceComponent getServiceComponent(String componentName)
+      throws AmbariException;
 
   public Map<String, ServiceComponent> getServiceComponents();
 
   public void addServiceComponents(Map<String, ServiceComponent> components);
 
+  public void addServiceComponent(ServiceComponent component);
+
+  public State getDesiredState();
+
+  public void setDesiredState(State state);
+
+  public Map<String, Config> getDesiredConfigs();
+
+  public void updateDesiredConfigs(Map<String, Config> configs);
+
+  public StackVersion getDesiredStackVersion();
+
+  public void setDesiredStackVersion(StackVersion stackVersion);
+
   public State getState();
-  
+
   public void setState(State state);
 
   public Map<String, Config> getConfigs();
 
   public void updateConfigs(Map<String, Config> configs);
-  
+
   public StackVersion getStackVersion();
-  
+
   public void setStackVersion(StackVersion stackVersion);
-  
+
+  public ServiceResponse convertToResponse();
+
 }

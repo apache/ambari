@@ -25,7 +25,7 @@ import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.live.ClustersImpl;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
@@ -45,7 +45,7 @@ public class ControllerModule extends AbstractModule {
     requestStaticInjection(GetResource.class);
     bind(Clusters.class).to(ClustersImpl.class);
     bind(ActionDBAccessor.class).to(ActionDBInMemoryImpl.class);
-    bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(10L);
-    bindConstant().annotatedWith(Names.named("actionTimeout")).to(10L);
+    bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(10000L);
+    bindConstant().annotatedWith(Names.named("actionTimeout")).to(60000L);
   }
 }

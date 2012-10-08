@@ -48,31 +48,31 @@ public class Configuration {
   public static final String SRVR_KSTR_DIR_KEY = "security.server.keys_dir";
   public static final String SRVR_CRT_NAME_KEY = "security.server.cert_name";
   public static final String SRVR_KEY_NAME_KEY = "security.server.key_name";
-  public static final String KSTR_NAME_KEY = 
+  public static final String KSTR_NAME_KEY =
       "security.server.keystore_name";
-  public static final String SRVR_CRT_PASS_FILE_KEY = 
+  public static final String SRVR_CRT_PASS_FILE_KEY =
       "security.server.crt_pass_file";
   public static final String SRVR_CRT_PASS_KEY = "security.server.crt_pass";
-  public static final String PASSPHRASE_ENV_KEY = 
+  public static final String PASSPHRASE_ENV_KEY =
       "security.server.passphrase_env_var";
   public static final String PASSPHRASE_KEY = "security.server.passphrase";
   public static final String RESOURCES_DIR_KEY = "resources.dir";
 
   public static final String CLIENT_SECURITY_KEY = "client.security";
   public static final String LDAP_USE_SSL_KEY = "authorization.ldap.useSSL";
-  public static final String LDAP_PRIMARY_URL_KEY = 
+  public static final String LDAP_PRIMARY_URL_KEY =
       "authorization.ldap.primaryUrl";
-  public static final String LDAP_SECONDARY_URL_KEY = 
+  public static final String LDAP_SECONDARY_URL_KEY =
       "authorization.ldap.secondaryUrl";
-  public static final String LDAP_BASE_DN_KEY = 
+  public static final String LDAP_BASE_DN_KEY =
       "authorization.ldap.baseDn";
   public static final String LDAP_BIND_ANONYMOUSLY_KEY =
       "authorization.ldap.bindAnonymously";
-  public static final String LDAP_MANAGER_DN_KEY = 
+  public static final String LDAP_MANAGER_DN_KEY =
       "authorization.ldap.managerDn";
   public static final String LDAP_MANAGER_PASSWORD_KEY =
       "authorization.ldap.managerPassword";
-  public static final String LDAP_USERNAME_ATTRIBUTE_KEY = 
+  public static final String LDAP_USERNAME_ATTRIBUTE_KEY =
       "authorization.ldap.usernameAttribute";
   public static final String LDAP_USER_DEFAULT_ROLE_KEY =
       "authorization.ldap.userDefaultRole";

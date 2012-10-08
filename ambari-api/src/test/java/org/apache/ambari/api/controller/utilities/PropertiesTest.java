@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.api.controller.utilities;
 
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Ignore;
 import org.junit.Test;
 

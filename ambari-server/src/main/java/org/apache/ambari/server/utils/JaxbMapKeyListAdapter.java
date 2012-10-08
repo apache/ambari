@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.utils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -25,24 +24,25 @@ import java.util.TreeMap;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 public class JaxbMapKeyListAdapter extends
-    XmlAdapter<List<JaxbMapKeyList>, Map<String, List<String>>> {
+    XmlAdapter<JaxbMapKeyList[], Map<String, List<String>>> {
 
   @Override
-  public List<JaxbMapKeyList> marshal(Map<String, List<String>> map)
+  public JaxbMapKeyList[] marshal(Map<String, List<String>> map)
       throws Exception {
     if (map==null) {
       return null;
     }
-    List<JaxbMapKeyList> list = new ArrayList<JaxbMapKeyList>() ;
+    JaxbMapKeyList[] list = new JaxbMapKeyList[map.size()] ;
+    int index = 0;
     for (String key : map.keySet()) {
       JaxbMapKeyList jaxbMap = new JaxbMapKeyList(key, map.get(key));
-      list.add(jaxbMap);
+      list[index++] = jaxbMap;
     }
     return list;
   }
 
   @Override
-  public Map<String, List<String>> unmarshal(List<JaxbMapKeyList> list)
+  public Map<String, List<String>> unmarshal(JaxbMapKeyList[] list)
       throws Exception {
     if (list == null) {
       return null;

@@ -17,20 +17,30 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.xml.bind.JAXBException;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.ActionQueue;
+import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentImpl;
+import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostOpFailedEvent;
+
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
+import org.apache.ambari.server.utils.StageUtils;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -58,6 +68,27 @@ class ActionScheduler implements Runnable {
     this.actionQueue = actionQueue;
     this.fsmObject = fsmObject;
     this.maxAttempts = (short) maxAttempts;
+    //HACK Initialize
+    try {
+      if (fsmObject != null) {
+        String hostname = InetAddress.getLocalHost().getHostName();
+        fsmObject.addCluster("cluster1");
+        fsmObject.getCluster("cluster1").addService(
+            new ServiceImpl(fsmObject.getCluster("cluster1"), "HDFS"));
+        Map<String, ServiceComponent> svcComps = new TreeMap<String, ServiceComponent>();
+        ServiceComponent svcComponent = new ServiceComponentImpl(fsmObject
+            .getCluster("cluster1").getService("HDFS"), "NAMENODE");
+        svcComps.put("NAMENODE", svcComponent);
+        fsmObject.getCluster("cluster1").getService("HDFS")
+            .addServiceComponents(svcComps);
+        Map<String, ServiceComponentHost> hostComponents = new TreeMap<String, ServiceComponentHost>();
+        hostComponents.put(hostname, new ServiceComponentHostImpl(svcComponent,
+            hostname, false));
+        svcComponent.addServiceComponentHosts(hostComponents);
+      }
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   public void start() {
@@ -86,9 +117,11 @@ class ActionScheduler implements Runnable {
   }
 
   private void doWork() throws AmbariException {
+    LOG.info("Scheduler wakes up");
     List<Stage> stages = db.getStagesInProgress();
     if (stages == null || stages.isEmpty()) {
       //Nothing to do
+      LOG.info("No stage in progress..nothing to do");
       return;
     }
 
@@ -123,6 +156,7 @@ class ActionScheduler implements Runnable {
 
   private void processPendingsAndReschedule(Stage stage,
       Map<String, HostRoleCommand> hrcMap) throws AmbariException {
+    LOG.info("Processing pending and queued actions");
     for (String host : hrcMap.keySet()) {
       HostRoleCommand hrc = hrcMap.get(host);
       if ( (hrc.getStatus() != HostRoleStatus.PENDING) &&
@@ -131,6 +165,8 @@ class ActionScheduler implements Runnable {
         continue;
       }
       long now = System.currentTimeMillis();
+      LOG.info("Last attempt time =" + stage.getLastAttemptTime(host)
+          + ", actiontimeout =" + this.actionTimeout + ", current time=" + now);
       if (now > stage.getLastAttemptTime(host)+actionTimeout) {
         LOG.info("Host:"+host+", role:"+hrc.getRole()+", actionId:"+stage.getActionId()+" timed out");
         if (stage.getAttemptCount(host) >= maxAttempts) {
@@ -140,9 +176,8 @@ class ActionScheduler implements Runnable {
               new ServiceComponentHostOpFailedEvent(hrc.getRole().toString(),
                   host, now);
           try {
-            // TODO fix service name
             Cluster c = fsmObject.getCluster(stage.getClusterName());
-            Service svc = c.getService("");
+            Service svc = c.getService(hrc.getServiceName());
             ServiceComponent svcComp = svc.getServiceComponent(
                 hrc.getRole().toString());
             ServiceComponentHost svcCompHost =
@@ -168,18 +203,20 @@ class ActionScheduler implements Runnable {
 
   private void scheduleHostRole(Stage s, String hostname, HostRoleCommand hrc)
       throws InvalidStateTransitonException, AmbariException {
-    LOG.info("Host:" + hostname + ", role:" + hrc.getRole() + ", actionId:"
-        + s.getActionId() + " being scheduled");
     long now = System.currentTimeMillis();
+    LOG.info("Host:" + hostname + ", role:" + hrc.getRole() + ", actionId:"
+        + s.getActionId() + " being scheduled"+", current time: "+now+", start time: "+
+        s.getStartTime(hostname));
     if (s.getStartTime(hostname) < 0) {
+      LOG.info("Update state machine for first attempt");
       try {
         Cluster c = fsmObject.getCluster(s.getClusterName());
-        // TODO fix service name, component name     
-        Service svc = c.getService("");
-        ServiceComponent svcComp = svc.getServiceComponent("");
+        Service svc = c.getService(hrc.getServiceName());
+        ServiceComponent svcComp = svc.getServiceComponent(hrc.getRole().toString());
         ServiceComponentHost svcCompHost =
             svcComp.getServiceComponentHost(hostname);
         svcCompHost.handleEvent(hrc.getEvent());
+        s.setStartTime(hostname, now);
       } catch (InvalidStateTransitonException e) {
         LOG.info(
             "Transition failed for host: " + hostname + ", role: "
@@ -193,7 +230,14 @@ class ActionScheduler implements Runnable {
     }
     s.setLastAttemptTime(hostname, now);
     s.incrementAttemptCount(hostname);
-    actionQueue.enqueue(hostname, s.getExecutionCommand(hostname));
+    LOG.info("Enqueueing in action queue for host: "+hostname);
+    AgentCommand cmd = s.getExecutionCommand(hostname);
+    try {
+      LOG.info("Command string = " + StageUtils.jaxbToString(cmd));
+    } catch (Exception e) {
+      throw new AmbariException("Could not get string from jaxb",e);
+    }
+    actionQueue.enqueue(hostname, cmd);
   }
 
   private RoleStatus getRoleStatus(

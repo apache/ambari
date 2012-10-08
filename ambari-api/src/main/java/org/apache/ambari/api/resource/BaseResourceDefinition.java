@@ -22,34 +22,68 @@ package org.apache.ambari.api.resource;
 import org.apache.ambari.api.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.api.query.Query;
 import org.apache.ambari.api.query.QueryImpl;
-import org.apache.ambari.api.controller.spi.ClusterController;
-import org.apache.ambari.api.controller.spi.Resource;
+import org.apache.ambari.api.services.Request;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Schema;
+import org.apache.ambari.api.util.TreeNode;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * Base resource definition.  Contains behavior common to all resource types.
  */
 public abstract class BaseResourceDefinition implements ResourceDefinition {
 
+  /**
+   * Resource type.  One of {@link Resource.Type}
+   */
   private Resource.Type m_type;
-  private String m_id;
-  private Query m_query = new QueryImpl(this);
-  Map<Resource.Type, String> m_mapResourceIds = new HashMap<Resource.Type, String>();
 
+  /**
+   * Value of the id property for the resource.
+   */
+  private String m_id;
+
+  /**
+   * Query associated with the resource definition.
+   */
+  private Query m_query;
+
+  /**
+   * Map of primary and foreign keys and values necessary to identify the resource.
+   */
+  private Map<Resource.Type, String> m_mapResourceIds = new HashMap<Resource.Type, String>();
+
+
+  /**
+   * Constructor.
+   *
+   * @param resourceType resource type
+   * @param id           value of primary key
+   */
   public BaseResourceDefinition(Resource.Type resourceType, String id) {
     m_type = resourceType;
-    m_id = id;
+    setId(id);
+    m_query = new QueryImpl(this);
+  }
 
-    if (id != null) {
-      setResourceId(resourceType, id);
-    }
+  @Override
+  public void setParentId(Resource.Type type, String value) {
+    setResourceId(type, value);
   }
 
   @Override
   public String getId() {
     return m_id;
+  }
+
+  void setId(String val) {
+    setResourceId(getType(), val);
+    m_id = val;
   }
 
   @Override
@@ -64,16 +98,26 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   }
 
   protected void setResourceId(Resource.Type resourceType, String val) {
-    //todo: hack for case where service id is null when getting a component from hostComponent
-    if (val != null) {
-      m_mapResourceIds.put(resourceType, val);
-    }
+    m_mapResourceIds.put(resourceType, val);
   }
 
   @Override
   public Map<Resource.Type, String> getResourceIds() {
     return m_mapResourceIds;
   }
+
+  ClusterController getClusterController() {
+    return ClusterControllerHelper.getClusterController();
+  }
+
+  @Override
+  public List<PostProcessor> getPostProcessors() {
+    List<PostProcessor> listProcessors = new ArrayList<PostProcessor>();
+    listProcessors.add(new BaseHrefPostProcessor());
+
+    return listProcessors;
+  }
+
 
   @Override
   public boolean equals(Object o) {
@@ -85,9 +129,9 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
     if (m_id != null ? !m_id.equals(that.m_id) : that.m_id != null) return false;
     if (m_mapResourceIds != null ? !m_mapResourceIds.equals(that.m_mapResourceIds) : that.m_mapResourceIds != null)
       return false;
-    if (m_type != that.m_type) return false;
 
-    return true;
+    return m_type == that.m_type;
+
   }
 
   @Override
@@ -98,7 +142,29 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
     return result;
   }
 
-  ClusterController getClusterController() {
-    return ClusterControllerHelper.getClusterController();
+  class BaseHrefPostProcessor implements PostProcessor {
+    @Override
+    public void process(Request request, TreeNode<Resource> resultNode, String href) {
+      Resource r = resultNode.getObject();
+      TreeNode<Resource> parent = resultNode.getParent();
+
+      if (parent.getName() != null) {
+        String parentName = parent.getName();
+        Schema schema = getClusterController().getSchema(r.getType());
+        String id = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
+
+        int i = href.indexOf("?");
+        if (i != -1) {
+          href = href.substring(0, i);
+        }
+
+        if (!href.endsWith("/")) {
+          href = href + '/';
+        }
+        String isCollectionResource = parent.getProperty("isCollection");
+        href = "true".equals(isCollectionResource) ? href + id : href + parentName + '/' + id;
+      }
+      resultNode.setProperty("href", href);
+    }
   }
 }

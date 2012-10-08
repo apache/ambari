@@ -19,13 +19,13 @@
 package org.apache.ambari.api.controller.internal;
 
 import junit.framework.Assert;
-import org.apache.ambari.api.controller.spi.Predicate;
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.PropertyProvider;
-import org.apache.ambari.api.controller.spi.Request;
-import org.apache.ambari.api.controller.spi.Resource;
-import org.apache.ambari.api.controller.spi.ResourceProvider;
-import org.apache.ambari.api.controller.spi.Schema;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.api.controller.utilities.Properties;
 import org.junit.Test;
 
@@ -58,22 +58,32 @@ public class SchemaImplTest {
 
     @Override
     public void createResources(Request request) {
-      //To change body of implemented methods use File | Settings | File Templates.
+
     }
 
     @Override
     public void updateResources(Request request, Predicate predicate) {
-      //To change body of implemented methods use File | Settings | File Templates.
+
     }
 
     @Override
     public void deleteResources(Predicate predicate) {
-      //To change body of implemented methods use File | Settings | File Templates.
+
     }
 
     @Override
     public Set<PropertyId> getPropertyIds() {
       return resourceProviderProperties;
+    }
+
+    @Override
+    public List<PropertyProvider> getPropertyProviders() {
+      return propertyProviders;
+    }
+
+    @Override
+    public Schema getSchema() {
+      return null;
     }
   };
 
@@ -114,7 +124,7 @@ public class SchemaImplTest {
 
   @Test
   public void testGetKeyPropertyId() {
-    Schema schema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
+    Schema schema = new SchemaImpl(resourceProvider, keyPropertyIds);
 
     Assert.assertEquals(Properties.getPropertyId("p1", "c1"), schema.getKeyPropertyId(Resource.Type.Cluster));
     Assert.assertEquals(Properties.getPropertyId("p2", "c1"), schema.getKeyPropertyId(Resource.Type.Host));
@@ -123,7 +133,7 @@ public class SchemaImplTest {
 
   @Test
   public void testGetCategories() {
-    Schema schema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
+    Schema schema = new SchemaImpl(resourceProvider, keyPropertyIds);
 
     Map<String, Set<String>> categories = schema.getCategories();
     Assert.assertEquals(4, categories.size());
@@ -152,19 +162,4 @@ public class SchemaImplTest {
     Assert.assertTrue(properties.contains("p7"));
     Assert.assertTrue(properties.contains("p8"));
   }
-
-  @Test
-  public void testGetResourceProvider() {
-    Schema schema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
-
-    Assert.assertSame(resourceProvider, schema.getResourceProvider());
-  }
-
-  @Test
-  public void testGetPropertyProviders() {
-    Schema schema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
-
-    Assert.assertSame(propertyProviders, schema.getPropertyProviders());
-  }
-
 }

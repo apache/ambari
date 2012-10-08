@@ -19,44 +19,37 @@ package org.apache.ambari.server.agent;
 
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
-import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * Command to report the status of a list of roles.
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
 public class StatusCommand extends AgentCommand {
 
   public StatusCommand() {
     super(AgentCommandType.STATUS_COMMAND);
   }
 
-  @XmlElement
   List<String> roles;
 
-  @XmlElement
   private String clusterName;
 
+  @JsonProperty("roles")
   public List<String> getRoles() {
     return roles;
   }
-
+  
+  @JsonProperty("roles")
   public void setRoles(List<String> roles) {
     this.roles = roles;
   }
-
+  
+  @JsonProperty("clusterName")
   public String getClusterName() {
     return clusterName;
   }
-
+  
+  @JsonProperty("clusterName")
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }

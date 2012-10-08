@@ -17,9 +17,11 @@
  */
 package org.apache.ambari.api.controller.utilities;
 
-import org.apache.ambari.api.controller.predicate.BasePredicate;
-import org.apache.ambari.api.controller.spi.Predicate;
-import org.apache.ambari.api.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.predicate.BasePredicate;
+import org.apache.ambari.server.controller.predicate.PredicateVisitor;
+import org.apache.ambari.server.controller.predicate.PredicateVisitorAcceptor;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyId;
 
 import java.util.Collections;
 import java.util.Set;
@@ -34,5 +36,11 @@ public class PredicateHelper {
       return ((BasePredicate) predicate).getPropertyIds();
     }
     return Collections.emptySet();
+  }
+
+  public static void visit(Predicate predicate, PredicateVisitor visitor) {
+    if (predicate instanceof PredicateVisitorAcceptor) {
+      ((PredicateVisitorAcceptor) predicate).accept(visitor);
+    }
   }
 }

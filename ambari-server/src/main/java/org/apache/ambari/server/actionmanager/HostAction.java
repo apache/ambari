@@ -98,4 +98,8 @@ public class HostAction {
   public synchronized void setCommandId(long requestId, long stageId) {
     commandToHost.setCommandId(StageUtils.getActionId(requestId, stageId));
   }
+
+  public void setStartTime(long startTime) {
+    this.startTime = startTime;
+  }
 }

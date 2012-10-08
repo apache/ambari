@@ -19,6 +19,8 @@
 package org.apache.ambari.server.state;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 
@@ -42,10 +44,16 @@ public interface Clusters {
   public Cluster getCluster(String clusterName) throws AmbariException;
 
   /**
+   * Get all known clusters
+   * @return
+   */
+  public Map<String, Cluster> getClusters();
+
+  /**
    * Get all hosts being tracked by the Ambari server
    * @return
    */
-  public List<Host> getAllHosts();
+  public List<Host> getHosts();
 
   /**
    * Returns all the cluster names for this hostname.
@@ -53,8 +61,9 @@ public interface Clusters {
    * @return List of cluster names
    * @throws AmbariException
    */
-  public List<Cluster> getClustersForHost(String hostname)
+  public Set<Cluster> getClustersForHost(String hostname)
       throws AmbariException;
+
 
   /**
    * Get a Host object managed by this server
@@ -81,8 +90,8 @@ public interface Clusters {
   public void mapHostToCluster(String hostname, String clusterName)
       throws AmbariException;
 
-  // TODO for Jitendra to fix in Heartbeat Handler as this function
-  // will not be supported
-  public List<String> getHostComponents(String hostname);
+
+  public void mapHostsToCluster(List<String> hostnames, String clusterName)
+      throws AmbariException;
 
 }

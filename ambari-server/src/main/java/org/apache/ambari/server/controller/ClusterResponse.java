@@ -18,16 +18,21 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.Set;
+
 public class ClusterResponse {
 
   private final Long clusterId;
-  
+
   private final String clusterName;
 
-  public ClusterResponse(Long clusterId, String clusterName) {
+  private Set<String> hostNames;
+
+  public ClusterResponse(Long clusterId, String clusterName, Set<String> hostNames) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
+    this.hostNames = hostNames;
   }
 
   /**
@@ -43,5 +48,11 @@ public class ClusterResponse {
   public String getClusterName() {
     return clusterName;
   }
-  
+
+  /**
+   * @return the host names
+   */
+  public Set<String> getHostNames() {
+    return hostNames;
+  }
 }

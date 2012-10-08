@@ -119,7 +119,7 @@ class CertificateManager():
     response = f.read()
     f.close()
     data = json.loads(response)
-    logger.info("Sign response from Server: \n" + pprint.pformat(data))
+    logger.debug("Sign response from Server: \n" + pprint.pformat(data))
     result=data['result']
     if result == 'OK':
       agentCrtContent=data['signedCa']

@@ -26,7 +26,11 @@
   <files>
     <file>
       <source>${project.build.directory}/${artifact.artifactId}-${artifact.version}.jar</source>
-      <outputDirectory>ambari-server-${project.version}/lib</outputDirectory>
+      <outputDirectory>ambari-server-${project.version}/lib/ambari-server</outputDirectory>
+    </file>
+    <file>
+      <source>${basedir}/src/main/python/ambari-server.py</source>
+      <outputDirectory>/ambari-server-${project.version}/sbin</outputDirectory>
     </file>
   </files>
   <fileSets>
@@ -59,7 +63,7 @@
     </fileSet>
     <fileSet>
       <directory>src/main/conf</directory>
-      <outputDirectory>/ambari-server-${project.version}/conf</outputDirectory>
+      <outputDirectory>/ambari-server-${project.version}/etc/ambari-server/conf</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>src/main/assemblies</directory>
@@ -71,7 +75,7 @@
   </fileSets>
   <dependencySets>
     <dependencySet>
-      <outputDirectory>ambari-server-${project.version}/lib</outputDirectory>
+      <outputDirectory>ambari-server-${project.version}/lib/ambari-server</outputDirectory>
       <unpack>false</unpack>
       <scope>compile</scope>
     </dependencySet>

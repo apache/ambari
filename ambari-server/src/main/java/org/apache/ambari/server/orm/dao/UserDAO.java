@@ -34,13 +34,14 @@ public class UserDAO {
 
   @Transactional
   public UserEntity findByPK(UserEntityPK userPK) {
+    userPK.setUserName(userPK.getUserName().toLowerCase());
     return entityManagerProvider.get().find(UserEntity.class, userPK);
   }
 
   @Transactional
   public UserEntity findLocalUserByName(String userName) {
     TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("localUserByName", UserEntity.class);
-    query.setParameter("username", userName);
+    query.setParameter("username", userName.toLowerCase());
     try {
       return query.getSingleResult();
     } catch (NoResultException e) {
@@ -50,7 +51,7 @@ public class UserDAO {
 
   public UserEntity findLdapUserByName(String userName) {
     TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("ldapUserByName", UserEntity.class);
-    query.setParameter("username", userName);
+    query.setParameter("username", userName.toLowerCase());
     try {
       return query.getSingleResult();
     } catch (NoResultException e) {
@@ -59,13 +60,15 @@ public class UserDAO {
   }
 
   @Transactional
-  public void create(UserEntity userName) {
-    entityManagerProvider.get().persist(userName);
+  public void create(UserEntity user) {
+    user.setUserName(user.getUserName().toLowerCase());
+    entityManagerProvider.get().persist(user);
   }
 
   @Transactional
-  public UserEntity merge(UserEntity userName) {
-    return entityManagerProvider.get().merge(userName);
+  public UserEntity merge(UserEntity user) {
+    user.setUserName(user.getUserName().toLowerCase());
+    return entityManagerProvider.get().merge(user);
   }
 
   @Transactional

@@ -21,50 +21,52 @@ package org.apache.ambari.server.agent;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  *
  * Controller to Agent response data model.
  *
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
 public class HeartBeatResponse {
 
-  @XmlElement
   private long responseId;
-  @XmlElement
-  private String clusterId;
-  @XmlElement
-  List<AgentCommand> cmds = new ArrayList<AgentCommand>();
+ 
+  List<ExecutionCommand> executionCommands = new ArrayList<ExecutionCommand>();
 
+  RegistrationCommand registrationCommand;
+
+  @JsonProperty("responseId")
   public long getResponseId() {
     return responseId;
   }
 
+  @JsonProperty("responseId")
   public void setResponseId(long responseId) {
     this.responseId=responseId;
   }
 
-  public String getClusterId() {
-    return clusterId;
+  @JsonProperty("executionCommands")
+  public List<ExecutionCommand> getExecutionCommands() {
+    return executionCommands;
   }
 
-  public void setClusterId(String clusterId) {
-    this.clusterId = clusterId;
+  @JsonProperty("executionCommands")
+  public void setExecutionCommands(List<ExecutionCommand> executionCommands) {
+    this.executionCommands = executionCommands;
   }
 
-  public List<AgentCommand> getAgentCommands() {
-    return this.cmds;
+  @JsonProperty("registrationCommand")
+  public RegistrationCommand getRegistrationCommand() {
+    return registrationCommand;
   }
 
-  public void setAgentCommands(List<AgentCommand> cmds) {
-    this.cmds = cmds;
+  @JsonProperty("registrationCommand")
+  public void setRegistrationCommand(RegistrationCommand registrationCommand) {
+    this.registrationCommand = registrationCommand;
+  }
+  
+  public void addExecutionCommand(ExecutionCommand execCmd) {
+    executionCommands.add(execCmd);
   }
 }

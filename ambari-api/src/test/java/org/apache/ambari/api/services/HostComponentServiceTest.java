@@ -1,25 +1,8 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.apache.ambari.api.services;
 
 import org.apache.ambari.api.handlers.RequestHandler;
 import org.apache.ambari.api.resource.ResourceDefinition;
-import org.apache.ambari.api.services.formatters.ResultFormatter;
+import org.apache.ambari.api.services.serializers.ResultSerializer;
 import org.junit.Test;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -32,15 +15,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
 /**
- *
+ * Created with IntelliJ IDEA.
+ * User: john
+ * Date: 9/12/12
+ * Time: 11:56 AM
+ * To change this template use File | Settings | File Templates.
  */
 public class HostComponentServiceTest {
   @Test
   public void testGetHostComponent() {
     ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
-    ResultFormatter resultFormatter = createStrictMock(ResultFormatter.class);
-    Object formattedResult = new Object();
-    Serializer serializer = createStrictMock(Serializer.class);
+    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
     ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
@@ -57,18 +42,15 @@ public class HostComponentServiceTest {
     String hostComponentName = "hostComponentName";
 
     // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.RequestType.GET),
+    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.Type.GET),
         eq(resourceDef))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(resourceDef.getResultFormatter()).andReturn(resultFormatter);
-    expect(resultFormatter.format(result, uriInfo)).andReturn(formattedResult);
-    expect(request.getSerializer()).andReturn(serializer);
-    expect(serializer.serialize(formattedResult)).andReturn(serializedResult);
-
+    expect(request.getResultSerializer()).andReturn(resultSerializer);
+    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
     expect(responseFactory.createResponse(serializedResult)).andReturn(response);
 
-    replay(resourceDef, resultFormatter, serializer, requestFactory, responseFactory, request, requestHandler,
+    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);
 
     //test
@@ -76,16 +58,14 @@ public class HostComponentServiceTest {
         requestFactory, responseFactory, requestHandler);
     assertSame(response, hostComponentService.getHostComponent(httpHeaders, uriInfo, hostComponentName));
 
-    verify(resourceDef, resultFormatter, serializer, requestFactory, responseFactory, request, requestHandler,
+    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);
   }
 
   @Test
   public void testGetHostComponents() {
     ResourceDefinition resourceDef = createStrictMock(ResourceDefinition.class);
-    ResultFormatter resultFormatter = createStrictMock(ResultFormatter.class);
-    Object formattedResult = new Object();
-    Serializer serializer = createStrictMock(Serializer.class);
+    ResultSerializer resultSerializer = createStrictMock(ResultSerializer.class);
     Object serializedResult = new Object();
     RequestFactory requestFactory = createStrictMock(RequestFactory.class);
     ResponseFactory responseFactory = createStrictMock(ResponseFactory.class);
@@ -101,18 +81,15 @@ public class HostComponentServiceTest {
     String hostName = "hostName";
 
     // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.RequestType.GET),
+    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.Type.GET),
         eq(resourceDef))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);
-    expect(resourceDef.getResultFormatter()).andReturn(resultFormatter);
-    expect(resultFormatter.format(result, uriInfo)).andReturn(formattedResult);
-    expect(request.getSerializer()).andReturn(serializer);
-    expect(serializer.serialize(formattedResult)).andReturn(serializedResult);
-
+    expect(request.getResultSerializer()).andReturn(resultSerializer);
+    expect(resultSerializer.serialize(result, uriInfo)).andReturn(serializedResult);
     expect(responseFactory.createResponse(serializedResult)).andReturn(response);
 
-    replay(resourceDef, resultFormatter, serializer, requestFactory, responseFactory, request, requestHandler,
+    replay(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);
 
     //test
@@ -120,7 +97,7 @@ public class HostComponentServiceTest {
         responseFactory, requestHandler);
     assertSame(response, componentService.getHostComponents(httpHeaders, uriInfo));
 
-    verify(resourceDef, resultFormatter, serializer, requestFactory, responseFactory, request, requestHandler,
+    verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);
   }
 

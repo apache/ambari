@@ -30,6 +30,11 @@
     </profiles>
   <dependencies>
     <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-server</artifactId>
+      <version>1.0.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
       <version>1.9.2</version>
@@ -62,17 +67,14 @@
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-core-asl</artifactId>
-      <version>1.9.2</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-jaxrs</artifactId>
-      <version>1.9.2</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-xc</artifactId>
-      <version>1.9.7</version>
     </dependency>
     <dependency>
       <groupId>asm</groupId>
@@ -98,6 +100,11 @@
     <dependency>
       <groupId>com.sun.grizzly</groupId>
       <artifactId>grizzly-comet-webserver</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>3.0</version>
     </dependency>
   </dependencies>
 </project>

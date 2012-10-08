@@ -41,7 +41,7 @@ public class TestHeartbeatMonitor {
     List<Host> allHosts = new ArrayList<Host>();
     Host hostObj = mock(Host.class);
     allHosts.add(hostObj);
-    when(fsm.getAllHosts()).thenReturn(allHosts);
+    when(fsm.getHosts()).thenReturn(allHosts);
     when(fsm.getHost("host1")).thenReturn(hostObj);
     when(hostObj.getState()).thenReturn(hs);
     when(hostObj.getHostName()).thenReturn("host1");

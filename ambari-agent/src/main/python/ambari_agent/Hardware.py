@@ -96,6 +96,14 @@ class Hardware:
           pass
         pass
       pass
+    """ Convert the needed types to the true values """
+    if 'physicalprocessorcount' in retDict.keys():
+      retDict['physicalprocessorcount'] = int(retDict['physicalprocessorcount'])
+      pass
+    if 'is_virtual' in retDict.keys():
+      retDict['is_virtual'] = ("true" == retDict['is_virtual'])
+      pass
+    
     logger.info("Facter info : \n" + pprint.pformat(retDict))
     return retDict
   

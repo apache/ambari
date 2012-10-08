@@ -19,35 +19,25 @@
 package org.apache.ambari.api.services;
 
 
-import org.apache.ambari.api.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.api.util.TreeNode;
+import org.apache.ambari.api.util.TreeNodeImpl;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
- *
+ * Result implementation.
  */
-//todo: at the moment only supports one level of nesting.
-//todo: need to allow arbitrary nesting depth for expansion.
-//todo: consider building a tree structure.
 public class ResultImpl implements Result {
 
-  private Map<String, List<Resource>> m_mapResources = new HashMap<String, List<Resource>>();
+  /**
+   * Tree structure which holds the results
+   */
+  private TreeNode<Resource> m_tree = new TreeNodeImpl<Resource>(null, null, null);
+
 
   @Override
-  public void addResources(String groupName, List<Resource> listResources) {
-    List<Resource> resources = m_mapResources.get(groupName);
-    if (resources == null) {
-      m_mapResources.put(groupName, listResources);
-    } else {
-      resources.addAll(listResources);
-    }
-  }
-
-  @Override
-  public Map<String, List<Resource>> getResources() {
-    return m_mapResources;
+  public TreeNode<Resource> getResultTree() {
+    return m_tree;
   }
 }
 

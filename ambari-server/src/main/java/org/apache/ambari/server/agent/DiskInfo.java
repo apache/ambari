@@ -18,32 +18,19 @@
 
 package org.apache.ambari.server.agent;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 
 /**
  * Information about a mounted disk on a given node
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
-//TODO convert the type safe ints/longs for used/percent/size.
+
 public class DiskInfo {
-  @XmlElement
   String available;
-  @XmlElement
   String mountpoint;
-  @XmlElement
   String device;
-  @XmlElement
   String used;
-  @XmlElement
   String percent;
-  @XmlElement
   String size;
 
   /**
@@ -69,22 +56,56 @@ public class DiskInfo {
    */
   public DiskInfo() {}
 
+  @JsonProperty("available")
+  public void setAvailable(String available) {
+    this.available = available;
+  }
+  
+  @JsonProperty("available")
   public String getAvailable() {
     return this.available;
   }
 
+  @JsonProperty("mountpoint")
   public String getMountPoint() {
     return this.mountpoint;
   }
-
+  
+  @JsonProperty("mountpoint")
+  public void setMountPoint(String mountpoint) {
+    this.mountpoint = mountpoint;
+  }
+  
+  @JsonProperty("used")
   public String getUsed() {
     return this.used;
   }
 
+  @JsonProperty("used")
+  public void setUsed(String used) {
+    this.used = used;
+  }
+  
+  @JsonProperty("percent")
   public String getPercent() {
     return this.percent;
   }
-
+  
+  @JsonProperty("percent")
+  public void setPercent(String percent) {
+    this.percent = percent;
+  }
+  
+  @JsonProperty("size")
+  public String getSize() {
+    return this.size;
+  }
+  
+  @JsonProperty("size")
+  public void setSize(String size) {
+    this.size = size;
+  }
+  
   @Override
   public String toString() {
     return "available=" + this.available + ",mountpoint=" + this.mountpoint

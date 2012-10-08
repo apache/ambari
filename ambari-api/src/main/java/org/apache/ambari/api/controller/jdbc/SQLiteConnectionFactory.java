@@ -23,14 +23,28 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- *
+ * Connection factory implementation for SQLite.
  */
 public class SQLiteConnectionFactory implements ConnectionFactory {
 
-  public static final String CONNECTION_URL = "jdbc:sqlite:";
+  /**
+   * The connection URL minus the db file.
+   */
+  private static final String CONNECTION_URL = "jdbc:sqlite:";
 
+  /**
+   * The filename of the SQLite db file.
+   */
   private final String dbFile;
 
+
+  // ----- Constructors ------------------------------------------------------
+
+  /**
+   * Create a connection factory.
+   *
+   * @param dbFile  the SQLite DB filename
+   */
   public SQLiteConnectionFactory(String dbFile) {
     this.dbFile = dbFile;
     try {
@@ -39,6 +53,9 @@ public class SQLiteConnectionFactory implements ConnectionFactory {
       throw new IllegalStateException("Can't load SQLite.", e);
     }
   }
+
+
+  // ----- ConnectionFactory -------------------------------------------------
 
   @Override
   public Connection getConnection() throws SQLException {

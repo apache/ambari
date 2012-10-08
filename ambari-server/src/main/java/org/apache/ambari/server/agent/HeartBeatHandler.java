@@ -19,9 +19,13 @@ package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -32,10 +36,13 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
-import org.apache.ambari.server.state.live.host.HostHealthyHeartbeatEvent;
-import org.apache.ambari.server.state.live.host.HostRegistrationRequestEvent;
-import org.apache.ambari.server.state.live.host.HostStatusUpdatesReceivedEvent;
-import org.apache.ambari.server.state.live.host.HostUnhealthyHeartbeatEvent;
+import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
+import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
+import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
+import org.apache.ambari.server.state.host.HostUnhealthyHeartbeatEvent;
+import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -47,7 +54,7 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class HeartBeatHandler {
-
+  private static Log LOG = LogFactory.getLog(HeartBeatHandler.class);
   private final Clusters clusterFsm;
   private final ActionQueue actionQueue;
   private final ActionManager actionManager;
@@ -65,11 +72,14 @@ public class HeartBeatHandler {
     heartbeatMonitor.start();
   }
 
-  public HeartBeatResponse handleHeartBeat(HeartBeat heartbeat) throws AmbariException {
-
+  public HeartBeatResponse handleHeartBeat(HeartBeat heartbeat)
+      throws AmbariException {
     HeartBeatResponse response = new HeartBeatResponse();
-    response.setResponseId(0L);
+ response.setResponseId(0L);
     String hostname = heartbeat.getHostname();
+    LOG.info("Action queue reference = "+actionQueue);
+    LOG.info("Heartbeat received from host " + heartbeat.getHostname()
+        + " responseId=" + heartbeat.getResponseId());
     Host hostObject = clusterFsm.getHost(hostname);
     long now = System.currentTimeMillis();
     try {
@@ -77,23 +87,22 @@ public class HeartBeatHandler {
           .equals(HostStatus.Status.HEALTHY)) {
         hostObject.handleEvent(new HostHealthyHeartbeatEvent(hostname, now));
       } else {
-        hostObject.handleEvent(new HostUnhealthyHeartbeatEvent(hostname, now, null));
+        hostObject.handleEvent(new HostUnhealthyHeartbeatEvent(hostname, now,
+            null));
       }
     } catch (InvalidStateTransitonException ex) {
       hostObject.setState(HostState.INIT);
       RegistrationCommand regCmd = new RegistrationCommand();
-      List<AgentCommand> cmds = new ArrayList<AgentCommand>();
-      cmds.add(regCmd);
-      response.setAgentCommands(cmds);
+      response.setRegistrationCommand(regCmd);
       return response;
     }
 
     //Examine heartbeat for command reports
-    List<CommandReport> reports = heartbeat.getCommandReports();
+    List<CommandReport> reports = heartbeat.getReports();
     actionManager.actionResponse(hostname, reports);
 
     // Examine heartbeart for component status
-    List<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
+    Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
     for (Cluster cl : clusters) {
       for (ComponentStatus status : heartbeat.componentStatus) {
         if (status.getClusterName() == cl.getClusterName()) {
@@ -111,10 +120,25 @@ public class HeartBeatHandler {
       }
     }
 
+    LOG.info("Host state ="+hostObject.getState());
     // Send commands if node is active
     if (hostObject.getState().equals(HostState.HEALTHY)) {
       List<AgentCommand> cmds = actionQueue.dequeueAll(heartbeat.getHostname());
-      response.setAgentCommands(cmds);
+      if (cmds != null && !cmds.isEmpty()) {
+        LOG.info("Sending commands..");
+        for (AgentCommand ac: cmds) {
+          try {
+            LOG.info("Command string = " + StageUtils.jaxbToString(ac));
+          } catch (Exception e) {
+            throw new AmbariException("Could not get jaxb string for command", e);
+          }
+          if (ac.getCommandType().equals(AgentCommandType.EXECUTION_COMMAND)) {
+            response.addExecutionCommand((ExecutionCommand) ac);
+          }
+        }
+      } else {
+        LOG.info("No commands to send");
+      }
     }
     return response;
   }

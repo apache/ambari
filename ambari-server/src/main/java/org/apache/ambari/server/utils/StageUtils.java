@@ -17,11 +17,15 @@
  */
 package org.apache.ambari.server.utils;
 
-import java.net.InetSocketAddress;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostAction;
@@ -29,9 +33,19 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.AnnotationIntrospector;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 public class StageUtils {
+  private static Log LOG = LogFactory.getLog(StageUtils.class);
+  
   public static String getActionId(long requestId, long stageId) {
     return requestId + "-" + stageId;
   }
@@ -46,13 +60,17 @@ public class StageUtils {
 
   //For testing only
   public static Stage getATestStage(long requestId, long stageId) {
-    InetSocketAddress sa = new InetSocketAddress(0);
-    String hostname = sa.getAddress().getHostName();
+    String hostname;
+    try {
+      hostname = InetAddress.getLocalHost().getHostName();
+    } catch (UnknownHostException e) {
+      hostname = "host-dummy";
+    }
     Stage s = new Stage(requestId, "/tmp", "cluster1");
     s.setStageId(stageId);
     HostAction ha = new HostAction(hostname);
     long now = System.currentTimeMillis();
-    HostRoleCommand hrc = new HostRoleCommand(Role.NAMENODE, 
+    HostRoleCommand hrc = new HostRoleCommand("HDFS", Role.NAMENODE, 
         new ServiceComponentHostInstallEvent("NAMENODE", hostname, now));
     hrc.setStatus(HostRoleStatus.PENDING);
     ha.addHostRoleCommand(hrc);
@@ -77,7 +95,21 @@ public class StageUtils {
     Map<String, String> roleParams = new TreeMap<String, String>();
     roleParams.put("format", "false");
     execCmd.addRoleCommand("NAMENODE", "INSTALL", roleParams);
+    try {
+      LOG.info("Command string = " + StageUtils.jaxbToString(execCmd));
+    } catch (Exception e) {
+      throw new RuntimeException("Could not get string from jaxb",e);
+    }
     s.addHostAction(hostname, ha);
     return s;
+  }
+  
+  public static String jaxbToString(Object jaxbObj) throws JAXBException,
+  JsonGenerationException, JsonMappingException, IOException {
+    ObjectMapper mapper = new ObjectMapper();
+    AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
+    mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+    mapper.configure(SerializationConfig.Feature.USE_ANNOTATIONS, true);
+    return mapper.writeValueAsString(jaxbObj);
   }
 }

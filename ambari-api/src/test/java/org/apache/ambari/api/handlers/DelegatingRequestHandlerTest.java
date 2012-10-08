@@ -1,31 +1,19 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.apache.ambari.api.handlers;
 
 import org.apache.ambari.api.services.Request;
 import org.apache.ambari.api.services.Result;
+import org.apache.ambari.api.services.ResultPostProcessor;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertSame;
 
 /**
- *
+ * Created with IntelliJ IDEA.
+ * User: john
+ * Date: 9/12/12
+ * Time: 12:06 PM
+ * To change this template use File | Settings | File Templates.
  */
 public class DelegatingRequestHandlerTest {
 
@@ -35,18 +23,21 @@ public class DelegatingRequestHandlerTest {
     RequestHandlerFactory factory = createStrictMock(RequestHandlerFactory.class);
     RequestHandler readRequestHandler = createStrictMock(RequestHandler.class);
     Result result = createStrictMock(Result.class);
+    ResultPostProcessor resultProcessor = createStrictMock(ResultPostProcessor.class);
 
     // expectations
-    expect(request.getRequestType()).andReturn(Request.RequestType.GET);
-    expect(factory.getRequestHandler(Request.RequestType.GET)).andReturn(readRequestHandler);
+    expect(request.getRequestType()).andReturn(Request.Type.GET);
+    expect(factory.getRequestHandler(Request.Type.GET)).andReturn(readRequestHandler);
     expect(readRequestHandler.handleRequest(request)).andReturn(result);
+    expect(request.getResultPostProcessor()).andReturn(resultProcessor);
+    resultProcessor.process(result);
 
-    replay(request, factory, readRequestHandler, result);
+    replay(request, factory, readRequestHandler, result, resultProcessor);
 
     RequestHandler delegatingRequestHandler = new TestDelegatingRequestHandler(factory);
 
     assertSame(result, delegatingRequestHandler.handleRequest(request));
-    verify(request, factory, readRequestHandler, result);
+    verify(request, factory, readRequestHandler, result, resultProcessor);
   }
 
   @Test
@@ -55,18 +46,21 @@ public class DelegatingRequestHandlerTest {
     RequestHandlerFactory factory = createStrictMock(RequestHandlerFactory.class);
     RequestHandler requestHandler = createStrictMock(RequestHandler.class);
     Result result = createStrictMock(Result.class);
+    ResultPostProcessor resultProcessor = createStrictMock(ResultPostProcessor.class);
 
     // expectations
-    expect(request.getRequestType()).andReturn(Request.RequestType.PUT);
-    expect(factory.getRequestHandler(Request.RequestType.PUT)).andReturn(requestHandler);
+    expect(request.getRequestType()).andReturn(Request.Type.PUT);
+    expect(factory.getRequestHandler(Request.Type.PUT)).andReturn(requestHandler);
     expect(requestHandler.handleRequest(request)).andReturn(result);
+    expect(request.getResultPostProcessor()).andReturn(resultProcessor);
+    resultProcessor.process(result);
 
-    replay(request, factory, requestHandler, result);
+    replay(request, factory, requestHandler, result, resultProcessor);
 
     RequestHandler delegatingRequestHandler = new TestDelegatingRequestHandler(factory);
 
     assertSame(result, delegatingRequestHandler.handleRequest(request));
-    verify(request, factory, requestHandler, result);
+    verify(request, factory, requestHandler, result, resultProcessor);
   }
 
   @Test
@@ -75,18 +69,21 @@ public class DelegatingRequestHandlerTest {
     RequestHandlerFactory factory = createStrictMock(RequestHandlerFactory.class);
     RequestHandler requestHandler = createStrictMock(RequestHandler.class);
     Result result = createStrictMock(Result.class);
+    ResultPostProcessor resultProcessor = createStrictMock(ResultPostProcessor.class);
 
     // expectations
-    expect(request.getRequestType()).andReturn(Request.RequestType.POST);
-    expect(factory.getRequestHandler(Request.RequestType.POST)).andReturn(requestHandler);
+    expect(request.getRequestType()).andReturn(Request.Type.POST);
+    expect(factory.getRequestHandler(Request.Type.POST)).andReturn(requestHandler);
     expect(requestHandler.handleRequest(request)).andReturn(result);
+    expect(request.getResultPostProcessor()).andReturn(resultProcessor);
+    resultProcessor.process(result);
 
-    replay(request, factory, requestHandler, result);
+    replay(request, factory, requestHandler, result, resultProcessor);
 
     RequestHandler delegatingRequestHandler = new TestDelegatingRequestHandler(factory);
 
     assertSame(result, delegatingRequestHandler.handleRequest(request));
-    verify(request, factory, requestHandler, result);
+    verify(request, factory, requestHandler, result, resultProcessor);
   }
 
   @Test
@@ -95,18 +92,21 @@ public class DelegatingRequestHandlerTest {
     RequestHandlerFactory factory = createStrictMock(RequestHandlerFactory.class);
     RequestHandler requestHandler = createStrictMock(RequestHandler.class);
     Result result = createStrictMock(Result.class);
+    ResultPostProcessor resultProcessor = createStrictMock(ResultPostProcessor.class);
 
     // expectations
-    expect(request.getRequestType()).andReturn(Request.RequestType.DELETE);
-    expect(factory.getRequestHandler(Request.RequestType.DELETE)).andReturn(requestHandler);
+    expect(request.getRequestType()).andReturn(Request.Type.DELETE);
+    expect(factory.getRequestHandler(Request.Type.DELETE)).andReturn(requestHandler);
     expect(requestHandler.handleRequest(request)).andReturn(result);
+    expect(request.getResultPostProcessor()).andReturn(resultProcessor);
+    resultProcessor.process(result);
 
-    replay(request, factory, requestHandler, result);
+    replay(request, factory, requestHandler, result, resultProcessor);
 
     RequestHandler delegatingRequestHandler = new TestDelegatingRequestHandler(factory);
 
     assertSame(result, delegatingRequestHandler.handleRequest(request));
-    verify(request, factory, requestHandler, result);
+    verify(request, factory, requestHandler, result, resultProcessor);
   }
 
   private class TestDelegatingRequestHandler extends DelegatingRequestHandler {

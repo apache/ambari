@@ -20,29 +20,22 @@ package org.apache.ambari.server.agent;
 
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  *
  * Controller to Agent response data model.
  *
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
 public class RegistrationResponse {
-  @XmlElement
+  @JsonProperty("response")
   private RegistrationStatus response;
   
   //Response id to start with, usually zero.
-  @XmlElement
+  @JsonProperty("responseId")
   private long responseId;
   
-  @XmlElement
+  @JsonProperty("commands")
   private List<StatusCommand> commands = null;
 
   public RegistrationStatus getResponseStatus() {

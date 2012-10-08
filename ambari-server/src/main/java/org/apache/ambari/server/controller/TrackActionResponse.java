@@ -22,12 +22,12 @@ public class TrackActionResponse {
 
   // Request ID for tracking async operations
   private final Long requestId;
-  
+
   // TODO how are logs to be sent back?
   private String logs;
 
   // TODO stage specific information
-  
+
   public TrackActionResponse(Long requestId) {
     super();
     this.requestId = requestId;
@@ -53,6 +53,6 @@ public class TrackActionResponse {
   public long getRequestId() {
     return requestId;
   }
-  
-  
+
+
 }

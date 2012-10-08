@@ -19,31 +19,92 @@
 package org.apache.ambari.api.resource;
 
 import org.apache.ambari.api.query.Query;
-import org.apache.ambari.api.services.formatters.ResultFormatter;
-import org.apache.ambari.api.controller.spi.Resource;
+import org.apache.ambari.api.services.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.api.util.TreeNode;
 
+import org.apache.ambari.api.services.ResultPostProcessor;
+
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
- *
+ * Resource Definition.
+ * Provides information specific to a specific resource type.
  */
 public interface ResourceDefinition {
+  /**
+   * Obtain the plural name of the resource.
+   *
+   * @return the plural name of the resource
+   */
   public String getPluralName();
 
+  /**
+   * Obtain the singular name of the resource.
+   *
+   * @return the singular name of the resource
+   */
   public String getSingularName();
 
+  /**
+   * Obtain the value of the primary id of the resource.
+   *
+   * @return the value of the primary id of the resource
+   */
   public String getId();
 
-  public Set<ResourceDefinition> getChildren();
-
-  public Set<ResourceDefinition> getRelations();
-
-  public Map<Resource.Type, String> getResourceIds();
-
-  public ResultFormatter getResultFormatter();
-
+  /**
+   * Obtain the type of resource.  Is one of {@link Resource.Type}.
+   *
+   * @return the type of resource
+   */
   public Resource.Type getType();
 
+  /**
+   * Set the value of the parent foreign key.
+   *
+   * @param type  resource type of the parent
+   * @param value vale of the parent id
+   */
+  public void setParentId(Resource.Type type, String value);
+
+  /**
+   * Obtain the primary and foreign key properties for the resource.
+   *
+   * @return map of primary and foreign key values keyed by resource type
+   */
+  public Map<Resource.Type, String> getResourceIds();
+
+  /**
+   * Obtain sub-resources of this resource.  A sub-resource is a resource that is contained in
+   * another parent resource.
+   *
+   * @return map of sub resource definitions keyed by resource name
+   */
+  public Map<String, ResourceDefinition> getSubResources();
+
+  /**
+   * Return the query associated with the resource.
+   * Each resource has one query.
+   *
+   * @return the associated query
+   */
   public Query getQuery();
+
+  /**
+   * Obtain any resource post processors.  A resource processor is used to provide resource specific processing of
+   * results and is called by the {@link ResultPostProcessor} while post processing a result.
+   *
+   * @return list of resource specific result processors
+   */
+  public List<PostProcessor> getPostProcessors();
+
+  /**
+   * Resource specific result processor.
+   * Used to provide resource specific processing of a result.
+   */
+  public interface PostProcessor {
+    public void process(Request request, TreeNode<Resource> resultNode, String href);
+  }
 }

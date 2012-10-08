@@ -22,14 +22,23 @@ import org.apache.ambari.api.services.Request;
 import org.apache.ambari.api.services.Result;
 
 /**
- *
+ * Request handler implementation that all requests are funneled through.
+ * Provides common handler functionality and delegates to concrete handler.
  */
 public class DelegatingRequestHandler implements RequestHandler {
   @Override
   public Result handleRequest(Request request) {
-    return getRequestHandlerFactory().getRequestHandler(request.getRequestType()).handleRequest(request);
+    Result result = getRequestHandlerFactory().getRequestHandler(request.getRequestType()).handleRequest(request);
+    request.getResultPostProcessor().process(result);
+
+    return result;
   }
 
+  /**
+   * Obtain a factory for the request specific concrete request handlers.
+   *
+   * @return A request handler factory
+   */
   RequestHandlerFactory getRequestHandlerFactory() {
     return new RequestHandlerFactory();
   }

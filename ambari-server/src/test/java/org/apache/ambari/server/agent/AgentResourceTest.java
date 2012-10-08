@@ -22,14 +22,16 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 
 import junit.framework.Assert;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.agent.rest.AgentJackSonJsonProvider;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.live.ClustersImpl;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jettison.json.JSONException;
@@ -39,11 +41,18 @@ import org.junit.Test;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
+import com.sun.jersey.server.wadl.generators.ApplicationDocs;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
+import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
+import com.sun.jersey.test.framework.spi.container.TestContainer;
 
 public class AgentResourceTest extends JerseyTest {
   static String PACKAGE_NAME = "org.apache.ambari.server.agent.rest";
@@ -51,9 +60,11 @@ public class AgentResourceTest extends JerseyTest {
   HeartBeatHandler handler;
   ActionManager actionManager;
   Injector injector;
-
+  protected Client client;
+  
   public AgentResourceTest() {
     super(new WebAppDescriptor.Builder(PACKAGE_NAME).servletClass(ServletContainer.class)
+        .initParam("com.sun.jersey.api.json.POJOMappingFeature", "true")
         .build());
   }
   
@@ -94,9 +105,9 @@ public class AgentResourceTest extends JerseyTest {
 
   private JSONObject createDummyJSONRegister() throws JSONException {
     JSONObject json = new JSONObject();
-    json.append("responseId" , -1);
-    json.append("timestamp" , System.currentTimeMillis());
-    json.append("hostname",   "dummyHost");
+    json.put("responseId" , -1);
+    json.put("timestamp" , System.currentTimeMillis());
+    json.put("hostname",   "dummyHost");
     return json;
   }
 
@@ -107,12 +118,15 @@ public class AgentResourceTest extends JerseyTest {
     json.put("hostname", "dummyHost");
     return json;
   }
-
+ 
   @Test
   public void agentRegistration() throws UniformInterfaceException, JSONException {
     RegistrationResponse response;
-    WebResource webResource = resource();
-    response = webResource.path("/register/dummyhost").type(MediaType.APPLICATION_JSON)
+    ClientConfig clientConfig = new DefaultClientConfig();
+    clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+    client = Client.create(clientConfig);
+    WebResource webResource = client.resource("http://localhost:9998/register/dummyhost");
+    response = webResource.type(MediaType.APPLICATION_JSON)
       .post(RegistrationResponse.class, createDummyJSONRegister());
     LOG.info("Returned from Server " + response.getResponseStatus());
     Assert.assertEquals(response.getResponseStatus(), RegistrationStatus.OK);
@@ -121,10 +135,13 @@ public class AgentResourceTest extends JerseyTest {
   @Test
   public void agentHeartBeat() throws UniformInterfaceException, JSONException {
     HeartBeatResponse response;
-    WebResource resource = resource();
-    response = resource.path("/heartbeat/dummyhost").type(MediaType.APPLICATION_JSON)
+    ClientConfig clientConfig = new DefaultClientConfig();
+    clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+    client = Client.create(clientConfig);
+    WebResource webResource = client.resource("http://localhost:9998/heartbeat/dummyhost");
+    response = webResource.type(MediaType.APPLICATION_JSON)
         .post(HeartBeatResponse.class, createDummyHeartBeat());
-    LOG.info("Returned from Server: " + "clusterid = " + response.getClusterId()
+    LOG.info("Returned from Server: " 
         + " responseid=" +   response.getResponseId());
     Assert.assertEquals(response.getResponseId(), 0L);
   }

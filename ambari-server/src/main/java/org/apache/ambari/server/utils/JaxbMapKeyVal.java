@@ -17,20 +17,13 @@
  */
 package org.apache.ambari.server.utils;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
 public class JaxbMapKeyVal {
   @XmlElement public String  key;
   @XmlElement public String value;
 
-  private JaxbMapKeyVal() {}
+  public JaxbMapKeyVal() {}
 
   public JaxbMapKeyVal(String key, String value)
   {

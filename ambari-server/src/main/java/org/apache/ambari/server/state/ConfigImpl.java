@@ -24,11 +24,11 @@ import java.util.List;
 import java.util.Map;
 
 public class ConfigImpl implements Config {
-  
+
   private final String type;
-  
+
   private String versionTag;
-  
+
   private Map<String, String> properties;
 
   public ConfigImpl(String type, String versionTag,
@@ -37,11 +37,11 @@ public class ConfigImpl implements Config {
     this.versionTag = versionTag;
     this.properties = properties;
   }
-  
+
   public ConfigImpl(String type, String versionTag) {
     this(type, versionTag, new HashMap<String, String>());
   }
-  
+
   @Override
   public String getType() {
     return type;
@@ -78,7 +78,7 @@ public class ConfigImpl implements Config {
       this.properties.remove(key);
     }
   }
-  
-  
+
+
 
 }

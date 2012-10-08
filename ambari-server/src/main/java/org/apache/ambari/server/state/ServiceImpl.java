@@ -22,44 +22,46 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.controller.ServiceResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class ServiceImpl implements Service {
+
+  private static final Logger LOG =
+      LoggerFactory.getLogger(ServiceImpl.class);
 
   private final Cluster cluster;
   private final String serviceName;
   private State state;
+  private State desiredState;
   private Map<String, Config> configs;
+  private Map<String, Config> desiredConfigs;
   private Map<String, ServiceComponent> components;
   private StackVersion stackVersion;
-  
+  private StackVersion desiredStackVersion;
+
   private void init() {
     // TODO
-    // initialize from DB 
+    // initialize from DB
   }
-  
-  public ServiceImpl(Cluster cluster, String serviceName,
-      State state, Map<String, Config> configs) {
+
+  public ServiceImpl(Cluster cluster, String serviceName) {
     this.cluster = cluster;
     this.serviceName = serviceName;
-    this.state = state;
-    if (configs != null) {
-      this.configs = configs;
-    } else {
-      this.configs = new HashMap<String, Config>();
-    }
+    this.state = State.INIT;
+    this.desiredState = State.INIT;
+    this.configs = new HashMap<String, Config>();
+    this.desiredConfigs = new HashMap<String, Config>();
+    this.stackVersion = new StackVersion("");
+    this.desiredStackVersion = new StackVersion("");
     this.components = new HashMap<String, ServiceComponent>();
     init();
   }
 
-  public ServiceImpl(Cluster cluster, String serviceName,
-      Map<String, Config> configs) {
-    this(cluster, serviceName, State.INIT, configs);
-  }
-  
-  public ServiceImpl(Cluster cluster, String serviceName) {
-    this(cluster, serviceName, State.INIT, null);
-  }
-  
   @Override
   public String getName() {
     return serviceName;
@@ -68,12 +70,6 @@ public class ServiceImpl implements Service {
   @Override
   public long getClusterId() {
     return cluster.getClusterId();
-  }
-
-  @Override
-  public synchronized long getCurrentHostComponentMappingVersion() {
-    // TODO Auto-generated method stub
-    return 0;
   }
 
   @Override
@@ -88,6 +84,15 @@ public class ServiceImpl implements Service {
 
   @Override
   public synchronized void setState(State state) {
+    if (state == null) {
+      // TODO throw error?
+      return;
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Setting state of Service"
+          + ", oldState=" + this.state
+          + ", newState=" + state);
+    }
     this.state = state;
   }
 
@@ -98,6 +103,18 @@ public class ServiceImpl implements Service {
 
   @Override
   public synchronized void setStackVersion(StackVersion stackVersion) {
+    if (stackVersion == null) {
+      // TODO throw error?
+      return;
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Setting StackVersion of Service"
+          + ", clusterName=" + cluster.getClusterName()
+          + ", clusterId=" + cluster.getClusterId()
+          + ", serviceName=" + serviceName
+          + ", oldStackVersion=" + this.stackVersion
+          + ", newStackVersion=" + stackVersion);
+    }
     this.stackVersion = stackVersion;
   }
 
@@ -112,19 +129,114 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public synchronized void setCurrentHostComponentMappingVersion(long version) {
-    // TODO Auto-generated method stub    
-  }
-
-  @Override
   public synchronized void addServiceComponents(
       Map<String, ServiceComponent> components) {
-    this.components.putAll(components);
+    for (ServiceComponent sc : components.values()) {
+      addServiceComponent(sc);
+    }
   }
 
   @Override
-  public ServiceComponent getServiceComponent(String componentName) {
+  public synchronized void addServiceComponent(ServiceComponent component) {
+    // TODO validation
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Adding a ServiceComponent to Service"
+          + ", clusterName=" + cluster.getClusterName()
+          + ", clusterId=" + cluster.getClusterId()
+          + ", serviceName=" + serviceName
+          + ", serviceComponentName=" + component.getName());
+    }
+    this.components.put(component.getName(), component);
+  }
+
+  @Override
+  public ServiceComponent getServiceComponent(String componentName)
+      throws AmbariException {
+    if (!components.containsKey(componentName)) {
+      throw new ServiceComponentNotFoundException(cluster.getClusterName(),
+          serviceName,
+          componentName);
+    }
     return this.components.get(componentName);
+  }
+
+  @Override
+  public synchronized State getDesiredState() {
+    return desiredState;
+  }
+
+  @Override
+  public synchronized void setDesiredState(State state) {
+    if (state == null) {
+      // TODO throw error?
+      return;
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Setting DesiredState of Service"
+          + ", clusterName=" + cluster.getClusterName()
+          + ", clusterId=" + cluster.getClusterId()
+          + ", serviceName=" + serviceName
+          + ", oldDesiredState=" + this.desiredState
+          + ", newDesiredState=" + state);
+    }
+    this.desiredState = state;
+  }
+
+  @Override
+  public synchronized Map<String, Config> getDesiredConfigs() {
+    return Collections.unmodifiableMap(desiredConfigs);
+  }
+
+  @Override
+  public synchronized void updateDesiredConfigs(Map<String, Config> configs) {
+    this.desiredConfigs.putAll(configs);
+  }
+
+  @Override
+  public synchronized StackVersion getDesiredStackVersion() {
+    return desiredStackVersion;
+  }
+
+  @Override
+  public synchronized void setDesiredStackVersion(StackVersion stackVersion) {
+    if (stackVersion == null) {
+      // TODO throw error?
+      return;
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Setting DesiredStackVersion of Service"
+          + ", clusterName=" + cluster.getClusterName()
+          + ", clusterId=" + cluster.getClusterId()
+          + ", serviceName=" + serviceName
+          + ", oldDesiredStackVersion=" + this.desiredStackVersion
+          + ", newDesiredStackVersion=" + stackVersion);
+    }
+    this.desiredStackVersion = stackVersion;
+  }
+
+  private synchronized Map<String, String> getConfigVersions() {
+    Map<String, String> configVersions = new HashMap<String, String>();
+    for (Config c : configs.values()) {
+      configVersions.put(c.getType(), c.getVersionTag());
+    }
+    return configVersions;
+  }
+
+  @Override
+  public synchronized ServiceResponse convertToResponse() {
+    ServiceResponse r = new ServiceResponse(cluster.getClusterId(),
+        cluster.getClusterName(),
+        serviceName,
+        stackVersion.getStackVersion(),
+        getConfigVersions(),
+        desiredStackVersion.getStackVersion(),
+        desiredState.toString());
+    return r;
+  }
+
+  @Override
+  public Cluster getCluster() {
+    return cluster;
   }
 
 }

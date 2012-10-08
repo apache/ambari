@@ -21,11 +21,7 @@ package org.apache.ambari.server.agent;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  *
@@ -33,21 +29,13 @@ import javax.xml.bind.annotation.XmlType;
  * Data model for Ambari Agent to send heartbeat to Ambari Server.
  *
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
+
 public class HeartBeat {
-  @XmlElement
   private long responseId = -1;
-  @XmlElement
   private long timestamp;
-  @XmlElement
   private String hostname;
-  @XmlElement
   List<CommandReport> reports = new ArrayList<CommandReport>();
-  @XmlElement
   List<ComponentStatus> componentStatus = new ArrayList<ComponentStatus>();
-  @XmlElement
   HostStatus nodeStatus;
 
   public long getResponseId() {
@@ -73,11 +61,17 @@ public class HeartBeat {
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
-
-  public List<CommandReport> getCommandReports() {
+  
+  @JsonProperty("reports")
+  public List<CommandReport> getReports() {
     return this.reports;
   }
-
+  
+  @JsonProperty("reports")
+  public void setReports(List<CommandReport> reports) {
+    this.reports = reports;
+  }
+  
   public HostStatus getNodeStatus() {
     return nodeStatus;
   }

@@ -22,6 +22,9 @@ import java.util.List;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
 
+import com.google.inject.Singleton;
+
+@Singleton
 public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   private long stageId = 0;

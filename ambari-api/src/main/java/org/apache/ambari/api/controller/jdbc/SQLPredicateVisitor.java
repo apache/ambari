@@ -18,19 +18,25 @@
 
 package org.apache.ambari.api.controller.jdbc;
 
-import org.apache.ambari.api.controller.predicate.ArrayPredicate;
-import org.apache.ambari.api.controller.predicate.BasePredicate;
-import org.apache.ambari.api.controller.predicate.ComparisonPredicate;
-import org.apache.ambari.api.controller.predicate.PredicateVisitor;
-import org.apache.ambari.api.controller.predicate.UnaryPredicate;
-import org.apache.ambari.api.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.predicate.ArrayPredicate;
+import org.apache.ambari.server.controller.predicate.BasePredicate;
+import org.apache.ambari.server.controller.predicate.ComparisonPredicate;
+import org.apache.ambari.server.controller.predicate.PredicateVisitor;
+import org.apache.ambari.server.controller.predicate.UnaryPredicate;
+import org.apache.ambari.server.controller.spi.PropertyId;
 
 /**
- *
+ * Predicate visitor used to generate a SQL where clause from a predicate graph.
  */
 public class SQLPredicateVisitor implements PredicateVisitor {
 
+  /**
+   * The string builder.
+   */
   private final StringBuilder stringBuilder = new StringBuilder();
+
+
+  // ----- PredicateVisitor --------------------------------------------------
 
   @Override
   public void acceptComparisonPredicate(ComparisonPredicate predicate) {
@@ -70,6 +76,8 @@ public class SQLPredicateVisitor implements PredicateVisitor {
     stringBuilder.append(")");
   }
 
+
+  // ----- SQLPredicateVisitor -----------------------------------------------
 
   public String getSQL() {
     return stringBuilder.toString();

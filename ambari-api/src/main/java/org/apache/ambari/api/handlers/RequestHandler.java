@@ -20,10 +20,17 @@ package org.apache.ambari.api.handlers;
 
 import org.apache.ambari.api.services.Request;
 import org.apache.ambari.api.services.Result;
+import org.apache.ambari.server.AmbariException;
 
 /**
- *
+ * Responsible for handling of requests and returning a result.
  */
 public interface RequestHandler {
+  /**
+   * Handle the given request and return a result.
+   *
+   * @param request the request to handle
+   * @return the result of the request
+   */
   public Result handleRequest(Request request);
 }

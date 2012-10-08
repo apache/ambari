@@ -75,13 +75,13 @@ public enum State {
    * State when wipeout fails
    */
   WIPEOUT_FAILED(13);
-  
+
   private final int state;
-  
+
   private State(int state) {
     this.state = state;
   }
-  
+
   public boolean isValidDesiredState() {
     switch (State.values()[this.state]) {
       case INIT:
@@ -93,7 +93,7 @@ public enum State {
         return false;
     }
   }
-  
+
   public boolean isInProgressState() {
     switch (State.values()[this.state]) {
       case INSTALLING:
@@ -106,5 +106,5 @@ public enum State {
         return false;
     }
   }
-  
+
 }

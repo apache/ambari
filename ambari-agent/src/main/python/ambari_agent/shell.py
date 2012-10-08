@@ -88,18 +88,19 @@ class shellRunner:
     code = 0
     cmd = " "
     cmd = cmd.join(script)
-    p = subprocess.Popen(cmd, preexec_fn=changeUid, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
+    p = subprocess.Popen(cmd, preexec_fn=changeUid, stdout=subprocess.PIPE, 
+                         stderr=subprocess.PIPE, shell=True, close_fds=True)
     out, err = p.communicate()
     code = p.wait()
     logger.debug("Exitcode for %s is %d" % (cmd,code))
     return {'exitCode': code, 'output': out, 'error': err}
 
   # dispatch action types
-  def runAction(self, clusterId, component, role, user, command, cleanUpCommand, result):
+  def runAction(self, clusterId, component, role, 
+                user, command, cleanUpCommand, result):
     oldDir = os.getcwd()
     #TODO: handle this better. Don't like that it is doing a chdir for the main process
     os.chdir(self.getWorkDir(clusterId, role))
-    oldUid = os.getuid()
     try:
       if user is not None:
         user=getpwnam(user)[2]
@@ -107,7 +108,8 @@ class shellRunner:
         user = oldUid
       threadLocal.uid = user
     except Exception:
-      logger.warn("%s %s %s can not switch user for RUN_ACTION." % (clusterId, component, role))
+      logger.warn("%s %s %s can not switch user for RUN_ACTION." 
+                  % (clusterId, component, role))
     code = 0
     cmd = sys.executable
     tempfilename = tempfile.mktemp()
@@ -116,7 +118,8 @@ class shellRunner:
     tmp.close()
     cmd = "%s %s %s" % (cmd, tempfilename, " ".join(command['param']))
     commandResult = {}
-    p = subprocess.Popen(cmd, preexec_fn=changeUid, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
+    p = subprocess.Popen(cmd, preexec_fn=changeUid, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE, shell=True, close_fds=True)
     out, err = p.communicate()
     code = p.wait()
     if code != 0:
@@ -134,7 +137,8 @@ class shellRunner:
       cmd = "%s %s %s" % (cmd, tempfilename, " ".join(cleanUpCommand['param']))
       cleanUpCode = 0
       cleanUpResult = {}
-      p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
+      p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            shell=True, close_fds=True)
       out, err = p.communicate()
       cleanUpCode = p.wait()
       if cleanUpCode != 0:
@@ -147,17 +151,20 @@ class shellRunner:
     try:
       os.chdir(oldDir)
     except Exception:
-      logger.warn("%s %s %s can not restore environment for RUN_ACTION." % (clusterId, component, role))
+      logger.warn("%s %s %s can not restore environment for RUN_ACTION."
+                   % (clusterId, component, role))
     return result
 
   # Start a process and presist its state
-  def startProcess(self, clusterId, clusterDefinitionRevision, component, role, script, user, result):
+  def startProcess(self, clusterId, clusterDefinitionRevision, component,
+                    role, script, user, result):
     global serverTracker
     oldDir = os.getcwd()
     try:
       os.chdir(self.getWorkDir(clusterId,role))
     except Exception:
-      logger.warn("%s %s %s can not switch dir for START_ACTION." % (clusterId, component, role))
+      logger.warn("%s %s %s can not switch dir for START_ACTION."
+                   % (clusterId, component, role))
     oldUid = os.getuid()
     try:
       if user is not None:
@@ -166,10 +173,12 @@ class shellRunner:
         user = os.getuid()
       threadLocal.uid = user
     except Exception:
-      logger.warn("%s %s %s can not switch user for START_ACTION." % (clusterId, component, role))
+      logger.warn("%s %s %s can not switch user for START_ACTION." 
+                  % (clusterId, component, role))
     code = 0
     commandResult = {}
-    process = self.getServerKey(clusterId,clusterDefinitionRevision,component,role)
+    process = self.getServerKey(clusterId,clusterDefinitionRevision,
+                                component,role)
     if not process in serverTracker:
       try:
         plauncher = processlauncher(script,user)
@@ -177,7 +186,8 @@ class shellRunner:
         plauncher.blockUntilProcessCreation()
       except Exception:
         traceback.print_exc()
-        logger.warn("Can not launch process for %s %s %s" % (clusterId, component, role))
+        logger.warn("Can not launch process for %s %s %s" 
+                    % (clusterId, component, role))
         code = -1
       serverTracker[process] = plauncher
       commandResult['exitCode'] = code 
@@ -185,16 +195,19 @@ class shellRunner:
     try:
       os.chdir(oldDir)
     except Exception:
-      logger.warn("%s %s %s can not restore environment for START_ACTION." % (clusterId, component, role))
+      logger.warn("%s %s %s can not restore environment for START_ACTION." \
+                   % (clusterId, component, role))
     return result
 
   # Stop a process and remove presisted state
   def stopProcess(self, processKey):
     global serverTracker
     keyFragments = processKey.split('/')
-    process = self.getServerKey(keyFragments[0],keyFragments[1],keyFragments[2],keyFragments[3])
+    process = self.getServerKey(keyFragments[0],keyFragments[1],
+                                keyFragments[2],keyFragments[3])
     if process in serverTracker:
-      logger.info ("Sending %s with PID %d the SIGTERM signal" % (process,serverTracker[process].getpid()))
+      logger.info ("Sending %s with PID %d the SIGTERM signal"
+                    % (process,serverTracker[process].getpid()))
       killprocessgrp(serverTracker[process].getpid())
       del serverTracker[process]
 
@@ -227,10 +240,13 @@ class processlauncher(threading.Thread):
       tmp.write(self.script['script'])
       tmp.close()
       threadLocal.uid = self.uid
-      self.cmd = "%s %s %s" % (pythoncmd, tempfilename, " ".join(self.script['param']))
+      self.cmd = "%s %s %s" % (pythoncmd, tempfilename,
+                                " ".join(self.script['param']))
       logger.info("Launching %s as uid %d" % (self.cmd,self.uid) )
-      p = subprocess.Popen(self.cmd, preexec_fn=self.changeUidAndSetSid, stdout=subprocess.PIPE, 
-                           stderr=subprocess.PIPE, shell=True, close_fds=True)
+      p = subprocess.Popen(self.cmd,
+                            preexec_fn=self.changeUidAndSetSid, 
+                            stdout=subprocess.PIPE, 
+                            stderr=subprocess.PIPE, shell=True, close_fds=True)
       logger.info("Launched %s; PID %d" % (self.cmd,p.pid))
       self.serverpid = p.pid
       self.out, self.err = p.communicate()
@@ -253,7 +269,8 @@ class processlauncher(threading.Thread):
       time.sleep(1)
       logger.info("Waiting for process %s to start" % self.cmd)
       if sleepCount > 10:
-        logger.warn("Couldn't start process %s even after %d seconds" % (self.cmd,sleepCount))
+        logger.warn("Couldn't start process %s even after %d seconds"
+                     % (self.cmd,sleepCount))
         os._exit(1)
     return self.serverpid
 

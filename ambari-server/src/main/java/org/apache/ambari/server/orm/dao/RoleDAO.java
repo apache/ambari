@@ -34,18 +34,18 @@ public class RoleDAO {
   }
 
   @Transactional
-  public void create(RoleEntity roleName) {
-    entityManagerProvider.get().persist(roleName);
+  public void create(RoleEntity role) {
+    entityManagerProvider.get().persist(role);
   }
 
   @Transactional
-  public RoleEntity merge(RoleEntity roleName) {
-    return entityManagerProvider.get().merge(roleName);
+  public RoleEntity merge(RoleEntity role) {
+    return entityManagerProvider.get().merge(role);
   }
 
   @Transactional
-  public void remove(RoleEntity roleName) {
-    entityManagerProvider.get().remove(roleName);
+  public void remove(RoleEntity role) {
+    entityManagerProvider.get().remove(role);
   }
 
   @Transactional

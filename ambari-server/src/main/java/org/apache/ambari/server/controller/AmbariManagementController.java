@@ -18,68 +18,254 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.Set;
-
-import org.apache.ambari.api.controller.spi.Predicate;
 import org.apache.ambari.server.AmbariException;
+
+import java.util.Set;
 
 /**
  * Management controller interface.
  */
 public interface AmbariManagementController {
 
-
   // ----- Create -----------------------------------------------------------
 
+  /**
+   * Create the cluster defined by the attributes in the given request object.
+   *
+   * @param request  the request object which defines the cluster to be created
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the cluster cannot be created
+   */
   public TrackActionResponse createCluster(ClusterRequest request) throws AmbariException;
 
-  public TrackActionResponse createServices(ServiceRequest request) throws AmbariException;
+  /**
+   * Create the service defined by the attributes in the given request object.
+   *
+   * @param request  the request object which defines the service to be created
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the service cannot be created
+   */
+  public TrackActionResponse createService(ServiceRequest request) throws AmbariException;
 
-  public TrackActionResponse createComponents(ServiceComponentRequest request)
-      throws AmbariException;
+  /**
+   * Create the component defined by the attributes in the given request object.
+   *
+   * @param request  the request object which defines the component to be created
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the component cannot be created
+   */
+  public TrackActionResponse createComponent(ServiceComponentRequest request) throws AmbariException;
 
-  public TrackActionResponse createHosts(HostRequest request) throws AmbariException;
+  /**
+   * Create the host defined by the attributes in the given request object.
+   *
+   * @param request  the request object which defines the host to be created
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the host cannot be created
+   */
+  public TrackActionResponse createHost(HostRequest request) throws AmbariException;
 
-  public TrackActionResponse createHostComponents(ServiceComponentHostRequest request)
-      throws AmbariException;
+  /**
+   * Create the host component defined by the attributes in the given request object.
+   *
+   * @param request  the request object which defines the host component to be created
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the host component cannot be created
+   */
+  public TrackActionResponse createHostComponent(ServiceComponentHostRequest request) throws AmbariException;
 
 
   // ----- Read -------------------------------------------------------------
 
-  public Set<ClusterResponse> getCluster(ClusterRequest request, Predicate predicate);
+  /**
+   * Get the clusters identified by the given request object.
+   *
+   * @param request  the request object which identifies the clusters to be returned
+   *
+   * @return a set of cluster responses
+   *
+   * @throws AmbariException thrown if the resource cannot be read
+   */
+  public Set<ClusterResponse> getClusters(ClusterRequest request) throws AmbariException;
 
-  public ServiceResponse getServices(ServiceRequest request, Predicate predicate);
+  /**
+   * Get the services identified by the given request object.
+   *
+   * @param request  the request object which identifies the services to be returned
+   *
+   * @return a set of service responses
+   *
+   * @throws AmbariException thrown if the resource cannot be read
+   */
+  public Set<ServiceResponse> getServices(ServiceRequest request) throws AmbariException;
 
-  public ServiceComponentResponse getComponents(ServiceComponentRequest request, Predicate predicate);
+  /**
+   * Get the components identified by the given request object.
+   *
+   * @param request  the request object which identifies the components to be returned
+   *
+   * @return a set of component responses
+   *
+   * @throws AmbariException thrown if the resource cannot be read
+   */
+  public Set<ServiceComponentResponse> getComponents(ServiceComponentRequest request) throws AmbariException;
 
-  public HostResponse getHosts(HostRequest request, Predicate predicate);
+  /**
+   * Get the hosts identified by the given request object.
+   *
+   * @param request  the request object which identifies the hosts to be returned
+   *
+   * @return a set of host responses
+   *
+   * @throws AmbariException thrown if the resource cannot be read
+   */
+  public Set<HostResponse> getHosts(HostRequest request) throws AmbariException;
 
-  public ServiceComponentHostResponse getHostComponents(ServiceComponentHostRequest request, Predicate predicate);
+  /**
+   * Get the host components identified by the given request object.
+   *
+   * @param request  the request object which identifies the host components to be returned
+   *
+   * @return a set of host component responses
+   *
+   * @throws AmbariException thrown if the resource cannot be read
+   */
+  public Set<ServiceComponentHostResponse> getHostComponents(ServiceComponentHostRequest request) throws AmbariException;
 
 
   // ----- Update -----------------------------------------------------------
 
-  public TrackActionResponse updateCluster(ClusterRequest request);
+  /**
+   * Update the cluster identified by the given request object with the
+   * values carried by the given request object.
+   *
+   * @param request    the request object which defines which cluster to
+   *                   update and the values to set
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the resource cannot be updated
+   */
+  public TrackActionResponse updateCluster(ClusterRequest request) throws AmbariException;
 
-  public TrackActionResponse updateServices(ServiceRequest request, Predicate predicate);
+  /**
+   * Update the service identified by the given request object with the
+   * values carried by the given request object.
+   *
+   * @param request    the request object which defines which service to
+   *                   update and the values to set
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the resource cannot be updated
+   */
+  public TrackActionResponse updateService(ServiceRequest request) throws AmbariException;
 
-  public TrackActionResponse updateComponents(ServiceComponentRequest request, Predicate predicate);
+  /**
+   * Update the component identified by the given request object with the
+   * values carried by the given request object.
+   *
+   * @param request    the request object which defines which component to
+   *                   update and the values to set
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the resource cannot be updated
+   */
+  public TrackActionResponse updateComponent(ServiceComponentRequest request) throws AmbariException;
 
-  public TrackActionResponse updateHosts(HostRequest request, Predicate predicate);
+  /**
+   * Update the host identified by the given request object with the
+   * values carried by the given request object.
+   *
+   * @param request    the request object which defines which host to
+   *                   update and the values to set
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the resource cannot be updated
+   */
+  public TrackActionResponse updateHost(HostRequest request) throws AmbariException;
 
-  public TrackActionResponse updateHostComponents(ServiceComponentHostRequest request, Predicate predicate);
+  /**
+   * Update the host component identified by the given request object with the
+   * values carried by the given request object.
+   *
+   * @param request    the request object which defines which host component to
+   *                   update and the values to set
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the resource cannot be updated
+   */
+  public TrackActionResponse updateHostComponent(ServiceComponentHostRequest request) throws AmbariException;
+
 
 
   // ----- Delete -----------------------------------------------------------
 
-  public TrackActionResponse deleteCluster(ClusterRequest request);
+  /**
+   * Delete the cluster identified by the given request object.
+   *
+   * @param request  the request object which identifies which cluster to delete
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the resource cannot be deleted
+   */
+  public TrackActionResponse deleteCluster(ClusterRequest request) throws AmbariException;
 
-  public TrackActionResponse deleteServices(ServiceRequest request);
+  /**
+   * Delete the service identified by the given request object.
+   *
+   * @return a track action response
+   *
+   * @param request  the request object which identifies which service to delete
+   *
+   * @throws AmbariException thrown if the resource cannot be deleted
+   */
+  public TrackActionResponse deleteService(ServiceRequest request) throws AmbariException;
 
-  public TrackActionResponse deleteComponents(ServiceComponentRequest request);
+  /**
+   * Delete the component identified by the given request object.
+   *
+   * @return a track action response
+   *
+   * @param request  the request object which identifies which component to delete
+   *
+   * @throws AmbariException thrown if the resource cannot be deleted
+   */
+  public TrackActionResponse deleteComponent(ServiceComponentRequest request) throws AmbariException;
 
-  public TrackActionResponse deleteHosts(HostRequest request);
+  /**
+   * Delete the host identified by the given request object.
+   *
+   * @param request  the request object which identifies which host to delete
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the resource cannot be deleted
+   */
+  public TrackActionResponse deleteHost(HostRequest request) throws AmbariException;
 
-
-  public TrackActionResponse deleteHostComponents(ServiceComponentHostRequest request);
+  /**
+   * Delete the host component identified by the given request object.
+   *
+   * @param request  the request object which identifies which host component to delete
+   *
+   * @return a track action response
+   *
+   * @throws AmbariException thrown if the resource cannot be deleted
+   */
+  public TrackActionResponse deleteHostComponent(ServiceComponentHostRequest request) throws AmbariException;
 }

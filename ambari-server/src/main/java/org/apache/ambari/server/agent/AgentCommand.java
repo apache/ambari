@@ -17,19 +17,8 @@
  */
 package org.apache.ambari.server.agent;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
 public abstract class AgentCommand {
 
-  @XmlElement
   private AgentCommandType commandType;
 
   public AgentCommand() {
@@ -40,11 +29,17 @@ public abstract class AgentCommand {
     this.commandType = type;
   }
 
-  @XmlType
-  @XmlEnum
   public enum AgentCommandType {
     EXECUTION_COMMAND,
     STATUS_COMMAND,
     REGISTRATION_COMMAND
+  }
+
+  public AgentCommandType getCommandType() {
+    return commandType;
+  }
+  
+  public void setCommandType(AgentCommandType commandType) {
+    this.commandType = commandType;
   }
 }

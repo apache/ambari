@@ -51,11 +51,6 @@ class Controller(threading.Thread):
     self.safeMode = True
     self.credential = None
     self.config = config
-    #Disabled security until we have fix for AMBARI-157
-    #if(config.get('controller', 'user')!=None and config.get('controller', 'password')!=None):
-    #  self.credential = { 'user' : config.get('controller', 'user'),
-    #                      'password' : config.get('controller', 'password')
-    #  }
     self.hostname = socket.gethostname()
     self.registerUrl = config.get('server', 'secured_url') + \
       '/agent/register/' + self.hostname
@@ -82,6 +77,7 @@ class Controller(threading.Thread):
     while registered == False:
       try:
         data = json.dumps(self.register.build(id))
+        logger.info("Registering with the server " + pprint.pformat(data))
         req = urllib2.Request(self.registerUrl, data, {'Content-Type': 
                                                       'application/json'})
         stream = security.secured_url_open(req)
@@ -99,6 +95,23 @@ class Controller(threading.Thread):
       pass  
     return ret
   
+  
+  def addToQueue(self, commands):
+    """Add to the queue for running the commands """
+    """ Put the required actions into the Queue """ 
+    """ Verify if the action is to reboot or not """
+    if not commands:
+      logger.info("No commands from the server.")
+    else:
+      """Only add to the queue if not empty list """
+      for command in commands:
+        logger.info("Adding command to the action queue: \n" +
+                     pprint.pformat(command)) 
+        self.actionQueue.put(command)
+        pass
+      pass
+    pass
+  
   def heartbeatWithServer(self):
     retry = False
     #TODO make sure the response id is monotonically increasing
@@ -109,29 +122,33 @@ class Controller(threading.Thread):
           data = json.dumps(self.heartbeat.build(id))
           pass
         logger.info("Sending HeartBeat " + pprint.pformat(data))
-        req = urllib2.Request(self.heartbeatUrl, data, {'Content-Type': 'application/json'})
-        
-        logger.info(data)
-        
+        req = urllib2.Request(self.heartbeatUrl, data, {'Content-Type': 
+                                                        'application/json'})
         f = security.secured_url_open(req)
         response = f.read()
         f.close()
-        data = json.loads(response)
-        id=int(data['responseId'])
-        logger.info("HeartBeat Response from Server: \n" + pprint.pformat(data))
+        response = json.loads(response)
+        id=int(response['responseId'])
+        
+        if 'executionCommands' in response.keys():
+          self.addToQueue(response['executionCommands'])
+          pass
+        else:
+          logger.info("No commands sent from the Server.")
+          pass
         retry=False
       except Exception, err:
         retry=True
         if "code" in err:
           logger.error(err.code)
         else:
-          logger.error("Unable to connect to: "+self.heartbeatUrl,exc_info=True)
+          logger.error("Unable to connect to: "+ 
+                       self.heartbeatUrl,exc_info=True)
       if self.actionQueue.isIdle():
-        time.sleep(30)
+        time.sleep(3)
       else:
         time.sleep(1) 
     pass
-  
 
   def run(self):
     opener = urllib2.build_opener()
@@ -148,7 +165,8 @@ def main(argv=None):
   signal.signal(signal.SIGINT, signal.SIG_DFL)
 
   logger.setLevel(logging.INFO)
-  formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - %(message)s")
+  formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - \
+    %(message)s")
   stream_handler = logging.StreamHandler()
   stream_handler.setFormatter(formatter)
   logger.addHandler(stream_handler)

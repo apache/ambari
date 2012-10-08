@@ -22,8 +22,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
-import org.apache.ambari.server.state.live.job.Job;
+import org.apache.ambari.server.state.job.Job;
 
 public interface Host {
 
@@ -241,4 +242,7 @@ public interface Host {
    * @return Time spent in current state.
    */
   public long getTimeInState();
+
+  public HostResponse convertToResponse();
+
 }

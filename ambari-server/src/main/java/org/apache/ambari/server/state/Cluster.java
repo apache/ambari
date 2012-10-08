@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.ClusterResponse;
 
 public interface Cluster {
 
@@ -65,5 +66,25 @@ public interface Cluster {
    * @return
    */
   public List<ServiceComponentHost> getServiceComponentHosts(String hostname);
+
+  /**
+   * Get Stack Version
+   * @return
+   */
+  public StackVersion getDesiredStackVersion();
+
+  /**
+   * Set stack version
+   * @param stackVersion
+   */
+  public void setDesiredStackVersion(StackVersion stackVersion);
+
+  public Map<String, Config> getConfigsByType(String configType);
+
+  public Config getConfig(String configType, String versionTag);
+
+  public void addConfig(Config config);
+
+  public ClusterResponse convertToResponse();
 
 }

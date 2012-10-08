@@ -20,9 +20,10 @@ package org.apache.ambari.server;
 
 public class ServiceComponentHostNotFoundException extends AmbariException {
 
-  public ServiceComponentHostNotFoundException(String serviceName,
-      String serviceComponentName, String hostName) {
+  public ServiceComponentHostNotFoundException(String clusterName,
+      String serviceName, String serviceComponentName, String hostName) {
     super("ServiceComponentHost not found"
+        + ", clusterName=" + clusterName
         + ", serviceName=" + serviceName
         + ", serviceComponentName=" + serviceComponentName
         + ", hostName=" + hostName);

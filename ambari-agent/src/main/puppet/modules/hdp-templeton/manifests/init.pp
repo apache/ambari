@@ -25,9 +25,8 @@ class hdp-templeton(
 {
   include manifestloader
   
-  configgenerator::configfile{'templeton-site.xml: 
-    module => 'hdp-templeton',
-    properties => $manifestloader::hdp_templeton_templeton_site_props
+  configgenerator::configfile{'templeton_site_xml': 
+    configuration => $manifestloader::Hdp_templeton__templeton_site
   }
 
  include hdp-templeton::params 

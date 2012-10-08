@@ -17,16 +17,11 @@
  */
 package org.apache.ambari.server.agent;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
+/**
+ * Status of the host as described by the agent.
+ *
+ */
 public class HostStatus {
   public HostStatus(Status status, String cause) {
     super();
@@ -36,15 +31,12 @@ public class HostStatus {
   public HostStatus() {
     super();
   }
-  @XmlType
-  @XmlEnum
+  
   public enum Status {
     HEALTHY,
     UNHEALTHY
   }
-  @XmlElement
   Status status;
-  @XmlElement
   String cause;
   public Status getStatus() {
     return status;

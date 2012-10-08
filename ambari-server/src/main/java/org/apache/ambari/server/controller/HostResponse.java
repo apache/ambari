@@ -18,388 +18,370 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.HostHealthStatus;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 public class HostResponse {
 
-  private List<PerHostResponse> hosts;
-  
-  public HostResponse(List<PerHostResponse> hosts) {
+  private String hostname;
+
+  private Set<String> clusterNames;
+
+  /**
+   * Host IP if ipv4 interface available
+   */
+  private String ipv4;
+
+  /**
+   * Host IP if ipv6 interface available
+   */
+  private String ipv6;
+
+  /**
+   * Count of cores on Host
+   */
+  private int cpuCount;
+
+  /**
+   * Os Architecture
+   */
+  private String osArch;
+
+  /**
+   * OS Type
+   */
+  private String osType;
+
+  /**
+   * OS Information
+   */
+  private String osInfo;
+
+  /**
+   * Amount of available memory for the Host
+   */
+  private long availableMemBytes;
+
+  /**
+   * Amount of physical memory for the Host
+   */
+  private long totalMemBytes;
+
+  /**
+   * Disks mounted on the Host
+   */
+  private List<DiskInfo> disksInfo;
+
+  /**
+   * Last heartbeat timestamp from the Host
+   */
+  private long lastHeartbeatTime;
+
+  /**
+   * Last registration timestamp for the Host
+   */
+  private long lastRegistrationTime;
+
+  /**
+   * Rack to which the Host belongs to
+   */
+  private String rackInfo;
+
+  /**
+   * Additional Host attributes
+   */
+  private Map<String, String> hostAttributes;
+
+  /**
+   * Version of agent running on the Host
+   */
+  private AgentVersion agentVersion;
+
+  /**
+   * Host Health Status
+   */
+  private HostHealthStatus healthStatus;
+
+
+  public HostResponse(String hostname, Set<String> clusterNames,
+                      String ipv4, String ipv6, int cpuCount, String osArch, String osType,
+                      String osInfo, long availableMemBytes, long totalMemBytes,
+                      List<DiskInfo> disksInfo, long lastHeartbeatTime,
+                      long lastRegistrationTime, String rackInfo,
+                      Map<String, String> hostAttributes, AgentVersion agentVersion,
+                      HostHealthStatus healthStatus) {
     super();
-    this.hosts = hosts;
+    this.hostname = hostname;
+    this.clusterNames = clusterNames;
+    this.ipv4 = ipv4;
+    this.ipv6 = ipv6;
+    this.cpuCount = cpuCount;
+    this.osArch = osArch;
+    this.osType = osType;
+    this.osInfo = osInfo;
+    this.availableMemBytes = availableMemBytes;
+    this.totalMemBytes = totalMemBytes;
+    this.disksInfo = disksInfo;
+    this.lastHeartbeatTime = lastHeartbeatTime;
+    this.lastRegistrationTime = lastRegistrationTime;
+    this.rackInfo = rackInfo;
+    this.hostAttributes = hostAttributes;
+    this.agentVersion = agentVersion;
+    this.healthStatus = healthStatus;
   }
 
-  public static class PerHostResponse {
-
-    private String hostname;
-    
-    private List<String> clusterNames;
-
-    public PerHostResponse(String hostname, List<String> clusterNames,
-        String ipv4, String ipv6, int cpuCount, String osArch, String osType,
-        String osInfo, long availableMemBytes, long totalMemBytes,
-        List<DiskInfo> disksInfo, long lastHeartbeatTime,
-        long lastRegistrationTime, String rackInfo,
-        Map<String, String> hostAttributes, AgentVersion agentVersion,
-        HostHealthStatus healthStatus) {
-      super();
-      this.hostname = hostname;
-      this.clusterNames = clusterNames;
-      this.ipv4 = ipv4;
-      this.ipv6 = ipv6;
-      this.cpuCount = cpuCount;
-      this.osArch = osArch;
-      this.osType = osType;
-      this.osInfo = osInfo;
-      this.availableMemBytes = availableMemBytes;
-      this.totalMemBytes = totalMemBytes;
-      this.disksInfo = disksInfo;
-      this.lastHeartbeatTime = lastHeartbeatTime;
-      this.lastRegistrationTime = lastRegistrationTime;
-      this.rackInfo = rackInfo;
-      this.hostAttributes = hostAttributes;
-      this.agentVersion = agentVersion;
-      this.healthStatus = healthStatus;
-    }
-
-    public PerHostResponse(String hostname) {
-      super();
-      this.hostname = hostname;
-    }
-
-    /**
-     * Host IP if ipv4 interface available
-     */
-    private String ipv4;
-
-    /**
-     * Host IP if ipv6 interface available
-     */
-    private String ipv6;
-
-    /**
-     * Count of cores on Host
-     */
-    private int cpuCount;
-
-    /**
-     * Os Architecture
-     */
-    private String osArch;
-
-    /**
-     * OS Type
-     */
-    private String osType;
-
-    /**
-     * OS Information
-     */
-    private String osInfo;
-
-    /**
-     * Amount of available memory for the Host
-     */
-    private long availableMemBytes;
-
-    /**
-     * Amount of physical memory for the Host
-     */
-    private long totalMemBytes;
-
-    /**
-     * Disks mounted on the Host
-     */
-    private List<DiskInfo> disksInfo;
-
-    /**
-     * Last heartbeat timestamp from the Host
-     */
-    private long lastHeartbeatTime;
-
-    /**
-     * Last registration timestamp for the Host
-     */
-    private long lastRegistrationTime;
-
-    /**
-     * Rack to which the Host belongs to
-     */
-    private String rackInfo;
-
-    /**
-     * Additional Host attributes
-     */
-    private Map<String, String> hostAttributes;
-
-    /**
-     * Version of agent running on the Host
-     */
-    private AgentVersion agentVersion;
-
-    /**
-     * Host Health Status
-     */
-    private HostHealthStatus healthStatus;
-
-    /**
-     * @return the hostname
-     */
-    public String getHostname() {
-      return hostname;
-    }
-
-    /**
-     * @param hostname the hostname to set
-     */
-    public void setHostname(String hostname) {
-      this.hostname = hostname;
-    }
-
-    /**
-     * @return the clusterNames
-     */
-    public List<String> getClusterNames() {
-      return clusterNames;
-    }
-
-    /**
-     * @param clusterNames the clusterNames to set
-     */
-    public void setClusterNames(List<String> clusterNames) {
-      this.clusterNames = clusterNames;
-    }
-
-    /**
-     * @return the ipv4
-     */
-    public String getIpv4() {
-      return ipv4;
-    }
-
-    /**
-     * @param ipv4 the ipv4 to set
-     */
-    public void setIpv4(String ipv4) {
-      this.ipv4 = ipv4;
-    }
-
-    /**
-     * @return the ipv6
-     */
-    public String getIpv6() {
-      return ipv6;
-    }
-
-    /**
-     * @param ipv6 the ipv6 to set
-     */
-    public void setIpv6(String ipv6) {
-      this.ipv6 = ipv6;
-    }
-
-    /**
-     * @return the cpuCount
-     */
-    public int getCpuCount() {
-      return cpuCount;
-    }
-
-    /**
-     * @param cpuCount the cpuCount to set
-     */
-    public void setCpuCount(int cpuCount) {
-      this.cpuCount = cpuCount;
-    }
-
-    /**
-     * @return the osArch
-     */
-    public String getOsArch() {
-      return osArch;
-    }
-
-    /**
-     * @param osArch the osArch to set
-     */
-    public void setOsArch(String osArch) {
-      this.osArch = osArch;
-    }
-
-    /**
-     * @return the osType
-     */
-    public String getOsType() {
-      return osType;
-    }
-
-    /**
-     * @param osType the osType to set
-     */
-    public void setOsType(String osType) {
-      this.osType = osType;
-    }
-
-    /**
-     * @return the osInfo
-     */
-    public String getOsInfo() {
-      return osInfo;
-    }
-
-    /**
-     * @param osInfo the osInfo to set
-     */
-    public void setOsInfo(String osInfo) {
-      this.osInfo = osInfo;
-    }
-
-    /**
-     * @return the availableMemBytes
-     */
-    public long getAvailableMemBytes() {
-      return availableMemBytes;
-    }
-
-    /**
-     * @param availableMemBytes the availableMemBytes to set
-     */
-    public void setAvailableMemBytes(long availableMemBytes) {
-      this.availableMemBytes = availableMemBytes;
-    }
-
-    /**
-     * @return the totalMemBytes
-     */
-    public long getTotalMemBytes() {
-      return totalMemBytes;
-    }
-
-    /**
-     * @param totalMemBytes the totalMemBytes to set
-     */
-    public void setTotalMemBytes(long totalMemBytes) {
-      this.totalMemBytes = totalMemBytes;
-    }
-
-    /**
-     * @return the disksInfo
-     */
-    public List<DiskInfo> getDisksInfo() {
-      return disksInfo;
-    }
-
-    /**
-     * @param disksInfo the disksInfo to set
-     */
-    public void setDisksInfo(List<DiskInfo> disksInfo) {
-      this.disksInfo = disksInfo;
-    }
-
-    /**
-     * @return the lastHeartbeatTime
-     */
-    public long getLastHeartbeatTime() {
-      return lastHeartbeatTime;
-    }
-
-    /**
-     * @param lastHeartbeatTime the lastHeartbeatTime to set
-     */
-    public void setLastHeartbeatTime(long lastHeartbeatTime) {
-      this.lastHeartbeatTime = lastHeartbeatTime;
-    }
-
-    /**
-     * @return the lastRegistrationTime
-     */
-    public long getLastRegistrationTime() {
-      return lastRegistrationTime;
-    }
-
-    /**
-     * @param lastRegistrationTime the lastRegistrationTime to set
-     */
-    public void setLastRegistrationTime(long lastRegistrationTime) {
-      this.lastRegistrationTime = lastRegistrationTime;
-    }
-
-    /**
-     * @return the rackInfo
-     */
-    public String getRackInfo() {
-      return rackInfo;
-    }
-
-    /**
-     * @param rackInfo the rackInfo to set
-     */
-    public void setRackInfo(String rackInfo) {
-      this.rackInfo = rackInfo;
-    }
-
-    /**
-     * @return the hostAttributes
-     */
-    public Map<String, String> getHostAttributes() {
-      return hostAttributes;
-    }
-
-    /**
-     * @param hostAttributes the hostAttributes to set
-     */
-    public void setHostAttributes(Map<String, String> hostAttributes) {
-      this.hostAttributes = hostAttributes;
-    }
-
-    /**
-     * @return the agentVersion
-     */
-    public AgentVersion getAgentVersion() {
-      return agentVersion;
-    }
-
-    /**
-     * @param agentVersion the agentVersion to set
-     */
-    public void setAgentVersion(AgentVersion agentVersion) {
-      this.agentVersion = agentVersion;
-    }
-
-    /**
-     * @return the healthStatus
-     */
-    public HostHealthStatus getHealthStatus() {
-      return healthStatus;
-    }
-
-    /**
-     * @param healthStatus the healthStatus to set
-     */
-    public void setHealthStatus(HostHealthStatus healthStatus) {
-      this.healthStatus = healthStatus;
-    }
-    
+  public HostResponse(String hostname) {
+    this(hostname, new HashSet<String>(), "", "",
+        0, "", "",
+        "", 0, 0, new ArrayList<DiskInfo>(),
+        0, 0, "",
+        new HashMap<String, String>(),
+        null, null);
   }
 
   /**
-   * @return the hosts
+   * @return the hostname
    */
-  public List<PerHostResponse> getHosts() {
-    return hosts;
+  public String getHostname() {
+    return hostname;
   }
 
-
+  /**
+   * @param hostname the hostname to set
+   */
+  public void setHostname(String hostname) {
+    this.hostname = hostname;
+  }
 
   /**
-   * @param hosts the hosts to set
+   * @return the clusterNames
    */
-  public void setHosts(List<PerHostResponse> hosts) {
-    this.hosts = hosts;
+  public Set<String> getClusterNames() {
+    return clusterNames;
+  }
+
+  /**
+   * @param clusterNames the clusterNames to set
+   */
+  public void setClusterNames(Set<String> clusterNames) {
+    this.clusterNames = clusterNames;
+  }
+
+  /**
+   * @return the ipv4
+   */
+  public String getIpv4() {
+    return ipv4;
+  }
+
+  /**
+   * @param ipv4 the ipv4 to set
+   */
+  public void setIpv4(String ipv4) {
+    this.ipv4 = ipv4;
+  }
+
+  /**
+   * @return the ipv6
+   */
+  public String getIpv6() {
+    return ipv6;
+  }
+
+  /**
+   * @param ipv6 the ipv6 to set
+   */
+  public void setIpv6(String ipv6) {
+    this.ipv6 = ipv6;
+  }
+
+  /**
+   * @return the cpuCount
+   */
+  public int getCpuCount() {
+    return cpuCount;
+  }
+
+  /**
+   * @param cpuCount the cpuCount to set
+   */
+  public void setCpuCount(int cpuCount) {
+    this.cpuCount = cpuCount;
+  }
+
+  /**
+   * @return the osArch
+   */
+  public String getOsArch() {
+    return osArch;
+  }
+
+  /**
+   * @param osArch the osArch to set
+   */
+  public void setOsArch(String osArch) {
+    this.osArch = osArch;
+  }
+
+  /**
+   * @return the osType
+   */
+  public String getOsType() {
+    return osType;
+  }
+
+  /**
+   * @param osType the osType to set
+   */
+  public void setOsType(String osType) {
+    this.osType = osType;
+  }
+
+  /**
+   * @return the osInfo
+   */
+  public String getOsInfo() {
+    return osInfo;
+  }
+
+  /**
+   * @param osInfo the osInfo to set
+   */
+  public void setOsInfo(String osInfo) {
+    this.osInfo = osInfo;
+  }
+
+  /**
+   * @return the availableMemBytes
+   */
+  public long getAvailableMemBytes() {
+    return availableMemBytes;
+  }
+
+  /**
+   * @param availableMemBytes the availableMemBytes to set
+   */
+  public void setAvailableMemBytes(long availableMemBytes) {
+    this.availableMemBytes = availableMemBytes;
+  }
+
+  /**
+   * @return the totalMemBytes
+   */
+  public long getTotalMemBytes() {
+    return totalMemBytes;
+  }
+
+  /**
+   * @param totalMemBytes the totalMemBytes to set
+   */
+  public void setTotalMemBytes(long totalMemBytes) {
+    this.totalMemBytes = totalMemBytes;
+  }
+
+  /**
+   * @return the disksInfo
+   */
+  public List<DiskInfo> getDisksInfo() {
+    return disksInfo;
+  }
+
+  /**
+   * @param disksInfo the disksInfo to set
+   */
+  public void setDisksInfo(List<DiskInfo> disksInfo) {
+    this.disksInfo = disksInfo;
+  }
+
+  /**
+   * @return the lastHeartbeatTime
+   */
+  public long getLastHeartbeatTime() {
+    return lastHeartbeatTime;
+  }
+
+  /**
+   * @param lastHeartbeatTime the lastHeartbeatTime to set
+   */
+  public void setLastHeartbeatTime(long lastHeartbeatTime) {
+    this.lastHeartbeatTime = lastHeartbeatTime;
+  }
+
+  /**
+   * @return the lastRegistrationTime
+   */
+  public long getLastRegistrationTime() {
+    return lastRegistrationTime;
+  }
+
+  /**
+   * @param lastRegistrationTime the lastRegistrationTime to set
+   */
+  public void setLastRegistrationTime(long lastRegistrationTime) {
+    this.lastRegistrationTime = lastRegistrationTime;
+  }
+
+  /**
+   * @return the rackInfo
+   */
+  public String getRackInfo() {
+    return rackInfo;
+  }
+
+  /**
+   * @param rackInfo the rackInfo to set
+   */
+  public void setRackInfo(String rackInfo) {
+    this.rackInfo = rackInfo;
+  }
+
+  /**
+   * @return the hostAttributes
+   */
+  public Map<String, String> getHostAttributes() {
+    return hostAttributes;
+  }
+
+  /**
+   * @param hostAttributes the hostAttributes to set
+   */
+  public void setHostAttributes(Map<String, String> hostAttributes) {
+    this.hostAttributes = hostAttributes;
+  }
+
+  /**
+   * @return the agentVersion
+   */
+  public AgentVersion getAgentVersion() {
+    return agentVersion;
+  }
+
+  /**
+   * @param agentVersion the agentVersion to set
+   */
+  public void setAgentVersion(AgentVersion agentVersion) {
+    this.agentVersion = agentVersion;
+  }
+
+  /**
+   * @return the healthStatus
+   */
+  public HostHealthStatus getHealthStatus() {
+    return healthStatus;
+  }
+
+  /**
+   * @param healthStatus the healthStatus to set
+   */
+  public void setHealthStatus(HostHealthStatus healthStatus) {
+    this.healthStatus = healthStatus;
   }
 }

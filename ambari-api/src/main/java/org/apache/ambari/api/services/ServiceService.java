@@ -21,10 +21,7 @@ package org.apache.ambari.api.services;
 import org.apache.ambari.api.resource.ResourceDefinition;
 import org.apache.ambari.api.resource.ServiceResourceDefinition;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
 /**
@@ -60,12 +57,12 @@ public class ServiceService extends BaseService {
   public Response getService(@Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, ui, Request.RequestType.GET,
+    return handleRequest(headers, ui, Request.Type.GET,
         createResourceDefinition(serviceName, m_clusterName));
   }
 
   /**
-   * Handles URL: /clusters/{clusterID}/services
+   * Handles URL: /clusters/{clusterId}/services
    * Get all services for a cluster.
    *
    * @param headers http headers
@@ -75,8 +72,59 @@ public class ServiceService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getServices(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, ui, Request.RequestType.GET,
+    return handleRequest(headers, ui, Request.Type.GET,
         createResourceDefinition(null, m_clusterName));
+  }
+
+  /**
+   * Handles: PUT /clusters/{clusterId}/services/{serviceId}
+   * Create a specific service.
+   *
+   * @param headers     http headers
+   * @param ui          uri info
+   * @param serviceName service id
+   * @return information regarding the created service
+   */
+  @PUT
+  @Produces("text/plain")
+  public Response createService(@Context HttpHeaders headers, @Context UriInfo ui,
+                                @PathParam("serviceName") String serviceName) {
+
+    return handleRequest(headers, ui, Request.Type.PUT, createResourceDefinition(serviceName, m_clusterName));
+  }
+
+  /**
+   * Handles: POST /clusters/{clusterId}/services/{serviceId}
+   * Update a specific service.
+   *
+   * @param headers     http headers
+   * @param ui          uri info
+   * @param serviceName service id
+   * @return information regarding the updated service
+   */
+  @POST
+  @Produces("text/plain")
+  public Response updateService(@Context HttpHeaders headers, @Context UriInfo ui,
+                                @PathParam("serviceName") String serviceName) {
+
+    return handleRequest(headers, ui, Request.Type.POST, createResourceDefinition(serviceName, m_clusterName));
+  }
+
+  /**
+   * Handles: DELETE /clusters/{clusterId}/services/{serviceId}
+   * Delete a specific service.
+   *
+   * @param headers     http headers
+   * @param ui          uri info
+   * @param serviceName service id
+   * @return information regarding the deleted service
+   */
+  @DELETE
+  @Produces("text/plain")
+  public Response deleteService(@Context HttpHeaders headers, @Context UriInfo ui,
+                                @PathParam("serviceName") String serviceName) {
+
+    return handleRequest(headers, ui, Request.Type.DELETE, createResourceDefinition(serviceName, m_clusterName));
   }
 
   /**

@@ -22,8 +22,15 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- *
+ * Simple JDBC connection factory interface.
  */
 public interface ConnectionFactory {
+  /**
+   * Get a connection.
+   *
+   * @return the connection
+   *
+   * @throws SQLException thrown if the connection cannot be obtained
+   */
   public Connection getConnection() throws SQLException;
 }

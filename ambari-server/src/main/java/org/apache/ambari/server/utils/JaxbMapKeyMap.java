@@ -17,17 +17,15 @@
  */
 package org.apache.ambari.server.utils;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
 
 public class JaxbMapKeyMap {
   @XmlElement public String  key;
-  @XmlElement public List<JaxbMapKeyVal> value;
+  @XmlElement public JaxbMapKeyVal[] value;
 
   private JaxbMapKeyMap() {}
 
-  public JaxbMapKeyMap(String key, List<JaxbMapKeyVal> value)
+  public JaxbMapKeyMap(String key, JaxbMapKeyVal[] value)
   {
     this.key   = key;
     this.value = value;

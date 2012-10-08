@@ -18,22 +18,41 @@
 
 package org.apache.ambari.api.controller.internal;
 
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Resource;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Default resource implementation.
+ * Simple resource implementation.
  */
 public class ResourceImpl implements Resource {
+
+  /**
+   * The resource type.
+   */
   private final Type type;
+
+  /**
+   * The map of categories/properties for this resource.
+   */
   private final Map<String, Map<String, String>> categories = new HashMap<String, Map<String, String>>();
 
+
+  // ----- Constructors ------------------------------------------------------
+
+  /**
+   * Create a resource of the given type.
+   *
+   * @param type  the resource type
+   */
   public ResourceImpl(Type type) {
     this.type = type;
   }
+
+
+  // ----- Resource ----------------------------------------------------------
 
   @Override
   public Type getType() {
@@ -89,6 +108,9 @@ public class ResourceImpl implements Resource {
     }
     return null;
   }
+
+
+  // ----- Object overrides --------------------------------------------------
 
   @Override
   public String toString() {

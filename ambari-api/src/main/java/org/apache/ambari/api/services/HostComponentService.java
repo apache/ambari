@@ -67,7 +67,7 @@ public class HostComponentService extends BaseService {
   public Response getHostComponent(@Context HttpHeaders headers, @Context UriInfo ui,
                                    @PathParam("hostComponentName") String hostComponentName) {
 
-    return handleRequest(headers, ui, Request.RequestType.GET,
+    return handleRequest(headers, ui, Request.Type.GET,
         createResourceDefinition(hostComponentName, m_clusterName, m_hostName));
   }
 
@@ -82,7 +82,7 @@ public class HostComponentService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getHostComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, ui, Request.RequestType.GET,
+    return handleRequest(headers, ui, Request.Type.GET,
         createResourceDefinition(null, m_clusterName, m_hostName));
   }
 

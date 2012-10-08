@@ -28,6 +28,9 @@ import java.util.TreeMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.inject.Singleton;
+
+@Singleton
 public class ActionQueue {
 
   private static Log LOG = LogFactory.getLog(ActionQueue.class);
@@ -47,18 +50,20 @@ public class ActionQueue {
   }
 
   public void enqueue(String hostname, AgentCommand cmd) {
-
-    Queue<AgentCommand> q = getQueue(hostname);
-    if (q == null) {
-      q = new LinkedList<AgentCommand>();
-      addQueue(hostname, q);
-    }
-    synchronized (q) {
-      if (q.contains(cmd)) {
-        LOG.warn("cmd already exists in the queue, not adding again");
-        return;
+    synchronized (this) {
+      Queue<AgentCommand> q = getQueue(hostname);
+      if (q == null) {
+        addQueue(hostname, new LinkedList<AgentCommand>());
+        q = getQueue(hostname);
       }
-      q.add(cmd);
+      LOG.info("Reference to queue for host=" + hostname + " is " + q);
+      synchronized (q) {
+        if (q.contains(cmd)) {
+          LOG.warn("cmd already exists in the queue, not adding again");
+          return;
+        }
+        q.add(cmd);
+      }
     }
   }
 
@@ -73,8 +78,10 @@ public class ActionQueue {
   }
 
   public List<AgentCommand> dequeueAll(String hostname) {
+    LOG.info("Dequeue all elements for hostname: "+hostname);
     Queue<AgentCommand> q = getQueue(hostname);
     if (q == null) {
+      LOG.warn("No queue for host: "+hostname);
       return null;
     }
     List<AgentCommand> l = new ArrayList<AgentCommand>();

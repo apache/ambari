@@ -25,8 +25,8 @@ import java.util.List;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.state.live.ClustersImpl;
-import org.apache.ambari.server.state.live.svccomphost.ServiceComponentHostStartEvent;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.Test;
 
@@ -60,7 +60,7 @@ public class TestActionManager {
     Stage s = new Stage(requestId, "/a/b", "cluster1");
     s.setStageId(stageId);
     HostAction ha = new HostAction(hostname);
-    HostRoleCommand cmd = new HostRoleCommand(Role.HBASE_MASTER,
+    HostRoleCommand cmd = new HostRoleCommand("HBASE", Role.HBASE_MASTER,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
             hostname, System.currentTimeMillis()));
     ha.addHostRoleCommand(cmd);

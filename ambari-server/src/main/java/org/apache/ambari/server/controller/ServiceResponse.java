@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.List;
 import java.util.Map;
 
 public class ServiceResponse {
@@ -27,75 +26,72 @@ public class ServiceResponse {
 
   private String clusterName; // REF
 
-  private List<PerServiceResponse> services;
-  
+  private String serviceName;
+
+  private String currentStackVersion;
+
+  private String desiredStackVersion;
+
+  private String desiredState;
+
+  // Config type -> version mapping
+  private Map<String, String> configVersions; // CREATE/UPDATE
+
+
   public ServiceResponse(Long clusterId, String clusterName,
-      List<PerServiceResponse> services) {
+                         String serviceName, String currentStackVersion,
+                         Map<String, String> configVersions,
+                         String desiredStackVersion, String desiredState) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
-    this.services = services;
+    this.serviceName = serviceName;
+    this.currentStackVersion = currentStackVersion;
+    this.configVersions = configVersions;
+    this.setDesiredStackVersion(desiredStackVersion);
+    this.setDesiredState(desiredState);
   }
 
-  public static class PerServiceResponse {
-    
-    private String serviceName;
-    
-    private String currentStackVersion;
-    
-    // Config type -> version mapping
-    private Map<String, String> configVersions; // CREATE/UPDATE
+  /**
+   * @return the serviceName
+   */
+  public String getServiceName() {
+    return serviceName;
+  }
 
-    public PerServiceResponse(String serviceName, String currentStackVersion,
-        Map<String, String> configVersions) {
-      super();
-      this.serviceName = serviceName;
-      this.currentStackVersion = currentStackVersion;
-      this.configVersions = configVersions;
-    }
+  /**
+   * @param serviceName the serviceName to set
+   */
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
+  }
 
-    /**
-     * @return the serviceName
-     */
-    public String getServiceName() {
-      return serviceName;
-    }
+  /**
+   * @return the currentStackVersion
+   */
+  public String getCurrentStackVersion() {
+    return currentStackVersion;
+  }
 
-    /**
-     * @param serviceName the serviceName to set
-     */
-    public void setServiceName(String serviceName) {
-      this.serviceName = serviceName;
-    }
+  /**
+   * @param currentStackVersion the currentStackVersion to set
+   */
+  public void setCurrentStackVersion(String currentStackVersion) {
+    this.currentStackVersion = currentStackVersion;
+  }
 
-    /**
-     * @return the currentStackVersion
-     */
-    public String getCurrentStackVersion() {
-      return currentStackVersion;
-    }
+  /**
+   * @return the configVersions
+   */
+  public Map<String, String> getConfigVersions() {
+    return configVersions;
+  }
 
-    /**
-     * @param currentStackVersion the currentStackVersion to set
-     */
-    public void setCurrentStackVersion(String currentStackVersion) {
-      this.currentStackVersion = currentStackVersion;
-    }
-
-    /**
-     * @return the configVersions
-     */
-    public Map<String, String> getConfigVersions() {
-      return configVersions;
-    }
-
-    /**
-     * @param configVersions the configVersions to set
-     */
-    public void setConfigVersions(Map<String, String> configVersions) {
-      this.configVersions = configVersions;
-    }
-    
+  /**
+   * @param configVersions the configVersions to set
+   */
+  public void setConfigVersions(Map<String, String> configVersions) {
+    this.configVersions = configVersions;
   }
 
   /**
@@ -127,16 +123,30 @@ public class ServiceResponse {
   }
 
   /**
-   * @return the services
+   * @return the desiredState
    */
-  public List<PerServiceResponse> getServices() {
-    return services;
+  public String getDesiredState() {
+    return desiredState;
   }
 
   /**
-   * @param services the services to set
+   * @param desiredState the desiredState to set
    */
-  public void setServices(List<PerServiceResponse> services) {
-    this.services = services;
+  public void setDesiredState(String desiredState) {
+    this.desiredState = desiredState;
+  }
+
+  /**
+   * @return the desiredStackVersion
+   */
+  public String getDesiredStackVersion() {
+    return desiredStackVersion;
+  }
+
+  /**
+   * @param desiredStackVersion the desiredStackVersion to set
+   */
+  public void setDesiredStackVersion(String desiredStackVersion) {
+    this.desiredStackVersion = desiredStackVersion;
   }
 }

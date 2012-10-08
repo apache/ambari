@@ -24,10 +24,19 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
 /**
- *
+ * Factory for {@link Request} instances.
  */
 public class RequestFactory {
-  public Request createRequest(HttpHeaders headers, UriInfo uriInfo, Request.RequestType requestType,
+  /**
+   * Create a request instance.
+   *
+   * @param headers            http headers
+   * @param uriInfo            uri information
+   * @param requestType        http request type
+   * @param resourceDefinition associated resource definition
+   * @return a new Request instance
+   */
+  public Request createRequest(HttpHeaders headers, UriInfo uriInfo, Request.Type requestType,
                                ResourceDefinition resourceDefinition) {
 
     return new RequestImpl(headers, uriInfo, requestType, resourceDefinition);

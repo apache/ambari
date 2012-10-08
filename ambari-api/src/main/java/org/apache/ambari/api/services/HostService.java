@@ -61,7 +61,7 @@ public class HostService extends BaseService {
   public Response getHost(@Context HttpHeaders headers, @Context UriInfo ui,
                           @PathParam("hostName") String hostName) {
 
-    return handleRequest(headers, ui, Request.RequestType.GET,
+    return handleRequest(headers, ui, Request.Type.GET,
         createResourceDefinition(hostName, m_clusterName));
   }
 
@@ -76,7 +76,7 @@ public class HostService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getHosts(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, ui, Request.RequestType.GET, createResourceDefinition(null, m_clusterName));
+    return handleRequest(headers, ui, Request.Type.GET, createResourceDefinition(null, m_clusterName));
   }
 
   /**

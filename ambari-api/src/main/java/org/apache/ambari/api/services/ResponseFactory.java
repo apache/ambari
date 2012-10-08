@@ -21,9 +21,16 @@ package org.apache.ambari.api.services;
 import javax.ws.rs.core.Response;
 
 /**
- *
+ * Factory for creating jax-rs responses from results.
  */
 public class ResponseFactory {
+  /**
+   * Create a response from a provided result.
+   *
+   * @param result  the result to wrap
+   *
+   * @return a new jax-rs Response instance for the provided result
+   */
   public Response createResponse(Object result) {
     return Response.ok(result).build();
   }

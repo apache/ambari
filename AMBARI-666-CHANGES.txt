@@ -12,11 +12,22 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
-  AMBARI-816. Update Cluster Management -> Services pages to use a left nav 
-  rather than tabs for service selection. (yusaku)
+  AMBARI-812. In API , improve partial response support to drill down n levels
+  (John Spiedel)
 
-  AMBARI-815. Ensure data persistence during navigation, refresh and
-  ensure necessary restrictions. (Jaimin Jetly via yusaku)
+  AMBARI-791. Add unit tests and java docs for SPI code. (Tom Beerbower)
+
+  AMBARI-820. Remove JAXB dependencies in Server Agent protocol and move to
+  POJO based jackson serializer. (mahadev)
+
+  AMBARI-819. Management controller implemenation work. (hitesh)
+
+  AMBARI-811. Bug fix in jaxb serialization for maps. (jitendra)
+
+  AMBARI-810. Controller layer implementation part 1. (hitesh)
+
+  AMBARI-807. Fix Action scheduler tests because of fsm interface changes.
+  (jitendra)
 
   AMBARI-806. Remove State object as configs/stack version/running state are
   handled as standalone entities. (hitesh)
@@ -25,10 +36,8 @@ AMBARI-666 branch (unreleased changes)
 
   AMBARI-803. FSM initial refactoring for eventual live/desired objects. (hitesh)
 
-  AMBARI-802. Enhance Cluster Management pages. (yusaku)
-
   AMBARI-800. Hack to add a stage for testing in in-memory db. (jitendra)
-
+  
   AMBARI-801. Fix heartbeat message from the agent which is causing NPE at the
   server. (mahadev)
 
@@ -48,10 +57,8 @@ AMBARI-666 branch (unreleased changes)
 
   AMBARI-790. OK in registration response. (jitendra)
 
-  AMBARI-789. Prototype for management spi interface. (hitesh)
-
   AMBARI-787. Registration throws HostNotFoundException for new hosts. (jitendra)
-
+  
   AMBARI-788. Fix server and agent startup for end to end testing. (mahadev)
 
   AMBARI-785. Action response unit test. (jitendra)
@@ -65,31 +72,10 @@ AMBARI-666 branch (unreleased changes)
   AMBARI-754. Heartbeat handler: Registration response should query component 
   status. (jitendra)
 
-  AMBARI-779. Introduce ManagementController interface. (Tom Beerbower via hitesh)
-
-  AMBARI-755. Heartbeat handler: Update state as reported in heartbeat.
+  AMBARI-755. Heartbeat handler: Update state as reported in heartbeat. 
   (jitendra)
 
-  AMBARI-777. Add NOTICE file for copyright of stdlib from puppetlabs.
-  (mahadev)
-
-  AMBARI-776. Puppet scripts for all the modules to install/configure the
-  stack. (mahadev)
-
   AMBARI-756. Heartbeat handler: Handle heartbeat timeout. (jitendra)
-
-  AMBARI-772. Stylize main nav. (yusaku)
-
-  AMBARI-771. Add security between the server and agent and authentication for
-  the API. (mahadev)
-
-  AMBARI-770. Cluster Management pages for Ambari Web. (yusaku)
-
-  AMBARI-769. Implement step 9 (Install,start and test) of installer wizard.
-  (Jaimin Jetly via yusaku)
-
-  AMBARI-768. Implement step 5 of installer wizard (Assign Masters).
-  (Ananya Sen via yusaku)
 
   AMBARI-767. Add bootstrap script to ssh in parallel and setup agents on a
   list of hosts. (mahadev)
@@ -115,41 +101,16 @@ AMBARI-666 branch (unreleased changes)
 
   AMBARI-751. Re-structure servicecomponenthost fsm layout. (hitesh)
 
-  AMBARI-747. Add unit tests for step2 (Install option page) of installer.
-  (Jaimin Jetly via yusaku)
-
-  AMBARI-746. Integrate configuration properties and custom configuration 
-  file overrides in Customize Services page. (yusaku)
-
   AMBARI-732. Action scheduler unit tests. (jitendra)
 
   AMBARI-739. Cluster fsm implementation. (hitesh)
-
-  AMBARI-745. Add unit tests for Installer Step 1 (Welcome page). (yusaku)
-
-  AMBARI-744. Add definition for service config properties. (yusaku)
-
-  AMBARI-743. Add unit testing framework for Ambari Web. (yusaku)
-
-  AMBARI-742. Implement running a bootstrap api, keep a fifo queue and logic
-  for getting a request. (mahadev)
-
-  AMBARI-741. Use ember-i18n to externalize string resources in Ambari Web.
-  (yusaku)
-
-  AMBARI-735. Clean up Installer Welcome page and Install Options page.
-  (Jaimin Jetly via yusaku)
 
   AMBARI-738. s/Node/Host/g. (hitesh)
 
   AMBARI-737. ServiceComponentNode FSM implementation. (hitesh)
 
-  AMBARI-734. Initial work for adding DataNode/TaskTracker/RegionServer
-  configuration overrides on groups of hosts in Installer Customize Services
-  page. (yusaku)
-
-  AMBARI-736. Initial work on Cluster Management pages. (yusaku)
-
+  AMBARI-722. Action scheduler implementation. (jitendra)
+  
   AMBARI-733. Add Jersey Resource for BootStrapping and JAXB elements for API
   entities. (mahadev)
 
@@ -235,11 +196,6 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
-  AMBARI-817. Fix import dependencies so that unit test suites can be run
-  again for Ambari Web. (yusaku)
-
-  AMBARI-804. Fix routing issues with Admin pages. (yusaku)
-
   AMBARI-798. Fix import issue due to move of Predicate class. (hitesh)
 
   AMBARI-780. Make FSM related changes for heartbeat handler. (hitesh)
@@ -248,13 +204,9 @@ AMBARI-666 branch (unreleased changes)
 
   AMBARI-773. Change Host FSM as per new requirements of heartbeat handler. (hitesh)
 
-  AMBARI-761. Fix broken build for adding guice servlet dependency. (mahadev)
-
   AMBARI-753. Fix broken compile as a result of re-factor of FSM layout. (hitesh)
 
   AMBARI-752. Add missing license header to TestServiceComponentHostState. (hitesh)
-
-  AMBARI-750. Fix build compilation issue. (mahadev)
 
   AMBARI-718. Fix installer navigation. (yusaku)
 

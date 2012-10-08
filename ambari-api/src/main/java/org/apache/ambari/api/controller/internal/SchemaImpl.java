@@ -18,11 +18,11 @@
 
 package org.apache.ambari.api.controller.internal;
 
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.PropertyProvider;
-import org.apache.ambari.api.controller.spi.Resource;
-import org.apache.ambari.api.controller.spi.ResourceProvider;
-import org.apache.ambari.api.controller.spi.Schema;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.Schema;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,20 +31,42 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Default schema implementation.
+ * Simple schema implementation.
  */
 public class SchemaImpl implements Schema {
+  /**
+   * The associated resource provider.
+   */
   private final ResourceProvider resourceProvider;
+
+  /**
+   * The list of associated property providers.
+   */
   private final List<PropertyProvider> propertyProviders;
+
+  /**
+   * Key property mapping by resource type.
+   */
   private final Map<Resource.Type, PropertyId> keyPropertyIds;
 
+
+  // ----- Constructors ------------------------------------------------------
+
+  /**
+   * Create a new schema for the given providers.
+   *
+   * @param resourceProvider   the resource provider
+   * @param keyPropertyIds     the key property mapping
+   */
   public SchemaImpl(ResourceProvider resourceProvider,
-                    List<PropertyProvider> propertyProviders,
                     Map<Resource.Type, PropertyId> keyPropertyIds) {
     this.resourceProvider = resourceProvider;
-    this.propertyProviders = propertyProviders;
+    this.propertyProviders = resourceProvider.getPropertyProviders();
     this.keyPropertyIds = keyPropertyIds;
   }
+
+
+  // ----- Schema ------------------------------------------------------------
 
   @Override
   public PropertyId getKeyPropertyId(Resource.Type type) {
@@ -67,17 +89,10 @@ public class SchemaImpl implements Schema {
     return categories;
   }
 
-  @Override
-  public ResourceProvider getResourceProvider() {
-    return resourceProvider;
-  }
 
-  @Override
-  public List<PropertyProvider> getPropertyProviders() {
-    return propertyProviders;
-  }
+  // ----- helper methods ----------------------------------------------------
 
-  public Set<PropertyId> getPropertyIds() {
+  private Set<PropertyId> getPropertyIds() {
     Set<PropertyId> propertyIds = new HashSet<PropertyId>(resourceProvider.getPropertyIds());
     for (PropertyProvider propertyProvider : propertyProviders) {
       propertyIds.addAll(propertyProvider.getPropertyIds());

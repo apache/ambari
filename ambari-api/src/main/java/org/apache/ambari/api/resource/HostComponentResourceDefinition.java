@@ -18,23 +18,49 @@
 
 package org.apache.ambari.api.resource;
 
-import org.apache.ambari.api.services.formatters.CollectionFormatter;
-import org.apache.ambari.api.services.formatters.HostComponentInstanceFormatter;
-import org.apache.ambari.api.services.formatters.ResultFormatter;
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.Resource;
+import org.apache.ambari.api.controller.internal.ClusterControllerImpl;
+import org.apache.ambari.api.controller.internal.PropertyIdImpl;
+import org.apache.ambari.api.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.api.services.Request;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Schema;
+import org.apache.ambari.api.util.TreeNode;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import org.apache.ambari.api.services.ResultPostProcessor;
+
+import java.util.*;
 
 /**
- *
+ * Host_Component resource definition.
  */
 public class HostComponentResourceDefinition extends BaseResourceDefinition {
 
+  /**
+   * value of cluster id foreign key
+   */
   private String m_clusterId;
+
+  /**
+   * value of host id foreign key
+   */
   private String m_hostId;
+
+
+  /**
+   * Constructor.
+   *
+   * @param id        value of host_component id
+   * @param clusterId value of cluster id foreign key
+   * @param hostId    value of host id foreign key
+   */
+  public HostComponentResourceDefinition(String id, String clusterId, String hostId) {
+    super(Resource.Type.HostComponent, id);
+    m_clusterId = clusterId;
+    m_hostId = hostId;
+    setResourceId(Resource.Type.Cluster, m_clusterId);
+    setResourceId(Resource.Type.Host, m_hostId);
+  }
 
   @Override
   public String getPluralName() {
@@ -46,39 +72,81 @@ public class HostComponentResourceDefinition extends BaseResourceDefinition {
     return "host_component";
   }
 
-  public HostComponentResourceDefinition(String id, String clusterId, String hostId) {
-    super(Resource.Type.HostComponent, id);
-    m_clusterId = clusterId;
-    m_hostId = hostId;
-    setResourceId(Resource.Type.Cluster, m_clusterId);
-    setResourceId(Resource.Type.Host, m_hostId);
-  }
 
   @Override
-  public Set<ResourceDefinition> getChildren() {
-    return Collections.emptySet();
-  }
+  public Map<String, ResourceDefinition> getSubResources() {
+    Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
 
-  @Override
-  public Set<ResourceDefinition> getRelations() {
-    Set<ResourceDefinition> setRelated = new HashSet<ResourceDefinition>();
-    // already have all information necessary for host
-    //todo: adding host here causes a cycle
-    //setRelated.add(new HostResourceDefinition(m_hostId, m_clusterId));
-    // for component need service id property
     ComponentResourceDefinition componentResource = new ComponentResourceDefinition(
         getId(), m_clusterId, null);
     PropertyId serviceIdProperty = getClusterController().getSchema(
         Resource.Type.Component).getKeyPropertyId(Resource.Type.Service);
     componentResource.getQuery().addProperty(serviceIdProperty);
-    setRelated.add(componentResource);
+    mapChildren.put(componentResource.getSingularName(), componentResource);
 
-    return setRelated;
+    return mapChildren;
   }
 
   @Override
-  public ResultFormatter getResultFormatter() {
-    //todo: instance formatter
-    return getId() == null ? new CollectionFormatter(this) : new HostComponentInstanceFormatter(this);
+  public List<PostProcessor> getPostProcessors() {
+    List<PostProcessor> listProcessors = new ArrayList<PostProcessor>();
+    listProcessors.add(new HostComponentHrefProcessor());
+    listProcessors.add(new HostComponentHostProcessor());
+
+    return listProcessors;
+  }
+
+  @Override
+  public void setParentId(Resource.Type type, String value) {
+    if (type == Resource.Type.Component) {
+      setId(value);
+    } else {
+      super.setParentId(type, value);
+    }
+  }
+
+
+  /**
+   * Host_Component resource processor which is responsible for generating href's for host components.
+   * This is called by the {@link ResultPostProcessor} during post processing of a result.
+   */
+  private class HostComponentHrefProcessor extends BaseHrefPostProcessor {
+    @Override
+    public void process(Request request, TreeNode<Resource> resultNode, String href) {
+      TreeNode<Resource> parent = resultNode.getParent();
+
+      if (parent.getParent() != null && parent.getParent().getObject().getType() == Resource.Type.Component) {
+        Resource r = resultNode.getObject();
+        String clusterId = getResourceIds().get(Resource.Type.Cluster);
+        Schema schema = ClusterControllerHelper.getClusterController().getSchema(r.getType());
+        String host = r.getPropertyValue(schema.getKeyPropertyId(Resource.Type.Host));
+        String hostComponent = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
+
+        href = href.substring(0, href.indexOf(clusterId) + clusterId.length() + 1) +
+            "hosts/" + host + "/host_components/" + hostComponent;
+
+        resultNode.setProperty("href", href);
+      } else {
+        super.process(request, resultNode, href);
+      }
+
+    }
+  }
+
+  /**
+   * Host_Component resource processor which is responsible for generating a host section for host components.
+   * This is called by the {@link ResultPostProcessor} during post processing of a result.
+   */
+  private class HostComponentHostProcessor implements PostProcessor {
+    @Override
+    public void process(Request request, TreeNode<Resource> resultNode, String href) {
+      //todo: look at partial request fields to ensure that hosts should be returned
+      if (request.getResourceDefinition().getType() == getType()) {
+        // only add host if query host_resource was directly queried
+        String nodeHref = resultNode.getProperty("href");
+        resultNode.getObject().setProperty(new PropertyIdImpl("href", "host", false),
+            nodeHref.substring(0, nodeHref.indexOf("/host_components/")));
+      }
+    }
   }
 }

@@ -19,19 +19,19 @@
 package org.apache.ambari.api.controller.internal;
 
 import junit.framework.Assert;
-import org.apache.ambari.api.controller.spi.ClusterController;
-import org.apache.ambari.api.controller.spi.Predicate;
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.PropertyProvider;
-import org.apache.ambari.api.controller.spi.Request;
-import org.apache.ambari.api.controller.spi.Resource;
-import org.apache.ambari.api.controller.spi.ResourceProvider;
-import org.apache.ambari.api.controller.spi.Schema;
+import org.apache.ambari.api.controller.ProviderModule;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.api.controller.utilities.PredicateBuilder;
 import org.apache.ambari.api.controller.utilities.Properties;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -43,55 +43,6 @@ import java.util.Set;
  *
  */
 public class ClusterControllerImplTest {
-
-  private static final Set<PropertyId> resourceProviderProperties = new HashSet<PropertyId>();
-
-  static {
-    resourceProviderProperties.add(Properties.getPropertyId("p1", "c1"));
-    resourceProviderProperties.add(Properties.getPropertyId("p2", "c1"));
-    resourceProviderProperties.add(Properties.getPropertyId("p3", "c1"));
-    resourceProviderProperties.add(Properties.getPropertyId("p4", "c2"));
-  }
-
-  private static final ResourceProvider resourceProvider = new ResourceProvider() {
-    @Override
-    public Set<Resource> getResources(Request request, Predicate predicate) {
-
-      Set<Resource> resources = new HashSet<Resource>();
-
-      for (int cnt = 0; cnt < 4; ++ cnt) {
-        ResourceImpl resource = new ResourceImpl(Resource.Type.Host);
-
-        resource.setProperty(Properties.getPropertyId("p1", "c1"), cnt);
-        resource.setProperty(Properties.getPropertyId("p2", "c1"), cnt % 2);
-        resource.setProperty(Properties.getPropertyId("p3", "c1"), "foo");
-        resource.setProperty(Properties.getPropertyId("p4", "c2"), "bar");
-        resources.add(resource);
-      }
-
-      return resources;
-    }
-
-    @Override
-    public void createResources(Request request) {
-      //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void updateResources(Request request, Predicate predicate) {
-      //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void deleteResources(Predicate predicate) {
-      //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public Set<PropertyId> getPropertyIds() {
-      return resourceProviderProperties;
-    }
-  };
 
   private static final Set<PropertyId> propertyProviderProperties = new HashSet<PropertyId>();
 
@@ -131,21 +82,64 @@ public class ClusterControllerImplTest {
 
   private static final Map<Resource.Type, PropertyId> keyPropertyIds = new HashMap<Resource.Type, PropertyId>();
 
-  private static Map<Resource.Type, Schema> schemas = new HashMap<Resource.Type, Schema>();
-
-  private static final SchemaImpl hostSchema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
-  private static final SchemaImpl serviceSchema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
-  private static final SchemaImpl clusterSchema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
-  private static final SchemaImpl componentSchema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
-  private static final SchemaImpl hostComponentSchema = new SchemaImpl(resourceProvider, propertyProviders, keyPropertyIds);
+  private static final Set<PropertyId> resourceProviderProperties = new HashSet<PropertyId>();
 
   static {
-    schemas.put(Resource.Type.Host, hostSchema);
-    schemas.put(Resource.Type.Service, serviceSchema);
-    schemas.put(Resource.Type.Cluster, clusterSchema);
-    schemas.put(Resource.Type.Component, componentSchema);
-    schemas.put(Resource.Type.HostComponent, hostComponentSchema);
+    resourceProviderProperties.add(Properties.getPropertyId("p1", "c1"));
+    resourceProviderProperties.add(Properties.getPropertyId("p2", "c1"));
+    resourceProviderProperties.add(Properties.getPropertyId("p3", "c1"));
+    resourceProviderProperties.add(Properties.getPropertyId("p4", "c2"));
   }
+
+  private static final ResourceProvider resourceProvider = new ResourceProvider() {
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate) {
+
+      Set<Resource> resources = new HashSet<Resource>();
+
+      for (int cnt = 0; cnt < 4; ++ cnt) {
+        ResourceImpl resource = new ResourceImpl(Resource.Type.Host);
+
+        resource.setProperty(Properties.getPropertyId("p1", "c1"), cnt);
+        resource.setProperty(Properties.getPropertyId("p2", "c1"), cnt % 2);
+        resource.setProperty(Properties.getPropertyId("p3", "c1"), "foo");
+        resource.setProperty(Properties.getPropertyId("p4", "c2"), "bar");
+        resources.add(resource);
+      }
+
+      return resources;
+    }
+
+    @Override
+    public void createResources(Request request) {
+
+    }
+
+    @Override
+    public void updateResources(Request request, Predicate predicate) {
+
+    }
+
+    @Override
+    public void deleteResources(Predicate predicate) {
+
+    }
+
+    @Override
+    public Set<PropertyId> getPropertyIds() {
+      return resourceProviderProperties;
+    }
+
+    @Override
+    public List<PropertyProvider> getPropertyProviders() {
+      return propertyProviders;
+    }
+
+    @Override
+    public Schema getSchema() {
+      return new SchemaImpl(this, keyPropertyIds);
+    }
+  };
 
   private static final Set<PropertyId> propertyIds = new HashSet<PropertyId>();
 
@@ -159,8 +153,8 @@ public class ClusterControllerImplTest {
   }
 
   @Test
-  public void testGetResources() {
-    ClusterController controller = new ClusterControllerImpl(schemas);
+  public void testGetResources() throws Exception{
+    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
 
     Request request = new RequestImpl(propertyIds, null);
 
@@ -175,8 +169,8 @@ public class ClusterControllerImplTest {
   }
 
   @Test
-  public void testGetResourcesWithPredicate() {
-    ClusterController controller = new ClusterControllerImpl(schemas);
+  public void testGetResourcesWithPredicate() throws Exception{
+    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
 
     Request request = new RequestImpl(propertyIds, null);
 
@@ -194,14 +188,85 @@ public class ClusterControllerImplTest {
 
   @Test
   public void testGetSchema() {
-    ClusterController controller = new ClusterControllerImpl(schemas);
+    ProviderModule module = new TestProviderModule();
+    ClusterController controller = new ClusterControllerImpl(module);
 
-    Assert.assertSame(hostSchema, controller.getSchema(Resource.Type.Host));
-    Assert.assertSame(serviceSchema, controller.getSchema(Resource.Type.Service));
-    Assert.assertSame(clusterSchema, controller.getSchema(Resource.Type.Cluster));
-    Assert.assertSame(componentSchema, controller.getSchema(Resource.Type.Component));
-    Assert.assertSame(hostComponentSchema, controller.getSchema(Resource.Type.HostComponent));
+    Assert.assertSame(module.getResourceProvider(Resource.Type.Host).getSchema(), controller.getSchema(Resource.Type.Host));
+    Assert.assertSame(module.getResourceProvider(Resource.Type.Service).getSchema(), controller.getSchema(Resource.Type.Service));
+    Assert.assertSame(module.getResourceProvider(Resource.Type.Cluster).getSchema(), controller.getSchema(Resource.Type.Cluster));
+    Assert.assertSame(module.getResourceProvider(Resource.Type.Component).getSchema(), controller.getSchema(Resource.Type.Component));
+    Assert.assertSame(module.getResourceProvider(Resource.Type.HostComponent).getSchema(), controller.getSchema(Resource.Type.HostComponent));
   }
+
+  private static class TestProviderModule implements ProviderModule {
+    private Map<Resource.Type, ResourceProvider> providers = new HashMap<Resource.Type, ResourceProvider>();
+
+    private TestProviderModule() {
+      providers.put(Resource.Type.Cluster, new TestResourceProvider());
+      providers.put(Resource.Type.Service, new TestResourceProvider());
+      providers.put(Resource.Type.Component, new TestResourceProvider());
+      providers.put(Resource.Type.Host, new TestResourceProvider());
+      providers.put(Resource.Type.HostComponent, new TestResourceProvider());
+    }
+
+    @Override
+    public ResourceProvider getResourceProvider(Resource.Type type) {
+      return providers.get(type);
+    }
+  }
+
+  private static class TestResourceProvider implements ResourceProvider {
+    private Schema schema = new SchemaImpl(this, keyPropertyIds);
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate) {
+
+      Set<Resource> resources = new HashSet<Resource>();
+
+      for (int cnt = 0; cnt < 4; ++ cnt) {
+        ResourceImpl resource = new ResourceImpl(Resource.Type.Host);
+
+        resource.setProperty(Properties.getPropertyId("p1", "c1"), cnt);
+        resource.setProperty(Properties.getPropertyId("p2", "c1"), cnt % 2);
+        resource.setProperty(Properties.getPropertyId("p3", "c1"), "foo");
+        resource.setProperty(Properties.getPropertyId("p4", "c2"), "bar");
+        resources.add(resource);
+      }
+
+      return resources;
+    }
+
+    @Override
+    public void createResources(Request request) {
+
+    }
+
+    @Override
+    public void updateResources(Request request, Predicate predicate) {
+
+    }
+
+    @Override
+    public void deleteResources(Predicate predicate) {
+
+    }
+
+    @Override
+    public Set<PropertyId> getPropertyIds() {
+      return resourceProviderProperties;
+    }
+
+    @Override
+    public List<PropertyProvider> getPropertyProviders() {
+      return propertyProviders;
+    }
+
+    @Override
+    public Schema getSchema() {
+      return schema;
+    }
+  }
+
 }
 
 

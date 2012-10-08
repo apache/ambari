@@ -39,17 +39,19 @@ class Heartbeat:
     timestamp = int(time.time()*1000)
     queueResult = self.actionQueue.result()
     installedRoleStates = serverStatus.build()
+    
     nodeStatus = { "status" : "HEALTHY",
                    "cause" : "NONE"}
     
     heartbeat = { 'responseId'        : int(id),
                   'timestamp'         : timestamp,
                   'hostname'          : socket.gethostname(),
-                 # 'reports'           : self.reports,
                  # 'componentStatus'   : self.componentStatus,
                   'nodeStatus'        : nodeStatus
                 }
-  
+    if len(queueResult) != 0:
+      heartbeat['reports'] = queueResult
+      pass
     
     return heartbeat
 

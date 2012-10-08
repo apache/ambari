@@ -34,7 +34,7 @@
   <authentication-manager>
 
     <authentication-provider user-service-ref="ambariLocalUserService">
-      <password-encoder ref="passwordEncoder"/>
+      <password-encoder ref="standardPasswordEncoder"/>
     </authentication-provider>
 
     <authentication-provider ref="ambariLdapAuthenticationProvider"/>
@@ -57,6 +57,6 @@
                            value="org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider"/>
   </beans:bean>
 
-  <beans:bean id="passwordEncoder"
+  <beans:bean id="standardPasswordEncoder"
               class="org.springframework.security.crypto.password.StandardPasswordEncoder"/>
 </beans:beans>

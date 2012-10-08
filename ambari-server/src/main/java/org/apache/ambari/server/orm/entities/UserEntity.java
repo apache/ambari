@@ -27,8 +27,8 @@ import java.util.Set;
 @javax.persistence.Table(name = "users", schema = "ambari", catalog = "")
 @Entity
 @NamedQueries({
-        @NamedQuery(name = "localUserByName", query = "SELECT user FROM UserEntity user where user.userName=:username AND user.ldapUser=false"),
-        @NamedQuery(name = "ldapUserByName", query = "SELECT user FROM UserEntity user where user.userName=:username AND user.ldapUser=true")
+        @NamedQuery(name = "localUserByName", query = "SELECT user FROM UserEntity user where lower(user.userName)=:username AND user.ldapUser=false"),
+        @NamedQuery(name = "ldapUserByName", query = "SELECT user FROM UserEntity user where lower(user.userName)=:username AND user.ldapUser=true")
 })
 public class UserEntity {
 

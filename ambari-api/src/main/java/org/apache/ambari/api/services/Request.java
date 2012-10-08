@@ -19,6 +19,7 @@
 package org.apache.ambari.api.services;
 
 import org.apache.ambari.api.resource.ResourceDefinition;
+import org.apache.ambari.api.services.serializers.ResultSerializer;
 
 import java.net.URI;
 import java.util.List;
@@ -26,41 +27,89 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- *
+ * Provides information on the current request.
  */
 public interface Request {
 
-  public enum RequestType {
+  /**
+   * Enum of request types.
+   */
+  public enum Type {
     GET,
     PUT,
     POST,
     DELETE
   }
 
-  public enum ResponseType {JSON}
+  /**
+   * Obtain the resource definition which corresponds to the resource being operated on by the request.
+   * The resource definition provides information about the resource type;
+   *
+   * @return the associated {@link ResourceDefinition}
+   */
+  public ResourceDefinition getResourceDefinition();
 
-  public ResourceDefinition getResource();
-
+  /**
+   * Obtain the URI of this request.
+   *
+   * @return the request uri
+   */
   public URI getURI();
 
-  public RequestType getRequestType();
+  /**
+   * Obtain the http request type.  Type is one of {@link Type}.
+   *
+   * @return the http request type
+   */
+  public Type getRequestType();
 
+  /**
+   * Obtain the api version of the request.  The api version is specified in the request URI.
+   *
+   * @return the api version of the request
+   */
   public int getAPIVersion();
 
-  public Map<String, List<String>> getQueryParameters();
+  /**
+   * Obtain the query predicates that were provided in the URL query string.
+   *
+   * @return a map of request predicates
+   */
+  public Map<String, String> getQueryPredicates();
 
-  public Map<String, List<String>> getQueryPredicates();
-
+  /**
+   * Obtain the set of partial response fields which were provided in the query string of the request uri.
+   *
+   * @return a set of the provided partial response fields
+   */
   public Set<String> getPartialResponseFields();
 
-  public Set<String> getExpandEntities();
+  /**
+   * Obtain the result serializer for the request. The default serializer is of type JSON.
+   *
+   * @return the result serializer fo rthe request
+   */
+  public ResultSerializer getResultSerializer();
 
-  public Map<String, List<String>> getHeaders();
+  /**
+   * Obtain the processor which processes the result returned from the request handler.
+   * The post processor adds additional information such as href fields to the result.
+   *
+   * @return the result processor associated with the request
+   */
+  public ResultPostProcessor getResultPostProcessor();
 
-  public String getBody();
+  /**
+   * Obtain the http headers associated with the request.
+   *
+   * @return the http headers
+   */
+  public Map<String, List<String>> getHttpHeaders();
 
-  public Serializer getSerializer();
-
-  //todo: temporal information.  For now always specify in PR for each field.  Could use *[...] ?
-  //public Map<String, TemporalData> getTemporalFields();
+  /**
+   * Obtain the http body associated with the request.
+   *
+   * @return the http body
+   */
+  public String getHttpBody();
 }

@@ -21,8 +21,9 @@ package org.apache.ambari.server.state;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
-import org.apache.ambari.server.state.live.job.Job;
+import org.apache.ambari.server.state.job.Job;
 
 
 public interface ServiceComponentHost {
@@ -31,6 +32,11 @@ public interface ServiceComponentHost {
    * Get the Cluster that this object maps to
    */
   public long getClusterId();
+
+  /**
+   * Get the Cluster that this object maps to
+   */
+  public String getClusterName();
 
   /**
    * Get the Service this object maps to
@@ -65,16 +71,30 @@ public interface ServiceComponentHost {
   public void handleEvent(ServiceComponentHostEvent event)
       throws InvalidStateTransitonException;
 
+  public State getDesiredState();
+
+  public void setDesiredState(State state);
+
+  public Map<String, Config> getDesiredConfigs();
+
+  public void updateDesiredConfigs(Map<String, Config> configs);
+
+  public StackVersion getDesiredStackVersion();
+
+  public void setDesiredStackVersion(StackVersion stackVersion);
+
   public State getState();
-  
+
   public void setState(State state);
 
   public Map<String, Config> getConfigs();
 
   public void updateConfigs(Map<String, Config> configs);
-  
+
   public StackVersion getStackVersion();
-  
+
   public void setStackVersion(StackVersion stackVersion);
-  
+
+  public ServiceComponentHostResponse convertToResponse();
+
 }

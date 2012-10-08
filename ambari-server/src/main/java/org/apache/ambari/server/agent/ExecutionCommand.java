@@ -18,66 +18,48 @@
 package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
-import org.apache.ambari.server.utils.JaxbMapKeyListAdapter;
-import org.apache.ambari.server.utils.JaxbMapKeyMapAdapter;
-import org.apache.ambari.server.utils.JaxbMapKeyValAdapter;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 
 /**
  * Execution commands are scheduled by action manager, and these are
  * persisted in the database for recovery.
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {})
 public class ExecutionCommand extends AgentCommand {
 
   public ExecutionCommand() {
     super(AgentCommandType.EXECUTION_COMMAND);
   }
 
-  @XmlElement
   private String clusterName;
 
-  @XmlElement
   private String commandId;
 
-  @XmlElement
   private String hostname;
+  
+  private Map<String, String> params = new HashMap<String, String>();
 
-  @XmlElement
-  @XmlJavaTypeAdapter(JaxbMapKeyValAdapter.class)
-  private Map<String, String> params = null;
+  private Map<String, List<String>> clusterHostInfo = 
+      new HashMap<String, List<String>>();
 
-  @XmlElement
-  @XmlJavaTypeAdapter(JaxbMapKeyListAdapter.class)
-  private Map<String, List<String>> clusterHostInfo = null;
-
-  @XmlElement
   private List<RoleExecution> rolesCommands;
-
-  @XmlElement
-  @XmlJavaTypeAdapter(JaxbMapKeyMapAdapter.class)
   private Map<String, Map<String, String>> configurations;
 
+  
+  @JsonProperty("commandId")
   public String getCommandId() {
     return this.commandId;
   }
-
+  
+  @JsonProperty("commandId")
   public void setCommandId(String commandId) {
     this.commandId = commandId;
   }
-
+  
   public synchronized void addRoleCommand(String role, String cmd,
       Map<String, String> roleParams) {
     RoleExecution rec = new RoleExecution(role, cmd, roleParams);
@@ -86,8 +68,13 @@ public class ExecutionCommand extends AgentCommand {
     }
     rolesCommands.add(rec);
   }
-
-  @Override //Object
+  
+  @JsonProperty("roleCommands")
+  public synchronized List<RoleExecution> getRoleCommands() {
+    return this.rolesCommands;
+  }
+  
+  @Override
   public boolean equals(Object other) {
     if (!(other instanceof ExecutionCommand)) {
       return false;
@@ -96,96 +83,119 @@ public class ExecutionCommand extends AgentCommand {
     return (this.commandId == o.commandId &&
             this.hostname == o.hostname);
   }
+  
+  @Override
+  public String toString() {
+    return "Host=" + hostname + ", commandId="+commandId;
+  }
 
-  @Override //Object
+  @Override
   public int hashCode() {
     return (hostname + commandId).hashCode();
   }
 
-  @XmlRootElement
-  @XmlAccessorType(XmlAccessType.FIELD)
-  @XmlType(name = "", propOrder = {})
-  static class RoleExecution {
+  /**
+   * Role Execution commands sent to the 
+   *
+   */
+  public static class RoleExecution {
 
-    @XmlElement
     private String role;
 
-    //These params are at role level
-    @XmlElement
-    @XmlJavaTypeAdapter(JaxbMapKeyValAdapter.class)
     private Map<String, String> roleParams = null;
 
-    @XmlElement
     private String cmd;
 
+    public RoleExecution() {}
+    
     public RoleExecution(String role, String cmd,
         Map<String, String> roleParams) {
       this.role = role;
       this.cmd = cmd;
       this.roleParams = roleParams;
     }
-
+    
+    @JsonProperty("role")
     public String getRole() {
       return role;
     }
-
+    
+    @JsonProperty("role")
     public void setRole(String role) {
       this.role = role;
     }
-
+    
+    @JsonProperty("roleParams")
     public Map<String, String> getRoleParams() {
       return roleParams;
     }
 
+    @JsonProperty("roleParams")
     public void setRoleParams(Map<String, String> roleParams) {
       this.roleParams = roleParams;
     }
 
+    @JsonProperty("cmd")
     public String getCmd() {
       return cmd;
     }
-
+    
+    @JsonProperty("cmd")
     public void setCmd(String cmd) {
       this.cmd = cmd;
     }
+    
+    public String toString() {
+      return null;
+    }
   }
-
+  
+  @JsonProperty("clusterName")
   public String getClusterName() {
     return clusterName;
   }
-
+  
+  @JsonProperty("clusterName")
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
 
+  @JsonProperty("hostname")
   public String getHostname() {
     return hostname;
   }
 
+  @JsonProperty("hostname")
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
 
+  @JsonProperty("params")
   public Map<String, String> getParams() {
     return params;
   }
 
+  @JsonProperty("params")
   public void setParams(Map<String, String> params) {
     this.params = params;
   }
 
+  @JsonProperty("clusterHostInfo")
   public Map<String, List<String>> getClusterHostInfo() {
     return clusterHostInfo;
   }
 
+  @JsonProperty("clusterHostInfo")
   public void setClusterHostInfo(Map<String, List<String>> clusterHostInfo) {
     this.clusterHostInfo = clusterHostInfo;
   }
   
+  @JsonProperty("configurations")
   public Map<String, Map<String, String>> getConfigurations() {
     return configurations;
   }
 
+  @JsonProperty("configurations")
   public void setConfigurations(Map<String, Map<String, String>> configurations) {
     this.configurations = configurations;
   }

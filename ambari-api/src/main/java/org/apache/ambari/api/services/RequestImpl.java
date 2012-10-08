@@ -19,34 +19,56 @@
 package org.apache.ambari.api.services;
 
 import org.apache.ambari.api.resource.*;
+import org.apache.ambari.api.services.serializers.JsonSerializer;
+import org.apache.ambari.api.services.serializers.ResultSerializer;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
- *
+ * Request implementation.
  */
 public class RequestImpl implements Request {
 
+  /**
+   * URI information
+   */
   private UriInfo m_uriInfo;
+
+  /**
+   * Http headers
+   */
   private HttpHeaders m_headers;
-  private RequestType m_requestType;
+
+  /**
+   * Http request type
+   */
+  private Type m_Type;
+
+  /**
+   * Associated resource definition
+   */
   private ResourceDefinition m_resourceDefinition;
 
-
-  public RequestImpl(HttpHeaders headers, UriInfo uriInfo, RequestType requestType, ResourceDefinition resourceDefinition) {
+  /**
+   * Constructor.
+   *
+   * @param headers            http headers
+   * @param uriInfo            uri information
+   * @param requestType        http request type
+   * @param resourceDefinition associated resource definition
+   */
+  public RequestImpl(HttpHeaders headers, UriInfo uriInfo, Type requestType, ResourceDefinition resourceDefinition) {
     m_uriInfo = uriInfo;
     m_headers = headers;
-    m_requestType = requestType;
+    m_Type = requestType;
     m_resourceDefinition = resourceDefinition;
   }
 
   @Override
-  public ResourceDefinition getResource() {
+  public ResourceDefinition getResourceDefinition() {
     return m_resourceDefinition;
   }
 
@@ -56,8 +78,8 @@ public class RequestImpl implements Request {
   }
 
   @Override
-  public RequestType getRequestType() {
-    return m_requestType;
+  public Type getRequestType() {
+    return m_Type;
   }
 
   @Override
@@ -66,38 +88,37 @@ public class RequestImpl implements Request {
   }
 
   @Override
-  public Map<String, List<String>> getQueryParameters() {
-    return m_uriInfo.getQueryParameters();
-  }
-
-  @Override
-  public Map<String, List<String>> getQueryPredicates() {
-    //todo: handle expand/fields ...
-    return getQueryParameters();
+  public Map<String, String> getQueryPredicates() {
+    return null;
   }
 
   @Override
   public Set<String> getPartialResponseFields() {
-    return null;
+    String partialResponseFields = m_uriInfo.getQueryParameters().getFirst("fields");
+    if (partialResponseFields == null) {
+      return Collections.emptySet();
+    } else {
+      return new HashSet<String>(Arrays.asList(partialResponseFields.split(",")));
+    }
   }
 
   @Override
-  public Set<String> getExpandEntities() {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  @Override
-  public Map<String, List<String>> getHeaders() {
+  public Map<String, List<String>> getHttpHeaders() {
     return m_headers.getRequestHeaders();
   }
 
   @Override
-  public String getBody() {
+  public String getHttpBody() {
     return null;
   }
 
   @Override
-  public Serializer getSerializer() {
-    return new JSONSerializer();
+  public ResultSerializer getResultSerializer() {
+    return new JsonSerializer();
+  }
+
+  @Override
+  public ResultPostProcessor getResultPostProcessor() {
+    return new ResultPostProcessorImpl(this);
   }
 }

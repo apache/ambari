@@ -21,16 +21,29 @@ package org.apache.ambari.api.handlers;
 import org.apache.ambari.api.services.Request;
 
 /**
- *
+ * Factory for {@link RequestHandler}
+ * Returns the appropriate request handler based on the request.
  */
 public class RequestHandlerFactory {
-  public RequestHandler getRequestHandler(Request.RequestType requestType) {
+  /**
+   * Return an instance of the correct request handler based on the request type.
+   *
+   * @param requestType the request type.  Is one of {@link Request.Type}
+   * @return a request handler for the request
+   */
+  public RequestHandler getRequestHandler(Request.Type requestType) {
     switch (requestType) {
       case GET:
-        return new ReadRequestHandler();
+        return new ReadHandler();
+      case PUT:
+        return new CreateHandler();
+      case POST:
+        return new UpdateHandler();
+      case DELETE:
+        return new DeleteHandler();
       default:
         //todo:
-        throw new UnsupportedOperationException("Only GET requests are supported at this time");
+        throw new UnsupportedOperationException("Unsupported Request Type: " + requestType);
     }
   }
 }

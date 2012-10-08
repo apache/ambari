@@ -17,11 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlType;
 
-@XmlType(name="registrationstatus")
-@XmlEnum
 public enum RegistrationStatus {
   OK,
   FAILED

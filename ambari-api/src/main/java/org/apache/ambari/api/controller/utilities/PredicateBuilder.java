@@ -18,17 +18,17 @@
 package org.apache.ambari.api.controller.utilities;
 
 import org.apache.ambari.api.controller.internal.PropertyIdImpl;
-import org.apache.ambari.api.controller.predicate.AndPredicate;
-import org.apache.ambari.api.controller.predicate.BasePredicate;
-import org.apache.ambari.api.controller.predicate.Comparables;
-import org.apache.ambari.api.controller.predicate.EqualsPredicate;
-import org.apache.ambari.api.controller.predicate.GreaterEqualsPredicate;
-import org.apache.ambari.api.controller.predicate.GreaterPredicate;
-import org.apache.ambari.api.controller.predicate.LessEqualsPredicate;
-import org.apache.ambari.api.controller.predicate.LessPredicate;
-import org.apache.ambari.api.controller.predicate.NotPredicate;
-import org.apache.ambari.api.controller.predicate.OrPredicate;
-import org.apache.ambari.api.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.predicate.AndPredicate;
+import org.apache.ambari.server.controller.predicate.BasePredicate;
+import org.apache.ambari.server.controller.predicate.Comparables;
+import org.apache.ambari.server.controller.predicate.EqualsPredicate;
+import org.apache.ambari.server.controller.predicate.GreaterEqualsPredicate;
+import org.apache.ambari.server.controller.predicate.GreaterPredicate;
+import org.apache.ambari.server.controller.predicate.LessEqualsPredicate;
+import org.apache.ambari.server.controller.predicate.LessPredicate;
+import org.apache.ambari.server.controller.predicate.NotPredicate;
+import org.apache.ambari.server.controller.predicate.OrPredicate;
+import org.apache.ambari.server.controller.spi.PropertyId;
 
 import java.util.LinkedList;
 import java.util.List;

@@ -20,16 +20,68 @@ package org.apache.ambari.server.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class HostRequest {
 
-  List<PerHostRequest> hosts;
-  
-  public static class PerHostRequest {
-    String hostname;
-    
-    List<String> clusterNames; // CREATE/UPDATE 
-    
-    Map<String, String> hostAttributes; // CREATE/UPDATE  
+  String hostname;
+
+  List<String> clusterNames; // CREATE/UPDATE
+
+  Map<String, String> hostAttributes; // CREATE/UPDATE
+
+  public HostRequest(String hostname, List<String> clusterNames, Map<String, String> hostAttributes) {
+
+    this.hostname = hostname;
+    this.clusterNames = clusterNames;
+    this.hostAttributes = hostAttributes;
+  }
+
+  public String getHostname() {
+    return hostname;
+  }
+
+  public void setHostname(String hostname) {
+    this.hostname = hostname;
+  }
+
+  public List<String> getClusterNames() {
+    return clusterNames;
+  }
+
+  public void setClusterNames(List<String> clusterNames) {
+    this.clusterNames = clusterNames;
+  }
+
+  public Map<String, String> getHostAttributes() {
+    return hostAttributes;
+  }
+
+  public void setHostAttributes(Map<String, String> hostAttributes) {
+    this.hostAttributes = hostAttributes;
+  }
+
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("{"
+        + ", hostname=" + hostname
+        + ", clusterNames=[");
+    for (int i = 0; i < clusterNames.size(); ++i) {
+      if (i != 0) {
+        sb.append(",");
+      }
+      sb.append(clusterNames.get(i));
+    }
+    sb.append("], hostAttributes=[");
+    int i = 0;
+    for (Entry<String, String> attr : hostAttributes.entrySet()) {
+      if (i != 0) {
+        sb.append(",");
+      }
+      ++i;
+      sb.append(attr.getKey() + "=" + attr.getValue());
+    }
+    sb.append("] }");
+    return sb.toString();
   }
 }

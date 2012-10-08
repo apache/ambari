@@ -17,31 +17,30 @@
  */
 package org.apache.ambari.server.utils;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 public class JaxbMapKeyValAdapter extends
-    XmlAdapter<List<JaxbMapKeyVal>, Map<String, String>> {
+    XmlAdapter<JaxbMapKeyVal[], Map<String, String>> {
 
   @Override
-  public List<JaxbMapKeyVal> marshal(Map<String, String> m) throws Exception {
+  public JaxbMapKeyVal[] marshal(Map<String, String> m) throws Exception {
     if (m==null) {
       return null;
     }
-    List<JaxbMapKeyVal> list = new ArrayList<JaxbMapKeyVal>() ;
+    JaxbMapKeyVal[] list = new JaxbMapKeyVal[m.size()] ;
+    int index = 0;
     for (String key : m.keySet()) {
       JaxbMapKeyVal jaxbMap = new JaxbMapKeyVal(key, m.get(key));
-      list.add(jaxbMap);
+      list[index++] = jaxbMap;
     }
     return list;
   }
 
   @Override
-  public Map<String, String> unmarshal(List<JaxbMapKeyVal> jm) throws Exception {
+  public Map<String, String> unmarshal(JaxbMapKeyVal[] jm) throws Exception {
     if (jm == null) {
       return null;
     }

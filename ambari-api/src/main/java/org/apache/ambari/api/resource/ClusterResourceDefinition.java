@@ -18,21 +18,21 @@
 
 package org.apache.ambari.api.resource;
 
-import org.apache.ambari.api.services.formatters.ClusterInstanceFormatter;
-import org.apache.ambari.api.services.formatters.CollectionFormatter;
-import org.apache.ambari.api.services.formatters.ResultFormatter;
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
- *
+ * Cluster resource definition.
  */
 public class ClusterResourceDefinition extends BaseResourceDefinition {
 
+  /**
+   * Constructor.
+   *
+   * @param id value of primary key
+   */
   public ClusterResourceDefinition(String id) {
     super(Resource.Type.Cluster, id);
 
@@ -53,32 +53,21 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
   }
 
   @Override
-  public Set<ResourceDefinition> getChildren() {
-    Set<ResourceDefinition> setChildren = new HashSet<ResourceDefinition>();
+  public Map<String, ResourceDefinition> getSubResources() {
+    Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
 
     ServiceResourceDefinition serviceResource = new ServiceResourceDefinition(null, getId());
     PropertyId serviceIdProperty = getClusterController().getSchema(
         Resource.Type.Service).getKeyPropertyId(Resource.Type.Service);
     serviceResource.getQuery().addProperty(serviceIdProperty);
-    setChildren.add(serviceResource);
+    mapChildren.put(serviceResource.getPluralName(), serviceResource);
 
     HostResourceDefinition hostResource = new HostResourceDefinition(null, getId());
     PropertyId hostIdProperty = getClusterController().getSchema(
         Resource.Type.Host).getKeyPropertyId(Resource.Type.Host);
     hostResource.getQuery().addProperty(hostIdProperty);
-    setChildren.add(hostResource);
+    mapChildren.put(hostResource.getPluralName(), hostResource);
 
-    return setChildren;
-  }
-
-  @Override
-  public Set<ResourceDefinition> getRelations() {
-    return Collections.emptySet();
-  }
-
-  @Override
-  public ResultFormatter getResultFormatter() {
-    //todo: instance formatter
-    return getId() == null ? new CollectionFormatter(this) : new ClusterInstanceFormatter(this);
+    return mapChildren;
   }
 }

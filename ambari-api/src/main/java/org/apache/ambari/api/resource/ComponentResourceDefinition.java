@@ -16,25 +16,50 @@
  * limitations under the License.
  */
 
+
 package org.apache.ambari.api.resource;
 
-import org.apache.ambari.api.services.formatters.CollectionFormatter;
-import org.apache.ambari.api.services.formatters.ComponentInstanceFormatter;
-import org.apache.ambari.api.services.formatters.ResultFormatter;
-import org.apache.ambari.api.controller.spi.PropertyId;
-import org.apache.ambari.api.controller.spi.Resource;
+import org.apache.ambari.api.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.api.services.Request;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Schema;
+import org.apache.ambari.api.util.TreeNode;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import org.apache.ambari.api.services.ResultPostProcessor;
+
+import java.util.*;
 
 /**
- *
+ * Component resource definition.
  */
 public class ComponentResourceDefinition extends BaseResourceDefinition {
 
+  /**
+   * value of clusterId foreign key
+   */
   private String m_clusterId;
+
+  /**
+   * value of serviceId foreign key
+   */
   private String m_serviceId;
+
+
+  /**
+   * Constructor.
+   *
+   * @param id        value of component id
+   * @param clusterId value of cluster id
+   * @param serviceId value of service id
+   */
+  public ComponentResourceDefinition(String id, String clusterId, String serviceId) {
+    super(Resource.Type.Component, id);
+    m_clusterId = clusterId;
+    m_serviceId = serviceId;
+    setResourceId(Resource.Type.Cluster, m_clusterId);
+    setResourceId(Resource.Type.Service, m_serviceId);
+  }
 
   @Override
   public String getPluralName() {
@@ -46,35 +71,62 @@ public class ComponentResourceDefinition extends BaseResourceDefinition {
     return "component";
   }
 
-  public ComponentResourceDefinition(String id, String clusterId, String serviceId) {
-    super(Resource.Type.Component, id);
-    m_clusterId = clusterId;
-    m_serviceId = serviceId;
-    setResourceId(Resource.Type.Cluster, m_clusterId);
-    setResourceId(Resource.Type.Service, m_serviceId);
-  }
 
   @Override
-  public Set<ResourceDefinition> getChildren() {
-    return Collections.emptySet();
-  }
+  public Map<String, ResourceDefinition> getSubResources() {
+    Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
 
-  @Override
-  public Set<ResourceDefinition> getRelations() {
-    Set<ResourceDefinition> setResourceDefinitions = new HashSet<ResourceDefinition>();
     // for host_component collection need host id property
     HostComponentResourceDefinition hostComponentResource = new HostComponentResourceDefinition(
         getId(), m_clusterId, null);
     PropertyId hostIdProperty = getClusterController().getSchema(
         Resource.Type.HostComponent).getKeyPropertyId(Resource.Type.Host);
     hostComponentResource.getQuery().addProperty(hostIdProperty);
-    setResourceDefinitions.add(hostComponentResource);
-    return setResourceDefinitions;
+    mapChildren.put(hostComponentResource.getPluralName(), hostComponentResource);
+    return mapChildren;
+
   }
 
   @Override
-  public ResultFormatter getResultFormatter() {
-    //todo: instance formatter
-    return getId() == null ? new CollectionFormatter(this) : new ComponentInstanceFormatter(this);
+  public List<PostProcessor> getPostProcessors() {
+    List<PostProcessor> listProcessors = super.getPostProcessors();
+    listProcessors.add(new ComponentHrefProcessor());
+
+    return listProcessors;
+  }
+
+  @Override
+  public void setParentId(Resource.Type type, String value) {
+    if (type == Resource.Type.HostComponent) {
+      setId(value);
+    } else {
+      super.setParentId(type, value);
+    }
+  }
+
+  /**
+   * Base resource processor which generates href's.  This is called by the {@link ResultPostProcessor} during post
+   * processing of a result.
+   */
+  private class ComponentHrefProcessor extends BaseHrefPostProcessor {
+    @Override
+    public void process(Request request, TreeNode<Resource> resultNode, String href) {
+      TreeNode<Resource> parent = resultNode.getParent();
+
+      if (parent.getParent() != null && parent.getParent().getObject().getType() == Resource.Type.HostComponent) {
+        Resource r = resultNode.getObject();
+        String clusterId = getResourceIds().get(Resource.Type.Cluster);
+        Schema schema = ClusterControllerHelper.getClusterController().getSchema(r.getType());
+        String serviceId = r.getPropertyValue(schema.getKeyPropertyId(Resource.Type.Service));
+        String componentId = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
+
+        href = href.substring(0, href.indexOf(clusterId) + clusterId.length() + 1) +
+            "services/" + serviceId + "/components/" + componentId;
+
+        resultNode.setProperty("href", href);
+      } else {
+        super.process(request, resultNode, href);
+      }
+    }
   }
 }

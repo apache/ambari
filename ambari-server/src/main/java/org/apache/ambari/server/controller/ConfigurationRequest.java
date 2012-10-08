@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.controller;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,74 +27,64 @@ import java.util.Map;
 public class ConfigurationRequest {
 
   private String clusterName;
-  
-  private List<PerConfigurationRequest> configs;
-  
+
+  private String type;
+
+  private String versionTag;
+
+  private Map<String, String> configs;
+
   public ConfigurationRequest(String clusterName,
-      List<PerConfigurationRequest> configs) {
+                              String type, String versionTag,
+                              Map<String, String> configs) {
     super();
     this.clusterName = clusterName;
     this.configs = configs;
+    this.type = type;
+    this.versionTag = versionTag;
+    this.configs = configs;
   }
 
-  public static class PerConfigurationRequest {
-    
-    private String type;
-    
-    private String versionTag;
-    
-    private Map<String, String> configs;
+  /**
+   * @return the type
+   */
+  public String getType() {
+    return type;
+  }
 
-    public PerConfigurationRequest(String type, String versionTag,
-        Map<String, String> configs) {
-      super();
-      this.type = type;
-      this.versionTag = versionTag;
-      this.configs = configs;
-    }
+  /**
+   * @param type the type to set
+   */
+  public void setType(String type) {
+    this.type = type;
+  }
 
-    /**
-     * @return the type
-     */
-    public String getType() {
-      return type;
-    }
+  /**
+   * @return the versionTag
+   */
+  public String getVersionTag() {
+    return versionTag;
+  }
 
-    /**
-     * @param type the type to set
-     */
-    public void setType(String type) {
-      this.type = type;
-    }
+  /**
+   * @param versionTag the versionTag to set
+   */
+  public void setVersionTag(String versionTag) {
+    this.versionTag = versionTag;
+  }
 
-    /**
-     * @return the versionTag
-     */
-    public String getVersionTag() {
-      return versionTag;
-    }
+  /**
+   * @return the configs
+   */
+  public Map<String, String> getConfigs() {
+    return configs;
+  }
 
-    /**
-     * @param versionTag the versionTag to set
-     */
-    public void setVersionTag(String versionTag) {
-      this.versionTag = versionTag;
-    }
-
-    /**
-     * @return the configs
-     */
-    public Map<String, String> getConfigs() {
-      return configs;
-    }
-
-    /**
-     * @param configs the configs to set
-     */
-    public void setConfigs(Map<String, String> configs) {
-      this.configs = configs;
-    }
-    
+  /**
+   * @param configs the configs to set
+   */
+  public void setConfigs(Map<String, String> configs) {
+    this.configs = configs;
   }
 
   /**
@@ -106,30 +95,10 @@ public class ConfigurationRequest {
   }
 
 
-
   /**
    * @param clusterName the clusterName to set
    */
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
-
-
-
-  /**
-   * @return the configs
-   */
-  public List<PerConfigurationRequest> getConfigs() {
-    return configs;
-  }
-
-
-
-  /**
-   * @param configs the configs to set
-   */
-  public void setConfigs(List<PerConfigurationRequest> configs) {
-    this.configs = configs;
-  }
-
 }
