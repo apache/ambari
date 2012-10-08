@@ -34,7 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
-@Path("/")
+@Path("/certs")
 public class CertificateSign {
   private static Log LOG = LogFactory.getLog(CertificateSign.class);
   private static CertificateManager certMan;

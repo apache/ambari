@@ -19,8 +19,8 @@
 package org.apache.ambari.server.security;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -56,19 +56,38 @@ public class CertGenerationTest extends TestCase {
   private class SecurityModule extends AbstractModule {
     @Override
     protected void configure() {
+      bind(Properties.class).toInstance(buildTestProperties());
+      bind(Configuration.class).toConstructor(getConfigurationConstructor());
       requestStaticInjection(CertGenerationTest.class);
     }
   }
+  
+  protected Properties buildTestProperties() {
+    try {
+		temp.create();
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+	Properties properties = new Properties();
+	properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, temp.getRoot().getAbsolutePath());
+	
+	
+	System.out.println(properties.get(Configuration.SRVR_CRT_PASS_KEY));
+	
+	return properties;
+  }
+ 
+  protected Constructor<Configuration> getConfigurationConstructor() {
+    try {
+      return Configuration.class.getConstructor(Properties.class);
+	} catch (NoSuchMethodException e) {
+	    throw new RuntimeException("Expected constructor not found in Configuration.java", e);
+	   }
+	}
 	
   @Before
   public void setUp() throws IOException {
-    temp.create();
-    System.setProperty(Configuration.AMBARI_CONF_VAR, temp.getRoot().getAbsolutePath());
-    Properties props = new Properties();
-    props.setProperty(Configuration.SRVR_KSTR_DIR_KEY, temp.getRoot().getAbsolutePath());
-    FileOutputStream out = new FileOutputStream(temp.getRoot().getAbsolutePath() + File.separator + Configuration.CONFIG_FILE);
-    props.store(out, "");
-    out.close();
+
 
     injector = Guice.createInjector(new SecurityModule());
     certMan = injector.getInstance(CertificateManager.class);
@@ -78,7 +97,7 @@ public class CertGenerationTest extends TestCase {
 	
   @After
   public void tearDown() throws IOException {
-	  temp.delete();
+    temp.delete();
   }
 	
   @Test

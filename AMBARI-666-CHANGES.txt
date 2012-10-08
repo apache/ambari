@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-823. Fix security filter on the server agent ports and remove
+  duplication on servlet contexts for certs signing. (mahadev)
+
   AMBARI-821. Implement basic service state update and verify flow to
   ActionManager. (hitesh)
 

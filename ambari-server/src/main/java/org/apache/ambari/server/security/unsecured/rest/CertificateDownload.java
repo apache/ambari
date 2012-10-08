@@ -29,7 +29,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
 
-@Path("/ca")
+@Path("/cert/ca")
 public class CertificateDownload {
   private static Log LOG = LogFactory.getLog(CertificateDownload.class);
   private static CertificateManager certMan;

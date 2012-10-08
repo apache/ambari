@@ -19,8 +19,8 @@
 package org.apache.ambari.server.resources;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.Properties;
 
 import junit.framework.TestCase;
@@ -45,10 +45,37 @@ public class TestResources extends TestCase {
   Injector injector;
   private TemporaryFolder tempFolder = new TemporaryFolder();
   private File resourceFile;
+  
+  protected Properties buildTestProperties() {
+	   
+	Properties properties = new Properties();
+    try {
+		tempFolder.create();
+		
+		properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, tempFolder.getRoot().getAbsolutePath());
+		properties.setProperty(Configuration.RESOURCES_DIR_KEY, tempFolder.getRoot().getAbsolutePath());
+
+	    resourceFile = tempFolder.newFile(RESOURCE_FILE_NAME);
+	    FileUtils.writeStringToFile(resourceFile, RESOURCE_FILE_CONTENT);
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+    return properties;
+  }
+  
+  protected Constructor<Configuration> getConfigurationConstructor() {
+    try {
+	  return Configuration.class.getConstructor(Properties.class);
+    } catch (NoSuchMethodException e) {
+	  throw new RuntimeException("Expected constructor not found in Configuration.java", e);
+	}
+  }
 
   private class ResourceModule extends AbstractModule {
   @Override
     protected void configure() {
+      bind(Properties.class).toInstance(buildTestProperties());
+      bind(Configuration.class).toConstructor(getConfigurationConstructor());
 	  requestStaticInjection(TestResources.class);
 	}
   }
@@ -60,17 +87,6 @@ public class TestResources extends TestCase {
 
   @Before
   public void setUp() throws IOException {
-	tempFolder.create();
-	
-    System.setProperty(Configuration.AMBARI_CONF_VAR, tempFolder.getRoot().getAbsolutePath());
-	Properties props = new Properties();
-	props.setProperty(Configuration.SRVR_KSTR_DIR_KEY, tempFolder.getRoot().getAbsolutePath());
-	props.setProperty(Configuration.RESOURCES_DIR_KEY, tempFolder.getRoot().getAbsolutePath());
-	FileOutputStream out = new FileOutputStream(tempFolder.getRoot().getAbsolutePath() + File.separator + Configuration.CONFIG_FILE);
-	props.store(out, "");
-	out.close();
-    resourceFile = tempFolder.newFile(RESOURCE_FILE_NAME);
-    FileUtils.writeStringToFile(resourceFile, RESOURCE_FILE_CONTENT);
     injector = Guice.createInjector(new ResourceModule());
     resMan = injector.getInstance(ResourceManager.class);
   }

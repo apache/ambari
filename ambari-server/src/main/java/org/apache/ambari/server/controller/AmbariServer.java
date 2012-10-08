@@ -27,7 +27,6 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.security.CertificateManager;
-import org.apache.ambari.server.security.SecurityFilter;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.security.SslSocketConnector;
 import org.mortbay.jetty.servlet.Context;
@@ -40,6 +39,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
+import org.springframework.web.filter.DelegatingFilterProxy;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -47,7 +47,6 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.jpa.JpaPersistModule;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
-import org.springframework.web.filter.DelegatingFilterProxy;
 
 @Singleton
 public class AmbariServer {
@@ -115,7 +114,6 @@ public class AmbariServer {
       springSecurityFilter.setTargetBeanName("springSecurityFilterChain");
       root.addFilter(new FilterHolder(springSecurityFilter), "/*", 1);
 
-      agentroot.addFilter(SecurityFilter.class, "/*", 1);
       //Secured connector for 2-way auth
       SslSocketConnector sslConnectorTwoWay = new SslSocketConnector();
       sslConnectorTwoWay.setPort(CLIENT_TWO_WAY);
@@ -175,16 +173,8 @@ public class AmbariServer {
               "com.sun.jersey.api.core.PackagesResourceConfig");
       cert.setInitParameter("com.sun.jersey.config.property.packages",
               "org.apache.ambari.server.security.unsecured.rest");
-      agentroot.addServlet(cert, "/cert/*");
+      agentroot.addServlet(cert, "/*");
       cert.setInitOrder(4);
-
-      ServletHolder certs = new ServletHolder(ServletContainer.class);
-      certs.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
-              "com.sun.jersey.api.core.PackagesResourceConfig");
-      certs.setInitParameter("com.sun.jersey.config.property.packages",
-        "org.apache.ambari.server.security.unsecured.rest");
-      agentroot.addServlet(cert, "/certs/*");
-      certs.setInitOrder(5);
 
       ServletHolder resources = new ServletHolder(ServletContainer.class);
       resources.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",

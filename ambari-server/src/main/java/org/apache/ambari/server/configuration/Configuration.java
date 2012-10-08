@@ -18,9 +18,9 @@
 package org.apache.ambari.server.configuration;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -41,7 +41,6 @@ import com.google.inject.Singleton;
 @Singleton
 public class Configuration {
 
-  public static final String AMBARI_CONF_VAR = "AMBARI_CONF_DIR";
   public static final String CONFIG_FILE = "ambari.properties";
   public static final String BOOTSTRAP_DIR = "bootstrap.dir";
   public static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
@@ -135,6 +134,8 @@ public class Configuration {
         KSTR_NAME_KEY, KSTR_NAME_DEFAULT));
     configsMap.put(SRVR_CRT_PASS_FILE_KEY, properties.getProperty(
         SRVR_CRT_PASS_FILE_KEY, SRVR_CRT_PASS_FILE_DEFAULT));
+    configsMap.put(SRVR_CRT_PASS_KEY, properties.getProperty(
+    		SRVR_CRT_PASS_KEY, SRVR_CRT_PASS_FILE_DEFAULT));
 
     configsMap.put(PASSPHRASE_ENV_KEY, properties.getProperty(
         PASSPHRASE_ENV_KEY, PASSPHRASE_ENV_DEFAULT));
@@ -168,25 +169,23 @@ public class Configuration {
   private static Properties readConfigFile() {
     Properties properties = new Properties();
 
-    // get the configuration directory and filename
-
-    String confDir = System.getProperty(AMBARI_CONF_VAR);
-    if (confDir == null)
-      confDir = System.getenv(AMBARI_CONF_VAR);
-    if (confDir == null) {
-      confDir = "/etc/ambari";
-    }
-    String filename = confDir + "/" + CONFIG_FILE;
-
+    //Get property file stream from classpath
+    InputStream inputStream = Configuration.class.getClassLoader().getResourceAsStream(CONFIG_FILE);
+    
+    if (inputStream == null)
+      LOG.info(CONFIG_FILE + " not found in classpath");
+    		
+    
     // load the properties
     try {
-      properties.load(new FileInputStream(filename));
+      properties.load(inputStream);
     } catch (FileNotFoundException fnf) {
-      LOG.info("No configuration file " + filename + " found.", fnf);
+      LOG.info("No configuration file " + CONFIG_FILE + " found in classpath.", fnf);
     } catch (IOException ie) {
       throw new IllegalArgumentException("Can't read configuration file " +
-          filename, ie);
+    		 CONFIG_FILE, ie);
     }
+    
     return properties;
   }
 
