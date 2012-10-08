@@ -34,6 +34,7 @@ Source: hmc-%{version}.tar.gz
 Source1: hmc.init.in
 BuildRoot: %{_tmppath}/hmc-%{version}-buildroot
 Requires: php53, php53-process, php53-pdo, sqlite >= 3, httpd, puppet = 2.7.9, pdsh, httpd-devel, ruby-devel, rubygems, mod_passenger, mod_ssl
+%{!?ruby_sitelibdir: %define ruby_sitelibdir %(ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")}
 %define web_prefixdir %{_prefix}/share/hmc
 %define httpd_confdir %{_sysconfdir}/httpd/conf.d
 %define puppet_master_dir %{_sysconfdir}/puppet/master
@@ -63,7 +64,7 @@ fi
 # Flush any old RPM build root
 %__rm -rf $RPM_BUILD_ROOT
 %__install -D -m0755 "%{SOURCE1}" "$RPM_BUILD_ROOT/etc/init.d/hmc"
-%__mkdir -p $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
+%__mkdir -p $RPM_BUILD_ROOT/%{ruby_sitelibdir}/puppet/reports/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/bin/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/yum_repo/
@@ -93,7 +94,7 @@ fi
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/modules/catalog/files
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/modules/keytabs/files
 %__install -D -m0755 puppet/reports/get_revision $RPM_BUILD_ROOT/%{web_prefixdir}/bin
-%__cp -rf puppet/reports/hmcreport.rb $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
+%__cp -rf puppet/reports/hmcreport.rb $RPM_BUILD_ROOT/%{ruby_sitelibdir}/puppet/reports/
  
 
 %post
@@ -141,7 +142,7 @@ rm -rf /var/run/hmc/puppetmaster.boot
 %files
 %defattr(-,root,root)
 %{web_prefixdir}/*
-/usr/lib/ruby/site_ruby/1.8/puppet/reports/hmcreport.rb
+%{ruby_sitelibdir}/puppet/reports/hmcreport.rb
 %config /etc/init.d/hmc
 %{hmc_passwd_dir}*
 %{puppet_master_dir}/*

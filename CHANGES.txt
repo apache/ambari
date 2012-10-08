@@ -103,6 +103,9 @@ Trunk (unreleased changes)
 
   BUG FIXES
 
+    AMBARI-782. Make RPM package builds honor Ruby's sitelibdir
+    (Jos Backus via mahadev)
+
     AMBARI-701. Ambari does not handle a pre-setup user-supplied Hive Metastore. (hitesh)
 
     AMBARI-690. Monitoring Dashboard - update the RPM version and documentation

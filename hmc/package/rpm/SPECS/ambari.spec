@@ -35,6 +35,7 @@ Source1: ambari.init.in
 Source3: ambari-agent.init.in
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 Requires: php >= 5, sqlite >= 3, php-pdo, php-pecl-json, php-posix, httpd, puppet = 2.7.9, pdsh, httpd-devel, ruby-devel, rubygems, mod_passenger, mod_ssl
+%{!?ruby_sitelibdir: %define ruby_sitelibdir %(ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")}
 %define web_prefixdir %{_prefix}/share/hmc
 %define httpd_confdir %{_sysconfdir}/httpd/conf.d
 %define puppet_master_dir %{_sysconfdir}/puppet/master
@@ -76,7 +77,7 @@ fi
 %__rm -rf $RPM_BUILD_ROOT
 %__install -D -m0755 "%{SOURCE1}" "$RPM_BUILD_ROOT/etc/init.d/%{name}"
 %__install -D -m0755 "%{SOURCE3}" "$RPM_BUILD_ROOT/etc/init.d/%{name}-agent"
-%__mkdir -p $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
+%__mkdir -p $RPM_BUILD_ROOT/%{ruby_sitelibdir}/puppet/reports/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/
 %__mkdir -p $RPM_BUILD_ROOT/%{web_prefixdir}/bin/
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/
@@ -106,7 +107,7 @@ fi
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/modules/catalog/files
 %__mkdir -p $RPM_BUILD_ROOT/%{puppet_master_dir}/modules/keytabs/files
 %__install -D -m0755 puppet/reports/get_revision $RPM_BUILD_ROOT/%{web_prefixdir}/bin
-%__cp -rf puppet/reports/hmcreport.rb $RPM_BUILD_ROOT/usr/lib/ruby/site_ruby/1.8/puppet/reports/
+%__cp -rf puppet/reports/hmcreport.rb $RPM_BUILD_ROOT/%{ruby_sitelibdir}/puppet/reports/
  
 
 %post
@@ -160,7 +161,7 @@ rm -rf /var/run/hmc/puppetmaster.boot
 %files
 %defattr(-,root,root)
 %{web_prefixdir}/*
-/usr/lib/ruby/site_ruby/1.8/puppet/reports/hmcreport.rb
+%{ruby_sitelibdir}/puppet/reports/hmcreport.rb
 %config /etc/init.d/%{name}
 %{hmc_passwd_dir}*
 %{puppet_master_dir}/*
