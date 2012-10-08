@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-821. Implement basic service state update and verify flow to
+  ActionManager. (hitesh)
+
   AMBARI-812. In API , improve partial response support to drill down n levels
   (John Spiedel)
 

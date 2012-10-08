@@ -387,6 +387,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     this.serviceComponent = serviceComponent;
     this.hostName = hostName;
     this.resetLastOpInfo();
+    this.desiredConfigs = new HashMap<String, Config>();
+    this.desiredStackVersion = new StackVersion("");
+    this.desiredState = State.INIT;
+    this.configs = new HashMap<String, Config>();
+    this.stackVersion = new StackVersion("");
   }
 
   @Override

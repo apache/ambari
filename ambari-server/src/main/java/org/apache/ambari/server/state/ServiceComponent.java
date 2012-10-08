@@ -64,9 +64,10 @@ public interface ServiceComponent {
       throws AmbariException;
 
   public void addServiceComponentHosts(Map<String, ServiceComponentHost>
-      hostComponents);
+      hostComponents) throws AmbariException ;
 
-  public void addServiceComponentHost(ServiceComponentHost hostComponent);
+  public void addServiceComponentHost(ServiceComponentHost hostComponent)
+      throws AmbariException ;
 
   public ServiceComponentResponse convertToResponse();
 }

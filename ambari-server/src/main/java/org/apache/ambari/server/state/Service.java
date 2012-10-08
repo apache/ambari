@@ -36,9 +36,11 @@ public interface Service {
 
   public Map<String, ServiceComponent> getServiceComponents();
 
-  public void addServiceComponents(Map<String, ServiceComponent> components);
+  public void addServiceComponents(Map<String, ServiceComponent> components)
+      throws AmbariException;
 
-  public void addServiceComponent(ServiceComponent component);
+  public void addServiceComponent(ServiceComponent component)
+      throws AmbariException;
 
   public State getDesiredState();
 

@@ -26,23 +26,31 @@ public class ServiceComponentResponse {
 
   private String clusterName; // REF
 
-  private String serviceName; // GET/CREATE/UPDATE/DELETE
+  private String serviceName;
 
-  private String componentName; // GET/CREATE/UPDATE/DELETE
+  private String componentName;
 
   // Config type -> version mapping
-  private Map<String, String> configVersions; // CREATE/UPDATE
+  private Map<String, String> configVersions;
 
+  private String desiredStackVersion;
+
+  private String desiredState;
 
   public ServiceComponentResponse(Long clusterId, String clusterName,
                                   String serviceName,
-                                  String componentName, Map<String, String> configVersions) {
+                                  String componentName,
+                                  Map<String, String> configVersions,
+                                  String desiredStackVersion,
+                                  String desiredState) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
     this.configVersions = configVersions;
+    this.desiredStackVersion = desiredStackVersion;
+    this.desiredState = desiredState;
   }
 
   /**
@@ -113,5 +121,33 @@ public class ServiceComponentResponse {
    */
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
+  }
+
+  /**
+   * @return the desiredState
+   */
+  public String getDesiredState() {
+    return desiredState;
+  }
+
+  /**
+   * @param desiredState the desiredState to set
+   */
+  public void setDesiredState(String desiredState) {
+    this.desiredState = desiredState;
+  }
+
+  /**
+   * @return the desiredStackVersion
+   */
+  public String getDesiredStackVersion() {
+    return desiredStackVersion;
+  }
+
+  /**
+   * @param desiredStackVersion the desiredStackVersion to set
+   */
+  public void setDesiredStackVersion(String desiredStackVersion) {
+    this.desiredStackVersion = desiredStackVersion;
   }
 }

@@ -130,17 +130,25 @@ public class ServiceImpl implements Service {
 
   @Override
   public synchronized void addServiceComponents(
-      Map<String, ServiceComponent> components) {
+      Map<String, ServiceComponent> components) throws AmbariException {
     for (ServiceComponent sc : components.values()) {
       addServiceComponent(sc);
     }
   }
 
   @Override
-  public synchronized void addServiceComponent(ServiceComponent component) {
+  public synchronized void addServiceComponent(ServiceComponent component)
+      throws AmbariException {
     // TODO validation
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding a ServiceComponent to Service"
+          + ", clusterName=" + cluster.getClusterName()
+          + ", clusterId=" + cluster.getClusterId()
+          + ", serviceName=" + serviceName
+          + ", serviceComponentName=" + component.getName());
+    }
+    if (components.containsKey(component.getName())) {
+      throw new AmbariException("Cannot add duplicate ServiceComponent"
           + ", clusterName=" + cluster.getClusterName()
           + ", clusterId=" + cluster.getClusterId()
           + ", serviceName=" + serviceName

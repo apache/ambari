@@ -54,8 +54,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.management.ServiceNotFoundException;
-
 public class AmbariManagementControllerImpl implements
     AmbariManagementController {
 
@@ -185,14 +183,19 @@ public class AmbariManagementControllerImpl implements
 
     final Cluster cluster = clusters.getCluster(request.getClusterName());
     final Service s = cluster.getService(request.getServiceName());
-    ServiceComponent sc = s.getServiceComponent(request.getComponentName());
-    if (sc != null) {
-      // TODO fix exception
-      throw new AmbariException("ServiceComponent already exists within cluster"
-          + ", clusterName=" + cluster.getClusterName()
-          + ", clusterId=" + cluster.getClusterId()
-          + ", serviceName=" + s.getName()
-          + ", serviceComponentName" + sc.getName());
+    ServiceComponent sc = null;
+    try {
+      sc = s.getServiceComponent(request.getComponentName());
+      if (sc != null) {
+        // TODO fix exception
+        throw new AmbariException("ServiceComponent already exists within cluster"
+            + ", clusterName=" + cluster.getClusterName()
+            + ", clusterId=" + cluster.getClusterId()
+            + ", serviceName=" + s.getName()
+            + ", serviceComponentName" + sc.getName());
+      }
+    } catch (AmbariException e) {
+      // Expected
     }
 
     sc = new ServiceComponentImpl(s, request.getComponentName());
@@ -289,17 +292,22 @@ public class AmbariManagementControllerImpl implements
     final Service s = cluster.getService(request.getServiceName());
     final ServiceComponent sc = s.getServiceComponent(
         request.getComponentName());
-    ServiceComponentHost sch = sc.getServiceComponentHost(
-        request.getHostname());
-    if (sch != null) {
-      // TODO fix exception
-      throw new AmbariException("ServiceComponentHost already exists "
-          + "within cluster"
-          + ", clusterName=" + cluster.getClusterName()
-          + ", clusterId=" + cluster.getClusterId()
-          + ", serviceName=" + s.getName()
-          + ", serviceComponentName" + sc.getName()
-          + ", hostname=" + sch.getHostName());
+    ServiceComponentHost sch = null;
+    try {
+      sch = sc.getServiceComponentHost(
+          request.getHostname());
+      if (sch != null) {
+        // TODO fix exception
+        throw new AmbariException("ServiceComponentHost already exists "
+            + "within cluster"
+            + ", clusterName=" + cluster.getClusterName()
+            + ", clusterId=" + cluster.getClusterId()
+            + ", serviceName=" + s.getName()
+            + ", serviceComponentName" + sc.getName()
+            + ", hostname=" + sch.getHostName());
+      }
+    } catch (AmbariException e) {
+      // Expected
     }
 
     // TODO meta-data integration needed here
@@ -698,20 +706,49 @@ public class AmbariManagementControllerImpl implements
     for (ServiceComponent sc : s.getServiceComponents().values()) {
       State oldScState = sc.getDesiredState();
       if (newState == oldScState) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Ignoring ServiceComponent"
+              + ", clusterName=" + request.getClusterName()
+              + ", serviceName=" + s.getName()
+              + ", componentName=" + sc.getName()
+              + ", currentState=" + sc.getDesiredState()
+              + ", newState=" + newState);
+        }
         continue;
       }
+      LOG.debug("Handling update to ServiceComponent"
+          + ", clusterName=" + request.getClusterName()
+          + ", serviceName=" + s.getName()
+          + ", componentName=" + sc.getName()
+          + ", currentState=" + sc.getDesiredState()
+          + ", newState=" + newState);
       changedComps.add(sc);
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         if (newState == sch.getDesiredState()) {
+          LOG.debug("Ignoring ServiceComponentHost"
+              + ", clusterName=" + request.getClusterName()
+              + ", serviceName=" + s.getName()
+              + ", componentName=" + sc.getName()
+              + ", hostname=" + sch.getHostName()
+              + ", currentState=" + sch.getDesiredState()
+              + ", newState=" + newState);
           continue;
         }
         if (!changedScHosts.containsKey(sc.getName())) {
           changedScHosts.put(sc.getName(),
               new ArrayList<ServiceComponentHost>());
         }
+        LOG.debug("Handling update to ServiceComponentHost"
+            + ", clusterName=" + request.getClusterName()
+            + ", serviceName=" + s.getName()
+            + ", componentName=" + sc.getName()
+            + ", hostname=" + sch.getHostName()
+            + ", currentState=" + sch.getDesiredState()
+            + ", newState=" + newState);
         changedScHosts.get(sc.getName()).add(sch);
       }
     }
+
 
     // TODO additional validation?
 
@@ -730,12 +767,14 @@ public class AmbariManagementControllerImpl implements
     long requestId = requestCounter.incrementAndGet();
 
     List<Stage> stages = new ArrayList<Stage>();
+    long stageId = 0;
     for (String compName : orderedCompNames) {
       if (!changedScHosts.containsKey(compName)
           || changedScHosts.get(compName).isEmpty()) {
         continue;
       }
       Stage stage = createNewStage(cluster, requestId);
+      stage.setStageId(++stageId);
       for (ServiceComponentHost scHost : changedScHosts.get(compName)) {
         Map<String, Config> configs = null;
         ServiceComponentHostEvent event;
@@ -778,6 +817,7 @@ public class AmbariManagementControllerImpl implements
             nowTimestamp);
         stage.addHostAction(scHost.getHostName(), ha);
       }
+      stages.add(stage);
     }
 
     for (ServiceComponent sc : changedComps) {
@@ -790,6 +830,12 @@ public class AmbariManagementControllerImpl implements
       }
     }
 
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Triggering Action Manager"
+          + ", clusterName=" + request.getClusterName()
+          + ", serviceName=" + request.getServiceName()
+          + ", stagesCount=" + stages.size());
+    }
     actionManager.sendActions(stages);
 
     return new TrackActionResponse(requestId);

@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller;
 
 import static org.junit.Assert.fail;
 
+import java.util.List;
 import java.util.Set;
 
 import junit.framework.Assert;
@@ -28,6 +29,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBInMemoryImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.State;
@@ -40,11 +42,11 @@ public class AmbariManagementControllerTest {
 
   private AmbariManagementController controller;
   private Clusters clusters;
+  private ActionDBAccessor db = new ActionDBInMemoryImpl();
 
   @Before
   public void setup() {
     clusters = new ClustersImpl();
-    ActionDBAccessor db = new ActionDBInMemoryImpl();
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
         clusters, db);
     controller = new AmbariManagementControllerImpl(am, clusters);
@@ -59,6 +61,13 @@ public class AmbariManagementControllerTest {
   private void createCluster(String clusterName) throws AmbariException {
     ClusterRequest r = new ClusterRequest(null, clusterName, "1.0.0", null);
     controller.createCluster(r);
+
+    try {
+      controller.createCluster(r);
+      fail("Duplicate cluster creation should fail");
+    } catch (Exception e) {
+      // Expected
+    }
   }
 
   private void createService(String clusterName,
@@ -70,8 +79,52 @@ public class AmbariManagementControllerTest {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
         dStateStr);
     controller.createService(r);
+
+    try {
+      controller.createService(r);
+      fail("Duplicate Service creation should fail");
+    } catch (Exception e) {
+      // Expected
+    }
   }
 
+  private void createServiceComponent(String clusterName,
+      String serviceName, String componentName, State desiredState)
+          throws AmbariException {
+    String dStateStr = null;
+    if (desiredState != null) {
+      dStateStr = desiredState.toString();
+    }
+    ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
+        serviceName, componentName, null, dStateStr);
+    controller.createComponent(r);
+
+    try {
+      controller.createComponent(r);
+      fail("Duplicate ServiceComponent creation should fail");
+    } catch (Exception e) {
+      // Expected
+    }
+  }
+
+  private void createServiceComponentHost(String clusterName,
+      String serviceName, String componentName, String hostname,
+      State desiredState) throws AmbariException {
+    String dStateStr = null;
+    if (desiredState != null) {
+      dStateStr = desiredState.toString();
+    }
+    ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
+        serviceName, componentName, hostname, null, dStateStr);
+    controller.createHostComponent(r);
+
+    try {
+      controller.createHostComponent(r);
+      fail("Duplicate ServiceComponentHost creation should fail");
+    } catch (Exception e) {
+      // Expected
+    }
+  }
 
   @Test
   public void testCreateCluster() throws AmbariException {
@@ -129,12 +182,113 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testCreateServiceComponent() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
 
+    String componentName = "NAMENODE";
+    try {
+      createServiceComponent(clusterName, serviceName, componentName,
+          State.INSTALLING);
+      fail("ServiceComponent creation should fail for invalid state");
+    } catch (Exception e) {
+      // Expected
+    }
+    try {
+      clusters.getCluster(clusterName).getService(serviceName)
+          .getServiceComponent(componentName);
+      fail("ServiceComponent creation should have failed");
+    } catch (Exception e) {
+      // Expected
+    }
+
+    createServiceComponent(clusterName, serviceName, componentName,
+        State.INIT);
+    Assert.assertNotNull(clusters.getCluster(clusterName)
+        .getService(serviceName).getServiceComponent(componentName));
+
+    ServiceComponentRequest r =
+        new ServiceComponentRequest(clusterName, serviceName, null, null, null);
+    Set<ServiceComponentResponse> response = controller.getComponents(r);
+    Assert.assertEquals(1, response.size());
+
+    ServiceComponentResponse sc = response.iterator().next();
+    Assert.assertEquals(State.INIT.toString(), sc.getDesiredState());
+    Assert.assertEquals(componentName, sc.getComponentName());
+    Assert.assertEquals(clusterName, sc.getClusterName());
+    Assert.assertEquals(serviceName, sc.getServiceName());
   }
 
   @Test
   public void testCreateServiceComponentHost() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    createServiceComponent(clusterName, serviceName, componentName1,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+        State.INIT);
 
+    String host1 = "h1";
+    String host2 = "h2";
+
+    try {
+      createServiceComponentHost(clusterName, serviceName, componentName1,
+          host1, State.INSTALLING);
+      fail("ServiceComponentHost creation should fail for invalid state");
+    } catch (Exception e) {
+      // Expected
+    }
+
+    try {
+      clusters.getCluster(clusterName).getService(serviceName)
+          .getServiceComponent(componentName1).getServiceComponentHost(host1);
+      fail("ServiceComponentHost creation should have failed");
+    } catch (Exception e) {
+      // Expected
+    }
+
+    createServiceComponentHost(clusterName, serviceName, componentName1,
+        host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+        host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+        host2, null);
+
+    try {
+      createServiceComponentHost(clusterName, serviceName, componentName1,
+          host1, null);
+      fail("ServiceComponentHost creation should fail as duplicate");
+    } catch (Exception e) {
+      // Expected
+    }
+
+    Assert.assertNotNull(clusters.getCluster(clusterName)
+        .getService(serviceName)
+        .getServiceComponent(componentName1)
+        .getServiceComponentHost(host1));
+    Assert.assertNotNull(clusters.getCluster(clusterName)
+        .getService(serviceName)
+        .getServiceComponent(componentName2)
+        .getServiceComponentHost(host1));
+    Assert.assertNotNull(clusters.getCluster(clusterName)
+        .getService(serviceName)
+        .getServiceComponent(componentName2)
+        .getServiceComponentHost(host2));
+
+    ServiceComponentHostRequest r =
+        new ServiceComponentHostRequest(clusterName, serviceName,
+            componentName2, null, null, null);
+
+    Set<ServiceComponentHostResponse> response =
+        controller.getHostComponents(r);
+    Assert.assertEquals(2, response.size());
+
+    // TODO fix
   }
 
   @Test
@@ -167,6 +321,28 @@ public class AmbariManagementControllerTest {
 
   }
 
+  @Test
+  public void testInstallService() throws AmbariException {
+    testCreateServiceComponentHost();
+
+    String clusterName = "foo1";
+    String serviceName = "HDFS";
+
+    ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
+        State.INSTALLED.toString());
+
+    controller.updateService(r);
+
+    // TODO validate stages?
+//    List<Stage> stages = db.getAllStages(1);
+//
+//    for (Stage stage : stages) {
+//      for (String h : stage.getHosts()) {
+//        System.out.println("Stage " + stage.getStageId()
+//            + " : Host " + h);
+//      }
+//    }
+  }
 
 
 }

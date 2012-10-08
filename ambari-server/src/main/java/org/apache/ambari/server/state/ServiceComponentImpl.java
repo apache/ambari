@@ -138,7 +138,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public synchronized void addServiceComponentHosts(
-      Map<String, ServiceComponentHost> hostComponents) {
+      Map<String, ServiceComponentHost> hostComponents) throws AmbariException {
     // TODO validation
     for (ServiceComponentHost sch : hostComponents.values()) {
       addServiceComponentHost(sch);
@@ -147,10 +147,19 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public synchronized void addServiceComponentHost(
-      ServiceComponentHost hostComponent) {
+      ServiceComponentHost hostComponent) throws AmbariException {
     // TODO validation
+    // TODO ensure host belongs to cluster
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding a ServiceComponentHost to ServiceComponent"
+          + ", clusterName=" + service.getCluster().getClusterName()
+          + ", clusterId=" + service.getCluster().getClusterId()
+          + ", serviceName=" + service.getName()
+          + ", serviceComponentName=" + componentName
+          + ", hostname=" + hostComponent.getHostName());
+    }
+    if (hostComponents.containsKey(hostComponent.getHostName())) {
+      throw new AmbariException("Cannot add duplicate ServiceComponentHost"
           + ", clusterName=" + service.getCluster().getClusterName()
           + ", clusterId=" + service.getCluster().getClusterId()
           + ", serviceName=" + service.getName()
@@ -228,10 +237,12 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public ServiceComponentResponse convertToResponse() {
+  public synchronized ServiceComponentResponse convertToResponse() {
     ServiceComponentResponse r  = new ServiceComponentResponse(
         getClusterId(), service.getCluster().getClusterName(),
-        service.getName(), componentName, getConfigVersions());
+        service.getName(), componentName, getConfigVersions(),
+        getDesiredStackVersion().getStackVersion(),
+        getDesiredState().toString());
     return r;
   }
 
