@@ -33,15 +33,12 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentImpl;
 import org.apache.ambari.server.state.StackVersion;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class AmbariManagementControllerImpl implements
     AmbariManagementController {
@@ -64,10 +60,6 @@ public class AmbariManagementControllerImpl implements
 
   private final Clusters clusters;
 
-  // FIXME this needs to be unique across restarts
-  // TODO change requestId to string and use server start timestamp + in-memory
-  // request counter to make the request id unique?
-  private final AtomicLong requestCounter;
   private String baseLogDir = "/tmp/ambari/";
 
   private final ActionManager actionManager;
@@ -75,7 +67,6 @@ public class AmbariManagementControllerImpl implements
   public AmbariManagementControllerImpl(@Assisted ActionManager actionManager
       , @Assisted Clusters clusters) {
     this.clusters = clusters;
-    this.requestCounter = new AtomicLong();
     this.actionManager = actionManager;
   }
 
@@ -795,7 +786,7 @@ public class AmbariManagementControllerImpl implements
     orderedCompNames.add("HDFS_CLIENT");
 
     long nowTimestamp = System.currentTimeMillis();
-    long requestId = requestCounter.incrementAndGet();
+    long requestId = actionManager.getNextRequestId();
 
     List<Stage> stages = new ArrayList<Stage>();
     long stageId = 0;
@@ -948,7 +939,7 @@ public class AmbariManagementControllerImpl implements
     // TODO lets continue hacking
 
     long nowTimestamp = System.currentTimeMillis();
-    long requestId = requestCounter.incrementAndGet();
+    long requestId = actionManager.getNextRequestId();
     long stageId = 0;
     List<Stage> stages = new ArrayList<Stage>();
     Stage stage = createNewStage(cluster, requestId);
@@ -1108,7 +1099,7 @@ public class AmbariManagementControllerImpl implements
     // TODO lets continue hacking
 
     long nowTimestamp = System.currentTimeMillis();
-    long requestId = requestCounter.incrementAndGet();
+    long requestId = actionManager.getNextRequestId();
     long stageId = 0;
 
     List<Stage> stages = new ArrayList<Stage>();

@@ -18,10 +18,10 @@
 package org.apache.ambari.server.actionmanager;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
@@ -42,7 +42,8 @@ public class ActionManager {
   private final ActionQueue actionQueue;
   private final Clusters fsm;
   private static Logger LOG = LoggerFactory.getLogger(ActionManager.class);
-  
+  private final AtomicLong requestCounter;
+
   @Inject
   public ActionManager(@Named("schedulerSleeptime") long schedulerSleepTime,
       @Named("actionTimeout") long actionTimeout,
@@ -52,6 +53,7 @@ public class ActionManager {
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
         actionQueue, fsm, 2);
     this.fsm = fsm;
+    requestCounter = new AtomicLong(db.getLastPersistedRequestIdWhenInitialized());
   }
 
   public void start() {
@@ -82,7 +84,7 @@ public class ActionManager {
     for (CommandReport report : reports) {
       String actionId = report.getActionId();
       long [] requestStageIds = StageUtils.getRequestStage(actionId);
-      long requestId = requestStageIds[0];    
+      long requestId = requestStageIds[0];
       long stageId = requestStageIds[1];
       db.updateHostRoleState(hostname, requestId, stageId, report.getRole(),
           report);
@@ -95,4 +97,9 @@ public class ActionManager {
     //if action timeout happens to be much larger than
     //heartbeat timeout.
   }
+
+  public long getNextRequestId() {
+    return requestCounter.incrementAndGet();
+  }
+
 }

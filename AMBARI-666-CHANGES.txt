@@ -227,6 +227,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-836. Fix generation of requestId to be unique across restarts. (hitesh)
+
   AMBARI-834. Use RoleCommand instead of ServiceComponentHostEventType for HostAction
   in Controller. (hitesh)
 

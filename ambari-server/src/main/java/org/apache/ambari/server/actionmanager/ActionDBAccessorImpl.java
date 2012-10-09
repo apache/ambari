@@ -27,8 +27,6 @@ import com.google.inject.Singleton;
 @Singleton
 public class ActionDBAccessorImpl implements ActionDBAccessor {
 
-  private long stageId = 0;
-
   public ActionDBAccessorImpl() {
     //this.stageId = greatest stage id in the database + 1
   }
@@ -86,12 +84,18 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   public void updateHostRoleState(String hostname, long requestId,
       long stageId, String role, CommandReport report) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
   public void abortHostRole(String host, long requestId, long stageId, Role role) {
     // TODO Auto-generated method stub
-    
+
+  }
+
+  @Override
+  public long getLastPersistedRequestIdWhenInitialized() {
+    // TODO Auto-generated method stub
+    return 0;
   }
 }

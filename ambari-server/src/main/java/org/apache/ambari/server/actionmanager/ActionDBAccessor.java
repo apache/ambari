@@ -43,6 +43,15 @@ public interface ActionDBAccessor {
   public void updateHostRoleState(String hostname, long requestId,
       long stageId, String role, CommandReport report);
 
-  public void abortHostRole(String host, long requestId, long stageId, Role role);
+  public void abortHostRole(String host, long requestId, long stageId,
+      Role role);
+
+  /**
+   * Return the last persisted Request ID as seen when the DBAccessor object
+   * was initialized.
+   * Value should remain unchanged through the lifetime of the object instance.
+   * @return Request Id seen at init time
+   */
+  public long getLastPersistedRequestIdWhenInitialized();
 
 }

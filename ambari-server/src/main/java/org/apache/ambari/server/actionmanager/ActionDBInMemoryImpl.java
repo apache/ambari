@@ -29,6 +29,10 @@ import com.google.inject.Singleton;
 @Singleton
 public class ActionDBInMemoryImpl implements ActionDBAccessor {
 
+  // for a persisted DB, this will be initialized in the ctor
+  // with the highest persisted requestId value in the DB
+  private final long lastRequestId = 0;
+
   List<Stage> stageList = new ArrayList<Stage>();
 
   @Override
@@ -128,5 +132,10 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
     report.setStdOut("");
     report.setStatus("ABORTED");
     updateHostRoleState(host, requestId, stageId, role.toString(), report);
+  }
+
+  @Override
+  public synchronized long getLastPersistedRequestIdWhenInitialized() {
+    return lastRequestId;
   }
 }
