@@ -22,7 +22,7 @@ import org.apache.ambari.api.controller.internal.PropertyIdImpl;
 import org.apache.ambari.api.controller.internal.ResourceImpl;
 import org.apache.ambari.api.controller.internal.SchemaImpl;
 import org.apache.ambari.api.controller.utilities.PredicateHelper;
-import org.apache.ambari.api.controller.utilities.Properties;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitorAcceptor;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -143,9 +143,9 @@ public class JDBCResourceProvider implements ResourceProvider {
 
       try {
 
-        Set<Map<PropertyId, Object>> propertySet = request.getProperties();
+        Set<Map<PropertyId, String>> propertySet = request.getProperties();
 
-        for (Map<PropertyId, Object> properties : propertySet) {
+        for (Map<PropertyId, String> properties : propertySet) {
           String sql = getInsertSQL(properties);
 
           Statement statement = connection.createStatement();
@@ -167,13 +167,11 @@ public class JDBCResourceProvider implements ResourceProvider {
     try {
       Connection connection = connectionFactory.getConnection();
       try {
-        Set<Map<PropertyId, Object>> propertySet = request.getProperties();
+        Set<Map<PropertyId, String>> propertySet = request.getProperties();
 
-        Map<PropertyId, Object> properties = propertySet.iterator().next();
+        Map<PropertyId, String> properties = propertySet.iterator().next();
 
         String sql = getUpdateSQL(properties, predicate);
-
-        System.out.println(sql);
 
         Statement statement = connection.createStatement();
 
@@ -206,16 +204,16 @@ public class JDBCResourceProvider implements ResourceProvider {
   }
 
 
-  private String getInsertSQL(Map<PropertyId, Object> properties) {
+  private String getInsertSQL(Map<PropertyId, String> properties) {
 
     StringBuilder columns = new StringBuilder();
     StringBuilder values = new StringBuilder();
     String table = null;
 
 
-    for (Map.Entry<PropertyId, Object> entry : properties.entrySet()) {
+    for (Map.Entry<PropertyId, String> entry : properties.entrySet()) {
       PropertyId propertyId    = entry.getKey();
-      String     propertyValue = (String) entry.getValue();
+      String     propertyValue = entry.getValue();
 
       table = propertyId.getCategory();
 
@@ -305,8 +303,6 @@ public class JDBCResourceProvider implements ResourceProvider {
       sql = sql + " where " + whereClause + joinClause;
     }
 
-    System.out.println(sql);
-
     return sql;
   }
 
@@ -328,7 +324,7 @@ public class JDBCResourceProvider implements ResourceProvider {
     throw new IllegalStateException("Can't generate SQL.");
   }
 
-  private String getUpdateSQL(Map<PropertyId, Object> properties, Predicate predicate) {
+  private String getUpdateSQL(Map<PropertyId, String> properties, Predicate predicate) {
 
     if (predicate instanceof BasePredicate) {
 
@@ -344,7 +340,7 @@ public class JDBCResourceProvider implements ResourceProvider {
 
 
       StringBuilder setClause = new StringBuilder();
-      for (Map.Entry<PropertyId, Object> entry : properties.entrySet()) {
+      for (Map.Entry<PropertyId, String> entry : properties.entrySet()) {
 
         if (setClause.length() > 0) {
           setClause.append(", ");
@@ -396,10 +392,10 @@ public class JDBCResourceProvider implements ResourceProvider {
 
       while (rs.next()) {
 
-        PropertyId pkPropertyId = Properties.getPropertyId(
+        PropertyId pkPropertyId = PropertyHelper.getPropertyId(
             rs.getString("PKCOLUMN_NAME"), rs.getString("PKTABLE_NAME"));
 
-        PropertyId fkPropertyId = Properties.getPropertyId(
+        PropertyId fkPropertyId = PropertyHelper.getPropertyId(
             rs.getString("FKCOLUMN_NAME"), rs.getString("FKTABLE_NAME"));
 
         importedKeys.put(pkPropertyId, fkPropertyId);

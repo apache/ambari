@@ -19,7 +19,6 @@
 package org.apache.ambari.api.services;
 
 import org.apache.ambari.api.resources.ResourceDefinition;
-import org.apache.ambari.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.spi.PropertyId;
 
@@ -120,7 +119,7 @@ public interface Request {
    *
    * @return a map containing the properties contained in the http body
    */
-  public Map<PropertyId, Object> getHttpBodyProperties();
+  public Map<PropertyId, String> getHttpBodyProperties();
 
     //TODO: refactor persistence mechanism
   /**

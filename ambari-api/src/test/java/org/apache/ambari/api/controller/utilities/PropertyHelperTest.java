@@ -17,10 +17,37 @@
  */
 package org.apache.ambari.api.controller.utilities;
 
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.util.Map;
+import java.util.Set;
+
 /**
  *
  */
-public class HostNames {
+public class PropertyHelperTest {
+
+  @Ignore
+  @Test
+  public void testGetPropertyIds() throws Exception {
 
 
+    Set<PropertyId> propertyIds = PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "DB");
+
+    propertyIds = PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "JMX");
+
+
+    propertyIds = PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "GANGLIA");
+
+  }
+
+  @Ignore
+  @Test
+  public void testGetKeyPropertyIds() throws Exception {
+    Map<Resource.Type, PropertyId> keyProperties = PropertyHelper.getKeyPropertyIds(Resource.Type.Service);
+  }
 }
+

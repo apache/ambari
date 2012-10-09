@@ -45,8 +45,6 @@ public class GangliaHelperTest {
 
     List<GangliaMetric> metrics = GangliaHelper.getGangliaMetrics(target, cluster, host, metric, startTime, endTime, step);
 
-    System.out.println("GangliaHelperTest.testGetMetrics : api = " + metrics);
-
     //TODO : assertions
   }
 }

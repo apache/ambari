@@ -18,7 +18,7 @@
 
 package org.apache.ambari.api.services.parsers;
 
-import org.apache.ambari.api.controller.utilities.Properties;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -47,17 +47,17 @@ public class JsonPropertyParserTest {
   @Test
   public void testParse() throws Exception {
     RequestBodyParser parser = new JsonPropertyParser();
-    Map<PropertyId, Object> mapProps = parser.parse(serviceJson);
+    Map<PropertyId, String> mapProps = parser.parse(serviceJson);
 
     Map<PropertyId, Object> mapExpected = new HashMap<PropertyId, Object>();
-    mapExpected.put(Properties.getPropertyId("service_name", "Services"), "HDFS");
-    mapExpected.put(Properties.getPropertyId("display_name", "Services"), "HDFS");
-    mapExpected.put(Properties.getPropertyId("cluster_name", "ServiceInfo"), "tbmetrictest");
-    mapExpected.put(Properties.getPropertyId("attributes", "Services"), "{ \"runnable\": true, \"mustInstall\": true, \"editable\": false, \"noDisplay\": false }");
-    mapExpected.put(Properties.getPropertyId("description", "Services"), "Apache Hadoop Distributed File System");
-    mapExpected.put(Properties.getPropertyId("state", "ServiceInfo"), "STARTED");
-    mapExpected.put(Properties.getPropertyId("propName", "OuterCategory"), "100");
-    mapExpected.put(Properties.getPropertyId("innerPropName", "OuterCategory.nested1.nested2"), "innerPropValue");
+    mapExpected.put(PropertyHelper.getPropertyId("service_name", "Services"), "HDFS");
+    mapExpected.put(PropertyHelper.getPropertyId("display_name", "Services"), "HDFS");
+    mapExpected.put(PropertyHelper.getPropertyId("cluster_name", "ServiceInfo"), "tbmetrictest");
+    mapExpected.put(PropertyHelper.getPropertyId("attributes", "Services"), "{ \"runnable\": true, \"mustInstall\": true, \"editable\": false, \"noDisplay\": false }");
+    mapExpected.put(PropertyHelper.getPropertyId("description", "Services"), "Apache Hadoop Distributed File System");
+    mapExpected.put(PropertyHelper.getPropertyId("state", "ServiceInfo"), "STARTED");
+    mapExpected.put(PropertyHelper.getPropertyId("propName", "OuterCategory"), "100");
+    mapExpected.put(PropertyHelper.getPropertyId("innerPropName", "OuterCategory.nested1.nested2"), "innerPropValue");
 
     assertEquals(mapExpected, mapProps);
   }

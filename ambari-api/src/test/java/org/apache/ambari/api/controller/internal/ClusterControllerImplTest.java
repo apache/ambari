@@ -20,6 +20,7 @@ package org.apache.ambari.api.controller.internal;
 
 import junit.framework.Assert;
 import org.apache.ambari.api.controller.ProviderModule;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
@@ -29,7 +30,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.api.controller.utilities.PredicateBuilder;
-import org.apache.ambari.api.controller.utilities.Properties;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -47,10 +47,10 @@ public class ClusterControllerImplTest {
   private static final Set<PropertyId> propertyProviderProperties = new HashSet<PropertyId>();
 
   static {
-    propertyProviderProperties.add(Properties.getPropertyId("p5", "c3"));
-    propertyProviderProperties.add(Properties.getPropertyId("p6", "c3"));
-    propertyProviderProperties.add(Properties.getPropertyId("p7", "c4"));
-    propertyProviderProperties.add(Properties.getPropertyId("p8", "c4"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("p5", "c3"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("p6", "c3"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("p7", "c4"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("p8", "c4"));
   }
 
   private static final PropertyProvider propertyProvider = new PropertyProvider() {
@@ -59,10 +59,10 @@ public class ClusterControllerImplTest {
 
       int cnt = 0;
       for (Resource resource : resources){
-        resource.setProperty(Properties.getPropertyId("p5", "c3"), cnt + 100);
-        resource.setProperty(Properties.getPropertyId("p6", "c3"), cnt % 2);
-        resource.setProperty(Properties.getPropertyId("p7", "c4"), "monkey");
-        resource.setProperty(Properties.getPropertyId("p8", "c4"), "runner");
+        resource.setProperty(PropertyHelper.getPropertyId("p5", "c3"), cnt + 100);
+        resource.setProperty(PropertyHelper.getPropertyId("p6", "c3"), cnt % 2);
+        resource.setProperty(PropertyHelper.getPropertyId("p7", "c4"), "monkey");
+        resource.setProperty(PropertyHelper.getPropertyId("p8", "c4"), "runner");
         ++cnt;
       }
       return resources;
@@ -85,10 +85,10 @@ public class ClusterControllerImplTest {
   private static final Set<PropertyId> resourceProviderProperties = new HashSet<PropertyId>();
 
   static {
-    resourceProviderProperties.add(Properties.getPropertyId("p1", "c1"));
-    resourceProviderProperties.add(Properties.getPropertyId("p2", "c1"));
-    resourceProviderProperties.add(Properties.getPropertyId("p3", "c1"));
-    resourceProviderProperties.add(Properties.getPropertyId("p4", "c2"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("p1", "c1"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("p2", "c1"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("p3", "c1"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("p4", "c2"));
   }
 
   private static final ResourceProvider resourceProvider = new ResourceProvider() {
@@ -100,10 +100,10 @@ public class ClusterControllerImplTest {
       for (int cnt = 0; cnt < 4; ++ cnt) {
         ResourceImpl resource = new ResourceImpl(Resource.Type.Host);
 
-        resource.setProperty(Properties.getPropertyId("p1", "c1"), cnt);
-        resource.setProperty(Properties.getPropertyId("p2", "c1"), cnt % 2);
-        resource.setProperty(Properties.getPropertyId("p3", "c1"), "foo");
-        resource.setProperty(Properties.getPropertyId("p4", "c2"), "bar");
+        resource.setProperty(PropertyHelper.getPropertyId("p1", "c1"), cnt);
+        resource.setProperty(PropertyHelper.getPropertyId("p2", "c1"), cnt % 2);
+        resource.setProperty(PropertyHelper.getPropertyId("p3", "c1"), "foo");
+        resource.setProperty(PropertyHelper.getPropertyId("p4", "c2"), "bar");
         resources.add(resource);
       }
 
@@ -144,19 +144,19 @@ public class ClusterControllerImplTest {
   private static final Set<PropertyId> propertyIds = new HashSet<PropertyId>();
 
   static {
-    propertyIds.add(Properties.getPropertyId("p1", "c1"));
-    propertyIds.add(Properties.getPropertyId("p2", "c1"));
-    propertyIds.add(Properties.getPropertyId("p3", "c2"));
-    propertyIds.add(Properties.getPropertyId("p4", "c3"));
-    propertyIds.add(Properties.getPropertyId("p5", "c3"));
-    propertyIds.add(Properties.getPropertyId("p7", "c4"));
+    propertyIds.add(PropertyHelper.getPropertyId("p1", "c1"));
+    propertyIds.add(PropertyHelper.getPropertyId("p2", "c1"));
+    propertyIds.add(PropertyHelper.getPropertyId("p3", "c2"));
+    propertyIds.add(PropertyHelper.getPropertyId("p4", "c3"));
+    propertyIds.add(PropertyHelper.getPropertyId("p5", "c3"));
+    propertyIds.add(PropertyHelper.getPropertyId("p7", "c4"));
   }
 
   @Test
   public void testGetResources() throws Exception{
     ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
 
-    Request request = new RequestImpl(propertyIds, null);
+    Request request = PropertyHelper.getReadRequest(propertyIds);
 
     Iterable<Resource> iterable = controller.getResources(Resource.Type.Host, request, null);
 
@@ -172,7 +172,7 @@ public class ClusterControllerImplTest {
   public void testGetResourcesWithPredicate() throws Exception{
     ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
 
-    Request request = new RequestImpl(propertyIds, null);
+    Request request = PropertyHelper.getReadRequest(propertyIds);
 
     Predicate predicate = new PredicateBuilder().property("p2", "c1").equals(1).toPredicate();
 
@@ -226,10 +226,10 @@ public class ClusterControllerImplTest {
       for (int cnt = 0; cnt < 4; ++ cnt) {
         ResourceImpl resource = new ResourceImpl(Resource.Type.Host);
 
-        resource.setProperty(Properties.getPropertyId("p1", "c1"), cnt);
-        resource.setProperty(Properties.getPropertyId("p2", "c1"), cnt % 2);
-        resource.setProperty(Properties.getPropertyId("p3", "c1"), "foo");
-        resource.setProperty(Properties.getPropertyId("p4", "c2"), "bar");
+        resource.setProperty(PropertyHelper.getPropertyId("p1", "c1"), cnt);
+        resource.setProperty(PropertyHelper.getPropertyId("p2", "c1"), cnt % 2);
+        resource.setProperty(PropertyHelper.getPropertyId("p3", "c1"), "foo");
+        resource.setProperty(PropertyHelper.getPropertyId("p4", "c2"), "bar");
         resources.add(resource);
       }
 

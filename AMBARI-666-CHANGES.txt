@@ -11,6 +11,9 @@ AMBARI-666 branch (unreleased changes)
   INCOMPATIBLE CHANGES
 
   NEW FEATURES
+  
+  AMBARI-829. Add unit tests for ResourceProviderImpl. (Tom Beerbower via
+  mahadev)
 
   AMBARI-831. Move manifest generation into the ambari agent directory.
   (mahadev)

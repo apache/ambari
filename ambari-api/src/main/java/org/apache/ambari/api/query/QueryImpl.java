@@ -21,6 +21,7 @@ package org.apache.ambari.api.query;
 import org.apache.ambari.api.controller.internal.PropertyIdImpl;
 import org.apache.ambari.api.controller.internal.RequestImpl;
 import org.apache.ambari.api.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
@@ -43,7 +44,7 @@ public class QueryImpl implements Query {
   ResourceDefinition m_resourceDefinition;
 
   /**
-   * Properties of the query which make up the select portion of the query.
+   * PropertyHelper of the query which make up the select portion of the query.
    */
   private Map<String, Set<String>> m_mapQueryProperties = new HashMap<String, Set<String>>();
 
@@ -220,7 +221,7 @@ public class QueryImpl implements Query {
         setProperties.add(new PropertyIdImpl(property, group, false));
       }
     }
-    return new RequestImpl(setProperties, null);
+    return PropertyHelper.getReadRequest(setProperties);
   }
 
   Result createResult() {

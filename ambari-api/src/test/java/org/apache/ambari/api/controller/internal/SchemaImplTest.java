@@ -19,6 +19,7 @@
 package org.apache.ambari.api.controller.internal;
 
 import junit.framework.Assert;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
@@ -26,7 +27,6 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.Schema;
-import org.apache.ambari.api.controller.utilities.Properties;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -44,10 +44,10 @@ public class SchemaImplTest {
   private static final Set<PropertyId> resourceProviderProperties = new HashSet<PropertyId>();
 
   static {
-    resourceProviderProperties.add(Properties.getPropertyId("p1", "c1"));
-    resourceProviderProperties.add(Properties.getPropertyId("p2", "c1"));
-    resourceProviderProperties.add(Properties.getPropertyId("p3", "c1"));
-    resourceProviderProperties.add(Properties.getPropertyId("p4", "c2"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("p1", "c1"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("p2", "c1"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("p3", "c1"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("p4", "c2"));
   }
 
   private static final ResourceProvider resourceProvider = new ResourceProvider() {
@@ -90,10 +90,10 @@ public class SchemaImplTest {
   private static final Set<PropertyId> propertyProviderProperties = new HashSet<PropertyId>();
 
   static {
-    propertyProviderProperties.add(Properties.getPropertyId("p5", "c3"));
-    propertyProviderProperties.add(Properties.getPropertyId("p6", "c3"));
-    propertyProviderProperties.add(Properties.getPropertyId("p7", "c4"));
-    propertyProviderProperties.add(Properties.getPropertyId("p8", "c4"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("p5", "c3"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("p6", "c3"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("p7", "c4"));
+    propertyProviderProperties.add(PropertyHelper.getPropertyId("p8", "c4"));
   }
 
   private static final PropertyProvider propertyProvider = new PropertyProvider() {
@@ -117,18 +117,18 @@ public class SchemaImplTest {
   private static final Map<Resource.Type, PropertyId> keyPropertyIds = new HashMap<Resource.Type, PropertyId>();
 
   static {
-    keyPropertyIds.put(Resource.Type.Cluster, Properties.getPropertyId("p1", "c1"));
-    keyPropertyIds.put(Resource.Type.Host, Properties.getPropertyId("p2", "c1"));
-    keyPropertyIds.put(Resource.Type.Component, Properties.getPropertyId("p3", "c1"));
+    keyPropertyIds.put(Resource.Type.Cluster, PropertyHelper.getPropertyId("p1", "c1"));
+    keyPropertyIds.put(Resource.Type.Host, PropertyHelper.getPropertyId("p2", "c1"));
+    keyPropertyIds.put(Resource.Type.Component, PropertyHelper.getPropertyId("p3", "c1"));
   }
 
   @Test
   public void testGetKeyPropertyId() {
     Schema schema = new SchemaImpl(resourceProvider, keyPropertyIds);
 
-    Assert.assertEquals(Properties.getPropertyId("p1", "c1"), schema.getKeyPropertyId(Resource.Type.Cluster));
-    Assert.assertEquals(Properties.getPropertyId("p2", "c1"), schema.getKeyPropertyId(Resource.Type.Host));
-    Assert.assertEquals(Properties.getPropertyId("p3", "c1"), schema.getKeyPropertyId(Resource.Type.Component));
+    Assert.assertEquals(PropertyHelper.getPropertyId("p1", "c1"), schema.getKeyPropertyId(Resource.Type.Cluster));
+    Assert.assertEquals(PropertyHelper.getPropertyId("p2", "c1"), schema.getKeyPropertyId(Resource.Type.Host));
+    Assert.assertEquals(PropertyHelper.getPropertyId("p3", "c1"), schema.getKeyPropertyId(Resource.Type.Component));
   }
 
   @Test

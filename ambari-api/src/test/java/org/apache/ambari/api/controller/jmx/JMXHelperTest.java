@@ -33,8 +33,6 @@ public class JMXHelperTest {
 
     JMXMetrics metrics = JMXHelper.getJMXMetrics(target, null);
 
-    System.out.println("GangliaHelperTest.testGetMetrics : api = " + metrics);
-
     //TODO : assertions
   }
 }

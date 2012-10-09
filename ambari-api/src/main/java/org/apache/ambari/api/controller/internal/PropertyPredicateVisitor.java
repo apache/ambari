@@ -19,6 +19,7 @@
 package org.apache.ambari.api.controller.internal;
 
 import org.apache.ambari.server.controller.predicate.ArrayPredicate;
+import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.ComparisonPredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitor;
 import org.apache.ambari.server.controller.predicate.UnaryPredicate;
@@ -31,16 +32,19 @@ import java.util.Map;
  * Predicate visitor for extracting property values from the PropertyPredicates of a predicate graph.
  */
 public class PropertyPredicateVisitor implements PredicateVisitor {
-  private final Map<PropertyId, Object> properties = new HashMap<PropertyId, Object>();
+  private final Map<PropertyId, String> properties = new HashMap<PropertyId, String>();
 
   @Override
   public void acceptComparisonPredicate(ComparisonPredicate predicate) {
-    properties.put(predicate.getPropertyId(), predicate.getValue());
+    properties.put(predicate.getPropertyId(), predicate.getValue().toString());
   }
 
   @Override
   public void acceptArrayPredicate(ArrayPredicate predicate) {
-    //Do nothing
+    BasePredicate[] predicates = predicate.getPredicates();
+    for (int i = 0; i < predicates.length; i++) {
+      predicates[i].accept(this);
+    }
   }
 
   @Override
@@ -56,7 +60,7 @@ public class PropertyPredicateVisitor implements PredicateVisitor {
    *
    * @return the properties
    */
-  public Map<PropertyId, Object> getProperties() {
+  public Map<PropertyId, String> getProperties() {
     return properties;
   }
 }

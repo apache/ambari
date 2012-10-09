@@ -19,7 +19,7 @@
 package org.apache.ambari.api.controller.internal;
 
 import org.apache.ambari.api.controller.ProviderModule;
-import org.apache.ambari.api.controller.utilities.Properties;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
@@ -42,7 +42,7 @@ public class DefaultProviderModule implements ProviderModule {
     AmbariManagementController managementController =
         new AmbariManagementControllerImpl(null, null);
     return ResourceProviderImpl.getResourceProvider(type,
-        PROPERTY_PROVIDERS, Properties.getPropertyIds(type, "DB"),
-        Properties.getKeyPropertyIds(type), managementController);
+        PROPERTY_PROVIDERS, PropertyHelper.getPropertyIds(type, "DB"),
+        PropertyHelper.getKeyPropertyIds(type), managementController);
   }
 }

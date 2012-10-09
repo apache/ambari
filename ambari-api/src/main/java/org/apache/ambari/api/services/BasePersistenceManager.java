@@ -20,6 +20,7 @@ package org.apache.ambari.api.services;
 
 import org.apache.ambari.api.controller.internal.RequestImpl;
 import org.apache.ambari.api.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
@@ -36,7 +37,7 @@ public abstract class BasePersistenceManager implements PersistenceManager {
     return ClusterControllerHelper.getClusterController();
   }
 
-  protected Request createControllerRequest(Map<PropertyId, Object> properties) {
-    return new RequestImpl(null, Collections.singleton(properties));
+  protected Request createControllerRequest(Map<PropertyId, String> properties) {
+    return PropertyHelper.getCreateRequest(Collections.singleton(properties));
   }
 }

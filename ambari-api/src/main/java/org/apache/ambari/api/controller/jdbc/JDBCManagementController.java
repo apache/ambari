@@ -20,6 +20,7 @@ package org.apache.ambari.api.controller.jdbc;
 
 import org.apache.ambari.api.controller.internal.PropertyIdImpl;
 import org.apache.ambari.api.controller.internal.ResourceImpl;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -42,7 +43,6 @@ import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.api.controller.utilities.PredicateHelper;
-import org.apache.ambari.api.controller.utilities.Properties;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -214,9 +214,9 @@ public class JDBCManagementController implements AmbariManagementController {
 
       try {
 
-        Set<Map<PropertyId, Object>> propertySet = request.getProperties();
+        Set<Map<PropertyId, String>> propertySet = request.getProperties();
 
-        for (Map<PropertyId, Object> properties : propertySet) {
+        for (Map<PropertyId, String> properties : propertySet) {
           String sql = getInsertSQL(resourceTables.get(type), properties);
 
           Statement statement = connection.createStatement();
@@ -301,9 +301,9 @@ public class JDBCManagementController implements AmbariManagementController {
     try {
       Connection connection = connectionFactory.getConnection();
       try {
-        Set<Map<PropertyId, Object>> propertySet = request.getProperties();
+        Set<Map<PropertyId, String>> propertySet = request.getProperties();
 
-        Map<PropertyId, Object> properties = propertySet.iterator().next();
+        Map<PropertyId, String> properties = propertySet.iterator().next();
 
         String resourceTable = resourceTables.get(type);
 
@@ -379,10 +379,10 @@ public class JDBCManagementController implements AmbariManagementController {
 
       while (rs.next()) {
 
-        PropertyId pkPropertyId = Properties.getPropertyId(
+        PropertyId pkPropertyId = PropertyHelper.getPropertyId(
             rs.getString("PKCOLUMN_NAME"), rs.getString("PKTABLE_NAME"));
 
-        PropertyId fkPropertyId = Properties.getPropertyId(
+        PropertyId fkPropertyId = PropertyHelper.getPropertyId(
             rs.getString("FKCOLUMN_NAME"), rs.getString("FKTABLE_NAME"));
 
         importedKeys.put(pkPropertyId, fkPropertyId);
@@ -411,7 +411,7 @@ public class JDBCManagementController implements AmbariManagementController {
 
       while (rs.next()) {
 
-        PropertyId pkPropertyId = Properties.getPropertyId(
+        PropertyId pkPropertyId = PropertyHelper.getPropertyId(
             rs.getString("COLUMN_NAME"), rs.getString("TABLE_NAME"));
 
         primaryKeys.add(pkPropertyId);
@@ -476,12 +476,12 @@ public class JDBCManagementController implements AmbariManagementController {
    *
    * @return the insert SQL
    */
-  private String getInsertSQL(String table, Map<PropertyId, Object> properties) {
+  private String getInsertSQL(String table, Map<PropertyId, String> properties) {
 
     StringBuilder columns = new StringBuilder();
     StringBuilder values = new StringBuilder();
 
-    for (Map.Entry<PropertyId, Object> entry : properties.entrySet()) {
+    for (Map.Entry<PropertyId, String> entry : properties.entrySet()) {
       PropertyId propertyId = entry.getKey();
       Object propertyValue = entry.getValue();
 
@@ -619,7 +619,7 @@ public class JDBCManagementController implements AmbariManagementController {
    *
    * @return the update SQL statement
    */
-  private String getUpdateSQL(String table, Map<PropertyId, Object> properties, Predicate predicate) {
+  private String getUpdateSQL(String table, Map<PropertyId, String> properties, Predicate predicate) {
 
     if (predicate instanceof BasePredicate) {
 
@@ -632,7 +632,7 @@ public class JDBCManagementController implements AmbariManagementController {
       whereClause.append(visitor.getSQL());
 
       StringBuilder setClause = new StringBuilder();
-      for (Map.Entry<PropertyId, Object> entry : properties.entrySet()) {
+      for (Map.Entry<PropertyId, String> entry : properties.entrySet()) {
 
         if (setClause.length() > 0) {
           setClause.append(", ");

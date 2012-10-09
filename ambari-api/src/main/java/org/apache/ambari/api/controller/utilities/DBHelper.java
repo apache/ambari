@@ -81,8 +81,6 @@ public class DBHelper {
       throw new IllegalStateException("Can't access DB.", e);
     }
 
-    System.out.println(hosts);
-
     return hosts;
   }
 }

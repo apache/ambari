@@ -28,7 +28,6 @@ import org.apache.ambari.api.services.ResultPostProcessor;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Resource Definition.
@@ -109,21 +108,21 @@ public interface ResourceDefinition {
    * @param property the property
    * @param value    the value
    */
-  public void setProperty(PropertyId property, Object value);
+  public void setProperty(PropertyId property, String value);
 
   /**
    * Set a map of properties on the resource.
    *
    * @param mapProperties a map of properties
    */
-  public void setProperties(Map<PropertyId, Object> mapProperties);
+  public void setProperties(Map<PropertyId, String> mapProperties);
 
   /**
    * Get the properties which have been set on this resource.
    *
    * @return the properties which have been set on this resource
    */
-  public Map<PropertyId, Object> getProperties();
+  public Map<PropertyId, String> getProperties();
 
   /**
    * Resource specific result processor.

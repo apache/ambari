@@ -20,7 +20,7 @@ package org.apache.ambari.api.controller.jdbc;
 
 import org.apache.ambari.api.controller.ProviderModule;
 import org.apache.ambari.api.controller.utilities.DBHelper;
-import org.apache.ambari.api.controller.utilities.Properties;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
@@ -38,7 +38,7 @@ public class JDBCProviderModule implements ProviderModule {
   @Override
   public ResourceProvider getResourceProvider(Resource.Type type) {
     return new JDBCResourceProvider(DBHelper.CONNECTION_FACTORY, type,
-        PROPERTY_PROVIDERS, Properties.getPropertyIds(type, "DB"),
-        Properties.getKeyPropertyIds(type));
+        PROPERTY_PROVIDERS, PropertyHelper.getPropertyIds(type, "DB"),
+        PropertyHelper.getKeyPropertyIds(type));
   }
 }

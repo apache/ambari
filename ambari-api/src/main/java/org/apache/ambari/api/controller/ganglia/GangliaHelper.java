@@ -42,8 +42,6 @@ public class GangliaHelper {
         "&m=" + metric +
         "&json=1";
 
-//        System.out.println("url=" + s);
-
     try {
       URLConnection connection = new URL(s).openConnection();
 
@@ -76,8 +74,6 @@ public class GangliaHelper {
         "&ce=" + endTime.getTime() / 1000 +
         "&step=" + step +
         "&json=1";
-
-    System.out.println("url=" + s);
 
     try {
       URLConnection connection = new URL(s).openConnection();

@@ -18,20 +18,23 @@
 package org.apache.ambari.api.controller.utilities;
 
 import org.apache.ambari.api.controller.internal.PropertyIdImpl;
+import org.apache.ambari.api.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 /**
  *
  */
-public class Properties {
+public class PropertyHelper {
 
   private static final String PROPERTIES_FILE = "properties.json";
   private static final String KEY_PROPERTIES_FILE = "key_properties.json";
@@ -58,6 +61,51 @@ public class Properties {
 
   public static Map<Resource.Type, PropertyId> getKeyPropertyIds(Resource.Type resourceType) {
     return KEY_PROPERTY_IDS.get(resourceType);
+  }
+
+  public static Map<PropertyId, String> getProperties(Resource resource) {
+    Map<PropertyId, String> properties = new HashMap<PropertyId, String>();
+
+    Map<String, Map<String, String>> categories = resource.getCategories();
+
+    for (Map.Entry<String, Map<String, String>> categoryEntry : categories.entrySet()) {
+      for (Map.Entry<String, String>  propertyEntry : categoryEntry.getValue().entrySet()) {
+
+        properties.put(PropertyHelper.getPropertyId(propertyEntry.getKey(), categoryEntry.getKey()), propertyEntry.getValue());
+      }
+    }
+    return properties;
+  }
+
+  /**
+   * Factory method to create a create request from the given set of property maps.
+   * Each map contains the properties to be used to create a resource.  Multiple maps in the
+   * set should result in multiple creates.
+   *
+   * @param properties   the properties associated with the request; may be null
+   */
+  public static Request getCreateRequest(Set<Map<PropertyId, String>> properties) {
+    return new RequestImpl(null,  properties);
+  }
+
+  /**
+   * Factory method to create a read request from the given set of property ids.  The set of
+   * property ids represents the properties of interest for the query.
+   *
+   * @param propertyIds  the property ids associated with the request; may be null
+   */
+  public static Request getReadRequest(Set<PropertyId> propertyIds) {
+    return new RequestImpl(propertyIds,  null);
+  }
+
+  /**
+   * Factory method to create an update request from the given map of properties.
+   * The properties values in the given map are used to update the resource.
+   *
+   * @param properties   the properties associated with the request; may be null
+   */
+  public static Request getUpdateRequest(Map<PropertyId, String> properties) {
+    return new RequestImpl(null,  Collections.singleton(properties));
   }
 
   private static Map<Resource.Type, Map<String, Set<PropertyId>>> readPropertyIds(String filename) {

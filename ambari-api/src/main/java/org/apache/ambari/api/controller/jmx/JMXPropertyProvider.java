@@ -19,13 +19,13 @@
 package org.apache.ambari.api.controller.jmx;
 
 import org.apache.ambari.api.controller.internal.PropertyIdImpl;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.api.controller.utilities.PredicateHelper;
-import org.apache.ambari.api.controller.utilities.Properties;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,7 +56,7 @@ public class JMXPropertyProvider implements PropertyProvider {
 
   private JMXPropertyProvider(Resource.Type type, Map<String, String> hosts) {
     this.hosts = hosts;
-    this.propertyIds = Properties.getPropertyIds(type, "JMX");
+    this.propertyIds = PropertyHelper.getPropertyIds(type, "JMX");
   }
 
   @Override
@@ -110,7 +110,6 @@ public class JMXPropertyProvider implements PropertyProvider {
           String name = entry.getKey();
 
           PropertyIdImpl propertyId = new PropertyIdImpl(name, category, false);
-//                        System.out.println(i + ")" + propertyId);
 
           if (ids.contains(propertyId)) {
             resource.setProperty(propertyId, entry.getValue());

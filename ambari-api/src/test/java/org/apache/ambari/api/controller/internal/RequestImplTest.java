@@ -19,9 +19,9 @@
 package org.apache.ambari.api.controller.internal;
 
 import junit.framework.Assert;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.api.controller.utilities.Properties;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -35,15 +35,15 @@ public class RequestImplTest {
   private static final Set<PropertyId> propertyIds = new HashSet<PropertyId>();
 
   static {
-    propertyIds.add(Properties.getPropertyId("p1", "c1"));
-    propertyIds.add(Properties.getPropertyId("p2", "c1"));
-    propertyIds.add(Properties.getPropertyId("p3", "c2"));
-    propertyIds.add(Properties.getPropertyId("p4", "c3"));
+    propertyIds.add(PropertyHelper.getPropertyId("p1", "c1"));
+    propertyIds.add(PropertyHelper.getPropertyId("p2", "c1"));
+    propertyIds.add(PropertyHelper.getPropertyId("p3", "c2"));
+    propertyIds.add(PropertyHelper.getPropertyId("p4", "c3"));
   }
 
   @Test
   public void testGetPropertyIds() {
-    Request request = new RequestImpl(propertyIds, null);
+    Request request = PropertyHelper.getReadRequest(propertyIds);
 
     Assert.assertEquals(propertyIds, request.getPropertyIds());
   }

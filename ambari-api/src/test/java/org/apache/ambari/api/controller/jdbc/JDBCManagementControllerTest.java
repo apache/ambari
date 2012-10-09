@@ -18,32 +18,7 @@
 
 package org.apache.ambari.api.controller.jdbc;
 
-import junit.framework.Assert;
-import org.apache.ambari.api.controller.internal.RequestImpl;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.api.controller.utilities.ClusterControllerHelper;
-import org.apache.ambari.api.controller.utilities.PredicateBuilder;
-import org.apache.ambari.api.controller.utilities.Properties;
-import org.easymock.EasyMock;
-import org.junit.Test;
-
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 
 /**
 *
@@ -66,13 +41,13 @@ public class JDBCManagementControllerTest {
 //
 //    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 //
-//    PropertyId id = Properties.getPropertyId("cluster_name", "Clusters");
+//    PropertyId id = PropertyHelper.getPropertyId("cluster_name", "Clusters");
 //    properties.put(id, "MyCluster");
 //
-//    id = Properties.getPropertyId("version", "Clusters");
+//    id = PropertyHelper.getPropertyId("version", "Clusters");
 //    properties.put(id, "1.0");
 //
-//    id = Properties.getPropertyId("state", "Clusters");
+//    id = PropertyHelper.getPropertyId("state", "Clusters");
 //    properties.put(id, "initial");
 //
 //    Set<Map<PropertyId, Object>> propertySet = new LinkedHashSet<Map<PropertyId, Object>>();
@@ -102,13 +77,13 @@ public class JDBCManagementControllerTest {
 //
 //    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 //
-//    PropertyId id = Properties.getPropertyId("cluster_name", "ServiceInfo");
+//    PropertyId id = PropertyHelper.getPropertyId("cluster_name", "ServiceInfo");
 //    properties.put(id, "MyCluster");
 //
-//    id = Properties.getPropertyId("service_name", "ServiceInfo");
+//    id = PropertyHelper.getPropertyId("service_name", "ServiceInfo");
 //    properties.put(id, "MyService");
 //
-//    id = Properties.getPropertyId("state", "ServiceInfo");
+//    id = PropertyHelper.getPropertyId("state", "ServiceInfo");
 //    properties.put(id, "initial");
 //
 //    Set<Map<PropertyId, Object>> propertySet = new LinkedHashSet<Map<PropertyId, Object>>();
@@ -143,13 +118,13 @@ public class JDBCManagementControllerTest {
 //    // first host
 //    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 //
-//    PropertyId id = Properties.getPropertyId("cluster_name", "Hosts");
+//    PropertyId id = PropertyHelper.getPropertyId("cluster_name", "Hosts");
 //    properties.put(id, "MyCluster");
 //
-//    id = Properties.getPropertyId("host_name", "Hosts");
+//    id = PropertyHelper.getPropertyId("host_name", "Hosts");
 //    properties.put(id, "MyHost1");
 //
-//    id = Properties.getPropertyId("ip", "Hosts");
+//    id = PropertyHelper.getPropertyId("ip", "Hosts");
 //    properties.put(id, "10.68.18.171");
 //
 //    propertySet.add(properties);
@@ -157,13 +132,13 @@ public class JDBCManagementControllerTest {
 //    // second host
 //    properties = new LinkedHashMap<PropertyId, Object>();
 //
-//    id = Properties.getPropertyId("cluster_name", "Hosts");
+//    id = PropertyHelper.getPropertyId("cluster_name", "Hosts");
 //    properties.put(id, "MyCluster");
 //
-//    id = Properties.getPropertyId("host_name", "Hosts");
+//    id = PropertyHelper.getPropertyId("host_name", "Hosts");
 //    properties.put(id, "MyHost2");
 //
-//    id = Properties.getPropertyId("ip", "Hosts");
+//    id = PropertyHelper.getPropertyId("ip", "Hosts");
 //    properties.put(id, "10.111.35.113");
 //
 //    propertySet.add(properties);
@@ -192,16 +167,16 @@ public class JDBCManagementControllerTest {
 //
 //    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 //
-//    PropertyId id = Properties.getPropertyId("cluster_name", "ServiceComponentInfo");
+//    PropertyId id = PropertyHelper.getPropertyId("cluster_name", "ServiceComponentInfo");
 //    properties.put(id, "MyCluster");
 //
-//    id = Properties.getPropertyId("service_name", "ServiceComponentInfo");
+//    id = PropertyHelper.getPropertyId("service_name", "ServiceComponentInfo");
 //    properties.put(id, "MyService");
 //
-//    id = Properties.getPropertyId("component_name", "ServiceComponentInfo");
+//    id = PropertyHelper.getPropertyId("component_name", "ServiceComponentInfo");
 //    properties.put(id, "MyComponent");
 //
-//    id = Properties.getPropertyId("description", "ServiceComponentInfo");
+//    id = PropertyHelper.getPropertyId("description", "ServiceComponentInfo");
 //    properties.put(id, "This is my component");
 //
 //    Set<Map<PropertyId, Object>> propertySet = new LinkedHashSet<Map<PropertyId, Object>>();
@@ -231,16 +206,16 @@ public class JDBCManagementControllerTest {
 //
 //    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 //
-//    PropertyId id = Properties.getPropertyId("cluster_name", "HostRoles");
+//    PropertyId id = PropertyHelper.getPropertyId("cluster_name", "HostRoles");
 //    properties.put(id, "MyCluster");
 //
-//    id = Properties.getPropertyId("host_name", "HostRoles");
+//    id = PropertyHelper.getPropertyId("host_name", "HostRoles");
 //    properties.put(id, "MyHost");
 //
-//    id = Properties.getPropertyId("component_name", "HostRoles");
+//    id = PropertyHelper.getPropertyId("component_name", "HostRoles");
 //    properties.put(id, "MyComponent");
 //
-//    id = Properties.getPropertyId("role_id", "HostRoles");
+//    id = PropertyHelper.getPropertyId("role_id", "HostRoles");
 //    properties.put(id, 1);
 //
 //    Set<Map<PropertyId, Object>> propertySet = new LinkedHashSet<Map<PropertyId, Object>>();
@@ -412,7 +387,7 @@ public class JDBCManagementControllerTest {
 //
 //    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 //
-//    PropertyId id = Properties.getPropertyId("state", "Clusters");
+//    PropertyId id = PropertyHelper.getPropertyId("state", "Clusters");
 //    properties.put(id, "running");
 //
 //    Predicate predicate = new PredicateBuilder().property("cluster_name", "Clusters").equals("MyCluster").toPredicate();
@@ -476,7 +451,7 @@ public class JDBCManagementControllerTest {
 //
 //    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 //
-//    PropertyId id = Properties.getPropertyId("state", "ServiceInfo");
+//    PropertyId id = PropertyHelper.getPropertyId("state", "ServiceInfo");
 //    properties.put(id, "running");
 //
 //    Predicate predicate = new PredicateBuilder().property("service_name", "ServiceInfo").equals("MyService").and().
@@ -509,7 +484,7 @@ public class JDBCManagementControllerTest {
 //
 //    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 //
-//    PropertyId id = Properties.getPropertyId("cpu_count", "Hosts");
+//    PropertyId id = PropertyHelper.getPropertyId("cpu_count", "Hosts");
 //    properties.put(id, 4);
 //
 //    Set<Map<PropertyId, Object>> propertySet = new LinkedHashSet<Map<PropertyId, Object>>();
@@ -542,7 +517,7 @@ public class JDBCManagementControllerTest {
 //
 //    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 //
-//    PropertyId id = Properties.getPropertyId("description", "ServiceComponentInfo");
+//    PropertyId id = PropertyHelper.getPropertyId("description", "ServiceComponentInfo");
 //    properties.put(id, "new description");
 //
 //    Predicate predicate = new PredicateBuilder().property("service_name", "ServiceComponentInfo").equals("MyService").toPredicate();
@@ -574,7 +549,7 @@ public class JDBCManagementControllerTest {
 //
 //    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 //
-//    PropertyId id = Properties.getPropertyId("state", "HostRoles");
+//    PropertyId id = PropertyHelper.getPropertyId("state", "HostRoles");
 //    properties.put(id, "running");
 //
 //    Predicate predicate = new PredicateBuilder().property("component_name", "HostRoles").equals("MyComponent").toPredicate();
@@ -624,7 +599,7 @@ public class JDBCManagementControllerTest {
 //    Predicate predicate = new PredicateBuilder().property("cluster_name", "Clusters").equals("MyCluster").toPredicate();
 //
 //    Set<PropertyId> propertyIds = new LinkedHashSet<PropertyId>();
-//    propertyIds.add(Properties.getPropertyId("state", "Clusters"));
+//    propertyIds.add(PropertyHelper.getPropertyId("state", "Clusters"));
 //
 //    Request request = new RequestImpl(propertyIds, null);
 //
@@ -636,7 +611,7 @@ public class JDBCManagementControllerTest {
 //
 //    Assert.assertEquals(Resource.Type.Cluster, resource.getType());
 //
-//    Assert.assertEquals("running", resource.getPropertyValue(Properties.getPropertyId("state", "Clusters")));
+//    Assert.assertEquals("running", resource.getPropertyValue(PropertyHelper.getPropertyId("state", "Clusters")));
 //
 //    verify(connectionFactory, connection, databaseMetaData, metaDataResultSet, statement, resultSet, resultSetMetaData);
 //  }
@@ -681,8 +656,8 @@ public class JDBCManagementControllerTest {
 //    Predicate predicate = new PredicateBuilder().property("service_name", "ServiceInfo").equals("MyService").toPredicate();
 //
 //    Set<PropertyId> propertyIds = new LinkedHashSet<PropertyId>();
-//    propertyIds.add(Properties.getPropertyId("service_name", "ServiceInfo"));
-//    propertyIds.add(Properties.getPropertyId("description", "Services"));
+//    propertyIds.add(PropertyHelper.getPropertyId("service_name", "ServiceInfo"));
+//    propertyIds.add(PropertyHelper.getPropertyId("description", "Services"));
 //
 //    Request request = new RequestImpl(propertyIds, null);
 //
@@ -694,8 +669,8 @@ public class JDBCManagementControllerTest {
 //
 //    Assert.assertEquals(Resource.Type.Service, resource.getType());
 //
-//    Assert.assertEquals("MyService", resource.getPropertyValue(Properties.getPropertyId("service_name", "ServiceInfo")));
-//    Assert.assertEquals("some description", resource.getPropertyValue(Properties.getPropertyId("description", "Services")));
+//    Assert.assertEquals("MyService", resource.getPropertyValue(PropertyHelper.getPropertyId("service_name", "ServiceInfo")));
+//    Assert.assertEquals("some description", resource.getPropertyValue(PropertyHelper.getPropertyId("description", "Services")));
 //
 //    verify(connectionFactory, connection, databaseMetaData, metaDataResultSet, statement, resultSet, resultSetMetaData);
 //  }
@@ -740,8 +715,8 @@ public class JDBCManagementControllerTest {
 //    Predicate predicate = new PredicateBuilder().property("component_name", "ServiceComponentInfo").equals("MyService").toPredicate();
 //
 //    Set<PropertyId> propertyIds = new LinkedHashSet<PropertyId>();
-//    propertyIds.add(Properties.getPropertyId("component_name", "ServiceComponentInfo"));
-//    propertyIds.add(Properties.getPropertyId("description", "ServiceComponents"));
+//    propertyIds.add(PropertyHelper.getPropertyId("component_name", "ServiceComponentInfo"));
+//    propertyIds.add(PropertyHelper.getPropertyId("description", "ServiceComponents"));
 //
 //    Request request = new RequestImpl(propertyIds, null);
 //
@@ -753,8 +728,8 @@ public class JDBCManagementControllerTest {
 //
 //    Assert.assertEquals(Resource.Type.Component, resource.getType());
 //
-//    Assert.assertEquals("MyService", resource.getPropertyValue(Properties.getPropertyId("component_name", "ServiceComponentInfo")));
-//    Assert.assertEquals("some description", resource.getPropertyValue(Properties.getPropertyId("description", "ServiceComponents")));
+//    Assert.assertEquals("MyService", resource.getPropertyValue(PropertyHelper.getPropertyId("component_name", "ServiceComponentInfo")));
+//    Assert.assertEquals("some description", resource.getPropertyValue(PropertyHelper.getPropertyId("description", "ServiceComponents")));
 //
 //    verify(connectionFactory, connection, databaseMetaData, metaDataResultSet, statement, resultSet, resultSetMetaData);
 //  }
@@ -794,7 +769,7 @@ public class JDBCManagementControllerTest {
 //    Predicate predicate = new PredicateBuilder().property("host_name", "Hosts").equals("MyHost").toPredicate();
 //
 //    Set<PropertyId> propertyIds = new LinkedHashSet<PropertyId>();
-//    propertyIds.add(Properties.getPropertyId("cpu_count", "Hosts"));
+//    propertyIds.add(PropertyHelper.getPropertyId("cpu_count", "Hosts"));
 //
 //    Request request = new RequestImpl(propertyIds, null);
 //
@@ -806,7 +781,7 @@ public class JDBCManagementControllerTest {
 //
 //    Assert.assertEquals(Resource.Type.Host, resource.getType());
 //
-//    Assert.assertEquals("4", resource.getPropertyValue(Properties.getPropertyId("cpu_count", "Hosts")));
+//    Assert.assertEquals("4", resource.getPropertyValue(PropertyHelper.getPropertyId("cpu_count", "Hosts")));
 //
 //    verify(connectionFactory, connection, databaseMetaData, metaDataResultSet, statement, resultSet, resultSetMetaData);
 //  }
@@ -846,7 +821,7 @@ public class JDBCManagementControllerTest {
 //    Predicate predicate = new PredicateBuilder().property("host_name", "HostRoles").equals("MyHost").toPredicate();
 //
 //    Set<PropertyId> propertyIds = new LinkedHashSet<PropertyId>();
-//    propertyIds.add(Properties.getPropertyId("state", "HostRoles"));
+//    propertyIds.add(PropertyHelper.getPropertyId("state", "HostRoles"));
 //
 //    Request request = new RequestImpl(propertyIds, null);
 //
@@ -858,7 +833,7 @@ public class JDBCManagementControllerTest {
 //
 //    Assert.assertEquals(Resource.Type.HostComponent, resource.getType());
 //
-//    Assert.assertEquals("running", resource.getPropertyValue(Properties.getPropertyId("state", "HostRoles")));
+//    Assert.assertEquals("running", resource.getPropertyValue(PropertyHelper.getPropertyId("state", "HostRoles")));
 //
 //    verify(connectionFactory, connection, databaseMetaData, metaDataResultSet, statement, resultSet, resultSetMetaData);
 //  }

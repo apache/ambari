@@ -18,7 +18,7 @@
 
 package org.apache.ambari.api.services.parsers;
 
-import org.apache.ambari.api.controller.utilities.Properties;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -33,10 +33,10 @@ import java.util.Map;
  */
 public class JsonPropertyParser implements RequestBodyParser {
   //todo: change value type to String when it is supported in back end
-  private Map<PropertyId, Object> m_properties = new HashMap<PropertyId, Object>();
+  private Map<PropertyId, String> m_properties = new HashMap<PropertyId, String>();
 
   @Override
-  public Map<PropertyId, Object> parse(String s) {
+  public Map<PropertyId, String> parse(String s) {
     ObjectMapper mapper = new ObjectMapper();
 
     try {
@@ -57,7 +57,7 @@ public class JsonPropertyParser implements RequestBodyParser {
       if (child.isContainerNode()) {
         processNode(child, path.isEmpty() ? name : path + '.' + name);
       } else {
-        m_properties.put(Properties.getPropertyId(name, path), child.asText());
+        m_properties.put(PropertyHelper.getPropertyId(name, path), child.asText());
       }
     }
   }

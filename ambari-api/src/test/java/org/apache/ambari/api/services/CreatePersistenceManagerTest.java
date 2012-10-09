@@ -18,7 +18,7 @@
 
 package org.apache.ambari.api.services;
 
-import org.apache.ambari.api.controller.utilities.Properties;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.api.resources.ResourceDefinition;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.PropertyId;
@@ -51,10 +51,10 @@ public class CreatePersistenceManagerTest {
     mapResourceIds.put(Resource.Type.Cluster, "clusterId");
     mapResourceIds.put(Resource.Type.Service, "serviceId");
 
-    Map<PropertyId, Object> mapProperties = new HashMap<PropertyId, Object>();
+    Map<PropertyId, String> mapProperties = new HashMap<PropertyId, String>();
     mapProperties.put(clusterId, "clusterId");
     mapProperties.put(serviceId, "serviceId");
-    mapProperties.put(Properties.getPropertyId("bar", "foo"), "value");
+    mapProperties.put(PropertyHelper.getPropertyId("bar", "foo"), "value");
 
     //expectations
     expect(resource.getResourceIds()).andReturn(mapResourceIds);
@@ -80,10 +80,10 @@ public class CreatePersistenceManagerTest {
 
     private ClusterController m_controller;
     private org.apache.ambari.server.controller.spi.Request m_request;
-    private Map<PropertyId, Object> m_mapProperties;
+    private Map<PropertyId, String> m_mapProperties;
 
     private TestCreatePersistenceManager(ClusterController controller,
-                                         Map<PropertyId, Object> mapProperties,
+                                         Map<PropertyId, String> mapProperties,
                                          org.apache.ambari.server.controller.spi.Request controllerRequest) {
       m_controller = controller;
       m_mapProperties = mapProperties;
@@ -96,7 +96,7 @@ public class CreatePersistenceManagerTest {
     }
 
     @Override
-    protected org.apache.ambari.server.controller.spi.Request createControllerRequest(Map<PropertyId, Object> properties) {
+    protected org.apache.ambari.server.controller.spi.Request createControllerRequest(Map<PropertyId, String> properties) {
       assertEquals(m_mapProperties, properties);
       return m_request;
     }

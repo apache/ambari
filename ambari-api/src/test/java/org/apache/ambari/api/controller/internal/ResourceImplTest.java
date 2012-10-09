@@ -19,9 +19,9 @@
 package org.apache.ambari.api.controller.internal;
 
 import junit.framework.Assert;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.api.controller.utilities.Properties;
 import org.junit.Test;
 
 /**
@@ -51,7 +51,7 @@ public class ResourceImplTest {
   public void testSetGetProperty() {
     Resource resource = new ResourceImpl(Resource.Type.Cluster);
 
-    PropertyId propertyId = Properties.getPropertyId("p1", "c1");
+    PropertyId propertyId = PropertyHelper.getPropertyId("p1", "c1");
     resource.setProperty(propertyId, "foo");
     Assert.assertEquals("foo", resource.getPropertyValue(propertyId));
 

@@ -34,5 +34,5 @@ public interface RequestBodyParser {
    *
    * @return a map of properties or an empty map if no properties exist
    */
-  public Map<PropertyId, Object> parse(String s);
+  public Map<PropertyId, String> parse(String s);
 }

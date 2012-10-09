@@ -19,7 +19,7 @@
 package org.apache.ambari.api.services;
 
 
-import org.apache.ambari.api.controller.utilities.Properties;
+import org.apache.ambari.api.controller.utilities.PropertyHelper;
 import org.apache.ambari.api.query.Query;
 import org.apache.ambari.api.resources.ResourceDefinition;
 import org.apache.ambari.server.controller.spi.*;
@@ -47,8 +47,8 @@ public class UpdatePersistenceManagerTest {
     Predicate predicate = createMock(Predicate.class);
 
 
-    Map<PropertyId, Object> mapProperties = new HashMap<PropertyId, Object>();
-    mapProperties.put(Properties.getPropertyId("bar", "foo"), "value");
+    Map<PropertyId, String> mapProperties = new HashMap<PropertyId, String>();
+    mapProperties.put(PropertyHelper.getPropertyId("bar", "foo"), "value");
 
     //expectations
     expect(resource.getType()).andReturn(Resource.Type.Component);
@@ -69,10 +69,10 @@ public class UpdatePersistenceManagerTest {
 
     private ClusterController m_controller;
     private org.apache.ambari.server.controller.spi.Request m_request;
-    private Map<PropertyId, Object> m_mapProperties;
+    private Map<PropertyId, String> m_mapProperties;
 
     private TestUpdatePersistenceManager(ClusterController controller,
-                                         Map<PropertyId, Object> mapProperties,
+                                         Map<PropertyId, String> mapProperties,
                                          org.apache.ambari.server.controller.spi.Request controllerRequest) {
       m_controller = controller;
       m_mapProperties = mapProperties;
@@ -85,7 +85,7 @@ public class UpdatePersistenceManagerTest {
     }
 
     @Override
-    protected org.apache.ambari.server.controller.spi.Request createControllerRequest(Map<PropertyId, Object> properties) {
+    protected org.apache.ambari.server.controller.spi.Request createControllerRequest(Map<PropertyId, String> properties) {
       assertEquals(m_mapProperties, properties);
       return m_request;
     }

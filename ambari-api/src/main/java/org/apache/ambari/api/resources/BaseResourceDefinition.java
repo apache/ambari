@@ -57,7 +57,7 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   private Map<Resource.Type, String> m_mapResourceIds = new HashMap<Resource.Type, String>();
 
   //TODO: Refactor out of this class when setProperties is moved.
-  private Map<PropertyId, Object> m_properties = new HashMap<PropertyId, Object>();
+  private Map<PropertyId, String> m_properties = new HashMap<PropertyId, String>();
 
 
   /**
@@ -121,17 +121,17 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
 
   //todo: refactor set/get property methods out of this class
   @Override
-  public void setProperty(PropertyId property, Object value) {
+  public void setProperty(PropertyId property, String value) {
     m_properties.put(property, value);
   }
 
   @Override
-  public void setProperties(Map<PropertyId, Object> mapProperties) {
+  public void setProperties(Map<PropertyId, String> mapProperties) {
     m_properties.putAll(mapProperties);
   }
 
   @Override
-  public Map<PropertyId, Object> getProperties() {
+  public Map<PropertyId, String> getProperties() {
     return m_properties;
   }
 

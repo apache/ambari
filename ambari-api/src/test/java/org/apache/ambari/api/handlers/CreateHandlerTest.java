@@ -41,7 +41,7 @@ public class CreateHandlerTest {
     ResourceDefinition resource = createMock(ResourceDefinition.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
 
-    Map<PropertyId, Object> resourceProperties = new HashMap<PropertyId, Object>();
+    Map<PropertyId, String> resourceProperties = new HashMap<PropertyId, String>();
 
     // expectations
     expect(request.getResourceDefinition()).andReturn(resource);

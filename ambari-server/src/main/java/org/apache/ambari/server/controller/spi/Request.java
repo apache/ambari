@@ -45,7 +45,7 @@ public interface Request {
    *
    * @return the set of properties being requested
    */
-  public Set<Map<PropertyId, Object>> getProperties();
+  public Set<Map<PropertyId, String>> getProperties();
 
   /**
    * Get the {@link TemporalInfo temporal information} for the given property
