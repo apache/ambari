@@ -241,7 +241,7 @@
       </dependency>
       <dependency>
         <groupId>com.sun.grizzly</groupId>
-        <artifactId>grizzly-comet-webserver</artifactId>
+        <artifactId>grizzly-comet-org.apache.ambari.server.controller.utilities.webserver</artifactId>
         <version>1.9.36</version>
       </dependency>
       <dependency>

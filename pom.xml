@@ -40,7 +40,6 @@
     <module>ambari-project</module>
     <module>ambari-server</module>
     <module>ambari-agent</module>
-    <module>ambari-api</module>
   </modules>
   <build>
     <pluginManagement>

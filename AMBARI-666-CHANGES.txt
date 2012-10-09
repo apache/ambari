@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-832. Merge ambari-api with ambari-server (mahadev)
+
   AMBARI-822. Implement an agent simulator for unit testing. (jitendra)
   
   AMBARI-829. Add unit tests for ResourceProviderImpl. (Tom Beerbower via
