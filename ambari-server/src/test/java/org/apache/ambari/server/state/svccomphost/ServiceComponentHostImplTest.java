@@ -98,7 +98,7 @@ public class ServiceComponentHostImplTest {
   }
 
   private void runStateChanges(ServiceComponentHostImpl impl,
-      ServiceComponentHostEventType startEvent,
+      ServiceComponentHostEventType startEventType,
       State startState,
       State inProgressState,
       State failedState,
@@ -108,11 +108,11 @@ public class ServiceComponentHostImplTest {
 
     Assert.assertEquals(startState,
         impl.getState());
-    ServiceComponentHostEvent installEvent = createEvent(impl, ++timestamp,
-        startEvent);
+    ServiceComponentHostEvent startEvent = createEvent(impl, ++timestamp,
+        startEventType);
 
     long startTime = timestamp;
-    impl.handleEvent(installEvent);
+    impl.handleEvent(startEvent);
     Assert.assertEquals(startTime, impl.getLastOpStartTime());
     Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
     Assert.assertEquals(-1, impl.getLastOpEndTime());
@@ -120,7 +120,7 @@ public class ServiceComponentHostImplTest {
         impl.getState());
 
     ServiceComponentHostEvent installEvent2 = createEvent(impl, ++timestamp,
-        startEvent);
+        startEventType);
     boolean exceptionThrown = false;
     try {
       impl.handleEvent(installEvent2);
@@ -181,6 +181,36 @@ public class ServiceComponentHostImplTest {
         ServiceComponentHostOpInProgressEvent(impl.getServiceComponentName(),
             impl.getHostName(), ++timestamp);
     impl.handleEvent(inProgressEvent3);
+    Assert.assertEquals(startTime, impl.getLastOpStartTime());
+    Assert.assertEquals(timestamp, impl.getLastOpLastUpdateTime());
+    Assert.assertEquals(-1, impl.getLastOpEndTime());
+    Assert.assertEquals(inProgressState,
+        impl.getState());
+
+    ServiceComponentHostOpFailedEvent failEvent2 = new
+        ServiceComponentHostOpFailedEvent(impl.getServiceComponentName(),
+            impl.getHostName(), ++timestamp);
+    endTime = timestamp;
+    impl.handleEvent(failEvent2);
+    Assert.assertEquals(startTime, impl.getLastOpStartTime());
+    Assert.assertEquals(timestamp, impl.getLastOpLastUpdateTime());
+    Assert.assertEquals(endTime, impl.getLastOpEndTime());
+    Assert.assertEquals(failedState,
+        impl.getState());
+
+    ServiceComponentHostEvent startEvent2 = createEvent(impl, ++timestamp,
+        startEventType);
+    startTime = timestamp;
+    impl.handleEvent(startEvent2);
+    Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
+    Assert.assertEquals(-1, impl.getLastOpEndTime());
+    Assert.assertEquals(inProgressState,
+        impl.getState());
+
+    ServiceComponentHostOpInProgressEvent inProgressEvent4 = new
+        ServiceComponentHostOpInProgressEvent(impl.getServiceComponentName(),
+            impl.getHostName(), ++timestamp);
+    impl.handleEvent(inProgressEvent4);
     Assert.assertEquals(startTime, impl.getLastOpStartTime());
     Assert.assertEquals(timestamp, impl.getLastOpLastUpdateTime());
     Assert.assertEquals(-1, impl.getLastOpEndTime());
@@ -274,6 +304,5 @@ public class ServiceComponentHostImplTest {
         State.INIT);
 
   }
-
 
 }

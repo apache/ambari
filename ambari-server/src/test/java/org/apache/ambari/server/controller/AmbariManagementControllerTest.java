@@ -34,6 +34,7 @@ import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -327,7 +328,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testInstallAndStartService() throws AmbariException {
+  public void testInstallAndStartService() throws Exception {
     testCreateServiceComponentHost();
 
     String clusterName = "foo1";
@@ -343,7 +344,17 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(2, stages.size());
 
     for (Stage stage : stages) {
-      LOG.info("Stage Details for Install Service: " + stage);
+      LOG.info("Stage Details for Install Service"
+          + ", stageId="+ stage.getStageId()
+          + ", actionId=" + stage.getActionId());
+
+      for (String host : stage.getHosts()) {
+        LOG.info("Dumping host action details"
+            + ", stageId=" + stage.getStageId()
+            + ", actionId=" + stage.getActionId()
+            + ", commandDetails="
+            + StageUtils.jaxbToString(stage.getExecutionCommand(host)));
+      }
     }
 
     ServiceRequest r2 = new ServiceRequest(clusterName, serviceName, null,
@@ -356,9 +367,18 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(2, stages.size());
 
     for (Stage stage : stages) {
-      LOG.info("Stage Details for Start Service: " + stage);
-    }
+      LOG.info("Stage Details for Start Service"
+          + ", stageId="+ stage.getStageId()
+          + ", actionId=" + stage.getActionId());
 
+      for (String host : stage.getHosts()) {
+        LOG.info("Dumping host action details"
+            + ", stageId=" + stage.getStageId()
+            + ", actionId=" + stage.getActionId()
+            + ", commandDetails="
+            + StageUtils.jaxbToString(stage.getExecutionCommand(host)));
+      }
+    }
 
   }
 

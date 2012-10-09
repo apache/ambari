@@ -97,6 +97,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.INSTALL_FAILED,
+         State.INSTALLING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
+         new ServiceComponentHostOpStartedTransition())
 
      .addTransition(State.INSTALLED,
          State.STARTING,
@@ -128,6 +132,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.STARTING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.START_FAILED,
+         State.STARTING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_START,
+         new ServiceComponentHostOpStartedTransition())
 
      .addTransition(State.STARTED,
          State.STOPPING,
@@ -151,6 +159,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.STOPPING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.STOP_FAILED,
+         State.STOPPING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
+         new ServiceComponentHostOpStartedTransition())
 
      .addTransition(State.UNINSTALLING,
          State.UNINSTALLING,
@@ -168,6 +180,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
      .addTransition(State.UNINSTALL_FAILED,
          State.UNINSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
+         new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.UNINSTALL_FAILED,
+         State.UNINSTALLING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
          new ServiceComponentHostOpStartedTransition())
 
      .addTransition(State.UNINSTALLED,
@@ -192,9 +208,14 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.WIPEOUT_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
+
      .addTransition(State.WIPEOUT_FAILED,
          State.WIPING_OUT,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
+         new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.WIPEOUT_FAILED,
+         State.WIPING_OUT,
+         ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
          new ServiceComponentHostOpStartedTransition())
 
      .installTopology();
@@ -233,6 +254,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.INSTALL_FAILED,
+         State.INSTALLING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
+         new ServiceComponentHostOpStartedTransition())
 
      .addTransition(State.INSTALLED,
          State.UNINSTALLING,
@@ -260,6 +285,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.UNINSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
          new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.UNINSTALL_FAILED,
+         State.UNINSTALLING,
+         ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
+         new ServiceComponentHostOpStartedTransition())
 
      .addTransition(State.UNINSTALLED,
          State.INSTALLING,
@@ -283,9 +312,14 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.WIPEOUT_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
+
      .addTransition(State.WIPEOUT_FAILED,
          State.WIPING_OUT,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
+         new ServiceComponentHostOpStartedTransition())
+     .addTransition(State.WIPEOUT_FAILED,
+         State.WIPING_OUT,
+         ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
          new ServiceComponentHostOpStartedTransition())
 
      .installTopology();

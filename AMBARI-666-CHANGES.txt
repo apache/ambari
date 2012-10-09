@@ -204,6 +204,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-808. Handle appropriate start/stop/install/.. events at their respective
+  failed states. (hitesh)
+
   AMBARI-798. Fix import issue due to move of Predicate class. (hitesh)
 
   AMBARI-780. Make FSM related changes for heartbeat handler. (hitesh)

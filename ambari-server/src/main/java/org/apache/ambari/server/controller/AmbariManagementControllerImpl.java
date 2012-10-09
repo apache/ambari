@@ -457,6 +457,7 @@ public class AmbariManagementControllerImpl implements
 
     // TODO do something from configs here
     Map<String, String> hdfsSite = new TreeMap<String, String>();
+    hdfsSite.put("fs.default.name", "hdfs://localhost:50070");
     hdfsSite.put("dfs.block.size", "2560000000");
     hdfsSite.put("magic_config_string", "magic_blah");
     Map<String, Map<String, String>> configurations =
