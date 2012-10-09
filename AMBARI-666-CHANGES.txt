@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-831. Move manifest generation into the ambari agent directory.
+  (mahadev)
+
   AMBARI-828. Manifest generation for various actions from the server.
   (mahadev)
 
