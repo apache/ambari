@@ -156,4 +156,20 @@ public class ClustersImpl implements Clusters {
       }
     }
   }
+
+  public void debugDump(StringBuilder sb) {
+    sb.append("Clusters=[ ");
+    boolean first = true;
+    for(Cluster c : clusters.values()) {
+      if (!first) {
+        sb.append(" , ");
+        first = false;
+      }
+      sb.append("\n  ");
+      c.debugDump(sb);
+      sb.append(" ");
+    }
+    sb.append(" ]");
+  }
+
 }

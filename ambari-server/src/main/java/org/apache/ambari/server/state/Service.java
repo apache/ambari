@@ -60,4 +60,6 @@ public interface Service {
 
   public ServiceResponse convertToResponse();
 
+  public void debugDump(StringBuilder sb);
+
 }

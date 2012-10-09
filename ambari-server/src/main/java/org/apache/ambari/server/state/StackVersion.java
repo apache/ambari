@@ -58,4 +58,8 @@ public class StackVersion {
     return result;
   }
 
+  public String toString() {
+    return this.stackVersion;
+  }
+
 }

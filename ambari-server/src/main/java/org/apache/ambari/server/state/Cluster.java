@@ -87,4 +87,6 @@ public interface Cluster {
 
   public ClusterResponse convertToResponse();
 
+  public void debugDump(StringBuilder sb);
+
 }

@@ -209,4 +209,26 @@ public class ServiceComponentImpl implements ServiceComponent {
     return service.getCluster().getClusterName();
   }
 
+  @Override
+  public synchronized void debugDump(StringBuilder sb) {
+    sb.append("ServiceComponent={ serviceComponentName=" + componentName
+        + ", clusterName=" + service.getCluster().getClusterName()
+        + ", clusterId=" + service.getCluster().getClusterId()
+        + ", serviceName=" + service.getName()
+        + ", desiredStackVersion=" + desiredStackVersion
+        + ", desiredState=" + desiredState
+        + ", hostcomponents=[ ");
+    boolean first = true;
+    for(ServiceComponentHost sch : hostComponents.values()) {
+      if (!first) {
+        sb.append(" , ");
+        first = false;
+      }
+      sb.append("\n        ");
+      sch.debugDump(sb);
+      sb.append(" ");
+    }
+    sb.append(" ] }");
+  }
+
 }

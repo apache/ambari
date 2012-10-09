@@ -193,4 +193,25 @@ public class ServiceImpl implements Service {
     return cluster;
   }
 
+  @Override
+  public synchronized void debugDump(StringBuilder sb) {
+    sb.append("Service={ serviceName=" + serviceName
+        + ", clusterName=" + cluster.getClusterName()
+        + ", clusterId=" + cluster.getClusterId()
+        + ", desiredStackVersion=" + desiredStackVersion.getStackVersion()
+        + ", desiredState=" + desiredState.toString()
+        + ", components=[ ");
+    boolean first = true;
+    for(ServiceComponent sc : components.values()) {
+      if (!first) {
+        sb.append(" , ");
+        first = false;
+      }
+      sb.append("\n      ");
+      sc.debugDump(sb);
+      sb.append(" ");
+    }
+    sb.append(" ] }");
+  }
+
 }

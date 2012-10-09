@@ -32,6 +32,8 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.utils.StageUtils;
@@ -338,6 +340,17 @@ public class AmbariManagementControllerTest {
         State.INSTALLED.toString());
 
     controller.updateService(r1);
+    Assert.assertEquals(State.INSTALLED,
+        clusters.getCluster(clusterName).getService(serviceName)
+        .getDesiredState());
+    for (ServiceComponent sc :
+      clusters.getCluster(clusterName).getService(serviceName)
+      .getServiceComponents().values()) {
+      Assert.assertEquals(State.INSTALLED, sc.getDesiredState());
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
+      }
+    }
 
     // TODO validate stages?
     List<Stage> stages = db.getAllStages(1);
@@ -361,6 +374,17 @@ public class AmbariManagementControllerTest {
         State.STARTED.toString());
 
     controller.updateService(r2);
+    Assert.assertEquals(State.STARTED,
+        clusters.getCluster(clusterName).getService(serviceName)
+        .getDesiredState());
+    for (ServiceComponent sc :
+      clusters.getCluster(clusterName).getService(serviceName)
+      .getServiceComponents().values()) {
+      Assert.assertEquals(State.STARTED, sc.getDesiredState());
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        Assert.assertEquals(State.STARTED, sch.getDesiredState());
+      }
+    }
 
     // TODO validate stages?
     stages = db.getAllStages(2);
@@ -379,6 +403,10 @@ public class AmbariManagementControllerTest {
             + StageUtils.jaxbToString(stage.getExecutionCommand(host)));
       }
     }
+
+    StringBuilder sb = new StringBuilder();
+    clusters.debugDump(sb);
+    LOG.info("Cluster Dump: " + sb.toString());
 
   }
 

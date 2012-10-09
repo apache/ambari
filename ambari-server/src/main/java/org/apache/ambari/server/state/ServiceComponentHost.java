@@ -97,4 +97,6 @@ public interface ServiceComponentHost {
 
   public ServiceComponentHostResponse convertToResponse();
 
+  public void debugDump(StringBuilder sb);
+
 }

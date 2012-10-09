@@ -213,6 +213,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-830. Various fixes and tests for controller implementation. (hitesh)
+
   AMBARI-808. Handle appropriate start/stop/install/.. events at their respective
   failed states. (hitesh)
 

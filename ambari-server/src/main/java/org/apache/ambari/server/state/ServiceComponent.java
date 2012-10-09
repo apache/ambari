@@ -62,4 +62,6 @@ public interface ServiceComponent {
       throws AmbariException ;
 
   public ServiceComponentResponse convertToResponse();
+
+  public void debugDump(StringBuilder sb);
 }

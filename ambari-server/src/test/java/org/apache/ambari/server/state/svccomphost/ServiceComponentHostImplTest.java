@@ -302,7 +302,6 @@ public class ServiceComponentHostImplTest {
         State.WIPING_OUT,
         State.WIPEOUT_FAILED,
         State.INIT);
-
   }
 
 }

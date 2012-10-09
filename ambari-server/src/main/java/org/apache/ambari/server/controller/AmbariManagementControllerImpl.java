@@ -845,6 +845,7 @@ public class AmbariManagementControllerImpl implements
         sch.setDesiredState(newState);
       }
     }
+    s.setDesiredState(newState);
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Triggering Action Manager"
@@ -991,6 +992,7 @@ public class AmbariManagementControllerImpl implements
     for (ServiceComponentHost sch : changedScHosts) {
       sch.setDesiredState(newState);
     }
+    sc.setDesiredState(newState);
 
     actionManager.sendActions(stages);
 

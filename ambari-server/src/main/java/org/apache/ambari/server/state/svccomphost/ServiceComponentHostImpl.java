@@ -745,4 +745,23 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     return serviceComponent.getClusterName();
   }
 
+  @Override
+  public void debugDump(StringBuilder sb) {
+    try {
+      readLock.lock();
+      sb.append("ServiceComponentHost={ hostname=" + hostName
+          + ", serviceComponentName=" + serviceComponent.getName()
+          + ", clusterName=" + serviceComponent.getClusterName()
+          + ", serviceName=" + serviceComponent.getServiceName()
+          + ", desiredStackVersion=" + desiredStackVersion
+          + ", desiredState=" + desiredState
+          + ", stackVersion=" + stackVersion
+          + ", state=" + getState()
+          + " }");
+    }
+    finally {
+      readLock.unlock();
+    }
+  }
+
 }

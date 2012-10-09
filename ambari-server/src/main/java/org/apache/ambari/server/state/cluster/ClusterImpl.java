@@ -219,8 +219,8 @@ public class ClusterImpl implements Cluster {
       LOG.debug("Changing DesiredStackVersion of Cluster"
         + ", clusterName=" + clusterName
         + ", clusterId=" + clusterId
-        + ", currentStackVersion=" + this.desiredStackVersion
-        + ", newStackVersion=" + stackVersion);
+        + ", currentDesiredStackVersion=" + this.desiredStackVersion
+        + ", newDesiredStackVersion=" + stackVersion);
     }
     this.desiredStackVersion = stackVersion;
   }
@@ -262,6 +262,24 @@ public class ClusterImpl implements Cluster {
     ClusterResponse r = new ClusterResponse(clusterId, clusterName,
         new HashSet<String>(serviceComponentHostsByHost.keySet()));
     return r;
+  }
+
+  public void debugDump(StringBuilder sb) {
+    sb.append("Cluster={ clusterName=" + clusterName
+        + ", clusterId=" + clusterId
+        + ", desiredStackVersion=" + desiredStackVersion.getStackVersion()
+        + ", services=[ ");
+    boolean first = true;
+    for(Service s : services.values()) {
+      if (!first) {
+        sb.append(" , ");
+        first = false;
+      }
+      sb.append("\n    ");
+      s.debugDump(sb);
+      sb.append(" ");
+    }
+    sb.append(" ] }");
   }
 
 }
