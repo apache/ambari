@@ -116,6 +116,7 @@ class ActionQueue(threading.Thread):
       roleResult = {'role' : roleCommand['role'],
                     'actionId' : commandId,
                     'stdout' : "DONE",
+                    'clusterName' : clusterName,
                     'stderr' : "DONE",
                     'exitCode' : 0,
                     'status' : "COMPLETED"}

@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-827. Add clusterName to the status of the commands run by the agent.
+  (mahadev)
+
   AMBARI-824. Provide basic management functionality (create/update) in the
   rest api (John Speidel via mahadev)
 
