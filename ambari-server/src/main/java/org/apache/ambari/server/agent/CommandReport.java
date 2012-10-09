@@ -26,6 +26,7 @@ public class CommandReport {
   String status;
   int exitCode;
   private String clusterName;
+  private String serviceName;
   
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
@@ -81,5 +82,18 @@ public class CommandReport {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
+  }
+  
+  @Override
+  public String toString() {
+    return actionId + "-" + role;
   }
 }

@@ -27,6 +27,8 @@ AMBARI-666 branch (unreleased changes)
   AMBARI-824. Provide basic management functionality (create/update) in the
   rest api (John Speidel via mahadev)
 
+  AMBARI-826. Bug in processing command reports. (jitendra)
+
   AMBARI-825. Controller layer implementation part 3. (hitesh)
 
   AMBARI-823. Fix security filter on the server agent ports and remove

@@ -36,6 +36,9 @@ import org.apache.ambari.server.state.host.HostImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Singleton;
+
+@Singleton
 public class ClustersImpl implements Clusters {
 
   private static final Logger LOG = LoggerFactory.getLogger(

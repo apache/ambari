@@ -21,25 +21,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.bind.JAXBException;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
 import org.apache.ambari.server.state.host.HostUnhealthyHeartbeatEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -100,6 +99,36 @@ public class HeartBeatHandler {
     //Examine heartbeat for command reports
     List<CommandReport> reports = heartbeat.getReports();
     actionManager.actionResponse(hostname, reports);
+    //Update state machines from reports
+    for (CommandReport report : reports) {
+      String clusterName = report.getClusterName();
+      if ((clusterName == null) || "".equals(clusterName)) {
+        clusterName = "cluster1";
+      }
+      Cluster cl = clusterFsm.getCluster(report.getClusterName());
+      String service = report.getServiceName();
+      if (service == null || "".equals(service)) {
+        service = "HDFS";
+      }
+      Service svc = cl.getService(service);
+      ServiceComponent svcComp = svc.getServiceComponent(
+          report.getRole());
+      ServiceComponentHost scHost = svcComp.getServiceComponentHost(
+          hostname);
+      try {
+        if (report.getStatus().equals("COMPLETED")) {
+          scHost.handleEvent(new ServiceComponentHostOpSucceededEvent(scHost
+              .getServiceComponentName(), hostname, now));
+
+        } else if (report.getStatus().equals("FAILED")) {
+          scHost.handleEvent(new ServiceComponentHostOpSucceededEvent(scHost
+              .getServiceComponentName(), hostname, now));
+        }
+      } catch (InvalidStateTransitonException ex) {
+        throw new AmbariException("State machine exception", ex);
+      }
+      LOG.info("Report for "+report.toString() +", processed successfully");
+    }
 
     // Examine heartbeart for component status
     Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
