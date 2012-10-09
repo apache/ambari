@@ -16,18 +16,20 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.api.handlers;
+package org.apache.ambari.api.services;
 
-import org.apache.ambari.api.services.Request;
-import org.apache.ambari.api.services.Result;
+import org.apache.ambari.api.resources.ResourceDefinition;
 
 /**
- * Responsible for delete requests.
+ * Persistence manager which is responsible for persisting a resource state to the back end.
+ * This includes create, update and delete operations.
  */
-public class DeleteHandler extends BaseManagementHandler {
-  @Override
-  public Result handleRequest(Request request) {
-    //todo: delete specific return information, delete specific exceptions
-    return super.handleRequest(request);
-  }
+public interface PersistenceManager {
+  /**
+   * Persist a resource to the back end.
+   *
+   * @param resource  the resource to persist
+   *
+   */
+  public void persist(ResourceDefinition resource);
 }

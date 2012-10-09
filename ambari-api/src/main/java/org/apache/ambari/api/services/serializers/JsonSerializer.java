@@ -61,6 +61,7 @@ public class JsonSerializer implements ResultSerializer {
       m_generator.close();
       return bytesOut.toString("UTF-8");
     } catch (IOException e) {
+      //todo: exception handling
       throw new RuntimeException("Unable to serialize to json: " + e, e);
     }
   }

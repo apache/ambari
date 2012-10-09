@@ -16,18 +16,25 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.api.handlers;
+package org.apache.ambari.api.services;
 
-import org.apache.ambari.api.services.Request;
-import org.apache.ambari.api.services.Result;
+
+import org.apache.ambari.api.resources.ResourceDefinition;
+import org.apache.ambari.server.AmbariException;
+
 
 /**
- * Responsible for delete requests.
+ * Responsible for persisting the updating of a resource in the back end.
  */
-public class DeleteHandler extends BaseManagementHandler {
+public class UpdatePersistenceManager extends BasePersistenceManager {
   @Override
-  public Result handleRequest(Request request) {
-    //todo: delete specific return information, delete specific exceptions
-    return super.handleRequest(request);
+  public void persist(ResourceDefinition resource) {
+    try {
+      getClusterController().updateResources(resource.getType(), createControllerRequest(resource.getProperties()),
+          resource.getQuery().getPredicate());
+    } catch (AmbariException e) {
+      //todo: handle exception
+      throw new RuntimeException("Update of resource failed: " + e, e);
+    }
   }
 }

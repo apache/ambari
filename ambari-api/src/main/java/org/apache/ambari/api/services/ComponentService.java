@@ -18,13 +18,10 @@
 
 package org.apache.ambari.api.services;
 
-import org.apache.ambari.api.resource.ComponentResourceDefinition;
-import org.apache.ambari.api.resource.ResourceDefinition;
+import org.apache.ambari.api.resources.ComponentResourceDefinition;
+import org.apache.ambari.api.resources.ResourceDefinition;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
 /**
@@ -53,7 +50,7 @@ public class ComponentService extends BaseService {
   }
 
   /**
-   * Handles URL: /clusters/{clusterID}/services/{serviceID}/components/{componentID}
+   * Handles GET: /clusters/{clusterID}/services/{serviceID}/components/{componentID}
    * Get a specific component.
    *
    * @param headers       http headers
@@ -67,12 +64,12 @@ public class ComponentService extends BaseService {
   public Response getComponent(@Context HttpHeaders headers, @Context UriInfo ui,
                                @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceDefinition(componentName, m_clusterName, m_serviceName));
   }
 
   /**
-   * Handles URL: /clusters/{clusterID}/services/{serviceID}/components
+   * Handles GET: /clusters/{clusterID}/services/{serviceID}/components
    * Get all components for a service.
    *
    * @param headers http headers
@@ -82,8 +79,66 @@ public class ComponentService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceDefinition(null, m_clusterName, m_serviceName));
+  }
+
+  /**
+   * Handles: PUT /clusters/{clusterID}/services/{serviceID}/components/{componentID}
+   * Create a specific component.
+   *
+   * @param body          http body
+   * @param headers       http headers
+   * @param ui            uri info
+   * @param componentName component id
+   *
+   * @return information regarding the created component
+   */
+  @PUT
+  @Produces("text/plain")
+  public Response createComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                @PathParam("componentName") String componentName) {
+
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createResourceDefinition(componentName, m_clusterName, m_serviceName));
+  }
+
+  /**
+   * Handles: POST /clusters/{clusterID}/services/{serviceID}/components/{componentID}
+   * Update a specific component.
+   *
+   * @param body                http body
+   * @param headers       http headers
+   * @param ui            uri info
+   * @param componentName component id
+   *
+   * @return information regarding the updated component
+   */
+  @POST
+  @Produces("text/plain")
+  public Response updateComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                @PathParam("componentName") String componentName) {
+
+    return handleRequest(headers, body, ui, Request.Type.POST, createResourceDefinition(
+        componentName, m_clusterName, m_serviceName));
+  }
+
+  /**
+   * Handles: DELETE /clusters/{clusterID}/services/{serviceID}/components/{componentID}
+   * Delete a specific component.
+   *
+   * @param headers     http headers
+   * @param ui          uri info
+   * @param componentName cluster id
+   * @return information regarding the deleted cluster
+   */
+  @DELETE
+  @Produces("text/plain")
+  public Response deleteComponent(@Context HttpHeaders headers, @Context UriInfo ui,
+                                @PathParam("componentName") String componentName) {
+
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createResourceDefinition(
+        componentName, m_clusterName, m_serviceName));
   }
 
   /**

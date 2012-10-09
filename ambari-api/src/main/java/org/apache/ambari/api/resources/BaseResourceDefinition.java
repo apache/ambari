@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.api.resource;
+package org.apache.ambari.api.resources;
 
 
 import org.apache.ambari.api.controller.utilities.ClusterControllerHelper;
@@ -24,14 +24,12 @@ import org.apache.ambari.api.query.Query;
 import org.apache.ambari.api.query.QueryImpl;
 import org.apache.ambari.api.services.Request;
 import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.api.util.TreeNode;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Base resource definition.  Contains behavior common to all resource types.
@@ -57,6 +55,9 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
    * Map of primary and foreign keys and values necessary to identify the resource.
    */
   private Map<Resource.Type, String> m_mapResourceIds = new HashMap<Resource.Type, String>();
+
+  //TODO: Refactor out of this class when setProperties is moved.
+  private Map<PropertyId, Object> m_properties = new HashMap<PropertyId, Object>();
 
 
   /**
@@ -118,6 +119,21 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
     return listProcessors;
   }
 
+  //todo: refactor set/get property methods out of this class
+  @Override
+  public void setProperty(PropertyId property, Object value) {
+    m_properties.put(property, value);
+  }
+
+  @Override
+  public void setProperties(Map<PropertyId, Object> mapProperties) {
+    m_properties.putAll(mapProperties);
+  }
+
+  @Override
+  public Map<PropertyId, Object> getProperties() {
+    return m_properties;
+  }
 
   @Override
   public boolean equals(Object o) {

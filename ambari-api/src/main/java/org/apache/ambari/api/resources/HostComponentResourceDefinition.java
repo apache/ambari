@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.api.resource;
+package org.apache.ambari.api.resources;
 
-import org.apache.ambari.api.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.api.controller.internal.PropertyIdImpl;
 import org.apache.ambari.api.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.api.services.Request;

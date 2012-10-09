@@ -17,7 +17,7 @@
  */
 
 
-package org.apache.ambari.api.resource;
+package org.apache.ambari.api.resources;
 
 import org.apache.ambari.api.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.api.services.Request;

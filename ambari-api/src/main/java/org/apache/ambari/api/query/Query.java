@@ -20,6 +20,7 @@ package org.apache.ambari.api.query;
 
 import org.apache.ambari.api.services.Result;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
 
 
@@ -52,4 +53,12 @@ public interface Query {
    * @return the result of the query.
    */
   public Result execute() throws AmbariException;
+
+  /**
+   * Return the predicate used to identify the associated resource.  This includes the primary key and
+   * all parent id's;
+   *
+   * @return the predicate used to identify the associated resource
+   */
+  public Predicate getPredicate();
 }

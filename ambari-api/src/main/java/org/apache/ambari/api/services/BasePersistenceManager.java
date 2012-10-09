@@ -16,18 +16,27 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.api.handlers;
+package org.apache.ambari.api.services;
 
-import org.apache.ambari.api.services.Request;
-import org.apache.ambari.api.services.Result;
+import org.apache.ambari.api.controller.internal.RequestImpl;
+import org.apache.ambari.api.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Request;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
- * Responsible for delete requests.
+ * Base PersistenceManager functionality.
  */
-public class DeleteHandler extends BaseManagementHandler {
-  @Override
-  public Result handleRequest(Request request) {
-    //todo: delete specific return information, delete specific exceptions
-    return super.handleRequest(request);
+public abstract class BasePersistenceManager implements PersistenceManager {
+
+  protected ClusterController getClusterController() {
+    return ClusterControllerHelper.getClusterController();
+  }
+
+  protected Request createControllerRequest(Map<PropertyId, Object> properties) {
+    return new RequestImpl(null, Collections.singleton(properties));
   }
 }

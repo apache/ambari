@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.api.resource;
+package org.apache.ambari.api.resources;
 
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -24,47 +24,50 @@ import org.apache.ambari.server.controller.spi.Resource;
 import java.util.*;
 
 /**
- * Service resource definition.
+ * Cluster resource definition.
  */
-public class ServiceResourceDefinition extends BaseResourceDefinition {
-
-  /**
-   * value of cluster id foreign key
-   */
-  private String m_clusterId;
+public class ClusterResourceDefinition extends BaseResourceDefinition {
 
   /**
    * Constructor.
    *
-   * @param id        service id value
-   * @param clusterId cluster id value
+   * @param id value of primary key
    */
-  public ServiceResourceDefinition(String id, String clusterId) {
-    super(Resource.Type.Service, id);
-    m_clusterId = clusterId;
-    setResourceId(Resource.Type.Cluster, m_clusterId);
+  public ClusterResourceDefinition(String id) {
+    super(Resource.Type.Cluster, id);
+
+    if (id == null) {
+      getQuery().addProperty(getClusterController().getSchema(
+          Resource.Type.Cluster).getKeyPropertyId(Resource.Type.Cluster));
+    }
   }
 
   @Override
   public String getPluralName() {
-    return "services";
+    return "clusters";
   }
 
   @Override
   public String getSingularName() {
-    return "service";
+    return "cluster";
   }
 
   @Override
   public Map<String, ResourceDefinition> getSubResources() {
     Map<String, ResourceDefinition> mapChildren = new HashMap<String, ResourceDefinition>();
-    // for component collection need id property
-    ComponentResourceDefinition componentResourceDefinition =
-        new ComponentResourceDefinition(null, m_clusterId, getId());
-    PropertyId componentIdProperty = getClusterController().getSchema(
-        Resource.Type.Component).getKeyPropertyId(Resource.Type.Component);
-    componentResourceDefinition.getQuery().addProperty(componentIdProperty);
-    mapChildren.put(componentResourceDefinition.getPluralName(), componentResourceDefinition);
+
+    ServiceResourceDefinition serviceResource = new ServiceResourceDefinition(null, getId());
+    PropertyId serviceIdProperty = getClusterController().getSchema(
+        Resource.Type.Service).getKeyPropertyId(Resource.Type.Service);
+    serviceResource.getQuery().addProperty(serviceIdProperty);
+    mapChildren.put(serviceResource.getPluralName(), serviceResource);
+
+    HostResourceDefinition hostResource = new HostResourceDefinition(null, getId());
+    PropertyId hostIdProperty = getClusterController().getSchema(
+        Resource.Type.Host).getKeyPropertyId(Resource.Type.Host);
+    hostResource.getQuery().addProperty(hostIdProperty);
+    mapChildren.put(hostResource.getPluralName(), hostResource);
+
     return mapChildren;
   }
 }

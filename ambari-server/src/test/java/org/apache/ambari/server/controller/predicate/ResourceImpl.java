@@ -25,17 +25,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Simple resource implementation.
+ * Simple resources implementation.
  */
 public class ResourceImpl implements Resource {
 
   /**
-   * The resource type.
+   * The resources type.
    */
   private final Type type;
 
   /**
-   * The map of categories/properties for this resource.
+   * The map of categories/properties for this resources.
    */
   private final Map<String, Map<String, String>> categories = new HashMap<String, Map<String, String>>();
 
@@ -43,9 +43,9 @@ public class ResourceImpl implements Resource {
   // ----- Constructors ------------------------------------------------------
 
   /**
-   * Create a resource of the given type.
+   * Create a resources of the given type.
    *
-   * @param type  the resource type
+   * @param type  the resources type
    */
   public ResourceImpl(Type type) {
     this.type = type;

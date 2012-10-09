@@ -18,8 +18,10 @@
 
 package org.apache.ambari.api.services;
 
-import org.apache.ambari.api.resource.ResourceDefinition;
+import org.apache.ambari.api.resources.ResourceDefinition;
+import org.apache.ambari.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.controller.spi.PropertyId;
 
 import java.net.URI;
 import java.util.List;
@@ -87,7 +89,7 @@ public interface Request {
   /**
    * Obtain the result serializer for the request. The default serializer is of type JSON.
    *
-   * @return the result serializer fo rthe request
+   * @return the result serializer for the request
    */
   public ResultSerializer getResultSerializer();
 
@@ -112,4 +114,19 @@ public interface Request {
    * @return the http body
    */
   public String getHttpBody();
+
+  /**
+   * Obtain the properties which have been parsed from the http body.
+   *
+   * @return a map containing the properties contained in the http body
+   */
+  public Map<PropertyId, Object> getHttpBodyProperties();
+
+    //TODO: refactor persistence mechanism
+  /**
+   * Obtain the appropriate persistence manager.
+   *
+   * @return the appropriate persistence manager
+   */
+  public PersistenceManager getPersistenceManager();
 }

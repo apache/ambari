@@ -18,16 +18,22 @@
 
 package org.apache.ambari.api.handlers;
 
+import org.apache.ambari.api.resources.ResourceDefinition;
 import org.apache.ambari.api.services.Request;
 import org.apache.ambari.api.services.Result;
+import org.apache.ambari.api.services.ResultImpl;
 
 /**
- * Responsible for delete requests.
+ * Base handler for operations that persist state to the back-end.
  */
-public class DeleteHandler extends BaseManagementHandler {
+public class BaseManagementHandler implements RequestHandler {
   @Override
   public Result handleRequest(Request request) {
-    //todo: delete specific return information, delete specific exceptions
-    return super.handleRequest(request);
+    ResourceDefinition resource = request.getResourceDefinition();
+    resource.setProperties(request.getHttpBodyProperties());
+    request.getPersistenceManager().persist(resource);
+
+    //todo: what to return from persist?  Possibly just the href of the updated resource.
+    return new ResultImpl();
   }
 }

@@ -18,8 +18,8 @@
 
 package org.apache.ambari.api.services;
 
-import org.apache.ambari.api.resource.ResourceDefinition;
-import org.apache.ambari.api.resource.ServiceResourceDefinition;
+import org.apache.ambari.api.resources.ResourceDefinition;
+import org.apache.ambari.api.resources.ServiceResourceDefinition;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -57,7 +57,7 @@ public class ServiceService extends BaseService {
   public Response getService(@Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceDefinition(serviceName, m_clusterName));
   }
 
@@ -72,7 +72,7 @@ public class ServiceService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getServices(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceDefinition(null, m_clusterName));
   }
 
@@ -80,6 +80,7 @@ public class ServiceService extends BaseService {
    * Handles: PUT /clusters/{clusterId}/services/{serviceId}
    * Create a specific service.
    *
+   * @param body        http body
    * @param headers     http headers
    * @param ui          uri info
    * @param serviceName service id
@@ -87,16 +88,17 @@ public class ServiceService extends BaseService {
    */
   @PUT
   @Produces("text/plain")
-  public Response createService(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, ui, Request.Type.PUT, createResourceDefinition(serviceName, m_clusterName));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(serviceName, m_clusterName));
   }
 
   /**
    * Handles: POST /clusters/{clusterId}/services/{serviceId}
    * Update a specific service.
    *
+   * @param body        http body
    * @param headers     http headers
    * @param ui          uri info
    * @param serviceName service id
@@ -104,10 +106,10 @@ public class ServiceService extends BaseService {
    */
   @POST
   @Produces("text/plain")
-  public Response updateService(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response updateService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, ui, Request.Type.POST, createResourceDefinition(serviceName, m_clusterName));
+    return handleRequest(headers, body, ui, Request.Type.POST, createResourceDefinition(serviceName, m_clusterName));
   }
 
   /**
@@ -124,7 +126,7 @@ public class ServiceService extends BaseService {
   public Response deleteService(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, ui, Request.Type.DELETE, createResourceDefinition(serviceName, m_clusterName));
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createResourceDefinition(serviceName, m_clusterName));
   }
 
   /**

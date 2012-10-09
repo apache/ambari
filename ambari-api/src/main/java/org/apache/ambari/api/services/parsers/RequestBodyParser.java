@@ -16,18 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.api.handlers;
+package org.apache.ambari.api.services.parsers;
 
-import org.apache.ambari.api.services.Request;
-import org.apache.ambari.api.services.Result;
+import org.apache.ambari.server.controller.spi.PropertyId;
+
+import java.util.Map;
 
 /**
- * Responsible for delete requests.
+ * Parse the provided String into a map of properties and associated values.
  */
-public class DeleteHandler extends BaseManagementHandler {
-  @Override
-  public Result handleRequest(Request request) {
-    //todo: delete specific return information, delete specific exceptions
-    return super.handleRequest(request);
-  }
+public interface RequestBodyParser {
+  /**
+   * Parse the provided string into a map of properties and values.
+   * The key contains both the category hierarchy and the property name.
+   *
+   * @param s  the string body to be parsed
+   *
+   * @return a map of properties or an empty map if no properties exist
+   */
+  public Map<PropertyId, Object> parse(String s);
 }

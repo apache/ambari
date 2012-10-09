@@ -40,7 +40,7 @@ import com.google.inject.Injector;
 public class TestResources extends TestCase {
 	
   private static ResourceManager resMan;
-  private static final String RESOURCE_FILE_NAME = "resource.ext";
+  private static final String RESOURCE_FILE_NAME = "resources.ext";
   private static final String RESOURCE_FILE_CONTENT = "CONTENT";
   Injector injector;
   private TemporaryFolder tempFolder = new TemporaryFolder();

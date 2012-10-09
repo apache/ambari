@@ -18,16 +18,18 @@
 
 package org.apache.ambari.api.handlers;
 
-import org.apache.ambari.api.services.Request;
-import org.apache.ambari.api.services.Result;
+import org.apache.ambari.api.services.*;
+
 
 /**
  * Responsible for create requests.
  */
-public class CreateHandler implements RequestHandler {
+public class CreateHandler extends BaseManagementHandler {
   @Override
   public Result handleRequest(Request request) {
-    //TODO: implement
-    return null;
+    Result result = super.handleRequest(request);
+    //todo: what to return from create?
+    //todo: create specific exceptions
+    return result;
   }
 }

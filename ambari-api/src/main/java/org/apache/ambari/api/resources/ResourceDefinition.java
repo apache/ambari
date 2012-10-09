@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.api.resource;
+package org.apache.ambari.api.resources;
 
 import org.apache.ambari.api.query.Query;
 import org.apache.ambari.api.services.Request;
+import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.api.util.TreeNode;
 
@@ -27,6 +28,7 @@ import org.apache.ambari.api.services.ResultPostProcessor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Resource Definition.
@@ -99,6 +101,29 @@ public interface ResourceDefinition {
    * @return list of resource specific result processors
    */
   public List<PostProcessor> getPostProcessors();
+
+  //TODO: refactor set/get Property methods out of this class
+  /**
+   * Set a property on this resource.
+   *
+   * @param property the property
+   * @param value    the value
+   */
+  public void setProperty(PropertyId property, Object value);
+
+  /**
+   * Set a map of properties on the resource.
+   *
+   * @param mapProperties a map of properties
+   */
+  public void setProperties(Map<PropertyId, Object> mapProperties);
+
+  /**
+   * Get the properties which have been set on this resource.
+   *
+   * @return the properties which have been set on this resource
+   */
+  public Map<PropertyId, Object> getProperties();
 
   /**
    * Resource specific result processor.

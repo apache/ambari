@@ -28,7 +28,7 @@ import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.api.services.Result;
 import org.apache.ambari.api.services.ResultImpl;
 import org.apache.ambari.server.controller.spi.*;
-import org.apache.ambari.api.resource.ResourceDefinition;
+import org.apache.ambari.api.resources.ResourceDefinition;
 import org.apache.ambari.api.util.TreeNode;
 
 import java.util.*;
@@ -146,6 +146,10 @@ public class QueryImpl implements Query {
     return result;
   }
 
+  @Override
+  public Predicate getPredicate() {
+    return createPredicate(m_resourceDefinition);
+  }
 
   private boolean addPropertyToSubResource(String path, String property) {
     boolean resourceAdded = false;
@@ -186,7 +190,7 @@ public class QueryImpl implements Query {
 
     Set<Predicate> setPredicates = new HashSet<Predicate>();
     for (Map.Entry<Resource.Type, String> entry : mapResourceIds.entrySet()) {
-      //todo: this is a hack for host_component and component queries where serviceId is not available for
+      //todo: null check is a hack for host_component and component queries where serviceId is not available for
       //todo: host_component queries and host is not available for component queries.
       //todo: this should be rectified when the data model is changed for host_component
       if (entry.getValue() != null) {

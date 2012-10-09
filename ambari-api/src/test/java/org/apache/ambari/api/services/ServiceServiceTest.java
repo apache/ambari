@@ -1,7 +1,7 @@
 package org.apache.ambari.api.services;
 
 import org.apache.ambari.api.handlers.RequestHandler;
-import org.apache.ambari.api.resource.ResourceDefinition;
+import org.apache.ambari.api.resources.ResourceDefinition;
 import org.apache.ambari.api.services.serializers.ResultSerializer;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ public class ServiceServiceTest {
     String serviceName = "serviceName";
 
     // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.Type.GET),
+    expect(requestFactory.createRequest(eq(httpHeaders), isNull(String.class), eq(uriInfo), eq(Request.Type.GET),
         eq(resourceDef))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);
@@ -79,7 +79,7 @@ public class ServiceServiceTest {
     String clusterName = "clusterName";
 
     // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.Type.GET),
+    expect(requestFactory.createRequest(eq(httpHeaders), isNull(String.class), eq(uriInfo), eq(Request.Type.GET),
         eq(resourceDef))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);
@@ -117,7 +117,7 @@ public class ServiceServiceTest {
     String serviceName = "serviceName";
 
     // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.Type.PUT),
+    expect(requestFactory.createRequest(eq(httpHeaders), eq("body"), eq(uriInfo), eq(Request.Type.PUT),
         eq(resourceDef))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);
@@ -130,7 +130,7 @@ public class ServiceServiceTest {
 
     //test
     ServiceService hostService = new TestServiceService(resourceDef, clusterName, serviceName, requestFactory, responseFactory, requestHandler);
-    assertSame(response, hostService.createService(httpHeaders, uriInfo, serviceName));
+    assertSame(response, hostService.createService("body", httpHeaders, uriInfo, serviceName));
 
     verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);
@@ -155,7 +155,7 @@ public class ServiceServiceTest {
     String serviceName = "serviceName";
 
     // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.Type.POST),
+    expect(requestFactory.createRequest(eq(httpHeaders), eq("body"), eq(uriInfo), eq(Request.Type.POST),
         eq(resourceDef))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);
@@ -168,7 +168,7 @@ public class ServiceServiceTest {
 
     //test
     ServiceService hostService = new TestServiceService(resourceDef, clusterName, serviceName, requestFactory, responseFactory, requestHandler);
-    assertSame(response, hostService.updateService(httpHeaders, uriInfo, serviceName));
+    assertSame(response, hostService.updateService("body", httpHeaders, uriInfo, serviceName));
 
     verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);
@@ -193,7 +193,7 @@ public class ServiceServiceTest {
     String serviceName = "serviceName";
 
     // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.Type.DELETE),
+    expect(requestFactory.createRequest(eq(httpHeaders), isNull(String.class), eq(uriInfo), eq(Request.Type.DELETE),
         eq(resourceDef))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);

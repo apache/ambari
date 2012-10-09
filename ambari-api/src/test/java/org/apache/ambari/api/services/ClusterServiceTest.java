@@ -1,7 +1,7 @@
 package org.apache.ambari.api.services;
 
 import org.apache.ambari.api.handlers.RequestHandler;
-import org.apache.ambari.api.resource.ResourceDefinition;
+import org.apache.ambari.api.resources.ResourceDefinition;
 import org.apache.ambari.api.services.serializers.ResultSerializer;
 import org.junit.Test;
 
@@ -40,7 +40,7 @@ public class ClusterServiceTest {
     String clusterName = "clusterName";
 
     // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.Type.GET),
+    expect(requestFactory.createRequest(eq(httpHeaders), isNull(String.class), eq(uriInfo), eq(Request.Type.GET),
         eq(resourceDef))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);
@@ -75,7 +75,7 @@ public class ClusterServiceTest {
     UriInfo uriInfo = createNiceMock(UriInfo.class);
 
     // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.Type.GET),
+    expect(requestFactory.createRequest(eq(httpHeaders), isNull(String.class), eq(uriInfo), eq(Request.Type.GET),
         eq(resourceDef))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);
@@ -111,7 +111,7 @@ public class ClusterServiceTest {
     String clusterName = "clusterName";
 
     // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.Type.PUT),
+    expect(requestFactory.createRequest(eq(httpHeaders), eq("body"), eq(uriInfo), eq(Request.Type.PUT),
         eq(resourceDef))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);
@@ -124,7 +124,7 @@ public class ClusterServiceTest {
 
     //test
     ClusterService clusterService = new TestClusterService(resourceDef, clusterName, requestFactory, responseFactory, requestHandler);
-    assertSame(response, clusterService.createCluster(httpHeaders, uriInfo, clusterName));
+    assertSame(response, clusterService.createCluster("body", httpHeaders, uriInfo, clusterName));
 
     verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);
@@ -147,7 +147,7 @@ public class ClusterServiceTest {
     String clusterName = "clusterName";
 
     // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.Type.POST),
+    expect(requestFactory.createRequest(eq(httpHeaders), eq("body"), eq(uriInfo), eq(Request.Type.POST),
         eq(resourceDef))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);
@@ -160,7 +160,7 @@ public class ClusterServiceTest {
 
     //test
     ClusterService clusterService = new TestClusterService(resourceDef, clusterName, requestFactory, responseFactory, requestHandler);
-    assertSame(response, clusterService.updateCluster(httpHeaders, uriInfo, clusterName));
+    assertSame(response, clusterService.updateCluster("body", httpHeaders, uriInfo, clusterName));
 
     verify(resourceDef, resultSerializer, requestFactory, responseFactory, request, requestHandler,
         result, response, httpHeaders, uriInfo);
@@ -183,7 +183,7 @@ public class ClusterServiceTest {
     String clusterName = "clusterName";
 
     // expectations
-    expect(requestFactory.createRequest(eq(httpHeaders), eq(uriInfo), eq(Request.Type.DELETE),
+    expect(requestFactory.createRequest(eq(httpHeaders), isNull(String.class), eq(uriInfo), eq(Request.Type.DELETE),
         eq(resourceDef))).andReturn(request);
 
     expect(requestHandler.handleRequest(request)).andReturn(result);

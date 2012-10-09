@@ -18,16 +18,18 @@
 
 package org.apache.ambari.api.handlers;
 
-import org.apache.ambari.api.services.Request;
-import org.apache.ambari.api.services.Result;
+import org.apache.ambari.api.services.*;
+
 
 /**
  * Responsible for update requests.
  */
-public class UpdateHandler implements RequestHandler {
+public class UpdateHandler extends BaseManagementHandler {
   @Override
   public Result handleRequest(Request request) {
-    //TODO: implement
-    return null;
+    Result result = super.handleRequest(request);
+    //todo: what to return from update?
+    //todo: update specific exceptions
+    return result;
   }
 }

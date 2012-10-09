@@ -18,13 +18,10 @@
 
 package org.apache.ambari.api.services;
 
-import org.apache.ambari.api.resource.HostComponentResourceDefinition;
-import org.apache.ambari.api.resource.ResourceDefinition;
+import org.apache.ambari.api.resources.HostComponentResourceDefinition;
+import org.apache.ambari.api.resources.ResourceDefinition;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
 /**
@@ -53,7 +50,7 @@ public class HostComponentService extends BaseService {
   }
 
   /**
-   * Handles URL: /clusters/{clusterID}/hosts/{hostID}/host_components/{hostComponentID}
+   * Handles GET /clusters/{clusterID}/hosts/{hostID}/host_components/{hostComponentID}
    * Get a specific host_component.
    *
    * @param headers           http headers
@@ -67,12 +64,12 @@ public class HostComponentService extends BaseService {
   public Response getHostComponent(@Context HttpHeaders headers, @Context UriInfo ui,
                                    @PathParam("hostComponentName") String hostComponentName) {
 
-    return handleRequest(headers, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceDefinition(hostComponentName, m_clusterName, m_hostName));
   }
 
   /**
-   * Handles URL: /clusters/{clusterID}/hosts/{hostID}/host_components/
+   * Handles GET /clusters/{clusterID}/hosts/{hostID}/host_components/
    * Get all host components for a host.
    *
    * @param headers http headers
@@ -82,8 +79,70 @@ public class HostComponentService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getHostComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceDefinition(null, m_clusterName, m_hostName));
+  }
+
+  /**
+   * Handles PUT /clusters/{clusterID}/hosts/{hostID}/host_components/{hostComponentID}
+   * Create a specific host_component.
+   *
+   * @param body              http body
+   * @param headers           http headers
+   * @param ui                uri info
+   * @param hostComponentName host_component id
+   *
+   * @return host_component resource representation
+   */
+  @PUT
+  @Path("{hostComponentName}")
+  @Produces("text/plain")
+  public Response createHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                   @PathParam("hostComponentName") String hostComponentName) {
+
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createResourceDefinition(hostComponentName, m_clusterName, m_hostName));
+  }
+
+  /**
+   * Handles POST /clusters/{clusterID}/hosts/{hostID}/host_components/{hostComponentID}
+   * Updates a specific host_component.
+   *
+   * @param body              http body
+   * @param headers           http headers
+   * @param ui                uri info
+   * @param hostComponentName host_component id
+   *
+   * @return host_component resource representation
+   */
+  @POST
+  @Path("{hostComponentName}")
+  @Produces("text/plain")
+  public Response updateHostComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                      @PathParam("hostComponentName") String hostComponentName) {
+
+    return handleRequest(headers, body, ui, Request.Type.POST,
+        createResourceDefinition(hostComponentName, m_clusterName, m_hostName));
+  }
+
+  /**
+   * Handles DELETE /clusters/{clusterID}/hosts/{hostID}/host_components/{hostComponentID}
+   * Delete a specific host_component.
+   *
+   * @param headers           http headers
+   * @param ui                uri info
+   * @param hostComponentName host_component id
+   *
+   * @return host_component resource representation
+   */
+  @DELETE
+  @Path("{hostComponentName}")
+  @Produces("text/plain")
+  public Response deleteHostComponent(@Context HttpHeaders headers, @Context UriInfo ui,
+                                   @PathParam("hostComponentName") String hostComponentName) {
+
+    return handleRequest(headers, null, ui, Request.Type.DELETE,
+        createResourceDefinition(hostComponentName, m_clusterName, m_hostName));
   }
 
   /**

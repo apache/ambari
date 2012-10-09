@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.api.resource;
+package org.apache.ambari.api.resources;
 
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;

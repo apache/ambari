@@ -18,7 +18,7 @@
 
 package org.apache.ambari.api.services;
 
-import org.apache.ambari.api.resource.ResourceDefinition;
+import org.apache.ambari.api.resources.ResourceDefinition;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.api.util.TreeNode;
 

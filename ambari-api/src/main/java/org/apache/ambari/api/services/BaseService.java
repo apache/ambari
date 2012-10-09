@@ -20,7 +20,7 @@ package org.apache.ambari.api.services;
 
 import org.apache.ambari.api.handlers.DelegatingRequestHandler;
 import org.apache.ambari.api.handlers.RequestHandler;
-import org.apache.ambari.api.resource.ResourceDefinition;
+import org.apache.ambari.api.resources.ResourceDefinition;
 import org.apache.ambari.api.services.serializers.ResultSerializer;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -37,16 +37,19 @@ public abstract class BaseService {
    * This consists of creating a {@link Request} instance, invoking the correct {@link RequestHandler} and
    * applying the proper {@link ResultSerializer} to the result.
    *
+   *
+   *
    * @param headers            http headers
+   * @param body
    * @param uriInfo            uri information
    * @param requestType        http request type
    * @param resourceDefinition resource definition that is being acted on
    * @return the response of the operation in serialized form
    */
-  protected Response handleRequest(HttpHeaders headers, UriInfo uriInfo, Request.Type requestType,
+  protected Response handleRequest(HttpHeaders headers, String body, UriInfo uriInfo, Request.Type requestType,
                                    ResourceDefinition resourceDefinition) {
 
-    Request request = getRequestFactory().createRequest(headers, uriInfo, requestType, resourceDefinition);
+    Request request = getRequestFactory().createRequest(headers, body, uriInfo, requestType, resourceDefinition);
     Result result = getRequestHandler().handleRequest(request);
 
     return getResponseFactory().createResponse(request.getResultSerializer().serialize(result, uriInfo));

@@ -1,28 +1,26 @@
 package org.apache.ambari.api.query;
 
-import org.apache.ambari.api.controller.internal.PropertyIdImpl;
-import org.apache.ambari.server.controller.predicate.EqualsPredicate;
-import org.apache.ambari.api.resource.ResourceDefinition;
-import org.apache.ambari.api.services.Result;
-import org.apache.ambari.server.controller.spi.*;
-import org.apache.ambari.api.controller.utilities.PredicateBuilder;
-import org.junit.After;
-import org.junit.Test;
+//import org.apache.ambari.api.controller.internal.PropertyIdImpl;
+//import org.apache.ambari.api.controller.utilities.PredicateBuilder;
+//import org.apache.ambari.api.resources.ResourceDefinition;
+//import org.apache.ambari.api.services.Request;
+//import org.apache.ambari.api.services.Result;
+//import org.apache.ambari.server.controller.spi.ClusterController;
+//import org.apache.ambari.server.controller.spi.Predicate;
+//import org.apache.ambari.server.controller.spi.Resource;
+//import org.apache.ambari.server.controller.spi.Schema;
+//import org.junit.Test;
+//
+//import java.util.*;
+//
+//
+//import static org.easymock.EasyMock.*;
+//
+//import static org.junit.Assert.assertEquals;
+//import static org.junit.Assert.assertSame;
 
-import java.util.*;
-
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 
 
-/**
- * Created with IntelliJ IDEA.
- * User: john
- * Date: 9/12/12
- * Time: 12:55 PM
- * To change this template use File | Settings | File Templates.
- */
 public class QueryImplTest {
 
 //    ClusterController m_controller = createStrictMock(ClusterController.class);

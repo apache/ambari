@@ -18,8 +18,8 @@
 
 package org.apache.ambari.api.services;
 
-import org.apache.ambari.api.resource.ClusterResourceDefinition;
-import org.apache.ambari.api.resource.ResourceDefinition;
+import org.apache.ambari.api.resources.ClusterResourceDefinition;
+import org.apache.ambari.api.resources.ResourceDefinition;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -46,7 +46,7 @@ public class ClusterService extends BaseService {
   public Response getCluster(@Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("clusterName") String clusterName) {
 
-    return handleRequest(headers, ui, Request.Type.GET, createResourceDefinition(clusterName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createResourceDefinition(clusterName));
   }
 
   /**
@@ -60,7 +60,7 @@ public class ClusterService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getClusters(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, ui, Request.Type.GET, createResourceDefinition(null));
+    return handleRequest(headers, null, ui, Request.Type.GET, createResourceDefinition(null));
   }
 
   /**
@@ -74,10 +74,10 @@ public class ClusterService extends BaseService {
    */
   @PUT
   @Produces("text/plain")
-  public Response createCluster(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response createCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("clusterName") String clusterName) {
 
-    return handleRequest(headers, ui, Request.Type.PUT, createResourceDefinition(clusterName));
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(clusterName));
   }
 
   /**
@@ -91,10 +91,10 @@ public class ClusterService extends BaseService {
    */
   @POST
   @Produces("text/plain")
-  public Response updateCluster(@Context HttpHeaders headers, @Context UriInfo ui,
+  public Response updateCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("clusterName") String clusterName) {
 
-    return handleRequest(headers, ui, Request.Type.POST, createResourceDefinition(clusterName));
+    return handleRequest(headers, body, ui, Request.Type.POST, createResourceDefinition(clusterName));
   }
 
   /**
@@ -111,7 +111,7 @@ public class ClusterService extends BaseService {
   public Response deleteCluster(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("clusterName") String clusterName) {
 
-    return handleRequest(headers, ui, Request.Type.DELETE, createResourceDefinition(clusterName));
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createResourceDefinition(clusterName));
   }
 
   /**

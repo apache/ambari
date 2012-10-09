@@ -18,13 +18,10 @@
 
 package org.apache.ambari.api.services;
 
-import org.apache.ambari.api.resource.HostResourceDefinition;
-import org.apache.ambari.api.resource.ResourceDefinition;
+import org.apache.ambari.api.resources.HostResourceDefinition;
+import org.apache.ambari.api.resources.ResourceDefinition;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
 /**
@@ -47,7 +44,7 @@ public class HostService extends BaseService {
   }
 
   /**
-   * Handles URL: /clusters/{clusterID}/hosts/{hostID}
+   * Handles GET /clusters/{clusterID}/hosts/{hostID}
    * Get a specific host.
    *
    * @param headers  http headers
@@ -61,12 +58,12 @@ public class HostService extends BaseService {
   public Response getHost(@Context HttpHeaders headers, @Context UriInfo ui,
                           @PathParam("hostName") String hostName) {
 
-    return handleRequest(headers, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceDefinition(hostName, m_clusterName));
   }
 
   /**
-   * Handles URL: /clusters/{clusterID}/hosts or /clusters/hosts
+   * Handles GET /clusters/{clusterID}/hosts or /clusters/hosts
    * Get all hosts for a cluster.
    *
    * @param headers http headers
@@ -76,7 +73,70 @@ public class HostService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getHosts(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, ui, Request.Type.GET, createResourceDefinition(null, m_clusterName));
+    return handleRequest(headers, null, ui, Request.Type.GET, createResourceDefinition(null, m_clusterName));
+  }
+
+  /**
+   * Handles PUT /clusters/{clusterID}/hosts/{hostID}
+   * Create a specific host.
+   *
+   * @param body     http body
+   * @param headers  http headers
+   * @param ui       uri info
+   * @param hostName host id
+   *
+   * @return host resource representation
+   */
+
+  @PUT
+  @Path("{hostName}")
+  @Produces("text/plain")
+  public Response createHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                          @PathParam("hostName") String hostName) {
+
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createResourceDefinition(hostName, m_clusterName));
+  }
+
+  /**
+   * Handles POST /clusters/{clusterID}/hosts/{hostID}
+   * Updates a specific host.
+   *
+   * @param body     http body
+   * @param headers  http headers
+   * @param ui       uri info
+   * @param hostName host id
+   *
+   * @return host resource representation
+   */
+  @POST
+  @Path("{hostName}")
+  @Produces("text/plain")
+  public Response updateHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                          @PathParam("hostName") String hostName) {
+
+    return handleRequest(headers, body, ui, Request.Type.POST,
+        createResourceDefinition(hostName, m_clusterName));
+  }
+
+  /**
+   * Handles DELETE /clusters/{clusterID}/hosts/{hostID}
+   * Deletes a specific host.
+   *
+   * @param headers  http headers
+   * @param ui       uri info
+   * @param hostName host id
+   *
+   * @return host resource representation
+   */
+  @DELETE
+  @Path("{hostName}")
+  @Produces("text/plain")
+  public Response deleteHost(@Context HttpHeaders headers, @Context UriInfo ui,
+                             @PathParam("hostName") String hostName) {
+
+    return handleRequest(headers, null, ui, Request.Type.DELETE,
+        createResourceDefinition(hostName, m_clusterName));
   }
 
   /**

@@ -18,9 +18,12 @@
 
 package org.apache.ambari.api.services;
 
-import org.apache.ambari.api.resource.*;
+import org.apache.ambari.api.resources.*;
+import org.apache.ambari.api.services.parsers.JsonPropertyParser;
+import org.apache.ambari.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.api.services.serializers.JsonSerializer;
 import org.apache.ambari.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.controller.spi.PropertyId;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
@@ -43,6 +46,11 @@ public class RequestImpl implements Request {
   private HttpHeaders m_headers;
 
   /**
+   * Http Body
+   */
+  private String m_body;
+
+  /**
    * Http request type
    */
   private Type m_Type;
@@ -52,18 +60,23 @@ public class RequestImpl implements Request {
    */
   private ResourceDefinition m_resourceDefinition;
 
+
   /**
    * Constructor.
    *
    * @param headers            http headers
+   * @param body               http body
    * @param uriInfo            uri information
    * @param requestType        http request type
    * @param resourceDefinition associated resource definition
    */
-  public RequestImpl(HttpHeaders headers, UriInfo uriInfo, Type requestType, ResourceDefinition resourceDefinition) {
-    m_uriInfo = uriInfo;
-    m_headers = headers;
-    m_Type = requestType;
+  public RequestImpl(HttpHeaders headers, String body, UriInfo uriInfo, Type requestType,
+                     ResourceDefinition resourceDefinition) {
+
+    m_headers            = headers;
+    m_body               = body;
+    m_uriInfo            = uriInfo;
+    m_Type               = requestType;
     m_resourceDefinition = resourceDefinition;
   }
 
@@ -109,7 +122,13 @@ public class RequestImpl implements Request {
 
   @Override
   public String getHttpBody() {
-    return null;
+    return m_body;
+  }
+
+  @Override
+  public Map<PropertyId, Object> getHttpBodyProperties() {
+    return m_body == null ? Collections.<PropertyId, Object>emptyMap() :
+        getHttpBodyParser().parse(getHttpBody());
   }
 
   @Override
@@ -120,5 +139,25 @@ public class RequestImpl implements Request {
   @Override
   public ResultPostProcessor getResultPostProcessor() {
     return new ResultPostProcessorImpl(this);
+  }
+
+  @Override
+  public PersistenceManager getPersistenceManager() {
+    switch (getRequestType()) {
+      case PUT:
+        return new CreatePersistenceManager();
+      case POST:
+        return new UpdatePersistenceManager();
+      case DELETE:
+        return new DeletePersistenceManager();
+      case GET:
+        throw new IllegalStateException("Tried to get persistence manager for get operation");
+      default:
+        throw new IllegalStateException("Tried to get persistence manager for unknown operation type");
+    }
+  }
+
+  private  RequestBodyParser getHttpBodyParser() {
+    return new JsonPropertyParser();
   }
 }
