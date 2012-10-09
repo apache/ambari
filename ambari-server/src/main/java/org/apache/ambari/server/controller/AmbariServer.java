@@ -27,6 +27,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.security.CertificateManager;
+import org.apache.ambari.server.state.Clusters;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.security.SslSocketConnector;
 import org.mortbay.jetty.servlet.Context;
@@ -193,9 +194,15 @@ public class AmbariServer {
       serverForAgent.start();
 
       //Start action scheduler
+      LOG.info("********* Initializing Clusters **********");
+      Clusters clusters = injector.getInstance(Clusters.class);
       LOG.info("********* Started Server **********");
       ActionManager manager = injector.getInstance(ActionManager.class);
       manager.start();
+      LOG.info("********* Initializing Controller **********");
+      AmbariManagementController controller = injector.getInstance(
+          AmbariManagementController.class);
+
       server.join();
       LOG.info("Joined the Server");
     } catch (Exception e) {

@@ -47,5 +47,7 @@ public class ControllerModule extends AbstractModule {
     bind(ActionDBAccessor.class).to(ActionDBInMemoryImpl.class);
     bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(10000L);
     bindConstant().annotatedWith(Names.named("actionTimeout")).to(60000L);
+    bind(AmbariManagementController.class)
+        .to(AmbariManagementControllerImpl.class);
   }
 }

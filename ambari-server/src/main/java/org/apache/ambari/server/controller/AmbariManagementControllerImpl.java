@@ -42,7 +42,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEve
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.assistedinject.Assisted;
+import com.google.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,10 +64,12 @@ public class AmbariManagementControllerImpl implements
 
   private final ActionManager actionManager;
 
-  public AmbariManagementControllerImpl(@Assisted ActionManager actionManager
-      , @Assisted Clusters clusters) {
+  @Inject
+  public AmbariManagementControllerImpl(ActionManager actionManager,
+      Clusters clusters) {
     this.clusters = clusters;
     this.actionManager = actionManager;
+    LOG.info("Initializing the AmbariManagementControllerImpl");
   }
 
   @Override

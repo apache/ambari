@@ -54,7 +54,7 @@ public class ClustersImpl implements Clusters {
     clustersById = new HashMap<Long, Cluster>();
     hosts = new HashMap<String, Host>();
     hostClusterMap = new HashMap<String, Set<Cluster>>();
-
+    LOG.info("Initializing the ClustersImpl");
   }
 
   @Override
