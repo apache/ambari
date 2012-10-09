@@ -18,15 +18,11 @@
 
 package org.apache.ambari.server.controller.jmx;
 
-import org.codehaus.jackson.map.ObjectMapper;
-
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.util.Map;
 
 /**
  *
  */
-public class JMXHelper {
-
+public interface HostMappingProvider {
+  public Map<String, String> getHostMap();
 }

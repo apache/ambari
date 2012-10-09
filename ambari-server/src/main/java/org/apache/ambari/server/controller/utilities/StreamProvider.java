@@ -16,17 +16,14 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller.jmx;
-
-import org.codehaus.jackson.map.ObjectMapper;
+package org.apache.ambari.server.controller.utilities;
 
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.io.InputStream;
 
 /**
- *
+ * A provider of input stream from a property source.
  */
-public class JMXHelper {
-
+public interface StreamProvider {
+  public InputStream readFrom(String spec) throws IOException;
 }

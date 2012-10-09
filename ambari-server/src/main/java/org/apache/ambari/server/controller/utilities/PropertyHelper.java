@@ -19,7 +19,9 @@ package org.apache.ambari.server.controller.utilities;
 
 import org.apache.ambari.server.controller.internal.PropertyIdImpl;
 import org.apache.ambari.server.controller.internal.RequestImpl;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -28,6 +30,7 @@ import org.codehaus.jackson.type.TypeReference;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -75,6 +78,33 @@ public class PropertyHelper {
       }
     }
     return properties;
+  }
+
+  /**
+   * Get the set of property id required to satisfy the given request for the given property
+   * provider and predicate.
+   *
+   * @param provider   the property provider
+   * @param request    the request
+   * @param predicate  the predicate
+   *
+   * @return the set of property ids needed to satisfy the request
+   */
+  public static Set<PropertyId> getRequestPropertyIds(PropertyProvider provider,
+                                                      Request request,
+                                                      Predicate predicate) {
+    Set<PropertyId> requestPropertyIds  = new HashSet<PropertyId>(request.getPropertyIds());
+    Set<PropertyId> providerPropertyIds = new HashSet<PropertyId>(provider.getPropertyIds());
+
+    if (requestPropertyIds == null || requestPropertyIds.isEmpty()) {
+      return providerPropertyIds;
+    }
+
+    if (predicate != null) {
+      requestPropertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
+    }
+    requestPropertyIds.retainAll(providerPropertyIds);
+    return requestPropertyIds;
   }
 
   /**

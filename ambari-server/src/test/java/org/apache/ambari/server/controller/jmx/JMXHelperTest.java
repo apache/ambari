@@ -17,8 +17,13 @@
  */
 package org.apache.ambari.server.controller.jmx;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 
 /**
  *
@@ -31,7 +36,20 @@ public class JMXHelperTest {
 
     String target = "ec2-107-22-86-120.compute-1.amazonaws.com:50070";
 
-    JMXMetrics metrics = JMXHelper.getJMXMetrics(target, null);
+    JMXMetrics result;
+    String s = "http://" + target + "/jmx?qry=" + (null == null ? "Hadoop:*" : null);
+    try {
+      URLConnection connection = new URL(s).openConnection();
+
+      connection.setDoOutput(true);
+
+      result = new ObjectMapper().readValue(connection.getInputStream(),
+          JMXMetrics.class);
+
+    } catch (IOException e) {
+      throw new IllegalStateException("Can't get metric " + ".", e);
+    }
+    JMXMetrics metrics = result;
 
     //TODO : assertions
   }

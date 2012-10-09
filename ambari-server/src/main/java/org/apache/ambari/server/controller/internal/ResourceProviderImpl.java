@@ -88,7 +88,7 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
   // Components
   protected static final PropertyId COMPONENT_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("cluster_name", "ServiceComponentInfo");
   protected static final PropertyId COMPONENT_SERVICE_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("service_name", "ServiceComponentInfo");
-  protected static final PropertyId COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("service_name", "ServiceComponentInfo");
+  protected static final PropertyId COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("component_name", "ServiceComponentInfo");
   protected static final PropertyId COMPONENT_STATE_PROPERTY_ID          = PropertyHelper.getPropertyId("state", "ServiceComponentInfo");
   // Hosts
   protected static final PropertyId HOST_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("cluster_name", "Hosts");
@@ -101,7 +101,7 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
   // Host Components
   protected static final PropertyId HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("cluster_name", "HostRoles");
   protected static final PropertyId HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("service_name", "HostRoles");
-  protected static final PropertyId HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("service_name", "HostRoles");
+  protected static final PropertyId HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("component_name", "HostRoles");
   protected static final PropertyId HOST_COMPONENT_HOST_NAME_PROPERTY_ID      = PropertyHelper.getPropertyId("host_name", "HostRoles");
   protected static final PropertyId HOST_COMPONENT_STATE_PROPERTY_ID          = PropertyHelper.getPropertyId("state", "HostRoles");
 

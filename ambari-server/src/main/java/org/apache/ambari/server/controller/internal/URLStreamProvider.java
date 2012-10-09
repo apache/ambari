@@ -16,17 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller.jmx;
+package org.apache.ambari.server.controller.internal;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import org.apache.ambari.server.controller.utilities.StreamProvider;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
 /**
- *
+ * URL based implementation of a stream provider.
  */
-public class JMXHelper {
-
+public class URLStreamProvider implements StreamProvider {
+  @Override
+  public InputStream readFrom(String spec) throws IOException {
+    URLConnection connection = new URL(spec).openConnection();
+    connection.setDoOutput(true);
+    return connection.getInputStream();
+  }
 }
