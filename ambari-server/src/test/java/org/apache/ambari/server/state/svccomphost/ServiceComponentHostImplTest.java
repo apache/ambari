@@ -41,7 +41,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostWipeoutEve
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TestServiceComponentHostImpl {
+public class ServiceComponentHostImplTest {
 
   private ServiceComponentHostImpl createNewServiceComponentHost(long clusterId,
       String svc,

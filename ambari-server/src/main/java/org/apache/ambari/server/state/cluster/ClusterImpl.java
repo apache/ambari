@@ -80,7 +80,7 @@ public class ClusterImpl implements Cluster {
         Map<String,Map<String,ServiceComponentHost>>>();
     this.serviceComponentHostsByHost = new HashMap<String,
         List<ServiceComponentHost>>();
-    this.desiredStackVersion = null;
+    this.desiredStackVersion = new StackVersion("");
     this.configs = new HashMap<String, Map<String,Config>>();
   }
 

@@ -22,31 +22,27 @@ import java.util.Map;
 
 public class ServiceResponse {
 
-  private Long clusterId; // REF
+  private Long clusterId;
 
-  private String clusterName; // REF
+  private String clusterName;
 
   private String serviceName;
-
-  private String currentStackVersion;
 
   private String desiredStackVersion;
 
   private String desiredState;
 
   // Config type -> version mapping
-  private Map<String, String> configVersions; // CREATE/UPDATE
-
+  private Map<String, String> configVersions;
 
   public ServiceResponse(Long clusterId, String clusterName,
-                         String serviceName, String currentStackVersion,
+                         String serviceName,
                          Map<String, String> configVersions,
                          String desiredStackVersion, String desiredState) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
-    this.currentStackVersion = currentStackVersion;
     this.configVersions = configVersions;
     this.setDesiredStackVersion(desiredStackVersion);
     this.setDesiredState(desiredState);
@@ -64,20 +60,6 @@ public class ServiceResponse {
    */
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
-  }
-
-  /**
-   * @return the currentStackVersion
-   */
-  public String getCurrentStackVersion() {
-    return currentStackVersion;
-  }
-
-  /**
-   * @param currentStackVersion the currentStackVersion to set
-   */
-  public void setCurrentStackVersion(String currentStackVersion) {
-    this.currentStackVersion = currentStackVersion;
   }
 
   /**

@@ -35,7 +35,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestClustersImpl {
+public class ClustersImplTest {
 
   private Clusters clusters;
 

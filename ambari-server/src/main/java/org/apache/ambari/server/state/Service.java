@@ -54,17 +54,9 @@ public interface Service {
 
   public void setDesiredStackVersion(StackVersion stackVersion);
 
-  public State getState();
-
-  public void setState(State state);
-
   public Map<String, Config> getConfigs();
 
   public void updateConfigs(Map<String, Config> configs);
-
-  public StackVersion getStackVersion();
-
-  public void setStackVersion(StackVersion stackVersion);
 
   public ServiceResponse convertToResponse();
 

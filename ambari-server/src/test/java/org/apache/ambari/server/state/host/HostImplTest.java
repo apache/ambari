@@ -38,7 +38,7 @@ import org.apache.ambari.server.state.host.HostUnhealthyHeartbeatEvent;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TestHostImpl {
+public class HostImplTest {
 
   @Test
   public void testHostInfoImport() {

@@ -31,9 +31,7 @@ import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.StackVersion;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
@@ -42,7 +40,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestClusterImpl {
+public class ClusterImplTest {
 
   private Clusters clusters;
   private Cluster c1;

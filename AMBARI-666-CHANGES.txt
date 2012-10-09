@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-825. Controller layer implementation part 3. (hitesh)
+
   AMBARI-823. Fix security filter on the server agent ports and remove
   duplication on servlet contexts for certs signing. (mahadev)
 

@@ -36,12 +36,10 @@ public class ServiceImpl implements Service {
 
   private final Cluster cluster;
   private final String serviceName;
-  private State state;
   private State desiredState;
   private Map<String, Config> configs;
   private Map<String, Config> desiredConfigs;
   private Map<String, ServiceComponent> components;
-  private StackVersion stackVersion;
   private StackVersion desiredStackVersion;
 
   private void init() {
@@ -52,11 +50,9 @@ public class ServiceImpl implements Service {
   public ServiceImpl(Cluster cluster, String serviceName) {
     this.cluster = cluster;
     this.serviceName = serviceName;
-    this.state = State.INIT;
     this.desiredState = State.INIT;
     this.configs = new HashMap<String, Config>();
     this.desiredConfigs = new HashMap<String, Config>();
-    this.stackVersion = new StackVersion("");
     this.desiredStackVersion = new StackVersion("");
     this.components = new HashMap<String, ServiceComponent>();
     init();
@@ -75,47 +71,6 @@ public class ServiceImpl implements Service {
   @Override
   public synchronized Map<String, ServiceComponent> getServiceComponents() {
     return Collections.unmodifiableMap(components);
-  }
-
-  @Override
-  public synchronized State getState() {
-    return state;
-  }
-
-  @Override
-  public synchronized void setState(State state) {
-    if (state == null) {
-      // TODO throw error?
-      return;
-    }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting state of Service"
-          + ", oldState=" + this.state
-          + ", newState=" + state);
-    }
-    this.state = state;
-  }
-
-  @Override
-  public synchronized StackVersion getStackVersion() {
-    return stackVersion;
-  }
-
-  @Override
-  public synchronized void setStackVersion(StackVersion stackVersion) {
-    if (stackVersion == null) {
-      // TODO throw error?
-      return;
-    }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting StackVersion of Service"
-          + ", clusterName=" + cluster.getClusterName()
-          + ", clusterId=" + cluster.getClusterId()
-          + ", serviceName=" + serviceName
-          + ", oldStackVersion=" + this.stackVersion
-          + ", newStackVersion=" + stackVersion);
-    }
-    this.stackVersion = stackVersion;
   }
 
   @Override
@@ -175,10 +130,6 @@ public class ServiceImpl implements Service {
 
   @Override
   public synchronized void setDesiredState(State state) {
-    if (state == null) {
-      // TODO throw error?
-      return;
-    }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Setting DesiredState of Service"
           + ", clusterName=" + cluster.getClusterName()
@@ -207,10 +158,6 @@ public class ServiceImpl implements Service {
 
   @Override
   public synchronized void setDesiredStackVersion(StackVersion stackVersion) {
-    if (stackVersion == null) {
-      // TODO throw error?
-      return;
-    }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Setting DesiredStackVersion of Service"
           + ", clusterName=" + cluster.getClusterName()
@@ -235,7 +182,6 @@ public class ServiceImpl implements Service {
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(),
         cluster.getClusterName(),
         serviceName,
-        stackVersion.getStackVersion(),
         getConfigVersions(),
         desiredStackVersion.getStackVersion(),
         desiredState.toString());

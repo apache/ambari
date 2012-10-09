@@ -36,9 +36,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   private final Service service;
   private final String componentName;
 
-  private State state;
   private Map<String, Config> configs;
-  private StackVersion stackVersion;
 
   private State desiredState;
   private Map<String, Config>  desiredConfigs;
@@ -56,11 +54,9 @@ public class ServiceComponentImpl implements ServiceComponent {
       String componentName) {
     this.service = service;
     this.componentName = componentName;
-    this.state = State.INIT;
     this.desiredState = State.INIT;
     this.configs = new HashMap<String, Config>();
     this.desiredConfigs = new HashMap<String, Config>();
-    this.stackVersion = new StackVersion("");
     this.desiredStackVersion = new StackVersion("");
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
     init();
@@ -83,25 +79,6 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public synchronized State getState() {
-    return state;
-  }
-
-  @Override
-  public synchronized void setState(State state) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting State of Service"
-          + ", clusterName=" + service.getCluster().getClusterName()
-          + ", clusterId=" + service.getCluster().getClusterId()
-          + ", serviceName=" + service.getName()
-          + ", serviceComponentName=" + componentName
-          + ", oldState=" + this.state
-          + ", newState=" + state);
-    }
-    this.state = state;
-  }
-
-  @Override
   public synchronized Map<String, Config> getConfigs() {
     return Collections.unmodifiableMap(configs);
   }
@@ -109,25 +86,6 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public synchronized void updateConfigs(Map<String, Config> configs) {
     this.configs = configs;
-  }
-
-  @Override
-  public synchronized StackVersion getStackVersion() {
-    return stackVersion;
-  }
-
-  @Override
-  public synchronized void setStackVersion(StackVersion stackVersion) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting StackVersion of Service"
-          + ", clusterName=" + service.getCluster().getClusterName()
-          + ", clusterId=" + service.getCluster().getClusterId()
-          + ", serviceName=" + service.getName()
-          + ", serviceComponentName=" + componentName
-          + ", oldStackVersion=" + this.stackVersion
-          + ", newStackVersion=" + stackVersion);
-    }
-    this.stackVersion = stackVersion;
   }
 
   @Override

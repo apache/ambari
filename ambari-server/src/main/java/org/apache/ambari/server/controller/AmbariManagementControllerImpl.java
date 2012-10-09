@@ -34,6 +34,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentImpl;
+import org.apache.ambari.server.state.StackVersion;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
@@ -88,11 +89,19 @@ public class AmbariManagementControllerImpl implements
           + ", request=" + request);
     }
 
+    // TODO validate stack version
+
     clusters.addCluster(request.getClusterName());
 
     if (request.getHostNames() != null) {
       clusters.mapHostsToCluster(request.getHostNames(),
           request.getClusterName());
+    }
+
+    Cluster c = clusters.getCluster(request.getClusterName());
+    if (request.getStackVersion() != null) {
+      c.setDesiredStackVersion(
+          new StackVersion(request.getStackVersion()));
     }
 
     // TODO
@@ -188,7 +197,8 @@ public class AmbariManagementControllerImpl implements
       sc = s.getServiceComponent(request.getComponentName());
       if (sc != null) {
         // TODO fix exception
-        throw new AmbariException("ServiceComponent already exists within cluster"
+        throw new AmbariException("ServiceComponent already exists"
+            + " within cluster"
             + ", clusterName=" + cluster.getClusterName()
             + ", clusterId=" + cluster.getClusterId()
             + ", serviceName=" + s.getName()
@@ -434,7 +444,7 @@ public class AmbariManagementControllerImpl implements
     execCmd.setCommandId(stage.getActionId());
     execCmd.setClusterName(scHost.getClusterName());
 
-    // Generate topology info
+    // Generate cluster host info
     // TODO fix - use something from somewhere to generate this at some point
     Map<String, List<String>> clusterHostInfo =
         new TreeMap<String, List<String>>();
@@ -749,7 +759,6 @@ public class AmbariManagementControllerImpl implements
       }
     }
 
-
     // TODO additional validation?
 
     // TODO order hostcomponents to determine stages
@@ -816,6 +825,12 @@ public class AmbariManagementControllerImpl implements
         HostAction ha = createHostAction(stage, scHost, configs, event,
             nowTimestamp);
         stage.addHostAction(scHost.getHostName(), ha);
+      }
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Adding new stage for updateService request"
+            + ", clusterName=" + request.getClusterName()
+            + ", serviceName=" + request.getServiceName()
+            + ", stage=" + stage);
       }
       stages.add(stage);
     }
@@ -917,9 +932,10 @@ public class AmbariManagementControllerImpl implements
 
     long nowTimestamp = System.currentTimeMillis();
     long requestId = requestCounter.incrementAndGet();
-
+    long stageId = 0;
     List<Stage> stages = new ArrayList<Stage>();
     Stage stage = createNewStage(cluster, requestId);
+    stage.setStageId(++stageId);
     for (ServiceComponentHost scHost : changedScHosts) {
       Map<String, Config> configs = null;
       ServiceComponentHostEvent event;
@@ -962,6 +978,14 @@ public class AmbariManagementControllerImpl implements
           nowTimestamp);
       stage.addHostAction(scHost.getHostName(), ha);
     }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Adding new stage for updateComponent request"
+          + ", clusterName=" + request.getClusterName()
+          + ", serviceName=" + request.getServiceName()
+          + ", componentName=" + request.getComponentName()
+          + ", stage=" + stage);
+    }
+    stages.add(stage);
 
     for (ServiceComponentHost sch : changedScHosts) {
       sch.setDesiredState(newState);
@@ -1073,9 +1097,11 @@ public class AmbariManagementControllerImpl implements
 
     long nowTimestamp = System.currentTimeMillis();
     long requestId = requestCounter.incrementAndGet();
+    long stageId = 0;
 
     List<Stage> stages = new ArrayList<Stage>();
     Stage stage = createNewStage(cluster, requestId);
+    stage.setStageId(++stageId);
 
     Map<String, Config> configs = null;
     ServiceComponentHostEvent event;
@@ -1117,6 +1143,15 @@ public class AmbariManagementControllerImpl implements
     HostAction ha = createHostAction(stage, sch, configs, event,
         nowTimestamp);
     stage.addHostAction(sch.getHostName(), ha);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Adding new stage for createHostComponent request"
+          + ", clusterName=" + request.getClusterName()
+          + ", serviceName=" + request.getServiceName()
+          + ", componentName=" + request.getComponentName()
+          + ", hostname=" + request.getHostname()
+          + ", stage=" + stage);
+    }
+    stages.add(stage);
 
     sch.setDesiredState(newState);
 

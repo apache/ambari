@@ -37,8 +37,13 @@ import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AmbariManagementControllerTest {
+
+  private static final Logger LOG =
+      LoggerFactory.getLogger(AmbariManagementControllerTest.class);
 
   private AmbariManagementController controller;
   private Clusters clusters;
@@ -173,7 +178,7 @@ public class AmbariManagementControllerTest {
     for (ServiceResponse svc : response) {
       Assert.assertTrue(svc.getServiceName().equals(serviceName)
           || svc.getServiceName().equals(serviceName2));
-      Assert.assertEquals("", svc.getDesiredStackVersion());
+      Assert.assertEquals("1.0.0", svc.getDesiredStackVersion());
       Assert.assertEquals(State.INIT.toString(), svc.getDesiredState());
     }
 
@@ -322,26 +327,39 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testInstallService() throws AmbariException {
+  public void testInstallAndStartService() throws AmbariException {
     testCreateServiceComponentHost();
 
     String clusterName = "foo1";
     String serviceName = "HDFS";
 
-    ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, null,
         State.INSTALLED.toString());
 
-    controller.updateService(r);
+    controller.updateService(r1);
 
     // TODO validate stages?
-//    List<Stage> stages = db.getAllStages(1);
-//
-//    for (Stage stage : stages) {
-//      for (String h : stage.getHosts()) {
-//        System.out.println("Stage " + stage.getStageId()
-//            + " : Host " + h);
-//      }
-//    }
+    List<Stage> stages = db.getAllStages(1);
+    Assert.assertEquals(2, stages.size());
+
+    for (Stage stage : stages) {
+      LOG.info("Stage Details for Install Service: " + stage);
+    }
+
+    ServiceRequest r2 = new ServiceRequest(clusterName, serviceName, null,
+        State.STARTED.toString());
+
+    controller.updateService(r2);
+
+    // TODO validate stages?
+    stages = db.getAllStages(2);
+    Assert.assertEquals(2, stages.size());
+
+    for (Stage stage : stages) {
+      LOG.info("Stage Details for Start Service: " + stage);
+    }
+
+
   }
 
 
