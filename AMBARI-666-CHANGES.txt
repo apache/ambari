@@ -225,6 +225,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-834. Use RoleCommand instead of ServiceComponentHostEventType for HostAction
+  in Controller. (hitesh)
+
   AMBARI-830. Various fixes and tests for controller implementation. (hitesh)
 
   AMBARI-808. Handle appropriate start/stop/install/.. events at their respective

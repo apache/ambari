@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostAction;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -62,6 +63,10 @@ public class AmbariManagementControllerImpl implements
       LoggerFactory.getLogger(AmbariManagementControllerImpl.class);
 
   private final Clusters clusters;
+
+  // FIXME this needs to be unique across restarts
+  // TODO change requestId to string and use server start timestamp + in-memory
+  // request counter to make the request id unique?
   private final AtomicLong requestCounter;
   private String baseLogDir = "/tmp/ambari/";
 
@@ -79,7 +84,7 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
-      // TODO throw error
+      // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
 
@@ -113,7 +118,7 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
-      // TODO throw error
+      // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
 
@@ -147,12 +152,15 @@ public class AmbariManagementControllerImpl implements
     s = new ServiceImpl(cluster, request.getServiceName());
 
     // TODO validate correct desired state
+    // TODO take action based on desired state
+    // should we allow a non-INIT desired state?
+
     if (request.getDesiredState() != null
         && !request.getDesiredState().isEmpty()) {
       State state = State.valueOf(request.getDesiredState());
       if (!state.isValidDesiredState()
           || state != State.INIT) {
-        // TODO fix
+        // FIXME throw correct error
         throw new AmbariException("Invalid desired state");
       }
 
@@ -161,9 +169,6 @@ public class AmbariManagementControllerImpl implements
     s.updateConfigs(configs);
     s.setDesiredStackVersion(cluster.getDesiredStackVersion());
     cluster.addService(s);
-
-    // TODO take action based on desired state
-    // should we allow a non-INIT desired state?
 
     // TODO
     return null;
@@ -178,7 +183,7 @@ public class AmbariManagementControllerImpl implements
         || request.getServiceName().isEmpty()
         || request.getComponentName() == null
         || request.getComponentName().isEmpty()) {
-      // TODO throw exception
+      // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
 
@@ -244,7 +249,7 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
     if (request.getHostname() == null
         || request.getHostname().isEmpty()) {
-      // TODO throw error
+      // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
 
@@ -256,7 +261,7 @@ public class AmbariManagementControllerImpl implements
 
     Host h = clusters.getHost(request.getHostname());
     if (h == null) {
-      // TODO throw exception as not bootstrapped
+      // FIXME throw correct error as not bootstrapped
     }
     // TODO should agent registration create entry in the DB or should we
     // re-think schema to allow simple new entry
@@ -285,7 +290,7 @@ public class AmbariManagementControllerImpl implements
         || request.getComponentName().isEmpty()
         || request.getHostname() == null
         || request.getHostname().isEmpty()) {
-      // TODO throw error
+      // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
 
@@ -363,7 +368,7 @@ public class AmbariManagementControllerImpl implements
       // better way to say nothing to do?
       return null;
     } else {
-      // TODO throw error?
+      // FIXME throw correct error?
       // only INIT allowed in create?
     }
 
@@ -427,7 +432,7 @@ public class AmbariManagementControllerImpl implements
 
   private HostAction createHostAction(Stage stage, ServiceComponentHost scHost,
       Map<String, Config> configs,
-      ServiceComponentHostEvent event,
+      RoleCommand command,
       long nowTimestamp) {
 
     HostAction ha = new HostAction(scHost.getHostName());
@@ -473,7 +478,7 @@ public class AmbariManagementControllerImpl implements
     roleParams.put("magic_role_param", "false");
 
     execCmd.addRoleCommand(scHost.getServiceComponentName(),
-        event.getType().toString(), roleParams);
+        command.toString(), roleParams);
 
     return ha;
   }
@@ -626,7 +631,7 @@ public class AmbariManagementControllerImpl implements
     // for now only update host list supported
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
-      // TODO throw error
+      // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
 
@@ -664,7 +669,7 @@ public class AmbariManagementControllerImpl implements
         || request.getClusterName().isEmpty()
         || request.getServiceName() == null
         || request.getServiceName().isEmpty()) {
-      // TODO throw error
+      // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
 
@@ -689,19 +694,35 @@ public class AmbariManagementControllerImpl implements
 
     if (request.getDesiredState() == null) {
       // TODO fix return
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Nothing to do for new updateService request"
+            + ", clusterName=" + request.getClusterName()
+            + ", serviceName=" + request.getServiceName()
+            + ", newDesiredState=null");
+      }
       return null;
     }
 
     State newState = State.valueOf(request.getDesiredState());
     if (!newState.isValidDesiredState()) {
-      // TODO fix
+      // FIXME fix with appropriate exception
       throw new AmbariException("Invalid desired state");
     }
 
 
     State oldState = s.getDesiredState();
     if (newState == oldState) {
+      // FIXME should we still check whether all servicecomponents and
+      // servicecomponenthosts are in the required desired state?
+
       // TODO fix return
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Nothing to do for new updateService request"
+            + ", clusterName=" + request.getClusterName()
+            + ", serviceName=" + request.getServiceName()
+            + ", oldDesiredState=" + oldState
+            + ", newDesiredState=" + newState);
+      }
       return null;
     }
 
@@ -787,20 +808,16 @@ public class AmbariManagementControllerImpl implements
       stage.setStageId(++stageId);
       for (ServiceComponentHost scHost : changedScHosts.get(compName)) {
         Map<String, Config> configs = null;
-        ServiceComponentHostEvent event;
+        RoleCommand roleCommand;
         State oldSchState = scHost.getDesiredState();
         switch(newState) {
           case INSTALLED:
             if (oldSchState == State.INIT
                 || oldSchState == State.UNINSTALLED
                 || oldSchState == State.INSTALLED) {
-              event = new ServiceComponentHostInstallEvent(
-                  scHost.getServiceComponentName(),
-                  scHost.getHostName(), nowTimestamp);
+              roleCommand = RoleCommand.INSTALL;
             } else if (oldSchState == State.STARTED) {
-              event = new ServiceComponentHostStopEvent(
-                  scHost.getServiceComponentName(),
-                  scHost.getHostName(), nowTimestamp);
+              roleCommand = RoleCommand.STOP;
             } else {
               throw new AmbariException("Invalid transition"
                   + ", oldDesiredState=" + oldSchState
@@ -809,9 +826,7 @@ public class AmbariManagementControllerImpl implements
             break;
           case STARTED:
             if (oldSchState == State.INSTALLED) {
-                event = new ServiceComponentHostStartEvent(
-                    scHost.getServiceComponentName(),
-                    scHost.getHostName(), nowTimestamp);
+              roleCommand = RoleCommand.START;
             } else {
               throw new AmbariException("Invalid transition"
                   + ", oldDesiredState=" + oldSchState
@@ -823,7 +838,7 @@ public class AmbariManagementControllerImpl implements
             throw new AmbariException("Unsupported state change operation");
         }
 
-        HostAction ha = createHostAction(stage, scHost, configs, event,
+        HostAction ha = createHostAction(stage, scHost, configs, roleCommand,
             nowTimestamp);
         stage.addHostAction(scHost.getHostName(), ha);
       }
@@ -940,20 +955,16 @@ public class AmbariManagementControllerImpl implements
     stage.setStageId(++stageId);
     for (ServiceComponentHost scHost : changedScHosts) {
       Map<String, Config> configs = null;
-      ServiceComponentHostEvent event;
+      RoleCommand roleCommand;
       State oldSchState = scHost.getDesiredState();
       switch(newState) {
         case INSTALLED:
           if (oldSchState == State.INIT
               || oldSchState == State.UNINSTALLED
               || oldSchState == State.INSTALLED) {
-            event = new ServiceComponentHostInstallEvent(
-                scHost.getServiceComponentName(),
-                scHost.getHostName(), nowTimestamp);
+            roleCommand = RoleCommand.INSTALL;
           } else if (oldSchState == State.STARTED) {
-            event = new ServiceComponentHostStopEvent(
-                scHost.getServiceComponentName(),
-                scHost.getHostName(), nowTimestamp);
+            roleCommand = RoleCommand.STOP;
           } else {
             throw new AmbariException("Invalid transition"
                 + ", oldDesiredState=" + oldSchState
@@ -962,9 +973,7 @@ public class AmbariManagementControllerImpl implements
           break;
         case STARTED:
           if (oldSchState == State.INSTALLED) {
-              event = new ServiceComponentHostStartEvent(
-                  scHost.getServiceComponentName(),
-                  scHost.getHostName(), nowTimestamp);
+            roleCommand = RoleCommand.START;
           } else {
             throw new AmbariException("Invalid transition"
                 + ", oldDesiredState=" + oldSchState
@@ -976,7 +985,7 @@ public class AmbariManagementControllerImpl implements
           throw new AmbariException("Unsupported state change operation");
       }
 
-      HostAction ha = createHostAction(stage, scHost, configs, event,
+      HostAction ha = createHostAction(stage, scHost, configs, roleCommand,
           nowTimestamp);
       stage.addHostAction(scHost.getHostName(), ha);
     }
@@ -1005,7 +1014,7 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
     if (request.getHostname() == null
         || request.getHostname().isEmpty()) {
-      // TODO throw error
+      // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
 
@@ -1042,7 +1051,7 @@ public class AmbariManagementControllerImpl implements
         || request.getComponentName().isEmpty()
         || request.getHostname() == null
         || request.getHostname().isEmpty()) {
-      // TODO throw error
+      // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
 
@@ -1107,20 +1116,16 @@ public class AmbariManagementControllerImpl implements
     stage.setStageId(++stageId);
 
     Map<String, Config> configs = null;
-    ServiceComponentHostEvent event;
+    RoleCommand roleCommand;
     State oldSchState = sch.getDesiredState();
     switch(newState) {
       case INSTALLED:
         if (oldSchState == State.INIT
             || oldSchState == State.UNINSTALLED
             || oldSchState == State.INSTALLED) {
-          event = new ServiceComponentHostInstallEvent(
-              sch.getServiceComponentName(),
-              sch.getHostName(), nowTimestamp);
+          roleCommand = RoleCommand.INSTALL;
         } else if (oldSchState == State.STARTED) {
-          event = new ServiceComponentHostStopEvent(
-              sch.getServiceComponentName(),
-              sch.getHostName(), nowTimestamp);
+          roleCommand = RoleCommand.STOP;
         } else {
           throw new AmbariException("Invalid transition"
               + ", oldDesiredState=" + oldSchState
@@ -1129,9 +1134,7 @@ public class AmbariManagementControllerImpl implements
         break;
       case STARTED:
         if (oldSchState == State.INSTALLED) {
-            event = new ServiceComponentHostStartEvent(
-                sch.getServiceComponentName(),
-                sch.getHostName(), nowTimestamp);
+          roleCommand = RoleCommand.START;
         } else {
           throw new AmbariException("Invalid transition"
               + ", oldDesiredState=" + oldSchState
@@ -1143,7 +1146,7 @@ public class AmbariManagementControllerImpl implements
         throw new AmbariException("Unsupported state change operation");
     }
 
-    HostAction ha = createHostAction(stage, sch, configs, event,
+    HostAction ha = createHostAction(stage, sch, configs, roleCommand,
         nowTimestamp);
     stage.addHostAction(sch.getHostName(), ha);
     if (LOG.isDebugEnabled()) {
