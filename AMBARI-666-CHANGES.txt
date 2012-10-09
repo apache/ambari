@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-828. Manifest generation for various actions from the server.
+  (mahadev)
+
   AMBARI-827. Add clusterName to the status of the commands run by the agent.
   (mahadev)
 

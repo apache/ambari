@@ -1,0 +1,33 @@
+{
+"commandId": "234",
+"hostname":  "h1.hortonworks.com",
+
+"clusterHostInfo" : 
+{
+"NAMENODE": ["h2.hortonworks.com"],
+"DATANODE": ["h1.hortonworks.com", "h2.hortonworks.com"]
+},
+"params": 
+{
+"hdfs_user" : "hdfs",
+"jdk_location": "lah/blah"
+},
+"configurations" : {
+"hdfs_site" : { "dfs.block.size" : "256000000", "dfs.replication" : "1" } ,
+"core_site" :  { "fs.default.name" : "hrt8n36.cc1.ygridcore.net" }
+},
+"roles": [
+{
+"role" : "DATANODE", 
+"roleCommand": "START",
+"params" : {
+"myid" : "23"
+}
+},
+{
+"role": "NAMENODE",
+"roleCommand": "INSTALL",
+"params" : {}
+}
+]
+}
