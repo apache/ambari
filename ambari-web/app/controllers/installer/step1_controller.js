@@ -17,19 +17,35 @@
  */
 
 var App = require('app');
-var db = require('utils/db');
+require('utils/db');
 
 App.InstallerStep1Controller = Em.Controller.extend({
   name: 'installerStep1Controller',
   content: [],
   clusterName: '',
-  invalidClusterName: false,
   clusterNameError: '',
+  invalidClusterName: true,
 
   /**
    * Returns true if the cluster name is valid and stores it in localStorage.
    * Returns false otherwise, and sets appropriate field error message.
    */
+
+  clearStep: function() {
+    this.set('clusterName','');
+  },
+
+  loadStep: function () {
+    var clusterName;
+    console.log('The value of the cluster name is: ' + App.db.getClusterName());
+    if (App.db.getClusterName() !== undefined && App.db.getClusterName() !== true ) {
+      this.set('clusterName', App.db.getClusterName());
+    } else {
+      this.set('clusterNameError','');
+      this.set('invalidClusterName',true);
+    }
+  },
+
   validateStep1: function () {
     console.log('TRACE: Entering controller:InstallerStep1:validateStep1 function');
     if (this.get('clusterName') == '') {
@@ -50,9 +66,16 @@ App.InstallerStep1Controller = Em.Controller.extend({
       console.log('value of clusterName is: ' + this.get('clusterName'));
       this.set('clusterNameError', '');
       this.set('invalidClusterName', false);
-      db.setClusterName(this.get('clusterName'));
       return true;
     }
-  }.observes('clusterName')
+  }.observes('clusterName'),
+
+  submit: function () {
+    this.validateStep1();
+    if (this.get('clusterNameError') === '') {
+      App.db.setClusterName(this.get('clusterName'));
+      App.router.send('next');
+    }
+  }
 
 })

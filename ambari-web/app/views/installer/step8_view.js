@@ -25,8 +25,13 @@ App.InstallerStep8View = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
-    controller.navigateStep();
-  }
+    console.log('***^^^****2 over here*****^^^^*******');
+    controller.loadStep();
+    //this.doConfigsUneditable();
+  },
 
+  doConfigsUneditable: function() {
+
+  }
 
 });

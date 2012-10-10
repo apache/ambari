@@ -20,7 +20,7 @@
 <p class="alert alert-info">
   {{t installer.step1.body}}
 </p>
-<div {{bindAttr class="invalidClusterName:error :control-group"}}>
+<div {{bindAttr class="view.onError:error :control-group"}}>
   <label class="control-label" for="cluster-name">{{t installer.step1.clusterName}}
     <a href="javascript:void(null)"
        rel="popover"
@@ -35,7 +35,7 @@
 </div>
 
 <div class="btn-area">
-  <a class="btn btn-success pull-right" {{bindAttr disabled= "invalidClusterName"}} {{action next}}>Next &rarr;</a>
+  <a class="btn btn-success pull-right" {{bindAttr disabled= "invalidClusterName"}} {{action "submit" target="controller"}}>Next &rarr;</a>
 </div>
 
 

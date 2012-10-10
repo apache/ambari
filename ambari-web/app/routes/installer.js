@@ -15,17 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+var App = require('app');
 module.exports = Em.Route.extend({
   route: '/installer',
-
+  App: require('app'),
   enter: function (router) {
     console.log('in /installer:enter');
 
     if (router.getAuthenticated()) {
       console.log('In installer with successful authenticated');
+     // router.loadAllPriorSteps(router.getInstallerCurrentStep());
       Ember.run.next(function () {
-        router.loadAllPriorSteps(router.getInstallerCurrentStep());
         router.transitionTo('step' + router.getInstallerCurrentStep());
       });
     } else {
@@ -42,9 +42,9 @@ module.exports = Em.Route.extend({
     console.log("INFO: value of event is: " + event);
     router.setNavigationFlow(event);
     if (!router.isFwdNavigation) {
-      this._super(router,event);
+      this._super(router, event);
     } else {
-      router.set('backBtnForHigherStep',true);
+      router.set('backBtnForHigherStep', true);
       router.transitionTo('step' + router.getInstallerCurrentStep());
     }
   },
@@ -65,15 +65,7 @@ module.exports = Em.Route.extend({
       router.setInstallerCurrentStep('1', false);
       router.get('installerController').connectOutlet('installerStep1');
     },
-
-    next: function (router, context) {
-      var result = router.get('installerStep1Controller').validateStep1();
-      if (result === true) {
-        router.transitionTo('step2');
-      } else {
-        router.get('installerController').connectOutlet('installerStep1');
-      }
-    }
+    next: Em.Router.transitionTo('step2')
   }),
 
   step2: Em.Route.extend({
@@ -85,10 +77,17 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step1'),
     next: function (router, context) {
-      var result = router.get('installerStep2Controller').evaluateStep2();
-      if (result === false) {
-        console.log('ERROR: error in evaluateStep2 function');
+      App.db.setBootStatus(false);
+      var hosts = App.db.getHosts();
+      var hostInfo = {};
+      for (var index in hosts) {
+        hostInfo[index] = {
+          name: hosts[index].name,
+          bootStatus: 'pending'
+        };
       }
+      App.db.setHosts(hostInfo);
+      router.transitionTo('step3');
     }
   }),
 
@@ -100,7 +99,11 @@ module.exports = Em.Route.extend({
       router.get('installerController').connectOutlet('installerStep3');
     },
     back: Em.Router.transitionTo('step2'),
-    next: Em.Router.transitionTo('step4')
+    next: function (router, context) {
+      App.db.setBootStatus(true);
+      App.db.setService(router.get('installerStep4Controller.rawContent'));
+      router.transitionTo('step4');
+    }
   }),
 
   step4: Em.Route.extend({
@@ -125,7 +128,10 @@ module.exports = Em.Route.extend({
       router.get('installerController').connectOutlet('installerStep5');
     },
     back: Em.Router.transitionTo('step4'),
-    next: Em.Router.transitionTo('step6')
+    next: function (router, context) {
+      App.db.setSlaveComponentHosts(undefined);
+      router.transitionTo('step6');
+    }
   }),
 
   step6: Em.Route.extend({
@@ -136,7 +142,10 @@ module.exports = Em.Route.extend({
       router.get('installerController').connectOutlet('installerStep6');
     },
     back: Em.Router.transitionTo('step5'),
-    next: Em.Router.transitionTo('step7')
+    next: function (router, context) {
+      App.db.setServiceConfigProperties(undefined);
+      router.transitionTo('step7');
+    }
   }),
 
   step7: Em.Route.extend({
@@ -159,7 +168,19 @@ module.exports = Em.Route.extend({
       router.get('installerController').connectOutlet('installerStep8');
     },
     back: Em.Router.transitionTo('step7'),
-    next: Em.Router.transitionTo('step9')
+
+    next: function (router, context) {
+      App.db.setClusterStatus({status: 'pending', isCompleted: false});
+      var hostInfo = App.db.getHosts();
+      for (var index in hostInfo) {
+        hostInfo[index].status = "pending";
+        hostInfo[index].message = 'Information';
+        hostInfo[index].progress = '0';
+      }
+      App.db.setHosts(hostInfo);
+      console.log("TRACE: host name is: " + hostInfo[index].name);
+      router.transitionTo('step9');
+    }
   }),
 
   step9: Em.Route.extend({

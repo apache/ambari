@@ -17,6 +17,47 @@
 -->
 
 <h2>{{t installer.step8.header}}</h2>
+<div class="alert alert-info">
+  {{t installer.step8.body}}
+</div>
+
+<div class="accordion">
+
+  {{#each service in controller}}
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle">
+        {{service.serviceName}}
+      </a>
+    </div>
+    {{#each category in service.configCategories}}
+
+
+    {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="service.configs"}}
+    <div class="accordion-body collapse in">
+      <div class="accordion-inner">
+        <form class="form-horizontal">
+          {{#each view.categoryConfigs}}
+          <div {{bindAttr class="errorMessage:error: :control-group"}}>
+            <label class="control-label">{{displayName}}</label>
+
+            <div class="controls">
+              {{view viewClass serviceConfigBinding="this"}}
+            </div>
+          </div>
+          {{/each}}
+        </form>
+      </div>
+    </div>
+    {{/view}}
+    {{/each}}
+  </div>
+  {{/each}}
+
+
+</div>
+
+
 <div class="btn-area">
   <a class="btn pull-left" {{action back}}>&larr; Back</a>
   <a class="btn btn-success pull-right" {{action next}}>Next &rarr;</a>

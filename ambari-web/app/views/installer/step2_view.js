@@ -22,11 +22,25 @@ var App = require('app');
 App.InstallerStep2View = Em.View.extend({
 
   templateName: require('templates/installer/step2'),
+  hostNameErr: false,
 
   didInsertElement: function () {
     $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
-    this.get('controller').navigateStep();
-  }
+    this.set('hostNameErr',false);
+    this.set('controller.passphraseMatchErr',false);
+    this.set('controller.sshKeyNullErr',false);
+    this.get('controller').loadStep();
+  },
+
+
+  onHostNameErr: function () {
+    if (this.get('controller.hostNameEmptyError') === false && this.get('controller.hostNameNotRequiredErr') === false && this.get('controller.hostNameErr') === false) {
+      this.set('hostNameErr',false);
+    } else {
+      this.set('hostNameErr',true);
+    }
+  }.observes('controller.hostNameEmptyError', 'controller.hostNameNotRequiredErr', 'controller.hostNameErr'),
+
 
 });
 

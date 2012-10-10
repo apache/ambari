@@ -241,6 +241,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-840. Hitting browser refresh should not clear present step data that 
+  had already been persisted to local DB. (Jaimin Jetly via yusaku)
+
   AMBARI-843. Fix more null pointers for partial request objects. (hitesh)
 
   AMBARI-842. Fix null point exception during adding of hosts to cluster. (hitesh)

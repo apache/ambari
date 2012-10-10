@@ -21,64 +21,75 @@ module.exports = [
     serviceName: 'HDFS',
     displayName: 'HDFS',
     isDisabled: true,
+    isSelected: true,
     description: Em.I18n.t('services.hdfs.description')
   },
   {
     serviceName: 'MAPREDUCE',
     displayName: 'MapReduce',
     isDisabled: false,
+    isSelected: true,
     description: Em.I18n.t('services.mapreduce.description')
   },
   {
     serviceName: 'NAGIOS',
     displayName: 'Nagios',
     isDisabled: false,
+    isSelected: true,
     description: Em.I18n.t('services.nagios.description')
   },
   {
     serviceName: 'GANGLIA',
     displayName: 'Ganglia',
     isDisabled: false,
+    isSelected: true,
     description: Em.I18n.t('services.ganglia.description')
   },
   {
     serviceName: 'HIVE',
     displayName: 'Hive + HCatalog',
     isDisabled: false,
+    isSelected: true,
     description: Em.I18n.t('services.hive.description')
   },
   {
     serviceName: 'HBASE',
     displayName: 'HBase + ZooKeeper',
     isDisabled: false,
+    isSelected: true,
     description: Em.I18n.t('services.hbase.description')
   },
   {
     serviceName: 'PIG',
     displayName: 'Pig',
     isDisabled: false,
+    isSelected: true,
     description: Em.I18n.t('services.pig.description')
   },
   {
     serviceName: 'SQOOP',
     displayName: 'Sqoop',
     isDisabled: false,
+    isSelected: true,
     description: Em.I18n.t('services.sqoop.description')
   },
   {
     serviceName: 'OOZIE',
     displayName: 'Oozie',
     isDisabled: false,
+    isSelected: true,
     description: Em.I18n.t('services.oozie.description')
   },
   {
     serviceName: 'ZOOKEEPER',
     isDisabled: false,
+    isSelected: true,
     isHidden: true
   },
   {
     serviceName: 'HCATALOG',
     isDisabled: false,
+    isSelected: true,
     isHidden: true
   }
 ]

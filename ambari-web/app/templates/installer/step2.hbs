@@ -18,9 +18,9 @@
 
 <h2>{{t installer.step2.header}}</h2>
 
-<h5 {{bindAttr class="hostManageErr:text-error"}}>{{t installer.step2.targetHosts}}</h5>
+<h5>{{t installer.step2.targetHosts}}</h5>
 
-<div {{bindAttr class="hostNameErrMsg:error :control-group"}}>
+<div {{bindAttr class="view.hostNameErr:error :control-group"}}>
   <p>{{t installer.step2.targetHosts.info}}. Or use
     <a href="javascript:void(null)"
        rel="popover"
@@ -31,7 +31,7 @@
 
   <div class="controls">
     {{view Ember.TextArea class="span6" valueBinding="hostNames" rows="5" placeholder="host names"}}
-    {{#if hostNameErrMsg}}
+    {{#if view.hostNameErr}}
     <p class="help-inline">{{hostNameErrMsg}}</p>
     {{/if}}
   </div>
@@ -66,7 +66,7 @@
 
 </div>
 
-<h5 {{bindAttr class="advOptErr:text-error"}}>{{t installer.step2.advancedOption}}</h5>
+<h5>{{t installer.step2.advancedOption}}</h5>
 <label class="checkbox">
   {{t installer.step2.manualInstallOption}}
   <a href="javascript:void(null)"
@@ -104,7 +104,7 @@
   <a role="button" class="btn btn-success pull-right"
      data-toggle="modal" {{action evaluateStep2 target="controller"}}>Validate &rarr;</a>
   {{else}}
-  <a class="btn btn-success pull-right" {{action next}}> Discover and
+  <a class="btn btn-success pull-right" {{action evaluateStep2 target="controller"}}> Discover and
     Validate &rarr; </a>
   {{/if}}
 </div>

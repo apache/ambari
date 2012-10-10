@@ -40,20 +40,21 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
   mockRetryData: require('data/mock/step3_pollData'),
 
   navigateStep: function () {
-    if (App.router.get('isFwdNavigation') === true && !App.router.get('backBtnForHigherStep')) {
-      this.loadStep('pending');
+    this.loadStep();
+    if (App.db.getBootStatus() === false) {
       this.startBootstrap();
     }
-    App.router.set('backBtnForHigherStep', false);
   },
 
-  loadStep: function (bootStatus) {
-    console.log("TRACE: Loading step3: Confirm Hosts");
+  clearStep: function () {
     this.clear();
+  },
+
+  loadStep: function () {
+    console.log("TRACE: Loading step3: Confirm Hosts");
+    this.clearStep();
     var hosts = this.loadHosts();
-    if(bootStatus === 'pending') {
-    hosts.setEach('bootStatus','pending');
-    }
+    // hosts.setEach('bootStatus', 'pending');
     this.renderHosts(hosts);
   },
 
@@ -177,7 +178,7 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
       success: function (data) {
         console.log("TRACE: In success function for the GET bootstrap call");
         var result = self.parseHostInfo(data, this.get('bootHosts'));
-        if (result !== true) {
+        if (result !== true && App.router.getInstallerCurrentStep() === '3') {
           window.setTimeout(self.doBootstrap, 3000);
         } else {
           self.stopBootstrap();

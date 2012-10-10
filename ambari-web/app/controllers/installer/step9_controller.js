@@ -21,13 +21,11 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
   name: 'installerStep9Controller',
   content: [],
   progress: '0',
-  // result: 'pending', // val = pending or success or failed
   isStepCompleted: false,
   isSubmitDisabled: function () {
     return !this.get('isStepCompleted');
   }.property('isStepCompleted'),
 
-  // status: 'info',
   mockHostData: require('data/mock/step9_hosts'),
   pollData_1: require('data/mock/step9_pollData_1'),
   pollData_2: require('data/mock/step9_pollData_2'),
@@ -46,14 +44,14 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
   }.property('@each.status'),
 
   navigateStep: function () {
-    if (App.router.get('isFwdNavigation') === true && !App.router.get('backBtnForHigherStep')) {
-      this.loadStep(true);
-      //TODO: uncomment following line after the hook up with the API call
+    this.loadStep();
+    //TODO: uncomment following line after the hook up with the API call
+    if (App.db.getClusterStatus().isCompleted === false) {
       //this.startPolling();
     } else {
-      this.loadStep(false);
+      this.set('isStepCompleted', true);
+      this.set('progress', '100');
     }
-    App.router.set('backBtnForHigherStep', false);
   },
 
   clearStep: function () {
@@ -63,26 +61,17 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
     this.set('isStepCompleted', false);
   },
 
-  loadStep: function (restart) {
+  loadStep: function () {
     console.log("TRACE: Loading step9: Install, Start and Test");
     this.clearStep();
-    this.renderHosts(this.loadHosts(restart));
+    this.renderHosts(this.loadHosts());
   },
 
-  loadHosts: function (restart) {
+  loadHosts: function () {
     var hostInfo = [];
     hostInfo = App.db.getHosts();
     var hosts = new Ember.Set();
     for (var index in hostInfo) {
-      if (restart === true) {
-        //this.setInitialHostCondn(hostInfo[index]);
-        hostInfo[index].status = "pending";
-        hostInfo[index].message = 'Information';
-        hostInfo[index].progress = '0';
-      } else {
-        this.set('isStepCompleted', true);
-        this.set('progress', '100');
-      }
       hosts.add(hostInfo[index]);
       console.log("TRACE: host name is: " + hostInfo[index].name);
     }
@@ -299,6 +288,7 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
       this.saveHostInfoToDb();
+      App.db.setClusterStatus({status: this.get('status'), isCompleted: true});
       App.get('router').transitionTo('step10');
     }
   },

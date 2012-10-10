@@ -56,44 +56,34 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
     this.slaveComponentHosts.clear();
   },
 
-  navigateStep: function () {
-    if (App.router.get('isFwdNavigation') === true && !App.router.get('backBtnForHigherStep')) {
-      this.loadStep();
-    } else {
-      this.loadStepFromDb();
-    }
-    App.router.set('backBtnForHigherStep', false);
-  },
-
   loadStep: function () {
     console.log("TRACE: Loading step7: Configure Services");
     this.clearStep();
     this.loadConfigs();
     this.renderServiceConfigs(this.serviceConfigs);
-  },
-
-  loadStepFromDb: function () {
-    console.log("TRACE: Loading step7 from localstorage data: Configure Services");
-    this.loadStep();
     var storedServices = db.getServiceConfigProperties();
-    var configs = new Ember.Set();
-    var configProperties = new Ember.Set();
-    this.forEach(function (_content) {
-      _content.get('configs').forEach(function (_config) {
-        configs.add(_config);
+    if (storedServices === undefined) {
+      return;
+    } else {
+      var configs = new Ember.Set();
+      var configProperties = new Ember.Set();
+      this.forEach(function (_content) {
+        _content.get('configs').forEach(function (_config) {
+          configs.add(_config);
+        }, this);
       }, this);
-    }, this);
 
-    var configProperties = new Ember.Set();
-    configs.forEach(function (_config) {
-      var temp = {name: _config.get('name'),
-        value: _config.get('value')};
-      configProperties.add(temp);
-      if (storedServices.someProperty('name', _config.get('name'))) {
-        var componentVal = storedServices.findProperty('name', _config.get('name'));
-        _config.set('value', componentVal.value)
-      }
-    }, this);
+      var configProperties = new Ember.Set();
+      configs.forEach(function (_config) {
+        var temp = {name: _config.get('name'),
+          value: _config.get('value')};
+        configProperties.add(temp);
+        if (storedServices.someProperty('name', _config.get('name'))) {
+          var componentVal = storedServices.findProperty('name', _config.get('name'));
+          _config.set('value', componentVal.value)
+        }
+      }, this);
+    }
   },
 
   loadConfigs: function () {

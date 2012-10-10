@@ -39,23 +39,44 @@ App.InstallerStep2Controller = Em.Controller.extend({
   isSubmitDisabled: false,
 
 
-  clearStep: function() {
-    this.set('hostNames','');
-    this.set('sshKey','');
-    this.set('passphrase','');
-    this.set('confirmPassphrase','');
-    this.set('localRepoPath','');
+  clearStep: function () {
+    this.set('hostNames', '');
+    this.set('sshKey', '');
+    this.set('passphrase', '');
+    this.set('confirmPassphrase', '');
+    this.set('localRepoPath', '');
   },
 
-  navigateStep: function() {
+  navigateStep: function () {
     if (App.router.get('isFwdNavigation') === true) {
       this.loadStep();
     }
   },
 
-  loadStep: function() {
+  loadStep: function () {
     console.log("TRACE: Loading step2: Install Options");
-    this.clearStep();
+    var hostNames = App.db.getAllHostNames();
+    var softrepo = App.db.getSoftRepo();
+    var installType = App.db.getInstallType();
+    if (hostNames !== undefined) {
+      this.set('hostNames', hostNames);
+    } else {
+      this.set('hostNames', '');
+    }
+
+    if (installType !== undefined && installType.installType === 'manual') {
+      this.set('manualInstall', true);
+    } else {
+      this.set('manualInstall', false);
+    }
+
+    if (softrepo !== undefined && softrepo.repoType === 'local') {
+      this.set('localRepo', true);
+      this.set('localRepoPath', softrepo.repoPath);
+    } else {
+      this.set('localRepo', false);
+      this.set('localRepoPath', '');
+    }
   },
 
   installType: function () {
@@ -188,17 +209,12 @@ App.InstallerStep2Controller = Em.Controller.extend({
     console.log('TRACE: Entering controller:InstallerStep2:evaluateStep2 function');
     console.log('value of manual install is: ' + this.get('manualInstall'));
 
-    var validateResult = !this.validateStep2();
-
     if (this.get('isSubmitDisabled') === true) {
       console.log("ERROR: error in validation");
       return false;
-    } else {
-      if (this.get('manualInstall') === true) {
-        this.manualInstallPopup();
-        return true;
-      }
     }
+
+    var validateResult = !this.validateStep2();
 
     var hostInfo = {};
     for (var i = 0; i < this.hostNameArr.length; i++) {
@@ -208,13 +224,25 @@ App.InstallerStep2Controller = Em.Controller.extend({
         bootStatus: 'pending'
       };
     }
+    App.db.setAllHostNames(this.get('hostNames'));
     App.db.setHosts(hostInfo);
-
+    if (this.get('manualInstall') === false) {
+      App.db.setInstallType({installType: 'ambari' });
+    } else {
+      App.db.setInstallType({installType: 'manual' });
+    }
     if (this.get('localRepo') === false) {
       App.db.setSoftRepo({ 'repoType': 'remote', 'repoPath': null});
     } else {
       App.db.setSoftRepo({ 'repoType': 'local', 'repoPath': this.get('localRepoPath') });
     }
+
+
+    if (this.get('manualInstall') === true) {
+      this.manualInstallPopup();
+      return true;
+    }
+
 
     if (this.get('manualInstall') === false) {
       // For now using mock jquery call
@@ -241,7 +269,7 @@ App.InstallerStep2Controller = Em.Controller.extend({
             //After the bootstrap call hook up change the below return statement to "return false"
             console.log("TRACE: In faliure function for the post bootstrap function");
             //Remove below line, once bootstrap has been implemented
-            App.router.transitionTo('step3');
+            App.router.send('next');
             return true;
           }
         },
@@ -258,7 +286,8 @@ App.InstallerStep2Controller = Em.Controller.extend({
       header: Em.I18n.t('installer.step2.manualInstall.popup.header'),
       onPrimary: function () {
         this.hide();
-        App.router.transitionTo('step3');
+        App.router.send('next');
+        //App.router.transitionTo('step3');
       },
       bodyClass: Ember.View.extend({
         templateName: require('templates/installer/step2ManualInstallPopup')

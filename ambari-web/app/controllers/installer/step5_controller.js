@@ -45,14 +45,7 @@ App.InstallerStep5Controller = Em.Controller.extend({
     this.renderComponents(this.loadComponents(this.loadServices()));
   },
 
-  navigateStep: function () {
-    if (App.router.get('isFwdNavigation') === true) {
-      this.loadStep();
-    }
-  },
-
   loadHostInfo: function () {
-    //this.clear();
     var hostInfo = [];
     hostInfo = App.db.getHosts();
     var hosts = new Ember.Set();
@@ -83,7 +76,8 @@ App.InstallerStep5Controller = Em.Controller.extend({
   },
 
   loadServices: function () {
-    var services = App.db.getSelectedServiceNames();
+    var serviceInfo = App.db.getService();
+    var services = serviceInfo.filterProperty('isSelected',true).mapProperty('serviceName');
     services.forEach(function (item) {
       console.log("TRACE: service name is: " + item);
       this.get("selectedServices").pushObject(Ember.Object.create({service_name: item}));

@@ -37,30 +37,40 @@ App.Router = Em.Router.extend({
     }
   },
 
+  clearAllSteps: function() {
+    var totalSteps = 10
+    for (var step = 1; step <= totalSteps; step++){
+      this.get('installerStep' + step + 'Controller').clearStep();
+    }
+  },
+
+  /*
   loadAllPriorSteps: function(step) {
-  var stepVal = parseInt(step);
+    var stepVal = parseInt(step);
     switch(step){
       case '10':
-        this.get('installerStep9Controller').loadStep(false);
+        this.get('installerStep9Controller').loadStep();
       case '9':
         this.get('installerStep8Controller').loadStep();
       case '8':
-        this.get('installerStep7Controller').loadStepFrmDb();
+        this.get('installerStep7Controller').loadStep();
       case '7':
         this.get('installerStep6Controller').loadStep();
       case '6':
         this.get('installerStep5Controller').loadStep();
       case '5':
-        this.get('installerStep4Controller').loadStepFromDb();
+        this.get('installerStep4Controller').loadStep();
       case '4':
-        this.get('installerStep3Controller').loadStep('retainValue');
+        this.get('installerStep3Controller').loadStep();
       case '3':
         this.get('installerStep2Controller').loadStep();
       case '2':
+        this.get('installerStep1Controller').loadStep();
       case '1':
 
     }
   },
+  */
 
   setInstallerCurrentStep: function (currentStep, completed) {
     var loginName = this.getLoginName();
@@ -99,13 +109,12 @@ App.Router = Em.Router.extend({
   getLoginName: function () {
     // TODO: this needs to be hooked up with server authentication
     return App.db.getLoginName();
-    //return localStorage.getItem('Ambari' + 'loginName');
+
   },
 
   setLoginName: function (loginName) {
     // TODO: this needs to be hooked up with server authentication
     App.db.setLoginName(loginName);
-    //localStorage.setItem('Ambari' + 'loginName', loginName);
   },
 
   // that works incorrectly
@@ -124,7 +133,7 @@ App.Router = Em.Router.extend({
     this.setLoginName(loginName);
 
 //    refactor to get user attributes
-//    this.setUser(user);
+    this.setUser(user);
 
     this.transitionTo(this.getSection());
 
@@ -180,6 +189,7 @@ App.Router = Em.Router.extend({
 
     logoff: function (router, context) {
       console.log('logging off');
+      router.clearAllSteps();
       App.db.cleanUp();
       router.set('loginController.loginName', '');
       router.set('loginController.password', '');

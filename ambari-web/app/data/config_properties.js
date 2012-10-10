@@ -738,27 +738,27 @@ module.exports =
       "serviceName": "MISC"
     },
     /*
-    {
-      "name": "hadoop_log_dir",
-      "displayName": "Hadoop Log Dir",
-      "description": "Directory for Hadoop log files",
-      "defaultValue": "/var/log/hadoop",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "serviceName": "MISC",
-      "category": "Advanced"
-    },
-    {
-      "name": "hadoop_pid_dir",
-      "displayName": "Hadoop PID Dir",
-      "description": "Directory in which the pid files for Hadoop processes will be created",
-      "defaultValue": "/var/run/hadoop",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "serviceName": "MISC",
-      "category": "Advanced"
-    },
-    */
+     {
+     "name": "hadoop_log_dir",
+     "displayName": "Hadoop Log Dir",
+     "description": "Directory for Hadoop log files",
+     "defaultValue": "/var/log/hadoop",
+     "isReconfigurable": false,
+     "displayType": "directory",
+     "serviceName": "MISC",
+     "category": "Advanced"
+     },
+     {
+     "name": "hadoop_pid_dir",
+     "displayName": "Hadoop PID Dir",
+     "description": "Directory in which the pid files for Hadoop processes will be created",
+     "defaultValue": "/var/run/hadoop",
+     "isReconfigurable": false,
+     "displayType": "directory",
+     "serviceName": "MISC",
+     "category": "Advanced"
+     },
+     */
     {
       "name": "using_local_repo",
       "displayName": "Whether a local repo is being used",

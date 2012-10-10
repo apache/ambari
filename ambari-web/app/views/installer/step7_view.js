@@ -25,7 +25,7 @@ App.InstallerStep7View = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
-    controller.navigateStep();
+    controller.loadStep();
   }
 
 });
@@ -126,7 +126,11 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
   serviceConfig: null,
   valueBinding: 'serviceConfig.value',
   rows: 4,
-  classNames: ['span6']
+  classNames: ['span6'],
+
+  disabled: function () {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable')
 
 });
 
@@ -137,7 +141,11 @@ App.ServiceConfigBigTextArea = App.ServiceConfigTextArea.extend({
 App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSupport, {
 
   serviceConfig: null,
-  checkedBinding: 'serviceConfig.value'
+  checkedBinding: 'serviceConfig.value',
+
+  disabled: function () {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable')
 
 });
 
@@ -202,7 +210,11 @@ App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHos
   templateName: require('templates/installer/slave_hosts'),
 
   controllerBinding: 'App.router.slaveComponentGroupsController',
-  valueBinding: 'App.router.slaveComponentGroupsController.hosts'
+  valueBinding: 'App.router.slaveComponentGroupsController.hosts',
+
+  disabled: function () {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable')
 
 });
 

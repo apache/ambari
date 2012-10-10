@@ -22,8 +22,20 @@ var App = require('app');
 App.InstallerStep1View = Em.View.extend({
 
   templateName: require('templates/installer/step1'),
+
   didInsertElement: function () {
     $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
-  }
+    var controller = this.get('controller');
+    controller.loadStep();
+
+  },
+
+  onError: function () {
+    if (this.get('controller.clusterNameError') !== '') {
+      return true;
+    } else {
+      return false;
+    }
+  }.property('controller.clusterNameError')
 
 });

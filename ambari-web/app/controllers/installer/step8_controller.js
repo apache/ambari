@@ -20,16 +20,32 @@ var App = require('app');
 
 App.InstallerStep8Controller = Em.ArrayController.extend({
   name: 'installerStep8Controller',
-  content: [],
+  contentBinding: Ember.Binding.oneWay('App.router.installerStep7Controller.content'),
+
 
   clearStep: function () {
     this.clear();
   },
 
   loadStep: function () {
-    console.log("TRACE: Loading step8: Review Page");
-    this.clearStep();
+    console.log("TRACE: Loading step8: Review Page")
+    App.router.get('installerStep7Controller').loadStep();
+    this.doConfigsUneditable();
+  },
 
+  doConfigsUneditable: function () {
+    this.content.forEach(function (_service) {
+      _service.get('configs').forEach(function (_serviceConfig) {
+        console.log('value of isEditable before for: '+ _serviceConfig.name);
+        console.log('value of isEditable before: '+ _serviceConfig.isEditable);
+        console.log('value of displayType before: '+ _serviceConfig.displayType);
+      _serviceConfig.set('isEditable',false);
+        _serviceConfig.set('displayType','string');
+        console.log('value of isEditable after for: '+ _serviceConfig.name);
+        console.log('value of isEditable after: '+ _serviceConfig.isEditable);
+        console.log('value of displayType after: '+ _serviceConfig.displayType);
+      }, this);
+    }, this);
   },
 
   navigateStep: function () {

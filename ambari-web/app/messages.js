@@ -106,6 +106,7 @@ Em.I18n.translations = {
   'installer.step7.attentionNeeded': '<strong>Attention:</strong> Some configurations need your attention before you can proceed.',
 
   'installer.step8.header': 'Review',
+  'installer.step8.body': 'Please review the cluster configuration before installation',
 
   'installer.step9.header': 'Install, Start and Test',
   'installer.step9.body': 'Wait to complete the cluster installation. Installing, Starting and Testing selected services',

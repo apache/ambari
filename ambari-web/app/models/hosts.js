@@ -25,7 +25,6 @@ App.HostInfo = Ember.Object.extend({
   cpu: '2',
   memory: '2',
   message: 'Information',
-  //progress: '0',
   barColor: 'progress-info',
   isChecked: true
 });

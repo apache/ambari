@@ -45,15 +45,20 @@ App.InstallerStep4Controller = Em.ArrayController.extend({
     }
   }.observes('@each.isSelected'),
 
-  navigateStep: function () {
-    if (App.router.get('isFwdNavigation') === true && !App.router.get('backBtnForHigherStep')) {
-      this.loadStepFromContent();
-    } else {
-      this.loadStepFromDb();
-    }
-    App.router.set('backBtnForHigherStep', false);
+  clearStep: function () {
+    this.clear();
   },
 
+  loadStep: function() {
+    this.clearStep();
+    this.renderStep(this.loadServices());
+  },
+
+  loadServices: function() {
+    return db.getService();
+  },
+
+  /*
   loadStepFromContent: function () {
     console.log("TRACE: Loading from rawContent/API step4: Choose Services");
     this.clear();
@@ -61,7 +66,9 @@ App.InstallerStep4Controller = Em.ArrayController.extend({
     rawContent.setEach('isSelected', true);
     this.renderStep(rawContent);
   },
+  */
 
+  /*
   loadStepFromDb: function () {
     console.log("TRACE: Loading form localStorage step4: Choose Services");
     this.clear();
@@ -81,9 +88,10 @@ App.InstallerStep4Controller = Em.ArrayController.extend({
       this.renderStep(rawContent);
     }
   },
+  */
 
-  renderStep: function (rawContent) {
-    rawContent.forEach(function (item) {
+  renderStep: function (serviceInfo) {
+    serviceInfo.forEach(function (item) {
       this.pushObject(Ember.Object.create(item));
     }, this);
   },
@@ -98,6 +106,7 @@ App.InstallerStep4Controller = Em.ArrayController.extend({
 
   saveSelectedServiceNamesToDB: function () {
     var serviceNames = [];
+    db.setService(this.get('content'));
     this.filterProperty('isSelected', true).forEach(function (item) {
       serviceNames.push(item.serviceName);
     });
