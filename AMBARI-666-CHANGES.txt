@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-841. Fix comparison predicates in case where resource does not have
+  property value. (Tom Beerbower via mahadev)
+
   AMBARI-833. Add missing Path annotation to rest services for
   put/post/delete. (John Speidel via mahadev)
 

@@ -32,7 +32,8 @@ public class GreaterEqualsPredicate extends ComparisonPredicate {
 
   @Override
   public boolean evaluate(Resource resource) {
-    return getValue().compareTo(resource.getPropertyValue(getPropertyId())) <= 0;
+    String propertyValue = resource.getPropertyValue(getPropertyId());
+    return propertyValue == null ? false : getValue().compareTo(resource.getPropertyValue(getPropertyId())) <= 0;
   }
 
   @Override

@@ -41,6 +41,12 @@ public class EqualsPredicateTest {
 
     resource.setProperty(propertyId, "bar");
     Assert.assertTrue(predicate.evaluate(resource));
+
+
+    propertyId = new PropertyIdImpl("fun", "category1", false);
+    predicate = new EqualsPredicate(propertyId, "bar");
+
+    Assert.assertFalse(predicate.evaluate(resource));
   }
 
   @Test
