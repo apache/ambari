@@ -72,10 +72,11 @@ public class ClusterService extends BaseService {
    * @param clusterName cluster id
    * @return information regarding the created cluster
    */
-  @PUT
-  @Produces("text/plain")
-  public Response createCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                @PathParam("clusterName") String clusterName) {
+   @PUT
+   @Path("{clusterName}")
+   @Produces("text/plain")
+   public Response createCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                 @PathParam("clusterName") String clusterName) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT, createResourceDefinition(clusterName));
   }
@@ -90,6 +91,7 @@ public class ClusterService extends BaseService {
    * @return information regarding the updated cluster
    */
   @POST
+  @Path("{clusterName}")
   @Produces("text/plain")
   public Response updateCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("clusterName") String clusterName) {
@@ -107,6 +109,7 @@ public class ClusterService extends BaseService {
    * @return information regarding the deleted cluster
    */
   @DELETE
+  @Path("{clusterName}")
   @Produces("text/plain")
   public Response deleteCluster(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("clusterName") String clusterName) {

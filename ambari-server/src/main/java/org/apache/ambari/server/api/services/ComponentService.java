@@ -95,6 +95,7 @@ public class ComponentService extends BaseService {
    * @return information regarding the created component
    */
   @PUT
+  @Path("{componentName}")
   @Produces("text/plain")
   public Response createComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("componentName") String componentName) {
@@ -115,6 +116,7 @@ public class ComponentService extends BaseService {
    * @return information regarding the updated component
    */
   @POST
+  @Path("{componentName}")
   @Produces("text/plain")
   public Response updateComponent(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("componentName") String componentName) {
@@ -133,6 +135,7 @@ public class ComponentService extends BaseService {
    * @return information regarding the deleted cluster
    */
   @DELETE
+  @Path("{componentName}")
   @Produces("text/plain")
   public Response deleteComponent(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("componentName") String componentName) {

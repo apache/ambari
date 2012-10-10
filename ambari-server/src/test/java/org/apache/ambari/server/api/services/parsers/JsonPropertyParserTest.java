@@ -22,6 +22,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -60,6 +61,22 @@ public class JsonPropertyParserTest {
     mapExpected.put(PropertyHelper.getPropertyId("innerPropName", "OuterCategory.nested1.nested2"), "innerPropValue");
 
     assertEquals(mapExpected, mapProps);
+  }
+
+  @Test
+  public void testParse_NullBody() {
+    RequestBodyParser parser = new JsonPropertyParser();
+    Map<PropertyId, String> mapProps = parser.parse(null);
+    assertNotNull(mapProps);
+    assertEquals(0, mapProps.size());
+  }
+
+  @Test
+  public void testParse_EmptyBody() {
+    RequestBodyParser parser = new JsonPropertyParser();
+    Map<PropertyId, String> mapProps = parser.parse("");
+    assertNotNull(mapProps);
+    assertEquals(0, mapProps.size());
   }
 }
 

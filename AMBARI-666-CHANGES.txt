@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-833. Add missing Path annotation to rest services for
+  put/post/delete. (John Speidel via mahadev)
+
   AMBARI-838. HACK: Add a thread in server to inject requests for testing.
   (Jitendra via mahadev)
 

@@ -127,8 +127,7 @@ public class RequestImpl implements Request {
 
   @Override
   public Map<PropertyId, String> getHttpBodyProperties() {
-    return m_body == null ? Collections.<PropertyId, String>emptyMap() :
-        getHttpBodyParser().parse(getHttpBody());
+    return getHttpBodyParser().parse(getHttpBody());
   }
 
   @Override

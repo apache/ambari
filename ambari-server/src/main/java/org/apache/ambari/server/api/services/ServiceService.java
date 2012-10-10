@@ -87,6 +87,7 @@ public class ServiceService extends BaseService {
    * @return information regarding the created service
    */
   @PUT
+  @Path("{serviceName}")
   @Produces("text/plain")
   public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {
@@ -105,6 +106,7 @@ public class ServiceService extends BaseService {
    * @return information regarding the updated service
    */
   @POST
+  @Path("{serviceName}")
   @Produces("text/plain")
   public Response updateService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {
@@ -122,6 +124,7 @@ public class ServiceService extends BaseService {
    * @return information regarding the deleted service
    */
   @DELETE
+  @Path("{serviceName}")
   @Produces("text/plain")
   public Response deleteService(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {

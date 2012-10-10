@@ -39,10 +39,12 @@ public class JsonPropertyParser implements RequestBodyParser {
   public Map<PropertyId, String> parse(String s) {
     ObjectMapper mapper = new ObjectMapper();
 
-    try {
-      processNode(mapper.readValue(s, JsonNode.class), "");
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to parse json: " + e, e);
+    if (s != null && ! s.isEmpty()) {
+      try {
+        processNode(mapper.readValue(s, JsonNode.class), "");
+      } catch (IOException e) {
+        throw new RuntimeException("Unable to parse json: " + e, e);
+      }
     }
 
     return m_properties;
