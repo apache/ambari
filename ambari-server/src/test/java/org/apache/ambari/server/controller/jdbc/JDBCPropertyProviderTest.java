@@ -23,7 +23,7 @@ import static org.easymock.EasyMock.createNiceMock;
 /**
 *
 */
-public class JDBCManagementControllerTest {
+public class JDBCPropertyProviderTest {
 
 //  @Test
 //  public void testCreateClusters() throws Exception {

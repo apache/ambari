@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.ProviderModule;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -27,9 +28,11 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.Schema;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -115,10 +118,32 @@ public class ClusterControllerImpl implements ClusterController {
     Set<Resource> keepers = resources;
 
     for (PropertyProvider propertyProvider : resourceProviders.get(type).getPropertyProviders()) {
-      //TODO : only call the provider if it provides properties that we need ...
-      keepers = propertyProvider.populateResources(keepers, request, predicate);
+      if (providesRequestProperties(propertyProvider, request, predicate)) {
+        keepers = propertyProvider.populateResources(keepers, request, predicate);
+      }
     }
     return keepers;
+  }
+
+  /**
+   * Indicates whether or not the given property provider can service the given request.
+   *
+   * @param provider   the property provider
+   * @param request    the request
+   * @param predicate  the predicate
+   *
+   * @return true if the given provider can service the request
+   */
+  private boolean providesRequestProperties(PropertyProvider provider, Request request, Predicate predicate) {
+    Set<PropertyId> requestPropertyIds = new HashSet<PropertyId>(request.getPropertyIds());
+
+    if (requestPropertyIds.size() == 0) {
+      return true;
+    }
+    requestPropertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
+    requestPropertyIds.retainAll(provider.getPropertyIds());
+
+    return !requestPropertyIds.isEmpty();
   }
 
   private Map<Resource.Type, ResourceProvider> getResourceSchemas() {

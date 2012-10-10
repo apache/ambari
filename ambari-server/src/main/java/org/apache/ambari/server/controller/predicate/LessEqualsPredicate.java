@@ -33,7 +33,7 @@ public class LessEqualsPredicate extends ComparisonPredicate {
   @Override
   public boolean evaluate(Resource resource) {
     String propertyValue = resource.getPropertyValue(getPropertyId());
-    return propertyValue == null ? false : getValue().compareTo(resource.getPropertyValue(getPropertyId())) >= 0;
+    return propertyValue == null ? false : getValue().compareTo(propertyValue) >= 0;
   }
 
   @Override

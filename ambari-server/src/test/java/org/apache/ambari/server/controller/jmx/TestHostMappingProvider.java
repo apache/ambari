@@ -16,28 +16,27 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller.predicate;
+package org.apache.ambari.server.controller.jmx;
 
-import org.apache.ambari.server.controller.spi.PropertyId;
-import org.apache.ambari.server.controller.spi.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Predicate that checks if a given value is greater than or equal to a {@link Resource} property.
+ *
  */
-public class GreaterEqualsPredicate extends ComparisonPredicate {
+public class TestHostMappingProvider implements HostMappingProvider {
 
-  public GreaterEqualsPredicate(PropertyId propertyId, Comparable<String> value) {
-    super(propertyId, value);
+  private static Map<String, String> HOST_MAPPING = new HashMap<String, String>();
+
+  static {
+    HOST_MAPPING.put("domU-12-31-39-0E-34-E1.compute-1.internal", "ec2-50-17-129-192.compute-1.amazonaws.com");
+    HOST_MAPPING.put("ip-10-190-186-15.ec2.internal",             "ec2-23-21-8-226.compute-1.amazonaws.com");
+    HOST_MAPPING.put("domU-12-31-39-14-EE-B3.compute-1.internal", "ec2-23-23-71-42.compute-1.amazonaws.com");
+    HOST_MAPPING.put("ip-10-110-157-51.ec2.internal",             "ec2-107-22-121-67.compute-1.amazonaws.com");
   }
 
   @Override
-  public boolean evaluate(Resource resource) {
-    String propertyValue = resource.getPropertyValue(getPropertyId());
-    return propertyValue == null ? false : getValue().compareTo(propertyValue) <= 0;
-  }
-
-  @Override
-  public String getOperator() {
-    return ">=";
+  public Map<String, String> getHostMap() {
+    return HOST_MAPPING;
   }
 }

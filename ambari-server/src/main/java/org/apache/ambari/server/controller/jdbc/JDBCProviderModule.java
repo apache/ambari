@@ -29,7 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- *
+ * Module to plug in the JDBC resource provider.
  */
 public class JDBCProviderModule implements ProviderModule {
 

@@ -126,11 +126,11 @@ public class JMXPropertyProvider implements PropertyProvider {
       return true;
     }
 
-    Set<PropertyId> ids = PropertyHelper.getRequestPropertyIds(this, request, predicate);
+    Set<PropertyId> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
 
     Map<String, String> hosts = mappingProvider.getHostMap();
 
-    String hostName = hosts.get(resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
+    String hostName = hosts.get(PropertyHelper.fixHostName(resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID)));
     String port = JMX_PORTS.get(resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
 
     if (hostName == null || port == null) {

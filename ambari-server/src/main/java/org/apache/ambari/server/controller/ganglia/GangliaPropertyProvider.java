@@ -25,6 +25,7 @@ import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -119,7 +120,7 @@ public class GangliaPropertyProvider implements PropertyProvider {
     String component = resource.getPropertyValue(new PropertyIdImpl("component_name", "HostRoles", false));
 
     // ---- TODO : HACK to fix host name that's been made all lower case... Ganglia doesn't like!!
-    host = hackHostName(host);
+    host = PropertyHelper.fixHostName(host);
     // -----
 
     String cluster = COMPONENT_MAP.get(component);
@@ -159,18 +160,6 @@ public class GangliaPropertyProvider implements PropertyProvider {
     }
     stringBuilder.append("]");
     return stringBuilder.toString();
-  }
-
-  private String hackHostName(String host) {
-    int first_dash = host.indexOf('-');
-    int first_dot = host.indexOf('.');
-    String segment1 = host.substring(0, first_dash);
-    if (segment1.equals("domu")) {
-      segment1 = "domU";
-    }
-    String segment2 = host.substring(first_dash, first_dot).toUpperCase();
-    host = segment1 + segment2 + host.substring(first_dot);
-    return host;
   }
 }
 

@@ -24,6 +24,7 @@ import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -81,20 +82,20 @@ public class PropertyHelper {
   }
 
   /**
-   * Get the set of property id required to satisfy the given request for the given property
-   * provider and predicate.
+   * Get the set of property ids required to satisfy the given request.
    *
-   * @param provider   the property provider
-   * @param request    the request
-   * @param predicate  the predicate
+   * @param providerPropertyIds  the provider property ids
+   * @param request              the request
+   * @param predicate            the predicate
    *
    * @return the set of property ids needed to satisfy the request
    */
-  public static Set<PropertyId> getRequestPropertyIds(PropertyProvider provider,
+  public static Set<PropertyId> getRequestPropertyIds(Set<PropertyId> providerPropertyIds,
                                                       Request request,
                                                       Predicate predicate) {
     Set<PropertyId> requestPropertyIds  = new HashSet<PropertyId>(request.getPropertyIds());
-    Set<PropertyId> providerPropertyIds = new HashSet<PropertyId>(provider.getPropertyIds());
+
+    providerPropertyIds = new HashSet<PropertyId>(providerPropertyIds);
 
     if (requestPropertyIds == null || requestPropertyIds.isEmpty()) {
       return providerPropertyIds;
@@ -105,6 +106,26 @@ public class PropertyHelper {
     }
     requestPropertyIds.retainAll(providerPropertyIds);
     return requestPropertyIds;
+  }
+
+  /**
+   * For some reason the host names are stored all lower case.  Attempt to undo that with
+   * this hack.
+   *
+   * @param host  the host name to be fixed
+   *
+   * @return the fixed host name
+   */
+  public static String fixHostName(String host) {
+    int first_dash = host.indexOf('-');
+    int first_dot = host.indexOf('.');
+    String segment1 = host.substring(0, first_dash);
+    if (segment1.equals("domu")) {
+      segment1 = "domU";
+    }
+    String segment2 = host.substring(first_dash, first_dot).toUpperCase();
+    host = segment1 + segment2 + host.substring(first_dot);
+    return host;
   }
 
   /**
