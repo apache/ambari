@@ -62,24 +62,29 @@ public class HostRequest {
   }
 
   public String toString() {
+    // FIXME check if clusters and host attrs is non null before printing
     StringBuilder sb = new StringBuilder();
     sb.append("{"
         + ", hostname=" + hostname
         + ", clusterNames=[");
-    for (int i = 0; i < clusterNames.size(); ++i) {
-      if (i != 0) {
-        sb.append(",");
+    if (clusterNames != null) {
+      for (int i = 0; i < clusterNames.size(); ++i) {
+        if (i != 0) {
+          sb.append(",");
+        }
+        sb.append(clusterNames.get(i));
       }
-      sb.append(clusterNames.get(i));
     }
-    sb.append("], hostAttributes=[");
-    int i = 0;
-    for (Entry<String, String> attr : hostAttributes.entrySet()) {
-      if (i != 0) {
-        sb.append(",");
+    if (hostAttributes != null) {
+      sb.append("], hostAttributes=[");
+      int i = 0;
+      for (Entry<String, String> attr : hostAttributes.entrySet()) {
+        if (i != 0) {
+          sb.append(",");
+        }
+        ++i;
+        sb.append(attr.getKey() + "=" + attr.getValue());
       }
-      ++i;
-      sb.append(attr.getKey() + "=" + attr.getValue());
     }
     sb.append("] }");
     return sb.toString();

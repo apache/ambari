@@ -94,8 +94,6 @@ public class ClusterRequest {
 
   public String toString() {
     StringBuilder sb = new StringBuilder();
-
-
     sb.append("{"
         + " clusterName=" + clusterName
         + ", clusterId=" + clusterId

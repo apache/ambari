@@ -263,12 +263,16 @@ public class AmbariManagementControllerImpl implements
 
     clusters.addHost(request.getHostname());
 
-    for (String clusterName : request.getClusterNames()) {
-      clusters.mapHostToCluster(request.getHostname(), clusterName);
+    if (request.getClusterNames() != null) {
+      for (String clusterName : request.getClusterNames()) {
+        clusters.mapHostToCluster(request.getHostname(), clusterName);
+      }
     }
 
-    h = clusters.getHost(request.getHostname());
-    h.setHostAttributes(request.getHostAttributes());
+    if (request.getHostAttributes() != null) {
+      h = clusters.getHost(request.getHostname());
+      h.setHostAttributes(request.getHostAttributes());
+    }
 
     // TODO
     return null;

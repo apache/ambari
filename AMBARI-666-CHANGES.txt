@@ -227,6 +227,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-843. Fix more null pointers for partial request objects. (hitesh)
+
   AMBARI-842. Fix null point exception during adding of hosts to cluster. (hitesh)
 
   AMBARI-839. Temporary fix for server start order. (hitesh)
