@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-845. Fix NPE in the server to be able to run the server api's.
+  (mahadev)
+
   AMBARI-844. Mock JMX provider for manual tests. (Tom Beerbower via mahadev)
 
   AMBARI-841. Fix comparison predicates in case where resource does not have

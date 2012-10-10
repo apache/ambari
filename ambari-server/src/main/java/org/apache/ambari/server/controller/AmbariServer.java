@@ -32,7 +32,6 @@ import org.mortbay.jetty.Server;
 import org.mortbay.jetty.security.SslSocketConnector;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.DefaultServlet;
-import org.mortbay.jetty.servlet.FilterHolder;
 import org.mortbay.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +70,12 @@ public class AmbariServer {
   CertificateManager certMan;
   @Inject
   Injector injector;
-
+  private static AmbariManagementController clusterController = null;
+  
+  public static AmbariManagementController getController() {
+    return clusterController;
+  }
+  
   public void run() {
     server = new Server(CLIENT_API_PORT);
     serverForAgent = new Server();
@@ -113,7 +117,7 @@ public class AmbariServer {
       //Spring Security Filter initialization
       DelegatingFilterProxy springSecurityFilter = new DelegatingFilterProxy();
       springSecurityFilter.setTargetBeanName("springSecurityFilterChain");
-      root.addFilter(new FilterHolder(springSecurityFilter), "/*", 1);
+      //root.addFilter(new FilterHolder(springSecurityFilter), "/*", 1);
 
       //Secured connector for 2-way auth
       SslSocketConnector sslConnectorTwoWay = new SslSocketConnector();
@@ -155,7 +159,8 @@ public class AmbariServer {
       sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
               "com.sun.jersey.api.core.PackagesResourceConfig");
       sh.setInitParameter("com.sun.jersey.config.property.packages",
-              "org.apache.ambari.server.api.rest");
+              "org.apache.ambari.server.api.rest;" +
+              "org.apache.ambari.server.api.services");
       root.addServlet(sh, "/api/*");
       sh.setInitOrder(2);
 
@@ -197,7 +202,8 @@ public class AmbariServer {
       AmbariManagementController controller = injector.getInstance(
           AmbariManagementController.class);
 
-
+      clusterController = controller;
+      
       // FIXME need to figure out correct order of starting things to
       // handle restart-recovery correctly
 
@@ -211,9 +217,9 @@ public class AmbariServer {
       manager.start();
       LOG.info("********* Started ActionManager **********");
 
-      RequestInjectorForTest testInjector = new RequestInjectorForTest(controller, clusters);
-      Thread testInjectorThread = new Thread(testInjector);
-      testInjectorThread.start();
+      //RequestInjectorForTest testInjector = new RequestInjectorForTest(controller, clusters);
+      //Thread testInjectorThread = new Thread(testInjector);
+      //testInjectorThread.start();
       
       server.join();
       LOG.info("Joined the Server");

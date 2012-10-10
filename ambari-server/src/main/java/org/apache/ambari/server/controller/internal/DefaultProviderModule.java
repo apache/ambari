@@ -18,17 +18,16 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.ProviderModule;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.spi.ProviderModule;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 /**
  *
  */
@@ -36,13 +35,11 @@ public class DefaultProviderModule implements ProviderModule {
 
   private static final List<PropertyProvider> PROPERTY_PROVIDERS =
       new LinkedList<PropertyProvider>();
-
+ 
   @Override
   public ResourceProvider getResourceProvider(Resource.Type type) {
-    AmbariManagementController managementController =
-        new AmbariManagementControllerImpl(null, null);
     return ResourceProviderImpl.getResourceProvider(type,
         PROPERTY_PROVIDERS, PropertyHelper.getPropertyIds(type, "DB"),
-        PropertyHelper.getKeyPropertyIds(type), managementController);
+        PropertyHelper.getKeyPropertyIds(type), AmbariServer.getController());
   }
 }

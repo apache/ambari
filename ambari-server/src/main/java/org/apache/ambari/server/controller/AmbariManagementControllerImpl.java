@@ -251,7 +251,7 @@ public class AmbariManagementControllerImpl implements
     if (LOG.isDebugEnabled()) {
       LOG.debug("Received a createHost request"
           + ", hostname=" + request.getHostname()
-          + ", request=" + request);
+          );
     }
 
     Host h = clusters.getHost(request.getHostname());
@@ -283,8 +283,6 @@ public class AmbariManagementControllerImpl implements
       request) throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()
-        || request.getServiceName() == null
-        || request.getServiceName().isEmpty()
         || request.getComponentName() == null
         || request.getComponentName().isEmpty()
         || request.getHostname() == null
@@ -292,14 +290,20 @@ public class AmbariManagementControllerImpl implements
       // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
-
+    
+    // FIXME Hard coded stuff --- needs to be fixed.
+    if (request.getServiceName() == null
+        || request.getServiceName().isEmpty()
+      ) {
+      request.setServiceName("HDFS");
+    }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Received a createHostComponent request"
           + ", clusterName=" + request.getClusterName()
           + ", serviceName=" + request.getServiceName()
           + ", componentName=" + request.getComponentName()
           + ", hostname=" + request.getHostname()
-          + ", request=" + request);
+          );
     }
 
     final Cluster cluster = clusters.getCluster(request.getClusterName());

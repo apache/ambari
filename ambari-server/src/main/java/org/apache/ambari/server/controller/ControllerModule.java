@@ -28,6 +28,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
 import com.google.inject.name.Names;
 
 /**
