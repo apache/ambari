@@ -187,21 +187,29 @@ public class AmbariServer {
       server.setStopAtShutdown(true);
       serverForAgent.setStopAtShutdown(true);
       springAppContext.start();
+
+      //Start action scheduler
+      LOG.info("********* Initializing Clusters **********");
+      Clusters clusters = injector.getInstance(Clusters.class);
+      LOG.info("********* Initializing ActionManager **********");
+      ActionManager manager = injector.getInstance(ActionManager.class);
+      LOG.info("********* Initializing Controller **********");
+      AmbariManagementController controller = injector.getInstance(
+          AmbariManagementController.class);
+
+
+      // FIXME need to figure out correct order of starting things to
+      // handle restart-recovery correctly
+
       /*
        * Start the server after controller state is recovered.
        */
       server.start();
       serverForAgent.start();
-
-      //Start action scheduler
-      LOG.info("********* Initializing Clusters **********");
-      Clusters clusters = injector.getInstance(Clusters.class);
       LOG.info("********* Started Server **********");
-      ActionManager manager = injector.getInstance(ActionManager.class);
+
       manager.start();
-      LOG.info("********* Initializing Controller **********");
-      AmbariManagementController controller = injector.getInstance(
-          AmbariManagementController.class);
+      LOG.info("********* Started ActionManager **********");
 
       server.join();
       LOG.info("Joined the Server");
