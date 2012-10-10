@@ -227,6 +227,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-842. Fix null point exception during adding of hosts to cluster. (hitesh)
+
   AMBARI-839. Temporary fix for server start order. (hitesh)
 
   AMBARI-837. Fix basic injection issues for controller impl. (hitesh)

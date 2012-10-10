@@ -47,6 +47,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private static final Logger LOG =
       LoggerFactory.getLogger(ServiceComponentHostImpl.class);
 
+  // FIXME need more debug logs
+
   private final Lock readLock;
   private final Lock writeLock;
 

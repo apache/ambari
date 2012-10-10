@@ -146,7 +146,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public synchronized void setDesiredState(State state) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredState of Service"
+      LOG.debug("Setting DesiredState of ServiceComponent"
           + ", clusterName=" + service.getCluster().getClusterName()
           + ", clusterId=" + service.getCluster().getClusterId()
           + ", serviceName=" + service.getName()
@@ -175,7 +175,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public synchronized void setDesiredStackVersion(StackVersion stackVersion) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredStackVersion of Service"
+      LOG.debug("Setting DesiredStackVersion of ServiceComponent"
           + ", clusterName=" + service.getCluster().getClusterName()
           + ", clusterId=" + service.getCluster().getClusterId()
           + ", serviceName=" + service.getName()

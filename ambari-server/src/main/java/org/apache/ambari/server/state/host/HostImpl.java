@@ -19,7 +19,9 @@
 
 package org.apache.ambari.server.state.host;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -218,6 +220,20 @@ public class HostImpl implements Host {
     this.readLock = rwLock.readLock();
     this.writeLock = rwLock.writeLock();
     this.healthStatus = new HostHealthStatus(HealthStatus.UNKNOWN, "");
+    this.ipv4 = "";
+    this.ipv6 = "";
+    this.cpuCount = 0;
+    this.osArch = "";
+    this.osType = "";
+    this.osInfo = "";
+    this.availableMemBytes = 0;
+    this.totalMemBytes = 0;
+    this.disksInfo = new ArrayList<DiskInfo>();
+    this.lastHeartbeatTime = 0;
+    this.lastRegistrationTime = 0;
+    this.rackInfo = "";
+    this.hostAttributes = new HashMap<String, String>();
+    this.agentVersion = new AgentVersion("");
   }
 
   static class HostRegistrationReceived
