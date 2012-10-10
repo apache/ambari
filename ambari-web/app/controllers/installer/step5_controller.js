@@ -53,7 +53,7 @@ App.InstallerStep5Controller = Em.Controller.extend({
       hosts.add(hostInfo[index]);
       console.log("TRACE: host name is: " + hostInfo[index].name);
     }
-    return hosts.filterProperty('bootStatus','success');
+    return hosts.filterProperty('bootStatus', 'success');
   },
 
 
@@ -77,7 +77,7 @@ App.InstallerStep5Controller = Em.Controller.extend({
 
   loadServices: function () {
     var serviceInfo = App.db.getService();
-    var services = serviceInfo.filterProperty('isSelected',true).mapProperty('serviceName');
+    var services = serviceInfo.filterProperty('isSelected', true).mapProperty('serviceName');
     services.forEach(function (item) {
       console.log("TRACE: service name is: " + item);
       this.get("selectedServices").pushObject(Ember.Object.create({service_name: item}));
@@ -88,22 +88,30 @@ App.InstallerStep5Controller = Em.Controller.extend({
   },
 
   loadComponents: function (services) {
-    var self = this;
     var components = new Ember.Set();
-
-    var masterComponents = self.components.filterProperty('isMaster', true);
-    for (var index in services) {
-      var componentInfo = masterComponents.filterProperty('service_name', services[index]);
-      componentInfo.forEach(function (_componentInfo) {
-        console.log("TRACE: master component name is: " + _componentInfo.display_name);
+    if (App.db.getMasterComponentHosts() === undefined) {
+      var masterComponents = this.components.filterProperty('isMaster', true);
+      for (var index in services) {
+        var componentInfo = masterComponents.filterProperty('service_name', services[index]);
+        componentInfo.forEach(function (_componentInfo) {
+          console.log("TRACE: master component name is: " + _componentInfo.display_name);
+          var componentObj = {};
+          componentObj.component_name = _componentInfo.display_name;
+          componentObj.selectedHost = this.selectHost(_componentInfo.component_name);   // call the method that plays selectNode algorithm or fetches from server
+          componentObj.availableHosts = [];
+          components.add(componentObj);
+        }, this);
+      }
+    } else {
+      var masterComponentHosts = App.db.getMasterComponentHosts();
+      masterComponentHosts.forEach(function (_masterComponentHost) {
         var componentObj = {};
-        componentObj.component_name = _componentInfo.display_name;
-        componentObj.selectedHost = this.selectHost(_componentInfo.component_name);   // call the method that plays selectNode algorithm or fetches from server
+        componentObj.component_name =_masterComponentHost.component;
+        componentObj.selectedHost = _masterComponentHost.hostName;   // call the method that plays selectNode algorithm or fetches from server
         componentObj.availableHosts = [];
         components.add(componentObj);
       }, this);
     }
-
     return components;
   },
 
@@ -128,16 +136,10 @@ App.InstallerStep5Controller = Em.Controller.extend({
             this.get('selectedServicesMasters').pushObject(_service);
           }, this);
         }
-        this.set('zId', this.get('zId') + 1);
+        this.set('zId', parseInt(this.get('zId')) + 1);
         zookeeperComponent = Ember.Object.create(item);
         zookeeperComponent.set('zId', this.get('zId'));
-        zookeeperComponent.set("showAddControl", true);
-        if (zookeeperComponent.get('zId') === 1) {
-          zookeeperComponent.set("showRemoveControl", false);
-        } else {
-          zookeeperComponent.set("showRemoveControl", true);
-        }
-
+        zookeeperComponent.set("showRemoveControl", true);
         zookeeperComponent.set("availableHosts", this.get("hosts").slice(0));
         this.get("selectedServicesMasters").pushObject(Ember.Object.create(zookeeperComponent));
 
@@ -147,7 +149,6 @@ App.InstallerStep5Controller = Em.Controller.extend({
         this.get("selectedServicesMasters").pushObject(componentObj);
       }
     }, this);
-
   },
 
   getKerberosServer: function (noOfHosts) {
@@ -403,18 +404,26 @@ App.InstallerStep5Controller = Em.Controller.extend({
       return this.get("hosts");
     }
   },
+  /*
 
-  assignHostToMaster: function (masterService, selectedHost, zId) {
-    if (selectedHost && masterService) {
-      if ((masterService === "ZooKeeper") && zId) {
-        this.get('selectedServicesMasters').findProperty("zId", zId).set("selectedHost", selectedHost);
-        this.rebalanceZookeeperHosts();
-      }
-      else {
-        this.get('selectedServicesMasters').findProperty("component_name", masterService).set("selectedHost", selectedHost);
-      }
+   assignHostToMaster: function (masterService, selectedHost, zId) {
+   if (selectedHost && masterService) {
+   if ((masterService === "ZooKeeper") && zId) {
+   this.get('selectedServicesMasters').findProperty("zId", zId).set("selectedHost", selectedHost);
+   this.rebalanceZookeeperHosts();
+   }
+   else {
+   this.get('selectedServicesMasters').findProperty("component_name", masterService).set("selectedHost", selectedHost);
+   }
 
-    }
+   }
+   },
+   */
+
+  lastZooKeeper: function () {
+    var currentZooKeepers = this.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper");
+    var lastZooKeeper = currentZooKeepers.get("lastObject");
+    return lastZooKeeper;
   },
 
   addZookeepers: function () {
@@ -441,7 +450,7 @@ App.InstallerStep5Controller = Em.Controller.extend({
     if (currentZooKeepers.get("length") < maxNumZooKeepers) {
       console.log('currentZookeeper length less than maximum. Its: ' + currentZooKeepers.get("length"))
       currentZooKeepers.set("lastObject.showAddControl", false);
-      if (currentZooKeepers.get("length") > 1) {
+      if (currentZooKeepers.get("length") >= 1) {
         currentZooKeepers.set("lastObject.showRemoveControl", true);
       }
 
@@ -471,6 +480,7 @@ App.InstallerStep5Controller = Em.Controller.extend({
 
       newZookeeper.set("selectedHost", suggestedHost);
       newZookeeper.set("zId", (currentZooKeepers.get("lastObject.zId") + 1));
+      this.set('zId', parseInt(this.get('zId')) + 1);
 
       this.get("selectedServicesMasters").pushObject(newZookeeper);
 
@@ -498,6 +508,11 @@ App.InstallerStep5Controller = Em.Controller.extend({
       if (currentZooKeepers.get("length") < this.get("hosts.length")) {
         currentZooKeepers.set("lastObject.showAddControl", true);
       }
+
+      if (currentZooKeepers.get("length") === 1) {
+        currentZooKeepers.set("lastObject.showRemoveControl", false);
+      }
+      this.set('zId', parseInt(this.get('zId')) - 1);
       this.rebalanceZookeeperHosts();
 
       return true;

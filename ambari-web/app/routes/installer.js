@@ -116,6 +116,7 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step3'),
     next: function (router, context) {
+      App.db.setMasterComponentHosts(undefined);
       router.transitionTo('step5');
     }
   }),

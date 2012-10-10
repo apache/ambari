@@ -26,6 +26,7 @@ App.InstallerStep5View = Em.View.extend({
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.loadStep();
+    controller.lastZooKeeper().set('showAddControl',true);
   }
 
 });
