@@ -211,6 +211,10 @@ public class AmbariServer {
       manager.start();
       LOG.info("********* Started ActionManager **********");
 
+      RequestInjectorForTest testInjector = new RequestInjectorForTest(controller, clusters);
+      Thread testInjectorThread = new Thread(testInjector);
+      testInjectorThread.start();
+      
       server.join();
       LOG.info("Joined the Server");
     } catch (Exception e) {

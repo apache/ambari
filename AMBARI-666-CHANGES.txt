@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-838. HACK: Add a thread in server to inject requests for testing.
+  (Jitendra via mahadev)
+
   AMBARI-835. Update JMXPropertyProvider. (Tom Beerbower via hitesh)
 
   AMBARI-832. Merge ambari-api with ambari-server (mahadev)

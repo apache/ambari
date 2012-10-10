@@ -68,27 +68,6 @@ class ActionScheduler implements Runnable {
     this.actionQueue = actionQueue;
     this.fsmObject = fsmObject;
     this.maxAttempts = (short) maxAttempts;
-    //HACK Initialize
-    try {
-      if (fsmObject != null) {
-        String hostname = InetAddress.getLocalHost().getHostName();
-        fsmObject.addCluster("cluster1");
-        fsmObject.getCluster("cluster1").addService(
-            new ServiceImpl(fsmObject.getCluster("cluster1"), "HDFS"));
-        Map<String, ServiceComponent> svcComps = new TreeMap<String, ServiceComponent>();
-        ServiceComponent svcComponent = new ServiceComponentImpl(fsmObject
-            .getCluster("cluster1").getService("HDFS"), "NAMENODE");
-        svcComps.put("NAMENODE", svcComponent);
-        fsmObject.getCluster("cluster1").getService("HDFS")
-            .addServiceComponents(svcComps);
-        Map<String, ServiceComponentHost> hostComponents = new TreeMap<String, ServiceComponentHost>();
-        hostComponents.put(hostname, new ServiceComponentHostImpl(svcComponent,
-            hostname, false));
-        svcComponent.addServiceComponentHosts(hostComponents);
-      }
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
-    }
   }
 
   public void start() {

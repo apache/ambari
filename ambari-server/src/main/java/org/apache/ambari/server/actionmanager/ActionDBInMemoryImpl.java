@@ -88,19 +88,6 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
         l.add(s);
       }
     }
-    // TODO: Remove this code
-    // HACK to add a stage so that something is sent to the agent
-    if (l.isEmpty()) {
-      long requestId = 1;
-      long stageId = 1;
-      if (!stageList.isEmpty()) {
-        requestId = stageList.get(stageList.size() - 1).getRequestId() + 1;
-        stageId = stageList.get(stageList.size() - 1).getStageId() + 1;
-      }
-      Stage s = StageUtils.getATestStage(requestId, stageId);
-      stageList.add(s);
-      l.add(s);
-    }
     return l;
   }
 
