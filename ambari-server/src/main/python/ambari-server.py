@@ -37,7 +37,11 @@ IP_TBLS_STOP_CMD = "service iptables stop"
 IP_TBLS_ENABLED="Firewall is running"
 IP_TBLS_DISABLED="Firewall is not running"
 IP_TBLS_SRVC_NT_FND="iptables: unrecognized service"
-SERVER_START_CMD="java -cp ../etc/ambari-server/conf:../lib/ambari-server/* org.apache.ambari.server.controller.AmbariServer"
+SERVER_START_CMD="java -cp {0}"+ os.pathsep + ".." + os.sep + "lib" + os.sep + "ambari-server" + os.sep + "* org.apache.ambari.server.controller.AmbariServer"
+AMBARI_CONF_VAR="AMBARI_CONF_DIR"
+PG_ST_CMD = "service postgresql status"
+PG_START_CMD = "service postgresql start"
+PG_STATUS_RUNNING = "running"
 
 def run_os_command(cmd):
   print 'about to run command: ' + cmd
@@ -81,8 +85,25 @@ def ip_tables_down():
     return 0
   else:
    return retcode
+
+def check_postgre_up():
+  retcode, out, err = run_os_command(PG_ST_CMD)
+  pg_status = re.search('(stopped|running)', out).group(0)
+  if pg_status == PG_STATUS_RUNNING:
+    print "Postgre is running"
+    return 0
+  else:
+    print "About to start postgre"
+    retcode, out, err = run_os_command(PG_START_CMD)
+    return retcode
   
 def setup(args):
+    
+  print 'About to check Postgre'
+  retcode = check_postgre_up()
+  if not retcode == 0:
+    print 'Error! Unable to start postgre server'
+    sys.exit(retcode)
     
   print 'About to setup database'
   retcode = setup_db(args)
@@ -105,7 +126,20 @@ def setup(args):
   print 'Setup was finished sucessfully'
   
 def start(args):
-  server_process = subprocess.Popen(SERVER_START_CMD.split(' '))
+  try:
+    conf_dir = os.environ[AMBARI_CONF_VAR]
+  except KeyError:
+    print "Please set value of " + AMBARI_CONF_VAR + "!"
+    sys.exit(1)
+      
+  retcode = check_postgre_up()
+  if not retcode == 0:
+    print 'Error! Unable to start postgre server'
+    sys.exit(retcode)
+  
+  command = SERVER_START_CMD.format(conf_dir)
+      
+  server_process = subprocess.Popen(command.split(' '))
   f = open("pid", "w")
   f.write(str(server_process.pid))
   f.close()

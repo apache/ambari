@@ -23,12 +23,15 @@ class hdp-hcat(
 ) 
 {
   include hdp-hcat::params
-  include manifestloader
 
-#Configs generation  
+# Configs generation  
+# site.pp must have following configurations: 
+# hdp_hcat_old__hive_site
 
   configgenerator::configfile{'hive_site_xml': 
-    configuration => $manifestloader::Hdp_hcat_old__hive_site
+    filename => 'hive-site.xml',
+    module => 'hdp-hcat-old',
+    configuration => $configuration['hdp_hcat_old__hive_site']
   }
 
   $hcat_user = $hdp::params::hcat_user

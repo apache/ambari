@@ -28,6 +28,7 @@ import java.util.Properties;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -52,6 +53,7 @@ public class Configuration {
   public static final String SRVR_CRT_PASS_FILE_KEY =
       "security.server.crt_pass_file";
   public static final String SRVR_CRT_PASS_KEY = "security.server.crt_pass";
+  public static final String SRVR_CRT_PASS_LEN_KEY = "security.server.crt_pass.len";
   public static final String PASSPHRASE_ENV_KEY =
       "security.server.passphrase_env_var";
   public static final String PASSPHRASE_KEY = "security.server.passphrase";
@@ -81,6 +83,7 @@ public class Configuration {
   public static final String SRVR_KEY_NAME_DEFAULT = "ca.key";
   public static final String KSTR_NAME_DEFAULT = "keystore.p12";
   private static final String SRVR_CRT_PASS_FILE_DEFAULT ="pass.txt";
+  private static final String SRVR_CRT_PASS_LEN_DEFAULT = "50";
   private static final String PASSPHRASE_ENV_DEFAULT = "AMBARI_PASSPHRASE";
   private static final String RESOURCES_DIR_DEFAULT = "res";
 
@@ -101,7 +104,6 @@ public class Configuration {
 
   private static final Log LOG = LogFactory.getLog(Configuration.class);
 
-  private static Configuration instance;
 
   private Properties properties;
 
@@ -133,10 +135,7 @@ public class Configuration {
     configsMap.put(KSTR_NAME_KEY, properties.getProperty(
         KSTR_NAME_KEY, KSTR_NAME_DEFAULT));
     configsMap.put(SRVR_CRT_PASS_FILE_KEY, properties.getProperty(
-        SRVR_CRT_PASS_FILE_KEY, SRVR_CRT_PASS_FILE_DEFAULT));
-    configsMap.put(SRVR_CRT_PASS_KEY, properties.getProperty(
-    		SRVR_CRT_PASS_KEY, SRVR_CRT_PASS_FILE_DEFAULT));
-
+    	SRVR_CRT_PASS_FILE_KEY, SRVR_CRT_PASS_FILE_DEFAULT));
     configsMap.put(PASSPHRASE_ENV_KEY, properties.getProperty(
         PASSPHRASE_ENV_KEY, PASSPHRASE_ENV_DEFAULT));
     configsMap.put(PASSPHRASE_KEY, System.getenv(configsMap.get(
@@ -147,15 +146,18 @@ public class Configuration {
         LDAP_USER_DEFAULT_ROLE_KEY, LDAP_USER_DEFAULT_ROLE_DEFAULT));
     configsMap.put(RESOURCES_DIR_KEY, properties.getProperty(
         RESOURCES_DIR_KEY, RESOURCES_DIR_DEFAULT));
+    configsMap.put(SRVR_CRT_PASS_LEN_KEY, properties.getProperty(
+    	SRVR_CRT_PASS_LEN_KEY, SRVR_CRT_PASS_LEN_DEFAULT));
+    
     try {
+      
+  	  String randStr = RandomStringUtils.randomAlphanumeric(Integer.parseInt(configsMap.get(SRVR_CRT_PASS_LEN_KEY)));
+
       File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
           + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
-      if (passFile.exists()) {
-        String srvrCrtPass = FileUtils.readFileToString(passFile);
-        configsMap.put(SRVR_CRT_PASS_KEY, srvrCrtPass.trim());
-      } else {
-        LOG.info("Not found pass file at " + passFile);
-      }
+      FileUtils.writeStringToFile(passFile, randStr);
+      configsMap.put(SRVR_CRT_PASS_KEY, randStr);
+      
     } catch (IOException e) {
       e.printStackTrace();
       throw new RuntimeException("Error reading certificate password from file");

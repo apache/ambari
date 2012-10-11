@@ -23,10 +23,14 @@ class hdp-templeton(
   $server = false
 )
 {
-  include manifestloader
-  
+# Configs generation  
+# site.pp must have following configurations: 
+# hdp_templeton__templeton_site
+
   configgenerator::configfile{'templeton_site_xml': 
-    configuration => $manifestloader::Hdp_templeton__templeton_site
+    filename => 'templeton-site.xml',
+    module => 'hdp-templeton',
+    configuration => $configuration['hdp_templeton__templeton_site']
   }
 
  include hdp-templeton::params 

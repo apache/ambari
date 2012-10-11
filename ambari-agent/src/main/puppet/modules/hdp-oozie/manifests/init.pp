@@ -25,10 +25,15 @@ class hdp-oozie(
 )
 {
   include hdp-oozie::params 
-  include manifestloader
- 
+
+# Configs generation  
+# site.pp must have following configurations: 
+# hdp_oozie__oozie_site
+
   configgenerator::configfile{'oozie_site_xml': 
-    configuration => $manifestloader::Hdp_oozie__oozie_site
+    filename => 'oozie-site.xml',
+    module => 'hdp-oozie',
+    configuration => $configuration['hdp_oozie__oozie_site']
   }
 
   $oozie_user = $hdp-oozie::params::oozie_user

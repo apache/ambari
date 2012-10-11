@@ -30,6 +30,7 @@
     <package.conf.dir>/etc/ambari</package.conf.dir>
     <package.log.dir>/var/log/ambari</package.log.dir>
     <package.pid.dir>/var/run/ambari</package.pid.dir>
+    <skipTests>false</skipTests>
   </properties>
   <build>
     <plugins>
@@ -64,9 +65,9 @@
                 <argument>unitTests.py</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>../../main/python:$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>src/main/python/ambari_agent:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
-              <skip>true</skip>
+              <skip>${skipTests}</skip>
             </configuration>
             <id>python-test</id>
             <phase>test</phase>

@@ -20,6 +20,7 @@ limitations under the License.
 
 import unittest
 import doctest
+from os.path import dirname, split, isdir
 
 
 
@@ -43,13 +44,19 @@ def all_tests_suite():
   return TestAgent([suite])
 
 def main():
-  runner = unittest.TextTestRunner()
+  parent_dir = lambda x: split(x)[0] if isdir(x) else split(dirname(x))[0]
+  src_dir = os.getcwd()
+  agent_dir = parent_dir(parent_dir(parent_dir(src_dir)))
+  path = agent_dir + os.sep + "target/tests.log"
+  file=open(path, "w")
+  runner = unittest.TextTestRunner(stream=file)
   suite = all_tests_suite()
   raise SystemExit(not runner.run(suite).wasSuccessful())
 
 if __name__ == '__main__':
   import os
   import sys
+  import io
   sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
   sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + os.sep + 'main' + os.sep + 'python')
   sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent')

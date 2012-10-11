@@ -24,13 +24,18 @@ class hdp-hive(
 ) 
 {
   include hdp-hive::params
-  include manifestloader
-
+  
   $hive_user = $hdp-hive::params::hive_user
   $hive_config_dir = $hdp-hive::params::hive_conf_dir
 
+# Configs generation  
+# site.pp must have following configurations: 
+# hdp_hive__hive_site
+
   configgenerator::configfile{'hive_site_xml': 
-    configuration => $manifestloader::Hdp_hive__hive_site
+    filename => 'hive-site.xml',
+    module => 'hdp-hive',
+    configuration => $configuration['hdp_hive__hive_site']
   }
 
   anchor { 'hdp-hive::begin': }

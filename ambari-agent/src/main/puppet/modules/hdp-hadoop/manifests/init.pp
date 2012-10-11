@@ -38,31 +38,49 @@ class hdp-hadoop::initialize()
   hdp-hadoop::common { 'common':}
   anchor{'hdp-hadoop::initialize::begin':} -> Hdp-hadoop::Common['common'] -> anchor{'hdp-hadoop::initialize::end':}
 
-#Configs generation  
-  include manifestloader
-
+# Configs generation  
+# site.pp must have following configurations: 
+# hdp_hadoop__mapred_queue_acls
+# hdp_hadoop__hadoop_policy
+# hdp_hadoop__core_site
+# hdp_hadoop__mapred_site
+# hdp_hadoop__capacity_scheduler
+# hdp_hadoop__hdfs_site
+  
   configgenerator::configfile{'mapred_queue_acls_xml': 
-    configuration => $manifestloader::Hdp_hadoop__mapred_queue_acls
+    filename => 'mapred-queue-acls.xml',
+    module => 'hdp-hadoop',
+    configuration => $configuration['hdp_hadoop__mapred_queue_acls']
   }
   
   configgenerator::configfile{'hadoop_policy_xml': 
-    configuration => $manifestloader::Hdp_hadoop__hadoop_policy
+    filename => 'hadoop-policy.xml',
+    module => 'hdp-hadoop',
+    configuration => $configuration['hdp_hadoop__hadoop_policy']
   }
   
   configgenerator::configfile{'core_site_xml': 
-    configuration => $manifestloader::Hdp_hadoop__core_site
+    filename => 'core-site.xml',
+    module => 'hdp-hadoop',
+    configuration => $configuration['hdp_hadoop__core_site']
   }
 
   configgenerator::configfile{'mapred_site_xml': 
-    configuration => $manifestloader::Hdp_hadoop__mapred_site
+    filename => 'mapred-site.xml',
+    module => 'hdp-hadoop',
+    configuration => $configuration['hdp_hadoop__mapred_site']
   }
   
   configgenerator::configfile{'capacity_scheduler_xml': 
-    configuration => $manifestloader::Hdp_hadoop__capacity_scheduler
+    filename => 'capacity-scheduler.xml',
+    module => 'hdp-hadoop',
+    configuration => $configuration['hdp_hadoop__capacity_scheduler']
   }
 
   configgenerator::configfile{'hdfs_site_xml': 
-    configuration => $manifestloader::Hdp_hadoop__hdfs_site
+    filename => 'hdfs-site.xml',
+    module => 'hdp-hadoop',
+    configuration => $configuration['hdp_hadoop__hdfs_site']
   }
 }
 
