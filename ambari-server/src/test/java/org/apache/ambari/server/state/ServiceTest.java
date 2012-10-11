@@ -31,7 +31,7 @@ public class ServiceTest {
   private Clusters clusters;
   private Cluster cluster;
   private String clusterName;
-  
+
   @Before
   public void setup() throws AmbariException {
     clusters = new ClustersImpl();
@@ -40,20 +40,20 @@ public class ServiceTest {
     cluster = clusters.getCluster(clusterName);
     Assert.assertNotNull(cluster);
   }
-  
+
   @After
   public void teardown() throws AmbariException {
     clusters = null;
-    cluster = null;    
+    cluster = null;
   }
-  
+
   @Test
   public void testCreateService() throws AmbariException {
     String serviceName = "s1";
     Service s = new ServiceImpl(cluster, serviceName);
     cluster.addService(s);
     Service service = cluster.getService(serviceName);
-    
+
     Assert.assertNotNull(service);
     Assert.assertEquals(serviceName, service.getName());
     Assert.assertEquals(cluster.getClusterId(),
@@ -71,23 +71,23 @@ public class ServiceTest {
     Service s = new ServiceImpl(cluster, serviceName);
     cluster.addService(s);
     Service service = cluster.getService(serviceName);
-    
+
     Assert.assertNotNull(service);
 
     service.setDesiredStackVersion(new StackVersion("1.1.0"));
     Assert.assertEquals("1.1.0",
         service.getDesiredStackVersion().getStackVersion());
-    
-    
+
+
     service.setDesiredState(State.INSTALLING);
     Assert.assertEquals(State.INSTALLING, service.getDesiredState());
-    
+
   }
-  
-  
-  
+
+
+
   /*
-  
+
 
 
   public ServiceComponent getServiceComponent(String componentName)
@@ -116,7 +116,7 @@ public class ServiceTest {
   public void setStackVersion(StackVersion stackVersion);
 
   public ServiceResponse convertToResponse();
-  
-    
+
+
     */
 }

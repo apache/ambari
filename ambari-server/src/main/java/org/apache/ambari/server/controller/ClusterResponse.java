@@ -26,9 +26,10 @@ public class ClusterResponse {
 
   private final String clusterName;
 
-  private Set<String> hostNames;
+  private final Set<String> hostNames;
 
-  public ClusterResponse(Long clusterId, String clusterName, Set<String> hostNames) {
+  public ClusterResponse(Long clusterId, String clusterName,
+      Set<String> hostNames) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
@@ -54,5 +55,26 @@ public class ClusterResponse {
    */
   public Set<String> getHostNames() {
     return hostNames;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("{"
+        + " clusterName=" + clusterName
+        + ", clusterId=" + clusterId
+        + ", hosts=[");
+    if (hostNames != null) {
+      int i = 0;
+      for (String hostName : hostNames) {
+        if (i != 0) {
+          sb.append(",");
+        }
+        ++i;
+        sb.append(hostName);
+      }
+    }
+    sb.append("] }");
+    return sb.toString();
   }
 }

@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Used for create Cluster
@@ -31,10 +31,10 @@ public class ClusterRequest {
 
   private String stackVersion; // for CREATE/UPDATE
 
-  List<String> hostNames; // CREATE/UPDATE
+  Set<String> hostNames; // CREATE/UPDATE
 
   public ClusterRequest(Long clusterId, String clusterName,
-      String stackVersion, List<String> hostNames) {
+      String stackVersion, Set<String> hostNames) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
@@ -84,14 +84,15 @@ public class ClusterRequest {
     this.stackVersion = stackVersion;
   }
 
-  public List<String> getHostNames() {
+  public Set<String> getHostNames() {
     return hostNames;
   }
 
-  public void setHostNames(List<String> hostNames) {
+  public void setHostNames(Set<String> hostNames) {
     this.hostNames = hostNames;
   }
 
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("{"
@@ -99,11 +100,13 @@ public class ClusterRequest {
         + ", clusterId=" + clusterId
         + ", hosts=[");
     if (hostNames != null) {
-      for (int i = 0; i < hostNames.size(); ++i) {
+      int i = 0;
+      for (String hostName : hostNames) {
         if (i != 0) {
           sb.append(",");
         }
-        sb.append(hostNames.get(i));
+        ++i;
+        sb.append(hostName);
       }
     }
     sb.append("] }");

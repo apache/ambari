@@ -22,16 +22,22 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
+import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackVersion;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
@@ -40,7 +46,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ClusterImplTest {
+public class ClusterTest {
 
   private Clusters clusters;
   private Cluster c1;
@@ -129,5 +135,69 @@ public class ClusterImplTest {
 
   }
 
+  @Test
+  public void testBasicClusterSetup() throws AmbariException {
+    String clusterName = "c2";
+
+    try {
+      clusters.getCluster(clusterName);
+      fail("Exception expected for invalid cluster");
+    } catch (Exception e) {
+      // Expected
+    }
+
+    clusters.addCluster(clusterName);
+    Cluster c2 = clusters.getCluster(clusterName);
+
+    Assert.assertNotNull(c2);
+
+    Assert.assertEquals(clusterName.hashCode(), c2.getClusterId());
+    Assert.assertEquals(clusterName, c2.getClusterName());
+
+    c2.setClusterName("foo2");
+    Assert.assertEquals("foo2", c2.getClusterName());
+    Assert.assertEquals(clusterName.hashCode(), c2.getClusterId());
+
+    Assert.assertNotNull(c2.getDesiredStackVersion());
+    Assert.assertEquals("", c2.getDesiredStackVersion().getStackVersion());
+
+    StackVersion stackVersion = new StackVersion("1.0");
+    c2.setDesiredStackVersion(stackVersion);
+    Assert.assertEquals("1.0", c2.getDesiredStackVersion().getStackVersion());
+  }
+
+  @Test
+  public void testAddAndGetServices() {
+    // TODO write unit tests for
+    // public void addService(Service service) throws AmbariException;
+    // public Service getService(String serviceName) throws AmbariException;
+    // public Map<String, Service> getServices();
+  }
+
+
+  @Test
+  public void testGetServiceComponentHosts() {
+    // TODO write unit tests
+    // public List<ServiceComponentHost> getServiceComponentHosts(String hostname);
+  }
+
+
+  @Test
+  public void testGetAndSetConfigs() {
+    // TODO write unit tests
+    // public Map<String, Config> getConfigsByType(String configType);
+    // public Config getConfig(String configType, String versionTag);
+    // public void addConfig(Config config);
+  }
+
+  @Test
+  public void testConvertToResponse() {
+    // TODO write unit tests
+  }
+
+  @Test
+  public void testDebugDump() {
+    // TODO write unit tests
+  }
 
 }

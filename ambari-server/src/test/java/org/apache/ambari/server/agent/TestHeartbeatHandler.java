@@ -56,7 +56,7 @@ public class TestHeartbeatHandler {
     assertEquals(HostState.HEALTHY, hostObject.getState());
     assertEquals(0, aq.dequeueAll(hostname).size());
   }
-  
+
   @Test
   public void testRegistration() throws AmbariException,
       InvalidStateTransitonException {
@@ -67,7 +67,7 @@ public class TestHeartbeatHandler {
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am);
     Host hostObject = new HostImpl(hostname);
     when(fsm.getHost(hostname)).thenReturn(hostObject);
-    
+
     Register reg = new Register();
     HostInfo hi = new HostInfo();
     hi.setOS("MegaOperatingSystem");
@@ -77,13 +77,14 @@ public class TestHeartbeatHandler {
     assertEquals(hostObject.getState(), HostState.HEALTHY);
     assertEquals("MegaOperatingSystem", hostObject.getOsType());
   }
-  
+
   @Test
   public void testRegisterNewNode() throws AmbariException, InvalidStateTransitonException {
     ActionManager am = new ActionManager(0, 0, null, null,
         new ActionDBInMemoryImpl());
     Clusters fsm = new ClustersImpl();
     String hostname = "host1";
+    fsm.addHost(hostname);
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am);
     Register reg = new Register();
     HostInfo hi = new HostInfo();

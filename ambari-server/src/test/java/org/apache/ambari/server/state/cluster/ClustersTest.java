@@ -21,6 +21,7 @@ package org.apache.ambari.server.state.cluster;
 import static org.junit.Assert.fail;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import junit.framework.Assert;
@@ -35,7 +36,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ClustersImplTest {
+public class ClustersTest {
 
   private Clusters clusters;
 
@@ -92,6 +93,12 @@ public class ClustersImplTest {
 
     Assert.assertEquals(c1, clusters.getCluster(c1).getClusterName());
     Assert.assertEquals(c2, clusters.getCluster(c2).getClusterName());
+
+    Map<String, Cluster> verifyClusters = clusters.getClusters();
+    Assert.assertTrue(verifyClusters.containsKey(c1));
+    Assert.assertTrue(verifyClusters.containsKey(c2));
+    Assert.assertNotNull(verifyClusters.get(c1));
+    Assert.assertNotNull(verifyClusters.get(c2));
 
   }
 
@@ -169,5 +176,13 @@ public class ClustersImplTest {
     c = clusters.getClustersForHost(h2);
     Assert.assertEquals(2, c.size());
 
+    // TODO write test for mapHostsToCluster
+
   }
+
+  @Test
+  public void testDebugDump() {
+    // TODO write unit test
+  }
+
 }

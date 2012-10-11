@@ -435,7 +435,7 @@ public class ResourceProviderImplTest {
 
   public static class Matchers
   {
-    public static ClusterRequest clusterRequest(Long clusterId, String clusterName, String stackVersion, List<String> hostNames)
+    public static ClusterRequest clusterRequest(Long clusterId, String clusterName, String stackVersion, Set<String> hostNames)
     {
       EasyMock.reportMatcher(new ClusterRequestMatcher(clusterId, clusterName, stackVersion, hostNames));
       return null;
@@ -457,7 +457,7 @@ public class ResourceProviderImplTest {
 
   public static class ClusterRequestMatcher extends ClusterRequest implements IArgumentMatcher {
 
-    public ClusterRequestMatcher(Long clusterId, String clusterName, String stackVersion, List<String> hostNames) {
+    public ClusterRequestMatcher(Long clusterId, String clusterName, String stackVersion, Set<String> hostNames) {
       super(clusterId, clusterName, stackVersion, hostNames);
     }
 

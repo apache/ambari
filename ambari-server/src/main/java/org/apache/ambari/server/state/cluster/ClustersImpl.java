@@ -103,6 +103,9 @@ public class ClustersImpl implements Clusters {
 
   @Override
   public synchronized Host getHost(String hostname) throws AmbariException {
+    if (!hosts.containsKey(hostname)) {
+      throw new HostNotFoundException(hostname);
+    }
     return hosts.get(hostname);
   }
 
@@ -143,7 +146,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public synchronized void mapHostsToCluster(List<String> hostnames,
+  public synchronized void mapHostsToCluster(Set<String> hostnames,
       String clusterName) throws AmbariException {
     Cluster c = getCluster(clusterName);
     for (String hostname : hostnames) {

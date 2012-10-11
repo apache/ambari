@@ -20,7 +20,10 @@ package org.apache.ambari.server.controller;
 
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import junit.framework.Assert;
@@ -50,11 +53,12 @@ public class AmbariManagementControllerTest {
 
   private AmbariManagementController controller;
   private Clusters clusters;
-  private ActionDBAccessor db = new ActionDBInMemoryImpl();
+  private ActionDBAccessor db;
 
   @Before
   public void setup() {
     clusters = new ClustersImpl();
+    db = new ActionDBInMemoryImpl();
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
         clusters, db);
     controller = new AmbariManagementControllerImpl(am, clusters);
@@ -64,6 +68,7 @@ public class AmbariManagementControllerTest {
   public void teardown() {
     controller = null;
     clusters = null;
+    db = null;
   }
 
   private void createCluster(String clusterName) throws AmbariException {
@@ -301,6 +306,47 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testCreateHost() throws AmbariException {
+    List<String> clusterNames = null;
+    Map<String, String> hostAttributes = null;
+
+    HostRequest r1 = new HostRequest("h1", clusterNames, hostAttributes);
+    r1.toString();
+    try {
+      controller.createHost(r1);
+      fail("Create host should fail for non-bootstrapped host");
+    } catch (Exception e) {
+      // Expected
+    }
+
+    clusters.addHost("h1");
+    clusters.addHost("h2");
+
+    controller.createHost(r1);
+
+    clusterNames = new ArrayList<String>();
+    clusterNames.add("foo1");
+    clusterNames.add("foo2");
+
+    hostAttributes = new HashMap<String, String>();
+    HostRequest r2 = new HostRequest("h2", clusterNames, hostAttributes);
+
+    try {
+      controller.createHost(r2);
+      fail("Create host should fail for invalid clusters");
+    } catch (Exception e) {
+      // Expected
+    }
+
+    clusters.addCluster("foo1");
+    clusters.addCluster("foo2");
+
+    controller.createHost(r2);
+
+    Assert.assertNotNull(clusters.getHost("h1"));
+    Assert.assertNotNull(clusters.getHost("h2"));
+
+    Assert.assertEquals(0, clusters.getClustersForHost("h1").size());
+    Assert.assertEquals(2, clusters.getClustersForHost("h2").size());
 
   }
 

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -254,14 +255,14 @@ public class AmbariManagementControllerImpl implements
           );
     }
 
-    Host h = clusters.getHost(request.getHostname());
-    if (h == null) {
-      // FIXME throw correct error as not bootstrapped
+    Host h = null;
+    try {
+      h = clusters.getHost(request.getHostname());
     }
-    // TODO should agent registration create entry in the DB or should we
-    // re-think schema to allow simple new entry
-
-    clusters.addHost(request.getHostname());
+    catch (HostNotFoundException e) {
+      throw new AmbariException("Host has not be registered with the server"
+          + ", hostname=" + request.getHostname());
+    }
 
     if (request.getClusterNames() != null) {
       for (String clusterName : request.getClusterNames()) {
@@ -290,7 +291,7 @@ public class AmbariManagementControllerImpl implements
       // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
-    
+
     // FIXME Hard coded stuff --- needs to be fixed.
     if (request.getServiceName() == null
         || request.getServiceName().isEmpty()
@@ -687,8 +688,7 @@ public class AmbariManagementControllerImpl implements
     final Service s = cluster.getService(request.getServiceName());
 
     if (request.getConfigVersions() != null) {
-      // TODO
-      // handle config updates
+      // TODO handle config updates
       // handle recursive updates to all components and hostcomponents
       // if different from old desired configs, trigger relevant actions
       throw new AmbariException("Unsupported operation - config updates not"
@@ -905,8 +905,7 @@ public class AmbariManagementControllerImpl implements
         request.getComponentName());
 
     if (request.getConfigVersions() != null) {
-      // TODO
-      // handle config updates
+      // TODO handle config updates
       // handle recursive updates to all components and hostcomponents
       // if different from old desired configs, trigger relevant actions
       throw new AmbariException("Unsupported operation - config updates not"
@@ -1075,8 +1074,7 @@ public class AmbariManagementControllerImpl implements
         request.getHostname());
 
     if (request.getConfigVersions() != null) {
-      // TODO
-      // handle config updates
+      // TODO handle config updates
       // handle recursive updates to all components and hostcomponents
       // if different from old desired configs, trigger relevant actions
       throw new AmbariException("Unsupported operation - config updates not"
