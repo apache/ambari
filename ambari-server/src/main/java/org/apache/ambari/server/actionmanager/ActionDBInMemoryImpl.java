@@ -22,7 +22,8 @@ import java.util.List;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.agent.ExecutionCommand;
+import org.mortbay.log.Log;
 
 import com.google.inject.Singleton;
 
@@ -59,9 +60,16 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   public synchronized void abortOperation(long requestId) {
     for (Stage s : stageList) {
       if (s.getRequestId() == requestId) {
-        for(String host: s.getHostActions().keySet()) {
-          for (HostRoleCommand role : s.getHostActions().get(host).getRoleCommands()) {
-            role.setStatus(HostRoleStatus.ABORTED);
+        for (String host : s.getHosts()) {
+          for (ExecutionCommand cmd : s.getExecutionCommands(host)) {
+            HostRoleStatus status = s.getHostRoleStatus(host, cmd.getRole()
+                .toString());
+            if (status.equals(HostRoleStatus.IN_PROGRESS)
+                || status.equals(HostRoleStatus.QUEUED)
+                || status.equals(HostRoleStatus.PENDING)) {
+              s.setHostRoleStatus(host, cmd.getRole().toString(),
+                  HostRoleStatus.ABORTED);
+            }
           }
         }
       }
@@ -72,11 +80,7 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   public synchronized void timeoutHostRole(String host, long requestId,
       long stageId, Role role) {
     for (Stage s : stageList) {
-      for (HostRoleCommand r : s.getHostActions().get(host).getRoleCommands()) {
-        if (r.getRole().equals(role)) {
-          r.setStatus(HostRoleStatus.TIMEDOUT);
-        }
-      }
+      s.setHostRoleStatus(host, role.toString(), HostRoleStatus.TIMEDOUT);
     }
   }
 
@@ -100,17 +104,18 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   @Override
   public synchronized void updateHostRoleState(String hostname, long requestId,
       long stageId, String role, CommandReport report) {
+    Log.info("DEBUG stages to iterate: "+stageList.size());
     for (Stage s : stageList) {
-      for (HostRoleCommand r : s.getHostActions().get(hostname).getRoleCommands()) {
-        if (r.getRole().toString().equals(role)) {
-          r.setStatus(HostRoleStatus.valueOf(report.getStatus()));
-          r.setExitCode(report.getExitCode());
-          r.setStderr(report.getStdErr());
-          r.setStdout(report.getStdOut());
-        }
+      if (s.getRequestId() == requestId && s.getStageId() == stageId) {
+        s.setHostRoleStatus(hostname, role,
+            HostRoleStatus.valueOf(report.getStatus()));
+        s.setExitCode(hostname, role, report.getExitCode());
+        s.setStderr(hostname, role, report.getStdErr());
+        s.setStdout(hostname, role, report.getStdOut());
       }
     }
   }
+  
   @Override
   public void abortHostRole(String host, long requestId, long stageId, Role role) {
     CommandReport report = new CommandReport();

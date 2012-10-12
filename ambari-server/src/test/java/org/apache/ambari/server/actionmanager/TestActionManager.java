@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
@@ -50,21 +51,19 @@ public class TestActionManager {
     cr.setExitCode(215);
     reports.add(cr);
     am.actionResponse(hostname, reports);
-    assertEquals(215, am.getAction(requestId, stageId).getHostAction(hostname)
-        .getRoleCommands().get(0).getExitCode());
+    assertEquals(215,
+        am.getAction(requestId, stageId).getExitCode(hostname, "HBASE_MASTER"));
     assertEquals(HostRoleStatus.COMPLETED, am.getAction(requestId, stageId)
-        .getHostAction(hostname).getRoleCommands().get(0).getStatus());
+        .getHostRoleStatus(hostname, "HBASE_MASTER"));
   }
 
   private void populateActionDB(ActionDBAccessor db, String hostname) {
     Stage s = new Stage(requestId, "/a/b", "cluster1");
     s.setStageId(stageId);
-    HostAction ha = new HostAction(hostname);
-    HostRoleCommand cmd = new HostRoleCommand("HBASE", Role.HBASE_MASTER,
+    s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
+        RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            hostname, System.currentTimeMillis()));
-    ha.addHostRoleCommand(cmd);
-    s.addHostAction(hostname, ha);
+            hostname, System.currentTimeMillis()), "cluster1", "HBASE");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     db.persistActions(stages);

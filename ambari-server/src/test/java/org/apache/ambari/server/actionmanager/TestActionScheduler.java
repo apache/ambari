@@ -17,8 +17,13 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +37,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.ambari.server.utils.StageUtils;
 import org.junit.Test;
 
 public class TestActionScheduler {
@@ -57,15 +62,9 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessorImpl.class);
     List<Stage> stages = new ArrayList<Stage>();
-    Stage s = new Stage(1, "/bogus", "clusterName");
-    s.setStageId(977);
-    stages.add(s);
     String hostname = "ahost.ambari.apache.org";
-    HostAction ha = new HostAction(hostname);
-    HostRoleCommand hrc = new HostRoleCommand("HDFS", Role.DATANODE,
-        new ServiceComponentHostInstallEvent(Role.DATANODE.toString(), hostname, 35678901));
-    ha.addHostRoleCommand(hrc);
-    s.addHostAction(hostname, ha);
+    Stage s = StageUtils.getATestStage(1, 977, hostname);
+    stages.add(s);
     when(db.getStagesInProgress()).thenReturn(stages);
 
     //Keep large number of attempts so that the task is not expired finally
@@ -88,7 +87,7 @@ public class TestActionScheduler {
     assertEquals("1-977", ((ExecutionCommand) (ac.get(0))).getCommandId());
 
     //Now change the action status
-    hrc.setStatus(HostRoleStatus.COMPLETED);
+    s.setHostRoleStatus(hostname, "NAMENODE", HostRoleStatus.COMPLETED);
     ac = aq.dequeueAll(hostname);
 
     //Wait for sometime, it shouldn't be scheduled this time.
@@ -115,16 +114,10 @@ public class TestActionScheduler {
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
 
     ActionDBAccessorImpl db = mock(ActionDBAccessorImpl.class);
-    List<Stage> stages = new ArrayList<Stage>();
-    Stage s = new Stage(1, "/bogus", "clusterName");
-    s.setStageId(977);
-    stages.add(s);
     String hostname = "ahost.ambari.apache.org";
-    HostAction ha = new HostAction(hostname);
-    HostRoleCommand hrc = new HostRoleCommand("HDFS", Role.DATANODE,
-        null);
-    ha.addHostRoleCommand(hrc);
-    s.addHostAction(hostname, ha);
+    List<Stage> stages = new ArrayList<Stage>();
+    Stage s = StageUtils.getATestStage(1, 977, hostname);
+    stages.add(s);
     when(db.getStagesInProgress()).thenReturn(stages);
 
     //Keep large number of attempts so that the task is not expired finally
@@ -136,6 +129,6 @@ public class TestActionScheduler {
     Thread.sleep(500);
     //TODO timeoutHostRole must be called exactly once but in this case the state
     //in the db continues to be pending therefore it is processed multiple times.
-    verify(db, atLeastOnce()).timeoutHostRole(hostname, 1, 977, Role.DATANODE);
+    verify(db, atLeastOnce()).timeoutHostRole(hostname, 1, 977, Role.NAMENODE);
   }
 }

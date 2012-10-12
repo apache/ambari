@@ -27,20 +27,21 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
  * track the request.
  * For the actual command refer {@link HostAction#commandToHost}
  */
-public class HostRoleCommand {
+class HostRoleCommand {
   private final Role role;
   private HostRoleStatus status = HostRoleStatus.PENDING;
   private String stdout = "";
   private String stderr = "";
   private int exitCode = 999; //Default is unknown
   private final ServiceComponentHostEvent event;
-  private String serviceName;
+  private long startTime = -1;
+  private long lastAttemptTime = -1;
+  private short attemptCount = 0;
 
-  public HostRoleCommand(String serviceName, Role role,
+  public HostRoleCommand(String host, Role role,
       ServiceComponentHostEvent event) {
     this.role = role;
     this.event = event;
-    this.serviceName = serviceName;
   }
 
   public Role getRole() {
@@ -83,7 +84,41 @@ public class HostRoleCommand {
     this.exitCode = exitCode;
   }
 
-  public String getServiceName() {
-    return serviceName;
+  public long getStartTime() {
+    return startTime;
+  }
+
+  public void setStartTime(long startTime) {
+    this.startTime = startTime;
+  }
+
+  public long getLastAttemptTime() {
+    return lastAttemptTime;
+  }
+
+  public void setLastAttemptTime(long lastAttemptTime) {
+    this.lastAttemptTime = lastAttemptTime;
+  }
+
+  public short getAttemptCount() {
+    return attemptCount;
+  }
+
+  public void incrementAttemptCount() {
+    this.attemptCount++;
+  }
+  
+  @Override
+  public int hashCode() {
+    return role.hashCode();
+  }
+  
+  @Override
+  public boolean equals(Object other) {
+    if (!(other instanceof HostRoleCommand)) {
+      return false;
+    }
+    HostRoleCommand o = (HostRoleCommand) other;
+    return this.role.equals(o.role);
   }
 }

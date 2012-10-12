@@ -17,11 +17,12 @@
  */
 package org.apache.ambari.server.agent;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 
@@ -34,21 +35,17 @@ public class ExecutionCommand extends AgentCommand {
   public ExecutionCommand() {
     super(AgentCommandType.EXECUTION_COMMAND);
   }
-
   private String clusterName;
-
   private String commandId;
-
   private String hostname;
-  
-  private Map<String, String> params = new HashMap<String, String>();
-
+  private Role role;
+  private Map<String, String> hostLevelParams = new HashMap<String, String>();
+  private Map<String, String> roleParams = null;
+  private RoleCommand roleCommand;
   private Map<String, List<String>> clusterHostInfo = 
       new HashMap<String, List<String>>();
-
-  private List<RoleExecution> rolesCommands;
   private Map<String, Map<String, String>> configurations;
-
+  private String serviceName;
   
   @JsonProperty("commandId")
   public String getCommandId() {
@@ -60,20 +57,6 @@ public class ExecutionCommand extends AgentCommand {
     this.commandId = commandId;
   }
   
-  public synchronized void addRoleCommand(String role, String cmd,
-      Map<String, String> roleParams) {
-    RoleExecution rec = new RoleExecution(role, cmd, roleParams);
-    if (rolesCommands == null) {
-      rolesCommands = new ArrayList<RoleExecution>();
-    }
-    rolesCommands.add(rec);
-  }
-  
-  @JsonProperty("roleCommands")
-  public synchronized List<RoleExecution> getRoleCommands() {
-    return this.rolesCommands;
-  }
-  
   @Override
   public boolean equals(Object other) {
     if (!(other instanceof ExecutionCommand)) {
@@ -81,73 +64,50 @@ public class ExecutionCommand extends AgentCommand {
     }
     ExecutionCommand o = (ExecutionCommand) other;
     return (this.commandId == o.commandId &&
-            this.hostname == o.hostname);
+            this.hostname == o.hostname &&
+            this.role == o.role &&
+            this.roleCommand == o.roleCommand);
   }
   
   @Override
   public String toString() {
-    return "Host=" + hostname + ", commandId="+commandId;
+    return "Host=" + hostname + ", commandId=" + commandId + ", role=" + role
+        + ", command=" + roleCommand;
   }
 
   @Override
   public int hashCode() {
-    return (hostname + commandId).hashCode();
+    return (hostname + commandId + role).hashCode();
+  }
+    
+  @JsonProperty("role")
+  public Role getRole() {
+    return role;
   }
 
-  /**
-   * Role Execution commands sent to the 
-   *
-   */
-  public static class RoleExecution {
+  @JsonProperty("role")
+  public void setRole(Role role) {
+    this.role = role;
+  }
 
-    private String role;
+  @JsonProperty("roleParams")
+  public Map<String, String> getRoleParams() {
+    return roleParams;
+  }
 
-    private Map<String, String> roleParams = null;
+  @JsonProperty("roleParams")
+  public void setRoleParams(Map<String, String> roleParams) {
+    this.roleParams = roleParams;
+  }
 
-    private String cmd;
+  @JsonProperty("roleCommand")
+  public RoleCommand getRoleCommand() {
+    return roleCommand;
+  }
 
-    public RoleExecution() {}
-    
-    public RoleExecution(String role, String cmd,
-        Map<String, String> roleParams) {
-      this.role = role;
-      this.cmd = cmd;
-      this.roleParams = roleParams;
-    }
-    
-    @JsonProperty("role")
-    public String getRole() {
-      return role;
-    }
-    
-    @JsonProperty("role")
-    public void setRole(String role) {
-      this.role = role;
-    }
-    
-    @JsonProperty("roleParams")
-    public Map<String, String> getRoleParams() {
-      return roleParams;
-    }
-
-    @JsonProperty("roleParams")
-    public void setRoleParams(Map<String, String> roleParams) {
-      this.roleParams = roleParams;
-    }
-
-    @JsonProperty("cmd")
-    public String getCmd() {
-      return cmd;
-    }
-    
-    @JsonProperty("cmd")
-    public void setCmd(String cmd) {
-      this.cmd = cmd;
-    }
-    
-    public String toString() {
-      return null;
-    }
+  @JsonProperty("roleCommand")
+  public void setRoleCommand(RoleCommand cmd) {
+    this.roleCommand = cmd;
   }
   
   @JsonProperty("clusterName")
@@ -170,14 +130,14 @@ public class ExecutionCommand extends AgentCommand {
     this.hostname = hostname;
   }
 
-  @JsonProperty("params")
-  public Map<String, String> getParams() {
-    return params;
+  @JsonProperty("hostLevelParams")
+  public Map<String, String> getHostLevelParams() {
+    return hostLevelParams;
   }
 
-  @JsonProperty("params")
-  public void setParams(Map<String, String> params) {
-    this.params = params;
+  @JsonProperty("hostLevelParams")
+  public void setHostLevelParams(Map<String, String> params) {
+    this.hostLevelParams = params;
   }
 
   @JsonProperty("clusterHostInfo")
@@ -198,5 +158,15 @@ public class ExecutionCommand extends AgentCommand {
   @JsonProperty("configurations")
   public void setConfigurations(Map<String, Map<String, String>> configurations) {
     this.configurations = configurations;
+  }
+
+  @JsonProperty("serviceName")
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  @JsonProperty("serviceName")
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 }

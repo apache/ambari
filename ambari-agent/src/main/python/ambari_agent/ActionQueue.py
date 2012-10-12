@@ -106,22 +106,23 @@ class ActionQueue(threading.Thread):
     clusterName = command['clusterName']
     commandId = command['commandId']
     hostname = command['hostname']
-    params = command['params']
+    params = command['hostLevelParams']
     clusterHostInfo = command['clusterHostInfo']
-    roleCommands = command['roleCommands']
+    roleCommand = command['roleCommand']
+    serviceName = command['serviceName']
     configurations = command['configurations']
     result = []
-    for roleCommand in roleCommands:
-      # assume some puppet pluing to run these commands
-      roleResult = {'role' : roleCommand['role'],
-                    'actionId' : commandId,
-                    'stdout' : "DONE",
-                    'clusterName' : clusterName,
-                    'stderr' : "DONE",
-                    'exitCode' : 0,
-                    'status' : "COMPLETED"}
-      result.append(roleResult)
-      pass
+    # assume some puppet pluing to run these commands
+    roleResult = {'role' : command['role'],
+                  'actionId' : commandId,
+                  'stdout' : "DONE",
+                  'clusterName' : clusterName,
+                  'stderr' : "DONE",
+                  'exitCode' : 0,
+                  'serviceName' : serviceName,
+                  'status' : "COMPLETED"}
+    result.append(roleResult)
+    pass
     return result
 
   def noOpCommand(self, command):

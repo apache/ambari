@@ -11,6 +11,8 @@ AMBARI-666 branch (unreleased changes)
   INCOMPATIBLE CHANGES
 
   NEW FEATURES
+
+  AMBARI-850. Flatten ExecutionCommand structure. (jitendra)
   
   AMBARI-848. Various tests for FSM and Controller impl. (hitesh)
 

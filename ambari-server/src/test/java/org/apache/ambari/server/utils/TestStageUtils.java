@@ -19,6 +19,8 @@ package org.apache.ambari.server.utils;
 
 import static org.junit.Assert.*;
 
+import java.util.List;
+
 import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.actionmanager.Stage;
@@ -33,23 +35,25 @@ public class TestStageUtils {
   
   @Test
   public void testGetATestStage() {
-    Stage s = StageUtils.getATestStage(1, 2);
+    Stage s = StageUtils.getATestStage(1, 2, "host2");
     String hostname = s.getHosts().get(0);
-    ExecutionCommand cmd = s.getExecutionCommand(hostname);
-    assertEquals("cluster1", cmd.getClusterName());
-    assertEquals(StageUtils.getActionId(1, 2), cmd.getCommandId());
-    assertEquals(hostname, cmd.getHostname());
+    List<ExecutionCommand> cmds = s.getExecutionCommands(hostname);
+    for (ExecutionCommand cmd : cmds) {
+      assertEquals("cluster1", cmd.getClusterName());
+      assertEquals(StageUtils.getActionId(1, 2), cmd.getCommandId());
+      assertEquals(hostname, cmd.getHostname());
+    }
   }
   
   @Test
   public void testJaxbToString() throws Exception {
-    Stage s = StageUtils.getATestStage(1, 2);
+    Stage s = StageUtils.getATestStage(1, 2, "host1");
     String hostname = s.getHosts().get(0);
-    ExecutionCommand cmd = s.getExecutionCommand(hostname);
-    LOG.info("Command is " + StageUtils.jaxbToString(cmd.getRoleCommands()));
+    List<ExecutionCommand> cmds = s.getExecutionCommands(hostname);
+    for (ExecutionCommand cmd: cmds) {
+      LOG.info("Command is " + StageUtils.jaxbToString(cmd));
+    }
     assertEquals(StageUtils.getActionId(1, 2), s.getActionId());
-    String jaxbString = StageUtils.jaxbToString(cmd);
-    LOG.info("String = "+jaxbString);
   }
 
 }

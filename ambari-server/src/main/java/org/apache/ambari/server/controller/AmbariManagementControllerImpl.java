@@ -24,7 +24,6 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostAction;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.state.Cluster;
@@ -434,25 +433,18 @@ public class AmbariManagementControllerImpl implements
     return stage;
   }
 
-  private HostAction createHostAction(Stage stage, ServiceComponentHost scHost,
+  private void createHostAction(Stage stage, ServiceComponentHost scHost,
       Map<String, Config> configs,
       RoleCommand command,
       long nowTimestamp) {
 
-    HostAction ha = new HostAction(scHost.getHostName());
-
-    HostRoleCommand cmd = new HostRoleCommand(scHost.getServiceName(),
-        Role.valueOf(scHost.getServiceComponentName()),
+    stage.addHostRoleExecutionCommand(scHost.getHostName(), Role.valueOf(scHost
+        .getServiceComponentName()), command,
         new ServiceComponentHostInstallEvent(scHost.getServiceComponentName(),
-            scHost.getHostName(), nowTimestamp));
-
-
-    ha.addHostRoleCommand(cmd);
-
-    ExecutionCommand execCmd = ha.getCommandToHost();
-    execCmd.setCommandId(stage.getActionId());
-    execCmd.setClusterName(scHost.getClusterName());
-
+            scHost.getHostName(), nowTimestamp), scHost.getClusterName(),
+        scHost.getServiceName());
+    ExecutionCommand execCmd = stage.getExecutionCommand(scHost.getHostName(),
+        scHost.getServiceComponentName());
     // Generate cluster host info
     // TODO fix - use something from somewhere to generate this at some point
     Map<String, List<String>> clusterHostInfo =
@@ -476,15 +468,14 @@ public class AmbariManagementControllerImpl implements
 
     Map<String, String> params = new TreeMap<String, String>();
     params.put("magic_param", "/x/y/z");
-    execCmd.setParams(params);
+    execCmd.setHostLevelParams(params);
 
     Map<String, String> roleParams = new TreeMap<String, String>();
     roleParams.put("magic_role_param", "false");
 
-    execCmd.addRoleCommand(scHost.getServiceComponentName(),
-        command.toString(), roleParams);
+    execCmd.setRoleParams(roleParams);
 
-    return ha;
+    return;
   }
 
   @Override
@@ -841,9 +832,8 @@ public class AmbariManagementControllerImpl implements
             throw new AmbariException("Unsupported state change operation");
         }
 
-        HostAction ha = createHostAction(stage, scHost, configs, roleCommand,
+        createHostAction(stage, scHost, configs, roleCommand,
             nowTimestamp);
-        stage.addHostAction(scHost.getHostName(), ha);
       }
       if (LOG.isDebugEnabled()) {
         LOG.debug("Adding new stage for updateService request"
@@ -987,9 +977,8 @@ public class AmbariManagementControllerImpl implements
           throw new AmbariException("Unsupported state change operation");
       }
 
-      HostAction ha = createHostAction(stage, scHost, configs, roleCommand,
+      createHostAction(stage, scHost, configs, roleCommand,
           nowTimestamp);
-      stage.addHostAction(scHost.getHostName(), ha);
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding new stage for updateComponent request"
@@ -1147,9 +1136,7 @@ public class AmbariManagementControllerImpl implements
         throw new AmbariException("Unsupported state change operation");
     }
 
-    HostAction ha = createHostAction(stage, sch, configs, roleCommand,
-        nowTimestamp);
-    stage.addHostAction(sch.getHostName(), ha);
+    createHostAction(stage, sch, configs, roleCommand, nowTimestamp);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding new stage for createHostComponent request"
           + ", clusterName=" + request.getClusterName()

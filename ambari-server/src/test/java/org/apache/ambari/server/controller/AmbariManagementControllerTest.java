@@ -412,7 +412,7 @@ public class AmbariManagementControllerTest {
             + ", stageId=" + stage.getStageId()
             + ", actionId=" + stage.getActionId()
             + ", commandDetails="
-            + StageUtils.jaxbToString(stage.getExecutionCommand(host)));
+            + StageUtils.jaxbToString(stage.getExecutionCommands(host).get(0)));
       }
     }
 
@@ -446,7 +446,7 @@ public class AmbariManagementControllerTest {
             + ", stageId=" + stage.getStageId()
             + ", actionId=" + stage.getActionId()
             + ", commandDetails="
-            + StageUtils.jaxbToString(stage.getExecutionCommand(host)));
+            + StageUtils.jaxbToString(stage.getExecutionCommands(host).get(0)));
       }
     }
 

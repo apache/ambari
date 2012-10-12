@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.state.AgentVersion;
@@ -98,8 +99,6 @@ public class HeartBeatHandler {
 
     //Examine heartbeat for command reports
     List<CommandReport> reports = heartbeat.getReports();
-    actionManager.actionResponse(hostname, reports);
-    //Update state machines from reports
     for (CommandReport report : reports) {
       String clusterName = report.getClusterName();
       if ((clusterName == null) || "".equals(clusterName)) {
@@ -108,7 +107,7 @@ public class HeartBeatHandler {
       Cluster cl = clusterFsm.getCluster(report.getClusterName());
       String service = report.getServiceName();
       if (service == null || "".equals(service)) {
-        service = "HDFS";
+        throw new AmbariException("Invalid command report, service: "+service);
       }
       Service svc = cl.getService(service);
       ServiceComponent svcComp = svc.getServiceComponent(
@@ -129,6 +128,8 @@ public class HeartBeatHandler {
       }
       LOG.info("Report for "+report.toString() +", processed successfully");
     }
+    //Update state machines from reports
+    actionManager.actionResponse(hostname, reports);
 
     // Examine heartbeart for component status
     Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
@@ -176,10 +177,13 @@ public class HeartBeatHandler {
       throws InvalidStateTransitonException, AmbariException {
     String hostname = register.getHostname();
     long now = System.currentTimeMillis();
-    if (clusterFsm.getHost(hostname) == null) {
+    Host hostObject;
+    try {
+      hostObject = clusterFsm.getHost(hostname);
+    } catch (HostNotFoundException ex) {
       clusterFsm.addHost(hostname);
+      hostObject = clusterFsm.getHost(hostname);
     }
-    Host hostObject = clusterFsm.getHost(hostname);
     List<StatusCommand> cmds = new ArrayList<StatusCommand>();
     for (Cluster cl : clusterFsm.getClustersForHost(hostname)) {
       List<ServiceComponentHost> roleList = cl

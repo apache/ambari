@@ -28,9 +28,7 @@ import java.util.TreeMap;
 import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.Role;
-import org.apache.ambari.server.actionmanager.HostAction;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
@@ -59,24 +57,21 @@ public class StageUtils {
   }
 
   //For testing only
-  public static Stage getATestStage(long requestId, long stageId) {
-    String hostname;
-    try {
-      hostname = InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException e) {
-      hostname = "host-dummy";
+  public static Stage getATestStage(long requestId, long stageId, String hostname) {
+    if (hostname == null || "".equals(hostname)) {
+      try {
+        hostname = InetAddress.getLocalHost().getHostName();
+      } catch (UnknownHostException e) {
+        hostname = "host-dummy";
+      }
     }
     Stage s = new Stage(requestId, "/tmp", "cluster1");
     s.setStageId(stageId);
-    HostAction ha = new HostAction(hostname);
     long now = System.currentTimeMillis();
-    HostRoleCommand hrc = new HostRoleCommand("HDFS", Role.NAMENODE, 
-        new ServiceComponentHostInstallEvent("NAMENODE", hostname, now));
-    hrc.setStatus(HostRoleStatus.PENDING);
-    ha.addHostRoleCommand(hrc);
-    ExecutionCommand execCmd = ha.getCommandToHost();
+    s.addHostRoleExecutionCommand(hostname, Role.NAMENODE, RoleCommand.INSTALL,
+        new ServiceComponentHostInstallEvent("NAMENODE", hostname, now), "cluster1", "HDFS");
+    ExecutionCommand execCmd = s.getExecutionCommand(hostname, "NAMENODE");
     execCmd.setCommandId(s.getActionId());
-    execCmd.setClusterName("cluster1");
     Map<String, List<String>> clusterHostInfo = new TreeMap<String, List<String>>();
     List<String> slaveHostList = new ArrayList<String>();
     slaveHostList.add(hostname);
@@ -91,16 +86,15 @@ public class StageUtils {
     execCmd.setConfigurations(configurations);
     Map<String, String> params = new TreeMap<String, String>();
     params.put("jdklocation", "/x/y/z");
-    execCmd.setParams(params);
+    execCmd.setHostLevelParams(params);
     Map<String, String> roleParams = new TreeMap<String, String>();
     roleParams.put("format", "false");
-    execCmd.addRoleCommand("NAMENODE", "INSTALL", roleParams);
+    execCmd.setRoleParams(roleParams);
     try {
       LOG.info("Command string = " + StageUtils.jaxbToString(execCmd));
     } catch (Exception e) {
       throw new RuntimeException("Could not get string from jaxb",e);
     }
-    s.addHostAction(hostname, ha);
     return s;
   }
   
