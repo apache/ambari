@@ -42,6 +42,15 @@
         <include>*.txt</include>
       </includes>
     </fileSet>
+     <!--
+    <fileSet>
+      <directory>${project.build.directory}/web/</directory>
+      <outputDirectory>ambari-server-${project.version}/web/</outputDirectory>
+      <includes>
+        <include>*</include>
+      </includes>
+    </fileSet>
+    -->
     <!--
     <fileSet>
       <directory>${basedir}/src/main/bin</directory>

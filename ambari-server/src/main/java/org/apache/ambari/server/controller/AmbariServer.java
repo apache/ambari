@@ -29,6 +29,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.state.Clusters;
 import org.mortbay.jetty.Server;
+import org.mortbay.jetty.handler.ResourceHandler;
 import org.mortbay.jetty.security.SslSocketConnector;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.DefaultServlet;
@@ -75,7 +76,13 @@ public class AmbariServer {
   public static AmbariManagementController getController() {
     return clusterController;
   }
-  
+
+  private void setAmbariWebContext(Server server) {
+    Context webContext = new Context(server, "/", 0);
+    webContext.setHandler(new ResourceHandler());
+    webContext.setResourceBase("web");
+  }
+
   public void run() {
     server = new Server(CLIENT_API_PORT);
     serverForAgent = new Server();
@@ -92,6 +99,8 @@ public class AmbariServer {
       String[] contextLocations = {SPRING_CONTEXT_LOCATION};
       ClassPathXmlApplicationContext springAppContext = new
           ClassPathXmlApplicationContext(contextLocations, parentSpringAppContext);
+       //setting ambari web context
+      setAmbariWebContext(server);
 
       Context root = new Context(server, CONTEXT_PATH, Context.ALL);
 

@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-854. Serve ambari-web from jetty. (Jaimin Jely via yusaku)
+ 
   AMBARI-850. Flatten ExecutionCommand structure. (jitendra)
   
   AMBARI-848. Various tests for FSM and Controller impl. (hitesh)
