@@ -21,7 +21,9 @@
 // load all views here
 
 require('views/application');
+require('views/common/chart');
 require('views/common/modal_popup');
+require('views/common/metric');
 require('views/common/form/field');
 require('views/login');
 require('views/main');
@@ -52,6 +54,13 @@ require('views/main/service/info/summary');
 require('views/main/service/info/metrics');
 require('views/main/service/info/configs');
 require('views/main/service/info/audit');
+require('views/main/charts/menu');
+require('views/main/charts/heatmap');
+require('views/main/charts/horizon');
+require('views/main/charts/horizon/chart');
+require('views/main/charts/heatmap/heatmap_rack');
+require('views/main/charts/heatmap/heatmap_host');
+require('views/main/charts/heatmap/heatmap_host_detail');
 require('views/installer');
 require('views/installer/step1_view');
 require('views/installer/step2_view');

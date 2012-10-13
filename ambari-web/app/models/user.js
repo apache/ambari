@@ -33,6 +33,10 @@ App.User = DS.Model.extend({
 
 App.UserForm = App.Form.extend({
   className:App.User,
+  object: function(){
+    return App.router.get('mainAdminUserEditController.content');
+  }.property('App.router.mainAdminUserEditController.content'),
+
   fieldsOptions:[
     { name:"userName", displayName:"Username" },
     { name:"password", displayName:"Password", displayType:"password", isRequired: function(){ return this.get('form.isObjectNew'); }.property('form.isObjectNew') },
@@ -43,14 +47,13 @@ App.UserForm = App.Form.extend({
   disableUsername:function () {
     var field = this.getField("userName");
     if (field) field.set("disabled", this.get('isObjectNew') ? false : "disabled");
-
   }.observes('isObjectNew'),
   disableAdminCheckbox:function () {
     if (!this.get('isObjectNew')) {
       var object = this.get('object');
       var field = this.getField("admin");
       if (field) {
-        field.set("disabled", object.get('userName') == App.get('router').getLoginName() ? "disabled" : false);
+        field.set("disabled", (object.get('userName') == App.get('router').getLoginName()) ? "disabled" : false);
       }
     }
   }.observes('isObjectNew'),
@@ -106,6 +109,12 @@ App.User.FIXTURES = [
   {
     id:4,
     user_name:'danip',
+    admin:0
+  },
+  {
+    id:5,
+    user_name:'test',
+    password:'test',
     admin:0
   }
 ];

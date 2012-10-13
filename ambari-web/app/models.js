@@ -30,3 +30,5 @@ require('models/service_metrics');
 require('models/alert');
 require('models/user');
 require('models/pagination');
+require('models/host');
+require('models/rack');

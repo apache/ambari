@@ -145,43 +145,6 @@
     width: 100px;
 }
 
-#host-details .back{
-    display: block;
-    width: 105px;
-    margin-bottom: 5px;
-}
-#host-details .box-header .host-title{
-    margin:0;
-    padding-left: 17px;
-}
-#host-details .box-header .button-section{
-    margin-bottom: 5px;
-}
-#host-details hr{
-    margin-bottom: 0;
-    clear: both;
-}
-#host-details .content{
-    padding: 10px;
-    background: #F6FAFD;
-}
-#host-details .host-configuration .dl-horizontal dt{
-    width: 90px;
-    line-height: 20px;
-}
-#host-details .host-configuration .dl-horizontal dd{
-    margin-left: 100px;
-    line-height: 20px;
-}
-#host-details .host-components{
-    padding: 10px;
-    padding-bottom: 0;
-    border: 1px solid #DEDEDE;
-    background: #fff;
-}
-#host-details .host-components .btn-group{
-    margin:0 5px 10px 0;
-}
 /*End Hosts*/
 /*fieldset begin*/
 .fieldset {

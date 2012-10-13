@@ -47,6 +47,33 @@ module.exports = Em.Route.extend({
     route:'/charts',
     connectOutlets:function (router, context) {
       router.get('mainController').connectOutlet('mainCharts');
+    },
+    enter:function (router) {
+      Em.run.next(function () {
+        router.transitionTo('heatmap');
+      });
+    },
+    index: Ember.Route.extend({
+      route: '/',
+      redirectsTo: 'heatmap'
+    }),
+    heatmap: Em.Route.extend({
+      route:'/heatmap',
+      connectOutlets: function(router, context) {
+        router.get('mainChartsController').connectOutlet('mainChartsHeatmap');
+      }
+    }),
+    horizon_chart: Em.Route.extend({
+      route:'/horizon_chart',
+      connectOutlets: function(router, context) {
+        router.get('mainChartsController').connectOutlet('mainChartsHorizon');
+      }
+    }),
+    showChart:function (router, event) {
+      var parent = event.view._parentView;
+      parent.deactivateChildViews();
+      event.view.set('active', "active");
+      router.transitionTo(event.context);
     }
   }),
 
@@ -154,7 +181,6 @@ module.exports = Em.Route.extend({
       editUser:Em.Route.extend({
         route:'/edit/:userName',
         connectOutlets:function (router, user) {
-          console.log(user);
           router.get('mainAdminController').connectOutlet('mainAdminUserEdit', user);
         }
       }),

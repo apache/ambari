@@ -22,4 +22,7 @@ This product includes Sinon.JS (http://sinonjs.org - BSD license)
 Copyright (c) 2010-2012, Christian Johansen.
 
 This product includes ember-i18n (http://github.com/zendesk/ember-i18n - MIT license)
-Copyright (C) 2011 by James A. Rosen; Zendesk, Inc.
+Copyright (c) 2011 by James A. Rosen; Zendesk, Inc.
+
+This product includes D3.js (http://d3js.org - BSD license)
+Copyright (c) 2012, Michael Bostock.

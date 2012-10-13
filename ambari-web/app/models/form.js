@@ -78,7 +78,7 @@ App.Form = Em.View.extend({
     var object = this.get('object');
     if (object instanceof Em.Object) {
       $.each(this.fields, function () {
-        this.set('value', this.get('displayType') == 'password' ? '' : object.get(this.get('name')));
+        this.set('value', (this.get('displayType') == 'password') ? '' : object.get(this.get('name')));
       });
     } else {
       this.clearValues();
@@ -93,7 +93,7 @@ App.Form = Em.View.extend({
   getValues: function () {
     var values = {};
     $.each(this.fields, function () {
-      if (!(this.get('displayType') == 'password') && validator.empty(this.get('value'))) // if this is not empty password field
+      if (!(this.get('displayType') == 'password' && validator.empty(this.get('value')))) // if this is not empty password field
         values[this.get('name')] = this.get('value');
     });
     return values;

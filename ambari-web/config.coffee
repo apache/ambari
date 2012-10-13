@@ -40,6 +40,7 @@ exports.config =
           'vendor/scripts/ember-data-latest.js',
           'vendor/scripts/ember-i18n-1.2.0.js',
           'vendor/scripts/bootstrap.js',
+          'vendor/scripts/d3.v2.js',
           'vendor/scripts/sinon-1.4.2.js'
           ]
 

@@ -182,6 +182,17 @@ Em.I18n.translations = {
   'services.service.stop.popup.header': 'Confirmation',
   'services.service.start.popup.body': 'Are you sure?',
   'services.service.stop.popup.body': 'Are you sure?',
+  'services.service.summary.version': 'Version',
+  'services.service.summary.nameNode': 'NameNode',
+  'services.service.summary.nameNodeUptime': 'NameNode Uptime',
+  'services.service.summary.nameNodeHeap': 'NameNode Heap',
+  'services.service.summary.pendingUpgradeStatus': 'HDFS Pending Upgrade Status',
+  'services.service.summary.safeModeStatus': 'HDFS Safe Mode Status',
+  'services.service.summary.dataNodes': 'DataNodes (live/dead/decom)',
+  'services.service.summary.diskCapacity': 'HDFS Disk Capacity',
+  'services.service.summary.blocksTotal': 'Blocks (total)',
+  'services.service.summary.blockErrors': 'Block Errors (corr./miss./underrep.)',
+  'services.service.summary.totalFiles': 'Total Files + Directory Count',
 
   'hosts.host.start.popup.header': 'Confirmation',
   'hosts.host.stop.popup.header': 'Confirmation',
@@ -192,5 +203,18 @@ Em.I18n.translations = {
   'hosts.decommission.popup.body': 'Are you sure?',
   'hosts.decommission.popup.header': 'Confirmation',
   'hosts.delete.popup.body': 'Are you sure?',
-  'hosts.delete.popup.header': 'Confirmation'
+  'hosts.delete.popup.header': 'Confirmation',
+
+  'charts.horizon.chart.showText': 'show',
+  'charts.horizon.chart.hideText': 'hide',
+  'charts.horizon.chart.attributes.cpu': 'CPU',
+  'charts.horizon.chart.attributes.memory': 'Memory',
+  'charts.horizon.chart.attributes.network': 'Network',
+  'charts.horizon.chart.attributes.io': 'I/O',
+
+  'metric.default': 'default',
+  'metric.cpu': 'cpu',
+  'metric.memory': 'disk used',
+  'metric.network': 'network',
+  'metric.io': 'io'
 };

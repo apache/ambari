@@ -93,6 +93,7 @@ App.Router = Em.Router.extend({
 
   getAuthenticated: function () {
     // TODO: this needs to be hooked up with server authentication
+//    this.authenticated();
     var auth = App.db.getAuthenticated();
     var authResp = (auth && auth === true);
     this.set('loggedIn', authResp);
@@ -137,6 +138,54 @@ App.Router = Em.Router.extend({
 
     this.transitionTo(this.getSection());
 
+  },
+
+  resetAuth: function (authenticated) {
+    if (!authenticated){
+      App.db.cleanUp();
+      this.set('loggedIn', false);
+      this.set('loginController.loginName', '');
+      this.set('loginController.password', '');
+      this.transitionTo('login');
+    }
+    return authenticated;
+  },
+
+  authenticated: function () {
+    var authenticated = false;
+    var controller = this.get('loginController');
+    var hash = window.btoa(controller.get('loginName') + ":" + controller.get('password'));
+    $.ajax({
+      url : '/api/check',
+      dataType : 'json',
+      type: 'GET',
+      async: false,
+      beforeSend: function(xhr) {
+        xhr.setRequestHeader("Authorization", "Basic " + hash);
+      },
+      statusCode:{
+        200:function(){
+          console.log('Authorization status: 200');
+          authenticated = true;
+        },
+        401:function(){
+          console.log('Authorization status: 401');
+        },
+        403:function(){
+          console.log('Authorization status: 403');
+        }
+      },
+      success: function(data){
+        console.log('Success: ');
+      },
+      error:function (req){
+        console.log("Error: " + req.statusText);
+      }
+    });
+//    this.resetAuth(authenticated);
+    this.setAuthenticated(authenticated);
+
+    return this.getAuthenticated();
   },
 
   defaultSection: 'installer',

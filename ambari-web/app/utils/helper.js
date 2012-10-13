@@ -26,14 +26,10 @@ Em.CoreObject.reopen({
   }
 });
 
+Handlebars.registerHelper('log', function(variable) {
+  console.log(variable);
+});
 
-//Em.Object.getMixinProperties = function(){
-//  var properties = {};
-//  this.PrototypeMixin.mixins.forEach(function(i,mix){
-//    if(mix.properties) {
-//      properties = mix.properties;
-//    }
-//  });
-//
-//  return properties;
-//}
+Handlebars.registerHelper('warn', function(variable) {
+  console.warn(variable);
+});

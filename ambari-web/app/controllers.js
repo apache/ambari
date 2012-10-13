@@ -50,3 +50,8 @@ require('controllers/main/alert');
 require('controllers/main/host');
 require('controllers/main/host/details');
 require('controllers/main/dashboard');
+require('controllers/main/charts');
+require('controllers/main/charts/heatmap');
+require('controllers/main/charts/horizon_chart');
+require('controllers/main/charts/horizon_chart');
+require('controllers/main/rack');

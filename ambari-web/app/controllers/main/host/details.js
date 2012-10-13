@@ -21,12 +21,8 @@ var App = require('app');
 App.MainHostDetailsController = Em.Controller.extend({
   name: 'mainHostDetailsController',
   content: null,
-
   isFromHosts: false,
-
-  isStarting: function(){
-    return this.get('content.workStatus');
-  }.property('content.workStatus'),
+  isStarting: true,
   isStopping: function(){
     return !this.get('isStarting');
   }.property('isStarting'),
@@ -47,7 +43,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         component.set('workStatus', true);
         var stopped = self.get('content.components').filterProperty('workStatus', false);
         if (stopped.length == 0)
-          self.set('content.workStatus', true);
+          self.set('isStarting', true);
         this.hide();
       },
       onSecondary: function() {
@@ -67,7 +63,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         component.set('workStatus', false);
         var started = self.get('content.components').filterProperty('workStatus', true);
         if (started.length == 0)
-          self.set('content.workStatus', false);
+          self.set('isStarting', false);
         this.hide();
       },
       onSecondary: function() {
@@ -86,7 +82,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       secondary: 'No',
       onPrimary: function() {
         self.get('content.components').setEach('workStatus', true);
-        self.set('content.workStatus', !self.get('content.workStatus'));
+        self.set('isStarting', !self.get('isStarting'));
         this.hide();
       },
       onSecondary: function() {
@@ -103,7 +99,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       secondary: 'No',
       onPrimary: function() {
         self.get('content.components').setEach('workStatus', false);
-        self.set('content.workStatus', !self.get('content.workStatus'));
+        self.set('isStarting', !self.get('isStarting'));
         this.hide();
       },
       onSecondary: function() {

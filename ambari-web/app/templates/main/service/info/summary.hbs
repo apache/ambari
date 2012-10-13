@@ -36,6 +36,69 @@
           <div class="service-links">{{component.componentName}}: <a {{action filterHosts component}} href="javascript:void(null)">{{component.componentName}}</a></div>
         {{/if}}
 			{{/each}}
+      {{#if view.serviceStatus.hdfs}}
+      <table id="summary-info" class="table table-bordered table-condensed">
+        <tr>
+          <td>{{t services.service.summary.version}}</td>
+          <td>{{view.attributes.version}}</td>
+        </tr>
+        <tr>
+          <td>{{t services.service.summary.nameNode}}</td>
+          <td><a {{bindAttr href="view.attributes.namenode_addr"}}>{{view.attributes.namenode_addr}}</a></td>
+        </tr>
+        <tr>
+          <td>{{t services.service.summary.nameNodeUptime}}</td>
+          <td>{{view.attributes.start_time}}</td>
+        </tr>
+        <tr>
+        <tr>
+          <td>{{t services.service.summary.nameNodeHeap}}</td>
+          <td>{{view.attributes.memory_heap_used}} MB / {{view.attributes.memory_heap_max}} MB ({{view.attributes.memory_heap_percent_used}}% used)</td>
+        </tr>
+        <tr>
+          <td>{{t services.service.summary.pendingUpgradeStatus}}</td>
+          <td>
+            {{#if view.attributes.pending_upgrades}}
+              some message
+            {{else}}
+              no pending upgrades
+            {{/if}}
+          </td>
+        </tr>
+        <tr>
+          <td>{{t services.service.summary.safeModeStatus}}</td>
+          <td>
+            {{#if view.attributes.safemode}}
+              in safemode
+            {{else}}
+              not in safemode
+            {{/if}}
+          </td>
+        </tr>
+        <tr>
+          <td>{{t services.service.summary.dataNodes}}</td>
+          <td>
+            <a href="javascript:void(null)">{{view.attributes.live_nodes}}</a> / <a href="javascript:void(null)">{{view.attributes.dead_nodes}}</a> / <a href="javascript:void(null)">{{view.attributes.decommissioning_nodes}}</a>
+          </td>
+        </tr>
+        <tr>
+          <td>{{t services.service.summary.diskCapacity}}</td>
+          <td>{{view.attributes.used_bytes}} GB / {{view.attributes.dfs_total_bytes}} GB ({{view.attributes.dfs_percent_used}}% used)</td>
+        </tr>
+        <tr>
+          <td>{{t services.service.summary.blocksTotal}}</td>
+          <td>{{view.attributes.dfs_blocks_total}}</td>
+        </tr>
+        <tr>
+          <td>{{t services.service.summary.blockErrors}}</td>
+          <td>{{view.attributes.dfs_blocks_corrupt}} / {{view.attributes.dfs_blocks_missing}} / ({{view.attributes.dfs_blocks_underreplicated}})</td>
+        </tr>
+        <tr>
+          <td>{{t services.service.summary.totalFiles}}</td>
+          <td>{{view.attributes.dfs_dirfiles_count}}</td>
+        </tr>
+      </table>
+      {{/if}}
 		</div>
 	</div>
 	<div class="span6">

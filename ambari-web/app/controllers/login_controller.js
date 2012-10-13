@@ -31,6 +31,7 @@ App.LoginController = Em.Object.extend({
     this.set('errorMessage', '');
 
     var user = this.validateCredentials();
+   
     if (user) {
       App.get('router').login(this.get('loginName'), user);
     } else {
@@ -46,16 +47,18 @@ App.LoginController = Em.Object.extend({
   validateCredentials: function () {
     //TODO: REST api that validates the login
     var thisController = this;
+    var auth = App.get('router').authenticated();
+    console.log(auth);
+//    if (auth) {
+      var user = App.store.filter(App.User, function (data) {
+        return data.get('user_name') == thisController.get('loginName') && data.get('password') == thisController.get('password');
+      });
 
-    var user = App.store.filter(App.User, function (data) {
-      return data.get('user_name') == thisController.get('loginName') && data.get('password') == thisController.get('password');
-    });
-
-    var clientId = user.content[0];
-
-    if (user.content[0] !== undefined) {
-      return App.store.findByClientId(App.User, clientId);
-    }
+      var clientId = user.content[0];
+      if (user.content[0] !== undefined) {
+        return App.store.findByClientId(App.User, clientId);
+      }
+//    }
   }
 
 });

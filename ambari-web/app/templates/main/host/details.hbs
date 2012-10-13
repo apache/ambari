@@ -15,7 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<div id="host-details" class="row">
+<div id="host-details">
   {{#if controller.isFromHosts}}
   <a class="btn back" {{action backToHostsList}}>← Back to Hosts</a>
   {{/if}}
@@ -32,7 +32,6 @@
           Stop
         </button>
       </div>
-      <hr />
     </div>
     <div class="content">
       {{view App.MainHostMenuView}}

@@ -28,16 +28,11 @@ App.MainAdminUserEditView = Em.View.extend({
     }
   },
 
-  willInsertElement: function() {
-    this.setFormObject();
-    this._super();
-  },
+  userForm: App.UserForm.create({}),
 
-  setFormObject: function(){
-    console.log("submit new user");
-    var user = App.router.get('mainAdminUserEditController.content');
-    this.userForm.set('object', user);
-  }.observes('App.router.mainAdminUserEditController.content'),
 
-  userForm: App.UserForm.create({})
+  didInsertElement: function(){
+    this.get('userForm').propertyDidChange('object');
+  }
+
 });
