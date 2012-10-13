@@ -25,36 +25,8 @@ module.exports = Em.Application.create({
   store: DS.Store.create({
     revision: 4,
     adapter: DS.FixtureAdapter.create()
-    //adapter: DS.RESTAdapter.create({
-    // bulkCommit: false
-    // namespace: '/api/v1'
-    // })
-    /*
-     adapter: DS.Adapter.create({
-     find: function(store, type, id) {
-     //var url = type.url;
-     //url = url.fmt(id);
-
-     if (type.toString() === 'App.Cluster') {
-     store.load(type, { id: id, hosts: [ { hostname: 'host1' }, { hostname: 'host2' } ], services: []});
-     }
-     debugger;
-
-     //jQuery.getJSON(url, function(data) {
-     // data is a Hash of key/value pairs. If your server returns a
-     // root, simply do something like:
-     // store.load(type, id, data.person)
-     //    store.load(type, id, data);
-     //});
-     },
-     findAll: function(store, type, id) {
-     debugger;
-     },
-     findMany: function(store, type, id) {
-     debugger;
-     }
-     })
-     */
+    // comment out the line above and uncomment the line below for backend integration
+    // adapter: require('data_adapter')
   })
 
 });

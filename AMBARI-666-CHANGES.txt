@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-855. Create the skeleton for a custom data adapter in Ambari Web.
+  (yusaku)
+
   AMBARI-854. Serve ambari-web from jetty. (Jaimin Jely via yusaku)
  
   AMBARI-850. Flatten ExecutionCommand structure. (jitendra)
