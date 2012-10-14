@@ -76,8 +76,8 @@ class ActionScheduler implements Runnable {
   public void run() {
     while (shouldRun) {
       try {
-        doWork();
         Thread.sleep(sleepTime);
+        doWork();
       } catch (InterruptedException ex) {
         LOG.warn("Scheduler thread is interrupted going to stop", ex);
         shouldRun = false;

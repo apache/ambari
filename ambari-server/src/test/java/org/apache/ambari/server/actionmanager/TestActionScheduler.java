@@ -69,18 +69,18 @@ public class TestActionScheduler {
 
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
-    ActionScheduler scheduler = new ActionScheduler(1000, 100, db, aq, fsm, 10000);
+    ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm, 10000);
     // Start the thread
     scheduler.start();
 
-    Thread.sleep(1000);
+    Thread.sleep(200);
     List<AgentCommand> ac = aq.dequeueAll(hostname);
     assertEquals(1, ac.size());
     assertTrue(ac.get(0) instanceof ExecutionCommand);
     assertEquals("1-977", ((ExecutionCommand) (ac.get(0))).getCommandId());
 
     //The action status has not changed, it should be queued again.
-    Thread.sleep(1000);
+    Thread.sleep(200);
     ac = aq.dequeueAll(hostname);
     assertEquals(1, ac.size());
     assertTrue(ac.get(0) instanceof ExecutionCommand);
@@ -91,7 +91,7 @@ public class TestActionScheduler {
     ac = aq.dequeueAll(hostname);
 
     //Wait for sometime, it shouldn't be scheduled this time.
-    Thread.sleep(1000);
+    Thread.sleep(200);
     ac = aq.dequeueAll(hostname);
     assertEquals(0, ac.size());
   }

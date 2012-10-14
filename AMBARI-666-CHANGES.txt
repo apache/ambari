@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-860. Remove code that adds fake stages for testing. (jitendra)
+
   AMBARI-856. Add cluster heatmap. (yusaku)
 
   AMBARI-855. Create the skeleton for a custom data adapter in Ambari Web.
