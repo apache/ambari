@@ -257,6 +257,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-858. Installer -> Select Services page: warning popups are no longer
+  appearing. (yusaku)
+
   AMBARI-846. Select Masters Page: make ZooKeeper addition/removal UI more
   organized. (Jaimin Jetly via yusaku)
 

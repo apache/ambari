@@ -58,38 +58,6 @@ App.InstallerStep4Controller = Em.ArrayController.extend({
     return db.getService();
   },
 
-  /*
-  loadStepFromContent: function () {
-    console.log("TRACE: Loading from rawContent/API step4: Choose Services");
-    this.clear();
-    var rawContent = this.rawContent;
-    rawContent.setEach('isSelected', true);
-    this.renderStep(rawContent);
-  },
-  */
-
-  /*
-  loadStepFromDb: function () {
-    console.log("TRACE: Loading form localStorage step4: Choose Services");
-    this.clear();
-    var rawContent = this.rawContent;
-    rawContent.setEach('isSelected', false);
-    var services = App.db.getSelectedServiceNames();
-    if (services !== undefined && services !== null) {
-      rawContent.forEach(function (_content) {
-        var serviceFound = services.contains(_content.serviceName);
-        if (serviceFound) {
-          _content.isSelected = true;
-        } else {
-          _content.isSelected = false;
-        }
-        console.log('TRACE: value of service is: ' + _content.serviceName);
-      });
-      this.renderStep(rawContent);
-    }
-  },
-  */
-
   renderStep: function (serviceInfo) {
     serviceInfo.forEach(function (item) {
       this.pushObject(Ember.Object.create(item));
