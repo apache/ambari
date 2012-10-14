@@ -15,7 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 var App = require('app');
+
 module.exports = Em.Route.extend({
   route: '/installer',
   App: require('app'),

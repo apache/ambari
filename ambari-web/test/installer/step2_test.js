@@ -17,96 +17,83 @@
  */
 
 var App = require('app');
+var Ember = require('ember');
 require('controllers/installer/step2_controller');
 
 describe('App.InstallerStep2Controller', function () {
 
-  describe('#validateStep2()', function () {
+  describe('#hostsError()', function () {
 
-    it('should set hostNameEmptyError  ' +
-      'hostNameNotRequiredErr and hostNameErr to false, ' +
-      ' if manualInstall is false and hostNames is empty', function () {
+    it('should return t(installer.step2.hostName.error.required) if manualInstall is false, hostNames is empty, and hasSubmitted is true', function () {
       var controller = App.InstallerStep2Controller.create();
       controller.set('manualInstall', false);
       controller.set('hostNames', '');
-      expect(controller.validateStep2()).to.equal(true);
-      expect(controller.get('hostNameEmptyError')).to.equal(true);
-      expect(controller.get('hostNameNotRequiredErr')).to.equal(false);
+      controller.set('hasSubmitted', true);
+      expect(controller.get('hostsError')).to.equal(Ember.I18n.t('installer.step2.hostName.error.required'));
     })
 
-    it('should set hostNameNotRequiredErr ' +
-      'hostNameEmptyError and hostNameErr to false, ' +
-      ' if manualInstall is true and hostNames is not empty', function () {
+    it('should return null if manualInstall is false, hostNames is not empty, and hasSubmitted is true', function () {
       var controller = App.InstallerStep2Controller.create();
-      controller.set('manualInstall', true);
-      controller.set('hostNames', 'apache ambari');
-      expect(controller.validateStep2()).to.equal(true);
-      expect(controller.get('hostNameNotRequiredErr')).to.equal(true);
-      expect(controller.get('hostNameEmptyError')).to.equal(false);
+      controller.set('manualInstall', false);
+      controller.set('hostNames', 'ambari');
+      controller.set('hasSubmitted', true);
+      expect(controller.get('hostsError')).to.equal(null);
     })
 
-    it('should set hostNameErr to true,  ' +
-      'hostNameEmptyError and hostNameNotRequiredErr to false, ' +
-      ' if manualInstall is false and hostNames has an element that starts' +
-      ' with hyphen', function () {
+    it('should return t(installer.step2.hostName.error.invalid) if manualInstall is false and hostNames has an element ' +
+      'that starts with a hyphen', function () {
       var controller = App.InstallerStep2Controller.create();
       controller.set('manualInstall', false);
       controller.set('hostNames', "-apache");
-      expect(controller.validateStep2()).to.equal(false);
-      expect(controller.get('hostNameEmptyError')).to.equal(false);
-      expect(controller.get('hostNameNotRequiredErr')).to.equal(false);
+      expect(controller.get('hostsError')).to.equal(Ember.I18n.t('installer.step2.hostName.error.invalid'));
     })
 
-    it('should set hostNameErr to true and,  ' +
-      'hostNameEmptyError and hostNameNotRequiredErr to false, ' +
-      ' if manualInstall is false and hostNames has an element that ends' +
-      ' with hyphen', function () {
+    it('should return t(installer.step2.hostName.error.invalid) if manualInstall is false and hostNames has an element ' +
+      'that ends with a hyphen', function () {
       var controller = App.InstallerStep2Controller.create();
       controller.set('manualInstall', false);
       controller.set('hostNames', 'apache-');
-      expect(controller.validateStep2()).to.equal(false);
-      expect(controller.get('hostNameEmptyError')).to.equal(false);
-      expect(controller.get('hostNameNotRequiredErr')).to.equal(false);
+      expect(controller.get('hostsError')).to.equal(Ember.I18n.t('installer.step2.hostName.error.invalid'));
     })
 
-    it('hostNameEmptyError, hostNameNotRequiredErr and hostNameErr to false, ' +
-      'hostNameErrMsg to null if manualInstall is true and hostNames is null',
-      function () {
-        var controller = App.InstallerStep2Controller.create();
-        controller.set('manualInstall', true);
-        controller.set('hostNames', '');
-        controller.validateStep2();
-        expect(controller.validateStep2()).to.equal(true);
-        expect(controller.get('hostNameEmptyError')).to.equal(false);
-        expect(controller.get('hostNameNotRequiredErr')).to.equal(false);
-        expect(controller.get('hostNameErrMsg')).to.equal('');
-      })
+    it('should return t(installer.step2.hostName.error.required) if manualInstall is true, hostNames is empty, and ' +
+      'hasSubmitted is true', function () {
+      var controller = App.InstallerStep2Controller.create();
+      controller.set('manualInstall', true);
+      controller.set('hostNames', '');
+      controller.set('hasSubmitted', true);
+      expect(controller.get('hostsError')).to.equal(Ember.I18n.t('installer.step2.hostName.error.required'));
+    })
 
+  })
 
-    it('should set sshKeyNullErr to true if ' +
-      'manualInstall is false and sshKey is empty', function () {
+  describe('#sshKeyError()', function () {
+    it('should return t(installer.step2.sshKey.error.required) to true if manualInstall is false, sshKey is empty, ' +
+      'and hasSubmitted is true', function () {
       var controller = App.InstallerStep2Controller.create();
       controller.set('manualInstall', false);
       controller.set('sshKey', '');
-      controller.validateStep2();
-      expect(controller.get('sshKeyNullErr')).to.equal(true);
+      controller.set('hasSubmitted', true);
+      expect(controller.get('sshKeyError')).to.equal(Ember.I18n.t('installer.step2.sshKey.error.required'));
     })
 
-    it('should set sshKeyNullErr to false if sshKey is null but manualInstall is true', function () {
+    it('should return null if manualInstall is true, sshKey is empty, and hasSubmitted is true', function () {
       var controller = App.InstallerStep2Controller.create();
       controller.set('sshKey', '');
       controller.set('manualInstall', true);
-      controller.validateStep2();
-      expect(controller.get('sshKeyNullErr')).to.equal(false);
+      controller.set('hasSubmitted', true);
+      expect(controller.get('sshKeyError')).to.equal(null);
     })
 
-    it('should set sshKeyNullErr to false if sshKey is not null', function () {
+    it('should return null if sshKey is not null and hasSubmitted is true', function () {
       var controller = App.InstallerStep2Controller.create();
       controller.set('sshKey', 'ambari');
-      controller.validateStep2();
-      expect(controller.get('sshKeyNullErr')).to.equal(false);
+      controller.set('hasSubmitted', true);
+      expect(controller.get('sshKeyError')).to.equal(null);
     })
 
+  })
+    /* Passphrase has been disabled, so commenting out tests
     it('should set passphraseMatchErr to true if ' +
       'passphrase and confirmPassphrase doesn\'t match ', function () {
       var controller = App.InstallerStep2Controller.create();
@@ -135,44 +122,37 @@ describe('App.InstallerStep2Controller', function () {
       controller.validateStep2();
       expect(controller.get('passphraseMatchErr')).to.equal(false);
     })
+    */
 
-    it('should set softRepoLocalPathNullErr to true if ' +
-      'localRepo is true and localRepoPath is null', function () {
+  describe('#localRepoError()', function() {
+
+    it('should return t(installer.step2.localRepo.error.required) localRepo is true, localRepoPath is empty, and hasSubmitted is true', function () {
       var controller = App.InstallerStep2Controller.create();
       controller.set('localRepo', true);
       controller.set('localRepoPath', '');
-      controller.validateStep2();
-      expect(controller.get('softRepoLocalPathNullErr')).to.equal(true);
-
-
+      controller.set('hasSubmitted', true);
+      expect(controller.get('localRepoError')).to.equal(Ember.I18n.t('installer.step2.localRepo.error.required'));
     })
 
-
-    it('should set softRepoLocalPathNullErr to false if localRepo is true and ' +
-      'localRepoPath is not null', function () {
+    it('should return null if localRepo is true, localRepoPath is not empty, and hasSubmitted is true', function () {
       var controller = App.InstallerStep2Controller.create();
       controller.set('localRepo', true);
       controller.set('localRepoPath', '/etc/');
-      controller.validateStep2();
-      expect(controller.get('softRepoLocalPathNullErr')).to.equal(false);
+      controller.set('hasSubmitted', true);
+      expect(controller.get('localRepoError')).to.equal(null);
     })
 
-    it('should set softRepoLocalPathNullErr to false if localRepoPath is null ' +
-      'but localRepo is false', function () {
+    it('should return null if localRepo is false, localRepoPath is empty, and hasSubmitted is true', function () {
       var controller = App.InstallerStep2Controller.create();
       controller.set('localRepo', false);
       controller.set('localRepoPath', '');
-      controller.validateStep2();
-      expect(controller.get('softRepoLocalPathNullErr')).to.equal(false);
+      controller.set('hasSubmitted', true);
+      expect(controller.get('localRepoError')).to.equal(null);
     })
   })
 
-})
-
-describe('App.InstallerStep2Controller', function () {
-
   describe('#evaluateStep2(): On hitting step2 \"next\" button', function () {
-    it('should return false, if isSubmitDisabled is true ', function () {
+    it('should return false if isSubmitDisabled is true ', function () {
       var controller = App.InstallerStep2Controller.create();
       controller.set('isSubmitDisabled', true);
       expect(controller.evaluateStep2()).to.equal(false);

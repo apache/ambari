@@ -172,7 +172,7 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     var self = this;
     $.ajax({
       type: 'GET',
-      url: '/ambari_server/api/bootstrap',
+      url: '/api/bootstrap',
       async: false,
       timeout: 5000,
       success: function (data) {

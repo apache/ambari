@@ -52,31 +52,36 @@ Em.I18n.translations = {
   'installer.step1.clusterName.error.specialChar': 'Cluster Name cannot contain special characters',
 
   'installer.step2.header': 'Install Options',
-  'installer.step2.targetHosts': 'Specify Hosts to Manage',
+  'installer.step2.body': 'Enter the list of hosts to be included in the cluster, provide your SSH key, and optionally specify a local repository.',
+  'installer.step2.targetHosts': 'Target Hosts',
   'installer.step2.targetHosts.info': 'Enter a list of host names, one per line',
   'installer.step2.hostPattern.tooltip.title': 'Pattern Expressions',
   'installer.step2.hostPattern.tooltip.content': 'You can use pattern expressions to specify a number of target hosts.  Explain brackets.',
   'installer.step2.hostName.error.required': 'Host Names cannot be left empty',
   'installer.step2.hostName.error.notRequired': 'Host Names will be ignored if not using SSH to automatically configure hosts',
   'installer.step2.hostName.error.invalid': 'Invalid Host Name(s) - cannot start or end with a hyphen',
+  'installer.step2.sshKey': 'Host Connectivity Information',
+  'installer.step2.sshKey.info': 'Provide your SSH Private Key (<b>id_rsa</b> for <b>root</b>)',
   'installer.step2.sshKey.error.required': 'SSH Private Key is required',
   'installer.step2.passphrase.error.match': 'Passphrases do not match',
-  'installer.step2.manualInstallOption': 'Do not use SSH to automatically configure hosts ',
+  'installer.step2.manualInstall.label': 'Do not use SSH to automatically configure hosts ',
+  'installer.step2.manualInstall.info': 'By not using SSH to connect to the target hosts, you must manually install and start the ' +
+    'Ambari Agent on each host in order for the wizard to perform the necessary configurations and software installs.',
   'installer.step2.advancedOption': 'Advanced Options',
   'installer.step2.repoConf': 'Software Repository Configuration File Path',
-  'installer.step2.localRepoOption': 'Use a local software repository',
+  'installer.step2.localRepo.header': 'Software repository',
+  'installer.step2.localRepo.label': 'Use a local software repository',
   'installer.step2.localRepo.error.required': 'Local repository file path is required',
-  'installer.step2.localRepo.info': '<p class=\"text-info\">The repository configuration file should be installed on each host in your cluster. ' +
-    'This file instructs package manager to use your local software repository to retrieve software packages, instead of ' +
-    'downloading from the internet.</p>',
+  'installer.step2.localRepo.info': 'The repository configuration file should be installed on each host in your cluster. ' +
+    'This file instructs the package manager to use your local software repository to retrieve software packages, instead of ' +
+    'downloading them from the internet.',
   'installer.step2.localRepo.tooltip.title': 'Local Software Repository',
   'installer.step2.localRepo.tooltip.content': 'The repository configuration file should be installed on each host ' +
     'in your cluster. This file instructs package manager to use your local' +
     'software repository to retrieve software packages, instead of using the internet.',
   'installer.step2.manualInstall.tooltip.title': 'Not Using SSH (Manual Install)',
-  'installer.step2.manualInstall.tooltip.content': 'Ambari agents will not be installed ' +
-    'automatically. You need to install it manually on each host that you want to manage as part of ' +
-    'your cluster. Agents should be started before you move to the next stage.',
+  'installer.step2.manualInstall.tooltip.content': 'If you do not wish Ambari to automatically configure the target hosts via SSH,' +
+    ' you have the option of configuring them yourself.  This involves installing and starting Ambari Agent on each of your target hosts.',
   'installer.step2.manualInstall.popup.header': 'Before You Proceed',
   'installer.step2.manualInstall.popup.body': 'You must install Ambari Agents on each host you want to manage before you proceed.  <a href="#" target="_blank">Learn more</a>',
 
