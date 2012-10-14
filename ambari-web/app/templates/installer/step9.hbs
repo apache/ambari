@@ -16,17 +16,22 @@
 * limitations under the License.
 -->
 
+<div id="deploy">
+
 <h2>{{t installer.step9.header}}</h2>
 <p class="alert alert-info">{{t installer.step9.body}}</p>
 
-<div>
+<div id="overallProgress">
   {{view.isStepCompleted}}
-  <div {{bindAttr class = "isStepCompleted::progress-striped isStepCompleted::active view.barColor :progress "}}>
-    <div class="bar" {{bindAttr style = "view.barWidth"}}><strong
-      style="color: #00008b;">Overall Progress</strong>
+  <div class="row-fluid">
+    <div class="span10">
+      <div {{bindAttr class="isStepCompleted::progress-striped isStepCompleted::active view.barColor :progress"}}>
+        <div class="bar" {{bindAttr style="view.barWidth"}}><!--<strong style="color: #00008b;">Overall Progress</strong>-->
+        </div>
+      </div>
     </div>
+    <div class="span2">{{progress}}% overall</div>
   </div>
-  <span class="pull-right">{{progress}}%</span> <br/><br/>
 </div>
 
 <div class="box">
@@ -52,15 +57,15 @@
     </div>
 
   </div>
-  <table class="table table-bordered table-striped">
+  <table id="deploy-status-by-host" class="table table-bordered table-striped">
     <thead>
     <tr>
-      <th class="span3">
+      <th class="host">
         Host
       </th>
-      <th class="span4">Status</th>
+      <th class="status">Status</th>
       <!--  given by the parsing function that parses data from bootstrap call -->
-      <th class="span4">Message</th>
+      <th class="message">Message</th>
       <!-- retrieved from local storage initially -->
     </tr>
     </thead>
@@ -73,14 +78,13 @@
       {{host.name}}
     </td>
     <td>
-      <div>
-        <div {{bindAttr class="isStepCompleted::progress-striped isStepCompleted::active view.barColor :progress"}}>
-          <div class="bar" {{bindAttr style="view.barWidth"}}>
+        <div class="progress-bar pull-left">
+          <div {{bindAttr class="isStepCompleted::progress-striped isStepCompleted::active view.barColor :progress"}}>
+            <div class="bar" {{bindAttr style="view.barWidth"}}>
+            </div>
           </div>
         </div>
-        <span class="pull-right">{{host.progress}}%</span>
-      </div>
-
+        <div class="progress-percentage pull-left">{{host.progress}}%</div>
     </td>
     <td>
       <a {{bindAttr class="view.isFailed:text-error view.isSuccess:text-success view.isWarning:text-warning"}}
@@ -101,8 +105,9 @@
 </div>
 
 <div>
-  <h4 {{bindAttr class = "view.resultMsgColor"}}>{{view.resultMsg}} </h4>
-
+  {{#if view.resultMsg}}
+  <p {{bindAttr class="view.resultMsgColor :alert"}}>{{view.resultMsg}}</p>
+  {{/if}}
   <div class="btn-area">
     <a
       class="btn pull-left" {{bindAttr disabled="isSubmitDisabled"}} {{action back target="controller"}}>&larr;
@@ -110,4 +115,6 @@
     <a
       class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
   </div>
+</div>
+
 </div>

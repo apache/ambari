@@ -119,7 +119,7 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
     var completedActions = actions.filterProperty('status', 'completed').length
       + actions.filterProperty('status', 'failed').length +
       actions.filterProperty('status', 'aborted').length;
-    var progress = (completedActions / actionsPerHost) * 100;
+    var progress = Math.floor((completedActions / actionsPerHost) * 100);
     console.log('INFO: progressPerHost is: ' + progress);
     contentHost.set('progress', progress.toString());
     return progress;
@@ -209,7 +209,7 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
         totalProgress = totalProgress + self.progressPerHost(actions, _content);
       }
     }, this);
-    totalProgress = totalProgress / this.content.length;
+    totalProgress = Math.floor(totalProgress / this.content.length);
     this.set('progress', totalProgress.toString());
     console.log("INFO: right now the progress is: " + this.get('progress'));
     this.finishStep(polledData);

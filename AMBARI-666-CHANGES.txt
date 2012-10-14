@@ -251,6 +251,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-859. Tighten up the layout for the Install page of the Installer.
+  (yusaku)
+
   AMBARI-857. Refactor Install Options page for the Install Wizard. (yusaku)
 
   OPTIMIZATIONS
