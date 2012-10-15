@@ -93,13 +93,21 @@ function hdp_mon_generate_response( $response_data )
 
   define ("HDFS_SERVICE_CHECK", "NAMENODE::Namenode Process down");
   define ("MAPREDUCE_SERVICE_CHECK", "JOBTRACKER::Jobtracker Process down");
+  define ("YARN_SERVICE_CHECK", "RESOURCEMANAGER::ResourceManager Process down");
   define ("HBASE_SERVICE_CHECK", "HBASEMASTER::HBaseMaster Process down");
   define ("ZOOKEEPER_SERVICE_CHECK", "ZOOKEEPER::Percent zookeeper servers down");
   define ("HIVE_METASTORE_SERVICE_CHECK", "HIVE-METASTORE::HIVE-METASTORE status check");
   define ("OOZIE_SERVICE_CHECK", "OOZIE::Oozie status check");
   define ("TEMPLETON_SERVICE_CHECK", "TEMPLETON::Templeton status check");
+  define ("PUPPET_SERVICE_CHECK", "PUPPET::Puppet agent down");
 
-  $status_file="/var/nagios/status.dat";
+  /* If SUSE, status file is under /var/lib/nagios */
+  if (file_exists("/etc/SuSE-release")) {
+    $status_file="/var/lib/nagios/status.dat";
+  } else {
+    $status_file="/var/nagios/status.dat";
+  }
+
   $q1="";
   if (array_key_exists('q1', $_GET)) {
     $q1=$_GET["q1"];
@@ -152,6 +160,7 @@ function hdp_mon_generate_response( $response_data )
   function query_service_states ($status_file_content) {
     $num_matches = preg_match_all("/servicestatus \{([\S\s]*?)\}/", $status_file_content, $matches, PREG_PATTERN_ORDER);
     $services_object = array ();
+    $services_object["PUPPET"] = 0;
     foreach ($matches[0] as $object) {
       if (getParameter($object, "service_description") == HDFS_SERVICE_CHECK) {
         $services_object["HDFS"] = getParameter($object, "last_hard_state");
@@ -205,6 +214,16 @@ function hdp_mon_generate_response( $response_data )
         }
         continue;
       }
+      if (getParameter($object, "service_description") == PUPPET_SERVICE_CHECK) {
+        $state = getParameter($object, "last_hard_state");
+        if ($state >= 1) {
+          $services_object["PUPPET"]++;
+        }
+        continue;
+      }
+    }
+    if ($services_object["PUPPET"] >= 1) {
+      $services_object["PUPPET"] = 1;
     }
     return $services_object;
   }
@@ -347,6 +366,9 @@ function hdp_mon_generate_response( $response_data )
       case "NAMENODE":
         $pieces[0] = "HDFS";
         break;
+      case "RESOURCEMANAGER":
+        $pieces[0] = "YARN";
+        break;
       case "JOBTRACKER":
         $pieces[0] = "MAPREDUCE";
         break;
@@ -360,6 +382,7 @@ function hdp_mon_generate_response( $response_data )
       case "HIVE-METASTORE":
       case "OOZIE":
       case "TEMPLETON":
+      case "PUPPET":
         break;
       default:
         $pieces[0] = "UNKNOWN";

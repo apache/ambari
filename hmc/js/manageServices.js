@@ -518,6 +518,7 @@ function generateServiceManagementEntryMarkup( serviceName, serviceInfo ) {
     }
 
     var notReconfigurable = [ 'PIG', 'SQOOP', 'OOZIE', 'TEMPLETON', 'GANGLIA', 'HIVE' ];
+    var notReconfigurable = [ 'PIG', 'PIG2', 'SQOOP', 'OOZIE', 'TEMPLETON', 'GANGLIA', 'HIVE', 'HIVE2' ];
     var reconfigureClass;
     if (globalYui.Array.indexOf(notReconfigurable, serviceName) >= 0) {
       reconfigureClass = 'serviceManagementEntryActionReconfigure disabled';

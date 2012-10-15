@@ -58,15 +58,15 @@ class hdp-hadoop::params(
   $namenode_opt_newsize = hdp_default("hadoop/hadoop-env/namenode_opt_newsize","640m")
   
   ### compression related
-  if (($hdp::params::lzo_enabled == true) and ($hdp::params::snappy_enabled == true)) {
+  if (($hdp::params::mapreduce_lzo_enabled == true) and ($hdp::params::mapreduce_snappy_enabled == true)) {
     $mapred_compress_map_output = true
     $compression_codecs =  "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,com.hadoop.compression.lzo.LzoCodec,com.hadoop.compression.lzo.LzopCodec,org.apache.hadoop.io.compress.SnappyCodec"
     $mapred_map_output_compression_codec = "org.apache.hadoop.io.compress.SnappyCodec"
-  } elsif ($hdp::params::snappy_enabled == true) {
+  } elsif ($hdp::params::mapreduce_snappy_enabled == true) {
     $mapred_compress_map_output = true
     $compression_codecs = "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec" 
     $mapred_map_output_compression_codec = "org.apache.hadoop.io.compress.SnappyCodec"
-  } elsif ($hdp::params::lzo_enabled == true) {
+  } elsif ($hdp::params::mapreduce_lzo_enabled == true) {
     $mapred_compress_map_output = true
     $compression_codecs = "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,com.hadoop.compression.lzo.LzoCodec,com.hadoop.compression.lzo.LzopCodec"
     $mapred_map_output_compression_codec = "com.hadoop.compression.lzo.LzoCodec"

@@ -27,16 +27,16 @@ if [[ -z "${BUILD_DIR}" ]]; then
 fi
 
 if [[ -z "${VERSION}" ]]; then
-  VERSION="0.9.0"
+  VERSION="2.0.0.1"
 fi
 
 if [[ -z "${RELEASE}" ]]; then
-  RELEASE="0"
+  RELEASE="1"
 fi
 
 rm -rf ${BUILD_DIR}/*
 
-PKG_NAME="ambari"
+PKG_NAME="hmc"
 
 HMC_DIR="${BUILD_DIR}/${PKG_NAME}-$VERSION/"
 

@@ -203,7 +203,7 @@ class SuggestProperties {
             foreach ($svcInfo["components"] as $compName => $compInfo) {
               if (isset($compInfo["isClient"]) && $compInfo["isClient"]) {
                 $ignoredComponents[$compName] = TRUE;
-              } else if ($compName == "GANGLIA_MONITOR") {
+              } else if ($compName == "GANGLIA_MONITOR" || $compName == "GANGLIA2_MONITOR") {
                 $ignoredComponents[$compName] = TRUE;
               }
             }
@@ -248,24 +248,45 @@ class SuggestProperties {
       $result["configs"]["mapred_red_tasks_max"] = $numRed;
     }
 
+    $stackVersion = $db->getHadoopStackVersion($clusterName);
+    $hadoopVersion = $stackVersion['version'];
+
+    $nameNodeStr = "NAMENODE";
+    $sNameNodeStr = "SNAMENODE";
+    $computeMasterStr = "JOBTRACKER";
+    $hBaseMasterStr = "HBASE_MASTER";
+    $computeSlaveStr = "TASKTRACKER";
+    $hdfsSlaveStr = "DATANODE";
+    $hbaseSlaveStr = "HBASE_REGIONSERVER";
+
+    if ($hadoopVersion == AMBARI_HADOOP_2) { 
+      $nameNodeStr = "NAMENODE2";
+      $sNameNodeStr = "SNAMENODE2";
+      $computeMasterStr = "RESOURCEMANAGER";
+      $hBaseMasterStr = "HBASE2_MASTER";
+      $computeSlaveStr = "NODEMANAGER";
+      $hdfsSlaveStr = "DATANODE2";
+      $hbaseSlaveStr = "HBASE2_REGIONSERVER";
+    }
+
     /* suggest memory for all the needed master daemons */
     /* assume MR and HDFS are always selected */
-    $nnHeap = $this->allocateHeapSizeForDaemon("NAMENODE", $hostRoles,
+    $nnHeap = $this->allocateHeapSizeForDaemon($nameNodeStr, $hostRoles,
         $hostInfoMap, $allHostsToComponents, FALSE);
     $result["configs"]["namenode_heapsize"] = $nnHeap;
 
     /* suggest the jt heap size */
-    $jtHeap = $this->allocateHeapSizeForDaemon("JOBTRACKER", $hostRoles,
+    $jtHeap = $this->allocateHeapSizeForDaemon($computeMasterStr, $hostRoles,
         $hostInfoMap, $allHostsToComponents, FALSE);
     $result["configs"]["jtnode_heapsize"] = $jtHeap;
 
     /* check if HBase is installed and then pick */
-    if (array_key_exists("HBASE", $services)) {
-      $hbaseHeap = $this->allocateHeapSizeForDaemon("HBASE_MASTER", $hostRoles,
+    if (array_key_exists("HBASE", $services) || array_key_exists("HBASE2", $services)) {
+      $hbaseHeap = $this->allocateHeapSizeForDaemon($hBaseMasterStr, $hostRoles,
           $hostInfoMap, $allHostsToComponents, FALSE);
       $result["configs"]["hbase_master_heapsize"] = $hbaseHeap;
     }
-    $heapSize = $this->allocateHeapSizeWithMax("DATANODE", $hostRoles,
+    $heapSize = $this->allocateHeapSizeWithMax($hdfsSlaveStr, $hostRoles,
         $hostInfoMap, $allHostsToComponents, TRUE, 2048);
     // cap the datanode heap size and hadoop heap size
     $result["configs"]["dtnode_heapsize"] = $heapSize;
@@ -273,15 +294,16 @@ class SuggestProperties {
 
     // TODO fix - this should be based on heap size divided by max task
     // limit on the host
-    $heapSize = $this->allocateHeapSizeForDaemon("TASKTRACKER", $hostRoles,
+    $heapSize = $this->allocateHeapSizeForDaemon($computeSlaveStr, $hostRoles,
         $hostInfoMap, $allHostsToComponents, TRUE);
-    $heapSizeWithMax = $this->allocateHeapSizeWithMax("TASKTRACKER", $hostRoles,
-        $hostInfoMap, $allHostsToComponents, TRUE, 2048);
-    $this->logger->log_info("Maxed Heap Size for MR Child opts ".$heapSizeWithMax);
-    $result["configs"]["mapred_child_java_opts_sz"] = $heapSizeWithMax;
+    $mrHeapSizeWithMax = $this->allocateHeapSizeWithMax($computeSlaveStr, $hostRoles,
+        $hostInfoMap, $allHostsToComponents, TRUE, 1024);
+    
+    $this->logger->log_info("Maxed Heap Size for MR Child opts ".$mrHeapSizeWithMax);
+    $result["configs"]["mapred_child_java_opts_sz"] = $mrHeapSizeWithMax;
 
-    if (array_key_exists("HBASE", $services)) {
-      $heapSize = $this->allocateHeapSizeForDaemon("HBASE_REGIONSERVER", $hostRoles,
+    if (array_key_exists("HBASE", $services) || array_key_exists("HBASE2", $services)) {
+      $heapSize = $this->allocateHeapSizeForDaemon($hbaseSlaveStr, $hostRoles,
           $hostInfoMap, $allHostsToComponents, FALSE);
       $result["configs"]["hbase_regionserver_heapsize"] = $heapSize;
     }
@@ -422,19 +444,41 @@ class SuggestProperties {
       }
     }
 
-    $memProps = array (
-        "namenode_heapsize" => array ( "role" => "NAMENODE", "32bit" => FALSE),
-        "jtnode_heapsize" => array ( "role" => "JOBTRACKER", "32bit" => FALSE),
-        "dtnode_heapsize" => array ( "role" => "DATANODE", "32bit" => TRUE),
-        "hadoop_heapsize" => array ( "role" => "DATANODE", "32bit" => TRUE),
-        "mapred_child_java_opts_sz" => array ( "role" => "TASKTRACKER", "32bit" => TRUE)
-      );
+    $stackVersion = $db->getHadoopStackVersion($clusterName);
+    $hadoopVersion = $stackVersion['version'];
 
-    if (array_key_exists("HBASE", $services)) {
+    $memProps = array();
+    if ($hadoopVersion == AMBARI_HADOOP_1) { 
+      $memProps = array (
+          "namenode_heapsize" => array ( "role" => "NAMENODE", "32bit" => FALSE),
+          "jtnode_heapsize" => array ( "role" => "JOBTRACKER", "32bit" => FALSE),
+          "dtnode_heapsize" => array ( "role" => "DATANODE", "32bit" => TRUE),
+          "hadoop_heapsize" => array ( "role" => "DATANODE", "32bit" => TRUE),
+          "mapred_child_java_opts_sz" => array ( "role" => "TASKTRACKER", "32bit" => TRUE)
+        );
+    } else if ($hadoopVersion == AMBARI_HADOOP_2) { 
+      $memProps = array (
+          "namenode_heapsize" => array ( "role" => "NAMENODE2", "32bit" => FALSE),
+          "resourcemanager_heapsize" => array ( "role" => "RESOURCEMANAGER", "32bit" => FALSE),
+          "dtnode_heapsize" => array ( "role" => "DATANODE2", "32bit" => TRUE),
+          "hadoop_heapsize" => array ( "role" => "DATANODE2", "32bit" => TRUE)
+        );
+    }
+
+    $hBaseStr = "HBASE";
+    $hBaseMasterStr = "HBASE_MASTER";
+    $hbaseSlaveStr = "HBASE2_REGIONSERVER";
+    if ($hadoopVersion == "AMBARI_HADOOP_2") {
+      $hBaseStr = "HBASE2";
+      $hBaseMasterStr = "HBASE2_MASTER";
+      $hbaseSlaveStr = "HBASE2_REGIONSERVER";
+    }
+
+    if (array_key_exists($hBaseStr, $services)) {
       $memProps["hbase_master_heapsize"] =
-          array ( "role" => "HBASE_MASTER", "32bit" => FALSE);
+          array ( "role" => $hBaseMasterStr, "32bit" => FALSE);
       $memProps["hbase_regionserver_heapsize"] =
-          array ( "role" => "HBASE_REGIONSERVER", "32bit" => FALSE);
+          array ( "role" => $hbaseSlaveStr, "32bit" => FALSE);
     }
 
     foreach ($memProps as $prop => $propInfo) {

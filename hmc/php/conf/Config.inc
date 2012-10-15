@@ -27,7 +27,7 @@ $GLOBALS["HMC_CLUSTER_PATH"] = "/var/run/hmc/";
 $GLOBALS["BACKGROUND_EXECUTOR_PATH"] = $INSTALL_ROOT . "/php/util/BackgroundExecutor.php";
 $GLOBALS["PHP_EXEC_PATH"] = "/usr/bin/php";
 $GLOBALS["CLUSTERMAIN_PATH"] = $INSTALL_ROOT . "/php/orchestrator/ClusterMain.php";
-$GLOBALS["DB_PATH"] = "/var/db/hmc/data/data.db";
+$GLOBALS["DB_PATH"] = "/var/db/hmc/data/hdp2.db";
 
 $GLOBALS["puppetMaxParallelKicks"] = 10;
 $GLOBALS["puppetMasterModulesDirectory"] = "/etc/puppet/master/modules";
@@ -66,4 +66,6 @@ $GLOBALS["CLUSTERMAIN_PATH"] = "./ClusterMain.php";
 $GLOBALS["DRYRUN"] = TRUE;
 */
 
+define("AMBARI_HADOOP_1", "1.0");
+define("AMBARI_HADOOP_2", "2.0");
 ?>

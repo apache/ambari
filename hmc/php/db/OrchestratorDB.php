@@ -125,7 +125,7 @@ class OrchestratorDB {
         $this->logger->log_error("Found service with invalid state"
             . ", service=" . $svc["serviceName"]
             . ", state=" . $svc["state"]);
-        $state = STATE::UNKNOWN; // unknown
+        $state = 0; // unknown
       }
 
       $svcObj =
@@ -155,12 +155,6 @@ class OrchestratorDB {
     }
 
     $state = STATE::getStateFromString($serviceInfo["state"]);
-    if ($state === FALSE) {
-      $this->logger->log_error("Found service with invalid state"
-          . ", service=" . $serviceName
-          . ", state=" . $serviceInfo["state"]);
-      $state = STATE::UNKNOWN; // unknown
-    }
     return $this->getServiceObj($serviceName, $state, $this, $this->puppet);
   }
 
@@ -206,7 +200,7 @@ class OrchestratorDB {
         $this->logger->log_error("Found service with invalid state"
             . ", service=" . $svc["serviceName"]
             . ", state=" . $svc["state"]);
-        $state = STATE::UNKNOWN; // unknown
+        $state = 0; // unknown
       }
 
       $svcObj =
@@ -249,7 +243,7 @@ class OrchestratorDB {
         $this->logger->log_warn("Found service with invalid state"
             . ", service=" . $svc["serviceName"]
             . ", state=" . $svc["state"]);
-        $state = STATE::UNKNOWN; // unknown
+        $state = 0; // unknown
       }
 
       $svcObj =
@@ -296,7 +290,7 @@ class OrchestratorDB {
         $this->logger->log_warn("Found component with invalid state"
             . ", component=" . $comp["componentName"]
             . ", state=" . $comp["state"]);
-        $state = STATE::UNKNOWN;
+        $state = 0;
       }
       $isClient = FALSE;
       if (isset($fullCompList[$comp["componentName"]])) {
@@ -317,13 +311,13 @@ class OrchestratorDB {
   }
 
   public function  getNagiosServerComponent() {
-    $svc =  $this->getService("NAGIOS");
+    $svc =  $this->getService("NAGIOS2");
     if ($svc === FALSE) {
       return $svc;
     }
-    $compObjs = $this->getServiceComponents("NAGIOS");
+    $compObjs = $this->getServiceComponents("NAGIOS2");
     foreach ($compObjs as $compObj) {
-      if ($compObj->name == "NAGIOS_SERVER") {
+      if ($compObj->name == "NAGIOS_SERVER2") {
         return $compObj;
       }
     }
@@ -398,7 +392,7 @@ class OrchestratorDB {
         $this->logger->log_error("Found component with invalid state"
             . ", component=" . $comp["componentName"]
             . ", state=" . $comp["state"]);
-        $state = STATE::UNKNOWN;
+        $state = 0;
       }
       $isClient = FALSE;
       if (isset($fullCompList[$comp["componentName"]])) {
@@ -470,7 +464,7 @@ class OrchestratorDB {
         $this->logger->log_error("Found component with invalid state"
         . ", component=" . $comp["componentName"]
         . ", state=" . $comp["state"]);
-        $state = STATE::UNKNOWN;
+        $state = 0;
       }
       $isClient = FALSE;
       if (isset($fullCompList[$comp["componentName"]])) {

@@ -826,7 +826,7 @@
     "name" : "hadoop:service=HBase,name=Info",
     "modelerType" : "org.apache.hadoop.hbase.metrics.HBaseInfo$HBaseInfoMBean",
     "revision" : "a23f8636efd6dd9d37f3a15d83f2396819509502",
-    "hdfsUser" : "foo",
+    "hdfsUser" : "hortonfo",
     "hdfsDate" : "Fri Dec 16 20:01:27 UTC 2011",
     "hdfsUrl" : "https://svn.apache.org/repos/asf/hadoop/common/branches/branch-1.0",
     "date" : "Tue Feb 14 10:12:33 PST 2012",

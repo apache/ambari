@@ -84,7 +84,7 @@ fclose($fileHdl);
 $dbAccessor->wipeOutClusters($clusterName);
 $logger->log_info("Completed deletion of cluster: ".$clusterName);
 
-$hdpVersion="1.0"; // TODO: hardcoded
+$hdpVersion="2.0"; // TODO: hardcoded
 $state="Configuration in progress";
 
 $response = $dbAccessor->createCluster($clusterName, $hdpVersion, $state);

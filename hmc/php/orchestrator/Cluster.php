@@ -345,7 +345,7 @@ class Cluster {
       $result = $nagiosComp->stop($transaction->createSubTransaction(), $dryRun);
       if ($result["result"] != 0) {
         $this->setState(State::FAILED, $transaction, $dryRun);
-        $nagiosService = $this->db->getService("NAGIOS");
+        $nagiosService = $this->db->getService("NAGIOS2");
         if ($nagiosService !== FALSE) {
           $nagiosService->setState(STATE::FAILED,
               $transaction->createSubTransaction(), $dryRun, FALSE);

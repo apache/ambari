@@ -49,30 +49,35 @@ class SelectNodes {
   /**
    * Helper function to add HDFS NameNode
    */
-  function addNameNode($serviceInfo, $result, $hostInfo) {
-    if (array_key_exists("HDFS", $serviceInfo)) {
-
+  function addNameNode($hadoopVersion, $serviceInfo, $result, $hostInfo) {
+    if ($hadoopVersion == AMBARI_HADOOP_1 && array_key_exists("HDFS", $serviceInfo)) {
       $result["mastersToHosts"]["NAMENODE"] = $this->createHostMap($hostInfo);
+    } else if ($hadoopVersion == AMBARI_HADOOP_2 && array_key_exists("HDFS2", $serviceInfo)) {
+      $result["mastersToHosts"]["NAMENODE2"] = $this->createHostMap($hostInfo);
     }
     return $result;
   }
 
   /**
-   * Helper function to add SNameNode
+   * Helper function to add HDFS SNameNode
    */
-  function addSNameNode($serviceInfo, $result, $hostInfo) {
-    if (array_key_exists("HDFS", $serviceInfo)) {
+  function addSNameNode($hadoopVersion, $serviceInfo, $result, $hostInfo) {
+    if ($hadoopVersion == AMBARI_HADOOP_1 && array_key_exists("HDFS", $serviceInfo)) {
       $result["mastersToHosts"]["SNAMENODE"] = $this->createHostMap($hostInfo);
+    } else if ($hadoopVersion == AMBARI_HADOOP_2 && array_key_exists("HDFS2", $serviceInfo)) {
+      $result["mastersToHosts"]["SNAMENODE2"] = $this->createHostMap($hostInfo);
     }
     return $result;
   }
 
   /**
-   * Helper function to add JobTracker.
+   * Helper function to add Cluster ResourceManager 
    */
-  function addJobTracker($serviceInfo, $result, $hostInfo) {
-    if (array_key_exists("MAPREDUCE", $serviceInfo)) {
+  function addResourceManager($hadoopVersion, $serviceInfo, $result, $hostInfo) {
+    if ($hadoopVersion == AMBARI_HADOOP_1 && array_key_exists("MAPREDUCE", $serviceInfo)) {
       $result["mastersToHosts"]["JOBTRACKER"] = $this->createHostMap($hostInfo);
+    } else if ($hadoopVersion == AMBARI_HADOOP_2 && array_key_exists("YARN", $serviceInfo)) {
+      $result["mastersToHosts"]["RESOURCEMANAGER"] = $this->createHostMap($hostInfo);
     }
     return $result;
   }
@@ -80,9 +85,11 @@ class SelectNodes {
   /**
    * Helper function to add HBase Master.
    */
-  function addHBaseMaster($serviceInfo, $result, $hostInfo) {
-    if (array_key_exists("HBASE", $serviceInfo)) {
+  function addHBaseMaster($hadoopVersion, $serviceInfo, $result, $hostInfo) {
+    if ($hadoopVersion == AMBARI_HADOOP_1 && array_key_exists("HBASE", $serviceInfo)) {
       $result["mastersToHosts"]["HBASE_MASTER"] = $this->createHostMap($hostInfo);
+    } else if ($hadoopVersion == AMBARI_HADOOP_2 && array_key_exists("HBASE2", $serviceInfo)) {
+      $result["mastersToHosts"]["HBASE2_MASTER"] = $this->createHostMap($hostInfo);
     }
     return $result;
   }
@@ -90,9 +97,11 @@ class SelectNodes {
   /**
    * Helper function to add Oozie server.
    */
-  function addOozieServer($serviceInfo, $result, $hostInfo) {
-    if (array_key_exists("OOZIE", $serviceInfo)) {
+  function addOozieServer($hadoopVersion, $serviceInfo, $result, $hostInfo) {
+    if ($hadoopVersion == AMBARI_HADOOP_1 && array_key_exists("OOZIE", $serviceInfo)) {
       $result["mastersToHosts"]["OOZIE_SERVER"] = $this->createHostMap($hostInfo);
+    } else if ($hadoopVersion == AMBARI_HADOOP_2 && array_key_exists("OOZIE2", $serviceInfo)) {
+      $result["mastersToHosts"]["OOZIE2_SERVER"] = $this->createHostMap($hostInfo);
     }
     return $result;
   }
@@ -100,9 +109,11 @@ class SelectNodes {
   /**
    * Helper function to add Hive Server.
    */
-  function addHiveServer($serviceInfo, $result, $hostInfo) {
-    if (array_key_exists("HIVE", $serviceInfo)) {
+  function addHiveServer($hadoopVersion, $serviceInfo, $result, $hostInfo) {
+    if ($hadoopVersion == AMBARI_HADOOP_1 && array_key_exists("HIVE", $serviceInfo)) {
       $result["mastersToHosts"]["HIVE_SERVER"] = $this->createHostMap($hostInfo);
+    } else if ($hadoopVersion == AMBARI_HADOOP_2 && array_key_exists("HIVE2", $serviceInfo)) {
+      $result["mastersToHosts"]["HIVE2_SERVER"] = $this->createHostMap($hostInfo);
     }
     return $result;
   }
@@ -110,7 +121,7 @@ class SelectNodes {
   /**
    * Helper function to add Templeton.
    */
-  function addTempletonServer($serviceInfo, $result, $hostInfo) {
+  function addTempletonServer($hadoopVersion, $serviceInfo, $result, $hostInfo) {
     if (array_key_exists("TEMPLETON", $serviceInfo)) {
       $result["mastersToHosts"]["TEMPLETON_SERVER"] = $this->createHostMap($hostInfo);
     }
@@ -120,13 +131,21 @@ class SelectNodes {
   /**
    * Helper function to add ZooKeeper master server.
    */
-  function addZooKeeperServer($serviceInfo, $result, $hostInfo) {
-    if (array_key_exists("ZOOKEEPER", $serviceInfo)) { 
+  function addZooKeeperServer($hadoopVersion, $serviceInfo, $result, $hostInfo) {
+    if ($hadoopVersion == AMBARI_HADOOP_1 && array_key_exists("ZOOKEEPER", $serviceInfo)) { 
       if (array_key_exists("ZOOKEEPER_SERVER", $result["mastersToHosts"])) {
         array_push($result["mastersToHosts"]["ZOOKEEPER_SERVER"]["hostNames"],
             $hostInfo["hostName"]);
       } else {
         $result["mastersToHosts"]["ZOOKEEPER_SERVER"] = $this->createHostMap($hostInfo);
+      }
+    } else if ($hadoopVersion == AMBARI_HADOOP_2 && 
+               array_key_exists("ZOOKEEPER2", $serviceInfo)) { 
+      if (array_key_exists("ZOOKEEPER2_SERVER", $result["mastersToHosts"])) {
+        array_push($result["mastersToHosts"]["ZOOKEEPER2_SERVER"]["hostNames"],
+            $hostInfo["hostName"]);
+      } else {
+        $result["mastersToHosts"]["ZOOKEEPER2_SERVER"] = $this->createHostMap($hostInfo);
       }
     }
     return $result;
@@ -135,31 +154,52 @@ class SelectNodes {
   /**
    * Helper function to add Ganglia master server.
    */
-  function addGangliaServer($result, $hostInfo) {
-    $result["mastersToHosts"]["GANGLIA_MONITOR_SERVER"] = $this->createHostMap($hostInfo);
+  function addGangliaServer($hadoopVersion, $result, $hostInfo) {
+    if ($hadoopVersion == AMBARI_HADOOP_1) {
+      $result["mastersToHosts"]["GANGLIA_MONITOR_SERVER"] = $this->createHostMap($hostInfo);
+    } else if ($hadoopVersion == AMBARI_HADOOP_2) {
+      $result["mastersToHosts"]["GANGLIA2_MONITOR_SERVER"] = $this->createHostMap($hostInfo);
+    }
     return $result;
   }
 
   /**
    * Helper function to add Nagios server.
    */
-  function addNagiosServer($result, $hostInfo) {
-    $result["mastersToHosts"]["NAGIOS_SERVER"] = $this->createHostMap($hostInfo);
+  function addNagiosServer($hadoopVersion, $result, $hostInfo) {
+    if ($hadoopVersion == AMBARI_HADOOP_1) {
+      $result["mastersToHosts"]["NAGIOS_SERVER"] = $this->createHostMap($hostInfo);
+    } else if ($hadoopVersion == AMBARI_HADOOP_2) {
+      $result["mastersToHosts"]["NAGIOS_SERVER2"] = $this->createHostMap($hostInfo);
+    }
     return $result;
   }
 
   /**
    * Adds all the slaves to the hostlist given whats enabled
    */
-  function addSlaves($db, $hostlist, $clusterName, $services, $gangliaMaster) {
-    $db->addHostsToComponent($clusterName, "TASKTRACKER", $hostlist, "ASSIGNED", "");
-    $db->addHostsToComponent($clusterName, "DATANODE", $hostlist, "ASSIGNED", "");
-    if (array_key_exists("HBASE", $services)) {
-      $db->addHostsToComponent($clusterName, "HBASE_REGIONSERVER", $hostlist, "ASSIGNED", "");
-    }
-    if (array_key_exists("GANGLIA", $services)) {
-      if (sizeof($hostlist) > 0) {
-        $db->addHostsToComponent($clusterName, "GANGLIA_MONITOR", $hostlist, "ASSIGNED", "");
+  function addSlaves($hadoopVersion, $db, $hostlist, $clusterName, $services, $gangliaMaster) {
+    if ($hadoopVersion == AMBARI_HADOOP_1) {
+      $db->addHostsToComponent($clusterName, "TASKTRACKER", $hostlist, "ASSIGNED", "");
+      $db->addHostsToComponent($clusterName, "DATANODE", $hostlist, "ASSIGNED", "");
+      if (array_key_exists("HBASE", $services)) {
+        $db->addHostsToComponent($clusterName, "HBASE_REGIONSERVER", $hostlist, "ASSIGNED", "");
+      }
+      if (array_key_exists("GANGLIA", $services)) {
+        if (sizeof($hostlist) > 0) {
+          $db->addHostsToComponent($clusterName, "GANGLIA_MONITOR", $hostlist, "ASSIGNED", "");
+        }
+      }
+    } else if ($hadoopVersion == AMBARI_HADOOP_2) {
+      $db->addHostsToComponent($clusterName, "NODEMANAGER", $hostlist, "ASSIGNED", "");
+      $db->addHostsToComponent($clusterName, "DATANODE2", $hostlist, "ASSIGNED", "");
+      if (array_key_exists("HBASE2", $services)) {
+        $db->addHostsToComponent($clusterName, "HBASE2_REGIONSERVER", $hostlist, "ASSIGNED", "");
+      }
+      if (array_key_exists("GANGLIA2", $services)) {
+        if (sizeof($hostlist) > 0) {
+          $db->addHostsToComponent($clusterName, "GANGLIA2_MONITOR", $hostlist, "ASSIGNED", "");
+        }
       }
     }
   }
@@ -200,16 +240,30 @@ class SelectNodes {
     }
     if ($numNodes <= 5) {
       /* all slaves except for the namenode */
-      $excludeList = $this->getExcludeHosts($allHosts, $masterToHost["NAMENODE"]);
+      if (array_key_exists("HDFS", $services)) {
+        $excludeList = $this->getExcludeHosts($allHosts, $masterToHost["NAMENODE"]);
+      }
+      if (array_key_exists("HDFS2", $services)) {
+        $excludeList = $this->getExcludeHosts($allHosts, $masterToHost["NAMENODE2"]);
+      }
       return $excludeList;
     }
     if ($numNodes > 5) {
       /* all slaves except for the namenode/JT/Hbase master */
       $excludeHosts = array();
-      array_push($excludeHosts, $masterToHost["NAMENODE"][0]);
-      array_push($excludeHosts, $masterToHost["JOBTRACKER"][0]);
+      if (array_key_exists("HDFS", $services)) {
+        array_push($excludeHosts, $masterToHost["NAMENODE"][0]);
+        array_push($excludeHosts, $masterToHost["JOBTRACKER"][0]);
+      }
+      if (array_key_exists("HDFS2", $services)) {
+        array_push($excludeHosts, $masterToHost["NAMENODE2"][0]);
+        array_push($excludeHosts, $masterToHost["RESOURCEMANAGER"][0]);
+      }
       if (array_key_exists("HBASE", $services)) {
         array_push($excludeHosts, $masterToHost["HBASE_MASTER"][0]);
+      }
+      if (array_key_exists("HBASE2", $services)) {
+        array_push($excludeHosts, $masterToHost["HBASE2_MASTER"][0]);
       }
       $excludeList = $this->getExcludeHosts($allHosts, $excludeHosts);
       return $excludeList;
@@ -244,6 +298,10 @@ class SelectNodes {
     $return["error"] = "";
     $this->logger->log_info("Updating with Info from User: \n".$clusterName."\n "
         .print_r($masterToHost, true));
+
+    $stackVersion = $db->getHadoopStackVersion($clusterName);
+    $hadoopVersion = $stackVersion['version'];
+ 
     $allHostsDBInfo = $db->getAllHostsInfo($clusterName,
         array("=" => array ( "discoveryStatus" => "SUCCESS")), array());
     if ($allHostsDBInfo["result"] != 0) {
@@ -265,7 +323,7 @@ class SelectNodes {
     $services = $this->filterEnabledServices($services_tmp);
     $clusterInfo = $db->getClusterState($clusterName);
     if ($clusterInfo["result"] != 0) {
-      $this->logger->log_error("Error getting cluster state ". $clusterInfo["error"]);
+      $this->logger->log_error("Error getting cluster state ".$clusterInfo["error"]);
       $return["result"] = $clusterInfo["result"];
       $return["error"] = $clusterInfo["error"];
       return $return;
@@ -285,10 +343,10 @@ class SelectNodes {
     foreach($masterToHost as $componentName=>$hostNames) {
       $this->logger->log_info("For cluster  $clusterName setting $componentName to host \n". print_r($hostNames, true));
       $db->addHostsToComponent($clusterName, $componentName, $hostNames, "ASSIGNED", "");
-      if ($componentName == "GANGLIA_MONITOR_SERVER") {
+      if ($componentName == "GANGLIA_MONITOR_SERVER" || $componentName == "GANGLIA2_MONITOR_SERVER") {
         $gangliaMaster = $hostNames[0];
       }
-      if ($componentName == "ZOOKEEPER_SERVER") { 
+      if ($hadoopVersion == AMBARI_HADOOP_1 && $componentName == "ZOOKEEPER_SERVER") { 
         $sizeHosts = sizeof($hostNames);
         if ($sizeHosts == 1) {
           $hostConfig = array ( "ZOOKEEPER_SERVER" => array( $hostNames[0] => array ( "myid" => 1 )));
@@ -297,6 +355,19 @@ class SelectNodes {
           $hostConfig = array( "ZOOKEEPER_SERVER" => array() );
           for ($i=0; $i < 3; $i++) {
             $hostConfig["ZOOKEEPER_SERVER"][$hostNames[$i]] = array ( "myid" => $i+1 );
+          }
+          $db->updateHostRoleConfigs($clusterName, $hostConfig);
+        }
+      }
+      if ($hadoopVersion == AMBARI_HADOOP_2 && $componentName == "ZOOKEEPER2_SERVER") { 
+        $sizeHosts = sizeof($hostNames);
+        if ($sizeHosts == 1) {
+          $hostConfig = array ( "ZOOKEEPER2_SERVER" => array( $hostNames[0] => array ( "myid" => 1 )));
+          $db->updateHostRoleConfigs($clusterName, $hostConfig);
+        } else {
+          $hostConfig = array( "ZOOKEEPER2_SERVER" => array() );
+          for ($i=0; $i < 3; $i++) {
+            $hostConfig["ZOOKEEPER2_SERVER"][$hostNames[$i]] = array ( "myid" => $i+1 );
           }
           $db->updateHostRoleConfigs($clusterName, $hostConfig);
         }
@@ -310,21 +381,29 @@ class SelectNodes {
         $this->logger->log_debug("Adding host $hostName for GANGLIA_MONITOR");
       }
     }
-    $db->addHostsToComponent($clusterName, "GANGLIA_MONITOR", $masterHosts, "ASSIGNED", "");
+    if($hadoopVersion == AMBARI_HADOOP_1) {
+      $db->addHostsToComponent($clusterName, "GANGLIA_MONITOR", $masterHosts, "ASSIGNED", "");
+    } else if ($hadoopVersion == AMBARI_HADOOP_2) {
+      $db->addHostsToComponent($clusterName, "GANGLIA2_MONITOR", $masterHosts, "ASSIGNED", "");
+    }
 
     // add DASHBOARD component
     $dashhostName = strtolower(exec('hostname -f'));
     $db->addHostsToComponent($clusterName, "DASHBOARD" , array($dashhostName), "ASSIGNED", "");
 
     $slaveList = $this->getSlaveList($allHosts, $masterToHost, $services);
-    $this->logger->log_info("Slave List \n".print_r($slaveList, true));
-    $this->addSlaves($db, $slaveList, $clusterName, $services, $gangliaMaster);
+
+    $stackVersion = $db->getHadoopStackVersion($clusterName);
+    $hadoopVersion = $stackVersion['version'];
+    $this->logger->log_info("Slave List for HDP $hadoopVersion \n".print_r($slaveList, true));
+
+    $this->addSlaves($hadoopVersion, $db, $slaveList, $clusterName, $services, $gangliaMaster);
     /* pick a node for gateway */
     $gateway = $slaveList[0];
     //    print_r($services);
     foreach ($services as $key=>$s) {
       $serviceName = $s["serviceName"];
-      if ($serviceName != "GANGLIA" && $serviceName != "NAGIOS" && $serviceName != "MISCELLANEOUS" && $serviceName != "DASHBOARD") {
+      if ($serviceName != "GANGLIA" && $serviceName != "GANGLIA2" && $serviceName != "NAGIOS" && $serviceName != "NAGIOS2" && $serviceName != "MISCELLANEOUS" && $serviceName != "DASHBOARD") {
         $db->addHostsToComponent($clusterName, $serviceName."_CLIENT", array($gateway), "ASSIGNED", "");
       }
     }
@@ -396,76 +475,80 @@ class SelectNodes {
     $monitorIndex = 0;
     $allHostsInfoExHMC = $this->excludeHMCHost($allHostsInfo);
     $this->logger->log_debug('num nodes='.$numNodes);  
+    
+    $stackVersion = $db->getHadoopStackVersion($clustername);
+    $hadoopVersion = $stackVersion['version'];
+
     if ( $numNodes == 1 ) {
-      $result = $this->addNameNode($services, $result, $allHostsInfo[0]);
-      $result = $this->addSNameNode($services, $result, $allHostsInfo[0]);
-      $result = $this->addJobTracker($services, $result, $allHostsInfo[0]);
-      $result = $this->addHBaseMaster($services, $result, $allHostsInfo[0]);
-      $result = $this->addOozieServer($services, $result, $allHostsInfo[0]);
-      $result = $this->addHiveServer($services, $result, $allHostsInfo[0]);
-      $result = $this->addTempletonServer($services, $result, $allHostsInfo[0]);
-      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[0]);
-      $result = $this->addGangliaServer($result, $allHostsInfo[0]);
-      $result = $this->addNagiosServer($result, $allHostsInfo[0]);
+      $result = $this->addNameNode($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addSNameNode($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addResourceManager($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addHBaseMaster($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addOozieServer($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addHiveServer($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addTempletonServer($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addZooKeeperServer($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addGangliaServer($hadoopVersion, $result, $allHostsInfo[0]);
+      $result = $this->addNagiosServer($hadoopVersion, $result, $allHostsInfo[0]);
       return $result;
     }
     if ( $numNodes < 3) {
-      $result = $this->addNameNode($services, $result, $allHostsInfo[0]);
-      $result = $this->addSNameNode($services, $result, $allHostsInfo[1]);
-      $result = $this->addJobTracker($services, $result, $allHostsInfo[1]);
-      $result = $this->addHBaseMaster($services, $result, $allHostsInfo[0]);
-      $result = $this->addOozieServer($services, $result, $allHostsInfo[1]);
-      $result = $this->addHiveServer($services, $result, $allHostsInfo[1]);
-      $result = $this->addTempletonServer($services, $result, $allHostsInfo[1]);
-      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[0]);
-      $result = $this->addGangliaServer($result, $allHostsInfoExHMC[$monitorIndex]);
-      $result = $this->addNagiosServer($result, $allHostsInfoExHMC[$monitorIndex]); 
+      $result = $this->addNameNode($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addSNameNode($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addResourceManager($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addHBaseMaster($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addOozieServer($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addHiveServer($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addTempletonServer($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addZooKeeperServer($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addGangliaServer($hadoopVersion, $result, $allHostsInfoExHMC[$monitorIndex]);
+      $result = $this->addNagiosServer($hadoopVersion, $result, $allHostsInfoExHMC[$monitorIndex]); 
       return $result;
     }
     if ( $numNodes <= 5) {
-      $result = $this->addNameNode($services, $result, $allHostsInfo[0]);
-      $result = $this->addSNameNode($services, $result, $allHostsInfo[1]);
-      $result = $this->addJobTracker($services, $result, $allHostsInfo[1]);
-      $result = $this->addHBaseMaster($services, $result, $allHostsInfo[0]);
-      $result = $this->addOozieServer($services, $result, $allHostsInfo[1]);
-      $result = $this->addHiveServer($services, $result, $allHostsInfo[1]);
-      $result = $this->addTempletonServer($services, $result, $allHostsInfo[1]);
-      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[0]);
-      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[1]);
-      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[2]);
-      $result = $this->addGangliaServer($result, $allHostsInfoExHMC[$monitorIndex]);
-      $result = $this->addNagiosServer($result, $allHostsInfoExHMC[$monitorIndex]); 
+      $result = $this->addNameNode($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addSNameNode($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addResourceManager($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addHBaseMaster($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addOozieServer($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addHiveServer($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addTempletonServer($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addZooKeeperServer($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addZooKeeperServer($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addZooKeeperServer($hadoopVersion, $services, $result, $allHostsInfo[2]);
+      $result = $this->addGangliaServer($hadoopVersion, $result, $allHostsInfoExHMC[$monitorIndex]);
+      $result = $this->addNagiosServer($hadoopVersion, $result, $allHostsInfoExHMC[$monitorIndex]); 
       return $result;
     }
 
     if ( $numNodes <= 30) {
-      $result = $this->addNameNode($services, $result, $allHostsInfo[0]);
-      $result = $this->addSNameNode($services, $result, $allHostsInfo[1]);
-      $result = $this->addJobTracker($services, $result, $allHostsInfo[1]);
-      $result = $this->addHBaseMaster($services, $result, $allHostsInfo[2]);
-      $result = $this->addOozieServer($services, $result, $allHostsInfo[2]);
-      $result = $this->addHiveServer($services, $result, $allHostsInfo[2]);
-      $result = $this->addTempletonServer($services, $result, $allHostsInfo[2]);
-      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[0]);
-      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[1]);
-      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[2]);
-      $result = $this->addGangliaServer($result, $allHostsInfoExHMC[$monitorIndex]);
-      $result = $this->addNagiosServer($result, $allHostsInfoExHMC[$monitorIndex]);
+      $result = $this->addNameNode($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addSNameNode($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addResourceManager($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addHBaseMaster($hadoopVersion, $services, $result, $allHostsInfo[2]);
+      $result = $this->addOozieServer($hadoopVersion, $services, $result, $allHostsInfo[2]);
+      $result = $this->addHiveServer($hadoopVersion, $services, $result, $allHostsInfo[2]);
+      $result = $this->addTempletonServer($hadoopVersion, $services, $result, $allHostsInfo[2]);
+      $result = $this->addZooKeeperServer($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addZooKeeperServer($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addZooKeeperServer($hadoopVersion, $services, $result, $allHostsInfo[2]);
+      $result = $this->addGangliaServer($hadoopVersion, $result, $allHostsInfoExHMC[$monitorIndex]);
+      $result = $this->addNagiosServer($hadoopVersion, $result, $allHostsInfoExHMC[$monitorIndex]);
       return $result;
     }
     if ( $numNodes > 30) {
-      $result = $this->addNameNode($services, $result, $allHostsInfo[0]);
-      $result = $this->addSNameNode($services, $result, $allHostsInfo[1]);
-      $result = $this->addJobTracker($services, $result, $allHostsInfo[2]);
-      $result = $this->addHBaseMaster($services, $result, $allHostsInfo[3]);
-      $result = $this->addOozieServer($services, $result, $allHostsInfo[3]);
-      $result = $this->addHiveServer($services, $result, $allHostsInfo[4]);
-      $result = $this->addTempletonServer($services, $result, $allHostsInfo[4]);
-      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[0]);
-      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[1]);
-      $result = $this->addZooKeeperServer($services, $result, $allHostsInfo[2]);
-      $result = $this->addGangliaServer($result, $allHostsInfoExHMC[$monitorIndex]);
-      $result = $this->addNagiosServer($result, $allHostsInfoExHMC[$monitorIndex]);
+      $result = $this->addNameNode($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addSNameNode($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addResourceManager($hadoopVersion, $services, $result, $allHostsInfo[2]);
+      $result = $this->addHBaseMaster($hadoopVersion, $services, $result, $allHostsInfo[3]);
+      $result = $this->addOozieServer($hadoopVersion, $services, $result, $allHostsInfo[3]);
+      $result = $this->addHiveServer($hadoopVersion, $services, $result, $allHostsInfo[4]);
+      $result = $this->addTempletonServer($hadoopVersion, $services, $result, $allHostsInfo[4]);
+      $result = $this->addZooKeeperServer($hadoopVersion, $services, $result, $allHostsInfo[0]);
+      $result = $this->addZooKeeperServer($hadoopVersion, $services, $result, $allHostsInfo[1]);
+      $result = $this->addZooKeeperServer($hadoopVersion, $services, $result, $allHostsInfo[2]);
+      $result = $this->addGangliaServer($hadoopVersion, $result, $allHostsInfoExHMC[$monitorIndex]);
+      $result = $this->addNagiosServer($hadoopVersion, $result, $allHostsInfoExHMC[$monitorIndex]);
       return $result;
     }
   }

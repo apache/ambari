@@ -25,14 +25,14 @@
   <link type="text/css" rel="stylesheet" href="./libs/jqgrid/css/ui.jqgrid.css" media="screen"/>
   <link type="text/css" rel="stylesheet" href="./libs/jquery.multiselect.css" media="screen"/>
   <!--[if lt IE 9]><script type="text/javascript" src="./libs/html5shiv/html5shiv.min.js"></script><![endif]-->
-  <link rel="shortcut icon" href="/hmc/images/logo-micro.gif"/>
+  <link rel="shortcut icon" href="./logo/logo-micro.gif"/>
 </head>
 <body>
   <div class="navbar">
     <div class="navbar-inner">
       <div class="container">
-        <a href="/hmc/html"><img id="logo" src="/hmc/images/logo-small.gif"></a>
-        <a id="brand" class="brand" href="/hmc/html">Ambari</a>
+        <a href="/hmc/html"><img id="logo" src="./logo/logo-small.gif"></a>
+        <a id="brand" class="brand" href="/hmc/html"></a>
         <ul class="nav">
           <li><a href="/hmc/html">Cluster Management</a></li>
           <li class="active"><a href="/hdp/dashboard/ui/home.html">Monitoring</a></li>
@@ -48,14 +48,16 @@
       <ul>
         <li><a href="./home.html" class="selectedNavItem">Dashboard</a></li>
         <li><a href="./hdfs.html">HDFS</a></li>
+        <!--
         <li><a href="./mapreduce.html">MapReduce</a></li>
+        -->
         <li><a id="hbase_link" href="./hbase.html">HBase</a></li>
       </ul>
     </nav>
     
     <section id="links">
-      <a class="roundedBox" href="" target="_blank">Post Feedback</a>
-      <a class="roundedBox" href="" target="_blank">Documentation</a>
+      <a class="roundedBox" href="http://hortonworks.com/community/forums/" target="_blank">Post Feedback</a>
+      <a id="docsLink" class="roundedBox" href="javascript:void(0)" target="_blank">Documentation</a>
       <a id="nagios" class="roundedBox" href="" target="_blank">Nagios</a>
       <a id="ganglia" class="roundedBox" href="" target="_blank">Ganglia</a>
       <a id="oozie" class="hiddenLink" href="" target="_blank">Oozie</a>
@@ -107,6 +109,8 @@
         </tbody>
       </table>
       <br/>
+      <!-- TODO: Fix this to change to YARN -->
+      <div style="visibility:hidden">
       <table id="clusterSummaryGrid2" class="clusterSummaryGrid" class="grid">
         <thead>
           <tr><th id="mapredsummarytitle" colspan="2">MapReduce</th></tr>
@@ -117,6 +121,7 @@
           <tr><td>Running & Waiting Jobs</td><td></td></tr>
         </tbody>
       </table>
+      </div>
       <br/>
       <table id="clusterSummaryGrid3" class="clusterSummaryGrid" class="grid">
         <thead>
@@ -163,15 +168,15 @@
   </section>
   
   <footer id="footer"></footer>
-</container>
-  <script type="text/javascript" src="./libs/jquery-1.7.1.js"></script>
-  <script type="text/javascript" src="./libs/jqueryui/js/jquery-ui-1.7.3.custom.min.js"></script>
-  <script type="text/javascript" src="./libs/jquery.multiselect.js"></script>
-  <script type="text/javascript" src="./libs/jqgrid/js/i18n/grid.locale-en.js"></script>
-  <script type="text/javascript" src="./libs/jqgrid/js/jquery.jqGrid.src.js"></script>
-  <script type="text/javascript" src="./libs/raphael/raphael.js"></script>
-  <script type="text/javascript" src="./libs/raphael/g.raphael.min.js"></script>
-  <script type="text/javascript" src="./libs/raphael/g.pie.min.js"></script>
-  <script type="text/javascript" src="./js/common.js"></script>  
+</div>
+<script type="text/javascript" src="./libs/jquery-1.7.1.js"></script>
+<script type="text/javascript" src="./libs/jqueryui/js/jquery-ui-1.7.3.custom.min.js"></script>
+<script type="text/javascript" src="./libs/jquery.multiselect.js"></script>
+<script type="text/javascript" src="./libs/jqgrid/js/i18n/grid.locale-en.js"></script>
+<script type="text/javascript" src="./libs/jqgrid/js/jquery.jqGrid.src.js"></script>
+<script type="text/javascript" src="./libs/raphael/raphael.js"></script>
+<script type="text/javascript" src="./libs/raphael/g.raphael.min.js"></script>
+<script type="text/javascript" src="./libs/raphael/g.pie.min.js"></script>
+<script type="text/javascript" src="./js/common.js"></script>
 </body>
 </html>

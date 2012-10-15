@@ -42,6 +42,14 @@ jobtracker)
       exit 1;
     fi
     ;;
+# Same file for both hdp1 and hdp2, so add YARN processes also here.
+resourcemanager) 
+    rmweburl="http://$host:8088"
+    if [[ `checkurl "$rmweburl"` -ne 0 ]]; then 
+      echo "WARNING: ResourceManager web UI not accessible : $rmweburl";
+      exit 1;
+    fi
+    ;;
 namenode)
     nnweburl="http://$host:50070"
     if [[ `checkurl "$nnweburl"` -ne 0 ]] ; then 
@@ -56,6 +64,14 @@ jobhistory)
       exit 1;
     fi
     ;;
+# For HDP2
+jobhistoryserver2)
+    jhs2weburl="http://$host:19888/"
+    if [[ `checkurl "$jhs2weburl"` -ne 0 ]]; then 
+      echo "WARNING: JobhistoryServer web UI not accessible : $jhs2weburl";
+      exit 1;
+    fi
+    ;;
 hbase)
     hbaseweburl="http://$host:60010/master-status"
     jhweburl="http://domU-12-31-39-16-DC-FB.compute-1.internal:51111/jobhistoryhome.jsp"
@@ -64,7 +80,7 @@ hbase)
       exit 1;
     fi
     ;;
-*) echo "UNKNOWN: Invalid service name [$service], valid options [jobtracker|jobhistory|hbase|namenode]"
+*) echo "UNKNOWN: Invalid service name [$service], valid options [jobtracker|resourcemanager|jobhistory|jobhistoryserver2|hbase|namenode]"
    exit 3
    ;;
 esac

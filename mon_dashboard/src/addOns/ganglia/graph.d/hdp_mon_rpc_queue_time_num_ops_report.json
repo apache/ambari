@@ -4,7 +4,7 @@
    "title" : "Average RPC Operations",
    "vertical_label" : "Operations/Sec",
    "series" : [
-      { "metric": "rpc.rpc.RpcQueueTime_num_ops", "color": "ff0000", "label": "Avg RPC Ops", 
+      { "metric": "rpc.rpc.RpcQueueTimeNumOps", "color": "ff0000", "label": "Avg RPC Ops", 
         "line_width": "2", "type": "line" }
    ]
 }

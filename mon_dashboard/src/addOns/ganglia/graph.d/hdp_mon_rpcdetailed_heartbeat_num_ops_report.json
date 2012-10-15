@@ -4,7 +4,7 @@
    "title" : "Heartbeats",
    "vertical_label" : "Heartbeats/Sec",
    "series" : [
-      { "metric": "rpcdetailed.rpcdetailed.sendHeartbeat_num_ops", "color": "ff0000", "label": "Heartbeats/Sec", 
+      { "metric": "rpcdetailed.rpcdetailed.SendHeartbeatNumOps", "color": "ff0000", "label": "Heartbeats/Sec", 
         "line_width": "2", "type": "line" }
    ]
 }

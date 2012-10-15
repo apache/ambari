@@ -413,6 +413,7 @@ function validateConfigs($svcConfigs) {
       scheduler_name|org.apache.hadoop.mapred.CapacityTaskScheduler
       nagios_web_login|nagiosadmin
       nagios_web_password|admin
+      nagios_contact|nagiosadmin@hortonworks.com
       hadoop_heapsize|1024
       namenode_heapsize|1024
       namenode_opt_newsize|200
@@ -456,24 +457,51 @@ function validateConfigs($svcConfigs) {
 function handleHiveMysql($clusterName, $dbAccessor, $logHandle) {
   $services = $dbAccessor->getAllServicesInfo($clusterName);
   $configs = $dbAccessor->getServiceConfig($clusterName);
-  $hostForMysql = $dbAccessor->getHostsForComponent($clusterName, "HIVE_MYSQL");
-  if ( ($services["services"]["HIVE"]["isEnabled"] == 1) &&
-       ( isset($configs["properties"])
-         && ( !isset($configs["properties"]["hive_mysql_host"])
-              || empty($configs["properties"]["hive_mysql_host"])) ) &&
-       (empty($hostForMysql["hosts"])) ) {
-    $logHandle->log_debug("Hive is enabled but mysql server is not set, set it up on hive server itself");
-    $hostComponents = $dbAccessor->getHostsForComponent($clusterName, "HIVE_SERVER");
-    $hiveServerHosts = array_keys($hostComponents["hosts"]);
-    $newConfig = array ( "hive_mysql_host" => "localhost" );  
-    $dbAccessor->updateServiceConfigs($clusterName, $newConfig);
-    $dbAccessor->addHostsToComponent($clusterName, "HIVE_MYSQL",
-          $hiveServerHosts, "ASSIGNED", "");
-  } else {
-    if (isset($configs["properties"])
-        && isset($configs["properties"]["hive_mysql_host"])
-        && $configs["properties"]["hive_mysql_host"] != "localhost") {
-      $dbAccessor->removeAllHostsFromComponent($clusterName, "HIVE_MYSQL");
+
+  $stackVersion = $dbAccessor->getHadoopStackVersion($clusterName);
+  $hadoopVersion = $stackVersion['version'];
+
+  if ($hadoopVersion == AMBARI_HADOOP_1) {
+    $hostForMysql = $dbAccessor->getHostsForComponent($clusterName, "HIVE_MYSQL");
+    if ( ($services["services"]["HIVE"]["isEnabled"] == 1) &&
+         ( isset($configs["properties"])
+           && ( !isset($configs["properties"]["hive_mysql_host"])
+                || empty($configs["properties"]["hive_mysql_host"])) ) &&
+         (empty($hostForMysql["hosts"])) ) {
+      $logHandle->log_debug("Hive is enabled but mysql server is not set, set it up on hive server itself");
+      $hostComponents = $dbAccessor->getHostsForComponent($clusterName, "HIVE_SERVER");
+      $hiveServerHosts = array_keys($hostComponents["hosts"]);
+      $newConfig = array ( "hive_mysql_host" => "localhost" );  
+      $dbAccessor->updateServiceConfigs($clusterName, $newConfig);
+      $dbAccessor->addHostsToComponent($clusterName, "HIVE_MYSQL",
+            $hiveServerHosts, "ASSIGNED", "");
+    } else {
+      if (isset($configs["properties"])
+          && isset($configs["properties"]["hive_mysql_host"])
+          && $configs["properties"]["hive_mysql_host"] != "localhost") {
+        $dbAccessor->removeAllHostsFromComponent($clusterName, "HIVE_MYSQL");
+      }
+    }
+  } else if ($hadoopVersion == AMBARI_HADOOP_2) {
+    $hostForMysql = $dbAccessor->getHostsForComponent($clusterName, "HIVE2_MYSQL");
+    if ( ($services["services"]["HIVE2"]["isEnabled"] == 1) &&
+         ( isset($configs["properties"])
+           && ( !isset($configs["properties"]["hive_mysql_host"])
+                || empty($configs["properties"]["hive_mysql_host"])) ) &&
+         (empty($hostForMysql["hosts"])) ) {
+      $logHandle->log_debug("Hive is enabled but mysql server is not set, set it up on hive server itself");
+      $hostComponents = $dbAccessor->getHostsForComponent($clusterName, "HIVE2_SERVER");
+      $hiveServerHosts = array_keys($hostComponents["hosts"]);
+      $newConfig = array ( "hive_mysql_host" => "localhost" );  
+      $dbAccessor->updateServiceConfigs($clusterName, $newConfig);
+      $dbAccessor->addHostsToComponent($clusterName, "HIVE2_MYSQL",
+            $hiveServerHosts, "ASSIGNED", "");
+    } else {
+      if (isset($configs["properties"])
+          && isset($configs["properties"]["hive_mysql_host"])
+          && $configs["properties"]["hive_mysql_host"] != "localhost") {
+        $dbAccessor->removeAllHostsFromComponent($clusterName, "HIVE2_MYSQL");
+      }
     }
   }
 }

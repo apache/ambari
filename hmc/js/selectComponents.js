@@ -67,7 +67,8 @@ function getServiceComponentListAndRender(clusterName) {
           }
           if (!component[componentIndex]['isMaster'] && 
               !component[componentIndex]['isClient'] &&
-              component[componentIndex].componentName != 'HIVE_MYSQL') {
+              component[componentIndex].componentName != 'HIVE_MYSQL' && 
+              component[componentIndex].componentName != 'HIVE2_MYSQL') {
             divContent += '<li class="selectServicesEntry" name=try>';
             divContent +=   '<label class="checkbox" for="install' + serviceName + 'Id">' 
                         +   '<input type="checkbox" disabled="disabled" checked="yes" name="' + serviceName + '" id="install' + serviceName + 'Id" value="' + component[componentIndex].componentName + '"/>'

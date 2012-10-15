@@ -26,6 +26,7 @@ class hdp-oozie::params() inherits hdp::params
   $download_url = $hdp::params::gpl_artifacts_download_url
   $ext_zip_url = "${download_url}/ext-2.2.zip"
   $ext_zip_name = hdp_default("ext_zip_name","ext-2.2.zip")
+  $ext_zip_dir = hdp_default("ext_zip_dir","/usr/share/HDP-oozie/")
 
   ### oozie-env
   $conf_dir = $hdp::params::oozie_conf_dir

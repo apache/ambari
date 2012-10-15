@@ -106,7 +106,7 @@ $nagiosGangliaCoHosted = FALSE;
 // check if nagios hosted on same server
 if (!$nagiosGangliaCoHosted) {
   // check if component mapped to this host
-  $hostMap = $dbAccessor->getHostsForComponent($clusterName, "NAGIOS_SERVER");
+  $hostMap = $dbAccessor->getHostsForComponent($clusterName, "NAGIOS_SERVER2");
   if (isset($hostMap["hosts"][$thisHostName])) {
     $nagiosGangliaCoHosted = TRUE;
   }
@@ -115,8 +115,16 @@ if (!$nagiosGangliaCoHosted) {
 // if still nothing then check if ganglia server installed on same server
 if (!$nagiosGangliaCoHosted) {
   // check if component mapped to this host
+  $stackVersion = $dbAccessor->getHadoopStackVersion($clusterName);
+  $hadoopVersion = $stackVersion['version'];
+  $gmServerName = "";
+  if($hadoopVersion == AMBARI_HADOOP_1) {
+    $gmServerName = "GANGLIA_MONITOR_SERVER";
+  } else if ($hadoopVersion == AMBARI_HADOOP_2) {
+    $gmServerName = "GANGLIA2_MONITOR_SERVER";
+  }
   $hostMap = $dbAccessor->getHostsForComponent($clusterName,
-      "GANGLIA_MONITOR_SERVER");
+      $gmServerName);
   if (isset($hostMap["hosts"][$thisHostName])) {
     $nagiosGangliaCoHosted = TRUE;
   }

@@ -32,7 +32,7 @@ class hdp-oozie::service(
   $cmd = "env HADOOP_HOME=${hadoop_home} /usr/sbin/oozie_server.sh"
   $pid_file = "${hdp-oozie::params::oozie_pid_dir}/oozie.pid" 
   $jar_location = $hdp::params::hadoop_jar_location
-  $ext_js_path = "/tmp/HDP-artifacts/${hdp-oozie::params::ext_zip_name}"
+  $ext_js_path = "${hdp-oozie::params::ext_zip_dir}/${hdp-oozie::params::ext_zip_name}"
 
   if ($ensure == 'running') {
     $daemon_cmd = "su - ${user} -c  'cd ${oozie_tmp} ; /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path; /usr/lib/oozie/bin/oozie-start.sh'"

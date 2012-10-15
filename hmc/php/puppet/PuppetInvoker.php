@@ -183,7 +183,8 @@
       $txnId = $txnObj->toString();
 
       $hostRolesStates = array();
-      $roleDependencies = new RoleDependencies();
+      $dbReader = new DBReader($this->db, $clusterName);
+      $roleDependencies = new RoleDependencies($dbReader->getHadoopStackVersion($clusterName));
       $nodeList = array();
       foreach($serviceCheckNodes as $service => $node) {
         $rs = $roleDependencies->getServiceCheckRole($service);
@@ -199,7 +200,6 @@
         $hostRolesStates[$node][$rs] = array();
       }
       $nodesToKick = array_unique($nodeList);
-      $dbReader = new DBReader($this->db);
       $hostInfo = $dbReader->getHostNames($clusterName);
       $configInfo = $dbReader->getAllConfigs($clusterName);
       $hostAttributes = $dbReader->getAllHostAttributes($clusterName);
@@ -258,8 +258,9 @@
       copy($GLOBALS["manifestloaderDir"] . "/site.pp", $GLOBALS["manifestloaderDestinationDir"] . "/site.pp");
 
       //Generate manifest
+       $dbReader = new DBReader($this->db);
       $agentModulesDir = $GLOBALS["puppetAgentModulesDirectory"];
-      ManifestGenerator::generateManifest($manifestDir, $hostInfo,
+      ManifestGenerator::generateManifest($dbReader, $clusterId, $manifestDir, $hostInfo,
           $configInfo, $hostRolesStates, $hostAttributes, $agentModulesDir);
 
       //Write version file
@@ -267,6 +268,11 @@
 
       if ($dryRun) {
         $successfullNodes = $nodes;
+        
+        //Archive
+        $sitePPFile = $manifestDir . "/site.pp";
+        system("mv " . $sitePPFile . " " . $GLOBALS["manifestloaderDir"] . "/site.pp-" . $txnId);
+        
         return $this->createGenKickWaitResponse($kickFailedNodes, $failureResponseNodes,
            $timedoutNodes, $successfullNodes, $nodes);
       }
@@ -333,7 +339,7 @@
       while (true) {
         $this->checkForReportFiles($nodes, $txnId, $doneNodes);
         $this->logger->log_info(count($doneNodes) . " out of " . count($nodes) 
-            . " nodes have reported");
+            . " nodes have reported for txn " . $txnId);
         if (count($doneNodes) >= count($nodes)) {
           ##All nodes kicked have reported back
           break;

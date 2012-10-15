@@ -38,6 +38,11 @@ class hdp-nagios::server(
       unless => "test ! -e  /var/nagios/rw/nagios.cmd"
     }
 
+    hdp::exec { "rm -rf /tmp/hadoop-nagios" :
+      command => "rm -rf /tmp/hadoop-nagios",
+      unless => "test ! -e  /tmp/hadoop-nagios"
+    }
+
     hdp::directory { $nagios_config_dir:
       service_state => $service_state,
       force => true

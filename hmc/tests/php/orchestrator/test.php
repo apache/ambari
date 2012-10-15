@@ -52,7 +52,7 @@ class TestDB extends OrchestratorDB {
   private $hbase_regionserver;
 
   function __construct($puppet) {
-    parent::__construct("./test.db", "DataCluster", $puppet);
+    parent::__construct("/homes/hortonmu/HMC/src/php/db/test.db", "DataCluster", $puppet);
 
     $this->namenode = new ServiceComponent($clusterName, "namenode", "hdfs", State::UNINSTALLED, $this, $puppet, FALSE);
     $this->secondary_namenode = new ServiceComponent($clusterName, "secondary_namenode", "hdfs", State::UNINSTALLED, $this, $puppet, FALSE);
@@ -217,7 +217,7 @@ print_r($zookeeper->stop());
 */
 
 $puppet = new MockPuppetInvoker();
-$db = new OrchestratorDB("./test.db", "DataCluster", $puppet);
+$db = new OrchestratorDB("/homes/hortonmu/HMC/src/php/db/test.db", "DataCluster", $puppet);
 $cluster = new Cluster($clusterName, $db, $puppet);
 $t0 = new Transaction(0, 0, 0);
 print_r($cluster->deployHDP($t0));

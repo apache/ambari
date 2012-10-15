@@ -26,7 +26,7 @@ include "nodeManifest.php";
 include "RoleDependencies.php";
 
  class ManifestGenerator {
-   public static function generateManifest($dir, $hostInfo,
+   public static function generateManifest($dbReader, $clusterId, $dir, $hostInfo,
        $configInfo, $hostRoles, $hostAttributes, $modulesDir) {
      $sitePPFile = $dir . "/site.pp";
      //Delete file if exists
@@ -35,7 +35,12 @@ include "RoleDependencies.php";
      }
      $fh = fopen($dir . "/site.pp", "w");
 
-     $importString = ManifestGenerator::getAllImports($modulesDir);
+     $hadoopVersion = $dbReader->getHadoopStackVersion($clusterId);
+     if ($hadoopVersion == AMBARI_HADOOP_1) {
+       $importString = ManifestGenerator::getAllImportsV1($modulesDir);
+     } else {
+       $importString = ManifestGenerator::getAllImportsV2($modulesDir);
+     }
      fwrite($fh, $importString);
 
      $hostsConfig = HostsConfigManifest::getHostsConfigManifest($hostInfo,
@@ -47,7 +52,7 @@ include "RoleDependencies.php";
          $hostAttributes);
      fwrite($fh, $hostsAttributeManifest . "\n");
 
-     $roleDepObj = new RoleDependencies();
+     $roleDepObj = new RoleDependencies($hadoopVersion);
      foreach ($hostRoles as $n => $rolesStates) {
        $nm = new NodeManifest($n);
        $roleList = array_keys($rolesStates);
@@ -80,7 +85,7 @@ include "RoleDependencies.php";
            }
          }
        }
-       ManifestGenerator::optimizePackageInstall($n, $nm, $rolesStates, $configInfo, $roleStages);
+       //ManifestGenerator::optimizePackageInstall($n, $nm, $rolesStates, $configInfo, $roleStages);
        $nodeManifestString = $nm->generateNodeManifest();
        fwrite($fh, $nodeManifestString . "\n");
      }
@@ -167,7 +172,8 @@ include "RoleDependencies.php";
        }
        //Add in the order of the stages
        $stateList = $rolesStatesDs[$r];
-       if ($stateList[SERVICE_STATE_KEY] != $serviceState) {
+       if (!isset($stateList[SERVICE_STATE_KEY])
+           || $stateList[SERVICE_STATE_KEY] != $serviceState) {
          continue;
        }
        if (isset(self::$rolesToPackageMap[$r])) {
@@ -216,7 +222,7 @@ include "RoleDependencies.php";
      $manifestObj->setRoleState("hdp", "pre_installed_pkgs", $pList);
    }
 
-   private static function getAllImports($modulesDir) {
+   private static function getAllImportsV1($modulesDir) {
      $importString = "";
      $importString = $importString . "import \"" . $modulesDir . "/hdp/manifests/*.pp" ."\"\n";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-hadoop/manifests/*.pp" ."\"\n";
@@ -229,6 +235,24 @@ include "RoleDependencies.php";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-hive/manifests/*.pp" ."\"\n";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-hcat/manifests/*.pp" ."\"\n";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-mysql/manifests/*.pp" ."\"\n";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp-monitor-webserver/manifests/*.pp" ."\"\n";
+     return $importString;
+   }
+
+   private static function getAllImportsV2($modulesDir) {
+     $importString = "";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp/manifests/*.pp" ."\"\n";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp2/manifests/*.pp" ."\"\n";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp2-hadoop/manifests/*.pp" ."\"\n";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp2-hbase/manifests/*.pp" ."\"\n";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp2-zookeeper/manifests/*.pp" ."\"\n";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp2-oozie/manifests/*.pp" ."\"\n";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp2-pig/manifests/*.pp" ."\"\n";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp-sqoop/manifests/*.pp" ."\"\n";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp-templeton/manifests/*.pp" ."\"\n";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp2-hive/manifests/*.pp" ."\"\n";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp2-hcat/manifests/*.pp" ."\"\n";
+     $importString = $importString . "import \"" . $modulesDir . "/hdp2-mysql/manifests/*.pp" ."\"\n";
      $importString = $importString . "import \"" . $modulesDir . "/hdp-monitor-webserver/manifests/*.pp" ."\"\n";
      return $importString;
    }
@@ -261,7 +285,7 @@ include "RoleDependencies.php";
        "hdp-oozie::server" => array("oozie.noarch", "extjs-2.2-1"),
        "hdp-oozie::client" => array("oozie-client.noarch"),
        "hdp-mysql::server" => array("mysql-server"),
-       "hdp-templeton::server" => array("templeton", "templeton-tar-pig-0.0.1.14-1", "templeton-tar-hive-0.0.1.14-1"),
+       "hdp-templeton::server" => array("templeton", "templeton-tar-pig-0.0.1.15-1", "templeton-tar-hive-0.0.1.15-1"),
        "hdp-templeton::client" => array("templeton"),
        "lzo" => array("lzo", "lzo", "lzo-devel", "lzo-devel"),
        "snappy" => array("snappy", "snappy-devel"),

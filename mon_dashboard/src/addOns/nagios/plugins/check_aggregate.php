@@ -1,4 +1,3 @@
-#!/usr/bin/php
 <?php
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -114,6 +113,9 @@
       case "NAMENODE":
         $pieces[0] = "HDFS";
         break; 
+      case "RESOURCEMANAGER":
+        $pieces[0] = "YARN";
+        break; 
       case "JOBTRACKER":
         $pieces[0] = "MAPREDUCE";
         break; 
@@ -123,6 +125,7 @@
       case "SYSTEM":
       case "HDFS":
       case "MAPREDUCE":
+      case "YARN":
       case "HBASE":
         break; 
       default:

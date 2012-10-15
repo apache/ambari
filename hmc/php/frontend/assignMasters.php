@@ -104,11 +104,11 @@ $dbAccessor->addHostsToComponent($clusterName, "TASKTRACKER",
   hack till here */
 
 // choose the name node as the canary host.
-$nameNodeHost = $componentsToHosts["NAMENODE"];
+$nameNodeHost = $componentsToHosts["NAMENODE2"];
 $AllMountPoints = array();
 $nameNodeInfoResult = $dbAccessor->getHostInfo($clusterName, $nameNodeHost[0]);
 if ($nameNodeInfoResult["result"] != 0 ) {
-  $logger->log_error("Got error while getting canary host info ".$nameNodeInfoResult["error"]);
+  $logger->log_error("Got error while getting canary host info for NAMENODE2".$nameNodeInfoResult["error"]);
   print json_encode($nameNodeInfoResult);
   return;
 }
@@ -144,6 +144,35 @@ $outjson = array(
                                                                     "suffix" => "hadoop/hdfs/namesecondary"
                                                                     )
                                             ),
+                                "HDFS2" => array(
+                                             "dfs_name_dir" => array(
+                                                                    "displayName" => "NameNode directories",
+                                                                    "maxDirectoriesNeeded" => -1,
+                                                                    "suffix" => "hadoop/hdfs/namenode"
+                                                                    ),
+                                             "dfs_data_dir" => array(
+                                                                    "displayName" => "DataNode directories",
+                                                                    "maxDirectoriesNeeded" => -1,
+                                                                    "suffix" => "hadoop/hdfs/data"
+                                                                    ),
+                                             "fs_checkpoint_dir" => array(
+                                                                    "displayName" => "SecondaryNameNode Checkpoint directory",
+                                                                    "maxDirectoriesNeeded" => 1,
+                                                                    "suffix" => "hadoop/hdfs/namesecondary"
+                                                                    )
+                                            ),
+                                "YARN" => array(
+                                             "yarn_nm_local_dirs" => array(
+                                                                    "displayName" => "YARN Application Container Directories",
+                                                                    "maxDirectoriesNeeded" => -1,
+                                                                    "suffix" => "hadoop/yarn"
+                                                                    ),
+                                             "yarn_nm_log_dirs" => array(
+                                                                    "displayName" => "YARN Application Container Log Directories",
+                                                                    "maxDirectoriesNeeded" => -1,
+                                                                    "suffix" => "hadoop/yarn"
+                                                                    ),
+                                            ),
                                 "MAPREDUCE" => array(
                                              "mapred_local_dir" => array(
                                                                     "displayName" => "MapReduce Data Directories",
@@ -158,7 +187,21 @@ $outjson = array(
                                                                     "suffix" => "hadoop/oozie"
                                                                    ),
                                             ),
+                                "OOZIE2" => array(
+                                             "oozie_data_dir" => array(
+                                                                    "displayName" => "Oozie DB Directory",
+                                                                    "maxDirectoriesNeeded" => 1,
+                                                                    "suffix" => "hadoop/oozie"
+                                                                   ),
+                                            ),
                                 "ZOOKEEPER" => array(
+                                             "zk_data_dir" => array(
+                                                                    "displayName" => "ZooKeeper Data Directory",
+                                                                    "maxDirectoriesNeeded" => 1,
+                                                                    "suffix" => "hadoop/zookeeper"
+                                                                  ),
+                                           ),
+                                "ZOOKEEPER2" => array(
                                              "zk_data_dir" => array(
                                                                     "displayName" => "ZooKeeper Data Directory",
                                                                     "maxDirectoriesNeeded" => 1,

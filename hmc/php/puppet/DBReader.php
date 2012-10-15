@@ -33,6 +33,14 @@ class DBReader {
     $this->logger = new HMCLogger("DBReader");
   }
 
+  public function getHadoopStackVersion($clusterName, $dbAccessor = NULL) {
+    if ($dbAccessor == NULL) {
+      $dbAccessor = new HMCDBAccessor($this->dbPath);
+    }
+    $ret = $dbAccessor->getHadoopStackVersion($clusterName);
+    return $ret["version"];
+  }
+
   public function getAllConfigs($clusterId) {
     $dbAccessor = new HMCDBAccessor($this->dbPath);
     $allConfigs = $dbAccessor->getServiceConfig($clusterId);
@@ -60,18 +68,20 @@ class DBReader {
   public function getHostNames($clusterId) {
     $dbAccessor = new HMCDBAccessor($this->dbPath);
     $allHostComponents = $dbAccessor->getAllHostsByComponent($clusterId);
+    $hadoopVersion = $this->getHadoopStackVersion($clusterId, $dbAccessor);
+    $hostKeyMap = ($hadoopVersion == AMBARI_HADOOP_2) ? $this->hadoop2_hostKeyMap : $this->hadoop1_hostKeyMap;
     $hostNames = array();
     foreach ($allHostComponents["components"] as $componentName => $componentInfo) {
       if (!isset($componentInfo["hosts"])) {
         continue;
       }
       foreach($componentInfo["hosts"] as $hostname => $hostInfo) {
-        if (!isset($this->hostKeyMap[$componentName])) {
+        if (!isset($hostKeyMap[$componentName])) {
           $this->logger->log_trace("No puppet handling needed for  component "
               . $componentName);
           continue;
         }
-        $puppetHostKey = $this->hostKeyMap[$componentName];
+        $puppetHostKey = $hostKeyMap[$componentName];
         if (!isset($hostNames[$puppetHostKey])) {
           $hostNames[$puppetHostKey] = array();
         }
@@ -88,6 +98,8 @@ class DBReader {
     $dbAccessor = new HMCDBAccessor($this->dbPath);
     $allHostComponents = $dbAccessor->getAllHostsByComponent($clusterId);
     $allHostRoleConfigs = $dbAccessor->getHostRoleConfigs($clusterId);
+    $hadoopVersion = $this->getHadoopStackVersion($clusterId, $dbAccessor);
+    $componentToPuppetClassMap = ($hadoopVersion == AMBARI_HADOOP_2) ? $this->hadoop2_componentToPuppetClassMap : $this->hadoop1_componentToPuppetClassMap;
     $hostRoles = array();
     foreach ($allHostComponents["components"] as $componentName => $componentInfo) {
       if (!isset($componentInfo["hosts"])) {
@@ -100,12 +112,12 @@ class DBReader {
         if (!isset($hostRoles[$hostname])) {
           $hostRoles[$hostname] = array();
         }
-        if (!isset($this->componentToPuppetClassMap[$componentName])) {
+        if (!isset($componentToPuppetClassMap[$componentName])) {
           $this->logger->log_trace("No puppet handling needed for component "
               . $componentName);
           continue;
         }
-        $puppetClass = $this->componentToPuppetClassMap[$componentName];
+        $puppetClass = $componentToPuppetClassMap[$componentName];
         $hostRoles[$hostname][$puppetClass] = array();
         if (in_array($componentName, $components)) {
             $hostRoles[$hostname][$puppetClass]["service_state"] =
@@ -126,7 +138,7 @@ class DBReader {
     return $hostRoles;
   }
 
-  private $componentToPuppetClassMap = array (
+  private $hadoop1_componentToPuppetClassMap = array (
       "NAMENODE" => "hdp-hadoop::namenode",
       "DATANODE"=> "hdp-hadoop::datanode",
       "SNAMENODE" => "hdp-hadoop::snamenode",
@@ -134,7 +146,7 @@ class DBReader {
       "TASKTRACKER" => "hdp-hadoop::tasktracker",
       "HDFS_CLIENT" => "hdp-hadoop::client",
       "MAPREDUCE_CLIENT" => "hdp-hadoop::client",
-      "ZOOKEEPER_SERVER" => "hdp-zookeeper",
+  		"ZOOKEEPER_SERVER" => "hdp-zookeeper",
       "ZOOKEEPER_CLIENT" => "hdp-zookeeper::client",
       "HBASE_MASTER" => "hdp-hbase::master",
       "HBASE_REGIONSERVER" => "hdp-hbase::regionserver",
@@ -157,13 +169,45 @@ class DBReader {
       "HTTPD" => "hdp-monitor-webserver"
     );
 
+  private $hadoop2_componentToPuppetClassMap = array (
+      "NAMENODE2" => "hdp2-hadoop::namenode",
+      "DATANODE2"=> "hdp2-hadoop::datanode",
+      "SNAMENODE2" => "hdp2-hadoop::snamenode",
+      "RESOURCEMANAGER" => "hdp2-hadoop::resourcemanager",
+      "NODEMANAGER" => "hdp2-hadoop::nodemanager",
+      "HDFS2_CLIENT" => "hdp2-hadoop::client",
+      "YARN_CLIENT" => "hdp2-hadoop::client",
+  		"MAPREDUCE2_CLIENT" => "hdp2-hadoop::client",
+  		"ZOOKEEPER2_SERVER" => "hdp2-zookeeper",
+      "ZOOKEEPER2_CLIENT" => "hdp2-zookeeper::client",
+      "HBASE2_MASTER" => "hdp2-hbase::master",
+      "HBASE2_REGIONSERVER" => "hdp2-hbase::regionserver",
+      "HBASE2_CLIENT" => "hdp2-hbase::client",
+      "PIG2_CLIENT" => "hdp2-pig",
+      "SQOOP_CLIENT" => "hdp-sqoop",
+      "OOZIE2_SERVER" => "hdp2-oozie::server",
+      "OOZIE2_CLIENT" => "hdp2-oozie::client",
+      "HIVE2_CLIENT" => "hdp2-hive::client",
+      "HCATALOG2_CLIENT" => "hdp2-hcat",
+      "HCATALOG2_SERVER" => "hdp2-hcat::server",
+      "HIVE2_SERVER" => "hdp2-hive::server",
+      "HIVE2_MYSQL" => "hdp2-mysql::server",
+      "TEMPLETON_SERVER" => "hdp-templeton::server",
+      "TEMPLETON_CLIENT" => "hdp-templeton::client",
+      "DASHBOARD" => "hdp-dashboard",
+      "NAGIOS_SERVER2" => "hdp2-nagios::server",
+      "GANGLIA2_MONITOR_SERVER" => "hdp2-ganglia::server",
+      "GANGLIA2_MONITOR" => "hdp2-ganglia::monitor",
+      "HTTPD" => "hdp-monitor-webserver"
+    );
+
   //Store the database key for each role
-  private $hostKeyMap =
+  private $hadoop1_hostKeyMap =
     array(
         "NAMENODE" => "namenode_host",
         "JOBTRACKER" => "jtnode_host",
         "SNAMENODE" => "snamenode_host",
-        "ZOOKEEPER_SERVER" => "zookeeper_hosts",
+    		"ZOOKEEPER_SERVER" => "zookeeper_hosts",
         "HBASE_MASTER" => "hbase_master_host",
         "HCATALOG_SERVER" => "hcat_server_host",
         "HIVE_SERVER" => "hive_server_host",
@@ -175,6 +219,25 @@ class DBReader {
         "DATANODE" => "slave_hosts",
         "TASKTRACKER" => "slave_hosts",
         "HBASE_REGIONSERVER" => "hbase_rs_hosts"
+        );
+
+  private $hadoop2_hostKeyMap =
+    array(
+        "NAMENODE2" => "namenode_host",
+        "RESOURCEMANAGER" => "yarn_rm_host",
+        "SNAMENODE2" => "snamenode_host",
+    		"ZOOKEEPER2_SERVER" => "zookeeper_hosts",
+        "HBASE2_MASTER" => "hbase_master_host",
+        "HCATALOG2_SERVER" => "hcat_server_host",
+        "HIVE2_SERVER" => "hive_server_host",
+        "OOZIE2_SERVER" => "oozie_server",
+        "TEMPLETON_SERVER" => "templeton_server_host",
+        "DASHBOARD" => "dashboard_host",
+        "NAGIOS_SERVER2" => "nagios_server_host",
+        "GANGLIA2_MONITOR_SERVER" => "ganglia_server_host",
+        "DATANODE2" => "slave_hosts",
+        "NODEMANAGER" => "slave_hosts",
+        "HBASE2_REGIONSERVER" => "hbase_rs_hosts"
         );
 
   /****** Not used but may be used later *****

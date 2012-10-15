@@ -4,7 +4,7 @@
    "title" : "Time spent in Garbage Collection",
    "vertical_label" : "Milliseconds",
    "series" : [
-      { "metric": "jvm.metrics.gcTimeMillis", "color": "ff0000", "label": "Time Spent", 
+      { "metric": "jvm.JvmMetrics.GcTimeMillis", "color": "ff0000", "label": "Time Spent", 
         "line_width": "2", "type": "stack" }
    ]
 }

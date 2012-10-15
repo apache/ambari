@@ -29,13 +29,20 @@
     alerts, hostcounts, hbase_installed, hbase_link, hbase, 
     firstService, graphCounter = 0, errorFlag = false, errors = [], auto_refresh = false,
     gangliaErrorCount = 0;
+
+  var APP_NAME = 'Hortonworks Management Center';
+  var FOOTER_TEXT = 'Hortonworks &copy 2012<br><a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Licensed under the Apache License, Version 2.0</a>.<br><a href="/hmc/licenses/NOTICE.txt" target="_blank">See third-party tools/resources that Ambari uses and their respective authors</a>';
+  var TROUBLESHOOT_URL = 'http://docs.hortonworks.com/CURRENT/index.htm#Monitoring_HDP/Using_Nagios_With_Hadoop/Nagios_Alerts_For_Hadoop_Services.htm';
+  var DOCS_URL = 'http://docs.hortonworks.com/CURRENT/index.htm#Monitoring_HDP/Using_HDP_Monitoring_Dashboard/Using_HDP_Monitoring_Dashboard.htm';
+  var HELP_URL = 'http://docs.hortonworks.com/CURRENT/index.htm#Deploying_Hortonworks_Data_Platform/Using_HMC/Troubleshooting/Troubleshooting_HMC_Deployments.htm';
   
   // on document ready
   $(document).ready(function(){
-    document.title = 'Ambari';
-    $('#brand').html('Ambari');
-    $('#footer').html('<a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Licensed under the Apache License, Version 2.0</a>.<br><a href="/hmc/licenses/NOTICE.txt" target="_blank">See third-party tools/resources that Ambari uses and their respective authors</a>');
-    $('.navbar a.help').attr('href', 'http://incubator.apache.org/ambari/install.html');
+    document.title = APP_NAME;
+    $('#brand').html(APP_NAME);
+    $('#footer').html(FOOTER_TEXT);
+    $('.navbar a.help').attr('href', HELP_URL);
+    $('#docsLink').attr('href', DOCS_URL);
     self.clearTimeout(to);
     a.refreshPage();
     a.setEventDelegation();
@@ -92,7 +99,7 @@
       context = "dashboard";
       collection = "hdp";
       collection2 = "all";
-      alertParam = "nok";
+      alertParam = "all";
     } else if (page == "HDFS"){
       context = "hdfs";
       collection = "hdp";
@@ -513,7 +520,7 @@
       a.hideGraphPopup();
     } else if(target.parentNode){
       var targetParentId = target.parentNode.id;
-      if (targetParentId == "HDFS" || targetParentId == "MAPREDUCE" || targetParentId == "HBASE" || targetParentId == "ZOOKEEPER" || targetParentId == "HIVE-METASTORE" || targetParentId == "OOZIE" || targetParentId == "TEMPLETON") {
+      if (targetParentId == "HDFS" || targetParentId == "MAPREDUCE" || targetParentId == "HBASE" || targetParentId == "ZOOKEEPER" || targetParentId == "HIVE-METASTORE" || targetParentId == "OOZIE" || targetParentId == "TEMPLETON" || targetParentId == "PUPPET") {
         a.showAlerts(target);
       }
     }
@@ -685,7 +692,7 @@
       var hdfsCritCount = 0, hdfsWarnCount = 0, mrCritCount = 0, mrWarnCount = 0, 
       hbaseCritCount = 0, hbaseWarnCount = 0, zkCritCount = 0, zkWarnCount = 0, 
       hcatCritCount = 0, hcatWarnCount = 0, oozieWarnCount = 0, oozieCritCount = 0,
-                        templetonWarnCount = 0, templetonCritCount = 0;
+      templetonWarnCount = 0, templetonCritCount = 0, puppetWarnCount = 0, puppetCritCount = 0;
       
       //Set firstService in the table
       var servicestates = response.servicestates;
@@ -743,11 +750,14 @@
               converted.last_hard_state_change = a.convertToDDHHMM(actualTime - alerts[i].last_hard_state_change);
               
               // Plugin Output
-              converted.plugin_output = alerts[i].plugin_output;
-              
+              if (alerts[i].service_type === 'PUPPET' && alerts[i].plugin_output.toLowerCase().indexOf('connection refused') >= 0) {
+                converted.plugin_output = 'Puppet agent down on ' + alerts[i].host_name;
+              } else {
+                converted.plugin_output = alerts[i].plugin_output;
+              }
               filtered.push(converted);
             }
-            
+
             // Step 2 out of 3: Increment Counters for Alert Summary Table
             if (alerts[i].last_hard_state == 1) {
               if(alerts[i].service_type == "HDFS"){
@@ -764,6 +774,8 @@
                 oozieWarnCount++;
               } else if(alerts[i].service_type == "TEMPLETON"){
                 templetonWarnCount++;
+              } else if(alerts[i].service_type == "PUPPET"){
+                puppetWarnCount++;
               }
             } else if (alerts[i].last_hard_state == 2) {
               if(alerts[i].service_type == "HDFS"){
@@ -780,6 +792,8 @@
                 oozieCritCount++;
               } else if(alerts[i].service_type == "TEMPLETON"){
                 templetonCritCount++;
+              } else if(alerts[i].service_type == "PUPPET"){
+                puppetCritCount++;
               }
             }
             
@@ -821,9 +835,9 @@
 
           // Refresh the caption to indicate service name.
           if(page == "HDFS" || page == "MAPREDUCE" || page == "HBASE"){
-            $("#alertsGrid").jqGrid('setCaption',"Configured Alerts (<a href=\"\" target=\"\"></a>)");
+            $("#alertsGrid").jqGrid('setCaption', 'Configured Alerts (<a href="' + TROUBLESHOOT_URL + '" target="_blank">troubleshoot?</a>)');
           } else {
-            $("#alertsGrid").jqGrid('setCaption',targetId+" Alerts (<a href=\"\" target=\"\"></a>)");
+            $("#alertsGrid").jqGrid('setCaption', targetId + ' Alerts (<a href="' + TROUBLESHOOT_URL + '" target="_blank">troubleshoot?</a>)');
           }
           
           // Populate Alerts Grid
@@ -932,6 +946,13 @@
               } else {
                 criticalAlerts.className = "critical";
               }
+            } else if(key == "PUPPET"){
+              criticalAlerts.innerHTML = puppetCritCount;
+              if(puppetCritCount > 0) {
+                criticalAlerts.className = "highlighted-red critical";
+              } else {
+                criticalAlerts.className = "critical";
+              }
             }
             tr.appendChild(criticalAlerts);
             
@@ -982,6 +1003,13 @@
             } else if(key == "TEMPLETON"){
               warnAlerts.innerHTML = templetonWarnCount;
               if(templetonWarnCount > 0) {
+                warnAlerts.className = "highlighted-orage warning";
+              } else {
+                warnAlerts.className = "warning";
+              }
+            } else if(key == "PUPPET"){
+              warnAlerts.innerHTML = puppetWarnCount;
+              if(puppetWarnCount > 0) {
                 warnAlerts.className = "highlighted-orage warning";
               } else {
                 warnAlerts.className = "warning";

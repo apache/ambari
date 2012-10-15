@@ -4,7 +4,7 @@
    "title" : "Average RPC Wait Time",
    "vertical_label" : "Seconds",
    "series" : [
-      { "metric": "rpc.rpc.RpcQueueTime_avg_time", "color": "ff0000", "label": "Avg RPC Wait Time", 
+      { "metric": "rpc.rpc.RpcQueueTimeAvgTime", "color": "ff0000", "label": "Avg RPC Wait Time", 
         "line_width": "2", "type": "line" }
    ]
 }
