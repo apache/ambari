@@ -135,6 +135,14 @@ public class Stage {
       return f;
     }
   }
+  
+  public synchronized void setSuccessFactors(Map<Role, Float> suc) {
+    successFactors = suc;
+  }
+  
+  public synchronized Map<Role, Float> getSuccessFactors() {
+    return successFactors;
+  }
 
   public long getRequestId() {
     return requestId;
@@ -226,5 +234,65 @@ public class Stage {
       }
     }
     return false;
+  }
+
+  public Map<String, List<ExecutionCommand>> getExecutionCommands() {
+    return this.commandsToSend;
+  }
+
+  public String getLogDir() {
+    return this.logDir;
+  }
+
+  /**
+   * This method should be used only in stage planner. To add
+   * a new execution command use
+   * {@link #addHostRoleExecutionCommand(String, Role, RoleCommand, 
+   * ServiceComponentHostEvent, String, String)}
+   */
+  public synchronized void addExecutionCommand(Stage origStage,
+      ExecutionCommand executionCommand) {
+    String hostname = executionCommand.getHostname();
+    String role = executionCommand.getRole().toString();
+    if (commandsToSend.get(hostname) == null) {
+      commandsToSend.put(hostname, new ArrayList<ExecutionCommand>());
+    }
+    commandsToSend.get(hostname).add(executionCommand);
+    if (hostRoleCommands.get(hostname) == null) {
+      hostRoleCommands.put(hostname, new TreeMap<String, HostRoleCommand>());
+    }
+    hostRoleCommands.get(hostname).put(role,
+        origStage.getHostRoleCommand(hostname, role));
+  }
+
+  private HostRoleCommand getHostRoleCommand(String hostname, String role) {
+    return hostRoleCommands.get(hostname).get(role);
+  }
+  
+  @Override //Object
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("STAGE DESCRIPTION BEGIN\n");
+    builder.append("requestId="+requestId+"\n");
+    builder.append("stageId="+stageId+"\n");
+    builder.append("clusterName="+clusterName+"\n");
+    builder.append("logDir=" + logDir+"\n");
+    builder.append("Success Factors:\n");
+    for (Role r : successFactors.keySet()) {
+      builder.append("  role: "+r+", factor: "+successFactors.get(r)+"\n");
+    }
+    for (String host : commandsToSend.keySet()) {
+      builder.append("HOST: " + host + " :\n");
+      for (ExecutionCommand ec : commandsToSend.get(host)) {
+        builder.append(ec.toString());
+        builder.append("\n");
+        HostRoleCommand hrc = hostRoleCommands.get(host).get(
+            ec.getRole().toString());
+        builder.append(hrc.toString());
+        builder.append("\n");
+      }
+    }
+    builder.append("STAGE DESCRIPTION END\n");
+    return builder.toString();
   }
 }

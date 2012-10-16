@@ -98,4 +98,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     // TODO Auto-generated method stub
     return 0;
   }
+
+  @Override
+  public void hostRoleScheduled(Stage s, String hostname, String roleStr) {
+    //Update start time, last update time, host role status, number of attempts
+    //in the database.
+  }
 }

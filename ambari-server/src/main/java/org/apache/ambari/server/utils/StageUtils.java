@@ -56,15 +56,18 @@ public class StageUtils {
     return requestStageIds;
   }
 
+  public static Stage getATestStage(long requestId, long stageId) {
+    String hostname;
+    try {
+      hostname = InetAddress.getLocalHost().getHostName();
+    } catch (UnknownHostException e) {
+      hostname = "host-dummy";
+    }
+    return getATestStage(requestId, stageId, hostname);
+  }
+  
   //For testing only
   public static Stage getATestStage(long requestId, long stageId, String hostname) {
-    if (hostname == null || "".equals(hostname)) {
-      try {
-        hostname = InetAddress.getLocalHost().getHostName();
-      } catch (UnknownHostException e) {
-        hostname = "host-dummy";
-      }
-    }
     Stage s = new Stage(requestId, "/tmp", "cluster1");
     s.setStageId(stageId);
     long now = System.currentTimeMillis();
@@ -90,11 +93,6 @@ public class StageUtils {
     Map<String, String> roleParams = new TreeMap<String, String>();
     roleParams.put("format", "false");
     execCmd.setRoleParams(roleParams);
-    try {
-      LOG.info("Command string = " + StageUtils.jaxbToString(execCmd));
-    } catch (Exception e) {
-      throw new RuntimeException("Could not get string from jaxb",e);
-    }
     return s;
   }
   

@@ -54,4 +54,12 @@ public interface ActionDBAccessor {
    */
   public long getLastPersistedRequestIdWhenInitialized();
 
+  /**
+   * Updates scheduled stage.
+   * @param s
+   * @param hostname
+   * @param roleStr
+   */
+  public void hostRoleScheduled(Stage s, String hostname, String roleStr);
+
 }

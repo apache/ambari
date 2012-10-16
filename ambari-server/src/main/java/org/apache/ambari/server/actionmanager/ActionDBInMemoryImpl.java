@@ -130,4 +130,9 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   public synchronized long getLastPersistedRequestIdWhenInitialized() {
     return lastRequestId;
   }
+  
+  @Override
+  public void hostRoleScheduled(Stage s, String hostname, String roleStr) {
+    //Nothing needed for in-memory implementation
+  }
 }

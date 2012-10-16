@@ -23,6 +23,9 @@ import java.util.Map;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 
@@ -31,7 +34,9 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * persisted in the database for recovery.
  */
 public class ExecutionCommand extends AgentCommand {
-
+  
+  private static Log LOG = LogFactory.getLog(ExecutionCommand.class);
+  
   public ExecutionCommand() {
     super(AgentCommandType.EXECUTION_COMMAND);
   }
@@ -71,8 +76,12 @@ public class ExecutionCommand extends AgentCommand {
   
   @Override
   public String toString() {
-    return "Host=" + hostname + ", commandId=" + commandId + ", role=" + role
-        + ", command=" + roleCommand;
+    try {
+      return StageUtils.jaxbToString(this);
+    } catch (Exception ex) {
+      LOG.warn("Exception in json conversion", ex);
+      return "Exception in json conversion"; 
+    }
   }
 
   @Override

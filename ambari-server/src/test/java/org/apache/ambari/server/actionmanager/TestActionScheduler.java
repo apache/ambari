@@ -28,6 +28,8 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import junit.framework.Assert;
+
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand;
@@ -69,20 +71,17 @@ public class TestActionScheduler {
 
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
-    ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm, 10000);
-    // Start the thread
+    ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm,
+        10000);
+   // Start the thread
     scheduler.start();
 
-    Thread.sleep(200);
-    List<AgentCommand> ac = aq.dequeueAll(hostname);
-    assertEquals(1, ac.size());
+    List<AgentCommand> ac = waitForQueueSize(hostname, aq, 1);
     assertTrue(ac.get(0) instanceof ExecutionCommand);
     assertEquals("1-977", ((ExecutionCommand) (ac.get(0))).getCommandId());
 
     //The action status has not changed, it should be queued again.
-    Thread.sleep(200);
-    ac = aq.dequeueAll(hostname);
-    assertEquals(1, ac.size());
+    ac = waitForQueueSize(hostname, aq, 1);
     assertTrue(ac.get(0) instanceof ExecutionCommand);
     assertEquals("1-977", ((ExecutionCommand) (ac.get(0))).getCommandId());
 
@@ -91,9 +90,24 @@ public class TestActionScheduler {
     ac = aq.dequeueAll(hostname);
 
     //Wait for sometime, it shouldn't be scheduled this time.
-    Thread.sleep(200);
-    ac = aq.dequeueAll(hostname);
-    assertEquals(0, ac.size());
+    ac = waitForQueueSize(hostname, aq, 0);
+    scheduler.stop();
+  }
+
+  private List<AgentCommand> waitForQueueSize(String hostname, ActionQueue aq,
+      int expectedQueueSize) throws InterruptedException {
+    while (true) {
+      List<AgentCommand> ac = aq.dequeueAll(hostname);
+      if (ac != null) {
+        if (ac.size() == expectedQueueSize) {
+          return ac;
+        } else if (ac.size() > expectedQueueSize) {
+          Assert.fail("Expected size : " + expectedQueueSize + " Actual size="
+              + ac.size());
+        }
+      }
+      Thread.sleep(100);
+    }
   }
 
   /**
@@ -113,22 +127,23 @@ public class TestActionScheduler {
     when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
 
-    ActionDBAccessorImpl db = mock(ActionDBAccessorImpl.class);
+    ActionDBAccessor db = new ActionDBInMemoryImpl();
     String hostname = "ahost.ambari.apache.org";
     List<Stage> stages = new ArrayList<Stage>();
     Stage s = StageUtils.getATestStage(1, 977, hostname);
     stages.add(s);
-    when(db.getStagesInProgress()).thenReturn(stages);
+    db.persistActions(stages);
 
-    //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
-    ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm, 3);
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3);
     // Start the thread
     scheduler.start();
 
-    Thread.sleep(500);
-    //TODO timeoutHostRole must be called exactly once but in this case the state
-    //in the db continues to be pending therefore it is processed multiple times.
-    verify(db, atLeastOnce()).timeoutHostRole(hostname, 1, 977, Role.NAMENODE);
+    while (!stages.get(0).getHostRoleStatus(hostname, "NAMENODE")
+        .equals(HostRoleStatus.TIMEDOUT)) {
+      Thread.sleep(100);
+    }
+    assertEquals(stages.get(0).getHostRoleStatus(hostname, "NAMENODE"),
+        HostRoleStatus.TIMEDOUT);
   }
 }

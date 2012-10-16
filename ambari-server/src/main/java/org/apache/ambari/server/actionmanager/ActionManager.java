@@ -57,6 +57,7 @@ public class ActionManager {
   }
 
   public void start() {
+    LOG.info("Starting scheduler thread");
     scheduler.start();
   }
 

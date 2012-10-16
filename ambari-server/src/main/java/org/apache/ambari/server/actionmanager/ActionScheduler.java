@@ -89,7 +89,7 @@ class ActionScheduler implements Runnable {
   
   private void doWork() throws AmbariException {
     List<Stage> stages = db.getStagesInProgress();
-    LOG.info("Scheduler wakes up, number of stages to look at:"+stages.size());
+    LOG.info("Scheduler wakes up");
     if (stages == null || stages.isEmpty()) {
       //Nothing to do
       LOG.info("No stage in progress..nothing to do");
@@ -164,7 +164,7 @@ class ActionScheduler implements Runnable {
         HostRoleStatus status = s.getHostRoleStatus(host, roleStr);    
         LOG.info("Last attempt time =" + s.getLastAttemptTime(host, roleStr)
             + ", actiontimeout =" + this.actionTimeout + ", current time="
-            + now);
+            + now+", status ="+status+", attempt count="+s.getAttemptCount(host, roleStr));
         if (timeOutActionNeeded(status, s, host, roleStr, now)) {
           LOG.info("Host:" + host + ", role:" + roleStr + ", actionId:"
               + s.getActionId() + " timed out");
@@ -225,9 +225,7 @@ class ActionScheduler implements Runnable {
     long now = System.currentTimeMillis();
     String roleStr = cmd.getRole().toString();
     String hostname = cmd.getHostname();
-    LOG.info("Host:" + hostname + ", role:" + cmd.getRole() + ", actionId:"
-        + s.getActionId() + " being scheduled"+", current time: "+now+", start time: "+
-        s.getStartTime(hostname, roleStr));
+    LOG.info("Going to schedule: "+s.toString());
     if (s.getStartTime(hostname, roleStr) < 0) {
       LOG.info("Update state machine for first attempt");
       try {
@@ -259,6 +257,7 @@ class ActionScheduler implements Runnable {
       throw new AmbariException("Could not get string from jaxb",e);
     }
     actionQueue.enqueue(hostname, cmd);
+    db.hostRoleScheduled(s, hostname, roleStr);
   }
 
   private void updateRoleStats(HostRoleStatus status, RoleStats rs) {

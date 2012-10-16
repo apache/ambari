@@ -121,4 +121,20 @@ class HostRoleCommand {
     HostRoleCommand o = (HostRoleCommand) other;
     return this.role.equals(o.role);
   }
+  
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("HostRoleCommand State:\n");
+    builder.append("  Role: "+role+"\n");
+    builder.append("  Status: "+status+"\n");
+    builder.append("  Event: "+event+"\n");
+    builder.append("  stdout: "+stdout+"\n");
+    builder.append("  stderr: "+stderr+"\n");
+    builder.append("  exitcode: "+exitCode+"\n");
+    builder.append("  Start time: " + startTime+"\n");
+    builder.append("  Last attempt time: "+lastAttemptTime+"\n");
+    builder.append("  attempt count: "+ attemptCount+"\n");
+    return builder.toString();
+  }
 }
