@@ -122,7 +122,7 @@ public interface ResourceDefinition {
    *
    * @return the properties which have been set on this resource
    */
-  public Map<PropertyId, String> getProperties();
+  public Map<PropertyId, Object> getProperties();
 
   /**
    * Resource specific result processor.

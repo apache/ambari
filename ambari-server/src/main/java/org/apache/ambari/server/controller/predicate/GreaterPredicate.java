@@ -23,16 +23,16 @@ import org.apache.ambari.server.controller.spi.Resource;
 /**
  * Predicate that checks if a given value is greater than a {@link Resource} property.
  */
-public class GreaterPredicate extends ComparisonPredicate {
+public class GreaterPredicate<T> extends ComparisonPredicate {
 
-  public GreaterPredicate(PropertyId propertyId, Comparable<String> value) {
+  public GreaterPredicate(PropertyId propertyId, Comparable<T> value) {
     super(propertyId, value);
   }
 
   @Override
   public boolean evaluate(Resource resource) {
-    String propertyValue = resource.getPropertyValue(getPropertyId());
-    return propertyValue == null ? false : getValue().compareTo(propertyValue) < 0;
+    Object propertyValue = resource.getPropertyValue(getPropertyId());
+    return propertyValue != null && getValue().compareTo(propertyValue) < 0;
   }
 
   @Override

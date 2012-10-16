@@ -117,8 +117,8 @@ public class GangliaPropertyProvider implements PropertyProvider {
     }
     Set<PropertyId> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
 
-    String hostName           = PropertyHelper.fixHostName(resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
-    String componentName      = resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    String hostName           = PropertyHelper.fixHostName((String) resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
+    String componentName      = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
     String gangliaClusterName = GANGLIA_CLUSTER_NAMES.get(componentName);
 
     if (gangliaClusterName == null) {

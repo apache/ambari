@@ -24,15 +24,15 @@ import org.apache.ambari.server.controller.spi.Resource;
 /**
  * Predicate that compares a given value to a {@link Resource} property.
  */
-public abstract class ComparisonPredicate extends PropertyPredicate implements BasePredicate {
-  private final Comparable<String> value;
+public abstract class ComparisonPredicate<T> extends PropertyPredicate implements BasePredicate {
+  private final Comparable<T> value;
 
-  public ComparisonPredicate(PropertyId propertyId, Comparable<String> value) {
+  public ComparisonPredicate(PropertyId propertyId, Comparable<T> value) {
     super(propertyId);
     this.value = value;
   }
 
-  public Comparable<String> getValue() {
+  public Comparable<T> getValue() {
     return value;
   }
 
@@ -44,9 +44,7 @@ public abstract class ComparisonPredicate extends PropertyPredicate implements B
 
     ComparisonPredicate that = (ComparisonPredicate) o;
 
-    if (value != null ? !value.equals(that.value) : that.value != null) return false;
-
-    return true;
+    return !(value != null ? !value.equals(that.value) : that.value != null);
   }
 
   @Override

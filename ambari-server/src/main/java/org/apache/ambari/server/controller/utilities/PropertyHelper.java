@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -103,13 +102,13 @@ public class PropertyHelper {
    *
    * @return the map of properties for the given resource
    */
-  public static Map<PropertyId, String> getProperties(Resource resource) {
-    Map<PropertyId, String> properties = new HashMap<PropertyId, String>();
+  public static Map<PropertyId, Object> getProperties(Resource resource) {
+    Map<PropertyId, Object> properties = new HashMap<PropertyId, Object>();
 
-    Map<String, Map<String, String>> categories = resource.getCategories();
+    Map<String, Map<String, Object>> categories = resource.getCategories();
 
-    for (Map.Entry<String, Map<String, String>> categoryEntry : categories.entrySet()) {
-      for (Map.Entry<String, String>  propertyEntry : categoryEntry.getValue().entrySet()) {
+    for (Map.Entry<String, Map<String, Object>> categoryEntry : categories.entrySet()) {
+      for (Map.Entry<String, Object>  propertyEntry : categoryEntry.getValue().entrySet()) {
 
         properties.put(PropertyHelper.getPropertyId(propertyEntry.getKey(), categoryEntry.getKey()), propertyEntry.getValue());
       }
@@ -181,7 +180,7 @@ public class PropertyHelper {
    *
    * @param properties   the properties associated with the request; may be null
    */
-  public static Request getCreateRequest(Set<Map<PropertyId, String>> properties) {
+  public static Request getCreateRequest(Set<Map<PropertyId, Object>> properties) {
     return new RequestImpl(null,  properties);
   }
 
@@ -201,7 +200,7 @@ public class PropertyHelper {
    *
    * @param properties   the properties associated with the request; may be null
    */
-  public static Request getUpdateRequest(Map<PropertyId, String> properties) {
+  public static Request getUpdateRequest(Map<PropertyId, Object> properties) {
     return new RequestImpl(null,  Collections.singleton(properties));
   }
 

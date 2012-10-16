@@ -141,7 +141,7 @@ public class QueryImpl implements Query {
         String subResCategory = entry.getKey();
         ResourceDefinition r = entry.getValue();
 
-        r.setParentId(m_resourceDefinition.getType(), resource.getPropertyValue(
+        r.setParentId(m_resourceDefinition.getType(), (String) resource.getPropertyValue(
             getClusterController().getSchema(m_resourceDefinition.getType()).
                 getKeyPropertyId(m_resourceDefinition.getType())));
 

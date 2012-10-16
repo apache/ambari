@@ -60,9 +60,9 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(propertyProvider.getSpec("ec2-50-17-129-192.compute-1.amazonaws.com:50070"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_namenode_jmx.json for values
-    Assert.assertEquals("1084287",  resource.getPropertyValue(PropertyHelper.getPropertyId("ReceivedBytes", "rpc")));
-    Assert.assertEquals("173",      resource.getPropertyValue(PropertyHelper.getPropertyId("CreateFileOps", "dfs")));
-    Assert.assertEquals("405.8686", resource.getPropertyValue(PropertyHelper.getPropertyId("memHeapUsedM",  "jvm")));
+    Assert.assertEquals(1084287,  resource.getPropertyValue(PropertyHelper.getPropertyId("ReceivedBytes", "rpc")));
+    Assert.assertEquals(173,      resource.getPropertyValue(PropertyHelper.getPropertyId("CreateFileOps", "dfs")));
+    Assert.assertEquals(405.8686, resource.getPropertyValue(PropertyHelper.getPropertyId("memHeapUsedM",  "jvm")));
 
 
     // datanode
@@ -79,8 +79,8 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(propertyProvider.getSpec("ec2-23-23-71-42.compute-1.amazonaws.com:50075"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_datanode_jmx.json for values
-    Assert.assertEquals("0",  resource.getPropertyValue(PropertyHelper.getPropertyId("ReceivedBytes", "rpc")));
-    Assert.assertEquals("16.870667", resource.getPropertyValue(PropertyHelper.getPropertyId("memHeapUsedM",  "jvm")));
+    Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("ReceivedBytes", "rpc")));
+    Assert.assertEquals(16.870667, resource.getPropertyValue(PropertyHelper.getPropertyId("memHeapUsedM",  "jvm")));
 
 
     // jobtracker
@@ -99,7 +99,7 @@ public class JMXPropertyProviderTest {
     // see test/resources/mapreduce_jobtracker_jmx.json for values
     // resource should now contain 3 properties... host name, component name, and jvm.threadsWaiting (from request)
     Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
-    Assert.assertEquals("59", resource.getPropertyValue(PropertyHelper.getPropertyId("threadsWaiting", "jvm")));
+    Assert.assertEquals(59, resource.getPropertyValue(PropertyHelper.getPropertyId("threadsWaiting", "jvm")));
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("gcCount", "jvm")));
   }
 }

@@ -144,7 +144,7 @@ public class JDBCProviderModule implements ProviderModule {
 
     Set<Resource> hosts = hostProvider.getResources(request, null);
     for (Resource host : hosts) {
-      String attributes = host.getPropertyValue(HOST_ATTRIBUTES_PROPERTY_ID);
+      String attributes = (String) host.getPropertyValue(HOST_ATTRIBUTES_PROPERTY_ID);
       if (attributes != null && !attributes.startsWith("[]")) {
         try {
           Map<String, String> attributeMap = mapper.readValue(attributes, new TypeReference<Map<String, String>>() {});
@@ -166,7 +166,7 @@ public class JDBCProviderModule implements ProviderModule {
 
     Set<Resource> hostComponents = provider.getResources(request, predicate);
     for (Resource hostComponent : hostComponents) {
-      String hostName = hostComponent.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
+      String hostName = (String) hostComponent.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
       return hostMapping.get(hostName);
     }
 

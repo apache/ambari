@@ -41,7 +41,7 @@ public class RequestImpl implements Request {
    * The properties associated with this request.  Used for requests that create
    * resources or update resource values.
    */
-  private final Set<Map<PropertyId, String>> properties;
+  private final Set<Map<PropertyId, Object>> properties;
 
 
   // ----- Constructors ------------------------------------------------------
@@ -52,13 +52,13 @@ public class RequestImpl implements Request {
    * @param propertyIds  the property ids associated with the request; may be null
    * @param properties   the properties associated with the request; may be null
    */
-  public RequestImpl(Set<PropertyId> propertyIds, Set<Map<PropertyId, String>> properties) {
+  public RequestImpl(Set<PropertyId> propertyIds, Set<Map<PropertyId, Object>> properties) {
     this.propertyIds = propertyIds == null ?
         Collections.unmodifiableSet(new HashSet<PropertyId>()) :
         Collections.unmodifiableSet(propertyIds);
 
     this.properties = properties == null ?
-        Collections.unmodifiableSet(new HashSet<Map<PropertyId, String>>()) :
+        Collections.unmodifiableSet(new HashSet<Map<PropertyId, Object>>()) :
         Collections.unmodifiableSet(properties);
   }
 
@@ -71,7 +71,7 @@ public class RequestImpl implements Request {
   }
 
   @Override
-  public Set<Map<PropertyId, String>> getProperties() {
+  public Set<Map<PropertyId, Object>> getProperties() {
     return properties;
   }
 
@@ -105,10 +105,8 @@ public class RequestImpl implements Request {
 
     RequestImpl request = (RequestImpl) o;
 
-    if (properties == null ? request.properties != null : !properties.equals(request.properties)) return false;
-    if (propertyIds == null ? request.propertyIds != null : !propertyIds.equals(request.propertyIds)) return false;
-
-    return true;
+    return !(properties == null ? request.properties != null : !properties.equals(request.properties)) &&
+        !(propertyIds == null ? request.propertyIds != null : !propertyIds.equals(request.propertyIds));
   }
 
   @Override

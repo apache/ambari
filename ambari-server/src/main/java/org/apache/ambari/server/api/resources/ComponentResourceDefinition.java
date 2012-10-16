@@ -115,8 +115,8 @@ public class ComponentResourceDefinition extends BaseResourceDefinition {
         Resource r = resultNode.getObject();
         String clusterId = getResourceIds().get(Resource.Type.Cluster);
         Schema schema = ClusterControllerHelper.getClusterController().getSchema(r.getType());
-        String serviceId = r.getPropertyValue(schema.getKeyPropertyId(Resource.Type.Service));
-        String componentId = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
+        Object serviceId = r.getPropertyValue(schema.getKeyPropertyId(Resource.Type.Service));
+        Object componentId = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
 
         href = href.substring(0, href.indexOf(clusterId) + clusterId.length() + 1) +
             "services/" + serviceId + "/components/" + componentId;

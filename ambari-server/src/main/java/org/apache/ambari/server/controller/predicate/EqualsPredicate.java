@@ -24,17 +24,17 @@ import org.apache.ambari.server.controller.spi.Resource;
 /**
  * Predicate that checks equality of a given value to a {@link Resource} property.
  */
-public class EqualsPredicate extends ComparisonPredicate {
+public class EqualsPredicate<T> extends ComparisonPredicate {
 
 
-  public EqualsPredicate(PropertyId propertyId, Comparable<String> value) {
+  public EqualsPredicate(PropertyId propertyId, Comparable<T> value) {
     super(propertyId, value);
   }
 
   @Override
   public boolean evaluate(Resource resource) {
-    String propertyValue = resource.getPropertyValue(getPropertyId());
-    return propertyValue == null ? false : getValue().compareTo(propertyValue) == 0;
+    Object propertyValue = resource.getPropertyValue(getPropertyId());
+    return propertyValue != null && getValue().compareTo(propertyValue) == 0;
   }
 
   @Override

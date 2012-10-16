@@ -36,7 +36,7 @@ public abstract class BasePersistenceManager implements PersistenceManager {
     return ClusterControllerHelper.getClusterController();
   }
 
-  protected Request createControllerRequest(Map<PropertyId, String> properties) {
+  protected Request createControllerRequest(Map<PropertyId, Object> properties) {
     return PropertyHelper.getCreateRequest(Collections.singleton(properties));
   }
 }

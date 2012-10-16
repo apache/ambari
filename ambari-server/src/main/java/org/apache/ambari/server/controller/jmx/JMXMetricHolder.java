@@ -26,13 +26,13 @@ import java.util.Map;
  */
 public class JMXMetricHolder {
 
-  private List<Map<String, String>> beans;
+  private List<Map<String, Object>> beans;
 
-  public List<Map<String, String>> getBeans() {
+  public List<Map<String, Object>> getBeans() {
     return beans;
   }
 
-  public void setBeans(List<Map<String, String>> beans) {
+  public void setBeans(List<Map<String, Object>> beans) {
     this.beans = beans;
   }
 
@@ -40,9 +40,9 @@ public class JMXMetricHolder {
   public String toString() {
     StringBuilder stringBuilder = new StringBuilder();
 
-    for (Map<String, String> map : beans) {
-      for (Map.Entry<String, String> entry : map.entrySet()) {
-        stringBuilder.append("    " + entry.toString() + "\n");
+    for (Map<String, Object> map : beans) {
+      for (Map.Entry<String, Object> entry : map.entrySet()) {
+        stringBuilder.append("    ").append(entry.toString()).append("\n");
       }
     }
     return stringBuilder.toString();

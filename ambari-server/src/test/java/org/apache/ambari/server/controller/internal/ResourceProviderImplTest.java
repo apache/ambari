@@ -45,7 +45,6 @@ import static org.easymock.EasyMock.verify;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -75,10 +74,10 @@ public class ResourceProviderImplTest {
         managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<PropertyId, String>> propertySet = new LinkedHashSet<Map<PropertyId, String>>();
+    Set<Map<PropertyId, Object>> propertySet = new LinkedHashSet<Map<PropertyId, Object>>();
 
     // Cluster 1: create a map of properties for the request
-    Map<PropertyId, String> properties = new LinkedHashMap<PropertyId, String>();
+    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 
     // add the cluster name to the properties map
     properties.put(ResourceProviderImpl.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -89,10 +88,10 @@ public class ResourceProviderImplTest {
     propertySet.add(properties);
 
     // Cluster 2: create a map of properties for the request
-    properties = new LinkedHashMap<PropertyId, String>();
+    properties = new LinkedHashMap<PropertyId, Object>();
 
     // add the cluster id to the properties map
-    properties.put(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID, "99");
+    properties.put(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID, 99L);
 
     // add the version to the properties map
     properties.put(ResourceProviderImpl.CLUSTER_VERSION_PROPERTY_ID, "4.03");
@@ -154,8 +153,8 @@ public class ResourceProviderImplTest {
 
     Assert.assertEquals(5, resources.size());
     for (Resource resource : resources) {
-      String id = resource.getPropertyValue(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID);
-      String name = resource.getPropertyValue(ResourceProviderImpl.CLUSTER_NAME_PROPERTY_ID);
+      Long id = (Long) resource.getPropertyValue(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID);
+      String name = (String) resource.getPropertyValue(ResourceProviderImpl.CLUSTER_NAME_PROPERTY_ID);
       Assert.assertEquals(name, "Cluster" + id);
     }
 
@@ -164,15 +163,15 @@ public class ResourceProviderImplTest {
     resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(1, resources.size());
-    Assert.assertEquals("102", resources.iterator().next().getPropertyValue(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID));
+    Assert.assertEquals(102L, resources.iterator().next().getPropertyValue(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID));
     Assert.assertEquals("Cluster102", resources.iterator().next().getPropertyValue(ResourceProviderImpl.CLUSTER_NAME_PROPERTY_ID));
 
     // get cluster with id == 103
-    predicate = new PredicateBuilder().property(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID).equals("103").toPredicate();
+    predicate = new PredicateBuilder().property(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID).equals(103L).toPredicate();
     resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(1, resources.size());
-    Assert.assertEquals("103", resources.iterator().next().getPropertyValue(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID));
+    Assert.assertEquals(103L, resources.iterator().next().getPropertyValue(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID));
     Assert.assertEquals("Cluster103", resources.iterator().next().getPropertyValue(ResourceProviderImpl.CLUSTER_NAME_PROPERTY_ID));
 
     // verify
@@ -203,7 +202,7 @@ public class ResourceProviderImplTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Map<PropertyId, String> properties = new LinkedHashMap<PropertyId, String>();
+    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 
     properties.put(ResourceProviderImpl.CLUSTER_VERSION_PROPERTY_ID, "4.02");
 
@@ -215,7 +214,7 @@ public class ResourceProviderImplTest {
     provider.updateResources(request, predicate);
 
     // update the cluster where id == 103
-    predicate = new PredicateBuilder().property(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID).equals("103").toPredicate();
+    predicate = new PredicateBuilder().property(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID).equals(103L).toPredicate();
     provider.updateResources(request, predicate);
 
     // verify
@@ -251,7 +250,7 @@ public class ResourceProviderImplTest {
     provider.deleteResources(predicate);
 
     // delete the cluster where id == 103
-    predicate = new PredicateBuilder().property(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID).equals("103").toPredicate();
+    predicate = new PredicateBuilder().property(ResourceProviderImpl.CLUSTER_ID_PROPERTY_ID).equals(103L).toPredicate();
     provider.deleteResources(predicate);
 
     // verify
@@ -278,10 +277,10 @@ public class ResourceProviderImplTest {
         managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<PropertyId, String>> propertySet = new LinkedHashSet<Map<PropertyId, String>>();
+    Set<Map<PropertyId, Object>> propertySet = new LinkedHashSet<Map<PropertyId, Object>>();
 
     // Service 1: create a map of properties for the request
-    Map<PropertyId, String> properties = new LinkedHashMap<PropertyId, String>();
+    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 
     // add properties to the request map
     properties.put(ResourceProviderImpl.SERVICE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -348,9 +347,9 @@ public class ResourceProviderImplTest {
     Assert.assertEquals(5, resources.size());
     Set<String> names = new HashSet<String>();
     for (Resource resource : resources) {
-      String clusterName = resource.getPropertyValue(ResourceProviderImpl.SERVICE_CLUSTER_NAME_PROPERTY_ID);
+      String clusterName = (String) resource.getPropertyValue(ResourceProviderImpl.SERVICE_CLUSTER_NAME_PROPERTY_ID);
       Assert.assertEquals("Cluster100", clusterName);
-      names.add(resource.getPropertyValue(ResourceProviderImpl.SERVICE_SERVICE_NAME_PROPERTY_ID));
+      names.add((String) resource.getPropertyValue(ResourceProviderImpl.SERVICE_SERVICE_NAME_PROPERTY_ID));
     }
     // Make sure that all of the response objects got moved into resources
     for (ServiceResponse serviceResponse : allResponse ) {
@@ -372,9 +371,9 @@ public class ResourceProviderImplTest {
     Assert.assertEquals(3, resources.size());
     names = new HashSet<String>();
     for (Resource resource : resources) {
-      String clusterName = resource.getPropertyValue(ResourceProviderImpl.SERVICE_CLUSTER_NAME_PROPERTY_ID);
+      String clusterName = (String) resource.getPropertyValue(ResourceProviderImpl.SERVICE_CLUSTER_NAME_PROPERTY_ID);
       Assert.assertEquals("Cluster100", clusterName);
-      names.add(resource.getPropertyValue(ResourceProviderImpl.SERVICE_SERVICE_NAME_PROPERTY_ID));
+      names.add((String) resource.getPropertyValue(ResourceProviderImpl.SERVICE_SERVICE_NAME_PROPERTY_ID));
     }
     // Make sure that all of the response objects got moved into resources
     for (ServiceResponse serviceResponse : stateResponse ) {
@@ -405,7 +404,7 @@ public class ResourceProviderImplTest {
         managementController);
 
     // add the property map to a set for the request.
-    Map<PropertyId, String> properties = new LinkedHashMap<PropertyId, String>();
+    Map<PropertyId, Object> properties = new LinkedHashMap<PropertyId, Object>();
 
     properties.put(ResourceProviderImpl.SERVICE_SERVICE_STATE_PROPERTY_ID, "DEPLOYED");
 

@@ -32,18 +32,18 @@ import java.util.Map;
  * Predicate visitor for extracting property values from the PropertyPredicates of a predicate graph.
  */
 public class PropertyPredicateVisitor implements PredicateVisitor {
-  private final Map<PropertyId, String> properties = new HashMap<PropertyId, String>();
+  private final Map<PropertyId, Object> properties = new HashMap<PropertyId, Object>();
 
   @Override
   public void acceptComparisonPredicate(ComparisonPredicate predicate) {
-    properties.put(predicate.getPropertyId(), predicate.getValue().toString());
+    properties.put(predicate.getPropertyId(), predicate.getValue());
   }
 
   @Override
   public void acceptArrayPredicate(ArrayPredicate predicate) {
     BasePredicate[] predicates = predicate.getPredicates();
-    for (int i = 0; i < predicates.length; i++) {
-      predicates[i].accept(this);
+    for (BasePredicate predicate1 : predicates) {
+      predicate1.accept(this);
     }
   }
 
@@ -60,7 +60,7 @@ public class PropertyPredicateVisitor implements PredicateVisitor {
    *
    * @return the properties
    */
-  public Map<PropertyId, String> getProperties() {
+  public Map<PropertyId, Object> getProperties() {
     return properties;
   }
 }

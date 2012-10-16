@@ -101,17 +101,17 @@ public class JsonSerializer implements ResultSerializer {
     }
   }
 
-  private void handleResourceProperties(Map<String, Map<String, String>> mapCatProps) throws IOException {
-    for (Map.Entry<String, Map<String, String>> categoryEntry : mapCatProps.entrySet()) {
+  private void handleResourceProperties(Map<String, Map<String, Object>> mapCatProps) throws IOException {
+    for (Map.Entry<String, Map<String, Object>> categoryEntry : mapCatProps.entrySet()) {
       String category = categoryEntry.getKey();
-      Map<String, String> mapProps = categoryEntry.getValue();
+      Map<String, Object> mapProps = categoryEntry.getValue();
       if (category != null) {
         m_generator.writeFieldName(category);
         m_generator.writeStartObject();
       }
 
-      for (Map.Entry<String, String> propEntry : mapProps.entrySet()) {
-        m_generator.writeStringField(propEntry.getKey(), propEntry.getValue());
+      for (Map.Entry<String, Object> propEntry : mapProps.entrySet()) {
+        m_generator.writeObjectField(propEntry.getKey(), propEntry.getValue());
       }
 
       if (category != null) {

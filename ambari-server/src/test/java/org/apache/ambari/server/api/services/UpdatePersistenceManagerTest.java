@@ -47,7 +47,7 @@ public class UpdatePersistenceManagerTest {
     Predicate predicate = createMock(Predicate.class);
 
 
-    Map<PropertyId, String> mapProperties = new HashMap<PropertyId, String>();
+    Map<PropertyId, Object> mapProperties = new HashMap<PropertyId, Object>();
     mapProperties.put(PropertyHelper.getPropertyId("bar", "foo"), "value");
 
     //expectations
@@ -69,10 +69,10 @@ public class UpdatePersistenceManagerTest {
 
     private ClusterController m_controller;
     private org.apache.ambari.server.controller.spi.Request m_request;
-    private Map<PropertyId, String> m_mapProperties;
+    private Map<PropertyId, Object> m_mapProperties;
 
     private TestUpdatePersistenceManager(ClusterController controller,
-                                         Map<PropertyId, String> mapProperties,
+                                         Map<PropertyId, Object> mapProperties,
                                          org.apache.ambari.server.controller.spi.Request controllerRequest) {
       m_controller = controller;
       m_mapProperties = mapProperties;
@@ -85,7 +85,7 @@ public class UpdatePersistenceManagerTest {
     }
 
     @Override
-    protected org.apache.ambari.server.controller.spi.Request createControllerRequest(Map<PropertyId, String> properties) {
+    protected org.apache.ambari.server.controller.spi.Request createControllerRequest(Map<PropertyId, Object> properties) {
       assertEquals(m_mapProperties, properties);
       return m_request;
     }

@@ -214,9 +214,9 @@ public class JDBCManagementController implements AmbariManagementController {
 
       try {
 
-        Set<Map<PropertyId, String>> propertySet = request.getProperties();
+        Set<Map<PropertyId, Object>> propertySet = request.getProperties();
 
-        for (Map<PropertyId, String> properties : propertySet) {
+        for (Map<PropertyId, Object> properties : propertySet) {
           String sql = getInsertSQL(resourceTables.get(type), properties);
 
           Statement statement = connection.createStatement();
@@ -301,9 +301,9 @@ public class JDBCManagementController implements AmbariManagementController {
     try {
       Connection connection = connectionFactory.getConnection();
       try {
-        Set<Map<PropertyId, String>> propertySet = request.getProperties();
+        Set<Map<PropertyId, Object>> propertySet = request.getProperties();
 
-        Map<PropertyId, String> properties = propertySet.iterator().next();
+        Map<PropertyId, Object> properties = propertySet.iterator().next();
 
         String resourceTable = resourceTables.get(type);
 
@@ -476,12 +476,12 @@ public class JDBCManagementController implements AmbariManagementController {
    *
    * @return the insert SQL
    */
-  private String getInsertSQL(String table, Map<PropertyId, String> properties) {
+  private String getInsertSQL(String table, Map<PropertyId, Object> properties) {
 
     StringBuilder columns = new StringBuilder();
     StringBuilder values = new StringBuilder();
 
-    for (Map.Entry<PropertyId, String> entry : properties.entrySet()) {
+    for (Map.Entry<PropertyId, Object> entry : properties.entrySet()) {
       PropertyId propertyId = entry.getKey();
       Object propertyValue = entry.getValue();
 
@@ -619,7 +619,7 @@ public class JDBCManagementController implements AmbariManagementController {
    *
    * @return the update SQL statement
    */
-  private String getUpdateSQL(String table, Map<PropertyId, String> properties, Predicate predicate) {
+  private String getUpdateSQL(String table, Map<PropertyId, Object> properties, Predicate predicate) {
 
     if (predicate instanceof BasePredicate) {
 
@@ -632,7 +632,7 @@ public class JDBCManagementController implements AmbariManagementController {
       whereClause.append(visitor.getSQL());
 
       StringBuilder setClause = new StringBuilder();
-      for (Map.Entry<PropertyId, String> entry : properties.entrySet()) {
+      for (Map.Entry<PropertyId, Object> entry : properties.entrySet()) {
 
         if (setClause.length() > 0) {
           setClause.append(", ");

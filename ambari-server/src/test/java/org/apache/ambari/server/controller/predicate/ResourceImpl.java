@@ -37,7 +37,7 @@ public class ResourceImpl implements Resource {
   /**
    * The map of categories/properties for this resources.
    */
-  private final Map<String, Map<String, String>> categories = new HashMap<String, Map<String, String>>();
+  private final Map<String, Map<String, Object>> categories = new HashMap<String, Map<String, Object>>();
 
 
   // ----- Constructors ------------------------------------------------------
@@ -60,18 +60,18 @@ public class ResourceImpl implements Resource {
   }
 
   @Override
-  public Map<String, Map<String, String>> getCategories() {
+  public Map<String, Map<String, Object>> getCategories() {
     return categories;
   }
 
   @Override
-  public void setProperty(PropertyId id, String value) {
+  public void setProperty(PropertyId id, Object value) {
     String category = id.getCategory();
 
-    Map<String, String> properties = categories.get(category);
+    Map<String, Object> properties = categories.get(category);
 
     if (properties == null) {
-      properties = new HashMap<String, String>();
+      properties = new HashMap<String, Object>();
       categories.put(category, properties);
     }
 
@@ -79,29 +79,9 @@ public class ResourceImpl implements Resource {
   }
 
   @Override
-  public void setProperty(PropertyId id, Integer value) {
-    setProperty(id, value.toString());
-  }
+  public Object getPropertyValue(PropertyId id) {
 
-  @Override
-  public void setProperty(PropertyId id, Float value) {
-    setProperty(id, value.toString());
-  }
-
-  @Override
-  public void setProperty(PropertyId id, Double value) {
-    setProperty(id, value.toString());
-  }
-
-  @Override
-  public void setProperty(PropertyId id, Long value) {
-    setProperty(id, value.toString());
-  }
-
-  @Override
-  public String getPropertyValue(PropertyId id) {
-
-    Map<String, String> properties = categories.get(id.getCategory());
+    Map<String, Object> properties = categories.get(id.getCategory());
 
     if (properties != null) {
       return properties.get(id.getName());
@@ -117,8 +97,8 @@ public class ResourceImpl implements Resource {
     StringBuilder sb = new StringBuilder();
 
     sb.append("Resource : ").append(type).append("\n");
-    for (Map.Entry<String, Map<String, String>> catEntry : categories.entrySet()) {
-      for (Map.Entry<String, String> propEntry : catEntry.getValue().entrySet()) {
+    for (Map.Entry<String, Map<String, Object>> catEntry : categories.entrySet()) {
+      for (Map.Entry<String, Object> propEntry : catEntry.getValue().entrySet()) {
         sb.append("    ").append(catEntry.getKey()).append(".").append(propEntry.getKey()).append(" : ").append(propEntry.getValue()).append("\n");
       }
     }

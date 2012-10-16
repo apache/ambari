@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.utilities;
 import org.apache.ambari.server.controller.internal.PropertyIdImpl;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
-import org.apache.ambari.server.controller.predicate.Comparables;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.predicate.GreaterEqualsPredicate;
 import org.apache.ambari.server.controller.predicate.GreaterPredicate;
@@ -81,7 +80,6 @@ public class PredicateBuilder {
     not = true;
     return this;
   }
-
 
   public PredicateBuilder begin() {
     checkDone();
@@ -147,133 +145,53 @@ public class PredicateBuilder {
   public class PredicateBuilderWithProperty {
 
     // ----- Equals -----
-    public PredicateBuilderWithPredicate equals(Comparable<String> value) {
+    public <T>PredicateBuilderWithPredicate equals(Comparable<T> value) {
       if (propertyId == null) {
         throw new IllegalStateException("No property.");
       }
-      addPredicate(new EqualsPredicate(propertyId, value));
+      addPredicate(new EqualsPredicate<T>(propertyId, value));
 
       return new PredicateBuilderWithPredicate();
-    }
-
-    public PredicateBuilderWithPredicate equals(Integer value) {
-      return equals(Comparables.forInteger(value));
-    }
-
-    public PredicateBuilderWithPredicate equals(Float value) {
-      return equals(Comparables.forFloat(value));
-    }
-
-    public PredicateBuilderWithPredicate equals(Double value) {
-      return equals(Comparables.forDouble(value));
-    }
-
-    public PredicateBuilderWithPredicate equals(Long value) {
-      return equals(Comparables.forLong(value));
     }
 
     // ----- Greater than -----
-    public PredicateBuilderWithPredicate greaterThan(Comparable<String> value) {
+    public <T>PredicateBuilderWithPredicate greaterThan(Comparable<T> value) {
       if (propertyId == null) {
         throw new IllegalStateException("No property.");
       }
-      addPredicate(new GreaterPredicate(propertyId, value));
+      addPredicate(new GreaterPredicate<T>(propertyId, value));
 
       return new PredicateBuilderWithPredicate();
-    }
-
-    public PredicateBuilderWithPredicate greaterThan(Integer value) {
-      return greaterThan(Comparables.forInteger(value));
-    }
-
-    public PredicateBuilderWithPredicate greaterThan(Float value) {
-      return greaterThan(Comparables.forFloat(value));
-    }
-
-    public PredicateBuilderWithPredicate greaterThan(Double value) {
-      return greaterThan(Comparables.forDouble(value));
-    }
-
-    public PredicateBuilderWithPredicate greaterThan(Long value) {
-      return greaterThan(Comparables.forLong(value));
     }
 
     // ----- Greater than equal to -----
-    public PredicateBuilderWithPredicate greaterThanEqualTo(Comparable<String> value) {
+    public <T>PredicateBuilderWithPredicate greaterThanEqualTo(Comparable<T> value) {
       if (propertyId == null) {
         throw new IllegalStateException("No property.");
       }
-      addPredicate(new GreaterEqualsPredicate(propertyId, value));
+      addPredicate(new GreaterEqualsPredicate<T>(propertyId, value));
 
       return new PredicateBuilderWithPredicate();
-    }
-
-    public PredicateBuilderWithPredicate greaterThanEqualTo(Integer value) {
-      return greaterThanEqualTo(Comparables.forInteger(value));
-    }
-
-    public PredicateBuilderWithPredicate greaterThanEqualTo(Float value) {
-      return greaterThanEqualTo(Comparables.forFloat(value));
-    }
-
-    public PredicateBuilderWithPredicate greaterThanEqualTo(Double value) {
-      return greaterThanEqualTo(Comparables.forDouble(value));
-    }
-
-    public PredicateBuilderWithPredicate greaterThanEqualTo(Long value) {
-      return greaterThanEqualTo(Comparables.forLong(value));
     }
 
     // ----- Less than -----
-    public PredicateBuilderWithPredicate lessThan(Comparable<String> value) {
+    public <T>PredicateBuilderWithPredicate lessThan(Comparable<T> value) {
       if (propertyId == null) {
         throw new IllegalStateException("No property.");
       }
-      addPredicate(new LessPredicate(propertyId, value));
+      addPredicate(new LessPredicate<T>(propertyId, value));
 
       return new PredicateBuilderWithPredicate();
-    }
-
-    public PredicateBuilderWithPredicate lessThan(Integer value) {
-      return lessThan(Comparables.forInteger(value));
-    }
-
-    public PredicateBuilderWithPredicate lessThan(Float value) {
-      return lessThan(Comparables.forFloat(value));
-    }
-
-    public PredicateBuilderWithPredicate lessThan(Double value) {
-      return lessThan(Comparables.forDouble(value));
-    }
-
-    public PredicateBuilderWithPredicate lessThan(Long value) {
-      return lessThan(Comparables.forLong(value));
     }
 
     // ----- Less than equal to -----
-    public PredicateBuilderWithPredicate lessThanEqualTo(Comparable<String> value) {
+    public <T>PredicateBuilderWithPredicate lessThanEqualTo(Comparable<T> value) {
       if (propertyId == null) {
         throw new IllegalStateException("No property.");
       }
-      addPredicate(new LessEqualsPredicate(propertyId, value));
+      addPredicate(new LessEqualsPredicate<T>(propertyId, value));
 
       return new PredicateBuilderWithPredicate();
-    }
-
-    public PredicateBuilderWithPredicate lessThanEqualTo(Integer value) {
-      return lessThanEqualTo(Comparables.forInteger(value));
-    }
-
-    public PredicateBuilderWithPredicate lessThanEqualTo(Float value) {
-      return lessThanEqualTo(Comparables.forFloat(value));
-    }
-
-    public PredicateBuilderWithPredicate lessThanEqualTo(Double value) {
-      return lessThanEqualTo(Comparables.forDouble(value));
-    }
-
-    public PredicateBuilderWithPredicate lessThanEqualTo(Long value) {
-      return lessThanEqualTo(Comparables.forLong(value));
     }
   }
 

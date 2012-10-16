@@ -123,9 +123,9 @@ public class JDBCResourceProvider implements ResourceProvider {
 
       try {
 
-        Set<Map<PropertyId, String>> propertySet = request.getProperties();
+        Set<Map<PropertyId, Object>> propertySet = request.getProperties();
 
-        for (Map<PropertyId, String> properties : propertySet) {
+        for (Map<PropertyId, Object> properties : propertySet) {
           String sql = getInsertSQL(properties);
 
           Statement statement = connection.createStatement();
@@ -147,9 +147,9 @@ public class JDBCResourceProvider implements ResourceProvider {
     try {
       Connection connection = connectionFactory.getConnection();
       try {
-        Set<Map<PropertyId, String>> propertySet = request.getProperties();
+        Set<Map<PropertyId, Object>> propertySet = request.getProperties();
 
-        Map<PropertyId, String> properties = propertySet.iterator().next();
+        Map<PropertyId, Object> properties = propertySet.iterator().next();
 
         String sql = getUpdateSQL(properties, predicate);
 
@@ -184,16 +184,16 @@ public class JDBCResourceProvider implements ResourceProvider {
   }
 
 
-  private String getInsertSQL(Map<PropertyId, String> properties) {
+  private String getInsertSQL(Map<PropertyId, Object> properties) {
 
     StringBuilder columns = new StringBuilder();
     StringBuilder values = new StringBuilder();
     String table = null;
 
 
-    for (Map.Entry<PropertyId, String> entry : properties.entrySet()) {
+    for (Map.Entry<PropertyId, Object> entry : properties.entrySet()) {
       PropertyId propertyId    = entry.getKey();
-      String     propertyValue = entry.getValue();
+      Object     propertyValue = entry.getValue();
 
       table = propertyId.getCategory();
 
@@ -304,7 +304,7 @@ public class JDBCResourceProvider implements ResourceProvider {
     throw new IllegalStateException("Can't generate SQL.");
   }
 
-  private String getUpdateSQL(Map<PropertyId, String> properties, Predicate predicate) {
+  private String getUpdateSQL(Map<PropertyId, Object> properties, Predicate predicate) {
 
     if (predicate instanceof BasePredicate) {
 
@@ -320,7 +320,7 @@ public class JDBCResourceProvider implements ResourceProvider {
 
 
       StringBuilder setClause = new StringBuilder();
-      for (Map.Entry<PropertyId, String> entry : properties.entrySet()) {
+      for (Map.Entry<PropertyId, Object> entry : properties.entrySet()) {
 
         if (setClause.length() > 0) {
           setClause.append(", ");

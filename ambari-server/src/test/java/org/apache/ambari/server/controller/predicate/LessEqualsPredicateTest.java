@@ -34,22 +34,22 @@ public class LessEqualsPredicateTest {
   public void testApply() {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
     PropertyIdImpl propertyId = new PropertyIdImpl("foo", "category1", false);
-    Predicate predicate = new LessEqualsPredicate(propertyId, Comparables.forInteger(10));
+    Predicate predicate = new LessEqualsPredicate(propertyId, 10);
 
-    resource.setProperty(propertyId, "1");
+    resource.setProperty(propertyId, 1);
     Assert.assertTrue(predicate.evaluate(resource));
 
-    resource.setProperty(propertyId, "100");
+    resource.setProperty(propertyId, 100);
     Assert.assertFalse(predicate.evaluate(resource));
 
-    resource.setProperty(propertyId, "10");
+    resource.setProperty(propertyId, 10);
     Assert.assertTrue(predicate.evaluate(resource));
   }
 
   @Test
   public void testGetProperties() {
     PropertyIdImpl propertyId = new PropertyIdImpl("foo", "category1", false);
-    LessEqualsPredicate predicate = new LessEqualsPredicate(propertyId, Comparables.forInteger(10));
+    LessEqualsPredicate predicate = new LessEqualsPredicate(propertyId, 10);
 
     Set<PropertyId> ids = predicate.getPropertyIds();
 

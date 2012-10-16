@@ -116,8 +116,8 @@ public class HostComponentResourceDefinition extends BaseResourceDefinition {
         Resource r = resultNode.getObject();
         String clusterId = getResourceIds().get(Resource.Type.Cluster);
         Schema schema = ClusterControllerHelper.getClusterController().getSchema(r.getType());
-        String host = r.getPropertyValue(schema.getKeyPropertyId(Resource.Type.Host));
-        String hostComponent = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
+        Object host = r.getPropertyValue(schema.getKeyPropertyId(Resource.Type.Host));
+        Object hostComponent = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
 
         href = href.substring(0, href.indexOf(clusterId) + clusterId.length() + 1) +
             "hosts/" + host + "/host_components/" + hostComponent;

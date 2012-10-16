@@ -148,7 +148,7 @@ public class DefaultProviderModule implements ProviderModule {
 
     Set<Resource> hosts = hostProvider.getResources(request, null);
     for (Resource host : hosts) {
-      String attributes = host.getPropertyValue(HOST_ATTRIBUTES_PROPERTY_ID);
+      String attributes = (String) host.getPropertyValue(HOST_ATTRIBUTES_PROPERTY_ID);
       if (attributes != null && !attributes.startsWith("[]")) {
         try {
           Map<String, String> attributeMap = mapper.readValue(attributes, new TypeReference<Map<String, String>>() {});
@@ -169,12 +169,10 @@ public class DefaultProviderModule implements ProviderModule {
         equals("GANGLIA_MONITOR_SERVER").toPredicate();
 
     Set<Resource> hostComponents = provider.getResources(request, predicate);
-    for (Resource hostComponent : hostComponents) {
-      String hostName = hostComponent.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
-      return hostMapping.get(hostName);
-    }
+    // should only be one. TODO add check
+    String hostName = (String) hostComponents.iterator().next().getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
 
-    return null;
+    return hostMapping.get(hostName);
   }
 
 }

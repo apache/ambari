@@ -43,6 +43,7 @@ public class JMXPropertyProvider implements PropertyProvider {
   protected static final PropertyId HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("component_name", "HostRoles");
 
   private static final String CATEGORY_KEY = "tag.context";
+//  private static final String NAME_KEY     = "name";
 
   /**
    * Set of property ids supported by this provider.
@@ -128,7 +129,7 @@ public class JMXPropertyProvider implements PropertyProvider {
 
     Set<PropertyId> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
 
-    String hostName = hostMapping.get(resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
+    String hostName = hostMapping.get( resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
     String port     = JMX_PORTS.get(resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
 
     if (hostName == null || port == null) {
@@ -139,10 +140,10 @@ public class JMXPropertyProvider implements PropertyProvider {
 
     try {
       JMXMetricHolder metricHolder = new ObjectMapper().readValue(streamProvider.readFrom(spec), JMXMetricHolder.class);
-      for (Map<String, String> propertyMap : metricHolder.getBeans()) {
-        String category = propertyMap.get(CATEGORY_KEY);
+      for (Map<String, Object> bean : metricHolder.getBeans()) {
+        String category = getCategory(bean);
         if (category != null) {
-          for (Map.Entry<String, String> entry : propertyMap.entrySet()) {
+          for (Map.Entry<String, Object> entry : bean.entrySet()) {
 
             PropertyId propertyId = PropertyHelper.getPropertyId(entry.getKey(), category);
 
@@ -157,6 +158,22 @@ public class JMXPropertyProvider implements PropertyProvider {
     }
 
     return true;
+  }
+
+  private String getCategory(Map<String, Object> bean) {
+    if (bean.containsKey(CATEGORY_KEY)) {
+      return (String) bean.get(CATEGORY_KEY);
+    }
+//    if (bean.containsKey(NAME_KEY)) {
+//      try {
+//        ObjectName objectName = new ObjectName((String) bean.get(NAME_KEY));
+//
+//
+//      } catch (MalformedObjectNameException e) {
+//        // TODO : log this
+//      }
+//    }
+    return null;
   }
 
   /**

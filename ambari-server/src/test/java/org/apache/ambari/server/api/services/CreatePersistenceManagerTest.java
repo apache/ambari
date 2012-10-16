@@ -51,7 +51,7 @@ public class CreatePersistenceManagerTest {
     mapResourceIds.put(Resource.Type.Cluster, "clusterId");
     mapResourceIds.put(Resource.Type.Service, "serviceId");
 
-    Map<PropertyId, String> mapProperties = new HashMap<PropertyId, String>();
+    Map<PropertyId, Object> mapProperties = new HashMap<PropertyId, Object>();
     mapProperties.put(clusterId, "clusterId");
     mapProperties.put(serviceId, "serviceId");
     mapProperties.put(PropertyHelper.getPropertyId("bar", "foo"), "value");
@@ -80,10 +80,10 @@ public class CreatePersistenceManagerTest {
 
     private ClusterController m_controller;
     private org.apache.ambari.server.controller.spi.Request m_request;
-    private Map<PropertyId, String> m_mapProperties;
+    private Map<PropertyId, Object> m_mapProperties;
 
     private TestCreatePersistenceManager(ClusterController controller,
-                                         Map<PropertyId, String> mapProperties,
+                                         Map<PropertyId, Object> mapProperties,
                                          org.apache.ambari.server.controller.spi.Request controllerRequest) {
       m_controller = controller;
       m_mapProperties = mapProperties;
@@ -96,7 +96,7 @@ public class CreatePersistenceManagerTest {
     }
 
     @Override
-    protected org.apache.ambari.server.controller.spi.Request createControllerRequest(Map<PropertyId, String> properties) {
+    protected org.apache.ambari.server.controller.spi.Request createControllerRequest(Map<PropertyId, Object> properties) {
       assertEquals(m_mapProperties, properties);
       return m_request;
     }

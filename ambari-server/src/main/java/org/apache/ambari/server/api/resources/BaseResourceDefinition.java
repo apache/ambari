@@ -57,7 +57,7 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   private Map<Resource.Type, String> m_mapResourceIds = new HashMap<Resource.Type, String>();
 
   //TODO: Refactor out of this class when setProperties is moved.
-  private Map<PropertyId, String> m_properties = new HashMap<PropertyId, String>();
+  private Map<PropertyId, Object> m_properties = new HashMap<PropertyId, Object>();
 
 
   /**
@@ -131,7 +131,7 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   }
 
   @Override
-  public Map<PropertyId, String> getProperties() {
+  public Map<PropertyId, Object> getProperties() {
     return m_properties;
   }
 
@@ -167,7 +167,7 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
       if (parent.getName() != null) {
         String parentName = parent.getName();
         Schema schema = getClusterController().getSchema(r.getType());
-        String id = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
+        Object id = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
 
         int i = href.indexOf("?");
         if (i != -1) {
