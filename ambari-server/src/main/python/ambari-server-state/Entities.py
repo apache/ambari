@@ -39,7 +39,6 @@ class Configurations(ConvertToXml):
   hosts = ""  #Hosts entity
 
   def __init__(self):
-    super().__init__()
     self.stack = Stack()
     self.hosts = Hosts()
     self.configuration = ConfigurationEntity()
@@ -93,19 +92,19 @@ class Service(ConvertToXml):
   user = ""
   enabled = ""
 
-  def __init__(self, name, ver, comment, user, enabled):
-    self.name = name
-    self.version = ver
-    self.comment = comment
-    self.user = user
-    self.enabled = enabled
-
-  def __init__(self):
-    super().__init__()
+#  def __init__(self, name, ver, comment, user, enabled):
+#    super(self)
+#
+#  def __init__(self, name, ver, comment, user, enabled):
+#    self.name = name
+#    self.version = ver
+#    self.comment = comment
+#    self.user = user
+#    self.enabled = enabled
 
   def __str__(self):
     result = "<service>"
-    result += super().attributesToXml()
+    result += self.attributesToXml()
     result += "</service>"
     return result
 
@@ -191,7 +190,7 @@ class HadoopEnv(ConvertToXml):
 
   def __str__(self):
     result = "<hadoop-env>"
-    result += super().attributesToXml()
+    result += self.attributesToXml()
     result += "</hadoop-env>"
     return result
 
@@ -203,7 +202,7 @@ class CoreSite(ConvertToXml):
 
   def __str__(self):
     result = "<core-site>"
-    result += super().attributesToXml()
+    result += self.attributesToXml()
     result += "</core-site>"
     return result
 

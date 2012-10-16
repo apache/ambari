@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import argparse
+import optparse
 import sys
 import os
 import signal
@@ -59,6 +59,8 @@ def setup_db(args):
   file = args.init_script_file
   command = SETUP_DB_CMD.format(dbname, username, file)
   retcode, outdata, errdata = run_os_command(command)
+  if not retcode == 0:
+    print errdata
   return retcode
 
 def check_se_down():
@@ -154,25 +156,30 @@ def stop(args):
   
   
 def main():
-  parser = argparse.ArgumentParser()
-  parser.add_argument("action", help="action to perform with ambari server")
-  parser.add_argument('-d', '--postgredbname', default='postgres',
+  parser = optparse.OptionParser(usage="usage: %prog [options] action",)
+  parser.add_option('-d', '--postgredbname', default='postgres',
                       help="Database name in postgresql")
-  parser.add_argument('-u', '--postgreuser', default='postgres',
+  parser.add_option('-u', '--postgreuser', default='postgres',
                       help="User in postgresql to run init scripts")
-  parser.add_argument('-f', '--init-script-file', default='setup_db.sql',
+  parser.add_option('-f', '--init-script-file', default='setup_db.sql',
                       help="File with setup script")
-  args = parser.parse_args()
-  action = args.action
+
+  (options, args) = parser.parse_args()
+  
+  if not len(args) == 1:
+    print parser.print_help()
+    parser.error("Invalid number of arguments")
+	
+  action = args[0]
+
   if action == SETUP_ACTION:
-    setup(args)
+    setup(options)
   elif action == START_ACTION:
-    start(args)
+    start(options)
   elif action == STOP_ACTION:
-    stop(args)
+    stop(options)
   else:
-    print "Incorrect action"
-    sys.exit(1)
+    parser.error("Invalid action")
 
 if __name__ == "__main__":
   main()

@@ -1,5 +1,3 @@
-from xml.dom.minicompat import NodeList
-from pip.backwardcompat import raw_input
 from Entities import *
 from os.path import exists
 import xml.dom.minidom
@@ -117,8 +115,7 @@ class Configurator:
     fsDefaultName = coreSite[0].getElementsByTagName('fs-default-name')[0].childNodes[0].data
     coreSiteResultStructure.fsDefaultName = fsDefaultName
 
-    hadoopSecurityAuthentication = coreSite[0].getElementsByTagName('hadoop-security-authentication')[0].childNodes[
-                                   0].data
+    hadoopSecurityAuthentication = coreSite[0].getElementsByTagName('hadoop-security-authentication')[0].childNodes[0].data
     coreSiteResultStructure.hadoopSecurityAuthentication = hadoopSecurityAuthentication
 
     #########################Get configuration.coreSite#########################
@@ -137,7 +134,7 @@ class Configurator:
     "Type of how to get paths to configuration files"
     "Configuration types are base on Configuration.CONFIG_INIT_TYPE tuple"
     return int(raw_input("\tInput configuration type:\n" +
-                         "0)Current path contains all required configurationfiles files.\n" +
+                         "0)Current path contains all required configuration files.\n" +
                          "1)Enter path for each conf file manually.\n" +
                          "Choose:"
     )
@@ -164,8 +161,9 @@ class Configurator:
     for service in self.servicesPath.keys():
       path = self.servicesPath[service]
       isExit = exists(path)
+      errorMessage = "File " + path + " doesn't exist! ("+ service+ " service)"
       if not isExit:
-        raise  IOError("File " + path + " doesn't exist!")
+        raise  IOError(errorMessage)
 #      else:
 #        print("File " + path + " exist!")
 
@@ -175,6 +173,7 @@ class Configurator:
     resultFile.write( str(self.configurations) )
     resultFile.flush()
     resultFile.close()
+    print("\t\t Result configuration file( "+self.RESULT_FILE_PATH+") was generate successfully.")
 
 
 

@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-863. Fix mvn tests to be able to run the python tests cleanly.
+  (mahadev)
+
   AMBARI-849. Stage planner implementation. (jitendra)
 
   AMBARI-860. Remove code that adds fake stages for testing. (jitendra)
