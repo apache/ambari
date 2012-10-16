@@ -31,7 +31,7 @@ def writeImports(outputFile, inputFileName='imports.txt'):
   logger.info("Modules dir is " + modulesdir)
   for line in inputFile:
     modulename = line.rstrip('\n')
-    line = "import " + "\"" + modulesdir + "/" + modulename + "\"\n"
+    line = "import '" + modulesdir + "/" + modulename + "'\n"
     outputFile.write(line)
     
   inputFile.close()

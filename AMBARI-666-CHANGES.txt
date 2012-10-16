@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-868. Clean up site.pp generation on the agent and remove the imports
+  in the sample site.pp. (mahadev)
+
   AMBARI-862. API query against /clusters doesn't return any data.
   (John Speidel via mahadev)
 
