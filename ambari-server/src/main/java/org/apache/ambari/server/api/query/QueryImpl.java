@@ -236,10 +236,18 @@ public class QueryImpl implements Query {
   }
 
   private Predicate createPredicate(ResourceDefinition resourceDefinition) {
+    Predicate predicate = null;
+    //todo: change reference type to Predicate when predicate hierarchy is fixed
     BasePredicate internalPredicate = createInternalPredicate(resourceDefinition);
-    //todo: remove cast when predicate hierarchy is fixed
-    return m_userPredicate == null ? internalPredicate :
-        new AndPredicate((BasePredicate) m_userPredicate, internalPredicate);
+    if (internalPredicate == null) {
+      if (m_userPredicate != null) {
+        predicate = m_userPredicate;
+      }
+    } else {
+      predicate = (m_userPredicate == null) ? internalPredicate :
+          new AndPredicate((BasePredicate) m_userPredicate, internalPredicate);
+    }
+    return predicate;
   }
 
   ClusterController getClusterController() {

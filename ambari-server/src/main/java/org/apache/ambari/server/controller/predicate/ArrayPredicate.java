@@ -65,7 +65,8 @@ public abstract class ArrayPredicate implements BasePredicate {
 
   @Override
   public int hashCode() {
-    int result = predicates != null ? Arrays.hashCode(predicates) : 0;
+    // don't care about array order
+    int result = predicates != null ? new HashSet<BasePredicate>(Arrays.asList(predicates)).hashCode() : 0;
     result = 31 * result + (propertyIds != null ? propertyIds.hashCode() : 0);
     return result;
   }

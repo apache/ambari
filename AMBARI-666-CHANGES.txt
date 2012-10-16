@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-862. API query against /clusters doesn't return any data.
+  (John Speidel via mahadev)
+
   AMBARI-866. Add ORM layer for the FSM's in the server. (mahadev)
 
   AMBARI-853. Add more complete JMX metrics. (Tom Beerbower via mahadev)

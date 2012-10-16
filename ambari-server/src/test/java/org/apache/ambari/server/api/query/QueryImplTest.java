@@ -2,6 +2,8 @@ package org.apache.ambari.server.api.query;
 
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.internal.PropertyIdImpl;
+import org.apache.ambari.server.controller.predicate.AndPredicate;
+import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
@@ -95,13 +97,9 @@ public class QueryImplTest {
     TreeNode<Resource> tree = createStrictMock(TreeNode.class);
     TreeNode<Resource> componentNode = createStrictMock(TreeNode.class);
     ResourceDefinition componentResourceDef = createMock(ResourceDefinition.class);
-    ResourceDefinition hostComponentResourceDef = createStrictMock(ResourceDefinition.class);
     Schema componentSchema = createMock(Schema.class);
     Resource componentResource = createStrictMock(Resource.class);
     PropertyId componentPropertyId = PropertyHelper.getPropertyId("componentId", "");
-    Query hostComponentQuery = createStrictMock(Query.class);
-    Result hostComponentQueryResult = createStrictMock(Result.class);
-    TreeNode<Resource> hostComponentResultTree = createMock(TreeNode.class);
 
     Map<String, Set<String>> mapProperties = new HashMap<String, Set<String>>();
     mapProperties.put("", Collections.singleton("componentId"));
@@ -139,14 +137,163 @@ public class QueryImplTest {
 
     expect(tree.addChild(componentResource, null)).andReturn(componentNode);
 
-    replay(m_controller, result, tree, componentNode, componentResourceDef, hostComponentResourceDef, componentSchema, componentResource,
-        hostComponentQuery, hostComponentQueryResult, hostComponentResultTree);
+    replay(m_controller, result, tree, componentNode, componentResourceDef, componentSchema, componentResource);
 
     QueryImpl query = new TestQuery(componentResourceDef, result);
     query.execute();
 
-    verify(m_controller, result, tree, componentNode, componentResourceDef, hostComponentResourceDef, componentSchema, componentResource,
-        hostComponentQuery, hostComponentQueryResult, hostComponentResultTree);
+    verify(m_controller, result, tree, componentNode, componentResourceDef, componentSchema, componentResource);
+  }
+
+  @Test
+  public void testExecute__collection_nullInternalPredicate_nullUserPredicate() throws Exception {
+    Result result = createStrictMock(Result.class);
+    TreeNode<Resource> tree = createStrictMock(TreeNode.class);
+    TreeNode<Resource> clusterNode = createStrictMock(TreeNode.class);
+    ResourceDefinition clusterResourceDef = createMock(ResourceDefinition.class);
+    Schema clusterSchema = createMock(Schema.class);
+    Resource clusterResource = createStrictMock(Resource.class);
+    PropertyId clusterPropertyId = PropertyHelper.getPropertyId("clusterId", "");
+
+
+    Map<String, Set<String>> mapProperties = new HashMap<String, Set<String>>();
+    mapProperties.put("", Collections.singleton("clusterId"));
+
+    List<Resource> listResources = Collections.singletonList(clusterResource);
+
+    Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
+
+    // expectations
+    expect(clusterResourceDef.getId()).andReturn(null).atLeastOnce();
+    expect(m_controller.getSchema(Resource.Type.Component)).andReturn(clusterSchema).atLeastOnce();
+    expect(clusterSchema.getCategories()).andReturn(mapProperties);
+
+    expect(clusterSchema.getKeyPropertyId(Resource.Type.Component)).andReturn(clusterPropertyId).atLeastOnce();
+    expect(result.getResultTree()).andReturn(tree).atLeastOnce();
+    tree.setProperty("isCollection", "true");
+
+    expect(clusterResourceDef.getType()).andReturn(Resource.Type.Component).atLeastOnce();
+    expect(clusterResourceDef.getResourceIds()).andReturn(mapResourceIds);
+
+    expect(m_controller.getResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(Collections.singleton(clusterPropertyId))),
+        (Predicate) isNull())).andReturn(listResources);
+
+
+    expect(tree.addChild(clusterResource, null)).andReturn(clusterNode);
+
+    replay(m_controller, result, tree, clusterNode, clusterResourceDef, clusterSchema, clusterResource);
+
+    QueryImpl query = new TestQuery(clusterResourceDef, result);
+    query.execute();
+
+    verify(m_controller, result, tree, clusterNode, clusterResourceDef, clusterSchema, clusterResource);
+  }
+
+  @Test
+  public void testExecute__collection_nullInternalPredicate_nonNullUserPredicate() throws Exception {
+    Result result = createStrictMock(Result.class);
+    TreeNode<Resource> tree = createStrictMock(TreeNode.class);
+    TreeNode<Resource> clusterNode = createStrictMock(TreeNode.class);
+    ResourceDefinition clusterResourceDef = createMock(ResourceDefinition.class);
+    Schema clusterSchema = createMock(Schema.class);
+    Resource clusterResource = createStrictMock(Resource.class);
+    PropertyId clusterPropertyId = PropertyHelper.getPropertyId("clusterId", "");
+    Predicate userPredicate = createMock(Predicate.class);
+
+
+    Map<String, Set<String>> mapProperties = new HashMap<String, Set<String>>();
+    mapProperties.put("", Collections.singleton("clusterId"));
+
+    List<Resource> listResources = Collections.singletonList(clusterResource);
+
+    Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
+
+    // expectations
+    expect(clusterResourceDef.getId()).andReturn(null).atLeastOnce();
+    expect(m_controller.getSchema(Resource.Type.Component)).andReturn(clusterSchema).atLeastOnce();
+    expect(clusterSchema.getCategories()).andReturn(mapProperties);
+
+    expect(clusterSchema.getKeyPropertyId(Resource.Type.Component)).andReturn(clusterPropertyId).atLeastOnce();
+    expect(result.getResultTree()).andReturn(tree).atLeastOnce();
+    tree.setProperty("isCollection", "true");
+
+    expect(clusterResourceDef.getType()).andReturn(Resource.Type.Component).atLeastOnce();
+    expect(clusterResourceDef.getResourceIds()).andReturn(mapResourceIds);
+
+    expect(m_controller.getResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(Collections.singleton(clusterPropertyId))),
+        eq(userPredicate))).andReturn(listResources);
+
+
+    expect(tree.addChild(clusterResource, null)).andReturn(clusterNode);
+
+    replay(m_controller, result, tree, clusterNode, clusterResourceDef, clusterSchema, clusterResource, userPredicate);
+
+    QueryImpl query = new TestQuery(clusterResourceDef, result);
+    query.setUserPredicate(userPredicate);
+    query.execute();
+
+    verify(m_controller, result, tree, clusterNode, clusterResourceDef, clusterSchema, clusterResource, userPredicate);
+  }
+
+  @Test
+  public void testExecute__collection_nonNullInternalPredicate_nonNullUserPredicate() throws Exception {
+    Result result = createStrictMock(Result.class);
+    TreeNode<Resource> tree = createStrictMock(TreeNode.class);
+    TreeNode<Resource> componentNode = createStrictMock(TreeNode.class);
+    ResourceDefinition componentResourceDef = createMock(ResourceDefinition.class);
+    Schema componentSchema = createMock(Schema.class);
+    Resource componentResource = createStrictMock(Resource.class);
+    PropertyId componentPropertyId = PropertyHelper.getPropertyId("componentId", "");
+
+    Map<String, Set<String>> mapProperties = new HashMap<String, Set<String>>();
+    mapProperties.put("", Collections.singleton("componentId"));
+
+    List<Resource> listResources = Collections.singletonList(componentResource);
+
+    Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
+    mapResourceIds.put(Resource.Type.Cluster, "clusterName");
+    mapResourceIds.put(Resource.Type.Service, "serviceName");
+    mapResourceIds.put(Resource.Type.Component, "componentName");
+
+    PredicateBuilder pb = new PredicateBuilder();
+    Predicate internalPredicate = pb.property("clusterId", "").equals("clusterName").and().
+        property("serviceId", "").equals("serviceName").and().
+        property("componentId", "").equals("componentName").toPredicate();
+
+    pb = new PredicateBuilder();
+    Predicate userPredicate = pb.property("foo", "").equals("bar").toPredicate();
+    // combine internal predicate and user predicate
+    //todo: for now, need to cast to BasePredicate
+    Predicate predicate = new AndPredicate((BasePredicate) internalPredicate, (BasePredicate) userPredicate);
+
+    // expectations
+    expect(componentResourceDef.getId()).andReturn(null).atLeastOnce();
+    expect(m_controller.getSchema(Resource.Type.Component)).andReturn(componentSchema).atLeastOnce();
+    expect(componentSchema.getCategories()).andReturn(mapProperties);
+
+    expect(componentSchema.getKeyPropertyId(Resource.Type.Component)).andReturn(componentPropertyId).atLeastOnce();
+    expect(result.getResultTree()).andReturn(tree).atLeastOnce();
+    tree.setProperty("isCollection", "true");
+
+    expect(componentResourceDef.getType()).andReturn(Resource.Type.Component).atLeastOnce();
+    expect(componentResourceDef.getResourceIds()).andReturn(mapResourceIds);
+    expect(componentSchema.getKeyPropertyId(Resource.Type.Cluster)).andReturn(new PropertyIdImpl("clusterId", "", false));
+    expect(componentSchema.getKeyPropertyId(Resource.Type.Service)).andReturn(new PropertyIdImpl("serviceId", "", false));
+
+
+    expect(m_controller.getResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(Collections.singleton(componentPropertyId))),
+        eq(predicate))).andReturn(listResources);
+
+
+    expect(tree.addChild(componentResource, null)).andReturn(componentNode);
+
+    replay(m_controller, result, tree, componentNode, componentResourceDef, componentSchema, componentResource);
+
+    QueryImpl query = new TestQuery(componentResourceDef, result);
+    query.setUserPredicate(userPredicate);
+    query.execute();
+
+    verify(m_controller, result, tree, componentNode, componentResourceDef, componentSchema, componentResource);
   }
 
   @Test
@@ -239,10 +386,10 @@ public class QueryImplTest {
 
   //todo: sub-resource with property and with sub-path
 
-  @Test
-  public void testAddProperty__invalidProperty() {
-
-  }
+//  @Test
+//  public void testAddProperty__invalidProperty() {
+//
+//  }
 
   private class TestQuery extends QueryImpl {
 
