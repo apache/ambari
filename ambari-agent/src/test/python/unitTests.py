@@ -25,7 +25,7 @@ import logging.handlers
 import logging
 
 LOG_FILE_NAME='tests.log'
-
+PY_EXT='.py'
 
 class TestAgent(unittest.TestSuite):
   def run(self, result):
@@ -33,17 +33,33 @@ class TestAgent(unittest.TestSuite):
     run(self, result)
     return result
 
+
+def parent_dir(path):
+  if isdir(path):
+    if path.endswith(os.sep):
+      path = os.path.dirname(path)
+    parent_dir = os.path.dirname(path)
+  else:
+    parent_dir = os.path.dirname(os.path.dirname(path))
+
+  return parent_dir
+
+
 def all_tests_suite():
-  suite = unittest.TestLoader().loadTestsFromNames([
-    'TestHeartbeat',
-    'TestHardware',
-    'TestServerStatus',
-    'TestFileUtil',
-    'TestActionQueue',
-    #'TestAmbariComponent',
-    'TestAgentActions',
-    'TestCertGeneration'
-  ])
+
+
+  src_dir = os.getcwd()
+  files_list=os.listdir(src_dir)
+  tests_list = []
+  
+  logger.info('------------------------TESTS LIST:-------------------------------------')
+  for file_name in files_list:
+    if file_name.endswith(PY_EXT) and not file_name == __file__:
+      logger.info(file_name)
+      tests_list.append(file_name.replace(PY_EXT, ''))
+  logger.info('------------------------------------------------------------------------')
+
+  suite = unittest.TestLoader().loadTestsFromNames(tests_list)
   return TestAgent([suite])
 
 def main():
@@ -51,7 +67,6 @@ def main():
   logger.info('------------------------------------------------------------------------')
   logger.info('PYTHON AGENT TESTS')
   logger.info('------------------------------------------------------------------------')
-  parent_dir = lambda x: split(x)[0] if isdir(x) else split(dirname(x))[0]
   src_dir = os.getcwd()
   target_dir = parent_dir(parent_dir(parent_dir(src_dir))) + os.sep + 'target'
   if not os.path.exists(target_dir):
@@ -60,7 +75,6 @@ def main():
   file=open(path, "w")
   runner = unittest.TextTestRunner(stream=file)
   suite = all_tests_suite()
-
   status = runner.run(suite).wasSuccessful()
 
   if not status:

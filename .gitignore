@@ -7,3 +7,5 @@
 target
 /ambari-web/public/
 /ambari-web/node_modules/
+*.pyc
+*.py~
