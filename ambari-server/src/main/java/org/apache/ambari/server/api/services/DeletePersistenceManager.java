@@ -29,7 +29,7 @@ public class DeletePersistenceManager extends BasePersistenceManager {
   public void persist(ResourceDefinition resource) {
     try {
       getClusterController().deleteResources(resource.getType(),
-          resource.getQuery().getPredicate());
+          resource.getQuery().getInternalPredicate());
     } catch (AmbariException e) {
       //todo: handle exception
       throw new RuntimeException("Delete of resource failed: " + e, e);

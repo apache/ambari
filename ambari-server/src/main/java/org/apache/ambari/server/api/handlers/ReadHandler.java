@@ -33,7 +33,6 @@ public class ReadHandler implements RequestHandler {
     Query query = request.getResourceDefinition().getQuery();
 
     //Partial response
-    //todo: could be encapsulated in request/query
     for (String s : request.getPartialResponseFields()) {
       int i = s.lastIndexOf('/');
       if (i == -1) {
@@ -42,6 +41,8 @@ public class ReadHandler implements RequestHandler {
         query.addProperty(s.substring(0, i), s.substring(i + 1));
       }
     }
+
+   query.setUserPredicate(request.getQueryPredicate());
 
     try {
       return query.execute();

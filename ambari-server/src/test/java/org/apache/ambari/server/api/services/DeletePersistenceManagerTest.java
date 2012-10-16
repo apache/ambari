@@ -42,7 +42,7 @@ public class DeletePersistenceManagerTest {
     //expectations
     expect(resource.getType()).andReturn(Resource.Type.Component);
     expect(resource.getQuery()).andReturn(query);
-    expect(query.getPredicate()).andReturn(predicate);
+    expect(query.getInternalPredicate()).andReturn(predicate);
 
     controller.deleteResources(Resource.Type.Component, predicate);
 

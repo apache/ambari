@@ -22,6 +22,7 @@ import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.junit.Test;
 
 
@@ -41,6 +42,7 @@ public class ReadHandlerTest {
     Request request = createStrictMock(Request.class);
     ResourceDefinition resourceDefinition = createStrictMock(ResourceDefinition.class);
     Query query = createMock(Query.class);
+    Predicate predicate = createMock(Predicate.class);
     Result result = createStrictMock(Result.class);
 
     Set<String> setPartialResponseFields = new HashSet<String>();
@@ -56,15 +58,18 @@ public class ReadHandlerTest {
     query.addProperty(null, "foo");
     query.addProperty("bar", "c");
     query.addProperty("bar/d", "e");
+
+    expect(request.getQueryPredicate()).andReturn(predicate);
+    query.setUserPredicate(predicate);
     expect(query.execute()).andReturn(result);
 
-    replay(request, resourceDefinition, query, result);
+    replay(request, resourceDefinition, query, predicate, result);
 
     //test
     ReadHandler handler = new ReadHandler();
     assertSame(result, handler.handleRequest(request));
 
-    verify(request, resourceDefinition, query, result);
+    verify(request, resourceDefinition, query, predicate, result);
 
   }
 }

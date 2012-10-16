@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-852. Improve REST API functionality regarding query and partial
+  response (John Speidel via mahadev)
+
   AMBARI-865. Add unit test for action queue on the agent. (mahadev)
 
   AMBARI-851. Hook up Ganglia property provider. (Tom Beerbower via mahadev)

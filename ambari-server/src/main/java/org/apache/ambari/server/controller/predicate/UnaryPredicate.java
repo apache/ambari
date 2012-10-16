@@ -28,6 +28,7 @@ public abstract class UnaryPredicate implements BasePredicate {
   private final BasePredicate predicate;
 
   public UnaryPredicate(BasePredicate predicate) {
+    assert(predicate != null);
     this.predicate = predicate;
   }
 
@@ -43,6 +44,21 @@ public abstract class UnaryPredicate implements BasePredicate {
   @Override
   public void accept(PredicateVisitor visitor) {
     visitor.acceptUnaryPredicate(this);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof UnaryPredicate)) return false;
+
+    UnaryPredicate that = (UnaryPredicate) o;
+
+    return predicate.equals(that.predicate);
+  }
+
+  @Override
+  public int hashCode() {
+    return predicate.hashCode();
   }
 
   public abstract String getOperator();

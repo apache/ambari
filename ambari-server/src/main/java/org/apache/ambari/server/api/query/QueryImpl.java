@@ -40,10 +40,10 @@ public class QueryImpl implements Query {
   /**
    * Resource definition of resource being operated on.
    */
-  ResourceDefinition m_resourceDefinition;
+  private ResourceDefinition m_resourceDefinition;
 
   /**
-   * PropertyHelper of the query which make up the select portion of the query.
+   * Properties of the query which make up the select portion of the query.
    */
   private Map<String, Set<String>> m_mapQueryProperties = new HashMap<String, Set<String>>();
 
@@ -56,6 +56,11 @@ public class QueryImpl implements Query {
    * Sub-resources of the resource which is being operated on.
    */
   private Map<String, ResourceDefinition> m_mapSubResources = new HashMap<String, ResourceDefinition>();
+
+  /**
+   * The user supplied predicate.
+   */
+  private Predicate m_userPredicate;
 
 
   /**
@@ -71,7 +76,10 @@ public class QueryImpl implements Query {
 
   @Override
   public void addProperty(String path, String property) {
-    if (m_mapAllProperties.containsKey(path) && m_mapAllProperties.get(path).contains(property)) {
+    if (path == null && property.equals("*")) {
+      // wildcard
+      addAllProperties();
+    } else if (m_mapAllProperties.containsKey(path) && m_mapAllProperties.get(path).contains(property)) {
       // local property
       Set<String> setProps = m_mapQueryProperties.get(path);
       if (setProps == null) {
@@ -125,8 +133,9 @@ public class QueryImpl implements Query {
     Iterable<Resource> iterResource = getClusterController().getResources(
         m_resourceDefinition.getType(), createRequest(), predicate);
 
+    TreeNode<Resource> tree = result.getResultTree();
     for (Resource resource : iterResource) {
-      TreeNode<Resource> node = result.getResultTree().addChild(resource, null);
+      TreeNode<Resource> node = tree.addChild(resource, null);
 
       for (Map.Entry<String, ResourceDefinition> entry : m_mapSubResources.entrySet()) {
         String subResCategory = entry.getKey();
@@ -147,18 +156,38 @@ public class QueryImpl implements Query {
   }
 
   @Override
-  public Predicate getPredicate() {
-    return createPredicate(m_resourceDefinition);
+  public Predicate getInternalPredicate() {
+    return createInternalPredicate(m_resourceDefinition);
+  }
+
+  @Override
+  public Map<String, Set<String>> getProperties() {
+    return Collections.unmodifiableMap(m_mapQueryProperties);
+  }
+
+  @Override
+  public void setUserPredicate(Predicate predicate) {
+    m_userPredicate = predicate;
+  }
+
+  private void addAllProperties() {
+    m_mapQueryProperties.putAll(m_mapAllProperties);
+    for (Map.Entry<String, ResourceDefinition> entry : m_resourceDefinition.getSubResources().entrySet()) {
+      String name = entry.getKey();
+      if (! m_mapSubResources.containsKey(name)) {
+        m_mapSubResources.put(name, entry.getValue());
+      }
+    }
   }
 
   private boolean addPropertyToSubResource(String path, String property) {
-    boolean resourceAdded = false;
-
     // cases:
-    // path is null, property is path
-    // path is single token and prop in non null
-    // path is multi level and prop is non null
+    // - path is null, property is path (all sub-resource props will have a path)
+    // - path is single token and prop in non null
+    //      (path only will presented as above case with property only)
+    // - path is multi level and prop is non null
 
+    boolean resourceAdded = false;
     if (path == null) {
       path = property;
       property = null;
@@ -170,8 +199,7 @@ public class QueryImpl implements Query {
     ResourceDefinition subResource = m_resourceDefinition.getSubResources().get(p);
     if (subResource != null) {
       m_mapSubResources.put(p, subResource);
-      //todo: handle case of trailing /
-      //todo: for example fields=subResource/
+      //todo: handle case of trailing '/' (for example fields=subResource/)
 
       if (property != null || !path.equals(p)) {
         //only add if a sub property is set or if a sub category is specified
@@ -182,13 +210,13 @@ public class QueryImpl implements Query {
     return resourceAdded;
   }
 
-  private Predicate createPredicate(ResourceDefinition resourceDefinition) {
+  private BasePredicate createInternalPredicate(ResourceDefinition resourceDefinition) {
     //todo: account for user predicates
     Resource.Type resourceType = resourceDefinition.getType();
     Map<Resource.Type, String> mapResourceIds = resourceDefinition.getResourceIds();
     Schema schema = getClusterController().getSchema(resourceType);
 
-    Set<Predicate> setPredicates = new HashSet<Predicate>();
+    Set<BasePredicate> setPredicates = new HashSet<BasePredicate>();
     for (Map.Entry<Resource.Type, String> entry : mapResourceIds.entrySet()) {
       //todo: null check is a hack for host_component and component queries where serviceId is not available for
       //todo: host_component queries and host is not available for component queries.
@@ -205,6 +233,13 @@ public class QueryImpl implements Query {
     } else {
       return null;
     }
+  }
+
+  private Predicate createPredicate(ResourceDefinition resourceDefinition) {
+    BasePredicate internalPredicate = createInternalPredicate(resourceDefinition);
+    //todo: remove cast when predicate hierarchy is fixed
+    return m_userPredicate == null ? internalPredicate :
+        new AndPredicate((BasePredicate) m_userPredicate, internalPredicate);
   }
 
   ClusterController getClusterController() {

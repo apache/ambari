@@ -58,13 +58,9 @@ public abstract class ArrayPredicate implements BasePredicate {
     if (propertyIds != null ? !propertyIds.equals(that.propertyIds) : that.propertyIds != null) return false;
 
     // don't care about array order
-    List<BasePredicate> listPredicates = Arrays.asList(predicates);
-    if (listPredicates.size() != that.predicates.length) return false;
-    for (BasePredicate predicate : predicates) {
-      if (!listPredicates.contains(predicate)) return false;
-    }
-
-    return true;
+    Set<BasePredicate> setThisPredicates = new HashSet<BasePredicate>(Arrays.asList(predicates));
+    Set<BasePredicate> setThatPredicates = new HashSet<BasePredicate>(Arrays.asList(that.predicates));
+    return setThisPredicates.equals(setThatPredicates);
   }
 
   @Override

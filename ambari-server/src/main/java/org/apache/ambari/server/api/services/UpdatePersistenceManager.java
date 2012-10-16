@@ -31,7 +31,7 @@ public class UpdatePersistenceManager extends BasePersistenceManager {
   public void persist(ResourceDefinition resource) {
     try {
       getClusterController().updateResources(resource.getType(), createControllerRequest(resource.getProperties()),
-          resource.getQuery().getPredicate());
+          resource.getQuery().getInternalPredicate());
     } catch (AmbariException e) {
       //todo: handle exception
       throw new RuntimeException("Update of resource failed: " + e, e);

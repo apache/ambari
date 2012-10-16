@@ -57,7 +57,7 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
 
   @Override
   public void process(Result result) {
-    processNode(result.getResultTree(), m_request.getURI().toString());
+    processNode(result.getResultTree(), m_request.getURI());
   }
 
   /**

@@ -54,7 +54,7 @@ public class UpdatePersistenceManagerTest {
     expect(resource.getType()).andReturn(Resource.Type.Component);
     expect(resource.getProperties()).andReturn(mapProperties);
     expect(resource.getQuery()).andReturn(query);
-    expect(query.getPredicate()).andReturn(predicate);
+    expect(query.getInternalPredicate()).andReturn(predicate);
 
     controller.updateResources(Resource.Type.Component, serverRequest, predicate);
 

@@ -41,6 +41,7 @@ public class PropertyHelper {
 
   private static final String PROPERTIES_FILE = "properties.json";
   private static final String KEY_PROPERTIES_FILE = "key_properties.json";
+  private static final char EXTERNAL_PATH_SEP = '/';
 
   private static final Map<Resource.Type, Map<String, Set<PropertyId>>> PROPERTY_IDS = readPropertyIds(PROPERTIES_FILE);
   private static final Map<Resource.Type, Map<Resource.Type, PropertyId>> KEY_PROPERTY_IDS = readKeyPropertyIds(KEY_PROPERTIES_FILE);
@@ -51,6 +52,35 @@ public class PropertyHelper {
 
   public static PropertyId getPropertyId(String name, String category, boolean temporal) {
     return new PropertyIdImpl(name, category, temporal);
+  }
+
+  /**
+   * Helper to create a PropertyId from an string.
+   * The provided string must not be null and should be the fully qualified property name.
+   * The fully qualified property name may or may not have a category name.
+   * if the fully qualified property name contains a path separator char, then the
+   * path up to the last pth separator is considered the path and the token after the last
+   * path separator char is the property name.  If no path separator is present, the category
+   * is null and the property name is the provided string.
+   *
+   * @param absProperty  the fully qualified property
+   *
+   * @return a new PropertyId for the provided property string
+   */
+  public static PropertyId getPropertyId(String absProperty) {
+    String category;
+    String name;
+
+    int lastPathSep = absProperty.lastIndexOf(EXTERNAL_PATH_SEP);
+    if (lastPathSep == -1) {
+      category = null;
+      name     = absProperty;
+    } else {
+      category = absProperty.substring(0, lastPathSep);
+      name     = absProperty.substring(lastPathSep + 1);
+    }
+
+    return getPropertyId(name, category);
   }
 
   public static Set<PropertyId> getPropertyIds(Resource.Type resourceType, String providerKey) {

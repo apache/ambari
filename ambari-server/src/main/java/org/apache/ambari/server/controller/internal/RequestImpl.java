@@ -97,4 +97,24 @@ public class RequestImpl implements Request {
       return null;  //TODO
     }
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RequestImpl request = (RequestImpl) o;
+
+    if (properties == null ? request.properties != null : !properties.equals(request.properties)) return false;
+    if (propertyIds == null ? request.propertyIds != null : !propertyIds.equals(request.propertyIds)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = propertyIds != null ? propertyIds.hashCode() : 0;
+    result = 31 * result + (properties != null ? properties.hashCode() : 0);
+    return result;
+  }
 }

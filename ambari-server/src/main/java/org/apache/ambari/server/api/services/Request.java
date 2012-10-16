@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
 
 import java.net.URI;
@@ -55,7 +56,7 @@ public interface Request {
    *
    * @return the request uri
    */
-  public URI getURI();
+  public String getURI();
 
   /**
    * Obtain the http request type.  Type is one of {@link Type}.
@@ -72,11 +73,13 @@ public interface Request {
   public int getAPIVersion();
 
   /**
-   * Obtain the query predicates that were provided in the URL query string.
+   * Obtain the query predicate that was built from the user provided predicate fields in the query string.
+   * If multiple predicates are supplied, then they will be combined using the appropriate grouping predicate
+   * such as 'AND'.
    *
-   * @return a map of request predicates
+   * @return the user defined predicate
    */
-  public Map<String, String> getQueryPredicates();
+  public Predicate getQueryPredicate();
 
   /**
    * Obtain the set of partial response fields which were provided in the query string of the request uri.

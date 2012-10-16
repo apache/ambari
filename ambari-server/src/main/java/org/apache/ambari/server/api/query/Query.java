@@ -23,6 +23,9 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
 
+import java.util.Map;
+import java.util.Set;
+
 
 /**
  * Responsible for querying the back end for read requests
@@ -48,6 +51,15 @@ public interface Query {
   public void addProperty(PropertyId property);
 
   /**
+   * Obtain the properties of the query.
+   * These are the properties that make up the select portion of the query for which
+   * values are to be retrieved.
+   *
+   * @return the query properties
+   */
+  public Map<String, Set<String>> getProperties();
+
+  /**
    * Execute the query.
    *
    * @return the result of the query.
@@ -60,5 +72,13 @@ public interface Query {
    *
    * @return the predicate used to identify the associated resource
    */
-  public Predicate getPredicate();
+  public Predicate getInternalPredicate();
+
+  /**
+   * Set the user provided predicated on this query.
+   * This predicate will be "AND'd" with the internal query to produce the final predicate.
+   *
+   * @param predicate  the user provided predicate
+   */
+  public void setUserPredicate(Predicate predicate);
 }
