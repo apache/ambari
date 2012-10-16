@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-866. Add ORM layer for the FSM's in the server. (mahadev)
+
   AMBARI-853. Add more complete JMX metrics. (Tom Beerbower via mahadev)
 
   AMBARI-852. Improve REST API functionality regarding query and partial

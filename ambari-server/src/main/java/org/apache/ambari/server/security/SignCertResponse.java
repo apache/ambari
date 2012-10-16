@@ -45,6 +45,8 @@ public class SignCertResponse {
   private String result;
   @XmlElement
   private String signedCa;
+  @XmlElement
+  private String message;
 
   public String getResult() {
     return result;
@@ -57,6 +59,13 @@ public class SignCertResponse {
   }
   public void setSignedCa(String signedCa) {
     this.signedCa = signedCa;
+  }
+
+  public String getMessage() {
+    return message;
+  }
+  public void setMessage(String message) {
+    this.message = message;
   }
 }
 

@@ -26,30 +26,35 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.StackVersion;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.state.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.persistence.EntityManager;
 
 public class ClusterImpl implements Cluster {
 
   private static final Logger LOG =
       LoggerFactory.getLogger(ClusterImpl.class);
 
-  private final Clusters clusters;
-
-  private final long clusterId;
-
-  private String clusterName;
+  @Inject
+  private Clusters clusters;
 
   private StackVersion desiredStackVersion;
 
@@ -72,10 +77,35 @@ public class ClusterImpl implements Cluster {
   private Map<String, List<ServiceComponentHost>>
       serviceComponentHostsByHost;
 
-  public ClusterImpl(Clusters clusters, long clusterId, String clusterName) {
-    this.clusters = clusters;
-    this.clusterId = clusterId;
-    this.clusterName = clusterName;
+  private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+  private Lock readLock = readWriteLock.readLock();
+  private Lock writeLock = readWriteLock.writeLock();
+  private final Injector injector;
+
+
+  private ClusterEntity clusterEntity;
+
+  @Inject
+  private ClusterDAO clusterDAO;
+  @Inject
+  private ClusterServiceDAO clusterServiceDAO;
+  @Inject
+  private ServiceFactory serviceFactory;
+
+  @Inject
+  public ClusterImpl(@Assisted ClusterEntity clusterEntity,
+                     Injector injector) {
+    this.injector = injector;
+    injector.injectMembers(this);
+
+    this.clusterEntity = clusterDAO.merge(clusterEntity);
+
+    if (!clusterEntity.getClusterServiceEntities().isEmpty()) {
+      for (ClusterServiceEntity serviceEntity : clusterEntity.getClusterServiceEntities()) {
+        services.put(serviceEntity.getServiceName(), serviceFactory.createExisting(this, serviceEntity));
+      }
+    }
+
     this.serviceComponentHosts = new HashMap<String,
         Map<String,Map<String,ServiceComponentHost>>>();
     this.serviceComponentHostsByHost = new HashMap<String,
@@ -91,7 +121,7 @@ public class ClusterImpl implements Cluster {
             .containsKey(serviceComponentName)
         || !serviceComponentHosts.get(serviceName).get(serviceComponentName)
             .containsKey(hostname)) {
-      throw new ServiceComponentHostNotFoundException(clusterName, serviceName,
+      throw new ServiceComponentHostNotFoundException(getClusterName(), serviceName,
           serviceComponentName, hostname);
     }
     return serviceComponentHosts.get(serviceName).get(serviceComponentName)
@@ -99,13 +129,26 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public synchronized String getClusterName() {
-    return clusterName;
+  public String getClusterName() {
+    try {
+      readLock.lock();
+      return clusterEntity.getClusterName();
+    } finally {
+      readLock.unlock();
+    }
   }
 
   @Override
-  public synchronized void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setClusterName(String clusterName) {
+    try {
+      writeLock.lock();
+      String oldName = clusterEntity.getClusterName();
+      clusterEntity.setClusterName(clusterName);
+      clusterDAO.merge(clusterEntity); //RollbackException possibility if UNIQUE constraint violated
+      clusters.updateClusterName(oldName, clusterName);
+    } finally {
+      writeLock.unlock();
+    }
   }
 
   synchronized void addServiceComponentHost(ServiceComponentHost svcCompHost)
@@ -116,16 +159,16 @@ public class ClusterImpl implements Cluster {
     Set<Cluster> cs = clusters.getClustersForHost(hostname);
     boolean clusterFound = false;
     for (Cluster c = cs.iterator().next(); ; cs.iterator().hasNext()) {
-      if (c.getClusterId() == this.clusterId) {
+      if (c.getClusterId() == this.getClusterId()) {
         clusterFound = true;
         break;
       }
     }
     if (!clusterFound) {
       throw new AmbariException("Host does not belong this cluster"
-          + ", hostname=" + hostname
-          + ", clusterName=" + clusterName
-          + ", clusterId=" + clusterId);
+              + ", hostname=" + hostname
+              + ", clusterName=" + getClusterName()
+              + ", clusterId=" + getClusterId());
     }
 
     if (!serviceComponentHosts.containsKey(serviceName)) {
@@ -152,8 +195,8 @@ public class ClusterImpl implements Cluster {
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding a new ServiceComponentHost"
-          + ", clusterName=" + clusterName
-          + ", clusterId=" + clusterId
+          + ", clusterName=" + getClusterName()
+          + ", clusterId=" + getClusterId()
           + ", serviceName=" + serviceName
           + ", serviceComponentName" + componentName
           + ", hostname= " + hostname);
@@ -166,7 +209,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public long getClusterId() {
-    return clusterId;
+    return clusterEntity.getClusterId();
   }
 
   @Override
@@ -181,24 +224,43 @@ public class ClusterImpl implements Cluster {
       throws AmbariException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding a new Service"
-          + ", clusterName=" + clusterName
-          + ", clusterId=" + clusterId
+          + ", clusterName=" + getClusterName()
+          + ", clusterId=" + getClusterId()
           + ", serviceName=" + service.getName());
     }
     if (services.containsKey(service.getName())) {
       throw new AmbariException("Service already exists"
-          + ", clusterName=" + clusterName
-          + ", clusterId=" + clusterId
+          + ", clusterName=" + getClusterName()
+          + ", clusterId=" + getClusterId()
           + ", serviceName=" + service.getName());
     }
     this.services.put(service.getName(), service);
   }
 
   @Override
+  public synchronized Service addService(String serviceName) throws AmbariException{
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Adding a new Service"
+          + ", clusterName=" + getClusterName()
+          + ", clusterId=" + getClusterId()
+          + ", serviceName=" + serviceName);
+    }
+    if (services.containsKey(serviceName)) {
+      throw new AmbariException("Service already exists"
+          + ", clusterName=" + getClusterName()
+          + ", clusterId=" + getClusterId()
+          + ", serviceName=" + serviceName);
+    }
+    Service s = serviceFactory.createNew(this, serviceName);
+    this.services.put(s.getName(), s);
+    return s;
+  }
+
+  @Override
   public synchronized Service getService(String serviceName)
       throws AmbariException {
     if (!services.containsKey(serviceName)) {
-      throw new ServiceNotFoundException(clusterName, serviceName);
+      throw new ServiceNotFoundException(getClusterName(), serviceName);
     }
     return services.get(serviceName);
   }
@@ -217,8 +279,8 @@ public class ClusterImpl implements Cluster {
   public synchronized void setDesiredStackVersion(StackVersion stackVersion) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Changing DesiredStackVersion of Cluster"
-        + ", clusterName=" + clusterName
-        + ", clusterId=" + clusterId
+        + ", clusterName=" + getClusterName()
+        + ", clusterId=" + getClusterId()
         + ", currentDesiredStackVersion=" + this.desiredStackVersion
         + ", newDesiredStackVersion=" + stackVersion);
     }
@@ -259,14 +321,14 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public synchronized ClusterResponse convertToResponse() {
-    ClusterResponse r = new ClusterResponse(clusterId, clusterName,
+    ClusterResponse r = new ClusterResponse(getClusterId(), getClusterName(),
         new HashSet<String>(serviceComponentHostsByHost.keySet()));
     return r;
   }
 
   public void debugDump(StringBuilder sb) {
-    sb.append("Cluster={ clusterName=" + clusterName
-        + ", clusterId=" + clusterId
+    sb.append("Cluster={ clusterName=" + getClusterName()
+        + ", clusterId=" + getClusterId()
         + ", desiredStackVersion=" + desiredStackVersion.getStackVersion()
         + ", services=[ ");
     boolean first = true;
@@ -282,4 +344,9 @@ public class ClusterImpl implements Cluster {
     sb.append(" ] }");
   }
 
+  @Override
+  public synchronized void refresh() {
+    clusterEntity = clusterDAO.findById(clusterEntity.getClusterId());
+    clusterDAO.refresh(clusterEntity);
+  }
 }

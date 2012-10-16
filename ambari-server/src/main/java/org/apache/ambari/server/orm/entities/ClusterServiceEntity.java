@@ -19,28 +19,34 @@
 package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Collection;
 
-@IdClass(ClusterServiceEntityPK.class)
-@Table(name = "clusterservices", schema = "ambari", catalog = "")
+@javax.persistence.IdClass(ClusterServiceEntityPK.class)
+@javax.persistence.Table(name = "clusterservices", schema = "ambari", catalog = "")
+@NamedQueries({
+        @NamedQuery(name = "clusterServiceByClusterAndServiceNames", query =
+                "SELECT clusterService " +
+                        "FROM ClusterServiceEntity clusterService " +
+                        "JOIN clusterService.clusterEntity cluster " +
+                        "WHERE clusterService.serviceName=:serviceName AND cluster.clusterName=:clusterName")
+})
 @Entity
 public class ClusterServiceEntity {
+  private Long clusterId;
 
-  private String clusterName;
-
-  @Column(name = "cluster_name", nullable = false, insertable = false, updatable = false)
+  @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   @Id
-  public String getClusterName() {
-    return clusterName;
+  public Long getClusterId() {
+    return clusterId;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
   }
 
   private String serviceName;
 
-  @Column(name = "service_name")
+  @javax.persistence.Column(name = "service_name", nullable = false, insertable = true, updatable = true)
   @Id
   public String getServiceName() {
     return serviceName;
@@ -52,92 +58,14 @@ public class ClusterServiceEntity {
 
   private Integer serviceEnabled = 0;
 
-  @Column(name = "service_enabled", nullable = false)
+  @javax.persistence.Column(name = "service_enabled", nullable = false, insertable = true, updatable = true, length = 10)
   @Basic
-  public Integer getServiceEnabled() {
+  public int getServiceEnabled() {
     return serviceEnabled;
   }
 
-  public void setServiceEnabled(Integer serviceEnabled) {
+  public void setServiceEnabled(int serviceEnabled) {
     this.serviceEnabled = serviceEnabled;
-  }
-
-  private ClusterEntity clusterEntity;
-
-  @ManyToOne
-  @JoinColumn(name = "cluster_name")
-  public ClusterEntity getClusterEntity() {
-    return clusterEntity;
-  }
-
-  public void setClusterEntity(ClusterEntity clusterEntity) {
-    this.clusterEntity = clusterEntity;
-  }
-
-  private List<ServiceConfigEntity> serviceConfigEntities;
-
-  @OneToMany(mappedBy = "clusterServiceEntity")
-  public List<ServiceConfigEntity> getServiceConfigEntities() {
-    return serviceConfigEntities;
-  }
-
-  public void setServiceConfigEntities(List<ServiceConfigEntity> serviceConfigEntities) {
-    this.serviceConfigEntities = serviceConfigEntities;
-  }
-
-  private List<ServiceComponentConfigEntity> serviceComponentConfigEntities;
-
-  @OneToMany(mappedBy = "clusterServiceEntity")
-  public List<ServiceComponentConfigEntity> getServiceComponentConfigEntities() {
-    return serviceComponentConfigEntities;
-  }
-
-  public void setServiceComponentConfigEntities(List<ServiceComponentConfigEntity> serviceComponentConfigEntities) {
-    this.serviceComponentConfigEntities = serviceComponentConfigEntities;
-  }
-
-  private List<ServiceComponentHostConfigEntity> serviceComponentHostConfigEntities;
-
-  @OneToMany(mappedBy = "clusterServiceEntity")
-  public List<ServiceComponentHostConfigEntity> getServiceComponentHostConfigEntities() {
-    return serviceComponentHostConfigEntities;
-  }
-
-  public void setServiceComponentHostConfigEntities(List<ServiceComponentHostConfigEntity> serviceComponentHostConfigEntities) {
-    this.serviceComponentHostConfigEntities = serviceComponentHostConfigEntities;
-  }
-
-  private List<ServiceDesiredStateEntity> serviceDesiredStateEntities;
-
-  @OneToMany(mappedBy = "clusterServiceEntity")
-  public List<ServiceDesiredStateEntity> getServiceDesiredStateEntities() {
-    return serviceDesiredStateEntities;
-  }
-
-  public void setServiceDesiredStateEntities(List<ServiceDesiredStateEntity> serviceDesiredStateEntities) {
-    this.serviceDesiredStateEntities = serviceDesiredStateEntities;
-  }
-
-  private List<HostComponentMappingEntity> hostComponentMappingEntities;
-
-  @OneToMany(mappedBy = "clusterServiceEntity")
-  public List<HostComponentMappingEntity> getHostComponentMappingEntities() {
-    return hostComponentMappingEntities;
-  }
-
-  public void setHostComponentMappingEntities(List<HostComponentMappingEntity> hostComponentMappingEntities) {
-    this.hostComponentMappingEntities = hostComponentMappingEntities;
-  }
-
-  private List<ServiceStateEntity> serviceStateEntities;
-
-  @OneToMany(mappedBy = "clusterServiceEntity")
-  public List<ServiceStateEntity> getServiceStateEntities() {
-    return serviceStateEntities;
-  }
-
-  public void setServiceStateEntities(List<ServiceStateEntity> serviceStateEntities) {
-    this.serviceStateEntities = serviceStateEntities;
   }
 
   @Override
@@ -147,7 +75,7 @@ public class ClusterServiceEntity {
 
     ClusterServiceEntity that = (ClusterServiceEntity) o;
 
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (serviceEnabled != null ? !serviceEnabled.equals(that.serviceEnabled) : that.serviceEnabled != null)
       return false;
     if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
@@ -157,9 +85,87 @@ public class ClusterServiceEntity {
 
   @Override
   public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
+    int result = clusterId !=null ? clusterId.intValue() : 0;
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
-    result = 31 * result + (serviceEnabled != null ? serviceEnabled.hashCode() : 0);
+    result = 31 * result + serviceEnabled;
     return result;
+  }
+
+  private ClusterEntity clusterEntity;
+
+  @ManyToOne
+  @javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
+  public ClusterEntity getClusterEntity() {
+    return clusterEntity;
+  }
+
+  public void setClusterEntity(ClusterEntity clusterEntity) {
+    this.clusterEntity = clusterEntity;
+  }
+
+  private Collection<HostComponentMappingEntity> hostComponentMappingEntities;
+
+  @OneToMany(mappedBy = "clusterServiceEntity")
+  public Collection<HostComponentMappingEntity> getHostComponentMappingEntities() {
+    return hostComponentMappingEntities;
+  }
+
+  public void setHostComponentMappingEntities(Collection<HostComponentMappingEntity> hostComponentMappingEntities) {
+    this.hostComponentMappingEntities = hostComponentMappingEntities;
+  }
+
+  private Collection<ServiceComponentConfigEntity> serviceComponentConfigEntities;
+
+  @OneToMany(mappedBy = "clusterServiceEntity")
+  public Collection<ServiceComponentConfigEntity> getServiceComponentConfigEntities() {
+    return serviceComponentConfigEntities;
+  }
+
+  public void setServiceComponentConfigEntities(Collection<ServiceComponentConfigEntity> serviceComponentConfigEntities) {
+    this.serviceComponentConfigEntities = serviceComponentConfigEntities;
+  }
+
+  private Collection<ServiceComponentHostConfigEntity> serviceComponentHostConfigEntities;
+
+  @OneToMany(mappedBy = "clusterServiceEntity")
+  public Collection<ServiceComponentHostConfigEntity> getServiceComponentHostConfigEntities() {
+    return serviceComponentHostConfigEntities;
+  }
+
+  public void setServiceComponentHostConfigEntities(Collection<ServiceComponentHostConfigEntity> serviceComponentHostConfigEntities) {
+    this.serviceComponentHostConfigEntities = serviceComponentHostConfigEntities;
+  }
+
+  private Collection<ServiceConfigEntity> serviceConfigEntities;
+
+  @OneToMany(mappedBy = "clusterServiceEntity")
+  public Collection<ServiceConfigEntity> getServiceConfigEntities() {
+    return serviceConfigEntities;
+  }
+
+  public void setServiceConfigEntities(Collection<ServiceConfigEntity> serviceConfigEntities) {
+    this.serviceConfigEntities = serviceConfigEntities;
+  }
+
+  private ServiceDesiredStateEntity serviceDesiredStateEntity;
+
+  @OneToOne(mappedBy = "clusterServiceEntity")
+  public ServiceDesiredStateEntity getServiceDesiredStateEntity() {
+    return serviceDesiredStateEntity;
+  }
+
+  public void setServiceDesiredStateEntity(ServiceDesiredStateEntity serviceDesiredStateEntity) {
+    this.serviceDesiredStateEntity = serviceDesiredStateEntity;
+  }
+
+  private Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities;
+
+  @OneToMany(mappedBy = "clusterServiceEntity")
+  public Collection<ServiceComponentDesiredStateEntity> getServiceComponentDesiredStateEntities() {
+    return serviceComponentDesiredStateEntities;
+  }
+
+  public void setServiceComponentDesiredStateEntities(Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities) {
+    this.serviceComponentDesiredStateEntities = serviceComponentDesiredStateEntities;
   }
 }

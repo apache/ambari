@@ -15,32 +15,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import java.io.Serializable;
 
-@javax.persistence.IdClass(ServiceComponentStateEntityPK.class)
-@javax.persistence.Table(name = "servicecomponentstate", schema = "ambari", catalog = "")
-@Entity
-public class ServiceComponentStateEntity {
+public class HostComponentDesiredStateEntityPK implements Serializable {
+  private Long clusterId;
 
-  private String clusterName;
-
-  @javax.persistence.Column(name = "cluster_name", insertable = false, updatable = false)
   @Id
-  public String getClusterName() {
-    return clusterName;
+  @Column(name = "cluster_id", nullable = false, insertable = true, updatable = true, length = 10)
+  public Long getClusterId() {
+    return clusterId;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
+  }
+
+  private String serviceName;
+
+  @Id
+  @Column(name = "service_name", nullable = false, insertable = true, updatable = true)
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 
   private String hostName;
 
-  @javax.persistence.Column(name = "host_name", insertable = false, updatable = false)
   @Id
+  @Column(name = "host_name", nullable = false, insertable = true, updatable = true)
   public String getHostName() {
     return hostName;
   }
@@ -51,8 +60,8 @@ public class ServiceComponentStateEntity {
 
   private String componentName;
 
-  @javax.persistence.Column(name = "component_name")
   @Id
+  @Column(name = "component_name", nullable = false, insertable = true, updatable = true)
   public String getComponentName() {
     return componentName;
   }
@@ -61,52 +70,15 @@ public class ServiceComponentStateEntity {
     this.componentName = componentName;
   }
 
-  private String currentState;
-
-  @javax.persistence.Column(name = "current_state")
-  @Basic
-  public String getCurrentState() {
-    return currentState;
-  }
-
-  public void setCurrentState(String currentState) {
-    this.currentState = currentState;
-  }
-
-  private ClusterEntity clusterEntity;
-
-  @ManyToOne
-  @JoinColumn(name = "cluster_name")
-  public ClusterEntity getClusterEntity() {
-    return clusterEntity;
-  }
-
-  public void setClusterEntity(ClusterEntity clusterEntity) {
-    this.clusterEntity = clusterEntity;
-  }
-
-  private HostEntity hostEntity;
-
-  @ManyToOne
-  @JoinColumn(name = "host_name")
-  public HostEntity getHostEntity() {
-    return hostEntity;
-  }
-
-  public void setHostEntity(HostEntity hostEntity) {
-    this.hostEntity = hostEntity;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    ServiceComponentStateEntity that = (ServiceComponentStateEntity) o;
+    HostComponentDesiredStateEntityPK that = (HostComponentDesiredStateEntityPK) o;
 
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
-    if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) return false;
     if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
 
     return true;
@@ -114,10 +86,9 @@ public class ServiceComponentStateEntity {
 
   @Override
   public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
+    int result = clusterId !=null ? clusterId.intValue() : 0;
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
-    result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
     return result;
   }
 }

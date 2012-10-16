@@ -18,27 +18,16 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import org.apache.ambari.server.state.HostState;
+
 import javax.persistence.*;
 
-@Table(name = "hoststate", schema = "ambari", catalog = "")
+@javax.persistence.Table(name = "hoststate", schema = "ambari", catalog = "")
 @Entity
 public class HostStateEntity {
-
-  private String clusterName;
-
-  @Column(name = "cluster_name", insertable = false, updatable = false)
-  @Basic
-  public String getClusterName() {
-    return clusterName;
-  }
-
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
-  }
-
   private String hostName;
 
-  @Column(name = "host_name", insertable = false, updatable = false)
+  @javax.persistence.Column(name = "host_name", nullable = false, insertable = false, updatable = false)
   @Id
   public String getHostName() {
     return hostName;
@@ -48,21 +37,45 @@ public class HostStateEntity {
     this.hostName = hostName;
   }
 
-  private Integer lastHeartbeatTime = 0;
+  private Long availableMem = 0L;
 
-  @Column(name = "last_heartbeat_time")
+  @Column(name = "available_mem", nullable = false, insertable = true, updatable = true)
   @Basic
-  public Integer getLastHeartbeatTime() {
+  public Long getAvailableMem() {
+    return availableMem;
+  }
+
+  public void setAvailableMem(Long availableMem) {
+    this.availableMem = availableMem;
+  }
+
+  private Long lastHeartbeatTime = 0L;
+
+  @javax.persistence.Column(name = "last_heartbeat_time", nullable = false, insertable = true, updatable = true, length = 10)
+  @Basic
+  public Long getLastHeartbeatTime() {
     return lastHeartbeatTime;
   }
 
-  public void setLastHeartbeatTime(Integer lastHeartbeatTime) {
+  public void setLastHeartbeatTime(Long lastHeartbeatTime) {
     this.lastHeartbeatTime = lastHeartbeatTime;
+  }
+
+  private String healthStatus;
+
+  @Column(name = "health_status", insertable = true, updatable = true)
+  @Basic
+  public String getHealthStatus() {
+    return healthStatus;
+  }
+
+  public void setHealthStatus(String healthStatus) {
+    this.healthStatus = healthStatus;
   }
 
   private String agentVersion = "";
 
-  @Column(name = "agent_version")
+  @javax.persistence.Column(name = "agent_version", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getAgentVersion() {
     return agentVersion;
@@ -72,40 +85,16 @@ public class HostStateEntity {
     this.agentVersion = agentVersion;
   }
 
-  private String currentState;
+  private HostState currentState = HostState.INIT;
 
-  @Column(name = "current_state")
-  @Basic
-  public String getCurrentState() {
+  @javax.persistence.Column(name = "current_state", nullable = false, insertable = true, updatable = true)
+  @Enumerated(value = EnumType.STRING)
+  public HostState getCurrentState() {
     return currentState;
   }
 
-  public void setCurrentState(String currentState) {
+  public void setCurrentState(HostState currentState) {
     this.currentState = currentState;
-  }
-
-  private HostEntity hostEntity;
-
-  @OneToOne
-  @JoinColumn(name = "host_name")
-  public HostEntity getHostEntity() {
-    return hostEntity;
-  }
-
-  public void setHostEntity(HostEntity hostEntity) {
-    this.hostEntity = hostEntity;
-  }
-
-  private ClusterEntity clusterEntity;
-
-  @ManyToOne
-  @JoinColumn(name = "cluster_name")
-  public ClusterEntity getClusterEntity() {
-    return clusterEntity;
-  }
-
-  public void setClusterEntity(ClusterEntity clusterEntity) {
-    this.clusterEntity = clusterEntity;
   }
 
   @Override
@@ -115,23 +104,46 @@ public class HostStateEntity {
 
     HostStateEntity that = (HostStateEntity) o;
 
+    if (availableMem != null ? !availableMem.equals(that.availableMem) : that.availableMem != null) return false;
+    if (lastHeartbeatTime != null ? !lastHeartbeatTime.equals(that.lastHeartbeatTime) : that.lastHeartbeatTime != null) return false;
     if (agentVersion != null ? !agentVersion.equals(that.agentVersion) : that.agentVersion != null) return false;
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
     if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) return false;
     if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
-    if (lastHeartbeatTime != null ? !lastHeartbeatTime.equals(that.lastHeartbeatTime) : that.lastHeartbeatTime != null)
-      return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
-    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
-    result = 31 * result + (lastHeartbeatTime != null ? lastHeartbeatTime.hashCode() : 0);
+    int result = hostName != null ? hostName.hashCode() : 0;
+    result = 31 * result + (availableMem != null ? availableMem.intValue() : 0);
+    result = 31 * result + (lastHeartbeatTime != null ? lastHeartbeatTime.intValue() : 0);
     result = 31 * result + (agentVersion != null ? agentVersion.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
     return result;
+  }
+
+//  private ClusterEntity clusterEntity;
+//
+//  @ManyToOne
+//  @javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
+//  public ClusterEntity getClusterEntity() {
+//    return clusterEntity;
+//  }
+//
+//  public void setClusterEntity(ClusterEntity clusterEntity) {
+//    this.clusterEntity = clusterEntity;
+//  }
+
+  private HostEntity hostEntity;
+
+  @OneToOne
+  @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
+  public HostEntity getHostEntity() {
+    return hostEntity;
+  }
+
+  public void setHostEntity(HostEntity hostEntity) {
+    this.hostEntity = hostEntity;
   }
 }

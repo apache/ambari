@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.commons.io.FileUtils;
@@ -78,6 +79,9 @@ public class Configuration {
   public static final String LDAP_USER_DEFAULT_ROLE_KEY =
       "authorization.ldap.userDefaultRole";
 
+  public static final String PERSISTENCE_IN_MEMORY_KEY =
+      "server.persistence.inMemory";
+
   private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
   public static final String SRVR_KEY_NAME_DEFAULT = "ca.key";
@@ -90,16 +94,16 @@ public class Configuration {
 
   private static final String CLIENT_SECURITY_DEFAULT = "local";
 
-  private static final String LDAP_USER_SEARCH_FILTER_DEFAULT = "({attribute}={0})";
   private static final String LDAP_USER_DEFAULT_ROLE_DEFAULT = "user";
   private static final String LDAP_BIND_ANONYMOUSLY_DEFAULT = "true";
 
-  //For embedded server only - should be removed later
+  //TODO For embedded server only - should be removed later
   private static final String LDAP_PRIMARY_URL_DEFAULT = "localhost:33389";
   private static final String LDAP_BASE_DN_DEFAULT = "dc=ambari,dc=apache,dc=org";
   private static final String LDAP_USERNAME_ATTRIBUTE_DEFAULT = "uid";
 
-
+  //TODO for development purposes only, should be changed to 'false'
+  private static final String PERSISTENCE_IN_MEMORY_DEFAULT = "true";
 
 
   private static final Log LOG = LogFactory.getLog(Configuration.class);
@@ -111,7 +115,7 @@ public class Configuration {
   private Map<String, String> configsMap;
 
 
-  Configuration() {
+  public Configuration() {
     this(readConfigFile());
   }
 
@@ -135,7 +139,7 @@ public class Configuration {
     configsMap.put(KSTR_NAME_KEY, properties.getProperty(
         KSTR_NAME_KEY, KSTR_NAME_DEFAULT));
     configsMap.put(SRVR_CRT_PASS_FILE_KEY, properties.getProperty(
-    	SRVR_CRT_PASS_FILE_KEY, SRVR_CRT_PASS_FILE_DEFAULT));
+     SRVR_CRT_PASS_FILE_KEY, SRVR_CRT_PASS_FILE_DEFAULT));
     configsMap.put(PASSPHRASE_ENV_KEY, properties.getProperty(
         PASSPHRASE_ENV_KEY, PASSPHRASE_ENV_DEFAULT));
     configsMap.put(PASSPHRASE_KEY, System.getenv(configsMap.get(
@@ -147,22 +151,35 @@ public class Configuration {
     configsMap.put(RESOURCES_DIR_KEY, properties.getProperty(
         RESOURCES_DIR_KEY, RESOURCES_DIR_DEFAULT));
     configsMap.put(SRVR_CRT_PASS_LEN_KEY, properties.getProperty(
-    	SRVR_CRT_PASS_LEN_KEY, SRVR_CRT_PASS_LEN_DEFAULT));
+     SRVR_CRT_PASS_LEN_KEY, SRVR_CRT_PASS_LEN_DEFAULT));
     
-    try {
-      
-  	  String randStr = RandomStringUtils.randomAlphanumeric(Integer.parseInt(configsMap.get(SRVR_CRT_PASS_LEN_KEY)));
+    File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
+        + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
+    String randStr = null;
 
-      File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
-          + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
-      FileUtils.writeStringToFile(passFile, randStr);
-      configsMap.put(SRVR_CRT_PASS_KEY, randStr);
-      
-    } catch (IOException e) {
-      e.printStackTrace();
-      throw new RuntimeException("Error reading certificate password from file");
+    if (!passFile.exists()) {
+      LOG.info("Generation of file with password");
+      try {
+        randStr = RandomStringUtils.randomAlphanumeric(Integer
+            .parseInt(configsMap.get(SRVR_CRT_PASS_LEN_KEY)));
+        FileUtils.writeStringToFile(passFile, randStr);
+
+      } catch (IOException e) {
+          e.printStackTrace();
+          throw new RuntimeException(
+            "Error reading certificate password from file");
+      }
+    } else {
+        LOG.info("Reading password from existing file");
+      try {
+        randStr = FileUtils.readFileToString(passFile);
+      } catch (IOException e) {
+      		  LOG.error(e.getStackTrace());
+      }
     }
+    configsMap.put(SRVR_CRT_PASS_KEY, randStr);
   }
+
 
   /**
    * Find, read, and parse the configuration file.
@@ -175,8 +192,8 @@ public class Configuration {
     InputStream inputStream = Configuration.class.getClassLoader().getResourceAsStream(CONFIG_FILE);
     
     if (inputStream == null)
-      LOG.info(CONFIG_FILE + " not found in classpath");
-    		
+      throw new RuntimeException(CONFIG_FILE + " not found in classpath");
+      
     
     // load the properties
     try {
@@ -185,7 +202,7 @@ public class Configuration {
       LOG.info("No configuration file " + CONFIG_FILE + " found in classpath.", fnf);
     } catch (IOException ie) {
       throw new IllegalArgumentException("Can't read configuration file " +
-    		 CONFIG_FILE, ie);
+       CONFIG_FILE, ie);
     }
     
     return properties;
@@ -226,6 +243,15 @@ public class Configuration {
 
   public void setClientSecurityType(ClientSecurityType type) {
     properties.setProperty(CLIENT_SECURITY_KEY, type.toString());
+  }
+
+  public PersistenceType getPersistenceType() {
+    String value = properties.getProperty(PERSISTENCE_IN_MEMORY_KEY, PERSISTENCE_IN_MEMORY_DEFAULT);
+    if ("true".equalsIgnoreCase(value)) {
+      return PersistenceType.IN_MEMORY;
+    } else {
+      return PersistenceType.POSTGRES;
+    }
   }
 
   /**

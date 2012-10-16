@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.job.Job;
@@ -245,4 +246,11 @@ public interface Host {
 
   public HostResponse convertToResponse();
 
+  boolean isPersisted();
+
+  void persist();
+
+  void refresh();
+
+  void importHostInfo(HostInfo hostInfo);
 }

@@ -94,6 +94,9 @@ public interface Clusters {
   public void mapHostsToCluster(Set<String> hostnames, String clusterName)
       throws AmbariException;
 
-  public void debugDump(StringBuilder sb);
+  void updateClusterName(String oldName, String newName);
 
+  Cluster getClusterById(long id) throws AmbariException;
+
+  public void debugDump(StringBuilder sb);
 }

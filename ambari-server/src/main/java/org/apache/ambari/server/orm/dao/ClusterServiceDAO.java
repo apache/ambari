@@ -21,10 +21,13 @@ package org.apache.ambari.server.orm.dao;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 
 public class ClusterServiceDAO {
   @Inject
@@ -34,11 +37,21 @@ public class ClusterServiceDAO {
     return entityManagerProvider.get().find(ClusterServiceEntity.class, clusterServiceEntityPK);
   }
 
-  public ClusterServiceEntity findByClusterAndServiceNames(String clusterName, String serviceName) {
-    ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
-    pk.setClusterName(clusterName);
-    pk.setServiceName(serviceName);
-    return findByPK(pk);
+  public ClusterServiceEntity findByClusterAndServiceNames(String  clusterName, String serviceName) {
+    TypedQuery<ClusterServiceEntity> query = entityManagerProvider.get()
+            .createNamedQuery("clusterServiceByClusterAndServiceNames", ClusterServiceEntity.class);
+    query.setParameter("clusterName", clusterName);
+    query.setParameter("serviceName", serviceName);
+
+    try {
+      return query.getSingleResult();
+    } catch (NoResultException ignored) {
+      return null;
+    }
+  }
+
+  public void refresh(ClusterServiceEntity clusterServiceEntity) {
+    entityManagerProvider.get().refresh(clusterServiceEntity);
   }
 
   @Transactional

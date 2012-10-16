@@ -15,35 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.security.unsecured.rest;
+package org.apache.ambari.server.state.host;
 
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.state.Host;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
-import org.apache.ambari.server.security.CertificateManager;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.google.inject.Inject;
-
-@Path("/cert/ca")
-public class CertificateDownload {
-  private static Log LOG = LogFactory.getLog(CertificateDownload.class);
-  private static CertificateManager certMan;
-
-  @Inject
-  public static void init(CertificateManager instance) {
-    certMan = instance;
-  }
-
-  @GET
-  @Produces({MediaType.TEXT_PLAIN})
-  public String downloadSrvrCrt() {
-    return certMan.getServerCert();
-  }
-
-
+public interface HostFactory {
+  Host create(HostEntity hostEntity, boolean persisted);
 }

@@ -135,7 +135,7 @@ public class HeartBeatHandler {
     Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
     for (Cluster cl : clusters) {
       for (ComponentStatus status : heartbeat.componentStatus) {
-        if (status.getClusterName() == cl.getClusterName()) {
+        if (status.getClusterName().equals(cl.getClusterName())) {
           Service svc = cl.getService(status.getServiceName());
           ServiceComponent svcComp = svc.getServiceComponent(
               status.getComponentName());

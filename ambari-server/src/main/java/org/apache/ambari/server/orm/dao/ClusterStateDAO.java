@@ -33,6 +33,10 @@ public class ClusterStateDAO {
     return entityManagerProvider.get().find(ClusterStateEntity.class, clusterName);
   }
 
+  public void refresh(ClusterStateEntity clusterStateEntity) {
+    entityManagerProvider.get().refresh(clusterStateEntity);
+  }
+
   @Transactional
   public void create(ClusterStateEntity clusterStateEntity) {
     entityManagerProvider.get().persist(clusterStateEntity);

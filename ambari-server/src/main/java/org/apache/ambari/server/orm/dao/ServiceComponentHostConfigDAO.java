@@ -33,6 +33,10 @@ public class ServiceComponentHostConfigDAO {
     return entityManagerProvider.get().find(ServiceComponentHostConfigEntity.class, primaryKey);
   }
 
+  public void refresh(ServiceComponentHostConfigEntity serviceComponentHostConfigEntity) {
+    entityManagerProvider.get().refresh(serviceComponentHostConfigEntity);
+  }
+
   @Transactional
   public void create(ServiceComponentHostConfigEntity serviceComponentHostConfigEntity) {
     entityManagerProvider.get().persist(serviceComponentHostConfigEntity);

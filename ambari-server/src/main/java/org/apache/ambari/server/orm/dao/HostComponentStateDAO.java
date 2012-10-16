@@ -34,6 +34,10 @@ public class HostComponentStateDAO {
     return entityManagerProvider.get().find(HostComponentStateEntity.class, primaryKey);
   }
 
+  public void refresh(HostComponentStateEntity hostComponentStateEntity) {
+    entityManagerProvider.get().refresh(hostComponentStateEntity);
+  }
+
   @Transactional
   public void create(HostComponentStateEntity hostComponentStateEntity) {
     entityManagerProvider.get().persist(hostComponentStateEntity);

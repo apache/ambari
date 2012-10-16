@@ -20,6 +20,7 @@ package org.apache.ambari.server.state;
 
 import java.util.Map;
 
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceResponse;
 
@@ -62,4 +63,12 @@ public interface Service {
 
   public void debugDump(StringBuilder sb);
 
+  boolean isPersisted();
+
+  @Transactional
+  void persist();
+
+  void refresh();
+
+  ServiceComponent addServiceComponent(String serviceComponentName) throws AmbariException;
 }

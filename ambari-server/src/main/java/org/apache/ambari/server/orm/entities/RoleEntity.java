@@ -56,14 +56,14 @@ public class RoleEntity {
     return roleName != null ? roleName.hashCode() : 0;
   }
 
-  private Set<UserEntity> userEntities;
+  private Set<org.apache.ambari.server.orm.entities.UserEntity> userEntities;
 
   @ManyToMany(mappedBy = "roleEntities")
-  public Set<UserEntity> getUserEntities() {
+  public Set<org.apache.ambari.server.orm.entities.UserEntity> getUserEntities() {
     return userEntities;
   }
 
-  public void setUserEntities(Set<UserEntity> userEntities) {
+  public void setUserEntities(Set<org.apache.ambari.server.orm.entities.UserEntity> userEntities) {
     this.userEntities = userEntities;
   }
 }

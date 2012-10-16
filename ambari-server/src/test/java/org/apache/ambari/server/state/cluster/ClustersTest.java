@@ -24,14 +24,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,15 +43,18 @@ import org.junit.Test;
 public class ClustersTest {
 
   private Clusters clusters;
+  private Injector injector;
 
   @Before
   public void setup() {
-    clusters = new ClustersImpl();
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    clusters = injector.getInstance(Clusters.class);
   }
 
   @After
   public void teardown() {
-    clusters = null;
+    injector.getInstance(PersistService.class).stop();
   }
 
   @Test

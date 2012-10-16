@@ -35,6 +35,7 @@ import org.junit.Test;
 
 import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -90,7 +91,7 @@ public class TestOrmImpl extends Assert {
     entityManager.persist(clusterEntity);
     entityManager.getTransaction().rollback();
 
-    assertNull("transaction was not rolled back", entityManager.find(ClusterEntity.class, testClusterName));
+    assertNull("transaction was not rolled back", injector.getInstance(ClusterDAO.class).findByName(testClusterName));
   }
 
   /**
@@ -132,8 +133,7 @@ public class TestOrmImpl extends Assert {
 
     clusterServiceDAO.remove(clusterServiceEntity);
 
-    assertNull(clusterServiceDAO
-            .findByClusterAndServiceNames(clusterName, serviceName));
+    assertNull(clusterServiceDAO.findByClusterAndServiceNames(clusterName, serviceName));
 
   }
 
@@ -151,15 +151,14 @@ public class TestOrmImpl extends Assert {
     clusterServiceDAO.create(clusterServiceEntity);
     clusterDAO.merge(cluster);
 
-    clusterServiceEntity = clusterServiceDAO
-            .findByClusterAndServiceNames(clusterName, serviceName);
+    clusterServiceEntity = clusterServiceDAO.findByClusterAndServiceNames(clusterName, serviceName);
     assertNotNull(clusterServiceEntity);
 
     ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
     serviceConfigEntity.setConfigSnapshotTime(currentTime);
     serviceConfigEntity.setClusterServiceEntity(clusterServiceEntity);
 
-    List<ServiceConfigEntity> list = clusterServiceEntity.getServiceConfigEntities();
+    Collection<ServiceConfigEntity> list = clusterServiceEntity.getServiceConfigEntities();
     list.add(serviceConfigEntity);
     clusterServiceEntity.setServiceConfigEntities(list);
 

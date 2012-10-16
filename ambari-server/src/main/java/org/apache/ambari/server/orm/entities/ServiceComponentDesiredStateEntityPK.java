@@ -22,36 +22,35 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import java.io.Serializable;
 
-public class ComponentHostDesiredStateEntityPK implements Serializable {
+public class ServiceComponentDesiredStateEntityPK implements Serializable {
+  private Long clusterId;
 
-  private String clusterName;
-
+  @Column(name = "cluster_id", nullable = false, insertable = true, updatable = true, length = 10)
   @Id
-  @Column(name = "cluster_name")
-  public String getClusterName() {
-    return clusterName;
+  public Long getClusterId() {
+    return clusterId;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
   }
 
-  private String hostName;
+  private String serviceName;
 
+  @javax.persistence.Column(name = "service_name", nullable = false, insertable = false, updatable = false)
   @Id
-  @Column(name = "host_name")
-  public String getHostName() {
-    return hostName;
+  public String getServiceName() {
+    return serviceName;
   }
 
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 
   private String componentName;
 
   @Id
-  @Column(name = "component_name")
+  @Column(name = "component_name", nullable = false, insertable = true, updatable = true)
   public String getComponentName() {
     return componentName;
   }
@@ -65,19 +64,19 @@ public class ComponentHostDesiredStateEntityPK implements Serializable {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    ComponentHostDesiredStateEntityPK that = (ComponentHostDesiredStateEntityPK) o;
+    ServiceComponentDesiredStateEntityPK that = (ServiceComponentDesiredStateEntityPK) o;
 
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
-    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
+    int result = clusterId != null ? clusterId.intValue() : 0;
+    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     return result;
   }

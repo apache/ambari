@@ -18,28 +18,41 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import org.apache.ambari.server.state.State;
+
 import javax.persistence.*;
 
 @javax.persistence.IdClass(HostComponentStateEntityPK.class)
 @javax.persistence.Table(name = "hostcomponentstate", schema = "ambari", catalog = "")
 @Entity
 public class HostComponentStateEntity {
+  private Long clusterId;
 
-  private String clusterName;
-
-  @javax.persistence.Column(name = "cluster_name", insertable = false, updatable = false)
+  @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   @Id
-  public String getClusterName() {
-    return clusterName;
+  public Long getClusterId() {
+    return clusterId;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
   }
 
-  private String hostName;
+  private String serviceName;
 
-  @javax.persistence.Column(name = "host_name", insertable = false, updatable = false)
+  @javax.persistence.Column(name = "service_name", nullable = false, insertable = false, updatable = false)
+  @Id
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
+  }
+
+  private String hostName = "";
+
+  @javax.persistence.Column(name = "host_name", nullable = false, insertable = false, updatable = false)
   @Id
   public String getHostName() {
     return hostName;
@@ -51,7 +64,7 @@ public class HostComponentStateEntity {
 
   private String componentName;
 
-  @javax.persistence.Column(name = "component_name")
+  @javax.persistence.Column(name = "component_name", nullable = false, insertable = false, updatable = false)
   @Id
   public String getComponentName() {
     return componentName;
@@ -61,21 +74,21 @@ public class HostComponentStateEntity {
     this.componentName = componentName;
   }
 
-  private String currentState;
+  private State currentState = State.INIT;
 
-  @javax.persistence.Column(name = "current_state")
-  @Basic
-  public String getCurrentState() {
+  @javax.persistence.Column(name = "current_state", nullable = false, insertable = true, updatable = true)
+  @Enumerated(value = EnumType.STRING)
+  public State getCurrentState() {
     return currentState;
   }
 
-  public void setCurrentState(String currentState) {
+  public void setCurrentState(State currentState) {
     this.currentState = currentState;
   }
 
-  private String currentConfigVersion;
+  private String currentConfigVersion = "";
 
-  @javax.persistence.Column(name = "current_config_version")
+  @javax.persistence.Column(name = "current_config_version", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getCurrentConfigVersion() {
     return currentConfigVersion;
@@ -87,7 +100,7 @@ public class HostComponentStateEntity {
 
   private String currentStackVersion;
 
-  @javax.persistence.Column(name = "current_stack_version")
+  @javax.persistence.Column(name = "current_stack_version", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getCurrentStackVersion() {
     return currentStackVersion;
@@ -97,30 +110,6 @@ public class HostComponentStateEntity {
     this.currentStackVersion = currentStackVersion;
   }
 
-  private ClusterEntity clusterEntity;
-
-  @ManyToOne
-  @JoinColumn(name = "cluster_name")
-  public ClusterEntity getClusterEntity() {
-    return clusterEntity;
-  }
-
-  public void setClusterEntity(ClusterEntity clusterEntity) {
-    this.clusterEntity = clusterEntity;
-  }
-
-  private HostEntity hostEntity;
-
-  @ManyToOne
-  @JoinColumn(name = "host_name")
-  public HostEntity getHostEntity() {
-    return hostEntity;
-  }
-
-  public void setHostEntity(HostEntity hostEntity) {
-    this.hostEntity = hostEntity;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -128,7 +117,7 @@ public class HostComponentStateEntity {
 
     HostComponentStateEntity that = (HostComponentStateEntity) o;
 
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
     if (currentConfigVersion != null ? !currentConfigVersion.equals(that.currentConfigVersion) : that.currentConfigVersion != null)
       return false;
@@ -136,18 +125,47 @@ public class HostComponentStateEntity {
       return false;
     if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) return false;
     if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
+    int result = clusterId != null ? clusterId.intValue() : 0;
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
     result = 31 * result + (currentConfigVersion != null ? currentConfigVersion.hashCode() : 0);
     result = 31 * result + (currentStackVersion != null ? currentStackVersion.hashCode() : 0);
+    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     return result;
+  }
+
+  private ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity;
+
+  @ManyToOne
+  @JoinColumns({
+      @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
+      @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false),
+      @JoinColumn(name = "component_name", referencedColumnName = "component_name", nullable = false)})
+  public ServiceComponentDesiredStateEntity getServiceComponentDesiredStateEntity() {
+    return serviceComponentDesiredStateEntity;
+  }
+
+  public void setServiceComponentDesiredStateEntity(ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
+    this.serviceComponentDesiredStateEntity = serviceComponentDesiredStateEntity;
+  }
+
+  private HostEntity hostEntity;
+
+  @ManyToOne
+  @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
+  public HostEntity getHostEntity() {
+    return hostEntity;
+  }
+
+  public void setHostEntity(HostEntity hostEntity) {
+    this.hostEntity = hostEntity;
   }
 }

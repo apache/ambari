@@ -21,36 +21,40 @@ package org.apache.ambari.server.orm.dao;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.orm.entities.ServiceStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 
 import javax.persistence.EntityManager;
 
-public class ServiceStateDAO {
+public class HostComponentDesiredStateDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
-  public ServiceStateEntity findByPK(ServiceStateEntityPK primaryKey) {
-    return entityManagerProvider.get().find(ServiceStateEntity.class, primaryKey);
+  public HostComponentDesiredStateEntity findByPK(HostComponentDesiredStateEntityPK primaryKey) {
+    return entityManagerProvider.get().find(HostComponentDesiredStateEntity.class, primaryKey);
+  }
+
+  public void refresh(HostComponentDesiredStateEntity hostComponentDesiredStateEntity) {
+    entityManagerProvider.get().refresh(hostComponentDesiredStateEntity);
   }
 
   @Transactional
-  public void create(ServiceStateEntity serviceStateEntity) {
-    entityManagerProvider.get().persist(serviceStateEntity);
+  public void create(HostComponentDesiredStateEntity hostComponentDesiredStateEntity) {
+    entityManagerProvider.get().persist(hostComponentDesiredStateEntity);
   }
 
   @Transactional
-  public ServiceStateEntity merge(ServiceStateEntity serviceStateEntity) {
-    return entityManagerProvider.get().merge(serviceStateEntity);
+  public HostComponentDesiredStateEntity merge(HostComponentDesiredStateEntity hostComponentDesiredStateEntity) {
+    return entityManagerProvider.get().merge(hostComponentDesiredStateEntity);
   }
 
   @Transactional
-  public void remove(ServiceStateEntity serviceStateEntity) {
-    entityManagerProvider.get().remove(serviceStateEntity);
+  public void remove(HostComponentDesiredStateEntity hostComponentDesiredStateEntity) {
+    entityManagerProvider.get().remove(hostComponentDesiredStateEntity);
   }
 
   @Transactional
-  public void removeByPK(ServiceStateEntityPK primaryKey) {
+  public void removeByPK(HostComponentDesiredStateEntityPK primaryKey) {
     remove(findByPK(primaryKey));
   }
 

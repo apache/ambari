@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.Column;
@@ -23,23 +22,22 @@ import javax.persistence.Id;
 import java.io.Serializable;
 
 public class ActionStatusEntityPK implements Serializable {
-
-  private String clusterName;
+  private Long clusterId;
 
   @Id
-  @Column(name = "cluster_name")
-  public String getClusterName() {
-    return clusterName;
+  @Column(name = "cluster_id", nullable = false, insertable = true, updatable = true, length = 10)
+  public Long getClusterId() {
+    return clusterId;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
   }
 
   private String hostName;
 
   @Id
-  @Column(name = "host_name")
+  @Column(name = "host_name", nullable = false, insertable = true, updatable = true)
   public String getHostName() {
     return hostName;
   }
@@ -51,7 +49,7 @@ public class ActionStatusEntityPK implements Serializable {
   private String role;
 
   @Id
-  @Column(name = "role")
+  @Column(name = "role", nullable = false, insertable = true, updatable = true)
   public String getRole() {
     return role;
   }
@@ -63,7 +61,7 @@ public class ActionStatusEntityPK implements Serializable {
   private Integer requestId;
 
   @Id
-  @Column(name = "request_id")
+  @Column(name = "request_id", nullable = false, insertable = true, updatable = true, length = 10)
   public Integer getRequestId() {
     return requestId;
   }
@@ -75,7 +73,7 @@ public class ActionStatusEntityPK implements Serializable {
   private Integer stageId;
 
   @Id
-  @Column(name = "stage_id")
+  @Column(name = "stage_id", nullable = false, insertable = true, updatable = true, length = 10)
   public Integer getStageId() {
     return stageId;
   }
@@ -91,22 +89,22 @@ public class ActionStatusEntityPK implements Serializable {
 
     ActionStatusEntityPK that = (ActionStatusEntityPK) o;
 
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) return false;
-    if (role != null ? !role.equals(that.role) : that.role != null) return false;
     if (stageId != null ? !stageId.equals(that.stageId) : that.stageId != null) return false;
+    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (role != null ? !role.equals(that.role) : that.role != null) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
+    int result = clusterId != null ? clusterId.intValue() : 0;
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
     result = 31 * result + (role != null ? role.hashCode() : 0);
-    result = 31 * result + (requestId != null ? requestId.hashCode() : 0);
-    result = 31 * result + (stageId != null ? stageId.hashCode() : 0);
+    result = 31 * result + (requestId !=null ? requestId : 0);
+    result = 31 * result + (stageId !=null ? stageId : 0);
     return result;
   }
 }

@@ -51,7 +51,7 @@ public class AgentResource {
   private static Log LOG = LogFactory.getLog(AgentResource.class);
 
   @Inject
-  static void init(HeartBeatHandler instance) {
+  public static void init(HeartBeatHandler instance) {
     hh = instance;
   }
 

@@ -18,22 +18,38 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import javax.persistence.*;
-import java.util.List;
+import java.util.Collection;
 
-@Table(name = "clusters", schema = "ambari", catalog = "")
+@javax.persistence.Table(name = "clusters", schema = "ambari", catalog = "")
+@NamedQueries({
+    @NamedQuery(name = "clusterByName", query =
+        "SELECT cluster " +
+            "FROM ClusterEntity cluster " +
+            "WHERE cluster.clusterName=:clusterName"),
+    @NamedQuery(name = "allClusters", query =
+        "SELECT clusters " +
+            "FROM ClusterEntity clusters")
+})
 @Entity
 public class ClusterEntity {
+  private Long clusterId;
 
-  private static final Log log = LogFactory.getLog(ClusterEntity.class);
+  @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = true, updatable = true)
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  public Long getClusterId() {
+    return clusterId;
+  }
+
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
+  }
 
   private String clusterName;
 
-  @Column(name = "cluster_name")
-  @Id
+  @javax.persistence.Column(name = "cluster_name", nullable = false, insertable = true, updatable = true, unique = true)
+  @Basic
   public String getClusterName() {
     return clusterName;
   }
@@ -44,7 +60,7 @@ public class ClusterEntity {
 
   private String desiredClusterState = "";
 
-  @Column(name = "desired_cluster_state", nullable = false)
+  @javax.persistence.Column(name = "desired_cluster_state", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getDesiredClusterState() {
     return desiredClusterState;
@@ -56,7 +72,7 @@ public class ClusterEntity {
 
   private String clusterInfo = "";
 
-  @Column(name = "cluster_info", nullable = false)
+  @javax.persistence.Column(name = "cluster_info", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getClusterInfo() {
     return clusterInfo;
@@ -66,48 +82,51 @@ public class ClusterEntity {
     this.clusterInfo = clusterInfo;
   }
 
-  List<HostEntity> hostEntities;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "clusterEntity")
-  public List<HostEntity> getHostEntities() {
-    return hostEntities;
+    ClusterEntity that = (ClusterEntity) o;
+
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
+    if (clusterInfo != null ? !clusterInfo.equals(that.clusterInfo) : that.clusterInfo != null) return false;
+    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
+    if (desiredClusterState != null ? !desiredClusterState.equals(that.desiredClusterState) : that.desiredClusterState != null)
+      return false;
+
+    return true;
   }
 
-  public void setHostEntities(List<HostEntity> hostEntities) {
-    this.hostEntities = hostEntities;
+  @Override
+  public int hashCode() {
+    int result = clusterId != null ? clusterId.intValue() : 0;
+    result = 31 * result + (clusterName != null ? clusterName.hashCode() : 0);
+    result = 31 * result + (desiredClusterState != null ? desiredClusterState.hashCode() : 0);
+    result = 31 * result + (clusterInfo != null ? clusterInfo.hashCode() : 0);
+    return result;
   }
 
-  List<ClusterServiceEntity> clusterServiceEntities;
-
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "clusterEntity")
-  public List<ClusterServiceEntity> getClusterServiceEntities() {
-    return clusterServiceEntities;
-  }
-
-  public void setClusterServiceEntities(List<ClusterServiceEntity> clusterServiceEntities) {
-    this.clusterServiceEntities = clusterServiceEntities;
-  }
-
-  List<ActionStatusEntity> actionStatusEntities;
+  private Collection<ActionStatusEntity> actionStatusEntities;
 
   @OneToMany(mappedBy = "clusterEntity")
-  public List<ActionStatusEntity> getActionStatusEntities() {
+  public Collection<ActionStatusEntity> getActionStatusEntities() {
     return actionStatusEntities;
   }
 
-  public void setActionStatusEntities(List<ActionStatusEntity> actionStatusEntities) {
+  public void setActionStatusEntities(Collection<ActionStatusEntity> actionStatusEntities) {
     this.actionStatusEntities = actionStatusEntities;
   }
 
-  List<ComponentHostDesiredStateEntity> componentHostDesiredStateEntities;
+  private Collection<ClusterServiceEntity> clusterServiceEntities;
 
   @OneToMany(mappedBy = "clusterEntity")
-  public List<ComponentHostDesiredStateEntity> getComponentHostDesiredStateEntities() {
-    return componentHostDesiredStateEntities;
+  public Collection<ClusterServiceEntity> getClusterServiceEntities() {
+    return clusterServiceEntities;
   }
 
-  public void setComponentHostDesiredStateEntities(List<ComponentHostDesiredStateEntity> componentHostDesiredStateEntities) {
-    this.componentHostDesiredStateEntities = componentHostDesiredStateEntities;
+  public void setClusterServiceEntities(Collection<ClusterServiceEntity> clusterServiceEntities) {
+    this.clusterServiceEntities = clusterServiceEntities;
   }
 
   private ClusterStateEntity clusterStateEntity;
@@ -121,60 +140,14 @@ public class ClusterEntity {
     this.clusterStateEntity = clusterStateEntity;
   }
 
-  private List<HostStateEntity> hostStateEntities;
+  private Collection<HostEntity> hostEntities;
 
-  @OneToMany(mappedBy = "clusterEntity")
-  public List<HostStateEntity> getHostStateEntities() {
-    return hostStateEntities;
+  @ManyToMany(mappedBy = "clusterEntities")
+  public Collection<HostEntity> getHostEntities() {
+    return hostEntities;
   }
 
-  public void setHostStateEntities(List<HostStateEntity> hostStateEntities) {
-    this.hostStateEntities = hostStateEntities;
+  public void setHostEntities(Collection<HostEntity> hostEntities) {
+    this.hostEntities = hostEntities;
   }
-
-  private List<HostComponentStateEntity> hostComponentStateEntities;
-
-  @OneToMany(mappedBy = "clusterEntity")
-  public List<HostComponentStateEntity> getHostComponentStateEntities() {
-    return hostComponentStateEntities;
-  }
-
-  public void setHostComponentStateEntities(List<HostComponentStateEntity> hostComponentStateEntities) {
-    this.hostComponentStateEntities = hostComponentStateEntities;
-  }
-
-  private List<ServiceComponentStateEntity> serviceComponentStateEntities;
-
-  @OneToMany(mappedBy = "clusterEntity")
-  public List<ServiceComponentStateEntity> getServiceComponentStateEntities() {
-    return serviceComponentStateEntities;
-  }
-
-  public void setServiceComponentStateEntities(List<ServiceComponentStateEntity> serviceComponentStateEntities) {
-    this.serviceComponentStateEntities = serviceComponentStateEntities;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    ClusterEntity that = (ClusterEntity) o;
-
-    if (clusterInfo != null ? !clusterInfo.equals(that.clusterInfo) : that.clusterInfo != null) return false;
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
-    if (desiredClusterState != null ? !desiredClusterState.equals(that.desiredClusterState) : that.desiredClusterState != null)
-      return false;
-
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
-    result = 31 * result + (desiredClusterState != null ? desiredClusterState.hashCode() : 0);
-    result = 31 * result + (clusterInfo != null ? clusterInfo.hashCode() : 0);
-    return result;
-  }
-
 }

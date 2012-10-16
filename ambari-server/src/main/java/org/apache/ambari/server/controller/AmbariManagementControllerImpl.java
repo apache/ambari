@@ -18,26 +18,15 @@
 
 package org.apache.ambari.server.controller;
 
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostAction;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentImpl;
-import org.apache.ambari.server.state.StackVersion;
-import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.ServiceImpl;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,11 +55,21 @@ public class AmbariManagementControllerImpl implements
 
   private final ActionManager actionManager;
 
+  private final Injector injector;
+  @Inject
+  private ServiceFactory serviceFactory;
+  @Inject
+  private ServiceComponentFactory serviceComponentFactory;
+  @Inject
+  private ServiceComponentHostFactory serviceComponentHostFactory;
+
   @Inject
   public AmbariManagementControllerImpl(ActionManager actionManager,
-      Clusters clusters) {
+      Clusters clusters, Injector injector) {
     this.clusters = clusters;
     this.actionManager = actionManager;
+    this.injector = injector;
+    injector.injectMembers(this);
     LOG.info("Initializing the AmbariManagementControllerImpl");
   }
 
@@ -144,7 +143,7 @@ public class AmbariManagementControllerImpl implements
     Map<String, Config> configs = new HashMap<String, Config>();
 
     // Assuming service does not exist
-    s = new ServiceImpl(cluster, request.getServiceName());
+    s = serviceFactory.createNew(cluster, request.getServiceName());
 
     // TODO validate correct desired state
     // TODO take action based on desired state
@@ -164,6 +163,7 @@ public class AmbariManagementControllerImpl implements
     s.updateConfigs(configs);
     s.setDesiredStackVersion(cluster.getDesiredStackVersion());
     cluster.addService(s);
+    s.persist();
 
     // TODO
     return null;
@@ -208,7 +208,7 @@ public class AmbariManagementControllerImpl implements
       // Expected
     }
 
-    sc = new ServiceComponentImpl(s, request.getComponentName());
+    sc = serviceComponentFactory.createNew(s, request.getComponentName());
     sc.setDesiredStackVersion(s.getDesiredStackVersion());
 
     // TODO validate correct desired state
@@ -234,6 +234,7 @@ public class AmbariManagementControllerImpl implements
 
     sc.updateDesiredConfigs(configs);
     s.addServiceComponent(sc);
+    sc.persist();
 
     // TODO
     return null;
@@ -337,7 +338,7 @@ public class AmbariManagementControllerImpl implements
       isClient = false;
     }
 
-    sch = new ServiceComponentHostImpl(sc, request.getHostname(), isClient);
+    sch = serviceComponentHostFactory.createNew(sc, request.getHostname(), isClient);
 
     // TODO validate correct desired state
     if (request.getDesiredState() != null
@@ -364,6 +365,8 @@ public class AmbariManagementControllerImpl implements
 
     sch.updateDesiredConfigs(configs);
     sc.addServiceComponentHost(sch);
+
+    sch.persist();
 
     // TODO handle action if desired state is something other than INIT
     if (State.INIT == sch.getDesiredState()) {

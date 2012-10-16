@@ -24,9 +24,15 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.agent.HeartBeatHandler;
+import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.resources.ResourceManager;
+import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.security.CertificateManager;
+import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
+import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.state.Clusters;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ResourceHandler;
@@ -46,12 +52,10 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import com.google.inject.persist.jpa.JpaPersistModule;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 @Singleton
 public class AmbariServer {
-  public static final String PERSISTENCE_PROVIDER = "ambari-postgres";
   private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
   public static int CLIENT_ONE_WAY = 4080;
   public static int CLIENT_TWO_WAY = 8443;
@@ -84,6 +88,7 @@ public class AmbariServer {
   }
 
   public void run() {
+    performStaticInjection();
     server = new Server(CLIENT_API_PORT);
     serverForAgent = new Server();
 
@@ -246,15 +251,25 @@ public class AmbariServer {
     }
   }
 
-  public static void main(String[] args) throws IOException {
-    Injector injector = Guice.createInjector(new ControllerModule(),
-        new JpaPersistModule(PERSISTENCE_PROVIDER));
+  /**
+   * Static injection replacement to wait Persistence Service start
+   */
+  public void performStaticInjection() {
+    AgentResource.init(injector.getInstance(HeartBeatHandler.class));
+    CertificateDownload.init(injector.getInstance(CertificateManager.class));
+    CertificateSign.init(injector.getInstance(CertificateManager.class));
+    GetResource.init(injector.getInstance(ResourceManager.class));
+  }
 
+  public static void main(String[] args) throws IOException {
+
+    Injector injector = Guice.createInjector(new ControllerModule());
+    
     try {
       LOG.info("Getting the controller");
+      injector.getInstance(GuiceJpaInitializer.class);
       AmbariServer server = injector.getInstance(AmbariServer.class);
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
-      injector.getInstance(GuiceJpaInitializer.class);
       certMan.initRootCert();
       if (server != null) {
         server.run();

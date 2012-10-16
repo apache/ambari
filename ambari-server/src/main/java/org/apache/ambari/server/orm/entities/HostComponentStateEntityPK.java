@@ -23,23 +23,34 @@ import javax.persistence.Id;
 import java.io.Serializable;
 
 public class HostComponentStateEntityPK implements Serializable {
-
-  private String clusterName;
+  private Long clusterId;
 
   @Id
-  @Column(name = "cluster_name")
-  public String getClusterName() {
-    return clusterName;
+  @Column(name = "cluster_id", nullable = false, insertable = true, updatable = true, length = 10)
+  public Long getClusterId() {
+    return clusterId;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
+  }
+
+  private String serviceName;
+
+  @Id
+  @Column(name = "service_name", nullable = false, insertable = true, updatable = true)
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 
   private String hostName;
 
   @Id
-  @Column(name = "host_name")
+  @Column(name = "host_name", nullable = false, insertable = true, updatable = true)
   public String getHostName() {
     return hostName;
   }
@@ -51,7 +62,7 @@ public class HostComponentStateEntityPK implements Serializable {
   private String componentName;
 
   @Id
-  @Column(name = "component_name")
+  @Column(name = "component_name", nullable = false, insertable = true, updatable = true)
   public String getComponentName() {
     return componentName;
   }
@@ -67,7 +78,7 @@ public class HostComponentStateEntityPK implements Serializable {
 
     HostComponentStateEntityPK that = (HostComponentStateEntityPK) o;
 
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
     if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
 
@@ -76,7 +87,7 @@ public class HostComponentStateEntityPK implements Serializable {
 
   @Override
   public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
+    int result = clusterId !=null ? clusterId.intValue() : 0;
     result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     return result;

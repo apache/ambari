@@ -21,9 +21,13 @@ package org.apache.ambari.server.orm.dao;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+import java.util.List;
 
 public class HostDAO {
 
@@ -32,6 +36,19 @@ public class HostDAO {
 
   public HostEntity findByName(String hostName) {
     return entityManagerProvider.get().find(HostEntity.class, hostName);
+  }
+
+  public List<HostEntity> findAll() {
+    TypedQuery<HostEntity> query = entityManagerProvider.get().createQuery("SELECT host FROM HostEntity host", HostEntity.class);
+    return query.getResultList();
+  }
+
+  /**
+   * Refreshes entity state from database
+   * @param hostEntity entity to refresh
+   */
+  public void refresh(HostEntity hostEntity) {
+    entityManagerProvider.get().refresh(hostEntity);
   }
 
   @Transactional

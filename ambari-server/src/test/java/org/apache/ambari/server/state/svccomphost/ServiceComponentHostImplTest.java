@@ -1,33 +1,33 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 package org.apache.ambari.server.state.svccomphost;
 
 import static org.mockito.Mockito.*;
 
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHostEvent;
-import org.apache.ambari.server.state.ServiceComponentHostEventType;
-import org.apache.ambari.server.state.ServiceComponentImpl;
-import org.apache.ambari.server.state.ServiceImpl;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
@@ -38,19 +38,47 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUninstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostWipeoutEvent;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 public class ServiceComponentHostImplTest {
 
-  private ServiceComponentHostImpl createNewServiceComponentHost(long clusterId,
+  @Inject
+  private Injector injector;
+  @Inject
+  private Clusters clusters;
+  @Inject
+  private ServiceFactory serviceFactory;
+  @Inject
+  private ServiceComponentFactory serviceComponentFactory;
+  @Inject
+  private ServiceComponentHostFactory serviceComponentHostFactory;
+
+  @Before
+  public void setup() throws AmbariException {
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    injector.injectMembers(this);
+    clusters.addCluster("C1");
+    clusters.addHost("h1");
+    clusters.mapHostToCluster("h1","C1");
+  }
+
+  @After
+  public void teardown() {
+    injector.getInstance(PersistService.class).stop();
+  }
+
+  private ServiceComponentHost createNewServiceComponentHost(long clusterId,
       String svc,
       String svcComponent,
-      String hostName, boolean isClient) {
-    Cluster c = mock(Cluster.class);
-    Service s = new ServiceImpl(c, svc);
-    ServiceComponent sc = new ServiceComponentImpl(s, svcComponent);
-    ServiceComponentHostImpl impl = new ServiceComponentHostImpl(
+      String hostName, boolean isClient) throws AmbariException{
+    Cluster c = clusters.getCluster("C1");
+    Service s = serviceFactory.createNew(c, svc);
+    ServiceComponent sc = serviceComponentFactory.createNew(s, svcComponent);
+    ServiceComponentHost impl = serviceComponentHostFactory.createNew(
         sc, hostName, isClient);
     Assert.assertEquals(State.INIT,
         impl.getState());
@@ -58,7 +86,7 @@ public class ServiceComponentHostImplTest {
   }
 
   @Test
-  public void testNewServiceComponentHostImpl() {
+  public void testNewServiceComponentHostImpl() throws AmbariException{
     createNewServiceComponentHost(1, "svc", "svcComp", "h1", false);
     createNewServiceComponentHost(1, "svc", "svcComp", "h1", true);
   }
@@ -232,7 +260,7 @@ public class ServiceComponentHostImplTest {
 
   @Test
   public void testClientStateFlow() throws Exception {
-    ServiceComponentHostImpl impl = createNewServiceComponentHost(1, "svc",
+    ServiceComponentHostImpl impl = (ServiceComponentHostImpl) createNewServiceComponentHost(1, "svc",
         "svcComp", "h1", true);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
@@ -270,7 +298,7 @@ public class ServiceComponentHostImplTest {
 
   @Test
   public void testDaemonStateFlow() throws Exception {
-    ServiceComponentHostImpl impl = createNewServiceComponentHost(1, "svc",
+    ServiceComponentHostImpl impl = (ServiceComponentHostImpl) createNewServiceComponentHost(1, "svc",
         "svcComp", "h1", false);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,

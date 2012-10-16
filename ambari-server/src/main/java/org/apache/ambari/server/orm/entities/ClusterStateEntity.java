@@ -18,27 +18,29 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
 @javax.persistence.Table(name = "clusterstate", schema = "ambari", catalog = "")
 @Entity
 public class ClusterStateEntity {
+  private Long clusterId;
 
-  private String clusterName;
-
-  @javax.persistence.Column(name = "cluster_name", insertable = false, updatable = false)
+  @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   @Id
-  public String getClusterName() {
-    return clusterName;
+  public Long getClusterId() {
+    return clusterId;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
   }
 
   private String currentClusterState = "";
 
-  @javax.persistence.Column(name = "current_cluster_state", nullable = false)
+  @javax.persistence.Column(name = "current_cluster_state", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getCurrentClusterState() {
     return currentClusterState;
@@ -48,18 +50,6 @@ public class ClusterStateEntity {
     this.currentClusterState = currentClusterState;
   }
 
-  private ClusterEntity clusterEntity;
-
-  @OneToOne
-  @JoinColumn(name = "cluster_name")
-  public ClusterEntity getClusterEntity() {
-    return clusterEntity;
-  }
-
-  public void setClusterEntity(ClusterEntity clusterEntity) {
-    this.clusterEntity = clusterEntity;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -67,7 +57,7 @@ public class ClusterStateEntity {
 
     ClusterStateEntity that = (ClusterStateEntity) o;
 
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (currentClusterState != null ? !currentClusterState.equals(that.currentClusterState) : that.currentClusterState != null)
       return false;
 
@@ -76,8 +66,20 @@ public class ClusterStateEntity {
 
   @Override
   public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
+    int result = clusterId !=null ? clusterId.intValue() : 0;
     result = 31 * result + (currentClusterState != null ? currentClusterState.hashCode() : 0);
     return result;
+  }
+
+  private ClusterEntity clusterEntity;
+
+  @OneToOne
+  @javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
+  public ClusterEntity getClusterEntity() {
+    return clusterEntity;
+  }
+
+  public void setClusterEntity(ClusterEntity clusterEntity) {
+    this.clusterEntity = clusterEntity;
   }
 }

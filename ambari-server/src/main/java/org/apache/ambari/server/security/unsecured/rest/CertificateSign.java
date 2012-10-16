@@ -40,7 +40,7 @@ public class CertificateSign {
   private static CertificateManager certMan;
 
   @Inject
-  static void init(CertificateManager instance) {
+  public static void init(CertificateManager instance) {
     certMan = instance;
   }
 
@@ -59,15 +59,7 @@ public class CertificateSign {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public SignCertResponse signAgentCrt(@PathParam("hostName") String hostname,
-      SignMessage message, @Context HttpServletRequest req) {
-	  SignCertResponse response = new SignCertResponse();
-	  String signedCa;
-	  signedCa = certMan.signAgentCrt(hostname, message.getCsr(), message.getPassphrase());
-	  response.setSignedCa(signedCa);
-	  if (response.getSignedCa().length()>0)
-		  response.setResult(SignCertResponse.OK_STATUS);
-	  else
-		  response.setResult(SignCertResponse.ERROR_STATUS);
-      return response;
+                                       SignMessage message, @Context HttpServletRequest req) {
+    return certMan.signAgentCrt(hostname, message.getCsr(), message.getPassphrase());
   }
 }

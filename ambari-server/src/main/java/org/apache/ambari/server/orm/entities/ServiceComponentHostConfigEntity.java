@@ -21,13 +21,12 @@ package org.apache.ambari.server.orm.entities;
 import javax.persistence.*;
 import java.util.Date;
 
-@Table(name = "servicecomponenthostconfig", schema = "ambari", catalog = "")
+@javax.persistence.Table(name = "servicecomponenthostconfig", schema = "ambari", catalog = "")
 @Entity
 public class ServiceComponentHostConfigEntity {
-
   private Integer configVersion;
 
-  @Column(name = "config_version")
+  @javax.persistence.Column(name = "config_version", nullable = false, insertable = true, updatable = true, length = 10)
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   public Integer getConfigVersion() {
@@ -38,33 +37,9 @@ public class ServiceComponentHostConfigEntity {
     this.configVersion = configVersion;
   }
 
-  private String clusterName;
-
-  @Column(name = "cluster_name", nullable = false, insertable = false, updatable = false)
-  @Basic
-  public String getClusterName() {
-    return clusterName;
-  }
-
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
-  }
-
-  private String serviceName;
-
-  @Column(name = "service_name", nullable = false, insertable = false, updatable = false)
-  @Basic
-  public String getServiceName() {
-    return serviceName;
-  }
-
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
-  }
-
   private String componentName;
 
-  @Column(name = "component_name", nullable = false)
+  @javax.persistence.Column(name = "component_name", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getComponentName() {
     return componentName;
@@ -74,21 +49,9 @@ public class ServiceComponentHostConfigEntity {
     this.componentName = componentName;
   }
 
-  private String hostName;
-
-  @Column(name = "host_name", nullable = false, insertable = false, updatable = false)
-  @Basic
-  public String getHostName() {
-    return hostName;
-  }
-
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
-  }
-
   private String configSnapshot = "";
 
-  @Column(name = "config_snapshot", nullable = false)
+  @javax.persistence.Column(name = "config_snapshot", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getConfigSnapshot() {
     return configSnapshot;
@@ -100,7 +63,7 @@ public class ServiceComponentHostConfigEntity {
 
   private Date configSnapshotTime;
 
-  @Column(name = "config_snapshot_time", nullable = false)
+  @javax.persistence.Column(name = "config_snapshot_time", nullable = false, insertable = true, updatable = true, length = 29, precision = 6)
   @Temporal(TemporalType.TIMESTAMP)
   public Date getConfigSnapshotTime() {
     return configSnapshotTime;
@@ -110,10 +73,36 @@ public class ServiceComponentHostConfigEntity {
     this.configSnapshotTime = configSnapshotTime;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ServiceComponentHostConfigEntity that = (ServiceComponentHostConfigEntity) o;
+
+    if (configVersion != null ? !configVersion.equals(that.configVersion) : that.configVersion != null) return false;
+    if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
+    if (configSnapshot != null ? !configSnapshot.equals(that.configSnapshot) : that.configSnapshot != null)
+      return false;
+    if (configSnapshotTime != null ? !configSnapshotTime.equals(that.configSnapshotTime) : that.configSnapshotTime != null)
+      return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = configVersion != null ? configVersion.hashCode() : 0;
+    result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
+    result = 31 * result + (configSnapshot != null ? configSnapshot.hashCode() : 0);
+    result = 31 * result + (configSnapshotTime != null ? configSnapshotTime.hashCode() : 0);
+    return result;
+  }
+
   private ClusterServiceEntity clusterServiceEntity;
 
   @ManyToOne
-  @JoinColumns(value = {@JoinColumn(name = "cluster_name", referencedColumnName = "cluster_name"), @JoinColumn(name = "service_name", referencedColumnName = "service_name")})
+  @javax.persistence.JoinColumns({@javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false), @javax.persistence.JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)})
   public ClusterServiceEntity getClusterServiceEntity() {
     return clusterServiceEntity;
   }
@@ -125,41 +114,12 @@ public class ServiceComponentHostConfigEntity {
   private HostEntity hostEntity;
 
   @ManyToOne
-  @JoinColumn(name = "host_name")
+  @javax.persistence.JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
   public HostEntity getHostEntity() {
     return hostEntity;
   }
 
   public void setHostEntity(HostEntity hostEntity) {
     this.hostEntity = hostEntity;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    ServiceComponentHostConfigEntity that = (ServiceComponentHostConfigEntity) o;
-
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
-    if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
-    if (configSnapshot != null ? !configSnapshot.equals(that.configSnapshot) : that.configSnapshot != null)
-      return false;
-    if (configVersion != null ? !configVersion.equals(that.configVersion) : that.configVersion != null) return false;
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
-    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
-
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    int result = configVersion != null ? configVersion.hashCode() : 0;
-    result = 31 * result + (clusterName != null ? clusterName.hashCode() : 0);
-    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
-    result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
-    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
-    result = 31 * result + (configSnapshot != null ? configSnapshot.hashCode() : 0);
-    return result;
   }
 }

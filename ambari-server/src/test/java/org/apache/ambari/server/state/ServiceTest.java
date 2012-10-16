@@ -18,9 +18,14 @@
 
 package org.apache.ambari.server.state;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.junit.After;
 import org.junit.Before;
@@ -31,29 +36,33 @@ public class ServiceTest {
   private Clusters clusters;
   private Cluster cluster;
   private String clusterName;
+  private Injector injector;
+  private ServiceFactory serviceFactory;
 
   @Before
   public void setup() throws AmbariException {
-    clusters = new ClustersImpl();
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    clusters = injector.getInstance(Clusters.class);
+    serviceFactory = injector.getInstance(ServiceFactory.class);
     clusterName = "foo";
     clusters.addCluster(clusterName);
     cluster = clusters.getCluster(clusterName);
     Assert.assertNotNull(cluster);
   }
-
+  
   @After
   public void teardown() throws AmbariException {
-    clusters = null;
-    cluster = null;
+    injector.getInstance(PersistService.class).stop();
   }
-
+  
   @Test
   public void testCreateService() throws AmbariException {
     String serviceName = "s1";
-    Service s = new ServiceImpl(cluster, serviceName);
+    Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
     Service service = cluster.getService(serviceName);
-
+    
     Assert.assertNotNull(service);
     Assert.assertEquals(serviceName, service.getName());
     Assert.assertEquals(cluster.getClusterId(),
@@ -68,7 +77,7 @@ public class ServiceTest {
   @Test
   public void testGetAndSetServiceInfo() throws AmbariException {
     String serviceName = "s1";
-    Service s = new ServiceImpl(cluster, serviceName);
+    Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
     Service service = cluster.getService(serviceName);
 

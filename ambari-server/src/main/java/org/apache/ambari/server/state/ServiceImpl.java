@@ -18,6 +18,15 @@
 
 package org.apache.ambari.server.state;
 
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.*;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,36 +40,85 @@ import org.slf4j.LoggerFactory;
 
 public class ServiceImpl implements Service {
 
+  private ClusterServiceEntity serviceEntity;
+  private ServiceDesiredStateEntity serviceDesiredStateEntity;
+  private final Injector injector;
+
   private static final Logger LOG =
       LoggerFactory.getLogger(ServiceImpl.class);
 
+  private boolean persisted = false;
   private final Cluster cluster;
-  private final String serviceName;
-  private State desiredState;
   private Map<String, Config> configs;
   private Map<String, Config> desiredConfigs;
   private Map<String, ServiceComponent> components;
-  private StackVersion desiredStackVersion;
+
+  @Inject
+  Gson gson;
+  @Inject
+  private ClusterServiceDAO clusterServiceDAO;
+  @Inject
+  private Clusters clusters;
+  @Inject
+  private ServiceDesiredStateDAO serviceDesiredStateDAO;
+  @Inject
+  private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
+  @Inject
+  private ClusterDAO clusterDAO;
+  @Inject
+  private ServiceComponentFactory serviceComponentFactory;
 
   private void init() {
     // TODO
     // initialize from DB
   }
 
-  public ServiceImpl(Cluster cluster, String serviceName) {
+  @AssistedInject
+  public ServiceImpl(@Assisted Cluster cluster, @Assisted String serviceName, Injector injector) {
+    this.injector = injector;
+    injector.injectMembers(this);
+    serviceEntity = new ClusterServiceEntity();
+    serviceEntity.setServiceName(serviceName);
+    serviceDesiredStateEntity = new ServiceDesiredStateEntity();
+
+    serviceDesiredStateEntity.setClusterServiceEntity(serviceEntity);
+    serviceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
+
     this.cluster = cluster;
-    this.serviceName = serviceName;
-    this.desiredState = State.INIT;
     this.configs = new HashMap<String, Config>();
     this.desiredConfigs = new HashMap<String, Config>();
-    this.desiredStackVersion = new StackVersion("");
     this.components = new HashMap<String, ServiceComponent>();
+    setDesiredStackVersion(new StackVersion(""));
     init();
+  }
+
+  @AssistedInject
+  public ServiceImpl(@Assisted Cluster cluster, @Assisted ClusterServiceEntity serviceEntity, Injector injector) {
+    this.injector = injector;
+    injector.injectMembers(this);
+    this.serviceEntity = serviceEntity;
+    this.cluster = cluster;
+
+    //TODO check for null states?
+    this.serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
+
+    this.configs = new HashMap<String, Config>();
+    this.desiredConfigs = new HashMap<String, Config>();
+
+    this.components = new HashMap<String, ServiceComponent>();
+
+    if (!serviceEntity.getServiceComponentDesiredStateEntities().isEmpty()) {
+      for (ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity : serviceEntity.getServiceComponentDesiredStateEntities()) {
+        components.put(serviceComponentDesiredStateEntity.getComponentName(),
+            serviceComponentFactory.createExisting(this, serviceComponentDesiredStateEntity));
+      }
+    }
+    persisted = true;
   }
 
   @Override
   public String getName() {
-    return serviceName;
+      return serviceEntity.getServiceName();
   }
 
   @Override
@@ -99,17 +157,38 @@ public class ServiceImpl implements Service {
       LOG.debug("Adding a ServiceComponent to Service"
           + ", clusterName=" + cluster.getClusterName()
           + ", clusterId=" + cluster.getClusterId()
-          + ", serviceName=" + serviceName
+          + ", serviceName=" + getName()
           + ", serviceComponentName=" + component.getName());
     }
     if (components.containsKey(component.getName())) {
       throw new AmbariException("Cannot add duplicate ServiceComponent"
           + ", clusterName=" + cluster.getClusterName()
           + ", clusterId=" + cluster.getClusterId()
-          + ", serviceName=" + serviceName
+          + ", serviceName=" + getName()
           + ", serviceComponentName=" + component.getName());
     }
     this.components.put(component.getName(), component);
+  }
+
+  @Override
+  public synchronized ServiceComponent addServiceComponent(String serviceComponentName) throws AmbariException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Adding a ServiceComponent to Service"
+          + ", clusterName=" + cluster.getClusterName()
+          + ", clusterId=" + cluster.getClusterId()
+          + ", serviceName=" + getName()
+          + ", serviceComponentName=" + serviceComponentName);
+    }
+    if (components.containsKey(serviceComponentName)) {
+      throw new AmbariException("Cannot add duplicate ServiceComponent"
+          + ", clusterName=" + cluster.getClusterName()
+          + ", clusterId=" + cluster.getClusterId()
+          + ", serviceName=" + getName()
+          + ", serviceComponentName=" + serviceComponentName);
+    }
+    ServiceComponent component = serviceComponentFactory.createNew(this, serviceComponentName);
+    this.components.put(component.getName(), component);
+    return component;
   }
 
   @Override
@@ -117,7 +196,7 @@ public class ServiceImpl implements Service {
       throws AmbariException {
     if (!components.containsKey(componentName)) {
       throw new ServiceComponentNotFoundException(cluster.getClusterName(),
-          serviceName,
+          getName(),
           componentName);
     }
     return this.components.get(componentName);
@@ -125,7 +204,7 @@ public class ServiceImpl implements Service {
 
   @Override
   public synchronized State getDesiredState() {
-    return desiredState;
+    return this.serviceDesiredStateEntity.getDesiredState();
   }
 
   @Override
@@ -134,11 +213,12 @@ public class ServiceImpl implements Service {
       LOG.debug("Setting DesiredState of Service"
           + ", clusterName=" + cluster.getClusterName()
           + ", clusterId=" + cluster.getClusterId()
-          + ", serviceName=" + serviceName
-          + ", oldDesiredState=" + this.desiredState
+          + ", serviceName=" + getName()
+          + ", oldDesiredState=" + this.getDesiredState()
           + ", newDesiredState=" + state);
     }
-    this.desiredState = state;
+    this.serviceDesiredStateEntity.setDesiredState(state);
+    saveIfPersisted();
   }
 
   @Override
@@ -153,7 +233,7 @@ public class ServiceImpl implements Service {
 
   @Override
   public synchronized StackVersion getDesiredStackVersion() {
-    return desiredStackVersion;
+    return gson.fromJson(serviceDesiredStateEntity.getDesiredStackVersion(), StackVersion.class);
   }
 
   @Override
@@ -162,11 +242,12 @@ public class ServiceImpl implements Service {
       LOG.debug("Setting DesiredStackVersion of Service"
           + ", clusterName=" + cluster.getClusterName()
           + ", clusterId=" + cluster.getClusterId()
-          + ", serviceName=" + serviceName
-          + ", oldDesiredStackVersion=" + this.desiredStackVersion
+          + ", serviceName=" + getName()
+          + ", oldDesiredStackVersion=" + getDesiredStackVersion()
           + ", newDesiredStackVersion=" + stackVersion);
     }
-    this.desiredStackVersion = stackVersion;
+    serviceDesiredStateEntity.setDesiredStackVersion(gson.toJson(stackVersion));
+    saveIfPersisted();
   }
 
   private synchronized Map<String, String> getConfigVersions() {
@@ -181,10 +262,10 @@ public class ServiceImpl implements Service {
   public synchronized ServiceResponse convertToResponse() {
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(),
         cluster.getClusterName(),
-        serviceName,
+        getName(),
         getConfigVersions(),
-        desiredStackVersion.getStackVersion(),
-        desiredState.toString());
+        getDesiredStackVersion().getStackVersion(),
+        getDesiredState().toString());
     return r;
   }
 
@@ -195,11 +276,11 @@ public class ServiceImpl implements Service {
 
   @Override
   public synchronized void debugDump(StringBuilder sb) {
-    sb.append("Service={ serviceName=" + serviceName
+    sb.append("Service={ serviceName=" + getName()
         + ", clusterName=" + cluster.getClusterName()
         + ", clusterId=" + cluster.getClusterId()
-        + ", desiredStackVersion=" + desiredStackVersion.getStackVersion()
-        + ", desiredState=" + desiredState.toString()
+        + ", desiredStackVersion=" + getDesiredStackVersion()
+        + ", desiredState=" + getDesiredState().toString()
         + ", components=[ ");
     boolean first = true;
     for(ServiceComponent sc : components.values()) {
@@ -214,4 +295,48 @@ public class ServiceImpl implements Service {
     sb.append(" ] }");
   }
 
+  @Override
+  public synchronized boolean isPersisted() {
+      return persisted;
+  }
+
+  @Override
+  @Transactional
+  public synchronized void persist() {
+    if (!persisted) {
+      ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+      serviceEntity.setClusterEntity(clusterEntity);
+      clusterServiceDAO.create(serviceEntity);
+      serviceDesiredStateDAO.create(serviceDesiredStateEntity);
+      clusterEntity.getClusterServiceEntities().add(serviceEntity);
+      clusterDAO.merge(clusterEntity);
+      serviceEntity = clusterServiceDAO.merge(serviceEntity);
+      serviceDesiredStateEntity = serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
+      cluster.refresh();
+      persisted = true;
+    } else {
+      saveIfPersisted();
+    }
+  }
+
+  @Transactional
+  private void saveIfPersisted() {
+    if (isPersisted()) {
+      clusterServiceDAO.merge(serviceEntity);
+      serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
+    }
+  }
+
+  @Override
+  public synchronized void refresh() {
+    if (isPersisted()) {
+      ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
+      pk.setClusterId(getClusterId());
+      pk.setServiceName(getName());
+      serviceEntity = clusterServiceDAO.findByPK(pk);
+      serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
+      clusterServiceDAO.refresh(serviceEntity);
+      serviceDesiredStateDAO.refresh(serviceDesiredStateEntity);
+    }
+  }
 }

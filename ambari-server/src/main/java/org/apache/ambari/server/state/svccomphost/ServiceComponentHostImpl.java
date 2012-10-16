@@ -26,14 +26,17 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentHostEvent;
-import org.apache.ambari.server.state.ServiceComponentHostEventType;
-import org.apache.ambari.server.state.StackVersion;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
@@ -53,14 +56,27 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private final Lock writeLock;
 
   private final ServiceComponent serviceComponent;
-  private final String hostName;
+  private final Host host;
+  private boolean persisted = false;
+
+  @Inject
+  Gson gson;
+  @Inject
+  HostComponentStateDAO hostComponentStateDAO;
+  @Inject
+  HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
+  @Inject
+  HostDAO hostDAO;
+  @Inject
+  ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
+  @Inject
+  Clusters clusters;
+
+  private HostComponentStateEntity stateEntity;
+  private HostComponentDesiredStateEntity desiredStateEntity;
 
   private Map<String, Config> configs;
   private Map<String, Config> desiredConfigs;
-  private StackVersion stackVersion;
-  private StackVersion desiredStackVersion;
-
-  private State desiredState;
 
   private long lastOpStartTime;
   private long lastOpEndTime;
@@ -409,25 +425,70 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
   }
 
-  public ServiceComponentHostImpl(ServiceComponent serviceComponent,
-      String hostName, boolean isClient) {
+  @AssistedInject
+  public ServiceComponentHostImpl(@Assisted ServiceComponent serviceComponent,
+                                  @Assisted String hostName, @Assisted boolean isClient, Injector injector) {
     super();
+    injector.injectMembers(this);
+
     if (isClient) {
       this.stateMachine = clientStateMachineFactory.make(this);
     } else {
       this.stateMachine = daemonStateMachineFactory.make(this);
     }
+
     ReadWriteLock rwLock = new ReentrantReadWriteLock();
     this.readLock = rwLock.readLock();
     this.writeLock = rwLock.writeLock();
     this.serviceComponent = serviceComponent;
-    this.hostName = hostName;
+
+    stateEntity = new HostComponentStateEntity();
+    stateEntity.setCurrentState(stateMachine.getCurrentState());
+    stateEntity.setCurrentStackVersion(gson.toJson(new StackVersion("")));
+
+    desiredStateEntity = new HostComponentDesiredStateEntity();
+    desiredStateEntity.setDesiredStackVersion(gson.toJson(new StackVersion("")));
+
+
+    try {
+      this.host = clusters.getHost(hostName);
+    } catch (AmbariException e) {
+      //TODO exception?
+      LOG.error("Host '{}' was not found", hostName);
+      throw new RuntimeException(e);
+    }
     this.resetLastOpInfo();
     this.desiredConfigs = new HashMap<String, Config>();
-    this.desiredStackVersion = new StackVersion("");
-    this.desiredState = State.INIT;
     this.configs = new HashMap<String, Config>();
-    this.stackVersion = new StackVersion("");
+  }
+
+  @AssistedInject
+  public ServiceComponentHostImpl(@Assisted ServiceComponent serviceComponent,
+                                  @Assisted HostComponentStateEntity stateEntity,
+                                  @Assisted HostComponentDesiredStateEntity desiredStateEntity,
+                                  Injector injector) {
+    injector.injectMembers(this);
+    ReadWriteLock rwLock = new ReentrantReadWriteLock();
+    this.readLock = rwLock.readLock();
+    this.writeLock = rwLock.writeLock();
+    this.serviceComponent = serviceComponent;
+
+
+    this.desiredStateEntity = desiredStateEntity;
+    this.stateEntity = stateEntity;
+    //TODO implement State Machine init as now type choosing is hardcoded in above code
+    this.stateMachine = clientStateMachineFactory.make(this);
+    this.stateMachine.setCurrentState(stateEntity.getCurrentState());
+
+    try {
+      this.host = clusters.getHost(stateEntity.getHostName());
+    } catch (AmbariException e) {
+      //TODO exception? impossible due to database restrictions
+      LOG.error("Host '{}' was not found", stateEntity.getHostName());
+      throw new RuntimeException(e);
+    }
+
+    persisted = true;
   }
 
   @Override
@@ -446,6 +507,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     try {
       writeLock.lock();
       stateMachine.setCurrentState(state);
+      stateEntity.setCurrentState(state);
+      saveIfPersisted();
     }
     finally {
       writeLock.unlock();
@@ -506,7 +569,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public String getHostName() {
-    return hostName;
+    return host.getHostName();
   }
 
   /**
@@ -623,7 +686,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public StackVersion getStackVersion() {
     try {
       readLock.lock();
-      return stackVersion;
+      return gson.fromJson(stateEntity.getCurrentStackVersion(), StackVersion.class);
     }
     finally {
       readLock.unlock();
@@ -634,7 +697,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public void setStackVersion(StackVersion stackVersion) {
     try {
       writeLock.lock();
-      this.stackVersion = stackVersion;
+      stateEntity.setCurrentStackVersion(gson.toJson(stackVersion));
+      saveIfPersisted();
     }
     finally {
       writeLock.unlock();
@@ -646,7 +710,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public State getDesiredState() {
     try {
       readLock.lock();
-      return desiredState;
+      return desiredStateEntity.getDesiredState();
     }
     finally {
       readLock.unlock();
@@ -657,7 +721,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public void setDesiredState(State state) {
     try {
       writeLock.lock();
-      this.desiredState = state;
+      desiredStateEntity.setDesiredState(state);
+      saveIfPersisted();
     }
     finally {
       writeLock.unlock();
@@ -690,7 +755,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public StackVersion getDesiredStackVersion() {
     try {
       readLock.lock();
-      return desiredStackVersion;
+      return gson.fromJson(desiredStateEntity.getDesiredStackVersion(), StackVersion.class);
     }
     finally {
       readLock.unlock();
@@ -701,7 +766,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public void setDesiredStackVersion(StackVersion stackVersion) {
     try {
       writeLock.lock();
-      this.desiredStackVersion = stackVersion;
+      desiredStateEntity.setDesiredStackVersion(gson.toJson(stackVersion));
+      saveIfPersisted();
     }
     finally {
       writeLock.unlock();
@@ -730,7 +796,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           serviceComponent.getClusterName(),
           serviceComponent.getServiceName(),
           serviceComponent.getName(),
-          hostName,
+          getHostName(),
           getConfigVersions(),
           getState().toString(),
           getStackVersion().getStackVersion(),
@@ -751,18 +817,98 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public void debugDump(StringBuilder sb) {
     try {
       readLock.lock();
-      sb.append("ServiceComponentHost={ hostname=" + hostName
+      sb.append("ServiceComponentHost={ hostname=" + getHostName()
           + ", serviceComponentName=" + serviceComponent.getName()
           + ", clusterName=" + serviceComponent.getClusterName()
           + ", serviceName=" + serviceComponent.getServiceName()
-          + ", desiredStackVersion=" + desiredStackVersion
-          + ", desiredState=" + desiredState
-          + ", stackVersion=" + stackVersion
+          + ", desiredStackVersion=" + getDesiredStackVersion()
+          + ", desiredState=" + getDesiredState()
+          + ", stackVersion=" + getStackVersion()
           + ", state=" + getState()
           + " }");
     }
     finally {
       readLock.unlock();
+    }
+  }
+
+  @Override
+  public boolean isPersisted() {
+    try {
+      readLock.lock();
+      return persisted;
+    } finally {
+      readLock.unlock();
+    }
+  }
+
+  @Override
+  @Transactional
+  public void persist() {
+    try {
+      writeLock.lock();
+      if (!persisted) {
+        serviceComponent.persist(); //TODO is this correct?
+        HostEntity hostEntity = hostDAO.findByName(getHostName());
+        hostEntity.getHostComponentStateEntities().add(stateEntity);
+        hostEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
+
+        ServiceComponentDesiredStateEntityPK dpk = new ServiceComponentDesiredStateEntityPK();
+        dpk.setClusterId(serviceComponent.getClusterId());
+        dpk.setServiceName(serviceComponent.getServiceName());
+        dpk.setComponentName(serviceComponent.getName());
+
+        ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(dpk);
+        serviceComponentDesiredStateEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
+
+        desiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
+        desiredStateEntity.setHostEntity(hostEntity);
+        stateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
+        stateEntity.setHostEntity(hostEntity);
+
+        hostComponentStateDAO.create(stateEntity);
+        hostComponentDesiredStateDAO.create(desiredStateEntity);
+
+        serviceComponentDesiredStateDAO.merge(serviceComponentDesiredStateEntity);
+        hostDAO.merge(hostEntity);
+        stateEntity = hostComponentStateDAO.merge(stateEntity);
+        desiredStateEntity = hostComponentDesiredStateDAO.merge(desiredStateEntity);
+
+        host.refresh();
+        serviceComponent.refresh();
+        persisted = true;
+      } else {
+        saveIfPersisted();
+      }
+    } finally {
+      writeLock.unlock();
+    }
+  }
+
+  @Override
+  public synchronized void refresh() {
+    if (isPersisted()) {
+      HostComponentStateEntityPK pk = new HostComponentStateEntityPK();
+      HostComponentDesiredStateEntityPK dpk = new HostComponentDesiredStateEntityPK();
+      pk.setClusterId(getClusterId());
+      pk.setComponentName(getServiceComponentName());
+      pk.setServiceName(getServiceName());
+      pk.setHostName(getHostName());
+      dpk.setClusterId(getClusterId());
+      dpk.setComponentName(getServiceComponentName());
+      dpk.setServiceName(getServiceName());
+      dpk.setHostName(getHostName());
+      stateEntity = hostComponentStateDAO.findByPK(pk);
+      desiredStateEntity = hostComponentDesiredStateDAO.findByPK(dpk);
+      hostComponentStateDAO.refresh(stateEntity);
+      hostComponentDesiredStateDAO.refresh(desiredStateEntity);
+    }
+  }
+
+  private void saveIfPersisted() {
+    if (isPersisted()) {
+      hostComponentStateDAO.merge(stateEntity);
+      hostComponentDesiredStateDAO.merge(desiredStateEntity);
     }
   }
 

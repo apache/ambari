@@ -19,27 +19,14 @@
 package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Collection;
 
-@Table(name = "hosts", schema = "ambari", catalog = "")
+@javax.persistence.Table(name = "hosts", schema = "ambari", catalog = "")
 @Entity
 public class HostEntity {
-
-  private String clusterName;
-
-  @Column(name = "cluster_name", insertable = false, updatable = false)
-  @Basic
-  public String getClusterName() {
-    return clusterName;
-  }
-
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
-  }
-
   private String hostName;
 
-  @Column(name = "host_name", nullable = false)
+  @javax.persistence.Column(name = "host_name", nullable = false, insertable = true, updatable = true)
   @Id
   public String getHostName() {
     return hostName;
@@ -49,33 +36,45 @@ public class HostEntity {
     this.hostName = hostName;
   }
 
-  private String ip;
+  private String ipv4;
 
-  @Column(name = "ip", unique = true, nullable = false)
+  @javax.persistence.Column(name = "ipv4", nullable = true, insertable = true, updatable = true)
   @Basic
-  public String getIp() {
-    return ip;
+  public String getIpv4() {
+    return ipv4;
   }
 
-  public void setIp(String ip) {
-    this.ip = ip;
+  public void setIpv4(String ipv4) {
+    this.ipv4 = ipv4;
   }
 
-  private Integer totalMem = 0;
+  private String ipv6;
 
-  @Column(name = "total_mem", nullable = false)
+  @javax.persistence.Column(name = "ipv6", nullable = true, insertable = true, updatable = true)
   @Basic
-  public Integer getTotalMem() {
+  public String getIpv6() {
+    return ipv6;
+  }
+
+  public void setIpv6(String ipv6) {
+    this.ipv6 = ipv6;
+  }
+
+  private Long totalMem = 0L;
+
+  @javax.persistence.Column(name = "total_mem", nullable = false, insertable = true, updatable = true, length = 10)
+  @Basic
+  public Long getTotalMem() {
     return totalMem;
   }
 
-  public void setTotalMem(Integer totalMem) {
+  public void setTotalMem(Long totalMem) {
     this.totalMem = totalMem;
   }
 
   private Integer cpuCount = 0;
 
-  @Column(name = "cpu_count", nullable = false)
+  @javax.persistence.Column(name = "cpu_count", nullable = false, insertable = true, updatable = true, length = 10)
   @Basic
   public Integer getCpuCount() {
     return cpuCount;
@@ -87,7 +86,7 @@ public class HostEntity {
 
   private String cpuInfo = "";
 
-  @Column(name = "cpu_info", nullable = false)
+  @javax.persistence.Column(name = "cpu_info", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getCpuInfo() {
     return cpuInfo;
@@ -99,7 +98,7 @@ public class HostEntity {
 
   private String osArch = "";
 
-  @Column(name = "os_arch", nullable = false)
+  @javax.persistence.Column(name = "os_arch", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getOsArch() {
     return osArch;
@@ -111,7 +110,7 @@ public class HostEntity {
 
   private String disksInfo = "";
 
-  @Column(name = "disks_info", nullable = false)
+  @javax.persistence.Column(name = "disks_info", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getDisksInfo() {
     return disksInfo;
@@ -123,7 +122,7 @@ public class HostEntity {
 
   private String osInfo = "";
 
-  @Column(name = "os_info", nullable = false)
+  @javax.persistence.Column(name = "os_info", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getOsInfo() {
     return osInfo;
@@ -135,7 +134,7 @@ public class HostEntity {
 
   private String osType = "";
 
-  @Column(name = "os_type", nullable = false)
+  @javax.persistence.Column(name = "os_type", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getOsType() {
     return osType;
@@ -147,7 +146,7 @@ public class HostEntity {
 
   private String discoveryStatus = "";
 
-  @Column(name = "discovery_status", nullable = false)
+  @javax.persistence.Column(name = "discovery_status", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getDiscoveryStatus() {
     return discoveryStatus;
@@ -157,21 +156,21 @@ public class HostEntity {
     this.discoveryStatus = discoveryStatus;
   }
 
-  private Integer lastRegistrationTime = 0;
+  private Long lastRegistrationTime = 0L;
 
-  @Column(name = "last_registration_time", nullable = false)
+  @javax.persistence.Column(name = "last_registration_time", nullable = false, insertable = true, updatable = true, length = 10)
   @Basic
-  public Integer getLastRegistrationTime() {
+  public Long getLastRegistrationTime() {
     return lastRegistrationTime;
   }
 
-  public void setLastRegistrationTime(Integer lastRegistrationTime) {
+  public void setLastRegistrationTime(Long lastRegistrationTime) {
     this.lastRegistrationTime = lastRegistrationTime;
   }
 
   private String rackInfo = "/default-rack";
 
-  @Column(name = "rack_info", nullable = false)
+  @javax.persistence.Column(name = "rack_info", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getRackInfo() {
     return rackInfo;
@@ -183,7 +182,7 @@ public class HostEntity {
 
   private String hostAttributes = "";
 
-  @Column(name = "host_attributes", nullable = false)
+  @javax.persistence.Column(name = "host_attributes", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getHostAttributes() {
     return hostAttributes;
@@ -193,21 +192,103 @@ public class HostEntity {
     this.hostAttributes = hostAttributes;
   }
 
-  private ClusterEntity clusterEntity;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-  @ManyToOne
-  @JoinColumn(name = "cluster_name")
-  public ClusterEntity getClusterEntity() {
-    return clusterEntity;
+    HostEntity that = (HostEntity) o;
+
+    if (cpuCount != that.cpuCount) return false;
+    if (lastRegistrationTime != that.lastRegistrationTime) return false;
+    if (totalMem != that.totalMem) return false;
+    if (cpuInfo != null ? !cpuInfo.equals(that.cpuInfo) : that.cpuInfo != null) return false;
+    if (discoveryStatus != null ? !discoveryStatus.equals(that.discoveryStatus) : that.discoveryStatus != null)
+      return false;
+    if (disksInfo != null ? !disksInfo.equals(that.disksInfo) : that.disksInfo != null) return false;
+    if (hostAttributes != null ? !hostAttributes.equals(that.hostAttributes) : that.hostAttributes != null)
+      return false;
+    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (ipv4 != null ? !ipv4.equals(that.ipv4) : that.ipv4 != null) return false;
+    if (osArch != null ? !osArch.equals(that.osArch) : that.osArch != null) return false;
+    if (osInfo != null ? !osInfo.equals(that.osInfo) : that.osInfo != null) return false;
+    if (osType != null ? !osType.equals(that.osType) : that.osType != null) return false;
+    if (rackInfo != null ? !rackInfo.equals(that.rackInfo) : that.rackInfo != null) return false;
+
+    return true;
   }
 
-  public void setClusterEntity(ClusterEntity clusterEntity) {
-    this.clusterEntity = clusterEntity;
+  @Override
+  public int hashCode() {
+    int result = hostName != null ? hostName.hashCode() : 0;
+    result = 31 * result + (ipv4 != null ? ipv4.hashCode() : 0);
+    result = 31 * result + (totalMem != null ? totalMem.intValue() : 0);
+    result = 31 * result + cpuCount;
+    result = 31 * result + (cpuInfo != null ? cpuInfo.hashCode() : 0);
+    result = 31 * result + (osArch != null ? osArch.hashCode() : 0);
+    result = 31 * result + (disksInfo != null ? disksInfo.hashCode() : 0);
+    result = 31 * result + (osInfo != null ? osInfo.hashCode() : 0);
+    result = 31 * result + (osType != null ? osType.hashCode() : 0);
+    result = 31 * result + (discoveryStatus != null ? discoveryStatus.hashCode() : 0);
+    result = 31 * result + (lastRegistrationTime != null ? lastRegistrationTime.intValue() : 0);
+    result = 31 * result + (rackInfo != null ? rackInfo.hashCode() : 0);
+    result = 31 * result + (hostAttributes != null ? hostAttributes.hashCode() : 0);
+    return result;
+  }
+
+  private Collection<ActionStatusEntity> actionStatusEntities;
+
+  @OneToMany(mappedBy = "hostEntity")
+  public Collection<ActionStatusEntity> getActionStatusEntities() {
+    return actionStatusEntities;
+  }
+
+  public void setActionStatusEntities(Collection<ActionStatusEntity> actionStatusEntities) {
+    this.actionStatusEntities = actionStatusEntities;
+  }
+
+  private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
+
+  @OneToMany(mappedBy = "hostEntity")
+  public Collection<HostComponentDesiredStateEntity> getHostComponentDesiredStateEntities() {
+    return hostComponentDesiredStateEntities;
+  }
+
+  public void setHostComponentDesiredStateEntities(Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities) {
+    this.hostComponentDesiredStateEntities = hostComponentDesiredStateEntities;
+  }
+
+  private Collection<HostComponentStateEntity> hostComponentStateEntities;
+
+  @OneToMany(mappedBy = "hostEntity")
+  public Collection<HostComponentStateEntity> getHostComponentStateEntities() {
+    return hostComponentStateEntities;
+  }
+
+  public void setHostComponentStateEntities(Collection<HostComponentStateEntity> hostComponentStateEntities) {
+    this.hostComponentStateEntities = hostComponentStateEntities;
+  }
+
+  private Collection<ClusterEntity> clusterEntities;
+
+  @ManyToMany
+//  @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
+  @JoinTable(name = "ClusterHostMapping", catalog = "", schema = "ambari",
+          joinColumns = {@JoinColumn(name = "host_name", referencedColumnName = "host_name")},
+          inverseJoinColumns = {@JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")}
+
+  )
+  public Collection<ClusterEntity> getClusterEntities() {
+    return clusterEntities;
+  }
+
+  public void setClusterEntities(Collection<ClusterEntity> clusterEntities) {
+    this.clusterEntities = clusterEntities;
   }
 
   private HostStateEntity hostStateEntity;
 
-  @OneToOne(cascade = CascadeType.ALL, mappedBy = "hostEntity")
+  @OneToOne(mappedBy = "hostEntity")
   public HostStateEntity getHostStateEntity() {
     return hostStateEntity;
   }
@@ -216,116 +297,36 @@ public class HostEntity {
     this.hostStateEntity = hostStateEntity;
   }
 
-  private List<ActionStatusEntity> actionStatusEntity;
+  private Collection<ServiceComponentHostConfigEntity> serviceComponentHostConfigEntities;
 
   @OneToMany(mappedBy = "hostEntity")
-  public List<ActionStatusEntity> getActionStatusEntity() {
-    return actionStatusEntity;
-  }
-
-  public void setActionStatusEntity(List<ActionStatusEntity> actionStatusEntity) {
-    this.actionStatusEntity = actionStatusEntity;
-  }
-
-  private List<ServiceComponentHostConfigEntity> serviceComponentHostConfigEntities;
-
-  @OneToMany(mappedBy = "hostEntity")
-  public List<ServiceComponentHostConfigEntity> getServiceComponentHostConfigEntities() {
+  public Collection<ServiceComponentHostConfigEntity> getServiceComponentHostConfigEntities() {
     return serviceComponentHostConfigEntities;
   }
 
-  public void setServiceComponentHostConfigEntities(List<ServiceComponentHostConfigEntity> serviceComponentHostConfigEntities) {
+  public void setServiceComponentHostConfigEntities(Collection<ServiceComponentHostConfigEntity> serviceComponentHostConfigEntities) {
     this.serviceComponentHostConfigEntities = serviceComponentHostConfigEntities;
   }
 
-  private List<ComponentHostDesiredStateEntity> componentHostDesiredStateEntities;
+//  private Collection<ServiceComponentStateEntity> serviceComponentStateEntities;
+//
+//  @OneToMany(mappedBy = "hostEntity")
+//  public Collection<ServiceComponentStateEntity> getServiceComponentStateEntities() {
+//    return serviceComponentStateEntities;
+//  }
+//
+//  public void setServiceComponentStateEntities(Collection<ServiceComponentStateEntity> serviceComponentStateEntities) {
+//    this.serviceComponentStateEntities = serviceComponentStateEntities;
+//  }
 
-  @OneToMany(mappedBy = "hostEntity")
-  public List<ComponentHostDesiredStateEntity> getComponentHostDesiredStateEntities() {
-    return componentHostDesiredStateEntities;
-  }
-
-  public void setComponentHostDesiredStateEntities(List<ComponentHostDesiredStateEntity> componentHostDesiredStateEntities) {
-    this.componentHostDesiredStateEntities = componentHostDesiredStateEntities;
-  }
-
-  private List<HostComponentStateEntity> hostComponentStateEntities;
-
-  @OneToMany(mappedBy = "hostEntity")
-  public List<HostComponentStateEntity> getHostComponentStateEntities() {
-    return hostComponentStateEntities;
-  }
-
-  public void setHostComponentStateEntities(List<HostComponentStateEntity> hostComponentStateEntities) {
-    this.hostComponentStateEntities = hostComponentStateEntities;
-  }
-
-  private List<ServiceStateEntity> serviceStateEntities;
-
-  @OneToMany(mappedBy = "hostEntity")
-  public List<ServiceStateEntity> getServiceStateEntities() {
-    return serviceStateEntities;
-  }
-
-  public void setServiceStateEntities(List<ServiceStateEntity> serviceStateEntities) {
-    this.serviceStateEntities = serviceStateEntities;
-  }
-
-  private List<ServiceComponentStateEntity> serviceComponentStateEntities;
-
-  @OneToMany(mappedBy = "hostEntity")
-  public List<ServiceComponentStateEntity> getServiceComponentStateEntities() {
-    return serviceComponentStateEntities;
-  }
-
-  public void setServiceComponentStateEntities(List<ServiceComponentStateEntity> serviceComponentStateEntities) {
-    this.serviceComponentStateEntities = serviceComponentStateEntities;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    HostEntity that = (HostEntity) o;
-
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
-    if (cpuCount != null ? !cpuCount.equals(that.cpuCount) : that.cpuCount != null) return false;
-    if (cpuInfo != null ? !cpuInfo.equals(that.cpuInfo) : that.cpuInfo != null) return false;
-    if (discoveryStatus != null ? !discoveryStatus.equals(that.discoveryStatus) : that.discoveryStatus != null)
-      return false;
-    if (disksInfo != null ? !disksInfo.equals(that.disksInfo) : that.disksInfo != null) return false;
-    if (hostAttributes != null ? !hostAttributes.equals(that.hostAttributes) : that.hostAttributes != null)
-      return false;
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
-    if (ip != null ? !ip.equals(that.ip) : that.ip != null) return false;
-    if (lastRegistrationTime != null ? !lastRegistrationTime.equals(that.lastRegistrationTime) : that.lastRegistrationTime != null)
-      return false;
-    if (osArch != null ? !osArch.equals(that.osArch) : that.osArch != null) return false;
-    if (osInfo != null ? !osInfo.equals(that.osInfo) : that.osInfo != null) return false;
-    if (osType != null ? !osType.equals(that.osType) : that.osType != null) return false;
-    if (rackInfo != null ? !rackInfo.equals(that.rackInfo) : that.rackInfo != null) return false;
-    if (totalMem != null ? !totalMem.equals(that.totalMem) : that.totalMem != null) return false;
-
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
-    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
-    result = 31 * result + (ip != null ? ip.hashCode() : 0);
-    result = 31 * result + (totalMem != null ? totalMem.hashCode() : 0);
-    result = 31 * result + (cpuCount != null ? cpuCount.hashCode() : 0);
-    result = 31 * result + (cpuInfo != null ? cpuInfo.hashCode() : 0);
-    result = 31 * result + (osArch != null ? osArch.hashCode() : 0);
-    result = 31 * result + (disksInfo != null ? disksInfo.hashCode() : 0);
-    result = 31 * result + (osInfo != null ? osInfo.hashCode() : 0);
-    result = 31 * result + (osType != null ? osType.hashCode() : 0);
-    result = 31 * result + (discoveryStatus != null ? discoveryStatus.hashCode() : 0);
-    result = 31 * result + (lastRegistrationTime != null ? lastRegistrationTime.hashCode() : 0);
-    result = 31 * result + (rackInfo != null ? rackInfo.hashCode() : 0);
-    result = 31 * result + (hostAttributes != null ? hostAttributes.hashCode() : 0);
-    return result;
-  }
+//  private Collection<ServiceStateEntity> serviceStateEntities;
+//
+//  @OneToMany(mappedBy = "hostEntity")
+//  public Collection<ServiceStateEntity> getServiceStateEntities() {
+//    return serviceStateEntities;
+//  }
+//
+//  public void setServiceStateEntities(Collection<ServiceStateEntity> serviceStateEntities) {
+//    this.serviceStateEntities = serviceStateEntities;
+//  }
 }

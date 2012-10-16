@@ -19,119 +19,58 @@
 
 package org.apache.ambari.server.state.host;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Type;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.controller.HostResponse;
-import org.apache.ambari.server.state.AgentVersion;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostEvent;
-import org.apache.ambari.server.state.HostEventType;
-import org.apache.ambari.server.state.HostHealthStatus;
-import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.HostStateDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.HostStateEntity;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.job.Job;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 public class HostImpl implements Host {
 
   private static final Log LOG = LogFactory.getLog(HostImpl.class);
+  private final Gson gson;
+
+  private static final Type diskInfoType = new TypeToken<List<DiskInfo>>() {}.getType();
+  private static final Type hostAttributesType = new TypeToken<Map<String, String>>() {}.getType();
 
   private final Lock readLock;
   private final Lock writeLock;
 
-  /**
-   * Host hostname
-   */
-  private String hostName;
+  private HostEntity hostEntity;
+  private HostStateEntity hostStateEntity;
+  private Injector injector;
+  private HostDAO hostDAO;
+  private HostStateDAO hostStateDAO;
+  private ClusterDAO clusterDAO;
+  private Clusters clusters;
 
-  /**
-   * Host IP if ipv4 interface available
-   */
-  private String ipv4;
-
-  /**
-   * Host IP if ipv6 interface available
-   */
-  private String ipv6;
-
-  /**
-   * Count of cores on Host
-   */
-  private int cpuCount;
-
-  /**
-   * Os Architecture
-   */
-  private String osArch;
-
-  /**
-   * OS Type
-   */
-  private String osType;
-
-  /**
-   * OS Information
-   */
-  private String osInfo;
-
-  /**
-   * Amount of available memory for the Host
-   */
-  private long availableMemBytes;
-
-  /**
-   * Amount of physical memory for the Host
-   */
-  private long totalMemBytes;
-
-  /**
-   * Disks mounted on the Host
-   */
-  private List<DiskInfo> disksInfo;
-
-  /**
-   * Last heartbeat timestamp from the Host
-   */
-  private long lastHeartbeatTime;
-
-  /**
-   * Last registration timestamp for the Host
-   */
-  private long lastRegistrationTime;
-
-  /**
-   * Rack to which the Host belongs to
-   */
-  private String rackInfo;
-
-  /**
-   * Additional Host attributes
-   */
-  private Map<String, String> hostAttributes;
-
-  /**
-   * Version of agent running on the Host
-   */
-  private AgentVersion agentVersion;
-
-  /**
-   * Host Health Status
-   */
-  private HostHealthStatus healthStatus;
+  private boolean persisted = false;
 
   private static final StateMachineFactory
     <HostImpl, HostState, HostEventType, HostEvent>
@@ -212,29 +151,46 @@ public class HostImpl implements Host {
 
   private final StateMachine<HostState, HostEventType, HostEvent> stateMachine;
 
-  public HostImpl(String hostName) {
-    super();
-    this.hostName = hostName;
+  @Inject
+  public HostImpl(@Assisted HostEntity hostEntity, @Assisted boolean persisted, Injector injector) {
     this.stateMachine = stateMachineFactory.make(this);
     ReadWriteLock rwLock = new ReentrantReadWriteLock();
     this.readLock = rwLock.readLock();
     this.writeLock = rwLock.writeLock();
-    this.healthStatus = new HostHealthStatus(HealthStatus.UNKNOWN, "");
-    this.ipv4 = "";
-    this.ipv6 = "";
-    this.cpuCount = 0;
-    this.osArch = "";
-    this.osType = "";
-    this.osInfo = "";
-    this.availableMemBytes = 0;
-    this.totalMemBytes = 0;
-    this.disksInfo = new ArrayList<DiskInfo>();
-    this.lastHeartbeatTime = 0;
-    this.lastRegistrationTime = 0;
-    this.rackInfo = "";
-    this.hostAttributes = new HashMap<String, String>();
-    this.agentVersion = new AgentVersion("");
+
+    this.hostEntity = hostEntity;
+    this.injector = injector;
+    this.persisted = persisted;
+    this.hostDAO = injector.getInstance(HostDAO.class);
+    this.hostStateDAO = injector.getInstance(HostStateDAO.class);
+    this.gson = injector.getInstance(Gson.class);
+    this.clusterDAO = injector.getInstance(ClusterDAO.class);
+    this.clusters = injector.getInstance(Clusters.class);
+
+    hostStateEntity = hostEntity.getHostStateEntity();
+    if (hostStateEntity == null) {
+      hostStateEntity = new HostStateEntity();
+      hostStateEntity.setHostEntity(hostEntity);
+      hostEntity.setHostStateEntity(hostStateEntity);
+      setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, ""));
+      if (persisted) {
+        persist();
+      }
+    } else {
+      this.stateMachine.setCurrentState(hostStateEntity.getCurrentState());
+    }
+
   }
+
+//  //TODO remove
+//  public HostImpl(String hostname) {
+//    this.stateMachine = stateMachineFactory.make(this);
+//    ReadWriteLock rwLock = new ReentrantReadWriteLock();
+//    this.readLock = rwLock.readLock();
+//    this.writeLock = rwLock.writeLock();
+//    setHostName(hostname);
+//    setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, ""));
+//  }
 
   static class HostRegistrationReceived
       implements SingleArcTransition<HostImpl, HostEvent> {
@@ -258,7 +214,7 @@ public class HostImpl implements Host {
       LOG.debug("Host transition to host status updates received state"
           + ", host=" + e.getHostName()
           + ", heartbeatTime=" + e.getTimestamp());
-      host.getHealthStatus().setHealthStatus(HealthStatus.HEALTHY);
+      host.setHealthStatus(new HostHealthStatus(HealthStatus.HEALTHY, host.getHealthStatus().getHealthReport()));
     }
   }
 
@@ -296,9 +252,9 @@ public class HostImpl implements Host {
       host.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
       LOG.debug("Host transitioned to a healthy state"
-          + ", host=" + e.getHostName()
-          + ", heartbeatTime=" + e.getHeartbeatTime());
-      host.getHealthStatus().setHealthStatus(HealthStatus.HEALTHY);
+              + ", host=" + e.getHostName()
+              + ", heartbeatTime=" + e.getHeartbeatTime());
+      host.setHealthStatus(new HostHealthStatus(HealthStatus.HEALTHY, host.getHealthStatus().getHealthReport()));
     }
   }
 
@@ -328,20 +284,24 @@ public class HostImpl implements Host {
       LOG.debug("Host transitioned to heartbeat lost state"
           + ", host=" + e.getHostName()
           + ", lastHeartbeatTime=" + host.getLastHeartbeatTime());
-      host.getHealthStatus().setHealthStatus(HealthStatus.UNKNOWN);
+      host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, host.getHealthStatus().getHealthReport()));
     }
   }
 
-  void importHostInfo(HostInfo hostInfo) {
+  @Override
+  public void importHostInfo(HostInfo hostInfo) {
     try {
       writeLock.lock();
-      this.hostName = hostInfo.getHostName();
-      this.availableMemBytes = hostInfo.getFreeMemory();
-      this.totalMemBytes = hostInfo.getMemoryTotal();
-      this.cpuCount = hostInfo.getProcessorCount();
-      this.osArch = hostInfo.getArchitecture();
-      this.osType = hostInfo.getOS();
-      this.disksInfo = hostInfo.getMounts();
+      persisted = false;
+      setHostName(hostInfo.getHostName());
+      setCpuCount(hostInfo.getProcessorCount());
+      setTotalMemBytes(hostInfo.getMemoryTotal());
+      setOsArch(hostInfo.getArchitecture());
+      setOsType(hostInfo.getOS());
+      setDisksInfo(hostInfo.getMounts());
+      setAvailableMemBytes(hostInfo.getFreeMemory());
+
+      saveIfPersisted();
     }
     finally {
       writeLock.unlock();
@@ -364,6 +324,8 @@ public class HostImpl implements Host {
     try {
       writeLock.lock();
       stateMachine.setCurrentState(state);
+      hostStateEntity.setCurrentState(state);
+      saveIfPersisted();
     }
     finally {
       writeLock.unlock();
@@ -410,9 +372,8 @@ public class HostImpl implements Host {
   public String getHostName() {
     try {
       readLock.lock();
-      return hostName;
-    }
-    finally {
+      return hostEntity.getHostName();
+    } finally {
       readLock.unlock();
     }
   }
@@ -421,9 +382,12 @@ public class HostImpl implements Host {
   public void setHostName(String hostName) {
     try {
       writeLock.lock();
-      this.hostName = hostName;
-    }
-    finally {
+      if (!isPersisted()) {
+        hostEntity.setHostName(hostName);
+      } else {
+        throw new UnsupportedOperationException("PK of persisted entity cannot be modified");
+      }
+    } finally {
       writeLock.unlock();
     }
   }
@@ -432,9 +396,8 @@ public class HostImpl implements Host {
   public String getIPv4() {
     try {
       readLock.lock();
-      return ipv4;
-    }
-    finally {
+      return hostEntity.getIpv4();
+    } finally {
       readLock.unlock();
     }
   }
@@ -443,9 +406,9 @@ public class HostImpl implements Host {
   public void setIPv4(String ip) {
     try {
       writeLock.lock();
-      this.ipv4 = ip;
-    }
-    finally {
+      hostEntity.setIpv4(ip);
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -454,9 +417,8 @@ public class HostImpl implements Host {
   public String getIPv6() {
     try {
       readLock.lock();
-      return ipv6;
-    }
-    finally {
+      return hostEntity.getIpv6();
+    } finally {
       readLock.unlock();
     }
   }
@@ -465,9 +427,9 @@ public class HostImpl implements Host {
   public void setIPv6(String ip) {
     try {
       writeLock.lock();
-      this.ipv6 = ip;
-    }
-    finally {
+      hostEntity.setIpv6(ip);
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -476,9 +438,8 @@ public class HostImpl implements Host {
   public int getCpuCount() {
     try {
       readLock.lock();
-      return cpuCount;
-    }
-    finally {
+      return hostEntity.getCpuCount();
+    } finally {
       readLock.unlock();
     }
   }
@@ -487,9 +448,9 @@ public class HostImpl implements Host {
   public void setCpuCount(int cpuCount) {
     try {
       writeLock.lock();
-      this.cpuCount = cpuCount;
-    }
-    finally {
+      hostEntity.setCpuCount(cpuCount);
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -498,9 +459,8 @@ public class HostImpl implements Host {
   public long getTotalMemBytes() {
     try {
       readLock.lock();
-      return totalMemBytes;
-    }
-    finally {
+      return hostEntity.getTotalMem();
+    } finally {
       readLock.unlock();
     }
   }
@@ -509,9 +469,9 @@ public class HostImpl implements Host {
   public void setTotalMemBytes(long totalMemBytes) {
     try {
       writeLock.lock();
-      this.totalMemBytes = totalMemBytes;
-    }
-    finally {
+      hostEntity.setTotalMem(totalMemBytes);
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -520,7 +480,7 @@ public class HostImpl implements Host {
   public long getAvailableMemBytes() {
     try {
       readLock.lock();
-      return availableMemBytes;
+      return hostStateEntity.getAvailableMem();
     }
     finally {
       readLock.unlock();
@@ -531,7 +491,8 @@ public class HostImpl implements Host {
   public void setAvailableMemBytes(long availableMemBytes) {
     try {
       writeLock.lock();
-      this.availableMemBytes = availableMemBytes;
+      hostStateEntity.setAvailableMem(availableMemBytes);
+      saveIfPersisted();
     }
     finally {
       writeLock.unlock();
@@ -542,9 +503,8 @@ public class HostImpl implements Host {
   public String getOsArch() {
     try {
       readLock.lock();
-      return osArch;
-    }
-    finally {
+      return hostEntity.getOsArch();
+    } finally {
       readLock.unlock();
     }
   }
@@ -553,9 +513,9 @@ public class HostImpl implements Host {
   public void setOsArch(String osArch) {
     try {
       writeLock.lock();
-      this.osArch = osArch;
-    }
-    finally {
+      hostEntity.setOsArch(osArch);
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -564,9 +524,8 @@ public class HostImpl implements Host {
   public String getOsInfo() {
     try {
       readLock.lock();
-      return osInfo;
-    }
-    finally {
+      return hostEntity.getOsInfo();
+    } finally {
       readLock.unlock();
     }
   }
@@ -575,9 +534,9 @@ public class HostImpl implements Host {
   public void setOsInfo(String osInfo) {
     try {
       writeLock.lock();
-      this.osInfo = osInfo;
-    }
-    finally {
+      hostEntity.setOsInfo(osInfo);
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -586,9 +545,8 @@ public class HostImpl implements Host {
   public String getOsType() {
     try {
       readLock.lock();
-      return osType;
-    }
-    finally {
+      return hostEntity.getOsType();
+    } finally {
       readLock.unlock();
     }
   }
@@ -597,9 +555,9 @@ public class HostImpl implements Host {
   public void setOsType(String osType) {
     try {
       writeLock.lock();
-      this.osType = osType;
-    }
-    finally {
+      hostEntity.setOsType(osType);
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -608,9 +566,8 @@ public class HostImpl implements Host {
   public List<DiskInfo> getDisksInfo() {
     try {
       readLock.lock();
-      return Collections.unmodifiableList(disksInfo);
-    }
-    finally {
+      return Collections.unmodifiableList(gson.<List<DiskInfo>>fromJson(hostEntity.getDisksInfo(), diskInfoType));
+    } finally {
       readLock.unlock();
     }
   }
@@ -619,9 +576,9 @@ public class HostImpl implements Host {
   public void setDisksInfo(List<DiskInfo> disksInfo) {
     try {
       writeLock.lock();
-      this.disksInfo = disksInfo;
-    }
-    finally {
+      hostEntity.setDisksInfo(gson.toJson(disksInfo, diskInfoType));
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -630,9 +587,8 @@ public class HostImpl implements Host {
   public HostHealthStatus getHealthStatus() {
     try {
       readLock.lock();
-      return healthStatus;
-    }
-    finally {
+      return gson.fromJson(hostStateEntity.getHealthStatus(), HostHealthStatus.class);
+    } finally {
       readLock.unlock();
     }
   }
@@ -641,9 +597,9 @@ public class HostImpl implements Host {
   public void setHealthStatus(HostHealthStatus healthStatus) {
     try {
       writeLock.lock();
-      this.healthStatus = healthStatus;
-    }
-    finally {
+      hostStateEntity.setHealthStatus(gson.toJson(healthStatus));
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -652,9 +608,9 @@ public class HostImpl implements Host {
   public Map<String, String> getHostAttributes() {
     try {
       readLock.lock();
-      return Collections.unmodifiableMap(hostAttributes);
-    }
-    finally {
+      return Collections.unmodifiableMap(
+              gson.<Map<String, String>>fromJson(hostEntity.getHostAttributes(), hostAttributesType));
+    } finally {
       readLock.unlock();
     }
   }
@@ -663,9 +619,10 @@ public class HostImpl implements Host {
   public void setHostAttributes(Map<String, String> hostAttributes) {
     try {
       writeLock.lock();
-      this.hostAttributes.putAll(hostAttributes);
-    }
-    finally {
+      //TODO should this add attributes and not replace them?
+      hostEntity.setHostAttributes(gson.toJson(hostAttributes, hostAttributesType));
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -674,9 +631,8 @@ public class HostImpl implements Host {
   public String getRackInfo() {
     try {
       readLock.lock();
-      return rackInfo;
-    }
-    finally {
+      return hostEntity.getRackInfo();
+    } finally {
       readLock.unlock();
     }
   }
@@ -685,9 +641,9 @@ public class HostImpl implements Host {
   public void setRackInfo(String rackInfo) {
     try {
       writeLock.lock();
-      this.rackInfo = rackInfo;
-    }
-    finally {
+      hostEntity.setRackInfo(rackInfo);
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -696,9 +652,8 @@ public class HostImpl implements Host {
   public long getLastRegistrationTime() {
     try {
       readLock.lock();
-      return lastRegistrationTime;
-    }
-    finally {
+      return hostEntity.getLastRegistrationTime();
+    } finally {
       readLock.unlock();
     }
   }
@@ -707,9 +662,9 @@ public class HostImpl implements Host {
   public void setLastRegistrationTime(long lastRegistrationTime) {
     try {
       writeLock.lock();
-      this.lastRegistrationTime = lastRegistrationTime;
-    }
-    finally {
+      this.hostEntity.setLastRegistrationTime(lastRegistrationTime);
+      saveIfPersisted();
+    } finally {
       writeLock.unlock();
     }
   }
@@ -718,7 +673,7 @@ public class HostImpl implements Host {
   public long getLastHeartbeatTime() {
     try {
       readLock.lock();
-      return lastHeartbeatTime;
+      return hostStateEntity.getLastHeartbeatTime();
     }
     finally {
       readLock.unlock();
@@ -729,7 +684,8 @@ public class HostImpl implements Host {
   public void setLastHeartbeatTime(long lastHeartbeatTime) {
     try {
       writeLock.lock();
-      this.lastHeartbeatTime = lastHeartbeatTime;
+      hostStateEntity.setLastHeartbeatTime(lastHeartbeatTime);
+      saveIfPersisted();
     }
     finally {
       writeLock.unlock();
@@ -740,7 +696,7 @@ public class HostImpl implements Host {
   public AgentVersion getAgentVersion() {
     try {
       readLock.lock();
-      return agentVersion;
+      return gson.fromJson(hostStateEntity.getAgentVersion(), AgentVersion.class);
     }
     finally {
       readLock.unlock();
@@ -751,7 +707,8 @@ public class HostImpl implements Host {
   public void setAgentVersion(AgentVersion agentVersion) {
     try {
       writeLock.lock();
-      this.agentVersion = agentVersion;
+      hostStateEntity.setAgentVersion(gson.toJson(agentVersion));
+      saveIfPersisted();
     }
     finally {
       writeLock.unlock();
@@ -771,26 +728,26 @@ public class HostImpl implements Host {
   }
 
   @Override
-  public synchronized HostResponse convertToResponse() {
-    HostResponse r = new HostResponse(hostName);
+  public HostResponse convertToResponse() {
     try {
       readLock.lock();
+      HostResponse r = new HostResponse(getHostName());
 
-      r.setAgentVersion(agentVersion);
-      r.setAvailableMemBytes(availableMemBytes);
-      r.setCpuCount(cpuCount);
+      r.setAgentVersion(getAgentVersion());
+      r.setAvailableMemBytes(getAvailableMemBytes());
+      r.setCpuCount(getCpuCount());
       r.setDisksInfo(getDisksInfo());
-      r.setHealthStatus(healthStatus);
+      r.setHealthStatus(getHealthStatus());
       r.setHostAttributes(getHostAttributes());
-      r.setIpv4(ipv4);
-      r.setIpv6(ipv6);
-      r.setLastHeartbeatTime(lastHeartbeatTime);
-      r.setLastRegistrationTime(lastRegistrationTime);
-      r.setOsArch(osArch);
-      r.setOsInfo(osInfo);
-      r.setOsType(osType);
-      r.setRackInfo(rackInfo);
-      r.setTotalMemBytes(totalMemBytes);
+      r.setIpv4(getIPv4());
+      r.setIpv6(getIPv6());
+      r.setLastHeartbeatTime(getLastHeartbeatTime());
+      r.setLastRegistrationTime(getLastRegistrationTime());
+      r.setOsArch(getOsArch());
+      r.setOsInfo(getOsInfo());
+      r.setOsType(getOsType());
+      r.setRackInfo(getRackInfo());
+      r.setTotalMemBytes(getTotalMemBytes());
 
       return r;
     }
@@ -799,4 +756,93 @@ public class HostImpl implements Host {
     }
   }
 
+  @Transactional
+  public void addToCluster(Cluster cluster) {
+    ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+    if (isPersisted()) {
+      hostEntity.getClusterEntities().add(clusterEntity);
+      clusterEntity.getHostEntities().add(hostEntity);
+      clusterDAO.merge(clusterEntity);
+      hostDAO.merge(hostEntity);
+      cluster.refresh();
+    } else {
+      Collection<ClusterEntity> clusters = hostEntity.getClusterEntities();
+      if (clusters == null) {
+        hostEntity.setClusterEntities(new ArrayList<ClusterEntity>());
+      }
+      hostEntity.getClusterEntities().add(clusterEntity);
+    }
+  }
+
+  /**
+   * Shows if Host is persisted to database
+   *
+   * @return true if persisted
+   */
+  @Override
+  public boolean isPersisted() {
+    try {
+      readLock.lock();
+      return persisted;
+    } finally {
+      readLock.unlock();
+    }
+  }
+
+  /**
+   * Save host to database and make all changes to be saved afterwards
+   */
+  @Override
+  @Transactional
+  public void persist() {
+    try {
+      writeLock.lock();
+      if (!persisted) {
+        hostDAO.create(hostEntity);
+        hostStateDAO.create(hostStateEntity);
+        if (!hostEntity.getClusterEntities().isEmpty()) {
+          for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
+            clusterEntity.getHostEntities().add(hostEntity);
+            clusterDAO.merge(clusterEntity);
+            try {
+              clusters.getClusterById(clusterEntity.getClusterId()).refresh();
+            } catch (AmbariException e) {
+              LOG.error(e);
+              throw new RuntimeException("Cluster '" + clusterEntity.getClusterId() + "' was removed", e);
+            }
+          }
+        }
+        hostEntity = hostDAO.merge(hostEntity);
+        hostStateEntity = hostStateDAO.merge(hostStateEntity);
+        persisted = true;
+      } else {
+        hostDAO.merge(hostEntity);
+        hostStateDAO.merge(hostStateEntity);
+      }
+    } finally {
+      writeLock.unlock();
+    }
+  }
+
+  @Override
+  public void refresh() {
+    try {
+      writeLock.lock();
+      if (isPersisted()) {
+        hostEntity = hostDAO.findByName(hostEntity.getHostName());
+        hostStateEntity = hostEntity.getHostStateEntity();
+        hostDAO.refresh(hostEntity);
+        hostStateDAO.refresh(hostStateEntity);
+      }
+    } finally {
+      writeLock.unlock();
+    }
+  }
+
+  private void saveIfPersisted() {
+    if (isPersisted()) {
+      hostDAO.merge(hostEntity);
+      hostStateDAO.merge(hostStateEntity);
+    }
+  }
 }

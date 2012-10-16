@@ -27,6 +27,7 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.state.HostState;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.EntityManager;
@@ -66,9 +67,9 @@ public class OrmTestHelper {
     host1.setHostName("test_host1");
     host2.setHostName("test_host2");
     host3.setHostName("test_host3");
-    host1.setIp("192.168.0.1");
-    host2.setIp("192.168.0.2");
-    host3.setIp("192.168.0.3");
+    host1.setIpv4("192.168.0.1");
+    host2.setIpv4("192.168.0.2");
+    host3.setIpv4("192.168.0.3");
 
     List<HostEntity> hostEntities = new ArrayList<HostEntity>();
     hostEntities.add(host1);
@@ -77,14 +78,14 @@ public class OrmTestHelper {
     clusterEntity.setHostEntities(hostEntities);
 
     //both sides of relation should be set when modifying in runtime
-    host1.setClusterEntity(clusterEntity);
-    host2.setClusterEntity(clusterEntity);
+    host1.setClusterEntities(Arrays.asList(clusterEntity));
+    host2.setClusterEntities(Arrays.asList(clusterEntity));
 
     HostStateEntity hostStateEntity1 = new HostStateEntity();
-    hostStateEntity1.setCurrentState("TEST_STATE1");
+    hostStateEntity1.setCurrentState(HostState.HEARTBEAT_LOST);
     hostStateEntity1.setHostEntity(host1);
     HostStateEntity hostStateEntity2 = new HostStateEntity();
-    hostStateEntity2.setCurrentState("TEST_STATE2");
+    hostStateEntity2.setCurrentState(HostState.HEALTHY);
     hostStateEntity2.setHostEntity(host2);
     host1.setHostStateEntity(hostStateEntity1);
     host2.setHostStateEntity(hostStateEntity2);
@@ -145,7 +146,7 @@ public class OrmTestHelper {
   public int getClusterSizeByHostName(String hostName) {
 
     Query query = getEntityManager().createQuery(
-            "SELECT host2 from HostEntity host join host.clusterEntity cluster join cluster.hostEntities host2 where host.hostName=:hostName");
+            "SELECT host2 from HostEntity host join host.clusterEntities clusters join clusters.hostEntities host2 where host.hostName=:hostName");
     query.setParameter("hostName", hostName);
 
     Collection hosts = query.getResultList();

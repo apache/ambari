@@ -22,25 +22,48 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class TestActionManager {
 
   private long requestId = 23;
   private long stageId = 31;
-  
+  private Injector injector;
+  private Clusters clusters;
+
+  @Before
+  public void setup() throws AmbariException {
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    clusters = injector.getInstance(Clusters.class);
+  }
+
+  @After
+  public void teardown() throws AmbariException {
+    injector.getInstance(PersistService.class).stop();
+  }
+
   @Test
   public void testActionResponse() {
     ActionDBAccessor db = new ActionDBInMemoryImpl();
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        new ClustersImpl(), db);
+        clusters, db);
     String hostname = "host1";
     populateActionDB(db, hostname);
     List<CommandReport> reports = new ArrayList<CommandReport>();

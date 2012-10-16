@@ -20,26 +20,25 @@ package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.*;
 
-@IdClass(HostComponentMappingEntityPK.class)
-@Table(name = "hostcomponentmapping", schema = "ambari", catalog = "")
+@javax.persistence.IdClass(HostComponentMappingEntityPK.class)
+@javax.persistence.Table(name = "hostcomponentmapping", schema = "ambari", catalog = "")
 @Entity
 public class HostComponentMappingEntity {
+  private Long clusterId;
 
-  private String clusterName = "";
-
-  @Column(name = "cluster_name", insertable = false, updatable = false)
+  @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   @Id
-  public String getClusterName() {
-    return clusterName;
+  public Long getClusterId() {
+    return clusterId;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
   }
 
   private String serviceName = "";
 
-  @Column(name = "service_name", nullable = false, insertable = false, updatable = false)
+  @javax.persistence.Column(name = "service_name", nullable = false, insertable = false, updatable = false)
   @Id
   public String getServiceName() {
     return serviceName;
@@ -51,7 +50,7 @@ public class HostComponentMappingEntity {
 
   private Integer hostComponentMappingId;
 
-  @Column(name = "host_component_mapping_id")
+  @javax.persistence.Column(name = "host_component_mapping_id", nullable = false, insertable = true, updatable = true, length = 10)
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   public Integer getHostComponentMappingId() {
@@ -64,7 +63,7 @@ public class HostComponentMappingEntity {
 
   private String hostComponentMappingSnapshot;
 
-  @Column(name = "host_component_mapping_snapshot")
+  @javax.persistence.Column(name = "host_component_mapping_snapshot", nullable = false, insertable = true, updatable = true)
   @Basic
   public String getHostComponentMappingSnapshot() {
     return hostComponentMappingSnapshot;
@@ -74,18 +73,6 @@ public class HostComponentMappingEntity {
     this.hostComponentMappingSnapshot = hostComponentMappingSnapshot;
   }
 
-  ClusterServiceEntity clusterServiceEntity;
-
-  @ManyToOne
-  @JoinColumns(value = {@JoinColumn(name = "cluster_name", referencedColumnName = "cluster_name"), @JoinColumn(name = "service_name", referencedColumnName = "service_name")})
-  public ClusterServiceEntity getClusterServiceEntity() {
-    return clusterServiceEntity;
-  }
-
-  public void setClusterServiceEntity(ClusterServiceEntity clusterServiceEntity) {
-    this.clusterServiceEntity = clusterServiceEntity;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -93,9 +80,8 @@ public class HostComponentMappingEntity {
 
     HostComponentMappingEntity that = (HostComponentMappingEntity) o;
 
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
-    if (hostComponentMappingId != null ? !hostComponentMappingId.equals(that.hostComponentMappingId) : that.hostComponentMappingId != null)
-      return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
+    if (hostComponentMappingId != null ? !hostComponentMappingId.equals(that.hostComponentMappingId) : that.hostComponentMappingId != null) return false;
     if (hostComponentMappingSnapshot != null ? !hostComponentMappingSnapshot.equals(that.hostComponentMappingSnapshot) : that.hostComponentMappingSnapshot != null)
       return false;
     if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
@@ -105,10 +91,22 @@ public class HostComponentMappingEntity {
 
   @Override
   public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
+    int result = clusterId !=null ? clusterId.intValue() : 0;
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (hostComponentMappingId != null ? hostComponentMappingId.hashCode() : 0);
     result = 31 * result + (hostComponentMappingSnapshot != null ? hostComponentMappingSnapshot.hashCode() : 0);
     return result;
+  }
+
+  private ClusterServiceEntity clusterServiceEntity;
+
+  @ManyToOne
+  @javax.persistence.JoinColumns({@javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false), @javax.persistence.JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)})
+  public ClusterServiceEntity getClusterServiceEntity() {
+    return clusterServiceEntity;
+  }
+
+  public void setClusterServiceEntity(ClusterServiceEntity clusterServiceEntity) {
+    this.clusterServiceEntity = clusterServiceEntity;
   }
 }

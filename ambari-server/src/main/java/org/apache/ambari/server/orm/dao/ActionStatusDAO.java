@@ -34,6 +34,10 @@ public class ActionStatusDAO {
     return entityManagerProvider.get().find(ActionStatusEntity.class, actionStatusEntityPK);
   }
 
+  public void refresh(ActionStatusEntity actionStatusEntity) {
+    entityManagerProvider.get().refresh(actionStatusEntity);
+  }
+
   @Transactional
   public void create(ActionStatusEntity actionStatusEntity) {
     entityManagerProvider.get().persist(actionStatusEntity);

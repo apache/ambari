@@ -24,11 +24,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
@@ -53,10 +58,13 @@ public class ClusterTest {
   String h1 = "h1";
   String s1 = "s1";
   String sc1 = "sc1";
+  private Injector injector;
 
   @Before
   public void setup() throws AmbariException {
-    clusters = new ClustersImpl();
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    clusters = injector.getInstance(Clusters.class);
     clusters.addCluster("c1");
     c1 = clusters.getCluster("c1");
     Assert.assertEquals("c1", c1.getClusterName());
@@ -66,8 +74,7 @@ public class ClusterTest {
 
   @After
   public void teardown() {
-    clusters = null;
-    c1 = null;
+    injector.getInstance(PersistService.class).stop();
   }
 
   @Test
@@ -151,12 +158,12 @@ public class ClusterTest {
 
     Assert.assertNotNull(c2);
 
-    Assert.assertEquals(clusterName.hashCode(), c2.getClusterId());
+//    Assert.assertEquals(clusterName.hashCode(), c2.getClusterId()); This is not true
     Assert.assertEquals(clusterName, c2.getClusterName());
 
     c2.setClusterName("foo2");
     Assert.assertEquals("foo2", c2.getClusterName());
-    Assert.assertEquals(clusterName.hashCode(), c2.getClusterId());
+//    Assert.assertEquals(clusterName.hashCode(), c2.getClusterId());
 
     Assert.assertNotNull(c2.getDesiredStackVersion());
     Assert.assertEquals("", c2.getDesiredStackVersion().getStackVersion());

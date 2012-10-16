@@ -20,12 +20,11 @@ package org.apache.ambari.server.controller;
 
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -34,14 +33,17 @@ import org.apache.ambari.server.actionmanager.ActionDBInMemoryImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ActionQueue;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,21 +56,22 @@ public class AmbariManagementControllerTest {
   private AmbariManagementController controller;
   private Clusters clusters;
   private ActionDBAccessor db;
+  private Injector injector;
 
   @Before
   public void setup() {
-    clusters = new ClustersImpl();
-    db = new ActionDBInMemoryImpl();
-    ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        clusters, db);
-    controller = new AmbariManagementControllerImpl(am, clusters);
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    clusters = injector.getInstance(Clusters.class);
+//    ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
+//        clusters, db);
+    db = injector.getInstance(ActionDBAccessor.class);
+    controller = injector.getInstance(AmbariManagementController.class);
   }
 
   @After
   public void teardown() {
-    controller = null;
-    clusters = null;
-    db = null;
+    injector.getInstance(PersistService.class).stop();
   }
 
   private void createCluster(String clusterName) throws AmbariException {
@@ -247,8 +250,11 @@ public class AmbariManagementControllerTest {
         State.INIT);
 
     String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").persist();
     String host2 = "h2";
-
+    clusters.addHost(host2);
+    clusters.getHost("h2").persist();
     try {
       createServiceComponentHost(clusterName, serviceName, componentName1,
           host1, State.INSTALLING);

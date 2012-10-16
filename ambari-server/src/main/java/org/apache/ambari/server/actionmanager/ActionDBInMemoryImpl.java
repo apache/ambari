@@ -49,6 +49,7 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   public synchronized List<Stage> getAllStages(long requestId) {
     List<Stage> l = new ArrayList<Stage>();
     for (Stage s: stageList) {
+      System.err.println(s.getRequestId());
       if (s.getRequestId() == requestId) {
         l.add(s);
       }
@@ -98,6 +99,7 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   @Override
   public synchronized void persistActions(List<Stage> stages) {
     for (Stage s: stages) {
+      System.err.println("adding stage "+s.getRequestId()+" "+s.getStageId());
       stageList.add(s);
     }
   }

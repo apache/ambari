@@ -51,6 +51,10 @@ public class ServiceConfigDAO {
     return query.getResultList();
   }
 
+  public void refresh(ServiceConfigEntity serviceConfigEntity) {
+    entityManagerProvider.get().refresh(serviceConfigEntity);
+  }
+
   @Transactional
   public void create(ServiceConfigEntity serviceConfigEntity) {
     entityManagerProvider.get().persist(serviceConfigEntity);

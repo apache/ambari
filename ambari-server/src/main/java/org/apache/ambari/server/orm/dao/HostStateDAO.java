@@ -33,6 +33,10 @@ public class HostStateDAO {
     return entityManagerProvider.get().find(HostStateEntity.class, hostName);
   }
 
+  public void refresh(HostStateEntity hostStateEntity) {
+    entityManagerProvider.get().refresh(hostStateEntity);
+  }
+
   @Transactional
   public void create(HostStateEntity hostStateEntity) {
     entityManagerProvider.get().persist(hostStateEntity);

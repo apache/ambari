@@ -22,9 +22,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,15 +43,30 @@ public class ServiceComponentImpl implements ServiceComponent {
       LoggerFactory.getLogger(ServiceComponentImpl.class);
 
   private final Service service;
-  private final String componentName;
+
+  @Inject
+  Gson gson;
+  @Inject
+  private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
+  @Inject
+  private ClusterServiceDAO clusterServiceDAO;
+  @Inject
+  private HostComponentStateDAO hostComponentStateDAO;
+  @Inject
+  private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
+  @Inject
+  private ServiceComponentHostFactory serviceComponentHostFactory;
+
+
+  boolean persisted = false;
+  private ServiceComponentDesiredStateEntity desiredStateEntity;
 
   private Map<String, Config> configs;
 
-  private State desiredState;
   private Map<String, Config>  desiredConfigs;
-  private StackVersion desiredStackVersion;
 
   private Map<String, ServiceComponentHost> hostComponents;
+  private Injector injector;
 
 
   private void init() {
@@ -50,22 +74,54 @@ public class ServiceComponentImpl implements ServiceComponent {
     // initialize from DB
   }
 
-  public ServiceComponentImpl(Service service,
-      String componentName) {
+  @AssistedInject
+  public ServiceComponentImpl(@Assisted Service service, @Assisted String componentName, Injector injector) {
+    this.injector = injector;
+    injector.injectMembers(this);
     this.service = service;
-    this.componentName = componentName;
-    this.desiredState = State.INIT;
+    this.desiredStateEntity = new ServiceComponentDesiredStateEntity();
+    desiredStateEntity.setComponentName(componentName);
+    desiredStateEntity.setDesiredState(State.INIT);
+
     this.configs = new HashMap<String, Config>();
     this.desiredConfigs = new HashMap<String, Config>();
-    this.desiredStackVersion = new StackVersion("");
+    setDesiredStackVersion(new StackVersion(""));
+
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
     init();
   }
 
+  @AssistedInject
+  public ServiceComponentImpl(@Assisted Service service,
+                              @Assisted ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity,
+                              Injector injector) {
+    this.injector = injector;
+    injector.injectMembers(this);
+    this.service = service;
+    this.desiredStateEntity = serviceComponentDesiredStateEntity;
+
+    this.configs = new HashMap<String, Config>();
+    this.desiredConfigs = new HashMap<String, Config>();
+    this.hostComponents = new HashMap<String, ServiceComponentHost>();
+    for (HostComponentStateEntity hostComponentStateEntity : desiredStateEntity.getHostComponentStateEntities()) {
+      HostComponentDesiredStateEntityPK pk = new HostComponentDesiredStateEntityPK();
+      pk.setClusterId(hostComponentStateEntity.getClusterId());
+      pk.setServiceName(hostComponentStateEntity.getServiceName());
+      pk.setComponentName(hostComponentStateEntity.getComponentName());
+      pk.setHostName(hostComponentStateEntity.getHostName());
+
+      HostComponentDesiredStateEntity hostComponentDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(pk);
+
+      hostComponents.put(hostComponentStateEntity.getComponentName(),
+          serviceComponentHostFactory.createExisting(this, hostComponentStateEntity, hostComponentDesiredStateEntity));
+    }
+
+    persisted = true;
+  }
 
   @Override
   public synchronized String getName() {
-    return componentName;
+    return desiredStateEntity.getComponentName();
   }
 
   @Override
@@ -113,7 +169,7 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", clusterName=" + service.getCluster().getClusterName()
           + ", clusterId=" + service.getCluster().getClusterId()
           + ", serviceName=" + service.getName()
-          + ", serviceComponentName=" + componentName
+          + ", serviceComponentName=" + getName()
           + ", hostname=" + hostComponent.getHostName());
     }
     if (hostComponents.containsKey(hostComponent.getHostName())) {
@@ -121,11 +177,34 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", clusterName=" + service.getCluster().getClusterName()
           + ", clusterId=" + service.getCluster().getClusterId()
           + ", serviceName=" + service.getName()
-          + ", serviceComponentName=" + componentName
+          + ", serviceComponentName=" + getName()
           + ", hostname=" + hostComponent.getHostName());
     }
-    this.hostComponents.put(hostComponent.getHostName(),
-        hostComponent);
+    this.hostComponents.put(hostComponent.getHostName(), hostComponent);
+  }
+
+  public synchronized ServiceComponentHost addServiceComponentHost(String hostName) throws AmbariException {
+    // TODO validation
+    // TODO ensure host belongs to cluster
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Adding a ServiceComponentHost to ServiceComponent"
+          + ", clusterName=" + service.getCluster().getClusterName()
+          + ", clusterId=" + service.getCluster().getClusterId()
+          + ", serviceName=" + service.getName()
+          + ", serviceComponentName=" + getName()
+          + ", hostname=" + hostName);
+    }
+    if (hostComponents.containsKey(hostName)) {
+      throw new AmbariException("Cannot add duplicate ServiceComponentHost"
+          + ", clusterName=" + service.getCluster().getClusterName()
+          + ", clusterId=" + service.getCluster().getClusterId()
+          + ", serviceName=" + service.getName()
+          + ", serviceComponentName=" + getName()
+          + ", hostname=" + hostName);
+    }
+    ServiceComponentHost hostComponent = serviceComponentHostFactory.createNew(this, hostName, true);
+    this.hostComponents.put(hostComponent.getHostName(), hostComponent);
+    return hostComponent;
   }
 
   @Override
@@ -133,28 +212,29 @@ public class ServiceComponentImpl implements ServiceComponent {
     throws AmbariException {
     if (!hostComponents.containsKey(hostname)) {
       throw new ServiceComponentHostNotFoundException(getClusterName(),
-          getServiceName(), componentName, hostname);
+          getServiceName(), getName(), hostname);
     }
     return this.hostComponents.get(hostname);
   }
 
   @Override
   public synchronized State getDesiredState() {
-    return desiredState;
+    return desiredStateEntity.getDesiredState();
   }
 
   @Override
   public synchronized void setDesiredState(State state) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredState of ServiceComponent"
+      LOG.debug("Setting DesiredState of Service"
           + ", clusterName=" + service.getCluster().getClusterName()
           + ", clusterId=" + service.getCluster().getClusterId()
           + ", serviceName=" + service.getName()
-          + ", serviceComponentName=" + componentName
-          + ", oldDesiredState=" + this.desiredState
+          + ", serviceComponentName=" + getName()
+          + ", oldDesiredState=" + getDesiredState()
           + ", newDesiredState=" + state);
     }
-    this.desiredState = state;
+    desiredStateEntity.setDesiredState(state);
+    saveIfPersisted();
   }
 
   @Override
@@ -169,21 +249,22 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public synchronized StackVersion getDesiredStackVersion() {
-    return desiredStackVersion;
+    return gson.fromJson(desiredStateEntity.getDesiredStackVersion(), StackVersion.class);
   }
 
   @Override
   public synchronized void setDesiredStackVersion(StackVersion stackVersion) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredStackVersion of ServiceComponent"
+      LOG.debug("Setting DesiredStackVersion of Service"
           + ", clusterName=" + service.getCluster().getClusterName()
           + ", clusterId=" + service.getCluster().getClusterId()
           + ", serviceName=" + service.getName()
-          + ", serviceComponentName=" + componentName
-          + ", oldDesiredStackVersion=" + this.desiredStackVersion
+          + ", serviceComponentName=" + getName()
+          + ", oldDesiredStackVersion=" + getDesiredStackVersion()
           + ", newDesiredStackVersion=" + stackVersion);
     }
-    this.desiredStackVersion = stackVersion;
+    desiredStateEntity.setDesiredStackVersion(gson.toJson(stackVersion));
+    saveIfPersisted();
   }
 
   private synchronized Map<String, String> getConfigVersions() {
@@ -198,7 +279,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   public synchronized ServiceComponentResponse convertToResponse() {
     ServiceComponentResponse r  = new ServiceComponentResponse(
         getClusterId(), service.getCluster().getClusterName(),
-        service.getName(), componentName, getConfigVersions(),
+        service.getName(), getName(), getConfigVersions(),
         getDesiredStackVersion().getStackVersion(),
         getDesiredState().toString());
     return r;
@@ -211,12 +292,12 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public synchronized void debugDump(StringBuilder sb) {
-    sb.append("ServiceComponent={ serviceComponentName=" + componentName
+    sb.append("ServiceComponent={ serviceComponentName=" + getName()
         + ", clusterName=" + service.getCluster().getClusterName()
         + ", clusterId=" + service.getCluster().getClusterId()
         + ", serviceName=" + service.getName()
-        + ", desiredStackVersion=" + desiredStackVersion
-        + ", desiredState=" + desiredState
+        + ", desiredStackVersion=" + getDesiredStackVersion()
+        + ", desiredState=" + getDesiredState().toString()
         + ", hostcomponents=[ ");
     boolean first = true;
     for(ServiceComponentHost sch : hostComponents.values()) {
@@ -231,4 +312,51 @@ public class ServiceComponentImpl implements ServiceComponent {
     sb.append(" ] }");
   }
 
+  @Override
+  public synchronized boolean isPersisted() {
+      return persisted;
+  }
+
+  @Override
+  @Transactional
+  public synchronized void persist() {
+    if (!persisted) {
+      service.persist(); //TODO is this correct?
+
+      ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
+      pk.setClusterId(service.getClusterId());
+      pk.setServiceName(service.getName());
+      ClusterServiceEntity serviceEntity = clusterServiceDAO.findByPK(pk);
+
+      desiredStateEntity.setClusterServiceEntity(serviceEntity);
+      serviceComponentDesiredStateDAO.create(desiredStateEntity);
+      clusterServiceDAO.merge(serviceEntity);
+      desiredStateEntity = serviceComponentDesiredStateDAO.merge(desiredStateEntity);
+      service.refresh();
+      persisted = true;
+    } else {
+      saveIfPersisted();
+    }
+  }
+
+  @Override
+  public void refresh() {
+    if (isPersisted()) {
+      ServiceComponentDesiredStateEntityPK pk = new ServiceComponentDesiredStateEntityPK();
+      pk.setComponentName(getName());
+      pk.setClusterId(getClusterId());
+      pk.setServiceName(getServiceName());
+      desiredStateEntity = serviceComponentDesiredStateDAO.findByPK(pk);
+      serviceComponentDesiredStateDAO.refresh(desiredStateEntity);
+    }
+  }
+
+  @Transactional
+  private void saveIfPersisted() {
+    if (isPersisted()) {
+      serviceComponentDesiredStateDAO.merge(desiredStateEntity);
+    }
+  }
+
+  
 }

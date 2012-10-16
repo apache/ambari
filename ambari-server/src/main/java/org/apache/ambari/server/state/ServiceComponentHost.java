@@ -21,6 +21,7 @@ package org.apache.ambari.server.state;
 import java.util.List;
 import java.util.Map;
 
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.job.Job;
@@ -97,6 +98,12 @@ public interface ServiceComponentHost {
 
   public ServiceComponentHostResponse convertToResponse();
 
-  public void debugDump(StringBuilder sb);
+  boolean isPersisted();
 
+  @Transactional
+  void persist();
+
+  void refresh();
+
+  public void debugDump(StringBuilder sb);
 }

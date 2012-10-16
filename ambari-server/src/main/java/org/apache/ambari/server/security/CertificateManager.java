@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.text.MessageFormat;
 import java.util.Map;
 
+import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -38,12 +39,12 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class CertificateManager {
-	
+
   @Inject Configuration configs;
-	
+
   private static final Log LOG = LogFactory.getLog(CertificateManager.class);
-	
-	
+
+
   private static final String GEN_SRVR_KEY = "openssl genrsa -des3 " +
   		"-passout pass:{0} -out {1}/{2} 4096 ";
   private static final String GEN_SRVR_REQ = "openssl req -passin pass:{0} " +
@@ -61,16 +62,16 @@ public class CertificateManager {
    */
   public void initRootCert() {
     LOG.info("Initialization of root certificate");
-		
+
     boolean certExists = isCertExists();
-		
+
     LOG.info("Certificate exists:" + certExists);
-		
-	if (!certExists) {
+
+    if (!certExists) {
       generateServerCertificate();
-	  }
+    }
   }
-	
+
   /**
    * Checks root certificate state.
    * @return "true" if certificate exists
@@ -81,6 +82,9 @@ public class CertificateManager {
     String srvrKstrDir = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY);
     String srvrCrtName = configsMap.get(Configuration.SRVR_CRT_NAME_KEY);
     File certFile = new File(srvrKstrDir + File.separator + srvrCrtName);
+    LOG.debug("srvrKstrDir = " + srvrKstrDir);
+    LOG.debug("srvrCrtName = " + srvrCrtName);
+    LOG.debug("certFile = " + certFile.getAbsolutePath());
 
 	return certFile.exists();
 	}
@@ -88,8 +92,10 @@ public class CertificateManager {
 
   /**
    * Runs os command
+   *
+   * @return command execution exit code
    */
-  private void runCommand(String command) {
+  private int runCommand(String command) {
 	  LOG.info("Executing command:" + command);
 	  String line = null;
       Process process = null;
@@ -98,21 +104,22 @@ public class CertificateManager {
         BufferedReader br = new BufferedReader(new InputStreamReader(
             process.getInputStream()));
 
-        while ((line = br.readLine()) != null) {
-          LOG.info(line);
-        }
-
-        try {
-          process.waitFor();
-        }
-        catch (InterruptedException e) {
-          e.printStackTrace();
-        }
+      while ((line = br.readLine()) != null) {
+        LOG.info(line);
       }
-      catch (IOException e){
+
+      try {
+        process.waitFor();
+        ShellCommandUtil.LogOpenSslExitCode(command, process.exitValue());
+        return process.exitValue(); //command is executed
+      } catch (InterruptedException e) {
         e.printStackTrace();
       }
-	
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return -1;//some exception occurred
+
   }
 
   private void generateServerCertificate() {
@@ -130,16 +137,16 @@ public class CertificateManager {
 
     String command = MessageFormat.format(GEN_SRVR_KEY,scriptArgs);
 	runCommand(command);
-	
+
     command = MessageFormat.format(GEN_SRVR_REQ,scriptArgs);
 	runCommand(command);
-	
+
     command = MessageFormat.format(SIGN_SRVR_CRT,scriptArgs);
 	runCommand(command);
-	
+
     command = MessageFormat.format(EXPRT_KSTR,scriptArgs);
 	runCommand(command);
-	
+
 	}
 
   /**
@@ -148,7 +155,7 @@ public class CertificateManager {
    */
   public String getServerCert() {
     Map<String, String> configsMap = configs.getConfigsMap();
-    File certFile = new File(configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) + 
+    File certFile = new File(configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) +
         File.separator + configsMap.get(Configuration.SRVR_CRT_NAME_KEY));
     String srvrCrtContent = null;
     try {
@@ -164,7 +171,8 @@ public class CertificateManager {
    * Adds agent certificate to server keystore
    * @return string with agent signed certificate content
    */
-  public String signAgentCrt(String agentHostname, String agentCrtReqContent, String passphraseAgent) {
+  public SignCertResponse signAgentCrt(String agentHostname, String agentCrtReqContent, String passphraseAgent) {
+    SignCertResponse response = new SignCertResponse();
     LOG.info("Signing of agent certificate");
     LOG.info("Verifying passphrase");
 
@@ -176,9 +184,11 @@ public class CertificateManager {
     System.out.println(passphraseSrvr);
     System.out.println(passphraseAgent);
 
-    if (!passphraseAgent.equals(passphraseSrvr)) {
+    if (!passphraseSrvr.equals(passphraseAgent)) {
       LOG.warn("Incorrect passphrase from agent");
-      return "";
+      response.setResult(SignCertResponse.ERROR_STATUS);
+      response.setMessage("Incorrect passphrase from agent");
+      return response;
     }
 
     Map<String, String> configsMap = configs.getConfigsMap();
@@ -190,7 +200,7 @@ public class CertificateManager {
     String agentCrtName = agentHostname + ".crt";
 
 
-    File agentCrtReqFile = new File(srvrKstrDir + File.separator + 
+    File agentCrtReqFile = new File(srvrKstrDir + File.separator +
         agentCrtReqName);
     try {
 		FileUtils.writeStringToFile(agentCrtReqFile, agentCrtReqContent);
@@ -203,10 +213,16 @@ public class CertificateManager {
 
     String command = MessageFormat.format(SIGN_AGENT_CRT,scriptArgs);
 
-    LOG.error(command);
+    LOG.debug(command);
 
-	runCommand(command);
-	
+    int commandExitCode = runCommand(command); // ssl command execution
+    if(commandExitCode != 0) {
+      response.setResult(SignCertResponse.ERROR_STATUS);
+      response.setMessage(ShellCommandUtil.getOpenSslCommandResult(command, commandExitCode));
+      //LOG.warn(ShellCommandUtil.getOpenSslCommandResult(command, commandExitCode));
+      return response;
+    }
+
 	File agentCrtFile = new File(srvrKstrDir + File.separator + agentCrtName);
 	String agentCrtContent = "";
 	try {
@@ -214,8 +230,13 @@ public class CertificateManager {
 	} catch (IOException e) {
 		e.printStackTrace();
 		LOG.error("Error reading signed agent certificate");
+    response.setResult(SignCertResponse.ERROR_STATUS);
+    response.setMessage("Error reading signed agent certificate");
+    return response;
 	}
-
-    return agentCrtContent;
+    response.setResult(SignCertResponse.OK_STATUS);
+    response.setSignedCa(agentCrtContent);
+    //LOG.info(ShellCommandUtil.getOpenSslCommandResult(command, commandExitCode));
+    return response;
 	}
 }

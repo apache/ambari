@@ -20,19 +20,41 @@ package org.apache.ambari.server.agent;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBInMemoryImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.HostStatus.Status;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.ambari.server.state.host.HostImpl;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class TestHeartbeatHandler {
+
+  private Injector injector;
+  private Clusters clusters;
+
+  @Before
+  public void setup() throws AmbariException{
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    clusters = injector.getInstance(Clusters.class);
+  }
+
+  @After
+  public void teardown() throws AmbariException {
+    injector.getInstance(PersistService.class).stop();
+  }
 
   @Test
   public void testHeartbeat() throws AmbariException {
@@ -49,7 +71,8 @@ public class TestHeartbeatHandler {
     HeartBeat hb = new HeartBeat();
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, "I am ok"));
     hb.setHostname(hostname);
-    Host hostObject = new HostImpl(hostname);
+    clusters.addHost(hostname);
+    Host hostObject = clusters.getHost(hostname);
     hostObject.setState(HostState.UNHEALTHY);
     when(fsm.getHost(hostname)).thenReturn(hostObject);
     handler.handleHeartBeat(hb);
@@ -65,7 +88,8 @@ public class TestHeartbeatHandler {
     Clusters fsm = mock(Clusters.class);
     String hostname = "host1";
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am);
-    Host hostObject = new HostImpl(hostname);
+    clusters.addHost(hostname);
+    Host hostObject = clusters.getHost(hostname);
     when(fsm.getHost(hostname)).thenReturn(hostObject);
 
     Register reg = new Register();
@@ -82,7 +106,7 @@ public class TestHeartbeatHandler {
   public void testRegisterNewNode() throws AmbariException, InvalidStateTransitonException {
     ActionManager am = new ActionManager(0, 0, null, null,
         new ActionDBInMemoryImpl());
-    Clusters fsm = new ClustersImpl();
+    Clusters fsm = clusters;
     String hostname = "host1";
     fsm.addHost(hostname);
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am);

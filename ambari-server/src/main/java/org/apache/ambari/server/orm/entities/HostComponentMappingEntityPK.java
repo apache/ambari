@@ -23,23 +23,22 @@ import javax.persistence.Id;
 import java.io.Serializable;
 
 public class HostComponentMappingEntityPK implements Serializable {
+  private Long clusterId;
 
-  private String clusterName;
-
+  @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   @Id
-  @Column(name = "cluster_name")
-  public String getClusterName() {
-    return clusterName;
+  public Long getClusterId() {
+    return clusterId;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setClusterId(Long clusterId) {
+    this.clusterId = clusterId;
   }
 
   private String serviceName;
 
   @Id
-  @Column(name = "service_name")
+  @Column(name = "service_name", nullable = false, insertable = true, updatable = true)
   public String getServiceName() {
     return serviceName;
   }
@@ -51,7 +50,7 @@ public class HostComponentMappingEntityPK implements Serializable {
   private Integer hostComponentMappingId;
 
   @Id
-  @Column(name = "host_component_mapping_id")
+  @Column(name = "host_component_mapping_id", nullable = false, insertable = true, updatable = true, length = 10)
   public Integer getHostComponentMappingId() {
     return hostComponentMappingId;
   }
@@ -67,9 +66,8 @@ public class HostComponentMappingEntityPK implements Serializable {
 
     HostComponentMappingEntityPK that = (HostComponentMappingEntityPK) o;
 
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
-    if (hostComponentMappingId != null ? !hostComponentMappingId.equals(that.hostComponentMappingId) : that.hostComponentMappingId != null)
-      return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
+    if (hostComponentMappingId != null ? !hostComponentMappingId.equals(that.hostComponentMappingId) : that.hostComponentMappingId != null) return false;
     if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
 
     return true;
@@ -77,9 +75,9 @@ public class HostComponentMappingEntityPK implements Serializable {
 
   @Override
   public int hashCode() {
-    int result = clusterName != null ? clusterName.hashCode() : 0;
+    int result = clusterId !=null ? clusterId.intValue() : 0;
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
-    result = 31 * result + (hostComponentMappingId != null ? hostComponentMappingId.hashCode() : 0);
+    result = 31 * result + hostComponentMappingId;
     return result;
   }
 }

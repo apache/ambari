@@ -47,7 +47,7 @@ public class GetResource {
   private static ResourceManager resMan;
 
   @Inject
-  static void init(ResourceManager instance) {
+  public static void init(ResourceManager instance) {
 	  resMan = instance;
   }
 

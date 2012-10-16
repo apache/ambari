@@ -1,10 +1,3 @@
-package org.apache.ambari.server.orm.entities;
-
-import javax.persistence.*;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.Set;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,9 +15,14 @@ import java.util.Set;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.orm.entities;
 
-@IdClass(UserEntityPK.class)
-@javax.persistence.Table(name = "users", schema = "ambari", catalog = "")
+import javax.persistence.*;
+import java.util.Date;
+import java.util.Set;
+
+@IdClass(org.apache.ambari.server.orm.entities.UserEntityPK.class)
+@Table(name = "users", schema = "ambari", catalog = "")
 @Entity
 @NamedQueries({
         @NamedQuery(name = "localUserByName", query = "SELECT user FROM UserEntity user where lower(user.userName)=:username AND user.ldapUser=false"),
@@ -34,7 +32,7 @@ public class UserEntity {
 
   private String userName;
 
-  @javax.persistence.Column(name = "user_name")
+  @Column(name = "user_name")
   @Id
   public String getUserName() {
     return userName;
@@ -46,7 +44,7 @@ public class UserEntity {
 
   private Boolean ldapUser = false;
 
-  @javax.persistence.Column(name = "ldap_user")
+  @Column(name = "ldap_user")
   @Id
   public Boolean getLdapUser() {
     return ldapUser;
@@ -58,7 +56,7 @@ public class UserEntity {
 
   private String userPassword;
 
-  @javax.persistence.Column(name = "user_password")
+  @Column(name = "user_password")
   @Basic
   public String getUserPassword() {
     return userPassword;
@@ -70,7 +68,7 @@ public class UserEntity {
 
   private Date createTime = new Date();
 
-  @javax.persistence.Column(name = "create_time")
+  @Column(name = "create_time")
   @Basic
   @Temporal(value = TemporalType.TIMESTAMP)
   public Date getCreateTime() {
@@ -107,7 +105,7 @@ public class UserEntity {
 
   private Set<RoleEntity> roleEntities;
 
-  @javax.persistence.JoinTable(name = "user_roles", catalog = "", schema = "ambari",
+  @JoinTable(name = "user_roles", catalog = "", schema = "ambari",
           joinColumns = {@JoinColumn(name = "user_name", referencedColumnName = "user_name"),
                   @JoinColumn(name = "ldap_user", referencedColumnName = "ldap_user")},
           inverseJoinColumns = {@JoinColumn(name = "role_name", referencedColumnName = "role_name")})

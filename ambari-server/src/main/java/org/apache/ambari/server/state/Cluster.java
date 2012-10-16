@@ -87,6 +87,9 @@ public interface Cluster {
 
   public ClusterResponse convertToResponse();
 
+  public void refresh();
+
   public void debugDump(StringBuilder sb);
 
+  Service addService(String serviceName) throws AmbariException;
 }

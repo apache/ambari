@@ -30,11 +30,14 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class SecurityFilter implements Filter {
 	
   //Allowed pathes for one way auth https
   private static String CA = "/ca";
+  private final static Log LOG = LogFactory.getLog(SecurityFilter.class);
 
   @Override
   public void destroy() {
@@ -47,14 +50,17 @@ public class SecurityFilter implements Filter {
     HttpServletRequest req = (HttpServletRequest) serReq;
     String reqUrl = req.getRequestURL().toString();
 
-    System.out.println("req url:" + reqUrl);
-
+    //System.out.println("req url:" + reqUrl);
+    LOG.info("doFilter: Incoming request " + reqUrl);
 	
     if (serReq.getLocalPort() == AmbariServer.CLIENT_ONE_WAY) {
-      if (isRequestAllowed(reqUrl))
+      if (isRequestAllowed(reqUrl)) {
+        LOG.info("Request is allowed");
         filtCh.doFilter(serReq, serResp);
-      else
-        System.out.println("Such request is not allowed on this port");
+      }
+      else {
+        LOG.warn("This request is not allowed on this port");
+      }
 
 	}
 	else
@@ -67,12 +73,13 @@ public class SecurityFilter implements Filter {
 
   private boolean isRequestAllowed(String reqUrl) {
 	try {
+
       boolean isMatch = Pattern.matches("https://[A-z]*:[0-9]*/cert/ca[/]*", reqUrl);
 		
       if (isMatch)
     	  return true;
 		
-		 isMatch = Pattern.matches("https://[A-z]*:[0-9]*/certs/[A-z0-9-]*", reqUrl);
+		 isMatch = Pattern.matches("https://[A-z]*:[0-9]*/certs/[A-z0-9-.]*", reqUrl);
 		
 		 if (isMatch)
 			 return true;
@@ -84,6 +91,7 @@ public class SecurityFilter implements Filter {
 		
 	} catch (Exception e) {
 	}
+  LOG.warn("Request " + reqUrl + " doesn't match any pattern.");
 	return false;
   }
 }

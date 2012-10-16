@@ -34,6 +34,10 @@ public class HostComponentMappingDAO {
     return entityManagerProvider.get().find(HostComponentMappingEntity.class, primaryKey);
   }
 
+  public void refresh(HostComponentMappingEntity hostComponentMappingEntity) {
+    entityManagerProvider.get().refresh(hostComponentMappingEntity);
+  }
+
   @Transactional
   public void create(HostComponentMappingEntity hostComponentMappingEntity) {
     entityManagerProvider.get().persist(hostComponentMappingEntity);

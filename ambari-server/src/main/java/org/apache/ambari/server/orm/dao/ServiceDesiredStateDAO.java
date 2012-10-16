@@ -34,6 +34,10 @@ public class ServiceDesiredStateDAO {
     return entityManagerProvider.get().find(ServiceDesiredStateEntity.class, primaryKey);
   }
 
+  public void refresh(ServiceDesiredStateEntity serviceDesiredStateEntity) {
+    entityManagerProvider.get().refresh(serviceDesiredStateEntity);
+  }
+
   @Transactional
   public void create(ServiceDesiredStateEntity serviceDesiredStateEntity) {
     entityManagerProvider.get().persist(serviceDesiredStateEntity);

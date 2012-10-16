@@ -23,11 +23,15 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
-import org.apache.ambari.server.state.AgentVersion;
-import org.apache.ambari.server.state.HostHealthStatus;
-import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
@@ -35,13 +39,30 @@ import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
 import org.apache.ambari.server.state.host.HostUnhealthyHeartbeatEvent;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 public class HostImplTest {
 
+  private Injector injector;
+  private Clusters clusters;
+
+  @Before
+   public void setup() throws AmbariException{
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    clusters = injector.getInstance(Clusters.class);
+  }
+
+  @After
+  public void teardown() throws AmbariException {
+    injector.getInstance(PersistService.class).stop();
+  }
+
   @Test
-  public void testHostInfoImport() {
+  public void testHostInfoImport() throws AmbariException{
     HostInfo info = new HostInfo();
     info.setMemorySize(100);
     info.setProcessorCount(10);
@@ -56,7 +77,9 @@ public class HostImplTest {
     info.setOS("os_type");
     info.setMemoryTotal(10);
 
-    HostImpl host = new HostImpl("foo");
+    clusters.addHost("foo");
+    Host host = clusters.getHost("foo");
+
     host.importHostInfo(info);
 
     Assert.assertEquals(info.getHostName(), host.getHostName());
@@ -68,7 +91,7 @@ public class HostImplTest {
     Assert.assertEquals(info.getOS(), host.getOsType());
   }
 
-  private void registerHost(HostImpl host) throws Exception {
+  private void registerHost(Host host) throws Exception {
     HostInfo info = new HostInfo();
     info.setMemorySize(100);
     info.setProcessorCount(10);
@@ -93,24 +116,24 @@ public class HostImplTest {
     Assert.assertEquals(currentTime, host.getLastRegistrationTime());
   }
 
-  private void ensureHostUpdatesReceived(HostImpl host) throws Exception {
+  private void ensureHostUpdatesReceived(Host host) throws Exception {
     HostStatusUpdatesReceivedEvent e =
         new HostStatusUpdatesReceivedEvent(host.getHostName(), 1);
     host.handleEvent(e);
   }
 
-  private void verifyHostState(HostImpl host, HostState state) {
+  private void verifyHostState(Host host, HostState state) {
     Assert.assertEquals(state, host.getState());
   }
 
-  private void sendHealthyHeartbeat(HostImpl host, long counter)
+  private void sendHealthyHeartbeat(Host host, long counter)
       throws Exception {
     HostHealthyHeartbeatEvent e = new HostHealthyHeartbeatEvent(
         host.getHostName(), counter);
     host.handleEvent(e);
   }
 
-  private void sendUnhealthyHeartbeat(HostImpl host, long counter)
+  private void sendUnhealthyHeartbeat(Host host, long counter)
       throws Exception {
     HostHealthStatus healthStatus = new HostHealthStatus(HealthStatus.UNHEALTHY,
         "Unhealthy server");
@@ -119,21 +142,23 @@ public class HostImplTest {
     host.handleEvent(e);
   }
 
-  private void timeoutHost(HostImpl host) throws Exception {
+  private void timeoutHost(Host host) throws Exception {
     HostHeartbeatLostEvent e = new HostHeartbeatLostEvent(
         host.getHostName());
     host.handleEvent(e);
   }
 
   @Test
-  public void testHostFSMInit() {
-    HostImpl host = new HostImpl("foo");
+  public void testHostFSMInit() throws AmbariException{
+    clusters.addHost("foo");
+    Host host = clusters.getHost("foo");
     verifyHostState(host, HostState.INIT);
   }
 
   @Test
   public void testHostRegistrationFlow() throws Exception {
-    HostImpl host = new HostImpl("foo");
+    clusters.addHost("foo");
+    Host host = clusters.getHost("foo");
     registerHost(host);
     verifyHostState(host, HostState.WAITING_FOR_HOST_STATUS_UPDATES);
 
@@ -165,7 +190,8 @@ public class HostImplTest {
 
   @Test
   public void testHostHeartbeatFlow() throws Exception {
-    HostImpl host = new HostImpl("foo");
+    clusters.addHost("foo");
+    Host host = clusters.getHost("foo");
     registerHost(host);
     ensureHostUpdatesReceived(host);
 
@@ -232,7 +258,8 @@ public class HostImplTest {
 
   @Test
   public void testHostRegistrationsInAnyState() throws Exception {
-    HostImpl host = new HostImpl("foo");
+    clusters.addHost("foo");
+    Host host = clusters.getHost("foo");;
     long counter = 0;
 
     registerHost(host);
