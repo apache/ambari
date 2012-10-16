@@ -77,6 +77,24 @@ public class RequestImpl implements Request {
 
   @Override
   public TemporalInfo getTemporalInfo(PropertyId id) {
-    return null;  //TODO
+    return new TemporalInfoImpl();
+  }
+
+
+  public static class TemporalInfoImpl implements TemporalInfo {
+    @Override
+    public Long getStartTime() {
+      return null;  //TODO
+    }
+
+    @Override
+    public Long getEndTime() {
+      return null;  //TODO
+    }
+
+    @Override
+    public Long getStep() {
+      return null;  //TODO
+    }
   }
 }

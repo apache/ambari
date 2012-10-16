@@ -18,13 +18,15 @@
 
 package org.apache.ambari.server.controller.jmx;
 
+import org.apache.ambari.server.AmbariException;
+
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  *
  */
-public class TestHostMappingProvider implements HostMappingProvider {
+public class TestHostMappingProvider {
 
   private static Map<String, String> HOST_MAPPING = new HashMap<String, String>();
 
@@ -35,8 +37,7 @@ public class TestHostMappingProvider implements HostMappingProvider {
     HOST_MAPPING.put("ip-10-110-157-51.ec2.internal",             "ec2-107-22-121-67.compute-1.amazonaws.com");
   }
 
-  @Override
-  public Map<String, String> getHostMap() {
+  public static Map<String, String> getHostMap() {
     return HOST_MAPPING;
   }
 }

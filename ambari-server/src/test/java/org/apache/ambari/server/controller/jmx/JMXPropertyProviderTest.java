@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.jmx;
 
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.PropertyId;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -28,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -38,13 +38,13 @@ public class JMXPropertyProviderTest {
     @Test
   public void testGetResources() throws Exception {
 
-    Set< PropertyId >       propertyIds     = PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "JMX");
-    TestStreamProvider      streamProvider  = new TestStreamProvider();
-    TestHostMappingProvider mappingProvider = new TestHostMappingProvider();
+    Set< PropertyId >   propertyIds    = PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "JMX");
+    TestStreamProvider  streamProvider = new TestStreamProvider();
+    Map<String, String> hostMap        = TestHostMappingProvider.getHostMap();
 
-    PropertyProvider propertyProvider = new JMXPropertyProvider(propertyIds,
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(propertyIds,
         streamProvider,
-        mappingProvider);
+        hostMap);
 
     // namenode
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
@@ -57,7 +57,7 @@ public class JMXPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals(JMXPropertyProvider.getSpec("ec2-50-17-129-192.compute-1.amazonaws.com:50070"), streamProvider.getLastSpec());
+    Assert.assertEquals(propertyProvider.getSpec("ec2-50-17-129-192.compute-1.amazonaws.com:50070"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_namenode_jmx.json for values
     Assert.assertEquals("1084287",  resource.getPropertyValue(PropertyHelper.getPropertyId("ReceivedBytes", "rpc")));
@@ -76,7 +76,7 @@ public class JMXPropertyProviderTest {
 
     propertyProvider.populateResources(Collections.singleton(resource), request, null);
 
-    Assert.assertEquals(JMXPropertyProvider.getSpec("ec2-23-23-71-42.compute-1.amazonaws.com:50075"), streamProvider.getLastSpec());
+    Assert.assertEquals(propertyProvider.getSpec("ec2-23-23-71-42.compute-1.amazonaws.com:50075"), streamProvider.getLastSpec());
 
     // see test/resources/hdfs_datanode_jmx.json for values
     Assert.assertEquals("0",  resource.getPropertyValue(PropertyHelper.getPropertyId("ReceivedBytes", "rpc")));
@@ -94,7 +94,7 @@ public class JMXPropertyProviderTest {
 
     propertyProvider.populateResources(Collections.singleton(resource), request, null);
 
-    Assert.assertEquals(JMXPropertyProvider.getSpec("ec2-23-23-71-42.compute-1.amazonaws.com:50030"), streamProvider.getLastSpec());
+    Assert.assertEquals(propertyProvider.getSpec("ec2-23-23-71-42.compute-1.amazonaws.com:50030"), streamProvider.getLastSpec());
 
     // see test/resources/mapreduce_jobtracker_jmx.json for values
     // resource should now contain 3 properties... host name, component name, and jvm.threadsWaiting (from request)

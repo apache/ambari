@@ -20,17 +20,44 @@ package org.apache.ambari.server.controller.ganglia;
 
 
 /**
- *
+ * Data structure for temporal data returned from Ganglia Web.
  */
 public class GangliaMetric {
 
+  // Note that the member names correspond to the names in the JSON returned from Ganglia Web.
+
+  /**
+   * The name.
+   */
   private String ds_name;
+
+  /**
+   * The ganglia cluster name.
+   */
   private String cluster_name;
+
+  /**
+   * The graph type.
+   */
   private String graph_type;
+
+  /**
+   * The host name.
+   */
   private String host_name;
+
+  /**
+   * The metric name.
+   */
   private String metric_name;
 
+  /**
+   * The temporal data points.
+   */
   private double[][] datapoints;
+
+
+  // ----- GangliaMetric -----------------------------------------------------
 
   public String getDs_name() {
     return ds_name;
@@ -79,6 +106,9 @@ public class GangliaMetric {
   public void setDatapoints(double[][] datapoints) {
     this.datapoints = datapoints;
   }
+
+
+  // ----- Object overrides --------------------------------------------------
 
   @Override
   public String toString() {

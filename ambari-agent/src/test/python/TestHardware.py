@@ -25,6 +25,22 @@ class TestHardware(TestCase):
   def test_build(self):
     hardware = Hardware()
     result = hardware.get()
-    self.assertTrue(result['coreCount'] >= 1)
-    self.assertTrue(result['netSpeed'] != None)
+    osdisks = hardware.osdisks()
+    for dev_item in result['mounts']:
+      self.assertTrue(dev_item['available'] >= 0)
+      self.assertTrue(dev_item['used'] >= 0)
+      self.assertTrue(dev_item['percent'] != None)
+      self.assertTrue(dev_item['device'] != None)
+      self.assertTrue(dev_item['mountpoint'] != None)
+      self.assertTrue(dev_item['size'] > 0)
 
+    for os_disk_item in osdisks:
+      self.assertTrue(os_disk_item['available'] >= 0)
+      self.assertTrue(os_disk_item['used'] >= 0)
+      self.assertTrue(os_disk_item['percent'] != None)
+      self.assertTrue(os_disk_item['device'] != None)
+      self.assertTrue(os_disk_item['mountpoint'] != None)
+      self.assertTrue(os_disk_item['size'] > 0)
+
+    self.assertTrue(len(result['mounts']) == len(osdisks))
+    

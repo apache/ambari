@@ -77,13 +77,8 @@ public class SchemaImplTest {
     }
 
     @Override
-    public List<PropertyProvider> getPropertyProviders() {
-      return propertyProviders;
-    }
-
-    @Override
-    public Schema getSchema() {
-      return null;
+    public Map<Resource.Type, PropertyId> getKeyPropertyIds() {
+      return keyPropertyIds;
     }
   };
 
@@ -124,7 +119,7 @@ public class SchemaImplTest {
 
   @Test
   public void testGetKeyPropertyId() {
-    Schema schema = new SchemaImpl(resourceProvider, keyPropertyIds);
+    Schema schema = new SchemaImpl(resourceProvider, propertyProviders);
 
     Assert.assertEquals(PropertyHelper.getPropertyId("p1", "c1"), schema.getKeyPropertyId(Resource.Type.Cluster));
     Assert.assertEquals(PropertyHelper.getPropertyId("p2", "c1"), schema.getKeyPropertyId(Resource.Type.Host));
@@ -133,7 +128,7 @@ public class SchemaImplTest {
 
   @Test
   public void testGetCategories() {
-    Schema schema = new SchemaImpl(resourceProvider, keyPropertyIds);
+    Schema schema = new SchemaImpl(resourceProvider, propertyProviders);
 
     Map<String, Set<String>> categories = schema.getCategories();
     Assert.assertEquals(4, categories.size());

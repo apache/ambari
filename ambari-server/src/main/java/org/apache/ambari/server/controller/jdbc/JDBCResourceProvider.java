@@ -20,18 +20,15 @@ package org.apache.ambari.server.controller.jdbc;
 
 import org.apache.ambari.server.controller.internal.PropertyIdImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
-import org.apache.ambari.server.controller.internal.SchemaImpl;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitorAcceptor;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.Schema;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -41,7 +38,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -57,14 +53,9 @@ public class JDBCResourceProvider implements ResourceProvider {
   private final ConnectionFactory connectionFactory;
 
   /**
-   * The list of property providers for this provider's resource type.
-   */
-  private final List<PropertyProvider> propertyProviders;
-
-  /**
    * The schema for this provider's resource type.
    */
-  private final Schema schema;
+  private final Map<Resource.Type, PropertyId> keyPropertyIds;
 
   /**
    * Key mappings used for joins.
@@ -73,29 +64,18 @@ public class JDBCResourceProvider implements ResourceProvider {
 
   public JDBCResourceProvider(ConnectionFactory connectionFactory,
                               Resource.Type type,
-                              List<PropertyProvider> propertyProviders,
                               Set<PropertyId> propertyIds,
                               Map<Resource.Type, PropertyId> keyPropertyIds) {
     this.connectionFactory = connectionFactory;
     this.type = type;
-    this.propertyProviders = propertyProviders;
     this.propertyIds = propertyIds;
-    this.schema = new SchemaImpl(this, keyPropertyIds);
+    this.keyPropertyIds = keyPropertyIds;
   }
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate) {
-
     Set<Resource> resources = new HashSet<Resource>();
-    Set<PropertyId> propertyIds = new HashSet<PropertyId>(request.getPropertyIds());
-    if (propertyIds.isEmpty()) {
-      propertyIds.addAll(this.propertyIds);
-    } else {
-      if (predicate != null) {
-        propertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
-      }
-      propertyIds.retainAll(this.propertyIds);
-    }
+    Set<PropertyId> propertyIds = PropertyHelper.getRequestPropertyIds(this.propertyIds, request, predicate);
 
     try {
       Connection connection = connectionFactory.getConnection();
@@ -363,13 +343,8 @@ public class JDBCResourceProvider implements ResourceProvider {
   }
 
   @Override
-  public List<PropertyProvider> getPropertyProviders() {
-    return propertyProviders;
-  }
-
-  @Override
-  public Schema getSchema() {
-    return schema;
+  public Map<Resource.Type, PropertyId> getKeyPropertyIds() {
+    return keyPropertyIds;
   }
 
   /**

@@ -44,11 +44,6 @@ public class SchemaImpl implements Schema {
    */
   private final List<PropertyProvider> propertyProviders;
 
-  /**
-   * Key property mapping by resource type.
-   */
-  private final Map<Resource.Type, PropertyId> keyPropertyIds;
-
 
   // ----- Constructors ------------------------------------------------------
 
@@ -56,13 +51,12 @@ public class SchemaImpl implements Schema {
    * Create a new schema for the given providers.
    *
    * @param resourceProvider   the resource provider
-   * @param keyPropertyIds     the key property mapping
+   * @param propertyProviders  the property providers
    */
   public SchemaImpl(ResourceProvider resourceProvider,
-                    Map<Resource.Type, PropertyId> keyPropertyIds) {
+                    List<PropertyProvider> propertyProviders) {
     this.resourceProvider = resourceProvider;
-    this.propertyProviders = resourceProvider.getPropertyProviders();
-    this.keyPropertyIds = keyPropertyIds;
+    this.propertyProviders = propertyProviders;
   }
 
 
@@ -70,7 +64,7 @@ public class SchemaImpl implements Schema {
 
   @Override
   public PropertyId getKeyPropertyId(Resource.Type type) {
-    return keyPropertyIds.get(type);
+    return resourceProvider.getKeyPropertyIds().get(type);
   }
 
   @Override

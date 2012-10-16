@@ -43,7 +43,7 @@ public class GangliaHelperTest {
 //        String api  = "rpcdetailed.rpcdetailed.sendHeartbeat_num_ops";
     String metric = "cpu_nice";
 
-    List<GangliaMetric> metrics = GangliaHelper.getGangliaMetrics(target, cluster, host, metric, startTime, endTime, step);
+//    List<GangliaMetric> metrics = GangliaHelper.getGangliaMetrics(target, cluster, host, metric, startTime, endTime, step);
 
     //TODO : assertions
   }

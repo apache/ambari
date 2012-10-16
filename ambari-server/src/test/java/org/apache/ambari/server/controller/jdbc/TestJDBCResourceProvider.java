@@ -19,10 +19,8 @@
 package org.apache.ambari.server.controller.jdbc;
 
 import org.apache.ambari.server.controller.spi.PropertyId;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,12 +28,7 @@ import java.util.Set;
  *
  */
 public class TestJDBCResourceProvider extends JDBCResourceProvider{
-  public TestJDBCResourceProvider(ConnectionFactory connectionFactory, Resource.Type type, List<PropertyProvider> propertyProviders, Set<PropertyId> propertyIds, Map<Resource.Type, PropertyId> keyPropertyIds) {
-    super(connectionFactory, type, propertyProviders, propertyIds, keyPropertyIds);
-  }
-
-  @Override
-  public List<PropertyProvider> getPropertyProviders() {
-    return super.getPropertyProviders();
+  public TestJDBCResourceProvider(ConnectionFactory connectionFactory, Resource.Type type, Set<PropertyId> propertyIds, Map<Resource.Type, PropertyId> keyPropertyIds) {
+    super(connectionFactory, type, propertyIds, keyPropertyIds);
   }
 }

@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller.spi;
 
+import java.util.List;
+
 /**
  *  Interface to allow the plugging in of resource adapters.
  */
@@ -30,4 +32,6 @@ public interface ProviderModule {
    * @return the resource adapter
    */
   public ResourceProvider getResourceProvider(Resource.Type type);
+
+  public List<PropertyProvider> getPropertyProviders(Resource.Type type);
 }

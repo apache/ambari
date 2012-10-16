@@ -78,6 +78,11 @@
         "temporal":false
       },
       {
+        "name":"attributes",
+        "category":"Hosts",
+        "temporal":false
+      },
+      {
         "name":"total_mem",
         "category":"Hosts",
         "temporal":false
@@ -413,6 +418,26 @@
 
     ],
     "GANGLIA":[
+      {
+        "name":"bytes_out",
+        "category":"network",
+        "temporal":true
+      },
+      {
+        "name":"bytes_in",
+        "category":"network",
+        "temporal":true
+      },
+      {
+        "name":"pkts_out",
+        "category":"network",
+        "temporal":true
+      },
+      {
+        "name":"pkts_in",
+        "category":"network",
+        "temporal":true
+      }
     ]
   }
 }

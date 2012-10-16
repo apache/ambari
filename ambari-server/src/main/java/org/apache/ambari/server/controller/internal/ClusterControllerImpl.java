@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -53,12 +54,26 @@ public class ClusterControllerImpl implements ClusterController {
    */
   private final Map<Resource.Type, ResourceProvider> resourceProviders;
 
+  /**
+   * Map of property provider lists keyed by resource type.
+   */
+  private final Map<Resource.Type, List<PropertyProvider>> propertyProviders;
+
+  /**
+   * Map of schemas keyed by resource type.
+   */
+  private final Map<Resource.Type, Schema> schemas;
+
 
   // ----- Constructors ------------------------------------------------------
 
   public ClusterControllerImpl(ProviderModule providerModule) {
     this.providerModule = providerModule;
-    this.resourceProviders = getResourceSchemas();
+    resourceProviders   = new HashMap<Resource.Type, ResourceProvider>();
+    propertyProviders   = new HashMap<Resource.Type, List<PropertyProvider>>();
+    schemas             = new HashMap<Resource.Type, Schema>();
+
+    setProviders();
   }
 
 
@@ -81,7 +96,16 @@ public class ClusterControllerImpl implements ClusterController {
 
   @Override
   public Schema getSchema(Resource.Type type) {
-    return resourceProviders.get(type).getSchema();
+    Schema schema;
+
+    synchronized (schemas) {
+      schema = schemas.get(type);
+      if (schema == null) {
+        schema = new SchemaImpl(resourceProviders.get(type), propertyProviders.get(type));
+        schemas.put(Resource.Type.Cluster, schema);
+      }
+    }
+    return schema;
   }
 
   @Override
@@ -117,7 +141,7 @@ public class ClusterControllerImpl implements ClusterController {
                                           Predicate predicate) throws AmbariException{
     Set<Resource> keepers = resources;
 
-    for (PropertyProvider propertyProvider : resourceProviders.get(type).getPropertyProviders()) {
+    for (PropertyProvider propertyProvider : propertyProviders.get(type)) {
       if (providesRequestProperties(propertyProvider, request, predicate)) {
         keepers = propertyProvider.populateResources(keepers, request, predicate);
       }
@@ -146,16 +170,18 @@ public class ClusterControllerImpl implements ClusterController {
     return !requestPropertyIds.isEmpty();
   }
 
-  private Map<Resource.Type, ResourceProvider> getResourceSchemas() {
-    Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<Resource.Type, ResourceProvider>();
-
+  private void setProviders() {
     resourceProviders.put(Resource.Type.Cluster, providerModule.getResourceProvider(Resource.Type.Cluster));
     resourceProviders.put(Resource.Type.Service, providerModule.getResourceProvider(Resource.Type.Service));
     resourceProviders.put(Resource.Type.Host, providerModule.getResourceProvider(Resource.Type.Host));
     resourceProviders.put(Resource.Type.Component, providerModule.getResourceProvider(Resource.Type.Component));
     resourceProviders.put(Resource.Type.HostComponent, providerModule.getResourceProvider(Resource.Type.HostComponent));
 
-    return resourceProviders;
+    propertyProviders.put(Resource.Type.Cluster, providerModule.getPropertyProviders(Resource.Type.Cluster));
+    propertyProviders.put(Resource.Type.Service, providerModule.getPropertyProviders(Resource.Type.Service));
+    propertyProviders.put(Resource.Type.Host, providerModule.getPropertyProviders(Resource.Type.Host));
+    propertyProviders.put(Resource.Type.Component, providerModule.getPropertyProviders(Resource.Type.Component));
+    propertyProviders.put(Resource.Type.HostComponent, providerModule.getPropertyProviders(Resource.Type.HostComponent));
   }
 
 

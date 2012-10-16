@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-851. Hook up Ganglia property provider. (Tom Beerbower via mahadev)
+
   AMBARI-863. Fix mvn tests to be able to run the python tests cleanly.
   (mahadev)
 

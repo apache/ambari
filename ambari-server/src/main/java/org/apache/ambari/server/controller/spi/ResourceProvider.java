@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.spi;
 import org.apache.ambari.server.AmbariException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -97,20 +98,5 @@ public interface ResourceProvider {
    */
   public Set<PropertyId> getPropertyIds();
 
-  /**
-   * Get the list of property providers for the resource associated with this provider's
-   * resource type.
-   *
-   * @return the list of property providers
-   */
-  public List<PropertyProvider> getPropertyProviders();
-
-  /**
-   * Get the {@link Schema schema} for this provider's resource type.  The schema
-   * for a given resource type describes the properties and categories provided
-   * by that type of resource.
-   *
-   * @return the schema object
-   */
-  public Schema getSchema();
+  public Map<Resource.Type, PropertyId> getKeyPropertyIds();
 }

@@ -45,13 +45,13 @@ public class JMXPropertyProvider implements PropertyProvider {
   private static final String CATEGORY_KEY = "tag.context";
 
   /**
-   * Map of property ids supported by this provider.
+   * Set of property ids supported by this provider.
    */
   private final Set<PropertyId> propertyIds;
 
   private final StreamProvider streamProvider;
 
-  private final HostMappingProvider mappingProvider;
+  private final Map<String, String> hostMapping;
 
   private static final Map<String, String> JMX_PORTS = new HashMap<String, String>();
 
@@ -71,14 +71,14 @@ public class JMXPropertyProvider implements PropertyProvider {
    *
    * @param propertyIds     the property ids provided by this provider
    * @param streamProvider  the stream provider
-   * @param mappingProvider the provider of host mapping information
+   * @param hostMapping     the host mapping
    */
   public JMXPropertyProvider(Set<PropertyId> propertyIds,
                               StreamProvider streamProvider,
-                              HostMappingProvider mappingProvider) {
-    this.propertyIds = propertyIds;
+                              Map<String, String> hostMapping) {
+    this.propertyIds    = propertyIds;
     this.streamProvider = streamProvider;
-    this.mappingProvider = mappingProvider;
+    this.hostMapping    = hostMapping;
   }
 
 
@@ -128,38 +128,34 @@ public class JMXPropertyProvider implements PropertyProvider {
 
     Set<PropertyId> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
 
-    Map<String, String> hosts = mappingProvider.getHostMap();
-
-    String hostName = hosts.get(PropertyHelper.fixHostName(resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID)));
-    String port = JMX_PORTS.get(resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
+    String hostName = hostMapping.get(resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
+    String port     = JMX_PORTS.get(resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
 
     if (hostName == null || port == null) {
       return true;
     }
 
-    JMXMetrics metrics;
-
     String spec = getSpec(hostName + ":" + port);
 
     try {
-      metrics = new ObjectMapper().readValue(streamProvider.readFrom(spec), JMXMetrics.class);
+      JMXMetricHolder metricHolder = new ObjectMapper().readValue(streamProvider.readFrom(spec), JMXMetricHolder.class);
+      for (Map<String, String> propertyMap : metricHolder.getBeans()) {
+        String category = propertyMap.get(CATEGORY_KEY);
+        if (category != null) {
+          for (Map.Entry<String, String> entry : propertyMap.entrySet()) {
+
+            PropertyId propertyId = PropertyHelper.getPropertyId(entry.getKey(), category);
+
+            if (ids.contains(propertyId)) {
+              resource.setProperty(propertyId, entry.getValue());
+            }
+          }
+        }
+      }
     } catch (IOException e) {
       throw new AmbariException("Can't get metrics : " + spec, e);
     }
 
-    for (Map<String, String> propertyMap : metrics.getBeans()) {
-      String category = propertyMap.get(CATEGORY_KEY);
-      if (category != null) {
-        for (Map.Entry<String, String> entry : propertyMap.entrySet()) {
-
-          PropertyId propertyId = PropertyHelper.getPropertyId(entry.getKey(), category);
-
-          if (ids.contains(propertyId)) {
-            resource.setProperty(propertyId, entry.getValue());
-          }
-        }
-      }
-    }
     return true;
   }
 
@@ -170,7 +166,7 @@ public class JMXPropertyProvider implements PropertyProvider {
    *
    * @return the spec
    */
-  protected static String getSpec(String jmxSource) {
+  protected String getSpec(String jmxSource) {
     return "http://" + jmxSource + "/jmx?qry=Hadoop:*";
   }
 }

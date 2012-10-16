@@ -1,3 +1,5 @@
+package org.apache.ambari.server.controller.ganglia;
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,35 +18,22 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller.jmx;
+import org.apache.ambari.server.controller.utilities.StreamProvider;
 
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
 
-/**
- *
- */
-public class JMXMetrics {
+public class TestStreamProvider implements StreamProvider {
 
-  private List<Map<String, String>> beans;
-
-  public List<Map<String, String>> getBeans() {
-    return beans;
-  }
-
-  public void setBeans(List<Map<String, String>> beans) {
-    this.beans = beans;
-  }
+  private String lastSpec;
 
   @Override
-  public String toString() {
-    StringBuilder stringBuilder = new StringBuilder();
+  public InputStream readFrom(String spec) throws IOException {
+    lastSpec = spec;
+    return ClassLoader.getSystemResourceAsStream("temporal_ganglia.json");
+  }
 
-    for (Map<String, String> map : beans) {
-      for (Map.Entry<String, String> entry : map.entrySet()) {
-        stringBuilder.append("    " + entry.toString() + "\n");
-      }
-    }
-    return stringBuilder.toString();
+  public String getLastSpec() {
+    return lastSpec;
   }
 }

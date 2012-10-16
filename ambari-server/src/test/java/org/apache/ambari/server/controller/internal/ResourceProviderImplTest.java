@@ -28,7 +28,6 @@ import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.TrackActionResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
@@ -46,7 +45,6 @@ import static org.easymock.EasyMock.verify;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,7 +70,6 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        new LinkedList<PropertyProvider>(),
         PropertyHelper.getPropertyIds(type, "DB"),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
@@ -140,7 +137,6 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        new LinkedList<PropertyProvider>(),
         PropertyHelper.getPropertyIds(type, "DB"),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
@@ -203,7 +199,6 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        new LinkedList<PropertyProvider>(),
         PropertyHelper.getPropertyIds(type, "DB"),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
@@ -247,7 +242,6 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        new LinkedList<PropertyProvider>(),
         PropertyHelper.getPropertyIds(type, "DB"),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
@@ -279,7 +273,6 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        new LinkedList<PropertyProvider>(),
         PropertyHelper.getPropertyIds(type, "DB"),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
@@ -337,7 +330,6 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        new LinkedList<PropertyProvider>(),
         PropertyHelper.getPropertyIds(type, "DB"),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
@@ -408,7 +400,6 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        new LinkedList<PropertyProvider>(),
         PropertyHelper.getPropertyIds(type, "DB"),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);

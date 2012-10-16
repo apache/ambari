@@ -18,11 +18,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.controller.ganglia.GangliaPropertyProvider;
 import org.apache.ambari.server.controller.jdbc.TestJDBCResourceProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.jmx.TestHostMappingProvider;
-import org.apache.ambari.server.controller.jmx.TestStreamProvider;
-import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.ProviderModule;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -30,43 +29,59 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.DBHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Module to plug in the JDBC resource provider.
  */
 public class TestProviderModule implements ProviderModule {
-
+  private static final Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<Resource.Type, ResourceProvider>();
   private static final Map<Resource.Type, List<PropertyProvider>> propertyProviders = new HashMap<Resource.Type, List<PropertyProvider>>();
 
   static {
 
-    Set< PropertyId > propertyIds           = PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "JMX");
-    TestStreamProvider streamProvider       = new TestStreamProvider();
-    TestHostMappingProvider mappingProvider = new TestHostMappingProvider();
+    for (Resource.Type type : Resource.Type.values()) {
+      resourceProviders.put(type, new TestJDBCResourceProvider(
+          DBHelper.CONNECTION_FACTORY,
+          type,
+          PropertyHelper.getPropertyIds(type, "DB"),
+          PropertyHelper.getKeyPropertyIds(type)));
+    }
 
-    PropertyProvider propertyProvider = new JMXPropertyProvider(propertyIds,
-        streamProvider,
-        mappingProvider);
+    propertyProviders.put(Resource.Type.Cluster, new LinkedList<PropertyProvider>());
+    propertyProviders.put(Resource.Type.Service, new LinkedList<PropertyProvider>());
+    propertyProviders.put(Resource.Type.Component, new LinkedList<PropertyProvider>());
+    propertyProviders.put(Resource.Type.Host, new LinkedList<PropertyProvider>());
 
-    propertyProviders.put(Resource.Type.HostComponent, Collections.singletonList(propertyProvider));
+    List<PropertyProvider> providers = new LinkedList<PropertyProvider>();
+    Map<String, String>    hostMap   = TestHostMappingProvider.getHostMap();
+
+    PropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "JMX"),
+        new org.apache.ambari.server.controller.jmx.TestStreamProvider(),
+        hostMap);
+    providers.add(propertyProvider);
+
+
+    propertyProvider = new GangliaPropertyProvider(
+        PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "GANGLIA"),
+        new org.apache.ambari.server.controller.ganglia.TestStreamProvider(),
+        "ec2-23-23-71-42.compute-1.amazonaws.com");
+    providers.add(propertyProvider);
+
+    propertyProviders.put(Resource.Type.HostComponent, providers);
   }
 
   @Override
   public ResourceProvider getResourceProvider(Resource.Type type) {
+    return resourceProviders.get(type);
+  }
 
-    List<PropertyProvider> providers = propertyProviders.get(type);
-
-
-    return new TestJDBCResourceProvider(
-        DBHelper.CONNECTION_FACTORY,
-        type,
-        providers == null ? Collections.<PropertyProvider>emptyList() : providers,
-        PropertyHelper.getPropertyIds(type, "DB"),
-        PropertyHelper.getKeyPropertyIds(type));
+  @Override
+  public List<PropertyProvider> getPropertyProviders(Resource.Type type) {
+    return propertyProviders.get(type);
   }
 }

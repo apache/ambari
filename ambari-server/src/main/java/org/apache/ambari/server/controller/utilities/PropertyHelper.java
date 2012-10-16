@@ -21,10 +21,8 @@ import org.apache.ambari.server.controller.internal.PropertyIdImpl;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -32,6 +30,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -67,6 +66,13 @@ public class PropertyHelper {
     return KEY_PROPERTY_IDS.get(resourceType);
   }
 
+  /**
+   * Get a map of all the property values keyed by property id for the given resource.
+   *
+   * @param resource  the resource
+   *
+   * @return the map of properties for the given resource
+   */
   public static Map<PropertyId, String> getProperties(Resource resource) {
     Map<PropertyId, String> properties = new HashMap<PropertyId, String>();
 
@@ -93,11 +99,21 @@ public class PropertyHelper {
   public static Set<PropertyId> getRequestPropertyIds(Set<PropertyId> providerPropertyIds,
                                                       Request request,
                                                       Predicate predicate) {
-    Set<PropertyId> requestPropertyIds  = new HashSet<PropertyId>(request.getPropertyIds());
+    Set<PropertyId> propertyIds         = request.getPropertyIds();
+    Set<PropertyId> requestPropertyIds  = propertyIds == null ? null : new HashSet<PropertyId>(propertyIds);
 
     providerPropertyIds = new HashSet<PropertyId>(providerPropertyIds);
 
+    // if no properties are specified, then return them all
     if (requestPropertyIds == null || requestPropertyIds.isEmpty()) {
+//      // strip out the temporal properties, they must be asked for explicitly
+//      Iterator<PropertyId> iter = providerPropertyIds.iterator();
+//      while (iter.hasNext()) {
+//        PropertyId propertyId = iter.next();
+//        if (propertyId.isTemporal()) {
+//          iter.remove();
+//        }
+//      }
       return providerPropertyIds;
     }
 

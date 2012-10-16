@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,9 +70,9 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
   private final AmbariManagementController managementController;
 
   /**
-   * The schema for this provider's resource type.
+   * Key property mapping by resource type.
    */
-  private final Schema schema;
+  private final Map<Resource.Type, PropertyId> keyPropertyIds;
 
 
   // ----- Property ID constants ---------------------------------------------
@@ -112,16 +113,16 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
    * Create a  new resource provider for the given management controller.
    *
    * @param propertyIds           the property ids
+   * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
-  private ResourceProviderImpl(List<PropertyProvider> propertyProviders,
-                               Set<PropertyId> propertyIds,
+  private ResourceProviderImpl(Set<PropertyId> propertyIds,
                                Map<Resource.Type, PropertyId> keyPropertyIds,
                                AmbariManagementController managementController) {
-    this.propertyProviders    = propertyProviders;
+    this.propertyProviders    = new LinkedList<PropertyProvider>();
     this.propertyIds          = propertyIds;
+    this.keyPropertyIds       = keyPropertyIds;
     this.managementController = managementController;
-    this.schema               = new SchemaImpl(this, keyPropertyIds);
   }
 
 
@@ -133,15 +134,9 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
   }
 
   @Override
-  public List<PropertyProvider> getPropertyProviders() {
-    return propertyProviders;
+  public Map<Resource.Type, PropertyId> getKeyPropertyIds() {
+    return keyPropertyIds;
   }
-
-  @Override
-  public Schema getSchema() {
-    return schema;
-  }
-
 
   // ----- accessors ---------------------------------------------------------
 
@@ -154,12 +149,21 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
     return managementController;
   }
 
+  /**
+   * Add a property provider
+   * @param propertyProvider
+   */
+  public void addPropertyProvider(PropertyProvider propertyProvider) {
+    propertyProviders.add(propertyProvider);
+  }
 
   // ----- utility methods ---------------------------------------------------
 
   protected abstract Set<PropertyId> getPKPropertyIds();
 
-  protected Set<Map<PropertyId, String>> getPropertyMaps(Map<PropertyId, String> requestPropertyMap, Predicate predicate) throws AmbariException{
+  protected Set<Map<PropertyId, String>> getPropertyMaps(Map<PropertyId, String> requestPropertyMap,
+                                                         Predicate predicate)
+      throws AmbariException{
 
     Set<PropertyId>              pkPropertyIds       = getPKPropertyIds();
     Set<Map<PropertyId, String>> properties          = new HashSet<Map<PropertyId, String>>();
@@ -264,6 +268,7 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
   /**
    * Factory method for obtaining a resource provider based on a given type and management controller.
    *
+   *
    * @param type                  the resource type
    * @param propertyIds           the property ids
    * @param managementController  the management controller
@@ -271,21 +276,20 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
    * @return a new resource provider
    */
   public static ResourceProvider getResourceProvider(Resource.Type type,
-                                                     List<PropertyProvider> propertyProviders,
                                                      Set<PropertyId> propertyIds,
                                                      Map<Resource.Type, PropertyId> keyPropertyIds,
                                                      AmbariManagementController managementController) {
     switch (type) {
       case Cluster:
-        return new ClusterResourceProvider(propertyProviders, propertyIds, keyPropertyIds, managementController);
+        return new ClusterResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Service:
-        return new ServiceResourceProvider(propertyProviders, propertyIds, keyPropertyIds, managementController);
+        return new ServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Component:
-        return new ComponentResourceProvider(propertyProviders, propertyIds, keyPropertyIds, managementController);
+        return new ComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Host:
-        return new HostResourceProvider(propertyProviders, propertyIds, keyPropertyIds, managementController);
+        return new HostResourceProvider(propertyIds, keyPropertyIds, managementController);
       case HostComponent:
-        return new HostComponentResourceProvider(propertyProviders, propertyIds, keyPropertyIds, managementController);
+        return new HostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
     }
     throw new IllegalArgumentException("Unknown type " + type);
   }
@@ -305,10 +309,13 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
      * Create a  new resource provider for the given management controller.
      *
      * @param propertyIds           the property ids
+     * @param keyPropertyIds        the key property ids
      * @param managementController  the management controller
      */
-    private ClusterResourceProvider(List<PropertyProvider> propertyProviders, Set<PropertyId> propertyIds, Map<Resource.Type, PropertyId> keyPropertyIds, AmbariManagementController managementController) {
-      super(propertyProviders, propertyIds, keyPropertyIds, managementController);
+    private ClusterResourceProvider(Set<PropertyId> propertyIds,
+                                    Map<Resource.Type, PropertyId> keyPropertyIds,
+                                    AmbariManagementController managementController) {
+      super(propertyIds, keyPropertyIds, managementController);
     }
 
 // ----- ResourceProvider ------------------------------------------------
@@ -394,10 +401,13 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
      * Create a  new resource provider for the given management controller.
      *
      * @param propertyIds           the property ids
+     * @param keyPropertyIds        the key property ids
      * @param managementController  the management controller
      */
-    private ServiceResourceProvider(List<PropertyProvider> propertyProviders, Set<PropertyId> propertyIds, Map<Resource.Type, PropertyId> keyPropertyIds, AmbariManagementController managementController) {
-      super(propertyProviders, propertyIds, keyPropertyIds, managementController);
+    private ServiceResourceProvider(Set<PropertyId> propertyIds,
+                                    Map<Resource.Type, PropertyId> keyPropertyIds,
+                                    AmbariManagementController managementController) {
+      super(propertyIds, keyPropertyIds, managementController);
     }
 
     // ----- ResourceProvider ------------------------------------------------
@@ -483,10 +493,13 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
      * Create a  new resource provider for the given management controller.
      *
      * @param propertyIds           the property ids
+     * @param keyPropertyIds        the key property ids
      * @param managementController  the management controller
      */
-    private ComponentResourceProvider(List<PropertyProvider> propertyProviders, Set<PropertyId> propertyIds, Map<Resource.Type, PropertyId> keyPropertyIds, AmbariManagementController managementController) {
-      super(propertyProviders, propertyIds, keyPropertyIds, managementController);
+    private ComponentResourceProvider(Set<PropertyId> propertyIds,
+                                      Map<Resource.Type, PropertyId> keyPropertyIds,
+                                      AmbariManagementController managementController) {
+      super(propertyIds, keyPropertyIds, managementController);
     }
 
     // ----- ResourceProvider ------------------------------------------------
@@ -572,10 +585,13 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
      * Create a  new resource provider for the given management controller.
      *
      * @param propertyIds           the property ids
+     * @param keyPropertyIds        the key property ids
      * @param managementController  the management controller
      */
-    private HostResourceProvider(List<PropertyProvider> propertyProviders, Set<PropertyId> propertyIds, Map<Resource.Type, PropertyId> keyPropertyIds, AmbariManagementController managementController) {
-      super(propertyProviders, propertyIds, keyPropertyIds, managementController);
+    private HostResourceProvider(Set<PropertyId> propertyIds,
+                                 Map<Resource.Type, PropertyId> keyPropertyIds,
+                                 AmbariManagementController managementController) {
+      super(propertyIds, keyPropertyIds, managementController);
     }
 
     // ----- ResourceProvider ------------------------------------------------
@@ -667,10 +683,13 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
      * Create a  new resource provider for the given management controller.
      *
      * @param propertyIds           the property ids
+     * @param keyPropertyIds        the key property ids
      * @param managementController  the management controller
      */
-    private HostComponentResourceProvider(List<PropertyProvider> propertyProviders, Set<PropertyId> propertyIds, Map<Resource.Type, PropertyId> keyPropertyIds, AmbariManagementController managementController) {
-      super(propertyProviders, propertyIds, keyPropertyIds, managementController);
+    private HostComponentResourceProvider(Set<PropertyId> propertyIds,
+                                          Map<Resource.Type, PropertyId> keyPropertyIds,
+                                          AmbariManagementController managementController) {
+      super(propertyIds, keyPropertyIds, managementController);
     }
 
     // ----- ResourceProvider ------------------------------------------------

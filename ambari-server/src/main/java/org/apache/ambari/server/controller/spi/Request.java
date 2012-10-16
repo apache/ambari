@@ -67,7 +67,7 @@ public interface Request {
      *
      * @return the start time in seconds
      */
-    public long getStartTime();
+    public Long getStartTime();
 
     /**
      * Get the end of the requested time range.  The time is given in
@@ -75,7 +75,7 @@ public interface Request {
      *
      * @return the end time in seconds
      */
-    public long getEndTime();
+    public Long getEndTime();
 
     /**
      * Get the requested time between each data point of the temporal
@@ -83,6 +83,6 @@ public interface Request {
      *
      * @return the step time in seconds
      */
-    public long getStep();
+    public Long getStep();
   }
 }

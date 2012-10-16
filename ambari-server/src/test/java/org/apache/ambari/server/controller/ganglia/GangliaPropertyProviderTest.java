@@ -17,27 +17,48 @@
  */
 package org.apache.ambari.server.controller.ganglia;
 
-import org.junit.Ignore;
+import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
+import java.util.Set;
+
 /**
- *
+ * Test the Ganglia property provider.
  */
 public class GangliaPropertyProviderTest {
 
-  @Ignore
-  @Test
-  public void testGet() throws Exception {
-//        String target  = "ec2-75-101-217-112.compute-1.amazonaws.com";
-//
-//        GangliaPropertyProvider provider = new GangliaPropertyProvider(target);
-//
-//        HostComponentId id = new HostComponentId("domU-12-31-39-0E-41-51.compute-1.internal", "HDPNameNode");
-//
-//        List<String> selectList = new LinkedList<String>();
-//        selectList.add("rpcdetailed.rpcdetailed.sendHeartbeat_num_ops");
-//
-//        provider.get(id, selectList);
-  }
+  private static final PropertyId PROPERTY_ID = PropertyHelper.getPropertyId("bytes_out", "network", true);
 
+  @Test
+  public void testGetResources() throws Exception {
+    Set< PropertyId > propertyIds     = PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "GANGLIA");
+    TestStreamProvider streamProvider  = new TestStreamProvider();
+
+    GangliaPropertyProvider propertyProvider = new GangliaPropertyProvider(propertyIds,
+        streamProvider,
+        "ec2-23-23-71-42.compute-1.amazonaws.com");
+
+    // namenode
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(GangliaPropertyProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
+    resource.setProperty(GangliaPropertyProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
+
+    // only ask for one property
+    Request  request = PropertyHelper.getReadRequest(Collections.singleton(PROPERTY_ID));
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals("http://ec2-23-23-71-42.compute-1.amazonaws.com/ganglia/graph.php?c=HDPNameNode&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=bytes_out&json=1",
+        streamProvider.getLastSpec());
+
+    Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
+    Assert.assertNotNull(resource.getPropertyValue(PROPERTY_ID));
+  }
 }
