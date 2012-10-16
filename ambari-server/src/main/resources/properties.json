@@ -175,248 +175,248 @@
       }
     ],
       "JMX":[
-      {
-        "name":"memNonHeapUsedM",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"memNonHeapCommittedM",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"memHeapUsedM",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"memHeapCommittedM",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"gcCount",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"gcTimeMillis",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"threadsNew",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"threadsRunnable",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"threadsBlocked",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"threadsWaiting",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"threadsTimedWaiting",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"threadsTerminated",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"logFatal",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"logError",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"logWarn",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"memHeapUsedM",
-        "category":"jvm",
-        "temporal":false
-      },
-      {
-        "name":"rpcAuthenticationSuccesses",
-        "category":"rpc",
-        "temporal":false
-      },
-      {
-        "name":"rpcAuthenticationFailures",
-        "category":"rpc",
-        "temporal":false
-      },
-      {
-        "name":"rpcAuthorizationSuccesses",
-        "category":"rpc",
-        "temporal":false
-      },
-      {
-        "name":"rpcAuthorizationFailures",
-        "category":"rpc",
-        "temporal":false
-      },
-      {
-        "name":"ReceivedBytes",
-        "category":"rpc",
-        "temporal":false
-      },
-      {
-        "name":"SentBytes",
-        "category":"rpc",
-        "temporal":false
-      },
-      {
-        "name":"RpcQueueTime_num_ops",
-        "category":"rpc",
-        "temporal":false
-      },
-      {
-        "name":"RpcQueueTime_avg_time",
-        "category":"rpc",
-        "temporal":false
-      },
-      {
-        "name":"RpcProcessingTime_num_ops",
-        "category":"rpc",
-        "temporal":false
-      },
-      {
-        "name":"RpcProcessingTime_avg_time",
-        "category":"rpc",
-        "temporal":false
-      },
-      {
-        "name":"NumOpenConnections",
-        "category":"rpc",
-        "temporal":false
-      },
-      {
-        "name":"callQueueLen",
-        "category":"rpc",
-        "temporal":false
-      },
-      {
-        "name":"FilesCreated",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"FilesAppended",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"GetBlockLocations",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"FilesRenamed",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"GetListingOps",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"CreateFileOps",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"FilesDeleted",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"DeleteFileOps",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"FileInfoOps",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"AddBlockOps",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"Transactions_num_ops",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"Transactions_avg_time",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"Syncs_num_ops",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"Syncs_avg_time",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"JournalTransactionsBatchedInSync",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"blockReport_num_ops",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"blockReport_avg_time",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"SafemodeTime",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"fsImageLoadTime",
-        "category":"dfs",
-        "temporal":false
-      },
-      {
-        "name":"FilesInGetListingOps",
-        "category":"dfs",
-        "temporal":false
-      }
-
-    ],
+        {"name":"rpcAuthenticationSuccesses", "category":"rpc", "temporal":false},
+        {"name":"rpcAuthenticationFailures", "category":"rpc", "temporal":false},
+        {"name":"rpcAuthorizationSuccesses", "category":"rpc", "temporal":false},
+        {"name":"rpcAuthorizationFailures", "category":"rpc", "temporal":false},
+        {"name":"ReceivedBytes", "category":"rpc", "temporal":false},
+        {"name":"SentBytes", "category":"rpc", "temporal":false},
+        {"name":"RpcQueueTime_num_ops", "category":"rpc", "temporal":false},
+        {"name":"RpcQueueTime_avg_time", "category":"rpc", "temporal":false},
+        {"name":"RpcProcessingTime_num_ops", "category":"rpc", "temporal":false},
+        {"name":"RpcProcessingTime_avg_time", "category":"rpc", "temporal":false},
+        {"name":"NumOpenConnections", "category":"rpc", "temporal":false},
+        {"name":"callQueueLen", "category":"rpc", "temporal":false},
+        {"name":"map_slots", "category":"mapred", "temporal":false},
+        {"name":"reduce_slots", "category":"mapred", "temporal":false},
+        {"name":"blacklisted_maps", "category":"mapred", "temporal":false},
+        {"name":"blacklisted_reduces", "category":"mapred", "temporal":false},
+        {"name":"maps_launched", "category":"mapred", "temporal":false},
+        {"name":"maps_completed", "category":"mapred", "temporal":false},
+        {"name":"maps_failed", "category":"mapred", "temporal":false},
+        {"name":"reduces_launched", "category":"mapred", "temporal":false},
+        {"name":"reduces_completed", "category":"mapred", "temporal":false},
+        {"name":"reduces_failed", "category":"mapred", "temporal":false},
+        {"name":"jobs_submitted", "category":"mapred", "temporal":false},
+        {"name":"jobs_completed", "category":"mapred", "temporal":false},
+        {"name":"waiting_maps", "category":"mapred", "temporal":false},
+        {"name":"waiting_reduces", "category":"mapred", "temporal":false},
+        {"name":"reserved_map_slots", "category":"mapred", "temporal":false},
+        {"name":"reserved_reduce_slots", "category":"mapred", "temporal":false},
+        {"name":"occupied_map_slots", "category":"mapred", "temporal":false},
+        {"name":"occupied_reduce_slots", "category":"mapred", "temporal":false},
+        {"name":"jobs_failed", "category":"mapred", "temporal":false},
+        {"name":"jobs_killed", "category":"mapred", "temporal":false},
+        {"name":"jobs_preparing", "category":"mapred", "temporal":false},
+        {"name":"jobs_running", "category":"mapred", "temporal":false},
+        {"name":"running_maps", "category":"mapred", "temporal":false},
+        {"name":"running_reduces", "category":"mapred", "temporal":false},
+        {"name":"maps_killed", "category":"mapred", "temporal":false},
+        {"name":"reduces_killed", "category":"mapred", "temporal":false},
+        {"name":"trackers", "category":"mapred", "temporal":false},
+        {"name":"trackers_blacklisted", "category":"mapred", "temporal":false},
+        {"name":"trackers_graylisted", "category":"mapred", "temporal":false},
+        {"name":"trackers_decommissioned", "category":"mapred", "temporal":false},
+        {"name":"heartbeats", "category":"mapred", "temporal":false},
+        {"name":"running_0", "category":"mapred", "temporal":false},
+        {"name":"running_60", "category":"mapred", "temporal":false},
+        {"name":"running_300", "category":"mapred", "temporal":false},
+        {"name":"running_1440", "category":"mapred", "temporal":false},
+        {"name":"maps_running", "category":"mapred", "temporal":false},
+        {"name":"reduces_running", "category":"mapred", "temporal":false},
+        {"name":"mapTaskSlots", "category":"mapred", "temporal":false},
+        {"name":"reduceTaskSlots", "category":"mapred", "temporal":false},
+        {"name":"tasks_completed", "category":"mapred", "temporal":false},
+        {"name":"tasks_failed_timeout", "category":"mapred", "temporal":false},
+        {"name":"tasks_failed_ping", "category":"mapred", "temporal":false},
+        {"name":"shuffle_handler_busy_percent", "category":"mapred", "temporal":false},
+        {"name":"shuffle_output_bytes", "category":"mapred", "temporal":false},
+        {"name":"shuffle_failed_outputs", "category":"mapred", "temporal":false},
+        {"name":"shuffle_success_outputs", "category":"mapred", "temporal":false},
+        {"name":"shuffle_exceptions_caught", "category":"mapred", "temporal":false},
+        {"name":"loginSuccess_num_ops", "category":"ugi", "temporal":false},
+        {"name":"loginSuccess_avg_time", "category":"ugi", "temporal":false},
+        {"name":"loginFailure_num_ops", "category":"ugi", "temporal":false},
+        {"name":"loginFailure_avg_time", "category":"ugi", "temporal":false},
+        {"name":"FilesTotal", "category":"dfs", "temporal":false},
+        {"name":"BlocksTotal", "category":"dfs", "temporal":false},
+        {"name":"CapacityTotalGB", "category":"dfs", "temporal":false},
+        {"name":"CapacityUsedGB", "category":"dfs", "temporal":false},
+        {"name":"CapacityRemainingGB", "category":"dfs", "temporal":false},
+        {"name":"TotalLoad", "category":"dfs", "temporal":false},
+        {"name":"CorruptBlocks", "category":"dfs", "temporal":false},
+        {"name":"ExcessBlocks", "category":"dfs", "temporal":false},
+        {"name":"PendingDeletionBlocks", "category":"dfs", "temporal":false},
+        {"name":"PendingReplicationBlocks", "category":"dfs", "temporal":false},
+        {"name":"UnderReplicatedBlocks", "category":"dfs", "temporal":false},
+        {"name":"ScheduledReplicationBlocks", "category":"dfs", "temporal":false},
+        {"name":"MissingBlocks", "category":"dfs", "temporal":false},
+        {"name":"BlockCapacity", "category":"dfs", "temporal":false},
+        {"name":"FilesCreated", "category":"dfs", "temporal":false},
+        {"name":"FilesAppended", "category":"dfs", "temporal":false},
+        {"name":"GetBlockLocations", "category":"dfs", "temporal":false},
+        {"name":"FilesRenamed", "category":"dfs", "temporal":false},
+        {"name":"GetListingOps", "category":"dfs", "temporal":false},
+        {"name":"CreateFileOps", "category":"dfs", "temporal":false},
+        {"name":"FilesDeleted", "category":"dfs", "temporal":false},
+        {"name":"DeleteFileOps", "category":"dfs", "temporal":false},
+        {"name":"FileInfoOps", "category":"dfs", "temporal":false},
+        {"name":"AddBlockOps", "category":"dfs", "temporal":false},
+        {"name":"Transactions_num_ops", "category":"dfs", "temporal":false},
+        {"name":"Transactions_avg_time", "category":"dfs", "temporal":false},
+        {"name":"Syncs_num_ops", "category":"dfs", "temporal":false},
+        {"name":"Syncs_avg_time", "category":"dfs", "temporal":false},
+        {"name":"JournalTransactionsBatchedInSync", "category":"dfs", "temporal":false},
+        {"name":"blockReport_num_ops", "category":"dfs", "temporal":false},
+        {"name":"blockReport_avg_time", "category":"dfs", "temporal":false},
+        {"name":"SafemodeTime", "category":"dfs", "temporal":false},
+        {"name":"fsImageLoadTime", "category":"dfs", "temporal":false},
+        {"name":"FilesInGetListingOps", "category":"dfs", "temporal":false},
+        {"name":"bytes_written", "category":"dfs", "temporal":false},
+        {"name":"bytes_read", "category":"dfs", "temporal":false},
+        {"name":"blocks_written", "category":"dfs", "temporal":false},
+        {"name":"blocks_read", "category":"dfs", "temporal":false},
+        {"name":"blocks_replicated", "category":"dfs", "temporal":false},
+        {"name":"blocks_removed", "category":"dfs", "temporal":false},
+        {"name":"blocks_verified", "category":"dfs", "temporal":false},
+        {"name":"block_verification_failures", "category":"dfs", "temporal":false},
+        {"name":"blocks_get_local_pathinfo", "category":"dfs", "temporal":false},
+        {"name":"reads_from_local_client", "category":"dfs", "temporal":false},
+        {"name":"reads_from_remote_client", "category":"dfs", "temporal":false},
+        {"name":"writes_from_local_client", "category":"dfs", "temporal":false},
+        {"name":"writes_from_remote_client", "category":"dfs", "temporal":false},
+        {"name":"readBlockOp_num_ops", "category":"dfs", "temporal":false},
+        {"name":"readBlockOp_avg_time", "category":"dfs", "temporal":false},
+        {"name":"writeBlockOp_num_ops", "category":"dfs", "temporal":false},
+        {"name":"writeBlockOp_avg_time", "category":"dfs", "temporal":false},
+        {"name":"blockChecksumOp_num_ops", "category":"dfs", "temporal":false},
+        {"name":"blockChecksumOp_avg_time", "category":"dfs", "temporal":false},
+        {"name":"copyBlockOp_num_ops", "category":"dfs", "temporal":false},
+        {"name":"copyBlockOp_avg_time", "category":"dfs", "temporal":false},
+        {"name":"replaceBlockOp_num_ops", "category":"dfs", "temporal":false},
+        {"name":"replaceBlockOp_avg_time", "category":"dfs", "temporal":false},
+        {"name":"heartBeats_num_ops", "category":"dfs", "temporal":false},
+        {"name":"heartBeats_avg_time", "category":"dfs", "temporal":false},
+        {"name":"blockReports_num_ops", "category":"dfs", "temporal":false},
+        {"name":"blockReports_avg_time", "category":"dfs", "temporal":false},
+        {"name":"getProtocolVersion_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getProtocolVersion_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getFileInfo_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getFileInfo_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getListing_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getListing_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"versionRequest_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"versionRequest_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"register_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"register_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"blocksBeingWrittenReport_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"blocksBeingWrittenReport_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"sendHeartbeat_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"sendHeartbeat_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"blockReport_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"blockReport_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"mkdirs_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"mkdirs_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"setSafeMode_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"setSafeMode_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"setPermission_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"setPermission_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"create_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"create_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"renewLease_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"renewLease_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"addBlock_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"addBlock_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"blockReceived_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"blockReceived_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"complete_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"complete_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"setOwner_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"setOwner_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"delete_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"delete_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"setReplication_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"setReplication_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getBlockLocations_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getBlockLocations_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"rename_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"rename_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"fsync_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"fsync_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getEditLogSize_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getEditLogSize_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"rollEditLog_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"rollEditLog_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"rollFsImage_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"rollFsImage_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"jobsToComplete_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"jobsToComplete_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getBuildVersion_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getBuildVersion_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getSystemDir_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getSystemDir_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"heartbeat_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"heartbeat_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getStagingAreaDir_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getStagingAreaDir_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getNewJobId_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getNewJobId_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getQueueAdmins_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getQueueAdmins_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"submitJob_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"submitJob_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getJobProfile_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getJobProfile_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getJobStatus_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getJobStatus_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getTaskCompletionEvents_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getTaskCompletionEvents_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getJobCounters_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getJobCounters_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getMapTaskReports_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getMapTaskReports_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getReduceTaskReports_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getReduceTaskReports_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"getDelegationToken_num_ops", "category":"rpcdetailed", "temporal":false},
+        {"name":"getDelegationToken_avg_time", "category":"rpcdetailed", "temporal":false},
+        {"name":"memNonHeapUsedM", "category":"jvm", "temporal":false},
+        {"name":"memNonHeapCommittedM", "category":"jvm", "temporal":false},
+        {"name":"memHeapUsedM", "category":"jvm", "temporal":false},
+        {"name":"memHeapCommittedM", "category":"jvm", "temporal":false},
+        {"name":"gcCount", "category":"jvm", "temporal":false},
+        {"name":"gcTimeMillis", "category":"jvm", "temporal":false},
+        {"name":"threadsNew", "category":"jvm", "temporal":false},
+        {"name":"threadsRunnable", "category":"jvm", "temporal":false},
+        {"name":"threadsBlocked", "category":"jvm", "temporal":false},
+        {"name":"threadsWaiting", "category":"jvm", "temporal":false},
+        {"name":"threadsTimedWaiting", "category":"jvm", "temporal":false},
+        {"name":"threadsTerminated", "category":"jvm", "temporal":false},
+        {"name":"logFatal", "category":"jvm", "temporal":false},
+        {"name":"logError", "category":"jvm", "temporal":false},
+        {"name":"logWarn", "category":"jvm", "temporal":false},
+        {"name":"logInfo", "category":"jvm", "temporal":false},
+        {"name":"num_sources", "category":"metricssystem", "temporal":false},
+        {"name":"num_sinks", "category":"metricssystem", "temporal":false},
+        {"name":"sink.ganglia.latency_num_ops", "category":"metricssystem", "temporal":false},
+        {"name":"sink.ganglia.latency_avg_time", "category":"metricssystem", "temporal":false},
+        {"name":"sink.ganglia.dropped", "category":"metricssystem", "temporal":false},
+        {"name":"sink.ganglia.qsize", "category":"metricssystem", "temporal":false},
+        {"name":"snapshot_num_ops", "category":"metricssystem", "temporal":false},
+        {"name":"snapshot_avg_time", "category":"metricssystem", "temporal":false},
+        {"name":"snapshot_stdev_time", "category":"metricssystem", "temporal":false},
+        {"name":"snapshot_imin_time", "category":"metricssystem", "temporal":false},
+        {"name":"snapshot_imax_time", "category":"metricssystem", "temporal":false},
+        {"name":"snapshot_min_time", "category":"metricssystem", "temporal":false},
+        {"name":"snapshot_max_time", "category":"metricssystem", "temporal":false},
+        {"name":"publish_num_ops", "category":"metricssystem", "temporal":false},
+        {"name":"publish_avg_time", "category":"metricssystem", "temporal":false},
+        {"name":"publish_stdev_time", "category":"metricssystem", "temporal":false},
+        {"name":"publish_imin_time", "category":"metricssystem", "temporal":false},
+        {"name":"publish_imax_time", "category":"metricssystem", "temporal":false},
+        {"name":"publish_min_time", "category":"metricssystem", "temporal":false},
+        {"name":"publish_max_time", "category":"metricssystem", "temporal":false},
+        {"name":"dropped_pub_all", "category":"metricssystem", "temporal":false}
+      ],
     "GANGLIA":[
       {
         "name":"bytes_out",

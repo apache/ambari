@@ -31,9 +31,9 @@ public class TestHostMappingProvider {
   private static Map<String, String> HOST_MAPPING = new HashMap<String, String>();
 
   static {
-    HOST_MAPPING.put("domU-12-31-39-0E-34-E1.compute-1.internal", "ec2-50-17-129-192.compute-1.amazonaws.com");
+    HOST_MAPPING.put("domu-12-31-39-0e-34-e1.compute-1.internal", "ec2-50-17-129-192.compute-1.amazonaws.com");
     HOST_MAPPING.put("ip-10-190-186-15.ec2.internal",             "ec2-23-21-8-226.compute-1.amazonaws.com");
-    HOST_MAPPING.put("domU-12-31-39-14-EE-B3.compute-1.internal", "ec2-23-23-71-42.compute-1.amazonaws.com");
+    HOST_MAPPING.put("domu-12-31-39-14-ee-b3.compute-1.internal", "ec2-23-23-71-42.compute-1.amazonaws.com");
     HOST_MAPPING.put("ip-10-110-157-51.ec2.internal",             "ec2-107-22-121-67.compute-1.amazonaws.com");
   }
 

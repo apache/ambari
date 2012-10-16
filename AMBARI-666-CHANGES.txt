@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-853. Add more complete JMX metrics. (Tom Beerbower via mahadev)
+
   AMBARI-852. Improve REST API functionality regarding query and partial
   response (John Speidel via mahadev)
 

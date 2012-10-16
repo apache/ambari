@@ -49,7 +49,7 @@ public class JMXPropertyProviderTest {
     // namenode
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
+    resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
 
     // request with an empty set should get all supported properties
@@ -68,7 +68,7 @@ public class JMXPropertyProviderTest {
     // datanode
     resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domU-12-31-39-14-EE-B3.compute-1.internal");
+    resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
     resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "DATANODE");
 
     // request with an empty set should get all supported properties
@@ -86,7 +86,7 @@ public class JMXPropertyProviderTest {
     // jobtracker
     resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domU-12-31-39-14-EE-B3.compute-1.internal");
+    resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
     resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "JOBTRACKER");
 
     // only ask for one property

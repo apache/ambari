@@ -40,7 +40,7 @@ public class ClusterControllerHelper {
         return new ClusterControllerImpl(providerModule);
 
       } catch (Exception e) {
-        throw new IllegalStateException("Can't create provider module " + PROVIDER_MODULE_CLASS);
+        throw new IllegalStateException("Can't create provider module " + PROVIDER_MODULE_CLASS, e);
       }
     }
     return controller;
