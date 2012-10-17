@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-869. Util to deserialize ExecutionCommand. (jitendra)
+
   AMBARI-874. Fix hostinfo reporting at the server and add a unit test for
   deserilization for the host information from agent. (mahadev)
 

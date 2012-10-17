@@ -68,10 +68,10 @@ public class ExecutionCommand extends AgentCommand {
       return false;
     }
     ExecutionCommand o = (ExecutionCommand) other;
-    return (this.commandId == o.commandId &&
-            this.hostname == o.hostname &&
-            this.role == o.role &&
-            this.roleCommand == o.roleCommand);
+    return (this.commandId.equals(o.commandId) &&
+            this.hostname.equals(o.hostname) &&
+            this.role.equals(o.role) &&
+            this.roleCommand.equals(o.roleCommand));
   }
   
   @Override

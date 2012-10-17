@@ -19,15 +19,17 @@ package org.apache.ambari.server.utils;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Test;
 
 public class TestStageUtils {
@@ -56,4 +58,14 @@ public class TestStageUtils {
     assertEquals(StageUtils.getActionId(1, 2), s.getActionId());
   }
 
+  @Test
+  public void testJasonToExecutionCommand() throws JsonGenerationException,
+      JsonMappingException, JAXBException, IOException {
+    Stage s = StageUtils.getATestStage(1, 2, "host1");
+    ExecutionCommand cmd = s.getExecutionCommands("host1").get(0);
+    String json = StageUtils.jaxbToString(cmd);
+    ExecutionCommand cmdDes = StageUtils.stringToExecutionCommand(json);
+    assertEquals(cmd.toString(), cmdDes.toString());
+    assertEquals(cmd, cmdDes);
+  }
 }

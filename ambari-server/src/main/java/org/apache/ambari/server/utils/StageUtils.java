@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -35,6 +37,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEve
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -103,5 +106,14 @@ public class StageUtils {
     mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
     mapper.configure(SerializationConfig.Feature.USE_ANNOTATIONS, true);
     return mapper.writeValueAsString(jaxbObj);
+  }
+  
+  public static ExecutionCommand stringToExecutionCommand(String json)
+      throws JsonParseException, JsonMappingException, IOException {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+    mapper.configure(SerializationConfig.Feature.USE_ANNOTATIONS, true);
+    InputStream is = new ByteArrayInputStream(json.getBytes());
+    return mapper.readValue(is, ExecutionCommand.class);
   }
 }
