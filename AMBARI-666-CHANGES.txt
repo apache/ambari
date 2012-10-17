@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-874. Fix hostinfo reporting at the server and add a unit test for
+  deserilization for the host information from agent. (mahadev)
+
   AMBARI-873. Support for multiple objects' updates in controller. (hitesh)
 
   AMBARI-870. Support metric types other than string (Tom Beerbower via
