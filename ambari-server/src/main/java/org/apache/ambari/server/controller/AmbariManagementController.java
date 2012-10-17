@@ -41,50 +41,42 @@ public interface AmbariManagementController {
   /**
    * Create the service defined by the attributes in the given request object.
    *
-   * @param request  the request object which defines the service to be created
+   * @param requests  the request object which defines the service to be created
    *
    * @throws AmbariException thrown if the service cannot be created
    */
   public void createServices(Set<ServiceRequest> request)
       throws AmbariException;
-  public void createService(ServiceRequest request)
-      throws AmbariException;
 
   /**
    * Create the component defined by the attributes in the given request object.
    *
-   * @param request  the request object which defines the component to be created
+   * @param requests  the request object which defines the component to be created
    *
    * @throws AmbariException thrown if the component cannot be created
    */
   public void createComponents(Set<ServiceComponentRequest> request)
       throws AmbariException;
-  public void createComponent(ServiceComponentRequest request)
-      throws AmbariException;
 
   /**
    * Create the host defined by the attributes in the given request object.
    *
-   * @param request  the request object which defines the host to be created
+   * @param requests  the request object which defines the host to be created
    *
    * @throws AmbariException thrown if the host cannot be created
    */
   public void createHosts(Set<HostRequest> request)
       throws AmbariException;
-  public void createHost(HostRequest request)
-      throws AmbariException;
 
   /**
    * Create the host component defined by the attributes in the given request object.
    *
-   * @param request  the request object which defines the host component to be created
+   * @param requests  the request object which defines the host component to be created
    *
    * @throws AmbariException thrown if the host component cannot be created
    */
   public void createHostComponents(
       Set<ServiceComponentHostRequest> request) throws AmbariException;
-  public void createHostComponent(
-      ServiceComponentHostRequest request) throws AmbariException;
 
 
   // ----- Read -------------------------------------------------------------
@@ -171,7 +163,7 @@ public interface AmbariManagementController {
    * Update the service identified by the given request object with the
    * values carried by the given request object.
    *
-   * @param request    the request object which defines which service to
+   * @param requests    the request object which defines which service to
    *                   update and the values to set
    *
    * @return a track action response
@@ -180,14 +172,12 @@ public interface AmbariManagementController {
    */
   public TrackActionResponse updateServices(Set<ServiceRequest> request)
       throws AmbariException;
-  public TrackActionResponse updateService(ServiceRequest request)
-      throws AmbariException;
 
   /**
    * Update the component identified by the given request object with the
    * values carried by the given request object.
    *
-   * @param request    the request object which defines which component to
+   * @param requests    the request object which defines which component to
    *                   update and the values to set
    *
    * @return a track action response
@@ -196,28 +186,24 @@ public interface AmbariManagementController {
    */
   public TrackActionResponse updateComponents(
       Set<ServiceComponentRequest> request) throws AmbariException;
-  public TrackActionResponse updateComponent(ServiceComponentRequest request)
-      throws AmbariException;
 
   /**
    * Update the host identified by the given request object with the
    * values carried by the given request object.
    *
-   * @param request    the request object which defines which host to
+   * @param requests    the request object which defines which host to
    *                   update and the values to set
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
   public void updateHosts(Set<HostRequest> request)
       throws AmbariException;
-  public void updateHost(HostRequest request)
-      throws AmbariException;
 
   /**
    * Update the host component identified by the given request object with the
    * values carried by the given request object.
    *
-   * @param request    the request object which defines which host component to
+   * @param requests    the request object which defines which host component to
    *                   update and the values to set
    *
    * @return a track action response
@@ -226,9 +212,6 @@ public interface AmbariManagementController {
    */
   public TrackActionResponse updateHostComponents(
       Set<ServiceComponentHostRequest> request) throws AmbariException;
-  public TrackActionResponse updateHostComponent(
-      ServiceComponentHostRequest request) throws AmbariException;
-
 
 
   // ----- Delete -----------------------------------------------------------
@@ -249,13 +232,11 @@ public interface AmbariManagementController {
    *
    * @return a track action response
    *
-   * @param request  the request object which identifies which service to delete
+   * @param requests  the request object which identifies which service to delete
    *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
   public TrackActionResponse deleteServices(Set<ServiceRequest> request)
-      throws AmbariException;
-  public TrackActionResponse deleteService(ServiceRequest request)
       throws AmbariException;
 
   /**
@@ -263,19 +244,17 @@ public interface AmbariManagementController {
    *
    * @return a track action response
    *
-   * @param request  the request object which identifies which component to delete
+   * @param requests  the request object which identifies which component to delete
    *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
   public TrackActionResponse deleteComponents(
       Set<ServiceComponentRequest> request) throws AmbariException;
-  public TrackActionResponse deleteComponent(ServiceComponentRequest request)
-      throws AmbariException;
 
   /**
    * Delete the host identified by the given request object.
    *
-   * @param request  the request object which identifies which host to delete
+   * @param requests  the request object which identifies which host to delete
    *
    * @return a track action response
    *
@@ -283,13 +262,11 @@ public interface AmbariManagementController {
    */
   public TrackActionResponse deleteHosts(Set<HostRequest> request)
       throws AmbariException;
-  public TrackActionResponse deleteHost(HostRequest request)
-      throws AmbariException;
 
   /**
    * Delete the host component identified by the given request object.
    *
-   * @param request  the request object which identifies which host component to delete
+   * @param requests  the request object which identifies which host component to delete
    *
    * @return a track action response
    *
@@ -297,6 +274,5 @@ public interface AmbariManagementController {
    */
   public TrackActionResponse deleteHostComponents(
       Set<ServiceComponentHostRequest> request) throws AmbariException;
-  public TrackActionResponse deleteHostComponent(
-      ServiceComponentHostRequest request) throws AmbariException;
+
 }

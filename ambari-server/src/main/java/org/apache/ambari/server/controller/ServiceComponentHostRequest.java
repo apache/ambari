@@ -131,4 +131,17 @@ public class ServiceComponentHostRequest {
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
+
+
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("{"
+        + " clusterName=" + clusterName
+        + ", serviceName=" + serviceName
+        + ", componentName=" + componentName
+        + ", hostname=" + hostname
+        + ", desiredState=" + desiredState
+        + "}");
+    return sb.toString();
+  }
 }

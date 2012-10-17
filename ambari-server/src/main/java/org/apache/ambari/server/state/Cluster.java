@@ -85,7 +85,7 @@ public interface Cluster {
 
   public void addDesiredConfig(Config config);
 
-  public ClusterResponse convertToResponse();
+  public ClusterResponse convertToResponse() throws AmbariException;
 
   public void refresh();
 

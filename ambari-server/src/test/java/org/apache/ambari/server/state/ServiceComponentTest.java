@@ -156,12 +156,14 @@ public class ServiceComponentTest {
      */
   }
 
-  private void addHostToCluster(String hostname) throws AmbariException {
+  private void addHostToCluster(String hostname,
+      String clusterName) throws AmbariException {
     clusters.addHost(hostname);
     Host h = clusters.getHost(hostname);
     h.setIPv4(hostname + "ipv4");
     h.setIPv6(hostname + "ipv6");
     h.persist();
+    clusters.mapHostToCluster(hostname, clusterName);
   }
 
   @Test
@@ -184,8 +186,8 @@ public class ServiceComponentTest {
       // Expected
     }
 
-    addHostToCluster("h1");
-    addHostToCluster("h2");
+    addHostToCluster("h1", service.getCluster().getClusterName());
+    addHostToCluster("h2", service.getCluster().getClusterName());
 
     ServiceComponentHost sch1 =
         serviceComponentHostFactory.createNew(sc, "h1", false);

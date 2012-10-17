@@ -34,6 +34,7 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 import org.apache.ambari.server.orm.dao.*;
 import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +57,6 @@ public class ServiceComponentImpl implements ServiceComponent {
   private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
   @Inject
   private ServiceComponentHostFactory serviceComponentHostFactory;
-
 
   boolean persisted = false;
   private ServiceComponentDesiredStateEntity desiredStateEntity;
@@ -173,10 +173,14 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", serviceComponentName=" + getName()
           + ", hostname=" + hostComponent.getHostName());
     }
+    // FIXME need a better approach of caching components by host
+    ClusterImpl clusterImpl = (ClusterImpl) service.getCluster();
+    clusterImpl.addServiceComponentHost(hostComponent);
     this.hostComponents.put(hostComponent.getHostName(), hostComponent);
   }
 
-  public synchronized ServiceComponentHost addServiceComponentHost(String hostName) throws AmbariException {
+  public synchronized ServiceComponentHost addServiceComponentHost(
+      String hostName) throws AmbariException {
     // TODO validation
     // TODO ensure host belongs to cluster
     if (LOG.isDebugEnabled()) {
@@ -195,8 +199,14 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", serviceComponentName=" + getName()
           + ", hostname=" + hostName);
     }
-    ServiceComponentHost hostComponent = serviceComponentHostFactory.createNew(this, hostName, true);
+    ServiceComponentHost hostComponent =
+        serviceComponentHostFactory.createNew(this, hostName, true);
+    // FIXME need a better approach of caching components by host
+    ClusterImpl clusterImpl = (ClusterImpl) service.getCluster();
+    clusterImpl.addServiceComponentHost(hostComponent);
+
     this.hostComponents.put(hostComponent.getHostName(), hostComponent);
+
     return hostComponent;
   }
 

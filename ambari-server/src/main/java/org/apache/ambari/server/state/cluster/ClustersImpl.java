@@ -56,6 +56,7 @@ public class ClustersImpl implements Clusters {
   private Map<Long, Cluster> clustersById;
   private Map<String, Host> hosts;
   private Map<String, Set<Cluster>> hostClusterMap;
+  private Map<String, Set<Host>> clusterHostMap;
 
   private Injector injector;
   private ClusterDAO clusterDAO;
@@ -76,6 +77,7 @@ public class ClustersImpl implements Clusters {
     clustersById = new HashMap<Long, Cluster>();
     hosts = new HashMap<String, Host>();
     hostClusterMap = new HashMap<String, Set<Cluster>>();
+    clusterHostMap = new HashMap<String, Set<Host>>();
     LOG.info("Initializing the ClustersImpl");
   }
 
@@ -98,6 +100,7 @@ public class ClustersImpl implements Clusters {
 
       clusters.put(clusterName, cluster);
       clustersById.put(cluster.getClusterId(), cluster);
+      clusterHostMap.put(clusterName, new HashSet<Host>());
     } catch (RollbackException e) {
       LOG.warn("Unable to create cluster " + clusterName, e);
       throw new AmbariException("Unable to create cluster " + clusterName, e);
@@ -218,6 +221,7 @@ public class ClustersImpl implements Clusters {
     host.addToCluster(cluster);
 
     hostClusterMap.get(hostname).add(cluster);
+    clusterHostMap.get(clusterName).add(host);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Mapping a host to a cluster"
           + ", clusterName=" + clusterName
@@ -242,7 +246,7 @@ public class ClustersImpl implements Clusters {
 
   @Override
   public synchronized void mapHostsToCluster(Set<String> hostnames,
-                                             String clusterName) throws AmbariException {
+      String clusterName) throws AmbariException {
     for (String hostname : hostnames) {
       mapHostToCluster(hostname, clusterName);
     }
@@ -267,6 +271,17 @@ public class ClustersImpl implements Clusters {
       sb.append(" ");
     }
     sb.append(" ]");
+  }
+
+  @Override
+  public Map<String, Host> getHostsForCluster(String clusterName)
+      throws AmbariException {
+    getCluster(clusterName);
+    Map<String, Host> hosts = new HashMap<String, Host>();
+    for (Host h : clusterHostMap.get(clusterName)) {
+      hosts.put(h.getHostName(), h);
+    }
+    return hosts;
   }
 
 }

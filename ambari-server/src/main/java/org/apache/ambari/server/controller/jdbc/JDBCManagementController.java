@@ -100,22 +100,6 @@ public class JDBCManagementController implements AmbariManagementController {
   }
 
   @Override
-  public void createService(ServiceRequest request) throws AmbariException {
-  }
-
-  @Override
-  public void createComponent(ServiceComponentRequest request) throws AmbariException {
-  }
-
-  @Override
-  public void createHost(HostRequest request) throws AmbariException {
-  }
-
-  @Override
-  public void createHostComponent(ServiceComponentHostRequest request) throws AmbariException {
-  }
-
-  @Override
   public Set<ClusterResponse> getClusters(ClusterRequest request) throws AmbariException {
 //    return getResources(Resource.Type.Cluster, request, predicate);
     return null;
@@ -147,48 +131,10 @@ public class JDBCManagementController implements AmbariManagementController {
     return null;
   }
 
-  @Override
-  public TrackActionResponse updateService(ServiceRequest request) throws AmbariException {
-    return null;
-  }
-
-  @Override
-  public TrackActionResponse updateComponent(ServiceComponentRequest request) throws AmbariException {
-    return null;
-  }
-
-  @Override
-  public void updateHost(HostRequest request) throws AmbariException {
-  }
-
-  @Override
-  public TrackActionResponse updateHostComponent(ServiceComponentHostRequest request) throws AmbariException {
-    return null;
-  }
 
   @Override
   public TrackActionResponse deleteCluster(ClusterRequest request) throws AmbariException {
 //    deleteResources(Resource.Type.Cluster, predicate);
-    return null;
-  }
-
-  @Override
-  public TrackActionResponse deleteService(ServiceRequest request) throws AmbariException {
-    return null;
-  }
-
-  @Override
-  public TrackActionResponse deleteComponent(ServiceComponentRequest request) throws AmbariException {
-    return null;
-  }
-
-  @Override
-  public TrackActionResponse deleteHost(HostRequest request) throws AmbariException {
-    return null;
-  }
-
-  @Override
-  public TrackActionResponse deleteHostComponent(ServiceComponentHostRequest request) throws AmbariException {
     return null;
   }
 

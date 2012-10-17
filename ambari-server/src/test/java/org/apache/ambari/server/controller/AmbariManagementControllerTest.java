@@ -120,10 +120,13 @@ public class AmbariManagementControllerTest {
     }
     ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
         serviceName, componentName, null, dStateStr);
-    controller.createComponent(r);
+    Set<ServiceComponentRequest> requests =
+        new HashSet<ServiceComponentRequest>();
+    requests.add(r);
+    controller.createComponents(requests);
 
     try {
-      controller.createComponent(r);
+      controller.createComponents(requests);
       fail("Duplicate ServiceComponent creation should fail");
     } catch (Exception e) {
       // Expected
@@ -139,10 +142,13 @@ public class AmbariManagementControllerTest {
     }
     ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
         serviceName, componentName, hostname, null, dStateStr);
-    controller.createHostComponent(r);
+    Set<ServiceComponentHostRequest> requests =
+        new HashSet<ServiceComponentHostRequest>();
+    requests.add(r);
+    controller.createHostComponents(requests);
 
     try {
-      controller.createHostComponent(r);
+      controller.createHostComponents(requests);
       fail("Duplicate ServiceComponentHost creation should fail");
     } catch (Exception e) {
       // Expected
@@ -262,17 +268,33 @@ public class AmbariManagementControllerTest {
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").persist();
+
+    try {
+      createServiceComponentHost(clusterName, serviceName, componentName1,
+          host1, State.INIT);
+      fail("ServiceComponentHost creation should fail for invalid host"
+          + " as host not mapped to cluster");
+    } catch (Exception e) {
+      // Expected
+    }
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
     try {
       createServiceComponentHost(clusterName, serviceName, componentName1,
           host1, State.INSTALLING);
       fail("ServiceComponentHost creation should fail for invalid state");
     } catch (Exception e) {
       // Expected
+      e.printStackTrace();
     }
 
     try {
+      ServiceComponentHost sch =
       clusters.getCluster(clusterName).getService(serviceName)
           .getServiceComponent(componentName1).getServiceComponentHost(host1);
+      LOG.error("**** " + sch.getHostName());
       fail("ServiceComponentHost creation should have failed");
     } catch (Exception e) {
       // Expected
@@ -324,8 +346,11 @@ public class AmbariManagementControllerTest {
 
     HostRequest r1 = new HostRequest("h1", clusterNames, hostAttributes);
     r1.toString();
+
+    Set<HostRequest> requests = new HashSet<HostRequest>();
+    requests.add(r1);
     try {
-      controller.createHost(r1);
+      controller.createHosts(requests);
       fail("Create host should fail for non-bootstrapped host");
     } catch (Exception e) {
       // Expected
@@ -334,8 +359,6 @@ public class AmbariManagementControllerTest {
     clusters.addHost("h1");
     clusters.addHost("h2");
 
-    controller.createHost(r1);
-
     clusterNames = new ArrayList<String>();
     clusterNames.add("foo1");
     clusterNames.add("foo2");
@@ -343,8 +366,10 @@ public class AmbariManagementControllerTest {
     hostAttributes = new HashMap<String, String>();
     HostRequest r2 = new HostRequest("h2", clusterNames, hostAttributes);
 
+    requests.add(r2);
+
     try {
-      controller.createHost(r2);
+      controller.createHosts(requests);
       fail("Create host should fail for invalid clusters");
     } catch (Exception e) {
       // Expected
@@ -353,7 +378,7 @@ public class AmbariManagementControllerTest {
     clusters.addCluster("foo1");
     clusters.addCluster("foo2");
 
-    controller.createHost(r2);
+    controller.createHosts(requests);
 
     Assert.assertNotNull(clusters.getHost("h1"));
     Assert.assertNotNull(clusters.getHost("h2"));
@@ -397,8 +422,10 @@ public class AmbariManagementControllerTest {
 
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, null,
         State.INSTALLED.toString());
+    Set<ServiceRequest> requests1 = new HashSet<ServiceRequest>();
+    requests1.add(r1);
 
-    controller.updateService(r1);
+    controller.updateServices(requests1);
     Assert.assertEquals(State.INSTALLED,
         clusters.getCluster(clusterName).getService(serviceName)
         .getDesiredState());
@@ -431,8 +458,10 @@ public class AmbariManagementControllerTest {
 
     ServiceRequest r2 = new ServiceRequest(clusterName, serviceName, null,
         State.STARTED.toString());
+    Set<ServiceRequest> requests2 = new HashSet<ServiceRequest>();
+    requests2.add(r2);
+    controller.updateServices(requests2);
 
-    controller.updateService(r2);
     Assert.assertEquals(State.STARTED,
         clusters.getCluster(clusterName).getService(serviceName)
         .getDesiredState());

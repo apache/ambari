@@ -151,14 +151,15 @@ public class ClusterImpl implements Cluster {
     }
   }
 
-  synchronized void addServiceComponentHost(ServiceComponentHost svcCompHost)
-      throws AmbariException {
+  public synchronized void addServiceComponentHost(
+      ServiceComponentHost svcCompHost) throws AmbariException {
     final String hostname = svcCompHost.getHostName();
     final String serviceName = svcCompHost.getServiceName();
     final String componentName = svcCompHost.getServiceComponentName();
     Set<Cluster> cs = clusters.getClustersForHost(hostname);
     boolean clusterFound = false;
-    for (Cluster c = cs.iterator().next(); ; cs.iterator().hasNext()) {
+    while (cs.iterator().hasNext()) {
+      Cluster c = cs.iterator().next();
       if (c.getClusterId() == this.getClusterId()) {
         clusterFound = true;
         break;
@@ -215,8 +216,11 @@ public class ClusterImpl implements Cluster {
   @Override
   public synchronized List<ServiceComponentHost> getServiceComponentHosts(
       String hostname) {
-    return Collections.unmodifiableList(
-        serviceComponentHostsByHost.get(hostname));
+    if (serviceComponentHostsByHost.containsKey(hostname)) {
+      return Collections.unmodifiableList(
+          serviceComponentHostsByHost.get(hostname));
+    }
+    return new ArrayList<ServiceComponentHost>();
   }
 
   @Override
@@ -320,9 +324,10 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public synchronized ClusterResponse convertToResponse() {
+  public synchronized ClusterResponse convertToResponse()
+      throws AmbariException {
     ClusterResponse r = new ClusterResponse(getClusterId(), getClusterName(),
-        new HashSet<String>(serviceComponentHostsByHost.keySet()));
+        clusters.getHostsForCluster(getClusterName()).keySet());
     return r;
   }
 

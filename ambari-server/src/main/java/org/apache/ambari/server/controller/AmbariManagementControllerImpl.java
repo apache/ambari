@@ -406,6 +406,7 @@ public class AmbariManagementControllerImpl implements
       }
       catch (HostNotFoundException e) {
         unknowns.add(request.getHostname());
+        continue;
       }
     }
 
@@ -1544,122 +1545,30 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public TrackActionResponse deleteService(ServiceRequest request)
-      throws AmbariException {
-    // TODO not implemented yet
-    throw new AmbariException("Delete service not supported");
-  }
-
-  @Override
-  public TrackActionResponse deleteComponent(ServiceComponentRequest request)
-      throws AmbariException {
-    // TODO not implemented yet
-    throw new AmbariException("Delete component not supported");
-  }
-
-  @Override
-  public TrackActionResponse deleteHost(HostRequest request)
-      throws AmbariException {
-    // TODO not implemented yet
-    throw new AmbariException("Delete host not supported");
-  }
-
-  @Override
-  public TrackActionResponse deleteHostComponent(
-      ServiceComponentHostRequest request) throws AmbariException {
-    // TODO not implemented yet
-    throw new AmbariException("Delete host component not supported");
-  }
-
-  @Override
   public TrackActionResponse deleteServices(Set<ServiceRequest> request)
       throws AmbariException {
     // TODO Auto-generated method stub
-    return null;
+    throw new AmbariException("Delete services not supported");
   }
 
   @Override
   public TrackActionResponse deleteComponents(
       Set<ServiceComponentRequest> request) throws AmbariException {
     // TODO Auto-generated method stub
-    return null;
+    throw new AmbariException("Delete components not supported");
   }
 
   @Override
   public TrackActionResponse deleteHosts(Set<HostRequest> request)
       throws AmbariException {
-    // TODO Auto-generated method stub
-    return null;
+    throw new AmbariException("Delete hosts not supported");
   }
 
   @Override
   public TrackActionResponse deleteHostComponents(
       Set<ServiceComponentHostRequest> request) throws AmbariException {
     // TODO Auto-generated method stub
-    return null;
+    throw new AmbariException("Delete host components not supported");
   }
 
-  @Override
-  public void createService(ServiceRequest request) throws AmbariException {
-    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
-    requests.add(request);
-    createServices(requests);
-  }
-
-  @Override
-  public void createComponent(ServiceComponentRequest request)
-      throws AmbariException {
-    Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
-    requests.add(request);
-    createComponents(requests);
-  }
-
-  @Override
-  public void createHost(HostRequest request) throws AmbariException {
-    Set<HostRequest> requests = new HashSet<HostRequest>();
-    requests.add(request);
-    createHosts(requests);
-  }
-
-  @Override
-  public void createHostComponent(ServiceComponentHostRequest request)
-      throws AmbariException {
-    Set<ServiceComponentHostRequest> requests =
-        new HashSet<ServiceComponentHostRequest>();
-    requests.add(request);
-    createHostComponents(requests);
-  }
-
-  @Override
-  public TrackActionResponse updateService(ServiceRequest request)
-      throws AmbariException {
-    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
-    requests.add(request);
-    return updateServices(requests);
-  }
-
-  @Override
-  public TrackActionResponse updateComponent(ServiceComponentRequest request)
-      throws AmbariException {
-    Set<ServiceComponentRequest> requests =
-        new HashSet<ServiceComponentRequest>();
-    requests.add(request);
-    return updateComponents(requests);
-  }
-
-  @Override
-  public void updateHost(HostRequest request) throws AmbariException {
-    Set<HostRequest> requests = new HashSet<HostRequest>();
-    requests.add(request);
-    updateHosts(requests);
-  }
-
-  @Override
-  public TrackActionResponse updateHostComponent(
-      ServiceComponentHostRequest request) throws AmbariException {
-    Set<ServiceComponentHostRequest> requests =
-        new HashSet<ServiceComponentHostRequest>();
-    requests.add(request);
-    return updateHostComponents(requests);
-  }
 }

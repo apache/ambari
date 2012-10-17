@@ -294,6 +294,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-878. Various tests for FSM, controller and state objects. (hitesh)
+
   AMBARI-858. Installer -> Select Services page: warning popups are no longer
   appearing. (yusaku)
 

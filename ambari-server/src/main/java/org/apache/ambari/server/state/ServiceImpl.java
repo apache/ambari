@@ -160,7 +160,8 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public synchronized ServiceComponent addServiceComponent(String serviceComponentName) throws AmbariException {
+  public synchronized ServiceComponent addServiceComponent(
+      String serviceComponentName) throws AmbariException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding a ServiceComponent to Service"
           + ", clusterName=" + cluster.getClusterName()
