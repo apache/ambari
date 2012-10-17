@@ -18,15 +18,20 @@
 
 package org.apache.ambari.server.state;
 
+import static org.junit.Assert.fail;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +43,7 @@ public class ServiceTest {
   private String clusterName;
   private Injector injector;
   private ServiceFactory serviceFactory;
+  private ServiceComponentFactory serviceComponentFactory;
 
   @Before
   public void setup() throws AmbariException {
@@ -45,24 +51,27 @@ public class ServiceTest {
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     serviceFactory = injector.getInstance(ServiceFactory.class);
+    serviceComponentFactory = injector.getInstance(
+        ServiceComponentFactory.class);
     clusterName = "foo";
     clusters.addCluster(clusterName);
     cluster = clusters.getCluster(clusterName);
     Assert.assertNotNull(cluster);
   }
-  
+
   @After
   public void teardown() throws AmbariException {
     injector.getInstance(PersistService.class).stop();
   }
-  
+
   @Test
   public void testCreateService() throws AmbariException {
     String serviceName = "s1";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
+    s.persist();
     Service service = cluster.getService(serviceName);
-    
+
     Assert.assertNotNull(service);
     Assert.assertEquals(serviceName, service.getName());
     Assert.assertEquals(cluster.getClusterId(),
@@ -79,53 +88,118 @@ public class ServiceTest {
     String serviceName = "s1";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
-    Service service = cluster.getService(serviceName);
+    s.persist();
 
+    Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
 
     service.setDesiredStackVersion(new StackVersion("1.1.0"));
     Assert.assertEquals("1.1.0",
         service.getDesiredStackVersion().getStackVersion());
 
-
     service.setDesiredState(State.INSTALLING);
     Assert.assertEquals(State.INSTALLING, service.getDesiredState());
+
+    // FIXME todo use DAO to verify persisted object maps to inmemory state
 
   }
 
 
+  @Test
+  public void testAddAndGetServiceComponents() throws AmbariException {
+    String serviceName = "s1";
+    Service s = serviceFactory.createNew(cluster, serviceName);
+    cluster.addService(s);
+    s.persist();
 
-  /*
+    Service service = cluster.getService(serviceName);
+
+    Assert.assertNotNull(service);
+
+    Assert.assertTrue(s.getServiceComponents().isEmpty());
+
+    ServiceComponent sc1 =
+        serviceComponentFactory.createNew(s, "sc1");
+    ServiceComponent sc2 =
+        serviceComponentFactory.createNew(s, "sc2");
+    ServiceComponent sc3 =
+        serviceComponentFactory.createNew(s, "sc3");
+
+    Map<String, ServiceComponent> comps = new
+        HashMap<String, ServiceComponent>();
+    comps.put(sc1.getName(), sc1);
+    comps.put(sc2.getName(), sc2);
+
+    s.addServiceComponents(comps);
+
+    Assert.assertEquals(2, s.getServiceComponents().size());
+    Assert.assertNotNull(s.getServiceComponent(sc1.getName()));
+    Assert.assertNotNull(s.getServiceComponent(sc2.getName()));
+
+    try {
+      s.getServiceComponent(sc3.getName());
+      fail("Expected error when looking for invalid component");
+    } catch (Exception e) {
+      // Expected
+    }
+
+    s.addServiceComponent(sc3);
+
+    sc1.persist();
+    sc2.persist();
+    sc3.persist();
+
+    Assert.assertNotNull(s.getServiceComponent(sc3.getName()));
+    Assert.assertEquals(3, s.getServiceComponents().size());
+    Assert.assertEquals(sc3.getName(),
+        s.getServiceComponent(sc3.getName()).getName());
+    Assert.assertEquals(s.getName(),
+        s.getServiceComponent(sc3.getName()).getServiceName());
+    Assert.assertEquals(cluster.getClusterName(),
+        s.getServiceComponent(sc3.getName()).getClusterName());
+  }
+
+  @Test
+  public void testGetAndSetConfigs() {
+    // FIXME add unit tests for configs once impl done
+    /*
+      public Map<String, Config> getDesiredConfigs();
+      public void updateDesiredConfigs(Map<String, Config> configs);
+      public Map<String, Config> getConfigs();
+      public void updateConfigs(Map<String, Config> configs);
+     */
+  }
 
 
+  @Test
+  public void testConvertToResponse() throws AmbariException {
+    String serviceName = "s1";
+    Service s = serviceFactory.createNew(cluster, serviceName);
+    cluster.addService(s);
+    Service service = cluster.getService(serviceName);
+    Assert.assertNotNull(service);
 
-  public ServiceComponent getServiceComponent(String componentName)
-      throws AmbariException;
+    ServiceResponse r = s.convertToResponse();
+    Assert.assertEquals(s.getName(), r.getServiceName());
+    Assert.assertEquals(s.getCluster().getClusterName(),
+        r.getClusterName());
+    Assert.assertEquals(s.getDesiredStackVersion().getStackVersion(),
+        r.getDesiredStackVersion());
+    Assert.assertEquals(s.getDesiredState().toString(),
+        r.getDesiredState());
 
-  public Map<String, ServiceComponent> getServiceComponents();
+    service.setDesiredStackVersion(new StackVersion("1.1.0"));
+    service.setDesiredState(State.INSTALLING);
+    r = s.convertToResponse();
+    Assert.assertEquals(s.getName(), r.getServiceName());
+    Assert.assertEquals(s.getCluster().getClusterName(),
+        r.getClusterName());
+    Assert.assertEquals(s.getDesiredStackVersion().getStackVersion(),
+        r.getDesiredStackVersion());
+    Assert.assertEquals(s.getDesiredState().toString(),
+        r.getDesiredState());
+    // FIXME add checks for configs
 
-  public void addServiceComponents(Map<String, ServiceComponent> components)
-      throws AmbariException;
+  }
 
-  public void addServiceComponent(ServiceComponent component)
-      throws AmbariException;
-
-
-  public Map<String, Config> getDesiredConfigs();
-
-  public void updateDesiredConfigs(Map<String, Config> configs);
-
-
-  public Map<String, Config> getConfigs();
-
-  public void updateConfigs(Map<String, Config> configs);
-
-  public StackVersion getStackVersion();
-
-  public void setStackVersion(StackVersion stackVersion);
-
-  public ServiceResponse convertToResponse();
-
-
-    */
 }

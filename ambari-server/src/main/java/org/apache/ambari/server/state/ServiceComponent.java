@@ -47,10 +47,6 @@ public interface ServiceComponent {
 
   public void setDesiredStackVersion(StackVersion stackVersion);
 
-  public Map<String, Config> getConfigs();
-
-  public void updateConfigs(Map<String, Config> configs);
-
   public Map<String, ServiceComponentHost> getServiceComponentHosts();
 
   public ServiceComponentHost getServiceComponentHost(String hostname)

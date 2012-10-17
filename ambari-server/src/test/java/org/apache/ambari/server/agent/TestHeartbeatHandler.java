@@ -85,15 +85,17 @@ public class TestHeartbeatHandler {
       InvalidStateTransitonException {
     ActionManager am = new ActionManager(0, 0, null, null,
         new ActionDBInMemoryImpl());
-    Clusters fsm = mock(Clusters.class);
+    Clusters fsm = clusters;
     String hostname = "host1";
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am);
     clusters.addHost(hostname);
     Host hostObject = clusters.getHost(hostname);
-    when(fsm.getHost(hostname)).thenReturn(hostObject);
+    hostObject.setIPv4("ipv4");
+    hostObject.setIPv6("ipv6");
 
     Register reg = new Register();
     HostInfo hi = new HostInfo();
+    hi.setHostName("host1");
     hi.setOS("MegaOperatingSystem");
     reg.setHostname(hostname);
     reg.setHardwareProfile(hi);
@@ -109,14 +111,19 @@ public class TestHeartbeatHandler {
     Clusters fsm = clusters;
     String hostname = "host1";
     fsm.addHost(hostname);
+    Host hostObject = clusters.getHost(hostname);
+    hostObject.setIPv4("ipv4");
+    hostObject.setIPv6("ipv6");
+
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am);
     Register reg = new Register();
     HostInfo hi = new HostInfo();
+    hi.setHostName("host1");
     hi.setOS("MegaOperatingSystem");
     reg.setHostname(hostname);
     reg.setHardwareProfile(hi);
     RegistrationResponse response = handler.handleRegistration(reg);
-    Host hostObject = fsm.getHost(hostname);
+
     assertEquals(hostObject.getState(), HostState.HEALTHY);
     assertEquals("MegaOperatingSystem", hostObject.getOsType());
     assertEquals(RegistrationStatus.OK, response.getResponseStatus());

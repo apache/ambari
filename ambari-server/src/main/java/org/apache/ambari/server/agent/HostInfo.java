@@ -58,7 +58,7 @@ public class HostInfo {
   private String uptime;
   private long uptime_days;
   private long uptime_hours;
- 
+
   public String getArchitecture() {
     return this.architecture;
   }

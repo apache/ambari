@@ -443,12 +443,20 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     this.serviceComponent = serviceComponent;
 
     stateEntity = new HostComponentStateEntity();
+    stateEntity.setClusterId(serviceComponent.getClusterId());
+    stateEntity.setComponentName(serviceComponent.getName());
+    stateEntity.setServiceName(serviceComponent.getServiceName());
+    stateEntity.setHostName(hostName);
     stateEntity.setCurrentState(stateMachine.getCurrentState());
     stateEntity.setCurrentStackVersion(gson.toJson(new StackVersion("")));
 
     desiredStateEntity = new HostComponentDesiredStateEntity();
+    desiredStateEntity.setClusterId(serviceComponent.getClusterId());
+    desiredStateEntity.setComponentName(serviceComponent.getName());
+    desiredStateEntity.setServiceName(serviceComponent.getServiceName());
+    desiredStateEntity.setHostName(hostName);
+    desiredStateEntity.setDesiredState(State.INIT);
     desiredStateEntity.setDesiredStackVersion(gson.toJson(new StackVersion("")));
-
 
     try {
       this.host = clusters.getHost(hostName);
@@ -457,6 +465,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       LOG.error("Host '{}' was not found", hostName);
       throw new RuntimeException(e);
     }
+
     this.resetLastOpInfo();
     this.desiredConfigs = new HashMap<String, Config>();
     this.configs = new HashMap<String, Config>();
@@ -848,7 +857,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     try {
       writeLock.lock();
       if (!persisted) {
-        serviceComponent.persist(); //TODO is this correct?
         HostEntity hostEntity = hostDAO.findByName(getHostName());
         hostEntity.getHostComponentStateEntities().add(stateEntity);
         hostEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);

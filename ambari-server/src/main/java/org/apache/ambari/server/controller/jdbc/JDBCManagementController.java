@@ -95,29 +95,24 @@ public class JDBCManagementController implements AmbariManagementController {
   // ----- AmbariManagementController ----------------------------------------
 
   @Override
-  public TrackActionResponse createCluster(ClusterRequest request) throws AmbariException {
+  public void createCluster(ClusterRequest request) throws AmbariException {
 //    createResources(Resource.Type.Cluster, request);
-    return null;
   }
 
   @Override
-  public TrackActionResponse createService(ServiceRequest request) throws AmbariException {
-    return null;
+  public void createService(ServiceRequest request) throws AmbariException {
   }
 
   @Override
-  public TrackActionResponse createComponent(ServiceComponentRequest request) throws AmbariException {
-    return null;
+  public void createComponent(ServiceComponentRequest request) throws AmbariException {
   }
 
   @Override
-  public TrackActionResponse createHost(HostRequest request) throws AmbariException {
-    return null;
+  public void createHost(HostRequest request) throws AmbariException {
   }
 
   @Override
-  public TrackActionResponse createHostComponent(ServiceComponentHostRequest request) throws AmbariException {
-    return null;
+  public void createHostComponent(ServiceComponentHostRequest request) throws AmbariException {
   }
 
   @Override
@@ -163,8 +158,7 @@ public class JDBCManagementController implements AmbariManagementController {
   }
 
   @Override
-  public TrackActionResponse updateHost(HostRequest request) throws AmbariException {
-    return null;
+  public void updateHost(HostRequest request) throws AmbariException {
   }
 
   @Override
@@ -668,6 +662,88 @@ public class JDBCManagementController implements AmbariManagementController {
       tables.add(propertyId.getCategory());
     }
     return tables;
+  }
+
+  @Override
+  public void createServices(Set<ServiceRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void createComponents(Set<ServiceComponentRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void createHosts(Set<HostRequest> request) throws AmbariException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void createHostComponents(Set<ServiceComponentHostRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public TrackActionResponse updateServices(Set<ServiceRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public TrackActionResponse updateComponents(
+      Set<ServiceComponentRequest> request) throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void updateHosts(Set<HostRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+  }
+
+  @Override
+  public TrackActionResponse updateHostComponents(
+      Set<ServiceComponentHostRequest> request) throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public TrackActionResponse deleteServices(Set<ServiceRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public TrackActionResponse deleteComponents(
+      Set<ServiceComponentRequest> request) throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public TrackActionResponse deleteHosts(Set<HostRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public TrackActionResponse deleteHostComponents(
+      Set<ServiceComponentHostRequest> request) throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
 

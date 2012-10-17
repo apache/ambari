@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
-import static org.mockito.Mockito.*;
-
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -43,7 +41,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ServiceComponentHostImplTest {
+public class ServiceComponentHostTest {
 
   @Inject
   private Injector injector;

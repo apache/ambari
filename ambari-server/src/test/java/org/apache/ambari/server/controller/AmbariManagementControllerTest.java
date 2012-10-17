@@ -29,11 +29,7 @@ import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
-import org.apache.ambari.server.actionmanager.ActionDBInMemoryImpl;
-import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.agent.ActionQueue;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Clusters;
@@ -43,7 +39,6 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +58,6 @@ public class AmbariManagementControllerTest {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
-//    ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-//        clusters, db);
     db = injector.getInstance(ActionDBAccessor.class);
     controller = injector.getInstance(AmbariManagementController.class);
   }
@@ -92,12 +85,26 @@ public class AmbariManagementControllerTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, null,
         dStateStr);
-    controller.createService(r);
+    ServiceRequest r2 = new ServiceRequest(clusterName, serviceName, null,
+        dStateStr);
+    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    requests.add(r1);
+    requests.add(r2);
+    try {
+      controller.createServices(requests);
+      fail("Expected error for duplicates");
+    } catch (Exception e) {
+      // Expected
+    }
+
+    requests.clear();
+    requests.add(r1);
+    controller.createServices(requests);
 
     try {
-      controller.createService(r);
+      controller.createServices(requests);
       fail("Duplicate Service creation should fail");
     } catch (Exception e) {
       // Expected
@@ -406,7 +413,7 @@ public class AmbariManagementControllerTest {
 
     // TODO validate stages?
     List<Stage> stages = db.getAllStages(1);
-    Assert.assertEquals(2, stages.size());
+    Assert.assertEquals(1, stages.size());
 
     for (Stage stage : stages) {
       LOG.info("Stage Details for Install Service"
@@ -440,7 +447,7 @@ public class AmbariManagementControllerTest {
 
     // TODO validate stages?
     stages = db.getAllStages(2);
-    Assert.assertEquals(2, stages.size());
+    Assert.assertEquals(1, stages.size());
 
     for (Stage stage : stages) {
       LOG.info("Stage Details for Start Service"

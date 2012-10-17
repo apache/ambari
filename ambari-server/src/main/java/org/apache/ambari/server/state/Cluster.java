@@ -79,11 +79,11 @@ public interface Cluster {
    */
   public void setDesiredStackVersion(StackVersion stackVersion);
 
-  public Map<String, Config> getConfigsByType(String configType);
+  public Map<String, Config> getDesiredConfigsByType(String configType);
 
-  public Config getConfig(String configType, String versionTag);
+  public Config getDesiredConfig(String configType, String versionTag);
 
-  public void addConfig(Config config);
+  public void addDesiredConfig(Config config);
 
   public ClusterResponse convertToResponse();
 

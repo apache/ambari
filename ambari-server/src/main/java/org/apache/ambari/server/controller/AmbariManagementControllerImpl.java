@@ -26,8 +26,12 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +43,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -56,6 +61,14 @@ public class AmbariManagementControllerImpl implements
   private final ActionManager actionManager;
 
   private final Injector injector;
+
+  // FIXME does this need to be initialized via the meta data library?
+  private static RoleCommandOrder rco;
+  static {
+    rco = new RoleCommandOrder();
+    RoleCommandOrder.initialize();
+  }
+
   @Inject
   private ServiceFactory serviceFactory;
   @Inject
@@ -74,7 +87,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public TrackActionResponse createCluster(ClusterRequest request)
+  public void createCluster(ClusterRequest request)
       throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
@@ -88,7 +101,8 @@ public class AmbariManagementControllerImpl implements
           + ", request=" + request);
     }
 
-    // TODO validate stack version
+    // FIXME validate stack version
+    // FIXME add support for desired configs at cluster level
 
     clusters.addCluster(request.getClusterName());
 
@@ -103,330 +117,509 @@ public class AmbariManagementControllerImpl implements
           new StackVersion(request.getStackVersion()));
     }
 
-    // TODO
-    return null;
   }
 
   @Override
-  public TrackActionResponse createService(ServiceRequest request)
+  public void createServices(Set<ServiceRequest> requests)
       throws AmbariException {
-    if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()) {
-      // FIXME throw correct error
-      throw new AmbariException("Invalid arguments");
+
+    if (requests.isEmpty()) {
+      // TODO log warning for invalid request
     }
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a createService request"
-          + ", clusterName=" + request.getClusterName()
-          + ", serviceName=" + request.getServiceName()
-          + ", request=" + request);
-    }
-
-    final Cluster cluster = clusters.getCluster(request.getClusterName());
-
-    Service s = null;
-    try {
-      s = cluster.getService(request.getServiceName());
-      if (s != null) {
-        // TODO fix exception
-        throw new AmbariException("Service already exists within cluster"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", clusterId=" + cluster.getClusterId()
-            + ", serviceName=" + s.getName());
-      }
-    } catch (AmbariException e) {
-      // Expected
-    }
-
-    // TODO initialize configs based off service.configVersions
-    Map<String, Config> configs = new HashMap<String, Config>();
-
-    // Assuming service does not exist
-    s = serviceFactory.createNew(cluster, request.getServiceName());
-
-    // TODO validate correct desired state
-    // TODO take action based on desired state
-    // should we allow a non-INIT desired state?
-
-    if (request.getDesiredState() != null
-        && !request.getDesiredState().isEmpty()) {
-      State state = State.valueOf(request.getDesiredState());
-      if (!state.isValidDesiredState()
-          || state != State.INIT) {
+    // do all validation checks
+    Map<String, Set<String>> serviceNames = new HashMap<String, Set<String>>();
+    Set<String> duplicates = new HashSet<String>();
+    for (ServiceRequest request : requests) {
+      if (request.getClusterName() == null
+          || request.getClusterName().isEmpty()
+          || request.getServiceName() == null
+          || request.getServiceName().isEmpty()) {
         // FIXME throw correct error
-        throw new AmbariException("Invalid desired state");
+        throw new AmbariException("Invalid arguments"
+            + ", clustername and servicename should be non-null and non-empty");
       }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Received a createService request"
+            + ", clusterName=" + request.getClusterName()
+            + ", serviceName=" + request.getServiceName()
+            + ", request=" + request);
+      }
+
+      if (!serviceNames.containsKey(request.getClusterName())) {
+        serviceNames.put(request.getClusterName(), new HashSet<String>());
+      }
+      if (serviceNames.get(request.getClusterName())
+          .contains(request.getServiceName())) {
+        // throw error later for dup
+        duplicates.add(request.getServiceName());
+        continue;
+      }
+      serviceNames.get(request.getClusterName()).add(request.getServiceName());
+
+      if (request.getDesiredState() != null
+          && !request.getDesiredState().isEmpty()) {
+        State state = State.valueOf(request.getDesiredState());
+        if (!state.isValidDesiredState()
+            || state != State.INIT) {
+          // FIXME throw correct error
+          throw new AmbariException("Invalid desired state"
+              + " only INIT state allowed during creation"
+              + ", providedDesiredState=" + request.getDesiredState());
+        }
+      }
+
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+      try {
+        Service s = cluster.getService(request.getServiceName());
+        if (s != null) {
+          // throw error later for dup
+          duplicates.add(request.getServiceName());
+          continue;
+        }
+      } catch (AmbariException e) {
+        // Expected
+      }
+    }
+
+    // ensure only a single cluster update
+    if (serviceNames.size() != 1) {
+      // FIXME throw correct error
+      throw new AmbariException("Invalid arguments - updates allowed only on"
+          + " one cluster at a time");
+    }
+
+    // Validate dups
+    if (!duplicates.isEmpty()) {
+      StringBuilder svcNames = new StringBuilder();
+      boolean first = true;
+      for (String svcName : duplicates) {
+        if (!first) {
+          svcNames.append(",");
+        }
+        first = false;
+        svcNames.append(svcName);
+      }
+      // FIXME throw correct error
+      throw new AmbariException("Invalid request"
+          + " contains duplicates within request or already existing services"
+          + ", duplicateServiceNames=" + svcNames.toString());
+    }
+
+    // now to the real work
+    for (ServiceRequest request : requests) {
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+
+      // TODO initialize configs based off service.configVersions
+      Map<String, Config> configs = new HashMap<String, Config>();
+
+      State state = State.INIT;
+      if (request.getDesiredState() != null
+          && !request.getDesiredState().isEmpty()) {
+        state = State.valueOf(request.getDesiredState());
+      }
+
+      // Already checked that service does not exist
+      Service s = serviceFactory.createNew(cluster, request.getServiceName());
 
       s.setDesiredState(state);
+      s.updateDesiredConfigs(configs);
+      s.setDesiredStackVersion(cluster.getDesiredStackVersion());
+      cluster.addService(s);
+      s.persist();
     }
-    s.updateConfigs(configs);
-    s.setDesiredStackVersion(cluster.getDesiredStackVersion());
-    cluster.addService(s);
-    s.persist();
 
-    // TODO
-    return null;
   }
 
   @Override
-  public TrackActionResponse createComponent(ServiceComponentRequest request)
+  public void createComponents(
+      Set<ServiceComponentRequest> requests) throws AmbariException {
+
+    if (requests.isEmpty()) {
+      // TODO log warning for invalid request
+    }
+
+    // do all validation checks
+    Map<String, Map<String, Set<String>>> componentNames =
+        new HashMap<String, Map<String,Set<String>>>();
+    Set<String> duplicates = new HashSet<String>();
+
+    for (ServiceComponentRequest request : requests) {
+      if (request.getClusterName() == null
+          || request.getClusterName().isEmpty()
+          || request.getServiceName() == null
+          || request.getServiceName().isEmpty()
+          || request.getComponentName() == null
+          || request.getComponentName().isEmpty()) {
+        // FIXME throw correct error
+        throw new AmbariException("Invalid arguments"
+            + ", clustername, servicename and componentname should be"
+            + " non-null and non-empty");
+      }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Received a createComponent request"
+            + ", clusterName=" + request.getClusterName()
+            + ", serviceName=" + request.getServiceName()
+            + ", componentName=" + request.getComponentName()
+            + ", request=" + request);
+      }
+
+      if (!componentNames.containsKey(request.getClusterName())) {
+        componentNames.put(request.getClusterName(),
+            new HashMap<String, Set<String>>());
+      }
+      if (!componentNames.get(request.getClusterName())
+          .containsKey(request.getServiceName())) {
+        componentNames.get(request.getClusterName()).put(
+            request.getServiceName(), new HashSet<String>());
+      }
+      if (componentNames.get(request.getClusterName())
+          .get(request.getServiceName()).contains(request.getComponentName())){
+        // throw error later for dup
+        duplicates.add(request.getServiceName()
+            + "-" + request.getComponentName());
+        continue;
+      }
+      componentNames.get(request.getClusterName())
+          .get(request.getServiceName()).add(request.getComponentName());
+
+      if (request.getDesiredState() != null
+          && !request.getDesiredState().isEmpty()) {
+        State state = State.valueOf(request.getDesiredState());
+        if (!state.isValidDesiredState()
+            || state != State.INIT) {
+          // FIXME throw correct error
+          throw new AmbariException("Invalid desired state"
+              + " only INIT state allowed during creation"
+              + ", providedDesiredState=" + request.getDesiredState());
+        }
+      }
+
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Service s = cluster.getService(request.getServiceName());
+      try {
+        ServiceComponent sc = s.getServiceComponent(request.getComponentName());
+        if (sc != null) {
+          // throw error later for dup
+          duplicates.add(request.getServiceName()
+              + "-" + request.getComponentName());
+          continue;
+        }
+      } catch (AmbariException e) {
+        // Expected
+      }
+
+    }
+
+    // ensure only a single cluster update
+    if (componentNames.size() != 1) {
+      // FIXME throw correct error
+      throw new AmbariException("Invalid arguments - updates allowed only one"
+          + " cluster at a time");
+    }
+
+    // Validate dups
+    if (!duplicates.isEmpty()) {
+      StringBuilder names = new StringBuilder();
+      boolean first = true;
+      for (String cName : duplicates) {
+        if (!first) {
+          names.append(",");
+        }
+        first = false;
+        names.append(cName);
+      }
+      // FIXME throw correct error
+      throw new AmbariException("Invalid request"
+          + " contains duplicates within request or"
+          + " already existing service components"
+          + ", duplicateServiceComponentsNames=" + names.toString());
+    }
+
+
+    // now doing actual work
+    for (ServiceComponentRequest request : requests) {
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Service s = cluster.getService(request.getServiceName());
+      ServiceComponent sc = serviceComponentFactory.createNew(s,
+          request.getComponentName());
+      sc.setDesiredStackVersion(s.getDesiredStackVersion());
+
+      if (request.getDesiredState() != null
+          && !request.getDesiredState().isEmpty()) {
+        State state = State.valueOf(request.getDesiredState());
+        sc.setDesiredState(state);
+      } else {
+        sc.setDesiredState(s.getDesiredState());
+      }
+
+      // TODO fix config versions to configs conversion
+      Map<String, Config> configs = new HashMap<String, Config>();
+      if (request.getConfigVersions() == null) {
+      } else {
+
+      }
+
+      sc.updateDesiredConfigs(configs);
+      s.addServiceComponent(sc);
+      sc.persist();
+    }
+
+  }
+
+  @Override
+  public void createHosts(Set<HostRequest> requests)
       throws AmbariException {
-    if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()
-        || request.getServiceName() == null
-        || request.getServiceName().isEmpty()
-        || request.getComponentName() == null
-        || request.getComponentName().isEmpty()) {
+
+    if (requests.isEmpty()) {
+      // TODO log warning for invalid request
+    }
+
+    Set<String> duplicates = new HashSet<String>();
+    Set<String> unknowns = new HashSet<String>();
+    Set<String> allHosts = new HashSet<String>();
+    for (HostRequest request : requests) {
+      if (request.getHostname() == null
+          || request.getHostname().isEmpty()) {
+        // FIXME throw correct error
+        throw new AmbariException("Invalid arguments");
+      }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Received a createHost request"
+            + ", hostname=" + request.getHostname()
+            + ", request=" + request);
+      }
+
+      if (allHosts.contains(request.getHostname())) {
+        // throw dup error later
+        duplicates.add(request.getHostname());
+        continue;
+      }
+      allHosts.add(request.getHostname());
+
+      try {
+        // ensure host is registered
+        clusters.getHost(request.getHostname());
+      }
+      catch (HostNotFoundException e) {
+        unknowns.add(request.getHostname());
+      }
+    }
+
+    if (!duplicates.isEmpty()) {
+      StringBuilder names = new StringBuilder();
+      boolean first = true;
+      for (String hName : duplicates) {
+        if (!first) {
+          names.append(",");
+        }
+        first = false;
+        names.append(hName);
+      }
       // FIXME throw correct error
-      throw new AmbariException("Invalid arguments");
+      throw new AmbariException("Invalid request contains duplicate hostnames"
+          + ", hostnames=" + names.toString());
     }
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a createComponent request"
-          + ", clusterName=" + request.getClusterName()
-          + ", serviceName=" + request.getServiceName()
-          + ", componentName=" + request.getComponentName()
-          + ", request=" + request);
-    }
-
-    final Cluster cluster = clusters.getCluster(request.getClusterName());
-    final Service s = cluster.getService(request.getServiceName());
-    ServiceComponent sc = null;
-    try {
-      sc = s.getServiceComponent(request.getComponentName());
-      if (sc != null) {
-        // TODO fix exception
-        throw new AmbariException("ServiceComponent already exists"
-            + " within cluster"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", clusterId=" + cluster.getClusterId()
-            + ", serviceName=" + s.getName()
-            + ", serviceComponentName" + sc.getName());
+    if (!unknowns.isEmpty()) {
+      StringBuilder names = new StringBuilder();
+      boolean first = true;
+      for (String hName : unknowns) {
+        if (!first) {
+          names.append(",");
+        }
+        first = false;
+        names.append(hName);
       }
-    } catch (AmbariException e) {
-      // Expected
+      // FIXME throw correct error
+      throw new AmbariException("Some hosts have not been registered with"
+          + " the server"
+          + ", hostnames=" + names.toString());
     }
 
-    sc = serviceComponentFactory.createNew(s, request.getComponentName());
-    sc.setDesiredStackVersion(s.getDesiredStackVersion());
-
-    // TODO validate correct desired state
-    if (request.getDesiredState() != null
-        && !request.getDesiredState().isEmpty()) {
-      State state = State.valueOf(request.getDesiredState());
-      if (!state.isValidDesiredState()
-          || state != State.INIT) {
-        // TODO fix
-        throw new AmbariException("Invalid desired state");
+    for (HostRequest request : requests) {
+      Host h = clusters.getHost(request.getHostname());
+      if (request.getClusterNames() != null) {
+        for (String clusterName : request.getClusterNames()) {
+          clusters.mapHostToCluster(request.getHostname(), clusterName);
+        }
       }
-      sc.setDesiredState(state);
-    } else {
-      sc.setDesiredState(s.getDesiredState());
+
+      if (request.getHostAttributes() != null) {
+        h = clusters.getHost(request.getHostname());
+        h.setHostAttributes(request.getHostAttributes());
+      }
     }
-
-    // TODO fix config versions to configs conversion
-    Map<String, Config> configs = new HashMap<String, Config>();
-    if (request.getConfigVersions() == null) {
-    } else {
-
-    }
-
-    sc.updateDesiredConfigs(configs);
-    s.addServiceComponent(sc);
-    sc.persist();
-
-    // TODO
-    return null;
   }
 
   @Override
-  public TrackActionResponse createHost(HostRequest request)
+  public void createHostComponents(Set<ServiceComponentHostRequest> requests)
       throws AmbariException {
-    if (request.getHostname() == null
-        || request.getHostname().isEmpty()) {
+
+    if (requests.isEmpty()) {
+      // TODO log warning for invalid request
+    }
+
+    // do all validation checks
+    Map<String, Map<String, Map<String, Set<String>>>> hostComponentNames =
+        new HashMap<String, Map<String, Map<String, Set<String>>>>();
+    Set<String> duplicates = new HashSet<String>();
+    for (ServiceComponentHostRequest request : requests) {
+      if (request.getClusterName() == null
+          || request.getClusterName().isEmpty()
+          || request.getComponentName() == null
+          || request.getComponentName().isEmpty()
+          || request.getHostname() == null
+          || request.getHostname().isEmpty()) {
+        // FIXME throw correct error
+        throw new AmbariException("Invalid arguments");
+      }
+
+      // FIXME Hard coded stuff --- needs to be fixed.
+      if (request.getServiceName() == null
+          || request.getServiceName().isEmpty()
+        ) {
+        // FIXME get service name from meta data lib?
+        // Major boo-boo if component names are not unique
+        request.setServiceName("HDFS");
+      }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Received a createHostComponent request"
+            + ", clusterName=" + request.getClusterName()
+            + ", serviceName=" + request.getServiceName()
+            + ", componentName=" + request.getComponentName()
+            + ", hostname=" + request.getHostname()
+            + ", request=" + request);
+      }
+
+      if (!hostComponentNames.containsKey(request.getClusterName())) {
+        hostComponentNames.put(request.getClusterName(),
+            new HashMap<String, Map<String,Set<String>>>());
+      }
+      if (!hostComponentNames.get(request.getClusterName())
+          .containsKey(request.getServiceName())) {
+        hostComponentNames.get(request.getClusterName()).put(
+            request.getServiceName(), new HashMap<String, Set<String>>());
+      }
+      if (!hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceName())
+          .containsKey(request.getComponentName())) {
+        hostComponentNames.get(request.getClusterName())
+            .get(request.getServiceName()).put(request.getComponentName(),
+                new HashSet<String>());
+      }
+      if (hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceName()).get(request.getComponentName())
+          .contains(request.getHostname())) {
+        duplicates.add(request.getServiceName()
+            + "-" + request.getComponentName()
+            + "-" + request.getHostname());
+        continue;
+      }
+      hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceName()).get(request.getComponentName())
+          .add(request.getHostname());
+
+      if (request.getDesiredState() != null
+          && !request.getDesiredState().isEmpty()) {
+        State state = State.valueOf(request.getDesiredState());
+        if (!state.isValidDesiredState()
+            || state != State.INIT) {
+          // FIXME throw correct error
+          throw new AmbariException("Invalid desired state"
+              + " only INIT state allowed during creation"
+              + ", providedDesiredState=" + request.getDesiredState());
+        }
+      }
+
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Service s = cluster.getService(request.getServiceName());
+      ServiceComponent sc = s.getServiceComponent(
+          request.getComponentName());
+      try {
+        ServiceComponentHost sch = sc.getServiceComponentHost(
+            request.getHostname());
+        if (sch != null) {
+          duplicates.add(request.getServiceName()
+              + "-" + request.getComponentName()
+              + "-" + request.getHostname());
+          continue;
+        }
+      } catch (AmbariException e) {
+        // Expected
+      }
+    }
+
+    // ensure only a single cluster update
+    if (hostComponentNames.size() != 1) {
       // FIXME throw correct error
-      throw new AmbariException("Invalid arguments");
+      throw new AmbariException("Invalid arguments - updates allowed only one"
+          + " cluster at a time");
     }
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a createHost request"
-          + ", hostname=" + request.getHostname()
-          );
-    }
-
-    Host h = null;
-    try {
-      h = clusters.getHost(request.getHostname());
-    }
-    catch (HostNotFoundException e) {
-      throw new AmbariException("Host has not be registered with the server"
-          + ", hostname=" + request.getHostname());
-    }
-
-    if (request.getClusterNames() != null) {
-      for (String clusterName : request.getClusterNames()) {
-        clusters.mapHostToCluster(request.getHostname(), clusterName);
+    if (!duplicates.isEmpty()) {
+      StringBuilder names = new StringBuilder();
+      boolean first = true;
+      for (String hName : duplicates) {
+        if (!first) {
+          names.append(",");
+        }
+        first = false;
+        names.append(hName);
       }
-    }
-
-    if (request.getHostAttributes() != null) {
-      h = clusters.getHost(request.getHostname());
-      h.setHostAttributes(request.getHostAttributes());
-    }
-
-    // TODO
-    return null;
-  }
-
-  @Override
-  public TrackActionResponse createHostComponent(ServiceComponentHostRequest
-      request) throws AmbariException {
-    if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()
-        || request.getComponentName() == null
-        || request.getComponentName().isEmpty()
-        || request.getHostname() == null
-        || request.getHostname().isEmpty()) {
       // FIXME throw correct error
-      throw new AmbariException("Invalid arguments");
+      throw new AmbariException("Invalid request"
+          + " contains duplicates within request or"
+          + " already existing host components"
+          + ", duplicateServiceComponentHostNames=" + names.toString());
     }
 
-    // FIXME Hard coded stuff --- needs to be fixed.
-    if (request.getServiceName() == null
-        || request.getServiceName().isEmpty()
-      ) {
-      request.setServiceName("HDFS");
-    }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a createHostComponent request"
-          + ", clusterName=" + request.getClusterName()
-          + ", serviceName=" + request.getServiceName()
-          + ", componentName=" + request.getComponentName()
-          + ", hostname=" + request.getHostname()
-          );
-    }
+    // now doing actual work
+    for (ServiceComponentHostRequest request : requests) {
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Service s = cluster.getService(request.getServiceName());
+      ServiceComponent sc = s.getServiceComponent(
+          request.getComponentName());
 
-    final Cluster cluster = clusters.getCluster(request.getClusterName());
-    final Service s = cluster.getService(request.getServiceName());
-    final ServiceComponent sc = s.getServiceComponent(
-        request.getComponentName());
-    ServiceComponentHost sch = null;
-    try {
-      sch = sc.getServiceComponentHost(
-          request.getHostname());
-      if (sch != null) {
-        // TODO fix exception
-        throw new AmbariException("ServiceComponentHost already exists "
-            + "within cluster"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", clusterId=" + cluster.getClusterId()
-            + ", serviceName=" + s.getName()
-            + ", serviceComponentName" + sc.getName()
-            + ", hostname=" + sch.getHostName());
+      // FIXME meta-data integration needed here
+      // for now lets hack it up
+      boolean isClient = true;
+      if (sc.getName().equals("NAMENODE")
+          || sc.getName().equals("DATANODE")
+          || sc.getName().equals("SECONDARY_NAMENODE")) {
+        isClient = false;
       }
-    } catch (AmbariException e) {
-      // Expected
-    }
 
-    // TODO meta-data integration needed here
-    // for now lets hack it up
-    boolean isClient = true;
-    if (sc.getName().equals("NAMENODE")
-        || sc.getName().equals("DATANODE")
-        || sc.getName().equals("SECONDARY_NAMENODE")) {
-      isClient = false;
-    }
+      ServiceComponentHost sch =
+          serviceComponentHostFactory.createNew(sc, request.getHostname(),
+              isClient);
 
-    sch = serviceComponentHostFactory.createNew(sc, request.getHostname(), isClient);
-
-    // TODO validate correct desired state
-    if (request.getDesiredState() != null
-        && !request.getDesiredState().isEmpty()) {
-      State state = State.valueOf(request.getDesiredState());
-      if (!state.isValidDesiredState()
-          || state != State.INIT) {
-        // TODO fix
-        throw new AmbariException("Invalid desired state");
+      // TODO validate correct desired state
+      if (request.getDesiredState() != null
+          && !request.getDesiredState().isEmpty()) {
+        State state = State.valueOf(request.getDesiredState());
+        sch.setDesiredState(state);
+      } else {
+        sch.setDesiredState(sc.getDesiredState());
       }
-      sch.setDesiredState(state);
-    } else {
-      sch.setDesiredState(sc.getDesiredState());
+
+      sch.setDesiredStackVersion(sc.getDesiredStackVersion());
+
+      // TODO fix config versions to configs conversion
+      Map<String, Config> configs = new HashMap<String, Config>();
+      if (request.getConfigVersions() == null) {
+      } else {
+      }
+
+      sch.updateDesiredConfigs(configs);
+      sc.addServiceComponentHost(sch);
+      sch.persist();
     }
 
-    sch.setDesiredStackVersion(sc.getDesiredStackVersion());
-
-    // TODO fix config versions to configs conversion
-    Map<String, Config> configs = new HashMap<String, Config>();
-    if (request.getConfigVersions() == null) {
-    } else {
-
-    }
-
-    sch.updateDesiredConfigs(configs);
-    sc.addServiceComponentHost(sch);
-
-    sch.persist();
-
-    // TODO handle action if desired state is something other than INIT
-    if (State.INIT == sch.getDesiredState()) {
-      // TODO fix
-      // better way to say nothing to do?
-      return null;
-    } else {
-      // FIXME throw correct error?
-      // only INIT allowed in create?
-    }
-
-    // if we go with the more complex approach
-    // only need to check/compare desired state as these are new objects
-    // uncomment out broken code from below and fix as needed
-
-
-    // TODO better code needed
-//    boolean installNeeded = false;
-//    boolean startNeeded = false;
-//    if (State.INSTALLED == sch.getDesiredState()) {
-//      installNeeded = true;
-//    } else if (State.STARTED == sch.getDesiredState()) {
-//      installNeeded = true;
-//      startNeeded = true;
-//    } else {
-//      // TODO throw error
-//    }
-//
-//    long requestId = requestCounter.incrementAndGet();
-//    String logDir = baseLogDir + "/" + requestId;
-//
-//    long now = System.currentTimeMillis();
-//    List<Stage> stages = new ArrayList<Stage>();
-//    if (installNeeded) {
-//      Stage stage = new Stage(requestId, logDir, cluster.getClusterName());
-//      HostAction ha = new HostAction(sch.getHostName());
-//      HostRoleCommand cmd = new HostRoleCommand(sch.getServiceName(),
-//          Role.valueOf(sch.getServiceComponentName()),
-//          new ServiceComponentHostInstallEvent(sch.getServiceComponentName(),
-//              sch.getHostName(), now));
-//      ha.addHostRoleCommand(cmd);
-//      stage.addHostAction(sch.getHostName(), ha);
-//      stages.add(stage);
-//    }
-//    if (startNeeded) {
-//      Stage stage = new Stage(requestId, logDir, cluster.getClusterName());
-//      HostAction ha = new HostAction(sch.getHostName());
-//      HostRoleCommand cmd = new HostRoleCommand(sch.getServiceName(),
-//          Role.valueOf(sch.getServiceComponentName()),
-//          new ServiceComponentHostInstallEvent(sch.getServiceComponentName(),
-//              sch.getHostName(), now));
-//      ha.addHostRoleCommand(cmd);
-//      stage.addHostAction(sch.getHostName(), ha);
-//      stages.add(stage);
-//    }
-//    actionManager.sendActions(stages);
-//
-//    return new TrackActionResponse(requestId);
-
-    return null;
   }
 
   private Stage createNewStage(Cluster cluster, long requestId) {
@@ -439,12 +632,12 @@ public class AmbariManagementControllerImpl implements
   private void createHostAction(Stage stage, ServiceComponentHost scHost,
       Map<String, Config> configs,
       RoleCommand command,
-      long nowTimestamp) {
+      long nowTimestamp,
+      ServiceComponentHostEvent event) {
 
     stage.addHostRoleExecutionCommand(scHost.getHostName(), Role.valueOf(scHost
         .getServiceComponentName()), command,
-        new ServiceComponentHostInstallEvent(scHost.getServiceComponentName(),
-            scHost.getHostName(), nowTimestamp), scHost.getClusterName(),
+        event, scHost.getClusterName(),
         scHost.getServiceName());
     ExecutionCommand execCmd = stage.getExecutionCommand(scHost.getHostName(),
         scHost.getServiceComponentName());
@@ -599,6 +792,9 @@ public class AmbariManagementControllerImpl implements
     }
 
     final Cluster cluster = clusters.getCluster(request.getClusterName());
+
+    // TODO should service name be allowed to be null?
+
     final Service s = cluster.getService(request.getServiceName());
     final ServiceComponent sc = s.getServiceComponent(
         request.getComponentName());
@@ -644,6 +840,7 @@ public class AmbariManagementControllerImpl implements
         request.getClusterName());
 
     if (!request.getStackVersion().equals(c.getDesiredStackVersion())) {
+      // FIXME throw correct error
       throw new AmbariException("Update of desired stack version"
           + " not supported");
     }
@@ -652,7 +849,7 @@ public class AmbariManagementControllerImpl implements
     return null;
   }
 
-  // TODO refactor code out of all update functions
+  // FIXME refactor code out of all update functions
   /*
   private TrackActionResponse triggerStateChange(State newState, Service s,
       ServiceComponent sc, ServiceComponentHost sch) {
@@ -660,100 +857,633 @@ public class AmbariManagementControllerImpl implements
   }
   */
 
-  @Override
-  public TrackActionResponse updateService(ServiceRequest request)
-      throws AmbariException {
-    if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()
-        || request.getServiceName() == null
-        || request.getServiceName().isEmpty()) {
-      // FIXME throw correct error
-      throw new AmbariException("Invalid arguments");
+  private TrackActionResponse doStageCreation(Cluster cluster,
+      Map<State, List<Service>> changedServices,
+      Map<State, List<ServiceComponent>> changedComps,
+      Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts)
+          throws AmbariException {
+
+    // TODO handle different transitions?
+    // Say HDFS to stopped and MR to started, what order should actions be done
+    // in?
+
+    // TODO additional validation?
+    // verify all configs
+    // verify all required components
+
+    // TODO order hostcomponents to determine stages
+
+    // TODO lets continue hacking
+
+    long nowTimestamp = System.currentTimeMillis();
+    long requestId = actionManager.getNextRequestId();
+
+    // FIXME cannot work with a single stage
+    long stageId = 0;
+    Stage stage = createNewStage(cluster, requestId);
+    stage.setStageId(stageId);
+    for (String compName : changedScHosts.keySet()) {
+      for (State newState : changedScHosts.get(compName).keySet()) {
+        for (ServiceComponentHost scHost :
+            changedScHosts.get(compName).get(newState)) {
+          Map<String, Config> configs = null;
+          RoleCommand roleCommand;
+          State oldSchState = scHost.getDesiredState();
+          ServiceComponentHostEvent event;
+          switch(newState) {
+            case INSTALLED:
+              if (oldSchState == State.INIT
+                  || oldSchState == State.UNINSTALLED
+                  || oldSchState == State.INSTALLED) {
+                roleCommand = RoleCommand.INSTALL;
+                event = new ServiceComponentHostInstallEvent(
+                    scHost.getServiceComponentName(), scHost.getHostName(),
+                    nowTimestamp);
+              } else if (oldSchState == State.STARTED) {
+                roleCommand = RoleCommand.STOP;
+                event = new ServiceComponentHostStopEvent(
+                    scHost.getServiceComponentName(), scHost.getHostName(),
+                    nowTimestamp);
+              } else {
+                // FIXME throw correct error
+                throw new AmbariException("Invalid transition"
+                    + ", oldDesiredState=" + oldSchState
+                    + ", newDesiredState" + newState);
+              }
+              break;
+            case STARTED:
+              if (oldSchState == State.INSTALLED) {
+                roleCommand = RoleCommand.START;
+                event = new ServiceComponentHostStartEvent(
+                    scHost.getServiceComponentName(), scHost.getHostName(),
+                    nowTimestamp);
+              } else {
+                // FIXME throw correct error
+                throw new AmbariException("Invalid transition"
+                    + ", oldDesiredState=" + oldSchState
+                    + ", newDesiredState" + newState);
+              }
+              break;
+            default:
+              // TODO fix handling other transitions
+              throw new AmbariException("Unsupported state change operation");
+          }
+
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Create a new host action"
+                + ", requestId=" + requestId
+                + ", componentName=" + scHost.getServiceComponentName()
+                + ", hostname=" + scHost.getHostName()
+                + ", roleCommand=" + roleCommand.name());
+          }
+          createHostAction(stage, scHost, configs, roleCommand,
+            nowTimestamp, event);
+        }
+      }
     }
+
+    if (changedServices != null) {
+      for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
+        State newState = entry.getKey();
+        for (Service s : entry.getValue()) {
+          s.setDesiredState(newState);
+        }
+      }
+    }
+
+    if (changedComps != null) {
+      for (Entry<State, List<ServiceComponent>> entry : changedComps.entrySet()){
+        State newState = entry.getKey();
+        for (ServiceComponent sc : entry.getValue()) {
+          sc.setDesiredState(newState);
+        }
+      }
+    }
+
+    for (Map<State, List<ServiceComponentHost>> stateScHostMap :
+        changedScHosts.values()) {
+      for (Entry<State, List<ServiceComponentHost>> entry :
+          stateScHostMap.entrySet()) {
+        State newState = entry.getKey();
+        for (ServiceComponentHost sch : entry.getValue()) {
+          sch.setDesiredState(newState);
+        }
+      }
+    }
+
+    RoleGraph rg = new RoleGraph(rco);
+    rg.build(stage);
+    List<Stage> stages = rg.getStages();
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a updateService request"
-          + ", clusterName=" + request.getClusterName()
-          + ", serviceName=" + request.getServiceName()
-          + ", request=" + request);
+      LOG.debug("Triggering Action Manager"
+          + ", clusterName=" + cluster.getClusterName()
+          + ", requestId=" + requestId
+          + ", stagesCount=" + stages.size());
     }
+    actionManager.sendActions(stages);
 
-    final Cluster cluster = clusters.getCluster(request.getClusterName());
-    final Service s = cluster.getService(request.getServiceName());
+    return new TrackActionResponse(requestId);
 
-    if (request.getConfigVersions() != null) {
-      // TODO handle config updates
-      // handle recursive updates to all components and hostcomponents
-      // if different from old desired configs, trigger relevant actions
-      throw new AmbariException("Unsupported operation - config updates not"
-          + " allowed");
-    }
+  }
 
-    if (request.getDesiredState() == null) {
-      // TODO fix return
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Nothing to do for new updateService request"
-            + ", clusterName=" + request.getClusterName()
-            + ", serviceName=" + request.getServiceName()
-            + ", newDesiredState=null");
-      }
+
+  @Override
+  public TrackActionResponse updateServices(Set<ServiceRequest> requests)
+      throws AmbariException {
+
+    if (requests.isEmpty()) {
+      // TODO log warning for invalid request
+      // FIXME return val
       return null;
     }
 
-    State newState = State.valueOf(request.getDesiredState());
-    if (!newState.isValidDesiredState()) {
-      // FIXME fix with appropriate exception
-      throw new AmbariException("Invalid desired state");
-    }
+    Map<State, List<Service>> changedServices
+      = new HashMap<State, List<Service>>();
+    Map<State, List<ServiceComponent>> changedComps =
+        new HashMap<State, List<ServiceComponent>>();
+    Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts =
+        new HashMap<String, Map<State, List<ServiceComponentHost>>>();
 
+    Set<String> clusterNames = new HashSet<String>();
+    Map<String, Set<String>> serviceNames = new HashMap<String, Set<String>>();
+    Set<State> seenNewStates = new HashSet<State>();
 
-    State oldState = s.getDesiredState();
-    if (newState == oldState) {
-      // FIXME should we still check whether all servicecomponents and
-      // servicecomponenthosts are in the required desired state?
+    for (ServiceRequest request : requests) {
+      if (request.getClusterName() == null
+          || request.getClusterName().isEmpty()
+          || request.getServiceName() == null
+          || request.getServiceName().isEmpty()) {
+        // FIXME throw correct error
+        throw new AmbariException("Invalid arguments");
+      }
 
-      // TODO fix return
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Nothing to do for new updateService request"
+        LOG.debug("Received a updateService request"
             + ", clusterName=" + request.getClusterName()
             + ", serviceName=" + request.getServiceName()
-            + ", oldDesiredState=" + oldState
-            + ", newDesiredState=" + newState);
+            + ", request=" + request);
       }
-      return null;
-    }
 
-    List<ServiceComponent> changedComps =
-        new ArrayList<ServiceComponent>();
-    Map<String, List<ServiceComponentHost>> changedScHosts =
-        new HashMap<String, List<ServiceComponentHost>>();
+      // FIXME need to do dup validation checks
 
-    // TODO fix
-    // currently everything is being done based on desired state
-    // at some point do we need to do stuff based on live state?
+      clusterNames.add(request.getClusterName());
 
-    for (ServiceComponent sc : s.getServiceComponents().values()) {
-      State oldScState = sc.getDesiredState();
-      if (newState == oldScState) {
+      if (clusterNames.size() > 1) {
+        // FIXME throw correct error
+        throw new AmbariException("Updates to multiple clusters is not"
+            + " supported");
+      }
+
+      if (!serviceNames.containsKey(request.getClusterName())) {
+        serviceNames.put(request.getClusterName(), new HashSet<String>());
+      }
+      if (serviceNames.get(request.getClusterName())
+          .contains(request.getServiceName())) {
+        // FIXME throw correct error
+        // FIXME throw single exception
+        throw new AmbariException("Invalid request contains duplicate"
+            + " service names");
+      }
+      serviceNames.get(request.getClusterName()).add(request.getServiceName());
+
+      // FIXME validate valid services
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Service s = cluster.getService(request.getServiceName());
+
+      if (request.getConfigVersions() != null) {
+        // TODO handle config updates
+        // handle recursive updates to all components and hostcomponents
+        // if different from old desired configs, trigger relevant actions
+        throw new AmbariException("Unsupported operation - config updates not"
+            + " allowed");
+      }
+
+      if (request.getDesiredState() == null
+          || request.getDesiredState().isEmpty()) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Ignoring ServiceComponent"
+          LOG.debug("Nothing to do for new updateService request"
+              + ", clusterName=" + request.getClusterName()
+              + ", serviceName=" + request.getServiceName()
+              + ", newDesiredState=null");
+        }
+        continue;
+      }
+
+      State newState = State.valueOf(request.getDesiredState());
+      if (!newState.isValidDesiredState()) {
+        // FIXME fix with appropriate exception
+        throw new AmbariException("Invalid desired state");
+      }
+
+      seenNewStates.add(newState);
+
+      State oldState = s.getDesiredState();
+      if (newState != oldState) {
+        if (!changedServices.containsKey(newState)) {
+          changedServices.put(newState, new ArrayList<Service>());
+        }
+        changedServices.get(newState).add(s);
+      }
+
+      // should we check whether all servicecomponents and
+      // servicecomponenthosts are in the required desired state?
+      // For now, checking as no live state comparison
+
+      // TODO fix usage of live state
+      // currently everything is being done based on desired state
+      // at some point do we need to do stuff based on live state?
+
+      for (ServiceComponent sc : s.getServiceComponents().values()) {
+        State oldScState = sc.getDesiredState();
+        if (newState != oldScState) {
+          if (!changedComps.containsKey(newState)) {
+            changedComps.put(newState, new ArrayList<ServiceComponent>());
+          }
+          changedComps.get(newState).add(sc);
+        }
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Handling update to ServiceComponent"
               + ", clusterName=" + request.getClusterName()
               + ", serviceName=" + s.getName()
               + ", componentName=" + sc.getName()
               + ", currentState=" + sc.getDesiredState()
               + ", newState=" + newState);
         }
+        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+          if (newState == sch.getDesiredState()) {
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Ignoring ServiceComponentHost"
+                  + ", clusterName=" + request.getClusterName()
+                  + ", serviceName=" + s.getName()
+                  + ", componentName=" + sc.getName()
+                  + ", hostname=" + sch.getHostName()
+                  + ", currentState=" + sch.getDesiredState()
+                  + ", newState=" + newState);
+            }
+            continue;
+          }
+          if (!changedScHosts.containsKey(sc.getName())) {
+            changedScHosts.put(sc.getName(),
+                new HashMap<State, List<ServiceComponentHost>>());
+          }
+          if (!changedScHosts.get(sc.getName()).containsKey(newState)) {
+            changedScHosts.get(sc.getName()).put(newState,
+                new ArrayList<ServiceComponentHost>());
+          }
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Handling update to ServiceComponentHost"
+                + ", clusterName=" + request.getClusterName()
+                + ", serviceName=" + s.getName()
+                + ", componentName=" + sc.getName()
+                + ", hostname=" + sch.getHostName()
+                + ", currentState=" + sch.getDesiredState()
+                + ", newState=" + newState);
+          }
+          changedScHosts.get(sc.getName()).get(newState).add(sch);
+        }
+      }
+    }
+
+    if (seenNewStates.size() > 1) {
+      // FIXME should we handle this scenario
+      throw new AmbariException("Cannot handle different desired state changes"
+          + " for a set of services at the same time");
+    }
+
+    // TODO fix dup handling for multiple services in requests
+
+    Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
+
+    return doStageCreation(cluster, changedServices,
+        changedComps, changedScHosts);
+  }
+
+  @Override
+  public TrackActionResponse updateComponents(
+      Set<ServiceComponentRequest> requests) throws AmbariException {
+
+    if (requests.isEmpty()) {
+      // TODO log warning for invalid request
+      // FIXME fix return val
+      return null;
+    }
+
+    Map<State, List<ServiceComponent>> changedComps =
+        new HashMap<State, List<ServiceComponent>>();
+    Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts =
+        new HashMap<String, Map<State, List<ServiceComponentHost>>>();
+
+    Set<String> clusterNames = new HashSet<String>();
+    Map<String, Map<String, Set<String>>> componentNames =
+        new HashMap<String, Map<String,Set<String>>>();
+    Set<State> seenNewStates = new HashSet<State>();
+
+    for (ServiceComponentRequest request : requests) {
+      if (request.getClusterName() == null
+          || request.getClusterName().isEmpty()
+          || request.getServiceName() == null
+          || request.getServiceName().isEmpty()
+          || request.getComponentName() == null
+          || request.getComponentName().isEmpty()) {
+        // TODO fix throw error
+        // or handle all possible searches for null properties
+        throw new AmbariException("Invalid arguments");
+      }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Received a updateComponent request"
+            + ", clusterName=" + request.getClusterName()
+            + ", serviceName=" + request.getServiceName()
+            + ", componentName=" + request.getComponentName()
+            + ", request=" + request);
+      }
+
+      // FIXME need to do dup validation checks
+
+      clusterNames.add(request.getClusterName());
+
+      if (clusterNames.size() > 1) {
+        // FIXME throw correct error
+        throw new AmbariException("Updates to multiple clusters is not"
+            + " supported");
+      }
+
+      if (!componentNames.containsKey(request.getClusterName())) {
+        componentNames.put(request.getClusterName(),
+            new HashMap<String, Set<String>>());
+      }
+      if (!componentNames.get(request.getClusterName())
+          .containsKey(request.getServiceName())) {
+        componentNames.get(request.getClusterName()).put(
+            request.getServiceName(), new HashSet<String>());
+      }
+      if (componentNames.get(request.getClusterName())
+          .get(request.getServiceName()).contains(request.getComponentName())){
+        // throw error later for dup
+        throw new AmbariException("Invalid request contains duplicate"
+            + " service components");
+      }
+      componentNames.get(request.getClusterName())
+          .get(request.getServiceName()).add(request.getComponentName());
+
+      // FIXME validate valid service components
+
+
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Service s = cluster.getService(request.getServiceName());
+      ServiceComponent sc = s.getServiceComponent(
+        request.getComponentName());
+
+      if (request.getConfigVersions() != null) {
+        // TODO handle config updates
+        // handle recursive updates to all components and hostcomponents
+        // if different from old desired configs, trigger relevant actions
+        throw new AmbariException("Unsupported operation - config updates not"
+            + " allowed");
+      }
+
+      if (request.getDesiredState() == null
+          || request.getDesiredState().isEmpty()) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Nothing to do for new updateServiceComponent request"
+              + ", clusterName=" + request.getClusterName()
+              + ", serviceName=" + request.getServiceName()
+              + ", componentName=" + request.getComponentName()
+              + ", newDesiredState=null");
+        }
         continue;
       }
-      LOG.debug("Handling update to ServiceComponent"
-          + ", clusterName=" + request.getClusterName()
-          + ", serviceName=" + s.getName()
-          + ", componentName=" + sc.getName()
-          + ", currentState=" + sc.getDesiredState()
-          + ", newState=" + newState);
-      changedComps.add(sc);
+
+      State newState = State.valueOf(request.getDesiredState());
+      if (!newState.isValidDesiredState()) {
+        // TODO fix
+        throw new AmbariException("Invalid desired state");
+      }
+
+      seenNewStates.add(newState);
+
+      State oldState = sc.getDesiredState();
+      if (newState != oldState) {
+        if (!changedComps.containsKey(newState)) {
+          changedComps.put(newState, new ArrayList<ServiceComponent>());
+        }
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Handling update to ServiceComponent"
+              + ", clusterName=" + request.getClusterName()
+              + ", serviceName=" + s.getName()
+              + ", componentName=" + sc.getName()
+              + ", currentState=" + sc.getDesiredState()
+              + ", newState=" + newState);
+        }
+        changedComps.get(newState).add(sc);
+      }
+
+      // TODO fix
+      // currently everything is being done based on desired state
+      // at some point do we need to do stuff based on live state?
+
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         if (newState == sch.getDesiredState()) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Ignoring ServiceComponentHost"
+                + ", clusterName=" + request.getClusterName()
+                + ", serviceName=" + s.getName()
+                + ", componentName=" + sc.getName()
+                + ", hostname=" + sch.getHostName()
+                + ", currentState=" + sch.getDesiredState()
+                + ", newState=" + newState);
+          }
+          continue;
+        }
+        if (!changedScHosts.containsKey(sc.getName())) {
+          changedScHosts.put(sc.getName(),
+              new HashMap<State, List<ServiceComponentHost>>());
+        }
+        if (!changedScHosts.get(sc.getName()).containsKey(newState)) {
+          changedScHosts.get(sc.getName()).put(newState,
+              new ArrayList<ServiceComponentHost>());
+        }
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Handling update to ServiceComponentHost"
+              + ", clusterName=" + request.getClusterName()
+              + ", serviceName=" + s.getName()
+              + ", componentName=" + sc.getName()
+              + ", hostname=" + sch.getHostName()
+              + ", currentState=" + sch.getDesiredState()
+              + ", newState=" + newState);
+        }
+        changedScHosts.get(sc.getName()).get(newState).add(sch);
+      }
+    }
+
+    if (seenNewStates.size() > 1) {
+      // FIXME should we handle this scenario
+      throw new AmbariException("Cannot handle different desired state changes"
+          + " for a set of service components at the same time");
+    }
+
+    // TODO additional validation?
+
+    // TODO order hostcomponents to determine stages
+
+    // TODO lets continue hacking
+
+    Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
+
+    return doStageCreation(cluster, null,
+        changedComps, changedScHosts);
+  }
+
+  @Override
+  public void updateHosts(Set<HostRequest> requests)
+      throws AmbariException {
+
+    if (requests.isEmpty()) {
+      // TODO log warning for invalid request
+    }
+
+    for (HostRequest request : requests) {
+      if (request.getHostname() == null
+          || request.getHostname().isEmpty()) {
+        // FIXME throw correct error
+        throw new AmbariException("Invalid arguments");
+      }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Received a updateHost request"
+            + ", hostname=" + request.getHostname()
+            + ", request=" + request);
+      }
+
+      Host h = clusters.getHost(request.getHostname());
+
+      for (String clusterName : request.getClusterNames()) {
+        clusters.mapHostToCluster(request.getHostname(), clusterName);
+      }
+
+      h.setHostAttributes(request.getHostAttributes());
+    }
+
+  }
+
+  @Override
+  public TrackActionResponse updateHostComponents(
+      Set<ServiceComponentHostRequest> requests) throws AmbariException {
+
+    if (requests.isEmpty()) {
+      // TODO log warning for invalid request
+      // FIXME fix return val
+      return null;
+    }
+
+    Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts =
+        new HashMap<String, Map<State, List<ServiceComponentHost>>>();
+
+    Set<String> clusterNames = new HashSet<String>();
+    Map<String, Map<String, Map<String, Set<String>>>> hostComponentNames =
+        new HashMap<String, Map<String, Map<String, Set<String>>>>();
+    Set<State> seenNewStates = new HashSet<State>();
+
+    for (ServiceComponentHostRequest request : requests) {
+      if (request.getClusterName() == null
+          || request.getClusterName().isEmpty()
+          || request.getServiceName() == null
+          || request.getServiceName().isEmpty()
+          || request.getComponentName() == null
+          || request.getComponentName().isEmpty()
+          || request.getHostname() == null
+          || request.getHostname().isEmpty()) {
+        // FIXME throw correct error
+        throw new AmbariException("Invalid arguments");
+      }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Received a createHostComponent request"
+            + ", clusterName=" + request.getClusterName()
+            + ", serviceName=" + request.getServiceName()
+            + ", componentName=" + request.getComponentName()
+            + ", hostname=" + request.getHostname()
+            + ", request=" + request);
+      }
+
+      // FIXME need to do dup validation checks
+
+      clusterNames.add(request.getClusterName());
+
+      if (clusterNames.size() > 1) {
+        // FIXME throw correct error
+        throw new AmbariException("Updates to multiple clusters is not"
+            + " supported");
+      }
+
+      if (!hostComponentNames.containsKey(request.getClusterName())) {
+        hostComponentNames.put(request.getClusterName(),
+            new HashMap<String, Map<String,Set<String>>>());
+      }
+      if (!hostComponentNames.get(request.getClusterName())
+          .containsKey(request.getServiceName())) {
+        hostComponentNames.get(request.getClusterName()).put(
+            request.getServiceName(), new HashMap<String, Set<String>>());
+      }
+      if (!hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceName())
+          .containsKey(request.getComponentName())) {
+        hostComponentNames.get(request.getClusterName())
+            .get(request.getServiceName()).put(request.getComponentName(),
+                new HashSet<String>());
+      }
+      if (hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceName()).get(request.getComponentName())
+          .contains(request.getHostname())) {
+        // FIXME throw correct error
+        throw new AmbariException("Invalid request contains duplicate"
+            + " hostcomponents");
+      }
+      hostComponentNames.get(request.getClusterName())
+          .get(request.getServiceName()).get(request.getComponentName())
+          .add(request.getHostname());
+
+
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Service s = cluster.getService(request.getServiceName());
+      ServiceComponent sc = s.getServiceComponent(
+        request.getComponentName());
+      ServiceComponentHost sch = sc.getServiceComponentHost(
+        request.getHostname());
+
+      if (request.getConfigVersions() != null) {
+        // TODO handle config updates
+        // handle recursive updates to all components and hostcomponents
+        // if different from old desired configs, trigger relevant actions
+        throw new AmbariException("Unsupported operation - config updates not"
+            + " allowed");
+      }
+
+      if (request.getDesiredState() == null
+          || request.getDesiredState().isEmpty()) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Nothing to do for new updateServiceComponentHost request"
+              + ", clusterName=" + request.getClusterName()
+              + ", serviceName=" + request.getServiceName()
+              + ", componentName=" + request.getComponentName()
+              + ", hostname=" + request.getHostname()
+              + ", newDesiredState=null");
+        }
+        continue;
+      }
+
+      State newState = State.valueOf(request.getDesiredState());
+      if (!newState.isValidDesiredState()) {
+        // TODO fix
+        throw new AmbariException("Invalid desired state");
+      }
+
+      seenNewStates.add(newState);
+
+      State oldState = sch.getDesiredState();
+      if (newState == oldState) {
+        if (LOG.isDebugEnabled()) {
           LOG.debug("Ignoring ServiceComponentHost"
               + ", clusterName=" + request.getClusterName()
               + ", serviceName=" + s.getName()
@@ -761,12 +1491,19 @@ public class AmbariManagementControllerImpl implements
               + ", hostname=" + sch.getHostName()
               + ", currentState=" + sch.getDesiredState()
               + ", newState=" + newState);
-          continue;
         }
-        if (!changedScHosts.containsKey(sc.getName())) {
-          changedScHosts.put(sc.getName(),
-              new ArrayList<ServiceComponentHost>());
-        }
+        continue;
+      }
+
+      if (!changedScHosts.containsKey(sc.getName())) {
+        changedScHosts.put(sc.getName(),
+            new HashMap<State, List<ServiceComponentHost>>());
+      }
+      if (!changedScHosts.get(sc.getName()).containsKey(newState)) {
+        changedScHosts.get(sc.getName()).put(newState,
+            new ArrayList<ServiceComponentHost>());
+      }
+      if (LOG.isDebugEnabled()) {
         LOG.debug("Handling update to ServiceComponentHost"
             + ", clusterName=" + request.getClusterName()
             + ", serviceName=" + s.getName()
@@ -774,320 +1511,14 @@ public class AmbariManagementControllerImpl implements
             + ", hostname=" + sch.getHostName()
             + ", currentState=" + sch.getDesiredState()
             + ", newState=" + newState);
-        changedScHosts.get(sc.getName()).add(sch);
       }
+      changedScHosts.get(sc.getName()).get(newState).add(sch);
     }
 
-    // TODO additional validation?
-
-    // TODO order hostcomponents to determine stages
-
-    // TODO lets continue hacking
-
-    // assuming only HDFS
-    List<String> orderedCompNames = new ArrayList<String>();
-    orderedCompNames.add("NAMENODE");
-    orderedCompNames.add("SECONDARY_NAMENODE");
-    orderedCompNames.add("DATANODE");
-    orderedCompNames.add("HDFS_CLIENT");
-
-    long nowTimestamp = System.currentTimeMillis();
-    long requestId = actionManager.getNextRequestId();
-
-    List<Stage> stages = new ArrayList<Stage>();
-    long stageId = 0;
-    for (String compName : orderedCompNames) {
-      if (!changedScHosts.containsKey(compName)
-          || changedScHosts.get(compName).isEmpty()) {
-        continue;
-      }
-      Stage stage = createNewStage(cluster, requestId);
-      stage.setStageId(++stageId);
-      for (ServiceComponentHost scHost : changedScHosts.get(compName)) {
-        Map<String, Config> configs = null;
-        RoleCommand roleCommand;
-        State oldSchState = scHost.getDesiredState();
-        switch(newState) {
-          case INSTALLED:
-            if (oldSchState == State.INIT
-                || oldSchState == State.UNINSTALLED
-                || oldSchState == State.INSTALLED) {
-              roleCommand = RoleCommand.INSTALL;
-            } else if (oldSchState == State.STARTED) {
-              roleCommand = RoleCommand.STOP;
-            } else {
-              throw new AmbariException("Invalid transition"
-                  + ", oldDesiredState=" + oldSchState
-                  + ", newDesiredState" + newState);
-            }
-            break;
-          case STARTED:
-            if (oldSchState == State.INSTALLED) {
-              roleCommand = RoleCommand.START;
-            } else {
-              throw new AmbariException("Invalid transition"
-                  + ", oldDesiredState=" + oldSchState
-                  + ", newDesiredState" + newState);
-            }
-            break;
-          default:
-            // TODO fix handling other transitions
-            throw new AmbariException("Unsupported state change operation");
-        }
-
-        createHostAction(stage, scHost, configs, roleCommand,
-            nowTimestamp);
-      }
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Adding new stage for updateService request"
-            + ", clusterName=" + request.getClusterName()
-            + ", serviceName=" + request.getServiceName()
-            + ", stage=" + stage);
-      }
-      stages.add(stage);
-    }
-
-    for (ServiceComponent sc : changedComps) {
-      sc.setDesiredState(newState);
-    }
-
-    for (List<ServiceComponentHost> schosts : changedScHosts.values()) {
-      for (ServiceComponentHost sch : schosts) {
-        sch.setDesiredState(newState);
-      }
-    }
-    s.setDesiredState(newState);
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Triggering Action Manager"
-          + ", clusterName=" + request.getClusterName()
-          + ", serviceName=" + request.getServiceName()
-          + ", stagesCount=" + stages.size());
-    }
-    actionManager.sendActions(stages);
-
-    return new TrackActionResponse(requestId);
-  }
-
-  @Override
-  public TrackActionResponse updateComponent(ServiceComponentRequest request)
-      throws AmbariException {
-
-    if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()
-        || request.getServiceName() == null
-        || request.getServiceName().isEmpty()
-        || request.getComponentName() == null
-        || request.getComponentName().isEmpty()) {
-      // TODO fix throw error
-      // or handle all possible searches for null properties
-      throw new AmbariException("Invalid arguments");
-    }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a updateComponent request"
-          + ", clusterName=" + request.getClusterName()
-          + ", serviceName=" + request.getServiceName()
-          + ", componentName=" + request.getComponentName()
-          + ", request=" + request);
-    }
-
-    final Cluster cluster = clusters.getCluster(request.getClusterName());
-    final Service s = cluster.getService(request.getServiceName());
-    final ServiceComponent sc = s.getServiceComponent(
-        request.getComponentName());
-
-    if (request.getConfigVersions() != null) {
-      // TODO handle config updates
-      // handle recursive updates to all components and hostcomponents
-      // if different from old desired configs, trigger relevant actions
-      throw new AmbariException("Unsupported operation - config updates not"
-          + " allowed");
-    }
-
-    if (request.getDesiredState() == null) {
-      // TODO fix return
-      return null;
-    }
-
-    State newState = State.valueOf(request.getDesiredState());
-    if (!newState.isValidDesiredState()) {
-      // TODO fix
-      throw new AmbariException("Invalid desired state");
-    }
-
-    State oldState = sc.getDesiredState();
-    if (newState == oldState) {
-      // TODO fix return
-      return null;
-    }
-
-    List<ServiceComponentHost> changedScHosts =
-        new ArrayList<ServiceComponentHost>();
-
-    // TODO fix
-    // currently everything is being done based on desired state
-    // at some point do we need to do stuff based on live state?
-
-    for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-      if (newState == sch.getDesiredState()) {
-        continue;
-      }
-      changedScHosts.add(sch);
-    }
-
-    // TODO additional validation?
-
-    // TODO order hostcomponents to determine stages
-
-    // TODO lets continue hacking
-
-    long nowTimestamp = System.currentTimeMillis();
-    long requestId = actionManager.getNextRequestId();
-    long stageId = 0;
-    List<Stage> stages = new ArrayList<Stage>();
-    Stage stage = createNewStage(cluster, requestId);
-    stage.setStageId(++stageId);
-    for (ServiceComponentHost scHost : changedScHosts) {
-      Map<String, Config> configs = null;
-      RoleCommand roleCommand;
-      State oldSchState = scHost.getDesiredState();
-      switch(newState) {
-        case INSTALLED:
-          if (oldSchState == State.INIT
-              || oldSchState == State.UNINSTALLED
-              || oldSchState == State.INSTALLED) {
-            roleCommand = RoleCommand.INSTALL;
-          } else if (oldSchState == State.STARTED) {
-            roleCommand = RoleCommand.STOP;
-          } else {
-            throw new AmbariException("Invalid transition"
-                + ", oldDesiredState=" + oldSchState
-                + ", newDesiredState" + newState);
-          }
-          break;
-        case STARTED:
-          if (oldSchState == State.INSTALLED) {
-            roleCommand = RoleCommand.START;
-          } else {
-            throw new AmbariException("Invalid transition"
-                + ", oldDesiredState=" + oldSchState
-                + ", newDesiredState" + newState);
-          }
-          break;
-        default:
-          // TODO fix handling other transitions
-          throw new AmbariException("Unsupported state change operation");
-      }
-
-      createHostAction(stage, scHost, configs, roleCommand,
-          nowTimestamp);
-    }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding new stage for updateComponent request"
-          + ", clusterName=" + request.getClusterName()
-          + ", serviceName=" + request.getServiceName()
-          + ", componentName=" + request.getComponentName()
-          + ", stage=" + stage);
-    }
-    stages.add(stage);
-
-    for (ServiceComponentHost sch : changedScHosts) {
-      sch.setDesiredState(newState);
-    }
-    sc.setDesiredState(newState);
-
-    actionManager.sendActions(stages);
-
-    return new TrackActionResponse(requestId);
-
-  }
-
-  @Override
-  public TrackActionResponse updateHost(HostRequest request)
-      throws AmbariException {
-    if (request.getHostname() == null
-        || request.getHostname().isEmpty()) {
-      // FIXME throw correct error
-      throw new AmbariException("Invalid arguments");
-    }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a updateHost request"
-          + ", hostname=" + request.getHostname()
-          + ", request=" + request);
-    }
-
-    Host h = clusters.getHost(request.getHostname());
-    if (h == null) {
-      // TODO throw exception as not created
-    }
-
-    for (String clusterName : request.getClusterNames()) {
-      clusters.mapHostToCluster(request.getHostname(), clusterName);
-    }
-
-    h.setHostAttributes(request.getHostAttributes());
-
-    // TODO
-    return null;
-  }
-
-  @Override
-  public TrackActionResponse updateHostComponent(
-      ServiceComponentHostRequest request) throws AmbariException {
-
-    if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()
-        || request.getServiceName() == null
-        || request.getServiceName().isEmpty()
-        || request.getComponentName() == null
-        || request.getComponentName().isEmpty()
-        || request.getHostname() == null
-        || request.getHostname().isEmpty()) {
-      // FIXME throw correct error
-      throw new AmbariException("Invalid arguments");
-    }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a createHostComponent request"
-          + ", clusterName=" + request.getClusterName()
-          + ", serviceName=" + request.getServiceName()
-          + ", componentName=" + request.getComponentName()
-          + ", hostname=" + request.getHostname()
-          + ", request=" + request);
-    }
-
-    final Cluster cluster = clusters.getCluster(request.getClusterName());
-    final Service s = cluster.getService(request.getServiceName());
-    final ServiceComponent sc = s.getServiceComponent(
-        request.getComponentName());
-    final ServiceComponentHost sch = sc.getServiceComponentHost(
-        request.getHostname());
-
-    if (request.getConfigVersions() != null) {
-      // TODO handle config updates
-      // handle recursive updates to all components and hostcomponents
-      // if different from old desired configs, trigger relevant actions
-      throw new AmbariException("Unsupported operation - config updates not"
-          + " allowed");
-    }
-
-    if (request.getDesiredState() == null) {
-      // TODO fix return
-      return null;
-    }
-
-    State newState = State.valueOf(request.getDesiredState());
-    if (!newState.isValidDesiredState()) {
-      // TODO fix
-      throw new AmbariException("Invalid desired state");
-    }
-
-    State oldState = sch.getDesiredState();
-    if (newState == oldState) {
-      // TODO fix return
-      return null;
+    if (seenNewStates.size() > 1) {
+      // FIXME should we handle this scenario
+      throw new AmbariException("Cannot handle different desired state changes"
+          + " for a set of service components at the same time");
     }
 
     // TODO fix
@@ -1099,62 +1530,10 @@ public class AmbariManagementControllerImpl implements
     // TODO order hostcomponents to determine stages
 
     // TODO lets continue hacking
+    Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
-    long nowTimestamp = System.currentTimeMillis();
-    long requestId = actionManager.getNextRequestId();
-    long stageId = 0;
-
-    List<Stage> stages = new ArrayList<Stage>();
-    Stage stage = createNewStage(cluster, requestId);
-    stage.setStageId(++stageId);
-
-    Map<String, Config> configs = null;
-    RoleCommand roleCommand;
-    State oldSchState = sch.getDesiredState();
-    switch(newState) {
-      case INSTALLED:
-        if (oldSchState == State.INIT
-            || oldSchState == State.UNINSTALLED
-            || oldSchState == State.INSTALLED) {
-          roleCommand = RoleCommand.INSTALL;
-        } else if (oldSchState == State.STARTED) {
-          roleCommand = RoleCommand.STOP;
-        } else {
-          throw new AmbariException("Invalid transition"
-              + ", oldDesiredState=" + oldSchState
-              + ", newDesiredState" + newState);
-        }
-        break;
-      case STARTED:
-        if (oldSchState == State.INSTALLED) {
-          roleCommand = RoleCommand.START;
-        } else {
-          throw new AmbariException("Invalid transition"
-              + ", oldDesiredState=" + oldSchState
-              + ", newDesiredState" + newState);
-        }
-        break;
-      default:
-        // TODO fix handling other transitions
-        throw new AmbariException("Unsupported state change operation");
-    }
-
-    createHostAction(stage, sch, configs, roleCommand, nowTimestamp);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding new stage for createHostComponent request"
-          + ", clusterName=" + request.getClusterName()
-          + ", serviceName=" + request.getServiceName()
-          + ", componentName=" + request.getComponentName()
-          + ", hostname=" + request.getHostname()
-          + ", stage=" + stage);
-    }
-    stages.add(stage);
-
-    sch.setDesiredState(newState);
-
-    actionManager.sendActions(stages);
-
-    return new TrackActionResponse(requestId);
+    return doStageCreation(cluster, null,
+        null, changedScHosts);
   }
 
   @Override
@@ -1190,5 +1569,97 @@ public class AmbariManagementControllerImpl implements
       ServiceComponentHostRequest request) throws AmbariException {
     // TODO not implemented yet
     throw new AmbariException("Delete host component not supported");
+  }
+
+  @Override
+  public TrackActionResponse deleteServices(Set<ServiceRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public TrackActionResponse deleteComponents(
+      Set<ServiceComponentRequest> request) throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public TrackActionResponse deleteHosts(Set<HostRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public TrackActionResponse deleteHostComponents(
+      Set<ServiceComponentHostRequest> request) throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void createService(ServiceRequest request) throws AmbariException {
+    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    requests.add(request);
+    createServices(requests);
+  }
+
+  @Override
+  public void createComponent(ServiceComponentRequest request)
+      throws AmbariException {
+    Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
+    requests.add(request);
+    createComponents(requests);
+  }
+
+  @Override
+  public void createHost(HostRequest request) throws AmbariException {
+    Set<HostRequest> requests = new HashSet<HostRequest>();
+    requests.add(request);
+    createHosts(requests);
+  }
+
+  @Override
+  public void createHostComponent(ServiceComponentHostRequest request)
+      throws AmbariException {
+    Set<ServiceComponentHostRequest> requests =
+        new HashSet<ServiceComponentHostRequest>();
+    requests.add(request);
+    createHostComponents(requests);
+  }
+
+  @Override
+  public TrackActionResponse updateService(ServiceRequest request)
+      throws AmbariException {
+    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    requests.add(request);
+    return updateServices(requests);
+  }
+
+  @Override
+  public TrackActionResponse updateComponent(ServiceComponentRequest request)
+      throws AmbariException {
+    Set<ServiceComponentRequest> requests =
+        new HashSet<ServiceComponentRequest>();
+    requests.add(request);
+    return updateComponents(requests);
+  }
+
+  @Override
+  public void updateHost(HostRequest request) throws AmbariException {
+    Set<HostRequest> requests = new HashSet<HostRequest>();
+    requests.add(request);
+    updateHosts(requests);
+  }
+
+  @Override
+  public TrackActionResponse updateHostComponent(
+      ServiceComponentHostRequest request) throws AmbariException {
+    Set<ServiceComponentHostRequest> requests =
+        new HashSet<ServiceComponentHostRequest>();
+    requests.add(request);
+    return updateHostComponents(requests);
   }
 }

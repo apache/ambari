@@ -102,7 +102,6 @@ public class ServiceImpl implements Service {
     //TODO check for null states?
     this.serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
 
-    this.configs = new HashMap<String, Config>();
     this.desiredConfigs = new HashMap<String, Config>();
 
     this.components = new HashMap<String, ServiceComponent>();
@@ -129,16 +128,6 @@ public class ServiceImpl implements Service {
   @Override
   public synchronized Map<String, ServiceComponent> getServiceComponents() {
     return Collections.unmodifiableMap(components);
-  }
-
-  @Override
-  public synchronized Map<String, Config> getConfigs() {
-    return Collections.unmodifiableMap(configs);
-  }
-
-  @Override
-  public synchronized void updateConfigs(Map<String, Config> configs) {
-    this.configs.putAll(configs);
   }
 
   @Override

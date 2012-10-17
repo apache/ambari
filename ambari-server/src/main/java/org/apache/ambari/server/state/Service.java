@@ -55,10 +55,6 @@ public interface Service {
 
   public void setDesiredStackVersion(StackVersion stackVersion);
 
-  public Map<String, Config> getConfigs();
-
-  public void updateConfigs(Map<String, Config> configs);
-
   public ServiceResponse convertToResponse();
 
   public void debugDump(StringBuilder sb);

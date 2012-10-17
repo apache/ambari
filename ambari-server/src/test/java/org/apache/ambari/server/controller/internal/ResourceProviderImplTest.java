@@ -60,9 +60,8 @@ public class ResourceProviderImplTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     TrackActionResponse response = createNiceMock(TrackActionResponse.class);
 
-    // set expectations
-    expect(managementController.createCluster(Matchers.clusterRequest(null, "Cluster100", "4.02", null))).andReturn(response).once();
-    expect(managementController.createCluster(Matchers.clusterRequest(99L, null, "4.03", null))).andReturn(response).once();
+    managementController.createCluster(Matchers.clusterRequest(null, "Cluster100", "4.02", null));
+    managementController.createCluster(Matchers.clusterRequest(99L, null, "4.03", null));
 
     // replay
     replay(managementController, response);
@@ -264,8 +263,7 @@ public class ResourceProviderImplTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     TrackActionResponse response = createNiceMock(TrackActionResponse.class);
 
-    // set expectations
-    expect(managementController.createService(Matchers.serviceRequest("Cluster100", "Service100", null, "DEPLOYED"))).andReturn(response).once();
+    managementController.createService(Matchers.serviceRequest("Cluster100", "Service100", null, "DEPLOYED"));
 
     // replay
     replay(managementController, response);

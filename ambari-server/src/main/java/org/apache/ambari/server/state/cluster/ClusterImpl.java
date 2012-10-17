@@ -288,12 +288,12 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public synchronized Map<String, Config> getConfigsByType(String configType) {
+  public synchronized Map<String, Config> getDesiredConfigsByType(String configType) {
     return Collections.unmodifiableMap(configs.get(configType));
   }
 
   @Override
-  public synchronized Config getConfig(String configType, String versionTag) {
+  public synchronized Config getDesiredConfig(String configType, String versionTag) {
     if (!configs.containsKey(configType)
         || !configs.get(configType).containsKey(versionTag)) {
       // TODO throw error
@@ -302,7 +302,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public synchronized void addConfig(Config config) {
+  public synchronized void addDesiredConfig(Config config) {
     if (config.getType() == null
         || config.getType().isEmpty()
         || config.getVersionTag() == null

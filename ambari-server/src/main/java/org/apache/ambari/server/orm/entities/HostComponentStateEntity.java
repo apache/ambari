@@ -168,4 +168,5 @@ public class HostComponentStateEntity {
   public void setHostEntity(HostEntity hostEntity) {
     this.hostEntity = hostEntity;
   }
+
 }

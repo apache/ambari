@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-873. Support for multiple objects' updates in controller. (hitesh)
+
   AMBARI-870. Support metric types other than string (Tom Beerbower via
   mahadev)
 

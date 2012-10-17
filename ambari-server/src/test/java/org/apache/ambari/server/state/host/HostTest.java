@@ -35,7 +35,6 @@ import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
-import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
 import org.apache.ambari.server.state.host.HostUnhealthyHeartbeatEvent;
@@ -44,7 +43,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class HostImplTest {
+public class HostTest {
 
   private Injector injector;
   private Clusters clusters;
@@ -92,6 +91,10 @@ public class HostImplTest {
   }
 
   private void registerHost(Host host) throws Exception {
+    registerHost(host, true);
+  }
+
+  private void registerHost(Host host, boolean firstReg) throws Exception {
     HostInfo info = new HostInfo();
     info.setMemorySize(100);
     info.setProcessorCount(10);
@@ -112,6 +115,9 @@ public class HostImplTest {
     HostRegistrationRequestEvent e =
         new HostRegistrationRequestEvent("foo", agentVersion, currentTime,
             info);
+    if (!firstReg) {
+      Assert.assertTrue(host.isPersisted());
+    }
     host.handleEvent(e);
     Assert.assertEquals(currentTime, host.getLastRegistrationTime());
   }
@@ -259,32 +265,35 @@ public class HostImplTest {
   @Test
   public void testHostRegistrationsInAnyState() throws Exception {
     clusters.addHost("foo");
-    Host host = clusters.getHost("foo");;
+    Host host = clusters.getHost("foo");
+    host.setIPv4("ipv4");
+    host.setIPv6("ipv6");
+
     long counter = 0;
 
     registerHost(host);
 
     ensureHostUpdatesReceived(host);
-    registerHost(host);
+    registerHost(host, false);
 
     ensureHostUpdatesReceived(host);
     sendHealthyHeartbeat(host, ++counter);
     verifyHostState(host, HostState.HEALTHY);
-    registerHost(host);
+    registerHost(host, false);
     ensureHostUpdatesReceived(host);
 
     sendUnhealthyHeartbeat(host, ++counter);
     verifyHostState(host, HostState.UNHEALTHY);
-    registerHost(host);
+    registerHost(host, false);
     ensureHostUpdatesReceived(host);
 
     timeoutHost(host);
     verifyHostState(host, HostState.HEARTBEAT_LOST);
-    registerHost(host);
+    registerHost(host, false);
     ensureHostUpdatesReceived(host);
 
     host.setState(HostState.INIT);
-    registerHost(host);
+    registerHost(host, false);
 
   }
 }

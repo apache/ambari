@@ -21,6 +21,7 @@ package org.apache.ambari.server.state;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -33,7 +34,6 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 import org.apache.ambari.server.orm.dao.*;
 import org.apache.ambari.server.orm.entities.*;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,8 +61,6 @@ public class ServiceComponentImpl implements ServiceComponent {
   boolean persisted = false;
   private ServiceComponentDesiredStateEntity desiredStateEntity;
 
-  private Map<String, Config> configs;
-
   private Map<String, Config>  desiredConfigs;
 
   private Map<String, ServiceComponentHost> hostComponents;
@@ -83,7 +81,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     desiredStateEntity.setComponentName(componentName);
     desiredStateEntity.setDesiredState(State.INIT);
 
-    this.configs = new HashMap<String, Config>();
     this.desiredConfigs = new HashMap<String, Config>();
     setDesiredStackVersion(new StackVersion(""));
 
@@ -100,7 +97,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     this.service = service;
     this.desiredStateEntity = serviceComponentDesiredStateEntity;
 
-    this.configs = new HashMap<String, Config>();
     this.desiredConfigs = new HashMap<String, Config>();
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
     for (HostComponentStateEntity hostComponentStateEntity : desiredStateEntity.getHostComponentStateEntities()) {
@@ -135,16 +131,6 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public synchronized Map<String, Config> getConfigs() {
-    return Collections.unmodifiableMap(configs);
-  }
-
-  @Override
-  public synchronized void updateConfigs(Map<String, Config> configs) {
-    this.configs = configs;
-  }
-
-  @Override
   public synchronized Map<String, ServiceComponentHost>
       getServiceComponentHosts() {
     return Collections.unmodifiableMap(hostComponents);
@@ -154,6 +140,13 @@ public class ServiceComponentImpl implements ServiceComponent {
   public synchronized void addServiceComponentHosts(
       Map<String, ServiceComponentHost> hostComponents) throws AmbariException {
     // TODO validation
+    for (Entry<String, ServiceComponentHost> entry :
+      hostComponents.entrySet()) {
+      if (!entry.getKey().equals(entry.getValue().getHostName())) {
+        throw new AmbariException("Invalid arguments in map"
+            + ", hostname does not match the key in map");
+      }
+    }
     for (ServiceComponentHost sch : hostComponents.values()) {
       addServiceComponentHost(sch);
     }
@@ -269,7 +262,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   private synchronized Map<String, String> getConfigVersions() {
     Map<String, String> configVersions = new HashMap<String, String>();
-    for (Config c : configs.values()) {
+    for (Config c : desiredConfigs.values()) {
       configVersions.put(c.getType(), c.getVersionTag());
     }
     return configVersions;
@@ -321,8 +314,6 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Transactional
   public synchronized void persist() {
     if (!persisted) {
-      service.persist(); //TODO is this correct?
-
       ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
       pk.setClusterId(service.getClusterId());
       pk.setServiceName(service.getName());
@@ -358,5 +349,5 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
   }
 
-  
+
 }

@@ -56,8 +56,10 @@ public class HostImpl implements Host {
   private static final Log LOG = LogFactory.getLog(HostImpl.class);
   private final Gson gson;
 
-  private static final Type diskInfoType = new TypeToken<List<DiskInfo>>() {}.getType();
-  private static final Type hostAttributesType = new TypeToken<Map<String, String>>() {}.getType();
+  private static final Type diskInfoType =
+      new TypeToken<List<DiskInfo>>() {}.getType();
+  private static final Type hostAttributesType =
+      new TypeToken<Map<String, String>>() {}.getType();
 
   private final Lock readLock;
   private final Lock writeLock;
@@ -152,7 +154,8 @@ public class HostImpl implements Host {
   private final StateMachine<HostState, HostEventType, HostEvent> stateMachine;
 
   @Inject
-  public HostImpl(@Assisted HostEntity hostEntity, @Assisted boolean persisted, Injector injector) {
+  public HostImpl(@Assisted HostEntity hostEntity,
+      @Assisted boolean persisted, Injector injector) {
     this.stateMachine = stateMachineFactory.make(this);
     ReadWriteLock rwLock = new ReentrantReadWriteLock();
     this.readLock = rwLock.readLock();
@@ -201,6 +204,7 @@ public class HostImpl implements Host {
       host.importHostInfo(e.hostInfo);
       host.setLastRegistrationTime(e.registrationTime);
       host.setAgentVersion(e.agentVersion);
+      host.persist();
     }
   }
 
@@ -292,14 +296,37 @@ public class HostImpl implements Host {
   public void importHostInfo(HostInfo hostInfo) {
     try {
       writeLock.lock();
-      persisted = false;
-      setHostName(hostInfo.getHostName());
+      if (hostInfo.getHostName() != null
+          && !hostInfo.getHostName().isEmpty()
+          && !hostInfo.getHostName().equals(getHostName())) {
+        setHostName(hostInfo.getHostName());
+      }
+      if (hostInfo.getIPAddress() != null
+          && !hostInfo.getIPAddress().isEmpty()) {
+        setIPv4(hostInfo.getIPAddress());
+        setIPv6(hostInfo.getIPAddress());
+      }
+
       setCpuCount(hostInfo.getProcessorCount());
       setTotalMemBytes(hostInfo.getMemoryTotal());
-      setOsArch(hostInfo.getArchitecture());
-      setOsType(hostInfo.getOS());
-      setDisksInfo(hostInfo.getMounts());
       setAvailableMemBytes(hostInfo.getFreeMemory());
+
+      if (hostInfo.getArchitecture() != null
+          && !hostInfo.getArchitecture().isEmpty()) {
+        setOsArch(hostInfo.getArchitecture());
+      }
+
+      if (hostInfo.getOS() != null
+          && !hostInfo.getOS().isEmpty()) {
+        setOsType(hostInfo.getOS());
+      }
+
+      if (hostInfo.getMounts() != null
+          && !hostInfo.getMounts().isEmpty()) {
+        setDisksInfo(hostInfo.getMounts());
+      }
+
+      // FIXME add all other information into host attributes
 
       saveIfPersisted();
     }

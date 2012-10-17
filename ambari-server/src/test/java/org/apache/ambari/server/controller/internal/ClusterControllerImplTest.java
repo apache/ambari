@@ -28,7 +28,6 @@ import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
