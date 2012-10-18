@@ -57,6 +57,8 @@ App.LoginController = Em.Object.extend({
       var clientId = user.content[0];
       if (user.content[0] !== undefined) {
         return App.store.findByClientId(App.User, clientId);
+      } else {
+        return undefined;
       }
 //    }
   }

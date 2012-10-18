@@ -23,18 +23,18 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
   content: [],
   bootHosts: [],
   isSubmitDisabled: false,
-  categories: ['Hosts', 'Succeeded', 'Failed'],
-  category: 'Hosts',
-  allChecked: true,
+  categories: ['All Hosts', 'Success', 'Error'],
+  category: 'All Hosts',
+  allChecked: false,
 
   onAllChecked: function () {
-    var hosts = this.visibleHosts();
-    if (this.get('allChecked') === true) {
-      hosts.setEach('isChecked', true);
-    } else {
-      hosts.setEach('isChecked', false);
-    }
+    var hosts = this.get('visibleHosts');
+    hosts.setEach('isChecked', this.get('allChecked'));
   }.observes('allChecked'),
+
+  noHostsSelected: function () {
+    return !(this.someProperty('isChecked', true));
+  }.property('@each.isChecked'),
 
   mockData: require('data/mock/step3_hosts'),
   mockRetryData: require('data/mock/step3_pollData'),
@@ -71,14 +71,14 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     return hosts;
   },
 
-  /* renders the set of passed hosts */
-
+  /* Renders the set of passed hosts */
   renderHosts: function (hostsInfo) {
     var self = this;
     hostsInfo.forEach(function (_hostInfo) {
       var hostInfo = App.HostInfo.create({
         name: _hostInfo.name,
-        bootStatus: _hostInfo.bootStatus
+        bootStatus: _hostInfo.bootStatus,
+        isChecked: false
       });
 
       console.log('pushing ' + hostInfo.name);
@@ -86,81 +86,98 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     });
   },
 
-  /* Below function parses and updates the content, and governs the possibility
-   of the next doBootstrap (polling) call
+  /**
+   * Parses and updates the content, and governs the possibility
+   * of the next doBootstrap (polling) call.
+   * Returns true if polling should stop (no hosts are in "pending" state); false otherwise
    */
-
-  parseHostInfo: function (hostsFrmServer, hostsFrmContent) {
-    var result = true;                    // default value as true implies if the data rendered by REST API has no hosts, polling will stop
-    hostsFrmServer.forEach(function (_hostFrmServer) {
-      var host = hostsFrmContent.findProperty('name', _hostFrmServer.name);
+  parseHostInfo: function (hostsFromServer, hostsFromContent) {
+    var result = true;  // default value as true implies
+    hostsFromServer.forEach(function (_hostFromServer) {
+      var host = hostsFromContent.findProperty('name', _hostFromServer.name);
       if (host !== null && host !== undefined) { // check if hostname extracted from REST API data matches any hostname in content
-        host.set('bootStatus', _hostFrmServer.status);
-        host.set('cpu', _hostFrmServer.cpu);
-        host.set('memory', _hostFrmServer.memory);
+        host.set('bootStatus', _hostFromServer.status);
+        host.set('cpu', _hostFromServer.cpu);
+        host.set('memory', _hostFromServer.memory);
       }
     });
-    result = !this.content.someProperty('bootStatus', 'pending');
-    return result;
+    // if the data rendered by REST API has no hosts or no hosts are in "pending" state, polling will stop
+    return this.content.length == 0 || !this.content.someProperty('bootStatus', 'pending');
   },
 
-  /* Below function returns the current set of visible hosts on view (All,succeded,failed) */
+  /* Returns the current set of visible hosts on view (All, Succeeded, Failed) */
   visibleHosts: function () {
-    var result;
-    if (this.get('category') === 'Succeeded') {
+    if (this.get('category') === 'Success') {
       return (this.filterProperty('bootStatus', 'success'));
-    } else if (this.get('category') === 'Failed') {
+    } else if (this.get('category') === 'Error') {
       return (this.filterProperty('bootStatus', 'error'));
-    } else if (this.get('category') === 'Hosts') {
+    } else { // if (this.get('category') === 'All Hosts')
       return this.content;
     }
-  },
-
-  /* Below function removes a single element on the trash icon click. Being called from view */
-  removeElement: function (hostInfo) {
-    console.log('TRACE: In removeElement');
-    var hosts = [hostInfo];
-    App.db.removeHosts(hosts);    // remove from localStorage
-    this.removeObject(hostInfo);     // remove from the content to rerender the view
-  },
-
-
-  retry: function () {
-    if (this.get('isSubmitDisabled')) {
-      return;
-    }
-    var hosts = this.visibleHosts();
-    var selectedHosts = hosts.filterProperty('isChecked', true);
-    selectedHosts.forEach(function (_host) {
-      console.log('Retrying:  ' + _host.name);
-    });
-
-    //TODO: uncomment below code to hookup with @GET bootstrap API
-    /*
-     this.set('bootHosts',selectedHosts);
-     this.doBootstrap();
-     */
-
-  },
+  }.property('category', '@each.bootStatus'),
 
   removeHosts: function (hosts) {
-    App.db.removeHosts(hosts);
-    this.removeObjects(hosts);
-  },
+    var self = this;
 
-  removeBtn: function () {
-    if (this.get('isSubmitDisabled')) {
-      return;
-    }
-    var hostResult = this.visibleHosts();
-    var selectedHosts = hostResult.filterProperty('isChecked', true);
-    selectedHosts.forEach(function (_hostInfo) {
-      console.log('Removing:  ' + _hostInfo.name);
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step3.hosts.remove.popup.header'),
+      onPrimary: function () {
+        App.db.removeHosts(hosts);
+        self.removeObjects(hosts);
+        this.hide();
+      },
+      body: Em.I18n.t('installer.step3.hosts.remove.popup.body')
     });
 
-    this.removeHosts(selectedHosts);
   },
 
+  /* Removes a single element on the trash icon click. Called from View */
+  removeHost: function (hostInfo) {
+    this.removeHosts([hostInfo]);
+  },
+
+  removeSelectedHosts: function () {
+    if (!this.get('noHostsSelected')) {
+      var selectedHosts = this.get('visibleHosts').filterProperty('isChecked', true);
+      selectedHosts.forEach(function (_hostInfo) {
+        console.log('Removing:  ' + _hostInfo.name);
+      });
+      this.removeHosts(selectedHosts);
+    }
+  },
+
+  retryHosts: function (hosts) {
+    var self = this;
+
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step3.hosts.retry.popup.header'),
+      onPrimary: function () {
+        hosts.forEach(function (_host) {
+          console.log('Retrying:  ' + _host.name);
+        });
+
+        //TODO: uncomment below code to hookup with @GET bootstrap API
+        /*
+         self.set('bootHosts',selectedHosts);
+         self.doBootstrap();
+         */
+        this.hide();
+      },
+      body: Em.I18n.t('installer.step3.hosts.retry.popup.body')
+    });
+
+  },
+
+  retryHost: function (hostInfo) {
+    this.retryHosts([hostInfo]);
+  },
+
+  retrySelectedHosts: function () {
+    if (!this.get('noHostsSelected')) {
+      var selectedHosts = this.get('visibleHosts').filterProperty('isChecked', true);
+      this.retryHosts(selectedHosts);
+    }
+  },
 
   startBootstrap: function () {
     this.set('isSubmitDisabled', true);
@@ -173,7 +190,6 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     $.ajax({
       type: 'GET',
       url: '/api/bootstrap',
-      async: false,
       timeout: 5000,
       success: function (data) {
         console.log("TRACE: In success function for the GET bootstrap call");
@@ -225,6 +241,7 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
       App.router.send('next');
     }
   },
+
   hostLogPopup: function (event) {
     App.ModalPopup.show({
       header: Em.I18n.t('installer.step3.hostLog.popup.header'),
@@ -249,7 +266,7 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
     if (this.get('isSubmitDisabled')) {
       return;
     }
-    var hosts = this.visibleHosts();
+    var hosts = this.get('visibleHosts');
     var selectedHosts = hosts.filterProperty('isChecked', true);
     selectedHosts.forEach(function (_host) {
       console.log('Retrying:  ' + _host.name);

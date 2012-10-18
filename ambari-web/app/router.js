@@ -26,15 +26,11 @@ App.Router = Em.Router.extend({
   setNavigationFlow: function (step) {
     var matches = step.match(/\d+$/);
     var newStep;
-    if(matches){
+    if (matches) {
       newStep = parseInt(matches[0]);
     }
     var previousStep = parseInt(this.getInstallerCurrentStep());
-    if (newStep >= previousStep) {
-      this.set('isFwdNavigation', true);
-    } else {
-      this.set('isFwdNavigation', false);
-    }
+    this.set('isFwdNavigation', newStep >= previousStep);
   },
 
   clearAllSteps: function() {
@@ -173,7 +169,6 @@ App.Router = Em.Router.extend({
       url : '/api/check',
       dataType : 'json',
       type: 'GET',
-      async: false,
       beforeSend: function(xhr) {
         xhr.setRequestHeader("Authorization", "Basic " + hash);
       },

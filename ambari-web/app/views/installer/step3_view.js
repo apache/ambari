@@ -25,34 +25,30 @@ App.InstallerStep3View = Em.View.extend({
   category: '',
 
   didInsertElement: function () {
-    var controller = this.get('controller');
-    controller.navigateStep();
+    this.get('controller').navigateStep();
   }
 });
 
-App.HostView = Em.View.extend({
+App.InstallerHostView = Em.View.extend({
 
-  isVisible: true,
-  category: 'Hosts',
-  removeItem: function () {
-    var hostInfo = this.get('hostInfo');
-    this.get('controller').removeElement(hostInfo);
+  tagName: 'tr',
+  classNameBindings: ['hostInfo.bootStatus'],
+  hostInfo: null,
 
+  remove: function () {
+    this.get('controller').removeHost(this.get('hostInfo'));
   },
 
-  hideItem: function () {
-    var controller = this.get('controller');
-    var hostInfo = this.get('hostInfo');
-    var category = this.get('category');
-    if (category === "Hosts") {
-      this.set('isVisible', true);
-    } else if (category === "Succeeded" && hostInfo.get('bootStatus') == "success") {
-      this.set('isVisible', true);
-      return true;
-    } else if (category === "Failed" && hostInfo.get('bootStatus') == "error") {
-      this.set('isVisible', true);
-    } else {
-      this.set('isVisible', false);
-    }
-  }.observes('category')
+  retry: function() {
+    this.get('controller').retryHost(this.get('hostInfo'));
+  },
+
+  isRemovable: function () {
+    return true;
+  }.property(),
+
+  isRetryable: function() {
+    return ['pending', 'error'].contains(this.get('hostInfo.bootStatus'));
+  }.property('hostInfo.bootStatus')
+
 });

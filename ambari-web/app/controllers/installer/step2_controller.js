@@ -163,7 +163,6 @@ App.InstallerStep2Controller = Em.Controller.extend({
       type: 'POST',
       url: '/api/bootstrap',
       data: bootStrapData,
-      async: false,
       timeout: 2000,
       success: function () {
         console.log("TRACE: In success function for the post bootstrap function");

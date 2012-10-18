@@ -2,9 +2,9 @@
   "mapreduce": {
     "service_type": "MAPREDUCE",
     "installed": true,
-    "jobtracker_addr": "ec2-23-21-1-25.compute-1.amazonaws.com:50030",
+    "jobtracker_addr": "jobtracker:50030",
     "trackers_total": "1",
-    "jobhistory_addr": "ec2-23-21-1-25.compute-1.amazonaws.com:51111",
+    "jobhistory_addr": "jobtracker:51111",
     "memory_heap_used": 94499048,
     "memory_heap_max": 482344960,
     "trackers_live": 1,

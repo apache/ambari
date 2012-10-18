@@ -2,8 +2,8 @@
   "hdfs": {
     "service_type": "HDFS",
     "installed": true,
-    "namenode_addr": "ec2-23-21-1-25.compute-1.amazonaws.com:50070",
-    "secondary_namenode_addr": "ec2-23-21-1-25.compute-1.amazonaws.com:50090",
+    "namenode_addr": "namenode:50070",
+    "secondary_namenode_addr": "snamenode:50090",
     "total_nodes": "1",
     "memory_heap_used": 151642616,
     "memory_heap_max": 453050368,

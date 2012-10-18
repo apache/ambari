@@ -37,7 +37,7 @@
         {{/if}}
 			{{/each}}
       {{#if view.serviceStatus.hdfs}}
-      <table id="summary-info" class="table table-bordered table-condensed">
+      <table id="summary-info" class="table table-bordered table-striped table-condensed">
         <tr>
           <td>{{t services.service.summary.version}}</td>
           <td>{{view.attributes.version}}</td>
@@ -51,29 +51,8 @@
           <td>{{view.attributes.start_time}}</td>
         </tr>
         <tr>
-        <tr>
           <td>{{t services.service.summary.nameNodeHeap}}</td>
           <td>{{view.attributes.memory_heap_used}} MB / {{view.attributes.memory_heap_max}} MB ({{view.attributes.memory_heap_percent_used}}% used)</td>
-        </tr>
-        <tr>
-          <td>{{t services.service.summary.pendingUpgradeStatus}}</td>
-          <td>
-            {{#if view.attributes.pending_upgrades}}
-              some message
-            {{else}}
-              no pending upgrades
-            {{/if}}
-          </td>
-        </tr>
-        <tr>
-          <td>{{t services.service.summary.safeModeStatus}}</td>
-          <td>
-            {{#if view.attributes.safemode}}
-              in safemode
-            {{else}}
-              not in safemode
-            {{/if}}
-          </td>
         </tr>
         <tr>
           <td>{{t services.service.summary.dataNodes}}</td>
@@ -96,6 +75,26 @@
         <tr>
           <td>{{t services.service.summary.totalFiles}}</td>
           <td>{{view.attributes.dfs_dirfiles_count}}</td>
+        </tr>
+        <tr>
+          <td>{{t services.service.summary.pendingUpgradeStatus}}</td>
+          <td>
+            {{#if view.attributes.pending_upgrades}}
+            Pending upgrade
+            {{else}}
+            No pending upgrade
+            {{/if}}
+          </td>
+        </tr>
+        <tr>
+          <td>{{t services.service.summary.safeModeStatus}}</td>
+          <td>
+            {{#if view.attributes.safemode}}
+            In safe mode
+            {{else}}
+            Not in safe mode
+            {{/if}}
+          </td>
         </tr>
       </table>
       {{/if}}
