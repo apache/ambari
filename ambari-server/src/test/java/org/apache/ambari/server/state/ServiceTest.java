@@ -26,6 +26,7 @@ import java.util.Map;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -149,14 +150,26 @@ public class ServiceTest {
     sc2.persist();
     sc3.persist();
 
+    ServiceComponent sc4 = s.addServiceComponent("sc4");
+    Assert.assertNotNull(s.getServiceComponent(sc4.getName()));
+    Assert.assertEquals(State.INIT,
+        s.getServiceComponent("sc4").getDesiredState());
+    sc4.persist();
+
+    Assert.assertEquals(4, s.getServiceComponents().size());
+
     Assert.assertNotNull(s.getServiceComponent(sc3.getName()));
-    Assert.assertEquals(3, s.getServiceComponents().size());
     Assert.assertEquals(sc3.getName(),
         s.getServiceComponent(sc3.getName()).getName());
     Assert.assertEquals(s.getName(),
         s.getServiceComponent(sc3.getName()).getServiceName());
     Assert.assertEquals(cluster.getClusterName(),
         s.getServiceComponent(sc3.getName()).getClusterName());
+
+    sc4.setDesiredState(State.INSTALLING);
+    Assert.assertEquals(State.INSTALLING,
+        s.getServiceComponent("sc4").getDesiredState());
+
   }
 
   @Test
@@ -165,8 +178,6 @@ public class ServiceTest {
     /*
       public Map<String, Config> getDesiredConfigs();
       public void updateDesiredConfigs(Map<String, Config> configs);
-      public Map<String, Config> getConfigs();
-      public void updateConfigs(Map<String, Config> configs);
      */
   }
 
@@ -199,6 +210,11 @@ public class ServiceTest {
     Assert.assertEquals(s.getDesiredState().toString(),
         r.getDesiredState());
     // FIXME add checks for configs
+
+    StringBuilder sb = new StringBuilder();
+    s.debugDump(sb);
+    // TODO better checks?
+    Assert.assertFalse(sb.toString().isEmpty());
 
   }
 

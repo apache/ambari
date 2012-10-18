@@ -18,14 +18,22 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
+import java.util.List;
+import java.util.Map;
+
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.Transactional;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.job.Job;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
@@ -69,7 +77,7 @@ public class ServiceComponentHostTest {
     injector.getInstance(PersistService.class).stop();
   }
 
-  private ServiceComponentHost createNewServiceComponentHost(long clusterId,
+  private ServiceComponentHost createNewServiceComponentHost(
       String svc,
       String svcComponent,
       String hostName, boolean isClient) throws AmbariException{
@@ -80,13 +88,24 @@ public class ServiceComponentHostTest {
         sc, hostName, isClient);
     Assert.assertEquals(State.INIT,
         impl.getState());
+    Assert.assertEquals(State.INIT,
+        impl.getDesiredState());
+    Assert.assertEquals("C1", impl.getClusterName());
+    Assert.assertEquals(c.getClusterId(), impl.getClusterId());
+    Assert.assertEquals(s.getName(), impl.getServiceName());
+    Assert.assertEquals(sc.getName(), impl.getServiceComponentName());
+    Assert.assertEquals(hostName, impl.getHostName());
+    Assert.assertTrue(
+        impl.getDesiredStackVersion().getStackVersion().isEmpty());
+    Assert.assertTrue(impl.getStackVersion().getStackVersion().isEmpty());
+
     return impl;
   }
 
   @Test
   public void testNewServiceComponentHostImpl() throws AmbariException{
-    createNewServiceComponentHost(1, "svc", "svcComp", "h1", false);
-    createNewServiceComponentHost(1, "svc", "svcComp", "h1", true);
+    createNewServiceComponentHost("svc", "svcComp", "h1", false);
+    createNewServiceComponentHost("svc", "svcComp", "h1", true);
   }
 
   private ServiceComponentHostEvent createEvent(ServiceComponentHostImpl impl,
@@ -258,8 +277,8 @@ public class ServiceComponentHostTest {
 
   @Test
   public void testClientStateFlow() throws Exception {
-    ServiceComponentHostImpl impl = (ServiceComponentHostImpl) createNewServiceComponentHost(1, "svc",
-        "svcComp", "h1", true);
+    ServiceComponentHostImpl impl = (ServiceComponentHostImpl)
+        createNewServiceComponentHost("svc", "svcComp", "h1", true);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
         State.INIT,
@@ -296,8 +315,8 @@ public class ServiceComponentHostTest {
 
   @Test
   public void testDaemonStateFlow() throws Exception {
-    ServiceComponentHostImpl impl = (ServiceComponentHostImpl) createNewServiceComponentHost(1, "svc",
-        "svcComp", "h1", false);
+    ServiceComponentHostImpl impl = (ServiceComponentHostImpl)
+        createNewServiceComponentHost("svc", "svcComp", "h1", false);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
         State.INIT,
@@ -328,6 +347,64 @@ public class ServiceComponentHostTest {
         State.WIPING_OUT,
         State.WIPEOUT_FAILED,
         State.INIT);
+  }
+
+  @Test
+  public void testJobHandling() {
+    // TODO fix once jobs are handled
+  }
+
+
+  @Test
+  public void testGetAndSetConfigs() {
+    // FIXME config handling
+    /*
+    public Map<String, Config> getDesiredConfigs();
+    public void updateDesiredConfigs(Map<String, Config> configs);
+    public Map<String, Config> getConfigs();
+    public void updateConfigs(Map<String, Config> configs);
+    */
+  }
+
+  @Test
+  public void testGetAndSetBasicInfo() throws AmbariException {
+    ServiceComponentHost sch =
+        createNewServiceComponentHost("svc", "svcComp", "h1", false);
+    sch.setDesiredState(State.INSTALLED);
+    sch.setState(State.INSTALLING);
+    sch.setStackVersion(new StackVersion("1.0.0"));
+    sch.setDesiredStackVersion(new StackVersion("1.1.0"));
+
+    Assert.assertEquals(State.INSTALLING, sch.getState());
+    Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
+    Assert.assertEquals("1.0.0",
+        sch.getStackVersion().getStackVersion());
+    Assert.assertEquals("1.1.0",
+        sch.getDesiredStackVersion().getStackVersion());
+  }
+
+  @Test
+  public void testConvertToResponse() throws AmbariException {
+    ServiceComponentHost sch =
+        createNewServiceComponentHost("svc", "svcComp", "h1", false);
+    sch.setDesiredState(State.INSTALLED);
+    sch.setState(State.INSTALLING);
+    sch.setStackVersion(new StackVersion("1.0.0"));
+    ServiceComponentHostResponse r =
+        sch.convertToResponse();
+    Assert.assertEquals("svc", r.getServiceName());
+    Assert.assertEquals("svcComp", r.getComponentName());
+    Assert.assertEquals("h1", r.getHostname());
+    Assert.assertEquals("C1", r.getClusterName());
+    Assert.assertEquals(State.INSTALLED.toString(), r.getDesiredState());
+    Assert.assertEquals(State.INSTALLING.toString(), r.getLiveState());
+    Assert.assertEquals("1.0.0", r.getStackVersion());
+
+    // TODO check configs
+
+    StringBuilder sb = new StringBuilder();
+    sch.debugDump(sb);
+    Assert.assertFalse(sb.toString().isEmpty());
   }
 
 }

@@ -32,7 +32,6 @@ public interface ServiceComponent {
 
   public long getClusterId();
 
-  // TODO
   public String getClusterName();
 
   public State getDesiredState();

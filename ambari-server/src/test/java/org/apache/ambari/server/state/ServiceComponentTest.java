@@ -188,6 +188,7 @@ public class ServiceComponentTest {
 
     addHostToCluster("h1", service.getCluster().getClusterName());
     addHostToCluster("h2", service.getCluster().getClusterName());
+    addHostToCluster("h3", service.getCluster().getClusterName());
 
     ServiceComponentHost sch1 =
         serviceComponentHostFactory.createNew(sc, "h1", false);
@@ -217,6 +218,16 @@ public class ServiceComponentTest {
 
     sch1.persist();
     sch2.persist();
+
+    ServiceComponentHost schCheck = sc.getServiceComponentHost("h2");
+    Assert.assertNotNull(schCheck);
+    Assert.assertEquals("h2", schCheck.getHostName());
+
+    ServiceComponentHost sch3 =
+        serviceComponentHostFactory.createNew(sc, "h3", false);
+    sc.addServiceComponentHost(sch3);
+    sch3.persist();
+    Assert.assertNotNull(sc.getServiceComponentHost("h3"));
 
     sch1.setDesiredStackVersion(new StackVersion("1.1.0"));
     sch1.setState(State.STARTING);
@@ -288,6 +299,7 @@ public class ServiceComponentTest {
     // TODO test debug dump
     StringBuilder sb = new StringBuilder();
     sc.debugDump(sb);
+    Assert.assertFalse(sb.toString().isEmpty());
   }
 
 }

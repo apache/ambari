@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-886. Support filters in controller get* apis. (hitesh)
+
   AMBARI-880. Implement Review Page (Step 8) for the Ambari Installer
   Wizard. (Jaimin Jetly via yusaku)
 

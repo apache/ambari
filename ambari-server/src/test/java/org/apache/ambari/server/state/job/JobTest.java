@@ -31,7 +31,7 @@ import org.apache.ambari.server.state.job.NewJobEvent;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class JobImplTest {
+public class JobTest {
 
   private Job createNewJob(long id, String jobName, long startTime) {
     JobId jId = new JobId(id, new JobType(jobName));

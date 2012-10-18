@@ -21,7 +21,6 @@ package org.apache.ambari.server.state.cluster;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,13 +39,10 @@ import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.state.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.persistence.EntityManager;
 
 public class ClusterImpl implements Cluster {
 
@@ -81,7 +77,6 @@ public class ClusterImpl implements Cluster {
   private Lock readLock = readWriteLock.readLock();
   private Lock writeLock = readWriteLock.writeLock();
   private final Injector injector;
-
 
   private ClusterEntity clusterEntity;
 

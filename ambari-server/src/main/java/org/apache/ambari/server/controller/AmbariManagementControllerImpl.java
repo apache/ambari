@@ -23,6 +23,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -62,7 +63,6 @@ public class AmbariManagementControllerImpl implements
 
   private final Injector injector;
 
-  // FIXME does this need to be initialized via the meta data library?
   private static RoleCommandOrder rco;
   static {
     rco = new RoleCommandOrder();
@@ -124,7 +124,8 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
 
     if (requests.isEmpty()) {
-      // TODO log warning for invalid request
+      LOG.warn("Received an empty requests set");
+      return;
     }
 
     // do all validation checks
@@ -237,7 +238,8 @@ public class AmbariManagementControllerImpl implements
       Set<ServiceComponentRequest> requests) throws AmbariException {
 
     if (requests.isEmpty()) {
-      // TODO log warning for invalid request
+      LOG.warn("Received an empty requests set");
+      return;
     }
 
     // do all validation checks
@@ -374,7 +376,8 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
 
     if (requests.isEmpty()) {
-      // TODO log warning for invalid request
+      LOG.warn("Received an empty requests set");
+      return;
     }
 
     Set<String> duplicates = new HashSet<String>();
@@ -461,7 +464,8 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
 
     if (requests.isEmpty()) {
-      // TODO log warning for invalid request
+      LOG.warn("Received an empty requests set");
+      return;
     }
 
     // do all validation checks
@@ -541,6 +545,26 @@ public class AmbariManagementControllerImpl implements
       Service s = cluster.getService(request.getServiceName());
       ServiceComponent sc = s.getServiceComponent(
           request.getComponentName());
+      Host host = clusters.getHost(request.getHostname());
+      Set<Cluster> mappedClusters =
+          clusters.getClustersForHost(host.getHostName());
+      boolean validCluster = false;
+      for (Cluster mappedCluster : mappedClusters) {
+        if (mappedCluster.getClusterName().equals(
+            request.getClusterName())) {
+          validCluster = true;
+          break;
+        }
+      }
+      if (!validCluster) {
+        // TODO fix throw correct error
+        throw new AmbariException("Invalid request as host does not belong to"
+            + " given cluster"
+            + ", clusterName=" + request.getClusterName()
+            + ", serviceName=" + request.getServiceName()
+            + ", componentName=" + request.getComponentName()
+            + ", hostname=" + request.getHostname());
+      }
       try {
         ServiceComponentHost sch = sc.getServiceComponentHost(
             request.getHostname());
@@ -686,8 +710,18 @@ public class AmbariManagementControllerImpl implements
       return response;
     }
 
+    // FIXME validate stack version if not null
+
     Map<String, Cluster> allClusters = clusters.getClusters();
     for (Cluster c : allClusters.values()) {
+      if (request.getStackVersion() != null
+          && !request.getStackVersion().isEmpty()) {
+        if (!request.getStackVersion().equals(
+            c.getDesiredStackVersion().getStackVersion())) {
+          // skip non matching stack versions
+          continue;
+        }
+      }
       response.add(c.convertToResponse());
     }
     return response;
@@ -699,7 +733,6 @@ public class AmbariManagementControllerImpl implements
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
       // TODO fix throw error
-      // or handle all possible searches for null properties
       throw new AmbariException("Invalid arguments");
     }
     final Cluster cluster = clusters.getCluster(request.getClusterName());
@@ -712,10 +745,25 @@ public class AmbariManagementControllerImpl implements
     }
 
     // TODO support search on predicates?
-    // filter based on desired state?
 
-    Map<String, Service> allServices = cluster.getServices();
-    for (Service s : allServices.values()) {
+    boolean checkDesiredState = false;
+    State desiredStateToCheck = null;
+    if (request.getDesiredState() != null
+        && !request.getDesiredState().isEmpty()) {
+      desiredStateToCheck = State.valueOf(request.getDesiredState());
+      if (!desiredStateToCheck.isValidDesiredState()) {
+        // FIXME throw correct error
+        throw new AmbariException("Invalid arguments");
+      }
+      checkDesiredState = true;
+    }
+
+    for (Service s : cluster.getServices().values()) {
+      if (checkDesiredState
+          && (desiredStateToCheck != s.getDesiredState())) {
+        // skip non matching state
+        continue;
+      }
       response.add(s.convertToResponse());
     }
     return response;
@@ -726,28 +774,57 @@ public class AmbariManagementControllerImpl implements
   public Set<ServiceComponentResponse> getComponents(
       ServiceComponentRequest request) throws AmbariException {
     if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()
-        || request.getServiceName() == null
-        || request.getServiceName().isEmpty()) {
+        || request.getClusterName().isEmpty()) {
       // TODO fix throw error
-      // or handle all possible searches for null properties
       throw new AmbariException("Invalid arguments");
     }
 
     final Cluster cluster = clusters.getCluster(request.getClusterName());
-    final Service s = cluster.getService(request.getServiceName());
 
     Set<ServiceComponentResponse> response =
         new HashSet<ServiceComponentResponse>();
+
     if (request.getComponentName() != null) {
+      if (request.getServiceName() == null) {
+        // TODO fix throw error
+        throw new AmbariException("Invalid arguments");
+      }
+      Service s = cluster.getService(request.getServiceName());
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
       response.add(sc.convertToResponse());
       return response;
     }
 
-    Map<String, ServiceComponent> allSvcComps = s.getServiceComponents();
-    for (ServiceComponent sc : allSvcComps.values()) {
-      response.add(sc.convertToResponse());
+    boolean checkDesiredState = false;
+    State desiredStateToCheck = null;
+    if (request.getDesiredState() != null
+        && !request.getDesiredState().isEmpty()) {
+      desiredStateToCheck = State.valueOf(request.getDesiredState());
+      if (!desiredStateToCheck.isValidDesiredState()) {
+        // FIXME throw correct error
+        throw new AmbariException("Invalid arguments");
+      }
+      checkDesiredState = true;
+    }
+
+    Set<Service> services = new HashSet<Service>();
+    if (request.getServiceName() != null
+        && !request.getServiceName().isEmpty()) {
+      services.add(cluster.getService(request.getServiceName()));
+    } else {
+      services.addAll(cluster.getServices().values());
+    }
+
+    for (Service s : services) {
+      // filter on request.getDesiredState()
+      for (ServiceComponent sc : s.getServiceComponents().values()) {
+        if (checkDesiredState
+            && (desiredStateToCheck != sc.getDesiredState())) {
+          // skip non matching state
+          continue;
+        }
+        response.add(sc.convertToResponse());
+      }
     }
     return response;
   }
@@ -756,6 +833,8 @@ public class AmbariManagementControllerImpl implements
   public Set<HostResponse> getHosts(HostRequest request)
       throws AmbariException {
     Set<HostResponse> response = new HashSet<HostResponse>();
+
+    // FIXME what is the requirement for filtering on host attributes?
 
     List<Host> hosts = null;
     if (request.getHostname() != null) {
@@ -782,11 +861,7 @@ public class AmbariManagementControllerImpl implements
   public Set<ServiceComponentHostResponse> getHostComponents(
       ServiceComponentHostRequest request) throws AmbariException {
     if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()
-        || request.getServiceName() == null
-        || request.getServiceName().isEmpty()
-        || request.getComponentName() == null
-        || request.getComponentName().isEmpty()) {
+        || request.getClusterName().isEmpty()) {
       // TODO fix throw error
       // or handle all possible searches for null properties
       throw new AmbariException("Invalid arguments");
@@ -794,29 +869,81 @@ public class AmbariManagementControllerImpl implements
 
     final Cluster cluster = clusters.getCluster(request.getClusterName());
 
-    // TODO should service name be allowed to be null?
+    if (request.getComponentName() != null) {
+      if (request.getServiceName() == null) {
+        // FIXME get service name from meta data or throw exception??
+        // for now using a brute force search across all services
+      }
+    }
 
-    final Service s = cluster.getService(request.getServiceName());
-    final ServiceComponent sc = s.getServiceComponent(
-        request.getComponentName());
+    Set<Service> services = new HashSet<Service>();
+    if (request.getServiceName() != null
+        && !request.getServiceName().isEmpty()) {
+      services.add(cluster.getService(request.getServiceName()));
+    } else {
+      services.addAll(cluster.getServices().values());
+    }
 
     Set<ServiceComponentHostResponse> response =
         new HashSet<ServiceComponentHostResponse>();
 
-    if (request.getHostname() != null) {
-      ServiceComponentHost sch = sc.getServiceComponentHost(
-          request.getHostname());
-      ServiceComponentHostResponse r = sch.convertToResponse();
-      response.add(r);
-      return response;
+    boolean checkDesiredState = false;
+    State desiredStateToCheck = null;
+    if (request.getDesiredState() != null
+        && !request.getDesiredState().isEmpty()) {
+      desiredStateToCheck = State.valueOf(request.getDesiredState());
+      if (!desiredStateToCheck.isValidDesiredState()) {
+        // FIXME throw correct error
+        throw new AmbariException("Invalid arguments");
+      }
+      checkDesiredState = true;
     }
 
-    Map<String, ServiceComponentHost> allSch = sc.getServiceComponentHosts();
-    for (ServiceComponentHost sch : allSch.values()) {
-      ServiceComponentHostResponse r = sch.convertToResponse();
-      response.add(r);
-    }
+    for (Service s : services) {
+      // filter on component name if provided
+      Set<ServiceComponent> components = new HashSet<ServiceComponent>();
+      // FIXME hack for now as we need to filter on name until meta data layer
+      // integration happens
+      // at that point, only a single component object should be looked at
+      components.addAll(s.getServiceComponents().values());
+      for(ServiceComponent sc : components) {
+        if (request.getComponentName() != null) {
+          if (!sc.getName().equals(request.getComponentName())) {
+            // FIXME for
+            continue;
+          }
+        }
 
+        // filter on hostname if provided
+        // filter on desired state if provided
+
+        if (request.getHostname() != null) {
+          try {
+            ServiceComponentHost sch = sc.getServiceComponentHost(
+                request.getHostname());
+            if (checkDesiredState
+                && (desiredStateToCheck != sch.getDesiredState())) {
+              continue;
+            }
+            ServiceComponentHostResponse r = sch.convertToResponse();
+            response.add(r);
+          } catch (ServiceComponentHostNotFoundException e) {
+            // Expected
+            // ignore and continue
+          }
+        } else {
+          for (ServiceComponentHost sch :
+              sc.getServiceComponentHosts().values()) {
+            if (checkDesiredState
+                && (desiredStateToCheck != sch.getDesiredState())) {
+              continue;
+            }
+            ServiceComponentHostResponse r = sch.convertToResponse();
+            response.add(r);
+          }
+        }
+      }
+    }
     return response;
   }
 
@@ -994,7 +1121,7 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
 
     if (requests.isEmpty()) {
-      // TODO log warning for invalid request
+      LOG.warn("Received an empty requests set");
       // FIXME return val
       return null;
     }
@@ -1165,7 +1292,7 @@ public class AmbariManagementControllerImpl implements
       Set<ServiceComponentRequest> requests) throws AmbariException {
 
     if (requests.isEmpty()) {
-      // TODO log warning for invalid request
+      LOG.warn("Received an empty requests set");
       // FIXME fix return val
       return null;
     }
@@ -1326,10 +1453,6 @@ public class AmbariManagementControllerImpl implements
 
     // TODO additional validation?
 
-    // TODO order hostcomponents to determine stages
-
-    // TODO lets continue hacking
-
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
     return doStageCreation(cluster, null,
@@ -1341,7 +1464,8 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
 
     if (requests.isEmpty()) {
-      // TODO log warning for invalid request
+      LOG.warn("Received an empty requests set");
+      return;
     }
 
     for (HostRequest request : requests) {
@@ -1373,7 +1497,7 @@ public class AmbariManagementControllerImpl implements
       Set<ServiceComponentHostRequest> requests) throws AmbariException {
 
     if (requests.isEmpty()) {
-      // TODO log warning for invalid request
+      LOG.warn("Received an empty requests set");
       // FIXME fix return val
       return null;
     }
@@ -1528,9 +1652,6 @@ public class AmbariManagementControllerImpl implements
 
     // TODO additional validation?
 
-    // TODO order hostcomponents to determine stages
-
-    // TODO lets continue hacking
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
     return doStageCreation(cluster, null,

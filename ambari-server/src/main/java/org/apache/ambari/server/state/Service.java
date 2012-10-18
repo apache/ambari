@@ -66,5 +66,6 @@ public interface Service {
 
   void refresh();
 
-  ServiceComponent addServiceComponent(String serviceComponentName) throws AmbariException;
+  ServiceComponent addServiceComponent(String serviceComponentName)
+      throws AmbariException;
 }
