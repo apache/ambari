@@ -294,6 +294,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-879. Installer skips Confirm Hosts page of the wizard when testing
+  locally without Ambari Server. (yusaku)
+
   AMBARI-878. Various tests for FSM, controller and state objects. (hitesh)
 
   AMBARI-858. Installer -> Select Services page: warning popups are no longer

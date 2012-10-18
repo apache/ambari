@@ -182,9 +182,7 @@ App.InstallerStep2Controller = Em.Controller.extend({
           console.log("URI not found.");
           //After the bootstrap call hook up change the below return statement to "return false"
           console.log("TRACE: In faliure function for the post bootstrap function");
-          //Remove below line, once bootstrap has been implemented
-          App.router.send('next');
-          return true;
+          return false;
         }
       },
       dataType: 'application/json'
