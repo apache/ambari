@@ -26,7 +26,7 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 
 	clearStep: function () {
 		this.clear();
-		this.services.clear();
+		this.get('services').clear();
 	},
 
 	loadStep: function () {
@@ -35,8 +35,8 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 		var configObj = new Ember.Set();
 		this.loadClusterName();
 		this.loadHosts();
+		this.loadRepo();
 		this.loadServices();
-		// this.doConfigsUneditable();
 	},
 
 	loadClusterName: function () {
@@ -61,8 +61,289 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 		this.pushObject(Ember.Object.create(totalHostsObj));
 	},
 
+	loadRepo: function () {
+		var repoOption = App.db.getSoftRepo().repoType;
+		var repoObj = this.rawContent.findProperty('config_name', 'Repo');
+		if (repoOption === 'local') {
+			repoObj.config_value = 'Yes';
+		} else {
+			repoObj.config_value = 'No';
+		}
+		this.pushObject(Ember.Object.create(repoObj));
+	},
+
 	loadServices: function () {
 		this.set('services', App.db.getSelectedServiceNames());
+		var services = App.db.getService().filterProperty('isSelected', true);
+		services.forEach(function (_service) {
+			console.log('INFO: step8: Name of the service from getService function: ' + _service.serviceName);
+			var serviceObj = {};
+			//var tempObj = {};
+			var reviewService = this.rawContent.findProperty('config_name', 'services');
+			serviceObj = reviewService.config_value.findProperty('service_name', _service.serviceName);
+			if (serviceObj !== undefined) {
+				switch (serviceObj.service_name) {
+					case 'HDFS':
+						this.loadHDFS(serviceObj);
+						break;
+					case 'MAPREDUCE':
+						this.loadMapReduce(serviceObj);
+						break;
+					case 'HIVE':
+						this.loadHive(serviceObj);
+						break;
+					case 'HBASE':
+						this.loadHbase(serviceObj);
+						break;
+					case 'ZOOKEEPER':
+						this.loadZk(serviceObj);
+						break;
+					case 'OOZIE':
+						this.loadOozie(serviceObj);
+						break;
+					case 'NAGIOS':
+						this.loadNagios(serviceObj);
+						break;
+					case 'GANGLIA':
+						this.loadGanglia(serviceObj);
+					case 'HCATALOG':
+						break;
+					default:
+				}
+			}
+			//serviceObj.displayName = tempObj.service_name;
+			//serviceObj.componentNames =  tempObj.service_components;
+
+		}, this);
+	},
+
+	loadHDFS: function (hdfsObj) {
+		hdfsObj.get('service_components').forEach(function (_component) {
+			switch (_component.get('display_name')) {
+				case 'NameNode':
+					this.loadNnValue(_component);
+					break;
+				case 'SecondaryNameNode':
+					this.loadSnnValue(_component);
+					break;
+				case 'DataNodes':
+					this.loadDnValue(_component);
+					break;
+				default:
+			}
+		}, this);
+		//var
+		this.services.pushObject(hdfsObj);
+	},
+
+	loadNnValue: function (nnComponent) {
+		var nnHostName = App.db.getMasterComponentHosts().findProperty('component', nnComponent.display_name);
+		nnComponent.set('component_value', nnHostName.hostName);
+	},
+
+	loadSnnValue: function (snnComponent) {
+		var snnHostName = App.db.getMasterComponentHosts().findProperty('component', 'SNameNode');
+		snnComponent.set('component_value', snnHostName.hostName);
+	},
+
+	loadDnValue: function (dnComponent) {
+		var dnHosts = App.db.getSlaveComponentHosts().findProperty('displayName', 'DataNode');
+		var totalDnHosts = dnHosts.hosts.length;
+		var dnHostGroups = [];
+		dnHosts.hosts.forEach(function (_dnHost) {
+			dnHostGroups.push(_dnHost.group);
+
+		}, this);
+		var totalGroups = dnHostGroups.uniq().length;
+		var groupLabel;
+		if (totalGroups == 1) {
+			groupLabel = 'group';
+		} else {
+			groupLabel = 'groups';
+		}
+		dnComponent.set('component_value', totalDnHosts + ' hosts ' + '(' + totalGroups + ' ' + groupLabel + ')');
+	},
+
+	loadMapReduce: function (mrObj) {
+		mrObj.get('service_components').forEach(function (_component) {
+			switch (_component.get('display_name')) {
+				case 'JobTracker':
+					this.loadJtValue(_component);
+					break;
+				case 'TaskTrackers':
+					this.loadTtValue(_component);
+					break;
+				default:
+			}
+		}, this);
+		this.get('services').pushObject(mrObj);
+	},
+
+	loadJtValue: function (jtComponent) {
+		var jtHostName = App.db.getMasterComponentHosts().findProperty('component', jtComponent.display_name);
+		jtComponent.set('component_value', jtHostName.hostName);
+	},
+
+	loadTtValue: function (ttComponent) {
+		var ttHosts = App.db.getSlaveComponentHosts().findProperty('displayName', 'TaskTracker');
+		var totalTtHosts = ttHosts.hosts.length;
+		var ttHostGroups = [];
+		ttHosts.hosts.forEach(function (_ttHost) {
+			ttHostGroups.push(_ttHost.group);
+		}, this);
+		var totalGroups = ttHostGroups.uniq().length;
+		var groupLabel;
+		if (totalGroups == 1) {
+			groupLabel = 'group';
+		} else {
+			groupLabel = 'groups';
+		}
+		ttComponent.set('component_value', totalTtHosts + ' hosts ' + '(' + totalGroups + ' ' + groupLabel + ')');
+	},
+
+	loadHive: function (hiveObj) {
+		hiveObj.get('service_components').forEach(function (_component) {
+			switch (_component.get('display_name')) {
+				case 'Hive Metastore Server':
+					this.loadHiveMetaStoreValue(_component);
+					break;
+				case 'Database':
+					this.loadHiveDbValue(_component);
+					break;
+				default:
+			}
+		}, this);
+		this.get('services').pushObject(hiveObj);
+
+	},
+
+	loadHiveMetaStoreValue: function (metaStoreComponent) {
+		var hiveHostName = App.db.getMasterComponentHosts().findProperty('component', 'Hive Metastore');
+		metaStoreComponent.set('component_value', hiveHostName.hostName);
+	},
+
+	loadHiveDbValue: function (dbComponent) {
+		dbComponent.set('component_value', 'MySQL');
+	},
+
+	loadHbase: function (hbaseObj) {
+		hbaseObj.service_components.forEach(function (_component) {
+			switch (_component.display_name) {
+				case 'Master':
+					this.loadMasterValue(_component);
+					break;
+				case 'Region Servers':
+					this.loadRegionServerValue(_component);
+					break;
+				default:
+			}
+		}, this);
+		this.get('services').pushObject(hbaseObj);
+	},
+
+	loadMasterValue: function (hbaseMaster) {
+		var hbaseHostName = App.db.getMasterComponentHosts().findProperty('component', 'HBase Master');
+		hbaseMaster.set('component_value', hbaseHostName.hostName);
+	},
+
+	loadRegionServerValue: function (rsComponent) {
+		var rsHosts = App.db.getSlaveComponentHosts().findProperty('displayName', 'RegionServer');
+		var totalRsHosts = rsHosts.hosts.length;
+		var rsHostGroups = [];
+		rsHosts.hosts.forEach(function (_ttHost) {
+			rsHostGroups.push(_ttHost.group);
+		}, this);
+		var totalGroups = rsHostGroups.uniq().length;
+		var groupLabel;
+		if (totalGroups == 1) {
+			groupLabel = 'group';
+		} else {
+			groupLabel = 'groups';
+		}
+		rsComponent.set('component_value', totalRsHosts + ' hosts '  + '(' + totalGroups + ' ' + groupLabel + ')');
+	},
+
+	loadZk: function (zkObj) {
+		zkObj.get('service_components').forEach(function (_component) {
+			switch (_component.get('display_name')) {
+				case 'Servers':
+					this.loadZkServerValue(_component);
+					break;
+				default:
+			}
+		}, this);
+		this.get('services').pushObject(zkObj);
+	},
+
+	loadZkServerValue: function (serverComponent) {
+		var zkHostNames = App.db.getMasterComponentHosts().filterProperty('component', 'ZooKeeper').length;
+		var hostSuffix;
+		if (zkHostNames === 1) {
+			hostSuffix = 'host';
+		} else {
+			hostSuffix = 'hosts';
+		}
+		serverComponent.set('component_value', zkHostNames + ' ' + hostSuffix);
+	},
+
+	loadOozie: function (oozieObj) {
+		oozieObj.get('service_components').forEach(function (_component) {
+			switch (_component.get('display_name')) {
+				case 'Server':
+					this.loadOozieServerValue(_component);
+					break;
+				default:
+			}
+		}, this);
+		this.get('services').pushObject(oozieObj);
+	},
+
+	loadOozieServerValue: function (oozieServer) {
+		var oozieServerName = App.db.getMasterComponentHosts().findProperty('component', 'Oozie Server');
+		oozieServer.set('component_value', oozieServerName.hostName);
+	},
+
+	loadNagios: function (nagiosObj) {
+		nagiosObj.service_components.forEach(function (_component) {
+			switch (_component.display_name) {
+				case 'Server':
+					this.loadNagiosServerValue(_component);
+					break;
+				case 'Administrator':
+					this.loadNagiosAdminValue(_component);
+					break;
+				default:
+			}
+		}, this);
+		this.get('services').pushObject(nagiosObj);
+	},
+
+	loadNagiosServerValue: function (nagiosServer) {
+		var nagiosServerName = App.db.getMasterComponentHosts().findProperty('component', 'Nagios Server');
+		nagiosServer.set('component_value', nagiosServerName.hostName);
+	},
+
+	loadNagiosAdminValue: function (nagiosAdmin) {
+		var adminLoginName = App.db.getServiceConfigProperties().findProperty('name', 'nagios_web_login');
+		var adminEmail = App.db.getServiceConfigProperties().findProperty('name', 'nagios_contact');
+		nagiosAdmin.set('component_value', adminLoginName.value + ' / (' + adminEmail.value +')');
+	},
+
+	loadGanglia: function (gangliaObj) {
+		gangliaObj.get('service_components').forEach(function (_component) {
+			switch (_component.get('display_name')) {
+				case 'Server':
+					this.loadGangliaServerValue(_component);
+					break;
+				default:
+			}
+		}, this);
+		this.get('services').pushObject(gangliaObj);
+	},
+
+	loadGangliaServerValue: function (gangliaServer) {
+		var gangliaServerName = App.db.getMasterComponentHosts().findProperty('component', 'Ganglia Collector');
+		gangliaServer.set('component_value', gangliaServerName.hostName);
 	},
 
 	submit: function () {
@@ -73,6 +354,9 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 		App.router.send('next');
 
 	},
+
+
+	/* Following create* functions are called on submitting step8 */
 
 	createCluster: function () {
 		var self = this;
@@ -207,7 +491,6 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 				console.log("TRACE: STep8 -> In success function for the createComponent with new host call");
 				console.log("TRACE: STep8 -> value of the url is: " + url);
 				console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
-
 			},
 
 			error: function (request, ajaxOptions, error) {
@@ -221,22 +504,8 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 })
 
 
-/*
- doConfigsUneditable: function () {
- this.content.forEach(function (_service) {
- _service.get('configs').forEach(function (_serviceConfig) {
- console.log('value of isEditable before for: ' + _serviceConfig.name);
- console.log('value of isEditable before: ' + _serviceConfig.isEditable);
- console.log('value of displayType before: ' + _serviceConfig.displayType);
- _serviceConfig.set('isEditable', false);
- _serviceConfig.set('displayType', 'string');
- console.log('value of isEditable after for: ' + _serviceConfig.name);
- console.log('value of isEditable after: ' + _serviceConfig.isEditable);
- console.log('value of displayType after: ' + _serviceConfig.displayType);
- }, this);
- }, this);
- }
- + 
- */
-  
-  
+
+
+
+
+

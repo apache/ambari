@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-880. Implement Review Page (Step 8) for the Ambari Installer
+  Wizard. (Jaimin Jetly via yusaku)
+
   AMBARI-872. Hookup Nagios alerts section in Ambari UI to backend
   server. (Srimanth Gunturi via yusaku)
 

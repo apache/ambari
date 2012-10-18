@@ -16,124 +16,141 @@
  * limitations under the License.
  */
 
-module.exports = new Ember.Set([
+module.exports = [
 
-  {
-    config_name: 'cluster',
-    display_name: 'Cluster Name',
-    config_value: ''
-  },
-  {
-    config_name: 'hosts',
-    display_name: 'Total Hosts',
-    config_value: ''
-  },
-  {
-    config_name: 'Repo',
-    display_name: 'Local Repository',
-    config_value: ''
-  },
-  {
-    config_name: 'services',
-    display_name: 'Services',
-    config_value: [
-      {
-        service_name: 'HDFS',
-        service_components:  [
-          {
-            display_name: 'NameNode',
-            component_value: ''
-          },
-          {
-            display_name: 'SecondaryNameNode',
-            component_value: ''
-          },
-          {
-            display_name: 'DataNodes',
-            component_value: ''
-          }
-        ]
-      },
-      {
-        service_name: 'MapReduce',
-        service_components:  [
-          {
-            display_name: 'JobTracker',
-            component_value: ''
-          },
-          {
-            display_name: 'TaskTrackers',
-            component_value: ''
-          }
-        ]
-      },
-      {
-        service_name: 'Hive + HCatalog',
-        service_components:  [
-          {
-            display_name: 'Hive Metastore Server',
-            component_value: ''
-          },
-          {
-            display_name: 'Database',
-            component_value: ''
-          }
-        ]
-      },
-      {
-        service_name: 'HBase',
-        service_components:  [
-          {
-            display_name: 'Master',
-            component_value: ''
-          },
-          {
-            display_name: 'Region Servers',
-            component_value: ''
-          }
-        ]
-      },
-      {
-        service_name: 'ZooKeeper',
-        service_components:  [
-          {
-            display_name: 'Servers',
-            component_value: ''
-          }
-        ]
-      },
-      {
-        service_name: 'Oozie',
-        service_components:  [
-          {
-            display_name: 'Server',
-            component_value: ''
-          }
-        ]
-      },
-      {
-        service_name: 'Nagios',
-        service_components:  [
-          {
-            display_name: 'Server',
-            component_value: ''
-          },
-          {
-            display_name: 'Administrator',
-            component_value: ''
-          }
-        ]
-      },
-      {
-        service_name: 'Ganglia',
-        service_components:  [
-          {
-            display_name: 'Server',
-            component_value: ''
-          }
-        ]
-      }
+	{
+		config_name: 'cluster',
+		display_name: 'Cluster Name',
+		config_value: ''
+	},
+	{
+		config_name: 'hosts',
+		display_name: 'Total Hosts',
+		config_value: ''
+	},
+	{
+		config_name: 'Repo',
+		display_name: 'Local Repository',
+		config_value: ''
+	},
+	{
+		config_name: 'services',
+		display_name: 'Services',
+		config_value: [
+			Ember.Object.create({
+				service_name: 'HDFS',
+				display_name: 'HDFS',
+				service_components: [
+					Ember.Object.create({
+						display_name: 'NameNode',
+						component_value: ''
+					}),
+					Ember.Object.create({
+						display_name: 'SecondaryNameNode',
+						component_value: ''
+					}),
+					Ember.Object.create({
+						display_name: 'DataNodes',
+						component_value: ''
+					})
+				]
+			}),
+			Ember.Object.create({
+				service_name: 'MAPREDUCE',
+				display_name: 'MapReduce',
+				service_components: [
+					Ember.Object.create({
+						display_name: 'JobTracker',
+						component_value: ''
+					}),
+					Ember.Object.create({
+						display_name: 'TaskTrackers',
+						component_value: ''
+					})
+				]
+			}),
+			Ember.Object.create({
+				service_name: 'HIVE',
+				display_name: 'Hive + HCatalog',
+				service_components: [
+					Ember.Object.create({
+						display_name: 'Hive Metastore Server',
+						component_value: ''
+					}),
+					Ember.Object.create({
+						display_name: 'Database',
+						component_value: ''
+					})
+				]
+			}),
+			Ember.Object.create({
+				service_name: 'HBASE',
+				display_name: 'HBase',
+				service_components: [
+					Ember.Object.create({
+						display_name: 'Master',
+						component_value: ''
+					}),
+					Ember.Object.create({
+						display_name: 'Region Servers',
+						component_value: ''
+					})
+				]
+			}),
+			Ember.Object.create({
+				service_name: 'ZOOKEEPER',
+				display_name: 'ZooKeeper',
+				service_components: [
+					Ember.Object.create({
+						display_name: 'Servers',
+						component_value: ''
+					})
+				]
+			}),
+			Ember.Object.create({
+				service_name: 'OOZIE',
+				display_name: 'Oozie',
+				service_components: [
+					Ember.Object.create({
+						display_name: 'Server',
+						component_value: ''
+					})
+				]
+			}),
+			Ember.Object.create({
+				service_name: 'NAGIOS',
+				display_name: 'Nagios',
+				service_components: [
+					Ember.Object.create({
+						display_name: 'Server',
+						component_value: ''
+					}),
+					Ember.Object.create({
+						display_name: 'Administrator',
+						component_value: ''
+					})
+				]
+			}),
+			Ember.Object.create({
+				service_name: 'GANGLIA',
+				display_name: 'Ganglia',
+				service_components: [
+					Ember.Object.create({
+						display_name: 'Server',
+						component_value: ''
+					})
+				]
+			}),
+			Ember.Object.create({
+				service_name: 'HCATALOG',
+				display_name: 'HCatalog',
+				service_components: [
+					Ember.Object.create({
 
-    ]
-  }
-]);
+					})
+				]
+			})
+
+		]
+	}
+];

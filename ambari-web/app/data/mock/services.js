@@ -82,12 +82,14 @@ module.exports = [
   },
   {
     serviceName: 'ZOOKEEPER',
+	  displayName: 'ZooKeeper',
     isDisabled: false,
     isSelected: true,
     isHidden: true
   },
   {
     serviceName: 'HCATALOG',
+	  displayName: 'HCatalog',
     isDisabled: false,
     isSelected: true,
     isHidden: true

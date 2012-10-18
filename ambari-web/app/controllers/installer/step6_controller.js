@@ -83,6 +83,12 @@ App.InstallerStep6Controller = Em.Controller.extend({
 		return this.get('selectedServiceNames').contains('MAPREDUCE');
 	}.property('selectedServiceNames'),
 
+	clearError: function () {
+		if (this.get('isNoDataNodes') === false && this.get('isNoTaskTrackers') === false && this.get('isNoRegionServers') === false) {
+			this.set('errorMessage', '');
+		}
+	}.observes('isNoDataNodes', 'isNoTaskTrackers', 'isNoRegionServers'),
+
 	selectAllDataNodes: function () {
 		this.get('hosts').setEach('isDataNode', true);
 	},
@@ -111,19 +117,16 @@ App.InstallerStep6Controller = Em.Controller.extend({
 	clearStep: function () {
 		this.set('hosts', []);
 		this.set('selectedServiceNames', []);
+		this.clearError();
 	},
 
 	loadStep: function () {
 		console.log("TRACE: Loading step6: Assign Slaves");
 		this.clearStep();
-		this.set('selectedServiceNames',db.getSelectedServiceNames());
+		this.set('selectedServiceNames', db.getSelectedServiceNames());
 		this.set('showHbase', this.isHbaseSelected());
 		this.set('showTaskTracker', this.get('isMrSelected'));
 		this.setSlaveHost(this.getSlaveHosts());
-	},
-
-	navigateStep: function () {
-		this.loadStep();
 	},
 
 	getHostNames: function () {

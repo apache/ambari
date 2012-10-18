@@ -17,92 +17,98 @@
 -->
 
 <div id="confirm-hosts">
-<h2>{{t installer.step3.header}}</h2>
-<p class="alert alert-info">{{t installer.step3.body}}</p>
-<div class="box">
-  <div class="box-header">
-    <div class="button-section">
-      <a class="btn btn-primary decommission" {{bindAttr disabled="noHostsSelected"}}
-         href="#" {{action retrySelectedHosts target="controller"}}><i
-        class="icon-repeat icon-white"></i>
-        Retry
-      </a>
-      <a class="btn btn-primary" {{bindAttr disabled="noHostsSelected"}}
-         href="#" {{action removeSelectedHosts target="controller" }}><i
-        class="icon-trash icon-white"></i>
-        Remove
-      </a>
-      <a class="btn btn-info"
-         href="#" {{action mockBtn target="controller" }}>
-        mockData
-      </a>
-      <a class="btn btn-info"
-         href="#" {{action pollBtn target="controller" }}>
-         pollData
-      </a>
+	<h2>{{t installer.step3.header}}</h2>
 
-      <div id="host-filter" class="dropdown pull-right">
-        {{view Ember.Select class="pull-right"
+	<p class="alert alert-info">{{t installer.step3.body}}</p>
+
+	<div class="box">
+		<div class="box-header">
+			<div class="button-section">
+				<a class="btn btn-primary decommission" {{bindAttr disabled="noHostsSelected"}}
+					 href="#" {{action retrySelectedHosts target="controller"}}><i
+								class="icon-repeat icon-white"></i>
+					Retry
+				</a>
+				<a class="btn btn-primary" {{bindAttr disabled="noHostsSelected"}}
+					 href="#" {{action removeSelectedHosts target="controller" }}><i
+								class="icon-trash icon-white"></i>
+					Remove
+				</a>
+				<a class="btn btn-info"
+					 href="#" {{action mockBtn target="controller" }}>
+					mockData
+				</a>
+				<a class="btn btn-info"
+					 href="#" {{action pollBtn target="controller" }}>
+					pollData
+				</a>
+
+				<div id="host-filter" class="dropdown pull-right">
+					{{view Ember.Select class="pull-right"
        contentBinding="controller.categories"
        selectionBinding="controller.category"
        }}
-        <h5 class="pull-right">Show:</h5>
-      </div>
+					<h5 class="pull-right">Show:</h5>
+				</div>
 
-    </div>
-  </div>
+			</div>
+		</div>
 
+		<div class="pre-scrollable" style="max-height: 440px;">
+			<table class="table table-bordered table-striped">
+				<thead>
+				<tr>
+					<th class="span1">{{view Ember.Checkbox checkedBinding="allChecked"}}</th>
+					<th class="span2">Status</th>
+					<!--  given by the parsing function that parses data from bootstrap call -->
+					<th class="span4">Host</th>
+					<!-- retrieved from local storage initially -->
+					<th class="span2">Message</th>
+					<!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
+					<th class="span3">Action</th>
+					<!-- trash icon -->
+					<!-- retry icon -->
+				</tr>
+				</thead>
 
-  <table class="table table-bordered table-striped">
-    <thead>
-    <tr>
-      <th class="span1">{{view Ember.Checkbox checkedBinding="allChecked"}}</th>
-      <th class="span2">Status</th>
-      <!--  given by the parsing function that parses data from bootstrap call -->
-      <th class="span4">Host</th>
-      <!-- retrieved from local storage initially -->
-      <th class="span2">Message</th>
-      <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
-      <th class="span3">Action</th>
-      <!-- trash icon -->
-      <!-- retry icon -->
-    </tr>
-    </thead>
+				<tbody>
 
-    <tbody>
+				{{#each host in visibleHosts}}
+				{{#view App.InstallerHostView categoryBinding="controller.category" hostInfoBinding="host"}}
+				<td>
+					{{view Ember.Checkbox checkedBinding="host.isChecked"}}
+				</td>
+				<td>
+					{{host.bootStatus}}
+				</td>
+				<td>
+					{{host.name}}
+				</td>
+				<td>
+					<a href="javascript:void(null)"
+						 data-toggle="modal" {{action hostLogPopup target="controller"}}>{{host.message}}</a>
+				</td>
+				<td>
+					{{#if view.isRemovable}}<a class="btn btn-mini" {{action remove target="view"}}><i class="icon-trash"></i>
+					Remove</a>{{/if}}
+					{{#if view.isRetryable}}<a class="btn btn-mini" {{action retry target="view"}}><i class="icon-repeat"></i>
+					Retry</a>{{/if}}
+				</td>
+				{{/view}}
+				{{/each}}
 
-    {{#each host in visibleHosts}}
-    {{#view App.InstallerHostView categoryBinding="controller.category" hostInfoBinding="host"}}
-      <td>
-        {{view Ember.Checkbox checkedBinding="host.isChecked"}}
-      </td>
-      <td>
-        {{host.bootStatus}}
-      </td>
-      <td>
-        {{host.name}}
-      </td>
-      <td>
-        <a  href="javascript:void(null)" data-toggle="modal" {{action hostLogPopup target="controller"}}>{{host.message}}</a>
-      </td>
-      <td>
-        {{#if view.isRemovable}}<a class="btn btn-mini" {{action remove target="view"}}><i class="icon-trash"></i> Remove</a>{{/if}}
-        {{#if view.isRetryable}}<a class="btn btn-mini" {{action retry target="view"}}><i class="icon-repeat"></i> Retry</a>{{/if}}
-      </td>
-    {{/view}}
-    {{/each}}
+				</tbody>
 
-    </tbody>
-
-  </table>
-  <div class="box-footer">
-    <hr/>
-    <div class="footer-pagination">
-    </div>
-  </div>
-</div>
-<div class="btn-area">
-  <a class="btn pull-left" {{action back}}>&larr; Back</a>
-  <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
-</div>
+			</table>
+		</div>
+		<div class="box-footer">
+			<hr/>
+			<div class="footer-pagination">
+			</div>
+		</div>
+	</div>
+	<div class="btn-area">
+		<a class="btn pull-left" {{action back}}>&larr; Back</a>
+		<a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>Next &rarr;</a>
+	</div>
 </div>
