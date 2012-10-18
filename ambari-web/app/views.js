@@ -22,6 +22,8 @@
 
 require('views/application');
 require('views/common/chart');
+require('views/common/chart/pie');
+require('views/common/chart/linear');
 require('views/common/modal_popup');
 require('views/common/metric');
 require('views/common/form/field');
@@ -47,6 +49,13 @@ require('views/main/admin/user');
 require('views/main/admin/user/edit');
 require('views/main/admin/user/row');
 require('views/main/dashboard');
+require('views/main/dashboard/service');
+require('views/main/dashboard/service/hdfs');
+require('views/main/dashboard/service/mapreduce');
+require('views/main/dashboard/service/hbase');
+require('views/main/dashboard/service/hive');
+require('views/main/dashboard/service/zookeeper');
+require('views/main/dashboard/service/oozie');
 require('views/main/service');
 require('views/main/service/menu');
 require('views/main/service/item');

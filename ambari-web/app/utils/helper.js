@@ -33,3 +33,41 @@ Handlebars.registerHelper('log', function(variable) {
 Handlebars.registerHelper('warn', function(variable) {
   console.warn(variable);
 });
+
+String.prototype.format = function() {
+  var args = arguments;
+  return this.replace(/{(\d+)}/g, function(match, number) {
+    return typeof args[number] != 'undefined' ? args[number] : match;
+  });
+};
+
+
+Number.prototype.bytesToSize = function(precision) {
+  var value = this;
+  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  var posttxt = 0;
+  if (this == 0) return 'n/a';
+  while( value >= 1024 ) {
+    posttxt++;
+    value = value / 1024;
+  }
+  return parseInt(value).toFixed(precision) + " " + sizes[posttxt];
+}
+
+Number.prototype.toDaysHoursMinutes = function() {
+  var formatted = {},
+    dateDiff = this,
+    minK = 60, // sec
+    hourK = 60 * minK, // sec
+    dayK = 24 * hourK;
+
+  dateDiff = parseInt(dateDiff/1000);
+  formatted.d = Math.floor(dateDiff/dayK);
+  dateDiff -= formatted.d * dayK;
+  formatted.h = Math.floor(dateDiff/hourK);
+  dateDiff -= formatted.h * hourK;
+  formatted.m = Math.floor(dateDiff/minK);
+  dateDiff -= formatted.m * minK;
+
+  return formatted;
+}

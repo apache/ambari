@@ -147,7 +147,7 @@ App.ChartView = Em.View.extend({
       .append("svg:svg")
       .attr("width", renderer.get('w') + 5)
       .attr("height", renderer.get('h'))
-      .attr("rendererId", this.$().attr('id'))
+      .attr("rendererId", this.get('elementId'))
       .on("mousemove", function () {
 
         var area = d3.select(this).select("path.line");

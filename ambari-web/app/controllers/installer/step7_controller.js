@@ -232,7 +232,7 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
       component.newGroupIndex++;
       newGroupName = 'New Group ' + component.newGroupIndex;
     }
-    var newGroup = {groupName: newGroupName, label: 'new_group_' + component.newGroupIndex, type: 'new', active: true};
+    var newGroup = {name: newGroupName, index: component.newGroupIndex, type: 'new', active: true};
     component.groups.pushObject(newGroup);
   },
 
@@ -258,13 +258,13 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
     }
   }.property('@each.hosts', 'selectedComponentName'),
 
-  getGroups: function () {
+  componentGroups: function () {
     if (this.get('selectedComponentName') !== null) {
       var component = this.findProperty('componentName', this.get('selectedComponentName'));
       if (component !== undefined && component !== null) {
         if (component.groups === undefined){
           component.groups = [];
-          var defaultGroup = {groupName: 'Default', label: 'default', type: 'default', active: true};
+          var defaultGroup = {name: 'Default', index: 'default', type: 'default', active: true};
           component.groups.pushObject(defaultGroup);
         }
         return component.groups;
@@ -272,24 +272,40 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
     }
   }.property('selectedComponentName'),
 
+//  activeGroup: function(){
+//    return this.get('componentGroups').findProperty('active', true);
+//  }.property('selectedComponentName', 'componentGroups.@each'),
+
   showSlaveComponentGroup: function(event){
     var component = this.findProperty('componentName', this.get('selectedComponentName'));
     component.groups.setEach('active', false);
-    var group = component.groups.filterProperty('groupName', event.context.groupName);
+    var group = component.groups.filterProperty('name', event.context.name);
     group.setEach('active', true);
   },
 
   removeSlaveComponentGroup: function(event){
+    var group = event.context;
     var component = this.findProperty('componentName', this.get('selectedComponentName'));
-    component.groups.setEach('active', false);
-//    component.groups.forEach(function (group) {
-//      if(group.groupName == event.context.groupName)
-//        delete component.groups[i];
-//    }, this);
+    var assignedHosts = component.hosts.filterProperty('group', group.name);
+    if (assignedHosts.length !== 0){
+      $('.remove-group-error').show();
+    } else {
+      $('.remove-group-error').hide();
+      var key = component.groups.indexOf(group);
+      component.groups.removeObject(component.groups[key]);
+//      $('#slave-group'+ group.index).remove();
 
-    var group = component.groups.filterProperty('groupName', event.context.groupName);
-    component.groups.removeObjects(group);
-    group.setEach('active', true);
+      if(group.type === 'new' && component.newGroupIndex === group.index){
+        component.newGroupIndex--;
+      }
+      if (group.active){
+        var lastGroup;
+        if (key === component.groups.length)
+          lastGroup = component.groups.slice(key-1, key);
+        else lastGroup = component.groups.slice(key, key+1);
+        lastGroup.setEach('active', true);
+      }
+    }
   }
 
 });

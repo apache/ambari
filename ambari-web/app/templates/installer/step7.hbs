@@ -51,13 +51,31 @@
             class="btn add-slave-component-group btn-large" {{action addSlaveComponentGroup category.name target="App.router.slaveComponentGroupsController"}}><i
             class="icon-plus"></i></a>
           {{/view}}
-          {{#each group in App.router.slaveComponentGroupsController.getGroups}}
-            {{#view App.SlaveComponentGroupView contentBinding="group" }}
-              {{group.groupName}}
-            {{/view}}
-          {{/each}}
+          <div class="remove-group-error control-group warning">
+            <span class="help-inline">You cannot delete this group since there are hosts assigned to it. You must assign them to another group before you can delete this group.</span>
+          </div>
           {{/if}}
           <form class="form-horizontal">
+            {{#if category.isForSlaveComponent}}
+              {{#each group in App.router.slaveComponentGroupsController.componentGroups}}
+                {{#if group.active}}
+                  {{#view App.SlaveComponentGroupView contentBinding="group" }}
+                    <div class="control-group">
+                      <label class="control-label">Group name</label>
+                      <div class="controls">
+                        <input class="span6" type="text" value="{{unbound group.name}}">
+                        <span class="help-inline"></span>
+                      </div>
+                    </div>
+                    <!--<div class="control-group">-->
+                      <!--<label class="control-label">DataNode hosts</label>-->
+                      <!--<div class="controls">-->
+                      <!--</div>-->
+                    <!--</div>-->
+                  {{/view}}
+                {{/if}}
+              {{/each}}
+            {{/if}}
             {{#each view.categoryConfigs}}
             <div {{bindAttr class="errorMessage:error: :control-group"}}>
               <label class="control-label">{{displayName}}</label>

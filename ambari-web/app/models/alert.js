@@ -18,6 +18,11 @@
 
 var App = require('app');
 
+App.AlertStatus = {
+  negative: 'corrupt',
+  positive: 'ok'
+}
+
 App.Alert = DS.Model.extend({
   title: DS.attr('string'),
   service: DS.belongsTo('App.Service'),

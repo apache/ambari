@@ -231,15 +231,31 @@ h1 {
     }
     .slave-component-group-menu {
       float: left;
+      .nav{
+        margin-bottom: 10px;
+      }
+      .nav li{
+        position: relative;
+        a{
+          padding-right: 24px;
+        }
+        i {
+          border: 1px solid white;
+          position: absolute;
+          right: 7px;
+          top: 10px;
+          z-index: 2;
+        }
+        i:hover {
+          border: 1px solid grey;
+        }
+      }
     }
-    .add-slave-component-group {
-      margin-bottom: 20px;
-    }
-    .slave-group {
+    .remove-group-error{
       display: none;
     }
-    .slave-group.active {
-      display: block;
+    .add-slave-component-group {
+      margin-bottom: 10px;
     }
     .master-host, .master-hosts, .slave-hosts {
       padding-top: 5px;
@@ -288,19 +304,19 @@ a:focus {
   outline: none;
 }
 
-@status-live-marker: url("../img/health-status-live.png");
-@status-dead-marker: url("../img/health-status-dead.png");
-@status-ok-marker: url("../img/status-ok.jpg");
-@status-corrupt-marker: url("../img/status-corrupt.jpg");
-@arrow-right: url("../img/arrow-right.png");
+@status-live-marker: url("/img/health-status-live.png");
+@status-dead-marker: url("/img/health-status-dead.png");
+@status-ok-marker: url("/img/status-ok.jpg");
+@status-corrupt-marker: url("/img/status-corrupt.jpg");
+@arrow-right: url("/img/arrow-right.png");
 
 /*Rack images*/
-@rack-status-live: url("../img/rack-status-live.png");
-@rack-status-critical: url("../img/rack-status-critical.png");
-@rack-status-dead: url("../img/rack-status-dead.png");
-@rack-state-toggler: url("../img/rack-state-toggler.png");
-@rack-state-plus: url("../img/rack-state-plus.png");
-@rack-state-minus: url("../img/rack-state-minus.png");
+@rack-status-live: url("/img/rack-status-live.png");
+@rack-status-critical: url("/img/rack-status-critical.png");
+@rack-status-dead: url("/img/rack-status-dead.png");
+@rack-state-toggler: url("/img/rack-state-toggler.png");
+@rack-state-plus: url("/img/rack-state-plus.png");
+@rack-state-minus: url("/img/rack-state-minus.png");
 
 /*****start styles for boxes*****/
 .box {
@@ -345,12 +361,17 @@ a:focus {
 
 /*start services summary*/
 .services {
-  margin-left: 5px;
+  margin-left: 0;
+  margin-top: 0;
+  position: relative;
+
   .tab-marker-position {
-    padding-left: 25px;
     background-position: 6px 5px;
     background-repeat: no-repeat;
     list-style: none;
+    min-height: 20px;
+    min-width: 20px;
+    margin-left: 0;
   }
   .health-status-LIVE {
     .tab-marker-position;
@@ -367,9 +388,53 @@ a:focus {
   dd {
     margin-left: 145px;
   }
+
+  .service {
+    position:relative;
+    margin-top: 10px;
+    border-bottom: 1px solid #b8b8b8;
+    padding-left: 10px;
+    width: 540px;
+
+    .name {
+      line-height: 21px;
+      margin-left: 0;
+      width: 130px;
+      a {
+        text-decoration: underline;
+        margin-left: 5px
+      }
+    }
+    .summary {
+      line-height: 21px;
+    }
+
+    table.table {
+      margin-top: 14px;
+      color: #7b7b7b;
+      font-size: 12px;
+      width: 410px;
+      th, td {
+        line-height: 8px !important;
+      }
+    }
+
+    .chart {
+      right: 0;
+      top: 5px;
+      position: absolute;
+      overflow: visible; // for quick links
+      text-align: center;
+
+      .chartLabel {
+        font-size: 9px;
+        color: #7b7b7b;
+      }
+    }
+  }
 }
 #summary-info {
-  margin-top: 20px;
+  margin: 10px 0;
 /*
   tr td:first-child {
     font-weight: bold;
@@ -381,6 +446,18 @@ a:focus {
     &:hover {
       text-decoration: none;
     }
+  }
+}
+.more-stats {
+  display: block;
+  width: 100%;
+  padding: 7px 0;
+  text-align: center;
+  color: #333333;
+  &:hover {
+    background-color: #eee;
+    color: #333;
+    text-decoration: none;
   }
 }
 
@@ -448,6 +525,7 @@ a:focus {
     margin: 20px 20px 10px;
   }
 }
+
 .nav-pills.move {
   float: right;
   margin-top: -48px;
@@ -713,7 +791,7 @@ ul.filter {
   .indicatorG {
     background-color: #88BF67;
   }
-  .statusIndicator  {
+  .statusIndicator {
     display: inline-block;
     width: 20px;
     height: 19px;
@@ -726,15 +804,15 @@ ul.filter {
     margin-top: 4px;
     float: left;
   }
-  .statusIndicator.LIVE{
+  .statusIndicator.LIVE {
     background-image: @rack-status-live;
   }
 
-  .statusIndicator.CRITICAL{
+  .statusIndicator.CRITICAL {
     background-image: @rack-status-critical;
   }
 
-  .statusIndicator.DEAD{
+  .statusIndicator.DEAD {
     background-image: @rack-status-dead;
   }
 
@@ -776,6 +854,18 @@ ul.filter {
   }
 }
 
+.heatmap_host_details {
+  font-size: 10px;
+  line-height: 1.6em;
+  border: 1px solid #006F9F;
+  background: #fff;
+  width: 73px;
+  height: 79px;
+  padding: 10px 10px;
+  position: absolute;
+  z-index: 1000;
+}
+
 /*Start Heatmap*/
 .heatmap {
   .rack.rack-5-2 {
@@ -815,6 +905,7 @@ ul.filter {
     z-index: 1000;
   }
 }
+
 /*End Heatmap*/
 .noDisplay {
   display: none !important;
@@ -911,8 +1002,33 @@ ul.filter {
   }
 }
 
+.linear {
+  path {
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+  }
+
+  line {
+    stroke: black;
+  }
+
+  text {
+    font-family: Arial;
+    font-size: 9pt;
+  }
+}
+
 /* CHARTS END */
 
+/* UNIVERSAL STYLES */
+.left {
+  float: left;
+}
+
+.no-borders {
+  border: none !important;
+}
 
 ul.noStyle {
   list-style: none;
@@ -921,3 +1037,8 @@ ul.noStyle {
 ul.inline li {
   display: inline;
 }
+
+.table.no-borders th, .table.no-borders td {
+  border-top: none;
+}
+/* UNIVERSAL STYLES END */

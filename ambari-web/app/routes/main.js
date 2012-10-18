@@ -53,19 +53,19 @@ module.exports = Em.Route.extend({
         router.transitionTo('heatmap');
       });
     },
-    index: Ember.Route.extend({
-      route: '/',
-      redirectsTo: 'heatmap'
+    index:Ember.Route.extend({
+      route:'/',
+      redirectsTo:'heatmap'
     }),
-    heatmap: Em.Route.extend({
+    heatmap:Em.Route.extend({
       route:'/heatmap',
-      connectOutlets: function(router, context) {
+      connectOutlets:function (router, context) {
         router.get('mainChartsController').connectOutlet('mainChartsHeatmap');
       }
     }),
-    horizon_chart: Em.Route.extend({
+    horizon_chart:Em.Route.extend({
       route:'/horizon_chart',
-      connectOutlets: function(router, context) {
+      connectOutlets:function (router, context) {
         router.get('mainChartsController').connectOutlet('mainChartsHorizon');
       }
     }),
@@ -88,13 +88,13 @@ module.exports = Em.Route.extend({
       router.transitionTo('hostDetails.index', event.context)
     },
 
-    addHost: function (router) {
+    addHost:function (router) {
       router.transitionTo('hostAdd');
     }
 
   }),
 
-  hostAdd: require('routes/add_host_routes'),
+  hostAdd:require('routes/add_host_routes'),
 
   hostDetails:Em.Route.extend({
     route:'/hosts/:host_id',
@@ -143,8 +143,8 @@ module.exports = Em.Route.extend({
   admin:Em.Route.extend({
     route:'/admin',
 
-    enter: function(router) {
-      if(router.get('currentState.name') != 'main') { // is user comes from main -> navigate to users
+    enter:function (router) {
+      if (router.get('currentState.name') != 'main') { // is user comes from main -> navigate to users
         Em.run.next(function () {
           router.transitionTo('adminUser');
         });
@@ -167,7 +167,9 @@ module.exports = Em.Route.extend({
       // events
       gotoUsers:Em.Router.transitionTo("allUsers"),
       gotoCreateUser:Em.Router.transitionTo("createUser"),
-      gotoEditUser:function (router, event) { router.transitionTo("editUser", event.context) },
+      gotoEditUser:function (router, event) {
+        router.transitionTo("editUser", event.context)
+      },
 
       // states
       allUsers:Em.Route.extend({
@@ -313,10 +315,5 @@ module.exports = Em.Route.extend({
   filterHosts:function (router, component) {
     router.get('mainHostController').filterByComponent(component.context);
     router.transitionTo('hosts');
-  },
-  navigate:function (router, event) {
-    var parent = event.view._parentView;
-    parent.deactivateChildViews(event.context);
-    router.transitionTo(event.context.routing);
   }
 });

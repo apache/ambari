@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-884. Implement Dashboard/Service summary. (yusaku)
+
   AMBARI-882. Group-based DataNode/TaskTracker/RegionServer overrides.
   (yusaku)
 

@@ -22,48 +22,15 @@
       <div class="span6">
         <div class="box">
           <div class="box-header">
-            <h4>Summary</h4>
-          </div>
-          <div id="myCarousel" class="carousel">
-            <div class="carousel-inner">
-              <div class="active item">
-
-              </div>
-              <div class="item">
-
-              </div>
-              <div class="item">
-
-              </div>
-            </div>
-            <a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
-            <a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
-          </div>
-          <div class="box-footer"></div>
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="span6">
-        <div class="box">
-          <div class="box-header">
-            <h4>Services</h4>
+            <h4>{{t dashboard.services}}</h4>
           </div>
           <dl class="dl-horizontal services">
-            {{#each service in controller.services}}
-              <dt class="health-status-{{unbound service.healthStatus}}">
-                <a {{action selectService service href=true}}>{{service.label}}</a> -
-              </dt>
-              <dd>
-                {{#each component in service.components}}
-                  {{#if component.type}}
-                    <a href="#" {{action selectHost component.host}}>{{component.componentName}}</a>,
-                  {{else}}
-                    <a href="#" {{action filterHosts component}}>{{component.componentName}}</a>
-                  {{/if}}
-                {{/each}}
-              </dd>
-            {{/each}}
+            {{view App.MainDashboardServiceHdfsView servicesBinding="controller.services"}}
+            {{view App.MainDashboardServiceMapreduceView servicesBinding="controller.services"}}
+            {{view App.MainDashboardServiceHbaseView servicesBinding="controller.services"}}
+            {{view App.MainDashboardServiceHiveView servicesBinding="controller.services"}}
+            {{view App.MainDashboardServiceZookeperView servicesBinding="controller.services"}}
+            {{view App.MainDashboardServiceOozieView servicesBinding="controller.services"}}
           </dl>
         </div>
       </div>

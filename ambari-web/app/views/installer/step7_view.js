@@ -237,7 +237,7 @@ App.AddSlaveComponentGroupButton = Ember.View.extend({
 
 App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
 
-  contentBinding: 'App.router.slaveComponentGroupsController.getGroups',
+  contentBinding: 'App.router.slaveComponentGroupsController.componentGroups',
   tagName:'ul',
   classNames: ["nav", "nav-tabs"],
 
@@ -246,13 +246,13 @@ App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
     active:function(){
       return this.get('content.active');
     }.property('content.active'),
-    template:Ember.Handlebars.compile('<a {{action showSlaveComponentGroup view.content target="App.router.slaveComponentGroupsController"}} href="#"> {{unbound view.content.groupName}}</a>')  })
+    template:Ember.Handlebars.compile('<a {{action showSlaveComponentGroup view.content target="App.router.slaveComponentGroupsController"}} href="#"> {{unbound view.content.name}}</a><i {{action removeSlaveComponentGroup view.content target="App.router.slaveComponentGroupsController"}} class="icon-remove"></i>')  })
 });
 
 App.SlaveComponentGroupView = Ember.View.extend({
-  classNames: ['slave-group'],
-  classNameBindings:["active"],
-  active:function(){
-    return this.get('content.active');
-  }.property('content.active')
+//  contentBinding: 'App.router.slaveComponentGroupsController.activeGroup',
+  classNames: ['slave-group']
+//  elementId: function(){
+//    return 'slave-group' + this.get('content.index');
+//  }.property('content.index')
 });

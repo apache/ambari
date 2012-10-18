@@ -22,8 +22,27 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   templateName: require('templates/main/service/info/summary'),
   attributes: null,
   serviceStatus: {
-    hdfs: false
+    hdfs: false,
+    mapreduce: false,
+    hbase: false
   },
+  isHide: true,
+  showMoreStats: function() {
+    this.set('isHide', false);
+  },
+  moreStatsView: Em.View.extend({
+    tagName: "a",
+    template: Ember.Handlebars.compile('{{t services.service.summary.moreStats}}'),
+    attributeBindings: ['href'],
+    classNameBindings: ['hide'],
+    classNames: ['more-stats'],
+    hide: false,
+    click: function(event) {
+      this._parentView.set('isHide', false);
+      this.remove();
+    },
+    href: 'javascript:void(null)'
+  }),
   serviceName: function() {
     return App.router.mainServiceInfoSummaryController.get('content.serviceName');
   }.property('App.router.mainServiceInfoSummaryController.content'),
@@ -34,19 +53,39 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   },
   loadServiceSummary: function(serviceName) {
     var summaryView = this;
+    var serviceStatus = summaryView.get('serviceStatus');
+    $.each(serviceStatus, function(key, value) {
+      if (key == serviceName) {
+        summaryView.set('serviceStatus.' + key, true);
+      } else {
+        summaryView.set('serviceStatus.' + key, false);
+      }
+    });
     jQuery.getJSON('data/services/summary/' + serviceName + '.json',
       function (data) {
         if (data[serviceName]) {
           var summary = data[serviceName];
           if(serviceName == 'hdfs') {
-            summaryView.set('serviceStatus.hdfs', true);
+            summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
             summary['memory_heap_used'] = summaryView.convertByteToMbyte(summary['memory_heap_used']);
             summary['memory_heap_max'] = summaryView.convertByteToMbyte(summary['memory_heap_max']);
             summary['memory_heap_percent_used'] = summaryView.countPercentageRatio(summary['memory_heap_used'], summary['memory_heap_max']);
             summary['used_bytes'] = summaryView.convertByteToGbyte(summary['dfs_used_bytes'] + summary['nondfs_used_bytes']);
             summary['dfs_total_bytes'] = summaryView.convertByteToGbyte(summary['dfs_total_bytes']);
+            summary['dfs_percent_disk_used'] = parseFloat((100 - summary['dfs_percent_remaining']).toFixed(2));
+          } else if (serviceName == 'mapreduce') {
+            summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
+            summary['memory_heap_used'] = summaryView.convertByteToMbyte(summary['memory_heap_used']);
+            summary['memory_heap_max'] = summaryView.convertByteToMbyte(summary['memory_heap_max']);
+            summary['memory_heap_percent_used'] = summaryView.countPercentageRatio(summary['memory_heap_used'], summary['memory_heap_max']);
+          } else if (serviceName == 'hbase') {
+            summary['memory_heap_used'] = summaryView.convertByteToMbyte(summary['memory_heap_used']);
+            summary['memory_heap_max'] = summaryView.convertByteToMbyte(summary['memory_heap_max']);
+            summary['memory_heap_percent_used'] = summaryView.countPercentageRatio(summary['memory_heap_used'], summary['memory_heap_max']);
+            summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
+            summary['active_time'] = summary['active_time'].toDaysHoursMinutes();
           } else {
-            summaryView.set('serviceStatus.hdfs', false);
+
           }
           summaryView.set('attributes', summary);
         }
@@ -56,7 +95,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   convertByteToMbyte: function(value) {
     var bytesInMbyte = 1048576;
     var newValue = value/bytesInMbyte;
-    return parseFloat(newValue.toFixed(1));
+    return parseFloat(newValue.toFixed(2));
   },
   convertByteToGbyte: function(value) {
     var bytesInGbyte = 1073741824;

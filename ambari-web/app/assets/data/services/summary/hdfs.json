@@ -21,7 +21,7 @@
     "safemode": false,
     "pending_upgrades": false,
     "dfs_configured_capacity": 885570207744,
-    "dfs_percent_used": 4.91,
+    "dfs_percent_used": 0.01,
     "dfs_percent_remaining": 95.09,
     "dfs_total_bytes": 885570207744,
     "dfs_used_bytes": 104898560,

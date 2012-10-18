@@ -23,8 +23,8 @@ var App = require('app');
  * @type {*}
  */
 App.MainMenuView = Em.CollectionView.extend({
-  tagName: 'ul',
-  classNames: ['nav'],
+  tagName:'ul',
+  classNames:['nav'],
   content:[
     { label:'Dashboard', routing:'dashboard', active:'active'},
     { label:'Charts', routing:'charts'},
@@ -33,23 +33,38 @@ App.MainMenuView = Em.CollectionView.extend({
     { label:'Admin', routing:'admin'}
   ],
 
-  deactivateChildViews:function (content) {
+  /**
+   *    Adds observer on lastSetURL and calls navigation sync procedure
+   */
+  didInsertElement:function () {
+    App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
+    this.renderOnRoute();
+  },
+
+  /**
+   *    Syncs navigation menu with requested URL
+   */
+  renderOnRoute:function () {
+    var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/);
+    var reg = /^\/main\/([a-z]+)/g;
+    var sub_url = reg.exec(last_url);
+    var chunk = (null != sub_url) ? sub_url[1] : 'dashboard';
     $.each(this._childViews, function () {
-      this.set('active', this.get('content') == content ? "active" : "");
+      this.set('active', this.get('content.routing') == chunk ? "active" : "");
     });
   },
 
-  itemViewClass: Em.View.extend({
+  itemViewClass:Em.View.extend({
 
-    classNameBindings: ['active', ':span2'],
-    active: '',
+    classNameBindings:['active', ':span2'],
+    active:'',
 
-    alertsCount: function() {
-      if(this.get('content').routing == 'dashboard'){
+    alertsCount:function () {
+      if (this.get('content').routing == 'dashboard') {
         return App.router.get('mainDashboardController.alertsCount');
       }
     }.property(),
 
-    template: Ember.Handlebars.compile('<a {{action navigate view.content}} href="#">{{unbound view.content.label}}{{#if view.alertsCount}}<span class="label label-important alerts-count">{{view.alertsCount}}</span>{{/if}}</a>')
+    template:Ember.Handlebars.compile('<a href="#/main/{{unbound view.content.routing}}">{{unbound view.content.label}}{{#if view.alertsCount}}<span class="label label-important alerts-count">{{view.alertsCount}}</span>{{/if}}</a>')
   })
 });

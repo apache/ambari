@@ -19,7 +19,7 @@
 
 var App = require('app');
 
-App.ServiceInfo = Ember.Object.extend({
+App.ServiceInfo = Em.Object.extend({
   elementId: 'service',
   serviceName: '',
   displayName: '',
@@ -142,6 +142,13 @@ App.Service = DS.Model.extend({
   quickLinks: DS.hasMany('App.QuickLinks')
 });
 
+App.Service.Health = {
+  live: "LIVE",
+  dead: "DEAD",
+  start: "STARTING",
+  stop: "STOPPING"
+}
+
 App.Service.FIXTURES = [
   {
     id:1,
@@ -160,7 +167,7 @@ App.Service.FIXTURES = [
     label:'MapReduce',
     components: [4, 5],
     service_audit: [4, 5, 6],
-    health_status: 'LIVE',
+    health_status: 'STARTING',
     work_status: true,
     alerts: [3, 4],
     quick_links: [5, 6, 7, 8, 9, 10]
@@ -179,7 +186,7 @@ App.Service.FIXTURES = [
     id:4,
     service_name:'zookeeper',
     label:'Zookeeper',
-    health_status: 'DEAD',
+    health_status: 'STOPPING',
     work_status: false,
     alerts: [7, 8]
   },
