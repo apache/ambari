@@ -27,18 +27,13 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     hbase: false
   },
   isHide: true,
-  showMoreStats: function() {
-    this.set('isHide', false);
-  },
   moreStatsView: Em.View.extend({
     tagName: "a",
     template: Ember.Handlebars.compile('{{t services.service.summary.moreStats}}'),
     attributeBindings: ['href'],
-    classNameBindings: ['hide'],
     classNames: ['more-stats'],
-    hide: false,
     click: function(event) {
-      this._parentView.set('isHide', false);
+      this._parentView._parentView.set('isHide', false);
       this.remove();
     },
     href: 'javascript:void(null)'
@@ -67,42 +62,28 @@ App.MainServiceInfoSummaryView = Em.View.extend({
           var summary = data[serviceName];
           if(serviceName == 'hdfs') {
             summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
-            summary['memory_heap_used'] = summaryView.convertByteToMbyte(summary['memory_heap_used']);
-            summary['memory_heap_max'] = summaryView.convertByteToMbyte(summary['memory_heap_max']);
-            summary['memory_heap_percent_used'] = summaryView.countPercentageRatio(summary['memory_heap_used'], summary['memory_heap_max']);
-            summary['used_bytes'] = summaryView.convertByteToGbyte(summary['dfs_used_bytes'] + summary['nondfs_used_bytes']);
-            summary['dfs_total_bytes'] = summaryView.convertByteToGbyte(summary['dfs_total_bytes']);
-            summary['dfs_percent_disk_used'] = parseFloat((100 - summary['dfs_percent_remaining']).toFixed(2));
+            summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
+            summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');
+            summary['memory_heap_max'] = summary['memory_heap_max'].bytesToSize(2, 'parseFloat');
+            summary['dfs_percent_disk_used'] = parseFloat((100 - summary['dfs_percent_remaining']).toFixed(2)) + "%";
+            summary['used_bytes'] = (summary['dfs_used_bytes'] + summary['nondfs_used_bytes']).bytesToSize(2, 'parseFloat');
+            summary['dfs_total_bytes'] = summary['dfs_total_bytes'].bytesToSize(2, 'parseFloat');
           } else if (serviceName == 'mapreduce') {
             summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
-            summary['memory_heap_used'] = summaryView.convertByteToMbyte(summary['memory_heap_used']);
-            summary['memory_heap_max'] = summaryView.convertByteToMbyte(summary['memory_heap_max']);
-            summary['memory_heap_percent_used'] = summaryView.countPercentageRatio(summary['memory_heap_used'], summary['memory_heap_max']);
+            summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
+            summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');
+            summary['memory_heap_max'] = summary['memory_heap_max'].bytesToSize(2, 'parseFloat');
+
           } else if (serviceName == 'hbase') {
-            summary['memory_heap_used'] = summaryView.convertByteToMbyte(summary['memory_heap_used']);
-            summary['memory_heap_max'] = summaryView.convertByteToMbyte(summary['memory_heap_max']);
-            summary['memory_heap_percent_used'] = summaryView.countPercentageRatio(summary['memory_heap_used'], summary['memory_heap_max']);
+            summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
+            summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');
+            summary['memory_heap_max'] = summary['memory_heap_max'].bytesToSize(2, 'parseFloat');
             summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
             summary['active_time'] = summary['active_time'].toDaysHoursMinutes();
-          } else {
-
           }
           summaryView.set('attributes', summary);
         }
       }
     )
-  },
-  convertByteToMbyte: function(value) {
-    var bytesInMbyte = 1048576;
-    var newValue = value/bytesInMbyte;
-    return parseFloat(newValue.toFixed(2));
-  },
-  convertByteToGbyte: function(value) {
-    var bytesInGbyte = 1073741824;
-    var newValue = value/bytesInGbyte;
-    return parseFloat(newValue.toFixed(2));
-  },
-  countPercentageRatio: function(usedValue, maxValue) {
-    return Math.round((usedValue/maxValue) * 100);
   }
 });

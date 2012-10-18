@@ -45,7 +45,10 @@ App.MainMenuView = Em.CollectionView.extend({
    *    Syncs navigation menu with requested URL
    */
   renderOnRoute:function () {
-    var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/);
+    var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/,'');
+    if(last_url.substr(1,4) !== 'main' || !this._childViews){
+      return;
+    }
     var reg = /^\/main\/([a-z]+)/g;
     var sub_url = reg.exec(last_url);
     var chunk = (null != sub_url) ? sub_url[1] : 'dashboard';

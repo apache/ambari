@@ -41,8 +41,17 @@ String.prototype.format = function() {
   });
 };
 
-
-Number.prototype.bytesToSize = function(precision) {
+/**
+ * Convert byte size to other metrics.
+ * @param {Number} precision  Number to adjust precision of return value. Default is 0.
+ * @param {String} parseType  JS method name for parse string to number. Default is "parseInt".
+ * @remarks The parseType argument can be "parseInt" or "parseFloat".
+ * @return {String) Returns converted value with abbreviation.
+ */
+Number.prototype.bytesToSize = function(precision, parseType/* = 'parseInt' */) {
+  if (arguments[1] === undefined) {
+    parseType = 'parseInt';
+  }
   var value = this;
   var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   var posttxt = 0;
@@ -51,7 +60,15 @@ Number.prototype.bytesToSize = function(precision) {
     posttxt++;
     value = value / 1024;
   }
-  return parseInt(value).toFixed(precision) + " " + sizes[posttxt];
+  if (parseType == 'parseInt') {
+    var parsedValue = parseInt(value);
+  } else if (parseType == 'parseFloat') {
+    var parsedValue = parseFloat(value);
+  } else {
+    console.warn('Parameter parseType incorrect');
+  }
+
+  return parsedValue.toFixed(precision) + " " + sizes[posttxt];
 }
 
 Number.prototype.toDaysHoursMinutes = function() {
@@ -70,4 +87,9 @@ Number.prototype.toDaysHoursMinutes = function() {
   dateDiff -= formatted.m * minK;
 
   return formatted;
+}
+
+Number.prototype.countPercentageRatio = function(maxValue) {
+  var usedValue = this;
+  return Math.round((usedValue/maxValue) * 100) + "%";
 }

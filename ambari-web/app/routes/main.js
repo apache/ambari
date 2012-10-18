@@ -143,17 +143,14 @@ module.exports = Em.Route.extend({
   admin:Em.Route.extend({
     route:'/admin',
 
-    enter:function (router) {
-      if (router.get('currentState.name') != 'main') { // is user comes from main -> navigate to users
-        Em.run.next(function () {
-          router.transitionTo('adminUser');
-        });
-      }
-    },
-
     connectOutlets:function (router, context) {
       router.get('mainController').connectOutlet('mainAdmin');
     },
+
+    index:Ember.Route.extend({
+      route:'/',
+      redirectsTo:'adminUser'
+    }),
 
     adminUser:Em.Route.extend({
       route:'/user',
@@ -191,7 +188,7 @@ module.exports = Em.Route.extend({
         connectOutlets:function (router, user) {
           router.get('mainAdminController').connectOutlet('mainAdminUserEdit', user);
         }
-      }),
+      })
     }),
 
     adminAuthentication:Em.Route.extend({

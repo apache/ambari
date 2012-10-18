@@ -84,6 +84,13 @@ module.exports = DS.Adapter.create({
     } else {
       return this.fixtureAdapter.createRecord(store, type, record);
     }
+  },
+  updateRecord: function (store, type, record) {
+    if (this.isRestType(type)) {
+      return this.restAdapter.updateRecord(store, type, record);
+    } else {
+      return this.fixtureAdapter.updateRecord(store, type, record);
+    }
   }
 });
 

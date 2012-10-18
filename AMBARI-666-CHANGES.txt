@@ -310,6 +310,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-885. Fix miscellaneous issues related to Ambari Web. (yusaku)
+
   AMBARI-879. Installer skips Confirm Hosts page of the wizard when testing
   locally without Ambari Server. (yusaku)
 
