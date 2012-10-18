@@ -73,7 +73,6 @@ App.Router = Em.Router.extend({
   */
 
   setInstallerCurrentStep: function (currentStep, completed) {
-    var loginName = this.getLoginName();
     App.db.setInstallerCurrentStep(currentStep, completed);
     this.set('installerController.currentStep', currentStep);
   },
@@ -81,6 +80,21 @@ App.Router = Em.Router.extend({
   getInstallerCurrentStep: function () {
     var loginName = this.getLoginName();
     var currentStep = App.db.getInstallerCurrentStep();
+    console.log('getInstallerCurrentStep: loginName=' + loginName + ", currentStep=" + currentStep);
+    if (!currentStep) {
+      currentStep = '1';
+    }
+    console.log('returning currentStep=' + currentStep);
+    return currentStep;
+  },
+
+  /**
+   * Get current step for <code>wizardType</code> wizard
+   * @param wizardType one of <code>installer</code>, <code>addHost</code>, <code>addServices</code>
+   */
+  getWizardCurrentStep: function (wizardType) {
+    var loginName = this.getLoginName();
+    var currentStep = App.db.getWizardCurrentStep(wizardType);
     console.log('getInstallerCurrentStep: loginName=' + loginName + ", currentStep=" + currentStep);
     if (!currentStep) {
       currentStep = '1';
@@ -154,7 +168,7 @@ App.Router = Em.Router.extend({
   authenticated: function () {
     var authenticated = false;
     var controller = this.get('loginController');
-    var hash = window.btoa(controller.get('loginName') + ":" + controller.get('password'));
+    var hash = ''; //window.btoa(controller.get('loginName') + ":" + controller.get('password'));
     $.ajax({
       url : '/api/check',
       dataType : 'json',

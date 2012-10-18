@@ -187,6 +187,8 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
 
   contentBinding: 'App.router.installerStep7Controller.slaveComponentHosts',
 
+  slaveComponentGroups: [],
+
   selectedComponentName: function () {
     switch (App.router.get('installerStep7Controller.selectedService.serviceName')) {
       case 'HDFS':
@@ -214,6 +216,22 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
     });
   },
 
+  addSlaveComponentGroup: function (event) {
+    var componentName = event.context;
+    var component = this.findProperty('componentName', componentName);
+    var slaveGroups = this.get('slaveComponentGroups');
+    var newGroupName;
+    console.log(slaveGroups);
+    slaveGroups.forEach(function(group) {
+
+    });
+    var newGroup = {
+      groupName: "New Group"
+    };
+    slaveGroups.pushObject(newGroup);
+    console.log(slaveGroups);
+  },
+
   showEditSlaveComponentGroups: function (event) {
     this.showAddSlaveComponentGroup(event);
   },
@@ -234,6 +252,18 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
         return component.hosts.mapProperty('group').uniq();
       }
     }
-  }.property('@each.hosts', 'selectedComponentName')
+  }.property('@each.hosts', 'selectedComponentName'),
+
+  getHostsGroups: function () {
+    var slaveGroups = this.get('slaveComponentGroups');
+    if (slaveGroups.length == 0){
+      var defaultGroup = {
+        groupName: "Default",
+        label: "default"
+      };
+      slaveGroups.pushObject(defaultGroup);
+    }
+    return slaveGroups;
+  }.property('slaveComponentGroups')
 
 });

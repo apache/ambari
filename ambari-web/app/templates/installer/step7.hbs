@@ -42,6 +42,16 @@
       {{#view App.ServiceConfigsByCategoryView categoryBinding="category" serviceConfigsBinding="selectedService.configs"}}
       <div class="accordion-body collapse in">
         <div class="accordion-inner">
+          {{#if category.isForSlaveComponent}}
+          <div class="slave-component-group-menu">
+          {{view App.SlaveComponentGroupsMenu}}
+          </div>
+          {{#view App.AddSlaveComponentGroupButton slaveComponentNameBinding="category.name"}}
+          <a
+            class="btn add-slave-component-group btn-large" {{action addSlaveComponentGroup category.name target="App.router.slaveComponentGroupsController"}}><i
+            class="icon-plus"></i></a>
+          {{/view}}
+          {{/if}}
           <form class="form-horizontal">
             {{#each view.categoryConfigs}}
             <div {{bindAttr class="errorMessage:error: :control-group"}}>
@@ -57,13 +67,6 @@
       </div>
       {{/view}}
     </div>
-    {{#if category.isForSlaveComponent}}
-    {{#view App.AddSlaveComponentGroupButton slaveComponentNameBinding="category.name"}}
-    <a
-      class="btn add-slave-component-group" {{action showAddSlaveComponentGroup category.name target="App.router.slaveComponentGroupsController"}}><i
-      class="icon-plus-sign"></i> Add a {{category.name}} Group</a>
-    {{/view}}
-    {{/if}}
     {{/each}}
   </div>
   {{#if isSubmitDisabled}}

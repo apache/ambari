@@ -86,9 +86,15 @@ module.exports = Em.Route.extend({
     showDetails:function (router, event) {
       router.get('mainHostDetailsController').setBack(true);
       router.transitionTo('hostDetails.index', event.context)
+    },
+
+    addHost: function (router) {
+      router.transitionTo('hostAdd');
     }
 
   }),
+
+  hostAdd: require('routes/add_host_routes'),
 
   hostDetails:Em.Route.extend({
     route:'/hosts/:host_id',

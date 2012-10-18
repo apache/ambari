@@ -234,3 +234,29 @@ App.AddSlaveComponentGroupButton = Ember.View.extend({
   }
 
 });
+
+App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
+
+  contentBinding: 'App.router.slaveComponentGroupsController.getHostsGroups',
+
+  init: function(){ this._super(); this.activateView(); },
+
+  tagName:'ul',
+  classNames: ["nav", "nav-tabs"],
+
+  activateView:function () {
+    $.each(this._childViews, function () {
+      this.set('active', (this.get('content.label') == 'default' ? "active" : ""));
+    });
+  },
+
+  itemViewClass:Em.View.extend({
+    classNameBindings:["active"],
+    active:"",
+    template:Ember.Handlebars.compile('<a {{action showSlaveGroup view.content}} href="#"> {{unbound view.content.groupName}}</a>')  })
+
+});
+
+App.SlaveComponentGroupView = Ember.View.extend({
+//  templateName: require('templates/main/service/item')
+});

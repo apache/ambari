@@ -39,7 +39,7 @@
       <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary" data-toggle="modal" {{action "deleteButtonPopup" target="controller"}}>
         Delete
       </button>
-      <button class="btn btn-inverse add-host-button" disabled="disabled">
+      <button class="btn btn-inverse add-host-button" {{action addHost}}>
         <i class="icon-plus icon-white"></i>
         Add New Host
       </button>

@@ -19,15 +19,15 @@
 
 var App = require('app');
 
-App.InstallerStep5View = Em.View.extend({
+App.WizardStep5View = Em.View.extend({
 
-  templateName: require('templates/installer/step5'),
+  templateName: require('templates/wizard/step5'),
 
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.loadStep();
-    if(controller.lastZooKeeper()){
-      controller.lastZooKeeper().set('showAddControl',true);
+    if (controller.lastZooKeeper()) {
+      controller.lastZooKeeper().set('showAddControl', true);
     }
   }
 

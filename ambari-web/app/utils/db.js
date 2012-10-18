@@ -306,7 +306,42 @@ App.db.getClusterName = function () {
   if (user) {
     return App.db.data[user].Installer.ClusterName;
   }
-}
+};
+
+/**
+ * Return current step for specified Wizard Type
+ * @param wizardType
+ * @return {*}
+ */
+App.db.getWizardCurrentStep = function (wizardType) {
+  console.log('Trace: Entering db:getWizardCurrentStep function for ', wizardType);
+  var user = this.getUser();
+  if (App.db.data[user] && App.db.data[user][wizardType.capitalize()]) {
+    return App.db.data[user][wizardType.capitalize()].currentStep;
+  }
+  return 0;
+};
+
+/**
+ * Set current step value for specified Wizard Type
+ * @param wizardType
+ * @param currentStep
+ * @param completed
+ */
+App.db.setWizardCurrentStep = function (wizardType, currentStep, completed) {
+  console.log('TRACE: Entering db:setWizardCurrentStep function');
+
+  var user = this.getUser();
+  if (!App.db.data[user]) {
+    App.db.data[user] = {name: user};
+    console.log('value of data[user].name: ' + App.db.data[user].name);
+  }
+  App.db.data[user][wizardType.capitalize()] = {
+    currentStep: currentStep,
+    completed: completed
+  };
+  localStorage.setObject('ambari', App.db.data);
+};
 
 App.db.getInstallerCurrentStep = function () {
   console.log('Trace: Entering db:getInstallerCurrentStep function');

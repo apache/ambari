@@ -18,9 +18,9 @@
 
 var App = require('app');
 
-App.InstallerStep5Controller = Em.Controller.extend({
+App.WizardStep5Controller = Em.Controller.extend({
   //properties
-  name: "installerStep5Controller",
+  name: "wizardStep5Controller",
   hosts: [],
   selectedServices: [],
   selectedServicesMasters: [],
@@ -106,7 +106,7 @@ App.InstallerStep5Controller = Em.Controller.extend({
       var masterComponentHosts = App.db.getMasterComponentHosts();
       masterComponentHosts.forEach(function (_masterComponentHost) {
         var componentObj = {};
-        componentObj.component_name =_masterComponentHost.component;
+        componentObj.component_name = _masterComponentHost.component;
         componentObj.selectedHost = _masterComponentHost.hostName;   // call the method that plays selectNode algorithm or fetches from server
         componentObj.availableHosts = [];
         components.add(componentObj);
@@ -405,18 +405,18 @@ App.InstallerStep5Controller = Em.Controller.extend({
     }
   },
 
-   assignHostToMaster: function (masterService, selectedHost, zId) {
-     if (selectedHost && masterService) {
-       if ((masterService === "ZooKeeper") && zId) {
-         this.get('selectedServicesMasters').findProperty("zId", zId).set("selectedHost", selectedHost);
-         this.rebalanceZookeeperHosts();
-       }
-       else {
-         this.get('selectedServicesMasters').findProperty("component_name", masterService).set("selectedHost", selectedHost);
-       }
+  assignHostToMaster: function (masterService, selectedHost, zId) {
+    if (selectedHost && masterService) {
+      if ((masterService === "ZooKeeper") && zId) {
+        this.get('selectedServicesMasters').findProperty("zId", zId).set("selectedHost", selectedHost);
+        this.rebalanceZookeeperHosts();
+      }
+      else {
+        this.get('selectedServicesMasters').findProperty("component_name", masterService).set("selectedHost", selectedHost);
+      }
 
-     }
-   },
+    }
+  },
 
   lastZooKeeper: function () {
     var currentZooKeepers = this.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper");

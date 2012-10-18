@@ -221,5 +221,7 @@ Em.I18n.translations = {
   'metric.cpu': 'cpu',
   'metric.memory': 'disk used',
   'metric.network': 'network',
-  'metric.io': 'io'
+  'metric.io': 'io',
+  'hosts.add.header' : 'Add Host Wizard',
+  'hosts.add.step2.warning' : 'Hosts are already part of the cluster and will be ignored'
 };
