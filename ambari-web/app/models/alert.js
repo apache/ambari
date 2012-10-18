@@ -23,12 +23,97 @@ App.AlertStatus = {
   positive: 'ok'
 }
 
+/**
+ * Defines structure for App.Alert class. Keys mentioned here are for JSON data
+ * which comes back from NAGIOS server.
+ */
 App.Alert = DS.Model.extend({
-  title: DS.attr('string'),
-  service: DS.belongsTo('App.Service'),
-  date: DS.attr('date'),
-  status: DS.attr('string'),
-  message: DS.attr('string')
+  title: DS.attr('string', {key: 'service_description'}),
+  serviceType: DS.attr('string', {key: 'service_type'}),
+  date: DS.attr('date', {key: 'last_hard_state_change'}),
+  status: DS.attr('string', {key: 'current_state'}),
+  message: DS.attr('string', {key: 'plugin_output'}),
+  primaryKey: 'last_hard_state_change',
+  alerts: DS.hasMany('App.Alert'),
+
+  /**
+   * Used to show correct icon in UI
+   */
+  isOk: function () {
+    return this.get('status') == "0";
+  }.property('status'),
+
+  /**
+   * Used to show appropriate date in UI
+   */
+  dateDisplay: function () {
+    var d = this.get('date');
+    if (d) {
+      var dateString = d.toDateString() + ". " + d.toLocaleTimeString();
+      dateString = dateString.substr(dateString.indexOf(" ") + 1);
+      return dateString;
+    }
+    return "";
+  }.property('date'),
+
+  /**
+   * Used to show appropriate service label in UI
+   */
+  serviceName: function () {
+    if (this.get('serviceType')) {
+      var type = this.get('serviceType').toLowerCase();
+      switch (type) {
+        case 'mapreduce':
+          return 'MapReduce';
+        case 'hdfs':
+          return 'HDFS';
+        case 'hbase':
+          return "HBase";
+        case 'zookeeper':
+          return "Zookeeper";
+        case 'oozie':
+          return "Oozie";
+        case 'hive':
+          return 'Hive';
+      }
+    }
+    return '';
+  }.property('serviceType'),
+
+  /**
+   * Used to provide appropriate service link in UI
+   */
+  serviceLink: function () {
+    if (this.get('serviceType')) {
+      var type = this.get('serviceType').toLowerCase();
+      switch (type) {
+        case 'mapreduce':
+          return '#/main/services/2';
+        case 'hdfs':
+          return '#/main/services/1';
+        case 'hbase':
+          return '#/main/services/3';
+        case 'zookeeper':
+          return '#/main/services/4';
+        case 'oozie':
+          return '#/main/services/5';
+        case 'hive':
+          return '#/main/services/6';
+      }
+    }
+    return '';
+  }.property('serviceType')
+
+});
+
+/*
+ * App.Alert.reopenClass() has to be called as opposed
+ * to DS.Model.extend() containing URL. Only then will
+ * the 'url' property show up for the instance and the 
+ * RESTAdapter will contact server.
+ */
+App.Alert.reopenClass({
+  url: "http://nagiosserver/hdp/nagios/nagios_alerts.php?q1=alerts&alert_type=all"
 });
 
 App.Alert.FIXTURES = [

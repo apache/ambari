@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-872. Hookup Nagios alerts section in Ambari UI to backend
+  server. (Srimanth Gunturi via yusaku)
+
   AMBARI-871. Integrate basic set of rest APIs with ambari-web
   installer wizardi. (Jaimin Jetly via yusaku)
 

@@ -22,7 +22,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/hbase'),
   serviceName: 'hbase',
   data: {
-    "hbasemaster_addr": "ec2-23-21-1-25.compute-1.amazonaws.com:60010",
+    "hbasemaster_addr": "hbasemaster:60010",
     "total_regionservers": "1",
     "hbasemaster_starttime": 1348935496,
     "live_regionservers": 1,

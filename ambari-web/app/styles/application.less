@@ -164,6 +164,17 @@ h1 {
   }
 }
 
+/***************
+ * Ambari wide icon colors
+ ***************/
+.icon-ok{
+    color: #5AB400;
+}
+.icon-remove{
+    color: #FF4B4B;
+}
+ 
+
 #installer {
   h2 {
     margin-top: 0;
@@ -330,7 +341,7 @@ a:focus {
   }
   .box-header,
   .box-footer {
-    padding: 10px;
+    padding: 4px 4px 4px 10px;
   /*background: #dedede;*/
     .gradient(#dedede, #ffffff, #dedede)
   }
@@ -346,6 +357,9 @@ a:focus {
     }
     h4 {
       float: left;
+      margin: 5px;
+      font-size: 15px;
+      color: #777;
     }
   }
   .box-footer {
@@ -401,7 +415,6 @@ a:focus {
       margin-left: 0;
       width: 130px;
       a {
-        text-decoration: underline;
         margin-left: 5px
       }
     }
@@ -412,7 +425,7 @@ a:focus {
     table.table {
       margin-top: 14px;
       color: #7b7b7b;
-      font-size: 12px;
+      font-size: 13px;
       width: 410px;
       th, td {
         line-height: 8px !important;
@@ -427,7 +440,7 @@ a:focus {
       text-align: center;
 
       .chartLabel {
-        font-size: 9px;
+        font-size: 11px;
         color: #7b7b7b;
       }
     }
@@ -466,10 +479,12 @@ a:focus {
 /*start alerts summary*/
 .alerts {
   margin: 0px;
+  max-height: 500px;
+  overflow-y: auto;
   li {
-    border-bottom: 1px solid #b7b9bb;
+    border-bottom: 1px solid #eee;
     list-style: none;
-    padding: 5px 10px 5px 43px;
+    padding: 5px 5px 5px 5px;
     background-position: 14px 9px;
     background-repeat: no-repeat;
     .date-time {
@@ -478,13 +493,32 @@ a:focus {
     p {
       margin-bottom: 2px;
     }
+    .container-fluid {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    .title {
+      font-weight: normal;
+      font-size: 14px;
+    }
+    .row-fluid [class*="span"] {
+      min-height: 0px;
+    }
+    .status-icon {
+      padding-top: 7px;
+    }
+    .date-time {
+      color: #777;
+    }
+    .message {
+      font-size: 13px;
+      color: #777;
+    }
+    .serviceLink {
+      padding-left: 7px;
+    }
   }
-  li.status-ok {
-    background-image: @status-ok-marker;
-  }
-  li.status-corrupt {
-    background-image: @status-corrupt-marker;
-  }
+  
 }
 
 .go-to {
@@ -493,7 +527,7 @@ a:focus {
   background-repeat: no-repeat;
   background-image: @arrow-right;
   padding-right: 40px;
-  margin-top: 10px;
+  margin-top: 4px;
 }
 
 /*end alerts summary*/
@@ -721,18 +755,17 @@ ul.filter {
   margin-bottom: 10px;
 
   .rackHeader {
-    background-color: #CDCDCD;
+    background-color: #F7F7F7;
     border-top-right-radius: 5px;
     border-top-left-radius: 5px;
     padding: 5px 5px 5px 10px;
     border-bottom: 1px solid #D4D4D4;
 
     .statusName {
-      font-size: 16px;
+      font-size: 15px;
       color: #006F9F;
       text-shadow: #ffffff 0px 0px 1px;
       font-weight: bold;
-      padding-bottom: 8px;
       vertical-align: top;
     }
     .toggler {

@@ -51,16 +51,36 @@
         </div>
       </div>
       <ul class="alerts">
-        {{#each controller.alerts}}
+        {{#each controller.displayAlerts}}
         <li class="status-{{unbound status}}">
-          <p><span class="title">{{title}}</span> <a {{action selectService service href=true}}>{{service.label}}</a><span class="date-time">{{date}}</span></p>
-          <p><span>{{status}}:</span> <span>{{message}}</span></p>
+          <div class="container-fluid">
+            <div class="row-fluid">
+              <div class="span1 status-icon">
+                {{#if isOk}}
+                  <i class="icon-ok icon-large"></i>
+                {{else}}
+                  <i class="icon-remove icon-large"></i>
+                {{/if}}
+              </div>
+              <div class="span11">
+                <div class="row-fluid">
+                  <div class="span8 title">{{title}}
+                    {{#if serviceName}}
+                      <a class="serviceLink" href="{{unbound serviceLink}}">{{serviceName}}</a>
+                    {{/if}}
+                  </div>
+                  <div class="span4 date-time">{{dateDisplay}}</div>
+                </div>
+                <div class="row-fluid message">{{message}}</div>
+              </div>
+            </div>
+          </div>
         </li>
         {{/each}}
       </ul>
       <div class="box-footer">
         <hr />
-        <a class="go-to" href="javascript:void(null)">Go to Nagios</a>
+        <a class="go-to" href="http://nagiosserver/nagios" target="_blank">Go to Nagios</a>
       </div>
     </div>
   </div>

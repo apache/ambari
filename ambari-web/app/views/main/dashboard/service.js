@@ -18,6 +18,8 @@
 
 var App = require('app');
 
+require('models/alert');
+
 App.MainDashboardServiceHealthView = Em.View.extend({
   classNameBindings:["healthStatus"],
   template:Em.Handlebars.compile(""),

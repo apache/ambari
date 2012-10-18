@@ -19,7 +19,7 @@
 
 var App = require('app');
 
-App.ServiceInfo = Em.Object.extend({
+App.ServiceInfo = Ember.Object.extend({
   elementId: 'service',
   serviceName: '',
   displayName: '',

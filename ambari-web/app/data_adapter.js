@@ -24,53 +24,67 @@
  * The idea is to conditionally use the fixture adapter for model types that have not been integrated yet,
  * and to use a custom, modified implementation of DS.RESTAdapter for model types that have been integrated.
  */
-var fixtureAdapter = DS.FixtureAdapter.create();
 
-var adapter = DS.RESTAdapter.extend({
-  find: function(store, type, id) {
-    /*
-     var url = type.url;
-     url = url.fmt(id);
-
-     if (type.toString() === 'App.Cluster') {
-     store.load(type, { id: id, hosts: [ { hostname: 'host1' }, { hostname: 'host2' } ], services: []});
-     }
-
-     jQuery.getJSON(url, function(data) {
-     // data is a Hash of key/value pairs. If your server returns a
-     // root, simply do something like:
-     // store.load(type, id, data.person)
-     store.load(type, id, data);
-     });
-     */
-    // return this._super(store, type, id);
-    return fixtureAdapter.find(store, type, id);
+module.exports = DS.Adapter.create({
+  fixtureAdapter: DS.FixtureAdapter.create(),
+  restAdapter: DS.RESTAdapter.extend({
+    buildURL: function (record, suffix) {
+      if (/((ftp|http|https):\/\/)?(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/i.test(record)) {
+        return record;
+      }
+      return this._super(record, suffix);
+    },
+    ajax: function (url, type, hash) {
+      hash.url = url;
+      hash.type = type;
+      hash.dataType = 'jsonp';
+      hash.contentType = 'application/javascript; charset=utf-8';
+      hash.context = this;
+      hash.jsonp = 'jsonp';
+      if (hash.data && type !== 'GET') {
+        hash.data = JSON.stringify(hash.data);
+      }
+      jQuery.ajax(hash);
+    }
+  }).create(),
+  isRestType: function (type) {
+    return type.url != null;
   },
-  findMany: function(store, type, id) {
-    // return this._super(store, type, id);
-    return fixtureAdapter.findMany(store, type, id);
+  find: function (store, type, id) {
+    if (this.isRestType(type)) {
+      return this.restAdapter.find(store, type, id);
+    } else {
+      return this.fixtureAdapter.find(store, type, id);
+    }
   },
-  findAll: function(store, type, id) {
-    // return this._super(store, type, id);
-    return fixtureAdapter.findAll(store, type, id);
+  findMany: function (store, type, ids) {
+    if (this.isRestType(type)) {
+      return this.restAdapter.findMany(store, type, ids);
+    } else {
+      return this.fixtureAdapter.findMany(store, type, ids);
+    }
   },
-  findQuery: function(store, type, id) {
-    // return this._super(store, type, id);
-    return fixtureAdapter.findQuery(store, type, id);
+  findAll: function (store, type) {
+    if (this.isRestType(type)) {
+      return this.restAdapter.findAll(store, type);
+    } else {
+      return this.fixtureAdapter.findAll(store, type);
+    }
   },
-  createRecord: function(store, type, record) {
-    //return this._super(store, type, id);
-    return fixtureAdapter.createRecord(store, type, record);
+  findQuery: function (store, type, query, array) {
+    if (this.isRestType(type)) {
+      return this.restAdapter.findQuery(store, type, query, array);
+    } else {
+      return this.fixtureAdapter.findQuery(store, type, query, array);
+    }
   },
-  updateRecord: function(store, type, record) {
-    //return this._super(store, type, id);
-    return fixtureAdapter.updateRecord(store, type, record);
-  },
-  deleteRecord: function(store, type, record) {
-    //return this._super(store, type, id);
-    return fixtureAdapter.deleteRecord(store, type, record);
+  createRecord: function (store, type, record) {
+    if (this.isRestType(type)) {
+      return this.restAdapter.createRecord(store, type, record);
+    } else {
+      return this.fixtureAdapter.createRecord(store, type, record);
+    }
   }
-
 });
 
-module.exports = adapter.create();
+

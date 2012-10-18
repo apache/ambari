@@ -22,7 +22,7 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/mapreduce'),
   serviceName: 'mapreduce',
   data: {
-    "jobtracker_addr": "ec2-23-21-1-25.compute-1.amazonaws.com:50030",
+    "jobtracker_addr": "jobtracker:50030",
     "jobtracker_starttime": 1348935243,
     "running_jobs": 1,
     "waiting_jobs": 0,

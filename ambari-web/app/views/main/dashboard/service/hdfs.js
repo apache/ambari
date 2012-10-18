@@ -22,8 +22,8 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   templateName:require('templates/main/dashboard/service/hdfs'),
   serviceName:'hdfs',
   data:{
-    "namenode_addr":"ec2-23-21-1-25.compute-1.amazonaws.com:50070",
-    "secondary_namenode_addr":"ec2-23-21-1-25.compute-1.amazonaws.com:50090",
+    "namenode_addr":"namenode:50070",
+    "secondary_namenode_addr":"snamenode:50090",
     "namenode_starttime":1348935028,
     "total_nodes":"1",
     "live_nodes":1,

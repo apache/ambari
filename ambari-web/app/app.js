@@ -24,9 +24,51 @@ module.exports = Em.Application.create({
 
   store: DS.Store.create({
     revision: 4,
-    adapter: DS.FixtureAdapter.create()
-    // comment out the line above and uncomment the line below for backend integration
-    // adapter: require('data_adapter')
+    adapter: require('data_adapter')
+    // adapter: DS.FixtureAdapter.create()
   })
-
 });
+
+/**
+ * Ambari overrides the default date transformer.
+ * This is done because of the non-standard data
+ * sent. For example Nagios sends date as "12345678".
+ * The problem is that it is a String and is represented
+ * only in seconds whereas Javascript's Date needs
+ * milliseconds representation.
+ */
+DS.attr.transforms.date = {
+  from: function (serialized) {
+    var type = typeof serialized;
+    if (type === "string") {
+      serialized = parseInt(serialized);
+      type = typeof serialized;
+    }
+    if (type === "number") {
+      // The number could be seconds or milliseconds.
+      // If seconds, then multiplying with 1000 should still
+      // keep it below the current time.
+      if (serialized * 1000 < new Date().getTime()) {
+        serialized = serialized * 1000;
+      }
+      return new Date(serialized);
+    } else if (serialized === null || serialized === undefined) {
+      // if the value is not present in the data,
+      // return undefined, not null.
+      return serialized;
+    } else {
+      return null;
+    }
+  },
+  to: function (deserialized) {
+    if (deserialized instanceof Date) {
+      return deserialized.getTime();
+    } else if (date === undefined) {
+      return undefined;
+    } else {
+      return null;
+    }
+  }
+}
+
+

@@ -26,14 +26,26 @@ App.MainDashboardController = Em.Controller.extend({
   }.property('App.router.mainServiceController.content'),
   alertsFilteredBy: 'All',
   alertsFilter: function(event) {
-    if (event.context) {
-      this.set('alerts', event.context.get('alerts'));
-      this.set('alertsFilteredBy', event.context.get('label'))
-    } else {
-      this.set('alerts', App.Alert.find());
-      this.set('alertsFilteredBy', 'All')
-    }
+    if (event.context)
+      this.set('alertsFilteredBy', event.context.get('label'));
+    else
+      this.set('alertsFilteredBy', 'All');
   },
+  /**
+   * We do not want to re-get all the data everytime the filter
+   * is changed. Hence we just filtered the alerts got during page
+   * load.
+   */
+  displayAlerts: function(){
+    if(this.get('alertsFilteredBy')=='All')
+      return this.get('alerts');
+    else
+      var type = this.get('alertsFilteredBy').toLowerCase();
+      return this.get('alerts').filter(function(item){
+        return item.get('serviceType').toLowerCase()==type;
+      });
+  }.property('alerts', 'alertsFilteredBy'),
+  
   alertsCount: function() {
     return this.alerts.filterProperty('status', 'corrupt').length;
   }.property()

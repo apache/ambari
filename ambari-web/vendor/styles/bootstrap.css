@@ -2140,6 +2140,15 @@ table [class*=span],
   background-color: #c4e3f3;
 }
 
+/******************
+ * Commented out due to adding dependency on FontAwesome-2.0
+ * which provides scalable icons for Ambari. FontAwesome explicitly
+ * mentions about commenting out Twitter Bootstrap's sprite.less so
+ * that there are no issues. Since bootstrap.css has the sprite.less
+ * compiled into it, we are commenting out the section contributed by
+ * sprite.less.
+  
+
 [class^="icon-"],
 [class*=" icon-"] {
   display: inline-block;
@@ -2154,7 +2163,7 @@ table [class*=span],
   background-repeat: no-repeat;
 }
 
-/* White icons with optional class, or on hover/active states of certain elements */
+/ * White icons with optional class, or on hover/active states of certain elements * /
 
 .icon-white,
 .nav-tabs > .active > a > [class^="icon-"],
@@ -2732,7 +2741,7 @@ table [class*=span],
 
 .icon-fullscreen {
   background-position: -456px -144px;
-}
+} */
 
 .dropup,
 .dropdown {
