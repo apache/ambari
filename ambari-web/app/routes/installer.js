@@ -67,7 +67,12 @@ module.exports = Em.Route.extend({
       router.setInstallerCurrentStep('1', false);
       router.get('installerController').connectOutlet('installerStep1');
     },
-    next: Em.Router.transitionTo('step2')
+    next: function (router, context) {
+	   // App.db.setAllHostNames(undefined);
+	   // App.db.setInstallType(undefined);
+	   //App.db.setSoftRepo(undefined);
+	    router.transitionTo('step2');
+    }
   }),
 
   step2: Em.Route.extend({

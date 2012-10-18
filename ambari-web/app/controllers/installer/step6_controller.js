@@ -34,223 +34,237 @@ var db = require('utils/db');
  */
 App.InstallerStep6Controller = Em.Controller.extend({
 
-  hosts: [],
-  // TODO: hook up with user host selection
-  rawHosts: [],
-  selectedServiceNames: null,
-  masterComponentHosts: require('data/mock/master_component_hosts'),
-  showHbase: false,
-
-  hasMasterComponents: function (hostname) {
-    var hasMaster = false;
-    var masterComponentHosts = db.getMasterComponentHosts();
-    return masterComponentHosts.someProperty('hostName', hostname);
-  },
+	hosts: [],
+	// TODO: hook up with user host selection
+	rawHosts: [],
+	selectedServiceNames: [],
+	masterComponentHosts: require('data/mock/master_component_hosts'),
+	showHbase: false,
+	showTaskTracker: false,
 
 
-  isAllDataNodes: function () {
-    return this.get('hosts').everyProperty('isDataNode', true);
-  }.property('hosts.@each.isDataNode'),
-
-  isAllTaskTrackers: function () {
-    return this.get('hosts').everyProperty('isTaskTracker', true);
-  }.property('hosts.@each.isTaskTracker'),
-
-  isAllRegionServers: function () {
-    return this.get('hosts').everyProperty('isRegionServer', true);
-  }.property('hosts.@each.isRegionServer'),
-
-  isNoDataNodes: function () {
-    return this.get('hosts').everyProperty('isDataNode', false);
-  }.property('hosts.@each.isDataNode'),
-
-  isNoTaskTrackers: function () {
-    return this.get('hosts').everyProperty('isTaskTracker', false);
-  }.property('hosts.@each.isTaskTracker'),
-
-  isNoRegionServers: function () {
-    return this.get('hosts').everyProperty('isRegionServer', false);
-  }.property('hosts.@each.isRegionServer'),
-
-  isHbaseSelected: function () {
-    var services = db.getSelectedServiceNames();
-    console.log('isHbase selected is: ' + services.contains('HBASE'));
-    return services.contains('HBASE');
-  },
+	hasMasterComponents: function (hostname) {
+		var hasMaster = false;
+		var masterComponentHosts = db.getMasterComponentHosts();
+		return masterComponentHosts.someProperty('hostName', hostname);
+	},
 
 
-  selectAllDataNodes: function () {
-    this.get('hosts').setEach('isDataNode', true);
-  },
+	isAllDataNodes: function () {
+		return this.get('hosts').everyProperty('isDataNode', true);
+	}.property('hosts.@each.isDataNode'),
 
-  selectAllTaskTrackers: function () {
-    this.get('hosts').setEach('isTaskTracker', true);
-  },
+	isAllTaskTrackers: function () {
+		return this.get('hosts').everyProperty('isTaskTracker', true);
+	}.property('hosts.@each.isTaskTracker'),
 
-  selectAllRegionServers: function () {
-    this.get('hosts').setEach('isRegionServer', true);
-  },
+	isAllRegionServers: function () {
+		return this.get('hosts').everyProperty('isRegionServer', true);
+	}.property('hosts.@each.isRegionServer'),
 
-  deselectAllDataNodes: function () {
-    this.get('hosts').setEach('isDataNode', false);
-  },
+	isNoDataNodes: function () {
+		return this.get('hosts').everyProperty('isDataNode', false);
+	}.property('hosts.@each.isDataNode'),
 
-  deselectAllTaskTrackers: function () {
-    this.get('hosts').setEach('isTaskTracker', false);
-  },
+	isNoTaskTrackers: function () {
+		return this.get('hosts').everyProperty('isTaskTracker', false);
+	}.property('hosts.@each.isTaskTracker'),
 
-  deselectAllRegionServers: function () {
-    this.get('hosts').setEach('isRegionServer', false);
-  },
+	isNoRegionServers: function () {
+		return this.get('hosts').everyProperty('isRegionServer', false);
+	}.property('hosts.@each.isRegionServer'),
 
+	isHbaseSelected: function () {
+		var services = db.getSelectedServiceNames();
+		return this.get('selectedServiceNames').contains('HBASE');
+	},
 
-  clearStep: function () {
-    this.set('hosts', []);
-  },
+	isMrSelected: function () {
+		return this.get('selectedServiceNames').contains('MAPREDUCE');
+	}.property('selectedServiceNames'),
 
-  loadStep: function () {
-    console.log("TRACE: Loading step6: Assign Slaves");
-    this.clearStep();
-    this.set('showHbase', this.isHbaseSelected());
-    this.setSlaveHost(this.getSlaveHosts());
-  },
+	selectAllDataNodes: function () {
+		this.get('hosts').setEach('isDataNode', true);
+	},
 
-  navigateStep: function () {
-    this.loadStep();
-  },
+	selectAllTaskTrackers: function () {
+		this.get('hosts').setEach('isTaskTracker', true);
+	},
 
-  getHostNames: function () {
-    var hostInfo = db.getHosts();
-    var hostNames = [];
-    for (var index in hostInfo) {
-      if (hostInfo[index].bootStatus === 'success')
-        hostNames.push(hostInfo[index].name);
-    }
-    return hostNames;
-  },
+	selectAllRegionServers: function () {
+		this.get('hosts').setEach('isRegionServer', true);
+	},
 
-  getSlaveHosts: function () {
-    var hostObjs = new Ember.Set();
-    var allHosts = this.getHostNames();
-    var slaveHosts = App.db.getSlaveComponentHosts();
-    if (slaveHosts === undefined || slaveHosts === null) {
-      allHosts.forEach(function (_hostname) {
-        var hostObj = {};
-        hostObj.hostname = _hostname;
-        hostObj.isDataNode = !this.hasMasterComponents(_hostname);
-        hostObj.isTaskTracker = !this.hasMasterComponents(_hostname);
-        hostObj.isRegionServer = !this.hasMasterComponents(_hostname);
-        hostObjs.add(hostObj);
-      }, this);
-      return hostObjs;
-    } else {
-      allHosts.forEach(function (_hostName) {
-        hostObjs.add({
-          hostname: _hostName
-        });
-      });
-      var datanodes = slaveHosts.findProperty('componentName', 'DataNode');
-      datanodes.hosts.forEach(function (_datanode) {
-        var datanode = hostObjs.findProperty('hostname', _datanode.hostname);
-        if (datanode !== null) {
-          datanode.isDataNode = true;
-        }
-      });
-      var taskTrackers = slaveHosts.findProperty('componentName', 'TaskTracker');
-      taskTrackers.hosts.forEach(function (_taskTracker) {
-        var taskTracker = hostObjs.findProperty('hostname', _taskTracker.hostname);
-        if (taskTracker !== null) {
-          taskTracker.isTaskTracker = true;
-        }
-      });
-      if (this.isHbaseSelected()) {
-        var regionServers = slaveHosts.findProperty('componentName', 'RegionServer');
-        regionServers.hosts.forEach(function (_regionServer) {
-          var regionServer = hostObjs.findProperty('hostname', _regionServer.hostname);
-          if (regionServer !== null) {
-            regionServer.isRegionServer = true;
-          }
-        });
-      }
-      return hostObjs;
-    }
-  },
+	deselectAllDataNodes: function () {
+		this.get('hosts').setEach('isDataNode', false);
+	},
 
-  setSlaveHost: function (hostObj) {
-    hostObj.forEach(function (_hostObj) {
-      this.get('hosts').pushObject(Ember.Object.create(_hostObj));
-    }, this);
-  },
+	deselectAllTaskTrackers: function () {
+		this.get('hosts').setEach('isTaskTracker', false);
+	},
 
-  loadSlaveHost: function (hostNames) {
-
-    hostNames.forEach(function (_hostName) {
-      this.get('hosts').pushObject(Ember.Object.create({
-        hostname: _hostName,
-        isDataNode: !this.hasMasterComponents(_hostName),
-        isTaskTracker: !this.hasMasterComponents(_hostName),
-        isRegionServer: !this.hasMasterComponents(_hostName)
-      }));
-    }, this);
-  },
+	deselectAllRegionServers: function () {
+		this.get('hosts').setEach('isRegionServer', false);
+	},
 
 
-  validate: function () {
-    return !(this.get('isNoDataNodes') || this.get('isNoTaskTrackers') || this.get('isNoRegionServers'));
-  },
+	clearStep: function () {
+		this.set('hosts', []);
+		this.set('selectedServiceNames', []);
+	},
 
-  submit: function () {
-    if (!this.validate()) {
-      this.set('errorMessage', Ember.I18n.t('installer.step6.error.mustSelectOne'));
-      return;
-    }
-    App.db.setHostSlaveComponents(this.get('host'));
+	loadStep: function () {
+		console.log("TRACE: Loading step6: Assign Slaves");
+		this.clearStep();
+		this.set('selectedServiceNames',db.getSelectedServiceNames());
+		this.set('showHbase', this.isHbaseSelected());
+		this.set('showTaskTracker', this.get('isMrSelected'));
+		this.setSlaveHost(this.getSlaveHosts());
+	},
 
-    var dataNodeHosts = [];
-    var taskTrackerHosts = [];
-    var regionServerHosts = [];
+	navigateStep: function () {
+		this.loadStep();
+	},
 
-    this.get('hosts').forEach(function (host) {
-      if (host.get('isDataNode')) {
-        dataNodeHosts.push({
-          hostname: host.hostname,
-          group: 'Default'
-        });
-      }
-      if (host.get('isTaskTracker')) {
-        taskTrackerHosts.push({
-          hostname: host.hostname,
-          group: 'Default'
-        });
-      }
-      if (this.isHbaseSelected() && host.get('isRegionServer')) {
-        regionServerHosts.push({
-          hostname: host.hostname,
-          group: 'Default'
-        });
-      }
-    }, this);
+	getHostNames: function () {
+		var hostInfo = db.getHosts();
+		var hostNames = [];
+		for (var index in hostInfo) {
+			if (hostInfo[index].bootStatus === 'success')
+				hostNames.push(hostInfo[index].name);
+		}
+		return hostNames;
+	},
 
-    var slaveComponentHosts = [];
-    slaveComponentHosts.push({
-      componentName: 'DataNode',
-      hosts: dataNodeHosts
-    });
-    slaveComponentHosts.push({
-      componentName: 'TaskTracker',
-      hosts: taskTrackerHosts
-    });
-    if (this.isHbaseSelected()) {
-      slaveComponentHosts.push({
-        componentName: 'RegionServer',
-        hosts: regionServerHosts
-      });
-    }
+	getSlaveHosts: function () {
+		var hostObjs = new Ember.Set();
+		var allHosts = this.getHostNames();
+		var slaveHosts = App.db.getSlaveComponentHosts();
+		if (slaveHosts === undefined || slaveHosts === null) {
+			allHosts.forEach(function (_hostname) {
+				var hostObj = {};
+				hostObj.hostname = _hostname;
+				hostObj.isDataNode = !this.hasMasterComponents(_hostname);
+				hostObj.isTaskTracker = !this.hasMasterComponents(_hostname);
+				hostObj.isRegionServer = !this.hasMasterComponents(_hostname);
+				hostObjs.add(hostObj);
+			}, this);
+			return hostObjs;
+		} else {
+			allHosts.forEach(function (_hostName) {
+				hostObjs.add({
+					hostname: _hostName
+				});
+			});
+			var datanodes = slaveHosts.findProperty('componentName', 'DATANODE');
+			datanodes.hosts.forEach(function (_datanode) {
+				var datanode = hostObjs.findProperty('hostname', _datanode.hostname);
+				if (datanode !== null) {
+					datanode.isDataNode = true;
+				}
+			});
+			if (this.get('isMrSelected')) {
+				var taskTrackers = slaveHosts.findProperty('componentName', 'TASKTRACKER');
+				taskTrackers.hosts.forEach(function (_taskTracker) {
+					var taskTracker = hostObjs.findProperty('hostname', _taskTracker.hostname);
+					if (taskTracker !== null) {
+						taskTracker.isTaskTracker = true;
+					}
+				});
+			}
+			if (this.isHbaseSelected()) {
+				var regionServers = slaveHosts.findProperty('componentName', 'HBASE_REGIONSERVER');
+				regionServers.hosts.forEach(function (_regionServer) {
+					var regionServer = hostObjs.findProperty('hostname', _regionServer.hostname);
+					if (regionServer !== null) {
+						regionServer.isRegionServer = true;
+					}
+				});
+			}
+			return hostObjs;
+		}
+	},
 
-    App.db.setSlaveComponentHosts(slaveComponentHosts);
+	setSlaveHost: function (hostObj) {
+		hostObj.forEach(function (_hostObj) {
+			this.get('hosts').pushObject(Ember.Object.create(_hostObj));
+		}, this);
+	},
 
-    App.router.send('next');
+	loadSlaveHost: function (hostNames) {
 
-  }
+		hostNames.forEach(function (_hostName) {
+			this.get('hosts').pushObject(Ember.Object.create({
+				hostname: _hostName,
+				isDataNode: !this.hasMasterComponents(_hostName),
+				isTaskTracker: !this.hasMasterComponents(_hostName),
+				isRegionServer: !this.hasMasterComponents(_hostName)
+			}));
+		}, this);
+	},
+
+
+	validate: function () {
+		return !(this.get('isNoDataNodes') || this.get('isNoTaskTrackers') || this.get('isNoRegionServers'));
+	},
+
+	submit: function () {
+		if (!this.validate()) {
+			this.set('errorMessage', Ember.I18n.t('installer.step6.error.mustSelectOne'));
+			return;
+		}
+		App.db.setHostSlaveComponents(this.get('host'));
+
+		var dataNodeHosts = [];
+		var taskTrackerHosts = [];
+		var regionServerHosts = [];
+
+		this.get('hosts').forEach(function (host) {
+			if (host.get('isDataNode')) {
+				dataNodeHosts.push({
+					hostname: host.hostname,
+					group: 'Default'
+				});
+			}
+			if (this.get('isMrSelected') && host.get('isRegionServer')) {
+				taskTrackerHosts.push({
+					hostname: host.hostname,
+					group: 'Default'
+				});
+			}
+			if (this.isHbaseSelected() && host.get('isRegionServer')) {
+				regionServerHosts.push({
+					hostname: host.hostname,
+					group: 'Default'
+				});
+			}
+		}, this);
+
+		var slaveComponentHosts = [];
+		slaveComponentHosts.push({
+			componentName: 'DATANODE',
+			displayName: 'DataNode',
+			hosts: dataNodeHosts
+		});
+		if (this.get('isMrSelected')) {
+			slaveComponentHosts.push({
+				componentName: 'TASKTRACKER',
+				displayName: 'TaskTracker',
+				hosts: taskTrackerHosts
+			});
+		}
+		if (this.isHbaseSelected()) {
+			slaveComponentHosts.push({
+				componentName: 'HBASE_REGIONSERVER',
+				displayName: 'RegionServer',
+				hosts: regionServerHosts
+			});
+		}
+
+		App.db.setSlaveComponentHosts(slaveComponentHosts);
+
+		App.router.send('next');
+
+	}
 })
 ;

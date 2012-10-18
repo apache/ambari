@@ -187,9 +187,10 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
 
   doBootstrap: function () {
     var self = this;
+	  var url = '/api/bootstrap';
     $.ajax({
       type: 'GET',
-      url: '/api/bootstrap',
+      url: url,
       timeout: 5000,
       success: function (data) {
         console.log("TRACE: In success function for the GET bootstrap call");
@@ -206,13 +207,7 @@ App.InstallerStep3Controller = Em.ArrayController.extend({
         self.stopBootstrap();
       },
 
-      statusCode: {
-        404: function () {
-          console.log("URI not found.");
-        }
-      },
-
-      dataType: 'application/json'
+      statusCode: require('data/statusCodes')
     });
 
   },

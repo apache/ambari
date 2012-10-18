@@ -190,11 +190,11 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
   selectedComponentName: function () {
     switch (App.router.get('installerStep7Controller.selectedService.serviceName')) {
       case 'HDFS':
-        return 'DataNode';
+        return 'DATANODE';
       case 'MAPREDUCE':
-        return 'TaskTracker';
+        return 'TASKTRACKER';
       case 'HBASE':
-        return 'RegionServer';
+        return 'HBASE_REGIONSERVER';
       default:
         return null;
     }

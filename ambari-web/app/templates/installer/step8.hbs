@@ -18,10 +18,16 @@
 
 <h2>{{t installer.step8.header}}</h2>
 <div class="alert alert-info">
-  {{t installer.step8.body}}
+    {{t installer.step8.body}}
 </div>
 
+{{#each item in controller}}
+<p>
+    {{item.display_name}} : {{item.config_value}}
+</p>
+{{/each}}
+
 <div class="btn-area">
-  <a class="btn pull-left" {{action back}}>&larr; Back</a>
-  <a class="btn btn-success pull-right" {{action next}}>Next &rarr;</a>
+    <a class="btn pull-left" {{action back}}>&larr; Back</a>
+    <a class="btn btn-success pull-right" {{action submit target="controller"}}>Next &rarr;</a>
 </div>

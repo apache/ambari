@@ -21,51 +21,51 @@ var App = require('app');
 
 App.InstallerStep5View = Em.View.extend({
 
-  templateName: require('templates/installer/step5'),
+	templateName: require('templates/installer/step5'),
 
-  didInsertElement: function () {
-    var controller = this.get('controller');
-    controller.loadStep();
-    if(controller.lastZooKeeper()){
-      controller.lastZooKeeper().set('showAddControl',true);
-    }
-  }
+	didInsertElement: function () {
+		var controller = this.get('controller');
+		controller.loadStep();
+		if (controller.lastZooKeeper()) {
+			controller.lastZooKeeper().set('showAddControl',true);
+		}
+	}
 
 });
 
 App.SelectHostView = Em.Select.extend({
-  content: [],
-  zId: null,
-  selectedHost: null,
-  serviceName: null,
+	content: [],
+	zId: null,
+	selectedHost: null,
+	serviceName: null,
 
-  change: function () {
-    this.get('controller').assignHostToMaster(this.get("serviceName"), this.get("value"), this.get("zId"));
-  },
+	change: function () {
+		this.get('controller').assignHostToMaster(this.get("serviceName"), this.get("value"), this.get("zId"));
+	},
 
-  didInsertElement: function () {
-    this.set("value", this.get("selectedHost"));
-  }
+	didInsertElement: function () {
+		this.set("value", this.get("selectedHost"));
+	}
 });
 
 App.AddControlView = Em.View.extend({
-  componentName: null,
-  tagName: "span",
-  classNames: ["badge", "badge-important"],
-  template: Ember.Handlebars.compile('+'),
+	componentName: null,
+	tagName: "span",
+	classNames: ["badge", "badge-important"],
+	template: Ember.Handlebars.compile('+'),
 
-  click: function (event) {
-    this.get('controller').addZookeepers();
-  }
+	click: function (event) {
+		this.get('controller').addZookeepers();
+	}
 });
 
 App.RemoveControlView = Em.View.extend({
-  zId: null,
-  tagName: "span",
-  classNames: ["badge", "badge-important"],
-  template: Ember.Handlebars.compile('-'),
+	zId: null,
+	tagName: "span",
+	classNames: ["badge", "badge-important"],
+	template: Ember.Handlebars.compile('-'),
 
-  click: function (event) {
-    this.get('controller').removeZookeepers(this.get("zId"));
-  }
+	click: function (event) {
+		this.get('controller').removeZookeepers(this.get("zId"));
+	}
 });
