@@ -187,8 +187,6 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
 
   contentBinding: 'App.router.installerStep7Controller.slaveComponentHosts',
 
-  slaveComponentGroups: [],
-
   selectedComponentName: function () {
     switch (App.router.get('installerStep7Controller.selectedService.serviceName')) {
       case 'HDFS':
@@ -202,6 +200,11 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
     }
 
   }.property('App.router.installerStep7Controller.selectedService'),
+
+  selectedSlaveComponent: function () {
+    var component = this.findProperty('componentName', this.get('selectedComponentName'));
+    return component;
+  }.property('selectedComponentName'),
 
   showAddSlaveComponentGroup: function (event) {
     var componentName = event.context;
@@ -219,17 +222,18 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
   addSlaveComponentGroup: function (event) {
     var componentName = event.context;
     var component = this.findProperty('componentName', componentName);
-    var slaveGroups = this.get('slaveComponentGroups');
     var newGroupName;
-    console.log(slaveGroups);
-    slaveGroups.forEach(function(group) {
-
-    });
-    var newGroup = {
-      groupName: "New Group"
-    };
-    slaveGroups.pushObject(newGroup);
-    console.log(slaveGroups);
+    component.groups.setEach('active', false);
+    var newGroups = component.groups.filterProperty('type', 'new');
+    if (newGroups.length === 0) {
+      component.newGroupIndex = 0;
+      newGroupName = 'New Group';
+    } else {
+      component.newGroupIndex++;
+      newGroupName = 'New Group ' + component.newGroupIndex;
+    }
+    var newGroup = {groupName: newGroupName, label: 'new_group_' + component.newGroupIndex, type: 'new', active: true};
+    component.groups.pushObject(newGroup);
   },
 
   showEditSlaveComponentGroups: function (event) {
@@ -254,16 +258,38 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
     }
   }.property('@each.hosts', 'selectedComponentName'),
 
-  getHostsGroups: function () {
-    var slaveGroups = this.get('slaveComponentGroups');
-    if (slaveGroups.length == 0){
-      var defaultGroup = {
-        groupName: "Default",
-        label: "default"
-      };
-      slaveGroups.pushObject(defaultGroup);
+  getGroups: function () {
+    if (this.get('selectedComponentName') !== null) {
+      var component = this.findProperty('componentName', this.get('selectedComponentName'));
+      if (component !== undefined && component !== null) {
+        if (component.groups === undefined){
+          component.groups = [];
+          var defaultGroup = {groupName: 'Default', label: 'default', type: 'default', active: true};
+          component.groups.pushObject(defaultGroup);
+        }
+        return component.groups;
+      }
     }
-    return slaveGroups;
-  }.property('slaveComponentGroups')
+  }.property('selectedComponentName'),
+
+  showSlaveComponentGroup: function(event){
+    var component = this.findProperty('componentName', this.get('selectedComponentName'));
+    component.groups.setEach('active', false);
+    var group = component.groups.filterProperty('groupName', event.context.groupName);
+    group.setEach('active', true);
+  },
+
+  removeSlaveComponentGroup: function(event){
+    var component = this.findProperty('componentName', this.get('selectedComponentName'));
+    component.groups.setEach('active', false);
+//    component.groups.forEach(function (group) {
+//      if(group.groupName == event.context.groupName)
+//        delete component.groups[i];
+//    }, this);
+
+    var group = component.groups.filterProperty('groupName', event.context.groupName);
+    component.groups.removeObjects(group);
+    group.setEach('active', true);
+  }
 
 });

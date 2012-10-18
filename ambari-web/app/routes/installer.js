@@ -160,14 +160,6 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step6'),
     next: Em.Router.transitionTo('step8')
-//    showSlaveComponentGroup:Em.Router.transitionTo('slaveComponentGroup'),
-//    slaveComponentGroup:Em.Route.extend({
-//      route:'/',
-//      connectOutlets:function (router, group) {
-//        router.get('installerController').connectOutlet('slaveComponentGroup', group);
-//      }
-//    })
-
   }),
 
   step8: Em.Route.extend({

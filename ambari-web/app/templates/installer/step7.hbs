@@ -51,6 +51,11 @@
             class="btn add-slave-component-group btn-large" {{action addSlaveComponentGroup category.name target="App.router.slaveComponentGroupsController"}}><i
             class="icon-plus"></i></a>
           {{/view}}
+          {{#each group in App.router.slaveComponentGroupsController.getGroups}}
+            {{#view App.SlaveComponentGroupView contentBinding="group" }}
+              {{group.groupName}}
+            {{/view}}
+          {{/each}}
           {{/if}}
           <form class="form-horizontal">
             {{#each view.categoryConfigs}}
