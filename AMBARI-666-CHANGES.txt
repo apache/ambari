@@ -12,8 +12,12 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-890. Add client library option to step6 (Assign slaves) of
+  installer wizard. Also add indicator and popovers for hosts with
+  master component. (Jaimin Jetly via yusaku)  
+
   AMBARI-889. Provide cluster metric graphs on Ambari main dashboard.
-  (yusaku)
+  (Srimanth Gunturi via yusaku)
 
   AMBARI-886. Support filters in controller get* apis. (hitesh)
 

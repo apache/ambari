@@ -61,11 +61,9 @@ if (localStorage.getObject('ambari') == null) {
   App.db.cleanUp();
 }
 
-
 /*
  * setter methods
  */
-
 
 App.db.setLoginName = function (name) {
   console.log('TRACE: Entering db:setLoginName function');
@@ -189,7 +187,7 @@ App.db.setSoftRepo = function (softRepo) {
   localStorage.setObject('ambari', App.db.data);
 }
 
-App.db.setBootStatus = function(status) {
+App.db.setBootStatus = function (status) {
   console.log('TRACE: Entering db:setService function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
@@ -207,7 +205,7 @@ App.db.removeHosts = function (hostInfo) {
   App.db.setHosts(hostList);
 }
 
-App.db.setService = function(serviceInfo) {
+App.db.setService = function (serviceInfo) {
   console.log('TRACE: Entering db:setService function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
@@ -229,6 +227,12 @@ App.db.setMasterComponentHosts = function (masterComponentHosts) {
   localStorage.setObject('ambari', App.db.data);
 }
 
+App.db.setHostToMasterComponent = function (hostToMasterComponent) {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  App.db.data[user].Installer.hostToMasterComponent = hostToMasterComponent;
+  localStorage.setObject('ambari', App.db.data);
+}
 
 App.db.setHostSlaveComponents = function (hostSlaveComponents) {
   App.db.data = localStorage.getObject('ambari');
@@ -244,7 +248,7 @@ App.db.setSlaveComponentHosts = function (slaveComponentHosts) {
   localStorage.setObject('ambari', App.db.data);
 }
 
-App.db.setServiceConfigs = function(serviceConfigs) {
+App.db.setServiceConfigs = function (serviceConfigs) {
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
   App.db.data[user].Installer.serviceConfigs = serviceConfigs;
@@ -264,7 +268,6 @@ App.db.setClusterStatus = function (status) {
   App.db.data[user].Installer.clusterStatus = status;
   localStorage.setObject('ambari', App.db.data);
 }
-
 
 /*
  *  getter methods
@@ -391,14 +394,14 @@ App.db.getHosts = function () {
   return App.db.data[user].Installer.hostInfo;
 }
 
-App.db.getBootStatus = function() {
+App.db.getBootStatus = function () {
   console.log('TRACE: Entering db:setService function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
   return App.db.data[user].Installer.bootStatus;
 }
 
-App.db.getService = function() {
+App.db.getService = function () {
   console.log('TRACE: Entering db:getService function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
@@ -417,6 +420,12 @@ App.db.getMasterComponentHosts = function () {
   return App.db.data[user].Installer.masterComponentHosts;
 }
 
+App.db.getHostToMasterComponent = function () {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  return App.db.data[user].Installer.hostToMasterComponent;
+}
+
 App.db.getHostSlaveComponents = function () {
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
@@ -429,7 +438,7 @@ App.db.getSlaveComponentHosts = function () {
   return App.db.data[user].Installer.slaveComponentHosts;
 }
 
-App.db.getServiceConfigs = function() {
+App.db.getServiceConfigs = function () {
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
   return App.db.data[user].Installer.serviceConfigs;
@@ -441,12 +450,11 @@ App.db.getServiceConfigProperties = function () {
   return App.db.data[user].Installer.configProperties;
 }
 
-App.db.getClusterStatus = function() {
+App.db.getClusterStatus = function () {
   console.log('TRACE: Entering db:setService function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
   return App.db.data[user].Installer.clusterStatus;
 }
-
 
 module.exports = App.db;

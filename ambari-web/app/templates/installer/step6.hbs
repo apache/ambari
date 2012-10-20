@@ -23,41 +23,65 @@
   {{#if errorMessage}}
   <div class="alert alert-error">{{errorMessage}}</div>
   {{/if}}
-  <table class="table table-striped">
-    <thead>
-    <tr>
-      <th>Host</th>
-      <th>
-        <a href="#" {{bindAttr class="isAllDataNodes:selected:deselected"}} {{action selectAllDataNodes target="controller"}}>all</a> | <a href="#" {{bindAttr class="isNoDataNodes:selected:deselected"}} {{action deselectAllDataNodes target="controller"}}>none</a>
-      </th>
-      {{#if controller.isMrSelected}}
-      <th>
-        <a href="#" {{bindAttr class="isAllTaskTrackers:selected:deselected"}} {{action selectAllTaskTrackers target="controller"}}>all</a> | <a href="#" {{bindAttr class="isNoTaskTrackers:selected:deselected"}} {{action deselectAllTaskTrackers target="controller"}}>none</a>
-      </th>
-      {{/if}}
-      {{#if showHbase}}
-      <th>
-        <a href="#" {{bindAttr class="isAllRegionServers:selected:deselected"}} {{action selectAllRegionServers target="controller"}}>all</a> | <a href="#" {{bindAttr class="isNoRegionServers:selected:deselected"}} {{action deselectAllRegionServers target="controller"}}>none</a>
-      </th>
-      {{/if}}
-    </tr>
-    </thead>
-    <tbody>
 
-    {{#each hosts}}
-    <tr>
-      <td>{{hostname}}</td>
-      <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isDataNode"}}DataNode</label></td>
-      {{#if controller.isMrSelected}}
-      <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isTaskTracker"}}TaskTracker</label></td>
-      {{/if}}
-      {{#if controller.showHbase}}
-      <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isRegionServer"}}RegionServer</label></td>
-      {{/if}}
-    </tr>
-    {{/each}}
-    </tbody>
-  </table>
+  <div class="pre-scrollable" style="max-height: 440px;">
+    <table class="table table-striped">
+      <thead>
+      <tr>
+        <th>Host</th>
+        <th>
+          <a
+            href="#" {{bindAttr class="isAllDataNodes:selected:deselected"}} {{action selectAllDataNodes target="controller"}}>all</a>
+          |
+          <a
+            href="#" {{bindAttr class="isNoDataNodes:selected:deselected"}} {{action deselectAllDataNodes target="controller"}}>none</a>
+        </th>
+        {{#if controller.isMrSelected}}
+        <th>
+          <a
+            href="#" {{bindAttr class="isAllTaskTrackers:selected:deselected"}} {{action selectAllTaskTrackers target="controller"}}>all</a>
+          |
+          <a
+            href="#" {{bindAttr class="isNoTaskTrackers:selected:deselected"}} {{action deselectAllTaskTrackers target="controller"}}>none</a>
+        </th>
+        {{/if}}
+        {{#if showHbase}}
+        <th>
+          <a
+            href="#" {{bindAttr class="isAllRegionServers:selected:deselected"}} {{action selectAllRegionServers target="controller"}}>all</a>
+          |
+          <a
+            href="#" {{bindAttr class="isNoRegionServers:selected:deselected"}} {{action deselectAllRegionServers target="controller"}}>none</a>
+        </th>
+        {{/if}}
+        <th>
+          <a
+            href="#" {{bindAttr class="isAllClients:selected:deselected"}} {{action selectAllClients target="controller"}}>all</a>
+          |
+          <a
+            href="#" {{bindAttr class="isNoClients:selected:deselected"}} {{action deselectAllClients target="controller"}}>none</a>
+        </th>
+      </tr>
+      </thead>
+      <tbody>
+
+      {{#each hosts}}
+      <tr>
+        <td>{{#view App.InstallerStep6HostView hostBinding = "this" }} {{hostname}} {{#if isMaster}}<i
+          class=icon-asterisks>&#10037</i>{{/if}}{{/view}} </td>
+        <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isDataNode"}}DataNode</label></td>
+        {{#if controller.isMrSelected}}
+        <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isTaskTracker"}}TaskTracker</label></td>
+        {{/if}}
+        {{#if controller.showHbase}}
+        <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isRegionServer"}}RegionServer</label></td>
+        {{/if}}
+        <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isClient"}}Client</label></td>
+      </tr>
+      {{/each}}
+      </tbody>
+    </table>
+  </div>
   <div class="btn-area">
     <a class="btn" {{action back}}>&larr; Back</a>
     <a class="btn btn-success" style="float:right" {{action submit target="controller"}}>Next &rarr;</a>

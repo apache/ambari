@@ -26,7 +26,7 @@ module.exports = Em.Route.extend({
 
     if (router.getAuthenticated()) {
       console.log('In installer with successful authenticated');
-     // router.loadAllPriorSteps(router.getInstallerCurrentStep());
+      // router.loadAllPriorSteps(router.getInstallerCurrentStep());
       Ember.run.next(function () {
         router.transitionTo('step' + router.getInstallerCurrentStep());
       });
@@ -68,10 +68,10 @@ module.exports = Em.Route.extend({
       router.get('installerController').connectOutlet('installerStep1');
     },
     next: function (router, context) {
-	   // App.db.setAllHostNames(undefined);
-	   // App.db.setInstallType(undefined);
-	   //App.db.setSoftRepo(undefined);
-	    router.transitionTo('step2');
+      // App.db.setAllHostNames(undefined);
+      // App.db.setInstallType(undefined);
+      //App.db.setSoftRepo(undefined);
+      router.transitionTo('step2');
     }
   }),
 
@@ -124,6 +124,7 @@ module.exports = Em.Route.extend({
     back: Em.Router.transitionTo('step3'),
     next: function (router, context) {
       App.db.setMasterComponentHosts(undefined);
+      App.db.setHostToMasterComponent(undefined);
       router.transitionTo('step5');
     }
   }),

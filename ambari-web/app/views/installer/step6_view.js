@@ -22,10 +22,29 @@ var App = require('app');
 App.InstallerStep6View = Em.View.extend({
 
   templateName: require('templates/installer/step6'),
-
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.loadStep();
   }
 
+});
+
+App.InstallerStep6HostView = Em.View.extend({
+
+  host: null,
+  didInsertElement: function (event, context) {
+    var self = this;
+    var components = this.get('controller').getMasterComponentsforHost(this.get('host.hostname')).toString();
+    components = components.replace(/,/g, " /\n");
+    if (components === 'false') {
+      return;
+    } else {
+      this.$().popover({
+        title: 'master components hosted on ' + self.get('host.hostname'),
+        content: components,
+        placement: 'right',
+        trigger: 'hover'
+      });
+    }
+  }
 });

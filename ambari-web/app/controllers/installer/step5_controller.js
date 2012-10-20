@@ -576,7 +576,26 @@ App.InstallerStep5Controller = Em.Controller.extend({
     });
 
     App.db.setMasterComponentHosts(masterComponentHosts);
+    this.saveHostToMasterComponents();
 
+  },
+
+  saveHostToMasterComponents: function () {
+    var hostMasterComponents = App.db.getMasterComponentHosts();
+    var hosts = hostMasterComponents.mapProperty('hostName').uniq();
+    var hostsMasterServicesMapping = [];
+    hosts.forEach(function (_host) {
+      var componentsOnHost = hostMasterComponents.filterProperty('hostName', _host).mapProperty('component');
+      hostsMasterServicesMapping.push({
+        hostname: _host,
+        components: componentsOnHost
+      });
+    }, this);
+    App.db.setHostToMasterComponent(hostsMasterServicesMapping);
+    App.db.getHostToMasterComponent().forEach(function (_hostcomponent) {
+      console.log("INFO: the name of this thimg is: " + _hostcomponent.hostname);
+      console.log("INFO: the name of this thimg is: " + _hostcomponent.components);
+    }, this);
   },
 
   submit: function () {

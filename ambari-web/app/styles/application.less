@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-.gradient(@color: #FAFAFA, @start: #FFFFFF, @stop: #F2F2F2) {
+.gradient(@color: #FAFAFA, @start: #FFFFFF, @stop: #F2F2F2){
   background: @color;
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0, @start), color-stop(1, @stop));
   background: -ms-linear-gradient(top, @start, @stop);
@@ -49,7 +49,7 @@ footer {
 }
 
 #content {
-  padding: 30px 0;
+  padding: 20px 0;
 }
 
 #top-nav {
@@ -139,7 +139,11 @@ footer {
     margin: 0;
   }
 
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+}
+
+.pre-scrollable {
+  overflow-y: auto;
 }
 
 @green: #69BE28;
@@ -164,11 +168,11 @@ h1 {
   }
 }
 
-.hide{
+.hide {
   visibility: hidden;
 }
 
-.show{
+.show {
   visibility: visible;
 }
 
@@ -230,6 +234,9 @@ h1 {
       color: #333;
     }
     a.deselected {
+    }
+    i.icon-asterisks {
+      color: #FF4B4B;
     }
   }
   #serviceConfig {
@@ -553,18 +560,18 @@ a:focus {
 /*end alerts summary*/
 
 /*start cluster metrics*/
-.cluster-metrics{
-  .chart-container{
+.cluster-metrics {
+  .chart-container {
     position: relative;
     margin: 20px 15px 0px 15px;
   }
-  .chart{
+  .chart {
     padding-bottom: 0px !important;
     position: relative;
     height: 160px;
     z-index: 1;
   }
-  .chart-y-axis{
+  .chart-y-axis {
     position: absolute;
     top: 0;
     bottom: 0px;
@@ -572,28 +579,29 @@ a:focus {
     z-index: 2;
     margin-top: 15px;
   }
-  .chart-x-axis{
+  .chart-x-axis {
     position: absolute;
     top: 180px;
     left: 35%;
     width: 30%;
     z-index: 2;
   }
-  .rickshaw_legend{
+  .rickshaw_legend {
     background-color: #999999 !important;
   }
-  .chart-overlay{
+  .chart-overlay {
     position: absolute;
     top: 0;
     bottom: 0;
     width: 100%;
     z-index: 5;
   }
-  .chart-title{
+  .chart-title {
     text-align: center;
     font-size: small;
   }
 }
+
 /*end cluster metrics*/
 
 /*****end styles for dashboard page*****/
@@ -1209,15 +1217,44 @@ ul.inline li {
 /* TIME RANGE WIDGET */
 
 /* css for timepicker */
-.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
-.ui-timepicker-div dl { text-align: left; }
-.ui-timepicker-div dl dt { height: 25px; margin-bottom: -25px; }
-.ui-timepicker-div dl dd { margin: 0 10px 10px 65px; }
-.ui-timepicker-div td { font-size: 90%; }
-.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+.ui-timepicker-div .ui-widget-header {
+  margin-bottom: 8px;
+}
 
-.ui-timepicker-rtl{ direction: rtl; }
-.ui-timepicker-rtl dl { text-align: right; }
-.ui-timepicker-rtl dl dd { margin: 0 65px 10px 10px; }
+.ui-timepicker-div dl {
+  text-align: left;
+}
+
+.ui-timepicker-div dl dt {
+  height: 25px;
+  margin-bottom: -25px;
+}
+
+.ui-timepicker-div dl dd {
+  margin: 0 10px 10px 65px;
+}
+
+.ui-timepicker-div td {
+  font-size: 90%;
+}
+
+.ui-tpicker-grid-label {
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ui-timepicker-rtl {
+  direction: rtl;
+}
+
+.ui-timepicker-rtl dl {
+  text-align: right;
+}
+
+.ui-timepicker-rtl dl dd {
+  margin: 0 65px 10px 10px;
+}
 
 /* TIME RANGE WIDGET END */
