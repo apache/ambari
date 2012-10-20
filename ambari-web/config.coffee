@@ -42,7 +42,8 @@ exports.config =
           'vendor/scripts/ember-i18n-1.2.0.js',
           'vendor/scripts/bootstrap.js',
           'vendor/scripts/d3.v2.js',
-          'vendor/scripts/sinon-1.4.2.js'
+          'vendor/scripts/sinon-1.4.2.js',
+          'vendor/scripts/rickshaw.js'
           ]
 
     stylesheets:
@@ -53,7 +54,8 @@ exports.config =
           'vendor/styles/bootstrap.css',
           'vendor/styles/datepicker.css'
           'vendor/styles/font-awesome.css'
-          'vendor/styles/font-awesome-ie7.css'
+          'vendor/styles/font-awesome-ie7.css',
+          'vendor/styles/rickshaw.css'
         ]
 
     templates:

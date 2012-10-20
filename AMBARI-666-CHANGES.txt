@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-889. Provide cluster metric graphs on Ambari main dashboard.
+  (yusaku)
+
   AMBARI-886. Support filters in controller get* apis. (hitesh)
 
   AMBARI-880. Implement Review Page (Step 8) for the Ambari Installer

@@ -164,6 +164,14 @@ h1 {
   }
 }
 
+.hide{
+  visibility: hidden;
+}
+
+.show{
+  visibility: visible;
+}
+
 /***************
  * Ambari wide icon colors
  ***************/
@@ -543,6 +551,50 @@ a:focus {
 }
 
 /*end alerts summary*/
+
+/*start cluster metrics*/
+.cluster-metrics{
+  .chart-container{
+    position: relative;
+    margin: 20px 15px 0px 15px;
+  }
+  .chart{
+    padding-bottom: 0px !important;
+    position: relative;
+    height: 160px;
+    z-index: 1;
+  }
+  .chart-y-axis{
+    position: absolute;
+    top: 0;
+    bottom: 0px;
+    width: 100px;
+    z-index: 2;
+    margin-top: 15px;
+  }
+  .chart-x-axis{
+    position: absolute;
+    top: 180px;
+    left: 35%;
+    width: 30%;
+    z-index: 2;
+  }
+  .rickshaw_legend{
+    background-color: #999999 !important;
+  }
+  .chart-overlay{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 5;
+  }
+  .chart-title{
+    text-align: center;
+    font-size: small;
+  }
+}
+/*end cluster metrics*/
 
 /*****end styles for dashboard page*****/
 

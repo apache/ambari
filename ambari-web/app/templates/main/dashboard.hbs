@@ -37,11 +37,38 @@
     </div>
   </div>
   <div class="span6">
-    <div class="box">
+		<div class="box">
+			<div class="box-header">
+				<h4>Cluster Metrics</h4>
+				<div class="btn-group">
+          <a class="btn" href="http://gangliaserver/ganglia/?t=yes" target="_blank" rel="tooltip" title="Go to Ganglia"><i class="icon-link"></i></a>
+        </div>
+			</div>
+			<div class="cluster-metrics">
+				<div class="row">
+					<div class="span6">
+						<div class="row">
+							<div class="span3">{{view App.ChartClusterMetricsNetwork}}<div class="chart-title">Network Usage</div></div>
+							<div class="span3">{{view App.ChartClusterMetricsLoad}}<div class="chart-title">Cluster Load</div></div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="span6">
+						<div class="row">
+							<div class="span3">{{view App.ChartClusterMetricsMemory}}<div class="chart-title">Memory Usage</div></div>
+							<div class="span3">{{view App.ChartClusterMetricsCPU}}<div class="chart-title">CPU Usage</div></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+    <div class="box alerts-section">
       <div class="box-header">
         <h4>Alerts</h4>
         <div class="btn-group">
           <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">{{controller.alertsFilteredBy}} <span class="caret"></span></button>
+          <a class="btn" href="http://nagiosserver/nagios" target="_blank" rel="tooltip" title="Go to Nagios"><i class="icon-link"></i></a>
           <ul class="dropdown-menu">
             <li><a {{action alertsFilter target="controller"}} href="javascript:void(null)">All</a></li>
             {{#each service in controller.services}}
@@ -78,10 +105,6 @@
         </li>
         {{/each}}
       </ul>
-      <div class="box-footer">
-        <hr />
-        <a class="go-to" href="http://nagiosserver/nagios" target="_blank">Go to Nagios</a>
-      </div>
     </div>
-  </div>
+	</div>
 </div>

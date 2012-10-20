@@ -28,6 +28,9 @@ This product includes D3.js (http://d3js.org - BSD license)
 Copyright (c) 2012, Michael Bostock.
 
 This product includes bootstrap-datepicker.js (http://www.eyecon.ro/bootstrap-datepicker - Apache License, Version 2.0)
-Copyright 2012 Stefan Petre
+Copyright (c) 2012 Stefan Petre
 
 This product includes Font Awesome 2.0 (http://fortawesome.github.com/Font-Awesome - Creative Commons 3.0)
+
+This product incudes Rickshaw 1.1.2 (http://code.shutterstock.com/rickshaw/ - MIT License)
+Copyright (C) 2011 by Shutterstock Images, LLC
