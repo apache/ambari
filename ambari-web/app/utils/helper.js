@@ -15,28 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-String.prototype.capitalize = function()
-{
+String.prototype.capitalize = function () {
   return this.charAt(0).toUpperCase() + this.slice(1);
 }
 
 Em.CoreObject.reopen({
-  t: function(key, attrs){
+  t:function (key, attrs) {
     return Em.I18n.t(key, attrs)
   }
 });
 
-Handlebars.registerHelper('log', function(variable) {
+Handlebars.registerHelper('log', function (variable) {
   console.log(variable);
 });
 
-Handlebars.registerHelper('warn', function(variable) {
+Handlebars.registerHelper('warn', function (variable) {
   console.warn(variable);
 });
 
-String.prototype.format = function() {
+String.prototype.format = function () {
   var args = arguments;
-  return this.replace(/{(\d+)}/g, function(match, number) {
+  return this.replace(/{(\d+)}/g, function (match, number) {
     return typeof args[number] != 'undefined' ? args[number] : match;
   });
 };
@@ -48,48 +47,43 @@ String.prototype.format = function() {
  * @remarks The parseType argument can be "parseInt" or "parseFloat".
  * @return {String) Returns converted value with abbreviation.
  */
-Number.prototype.bytesToSize = function(precision, parseType/* = 'parseInt' */) {
+Number.prototype.bytesToSize = function (precision, parseType/* = 'parseInt' */) {
   if (arguments[1] === undefined) {
     parseType = 'parseInt';
   }
+
   var value = this;
   var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   var posttxt = 0;
   if (this == 0) return 'n/a';
-  while( value >= 1024 ) {
+  while (value >= 1024) {
     posttxt++;
     value = value / 1024;
   }
-  if (parseType == 'parseInt') {
-    var parsedValue = parseInt(value);
-  } else if (parseType == 'parseFloat') {
-    var parsedValue = parseFloat(value);
-  } else {
-    console.warn('Parameter parseType incorrect');
-  }
+  var parsedValue = window[parseType](value);
 
   return parsedValue.toFixed(precision) + " " + sizes[posttxt];
 }
 
-Number.prototype.toDaysHoursMinutes = function() {
+Number.prototype.toDaysHoursMinutes = function () {
   var formatted = {},
     dateDiff = this,
     minK = 60, // sec
     hourK = 60 * minK, // sec
     dayK = 24 * hourK;
 
-  dateDiff = parseInt(dateDiff/1000);
-  formatted.d = Math.floor(dateDiff/dayK);
+  dateDiff = parseInt(dateDiff / 1000);
+  formatted.d = Math.floor(dateDiff / dayK);
   dateDiff -= formatted.d * dayK;
-  formatted.h = Math.floor(dateDiff/hourK);
+  formatted.h = Math.floor(dateDiff / hourK);
   dateDiff -= formatted.h * hourK;
-  formatted.m = Math.floor(dateDiff/minK);
+  formatted.m = Math.floor(dateDiff / minK);
   dateDiff -= formatted.m * minK;
 
   return formatted;
 }
 
-Number.prototype.countPercentageRatio = function(maxValue) {
+Number.prototype.countPercentageRatio = function (maxValue) {
   var usedValue = this;
-  return Math.round((usedValue/maxValue) * 100) + "%";
+  return Math.round((usedValue / maxValue) * 100) + "%";
 }

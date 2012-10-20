@@ -19,17 +19,16 @@
 var App = require('app');
 
 App.WizardStep5Controller = Em.Controller.extend({
-  //properties
-  name: "wizardStep5Controller",
-  hosts: [],
-  selectedServices: [],
-  selectedServicesMasters: [],
-  zId: 0,
-  components: require('data/service_components'),
 
-  /*
-   Below function retrieves host information from local storage
-   */
+  name:"wizardStep5Controller",
+
+  hosts:[],
+
+  selectedServices:[],
+  selectedServicesMasters:[],
+  zId:0,
+
+  components: require('data/service_components'),
 
   clearStep: function () {
     this.set('hosts', []);
@@ -41,56 +40,52 @@ App.WizardStep5Controller = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading step5: Assign Masters");
     this.clearStep();
-    this.renderHostInfo(this.loadHostInfo());
-    this.renderComponents(this.loadComponents(this.loadServices()));
+    this.renderHostInfo();
+    this.renderComponents(this.loadComponents());
   },
 
-  loadHostInfo: function () {
-    var hostInfo = [];
-    hostInfo = App.db.getHosts();
-    var hosts = new Ember.Set();
+  /**
+   * Load active host list to <code>hosts</code> variable
+   */
+  renderHostInfo: function () {
+
+    var hostInfo = this.get('content.hostsInfo');
+
     for (var index in hostInfo) {
-      hosts.add(hostInfo[index]);
-      console.log("TRACE: host name is: " + hostInfo[index].name);
+      var _host = hostInfo[index];
+      if(_host.bootStatus === 'success'){
+
+        var hostObj = Ember.Object.create({
+          host_name: _host.name,
+          cpu: _host.cpu,
+          memory: _host.memory,
+          host_info: "%@ ( %@GB %@cores )".fmt(_host.name, _host.memory, _host.cpu)
+        });
+
+        this.get("hosts").pushObject(hostObj);
+      }
     }
-    return hosts.filterProperty('bootStatus', 'success');
   },
 
+  /**
+   * Load services info to appropriate variable and return masterComponentHosts
+   * @return {Ember.Set}
+   */
+  loadComponents: function () {
 
-  renderHostInfo: function (hostsInfo) {
+    var services = this.get('content.services')
+                      .filterProperty('isSelected', true).mapProperty('serviceName');
 
-    //wrap the model data into
-
-    hostsInfo.forEach(function (_host) {
-      var hostObj = Ember.Object.create({
-        host_name: _host.name,
-        cpu: _host.cpu,
-        memory: _host.memory
-      });
-      console.log('pushing ' + hostObj.host_name);
-      hostObj.set("host_info", "" + hostObj.get("host_name") + " ( " + hostObj.get("memory") + "GB" + " " + hostObj.get("cpu") + "cores )");
-      this.get("hosts").pushObject(hostObj);
-    }, this);
-
-
-  },
-
-  loadServices: function () {
-    var serviceInfo = App.db.getService();
-    var services = serviceInfo.filterProperty('isSelected', true).mapProperty('serviceName');
     services.forEach(function (item) {
-      console.log("TRACE: service name is: " + item);
       this.get("selectedServices").pushObject(Ember.Object.create({service_name: item}));
     }, this);
 
-    return services;
+    var masterHosts = this.get('content.masterHosts');
 
-  },
-
-  loadComponents: function (services) {
     var components = new Ember.Set();
-    if (App.db.getMasterComponentHosts() === undefined) {
-      var masterComponents = this.components.filterProperty('isMaster', true);
+    if (!masterHosts) {
+
+      var masterComponents = this.get('components').filterProperty('isMaster', true);
       for (var index in services) {
         var componentInfo = masterComponents.filterProperty('service_name', services[index]);
         componentInfo.forEach(function (_componentInfo) {
@@ -102,27 +97,28 @@ App.WizardStep5Controller = Em.Controller.extend({
           components.add(componentObj);
         }, this);
       }
+
     } else {
-      var masterComponentHosts = App.db.getMasterComponentHosts();
-      masterComponentHosts.forEach(function (_masterComponentHost) {
+
+      masterHosts.forEach(function (_masterComponentHost) {
         var componentObj = {};
-        componentObj.component_name = _masterComponentHost.component;
+        componentObj.component_name =_masterComponentHost.component;
         componentObj.selectedHost = _masterComponentHost.hostName;   // call the method that plays selectNode algorithm or fetches from server
         componentObj.availableHosts = [];
         components.add(componentObj);
       }, this);
+
     }
     return components;
   },
 
-  getMasterComponents: function () {
-    return (this.get('selectedServicesMasters').slice(0));
-  },
-
+  /**
+   * Put master components to <code>selectedServicesMasters</code>, which will be automatically rendered in template
+   * @param masterComponents
+   */
   renderComponents: function (masterComponents) {
     var zookeeperComponent = null, componentObj = null;
-    var services = [];
-    services = this.getMasterComponents();
+    var services = this.get('selectedServicesMasters').slice(0);
     if (services.length) {
       this.set('selectedServicesMasters', []);
     }
@@ -312,6 +308,11 @@ App.WizardStep5Controller = Em.Controller.extend({
   },
 
 
+  /**
+   * Return hostName of masterNode for specified service
+   * @param componentName
+   * @return {*}
+   */
   selectHost: function (componentName) {
     var noOfHosts = this.get('hosts').length;
     if (componentName === 'KERBEROS_SERVER') {
@@ -561,31 +562,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     else {
       return -1;
     }
-  },
-
-  saveComponentHostsToDb: function () {
-    var obj = this.get('selectedServicesMasters');
-    var masterComponentHosts = [];
-    var inc = 0;
-    var array = [];
-    obj.forEach(function (_component) {
-      var hostArr = [];
-      masterComponentHosts.push({
-        component: _component.component_name,
-        hostName: _component.selectedHost
-      });
-    });
-
-    App.db.setMasterComponentHosts(masterComponentHosts);
-
-  },
-
-  submit: function () {
-    this.saveComponentHostsToDb();
-    App.router.send('next');
   }
-
-
 });
 
 

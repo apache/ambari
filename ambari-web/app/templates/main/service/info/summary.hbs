@@ -27,173 +27,184 @@
         </ul>
       </li>
     </ul>
-		<h4>{{controller.content.label}} Summary</h4>
-		<div class="service-content">
-      <table id="summary-info" class="table table-bordered table-striped table-condensed">
-        <tbody>
-        {{#each component in controller.content.components}}
-          <tr>
-          {{#if component.type}}
-            <td>{{component.componentName}}</td><td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.hostName}}</a></td>
-          {{else}}
-            <td>{{component.componentName}}s</td><td><a {{action filterHosts component}} href="javascript:void(null)">{{component.componentName}}s</a></td>
+
+    <div class="box">
+      <div class="box-header">
+        <h4>{{controller.content.label}} Summary</h4>
+      </div>
+      <div class="service-content">
+        <table id="summary-info" class="table table-bordered table-striped table-condensed">
+          <tbody>
+          {{#each component in controller.content.components}}
+            <tr>
+            {{#if component.type}}
+              <td class="summary-label">{{component.componentName}}</td>
+              <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.hostName}}</a></td>
+            {{else}}
+              <td class="summary-label">{{component.componentName}}s</td>
+              <td><a {{action filterHosts component}} href="javascript:void(null)">{{component.componentName}}s</a></td>
+            {{/if}}
+            </tr>
+          {{/each}}
+          {{#if view.serviceStatus.hdfs}}
+            <tr>
+              <td>{{t services.service.summary.version}}</td>
+              <td>{{view.attributes.version}}</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.nameNode}}</td>
+              <td><a {{bindAttr href="view.attributes.namenode_addr"}}>{{view.attributes.namenode_addr}}</a></td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.nameNodeUptime}}</td>
+              <td>{{view.attributes.start_time.d}}day {{view.attributes.start_time.h}}hr {{view.attributes.start_time.m}}min</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.nameNodeHeap}}</td>
+              <td>{{view.attributes.memory_heap_used}} / {{view.attributes.memory_heap_max}} ({{view.attributes.memory_heap_percent_used}} used)</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.dataNodes}}</td>
+              <td>
+                <a href="javascript:void(null)">{{view.attributes.live_nodes}} live</a> / <a href="javascript:void(null)">{{view.attributes.dead_nodes}} dead</a> / <a href="javascript:void(null)">{{view.attributes.decommissioning_nodes}} decom</a>
+              </td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.diskCapacity}}</td>
+              <td>{{view.attributes.used_bytes}} / {{view.attributes.dfs_total_bytes}} ({{view.attributes.dfs_percent_disk_used}} used)</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.blocksTotal}}</td>
+              <td>{{view.attributes.dfs_blocks_total}}</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.blockErrors}}</td>
+              <td>{{view.attributes.dfs_blocks_corrupt}} corr / {{view.attributes.dfs_blocks_missing}} miss / {{view.attributes.dfs_blocks_underreplicated}} underrep</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.totalFiles}}</td>
+              <td>{{view.attributes.dfs_dirfiles_count}}</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.pendingUpgradeStatus}}</td>
+              <td>
+                {{#if view.attributes.pending_upgrades}}
+                Pending upgrade
+                {{else}}
+                No pending upgrade
+                {{/if}}
+              </td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.safeModeStatus}}</td>
+              <td>
+                {{#if view.attributes.safemode}}
+                In safe mode
+                {{else}}
+                Not in safe mode
+                {{/if}}
+              </td>
+            </tr>
           {{/if}}
-          </tr>
-        {{/each}}
-        {{#if view.serviceStatus.hdfs}}
-          <tr>
-            <td>{{t services.service.summary.version}}</td>
-            <td>{{view.attributes.version}}</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.nameNode}}</td>
-            <td><a {{bindAttr href="view.attributes.namenode_addr"}}>{{view.attributes.namenode_addr}}</a></td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.nameNodeUptime}}</td>
-            <td>{{view.attributes.start_time.d}}day {{view.attributes.start_time.h}}hr {{view.attributes.start_time.m}}min</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.nameNodeHeap}}</td>
-            <td>{{view.attributes.memory_heap_used}} / {{view.attributes.memory_heap_max}} ({{view.attributes.memory_heap_percent_used}} used)</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.dataNodes}}</td>
-            <td>
-              <a href="javascript:void(null)">{{view.attributes.live_nodes}}</a> / <a href="javascript:void(null)">{{view.attributes.dead_nodes}}</a> / <a href="javascript:void(null)">{{view.attributes.decommissioning_nodes}}</a>
-            </td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.diskCapacity}}</td>
-            <td>{{view.attributes.used_bytes}} / {{view.attributes.dfs_total_bytes}} ({{view.attributes.dfs_percent_disk_used}} used)</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.blocksTotal}}</td>
-            <td>{{view.attributes.dfs_blocks_total}}</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.blockErrors}}</td>
-            <td>{{view.attributes.dfs_blocks_corrupt}} / {{view.attributes.dfs_blocks_missing}} / ({{view.attributes.dfs_blocks_underreplicated}})</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.totalFiles}}</td>
-            <td>{{view.attributes.dfs_dirfiles_count}}</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.pendingUpgradeStatus}}</td>
-            <td>
-              {{#if view.attributes.pending_upgrades}}
-              Pending upgrade
-              {{else}}
-              No pending upgrade
-              {{/if}}
-            </td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.safeModeStatus}}</td>
-            <td>
-              {{#if view.attributes.safemode}}
-              In safe mode
-              {{else}}
-              Not in safe mode
-              {{/if}}
-            </td>
-          </tr>
-        {{/if}}
-        {{#if view.serviceStatus.mapreduce}}
-          <tr>
-            <td>{{t services.service.summary.version}}</td>
-            <td>{{view.attributes.version}}</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.jobTracker}}</td>
-            <td><a {{bindAttr href="view.attributes.jobtracker_addr"}}>{{view.attributes.jobtracker_addr}}</a></td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.jobTrackerUptime}}</td>
-            <td>{{view.attributes.start_time.d}}day {{view.attributes.start_time.h}}hr {{view.attributes.start_time.m}}min</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.trackersLiveTotal}}</td>
-            <td>
-              <a href="javascript:void(null)">{{view.attributes.trackers_live}}</a> / {{view.attributes.trackers_total}}
-            </td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.trackersBlacklistGraylist}}</td>
-            <td>
-              <a href="javascript:void(null)">{{view.attributes.trackers_blacklisted}}</a> / <a href="javascript:void(null)">{{view.attributes.trackers_graylisted}}</a> / <a href="javascript:void(null)">{{view.attributes.trackers_excluded}}</a>
-            </td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.jobTrackerHeap}}</td>
-            <td>{{view.attributes.memory_heap_used}} / {{view.attributes.memory_heap_max}} ({{view.attributes.memory_heap_percent_used}} used)</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.totalSlotsCapacity}}</td>
-            <td>{{view.attributes.map_task_capacity}} / {{view.attributes.reduce_task_capacity}} / {{view.attributes.average_node_capacity}}</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.totalJobs}}</td>
-            <td>{{view.attributes.job_total_submissions}} / {{view.attributes.job_total_completions}}</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.currentSlotUtiliMaps}}</td>
-            <td>{{view.attributes.occupied_map_slots}} / {{view.attributes.reserved_map_slots}}</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.currentSlotUtiliReduces}}</td>
-            <td>{{view.attributes.occupied_reduce_slots}} / {{view.attributes.reserved_reduce_slots}}</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.tasksMaps}}</td>
-            <td>{{view.attributes.running_map_tasks}} / {{view.attributes.waiting_maps}}</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.tasksReduces}}</td>
-            <td>{{view.attributes.running_reduce_tasks}} / {{view.attributes.waiting_reduces}}</td>
-          </tr>
-        {{/if}}
-        {{#if view.serviceStatus.hbase}}
-          <tr>
-            <td>{{t services.service.summary.version}}</td>
-            <td>{{view.attributes.version}}</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.hbaseMaster}}</td>
-            <td><a {{bindAttr href="view.attributes.hbasemaster_addr"}}>{{view.attributes.hbasemaster_addr}}</a></td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.regionServerCount}}</td>
-            <td>
-              <a href="javascript:void(null)">{{view.attributes.live_regionservers}}</a> / <a href="javascript:void(null)">{{view.attributes.dead_regionservers}}</a>
-            </td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.regionInTransition}}</td>
-            <td>{{view.attributes.regions_in_transition_count}}</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.masterStarted}}</td>
-            <td>{{view.attributes.start_time.d}}day {{view.attributes.start_time.h}}hr {{view.attributes.start_time.m}}min</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.masterActivated}}</td>
-            <td>{{view.attributes.active_time.d}}day {{view.attributes.active_time.h}}hr {{view.attributes.active_time.m}}min</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.averageLoad}}</td>
-            <td>{{view.attributes.average_load}}</td>
-          </tr>
-          <tr>
-            <td>{{t services.service.summary.masterHeap}}</td>
-            <td>{{view.attributes.memory_heap_used}} / {{view.attributes.memory_heap_max}} ({{view.attributes.memory_heap_percent_used}} used)</td>
-          </tr>
-        {{/if}}
-        </tbody>
-      </table>
-      {{!view view.moreStatsView}}
-		</div>
+          {{#if view.serviceStatus.mapreduce}}
+            <tr>
+              <td>{{t services.service.summary.version}}</td>
+              <td>{{view.attributes.version}}</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.jobTracker}}</td>
+              <td><a {{bindAttr href="view.attributes.jobtracker_addr"}}>{{view.attributes.jobtracker_addr}}</a></td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.jobTrackerUptime}}</td>
+              <td>{{view.attributes.start_time.d}}day {{view.attributes.start_time.h}}hr {{view.attributes.start_time.m}}min</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.trackersLiveTotal}}</td>
+              <td>
+                <a href="javascript:void(null)">{{view.attributes.trackers_live}} live</a> / {{view.attributes.trackers_total}} total
+              </td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.trackersBlacklistGraylist}}</td>
+              <td>
+                <a href="javascript:void(null)">{{view.attributes.trackers_blacklisted}} blacklist</a> / <a href="javascript:void(null)">{{view.attributes.trackers_graylisted}} graylist</a> / <a href="javascript:void(null)">{{view.attributes.trackers_excluded}} excl.</a>
+              </td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.jobTrackerHeap}}</td>
+              <td>{{view.attributes.memory_heap_used}} / {{view.attributes.memory_heap_max}} ({{view.attributes.memory_heap_percent_used}} used)</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.totalSlotsCapacity}}</td>
+              <td>{{view.attributes.map_task_capacity}} maps / {{view.attributes.reduce_task_capacity}} reduces / {{view.attributes.average_node_capacity}} avg per node</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.totalJobs}}</td>
+              <td>{{view.attributes.job_total_submissions}} submitted / {{view.attributes.job_total_completions}} completed</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.currentSlotUtiliMaps}}</td>
+              <td>{{view.attributes.occupied_map_slots}} occupied / {{view.attributes.reserved_map_slots}} reserved</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.currentSlotUtiliReduces}}</td>
+              <td>{{view.attributes.occupied_reduce_slots}} occupied / {{view.attributes.reserved_reduce_slots}} reserved</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.tasksMaps}}</td>
+              <td>{{view.attributes.running_map_tasks}} running / {{view.attributes.waiting_maps}} waiting</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.tasksReduces}}</td>
+              <td>{{view.attributes.running_reduce_tasks}} running / {{view.attributes.waiting_reduces}} waiting</td>
+            </tr>
+          {{/if}}
+          {{#if view.serviceStatus.hbase}}
+            <tr>
+              <td>{{t services.service.summary.version}}</td>
+              <td>{{view.attributes.version}}</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.hbaseMaster}}</td>
+              <td><a {{bindAttr href="view.attributes.hbasemaster_addr"}}>{{view.attributes.hbasemaster_addr}}</a></td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.regionServerCount}}</td>
+              <td>
+                <a href="javascript:void(null)">{{view.attributes.live_regionservers}} live</a> / <a href="javascript:void(null)">{{view.attributes.dead_regionservers}} dead</a>
+              </td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.regionInTransition}}</td>
+              <td>{{view.attributes.regions_in_transition_count}}</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.masterStarted}}</td>
+              <td>{{view.attributes.start_time.d}}day {{view.attributes.start_time.h}}hr {{view.attributes.start_time.m}}min</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.masterActivated}}</td>
+              <td>{{view.attributes.active_time.d}}day {{view.attributes.active_time.h}}hr {{view.attributes.active_time.m}}min</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.averageLoad}}</td>
+              <td>{{view.attributes.average_load}} regions per RegionServer</td>
+            </tr>
+            <tr>
+              <td>{{t services.service.summary.masterHeap}}</td>
+              <td>{{view.attributes.memory_heap_used}} / {{view.attributes.memory_heap_max}} ({{view.attributes.memory_heap_percent_used}} used)</td>
+            </tr>
+          {{/if}}
+          </tbody>
+        </table>
+        {{!view view.moreStatsView}}
+      </div>
+      {{!
+      <div class="box-footer">
+      </div>
+      }}
+    </div>
 	</div>
 	<div class="span6">
 		<div class="box">

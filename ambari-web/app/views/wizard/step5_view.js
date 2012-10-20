@@ -26,8 +26,10 @@ App.WizardStep5View = Em.View.extend({
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.loadStep();
-    if (controller.lastZooKeeper()) {
-      controller.lastZooKeeper().set('showAddControl', true);
+
+    var ZooKeeper = controller.lastZooKeeper();
+    if (ZooKeeper) {
+      ZooKeeper.set('showAddControl', true);
     }
   }
 
@@ -54,7 +56,7 @@ App.AddControlView = Em.View.extend({
   classNames: ["badge", "badge-important"],
   template: Ember.Handlebars.compile('+'),
 
-  click: function (event) {
+  click: function () {
     this.get('controller').addZookeepers();
   }
 });
@@ -65,7 +67,7 @@ App.RemoveControlView = Em.View.extend({
   classNames: ["badge", "badge-important"],
   template: Ember.Handlebars.compile('-'),
 
-  click: function (event) {
+  click: function () {
     this.get('controller').removeZookeepers(this.get("zId"));
   }
 });

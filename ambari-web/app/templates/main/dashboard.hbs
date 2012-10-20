@@ -25,12 +25,12 @@
             <h4>{{t dashboard.services}}</h4>
           </div>
           <dl class="dl-horizontal services">
-            {{view App.MainDashboardServiceHdfsView servicesBinding="controller.services"}}
-            {{view App.MainDashboardServiceMapreduceView servicesBinding="controller.services"}}
-            {{view App.MainDashboardServiceHbaseView servicesBinding="controller.services"}}
-            {{view App.MainDashboardServiceHiveView servicesBinding="controller.services"}}
-            {{view App.MainDashboardServiceZookeperView servicesBinding="controller.services"}}
-            {{view App.MainDashboardServiceOozieView servicesBinding="controller.services"}}
+            {{view App.MainDashboardServiceHdfsView controllerBinding="controller"}}
+            {{view App.MainDashboardServiceMapreduceView controllerBinding="controller"}}
+            {{view App.MainDashboardServiceHbaseView controllerBinding="controller"}}
+            {{view App.MainDashboardServiceHiveView controllerBinding="controller"}}
+            {{view App.MainDashboardServiceZookeperView controllerBinding="controller"}}
+            {{view App.MainDashboardServiceOozieView controllerBinding="controller"}}
           </dl>
         </div>
       </div>

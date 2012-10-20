@@ -21,6 +21,70 @@ var App = require('app');
 App.MainDashboardController = Em.Controller.extend({
   name:'mainDashboardController',
   alerts: App.Alert.find(),
+  data: {
+    hdfs:{
+      "namenode_addr":"namenode:50070",
+      "secondary_namenode_addr":"snamenode:50090",
+      "namenode_starttime":1348935028,
+      "total_nodes":"1",
+      "live_nodes":1,
+      "dead_nodes":0,
+      "decommissioning_nodes":0,
+      "dfs_blocks_underreplicated":145,
+      "safemode":false,
+      "pending_upgrades":false,
+      "dfs_configured_capacity":885570207744,
+      "dfs_percent_used":0.01,
+      "dfs_percent_remaining":95.09,
+      "dfs_total_bytes":885570207744,
+      "dfs_used_bytes":104898560,
+      "nondfs_used_bytes":43365113856,
+      "dfs_free_bytes":842100195328,
+      // additionals
+      "total_files_and_dirs": 1354,
+      "namenode_heap_used":63365113856,
+      "namenode_heap_total": 163365113856
+    },
+    mapreduce: {
+      "jobtracker_addr": "jobtracker:50030",
+      "jobtracker_starttime": 1348935243,
+      "running_jobs": 1,
+      "waiting_jobs": 0,
+      "trackers_total": "1",
+      "trackers_live": 1,
+      "trackers_graylisted": 0,
+      "trackers_blacklisted": 0,
+      "chart": [4,8,7,2,1,4,3,3,3],
+      // additionals
+      "map_slots_occuped": 4,
+      "map_slots_reserved": 8,
+      "map_slots_total": 12,
+
+      "reduce_slots_occuped": 3,
+      "reduce_slots_reserved": 7,
+      "reduce_slots_total": 11,
+
+      "completed_jobs": 3,
+      "failed_jobs": 2,
+
+      "trackers_heap_used": 1348935243,
+      "trackers_heap_total": 6648935243
+    },
+    hbase : {
+      "hbasemaster_addr": "hbasemaster:60010",
+      "total_regionservers": "1",
+      "hbasemaster_starttime": 1348935496,
+      "live_regionservers": 1,
+      "dead_regionservers": 0,
+      "regions_in_transition_count": 0,
+      "chart": [3,7,7,5,5,3,5,3,7],
+
+      "master_server_heap_used": 2348935243,
+      "master_server_heap_total": 5648935243,
+      "average_load": 1.4
+    }
+  },
+
   services:function(){
     return App.router.get('mainServiceController.content');
   }.property('App.router.mainServiceController.content'),

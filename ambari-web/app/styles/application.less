@@ -167,13 +167,13 @@ h1 {
 /***************
  * Ambari wide icon colors
  ***************/
-.icon-ok{
-    color: #5AB400;
+.icon-ok {
+  color: #5AB400;
 }
-.icon-remove{
-    color: #FF4B4B;
+
+.icon-remove {
+  color: #FF4B4B;
 }
- 
 
 #installer, #add-host {
   h2 {
@@ -242,12 +242,12 @@ h1 {
     }
     .slave-component-group-menu {
       float: left;
-      .nav{
+      .nav {
         margin-bottom: 10px;
       }
-      .nav li{
+      .nav li {
         position: relative;
-        a{
+        a {
           padding-right: 24px;
         }
         i {
@@ -256,13 +256,14 @@ h1 {
           right: 7px;
           top: 10px;
           z-index: 2;
+          cursor: default;
         }
         i:hover {
           border: 1px solid grey;
         }
       }
     }
-    .remove-group-error{
+    .remove-group-error {
       display: none;
     }
     .add-slave-component-group {
@@ -404,11 +405,11 @@ a:focus {
   }
 
   .service {
-    position:relative;
+    position: relative;
     margin-top: 10px;
     border-bottom: 1px solid #b8b8b8;
     padding-left: 10px;
-    width: 540px;
+    margin-right: 20px;
 
     .name {
       line-height: 21px;
@@ -426,15 +427,19 @@ a:focus {
       margin-top: 14px;
       color: #7b7b7b;
       font-size: 13px;
-      width: 410px;
+      width: 80%;
+      tr > td:first-child {
+        padding-right: 10px;
+        text-align: right !important;
+      }
       th, td {
-        line-height: 8px !important;
+        padding: 4px;
       }
     }
 
     .chart {
       right: 0;
-      top: 5px;
+      top: 27px;
       position: absolute;
       overflow: visible; // for quick links
       text-align: center;
@@ -446,14 +451,19 @@ a:focus {
     }
   }
 }
+
 #summary-info {
-  margin: 10px 0;
-/*
-  tr td:first-child {
-    font-weight: bold;
-    background: #d0d0d0;
+  border-top: none;
+  border-collapse: collapse;
+
+  td.summary-label {
+    text-align: right;
   }
-*/
+
+  tr td:first-child {
+    text-align: right;
+  }
+
   a {
     text-decoration: underline;
     &:hover {
@@ -461,6 +471,7 @@ a:focus {
     }
   }
 }
+
 .more-stats {
   display: block;
   width: 100%;
@@ -478,6 +489,7 @@ a:focus {
 
 /*start alerts summary*/
 .alerts {
+  border: 1px solid #ddd;
   margin: 0px;
   max-height: 500px;
   overflow-y: auto;
@@ -518,7 +530,7 @@ a:focus {
       padding-left: 7px;
     }
   }
-  
+
 }
 
 .go-to {
@@ -565,6 +577,12 @@ a:focus {
   margin-top: -48px;
 }
 
+.service-content {
+  #summary-info {
+    margin-bottom: 0;
+  }
+}
+
 /*End Services*/
 
 /*Hosts*/
@@ -594,7 +612,7 @@ a:focus {
     margin-bottom: 5px;
   }
   .box-header .host-title {
-    margin:0;
+    margin: 0;
     padding-left: 17px;
   }
   .box-header .button-section {
@@ -623,7 +641,7 @@ a:focus {
     background: #F5F5F5;
   }
   .host-components .btn-group {
-    margin:0 5px 10px 0;
+    margin: 0 5px 10px 0;
   }
 }
 
@@ -948,7 +966,7 @@ ul.filter {
   display: block !important;
 }
 
-.displayInline {
+.display-inline-block {
   display: inline-block !important;
 }
 
@@ -1074,4 +1092,80 @@ ul.inline li {
 .table.no-borders th, .table.no-borders td {
   border-top: none;
 }
+
 /* UNIVERSAL STYLES END */
+
+/* METRIC FILTERING WIDGET */
+.metric-filtering-widget {
+
+  .title {
+    padding-top: 4px;
+  }
+
+  .accordion {
+    background: none repeat scroll 0 0 #FFFFFF;
+    border: 1px solid;
+    font-size: 12px;
+    padding: 5px 0;
+    position: absolute;
+
+    .accordion-group {
+      border: none;
+
+      .accordion-heading {
+        .accordion-toggle {
+          padding: 0 5px;
+        }
+        i {
+          text-decoration: none;
+        }
+      }
+
+      .accordion-body {
+        .accordion-inner {
+          border: none;
+          padding: 0 8px;
+          width: 160px;
+
+          ul.items {
+            border: 1px solid #000;
+            list-style: none;
+            border-bottom: none;
+
+            li {
+              border-bottom: 1px solid;
+              line-height: 12px;
+              padding: 2px 5px;
+              padding: 2px 5px;
+            }
+
+            li.disabled {
+              a {
+                color: #999999;
+              }
+            }
+
+          }
+        }
+      }
+    }
+  }
+}
+
+/* METRIC FILTERING WIDGET END */
+
+/* TIME RANGE WIDGET */
+
+/* css for timepicker */
+.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+.ui-timepicker-div dl { text-align: left; }
+.ui-timepicker-div dl dt { height: 25px; margin-bottom: -25px; }
+.ui-timepicker-div dl dd { margin: 0 10px 10px 65px; }
+.ui-timepicker-div td { font-size: 90%; }
+.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+
+.ui-timepicker-rtl{ direction: rtl; }
+.ui-timepicker-rtl dl { text-align: right; }
+.ui-timepicker-rtl dl dd { margin: 0 65px 10px 10px; }
+
+/* TIME RANGE WIDGET END */

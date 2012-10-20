@@ -30,11 +30,11 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   }.property('parent.service.healthStatus'),
 
   startBlink:function () {
-      this.set('blink', true);
+    this.set('blink', true);
   },
 
   doBlink:function () {
-    if (this.get('blink') && (this.get("state") == "inDOM")){
+    if (this.get('blink') && (this.get("state") == "inDOM")) {
       this.$().effect("pulsate", { times:1 }, "slow", function () {
         var view = Em.View.views[$(this).attr('id')];
         view.doBlink();
@@ -73,25 +73,25 @@ App.MainDashboardServiceHealthView = Em.View.extend({
 
 App.MainDashboardServiceView = Em.View.extend({
   classNames:['service', 'clearfix'],
+  data:function () {
+    return this.get('controller.data.' + this.get('serviceName'));
+  }.property('controller.data'),
   service:function () {
-    var services = this.get('services');
-    thisView = this;
-    var serviceProperty = false;
-    services.forEach(function (service) {
-      if (service.get('serviceName') == thisView.get('serviceName')) {
-        return serviceProperty = service;
-      }
-    })
+    var services = this.get('controller.services');
+    if (services) {
+      thisView = this;
+      var serviceProperty = false;
+      services.forEach(function (service) {
+        if (service.get('serviceName') == thisView.get('serviceName')) {
+          return serviceProperty = service;
+        }
+      })
+    }
 
     return serviceProperty;
-  }.property('services'),
+  }.property('controller.services'),
 
-  init:function () {
-    this._super();
-    var thisView = this;
-  },
-
-  criticalAlertsCount: function(){
+  criticalAlertsCount:function () {
     var alerts = this.get('service.alerts');
     var count = 0;
 

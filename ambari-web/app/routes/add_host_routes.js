@@ -122,26 +122,39 @@ module.exports = Em.Route.extend({
       var controller = router.get('addHostController');
       controller.setCurrentStep('4', false);
       controller.loadAllPriorSteps();
-      controller.connectOutlet('wizardStep5' /*, controller.get('content.services')*/);
+      controller.connectOutlet('wizardStep5', controller.get('content'));
 
     },
     back: Em.Router.transitionTo('step3'),
     next: function (router, context) {
-      console.warn('next is not ready now');
+      var addHostController = router.get('addHostController');
+      var wizardStep5Controller = router.get('wizardStep5Controller');
+      addHostController.saveMasterComponentHosts( wizardStep5Controller );
+      router.transitionTo('step5');
     }
   }),
 
-//  step5: Em.Route.extend({
-//    route: '/step5',
-//    connectOutlets: function (router, context) {
-//      router.setNavigationFlow('step5');
-//      router.setInstallerCurrentStep('5', false);
-//      router.get('installerController').connectOutlet('installerStep5');
-//    },
-//    back: Em.Router.transitionTo('step4'),
-//    next: Em.Router.transitionTo('step6')
-//  }),
-//
+  step5: Em.Route.extend({
+    route: '/step5',
+    connectOutlets: function (router, context) {
+      console.log('in addHost.step5:connectOutlets');
+      var controller = router.get('addHostController');
+      controller.setCurrentStep('5', false);
+      controller.loadAllPriorSteps();
+      controller.connectOutlet('wizardStep6', controller.get('content'));
+    },
+    back: Em.Router.transitionTo('step4'),
+    next: function(router){
+      var addHostController = router.get('addHostController');
+      var wizardStep6Controller = router.get('wizardStep6Controller');
+
+      if(wizardStep6Controller.validate()){
+        addHostController.saveSlaveComponentHosts(wizardStep6Controller);
+        router.transitionTo('step7');
+      }
+    }
+  }),
+
 //  step6: Em.Route.extend({
 //    route: '/step6',
 //    connectOutlets: function (router, context) {

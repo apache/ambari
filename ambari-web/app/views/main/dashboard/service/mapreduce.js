@@ -19,44 +19,62 @@
 var App = require('app');
 
 App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
-  templateName: require('templates/main/dashboard/service/mapreduce'),
-  serviceName: 'mapreduce',
-  data: {
-    "jobtracker_addr": "jobtracker:50030",
-    "jobtracker_starttime": 1348935243,
-    "running_jobs": 1,
-    "waiting_jobs": 0,
-    "trackers_total": "1",
-    "trackers_live": 1,
-    "trackers_graylisted": 0,
-    "trackers_blacklisted": 0,
-    "chart": [4,8,7,2,1,4,3,3,3]
-  },
+  templateName:require('templates/main/dashboard/service/mapreduce'),
+  serviceName:'mapreduce',
 
-  Chart: App.ChartLinearView.extend({
-    data: function(){
+  Chart:App.ChartLinearView.extend({
+    data:function () {
       return this.get('_parentView.data.chart');
     }.property('_parentView.data.chart')
   }),
 
-  jobTrackerUptime: function(){
+  jobTrackerUptime:function () {
     var uptime = this.get('data.jobtracker_starttime') + 0;
     var formatted = uptime.toDaysHoursMinutes();
     return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);
   }.property("data"),
 
-  summaryHeader: function(){
+  summaryHeader:function () {
     var template = this.t('dashboard.services.mapreduce.summary');
     return template.format(this.get('data.trackers_live'), this.get('data.trackers_total'), this.get('data.running_jobs'));
   }.property('data'),
 
-  trackersSummary: function (){
+  trackersSummary:function () {
     var template = this.t('dashboard.services.mapreduce.trackersSummary');
     return template.format(this.get('data.trackers_live'), this.get('data.trackers_total'));
   }.property('data'),
 
-  jobsSummary: function (){
+  trackersHeapSummary:function () {
+    var percent =
+      this.get('data.trackers_heap_total') > 0
+        ? 100 * this.get('data.trackers_heap_used') / this.get('data.trackers_heap_total')
+        : 0;
+
+    return this.t('dashboard.services.mapreduce.jobTrackerHeapSummary').format(
+      this.get('data.trackers_heap_used').bytesToSize(1, "parseFloat"),
+      this.get('data.trackers_heap_total').bytesToSize(1, "parseFloat"),
+      percent.toFixed(1)
+    );
+  }.property('data'),
+
+  jobsSummary:function () {
     var template = this.t('dashboard.services.mapreduce.jobsSummary');
-    return template.format(this.get('data.running_jobs'), "?", "?");
+    return template.format(this.get('data.running_jobs'), this.get('data.completed_jobs'), this.get('data.failed_jobs'));
+  }.property('data'),
+
+  mapSlotsSummary:function () {
+    return this.t('dashboard.services.mapreduce.mapSlotsSummary').format(
+      this.get('data.map_slots_occuped'),
+      this.get('data.map_slots_reserved'),
+      this.get('data.map_slots_total')
+    );
+  }.property('data'),
+
+  reduceSlotsSummary:function () {
+    return this.t('dashboard.services.mapreduce.reduceSlotsSummary').format(
+      this.get('data.reduce_slots_occuped'),
+      this.get('data.reduce_slots_reserved'),
+      this.get('data.reduce_slots_total')
+    );
   }.property('data')
 });

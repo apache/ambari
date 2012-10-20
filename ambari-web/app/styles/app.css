@@ -163,7 +163,8 @@
 }
 /*End Carousel*//*End Hosts*/
 
-#add-host .back{
+#add-host .back,
+#add-service .back{
     display: block;
     width: 105px;
     margin-bottom: 10px;

@@ -15,8 +15,13 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-
-{{view App.MetricFilteringWidget controllerBinding="App.router.mainChartsController"}}
-{{view App.TimeRangeWidget controllerBinding="App.router.mainChartsController"}}
-{{view App.MainChartsMenuView}}
-{{outlet}}
+<div class="span title">
+  Time Range <i class="icon-question-sign"></i>
+</div>
+<ul class="display-inline-block nav nav-pills">
+  {{#each preset in view.presets}}
+    {{view view.presetView presetBinding="preset" widgetBinding="view"}}
+  {{/each}}
+  From {{view view.dateFromView}}
+  To {{view view.dateToView}}
+</ul>

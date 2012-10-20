@@ -204,19 +204,19 @@ App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHo
 
 });
 
-App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, {
-
-  classNames: ['slave-hosts', 'span6'],
-  templateName: require('templates/installer/slave_hosts'),
-
-  controllerBinding: 'App.router.slaveComponentGroupsController',
-  valueBinding: 'App.router.slaveComponentGroupsController.hosts',
-
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
-
-});
+//App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, {
+//
+//  classNames: ['slave-hosts', 'span6'],
+//  templateName: require('templates/installer/slave_hosts'),
+//
+//  controllerBinding: 'App.router.slaveComponentGroupsController',
+//  valueBinding: 'App.router.slaveComponentGroupsController.hosts',
+//
+//  disabled: function () {
+//    return !this.get('serviceConfig.isEditable');
+//  }.property('serviceConfig.isEditable')
+//
+//});
 
 App.AddSlaveComponentGroupButton = Ember.View.extend({
 
@@ -249,10 +249,35 @@ App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
     template:Ember.Handlebars.compile('<a {{action showSlaveComponentGroup view.content target="App.router.slaveComponentGroupsController"}} href="#"> {{unbound view.content.name}}</a><i {{action removeSlaveComponentGroup view.content target="App.router.slaveComponentGroupsController"}} class="icon-remove"></i>')  })
 });
 
-App.SlaveComponentGroupView = Ember.View.extend({
-//  contentBinding: 'App.router.slaveComponentGroupsController.activeGroup',
-  classNames: ['slave-group']
-//  elementId: function(){
-//    return 'slave-group' + this.get('content.index');
-//  }.property('content.index')
+App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, {
+  classNames: ['slave-hosts', 'span6'],
+  controllerBinding: 'App.router.slaveComponentGroupsController',
+  valueBinding: 'hosts',
+  group: function(){
+    return this.get('controller.activeGroup');
+  }.property('controller.activeGroup'),
+  hosts: function(){
+    if (this.get('group') !== undefined)
+      return this.get('controller').getHostsByGroup(this.get('group'))
+  }.property('controller.hosts.@each.group', 'group'),
+  templateName: require('templates/installer/slave_component_hosts'),
+  disabled: function () {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable')
+});
+
+App.SlaveComponentDropDownGroupView = Ember.View.extend({
+  controllerBinding: 'App.router.slaveComponentGroupsController',
+  optionTag: Ember.View.extend({
+    selected: function(){
+      var parent = this._parentView.templateData.view;
+      return parent.get('content.group') === this.get('content');
+    }.property('content'),
+    changeGroup: function(event) {
+      var parent = this._parentView.templateData.view;
+      var groupName = this.get('content');
+      var host = parent.get('content');
+      parent.get('controller').changeHostGroup(host, groupName);
+    }
+  })
 });

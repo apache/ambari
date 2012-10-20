@@ -21,25 +21,6 @@ var App = require('app');
 App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   templateName:require('templates/main/dashboard/service/hdfs'),
   serviceName:'hdfs',
-  data:{
-    "namenode_addr":"namenode:50070",
-    "secondary_namenode_addr":"snamenode:50090",
-    "namenode_starttime":1348935028,
-    "total_nodes":"1",
-    "live_nodes":1,
-    "dead_nodes":0,
-    "decommissioning_nodes":0,
-    "dfs_blocks_underreplicated":145,
-    "safemode":false,
-    "pending_upgrades":false,
-    "dfs_configured_capacity":885570207744,
-    "dfs_percent_used":0.01,
-    "dfs_percent_remaining":95.09,
-    "dfs_total_bytes":885570207744,
-    "dfs_used_bytes":104898560,
-    "nondfs_used_bytes":43365113856,
-    "dfs_free_bytes":842100195328
-  },
 
   Chart:App.ChartPieView.extend({
     data:function () {
@@ -54,7 +35,14 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property("data"),
 
   nodeHeap:function () {
-    return this.t('dashboard.services.hdfs.nodes.heapUsed').format("?", "?", "?");
+
+    var percent = this.get('data.namenode_heap_total') > 0 ? 100 * this.get('data.namenode_heap_used') / this.get('data.namenode_heap_total') : 0;
+
+    return this.t('dashboard.services.hdfs.nodes.heapUsed').format(
+      this.get('data.namenode_heap_used').bytesToSize(1, 'parseFloat'),
+      this.get('data.namenode_heap_total').bytesToSize(1, 'parseFloat')
+      , percent.toFixed(1));
+
   }.property('data'),
 
   summaryHeader:function () {
@@ -67,6 +55,6 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     var total = this.get('data.dfs_total_bytes') + 0;
     var used = this.get('data.dfs_used_bytes') + this.get('data.nondfs_used_bytes');
 
-    return text.format(used.bytesToSize(2), total.bytesToSize(2), this.get('data.dfs_percent_used'));
+    return text.format(used.bytesToSize(1), total.bytesToSize(1), this.get('data.dfs_percent_used'));
   }.property('data')
 });

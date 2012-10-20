@@ -202,26 +202,56 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
   }.property('App.router.installerStep7Controller.selectedService'),
 
   selectedSlaveComponent: function () {
-    var component = this.findProperty('componentName', this.get('selectedComponentName'));
-    return component;
+    if (this.get('selectedComponentName') !== null && this.get('selectedComponentName') !== undefined) {
+      return this.findProperty('componentName', this.get('selectedComponentName'));
+    }
   }.property('selectedComponentName'),
 
   showAddSlaveComponentGroup: function (event) {
     var componentName = event.context;
+    var component = this.get('selectedSlaveComponent');
     App.ModalPopup.show({
       header: componentName + ' Groups',
       bodyClass: Ember.View.extend({
         controllerBinding: 'App.router.slaveComponentGroupsController',
-        templateName: require('templates/installer/slave_hosts_popup')
+        templateName: require('templates/installer/slave_component_hosts_popup')
       }),
-      onPrimary: function () {
+      onPrimary: function (event) {
+        if (component.tempSelectedGroups !== undefined && component.tempSelectedGroups.length){
+          component.tempSelectedGroups.forEach(function(item){
+            var changed = component.hosts.filterProperty('hostname', item.hostName);
+            changed.setEach('group', item.groupName);
+          })
+        }
+        delete component.tempSelectedGroups;
+        this.hide();
+      },
+      onSecondary: function (event) {
+        delete component.tempSelectedGroups;
+        this.hide();
+      },
+      onClose: function (event) {
+        delete component.tempSelectedGroups;
+        this.hide();
       }
     });
   },
 
+  changeHostGroup: function(host, groupName){
+    var component = this.get('selectedSlaveComponent');
+    if (component.tempSelectedGroups === undefined){
+      component.tempSelectedGroups = [];
+    }
+    var values = component.tempSelectedGroups.filterProperty('hostName', host.hostname);
+    if (values.length === 0)
+      component.tempSelectedGroups.pushObject({hostName: host.hostname, groupName:groupName});
+    else
+      values.setEach('groupName', groupName);
+
+  },
+
   addSlaveComponentGroup: function (event) {
-    var componentName = event.context;
-    var component = this.findProperty('componentName', componentName);
+    var component = this.get('selectedSlaveComponent');
     var newGroupName;
     component.groups.setEach('active', false);
     var newGroups = component.groups.filterProperty('type', 'new');
@@ -234,6 +264,7 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
     }
     var newGroup = {name: newGroupName, index: component.newGroupIndex, type: 'new', active: true};
     component.groups.pushObject(newGroup);
+    $('.remove-group-error').hide();
   },
 
   showEditSlaveComponentGroups: function (event) {
@@ -260,7 +291,7 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
 
   componentGroups: function () {
     if (this.get('selectedComponentName') !== null) {
-      var component = this.findProperty('componentName', this.get('selectedComponentName'));
+      var component = this.get('selectedSlaveComponent');
       if (component !== undefined && component !== null) {
         if (component.groups === undefined){
           component.groups = [];
@@ -272,20 +303,35 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
     }
   }.property('selectedComponentName'),
 
-//  activeGroup: function(){
-//    return this.get('componentGroups').findProperty('active', true);
-//  }.property('selectedComponentName', 'componentGroups.@each'),
+  getHostsByGroup: function(group){
+    var component = this.get('selectedSlaveComponent');
+    return component.hosts.filterProperty('group', group.name);
+  },
+
+  getGroupsForDropDown: function(){
+     return this.get('componentGroups').getEach('name');
+  }.property('selectedComponentName', 'componentGroups.@each'),
+
+  activeGroup: function(){
+    var active = this.get('componentGroups').findProperty('active', true);
+    if (active !== undefined)
+      return active;
+  }.property('selectedComponentName', 'componentGroups.@each.active'),
 
   showSlaveComponentGroup: function(event){
-    var component = this.findProperty('componentName', this.get('selectedComponentName'));
+    var component = this.get('selectedSlaveComponent');
     component.groups.setEach('active', false);
     var group = component.groups.filterProperty('name', event.context.name);
     group.setEach('active', true);
+    var assignedHosts = component.hosts.filterProperty('group', event.context.name);
+    if (assignedHosts.length === 0){
+      $('.remove-group-error').hide();
+    }
   },
 
   removeSlaveComponentGroup: function(event){
     var group = event.context;
-    var component = this.findProperty('componentName', this.get('selectedComponentName'));
+    var component = this.get('selectedSlaveComponent');
     var assignedHosts = component.hosts.filterProperty('group', group.name);
     if (assignedHosts.length !== 0){
       $('.remove-group-error').show();
@@ -293,10 +339,13 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
       $('.remove-group-error').hide();
       var key = component.groups.indexOf(group);
       component.groups.removeObject(component.groups[key]);
-//      $('#slave-group'+ group.index).remove();
 
-      if(group.type === 'new' && component.newGroupIndex === group.index){
-        component.newGroupIndex--;
+      var newGroups = component.groups.filterProperty('type', 'new');
+      if (newGroups.length == 0)
+        component.newGroupIndex = 0;
+      else {
+        var lastNewGroup = newGroups[newGroups.length - 1];
+        component.newGroupIndex = lastNewGroup.index;
       }
       if (group.active){
         var lastGroup;

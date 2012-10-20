@@ -19,40 +19,43 @@
 var App = require('app');
 
 App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
-  templateName: require('templates/main/dashboard/service/hbase'),
-  serviceName: 'hbase',
-  data: {
-    "hbasemaster_addr": "hbasemaster:60010",
-    "total_regionservers": "1",
-    "hbasemaster_starttime": 1348935496,
-    "live_regionservers": 1,
-    "dead_regionservers": 0,
-    "regions_in_transition_count": 0,
-    "chart": [3,7,7,5,5,3,5,3,7]
-  },
+  templateName:require('templates/main/dashboard/service/hbase'),
+  serviceName:'hbase',
 
-  Chart: App.ChartLinearView.extend({
-    data: function(){
+  Chart:App.ChartLinearView.extend({
+    data:function () {
       return this.get('_parentView.data.chart');
     }.property('_parentView.data.chart')
   }),
 
-  summaryHeader: function(){
-    return this.t("dashboard.services.hbase.summary").format(
-      this.get('data.live_regionservers'),
-      this.get('data.total_regionservers'),
-      "?"
+  masterServerHeapSummary:function () {
+    var percent = this.get('data.master_server_heap_total') > 0
+      ? 100 * this.get('data.master_server_heap_used') / this.get('data.master_server_heap_total')
+      : 0;
+
+    return this.t('dashboard.services.hbase.masterServerHeap.summary').format(
+      this.get('data.master_server_heap_used').bytesToSize(1, 'parseFloat'),
+      this.get('data.master_server_heap_total').bytesToSize(1, 'parseFloat'),
+      percent.toFixed(1)
     );
   }.property('data'),
 
-  regionServers: function(){
+  summaryHeader:function () {
+    return this.t("dashboard.services.hbase.summary").format(
+      this.get('data.live_regionservers'),
+      this.get('data.total_regionservers'),
+      this.get('data.average_load')
+    );
+  }.property('data'),
+
+  regionServers:function () {
     return this.t('dashboard.services.hbase.regionServersSummary').format(
       this.get('data.live_regionservers'), this.get('data.total_regionservers')
     );
 
   }.property('data'),
 
-  masterServerUptime: function(){
+  masterServerUptime:function () {
     var uptime = this.get('data.hbasemaster_starttime');
     var formatted = uptime.toDaysHoursMinutes();
     return this.t('dashboard.services.uptime').format(formatted.d, formatted.h, formatted.m);

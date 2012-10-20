@@ -398,7 +398,7 @@ App.db.getBootStatus = function() {
   return App.db.data[user].Installer.bootStatus;
 }
 
-App.db.getService = function(serviceInfo) {
+App.db.getService = function() {
   console.log('TRACE: Entering db:getService function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;

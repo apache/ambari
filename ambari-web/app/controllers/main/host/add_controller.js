@@ -178,7 +178,7 @@ App.AddHostController = Em.Controller.extend({
    *   localRepoPath: ''
    * }
    */
-  loadHosts: function () {
+  loadInstallOptions: function () {
 
     if (!this.content.hosts) {
       this.content.hosts = Em.Object.create();
@@ -249,8 +249,7 @@ App.AddHostController = Em.Controller.extend({
       });
 
       hosts.pushObject(hostInfo);
-    }
-    ;
+    };
 
     console.log('TRACE: pushing ' + hosts);
     return hosts;
@@ -281,6 +280,15 @@ App.AddHostController = Em.Controller.extend({
     });
     console.log('addHostController:saveConfirmedHosts: save hosts ', hostInfo);
     App.db.setHosts(hostInfo);
+    this.set('content.hostsInfo', hostInfo);
+  },
+
+  /**
+   * Load confirmed hosts.
+   * Will be used at <code>Assign Masters(step5)</code> step
+   */
+  loadConfirmedHosts : function(){
+    this.set('content.hostsInfo', App.db.getHosts());
   },
 
   /**
@@ -309,6 +317,7 @@ App.AddHostController = Em.Controller.extend({
     });
     this.set('content.services', servicesInfo);
     console.log('addHostController.loadServices: loaded data ', servicesInfo);
+    console.log('selected services ', servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName'));
   },
 
   /**
@@ -317,6 +326,8 @@ App.AddHostController = Em.Controller.extend({
    */
   saveServices: function (stepController) {
     var serviceNames = [];
+    // we can also do it without stepController since all data,
+    // changed at page, automatically changes in model(this.content.services)
     App.db.setService(stepController.get('content'));
     stepController.filterProperty('isSelected', true).forEach(function (item) {
       serviceNames.push(item.serviceName);
@@ -326,30 +337,115 @@ App.AddHostController = Em.Controller.extend({
   },
 
   /**
+   * Save Master Component Hosts data to Main Controller
+   * @param stepController App.WizardStep5Controller
+   */
+  saveMasterComponentHosts: function (stepController) {
+    var obj = stepController.get('selectedServicesMasters');
+    var masterComponentHosts = [];
+    obj.forEach(function (_component) {
+      masterComponentHosts.push({
+        component: _component.component_name,
+        hostName: _component.selectedHost
+      });
+    });
+
+    console.log("AddHostController.saveComponentHosts: saved hosts ", masterComponentHosts);
+    App.db.setMasterComponentHosts(masterComponentHosts);
+    this.set('content.masterComponentHosts', masterComponentHosts);
+  },
+
+  /**
+   * Load master component hosts data for using in required step controllers
+   */
+  loadMasterComponentHosts: function () {
+    var masterComponentHosts = App.db.getMasterComponentHosts();
+    this.set("content.masterComponentHosts", masterComponentHosts);
+    console.log("AddHostController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
+  },
+
+  /**
+   * Save slaveHostComponents to main controller
+   * @param stepController
+   */
+  saveSlaveComponentHosts : function(stepController){
+
+    var hosts = stepController.get('hosts');
+    var isMrSelected = stepController.get('isMrSelected');
+    var isHbSelected = stepController.get('isHbSelected');
+
+    App.db.setHostSlaveComponents(hosts);
+    this.set('content.hostSlaveComponents', hosts);
+
+    var dataNodeHosts = [];
+    var taskTrackerHosts = [];
+    var regionServerHosts = [];
+
+    hosts.forEach(function (host) {
+      if (host.get('isDataNode')) {
+        dataNodeHosts.push({
+          hostname: host.hostname,
+          group: 'Default'
+        });
+      }
+      if (isMrSelected && host.get('isTaskTracker')) {
+        taskTrackerHosts.push({
+          hostname: host.hostname,
+          group: 'Default'
+        });
+      }
+      if (isHbSelected && host.get('isRegionServer')) {
+        regionServerHosts.push({
+          hostname: host.hostname,
+          group: 'Default'
+        });
+      }
+    }, this);
+
+    var slaveComponentHosts = [];
+    slaveComponentHosts.push({
+      componentName: 'DATANODE',
+      displayName: 'DataNode',
+      hosts: dataNodeHosts
+    });
+    if (isMrSelected) {
+      slaveComponentHosts.push({
+        componentName: 'TASKTRACKER',
+        displayName: 'TaskTracker',
+        hosts: taskTrackerHosts
+      });
+    }
+    if (isHbSelected) {
+      slaveComponentHosts.push({
+        componentName: 'HBASE_REGIONSERVER',
+        displayName: 'RegionServer',
+        hosts: regionServerHosts
+      });
+    }
+
+    App.db.setSlaveComponentHosts(slaveComponentHosts);
+    this.set('content.slaveComponentHosts', slaveComponentHosts);
+  },
+
+  /**
    * Load data for all steps until <code>current step</code>
    */
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
-      /*case '10':
-       this.get('installerStep9Controller').loadStep();
-       case '9':
-       this.get('installerStep8Controller').loadStep();
-       case '8':
-       this.get('installerStep7Controller').loadStep();
-       case '7':
-       this.get('installerStep6Controller').loadStep();
-       case '6':
-       this.get('installerStep5Controller').loadStep();
-       case '5':
-       this.get('installerStep4Controller').loadStep();*/
+      case '7':
+        //current
+      case '6':
+        //Sasha
+      case '5':
+        this.loadMasterComponentHosts();
       case '4':
-      //this.get('installerStep3Controller').loadStep();
+        this.loadConfirmedHosts();
       case '3':
         this.loadServices();
       case '2':
       case '1':
-        this.loadHosts();
+        this.loadInstallOptions();
     }
   },
 

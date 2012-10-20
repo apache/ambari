@@ -19,25 +19,49 @@
 var App = require('app');
 
 App.MainServiceMenuView = Em.CollectionView.extend({
-  content:function(){
+  content: function () {
     return App.router.get('mainServiceController.content');
   }.property('App.router.mainServiceController.content'),
 
-  init: function(){ this._super(); this.activateView(); },
+  init: function () {
+    this._super();
+    this.renderOnRoute();
+  },
+  didInsertElement: function () {
+    App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
+    this.renderOnRoute();
+  },
 
-  tagName:'ul',
-  classNames:["nav", "nav-list", "nav-services"],
+  /**
+   *    Syncs navigation menu with requested URL
+   */
+  renderOnRoute: function () {
+    var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
+    if (last_url.substr(1, 4) !== 'main' || !this._childViews) {
+      return;
+    }
+    var reg = /^\/main\/services\/(\d+)/g;
+    var sub_url = reg.exec(last_url);
+    var service_id = (null != sub_url) ? sub_url[1] : 1;
+    $.each(this._childViews, function () {
+      this.set('active', this.get('content.id') == service_id ? "active" : "");
+    });
+  },
 
-  activateView:function () {
+  tagName: 'ul',
+  classNames: ["nav", "nav-list", "nav-services"],
+
+  activateView: function () {
     var service = App.router.get('mainServiceItemController.content');
     $.each(this._childViews, function () {
       this.set('active', (this.get('content.serviceName') == service.get('serviceName') ? "active" : ""));
     });
   }.observes("App.router.mainServiceItemController.content"),
 
-  itemViewClass:Em.View.extend({
-    classNameBindings:["active"],
-    active:"",
-    template:Ember.Handlebars.compile('<a {{action showService view.content}} href="#" class="health-status-{{unbound view.content.healthStatus}}"> {{unbound view.content.label}}</a>')
+  itemViewClass: Em.View.extend({
+    classNameBindings: ["active"],
+    active: "",
+    // {{action showService view.content}}
+    template: Ember.Handlebars.compile('<a href="#/main/services/{{unbound view.content.id}}/summary" class="health-status-{{unbound view.content.healthStatus}}"> {{unbound view.content.label}}</a>')
   })
 });

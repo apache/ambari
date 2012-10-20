@@ -1,0 +1,31 @@
+<div id="slave-hosts-popup" class="alert alert-info">Select which hosts should belong to which {{selectedComponentName}} group.</div>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Host</th>
+      <th>Group</th>
+    </tr>
+  </thead>
+  <tbody>
+  {{#each host in hosts}}
+    <tr>
+      <td>
+        <label>{{host.hostname}}</label>
+      </td>
+      <td>
+        {{#view App.SlaveComponentDropDownGroupView contentBinding="host"}}
+        <select>
+          {{#each groupName in controller.getGroupsForDropDown}}
+            {{#view view.optionTag contentBinding="groupName"}}
+              <option value="{{unbound groupName}}" {{bindAttr selected="view.selected"}} {{action changeGroup target="view"}}>
+                {{unbound groupName}}
+              </option>
+            {{/view}}
+          {{/each}}
+        </select>
+        {{/view}}
+      </td>
+    </tr>
+  {{/each}}
+  </tbody>
+</table>

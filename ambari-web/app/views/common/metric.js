@@ -25,7 +25,35 @@ var App = require('app');
  * @type {*}
  */
 App.MetricFilteringWidget = Em.View.extend({
-  metrics:[],
+  classNames:['metric-filtering-widget'],
+  /**
+   * metrics
+   */
+  metrics:[
+    Em.Object.create({ label:Em.I18n.t('metric.default'), value:null}),
+    Em.Object.create({ label:Em.I18n.t('metric.cpu'), value:'cpu'}),
+    Em.Object.create({ label:Em.I18n.t('metric.memory'), value:'memory'}),
+    Em.Object.create({ label:Em.I18n.t('metric.network'), value:'network'}),
+    Em.Object.create({ label:Em.I18n.t('metric.io'), value:'io'})
+  ],
+  /**
+   * chosen metric value
+   */
+  chosenMetric:null,
+  chosenMoreMetric: null,
+
+  showMore:0, // toggle more metrics indicator
+
+  /**
+   * return array of chosen metrics
+   */
+  chosenMetrics:function () {
+    return this.get('chosenMetric') ? [this.get('chosenMetric')] : this.get('defaultMetrics');
+  }.property('chosenMetric'),
+
+  /**
+   * metric item view
+   */
   itemView:Em.View.extend({
     tagName:'li',
     classNameBindings:['disabled'],
@@ -33,22 +61,31 @@ App.MetricFilteringWidget = Em.View.extend({
       return this.get('isActive') ? "disabled" : false;
     }.property('isActive'),
     isActive:function () {
-      return this.get('metric.value') == this.get('widget.controller.metric');
-    }.property('widget.controller.metric'),
-    template:Em.Handlebars.compile('<a {{action activate view.metric.value target="view.widget" }}>{{view.metric.label}}</a>')
+      return this.get('metric.value') == this.get('widget.chosenMetric');
+    }.property('widget.chosenMetric'),
+    template:Em.Handlebars.compile('<a {{action activate view.metric.value target="view.widget" href="true" }}>{{unbound view.metric.label}}</a>')
   }),
 
-  metricsConfig:[
-    { label:Em.I18n.t('metric.default'), value:null},
-    { label:Em.I18n.t('metric.cpu'), value:'cpu'},
-    { label:Em.I18n.t('metric.memory'), value:'memory'},
-    { label:Em.I18n.t('metric.network'), value:'network'},
-    { label:Em.I18n.t('metric.io'), value:'io'}
+  moreItemView: function(){
+    return this.get('itemView').extend({});
+  }.property(),
+
+  moreMetrics:[
+    Em.Object.create({ label:Em.I18n.t('metric.more.cpu'), code:'cpu', items:[] }),
+    Em.Object.create({ label:Em.I18n.t('metric.more.memory'), code:'memory',
+      items:[
+        Em.Object.create({label:Em.I18n.t('metric.more.memory.swapFree'), value:'swap_free'}),
+        Em.Object.create({label:Em.I18n.t('metric.more.memory.memCached'), value:'cpu'})
+      ]
+    })
   ],
 
-  allMetrics:function () {
+  /**
+   * return default selected metrics (currently - all)
+   */
+  defaultMetrics:function () {
     var values = [];
-    $.each(this.get('metricsConfig'), function () {
+    $.each(this.get('metrics'), function () {
       if (this.value) {
         values.push(this.value);
       }
@@ -56,32 +93,30 @@ App.MetricFilteringWidget = Em.View.extend({
     return values;
   }.property(),
 
-  init:function () {
-    this._super();
+  bindToController:function () {
     var thisW = this;
     var controller = this.get('controller');
     controller.set('metricWidget', thisW);
+  },
 
-    this.get('itemView').reopen({
-      widget:thisW
-    });
-
-    // preparing metric objects
-    this.get('metricsConfig').forEach(function (config) {
-      config['widget'] = thisW;
-      thisW.get('metrics').push(Em.Object.create(config))
-    });
-
+  toggleMore:function () {
+    this.set('showMore', 1 - this.get('showMore'));
   },
 
   /**
-   * write active metric to binded controller
+   * assign this widget to controller, prepare items by metricsConfig
+   */
+  init:function () {
+    this._super();
+    this.bindToController();
+  },
+
+  /**
+   * write active metric to widget
    * @param event
    */
   activate:function (event) {
-    var selected = event.context;
-    var controller = this.get('controller');
-    controller.set('metric', selected);
+    this.set('chosenMetric', event.context);
   },
 
   templateName:require('templates/common/metric')

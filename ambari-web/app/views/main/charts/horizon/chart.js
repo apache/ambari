@@ -73,18 +73,15 @@ App.MainChartsHorizonChartView = App.ChartView.extend({
   }.property('nodeAttributes'),
 
   nodeAttributes: function(){
-    var controller = App.get('router.mainChartsController');
-    var metric = controller.get('metric');
-    if(!metric) {
-      return controller.get('metricWidget.allMetrics');
-    }
-    return [metric];
-  }.property('App.router.mainChartsController.metric'),
+
+    console.warn("node attributes:", App.router.get('mainChartsController.metricWidget.chosenMetrics'));
+
+    return App.router.get('mainChartsController.metricWidget.chosenMetrics');
+  }.property('App.router.mainChartsController.metricWidget.chosenMetrics'),
 
   toggleChart:function () {
     var thisChart = this;
     var host = this.get('host');
-    var controller = App.router.get('mainChartsController');
     if (!this.get('chartOpened')) { // if chart will be opened
       if (!this.get('chartDrawn')) {
         this.drawPlot(); // parent method
@@ -92,11 +89,11 @@ App.MainChartsHorizonChartView = App.ChartView.extend({
       }
 
       this.loadHorizonInfo();
-      controller.addObserver('metric', thisChart, 'drawPlot');
-      controller.addObserver('metric', thisChart, 'loadHorizonInfo');
+      this.addObserver('nodeAttributes', thisChart, 'drawPlot');
+      this.addObserver('nodeAttributes', thisChart, 'loadHorizonInfo');
     } else { // if chart will be closed
-      controller.removeObserver('metric', thisChart, 'drawPlot');
-      controller.removeObserver('metric', thisChart, 'loadHorizonInfo');
+      this.removeObserver('nodeAttributes', thisChart, 'drawPlot');
+      this.removeObserver('nodeAttributes', thisChart, 'loadHorizonInfo');
     }
 
     this.set('chartOpened', 1 - this.get('chartOpened'));
