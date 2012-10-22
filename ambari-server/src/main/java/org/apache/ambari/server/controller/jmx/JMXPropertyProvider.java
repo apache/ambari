@@ -140,17 +140,28 @@ public class JMXPropertyProvider implements PropertyProvider {
 
     try {
       JMXMetricHolder metricHolder = new ObjectMapper().readValue(streamProvider.readFrom(spec), JMXMetricHolder.class);
+
+      Map<String, Map<String, Object>> categories = new HashMap<String, Map<String, Object>>();
+
       for (Map<String, Object> bean : metricHolder.getBeans()) {
         String category = getCategory(bean);
         if (category != null) {
-          for (Map.Entry<String, Object> entry : bean.entrySet()) {
+          categories.put(category, bean);
+        }
+      }
 
-            PropertyId propertyId = PropertyHelper.getPropertyId(entry.getKey(), category);
+      for (PropertyId propertyId : ids) {
+        String category = propertyId.getCategory();
 
-            if (ids.contains(propertyId)) {
-              resource.setProperty(propertyId, entry.getValue());
-            }
-          }
+        // strip off 'metrics/' from the category
+        if (category.startsWith("metrics/")) {
+          category = category.substring(8);
+        }
+
+        Map<String, Object> properties = categories.get(category);
+        String name = propertyId.getName();
+        if (properties != null && properties.containsKey(name)) {
+          resource.setProperty(propertyId, properties.get(name));
         }
       }
     } catch (IOException e) {

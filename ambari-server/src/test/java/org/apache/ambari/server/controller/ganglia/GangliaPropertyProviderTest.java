@@ -33,7 +33,7 @@ import java.util.Set;
  */
 public class GangliaPropertyProviderTest {
 
-  private static final PropertyId PROPERTY_ID = PropertyHelper.getPropertyId("bytes_out", "network", true);
+  private static final PropertyId PROPERTY_ID = PropertyHelper.getPropertyId("bytes_out", "metrics/network", true);
 
   @Test
   public void testGetResources() throws Exception {
