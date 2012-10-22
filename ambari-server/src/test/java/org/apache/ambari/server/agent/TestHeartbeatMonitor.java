@@ -17,44 +17,69 @@
  */
 package org.apache.ambari.server.agent;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostEvent;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class TestHeartbeatMonitor {
 
-  @Test
-  public void testHeartbeatExpiry() throws Exception {
-    Clusters fsm = mock(Clusters.class);
-    ActionQueue aq = new ActionQueue();
-    ActionManager am = mock(ActionManager.class);
-    HostState hs = HostState.WAITING_FOR_HOST_STATUS_UPDATES;
-    List<Host> allHosts = new ArrayList<Host>();
-    Host hostObj = mock(Host.class);
-    allHosts.add(hostObj);
-    when(fsm.getHosts()).thenReturn(allHosts);
-    when(fsm.getHost("host1")).thenReturn(hostObj);
-    when(hostObj.getState()).thenReturn(hs);
-    when(hostObj.getHostName()).thenReturn("host1");
-    aq.enqueue("host1", new ExecutionCommand());
-    HeartbeatMonitor hm = new HeartbeatMonitor(fsm, aq, am, 100);
-    hm.start();
-    Thread.sleep(120);
-    //Heartbeat must have expired for host1, action queue must be flushed
-    assertEquals(0, aq.dequeueAll("host1").size());
-    verify(am, times(1)).handleLostHost("host1");
-    verify(hostObj, times(1)).handleEvent(any(HostEvent.class));
-    verify(hostObj, times(1)).setState(HostState.INIT);
-    hm.shutdown();
+  private static Injector injector;
+
+  @Before
+  public void setup() {
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    //injector.getInstance(OrmTestHelper.class).createDefaultData();
   }
 
+  @After
+  public void teardown() {
+    injector.getInstance(PersistService.class).stop();
+  }
+  
+  @Test
+  public void testHeartbeatLoss() throws AmbariException, InterruptedException,
+      InvalidStateTransitonException {
+    Clusters fsm = new ClustersImpl(injector);
+    String hostname = "host1";
+    fsm.addHost(hostname);
+    ActionQueue aq = new ActionQueue();
+    ActionManager am = mock(ActionManager.class);
+    HeartbeatMonitor hm = new HeartbeatMonitor(fsm, aq, am, 10);
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, aq, am);
+    Register reg = new Register();
+    reg.setHostname(hostname);
+    reg.setResponseId(12);
+    reg.setTimestamp(System.currentTimeMillis() - 300);
+    reg.setHardwareProfile(new HostInfo());
+    handler.handleRegistration(reg);
+    HeartBeat hb = new HeartBeat();
+    hb.setHostname(hostname);
+    hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, "cool"));
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(12);
+    handler.handleHeartBeat(hb);
+    hm.start();
+    aq.enqueue(hostname, new ExecutionCommand());
+    //Heartbeat will expire and action queue will be flushed
+    while (aq.size(hostname) != 0) {
+      Thread.sleep(1);
+    }
+    assertEquals(fsm.getHost(hostname).getState(), HostState.HEARTBEAT_LOST);
+  }
 }

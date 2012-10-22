@@ -76,6 +76,10 @@ public class ActionQueue {
       return q.remove();
     }
   }
+  
+  public synchronized int size(String hostname) {
+    return getQueue(hostname).size();
+  }
 
   public List<AgentCommand> dequeueAll(String hostname) {
     LOG.info("Dequeue all elements for hostname: "+hostname);

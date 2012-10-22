@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-894. TestHeartBeatMonitor fails intermittently. (jitendra)
+
   AMBARI-892. Add puppet executor at the agent to be able to run various
   commands from the server. (mahadev)
 

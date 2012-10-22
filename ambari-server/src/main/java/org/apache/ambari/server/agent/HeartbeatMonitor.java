@@ -78,6 +78,7 @@ public class HeartbeatMonitor implements Runnable {
   //notify action manager for node failure.
   private void doWork() throws InvalidStateTransitonException {
     List<Host> allHosts = fsm.getHosts();
+    LOG.info("Number of hosts to monitor: "+allHosts.size());
     long now = System.currentTimeMillis();
     for (Host hostObj : allHosts) {
       String host = hostObj.getHostName();
@@ -89,6 +90,7 @@ public class HeartbeatMonitor implements Runnable {
       } catch (AmbariException e) {
         LOG.warn("Exception in getting host object; Is it fatal?", e);
       }
+      LOG.info("host : "+ hostObj.getHostName() +", last heartbeat = "+lastHeartbeat);
       if (lastHeartbeat + 5*threadWakeupInterval < now) {
         LOG.warn("Hearbeat lost from host "+host);
         //Heartbeat is expired
