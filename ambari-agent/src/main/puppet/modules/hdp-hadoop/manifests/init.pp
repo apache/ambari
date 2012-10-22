@@ -39,48 +39,53 @@ class hdp-hadoop::initialize()
   anchor{'hdp-hadoop::initialize::begin':} -> Hdp-hadoop::Common['common'] -> anchor{'hdp-hadoop::initialize::end':}
 
 # Configs generation  
-# site.pp must have following configurations: 
-# hdp_hadoop__mapred_queue_acls
-# hdp_hadoop__hadoop_policy
-# hdp_hadoop__core_site
-# hdp_hadoop__mapred_site
-# hdp_hadoop__capacity_scheduler
-# hdp_hadoop__hdfs_site
-  
-  configgenerator::configfile{'mapred_queue_acls_xml': 
-    filename => 'mapred-queue-acls.xml',
-    module => 'hdp-hadoop',
-    configuration => $configuration['hdp_hadoop__mapred_queue_acls']
+
+  if has_key($configuration, 'hdp_hadoop__mapred_queue_acls') {
+    configgenerator::configfile{'mapred_queue_acls_xml': 
+      filename => 'mapred-queue-acls.xml',
+      module => 'hdp-hadoop',
+      configuration => $configuration['hdp_hadoop__mapred_queue_acls']
+    }
   }
   
-  configgenerator::configfile{'hadoop_policy_xml': 
-    filename => 'hadoop-policy.xml',
-    module => 'hdp-hadoop',
-    configuration => $configuration['hdp_hadoop__hadoop_policy']
+  if has_key($configuration, 'hdp_hadoop__hadoop_policy') {
+    configgenerator::configfile{'hadoop_policy_xml': 
+      filename => 'hadoop-policy.xml',
+      module => 'hdp-hadoop',
+      configuration => $configuration['hdp_hadoop__hadoop_policy']
+    }
   }
   
-  configgenerator::configfile{'core_site_xml': 
-    filename => 'core-site.xml',
-    module => 'hdp-hadoop',
-    configuration => $configuration['hdp_hadoop__core_site']
+  if has_key($configuration, 'hdp_hadoop__core_site') {
+      configgenerator::configfile{'core_site_xml': 
+        filename => 'core-site.xml',
+        module => 'hdp-hadoop',
+        configuration => $configuration['hdp_hadoop__core_site']
+      }
+    }
+
+  if has_key($configuration, 'hdp_hadoop__mapred_site') {
+    configgenerator::configfile{'mapred_site_xml': 
+      filename => 'mapred-site.xml',
+      module => 'hdp-hadoop',
+      configuration => $configuration['hdp_hadoop__mapred_site']
+    }
+  }
+  
+  if has_key($configuration, 'hdp_hadoop__capacity_scheduler') {
+    configgenerator::configfile{'capacity_scheduler_xml': 
+      filename => 'capacity-scheduler.xml',
+      module => 'hdp-hadoop',
+      configuration => $configuration['hdp_hadoop__capacity_scheduler']
+    }
   }
 
-  configgenerator::configfile{'mapred_site_xml': 
-    filename => 'mapred-site.xml',
-    module => 'hdp-hadoop',
-    configuration => $configuration['hdp_hadoop__mapred_site']
-  }
-  
-  configgenerator::configfile{'capacity_scheduler_xml': 
-    filename => 'capacity-scheduler.xml',
-    module => 'hdp-hadoop',
-    configuration => $configuration['hdp_hadoop__capacity_scheduler']
-  }
-
-  configgenerator::configfile{'hdfs_site_xml': 
-    filename => 'hdfs-site.xml',
-    module => 'hdp-hadoop',
-    configuration => $configuration['hdp_hadoop__hdfs_site']
+  if has_key($configuration, 'hdp_hadoop__hdfs_site') {
+    configgenerator::configfile{'hdfs_site_xml': 
+      filename => 'hdfs-site.xml',
+      module => 'hdp-hadoop',
+      configuration => $configuration['hdp_hadoop__hdfs_site']
+    }
   }
 }
 

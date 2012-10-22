@@ -25,13 +25,13 @@ class hdp-hcat(
   include hdp-hcat::params
 
 # Configs generation  
-# site.pp must have following configurations: 
-# hdp_hcat_old__hive_site
 
-  configgenerator::configfile{'hive_site_xml': 
-    filename => 'hive-site.xml',
-    module => 'hdp-hcat-old',
-    configuration => $configuration['hdp_hcat_old__hive_site']
+  if has_key($configuration, 'hdp_hcat_old__hive_site') {
+    configgenerator::configfile{'hive_site_xml': 
+      filename => 'hive-site.xml',
+      module => 'hdp-hcat-old',
+      configuration => $configuration['hdp_hcat_old__hive_site']
+    }
   }
 
   $hcat_user = $hdp::params::hcat_user

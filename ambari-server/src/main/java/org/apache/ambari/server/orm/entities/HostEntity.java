@@ -236,17 +236,6 @@ public class HostEntity {
     return result;
   }
 
-  private Collection<ActionStatusEntity> actionStatusEntities;
-
-  @OneToMany(mappedBy = "hostEntity")
-  public Collection<ActionStatusEntity> getActionStatusEntities() {
-    return actionStatusEntities;
-  }
-
-  public void setActionStatusEntities(Collection<ActionStatusEntity> actionStatusEntities) {
-    this.actionStatusEntities = actionStatusEntities;
-  }
-
   private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
 
   @OneToMany(mappedBy = "hostEntity")

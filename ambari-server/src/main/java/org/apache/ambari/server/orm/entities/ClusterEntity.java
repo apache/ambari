@@ -107,17 +107,6 @@ public class ClusterEntity {
     return result;
   }
 
-  private Collection<ActionStatusEntity> actionStatusEntities;
-
-  @OneToMany(mappedBy = "clusterEntity")
-  public Collection<ActionStatusEntity> getActionStatusEntities() {
-    return actionStatusEntities;
-  }
-
-  public void setActionStatusEntities(Collection<ActionStatusEntity> actionStatusEntities) {
-    this.actionStatusEntities = actionStatusEntities;
-  }
-
   private Collection<ClusterServiceEntity> clusterServiceEntities;
 
   @OneToMany(mappedBy = "clusterEntity")
@@ -149,5 +138,16 @@ public class ClusterEntity {
 
   public void setHostEntities(Collection<HostEntity> hostEntities) {
     this.hostEntities = hostEntities;
+  }
+
+  private Collection<StageEntity> stages;
+
+  @OneToMany(mappedBy = "cluster")
+  public Collection<StageEntity> getStages() {
+    return stages;
+  }
+
+  public void setStages(Collection<StageEntity> stages) {
+    this.stages = stages;
   }
 }

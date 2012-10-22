@@ -396,9 +396,11 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
 
     @Override
     public void createResources(Request request) throws AmbariException {
-      for (Map<PropertyId, Object> properties : request.getProperties()) {
-        getManagementController().createService(getRequest(properties));
+      Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+      for (Map<PropertyId, Object> propertyMap : request.getProperties()) {
+        requests.add(getRequest(propertyMap));
       }
+      getManagementController().createServices(requests);
     }
 
     @Override
@@ -422,18 +424,20 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
 
     @Override
     public void updateResources(Request request, Predicate predicate) throws AmbariException {
+      Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
       for (Map<PropertyId, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
-        ServiceRequest serviceRequest = getRequest(propertyMap);
-        getManagementController().updateService(serviceRequest);
+        requests.add(getRequest(propertyMap));
       }
+      getManagementController().updateServices(requests);
     }
 
     @Override
     public void deleteResources(Predicate predicate) throws AmbariException {
+      Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
       for (Map<PropertyId, Object> propertyMap : getPropertyMaps(null, predicate)) {
-        ServiceRequest serviceRequest = getRequest(propertyMap);
-        getManagementController().deleteService(serviceRequest);
+        requests.add(getRequest(propertyMap));
       }
+      getManagementController().deleteServices(requests);
     }
 
     // ----- utility methods -------------------------------------------------
@@ -488,9 +492,11 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
 
     @Override
     public void createResources(Request request) throws AmbariException {
-      for (Map<PropertyId, Object> properties : request.getProperties()) {
-        getManagementController().createComponent(getRequest(properties));
+      Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
+      for (Map<PropertyId, Object> propertyMap : request.getProperties()) {
+        requests.add(getRequest(propertyMap));
       }
+      getManagementController().createComponents(requests);
     }
 
     @Override
@@ -515,18 +521,20 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
 
     @Override
     public void updateResources(Request request, Predicate predicate) throws AmbariException {
+      Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
       for (Map<PropertyId, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
-        ServiceComponentRequest serviceComponentRequest = getRequest(propertyMap);
-        getManagementController().updateComponent(serviceComponentRequest);
+        requests.add(getRequest(propertyMap));
       }
+      getManagementController().updateComponents(requests);
     }
 
     @Override
     public void deleteResources(Predicate predicate) throws AmbariException {
+      Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
       for (Map<PropertyId, Object> propertyMap : getPropertyMaps(null, predicate)) {
-        ServiceComponentRequest serviceComponentRequest = getRequest(propertyMap);
-        getManagementController().deleteComponent(serviceComponentRequest);
+        requests.add(getRequest(propertyMap));
       }
+      getManagementController().deleteComponents(requests);
     }
 
     // ----- utility methods -------------------------------------------------
@@ -580,9 +588,11 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
 
     @Override
     public void createResources(Request request) throws AmbariException {
-      for (Map<PropertyId, Object> properties : request.getProperties()) {
-        getManagementController().createHost(getRequest(properties));
+      Set<HostRequest> requests = new HashSet<HostRequest>();
+      for (Map<PropertyId, Object> propertyMap : request.getProperties()) {
+        requests.add(getRequest(propertyMap));
       }
+      getManagementController().createHosts(requests);
     }
 
     @Override
@@ -611,18 +621,20 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
 
     @Override
     public void updateResources(Request request, Predicate predicate) throws AmbariException {
+      Set<HostRequest> requests = new HashSet<HostRequest>();
       for (Map<PropertyId, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
-        HostRequest hostRequest = getRequest(propertyMap);
-        getManagementController().updateHost(hostRequest);
+        requests.add(getRequest(propertyMap));
       }
+      getManagementController().updateHosts(requests);
     }
 
     @Override
     public void deleteResources(Predicate predicate) throws AmbariException {
+      Set<HostRequest> requests = new HashSet<HostRequest>();
       for (Map<PropertyId, Object> propertyMap : getPropertyMaps(null, predicate)) {
-        HostRequest hostRequest = getRequest(propertyMap);
-        getManagementController().deleteHost(hostRequest);
+        requests.add(getRequest(propertyMap));
       }
+      getManagementController().deleteHosts(requests);
     }
 
     // ----- utility methods -------------------------------------------------
@@ -678,9 +690,11 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
 
     @Override
     public void createResources(Request request) throws AmbariException {
-      for (Map<PropertyId, Object> properties : request.getProperties()) {
-        getManagementController().createHostComponent(getRequest(properties));
+      Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
+      for (Map<PropertyId, Object> propertyMap : request.getProperties()) {
+        requests.add(getRequest(propertyMap));
       }
+      getManagementController().createHostComponents(requests);
     }
 
     @Override
@@ -705,18 +719,20 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
 
     @Override
     public void updateResources(Request request, Predicate predicate) throws AmbariException {
+      Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
       for (Map<PropertyId, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
-        ServiceComponentHostRequest hostComponentRequest = getRequest(propertyMap);
-        getManagementController().updateHostComponent(hostComponentRequest);
+        requests.add(getRequest(propertyMap));
       }
+      getManagementController().updateHostComponents(requests);
     }
 
     @Override
     public void deleteResources(Predicate predicate) throws AmbariException {
+      Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
       for (Map<PropertyId, Object> propertyMap : getPropertyMaps(null, predicate)) {
-        ServiceComponentHostRequest serviceComponentHostRequest = getRequest(propertyMap);
-        getManagementController().deleteHostComponent(serviceComponentHostRequest);
+        requests.add(getRequest(propertyMap));
       }
+      getManagementController().deleteHostComponents(requests);
     }
 
     // ----- utility methods -------------------------------------------------

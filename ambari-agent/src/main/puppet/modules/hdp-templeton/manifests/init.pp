@@ -24,13 +24,13 @@ class hdp-templeton(
 )
 {
 # Configs generation  
-# site.pp must have following configurations: 
-# hdp_templeton__templeton_site
 
-  configgenerator::configfile{'templeton_site_xml': 
-    filename => 'templeton-site.xml',
-    module => 'hdp-templeton',
-    configuration => $configuration['hdp_templeton__templeton_site']
+  if has_key($configuration, 'hdp_templeton__templeton_site') {
+    configgenerator::configfile{'templeton_site_xml': 
+      filename => 'templeton-site.xml',
+      module => 'hdp-templeton',
+      configuration => $configuration['hdp_templeton__templeton_site']
+    }
   }
 
  include hdp-templeton::params 

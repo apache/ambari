@@ -29,13 +29,13 @@ class hdp-hive(
   $hive_config_dir = $hdp-hive::params::hive_conf_dir
 
 # Configs generation  
-# site.pp must have following configurations: 
-# hdp_hive__hive_site
 
-  configgenerator::configfile{'hive_site_xml': 
-    filename => 'hive-site.xml',
-    module => 'hdp-hive',
-    configuration => $configuration['hdp_hive__hive_site']
+  if has_key($configuration, 'hdp_hive__hive_site') {
+    configgenerator::configfile{'hive_site_xml': 
+      filename => 'hive-site.xml',
+      module => 'hdp-hive',
+      configuration => $configuration['hdp_hive__hive_site']
+    }
   }
 
   anchor { 'hdp-hive::begin': }

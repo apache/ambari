@@ -27,13 +27,13 @@ class hdp-oozie(
   include hdp-oozie::params 
 
 # Configs generation  
-# site.pp must have following configurations: 
-# hdp_oozie__oozie_site
 
-  configgenerator::configfile{'oozie_site_xml': 
-    filename => 'oozie-site.xml',
-    module => 'hdp-oozie',
-    configuration => $configuration['hdp_oozie__oozie_site']
+  if has_key($configuration, 'hdp_oozie__oozie_site') {
+    configgenerator::configfile{'oozie_site_xml': 
+      filename => 'oozie-site.xml',
+      module => 'hdp-oozie',
+      configuration => $configuration['hdp_oozie__oozie_site']
+    }
   }
 
   $oozie_user = $hdp-oozie::params::oozie_user

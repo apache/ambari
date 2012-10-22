@@ -36,6 +36,7 @@ import org.easymock.IArgumentMatcher;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -263,7 +264,9 @@ public class ResourceProviderImplTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     TrackActionResponse response = createNiceMock(TrackActionResponse.class);
 
-    managementController.createService(Matchers.serviceRequest("Cluster100", "Service100", null, "DEPLOYED"));
+//    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+//    requests.add(Matchers.serviceRequest("Cluster100", "Service100", null, "DEPLOYED"));
+    managementController.createServices(anyObject(Set.class));
 
     // replay
     replay(managementController, response);
@@ -390,7 +393,7 @@ public class ResourceProviderImplTest {
     TrackActionResponse response = createNiceMock(TrackActionResponse.class);
 
     // set expectations
-    expect(managementController.updateService(Matchers.serviceRequest("Cluster100", "Service102", null, "DEPLOYED"))).andReturn(response).once();
+    expect(managementController.updateServices(anyObject(Set.class))).andReturn(response).once();
 
     // replay
     replay(managementController, response);

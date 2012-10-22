@@ -172,7 +172,7 @@ def writeStages(outputFile, numStages):
   arrow = ''
   
   for i in range(numStages):
-    outputFile.write(arrow + 'stage{' + str(i) + ' :}')
+    outputFile.write(arrow + 'stage{' + str(i + 1) + ' :}')
     arrow = ' -> '
   
   outputFile.write('\n')

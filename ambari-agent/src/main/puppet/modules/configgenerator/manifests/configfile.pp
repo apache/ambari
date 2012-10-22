@@ -45,7 +45,7 @@
 
 define configgenerator::configfile ($modulespath='/etc/puppet/modules', $filename, $module, $configuration) {
   $configcontent = inline_template('<configuration>
-  <% configuration.props.each do |key,value| -%>
+  <% configuration.each do |key,value| -%>
   <property>
     <name><%=key %></name>
     <value><%=value %></value>

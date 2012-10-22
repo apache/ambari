@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-877. Refactor resource provider implementation for changes to
+  management interface. (Tom Beerbower via mahadev)
+
   AMBARI-876. Put metrics under metrics category. (Tom Beerbower via 
   mahadev)
 
