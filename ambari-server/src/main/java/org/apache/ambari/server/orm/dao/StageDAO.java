@@ -50,7 +50,7 @@ public class StageDAO {
     if (result != null) {
       return result;
     } else {
-      return -1;
+      return 0;
     }
   }
 

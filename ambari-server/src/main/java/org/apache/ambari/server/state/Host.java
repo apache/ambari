@@ -24,7 +24,7 @@ import java.util.Map;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.controller.HostResponse;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.job.Job;
 
 public interface Host {
@@ -233,10 +233,10 @@ public interface Host {
   /**
    * Send an event to the Host's StateMachine
    * @param event HostEvent
-   * @throws InvalidStateTransitonException
+   * @throws InvalidStateTransitionException
    */
   public void handleEvent(HostEvent event)
-      throws InvalidStateTransitonException;
+      throws InvalidStateTransitionException;
 
   /**
    * Get time spent in the current state i.e. the time since last state change.

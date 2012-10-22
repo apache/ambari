@@ -66,6 +66,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   private Map<String, ServiceComponentHost> hostComponents;
   private Injector injector;
 
+  private final boolean isClientComponent;
 
   private void init() {
     // TODO
@@ -73,7 +74,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @AssistedInject
-  public ServiceComponentImpl(@Assisted Service service, @Assisted String componentName, Injector injector) {
+  public ServiceComponentImpl(@Assisted Service service,
+      @Assisted String componentName, Injector injector) {
     this.injector = injector;
     injector.injectMembers(this);
     this.service = service;
@@ -85,6 +87,10 @@ public class ServiceComponentImpl implements ServiceComponent {
     setDesiredStackVersion(new StackVersion(""));
 
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
+
+    // FIXME use meta data library to decide client or not
+    this.isClientComponent = false;
+
     init();
   }
 
@@ -96,6 +102,9 @@ public class ServiceComponentImpl implements ServiceComponent {
     injector.injectMembers(this);
     this.service = service;
     this.desiredStateEntity = serviceComponentDesiredStateEntity;
+
+    // FIXME use meta data library to decide client or not
+    this.isClientComponent = false;
 
     this.desiredConfigs = new HashMap<String, Config>();
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
@@ -357,6 +366,11 @@ public class ServiceComponentImpl implements ServiceComponent {
     if (isPersisted()) {
       serviceComponentDesiredStateDAO.merge(desiredStateEntity);
     }
+  }
+
+  @Override
+  public boolean isClientComponent() {
+    return this.isClientComponent;
   }
 
 

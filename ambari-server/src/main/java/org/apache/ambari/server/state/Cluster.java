@@ -92,4 +92,8 @@ public interface Cluster {
   public void debugDump(StringBuilder sb);
 
   Service addService(String serviceName) throws AmbariException;
+
+  public void deleteAllServices() throws AmbariException;
+
+  public void deleteService(String serviceName) throws AmbariException;
 }

@@ -30,7 +30,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
@@ -86,7 +86,7 @@ class ActionScheduler implements Runnable {
       }
     }
   }
-  
+
   private void doWork() throws AmbariException {
     List<Stage> stages = db.getStagesInProgress();
     LOG.info("Scheduler wakes up");
@@ -95,7 +95,7 @@ class ActionScheduler implements Runnable {
       LOG.info("No stage in progress..nothing to do");
       return;
     }
-    
+
     for (Stage s : stages) {
       List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
       Map<String, RoleStats> roleStats = processInProgressStage(s, commandsToSchedule);
@@ -120,13 +120,13 @@ class ActionScheduler implements Runnable {
       for (ExecutionCommand cmd : commandsToSchedule) {
         try {
           scheduleHostRole(s, cmd);
-        } catch (InvalidStateTransitonException e) {
+        } catch (InvalidStateTransitionException e) {
           LOG.warn("Could not schedule host role "+cmd.toString(), e);
           db.abortHostRole(cmd.getHostname(), s.getRequestId(), s.getStageId(),
               cmd.getRole());
         }
       }
-      
+
       //Check if ready to go to next stage
       boolean goToNextStage = true;
       for (String role: roleStats.keySet()) {
@@ -141,10 +141,10 @@ class ActionScheduler implements Runnable {
       }
     }
   }
-  
+
   /**
-   * @param commandsToSchedule 
-   * @return Stats for the roles in the stage. It is used to determine whether stage 
+   * @param commandsToSchedule
+   * @return Stats for the roles in the stage. It is used to determine whether stage
    * has succeeded or failed.
    */
   private Map<String, RoleStats> processInProgressStage(Stage s,
@@ -161,7 +161,7 @@ class ActionScheduler implements Runnable {
           stats = new RoleStats(s.getHosts().size(), 1);
           roleStats.put(roleStr, stats);
         }
-        HostRoleStatus status = s.getHostRoleStatus(host, roleStr);    
+        HostRoleStatus status = s.getHostRoleStatus(host, roleStr);
         LOG.info("Last attempt time =" + s.getLastAttemptTime(host, roleStr)
             + ", actiontimeout =" + this.actionTimeout + ", current time="
             + now+", status ="+status+", attempt count="+s.getAttemptCount(host, roleStr));
@@ -186,7 +186,7 @@ class ActionScheduler implements Runnable {
               ServiceComponentHost svcCompHost =
                   svcComp.getServiceComponentHost(host);
               svcCompHost.handleEvent(timeoutEvent);
-            } catch (InvalidStateTransitonException e) {
+            } catch (InvalidStateTransitionException e) {
               LOG.info("Transition failed for host: "+host+", role: "+roleStr, e);
             } catch (AmbariException ex) {
               LOG.info("Invalid live state", ex);
@@ -204,12 +204,12 @@ class ActionScheduler implements Runnable {
     return roleStats;
   }
 
-  private boolean timeOutActionNeeded(HostRoleStatus status, Stage stage, 
+  private boolean timeOutActionNeeded(HostRoleStatus status, Stage stage,
       String host, String role, long currentTime) {
     LOG.info("Last attempt time =" + stage.getLastAttemptTime(host, role)
         + ", actiontimeout =" + this.actionTimeout + ", current time="
         + currentTime+", role="+role+", status="+status);
-    
+
     if (( !status.equals(HostRoleStatus.QUEUED) ) &&
         ( ! status.equals(HostRoleStatus.IN_PROGRESS) )) {
       return false;
@@ -221,7 +221,7 @@ class ActionScheduler implements Runnable {
   }
 
   private void scheduleHostRole(Stage s, ExecutionCommand cmd)
-      throws InvalidStateTransitonException, AmbariException {
+      throws InvalidStateTransitionException, AmbariException {
     long now = System.currentTimeMillis();
     String roleStr = cmd.getRole().toString();
     String hostname = cmd.getHostname();
@@ -237,7 +237,7 @@ class ActionScheduler implements Runnable {
         svcCompHost.handleEvent(s.getFsmEvent(hostname, roleStr));
         s.setStartTime(hostname,roleStr, now);
         s.setHostRoleStatus(hostname, roleStr, HostRoleStatus.QUEUED);
-      } catch (InvalidStateTransitonException e) {
+      } catch (InvalidStateTransitionException e) {
         LOG.info(
             "Transition failed for host: " + hostname + ", role: "
                 + roleStr, e);
@@ -323,7 +323,7 @@ class ActionScheduler implements Runnable {
         return true;
       }
     }
-    
+
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append("numQueued="+numQueued);

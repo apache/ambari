@@ -77,14 +77,14 @@ public interface AmbariManagementController {
    */
   public void createHostComponents(
       Set<ServiceComponentHostRequest> request) throws AmbariException;
-  
+
   /**
    * Creates a configuration.
-   * 
+   *
    * @param request the request object which defines the configuration.
-   * 
+   *
    * @return a track action response
-   * 
+   *
    * @throws AmbariException when the configuration cannot be created.
    */
   public TrackActionResponse createConfiguration(ConfigurationRequest request) throws AmbariException;
@@ -152,14 +152,14 @@ public interface AmbariManagementController {
    */
   public Set<ServiceComponentHostResponse> getHostComponents(
       ServiceComponentHostRequest request) throws AmbariException;
-  
+
   /**
    * Gets the configurations identified by the given request object.
-   * 
+   *
    * @param request   the request object
-   * 
+   *
    * @return  a set of configuration responses
-   * 
+   *
    * @throws AmbariException if the configurations could not be read
    */
   public Set<ConfigurationResponse> getConfigurations(ConfigurationRequest request) throws AmbariException;
@@ -247,7 +247,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
-  public TrackActionResponse deleteCluster(ClusterRequest request) throws AmbariException;
+  public void deleteCluster(ClusterRequest request) throws AmbariException;
 
   /**
    * Delete the service identified by the given request object.
@@ -282,7 +282,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
-  public TrackActionResponse deleteHosts(Set<HostRequest> request)
+  public void deleteHosts(Set<HostRequest> request)
       throws AmbariException;
 
   /**

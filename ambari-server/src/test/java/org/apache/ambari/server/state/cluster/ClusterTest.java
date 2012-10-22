@@ -47,7 +47,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackVersion;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.junit.After;
@@ -119,7 +119,7 @@ public class ClusterTest {
 
   @Test
   public void testHostEvent() throws AmbariException,
-      InvalidStateTransitonException {
+      InvalidStateTransitionException {
     HostInfo hostInfo = new HostInfo();
     hostInfo.setHostName("h1");
     hostInfo.setInterfaces("fip_4");
@@ -149,7 +149,7 @@ public class ClusterTest {
           new HostHealthyHeartbeatEvent("h1", currentTime));
       fail("Exception should be thrown on invalid event");
     }
-    catch (InvalidStateTransitonException e) {
+    catch (InvalidStateTransitionException e) {
       // Expected
     }
 

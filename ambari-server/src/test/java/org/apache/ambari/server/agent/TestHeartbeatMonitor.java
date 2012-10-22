@@ -27,7 +27,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,7 +54,7 @@ public class TestHeartbeatMonitor {
   
   @Test
   public void testHeartbeatLoss() throws AmbariException, InterruptedException,
-      InvalidStateTransitonException {
+      InvalidStateTransitionException {
     Clusters fsm = new ClustersImpl(injector);
     String hostname = "host1";
     fsm.addHost(hostname);

@@ -53,7 +53,8 @@ public class ActionManager {
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
         actionQueue, fsm, 2);
     this.fsm = fsm;
-    requestCounter = new AtomicLong(db.getLastPersistedRequestIdWhenInitialized());
+    requestCounter = new AtomicLong(
+        db.getLastPersistedRequestIdWhenInitialized());
   }
 
   public void start() {

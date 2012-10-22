@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.state.job;
 
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 
 public interface Job {
 
@@ -68,8 +68,8 @@ public interface Job {
   /**
    * Send a JobEvent to the Job's StateMachine
    * @param event JobEvent
-   * @throws InvalidStateTransitonException
+   * @throws InvalidStateTransitionException
    */
   public void handleEvent(JobEvent event)
-      throws InvalidStateTransitonException;
+      throws InvalidStateTransitionException;
 }

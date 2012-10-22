@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -104,7 +105,8 @@ public class AmbariManagementControllerImpl implements
   public void createCluster(ClusterRequest request)
       throws AmbariException {
     if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()) {
+        || request.getClusterName().isEmpty()
+        || request.getClusterId() != null) {
       // FIXME throw correct error
       throw new AmbariException("Invalid arguments");
     }
@@ -117,6 +119,21 @@ public class AmbariManagementControllerImpl implements
 
     // FIXME validate stack version
     // FIXME add support for desired configs at cluster level
+
+    boolean foundInvalidHosts = false;
+    if (request.getHostNames() != null) {
+      for (String hostname : request.getHostNames()) {
+        try {
+          clusters.getHost(hostname);
+        } catch (HostNotFoundException e) {
+          foundInvalidHosts = true;
+        }
+      }
+    }
+    if (foundInvalidHosts) {
+      // FIXME throw correct error
+      throw new AmbariException("Invalid arguments, invalid hosts found");
+    }
 
     clusters.addCluster(request.getClusterName());
 
@@ -134,7 +151,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public void createServices(Set<ServiceRequest> requests)
+  public synchronized void createServices(Set<ServiceRequest> requests)
       throws AmbariException {
 
     if (requests.isEmpty()) {
@@ -161,6 +178,8 @@ public class AmbariManagementControllerImpl implements
             + ", serviceName=" + request.getServiceName()
             + ", request=" + request);
       }
+
+      // FIXME Validate against meta data
 
       if (!serviceNames.containsKey(request.getClusterName())) {
         serviceNames.put(request.getClusterName(), new HashSet<String>());
@@ -230,6 +249,9 @@ public class AmbariManagementControllerImpl implements
       Map<String, Config> configs = new HashMap<String, Config>();
 
       State state = State.INIT;
+
+      // FIXME should the below part be removed?
+      // What about take over situations?
       if (request.getDesiredState() != null
           && !request.getDesiredState().isEmpty()) {
         state = State.valueOf(request.getDesiredState());
@@ -248,7 +270,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public void createComponents(
+  public synchronized void createComponents(
       Set<ServiceComponentRequest> requests) throws AmbariException {
 
     if (requests.isEmpty()) {
@@ -281,6 +303,8 @@ public class AmbariManagementControllerImpl implements
             + ", componentName=" + request.getComponentName()
             + ", request=" + request);
       }
+
+      // FIXME Validate against meta data
 
       if (!componentNames.containsKey(request.getClusterName())) {
         componentNames.put(request.getClusterName(),
@@ -386,7 +410,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public void createHosts(Set<HostRequest> requests)
+  public synchronized void createHosts(Set<HostRequest> requests)
       throws AmbariException {
 
     if (requests.isEmpty()) {
@@ -424,6 +448,20 @@ public class AmbariManagementControllerImpl implements
       catch (HostNotFoundException e) {
         unknowns.add(request.getHostname());
         continue;
+      }
+
+      if (request.getClusterNames() != null) {
+        for (String clusterName : request.getClusterNames()) {
+          try {
+            clusters.getCluster(clusterName);
+          } catch (ClusterNotFoundException e) {
+            // invalid cluster mapping
+            throw new AmbariException("Trying to map host to a non-existent"
+                + " cluster"
+                + ", hostname=" + request.getHostname()
+                + ", clusterName=" + clusterName);
+          }
+        }
       }
     }
 
@@ -474,7 +512,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public void createHostComponents(Set<ServiceComponentHostRequest> requests)
+  public synchronized void createHostComponents(Set<ServiceComponentHostRequest> requests)
       throws AmbariException {
 
     if (requests.isEmpty()) {
@@ -660,34 +698,34 @@ public class AmbariManagementControllerImpl implements
     }
 
   }
-  
-  
-  public TrackActionResponse createConfiguration(ConfigurationRequest request) throws AmbariException {
+
+
+  public synchronized TrackActionResponse createConfiguration(ConfigurationRequest request) throws AmbariException {
     if (null == request.getClusterName() || request.getClusterName().isEmpty() ||
         null == request.getType() || request.getType().isEmpty() ||
         null == request.getVersionTag() || request.getVersionTag().isEmpty() ||
         null == request.getConfigs() || request.getConfigs().isEmpty()) {
       throw new AmbariException ("Invalid Arguments.");
     }
-      
+
     Cluster cluster = clusters.getCluster(request.getClusterName());
-      
+
     Map<String, Config> configs = cluster.getDesiredConfigsByType(request.getType());
     if (null == configs) {
       configs = new HashMap<String, Config>();
     }
-    
+
     Config config = configs.get(request.getVersionTag());
     if (configs.containsKey(request.getVersionTag()))
       throw new AmbariException("Configuration with that tag exists for '" + request.getType() + "'");
-    
+
     config = configFactory.createNew (cluster, request.getType(), request.getConfigs());
     config.setVersionTag(request.getVersionTag());
-    
+
     config.persist();
-    
+
     cluster.addDesiredConfig(config);
-    
+
     // TODO
     return null;
   }
@@ -745,7 +783,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public Set<ClusterResponse> getClusters(ClusterRequest request)
+  public synchronized Set<ClusterResponse> getClusters(ClusterRequest request)
       throws AmbariException {
     Set<ClusterResponse> response = new HashSet<ClusterResponse>();
 
@@ -759,8 +797,7 @@ public class AmbariManagementControllerImpl implements
 
     Map<String, Cluster> allClusters = clusters.getClusters();
     for (Cluster c : allClusters.values()) {
-      if (request.getStackVersion() != null
-          && !request.getStackVersion().isEmpty()) {
+      if (request.getStackVersion() != null) {
         if (!request.getStackVersion().equals(
             c.getDesiredStackVersion().getStackVersion())) {
           // skip non matching stack versions
@@ -773,7 +810,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public Set<ServiceResponse> getServices(ServiceRequest request)
+  public synchronized Set<ServiceResponse> getServices(ServiceRequest request)
       throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
@@ -816,7 +853,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public Set<ServiceComponentResponse> getComponents(
+  public synchronized Set<ServiceComponentResponse> getComponents(
       ServiceComponentRequest request) throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
@@ -875,11 +912,12 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public Set<HostResponse> getHosts(HostRequest request)
+  public synchronized Set<HostResponse> getHosts(HostRequest request)
       throws AmbariException {
     Set<HostResponse> response = new HashSet<HostResponse>();
 
     // FIXME what is the requirement for filtering on host attributes?
+    // FIXME do we need get all hosts in given list of clusters?
 
     List<Host> hosts = null;
     if (request.getHostname() != null) {
@@ -893,7 +931,7 @@ public class AmbariManagementControllerImpl implements
     for (Host h : hosts) {
       HostResponse r = h.convertToResponse();
       Set<Cluster> cs =
-          clusters.getClustersForHost(request.getHostname());
+          clusters.getClustersForHost(h.getHostName());
       for (Cluster c : cs) {
         r.getClusterNames().add(c.getClusterName());
       }
@@ -903,7 +941,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public Set<ServiceComponentHostResponse> getHostComponents(
+  public synchronized Set<ServiceComponentHostResponse> getHostComponents(
       ServiceComponentHostRequest request) throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
@@ -992,15 +1030,15 @@ public class AmbariManagementControllerImpl implements
     return response;
   }
 
-  
+
   @Override
-  public Set<ConfigurationResponse> getConfigurations(ConfigurationRequest request) throws AmbariException {
+  public synchronized Set<ConfigurationResponse> getConfigurations(ConfigurationRequest request) throws AmbariException {
     if (request.getClusterName() == null) {
       throw new AmbariException("Invalid arguments");
     }
-    
+
     Cluster cluster = clusters.getCluster(request.getClusterName());
-    
+
     Set<ConfigurationResponse> responses = new HashSet<ConfigurationResponse>();
 
     // !!! if only one, then we need full properties
@@ -1016,7 +1054,7 @@ public class AmbariManagementControllerImpl implements
     else {
       if (null != request.getType()) {
         Map<String, Config> configs = cluster.getDesiredConfigsByType(request.getType());
-        
+
         for (Entry<String, Config> entry : configs.entrySet()) {
           ConfigurationResponse response = new ConfigurationResponse(
               cluster.getClusterName(), request.getType(),
@@ -1025,14 +1063,14 @@ public class AmbariManagementControllerImpl implements
         }
       }
     }
-    
+
     return responses;
 
   }
-  
+
 
   @Override
-  public TrackActionResponse updateCluster(ClusterRequest request)
+  public synchronized TrackActionResponse updateCluster(ClusterRequest request)
       throws AmbariException {
     // for now only update host list supported
     if (request.getClusterName() == null
@@ -1091,6 +1129,7 @@ public class AmbariManagementControllerImpl implements
     long requestId = actionManager.getNextRequestId();
 
     // FIXME cannot work with a single stage
+    // multiple stages may be needed for reconfigure
     long stageId = 0;
     Stage stage = createNewStage(cluster, requestId);
     stage.setStageId(stageId);
@@ -1118,7 +1157,12 @@ public class AmbariManagementControllerImpl implements
                     nowTimestamp);
               } else {
                 // FIXME throw correct error
-                throw new AmbariException("Invalid transition"
+                throw new AmbariException("Invalid transition for "
+                    + ", clusterName=" + cluster.getClusterName()
+                    + ", clusterId=" + cluster.getClusterId()
+                    + ", serviceName=" + scHost.getServiceName()
+                    + ", componentName=" + scHost.getServiceComponentName()
+                    + ", hostname=" + scHost.getHostName()
                     + ", oldDesiredState=" + oldSchState
                     + ", newDesiredState" + newState);
               }
@@ -1131,7 +1175,12 @@ public class AmbariManagementControllerImpl implements
                     nowTimestamp);
               } else {
                 // FIXME throw correct error
-                throw new AmbariException("Invalid transition"
+                throw new AmbariException("Invalid transition for "
+                    + ", clusterName=" + cluster.getClusterName()
+                    + ", clusterId=" + cluster.getClusterId()
+                    + ", serviceName=" + scHost.getServiceName()
+                    + ", componentName=" + scHost.getServiceComponentName()
+                    + ", hostname=" + scHost.getHostName()
                     + ", oldDesiredState=" + oldSchState
                     + ", newDesiredState" + newState);
               }
@@ -1199,9 +1248,29 @@ public class AmbariManagementControllerImpl implements
 
   }
 
+  private boolean isValidTransition(State oldState, State newState) {
+    switch(newState) {
+      case INSTALLED:
+        if (oldState == State.INIT
+            || oldState == State.UNINSTALLED
+            || oldState == State.INSTALLED
+            || oldState == State.STARTED) {
+          return true;
+        }
+        break;
+      case STARTED:
+        if (oldState == State.INSTALLED
+            || oldState == State.STARTED) {
+          return true;
+        }
+        break;
+    }
+    return false;
+  }
+
 
   @Override
-  public TrackActionResponse updateServices(Set<ServiceRequest> requests)
+  public synchronized TrackActionResponse updateServices(Set<ServiceRequest> requests)
       throws AmbariException {
 
     if (requests.isEmpty()) {
@@ -1292,6 +1361,16 @@ public class AmbariManagementControllerImpl implements
 
       State oldState = s.getDesiredState();
       if (newState != oldState) {
+        if (!isValidTransition(oldState, newState)) {
+          // FIXME throw correct error
+          throw new AmbariException("Invalid transition for "
+              + ", clusterName=" + cluster.getClusterName()
+              + ", clusterId=" + cluster.getClusterId()
+              + ", serviceName=" + s.getName()
+              + ", oldDesiredState=" + oldState
+              + ", newDesiredState" + newState);
+
+        }
         if (!changedServices.containsKey(newState)) {
           changedServices.put(newState, new ArrayList<Service>());
         }
@@ -1309,6 +1388,20 @@ public class AmbariManagementControllerImpl implements
       for (ServiceComponent sc : s.getServiceComponents().values()) {
         State oldScState = sc.getDesiredState();
         if (newState != oldScState) {
+          if (sc.isClientComponent() &&
+              !newState.isValidClientComponentState()) {
+            continue;
+          }
+          if (!isValidTransition(oldScState, newState)) {
+            // FIXME throw correct error
+            throw new AmbariException("Invalid transition for "
+                + ", clusterName=" + cluster.getClusterName()
+                + ", clusterId=" + cluster.getClusterId()
+                + ", serviceName=" + sc.getServiceName()
+                + ", componentName=" + sc.getName()
+                + ", oldDesiredState=" + oldScState
+                + ", newDesiredState" + newState);
+          }
           if (!changedComps.containsKey(newState)) {
             changedComps.put(newState, new ArrayList<ServiceComponent>());
           }
@@ -1319,21 +1412,37 @@ public class AmbariManagementControllerImpl implements
               + ", clusterName=" + request.getClusterName()
               + ", serviceName=" + s.getName()
               + ", componentName=" + sc.getName()
-              + ", currentState=" + sc.getDesiredState()
-              + ", newState=" + newState);
+              + ", oldDesiredState=" + oldScState
+              + ", newDesiredState=" + newState);
         }
-        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          if (newState == sch.getDesiredState()) {
+        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()){
+          State oldSchState = sch.getDesiredState();
+          if (newState == oldSchState) {
             if (LOG.isDebugEnabled()) {
               LOG.debug("Ignoring ServiceComponentHost"
                   + ", clusterName=" + request.getClusterName()
                   + ", serviceName=" + s.getName()
                   + ", componentName=" + sc.getName()
                   + ", hostname=" + sch.getHostName()
-                  + ", currentState=" + sch.getDesiredState()
-                  + ", newState=" + newState);
+                  + ", oldDesiredState=" + oldSchState
+                  + ", newDesiredState=" + newState);
             }
             continue;
+          }
+          if (sc.isClientComponent() &&
+              !newState.isValidClientComponentState()) {
+            continue;
+          }
+          if (!isValidTransition(oldSchState, newState)) {
+            // FIXME throw correct error
+            throw new AmbariException("Invalid transition for "
+                + ", clusterName=" + cluster.getClusterName()
+                + ", clusterId=" + cluster.getClusterId()
+                + ", serviceName=" + sch.getServiceName()
+                + ", componentName=" + sch.getServiceComponentName()
+                + ", hostname=" + sch.getHostName()
+                + ", oldDesiredState=" + oldSchState
+                + ", newDesiredState" + newState);
           }
           if (!changedScHosts.containsKey(sc.getName())) {
             changedScHosts.put(sc.getName(),
@@ -1349,8 +1458,8 @@ public class AmbariManagementControllerImpl implements
                 + ", serviceName=" + s.getName()
                 + ", componentName=" + sc.getName()
                 + ", hostname=" + sch.getHostName()
-                + ", currentState=" + sch.getDesiredState()
-                + ", newState=" + newState);
+                + ", oldDesiredState=" + oldSchState
+                + ", newDesiredState=" + newState);
           }
           changedScHosts.get(sc.getName()).get(newState).add(sch);
         }
@@ -1372,7 +1481,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public TrackActionResponse updateComponents(
+  public synchronized TrackActionResponse updateComponents(
       Set<ServiceComponentRequest> requests) throws AmbariException {
 
     if (requests.isEmpty()) {
@@ -1473,10 +1582,26 @@ public class AmbariManagementControllerImpl implements
         throw new AmbariException("Invalid desired state");
       }
 
+      if (sc.isClientComponent() &&
+          !newState.isValidClientComponentState()) {
+        throw new AmbariException("Invalid desired state for a client"
+            + " component");
+      }
+
       seenNewStates.add(newState);
 
-      State oldState = sc.getDesiredState();
-      if (newState != oldState) {
+      State oldScState = sc.getDesiredState();
+      if (newState != oldScState) {
+        if (!isValidTransition(oldScState, newState)) {
+          // FIXME throw correct error
+          throw new AmbariException("Invalid transition for "
+              + ", clusterName=" + cluster.getClusterName()
+              + ", clusterId=" + cluster.getClusterId()
+              + ", serviceName=" + sc.getServiceName()
+              + ", componentName=" + sc.getName()
+              + ", oldDesiredState=" + oldScState
+              + ", newDesiredState" + newState);
+        }
         if (!changedComps.containsKey(newState)) {
           changedComps.put(newState, new ArrayList<ServiceComponent>());
         }
@@ -1485,8 +1610,8 @@ public class AmbariManagementControllerImpl implements
               + ", clusterName=" + request.getClusterName()
               + ", serviceName=" + s.getName()
               + ", componentName=" + sc.getName()
-              + ", currentState=" + sc.getDesiredState()
-              + ", newState=" + newState);
+              + ", oldDesiredState=" + oldScState
+              + ", newDesiredState=" + newState);
         }
         changedComps.get(newState).add(sc);
       }
@@ -1496,17 +1621,29 @@ public class AmbariManagementControllerImpl implements
       // at some point do we need to do stuff based on live state?
 
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-        if (newState == sch.getDesiredState()) {
+        State oldSchState = sch.getDesiredState();
+        if (newState == oldSchState) {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Ignoring ServiceComponentHost"
                 + ", clusterName=" + request.getClusterName()
                 + ", serviceName=" + s.getName()
                 + ", componentName=" + sc.getName()
                 + ", hostname=" + sch.getHostName()
-                + ", currentState=" + sch.getDesiredState()
-                + ", newState=" + newState);
+                + ", oldDesiredState=" + oldSchState
+                + ", newDesiredState=" + newState);
           }
           continue;
+        }
+        if (!isValidTransition(oldSchState, newState)) {
+          // FIXME throw correct error
+          throw new AmbariException("Invalid transition for "
+              + ", clusterName=" + cluster.getClusterName()
+              + ", clusterId=" + cluster.getClusterId()
+              + ", serviceName=" + sch.getServiceName()
+              + ", componentName=" + sch.getServiceComponentName()
+              + ", hostname=" + sch.getHostName()
+              + ", oldDesiredState=" + oldSchState
+              + ", newDesiredState" + newState);
         }
         if (!changedScHosts.containsKey(sc.getName())) {
           changedScHosts.put(sc.getName(),
@@ -1522,8 +1659,8 @@ public class AmbariManagementControllerImpl implements
               + ", serviceName=" + s.getName()
               + ", componentName=" + sc.getName()
               + ", hostname=" + sch.getHostName()
-              + ", currentState=" + sch.getDesiredState()
-              + ", newState=" + newState);
+              + ", oldDesiredState=" + oldSchState
+              + ", newDesiredState=" + newState);
         }
         changedScHosts.get(sc.getName()).get(newState).add(sch);
       }
@@ -1537,6 +1674,9 @@ public class AmbariManagementControllerImpl implements
 
     // TODO additional validation?
 
+    // TODO if all components reach a common state, should service state be
+    // modified?
+
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
     return doStageCreation(cluster, null,
@@ -1544,7 +1684,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public void updateHosts(Set<HostRequest> requests)
+  public synchronized void updateHosts(Set<HostRequest> requests)
       throws AmbariException {
 
     if (requests.isEmpty()) {
@@ -1577,7 +1717,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public TrackActionResponse updateHostComponents(
+  public synchronized TrackActionResponse updateHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException {
 
     if (requests.isEmpty()) {
@@ -1688,22 +1828,39 @@ public class AmbariManagementControllerImpl implements
         throw new AmbariException("Invalid desired state");
       }
 
+      if (sc.isClientComponent() &&
+          !newState.isValidClientComponentState()) {
+        throw new AmbariException("Invalid desired state for a client"
+            + " component");
+      }
+
       seenNewStates.add(newState);
 
-      State oldState = sch.getDesiredState();
-      if (newState == oldState) {
+      State oldSchState = sch.getDesiredState();
+      if (newState == oldSchState) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Ignoring ServiceComponentHost"
               + ", clusterName=" + request.getClusterName()
               + ", serviceName=" + s.getName()
               + ", componentName=" + sc.getName()
               + ", hostname=" + sch.getHostName()
-              + ", currentState=" + sch.getDesiredState()
-              + ", newState=" + newState);
+              + ", oldDesiredState=" + oldSchState
+              + ", newDesiredState=" + newState);
         }
         continue;
       }
 
+      if (!isValidTransition(oldSchState, newState)) {
+        // FIXME throw correct error
+        throw new AmbariException("Invalid transition for "
+            + ", clusterName=" + cluster.getClusterName()
+            + ", clusterId=" + cluster.getClusterId()
+            + ", serviceName=" + sch.getServiceName()
+            + ", componentName=" + sch.getServiceComponentName()
+            + ", hostname=" + sch.getHostName()
+            + ", oldDesiredState=" + oldSchState
+            + ", newDesiredState" + newState);
+      }
       if (!changedScHosts.containsKey(sc.getName())) {
         changedScHosts.put(sc.getName(),
             new HashMap<State, List<ServiceComponentHost>>());
@@ -1718,8 +1875,8 @@ public class AmbariManagementControllerImpl implements
             + ", serviceName=" + s.getName()
             + ", componentName=" + sc.getName()
             + ", hostname=" + sch.getHostName()
-            + ", currentState=" + sch.getDesiredState()
-            + ", newState=" + newState);
+            + ", oldDesiredState=" + oldSchState
+            + ", newDesiredState=" + newState);
       }
       changedScHosts.get(sc.getName()).get(newState).add(sch);
     }
@@ -1743,10 +1900,35 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public TrackActionResponse deleteCluster(ClusterRequest request)
+  public synchronized void deleteCluster(ClusterRequest request)
       throws AmbariException {
-    // TODO not implemented yet
-    throw new AmbariException("Delete cluster not supported");
+    if (request.getClusterName() == null
+        || request.getClusterName().isEmpty()) {
+      // FIXME throw correct error
+      throw new AmbariException("Invalid arguments");
+    }
+    LOG.info("Received a delete cluster request"
+        + ", clusterName=" + request.getClusterName());
+    Cluster cluster = clusters.getCluster(request.getClusterName());
+    if (!cluster.getServices().isEmpty()) {
+      // FIXME should we be looking at live state of all components and
+      // host components?
+      boolean nonDeletableService = false;
+      for (Service service : cluster.getServices().values()) {
+        if (!service.canBeRemoved()) {
+          nonDeletableService = true;
+          LOG.warn("Found non removable service when trying to delete cluster"
+              + ", clusterName=" + request.getClusterName()
+              + ", serviceName=" + service.getName());
+        }
+      }
+      if (nonDeletableService) {
+        throw new AmbariException("Cannot delete cluster as it has services"
+            + " that cannot be deleted");
+      }
+    }
+    cluster.deleteAllServices();
+    clusters.deleteCluster(request.getClusterName());
   }
 
   @Override
@@ -1764,7 +1946,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public TrackActionResponse deleteHosts(Set<HostRequest> request)
+  public void deleteHosts(Set<HostRequest> request)
       throws AmbariException {
     throw new AmbariException("Delete hosts not supported");
   }

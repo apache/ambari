@@ -33,7 +33,7 @@ import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.HeartBeatResponse;
 import org.apache.ambari.server.agent.Register;
 import org.apache.ambari.server.agent.RegistrationResponse;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -64,7 +64,7 @@ public class AgentResource {
    * @response.representation.406.doc Error in register message format
    * @response.representation.408.doc Request Timed out
    * @param message Register message
-   * @throws InvalidStateTransitonException
+   * @throws InvalidStateTransitionException
    * @throws AmbariException
    * @throws Exception
    */
@@ -74,10 +74,10 @@ public class AgentResource {
   @Produces({MediaType.APPLICATION_JSON})
   public RegistrationResponse register(Register message,
       @Context HttpServletRequest req)
-      throws WebApplicationException, AmbariException, InvalidStateTransitonException {
+      throws WebApplicationException, AmbariException, InvalidStateTransitionException {
     LOG.info("Received message from agent " + message.toString());
     /* Call into the heartbeat handler */
-    
+
     RegistrationResponse response = hh.handleRegistration(message);
     return response;
   }

@@ -233,8 +233,8 @@ public class ResourceProviderImplTest {
 
     // set expectations
     expect(managementController.getClusters(Matchers.clusterRequest(null, "Cluster102", null, null))).andReturn(nameResponse).once();
-    expect(managementController.deleteCluster(Matchers.clusterRequest(102L, null, null, null))).andReturn(response).once();
-    expect(managementController.deleteCluster(Matchers.clusterRequest(103L, null, null, null))).andReturn(response).once();
+    managementController.deleteCluster(Matchers.clusterRequest(102L, null, null, null));
+    managementController.deleteCluster(Matchers.clusterRequest(103L, null, null, null));
 
     // replay
     replay(managementController, response);

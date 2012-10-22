@@ -34,7 +34,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
@@ -90,7 +90,7 @@ public class HeartBeatHandler {
         hostObject.handleEvent(new HostUnhealthyHeartbeatEvent(hostname, now,
             null));
       }
-    } catch (InvalidStateTransitonException ex) {
+    } catch (InvalidStateTransitionException ex) {
       hostObject.setState(HostState.INIT);
       RegistrationCommand regCmd = new RegistrationCommand();
       response.setRegistrationCommand(regCmd);
@@ -123,7 +123,7 @@ public class HeartBeatHandler {
           scHost.handleEvent(new ServiceComponentHostOpSucceededEvent(scHost
               .getServiceComponentName(), hostname, now));
         }
-      } catch (InvalidStateTransitonException ex) {
+      } catch (InvalidStateTransitionException ex) {
         throw new AmbariException("State machine exception", ex);
       }
       LOG.info("Report for "+report.toString() +", processed successfully");
@@ -174,7 +174,7 @@ public class HeartBeatHandler {
   }
 
   public RegistrationResponse handleRegistration(Register register)
-      throws InvalidStateTransitonException, AmbariException {
+      throws InvalidStateTransitionException, AmbariException {
     String hostname = register.getHostname();
     long now = System.currentTimeMillis();
     Host hostObject;
@@ -196,7 +196,7 @@ public class HeartBeatHandler {
       statusCmd.setRoles(roles);
       cmds.add(statusCmd);
     }
-    
+
     hostObject.handleEvent(new HostRegistrationRequestEvent(hostname,
         new AgentVersion("v1"), now, register.getHardwareProfile()));
     RegistrationResponse response = new RegistrationResponse();

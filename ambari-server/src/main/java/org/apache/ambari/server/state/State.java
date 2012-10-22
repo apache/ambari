@@ -107,4 +107,17 @@ public enum State {
     }
   }
 
+  public boolean isValidClientComponentState() {
+    switch (State.values()[this.state]) {
+      case STARTING:
+      case STARTED:
+      case START_FAILED:
+      case STOP_FAILED:
+      case STOPPING:
+        return false;
+      default:
+        return true;
+    }
+  }
+
 }

@@ -21,6 +21,7 @@ package org.apache.ambari.server.state.cluster;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -116,23 +117,23 @@ public class ClusterImpl implements Cluster {
     this.serviceComponentHostsByHost = new HashMap<String,
         List<ServiceComponentHost>>();
     this.desiredStackVersion = new StackVersion("");
-    
+
     configs = new HashMap<String, Map<String,Config>>();
     if (!clusterEntity.getClusterConfigEntities().isEmpty()) {
       for (ClusterConfigEntity entity : clusterEntity.getClusterConfigEntities()) {
-        
+
         if (!configs.containsKey(entity.getType())) {
           configs.put(entity.getType(), new HashMap<String, Config>());
         }
 
         Config config = configFactory.createExisting(this, entity);
-        
+
         configs.get(entity.getType()).put(entity.getTag(), config);
       }
     }
-      
-    
-    
+
+
+
   }
 
   public ServiceComponentHost getServiceComponentHost(String serviceName,
@@ -174,13 +175,21 @@ public class ClusterImpl implements Cluster {
 
   public synchronized void addServiceComponentHost(
       ServiceComponentHost svcCompHost) throws AmbariException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Trying to add ServiceComponentHost to ClusterHostMap cache"
+          + ", serviceName=" + svcCompHost.getServiceName()
+          + ", componentName=" + svcCompHost.getServiceComponentName()
+          + ", hostname=" + svcCompHost.getHostName());
+    }
+
     final String hostname = svcCompHost.getHostName();
     final String serviceName = svcCompHost.getServiceName();
     final String componentName = svcCompHost.getServiceComponentName();
     Set<Cluster> cs = clusters.getClustersForHost(hostname);
     boolean clusterFound = false;
-    while (cs.iterator().hasNext()) {
-      Cluster c = cs.iterator().next();
+    Iterator<Cluster> iter = cs.iterator();
+    while (iter.hasNext()) {
+      Cluster c = iter.next();
       if (c.getClusterId() == this.getClusterId()) {
         clusterFound = true;
         break;
@@ -374,5 +383,15 @@ public class ClusterImpl implements Cluster {
   public synchronized void refresh() {
     clusterEntity = clusterDAO.findById(clusterEntity.getClusterId());
     clusterDAO.refresh(clusterEntity);
+  }
+
+  @Override
+  public void deleteAllServices() throws AmbariException {
+    // TODO Auto-generated method stub
+  }
+
+  @Override
+  public void deleteService(String serviceName) throws AmbariException {
+    // TODO Auto-generated method stub
   }
 }

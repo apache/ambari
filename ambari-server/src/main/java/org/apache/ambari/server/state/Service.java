@@ -68,4 +68,11 @@ public interface Service {
 
   ServiceComponent addServiceComponent(String serviceComponentName)
       throws AmbariException;
+
+  /**
+   * Find out whether the service and its components
+   * are in a state that it can be removed from a cluster
+   * @return
+   */
+  public boolean canBeRemoved();
 }

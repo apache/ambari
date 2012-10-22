@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server;
 
+@SuppressWarnings("serial")
 public class ClusterNotFoundException extends AmbariException {
 
   public ClusterNotFoundException(String clusterName) {

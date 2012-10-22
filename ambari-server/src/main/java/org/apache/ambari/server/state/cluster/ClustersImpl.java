@@ -32,13 +32,18 @@ import com.google.inject.Singleton;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.slf4j.Logger;
@@ -169,7 +174,6 @@ public class ClustersImpl implements Clusters {
       HostEntity hostEntity = hostDAO.findByName(hostname);
       if (hostEntity != null) {
         Host host = hostFactory.create(hostEntity, true);
-
         Set<Cluster> cSet = new HashSet<Cluster>();
         for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
           if (clustersById.containsKey(clusterEntity.getClusterId())) {
@@ -199,6 +203,12 @@ public class ClustersImpl implements Clusters {
     hostEntity.setClusterEntities(new ArrayList<ClusterEntity>());
     //not stored to DB
     Host host = hostFactory.create(hostEntity, false);
+    host.setAgentVersion(new AgentVersion(""));
+    List<DiskInfo> emptyDiskList = new ArrayList<DiskInfo>();
+    host.setDisksInfo(emptyDiskList);
+    host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, ""));
+    host.setHostAttributes(new HashMap<String, String>());
+    host.setState(HostState.INIT);
 
     hosts.put(hostname, host);
     hostClusterMap.put(hostname, new HashSet<Cluster>());
@@ -282,6 +292,11 @@ public class ClustersImpl implements Clusters {
       hosts.put(h.getHostName(), h);
     }
     return hosts;
+  }
+
+  @Override
+  public void deleteCluster(String clusterName) {
+    // TODO Auto-generated method stub
   }
 
 }

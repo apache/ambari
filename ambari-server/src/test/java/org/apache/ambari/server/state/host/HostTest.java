@@ -31,6 +31,8 @@ import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
@@ -47,12 +49,14 @@ public class HostTest {
 
   private Injector injector;
   private Clusters clusters;
+  private HostDAO hostDAO;
 
   @Before
    public void setup() throws AmbariException{
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
+    hostDAO = injector.getInstance(HostDAO.class);
   }
 
   @After
@@ -120,6 +124,13 @@ public class HostTest {
     }
     host.handleEvent(e);
     Assert.assertEquals(currentTime, host.getLastRegistrationTime());
+
+    HostEntity entity = hostDAO.findByName(host.getHostName());
+    Assert.assertEquals(currentTime,
+        entity.getLastRegistrationTime().longValue());
+    Assert.assertEquals("os_arch", entity.getOsArch());
+    Assert.assertEquals("os_type", entity.getOsType());
+    Assert.assertEquals(10, entity.getTotalMem().longValue());
   }
 
   private void ensureHostUpdatesReceived(Host host) throws Exception {

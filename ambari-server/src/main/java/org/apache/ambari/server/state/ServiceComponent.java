@@ -67,4 +67,7 @@ public interface ServiceComponent {
   void persist();
 
   public void debugDump(StringBuilder sb);
+
+  public boolean isClientComponent();
+
 }

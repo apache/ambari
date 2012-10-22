@@ -281,7 +281,7 @@ final public class StateMachineFactory
    */
   private STATE doTransition
            (OPERAND operand, STATE oldState, EVENTTYPE eventType, EVENT event)
-      throws InvalidStateTransitonException {
+      throws InvalidStateTransitionException {
     // We can assume that stateMachineTable is non-null because we call
     //  maybeMakeStateMachineTable() when we build an InnerStateMachine ,
     //  and this code only gets called from inside a working InnerStateMachine .
@@ -294,7 +294,7 @@ final public class StateMachineFactory
         return transition.doTransition(operand, oldState, event, eventType);
       }
     }
-    throw new InvalidStateTransitonException(oldState, eventType);
+    throw new InvalidStateTransitionException(oldState, eventType);
   }
 
   private synchronized void maybeMakeStateMachineTable() {
@@ -332,7 +332,7 @@ final public class StateMachineFactory
           EVENTTYPE extends Enum<EVENTTYPE>, EVENT> {
     STATE doTransition(OPERAND operand, STATE oldState,
                        EVENT event, EVENTTYPE eventType)
-       throws InvalidStateTransitonException;
+       throws InvalidStateTransitionException;
   }
 
   private class SingleInternalArc
@@ -373,11 +373,11 @@ final public class StateMachineFactory
     @Override
     public STATE doTransition(OPERAND operand, STATE oldState,
                               EVENT event, EVENTTYPE eventType)
-        throws InvalidStateTransitonException {
+        throws InvalidStateTransitionException {
       STATE postState = hook.transition(operand, event);
 
       if (!validPostStates.contains(postState)) {
-        throw new InvalidStateTransitonException(oldState, eventType);
+        throw new InvalidStateTransitionException(oldState, eventType);
       }
       return postState;
     }
@@ -436,7 +436,7 @@ final public class StateMachineFactory
 
     @Override
     public synchronized STATE doTransition(EVENTTYPE eventType, EVENT event)
-         throws InvalidStateTransitonException  {
+         throws InvalidStateTransitionException  {
       currentState = StateMachineFactory.this.doTransition
           (operand, currentState, eventType, event);
       return currentState;

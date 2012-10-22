@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server;
 
+@SuppressWarnings("serial")
 public class ServiceComponentHostNotFoundException extends AmbariException {
 
   public ServiceComponentHostNotFoundException(String clusterName,

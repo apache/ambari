@@ -37,7 +37,7 @@ import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.dao.*;
 import org.apache.ambari.server.orm.entities.*;
 import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
@@ -526,7 +526,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void handleEvent(ServiceComponentHostEvent event)
-      throws InvalidStateTransitonException {
+      throws InvalidStateTransitionException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Handling ServiceComponentHostEvent event,"
           + " eventType=" + event.getType().name()
@@ -538,7 +538,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       try {
         stateMachine.doTransition(event.getType(), event);
         // TODO Audit logs
-      } catch (InvalidStateTransitonException e) {
+      } catch (InvalidStateTransitionException e) {
         LOG.error("Can't handle ServiceComponentHostEvent event at"
             + " current state"
             + ", serviceComponentName=" + this.getServiceComponentName()

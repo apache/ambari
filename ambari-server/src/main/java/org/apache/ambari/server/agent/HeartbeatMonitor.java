@@ -24,7 +24,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -76,7 +76,7 @@ public class HeartbeatMonitor implements Runnable {
   //Go through all the nodes, check for last heartbeat or any waiting state
   //If heartbeat is lost, update node fsm state, purge the action queue
   //notify action manager for node failure.
-  private void doWork() throws InvalidStateTransitonException {
+  private void doWork() throws InvalidStateTransitionException {
     List<Host> allHosts = fsm.getHosts();
     LOG.info("Number of hosts to monitor: "+allHosts.size());
     long now = System.currentTimeMillis();

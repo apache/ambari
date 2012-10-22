@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server;
 
+@SuppressWarnings("serial")
 public class ServiceNotFoundException extends AmbariException {
 
   public ServiceNotFoundException(String clusterName, String serviceName) {

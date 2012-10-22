@@ -100,7 +100,7 @@ public class JDBCManagementController implements AmbariManagementController {
   public void createCluster(ClusterRequest request) throws AmbariException {
 //    createResources(Resource.Type.Cluster, request);
   }
-  
+
   @Override
   public TrackActionResponse createConfiguration(ConfigurationRequest request)
       throws AmbariException {
@@ -133,7 +133,7 @@ public class JDBCManagementController implements AmbariManagementController {
   public Set<ServiceComponentHostResponse> getHostComponents(ServiceComponentHostRequest request) throws AmbariException {
     return null;
   }
-  
+
   @Override
   public Set<ConfigurationResponse> getConfigurations(ConfigurationRequest request) throws AmbariException {
     return null;
@@ -147,9 +147,8 @@ public class JDBCManagementController implements AmbariManagementController {
 
 
   @Override
-  public TrackActionResponse deleteCluster(ClusterRequest request) throws AmbariException {
+  public void deleteCluster(ClusterRequest request) throws AmbariException {
 //    deleteResources(Resource.Type.Cluster, predicate);
-    return null;
   }
 
 
@@ -693,10 +692,9 @@ public class JDBCManagementController implements AmbariManagementController {
   }
 
   @Override
-  public TrackActionResponse deleteHosts(Set<HostRequest> request)
+  public void deleteHosts(Set<HostRequest> request)
       throws AmbariException {
     // TODO Auto-generated method stub
-    return null;
   }
 
   @Override

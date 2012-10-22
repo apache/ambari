@@ -23,12 +23,12 @@ package org.apache.ambari.server.state.fsm;
  * event at its current state.
  */
 @SuppressWarnings("serial")
-public class InvalidStateTransitonException extends Exception {
+public class InvalidStateTransitionException extends Exception {
 
   private Enum<?> currentState;
   private Enum<?> event;
 
-  public InvalidStateTransitonException(Enum<?> currentState, Enum<?> event) {
+  public InvalidStateTransitionException(Enum<?> currentState, Enum<?> event) {
     super("Invalid event: " + event + " at " + currentState);
     this.currentState = currentState;
     this.event = event;

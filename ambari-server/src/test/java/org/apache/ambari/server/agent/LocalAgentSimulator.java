@@ -18,7 +18,7 @@
 package org.apache.ambari.server.agent;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -26,9 +26,9 @@ import org.apache.commons.logging.LogFactory;
  * The purpose of this class is to simulate the agent.
  */
 public class LocalAgentSimulator implements Runnable {
-  
+
   private static Log LOG = LogFactory.getLog(HeartBeatHandler.class);
-  
+
   private Thread agentThread = null;
   private volatile boolean shouldRun = true;
   private final HeartBeatHandler handler;
@@ -36,18 +36,18 @@ public class LocalAgentSimulator implements Runnable {
   private long responseId = 1;
 
   private String hostname = "localhost";
-  
+
   public LocalAgentSimulator(HeartBeatHandler hbh) {
     this.handler = hbh;
   }
-  
+
   public LocalAgentSimulator(HeartBeatHandler hbh, String hostname, long sleepTime) {
     this(hbh);
     this.sleepTime = sleepTime;
     this.hostname  = hostname;
   }
-    
-  //Can be used to control exact number of heartbeats, 
+
+  //Can be used to control exact number of heartbeats,
   //Default is -1 which means keep heartbeating continuously
   private volatile int numberOfHeartbeats = -1;
   private int currentHeartbeatCount = 0;
@@ -62,12 +62,12 @@ public class LocalAgentSimulator implements Runnable {
     agentThread = new Thread(this);
     agentThread.start();
   }
-  
+
   public void shutdown() {
     shouldRun = false;
     agentThread.interrupt();
   }
-  
+
   @Override
   public void run() {
     while (shouldRun) {
@@ -102,7 +102,7 @@ public class LocalAgentSimulator implements Runnable {
     } catch (AmbariException e) {
       LOG.info("Registration failed", e);
       return;
-    } catch (InvalidStateTransitonException e) {
+    } catch (InvalidStateTransitionException e) {
       LOG.info("Registration failed", e);
       return;
     }

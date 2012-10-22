@@ -85,7 +85,6 @@ public class ServiceImpl implements Service {
     serviceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
 
     this.cluster = cluster;
-    this.configs = new HashMap<String, Config>();
     this.desiredConfigs = new HashMap<String, Config>();
     this.components = new HashMap<String, ServiceComponent>();
     setDesiredStackVersion(new StackVersion(""));
@@ -242,9 +241,7 @@ public class ServiceImpl implements Service {
 
   private synchronized Map<String, String> getConfigVersions() {
     Map<String, String> configVersions = new HashMap<String, String>();
-    for (Config c : configs.values()) {
-      configVersions.put(c.getType(), c.getVersionTag());
-    }
+    // FIXME config impl required
     return configVersions;
   }
 
@@ -328,5 +325,11 @@ public class ServiceImpl implements Service {
       clusterServiceDAO.refresh(serviceEntity);
       serviceDesiredStateDAO.refresh(serviceDesiredStateEntity);
     }
+  }
+
+  @Override
+  public boolean canBeRemoved() {
+    // TODO Auto-generated method stub
+    return false;
   }
 }

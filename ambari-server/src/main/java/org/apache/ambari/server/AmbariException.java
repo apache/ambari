@@ -20,7 +20,7 @@ package org.apache.ambari.server;
 
 import java.io.IOException;
 
-// TODO
+@SuppressWarnings("serial")
 public class AmbariException extends IOException {
 
   public AmbariException(String message) {

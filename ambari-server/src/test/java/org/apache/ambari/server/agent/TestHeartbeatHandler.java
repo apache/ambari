@@ -33,7 +33,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.junit.After;
 import org.junit.Before;
@@ -82,7 +82,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testRegistration() throws AmbariException,
-      InvalidStateTransitonException {
+      InvalidStateTransitionException {
     ActionManager am = new ActionManager(0, 0, null, null,
         new ActionDBInMemoryImpl());
     Clusters fsm = clusters;
@@ -105,7 +105,7 @@ public class TestHeartbeatHandler {
   }
 
   @Test
-  public void testRegisterNewNode() throws AmbariException, InvalidStateTransitonException {
+  public void testRegisterNewNode() throws AmbariException, InvalidStateTransitionException {
     ActionManager am = new ActionManager(0, 0, null, null,
         new ActionDBInMemoryImpl());
     Clusters fsm = clusters;

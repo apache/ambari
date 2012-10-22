@@ -41,7 +41,7 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
@@ -361,7 +361,7 @@ public class HostImpl implements Host {
 
   @Override
   public void handleEvent(HostEvent event)
-      throws InvalidStateTransitonException {
+      throws InvalidStateTransitionException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Handling Host event, eventType=" + event.getType().name()
           + ", event=" + event.toString());
@@ -371,7 +371,7 @@ public class HostImpl implements Host {
       writeLock.lock();
       try {
         stateMachine.doTransition(event.getType(), event);
-      } catch (InvalidStateTransitonException e) {
+      } catch (InvalidStateTransitionException e) {
         LOG.error("Can't handle Host event at current state"
             + ", host=" + this.getHostName()
             + ", currentState=" + oldState
@@ -593,7 +593,8 @@ public class HostImpl implements Host {
   public List<DiskInfo> getDisksInfo() {
     try {
       readLock.lock();
-      return Collections.unmodifiableList(gson.<List<DiskInfo>>fromJson(hostEntity.getDisksInfo(), diskInfoType));
+      return gson.<List<DiskInfo>>fromJson(
+                hostEntity.getDisksInfo(), diskInfoType);
     } finally {
       readLock.unlock();
     }
@@ -614,7 +615,8 @@ public class HostImpl implements Host {
   public HostHealthStatus getHealthStatus() {
     try {
       readLock.lock();
-      return gson.fromJson(hostStateEntity.getHealthStatus(), HostHealthStatus.class);
+      return gson.fromJson(hostStateEntity.getHealthStatus(),
+          HostHealthStatus.class);
     } finally {
       readLock.unlock();
     }
@@ -635,8 +637,8 @@ public class HostImpl implements Host {
   public Map<String, String> getHostAttributes() {
     try {
       readLock.lock();
-      return Collections.unmodifiableMap(
-              gson.<Map<String, String>>fromJson(hostEntity.getHostAttributes(), hostAttributesType));
+      return gson.<Map<String, String>>fromJson(hostEntity.getHostAttributes(),
+          hostAttributesType);
     } finally {
       readLock.unlock();
     }
@@ -647,7 +649,8 @@ public class HostImpl implements Host {
     try {
       writeLock.lock();
       //TODO should this add attributes and not replace them?
-      hostEntity.setHostAttributes(gson.toJson(hostAttributes, hostAttributesType));
+      hostEntity.setHostAttributes(gson.toJson(hostAttributes,
+          hostAttributesType));
       saveIfPersisted();
     } finally {
       writeLock.unlock();
@@ -723,7 +726,8 @@ public class HostImpl implements Host {
   public AgentVersion getAgentVersion() {
     try {
       readLock.lock();
-      return gson.fromJson(hostStateEntity.getAgentVersion(), AgentVersion.class);
+      return gson.fromJson(hostStateEntity.getAgentVersion(),
+          AgentVersion.class);
     }
     finally {
       readLock.unlock();

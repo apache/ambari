@@ -23,7 +23,7 @@ import java.util.Map;
 
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.job.Job;
 
 
@@ -67,10 +67,10 @@ public interface ServiceComponentHost {
   /**
    * Send a ServiceComponentHostState event to the StateMachine
    * @param event Event to handle
-   * @throws InvalidStateTransitonException
+   * @throws InvalidStateTransitionException
    */
   public void handleEvent(ServiceComponentHostEvent event)
-      throws InvalidStateTransitonException;
+      throws InvalidStateTransitionException;
 
   public State getDesiredState();
 

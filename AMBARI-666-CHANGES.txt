@@ -323,6 +323,8 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-888. Add more tests for controller implementation. (hitesh)
+
   AMBARI-891. Initial work to refactor the Wizards in Ambari Web. (yusaku)
 
   AMBARI-883. Improve user interactions on Confirm Hosts page of the

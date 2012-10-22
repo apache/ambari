@@ -22,7 +22,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
+import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
@@ -191,7 +191,7 @@ public class JobImpl implements Job {
 
   @Override
   public void handleEvent(JobEvent event)
-      throws InvalidStateTransitonException {
+      throws InvalidStateTransitionException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Handling Job event, eventType=" + event.getType().name()
           + ", event=" + event.toString());
@@ -201,7 +201,7 @@ public class JobImpl implements Job {
       writeLock.lock();
       try {
         stateMachine.doTransition(event.getType(), event);
-      } catch (InvalidStateTransitonException e) {
+      } catch (InvalidStateTransitionException e) {
         LOG.error("Can't handle Job event at current state"
             + ", jobId=" + this.getId()
             + ", currentState=" + oldState
