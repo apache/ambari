@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<reposinfo>
+    <repo>
+        <url>url</url>
+        <os>Centos 5</os>
+        <description>...</description>
+    </repo>
+    <repo>
+        <url>url</url>
+        <os>Centos 6</os>
+    </repo>
+</reposinfo>

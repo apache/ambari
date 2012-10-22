@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-892. Add puppet executor at the agent to be able to run various
+  commands from the server. (mahadev)
+
   AMBARI-887. Ability to save configuration. (Nate Cole via mahadev)
 
   AMBARI-877. Refactor resource provider implementation for changes to

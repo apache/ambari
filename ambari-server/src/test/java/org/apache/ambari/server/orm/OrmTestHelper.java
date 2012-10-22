@@ -23,15 +23,14 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.RoleDAO;
-import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.orm.dao.*;
 import org.apache.ambari.server.orm.entities.*;
 import org.apache.ambari.server.state.HostState;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.util.*;
 
 @Singleton
@@ -143,15 +142,54 @@ public class OrmTestHelper {
     getEntityManager().getTransaction().setRollbackOnly();
   }
 
-  public int getClusterSizeByHostName(String hostName) {
+  @Transactional
+  public void createStageCommands() {
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    StageDAO stageDAO = injector.getInstance(StageDAO.class);
+    HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
+    HostDAO hostDAO = injector.getInstance(HostDAO.class);
+    StageEntity stageEntity = new StageEntity();
+    stageEntity.setCluster(clusterDAO.findByName("test_cluster1"));
+    stageEntity.setRequestId(0L);
+    stageEntity.setStageId(0L);
 
-    Query query = getEntityManager().createQuery(
-            "SELECT host2 from HostEntity host join host.clusterEntities clusters join clusters.hostEntities host2 where host.hostName=:hostName");
-    query.setParameter("hostName", hostName);
+    HostRoleCommandEntity commandEntity = new HostRoleCommandEntity();
+    HostRoleCommandEntity commandEntity2 = new HostRoleCommandEntity();
+    HostRoleCommandEntity commandEntity3 = new HostRoleCommandEntity();
+    HostEntity host1 = hostDAO.findByName("test_host1");
+    HostEntity host2 = hostDAO.findByName("test_host2");
+    commandEntity.setHost(host1);
+    host1.getHostRoleCommandEntities().add(commandEntity);
+    commandEntity.setHostName("test_host1");
+    commandEntity.setCommand("cmd1");
+    commandEntity.setStatus(HostRoleStatus.QUEUED);
+    commandEntity.setRole(Role.DATANODE);
+    commandEntity2.setHost(host2);
+    host2.getHostRoleCommandEntities().add(commandEntity2);
+    commandEntity2.setCommand("cmd2");
+    commandEntity2.setRole(Role.NAMENODE);
+    commandEntity2.setStatus(HostRoleStatus.COMPLETED);
+    commandEntity3.setHost(host1);
+    host1.getHostRoleCommandEntities().add(commandEntity3);
+    commandEntity3.setCommand("cmd3");
+    commandEntity3.setRole(Role.SECONDARY_NAMENODE);
+    commandEntity3.setStatus(HostRoleStatus.IN_PROGRESS);
+    commandEntity.setStage(stageEntity);
+    commandEntity2.setStage(stageEntity);
+    commandEntity3.setStage(stageEntity);
 
-    Collection hosts = query.getResultList();
+    stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
+    stageEntity.getHostRoleCommands().add(commandEntity);
+    stageEntity.getHostRoleCommands().add(commandEntity2);
+    stageEntity.getHostRoleCommands().add(commandEntity3);
 
-    return hosts.size();
+    stageDAO.create(stageEntity);
+    hostRoleCommandDAO.create(commandEntity3);
+    hostRoleCommandDAO.create(commandEntity);
+    hostRoleCommandDAO.create(commandEntity2);
+    hostDAO.merge(host1);
+    hostDAO.merge(host2);
+
   }
 
 }

@@ -53,9 +53,12 @@ define configgenerator::configfile ($modulespath='/etc/puppet/modules', $filenam
   <% end -%>
 </configuration>')
  
-file {'config':
+
+debug("Generating config: ${modulespath}/${filename}")
+
+file {"${modulespath}/${filename}":
   ensure  => present,
   content => $configcontent,
-  path => "${modulespath}/${module}/templates/${filename}",
+  path => "${modulespath}/${filename}",
 }
 } 

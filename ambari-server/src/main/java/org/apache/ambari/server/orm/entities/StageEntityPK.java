@@ -23,27 +23,27 @@ import javax.persistence.Id;
 import java.io.Serializable;
 
 public class StageEntityPK implements Serializable {
-  private Integer requestId;
+  private Long requestId;
 
   @Id
   @Column(name = "request_id")
-  public Integer getRequestId() {
+  public Long getRequestId() {
     return requestId;
   }
 
-  public void setRequestId(Integer requestId) {
+  public void setRequestId(Long requestId) {
     this.requestId = requestId;
   }
 
-  private Integer stageId;
+  private Long stageId;
 
   @Id
   @Column(name = "stage_id")
-  public Integer getStageId() {
+  public Long getStageId() {
     return stageId;
   }
 
-  public void setStageId(Integer stageId) {
+  public void setStageId(Long stageId) {
     this.stageId = stageId;
   }
 

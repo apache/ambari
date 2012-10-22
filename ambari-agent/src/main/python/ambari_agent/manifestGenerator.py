@@ -24,21 +24,19 @@ import logging
 
 logger = logging.getLogger()
 
-  #read static imports from file and write them to manifest
-def writeImports(outputFile, inputFileName='imports.txt'):
+#read static imports from file and write them to manifest
+def writeImports(outputFile, modulesdir, inputFileName='imports.txt'):
   inputFile = open(inputFileName, 'r')
-  modulesdir = os.path.abspath(os.getcwd() + "../../../puppet/modules/")
   logger.info("Modules dir is " + modulesdir)
   for line in inputFile:
-    modulename = line.rstrip('\n')
-    line = "import '" + modulesdir + "/" + modulename + "'\n"
+    modulename = line.rstrip()
+    line = "import '" + modulesdir + os.sep + modulename + "'" + os.linesep
     outputFile.write(line)
     
   inputFile.close()
 
-def generateManifest(inputJsonStr):
+def generateManifest(parsedJson, fileName, modulesdir):
 #reading json
-  parsedJson = json.loads(inputJsonStr)
   hostname = parsedJson['hostname']
   clusterHostInfo = parsedJson['clusterHostInfo']
   params = parsedJson['params']
@@ -46,11 +44,11 @@ def generateManifest(inputJsonStr):
   #hostAttributes = parsedJson['hostAttributes']
   roles = parsedJson['roleCommands']
   
-#writing manifest
-  manifest = open('site.pp', 'w')
+  #writing manifest
+  manifest = open(fileName, 'w')
 
   #writing imports from external static file
-  writeImports(manifest)
+  writeImports(outputFile=manifest, modulesdir=modulesdir)
   
   #writing nodes
   writeNodes(manifest, clusterHostInfo)
@@ -95,8 +93,24 @@ def writeNodes(outputFile, clusterHostInfo):
 
 #write params
 def writeParams(outputFile, params):
-  for param in params.iterkeys():
-    outputFile.write('$' +  param + '="' + params[param] + '"\n')
+
+  for paramName in params.iterkeys():
+
+    param = params[paramName]
+    if type(param) is dict:
+
+      outputFile.write('$' + paramName + '= {\n')
+
+      coma = ''
+
+      for subParam in param.iterkeys():
+        outputFile.write(coma + '"' + subParam + '" => "' + param[subParam] + '"')
+        coma = ',\n'
+
+      outputFile.write('\n}\n')
+    else:
+      outputFile.write('$' +  paramName + '="' + param + '"\n')
+    
 
 #write host attributes
 def writeHostAttributes(outputFile, hostAttributes):
@@ -177,8 +191,18 @@ def writeStages(outputFile, numStages):
   
   outputFile.write('\n')
     
-logging.basicConfig(level=logging.DEBUG)    
-#test code
-jsonFile = open('test.json', 'r')
-jsonStr = jsonFile.read() 
-generateManifest(jsonStr)
+
+def main():
+  logging.basicConfig(level=logging.DEBUG)    
+  #test code
+  jsonFile = open('test.json', 'r')
+  jsonStr = jsonFile.read() 
+  modulesdir = os.path.abspath(os.getcwd() + ".." + os.sep + ".." + 
+                               os.sep + ".." + os.sep + "puppet" + 
+                               os.sep + "modules" + os.sep)
+  parsedJson = json.loads(inputJsonStr)
+  generateManifest(parsedJson, 'site.pp', modulesdir)
+
+if __name__ == '__main__':
+  main()
+

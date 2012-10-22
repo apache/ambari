@@ -23,6 +23,7 @@ import javax.persistence.*;
 @javax.persistence.IdClass(HostComponentMappingEntityPK.class)
 @javax.persistence.Table(name = "hostcomponentmapping", schema = "ambari", catalog = "")
 @Entity
+@SequenceGenerator(name = "ambari.hostcomponentmapping_host_component_mapping_id_seq", allocationSize = 1)
 public class HostComponentMappingEntity {
   private Long clusterId;
 
@@ -52,7 +53,7 @@ public class HostComponentMappingEntity {
 
   @javax.persistence.Column(name = "host_component_mapping_id", nullable = false, insertable = true, updatable = true, length = 10)
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ambari.hostcomponentmapping_host_component_mapping_id_seq")
   public Integer getHostComponentMappingId() {
     return hostComponentMappingId;
   }

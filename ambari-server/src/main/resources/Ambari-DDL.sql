@@ -60,7 +60,7 @@ FOREIGN KEY(user_name, ldap_user) REFERENCES Users(user_name, ldap_user)
 /* Overall clusters table - all created/managed clusters */
 CREATE TABLE Clusters
 (
-cluster_id SERIAL,
+cluster_id BIGSERIAL,
 cluster_name VARCHAR UNIQUE NOT NULL,
 desired_cluster_state VARCHAR DEFAULT '' NOT NULL,
 cluster_info VARCHAR DEFAULT '' NOT NULL,
@@ -90,14 +90,14 @@ PRIMARY KEY (host_name)
 /* Cluster Hosts mapping table */
 CREATE TABLE ClusterHostMapping
 (
-  cluster_id INTEGER references Clusters(cluster_id),
+  cluster_id BIGINT references Clusters(cluster_id),
   host_name VARCHAR references Hosts(host_name),
   PRIMARY KEY(cluster_id, host_name)
 );
 
 CREATE TABLE ClusterServices
 (
-cluster_id INTEGER NOT NULL references Clusters(cluster_id),
+cluster_id BIGINT NOT NULL references Clusters(cluster_id),
 service_name VARCHAR,
 service_enabled INTEGER DEFAULT '0' NOT NULL,
 PRIMARY KEY (cluster_id,service_name)
@@ -110,7 +110,7 @@ PRIMARY KEY (cluster_id,service_name)
 CREATE TABLE ServiceConfig
 (
 config_version SERIAL /*INTEGER NOT NULL AUTO_INCREMENT*/,
-cluster_id INTEGER NOT NULL,
+cluster_id BIGINT NOT NULL,
 service_name VARCHAR NOT NULL,
 config_snapshot VARCHAR DEFAULT '' NOT NULL,
 config_snapshot_time timestamp NOT NULL,
@@ -125,7 +125,7 @@ FOREIGN KEY (cluster_id, service_name) REFERENCES ClusterServices(cluster_id, se
 CREATE TABLE ServiceComponentConfig
 (
 config_version SERIAL /*INTEGER NOT NULL AUTO_INCREMENT*/,
-cluster_id INTEGER NOT NULL,
+cluster_id BIGINT NOT NULL,
 service_name VARCHAR NOT NULL,
 component_name VARCHAR NOT NULL,
 config_snapshot VARCHAR DEFAULT '' NOT NULL,
@@ -138,7 +138,7 @@ FOREIGN KEY (cluster_id, service_name) REFERENCES ClusterServices(cluster_id, se
 CREATE TABLE ServiceComponentHostConfig
 (
 config_version SERIAL /*INTEGER NOT NULL AUTO_INCREMENT*/,
-cluster_id INTEGER NOT NULL,
+cluster_id BIGINT NOT NULL,
 service_name VARCHAR NOT NULL,
 component_name VARCHAR NOT NULL,
 host_name VARCHAR NOT NULL references Hosts(host_name),
@@ -150,7 +150,7 @@ FOREIGN KEY (cluster_id, service_name) REFERENCES ClusterServices(cluster_id, se
 
 CREATE TABLE ServiceDesiredState
 (
-cluster_id INTEGER,
+cluster_id BIGINT,
 service_name VARCHAR DEFAULT '' NOT NULL,
 desired_state VARCHAR DEFAULT '' NOT NULL,
 desired_host_role_mapping INTEGER DEFAULT '0' NOT NULL,
@@ -161,7 +161,7 @@ FOREIGN KEY (cluster_id, service_name) REFERENCES ClusterServices(cluster_id, se
 
 CREATE TABLE HostComponentMapping /*HostRoleMapping*/
 (
-cluster_id INTEGER,
+cluster_id BIGINT,
 service_name VARCHAR DEFAULT '' NOT NULL,
 host_component_mapping_id SERIAL /*INTEGER NOT NULL AUTO_INCREMENT*/,
 host_component_mapping_snapshot VARCHAR DEFAULT '' NOT NULL,
@@ -172,7 +172,7 @@ FOREIGN KEY (cluster_id, service_name) REFERENCES ClusterServices(cluster_id, se
 
 CREATE TABLE ClusterState
 (
-cluster_id INTEGER NOT NULL references Clusters(cluster_id),
+cluster_id BIGINT NOT NULL references Clusters(cluster_id),
 current_cluster_state VARCHAR DEFAULT '' NOT NULL,
 PRIMARY KEY (cluster_id)
 );
@@ -192,7 +192,7 @@ PRIMARY KEY (host_name)
 
 CREATE TABLE ServiceComponentDesiredState
 (
-cluster_id INTEGER references Clusters(cluster_id),
+cluster_id BIGINT references Clusters(cluster_id),
 service_name VARCHAR DEFAULT '' NOT NULL,
 component_name VARCHAR DEFAULT '' NOT NULL,
 desired_state VARCHAR DEFAULT '' NOT NULL,
@@ -204,7 +204,7 @@ FOREIGN KEY (cluster_id, service_name) REFERENCES ClusterServices(cluster_id, se
 
 CREATE TABLE HostComponentState
 (
-cluster_id INTEGER,
+cluster_id BIGINT,
 service_name VARCHAR DEFAULT '' NOT NULL,
 host_name VARCHAR DEFAULT '' NOT NULL references Hosts(host_name),
 component_name VARCHAR DEFAULT '' NOT NULL,
@@ -217,7 +217,7 @@ FOREIGN KEY (cluster_id, service_name, component_name) REFERENCES ServiceCompone
 
 CREATE TABLE HostComponentDesiredState
 (
-cluster_id INTEGER,
+cluster_id BIGINT,
 service_name VARCHAR DEFAULT '' NOT NULL,
 host_name VARCHAR NOT NULL references Hosts(host_name),
 component_name VARCHAR DEFAULT '' NOT NULL,
@@ -230,18 +230,18 @@ FOREIGN KEY (cluster_id, service_name, component_name) REFERENCES ServiceCompone
 
 CREATE TABLE STAGE
 (
-   cluster_id INTEGER references Clusters(cluster_id),
-   request_id SERIAL,
-   stage_id INTEGER DEFAULT '0' NOT NULL,
+   cluster_id BIGINT references Clusters(cluster_id),
+   request_id BIGINT DEFAULT '0',
+   stage_id BIGINT DEFAULT '0' NOT NULL,
    log_info VARCHAR DEFAULT '' NOT NULL,
    PRIMARY KEY (request_id, stage_id)
 );
 
 CREATE TABLE HOST_ROLE_COMMAND
 (
-   task_id INTEGER DEFAULT '0' NOT NULL,
-   request_id INTEGER NOT NULL,
-   stage_id INTEGER NOT NULL,
+   task_id SERIAL NOT NULL,
+   request_id BIGINT NOT NULL,
+   stage_id BIGINT NOT NULL,
    host_name VARCHAR DEFAULT '' NOT NULL references Hosts(host_name),
    role VARCHAR DEFAULT '' NOT NULL,
    command VARCHAR DEFAULT '' NOT NULL,
@@ -252,7 +252,7 @@ CREATE TABLE HOST_ROLE_COMMAND
    std_out VARCHAR DEFAULT '' NOT NULL,
    start_time BIGINT DEFAULT -1 NOT NULL,
    last_attempt_time BIGINT DEFAULT -1 NOT NULL,
-   attempt_count INTEGER DEFAULT 0 NOT NULL,
+   attempt_count SMALLINT DEFAULT 0 NOT NULL,
    PRIMARY KEY (task_id),
    FOREIGN KEY (request_id, stage_id) REFERENCES STAGE(request_id, stage_id)
 );
@@ -260,15 +260,15 @@ CREATE TABLE HOST_ROLE_COMMAND
 CREATE TABLE EXECUTION_COMMAND
 (
    task_id INTEGER DEFAULT '0' NOT NULL references HOST_ROLE_COMMAND(task_id),
-   command bytea NOT NULL, /** Serialized ExecutionCommand **/
+   command VARCHAR NOT NULL, /** Serialized ExecutionCommand **/
    PRIMARY KEY(task_id)
 );
 
 
 CREATE TABLE ROLE_SUCCESS_CRITERIA
 (
-   request_id INTEGER NOT NULL,
-   stage_id INTEGER NOT NULL,
+   request_id BIGINT NOT NULL,
+   stage_id BIGINT NOT NULL,
    role VARCHAR DEFAULT '' NOT NULL,
    success_factor FLOAT DEFAULT 1,
    PRIMARY KEY(role, request_id, stage_id),
@@ -292,6 +292,7 @@ CREATE TABLE ROLE_SUCCESS_CRITERIA
 
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ambari TO "ambari-server";
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA ambari TO "ambari-server";
 
 BEGIN;
 

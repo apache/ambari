@@ -19,6 +19,9 @@
 package org.apache.ambari.server.state;
 
 import org.apache.ambari.server.state.fsm.event.AbstractEvent;
+import org.apache.ambari.server.state.svccomphost.*;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * Base class for all events that affect the ServiceComponentHost FSM
@@ -68,6 +71,33 @@ public abstract class ServiceComponentHostEvent
    */
   public long getOpTimestamp() {
     return opTimestamp;
+  }
+
+  @JsonCreator
+  public static ServiceComponentHostEvent create(@JsonProperty("type") ServiceComponentHostEventType type,
+                                                 @JsonProperty("serviceComponentName") String serviceComponentName,
+                                                 @JsonProperty("hostName") String hostName, @JsonProperty("opTimestamp") long opTimestamp) {
+    switch (type) {
+      case HOST_SVCCOMP_INSTALL:
+        return new ServiceComponentHostInstallEvent(serviceComponentName, hostName, opTimestamp);
+      case HOST_SVCCOMP_OP_FAILED:
+        return new ServiceComponentHostOpFailedEvent(serviceComponentName, hostName, opTimestamp);
+      case HOST_SVCCOMP_OP_IN_PROGRESS:
+        return new ServiceComponentHostOpInProgressEvent(serviceComponentName, hostName, opTimestamp);
+      case HOST_SVCCOMP_OP_RESTART:
+        return new ServiceComponentHostOpRestartedEvent(serviceComponentName, hostName, opTimestamp);
+      case HOST_SVCCOMP_OP_SUCCEEDED:
+        return new ServiceComponentHostOpSucceededEvent(serviceComponentName, hostName, opTimestamp);
+      case HOST_SVCCOMP_START:
+        return new ServiceComponentHostStartEvent(serviceComponentName, hostName, opTimestamp);
+      case HOST_SVCCOMP_STOP:
+        return new ServiceComponentHostStopEvent(serviceComponentName, hostName, opTimestamp);
+      case HOST_SVCCOMP_UNINSTALL:
+        return new ServiceComponentHostUninstallEvent(serviceComponentName, hostName, opTimestamp);
+      case HOST_SVCCOMP_WIPEOUT:
+        return new ServiceComponentHostWipeoutEvent(serviceComponentName, hostName, opTimestamp);
+    }
+    return null;
   }
 
 }

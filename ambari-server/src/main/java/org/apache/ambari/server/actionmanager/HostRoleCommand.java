@@ -17,8 +17,20 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.utils.StageUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
 
 /**
  * This class encapsulates the information for an task on a host for a
@@ -27,7 +39,11 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
  * track the request.
  * For the actual command refer {@link HostAction#commandToHost}
  */
-class HostRoleCommand {
+public class HostRoleCommand {
+  private static final Logger log = LoggerFactory.getLogger(HostRoleCommand.class);
+
+  private int taskId = -1;
+  private String hostName;
   private final Role role;
   private HostRoleStatus status = HostRoleStatus.PENDING;
   private String stdout = "";
@@ -38,10 +54,89 @@ class HostRoleCommand {
   private long lastAttemptTime = -1;
   private short attemptCount = 0;
 
+  private ExecutionCommand executionCommand;
+
   public HostRoleCommand(String host, Role role,
-      ServiceComponentHostEvent event) {
+                         ServiceComponentHostEvent event) {
+    this.hostName = host;
     this.role = role;
     this.event = event;
+  }
+
+  @AssistedInject
+  public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, Injector injector) {
+    taskId = hostRoleCommandEntity.getTaskId();
+    this.hostName = hostRoleCommandEntity.getHostName();
+    role = hostRoleCommandEntity.getRole();
+    status = hostRoleCommandEntity.getStatus();
+    stdout = hostRoleCommandEntity.getStdOut();
+    stderr = hostRoleCommandEntity.getStdError();
+    exitCode = hostRoleCommandEntity.getExitcode();
+    startTime = hostRoleCommandEntity.getStartTime();
+    lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime();
+    attemptCount = hostRoleCommandEntity.getAttemptCount();
+
+    try {
+      log.info(hostRoleCommandEntity.getEvent());
+      event = StageUtils.fromJson(hostRoleCommandEntity.getEvent(), ServiceComponentHostEvent.class);
+      executionCommand = StageUtils.stringToExecutionCommand(hostRoleCommandEntity.getExecutionCommand().getCommand());
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to parse JSON string", e);
+    }
+
+  }
+
+  HostRoleCommandEntity constructNewPersistenceEntity() {
+    HostRoleCommandEntity hostRoleCommandEntity = new HostRoleCommandEntity();
+    hostRoleCommandEntity.setHostName(hostName);
+    hostRoleCommandEntity.setRole(role);
+    hostRoleCommandEntity.setStatus(status);
+    hostRoleCommandEntity.setStdError(stderr);
+    hostRoleCommandEntity.setExitcode(exitCode);
+    hostRoleCommandEntity.setStdOut(stdout);
+    hostRoleCommandEntity.setStartTime(startTime);
+    hostRoleCommandEntity.setLastAttemptTime(lastAttemptTime);
+    hostRoleCommandEntity.setAttemptCount(attemptCount);
+
+    try {
+      hostRoleCommandEntity.setEvent(StageUtils.jaxbToString(event));
+      ExecutionCommandEntity executionCommandEntity = new ExecutionCommandEntity();
+      executionCommandEntity.setCommand(StageUtils.jaxbToString(executionCommand));
+      executionCommandEntity.setHostRoleCommand(hostRoleCommandEntity);
+      hostRoleCommandEntity.setExecutionCommand(executionCommandEntity);
+    } catch (JAXBException e) {
+      throw new RuntimeException(e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    return hostRoleCommandEntity;
+  }
+
+  ExecutionCommandEntity constructExecutionCommandEntity(){
+    try {
+      ExecutionCommandEntity executionCommandEntity = new ExecutionCommandEntity();
+      executionCommandEntity.setCommand(StageUtils.jaxbToString(executionCommand));
+      return executionCommandEntity;
+    } catch (JAXBException e) {
+      throw new RuntimeException(e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+
+  public int getTaskId() {
+    return taskId;
+  }
+
+  public void setTaskId(int taskId) {
+      this.taskId = taskId;
+      executionCommand.setTaskId(taskId);
+  }
+
+  public String getHostName() {
+    return hostName;
   }
 
   public Role getRole() {
@@ -107,12 +202,20 @@ class HostRoleCommand {
   public void incrementAttemptCount() {
     this.attemptCount++;
   }
-  
+
+  public ExecutionCommand getExecutionCommand() {
+    return executionCommand;
+  }
+
+  public void setExecutionCommand(ExecutionCommand executionCommand) {
+    this.executionCommand = executionCommand;
+  }
+
   @Override
   public int hashCode() {
     return role.hashCode();
   }
-  
+
   @Override
   public boolean equals(Object other) {
     if (!(other instanceof HostRoleCommand)) {
@@ -121,20 +224,20 @@ class HostRoleCommand {
     HostRoleCommand o = (HostRoleCommand) other;
     return this.role.equals(o.role);
   }
-  
+
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("HostRoleCommand State:\n");
-    builder.append("  Role: "+role+"\n");
-    builder.append("  Status: "+status+"\n");
-    builder.append("  Event: "+event+"\n");
-    builder.append("  stdout: "+stdout+"\n");
-    builder.append("  stderr: "+stderr+"\n");
-    builder.append("  exitcode: "+exitCode+"\n");
-    builder.append("  Start time: " + startTime+"\n");
-    builder.append("  Last attempt time: "+lastAttemptTime+"\n");
-    builder.append("  attempt count: "+ attemptCount+"\n");
+    builder.append("  Role: " + role + "\n");
+    builder.append("  Status: " + status + "\n");
+    builder.append("  Event: " + event + "\n");
+    builder.append("  stdout: " + stdout + "\n");
+    builder.append("  stderr: " + stderr + "\n");
+    builder.append("  exitcode: " + exitCode + "\n");
+    builder.append("  Start time: " + startTime + "\n");
+    builder.append("  Last attempt time: " + lastAttemptTime + "\n");
+    builder.append("  attempt count: " + attemptCount + "\n");
     return builder.toString();
   }
 }

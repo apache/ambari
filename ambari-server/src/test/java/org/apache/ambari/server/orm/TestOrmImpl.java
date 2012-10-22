@@ -20,36 +20,37 @@ package org.apache.ambari.server.orm;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.jpa.JpaPersistModule;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
-import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import com.google.inject.persist.PersistService;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.*;
+import org.junit.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 public class TestOrmImpl extends Assert {
-  private final static Log log = LogFactory.getLog(TestOrmImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(TestOrmImpl.class);
 
   private static Injector injector;
 
-  @BeforeClass
-  public static void setUpClass() throws Exception {
-    injector = Guice.createInjector(new JpaPersistModule("ambari-javadb")); //used for injecting in-memory DB EntityManager
-//    injector = Guice.createInjector(new JpaPersistModule("ambari-postgres")); //for injecting
-    injector.getInstance(GuiceJpaInitializer.class); //needed by Guice-persist to work
+  @Before
+  public void setup() {
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
     injector.getInstance(OrmTestHelper.class).createDefaultData();
+  }
+
+  @After
+  public void teardown() {
+    injector.getInstance(PersistService.class).stop();
   }
 
   /**
@@ -182,6 +183,55 @@ public class TestOrmImpl extends Assert {
 
     ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByClusterAndServiceNames(clusterName, serviceName);
     clusterServiceDAO.remove(clusterServiceEntity);
+  }
+
+  @Test
+  public void testSortedCommands() {
+    injector.getInstance(OrmTestHelper.class).createStageCommands();
+    HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
+    HostDAO hostDAO = injector.getInstance(HostDAO.class);
+    StageDAO stageDAO = injector.getInstance(StageDAO.class);
+
+    List<HostRoleCommandEntity> list =
+        hostRoleCommandDAO.findSortedCommandsByStageAndHost(
+            stageDAO.findByActionId("0-0"), hostDAO.findByName("test_host1"));
+    log.info("command '{}' - taskId '{}'", list.get(0).getCommand(), list.get(0).getTaskId());
+    log.info("command '{}' - taskId '{}'", list.get(1).getCommand(), list.get(1).getTaskId());
+    assertTrue(list.get(0).getTaskId() < list.get(1).getTaskId());
+  }
+
+  @Test
+  public void testFindHostsByStage() {
+    injector.getInstance(OrmTestHelper.class).createStageCommands();
+    HostDAO hostDAO = injector.getInstance(HostDAO.class);
+    StageDAO stageDAO = injector.getInstance(StageDAO.class);
+    StageEntity stageEntity = stageDAO.findByActionId("0-0");
+    log.info("StageEntity {} {}", stageEntity.getRequestId(), stageEntity.getStageId());
+    List<HostEntity> hosts = hostDAO.findByStage(stageEntity);
+    assertEquals(2, hosts.size());
+  }
+
+  @Test
+  public void testAbortHostRoleCommands() {
+    injector.getInstance(OrmTestHelper.class).createStageCommands();
+    HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
+    int result = hostRoleCommandDAO.updateStatusByRequestId(0L, HostRoleStatus.ABORTED, Arrays.asList(HostRoleStatus.QUEUED, HostRoleStatus.IN_PROGRESS, HostRoleStatus.PENDING));
+    assertEquals(2, result);
+  }
+
+  @Test
+  public void testFindStageByHostRole() {
+    injector.getInstance(OrmTestHelper.class).createStageCommands();
+    HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
+    List<HostRoleCommandEntity> list = hostRoleCommandDAO.findByHostRole("test_host1", 0L, 0L, Role.DATANODE);
+    assertEquals(1, list.size());
+  }
+
+  @Test
+  public void testLastRequestId() {
+    injector.getInstance(OrmTestHelper.class).createStageCommands();
+    StageDAO stageDAO = injector.getInstance(StageDAO.class);
+    assertEquals(0L, stageDAO.getLastRequestId());
   }
 
 }

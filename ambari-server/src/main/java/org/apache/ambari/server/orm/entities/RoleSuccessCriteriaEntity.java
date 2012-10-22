@@ -18,45 +18,48 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import org.apache.ambari.server.Role;
+
 import javax.persistence.*;
 
 @IdClass(org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntityPK.class)
 @Table(name = "role_success_criteria", schema = "ambari", catalog = "")
 @Entity
 public class RoleSuccessCriteriaEntity {
-  private Integer requestId;
+  private Long requestId;
 
   @Column(name = "request_id", insertable = false, updatable = false, nullable = false)
   @Id
-  public Integer getRequestId() {
+  public Long getRequestId() {
     return requestId;
   }
 
-  public void setRequestId(Integer requestId) {
+  public void setRequestId(Long requestId) {
     this.requestId = requestId;
   }
 
-  private Integer stageId;
+  private Long stageId;
 
   @Column(name = "stage_id", insertable = false, updatable = false, nullable = false)
   @Id
-  public Integer getStageId() {
+  public Long getStageId() {
     return stageId;
   }
 
-  public void setStageId(Integer stageId) {
+  public void setStageId(Long stageId) {
     this.stageId = stageId;
   }
 
-  private String role;
+  private Role role;
 
   @Column(name = "role")
+  @Enumerated(EnumType.STRING)
   @Id
-  public String getRole() {
+  public Role getRole() {
     return role;
   }
 
-  public void setRole(String role) {
+  public void setRole(Role role) {
     this.role = role;
   }
 

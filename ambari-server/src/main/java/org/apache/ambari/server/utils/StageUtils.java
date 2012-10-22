@@ -116,4 +116,12 @@ public class StageUtils {
     InputStream is = new ByteArrayInputStream(json.getBytes());
     return mapper.readValue(is, ExecutionCommand.class);
   }
+
+  public static <T> T fromJson(String json, Class<T> clazz) throws IOException {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+    mapper.configure(SerializationConfig.Feature.USE_ANNOTATIONS, true);
+    InputStream is = new ByteArrayInputStream(json.getBytes());
+    return mapper.readValue(is, clazz);
+  }
 }

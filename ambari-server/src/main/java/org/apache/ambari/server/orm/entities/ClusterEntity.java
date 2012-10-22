@@ -32,12 +32,13 @@ import java.util.Collection;
             "FROM ClusterEntity clusters")
 })
 @Entity
+@SequenceGenerator(name = "ambari.clusters_cluster_id_seq", allocationSize = 1)
 public class ClusterEntity {
   private Long clusterId;
 
   @javax.persistence.Column(name = "cluster_id", nullable = false, insertable = true, updatable = true)
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ambari.clusters_cluster_id_seq")
   public Long getClusterId() {
     return clusterId;
   }

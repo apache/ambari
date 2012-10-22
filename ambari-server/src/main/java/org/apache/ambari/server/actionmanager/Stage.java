@@ -23,9 +23,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.StageDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.mortbay.log.Log;
@@ -42,7 +52,7 @@ public class Stage {
   private Map<Role, Float> successFactors = new HashMap<Role, Float>();
 
   //Map of host to host-roles
-  private Map<String, Map<String, HostRoleCommand>> hostRoleCommands = 
+  Map<String, Map<String, HostRoleCommand>> hostRoleCommands =
       new TreeMap<String, Map<String, HostRoleCommand>>();
   private Map<String, List<ExecutionCommand>> commandsToSend = 
       new TreeMap<String, List<ExecutionCommand>>();
@@ -51,6 +61,79 @@ public class Stage {
     this.requestId = requestId;
     this.logDir = logDir;
     this.clusterName = clusterName;
+  }
+
+  /**
+   * Creates Stage existing in database
+   * @param actionId "requestId-stageId" string
+   */
+  @AssistedInject
+  public Stage(@Assisted String actionId, Injector injector) {
+    this(injector.getInstance(StageDAO.class).findByActionId(actionId), injector);
+  }
+
+  @AssistedInject
+  public Stage(@Assisted StageEntity stageEntity, Injector injector) {
+    HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
+    HostDAO hostDAO = injector.getInstance(HostDAO.class);
+    HostRoleCommandFactory hostRoleCommandFactory = injector.getInstance(HostRoleCommandFactory.class);
+
+    requestId = stageEntity.getRequestId();
+    stageId = stageEntity.getStageId();
+    logDir = stageEntity.getLogInfo();
+    clusterName = stageEntity.getCluster().getClusterName();
+
+    for (HostEntity hostEntity : hostDAO.findByStage(stageEntity)) {
+      List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findSortedCommandsByStageAndHost(stageEntity, hostEntity);
+      commandsToSend.put(hostEntity.getHostName(), new ArrayList<ExecutionCommand>());
+      hostRoleCommands.put(hostEntity.getHostName(), new TreeMap<String, HostRoleCommand>());
+      for (HostRoleCommandEntity command : commands) {
+        HostRoleCommand hostRoleCommand = hostRoleCommandFactory.createExisting(command);
+        hostRoleCommands.get(hostEntity.getHostName()).put(hostRoleCommand.getRole().toString(), hostRoleCommand);
+        commandsToSend.get(hostEntity.getHostName()).add(hostRoleCommand.getExecutionCommand());
+      }
+    }
+
+    for (RoleSuccessCriteriaEntity successCriteriaEntity : stageEntity.getRoleSuccessCriterias()) {
+      successFactors.put(successCriteriaEntity.getRole(), successCriteriaEntity.getSuccessFactor().floatValue());
+    }
+  }
+
+  /**
+   * Creates object to be persisted in database
+   * @return StageEntity
+   */
+  public StageEntity constructNewPersistenceEntity() {
+    StageEntity stageEntity = new StageEntity();
+    stageEntity.setRequestId(requestId);
+    stageEntity.setStageId(stageId);
+    stageEntity.setLogInfo(logDir);
+    stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
+    stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
+
+    for (Role role : successFactors.keySet()) {
+      RoleSuccessCriteriaEntity roleSuccessCriteriaEntity = new RoleSuccessCriteriaEntity();
+      roleSuccessCriteriaEntity.setRole(role);
+      roleSuccessCriteriaEntity.setStage(stageEntity);
+      roleSuccessCriteriaEntity.setSuccessFactor(successFactors.get(role).doubleValue());
+      stageEntity.getRoleSuccessCriterias().add(roleSuccessCriteriaEntity);
+    }
+    return stageEntity;
+  }
+
+  public List<HostRoleCommand> getOrderedHostRoleCommands() {
+    List<HostRoleCommand> commands = new ArrayList<HostRoleCommand>();
+    //TODO trick for proper storing order, check it
+    for (String hostName : hostRoleCommands.keySet()) {
+      for (ExecutionCommand executionCommand : commandsToSend.get(hostName)) {
+        for (HostRoleCommand hostRoleCommand : hostRoleCommands.get(hostName).values()) {
+          if (hostRoleCommand.getExecutionCommand() == executionCommand) {
+            commands.add(hostRoleCommand);
+          }
+        }
+      }
+    }
+    return commands;
   }
 
   public synchronized void setStageId(long stageId) {
@@ -85,6 +168,7 @@ public class Stage {
         +", event: "+event+", clusterName: "+clusterName+", serviceName: "+serviceName);
     HostRoleCommand hrc = new HostRoleCommand(host, role, event);
     ExecutionCommand cmd = new ExecutionCommand();
+    hrc.setExecutionCommand(cmd);
     cmd.setHostname(host);
     cmd.setClusterName(clusterName);
     cmd.setServiceName(serviceName);
@@ -261,11 +345,12 @@ public class Stage {
     if (hostRoleCommands.get(hostname) == null) {
       hostRoleCommands.put(hostname, new TreeMap<String, HostRoleCommand>());
     }
+    //TODO add reference to ExecutionCommand into HostRoleCommand
     hostRoleCommands.get(hostname).put(role,
         origStage.getHostRoleCommand(hostname, role));
   }
 
-  private HostRoleCommand getHostRoleCommand(String hostname, String role) {
+  HostRoleCommand getHostRoleCommand(String hostname, String role) {
     return hostRoleCommands.get(hostname).get(role);
   }
   

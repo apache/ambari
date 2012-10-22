@@ -10,21 +10,33 @@
 "params": 
 {
 "hdfs_user" : "hdfs",
-"jdk_location": "lah/blah"
+"jdk_location" : "http://hdp1/downloads",
+
+"java32_home" : "/usr/jdk64/jdk1.6.0_31",
+"java64_home" : "/usr/jdk64/jdk1.6.0_31",
+"jdk_bins" :  { "32" : "jdk-6u31-linux-x64.bin", "64" : "jdk-6u31-linux-x64.bin" }
 },
 "configurations" : {
 "hdfs_site" : { "dfs.block.size" : "256000000", "dfs.replication" : "1" } ,
-"core_site" :  { "fs.default.name" : "hrt8n36.cc1.ygridcore.net" }
+"core_site" :  { "fs.default.name" : "hrt8n36.cc1.ygridcore.net" } ,
+"mapred_queue_acls" : {"mapred.queue.default.acl-submit-job" : "*",
+		       "mapred.queue.default.acl-administer-jobs" : "*"},
+"hadoop_policy" : {"security.client.protocol.acl" : "*",
+		   "security.client.datanode.protocol.acl" : "*"},
+"mapred_site" : {"mapred.jobtracker.taskScheduler" : "org.apache.hadoop.mapred.CapacityTaskScheduler",
+		 "mapred.queue.names" : "hive,pig,default"},
+"capacity_scheduler" : {"mapred.capacity-scheduler.queue.default.capacity" : "100",
+			"mapred.capacity-scheduler.queue.default.supports-priorit" : "false"}
 },
 "roleCommands": [
 {
-"role" : "DATANODE", 
+"role" : "NAMENODE", 
 "cmd": "START",
 "roleParams" : {
 }
 },
 {
-"role": "NAMENODE",
+"role": "DATANODE",
 "cmd": "INSTALL",
 "roleParams" : {}
 }

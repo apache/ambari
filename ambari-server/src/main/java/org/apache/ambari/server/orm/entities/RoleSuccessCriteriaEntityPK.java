@@ -18,44 +18,49 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import org.apache.ambari.server.Role;
+
 import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import java.io.Serializable;
 
 public class RoleSuccessCriteriaEntityPK implements Serializable {
-  private Integer requestId;
+  private Long requestId;
 
   @Id
   @Column(name = "request_id")
-  public Integer getRequestId() {
+  public Long getRequestId() {
     return requestId;
   }
 
-  public void setRequestId(Integer requestId) {
+  public void setRequestId(Long requestId) {
     this.requestId = requestId;
   }
 
-  private Integer stageId;
+  private Long stageId;
 
   @Id
   @Column(name = "stage_id")
-  public Integer getStageId() {
+  public Long getStageId() {
     return stageId;
   }
 
-  public void setStageId(Integer stageId) {
+  public void setStageId(Long stageId) {
     this.stageId = stageId;
   }
 
-  private String role;
+  private Role role;
 
-  @Id
   @Column(name = "role")
-  public String getRole() {
+  @Enumerated(EnumType.STRING)
+  @Id
+  public Role getRole() {
     return role;
   }
 
-  public void setRole(String role) {
+  public void setRole(Role role) {
     this.role = role;
   }
 

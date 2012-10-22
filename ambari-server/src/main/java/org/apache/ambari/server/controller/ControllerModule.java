@@ -21,8 +21,7 @@ import com.google.gson.Gson;
 import com.google.inject.Scopes;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.persist.jpa.JpaPersistModule;
-import org.apache.ambari.server.actionmanager.ActionDBAccessor;
-import org.apache.ambari.server.actionmanager.ActionDBInMemoryImpl;
+import org.apache.ambari.server.actionmanager.*;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
@@ -65,10 +64,12 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(ServiceComponent.class, ServiceComponentImpl.class).build(ServiceComponentFactory.class));
     install(new FactoryModuleBuilder().implement(ServiceComponentHost.class, ServiceComponentHostImpl.class).build(ServiceComponentHostFactory.class));
     install(new FactoryModuleBuilder().implement(Config.class, ConfigImpl.class).build(ConfigFactory.class));
+    install(new FactoryModuleBuilder().build(StageFactory.class));
+    install(new FactoryModuleBuilder().build(HostRoleCommandFactory.class));
 
     bind(Gson.class).in(Scopes.SINGLETON);
     bind(Clusters.class).to(ClustersImpl.class);
-    bind(ActionDBAccessor.class).to(ActionDBInMemoryImpl.class);
+    bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
     bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(10000L);
     bindConstant().annotatedWith(Names.named("actionTimeout")).to(60000L);
     bind(AmbariManagementController.class)

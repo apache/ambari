@@ -23,9 +23,9 @@ import java.util.List;
 
 public class ServiceInfo {
   private String name;
-  private String version;
-  private String user;
-  private String comment;
+    private String version;
+    private String user;
+    private String comment;
   private List<PropertyInfo> properties;
 
   public String getName() {

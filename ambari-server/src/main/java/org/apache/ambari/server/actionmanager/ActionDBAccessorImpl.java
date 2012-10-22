@@ -17,18 +17,55 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
 
 import com.google.inject.Singleton;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public class ActionDBAccessorImpl implements ActionDBAccessor {
+  private static final Logger log = LoggerFactory.getLogger(ActionDBAccessorImpl.class);
 
-  public ActionDBAccessorImpl() {
-    //this.stageId = greatest stage id in the database + 1
+  @Inject
+  private ClusterDAO clusterDAO;
+  @Inject
+  private HostDAO hostDAO;
+  @Inject
+  private StageDAO stageDAO;
+  @Inject
+  private HostRoleCommandDAO hostRoleCommandDAO;
+  @Inject
+  private ExecutionCommandDAO executionCommandDAO;
+  @Inject
+  private RoleSuccessCriteriaDAO roleSuccessCriteriaDAO;
+  @Inject
+  private StageFactory stageFactory;
+  @Inject
+  private Clusters clusters;
+
+  private final long requestId;
+
+  @Inject
+  public ActionDBAccessorImpl(Injector injector) {
+    injector.injectMembers(this);
+    requestId = stageDAO.getLastRequestId();
+
+
   }
 
   /* (non-Javadoc)
@@ -36,7 +73,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   public Stage getAction(String actionId) {
-    return null;
+    return stageFactory.createExisting(actionId);
   }
 
   /* (non-Javadoc)
@@ -44,7 +81,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   public List<Stage> getAllStages(long requestId) {
-    return null;
+    List<Stage> stages = new ArrayList<Stage>();
+    for (StageEntity stageEntity : stageDAO.findByRequestId(requestId)) {
+      stages.add(stageFactory.createExisting(stageEntity));
+    }
+    return stages;
   }
 
   /* (non-Javadoc)
@@ -52,15 +93,22 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   public void abortOperation(long requestId) {
-    //Mark all pending or queued actions for this request as aborted.
+    Collection<HostRoleStatus> sourceStatuses = Arrays.asList(HostRoleStatus.QUEUED, HostRoleStatus.IN_PROGRESS, HostRoleStatus.PENDING);
+    int result = hostRoleCommandDAO.updateStatusByRequestId(requestId, HostRoleStatus.ABORTED, sourceStatuses);
+    log.info("Aborted {} commands", result);
   }
 
   /* (non-Javadoc)
    * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#timeoutHostRole(long, long, org.apache.ambari.server.Role)
    */
   @Override
+  @Transactional
   public void timeoutHostRole(String host, long requestId, long stageId, Role role) {
-    // TODO Auto-generated method stub
+    List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByHostRole(host, requestId, stageId, role);
+    for (HostRoleCommandEntity command : commands) {
+      command.setStatus(HostRoleStatus.TIMEDOUT);
+      hostRoleCommandDAO.merge(command);
+    }
   }
 
   /* (non-Javadoc)
@@ -68,40 +116,110 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   public List<Stage> getStagesInProgress() {
-    return null;
+    List<Stage> stages = new ArrayList<Stage>();
+    for (StageEntity stageEntity : stageDAO.findByCommandStatuses(Arrays.asList(HostRoleStatus.IN_PROGRESS))) {
+      stages.add(stageFactory.createExisting(stageEntity));
+    }
+    return stages;
   }
 
   /* (non-Javadoc)
    * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#persistActions(java.util.List)
    */
   @Override
+  @Transactional
   public void persistActions(List<Stage> stages) {
-    // TODO Auto-generated method stub
+    for (Stage stage : stages) {
+      StageEntity stageEntity = stage.constructNewPersistenceEntity();
+      Cluster cluster;
+      try {
+        cluster = clusters.getCluster(stage.getClusterName());
+      } catch (AmbariException e) {
+        throw new RuntimeException(e);
+      }
+      ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
 
+      stageEntity.setCluster(clusterEntity);
+      clusterEntity.getStages().add(stageEntity);
+
+      for (HostRoleCommand hostRoleCommand : stage.getOrderedHostRoleCommands()) {
+        HostRoleCommandEntity hostRoleCommandEntity = hostRoleCommand.constructNewPersistenceEntity();
+        stageEntity.getHostRoleCommands().add(hostRoleCommandEntity);
+        hostRoleCommandEntity.setStage(stageEntity);
+
+        HostEntity hostEntity = hostDAO.findByName(hostRoleCommandEntity.getHostName());
+        if (hostEntity == null) {
+          log.error("Host {} doesn't exists in database", hostRoleCommandEntity.getHostName());
+          throw new RuntimeException("Host '"+hostRoleCommandEntity.getHostName()+"' doesn't exists in database");
+        }
+        hostEntity.getHostRoleCommandEntities().add(hostRoleCommandEntity);
+        hostRoleCommandEntity.setHost(hostEntity);
+        hostRoleCommandDAO.create(hostRoleCommandEntity);
+
+        assert hostRoleCommandEntity.getTaskId() != null;
+
+        hostRoleCommand.setTaskId(hostRoleCommandEntity.getTaskId());
+        ExecutionCommandEntity executionCommandEntity = hostRoleCommand.constructExecutionCommandEntity();
+        executionCommandEntity.setHostRoleCommand(hostRoleCommandEntity);
+        hostRoleCommandEntity.setExecutionCommand(executionCommandEntity);
+
+        executionCommandDAO.create(hostRoleCommandEntity.getExecutionCommand());
+        hostRoleCommandDAO.merge(hostRoleCommandEntity);
+        hostDAO.merge(hostEntity);
+      }
+
+      for (RoleSuccessCriteriaEntity roleSuccessCriteriaEntity : stageEntity.getRoleSuccessCriterias()) {
+        roleSuccessCriteriaDAO.create(roleSuccessCriteriaEntity);
+      }
+
+      stageDAO.create(stageEntity);
+      clusterDAO.merge(clusterEntity);
+    }
   }
 
   @Override
+  @Transactional
   public void updateHostRoleState(String hostname, long requestId,
       long stageId, String role, CommandReport report) {
-    // TODO Auto-generated method stub
-
+    List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByHostRole(hostname, requestId, stageId, Role.valueOf(role));
+    for (HostRoleCommandEntity command : commands) {
+      command.setStatus(HostRoleStatus.valueOf(report.getStatus()));
+      command.setStdOut(report.getStdOut());
+      command.setStdError(report.getStdErr());
+      command.setExitcode(report.getExitCode());
+      hostRoleCommandDAO.merge(command);
+    }
   }
 
   @Override
   public void abortHostRole(String host, long requestId, long stageId, Role role) {
-    // TODO Auto-generated method stub
-
+    CommandReport report = new CommandReport();
+    report.setExitCode(999);
+    report.setStdErr("Host Role in invalid state");
+    report.setStdOut("");
+    report.setStatus("ABORTED");
+    updateHostRoleState(host, requestId, stageId, role.toString(), report);
   }
 
   @Override
   public long getLastPersistedRequestIdWhenInitialized() {
-    // TODO Auto-generated method stub
-    return 0;
+    return requestId;
   }
 
   @Override
+  @Transactional
   public void hostRoleScheduled(Stage s, String hostname, String roleStr) {
-    //Update start time, last update time, host role status, number of attempts
-    //in the database.
+    HostRoleCommand hostRoleCommand = s.getHostRoleCommand(hostname, roleStr);
+    HostRoleCommandEntity entity = hostRoleCommandDAO.findByPK(hostRoleCommand.getTaskId());
+    if (entity != null) {
+      entity.setStartTime(hostRoleCommand.getStartTime());
+      entity.setLastAttemptTime(hostRoleCommand.getLastAttemptTime());
+      entity.setStatus(hostRoleCommand.getStatus());
+      entity.setAttemptCount(hostRoleCommand.getAttemptCount());
+      hostRoleCommandDAO.merge(entity);
+    } else {
+      throw new RuntimeException("HostRoleCommand is not persisted, cannot update:\n" + hostRoleCommand);
+    }
+
   }
 }

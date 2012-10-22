@@ -21,18 +21,57 @@ package org.apache.ambari.server.orm.dao;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
+import org.apache.ambari.server.utils.StageUtils;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import java.util.Collection;
+import java.util.List;
 
 public class StageDAO {
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
+  @Inject
+  DaoUtils daoUtils;
 
   public StageEntity findByPK(StageEntityPK stageEntityPK) {
     return entityManagerProvider.get().find(StageEntity.class, stageEntityPK);
+  }
+
+  public long getLastRequestId() {
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery("SELECT stage.requestId " +
+        "FROM StageEntity stage" +
+        " WHERE stage.requestId = (SELECT max(stage.requestId) FROM StageEntity stage)", Long.class);
+    Long result = daoUtils.selectSingle(query);
+    if (result != null) {
+      return result;
+    } else {
+      return -1;
+    }
+  }
+
+  public StageEntity findByActionId(String actionId) {
+    long[] ids = StageUtils.getRequestStage(actionId);
+    StageEntityPK pk = new StageEntityPK();
+    pk.setRequestId(ids[0]);
+    pk.setStageId(ids[1]);
+    return findByPK(pk);
+  }
+
+  public List<StageEntity> findByRequestId(long requestId) {
+    TypedQuery<StageEntity> query = entityManagerProvider.get().createQuery("SELECT stage FROM StageEntity stage WHERE stage.requestId=?1", StageEntity.class);
+    return daoUtils.selectList(query, requestId);
+  }
+
+  public List<StageEntity> findByCommandStatuses(Collection<HostRoleStatus> statuses) {
+    TypedQuery<StageEntity> query = entityManagerProvider.get().createQuery("SELECT stage " +
+        "FROM StageEntity stage JOIN stage.hostRoleCommands command " +
+        "WHERE command.status IN ?1", StageEntity.class);
+    return daoUtils.selectList(query, statuses);
   }
 
   @Transactional

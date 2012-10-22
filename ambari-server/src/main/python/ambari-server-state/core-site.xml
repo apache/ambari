@@ -60,7 +60,7 @@
     <property>
         <name>fs.default.name</name>
         <!-- cluster variant -->
-        <value>hdfs://hdp1.cybervisiontech.com.ua:8020</value>
+        <value>hdfs://hdp1:8020</value>
         <description>The name of the default file system. Either the
             literal string "local" or a host:port for NDFS.
         </description>
@@ -240,7 +240,7 @@
 
     <property>
         <name>hadoop.proxyuser.oozie.hosts</name>
-        <value>hdp1.cybervisiontech.com.ua</value>
+        <value>hdp1</value>
         <description>
             Proxy host for Hadoop.
         </description>
@@ -256,7 +256,7 @@
 
     <property>
         <name>hadoop.proxyuser.templeton.hosts</name>
-        <value>hdp1.cybervisiontech.com.ua</value>
+        <value>hdp1</value>
         <description>
             Proxy host for templeton.
         </description>

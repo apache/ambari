@@ -33,11 +33,14 @@ import os
 import time
 import subprocess
 import copy
+import puppetExecutor
 
 logger = logging.getLogger()
 installScriptHash = -1
 
 class ActionQueue(threading.Thread):
+  """ Action Queue for the agent. We pick one command at a time from the queue
+  and execute that """
   global commandQueue, resultQueue
   commandQueue = Queue.Queue()
   resultQueue = Queue.Queue()
@@ -50,7 +53,10 @@ class ActionQueue(threading.Thread):
     self._stop = threading.Event()
     self.maxRetries = config.getint('command', 'maxretries') 
     self.sleepInterval = config.getint('command', 'sleepBetweenRetries')
-
+    self.executor = puppetExecutor.puppetExecutor(config.get('puppet', 'puppetmodules'),
+                                   config.get('puppet', 'puppet_home'),
+                                   config.get('puppet', 'facter_home'),
+                                   config.get('agent', 'prefix'))
   def stop(self):
     self._stop.set()
 
@@ -112,13 +118,14 @@ class ActionQueue(threading.Thread):
     serviceName = command['serviceName']
     configurations = command['configurations']
     result = []
+    commandresult = self.executor.runCommand(command)
     # assume some puppet pluing to run these commands
     roleResult = {'role' : command['role'],
                   'actionId' : commandId,
-                  'stdout' : "DONE",
+                  'stdout' : commandresult['stdout'],
                   'clusterName' : clusterName,
-                  'stderr' : "DONE",
-                  'exitCode' : 0,
+                  'stderr' : commandresult['stderr'],
+                  'exitCode' : commandresult['exitcode'],
                   'serviceName' : serviceName,
                   'status' : "COMPLETED"}
     result.append(roleResult)

@@ -77,8 +77,7 @@
       <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
       <!--<property name="javax.persistence.jdbc.user" value="ambari-server"/>-->
       <!--<property name="javax.persistence.jdbc.password" value="bigdata"/>-->
+      <property name="eclipselink.orm.throw.exceptions" value="true"/>
     </properties>
   </persistence-unit>
-
-
 </persistence>

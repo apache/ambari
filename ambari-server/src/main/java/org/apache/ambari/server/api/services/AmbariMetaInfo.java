@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -32,11 +33,15 @@ import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.ParserConfigurationException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 /**
  * ServiceInfo responsible getting information about cluster.
@@ -44,7 +49,36 @@ import org.w3c.dom.Element;
 @Path("/metainfo/")
 public class AmbariMetaInfo {
 
-  private String CONFIG_FILE_PATH = "C:\\workspace\\stacks";//Configuration.CONFIG_FILE
+  List<StackInfo> stacksResult = new ArrayList<StackInfo>();
+
+  private final static Logger log = LoggerFactory.getLogger(AmbariMetaInfo.class);
+
+  private static final String SERVICES_FOLDER_NAME = "services";
+  private static final String SERVICE_METAINFO_FILE_NAME = "metainfo.xml";
+  private static final String SERVICE_CONFIG_FOLDER_NAME = "configs";
+  private static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = "-site.xml";
+
+  private static final String REPOSITORY_FILE_NAME = "repoinfo.xml";
+  private static final String REPOSITORY_FOLDER_NAME = "repos";
+  private static final String REPOSITORY_XML_MAIN_BLOCK_NAME = "repo";
+  private static final String REPOSITORY_XML_PROPERTY_URL = "url";
+  private static final String REPOSITORY_XML_PROPERTY_OS = "os";
+  private static final String REPOSITORY_XML_PROPERTY_DESCRIPTION = "description";
+
+  private static final String METAINFO_XML_MAIN_BLOCK_NAME = "metainfo";
+  private static final String METAINFO_XML_PROPERTY_VERSION = "version";
+  private static final String METAINFO_XML_PROPERTY_USER = "user";
+  private static final String METAINFO_XML_PROPERTY_COMMENT = "comment";
+
+  private static final String PROPERTY_XML_MAIN_BLOCK_NAME = "property";
+  private static final String PROPERTY_XML_PROPERTY_NAME = "name";
+  private static final String PROPERTY_XML_PROPERTY_VALUE = "value";
+  private static final String PROPERTY_XML_PROPERTY_DESCRIPTION = "description";
+
+
+  public AmbariMetaInfo() throws Exception {
+    getConfigurationInformation();
+  }
 
   List<ServiceInfo> getSupportedServices(String stackName, String version) {
     return null;
@@ -62,12 +96,13 @@ public class AmbariMetaInfo {
     return null;
   }
 
-  private List<ServiceInfo> getConfigurationInformation() throws Exception {
-    List<StackInfo> stacksResult = new ArrayList<StackInfo>();
+  private void getConfigurationInformation() throws Exception {
 
-    File stackRoot = new File(CONFIG_FILE_PATH);
-    if (!stackRoot.isDirectory())
-      throw new IOException("" + CONFIG_FILE_PATH + " should be a directory with stack.");
+
+    File stackRoot = new File(new Configuration().getMetadataPath());
+//    File stackRoot = new File("src/main/resources/stacks");
+    if (!stackRoot.isDirectory() && !stackRoot.exists())
+      throw new IOException("" + Configuration.METADETA_DIR_PATH + " should be a directory with stack.");
     File[] stacks = stackRoot.listFiles();
     for (File stackFolder : stacks) {
       if (stackFolder.isFile()) continue;
@@ -79,7 +114,7 @@ public class AmbariMetaInfo {
         stackInfo.setVersion(stack.getName());
         stacksResult.add(stackInfo);
         //get repository data for current stack of techs
-        File repositoryFolder = new File(stack.getAbsolutePath() + File.separator + "repos" + File.separator + "repoinfo.xml");
+        File repositoryFolder = new File(stack.getAbsolutePath() + File.separator + REPOSITORY_FOLDER_NAME + File.separator + REPOSITORY_FILE_NAME);
 
         if (repositoryFolder.exists()) {
           List<RepositoryInfo> repositoryInfoList = getRepository(repositoryFolder);
@@ -87,8 +122,8 @@ public class AmbariMetaInfo {
         }
 
 
-        //get services for this stack
-        File servicesRootFolder = new File(stack.getAbsolutePath() + File.separator + "services");
+        //Get services for this stack
+        File servicesRootFolder = new File(stack.getAbsolutePath() + File.separator + SERVICES_FOLDER_NAME);
         File[] servicesFolders = servicesRootFolder.listFiles();
 
         if (servicesFolders != null)
@@ -98,37 +133,43 @@ public class AmbariMetaInfo {
             serviceInfo.setName(serviceFolder.getName());
             stackInfo.getServices().add(serviceInfo);
 
+            //Get metainfo data from metainfo.xml
+            File metainfoFile = new File(serviceFolder.getAbsolutePath() + File.separator + SERVICE_METAINFO_FILE_NAME);
+            if (metainfoFile.exists()) {
+              setMetaInfo(metainfoFile, serviceInfo);
+
+            }
+
 
             //Get all properties from all "configs/*-site.xml" files
-            File serviceConfigFolder = new File(serviceFolder.getAbsolutePath() + File.separator + "configs");
+            File serviceConfigFolder = new File(serviceFolder.getAbsolutePath() + File.separator + SERVICE_CONFIG_FOLDER_NAME);
             File[] configFiles = serviceConfigFolder.listFiles();
             for (File config : configFiles) {
-              if (config.getName().endsWith("-site.xml")) {
+              if (config.getName().endsWith(SERVICE_CONFIG_FILE_NAME_POSTFIX)) {
                 serviceInfo.getProperties().addAll(getProperties(config));
               }
-
             }
           }
 
       }
     }//stack root
 
-    for (StackInfo elem : stacksResult) {
-      System.out.println("###elem = \n" + elem);
-      System.out.println("contain services= " + elem.getServices().size());
-    }
-    System.out.println(" \n\n\n ");
+//////TODO delete before final commit. Show all objects structure for debug
+//    for (StackInfo elem : stacksResult) {
+//      log.info("###elem = \n" + elem);
+//      log.info("contain services= " + elem.getServices().size());
+//      System.out.println("###elem = \n" + elem);
+//      System.out.println("contain services= " + elem.getServices().size());
+//    }
+//    System.out.println(" \n\n\n ");
 
 
-    return null;
   }
 
 
   public static void main(String[] args) throws Exception {
     AmbariMetaInfo metadata = new AmbariMetaInfo();
-    metadata.getConfigurationInformation();
-//    metadata.getRepository(new File("C:\\workspace\\stacks\\HDP\\0.1\\repos\\repoinfo.xml"));
-
+//    System.out.println( new Configuration().getMetadataPath() );
   }
 
 
@@ -142,7 +183,7 @@ public class AmbariMetaInfo {
       Document doc = dBuilder.parse(repositoryFile);
       doc.getDocumentElement().normalize();
 
-      NodeList propertyNodes = doc.getElementsByTagName("repo");
+      NodeList propertyNodes = doc.getElementsByTagName(REPOSITORY_XML_MAIN_BLOCK_NAME);
 
       for (int index = 0; index < propertyNodes.getLength(); index++) {
 
@@ -151,21 +192,58 @@ public class AmbariMetaInfo {
 
           Element property = (Element) node;
           RepositoryInfo repositoryInfo = new RepositoryInfo();
-          repositoryInfo.setUrl(getTagValue("url", property));
-          repositoryInfo.setOs(getTagValue("os", property));
-          repositoryInfo.setDescription(getTagValue("description", property));
+          repositoryInfo.setUrl(getTagValue(REPOSITORY_XML_PROPERTY_URL, property));
+          repositoryInfo.setOs(getTagValue(REPOSITORY_XML_PROPERTY_OS, property));
+          repositoryInfo.setDescription(getTagValue(REPOSITORY_XML_PROPERTY_DESCRIPTION, property));
           repositorysInfo.add(repositoryInfo);
         }
       }
 
     } catch (Exception e) {
       e.printStackTrace();
-
     }
+
     return repositorysInfo;
   }
 
-  public List<PropertyInfo> getProperties(File propertyFile) {
+
+  private void setMetaInfo(File metainfoFile, ServiceInfo serviceInfo) {
+
+    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+
+    Document doc = null;
+    DocumentBuilder dBuilder = null;
+    try {
+      dBuilder = dbFactory.newDocumentBuilder();
+      doc = dBuilder.parse(metainfoFile);
+    } catch (SAXException e) {
+      log.error("Error while parsing metainf.xml", e);
+    } catch (IOException e) {
+      log.error("Error while open metainf.xml", e);
+    } catch (ParserConfigurationException e) {
+      log.error("Error while parsing metainf.xml", e);
+    }
+
+    doc.getDocumentElement().normalize();
+
+    NodeList metaInfoNodes = doc.getElementsByTagName(METAINFO_XML_MAIN_BLOCK_NAME);
+
+    if (metaInfoNodes.getLength() > 0) {
+      Node metaInfoNode = metaInfoNodes.item(0);
+      if (metaInfoNode.getNodeType() == Node.ELEMENT_NODE) {
+
+        Element metaInfoElem = (Element) metaInfoNode;
+
+        serviceInfo.setVersion(getTagValue(METAINFO_XML_PROPERTY_VERSION, metaInfoElem));
+        serviceInfo.setUser(getTagValue(METAINFO_XML_PROPERTY_USER, metaInfoElem));
+        serviceInfo.setComment(getTagValue(METAINFO_XML_PROPERTY_COMMENT, metaInfoElem));
+      }
+    }
+
+  }
+
+
+  private List<PropertyInfo> getProperties(File propertyFile) {
 
     List<PropertyInfo> resultPropertyList = new ArrayList<PropertyInfo>();
     try {
@@ -175,7 +253,7 @@ public class AmbariMetaInfo {
       doc.getDocumentElement().normalize();
 
 
-      NodeList propertyNodes = doc.getElementsByTagName("property");
+      NodeList propertyNodes = doc.getElementsByTagName(PROPERTY_XML_MAIN_BLOCK_NAME);
 
       for (int index = 0; index < propertyNodes.getLength(); index++) {
 
@@ -184,9 +262,9 @@ public class AmbariMetaInfo {
 
           Element property = (Element) node;
           PropertyInfo propertyInfo = new PropertyInfo();
-          propertyInfo.setName(getTagValue("name", property));
-          propertyInfo.setValue(getTagValue("value", property));
-          propertyInfo.setDescription(getTagValue("description", property));
+          propertyInfo.setName(getTagValue(PROPERTY_XML_PROPERTY_NAME, property));
+          propertyInfo.setValue(getTagValue(PROPERTY_XML_PROPERTY_VALUE, property));
+          propertyInfo.setDescription(getTagValue(PROPERTY_XML_PROPERTY_DESCRIPTION, property));
 
           if (propertyInfo.getName() == null || propertyInfo.getValue() == null)
             continue;
@@ -201,17 +279,24 @@ public class AmbariMetaInfo {
     return resultPropertyList;
   }
 
-  private static String getTagValue(String sTag, Element rawElement) {
+
+  private String getTagValue(String sTag, Element rawElement) {
     String result = null;
     try {
       NodeList element = rawElement.getElementsByTagName(sTag).item(0).getChildNodes();
       Node value = (Node) element.item(0);
       result = value.getNodeValue();
+    } catch (NullPointerException e) {
+      log.debug("There is no field like " + sTag + "in this DOM element.", e);
+    } catch (Exception e) {
+      log.error("Error while getting value from xml DOM element", e);
+      throw e;
     } finally {
       return result;
     }
 
   }
+
 }
 
 

@@ -110,7 +110,8 @@ public class HostEntity {
 
   private String disksInfo = "";
 
-  @javax.persistence.Column(name = "disks_info", nullable = false, insertable = true, updatable = true)
+  @javax.persistence.Column(name = "disks_info", nullable = false, insertable = true, 
+		  updatable = true, length = 2000)
   @Basic
   public String getDisksInfo() {
     return disksInfo;
@@ -199,9 +200,9 @@ public class HostEntity {
 
     HostEntity that = (HostEntity) o;
 
-    if (cpuCount != that.cpuCount) return false;
-    if (lastRegistrationTime != that.lastRegistrationTime) return false;
-    if (totalMem != that.totalMem) return false;
+    if (cpuCount != null ? !cpuCount.equals(that.cpuCount) : that.cpuCount != null) return false;
+    if (lastRegistrationTime != null ? !lastRegistrationTime.equals(that.lastRegistrationTime) : that.lastRegistrationTime != null) return false;
+    if (totalMem != null ? !totalMem.equals(that.totalMem) : that.totalMem != null) return false;
     if (cpuInfo != null ? !cpuInfo.equals(that.cpuInfo) : that.cpuInfo != null) return false;
     if (discoveryStatus != null ? !discoveryStatus.equals(that.discoveryStatus) : that.discoveryStatus != null)
       return false;
@@ -297,7 +298,18 @@ public class HostEntity {
     this.serviceComponentHostConfigEntities = serviceComponentHostConfigEntities;
   }
 
-//  private Collection<ServiceComponentStateEntity> serviceComponentStateEntities;
+  private Collection<HostRoleCommandEntity> hostRoleCommandEntities;
+
+  @OneToMany(mappedBy = "host")
+  public Collection<HostRoleCommandEntity> getHostRoleCommandEntities() {
+    return hostRoleCommandEntities;
+  }
+
+  public void setHostRoleCommandEntities(Collection<HostRoleCommandEntity> hostRoleCommandEntities) {
+    this.hostRoleCommandEntities = hostRoleCommandEntities;
+  }
+
+  //  private Collection<ServiceComponentStateEntity> serviceComponentStateEntities;
 //
 //  @OneToMany(mappedBy = "hostEntity")
 //  public Collection<ServiceComponentStateEntity> getServiceComponentStateEntities() {

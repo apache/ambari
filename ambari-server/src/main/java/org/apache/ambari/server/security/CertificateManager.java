@@ -181,8 +181,8 @@ public class CertificateManager {
     String passphraseSrvr = configs.getConfigsMap().get(Configuration.
         PASSPHRASE_KEY);
 
-    System.out.println(passphraseSrvr);
-    System.out.println(passphraseAgent);
+    LOG.info("Pass phrase Server " + passphraseSrvr);
+    LOG.info("Pass Phrase Agent" + passphraseAgent);
 
     if (!passphraseSrvr.equals(passphraseAgent)) {
       LOG.warn("Incorrect passphrase from agent");

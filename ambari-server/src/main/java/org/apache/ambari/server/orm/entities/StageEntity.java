@@ -25,40 +25,39 @@ import java.util.Collection;
 @Table(name = "stage", schema = "ambari", catalog = "")
 @Entity
 public class StageEntity {
-  private Integer clusterId;
+  private Long clusterId;
 
   @Column(name = "cluster_id", insertable = false, updatable = false, nullable = false)
   @Basic
-  public Integer getClusterId() {
+  public Long getClusterId() {
     return clusterId;
   }
 
-  public void setClusterId(Integer clusterId) {
+  public void setClusterId(Long clusterId) {
     this.clusterId = clusterId;
   }
 
-  private Integer requestId;
+  private Long requestId;
 
   @Column(name = "request_id")
   @Id
-  //TODO auto generated? @GeneratedValue(strategy = GenerationType.AUTO)
-  public Integer getRequestId() {
+  public Long getRequestId() {
     return requestId;
   }
 
-  public void setRequestId(Integer requestId) {
+  public void setRequestId(Long requestId) {
     this.requestId = requestId;
   }
 
-  private Integer stageId = 0;
+  private Long stageId = 0L;
 
   @Column(name = "stage_id", nullable = false)
   @Id
-  public Integer getStageId() {
+  public Long getStageId() {
     return stageId;
   }
 
-  public void setStageId(Integer stageId) {
+  public void setStageId(Long stageId) {
     this.stageId = stageId;
   }
 

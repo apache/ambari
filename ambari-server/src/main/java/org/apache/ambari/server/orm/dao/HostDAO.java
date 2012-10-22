@@ -21,12 +21,13 @@ package org.apache.ambari.server.orm.dao;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.util.Collections;
 import java.util.List;
 
 public class HostDAO {
@@ -40,7 +41,23 @@ public class HostDAO {
 
   public List<HostEntity> findAll() {
     TypedQuery<HostEntity> query = entityManagerProvider.get().createQuery("SELECT host FROM HostEntity host", HostEntity.class);
-    return query.getResultList();
+    try {
+      return query.getResultList();
+    } catch (NoResultException e) {
+      return Collections.emptyList();
+    }
+  }
+
+  public List<HostEntity> findByStage(StageEntity stageEntity) {
+    TypedQuery<HostEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT DISTINCT host FROM HostEntity host JOIN host.hostRoleCommandEntities command JOIN command.stage stage " +
+            "WHERE stage=:stageEntity", HostEntity.class);
+    query.setParameter("stageEntity", stageEntity);
+    try {
+      return query.getResultList();
+    } catch (NoResultException e) {
+      return Collections.emptyList();
+    }
   }
 
   /**

@@ -23,12 +23,13 @@ import java.util.Date;
 
 @javax.persistence.Table(name = "servicecomponentconfig", schema = "ambari", catalog = "")
 @Entity
+@SequenceGenerator(name = "ambari.servicecomponentconfig_config_version_seq", allocationSize = 1)
 public class ServiceComponentConfigEntity {
   private Integer configVersion;
 
   @javax.persistence.Column(name = "config_version", nullable = false, insertable = true, updatable = true, length = 10)
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ambari.servicecomponentconfig_config_version_seq")
   public Integer getConfigVersion() {
     return configVersion;
   }

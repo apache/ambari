@@ -26,7 +26,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.HeartBeat;
@@ -37,6 +36,7 @@ import org.apache.ambari.server.agent.RegistrationResponse;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitonException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import com.google.inject.Inject;
 
 /**

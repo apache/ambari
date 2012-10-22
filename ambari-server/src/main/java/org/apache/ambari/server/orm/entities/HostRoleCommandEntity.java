@@ -18,15 +18,20 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+
 import javax.persistence.*;
 
 @Table(name = "host_role_command", schema = "ambari", catalog = "")
 @Entity
+@SequenceGenerator(name = "ambari.host_role_command_task_id_seq", allocationSize = 1)
 public class HostRoleCommandEntity {
   private Integer taskId;
 
   @Column(name = "task_id")
   @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ambari.host_role_command_task_id_seq")
   public Integer getTaskId() {
     return taskId;
   }
@@ -35,27 +40,27 @@ public class HostRoleCommandEntity {
     this.taskId = taskId;
   }
 
-  private Integer requestId;
+  private Long requestId;
 
   @Column(name = "request_id", insertable = false, updatable = false, nullable = false)
   @Basic
-  public Integer getRequestId() {
+  public Long getRequestId() {
     return requestId;
   }
 
-  public void setRequestId(Integer requestId) {
+  public void setRequestId(Long requestId) {
     this.requestId = requestId;
   }
 
-  private Integer stageId;
+  private Long stageId;
 
   @Column(name = "stage_id", insertable = false, updatable = false, nullable = false)
   @Basic
-  public Integer getStageId() {
+  public Long getStageId() {
     return stageId;
   }
 
-  public void setStageId(Integer stageId) {
+  public void setStageId(Long stageId) {
     this.stageId = stageId;
   }
 
@@ -71,15 +76,15 @@ public class HostRoleCommandEntity {
     this.hostName = hostName;
   }
 
-  private String role = "";
+  private Role role;
 
-  @Column(name = "role", nullable = false)
-  @Basic
-  public String getRole() {
+  @Column(name = "role")
+  @Enumerated(EnumType.STRING)
+  public Role getRole() {
     return role;
   }
 
-  public void setRole(String role) {
+  public void setRole(Role role) {
     this.role = role;
   }
 
@@ -119,15 +124,15 @@ public class HostRoleCommandEntity {
     this.exitcode = exitcode;
   }
 
-  private String status = "";
+  private HostRoleStatus status;
 
-  @Column(name = "status", nullable = false)
-  @Basic
-  public String getStatus() {
+  @Column(name = "status")
+  @Enumerated(EnumType.STRING)
+  public HostRoleStatus getStatus() {
     return status;
   }
 
-  public void setStatus(String status) {
+  public void setStatus(HostRoleStatus status) {
     this.status = status;
   }
 
@@ -179,15 +184,15 @@ public class HostRoleCommandEntity {
     this.lastAttemptTime = lastAttemptTime;
   }
 
-  private Integer attemptCount = 0;
+  private Short attemptCount = 0;
 
   @Column(name = "attempt_count", nullable = false)
   @Basic
-  public Integer getAttemptCount() {
+  public Short getAttemptCount() {
     return attemptCount;
   }
 
-  public void setAttemptCount(Integer attemptCount) {
+  public void setAttemptCount(Short attemptCount) {
     this.attemptCount = attemptCount;
   }
 

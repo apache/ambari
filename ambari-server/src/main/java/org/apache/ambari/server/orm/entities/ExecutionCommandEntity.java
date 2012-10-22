@@ -19,7 +19,6 @@
 package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.*;
-import java.util.Arrays;
 
 @Table(name = "execution_command", schema = "ambari", catalog = "")
 @Entity
@@ -36,15 +35,15 @@ public class ExecutionCommandEntity {
     this.taskId = taskId;
   }
 
-  private byte[] command;
+  private String command;
 
-  @Column(name = "command")
+  @Column(name = "command", length = 32000)
   @Basic
-  public byte[] getCommand() {
+  public String getCommand() {
     return command;
   }
 
-  public void setCommand(byte[] command) {
+  public void setCommand(String command) {
     this.command = command;
   }
 
@@ -55,7 +54,7 @@ public class ExecutionCommandEntity {
 
     ExecutionCommandEntity that = (ExecutionCommandEntity) o;
 
-    if (!Arrays.equals(command, that.command)) return false;
+    if (command != null ? !command.equals(that.command) : that.command != null) return false;
     if (taskId != null ? !taskId.equals(that.taskId) : that.taskId != null) return false;
 
     return true;
@@ -64,7 +63,7 @@ public class ExecutionCommandEntity {
   @Override
   public int hashCode() {
     int result = taskId != null ? taskId.hashCode() : 0;
-    result = 31 * result + (command != null ? Arrays.hashCode(command) : 0);
+    result = 31 * result + (command != null ? command.hashCode() : 0);
     return result;
   }
 

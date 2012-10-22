@@ -59,6 +59,8 @@ public class Configuration {
       "security.server.passphrase_env_var";
   public static final String PASSPHRASE_KEY = "security.server.passphrase";
   public static final String RESOURCES_DIR_KEY = "resources.dir";
+  public static final String METADETA_DIR_PATH = "metadata.path";
+
 
   public static final String CLIENT_SECURITY_KEY = "client.security";
   public static final String LDAP_USE_SSL_KEY = "authorization.ldap.useSSL";
@@ -243,6 +245,15 @@ public class Configuration {
 
   public void setClientSecurityType(ClientSecurityType type) {
     properties.setProperty(CLIENT_SECURITY_KEY, type.toString());
+  }
+
+  /**
+   * Gets ambari stack-path
+   * @return String
+   */
+  public String getMetadataPath() {
+    return properties.getProperty(METADETA_DIR_PATH);
+//    return "src/main/resources/stacks";
   }
 
   public PersistenceType getPersistenceType() {
