@@ -439,5 +439,29 @@
         "temporal":true
       }
     ]
+  },
+  "Configuration":{
+    "DB":[
+      {
+        "name":"tag",
+        "category":"Config",
+        "temporal":false
+      },
+      {
+      	"name":"type",
+      	"category":"Config",
+      	"temporal":false
+      },
+      {
+        "name":"cluster_name",
+        "category":"Config",
+        "temporal":false
+      }
+    ],
+    "JMX":[
+    ],
+    "GANGLIA":[
+    ]
   }
+
 }

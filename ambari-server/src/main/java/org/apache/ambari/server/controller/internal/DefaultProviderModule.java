@@ -120,8 +120,7 @@ public class DefaultProviderModule implements ProviderModule {
     resourceProviders.put( type , ResourceProviderImpl.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type, "DB"),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController));
+        PropertyHelper.getKeyPropertyIds(type), managementController));
   }
 
   private void createPropertyProviders(Resource.Type type) {

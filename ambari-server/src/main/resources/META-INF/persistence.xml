@@ -20,6 +20,7 @@
   <persistence-unit name="ambari-postgres">
     <class>org.apache.ambari.server.orm.entities.ActionStatusEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ClusterConfigEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterServiceEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity</class>
@@ -50,6 +51,7 @@
   <persistence-unit name="ambari-javadb">
     <class>org.apache.ambari.server.orm.entities.ActionStatusEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ClusterConfigEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterServiceEntity</class>
     <class>org.apache.ambari.server.orm.entities.ClusterStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity</class>

@@ -29,20 +29,28 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.assistedinject.Assisted;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.StackVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
 
 public class ClusterImpl implements Cluster {
 
@@ -82,10 +90,12 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private ClusterDAO clusterDAO;
-  @Inject
-  private ClusterServiceDAO clusterServiceDAO;
+//  @Inject
+//  private ClusterServiceDAO clusterServiceDAO;
   @Inject
   private ServiceFactory serviceFactory;
+  @Inject
+  private ConfigFactory configFactory;
 
   @Inject
   public ClusterImpl(@Assisted ClusterEntity clusterEntity,
@@ -106,7 +116,23 @@ public class ClusterImpl implements Cluster {
     this.serviceComponentHostsByHost = new HashMap<String,
         List<ServiceComponentHost>>();
     this.desiredStackVersion = new StackVersion("");
-    this.configs = new HashMap<String, Map<String,Config>>();
+    
+    configs = new HashMap<String, Map<String,Config>>();
+    if (!clusterEntity.getClusterConfigEntities().isEmpty()) {
+      for (ClusterConfigEntity entity : clusterEntity.getClusterConfigEntities()) {
+        
+        if (!configs.containsKey(entity.getType())) {
+          configs.put(entity.getType(), new HashMap<String, Config>());
+        }
+
+        Config config = configFactory.createExisting(this, entity);
+        
+        configs.get(entity.getType()).put(entity.getTag(), config);
+      }
+    }
+      
+    
+    
   }
 
   public ServiceComponentHost getServiceComponentHost(String serviceName,
@@ -288,6 +314,9 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public synchronized Map<String, Config> getDesiredConfigsByType(String configType) {
+    if (!configs.containsKey(configType))
+      return null;
+
     return Collections.unmodifiableMap(configs.get(configType));
   }
 
@@ -311,9 +340,6 @@ public class ClusterImpl implements Cluster {
     if (!configs.containsKey(config.getType())) {
       configs.put(config.getType(), new HashMap<String, Config>());
     }
-
-    // TODO should we check for duplicates and throw an error?
-    // if (configs.get(config.getType()).containsKey(config.getVersionTag()))
 
     configs.get(config.getType()).put(config.getVersionTag(), config);
   }

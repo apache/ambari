@@ -19,29 +19,53 @@
 package org.apache.ambari.server.state;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
+
 public class ConfigImpl implements Config {
 
-  private final String type;
-
+  private Cluster cluster;
+  private String type;
   private String versionTag;
-
   private Map<String, String> properties;
+  private ClusterConfigEntity entity;
+  
+  @Inject
+  private ClusterDAO clusterDAO;
+  @Inject
+  private Gson gson;
 
-  public ConfigImpl(String type, String versionTag,
-      Map<String, String> properties) {
+  @AssistedInject
+  public ConfigImpl(@Assisted Cluster cluster, @Assisted String type, @Assisted Map<String, String> properties, Injector injector) {
+    this.cluster = cluster;
     this.type = type;
-    this.versionTag = versionTag;
     this.properties = properties;
+    injector.injectMembers(this);
+    
   }
-
-  public ConfigImpl(String type, String versionTag) {
-    this(type, versionTag, new HashMap<String, String>());
+  
+  @AssistedInject
+  public ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity, Injector injector) {
+    this.cluster = cluster;
+    this.type = entity.getType();
+    this.versionTag = entity.getTag();
+    this.entity = entity;
+    injector.injectMembers(this);
   }
-
+  
   @Override
   public String getType() {
     return type;
@@ -54,7 +78,12 @@ public class ConfigImpl implements Config {
 
   @Override
   public synchronized Map<String, String> getProperties() {
-    return Collections.unmodifiableMap(properties);
+    if (null != entity && null == properties) {
+      
+      properties = gson.fromJson(entity.getData(), Map.class);
+      
+    }
+    return Collections.unmodifiableMap(null == properties ? new HashMap<String, String>() : properties);
   }
 
   @Override
@@ -77,6 +106,28 @@ public class ConfigImpl implements Config {
     for (String key : properties) {
       this.properties.remove(key);
     }
+  }
+  
+  @Transactional
+  @Override
+  public void persist() {
+    
+    ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+    
+    ClusterConfigEntity entity = new ClusterConfigEntity();
+    entity.setClusterEntity(clusterEntity);
+    entity.setClusterId(Long.valueOf(cluster.getClusterId()));
+    entity.setType(type);
+    entity.setTag(versionTag);
+    entity.setTimestamp(new Date().getTime());
+    
+    entity.setData(gson.toJson(properties));
+    clusterDAO.createConfig(entity);
+
+    clusterEntity.getClusterConfigEntities().add(entity);
+    clusterDAO.merge(clusterEntity);
+    cluster.refresh();
+    
   }
 
 

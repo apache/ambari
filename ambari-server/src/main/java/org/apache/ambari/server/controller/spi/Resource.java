@@ -64,6 +64,7 @@ public interface Resource {
     Service,
     Host,
     Component,
-    HostComponent
+    HostComponent,
+    Configuration
   }
 }

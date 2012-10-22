@@ -30,18 +30,19 @@ public class ConfigurationRequest {
 
   private String type;
 
-  private String versionTag;
+  private String tag;
 
   private Map<String, String> configs;
 
   public ConfigurationRequest(String clusterName,
-                              String type, String versionTag,
+                              String type,
+                              String tag,
                               Map<String, String> configs) {
     super();
     this.clusterName = clusterName;
     this.configs = configs;
     this.type = type;
-    this.versionTag = versionTag;
+    this.tag = tag;
     this.configs = configs;
   }
 
@@ -63,14 +64,14 @@ public class ConfigurationRequest {
    * @return the versionTag
    */
   public String getVersionTag() {
-    return versionTag;
+    return tag;
   }
 
   /**
    * @param versionTag the versionTag to set
    */
   public void setVersionTag(String versionTag) {
-    this.versionTag = versionTag;
+    this.tag = versionTag;
   }
 
   /**

@@ -91,6 +91,7 @@ public class ClusterControllerImpl implements ClusterController {
       resources = provider.getResources(request, predicate);
       resources = populateResources(type, resources, request, predicate);
     }
+    
     return new ResourceIterable(resources, predicate);
   }
 
@@ -176,12 +177,14 @@ public class ClusterControllerImpl implements ClusterController {
     resourceProviders.put(Resource.Type.Host, providerModule.getResourceProvider(Resource.Type.Host));
     resourceProviders.put(Resource.Type.Component, providerModule.getResourceProvider(Resource.Type.Component));
     resourceProviders.put(Resource.Type.HostComponent, providerModule.getResourceProvider(Resource.Type.HostComponent));
+    resourceProviders.put(Resource.Type.Configuration, providerModule.getResourceProvider(Resource.Type.Configuration));
 
     propertyProviders.put(Resource.Type.Cluster, providerModule.getPropertyProviders(Resource.Type.Cluster));
     propertyProviders.put(Resource.Type.Service, providerModule.getPropertyProviders(Resource.Type.Service));
     propertyProviders.put(Resource.Type.Host, providerModule.getPropertyProviders(Resource.Type.Host));
     propertyProviders.put(Resource.Type.Component, providerModule.getPropertyProviders(Resource.Type.Component));
     propertyProviders.put(Resource.Type.HostComponent, providerModule.getPropertyProviders(Resource.Type.HostComponent));
+    propertyProviders.put(Resource.Type.Configuration, providerModule.getPropertyProviders(Resource.Type.Configuration));
   }
 
 
@@ -289,6 +292,7 @@ public class ClusterControllerImpl implements ClusterController {
     private Resource getNextResource() {
       while (iterator.hasNext()) {
         Resource next = iterator.next();
+        
         if (predicate == null || predicate.evaluate(next)) {
           return next;
         }

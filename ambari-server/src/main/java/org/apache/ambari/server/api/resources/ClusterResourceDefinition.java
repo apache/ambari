@@ -18,10 +18,11 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
-
-import java.util.*;
 
 /**
  * Cluster resource definition.
@@ -67,6 +68,12 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
         Resource.Type.Host).getKeyPropertyId(Resource.Type.Host);
     hostResource.getQuery().addProperty(hostIdProperty);
     mapChildren.put(hostResource.getPluralName(), hostResource);
+    
+    ConfigurationResourceDefinition configResource = new ConfigurationResourceDefinition(null, null, getId());
+    PropertyId configIdProperty = getClusterController().getSchema(
+        Resource.Type.Configuration).getKeyPropertyId(Resource.Type.Configuration);
+    configResource.getQuery().addProperty(configIdProperty);
+    mapChildren.put(configResource.getPluralName(), configResource);
 
     return mapChildren;
   }

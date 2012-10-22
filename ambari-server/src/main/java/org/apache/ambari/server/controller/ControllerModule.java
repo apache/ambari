@@ -64,6 +64,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(Service.class, ServiceImpl.class).build(ServiceFactory.class));
     install(new FactoryModuleBuilder().implement(ServiceComponent.class, ServiceComponentImpl.class).build(ServiceComponentFactory.class));
     install(new FactoryModuleBuilder().implement(ServiceComponentHost.class, ServiceComponentHostImpl.class).build(ServiceComponentHostFactory.class));
+    install(new FactoryModuleBuilder().implement(Config.class, ConfigImpl.class).build(ConfigFactory.class));
 
     bind(Gson.class).in(Scopes.SINGLETON);
     bind(Clusters.class).to(ClustersImpl.class);

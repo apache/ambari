@@ -18,19 +18,21 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.persist.Transactional;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.persistence.jpa.JpaEntityManager;
 
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.TypedQuery;
-import java.util.List;
-import java.util.Set;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
 
 public class ClusterDAO {
   private static final Log log = LogFactory.getLog(ClusterDAO.class);
@@ -74,7 +76,15 @@ public class ClusterDAO {
   public void create(ClusterEntity clusterEntity) {
     entityManagerProvider.get().persist(clusterEntity);
   }
-
+  
+  /**
+   * Creates a cluster configuration in the DB.
+   */
+  @Transactional
+  public void createConfig(ClusterConfigEntity entity) {
+    entityManagerProvider.get().persist(entity);
+  }
+  
   /**
    * Retrieve entity data from DB
    * @param clusterEntity entity to refresh

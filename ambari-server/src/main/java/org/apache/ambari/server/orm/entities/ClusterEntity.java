@@ -150,4 +150,14 @@ public class ClusterEntity {
   public void setStages(Collection<StageEntity> stages) {
     this.stages = stages;
   }
+  
+  private Collection<ClusterConfigEntity> configEntities;
+  @OneToMany(mappedBy = "clusterEntity")
+  public Collection<ClusterConfigEntity> getClusterConfigEntities() {
+    return configEntities;
+  }
+  
+  public void setClusterConfigEntities(Collection<ClusterConfigEntity> entities) {
+    configEntities = entities;
+  }
 }

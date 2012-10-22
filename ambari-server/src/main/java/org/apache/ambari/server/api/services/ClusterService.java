@@ -138,6 +138,14 @@ public class ClusterService extends BaseService {
   public ServiceService getServiceHandler(@PathParam("clusterName") String clusterName) {
     return new ServiceService(clusterName);
   }
+  
+  /**
+   * Gets the configurations sub-resource.
+   */
+  @Path("{clusterName}/configurations")
+  public ConfigurationService getConfigurationHandler(@PathParam("clusterName") String cluster) {
+    return new ConfigurationService(cluster);
+  }
 
   /**
    * Create a cluster resource definition.

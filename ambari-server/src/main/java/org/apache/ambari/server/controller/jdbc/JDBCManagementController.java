@@ -18,32 +18,6 @@
 
 package org.apache.ambari.server.controller.jdbc;
 
-import org.apache.ambari.server.controller.internal.PropertyIdImpl;
-import org.apache.ambari.server.controller.internal.ResourceImpl;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ClusterRequest;
-import org.apache.ambari.server.controller.ClusterResponse;
-import org.apache.ambari.server.controller.HostRequest;
-import org.apache.ambari.server.controller.HostResponse;
-import org.apache.ambari.server.controller.ServiceComponentHostRequest;
-import org.apache.ambari.server.controller.ServiceComponentHostResponse;
-import org.apache.ambari.server.controller.ServiceComponentRequest;
-import org.apache.ambari.server.controller.ServiceComponentResponse;
-import org.apache.ambari.server.controller.ServiceRequest;
-import org.apache.ambari.server.controller.ServiceResponse;
-import org.apache.ambari.server.controller.TrackActionResponse;
-import org.apache.ambari.server.controller.predicate.AndPredicate;
-import org.apache.ambari.server.controller.predicate.BasePredicate;
-import org.apache.ambari.server.controller.predicate.EqualsPredicate;
-import org.apache.ambari.server.controller.predicate.PredicateVisitorAcceptor;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
-
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -54,6 +28,34 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ClusterRequest;
+import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.ConfigurationResponse;
+import org.apache.ambari.server.controller.HostRequest;
+import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
+import org.apache.ambari.server.controller.ServiceComponentHostResponse;
+import org.apache.ambari.server.controller.ServiceComponentRequest;
+import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.controller.ServiceRequest;
+import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.TrackActionResponse;
+import org.apache.ambari.server.controller.internal.PropertyIdImpl;
+import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.predicate.AndPredicate;
+import org.apache.ambari.server.controller.predicate.BasePredicate;
+import org.apache.ambari.server.controller.predicate.EqualsPredicate;
+import org.apache.ambari.server.controller.predicate.PredicateVisitorAcceptor;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 /**
  * Generic JDBC implementation of a management controller.
@@ -98,6 +100,13 @@ public class JDBCManagementController implements AmbariManagementController {
   public void createCluster(ClusterRequest request) throws AmbariException {
 //    createResources(Resource.Type.Cluster, request);
   }
+  
+  @Override
+  public TrackActionResponse createConfiguration(ConfigurationRequest request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
   @Override
   public Set<ClusterResponse> getClusters(ClusterRequest request) throws AmbariException {
@@ -122,6 +131,11 @@ public class JDBCManagementController implements AmbariManagementController {
 
   @Override
   public Set<ServiceComponentHostResponse> getHostComponents(ServiceComponentHostRequest request) throws AmbariException {
+    return null;
+  }
+  
+  @Override
+  public Set<ConfigurationResponse> getConfigurations(ConfigurationRequest request) throws AmbariException {
     return null;
   }
 

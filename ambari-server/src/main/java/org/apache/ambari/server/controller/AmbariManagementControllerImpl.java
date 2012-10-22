@@ -18,7 +18,15 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.inject.Injector;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.Role;
@@ -29,7 +37,20 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.stageplanner.RoleGraph;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.StackVersion;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
@@ -37,17 +58,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-
 @Singleton
 public class AmbariManagementControllerImpl implements
     AmbariManagementController {
@@ -75,6 +87,8 @@ public class AmbariManagementControllerImpl implements
   private ServiceComponentFactory serviceComponentFactory;
   @Inject
   private ServiceComponentHostFactory serviceComponentHostFactory;
+  @Inject
+  private ConfigFactory configFactory;
 
   @Inject
   public AmbariManagementControllerImpl(ActionManager actionManager,
@@ -646,6 +660,37 @@ public class AmbariManagementControllerImpl implements
     }
 
   }
+  
+  
+  public TrackActionResponse createConfiguration(ConfigurationRequest request) throws AmbariException {
+    if (null == request.getClusterName() || request.getClusterName().isEmpty() ||
+        null == request.getType() || request.getType().isEmpty() ||
+        null == request.getVersionTag() || request.getVersionTag().isEmpty() ||
+        null == request.getConfigs() || request.getConfigs().isEmpty()) {
+      throw new AmbariException ("Invalid Arguments.");
+    }
+      
+    Cluster cluster = clusters.getCluster(request.getClusterName());
+      
+    Map<String, Config> configs = cluster.getDesiredConfigsByType(request.getType());
+    if (null == configs) {
+      configs = new HashMap<String, Config>();
+    }
+    
+    Config config = configs.get(request.getVersionTag());
+    if (configs.containsKey(request.getVersionTag()))
+      throw new AmbariException("Configuration with that tag exists for '" + request.getType() + "'");
+    
+    config = configFactory.createNew (cluster, request.getType(), request.getConfigs());
+    config.setVersionTag(request.getVersionTag());
+    
+    config.persist();
+    
+    cluster.addDesiredConfig(config);
+    
+    // TODO
+    return null;
+  }
 
   private Stage createNewStage(Cluster cluster, long requestId) {
     String logDir = baseLogDir + "/" + requestId;
@@ -946,6 +991,45 @@ public class AmbariManagementControllerImpl implements
     }
     return response;
   }
+
+  
+  @Override
+  public Set<ConfigurationResponse> getConfigurations(ConfigurationRequest request) throws AmbariException {
+    if (request.getClusterName() == null) {
+      throw new AmbariException("Invalid arguments");
+    }
+    
+    Cluster cluster = clusters.getCluster(request.getClusterName());
+    
+    Set<ConfigurationResponse> responses = new HashSet<ConfigurationResponse>();
+
+    // !!! if only one, then we need full properties
+    if (null != request.getType() && null != request.getVersionTag()) {
+      Config config = cluster.getDesiredConfig(request.getType(), request.getVersionTag());
+      if (null != config) {
+        ConfigurationResponse response = new ConfigurationResponse(
+            cluster.getClusterName(), config.getType(), config.getVersionTag(),
+            config.getProperties());
+        responses.add(response);
+      }
+    }
+    else {
+      if (null != request.getType()) {
+        Map<String, Config> configs = cluster.getDesiredConfigsByType(request.getType());
+        
+        for (Entry<String, Config> entry : configs.entrySet()) {
+          ConfigurationResponse response = new ConfigurationResponse(
+              cluster.getClusterName(), request.getType(),
+              entry.getValue().getVersionTag(), new HashMap<String, String>());
+          responses.add(response);
+        }
+      }
+    }
+    
+    return responses;
+
+  }
+  
 
   @Override
   public TrackActionResponse updateCluster(ClusterRequest request)

@@ -64,4 +64,9 @@ public interface Config {
    * @param properties Property keys to be deleted
    */
   public void deleteProperties(List<String> properties);
+  
+  /**
+   * Persist the configuration.
+   */
+  public void persist();
 }

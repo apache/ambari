@@ -63,5 +63,17 @@
       "category":"HostRoles",
       "temporal":false
     }
+  },
+  "Configuration":{
+    "Cluster":{
+      "name":"cluster_name",
+      "category":"Config",
+      "temporal":false
+    },
+    "Configuration":{
+      "name":"type",
+      "category":"Config",
+      "temporal":false
+    }
   }
 }
