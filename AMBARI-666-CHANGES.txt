@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-897. Operations request object and skeleton management methods.
+  (jitendra)
+
   AMBARI-894. TestHeartBeatMonitor fails intermittently. (jitendra)
 
   AMBARI-892. Add puppet executor at the agent to be able to run various

@@ -37,6 +37,7 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.controller.OperationRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
@@ -702,6 +703,20 @@ public class JDBCManagementController implements AmbariManagementController {
       Set<ServiceComponentHostRequest> request) throws AmbariException {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public TrackActionResponse createOperations(Set<OperationRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void getOperations(Set<OperationRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    
   }
 }
 

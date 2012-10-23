@@ -297,4 +297,9 @@ public interface AmbariManagementController {
   public TrackActionResponse deleteHostComponents(
       Set<ServiceComponentHostRequest> request) throws AmbariException;
 
+  public TrackActionResponse createOperations(Set<OperationRequest> request)
+      throws AmbariException;
+
+  public void getOperations(Set<OperationRequest> request)
+      throws AmbariException;
 }

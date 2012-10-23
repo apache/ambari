@@ -1958,4 +1958,18 @@ public class AmbariManagementControllerImpl implements
     throw new AmbariException("Delete host components not supported");
   }
 
+  @Override
+  public TrackActionResponse createOperations(Set<OperationRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void getOperations(Set<OperationRequest> request)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    
+  }
+
 }
