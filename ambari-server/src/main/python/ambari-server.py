@@ -28,7 +28,7 @@ import re
 SETUP_ACTION = "setup"
 START_ACTION = "start"
 STOP_ACTION = "stop"
-SETUP_DB_CMD = "psql -W -f{2} -d{0} --username {1}"
+SETUP_DB_CMD = "sudo -u postgres psql -f {1} -d {0}"
 GET_SE_LINUX_ST_CMD = "sestatus"
 SE_STATUS_DISABLED="disabled"
 SE_STATUS_ENABLED="enabled"
@@ -42,6 +42,8 @@ AMBARI_CONF_VAR="AMBARI_CONF_DIR"
 PG_ST_CMD = "service postgresql status"
 PG_START_CMD = "service postgresql start"
 PG_STATUS_RUNNING = "running"
+PID_DIR="/var/run/ambari-server"
+PID_NAME="ambari-server.pid"
 
 def run_os_command(cmd):
   print 'about to run command: ' + cmd
@@ -55,9 +57,8 @@ def run_os_command(cmd):
 
 def setup_db(args):
   dbname = args.postgredbname
-  username = args.postgreuser
   file = args.init_script_file
-  command = SETUP_DB_CMD.format(dbname, username, file)
+  command = SETUP_DB_CMD.format(dbname, file)
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
     print errdata
@@ -90,7 +91,10 @@ def ip_tables_down():
 
 def check_postgre_up():
   retcode, out, err = run_os_command(PG_ST_CMD)
-  pg_status = re.search('(stopped|running)', out).group(0)
+  try:
+    pg_status = re.search('(stopped|running)', out).group(0)
+  except AttributeError:
+    pg_status = None
   if pg_status == PG_STATUS_RUNNING:
     print "Postgre is running"
     return 0
@@ -142,15 +146,17 @@ def start(args):
   command = SERVER_START_CMD.format(conf_dir)
       
   server_process = subprocess.Popen(command.split(' '))
-  f = open("pid", "w")
+  f = open(PID_DIR + os.sep + PID_NAME, "w")
   f.write(str(server_process.pid))
   f.close()
   
 def stop(args):
-  f = open("pid", "r")
+  f = open(PID_DIR + os.sep + PID_NAME, "r")
   pid = int(f.readline())
   os.kill(pid, signal.SIGKILL)
   f.close()
+  os.remove(f.name)
+  
   
   
   
@@ -159,8 +165,6 @@ def main():
   parser = optparse.OptionParser(usage="usage: %prog [options] action",)
   parser.add_option('-d', '--postgredbname', default='postgres',
                       help="Database name in postgresql")
-  parser.add_option('-u', '--postgreuser', default='postgres',
-                      help="User in postgresql to run init scripts")
   parser.add_option('-f', '--init-script-file', default='setup_db.sql',
                       help="File with setup script")
 

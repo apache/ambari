@@ -147,4 +147,14 @@ public class ServiceComponentDesiredStateEntity {
   public void setHostComponentDesiredStateEntities(Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities) {
     this.hostComponentDesiredStateEntities = hostComponentDesiredStateEntities;
   }
+
+  private Collection<ComponentConfigMappingEntity> configMappingEntities;
+  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
+  public Collection<ComponentConfigMappingEntity> getComponentConfigMappingEntities() {
+    return configMappingEntities;
+  }
+  
+  public void setComponentConfigMappingEntities(Collection<ComponentConfigMappingEntity> entities) {
+    configMappingEntities = entities;
+  }
 }

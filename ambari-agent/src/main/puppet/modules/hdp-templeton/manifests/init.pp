@@ -25,11 +25,12 @@ class hdp-templeton(
 {
 # Configs generation  
 
-  if has_key($configuration, 'hdp_templeton__templeton_site') {
-    configgenerator::configfile{'templeton_site_xml': 
+  if has_key($configuration, 'templeton_site') {
+    configgenerator::configfile{'templeton_site': 
+      modulespath => $hdp-templeton::params::conf_dir,
       filename => 'templeton-site.xml',
       module => 'hdp-templeton',
-      configuration => $configuration['hdp_templeton__templeton_site']
+      configuration => $configuration['templeton_site']
     }
   }
 
@@ -70,7 +71,7 @@ class hdp-templeton(
       force => true
     }
 
-    hdp-templeton::configfile { ['templeton-site.xml','templeton-env.sh']: }
+    hdp-templeton::configfile { ['templeton-env.sh']: }
 
     anchor { 'hdp-templeton::begin': } -> Hdp::Package['templeton'] -> Hdp::User[$templeton_user] -> Hdp::Directory[$templeton_config_dir] -> Hdp-templeton::Configfile<||> ->  anchor { 'hdp-templeton::end': }
 

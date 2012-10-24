@@ -19,7 +19,7 @@
 
 "xml_configurations_keys" : ["hdfs_site", "hdfs_site", "core_site", "mapred_queue_acls", 
                              "hadoop_policy", "mapred_site", "capacity_scheduler", "hbase_site",
-                             "hbase_policy", "hive_site", "oozie_site"],
+                             "hbase_policy", "hive_site", "oozie_site", "templeton_site"],
 
 "configurations" : {
 "hdfs_site" : { "dfs.block.size" : "256000000", "dfs.replication" : "1" } ,
@@ -40,7 +40,8 @@
 "hbase_policy" : {"security.client.protocol.acl" : "*"},
 "hadoop_metrics" : {"ganglia_server_host" : "localhost"},
 "hive_site" : {"hive.exec.scratchdir" : "/tmp"},
-"oozie_site" : {"oozie.service.ActionService.executor.ext.classes" : "org.apache.oozie.action.hadoop.HiveActionExecutor, org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.email.EmailActionExecutor,"}
+"oozie_site" : {"oozie.service.ActionService.executor.ext.classes" : "org.apache.oozie.action.hadoop.HiveActionExecutor, org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.email.EmailActionExecutor,"},
+"templeton_site" : {"templeton.override.enabled" : "true"}
 },
 "roleCommands": [
 {
@@ -70,6 +71,16 @@
 },
 {
   "role": "OOZIE_SERVER",
+  "cmd": "INSTALL",
+  "roleParams" : {}
+},
+{
+  "role": "TEMPLETON_SERVER",
+  "cmd": "INSTALL",
+  "roleParams" : {}
+},
+{
+  "role": "TEMPLETON_CLIENT",
   "cmd": "INSTALL",
   "roleParams" : {}
 }

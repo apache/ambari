@@ -168,4 +168,17 @@ public class ClusterServiceEntity {
   public void setServiceComponentDesiredStateEntities(Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities) {
     this.serviceComponentDesiredStateEntities = serviceComponentDesiredStateEntities;
   }
+  
+  private Collection<ServiceConfigMappingEntity> serviceConfigMappings;
+  @OneToMany(mappedBy = "serviceConfigEntity")
+  public Collection<ServiceConfigMappingEntity> getServiceConfigMappings() {
+    return serviceConfigMappings;
+  }
+  
+  public void setServiceConfigMappings(Collection<ServiceConfigMappingEntity> entities) {
+    serviceConfigMappings = entities;
+  }
+  
+  
+  
 }

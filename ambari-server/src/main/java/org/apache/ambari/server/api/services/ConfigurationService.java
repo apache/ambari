@@ -20,8 +20,6 @@ package org.apache.ambari.server.api.services;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -65,7 +63,19 @@ public class ConfigurationService extends BaseService {
   }  
 
   /**
-   * Handles URL: /clusters/{clusterId}/configurations
+   * Handles URL: /clusters/{clusterId}/configurations.  The body should contain:
+   * <pre>
+   * {
+   *     "type":"type_string",
+   *     "tag":"version_tag",
+   *     "properties":
+   *     {
+   *         "key1":"value1",
+   *         // ...
+   *         "keyN":"valueN"
+   *     }
+   * }
+   * </pre>
    * Get all services for a cluster.
    *
    * @param headers http headers
@@ -80,65 +90,6 @@ public class ConfigurationService extends BaseService {
         createResourceDefinition(null, null, m_clusterName));
   }    
   
-  /*
-   * Handles URL: /clusters/{clusterID}/configurations/{configType}
-   * Get a specific service.
-   *
-   * @param headers     http headers
-   * @param ui          uri info
-   * @param configType service id
-   * @return service resource representation
-  
-  @GET
-  @Path("{configType}")
-  @Produces("text/plain")
-  public Response getService(@Context HttpHeaders headers, @Context UriInfo ui,
-                             @PathParam("configType") String configType) {
-
-    return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(configType, null, m_clusterName));
-  }
-   */
-  
-  /*
-   * Handles URL: /clusters/{clusterId}/configurations/{configType}/{configTag}
-   *
-  @GET
-  @Path("{configType}/{configTag}")
-  @Produces("text/plain")
-  public Response getConfig(@Context HttpHeaders headers, @Context UriInfo ui,
-                             @PathParam("configType") String configType,
-                             @PathParam("configTag") String configTag) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
-        createResourceDefinition(configType, configTag, m_clusterName));    
-  }
-   */
-
-
-
-  /*
-   * Handles: PUT /clusters/{clusterId}/configurations/{configType}
-   * Create a specific service.
-   *
-   * @param body        http body
-   * @param headers     http headers
-   * @param ui          uri info
-   * @param serviceName service id
-   * @return information regarding the created service
-   *
-  @PUT
-  @Path("{configType}")
-  @Produces("text/plain")
-  public Response createConfig(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                @PathParam("configType") String configType) {
-
-    return handleRequest(headers, body, ui, Request.Type.PUT,
-        createResourceDefinition(configType, null, m_clusterName));
-  }
-  
-   */
-
-
   /**
    * Create a service resource definition.
    *

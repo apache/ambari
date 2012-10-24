@@ -61,7 +61,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   boolean persisted = false;
   private ServiceComponentDesiredStateEntity desiredStateEntity;
 
-  private Map<String, Config>  desiredConfigs;
+  // [ type -> versionTag ]
+  private Map<String, String>  desiredConfigs;
 
   private Map<String, ServiceComponentHost> hostComponents;
   private Injector injector;
@@ -83,7 +84,7 @@ public class ServiceComponentImpl implements ServiceComponent {
     desiredStateEntity.setComponentName(componentName);
     desiredStateEntity.setDesiredState(State.INIT);
 
-    this.desiredConfigs = new HashMap<String, Config>();
+    this.desiredConfigs = new HashMap<String, String>();
     setDesiredStackVersion(new StackVersion(""));
 
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
@@ -106,7 +107,8 @@ public class ServiceComponentImpl implements ServiceComponent {
     // FIXME use meta data library to decide client or not
     this.isClientComponent = false;
 
-    this.desiredConfigs = new HashMap<String, Config>();
+    this.desiredConfigs = new HashMap<String, String>();
+
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
     for (HostComponentStateEntity hostComponentStateEntity : desiredStateEntity.getHostComponentStateEntities()) {
       HostComponentDesiredStateEntityPK pk = new HostComponentDesiredStateEntityPK();
@@ -119,6 +121,10 @@ public class ServiceComponentImpl implements ServiceComponent {
 
       hostComponents.put(hostComponentStateEntity.getComponentName(),
           serviceComponentHostFactory.createExisting(this, hostComponentStateEntity, hostComponentDesiredStateEntity));
+    }
+    
+    for (ComponentConfigMappingEntity entity : desiredStateEntity.getComponentConfigMappingEntities()) {
+      desiredConfigs.put(entity.getConfigType(), entity.getVersionTag());
     }
 
     persisted = true;
@@ -251,12 +257,41 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public synchronized Map<String, Config> getDesiredConfigs() {
-    return Collections.unmodifiableMap(desiredConfigs);
+    Map<String, Config> map = new HashMap<String, Config>();
+    for (Entry<String, String> entry : desiredConfigs.entrySet()) {
+      Config config = service.getCluster().getDesiredConfig(entry.getKey(), entry.getValue());
+      if (null != config) {
+        map.put(entry.getKey(), config);
+      }
+    }
+    return Collections.unmodifiableMap(map);
   }
 
   @Override
   public synchronized void updateDesiredConfigs(Map<String, Config> configs) {
-    this.desiredConfigs.putAll(configs);
+    for (Entry<String,Config> entry : configs.entrySet()) {
+      ComponentConfigMappingEntity newEntity = new ComponentConfigMappingEntity();
+      newEntity.setClusterId(desiredStateEntity.getClusterId());
+      newEntity.setServiceName(desiredStateEntity.getServiceName());
+      newEntity.setComponentName(desiredStateEntity.getComponentName());
+      newEntity.setConfigType(entry.getKey());
+      newEntity.setVersionTag(entry.getValue().getVersionTag());
+      newEntity.setTimestamp(Long.valueOf(new java.util.Date().getTime()));
+      
+      if (!desiredStateEntity.getComponentConfigMappingEntities().contains(newEntity)) {
+        newEntity.setServiceComponentDesiredStateEntity(desiredStateEntity);
+        desiredStateEntity.getComponentConfigMappingEntities().add(newEntity);
+      } else {
+        for (ComponentConfigMappingEntity entity : desiredStateEntity.getComponentConfigMappingEntities()) {
+          if (entity.equals(newEntity)) {
+            entity.setVersionTag(newEntity.getVersionTag());
+            entity.setTimestamp(newEntity.getTimestamp());
+          }
+        }
+      }
+        
+      this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
+    }
   }
 
   @Override
@@ -281,10 +316,11 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   private synchronized Map<String, String> getConfigVersions() {
     Map<String, String> configVersions = new HashMap<String, String>();
-    for (Config c : desiredConfigs.values()) {
-      configVersions.put(c.getType(), c.getVersionTag());
-    }
-    return configVersions;
+//    for (Config c : desiredConfigs.values()) {
+//      configVersions.put(c.getType(), c.getVersionTag());
+//    }
+//    return configVersions;
+    return desiredConfigs;
   }
 
   @Override

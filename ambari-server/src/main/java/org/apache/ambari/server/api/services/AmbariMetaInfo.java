@@ -33,7 +33,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -75,11 +74,8 @@ public class AmbariMetaInfo {
   private static final String PROPERTY_XML_PROPERTY_DESCRIPTION = "description";
 
 
-
-
-
   public Map<String, Map<String, String>> getSupportedConfigs(String stackName, String version, String serviceName) {
-    Map<String, Map<String, String>> propertiesResult =  new HashMap<String, Map<String, String> >();
+    Map<String, Map<String, String>> propertiesResult = new HashMap<String, Map<String, String>>();
 
     ServiceInfo service = getServiceInfo(stackName, version, serviceName);
     if (service != null)
@@ -87,14 +83,14 @@ public class AmbariMetaInfo {
         List<PropertyInfo> properties = service.getProperties();
         if (properties != null)
           for (PropertyInfo propertyInfo : properties) {
-            Map<String, String> fileProperties = propertiesResult.get( propertyInfo.getFilename() );
-            if(fileProperties == null){
+            Map<String, String> fileProperties = propertiesResult.get(propertyInfo.getFilename());
+            if (fileProperties == null) {
               fileProperties = new HashMap<String, String>();
-              fileProperties.put(propertyInfo.getName(), propertyInfo.getValue() );
-              propertiesResult.put(propertyInfo.getFilename(), fileProperties  );
+              fileProperties.put(propertyInfo.getName(), propertyInfo.getValue());
+              propertiesResult.put(propertyInfo.getFilename(), fileProperties);
 
-            }else{
-              fileProperties.put(propertyInfo.getName(), propertyInfo.getValue() );
+            } else {
+              fileProperties.put(propertyInfo.getName(), propertyInfo.getValue());
             }
 
           }
@@ -120,12 +116,12 @@ public class AmbariMetaInfo {
   }
 
   public List<ServiceInfo> getSupportedServices(String stackName, String version) {
-      List<ServiceInfo> servicesResulr = null;
-      StackInfo stack = getStackInfo(stackName , version);
-      if( stack!= null )
-        servicesResulr = stack.getServices();
-      return servicesResulr;
-    }
+    List<ServiceInfo> servicesResulr = null;
+    StackInfo stack = getStackInfo(stackName, version);
+    if (stack != null)
+      servicesResulr = stack.getServices();
+    return servicesResulr;
+  }
 
   private StackInfo getStackInfo(String stackName, String version) {
     StackInfo stackInfoResult = null;
@@ -205,52 +201,8 @@ public class AmbariMetaInfo {
           }
 
       }
-    }//stack root
-
-//////TODO delete before final commit. Show all objects structure for debug
-//    for (StackInfo elem : stacksResult) {
-//      log.info("###elem = \n" + elem);
-//      log.info("contain services= " + elem.getServices().size());
-//      System.out.println("###elem = \n" + elem);
-//      System.out.println("contain services= " + elem.getServices().size());
-//    }
-//    System.out.println(" \n\n\n ");
-
-
-  }
-
-
-  public static void main(String[] args) throws Exception {
-    AmbariMetaInfo metadata = new AmbariMetaInfo();
-
-//    //Get Stack
-//    StackInfo stack = metadata.getStackInfo("HDP","0.1");
-//    System.out.println("stack = " + stack);
-
-//    //Get services
-//    List<ServiceInfo>services = metadata.getSupportedServices("HDP","0.1");
-//    for(ServiceInfo service : services){
-//      System.out.println("service = " + service);
-//    }
-
-//    //Get ServiceInfo
-//    ServiceInfo si = metadata.getServiceInfo("HDP","0.1", "HDFS");
-//    System.out.println("si = " + si);
-
-    //Get supported Configs
-    Map<String,Map<String, String> > configsAll = metadata.getSupportedConfigs("HDP","0.1", "HDFS");
-    Set<String>filesKeys  = configsAll.keySet();
-    for(String file: filesKeys){
-      System.out.println("\t\t\t\t\t\t\t\t\t\t\t\t\file = " + file);
-      Map<String,String> configs = configsAll.get(file);
-      Set<String> propertyKeys = configs.keySet();
-      for(String property : propertyKeys ){
-        System.out.println("name = " + property+ "\t value=" + configs.get(property));
-      }
-
     }
 
-//    System.out.println( new Configuration().getMetadataPath() );
   }
 
 
@@ -333,7 +285,6 @@ public class AmbariMetaInfo {
       Document doc = dBuilder.parse(propertyFile);
       doc.getDocumentElement().normalize();
 
-
       NodeList propertyNodes = doc.getElementsByTagName(PROPERTY_XML_MAIN_BLOCK_NAME);
 
       for (int index = 0; index < propertyNodes.getLength(); index++) {
@@ -346,7 +297,7 @@ public class AmbariMetaInfo {
           propertyInfo.setName(getTagValue(PROPERTY_XML_PROPERTY_NAME, property));
           propertyInfo.setValue(getTagValue(PROPERTY_XML_PROPERTY_VALUE, property));
           propertyInfo.setDescription(getTagValue(PROPERTY_XML_PROPERTY_DESCRIPTION, property));
-          propertyInfo.setFilename( propertyFile.getName() );
+          propertyInfo.setFilename(propertyFile.getName());
 
           if (propertyInfo.getName() == null || propertyInfo.getValue() == null)
             continue;
@@ -370,9 +321,6 @@ public class AmbariMetaInfo {
       result = value.getNodeValue();
     } catch (NullPointerException e) {
       log.debug("There is no field like " + sTag + "in this DOM element.", e);
-    } catch (Exception e) {
-      log.error("Error while getting value from xml DOM element", e);
-      throw e;
     } finally {
       return result;
     }

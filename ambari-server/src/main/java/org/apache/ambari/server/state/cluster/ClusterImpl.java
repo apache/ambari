@@ -19,11 +19,13 @@
 package org.apache.ambari.server.state.cluster;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
@@ -333,7 +335,7 @@ public class ClusterImpl implements Cluster {
   public synchronized Config getDesiredConfig(String configType, String versionTag) {
     if (!configs.containsKey(configType)
         || !configs.get(configType).containsKey(versionTag)) {
-      // TODO throw error
+      return null;
     }
     return configs.get(configType).get(versionTag);
   }
@@ -351,6 +353,16 @@ public class ClusterImpl implements Cluster {
     }
 
     configs.get(config.getType()).put(config.getVersionTag(), config);
+  }
+  
+  public synchronized Collection<Config> getAllConfigs() {
+    List<Config> list = new ArrayList<Config>();
+    for (Entry<String,Map<String,Config>> entry : configs.entrySet()) {
+      for (Config config : entry.getValue().values()) {
+        list.add(config);
+      }
+    }
+    return Collections.unmodifiableList(list);
   }
 
   @Override

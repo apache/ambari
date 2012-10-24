@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1055,10 +1056,23 @@ public class AmbariManagementControllerImpl implements
       if (null != request.getType()) {
         Map<String, Config> configs = cluster.getDesiredConfigsByType(request.getType());
 
-        for (Entry<String, Config> entry : configs.entrySet()) {
+        if (null != configs) {
+          for (Entry<String, Config> entry : configs.entrySet()) {
+            ConfigurationResponse response = new ConfigurationResponse(
+                cluster.getClusterName(), request.getType(),
+                entry.getValue().getVersionTag(), new HashMap<String, String>());
+            responses.add(response);
+          }
+        }
+      } else {
+        // !!! all configuration
+        Collection<Config> all = cluster.getAllConfigs();
+        
+        for (Config config : all) {
           ConfigurationResponse response = new ConfigurationResponse(
-              cluster.getClusterName(), request.getType(),
-              entry.getValue().getVersionTag(), new HashMap<String, String>());
+             cluster.getClusterName(), config.getType(), config.getVersionTag(),
+             new HashMap<String, String>());
+          
           responses.add(response);
         }
       }
@@ -1333,11 +1347,24 @@ public class AmbariManagementControllerImpl implements
       Service s = cluster.getService(request.getServiceName());
 
       if (request.getConfigVersions() != null) {
+        Map<String, Config> updated = new HashMap<String, Config>();
+        
+        for (Entry<String,String> entry : request.getConfigVersions().entrySet()) {
+          Config config = cluster.getDesiredConfig(entry.getKey(), entry.getValue());
+          if (null != config) {
+            updated.put(config.getType(), config);
+          }
+          
+          if (0 != updated.size()) {
+            s.updateDesiredConfigs(updated);
+            s.persist();
+          }
+          
+        }
+        
         // TODO handle config updates
         // handle recursive updates to all components and hostcomponents
         // if different from old desired configs, trigger relevant actions
-        throw new AmbariException("Unsupported operation - config updates not"
-            + " allowed");
       }
 
       if (request.getDesiredState() == null
@@ -1557,11 +1584,23 @@ public class AmbariManagementControllerImpl implements
         request.getComponentName());
 
       if (request.getConfigVersions() != null) {
+        Map<String, Config> updated = new HashMap<String, Config>();
+        
+        for (Entry<String,String> entry : request.getConfigVersions().entrySet()) {
+          Config config = cluster.getDesiredConfig(entry.getKey(), entry.getValue());
+          if (null != config) {
+            updated.put(config.getType(), config);
+          }
+          
+          if (0 != updated.size()) {
+            sc.updateDesiredConfigs(updated);
+            sc.persist();
+          }
+        }
+        
         // TODO handle config updates
         // handle recursive updates to all components and hostcomponents
         // if different from old desired configs, trigger relevant actions
-        throw new AmbariException("Unsupported operation - config updates not"
-            + " allowed");
       }
 
       if (request.getDesiredState() == null
@@ -1802,11 +1841,23 @@ public class AmbariManagementControllerImpl implements
         request.getHostname());
 
       if (request.getConfigVersions() != null) {
+        Map<String, Config> updated = new HashMap<String, Config>();
+        
+        for (Entry<String,String> entry : request.getConfigVersions().entrySet()) {
+          Config config = cluster.getDesiredConfig(entry.getKey(), entry.getValue());
+          if (null != config) {
+            updated.put(config.getType(), config);
+          }
+          
+          if (0 != updated.size()) {
+            sch.updateDesiredConfigs(updated);
+            sch.persist();
+          }
+        }
+        
         // TODO handle config updates
         // handle recursive updates to all components and hostcomponents
         // if different from old desired configs, trigger relevant actions
-        throw new AmbariException("Unsupported operation - config updates not"
-            + " allowed");
       }
 
       if (request.getDesiredState() == null

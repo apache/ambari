@@ -17,9 +17,17 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.ambari.server.state.State;
+import java.util.Collection;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+
+import org.apache.ambari.server.state.State;
 
 @javax.persistence.IdClass(HostComponentDesiredStateEntityPK.class)
 @javax.persistence.Table(name = "hostcomponentdesiredstate", schema = "ambari", catalog = "")
@@ -167,4 +175,15 @@ public class HostComponentDesiredStateEntity {
   public void setHostEntity(HostEntity hostEntity) {
     this.hostEntity = hostEntity;
   }
+  
+  private Collection<HostComponentConfigMappingEntity> configMappingEntities;
+  @OneToMany(mappedBy = "hostComponentDesiredStateEntity")
+  public Collection<HostComponentConfigMappingEntity> getHostComponentConfigMappingEntities() {
+    return configMappingEntities;
+  }
+  
+  public void setHostComponentConfigMappingEntities(Collection<HostComponentConfigMappingEntity> entities) {
+    configMappingEntities = entities;
+  }
+  
 }

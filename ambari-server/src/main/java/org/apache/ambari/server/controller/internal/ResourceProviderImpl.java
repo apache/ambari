@@ -81,6 +81,7 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
   protected static final PropertyId SERVICE_CLUSTER_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("cluster_name", "ServiceInfo");
   protected static final PropertyId SERVICE_SERVICE_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("service_name", "ServiceInfo");
   protected static final PropertyId SERVICE_SERVICE_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("state", "ServiceInfo");
+
   // Components
   protected static final PropertyId COMPONENT_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("cluster_name", "ServiceComponentInfo");
   protected static final PropertyId COMPONENT_SERVICE_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("service_name", "ServiceComponentInfo");
@@ -426,7 +427,12 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
       for (ServiceResponse response : responses) {
         Resource resource = new ResourceImpl(Resource.Type.Service);
 //        setResourceProperty(resource, SERVICE_CLUSTER_ID_PROPERTY_ID, response.getClusterId(), requestedIds);
-        setResourceProperty(resource, SERVICE_CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
+        
+        resource.setProperty(SERVICE_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
+//        resource.setProperty(SERVICE_SERVICE_NAME_PROPERTY_ID, response.getServiceName());
+        
+        
+//        setResourceProperty(resource, SERVICE_CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
         setResourceProperty(resource, SERVICE_SERVICE_NAME_PROPERTY_ID, response.getServiceName(), requestedIds);
 //        setResourceProperty(resource, SERVICE_VERSION_PROPERTY_ID, response.getCurrentStackVersion(), requestedIds);
         resources.add(resource);
@@ -438,7 +444,20 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
     public void updateResources(Request request, Predicate predicate) throws AmbariException {
       Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
       for (Map<PropertyId, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
-        requests.add(getRequest(propertyMap));
+        
+        Map<String, String> configMappings = new HashMap<String, String>();
+        
+        for (PropertyId id : propertyMap.keySet()) {
+          if (id.getCategory().equals ("config")) {
+            configMappings.put(id.getName(), (String) propertyMap.get(id));
+          }
+        }
+        
+        ServiceRequest svcRequest = getRequest(propertyMap);
+        if (configMappings.size() > 0)
+          svcRequest.setConfigVersions(configMappings);
+        
+        requests.add(svcRequest);
       }
       getManagementController().updateServices(requests);
     }
@@ -535,7 +554,20 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
     public void updateResources(Request request, Predicate predicate) throws AmbariException {
       Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
       for (Map<PropertyId, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
-        requests.add(getRequest(propertyMap));
+        ServiceComponentRequest compRequest = getRequest(propertyMap);
+        
+        Map<String, String> configMap = new HashMap<String,String>();
+        
+        for (Entry<PropertyId,Object> entry : propertyMap.entrySet()) {
+          if (entry.getKey().getCategory().equals("config")) {
+            configMap.put(entry.getKey().getName(), (String) entry.getValue());
+          }
+        }
+        
+        if (0 != configMap.size())
+          compRequest.setConfigVersions(configMap);
+        
+        requests.add(compRequest);
       }
       getManagementController().updateComponents(requests);
     }
@@ -733,7 +765,21 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
     public void updateResources(Request request, Predicate predicate) throws AmbariException {
       Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
       for (Map<PropertyId, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
-        requests.add(getRequest(propertyMap));
+        
+        ServiceComponentHostRequest hostCompRequest = getRequest(propertyMap);
+        
+        Map<String, String> configMap = new HashMap<String,String>();
+        
+        for (Entry<PropertyId,Object> entry : propertyMap.entrySet()) {
+          if (entry.getKey().getCategory().equals("config")) {
+            configMap.put(entry.getKey().getName(), (String) entry.getValue());
+          }
+        }
+        
+        if (0 != configMap.size())
+          hostCompRequest.setConfigVersions(configMap);
+        
+        requests.add(hostCompRequest);        
       }
       getManagementController().updateHostComponents(requests);
     }

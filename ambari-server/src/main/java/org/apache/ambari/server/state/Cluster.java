@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -85,6 +86,8 @@ public interface Cluster {
 
   public void addDesiredConfig(Config config);
 
+  public Collection<Config> getAllConfigs();
+  
   public ClusterResponse convertToResponse() throws AmbariException;
 
   public void refresh();

@@ -80,7 +80,7 @@ public class ConfigImpl implements Config {
   public synchronized Map<String, String> getProperties() {
     if (null != entity && null == properties) {
       
-      properties = gson.fromJson(entity.getData(), Map.class);
+      properties = gson.<Map<String, String>>fromJson(entity.getData(), Map.class);
       
     }
     return Collections.unmodifiableMap(null == properties ? new HashMap<String, String>() : properties);
