@@ -24,6 +24,13 @@ import logging
 
 logger = logging.getLogger()
 
+xml_configurations_keys= ["hdfs_site", "hdfs_site", "core_site", 
+                          "mapred_queue_acls",
+                             "hadoop_policy", "mapred_site", 
+                             "capacity_scheduler", "hbase_site",
+                             "hbase_policy", "hive_site", "oozie_site", 
+                             "templeton_site"]
+
 #read static imports from file and write them to manifest
 def writeImports(outputFile, modulesdir, inputFileName='imports.txt'):
   inputFile = open(inputFileName, 'r')
@@ -39,12 +46,13 @@ def generateManifest(parsedJson, fileName, modulesdir):
 #reading json
   hostname = parsedJson['hostname']
   clusterHostInfo = parsedJson['clusterHostInfo']
-  params = parsedJson['params']
+  params = parsedJson['hostLevelParams']
   configurations = parsedJson['configurations']
-  xmlConfigurationsKeys = parsedJson['xml_configurations_keys']
+  xmlConfigurationsKeys = xml_configurations_keys
   #hostAttributes = parsedJson['hostAttributes']
-  roles = parsedJson['roleCommands']
-  
+  roles = [{'role' : parsedJson['role'],
+            'cmd' : parsedJson['roleCommand'],
+            'roleParams' : parsedJson['roleParams']}]
   #writing manifest
   manifest = open(fileName, 'w')
 

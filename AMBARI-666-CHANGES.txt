@@ -352,6 +352,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-905. Fix puppet site creation with flattening of execution commands
+  send from the server. (mahadev)
+
   AMBARI-885. Fix miscellaneous issues related to Ambari Web. (yusaku)
 
   AMBARI-879. Installer skips Confirm Hosts page of the wizard when testing

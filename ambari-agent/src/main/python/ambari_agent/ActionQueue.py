@@ -119,6 +119,10 @@ class ActionQueue(threading.Thread):
     configurations = command['configurations']
     result = []
     commandresult = self.executor.runCommand(command)
+    status = "COMPLETED"
+    if (commandresult['exitcode'] != 0):
+      status = "FAILED"
+      
     # assume some puppet pluing to run these commands
     roleResult = {'role' : command['role'],
                   'actionId' : commandId,
@@ -127,7 +131,7 @@ class ActionQueue(threading.Thread):
                   'stderr' : commandresult['stderr'],
                   'exitCode' : commandresult['exitcode'],
                   'serviceName' : serviceName,
-                  'status' : "COMPLETED"}
+                  'status' : status}
     result.append(roleResult)
     pass
     return result

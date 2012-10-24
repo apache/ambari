@@ -59,12 +59,12 @@ class puppetExecutor:
       
   def runCommand(self, command):
     result = {}
-    taskId = "0";
+    taskId = 0;
     if command.has_key("taskId"):
       taskId = command['taskId']
       
     puppetEnv = os.environ
-    siteppFileName = os.path.join(self.tmpDir, "site-" + taskId + ".pp") 
+    siteppFileName = os.path.join(self.tmpDir, "site-" + str(taskId) + ".pp") 
     generateManifest(command, siteppFileName, self.puppetModule + "/modules")
     puppetcommand = self.puppetCommand(siteppFileName)
     """ Run the command and make sure the output gets propagated"""

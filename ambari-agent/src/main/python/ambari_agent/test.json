@@ -7,7 +7,7 @@
 "NAMENODE": ["h2.hortonworks.com"],
 "DATANODE": ["h1.hortonworks.com", "h2.hortonworks.com"]
 },
-"params": 
+"hostLevelParams": 
 {
 "hdfs_user" : "hdfs",
 "jdk_location" : "http://hdp1/downloads",
@@ -17,9 +17,6 @@
 "jdk_bins" :  { "32" : "jdk-6u31-linux-x64.bin", "64" : "jdk-6u31-linux-x64.bin" }
 },
 
-"xml_configurations_keys" : ["hdfs_site", "hdfs_site", "core_site", "mapred_queue_acls", 
-                             "hadoop_policy", "mapred_site", "capacity_scheduler", "hbase_site",
-                             "hbase_policy", "hive_site", "oozie_site", "templeton_site"],
 
 "configurations" : {
 "hdfs_site" : { "dfs.block.size" : "256000000", "dfs.replication" : "1" } ,
@@ -43,46 +40,8 @@
 "oozie_site" : {"oozie.service.ActionService.executor.ext.classes" : "org.apache.oozie.action.hadoop.HiveActionExecutor, org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.email.EmailActionExecutor,"},
 "templeton_site" : {"templeton.override.enabled" : "true"}
 },
-"roleCommands": [
-{
-  "role": "NAMENODE",
-  "cmd": "INSTALL",
-  "roleParams" : {}
-},
-{
-  "role": "DATANODE",
-  "cmd": "INSTALL",
-  "roleParams" : {}
-},
-{
-  "role": "HBASE_MASTER",
-  "cmd": "INSTALL",
-  "roleParams" : {}
-},
-{
-  "role": "HIVE_SERVER",
-  "cmd": "INSTALL",
-  "roleParams" : {}
-},
-{
-  "role": "HIVE_CLIENT",
-  "cmd": "INSTALL",
-  "roleParams" : {}
-},
-{
-  "role": "OOZIE_SERVER",
-  "cmd": "INSTALL",
-  "roleParams" : {}
-},
-{
-  "role": "TEMPLETON_SERVER",
-  "cmd": "INSTALL",
-  "roleParams" : {}
-},
-{
-  "role": "TEMPLETON_CLIENT",
-  "cmd": "INSTALL",
-  "roleParams" : {}
-}
-]
+
+"role": "NAMENODE",
+"roleCommand": "INSTALL",
+"roleParams" : {}
 }

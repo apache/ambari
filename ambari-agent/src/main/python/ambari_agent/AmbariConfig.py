@@ -31,7 +31,7 @@ url=https://localhost:4080
 secured_url=https://localhost:8443
 
 [agent]
-prefix=/tmp/ambari
+prefix=/tmp/ambari-agent
 
 [stack]
 installprefix=/var/ambari/

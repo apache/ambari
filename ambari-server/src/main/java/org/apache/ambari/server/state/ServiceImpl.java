@@ -328,9 +328,9 @@ public class ServiceImpl implements Service {
         + ", clusterId=" + cluster.getClusterId()
         + ", desiredStackVersion=" + getDesiredStackVersion()
         + ", desiredState=" + getDesiredState().toString()
-        + ", configs = " + getConfigVersions()
+        + ", configs = " + getConfigVersions() 
         + ", components=[ ");
-
+    
     boolean first = true;
     for(ServiceComponent sc : components.values()) {
       if (!first) {
