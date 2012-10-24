@@ -69,7 +69,7 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type, "DB"),
+        PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
@@ -136,7 +136,7 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type, "DB"),
+        PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
@@ -198,7 +198,7 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type, "DB"),
+        PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
@@ -241,7 +241,7 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type, "DB"),
+        PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
@@ -273,7 +273,7 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type, "DB"),
+        PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
@@ -330,7 +330,7 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type, "DB"),
+        PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
@@ -400,7 +400,7 @@ public class ResourceProviderImplTest {
 
     ResourceProvider provider = ResourceProviderImpl.getResourceProvider(
         type,
-        PropertyHelper.getPropertyIds(type, "DB"),
+        PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 

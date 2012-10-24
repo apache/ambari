@@ -116,22 +116,35 @@ public class JDBCProviderModule implements ProviderModule {
 
   private void createResourceProvider(Resource.Type type) {
     resourceProviders.put( type, new JDBCResourceProvider(DBHelper.CONNECTION_FACTORY, type,
-        PropertyHelper.getPropertyIds(type, "DB"),
+        PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type)));
   }
 
   private void createPropertyProviders(Resource.Type type) {
     List<PropertyProvider> providers = new LinkedList<PropertyProvider>();
+
+
+    if (type == Resource.Type.Component) {
+      providers.add(new GangliaPropertyProvider(
+          PropertyHelper.getGangliaPropertyIds(type),
+          new URLStreamProvider(),
+          gangliaCollectorHostName,
+          null,
+          PropertyHelper.getPropertyId("component_name", "ServiceComponentInfo")));
+    }
+
     if (type == Resource.Type.HostComponent) {
       providers.add(new JMXPropertyProvider(
-          PropertyHelper.getPropertyIds(type, "JMX"),
+          PropertyHelper.getJMXPropertyIds(type),
           new URLStreamProvider(),
           hostMapping));
 
       providers.add(new GangliaPropertyProvider(
-          PropertyHelper.getPropertyIds(type, "GANGLIA"),
+          PropertyHelper.getGangliaPropertyIds(type),
           new URLStreamProvider(),
-          gangliaCollectorHostName));
+          gangliaCollectorHostName,
+          PropertyHelper.getPropertyId("host_name", "HostRoles"),
+          PropertyHelper.getPropertyId("component_name", "HostRoles")));
     }
     propertyProviders.put(type, providers);
   }

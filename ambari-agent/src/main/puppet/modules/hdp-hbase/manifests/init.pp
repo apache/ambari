@@ -29,46 +29,26 @@ class hdp-hbase(
   
   $hdp::params::component_exists['hdp-hbase'] = true
 
-  #Configs generation  
-  configgenerator::configfile{'hbase-site.xml.erb': 
-    module => 'hdp-hbase',
-    properties => {'hbase.rootdir' => 'hdfs://<%=scope.function_hdp_host("namenode_host")%>:8020<%=scope.function_hdp_template_var("hbase_hdfs_root_dir")%>',
-      'hbase.cluster.distributed' => 'true',
-      'hbase.tmp.dir' => '<%=scope.function_hdp_template_var("hbase_tmp_dir")%>',
-      'hbase.master.info.bindAddress' => '<%=scope.function_hdp_host("hbase_master_host")%>',
-      'hbase.regionserver.global.memstore.upperLimit' => '<%=scope.function_hdp_template_var("regionserver_memstore_upperlimit")%>',
-      'hbase.regionserver.handler.count' => '<%=scope.function_hdp_template_var("regionserver_handlers")%>',
-      'hbase.hregion.majorcompaction' => '<%=scope.function_hdp_template_var("hregion_majorcompaction")%>',
-      'hbase.regionserver.global.memstore.lowerLimit' => '<%=scope.function_hdp_template_var("regionserver_memstore_lowerlimit")%>',
-      'hbase.hregion.memstore.block.multiplier' => '<%=scope.function_hdp_template_var("hregion_blockmultiplier")%>',
-      'hbase.hregion.memstore.flush.size' => '<%=scope.function_hdp_template_var("hregion_memstoreflushsize")%>',
-      'hbase.hregion.memstore.mslab.enabled' => '<%=scope.function_hdp_template_var("regionserver_memstore_lab")%>',
-      'hbase.hregion.max.filesize' => '<%=scope.function_hdp_template_var("hstorefile_maxsize")%>',
-      'hbase.client.scanner.caching' => '<%=scope.function_hdp_template_var("client_scannercaching")%>',
-      'zookeeper.session.timeout' => '<%=scope.function_hdp_template_var("zookeeper_sessiontimeout")%>',
-      'hbase.client.keyvalue.maxsize' => '<%=scope.function_hdp_template_var("hfile_max_keyvalue_size")%>',
-      'hbase.hstore.compactionThreshold' => '<%=scope.function_hdp_template_var("hstore_compactionthreshold")%>',
-      'hbase.hstore.blockingStoreFiles' => '<%=scope.function_hdp_template_var("hstore_blockingstorefiles")%>',
-      'hfile.block.cache.size' => '<%=scope.function_hdp_template_var("hfile_blockcache_size")%>',
-      'hbase.master.keytab.file' => '<%=scope.function_hdp_template_var("keytab_path")%>/hm.service.keytab',
-      'hbase.master.kerberos.principal' => 'hm/_HOST@<%=scope.function_hdp_template_var("kerberos_domain")%>',
-      'hbase.regionserver.keytab.file' => '<%=scope.function_hdp_template_var("keytab_path")%>/rs.service.keytab',
-      'hbase.regionserver.kerberos.principal' => 'rs/_HOST@<%=scope.function_hdp_template_var("kerberos_domain")%>',
-      'hbase.superuser' => 'hbase',
-      'hbase.coprocessor.region.classes' => '<%=scope.function_hdp_template_var("preloaded_regioncoprocessor_classes")%>',
-      'hbase.coprocessor.master.classes' => '<%=scope.function_hdp_template_var("preloaded_mastercoprocessor_classes")%>',
-      'hbase.zookeeper.quorum' => '<%=zkh=scope.function_hdp_host("zookeeper_hosts");scope.function_hdp_is_empty(zkh) ? "" : [zkh].flatten.join(",")%>',
-      'dfs.support.append' => '<%=scope.function_hdp_template_var("hdfs_support_append")%>',
-      'dfs.client.read.shortcircuit' => '<%=scope.function_hdp_template_var("hdfs_enable_shortcircuit_read")%>',
-      'dfs.client.read.shortcircuit.skip.checksum' => '<%=scope.function_hdp_template_var("hdfs_enable_shortcircuit_skipchecksum")%>',}
-      }
 
-  configgenerator::configfile{'hbase-policy.xml.erb': 
-    module => 'hdp-hbase',
-    properties => {'security.client.protocol.acl' => '*',
-      'security.admin.protocol.acl' => '*',
-      'security.masterregion.protocol.acl' => '*',}
+  #Configs generation  
+
+  if has_key($configuration, 'hbase_site') {
+    configgenerator::configfile{'hbase_site': 
+      modulespath => $hdp-hbase::params::conf_dir,
+      filename => 'hbase-site.xml',
+      module => 'hdp-hbase',
+      configuration => $configuration['hbase_site']
       }
+    }
+
+  if has_key($configuration, 'hbase_policy') {
+    configgenerator::configfile{'hbase_policy': 
+      modulespath => $hdp-hbase::params::conf_dir,
+      filename => 'hbase-policy.xml',
+      module => 'hdp-hbase',
+      configuration => $configuration['hbase_policy']
+      }
+    }
 
   anchor{'hdp-hbase::begin':}
   anchor{'hdp-hbase::end':}
@@ -94,7 +74,7 @@ class hdp-hbase(
       force => true
     }
 
-   hdp-hbase::configfile { ['hbase-env.sh','hbase-site.xml','hbase-policy.xml','log4j.properties','hadoop-metrics.properties']: 
+   hdp-hbase::configfile { ['hbase-env.sh','log4j.properties','hadoop-metrics.properties']: 
       type => $type
     }
     hdp-hbase::configfile { 'regionservers':}

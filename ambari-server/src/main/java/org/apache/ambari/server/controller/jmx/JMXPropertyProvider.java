@@ -50,6 +50,8 @@ public class JMXPropertyProvider implements PropertyProvider {
    */
   private final Set<PropertyId> propertyIds;
 
+  private final Map<String, Map<PropertyId, String>> componentMetrics;
+
   private final StreamProvider streamProvider;
 
   private final Map<String, String> hostMapping;
@@ -57,11 +59,11 @@ public class JMXPropertyProvider implements PropertyProvider {
   private static final Map<String, String> JMX_PORTS = new HashMap<String, String>();
 
   static {
-    JMX_PORTS.put("NAMENODE", "50070");
+    JMX_PORTS.put("NAMENODE",     "50070");
+    JMX_PORTS.put("DATANODE",     "50075");
+    JMX_PORTS.put("JOBTRACKER",   "50030");
+    JMX_PORTS.put("TASKTRACKER",  "50060");
     JMX_PORTS.put("HBASE_MASTER", "60010");
-    JMX_PORTS.put("JOBTRACKER", "50030");
-    JMX_PORTS.put("DATANODE", "50075");
-    JMX_PORTS.put("TASKTRACKER", "50060");
   }
 
 
@@ -70,16 +72,20 @@ public class JMXPropertyProvider implements PropertyProvider {
   /**
    * Create a JMX property provider.
    *
-   * @param propertyIds     the property ids provided by this provider
-   * @param streamProvider  the stream provider
-   * @param hostMapping     the host mapping
+   * @param componentMetrics the map of supported metrics
+   * @param streamProvider   the stream provider
+   * @param hostMapping      the host mapping
    */
-  public JMXPropertyProvider(Set<PropertyId> propertyIds,
-                              StreamProvider streamProvider,
-                              Map<String, String> hostMapping) {
-    this.propertyIds    = propertyIds;
-    this.streamProvider = streamProvider;
-    this.hostMapping    = hostMapping;
+  public JMXPropertyProvider(Map<String, Map<PropertyId, String>> componentMetrics, StreamProvider streamProvider,
+                             Map<String, String> hostMapping) {
+    this.componentMetrics = componentMetrics;
+    this.streamProvider   = streamProvider;
+    this.hostMapping      = hostMapping;
+
+    propertyIds = new HashSet<PropertyId>();
+    for (Map.Entry<String, Map<PropertyId, String>> entry : componentMetrics.entrySet()) {
+      propertyIds.addAll(entry.getValue().keySet());
+    }
   }
 
 
@@ -129,10 +135,13 @@ public class JMXPropertyProvider implements PropertyProvider {
 
     Set<PropertyId> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
 
-    String hostName = hostMapping.get( resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
-    String port     = JMX_PORTS.get(resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID));
+    String hostName      = hostMapping.get(resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
+    String componentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    String port          = JMX_PORTS.get(componentName);
 
-    if (hostName == null || port == null) {
+    Map<PropertyId, String> metrics = componentMetrics.get(componentName);
+
+    if (metrics == null || hostName == null || port == null) {
       return true;
     }
 
@@ -151,17 +160,24 @@ public class JMXPropertyProvider implements PropertyProvider {
       }
 
       for (PropertyId propertyId : ids) {
-        String category = propertyId.getCategory();
 
-        // strip off 'metrics/' from the category
-        if (category.startsWith("metrics/")) {
-          category = category.substring(8);
-        }
+        String metricName = metrics.get(propertyId);
 
-        Map<String, Object> properties = categories.get(category);
-        String name = propertyId.getName();
-        if (properties != null && properties.containsKey(name)) {
-          resource.setProperty(propertyId, properties.get(name));
+        if (metricName != null) {
+
+          String property = metricName;
+          String category = "";
+
+          int i = property.lastIndexOf('.');
+          if (i != -1){
+            category = property.substring(0, i);
+            property = property.substring(i + 1);
+          }
+
+          Map<String, Object> properties = categories.get(category);
+          if (properties != null && properties.containsKey(property)) {
+            resource.setProperty(propertyId, properties.get(property));
+          }
         }
       }
     } catch (IOException e) {
@@ -175,15 +191,6 @@ public class JMXPropertyProvider implements PropertyProvider {
     if (bean.containsKey(CATEGORY_KEY)) {
       return (String) bean.get(CATEGORY_KEY);
     }
-//    if (bean.containsKey(NAME_KEY)) {
-//      try {
-//        ObjectName objectName = new ObjectName((String) bean.get(NAME_KEY));
-//
-//
-//      } catch (MalformedObjectNameException e) {
-//        // TODO : log this
-//      }
-//    }
     return null;
   }
 

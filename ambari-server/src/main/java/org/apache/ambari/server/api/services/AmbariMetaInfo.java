@@ -27,14 +27,13 @@ import org.apache.ambari.server.state.StackInfo;
 import javax.ws.rs.Path;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -49,13 +48,13 @@ import org.xml.sax.SAXException;
 @Path("/metainfo/")
 public class AmbariMetaInfo {
 
-  List<StackInfo> stacksResult = new ArrayList<StackInfo>();
+  private List<StackInfo> stacksResult = new ArrayList<StackInfo>();
 
   private final static Logger log = LoggerFactory.getLogger(AmbariMetaInfo.class);
 
   private static final String SERVICES_FOLDER_NAME = "services";
   private static final String SERVICE_METAINFO_FILE_NAME = "metainfo.xml";
-  private static final String SERVICE_CONFIG_FOLDER_NAME = "configs";
+  private static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
   private static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = "-site.xml";
 
   private static final String REPOSITORY_FILE_NAME = "repoinfo.xml";
@@ -76,30 +75,84 @@ public class AmbariMetaInfo {
   private static final String PROPERTY_XML_PROPERTY_DESCRIPTION = "description";
 
 
-  public AmbariMetaInfo() throws Exception {
-    getConfigurationInformation();
+
+
+
+  public Map<String, Map<String, String>> getSupportedConfigs(String stackName, String version, String serviceName) {
+    Map<String, Map<String, String>> propertiesResult =  new HashMap<String, Map<String, String> >();
+
+    ServiceInfo service = getServiceInfo(stackName, version, serviceName);
+    if (service != null)
+      if (serviceName.equals(service.getName())) {
+        List<PropertyInfo> properties = service.getProperties();
+        if (properties != null)
+          for (PropertyInfo propertyInfo : properties) {
+            Map<String, String> fileProperties = propertiesResult.get( propertyInfo.getFilename() );
+            if(fileProperties == null){
+              fileProperties = new HashMap<String, String>();
+              fileProperties.put(propertyInfo.getName(), propertyInfo.getValue() );
+              propertiesResult.put(propertyInfo.getFilename(), fileProperties  );
+
+            }else{
+              fileProperties.put(propertyInfo.getName(), propertyInfo.getValue() );
+            }
+
+          }
+      }
+
+    return propertiesResult;
   }
 
-  List<ServiceInfo> getSupportedServices(String stackName, String version) {
-    return null;
+  public ServiceInfo getServiceInfo(String stackName, String version, String serviceName) {
+    ServiceInfo serviceInfoResult = null;
+    List<ServiceInfo> services = null;
+    StackInfo stack = getStackInfo(stackName, version);
+    if (stack == null) return null;
+    services = stack.getServices();
+    if (services != null)
+      for (ServiceInfo service : services) {
+        if (serviceName.equals(service.getName())) {
+          serviceInfoResult = service;
+          break;
+        }
+      }
+    return serviceInfoResult;
   }
 
-  List<ServiceInfo> getDependentServices(String stackName, String version, String serviceName) {
-    return null;
+  public List<ServiceInfo> getSupportedServices(String stackName, String version) {
+      List<ServiceInfo> servicesResulr = null;
+      StackInfo stack = getStackInfo(stackName , version);
+      if( stack!= null )
+        servicesResulr = stack.getServices();
+      return servicesResulr;
+    }
+
+  private StackInfo getStackInfo(String stackName, String version) {
+    StackInfo stackInfoResult = null;
+
+    for (StackInfo stack : stacksResult) {
+      if (stackName.equals(stack.getName()) && version.equals(stack.getVersion())) {
+        stackInfoResult = stack;
+        break;
+      }
+    }
+    return stackInfoResult;
   }
 
-  Map<String, Map<String, String>> getSupportedConfigs(String stackName, String version, String serviceName) {
-    return null;
-  }
 
   List<StackInfo> getSupportedStack() {
-    return null;
+    return stacksResult;
+  }
+
+
+  public AmbariMetaInfo() throws Exception {
+    getConfigurationInformation();
   }
 
   private void getConfigurationInformation() throws Exception {
 
 
-    File stackRoot = new File(new Configuration().getMetadataPath());
+    File stackRoot = new File(new Configuration().getMetadataPath());//TODO uncomment before commit
 //    File stackRoot = new File("src/main/resources/stacks");
     if (!stackRoot.isDirectory() && !stackRoot.exists())
       throw new IOException("" + Configuration.METADETA_DIR_PATH + " should be a directory with stack.");
@@ -169,11 +222,39 @@ public class AmbariMetaInfo {
 
   public static void main(String[] args) throws Exception {
     AmbariMetaInfo metadata = new AmbariMetaInfo();
+
+//    //Get Stack
+//    StackInfo stack = metadata.getStackInfo("HDP","0.1");
+//    System.out.println("stack = " + stack);
+
+//    //Get services
+//    List<ServiceInfo>services = metadata.getSupportedServices("HDP","0.1");
+//    for(ServiceInfo service : services){
+//      System.out.println("service = " + service);
+//    }
+
+//    //Get ServiceInfo
+//    ServiceInfo si = metadata.getServiceInfo("HDP","0.1", "HDFS");
+//    System.out.println("si = " + si);
+
+    //Get supported Configs
+    Map<String,Map<String, String> > configsAll = metadata.getSupportedConfigs("HDP","0.1", "HDFS");
+    Set<String>filesKeys  = configsAll.keySet();
+    for(String file: filesKeys){
+      System.out.println("\t\t\t\t\t\t\t\t\t\t\t\t\file = " + file);
+      Map<String,String> configs = configsAll.get(file);
+      Set<String> propertyKeys = configs.keySet();
+      for(String property : propertyKeys ){
+        System.out.println("name = " + property+ "\t value=" + configs.get(property));
+      }
+
+    }
+
 //    System.out.println( new Configuration().getMetadataPath() );
   }
 
 
-  public List<RepositoryInfo> getRepository(File repositoryFile) {
+  private List<RepositoryInfo> getRepository(File repositoryFile) {
 
     List<RepositoryInfo> repositorysInfo = new ArrayList<RepositoryInfo>();
     try {
@@ -265,6 +346,7 @@ public class AmbariMetaInfo {
           propertyInfo.setName(getTagValue(PROPERTY_XML_PROPERTY_NAME, property));
           propertyInfo.setValue(getTagValue(PROPERTY_XML_PROPERTY_VALUE, property));
           propertyInfo.setDescription(getTagValue(PROPERTY_XML_PROPERTY_DESCRIPTION, property));
+          propertyInfo.setFilename( propertyFile.getName() );
 
           if (propertyInfo.getName() == null || propertyInfo.getValue() == null)
             continue;

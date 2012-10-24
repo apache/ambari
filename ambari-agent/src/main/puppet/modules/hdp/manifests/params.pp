@@ -327,7 +327,7 @@ class hdp::params()
     $hadoop_bin = "/usr/lib/hadoop/bin"
     $hadoop_conf_dir = "/etc/hadoop/conf"
     $zk_conf_dir = "/etc/zookeeper/conf"
-    $hbase_conf_dir = "/etc/hbase/conf/"
+    $hbase_conf_dir = "/etc/hbase/conf"
     $sqoop_conf_dir = "/usr/lib/sqoop/conf"
     $pig_conf_dir = "/etc/pig/conf"
     $oozie_conf_dir = "/etc/oozie/conf"

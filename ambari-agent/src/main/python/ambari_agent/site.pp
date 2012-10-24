@@ -25,8 +25,12 @@ capacity_scheduler=> {
 "mapred.capacity-scheduler.queue.default.capacity" => "100",
 "mapred.capacity-scheduler.queue.default.supports-priorit" => "false"
 },
-core_site=> {
-"fs.default.name" => "hrt8n36.cc1.ygridcore.net"
+hdfs_site=> {
+"dfs.block.size" => "256000000",
+"dfs.replication" => "1"
+},
+hbase_policy=> {
+"security.client.protocol.acl" => "*"
 },
 hadoop_policy=> {
 "security.client.datanode.protocol.acl" => "*",
@@ -36,9 +40,17 @@ mapred_queue_acls=> {
 "mapred.queue.default.acl-submit-job" => "*",
 "mapred.queue.default.acl-administer-jobs" => "*"
 },
-hdfs_site=> {
-"dfs.block.size" => "256000000",
-"dfs.replication" => "1"
+hbase_site=> {
+"hbase.cluster.distributed" => "true"
+},
+core_site=> {
+"fs.default.name" => "hrt8n36.cc1.ygridcore.net"
+},
+hive_site=> {
+"hive.exec.scratchdir" => "/tmp"
+},
+oozie_site=> {
+"oozie.service.ActionService.executor.ext.classes" => "org.apache.oozie.action.hadoop.HiveActionExecutor, org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.email.EmailActionExecutor,"
 },
 mapred_site=> {
 "mapred.queue.names" => "hive,pig,default",
@@ -46,8 +58,16 @@ mapred_site=> {
 },
 
 }
+$security_enabled = "true"
+$task_bin_exe = "ls"
+$hadoop_piddirprefix = "/tmp"
+$ganglia_server_host = "localhost"
 node /default/ {
- stage{1 :} -> stage{2 :}
-class {'hdp-hadoop::namenode': stage => 1, service_state => running}
+ stage{1 :} -> stage{2 :} -> stage{3 :} -> stage{4 :} -> stage{5 :} -> stage{6 :}
+class {'hdp-hadoop::namenode': stage => 1, service_state => installed_and_configured}
 class {'hdp-hadoop::datanode': stage => 2, service_state => installed_and_configured}
+class {'hdp-hbase::master': stage => 3, service_state => installed_and_configured}
+class {'hdp-hive::server': stage => 4, service_state => installed_and_configured}
+class {'hdp-hive::client': stage => 5, service_state => installed_and_configured}
+class {'hdp-oozie::server': stage => 6, service_state => installed_and_configured}
 }

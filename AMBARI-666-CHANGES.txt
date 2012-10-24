@@ -12,6 +12,8 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-895. Need name consistency for metrics. (Tom Beerbower via mahadev)
+
   AMBARI-893. provide api support for temporal queries. (John Speidel via 
   mahadev)
 

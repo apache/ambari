@@ -35,12 +35,12 @@ public class PropertyHelperTest {
   public void testGetPropertyIds() throws Exception {
 
 
-    Set<PropertyId> propertyIds = PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "DB");
+    Set<PropertyId> propertyIds = PropertyHelper.getPropertyIds(Resource.Type.HostComponent);
 
-    propertyIds = PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "JMX");
+    propertyIds = PropertyHelper.getPropertyIds(Resource.Type.HostComponent);
 
 
-    propertyIds = PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "GANGLIA");
+    propertyIds = PropertyHelper.getPropertyIds(Resource.Type.HostComponent);
 
   }
 

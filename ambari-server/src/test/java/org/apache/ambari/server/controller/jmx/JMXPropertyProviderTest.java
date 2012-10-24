@@ -38,11 +38,11 @@ public class JMXPropertyProviderTest {
     @Test
   public void testGetResources() throws Exception {
 
-    Set< PropertyId >   propertyIds    = PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "JMX");
     TestStreamProvider  streamProvider = new TestStreamProvider();
     Map<String, String> hostMap        = TestHostMappingProvider.getHostMap();
 
-    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(propertyIds,
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
         streamProvider,
         hostMap);
 
@@ -61,7 +61,7 @@ public class JMXPropertyProviderTest {
 
     // see test/resources/hdfs_namenode_jmx.json for values
     Assert.assertEquals(1084287,  resource.getPropertyValue(PropertyHelper.getPropertyId("ReceivedBytes", "metrics/rpc")));
-    Assert.assertEquals(173,      resource.getPropertyValue(PropertyHelper.getPropertyId("CreateFileOps", "metrics/dfs")));
+    Assert.assertEquals(173,      resource.getPropertyValue(PropertyHelper.getPropertyId("CreateFileOps", "metrics/dfs/namenode")));
     Assert.assertEquals(405.8686, resource.getPropertyValue(PropertyHelper.getPropertyId("memHeapUsedM",  "metrics/jvm")));
 
 

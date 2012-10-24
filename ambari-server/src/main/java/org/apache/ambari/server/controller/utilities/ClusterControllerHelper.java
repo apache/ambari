@@ -37,7 +37,7 @@ public class ClusterControllerHelper {
       try {
         Class implClass = Class.forName(PROVIDER_MODULE_CLASS);
         ProviderModule providerModule = (ProviderModule) implClass.newInstance();
-        return new ClusterControllerImpl(providerModule);
+        controller = new ClusterControllerImpl(providerModule);
 
       } catch (Exception e) {
         throw new IllegalStateException("Can't create provider module " + PROVIDER_MODULE_CLASS, e);

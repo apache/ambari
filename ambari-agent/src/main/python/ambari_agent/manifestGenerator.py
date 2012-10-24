@@ -41,6 +41,7 @@ def generateManifest(parsedJson, fileName, modulesdir):
   clusterHostInfo = parsedJson['clusterHostInfo']
   params = parsedJson['params']
   configurations = parsedJson['configurations']
+  xmlConfigurationsKeys = parsedJson['xml_configurations_keys']
   #hostAttributes = parsedJson['hostAttributes']
   roles = parsedJson['roleCommands']
   
@@ -56,8 +57,19 @@ def generateManifest(parsedJson, fileName, modulesdir):
   #writing params from map
   writeParams(manifest, params)
   
+  
+  xmlConfigurations = {}
+  flatConfigurations = {}
+
+  for configKey in configurations.iterkeys():
+    if configKey in xmlConfigurationsKeys:
+      xmlConfigurations[configKey] = configurations[configKey]
+    else:
+      flatConfigurations[configKey] = configurations[configKey]
+      
   #writing config maps
-  writeConfigurations(manifest, configurations)
+  writeXmlConfigurations(manifest, xmlConfigurations)
+  writeFlatConfigurations(manifest, flatConfigurations)
 
   #writing host attributes
   #writeHostAttributes(manifest, hostAttributes)
@@ -123,14 +135,21 @@ def writeHostAttributes(outputFile, hostAttributes):
 
   outputFile.write('}\n')
 
-#write configurations
-def writeConfigurations(outputFile, configs):
+#write flat configurations
+def writeFlatConfigurations(outputFile, flatConfigs):
+  for flatConfigName in flatConfigs.iterkeys():
+    for flatConfig in flatConfigs[flatConfigName].iterkeys():
+      outputFile.write('$' + flatConfig + ' = "' + flatConfigs[flatConfigName][flatConfig] + '"' + os.linesep)
+
+#write xml configurations
+def writeXmlConfigurations(outputFile, xmlConfigs):
   outputFile.write('$configuration =  {\n')
 
-  for configName in configs.iterkeys():
-    outputFile.write(configName + '=> {\n')
-    config = configs[configName]
+  for configName in xmlConfigs.iterkeys():
+
+    config = xmlConfigs[configName]
     
+    outputFile.write(configName + '=> {\n')
     coma = ''
     for configParam in config.iterkeys():
       outputFile.write(coma + '"' + configParam + '" => "' + config[configParam] + '"')
@@ -200,6 +219,7 @@ def main():
   modulesdir = os.path.abspath(os.getcwd() + ".." + os.sep + ".." + 
                                os.sep + ".." + os.sep + "puppet" + 
                                os.sep + "modules" + os.sep)
+  inputJsonStr = jsonStr
   parsedJson = json.loads(inputJsonStr)
   generateManifest(parsedJson, 'site.pp', modulesdir)
 

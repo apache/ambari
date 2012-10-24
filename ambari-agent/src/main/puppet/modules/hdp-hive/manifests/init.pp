@@ -30,11 +30,12 @@ class hdp-hive(
 
 # Configs generation  
 
-  if has_key($configuration, 'hdp_hive__hive_site') {
-    configgenerator::configfile{'hive_site_xml': 
+  if has_key($configuration, 'hive_site') {
+    configgenerator::configfile{'hive_site':
+      modulespath => $hdp-hive::params::hive_conf_dir, 
       filename => 'hive-site.xml',
       module => 'hdp-hive',
-      configuration => $configuration['hdp_hive__hive_site']
+      configuration => $configuration['hive_site']
     }
   }
 
@@ -66,7 +67,7 @@ class hdp-hive(
       force => true
     }
 
-    hdp-hive::configfile { ['hive-env.sh','hive-site.xml']: }
+    hdp-hive::configfile { ['hive-env.sh']: }
   
     Anchor['hdp-hive::begin'] -> Hdp::Package['hive'] -> Hdp::User[$hive_user] ->  
      Hdp::Directory[$hive_config_dir] -> Hdp-hive::Configfile<||> ->  Anchor['hdp-hive::end']

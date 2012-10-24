@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,10 +40,14 @@ import java.util.Set;
 public class PropertyHelper {
 
   private static final String PROPERTIES_FILE = "properties.json";
+  private static final String GANGLIA_PROPERTIES_FILE = "ganglia_properties.json";
+  private static final String JMX_PROPERTIES_FILE = "jmx_properties.json";
   private static final String KEY_PROPERTIES_FILE = "key_properties.json";
   private static final char EXTERNAL_PATH_SEP = '/';
 
-  private static final Map<Resource.Type, Map<String, Set<PropertyId>>> PROPERTY_IDS = readPropertyIds(PROPERTIES_FILE);
+  private static final Map<Resource.Type, Set<PropertyId>> PROPERTY_IDS = readPropertyIds(PROPERTIES_FILE);
+  private static final Map<Resource.Type, Map<String, Map<PropertyId, String>>> GANGLIA_PROPERTY_IDS = readPropertyProviderIds(GANGLIA_PROPERTIES_FILE);
+  private static final Map<Resource.Type, Map<String, Map<PropertyId, String>>> JMX_PROPERTY_IDS = readPropertyProviderIds(JMX_PROPERTIES_FILE);
   private static final Map<Resource.Type, Map<Resource.Type, PropertyId>> KEY_PROPERTY_IDS = readKeyPropertyIds(KEY_PROPERTIES_FILE);
 
   public static PropertyId getPropertyId(String name, String category) {
@@ -113,13 +118,17 @@ public class PropertyHelper {
     return getPropertyId(name, category, temporal);
   }
 
-  public static Set<PropertyId> getPropertyIds(Resource.Type resourceType, String providerKey) {
+  public static Set<PropertyId> getPropertyIds(Resource.Type resourceType) {
+    Set<PropertyId> propertyIds = PROPERTY_IDS.get(resourceType);
+    return propertyIds == null ? Collections.<PropertyId>emptySet() : propertyIds;
+  }
 
-    Map<String, Set<PropertyId>> propertyIds = PROPERTY_IDS.get(resourceType);
-    if (propertyIds != null) {
-      return propertyIds.get(providerKey);
-    }
-    return Collections.emptySet();
+  public static Map<String, Map<PropertyId, String>> getGangliaPropertyIds(Resource.Type resourceType) {
+    return GANGLIA_PROPERTY_IDS.get(resourceType);
+  }
+
+  public static Map<String, Map<PropertyId, String>> getJMXPropertyIds(Resource.Type resourceType) {
+    return JMX_PROPERTY_IDS.get(resourceType);
   }
 
   public static Map<Resource.Type, PropertyId> getKeyPropertyIds(Resource.Type resourceType) {
@@ -166,14 +175,14 @@ public class PropertyHelper {
 
     // if no properties are specified, then return them all
     if (requestPropertyIds == null || requestPropertyIds.isEmpty()) {
-//      // strip out the temporal properties, they must be asked for explicitly
-//      Iterator<PropertyId> iter = providerPropertyIds.iterator();
-//      while (iter.hasNext()) {
-//        PropertyId propertyId = iter.next();
-//        if (propertyId.isTemporal()) {
-//          iter.remove();
-//        }
-//      }
+      // strip out the temporal properties, they must be asked for explicitly
+      Iterator<PropertyId> iter = providerPropertyIds.iterator();
+      while (iter.hasNext()) {
+        PropertyId propertyId = iter.next();
+        if (propertyId.isTemporal()) {
+          iter.remove();
+        }
+      }
       return providerPropertyIds;
     }
 
@@ -235,11 +244,56 @@ public class PropertyHelper {
     return new RequestImpl(null,  Collections.singleton(properties));
   }
 
-  private static Map<Resource.Type, Map<String, Set<PropertyId>>> readPropertyIds(String filename) {
+  private static Map<Resource.Type, Map<String, Map<PropertyId, String>>> readPropertyProviderIds(String filename) {
     ObjectMapper mapper = new ObjectMapper();
 
     try {
-      return mapper.readValue(ClassLoader.getSystemResourceAsStream(filename), new TypeReference<Map<Resource.Type, Map<String, Set<PropertyIdImpl>>>>() {
+      Map<Resource.Type, Map<String, Map<String, GangliaMetric>>> resourceGangliaMetrics =
+          mapper.readValue(ClassLoader.getSystemResourceAsStream(filename),
+              new TypeReference<Map<Resource.Type, Map<String, Map<String, GangliaMetric>>>>() {});
+
+      Map<Resource.Type, Map<String, Map<PropertyId, String>>> resourceMetrics =
+          new HashMap<Resource.Type, Map<String, Map<PropertyId, String>>>();
+
+      for (Map.Entry<Resource.Type, Map<String, Map<String, GangliaMetric>>> resourceEntry : resourceGangliaMetrics.entrySet()) {
+        Map<String, Map<PropertyId, String>> componentMetrics = new HashMap<String, Map<PropertyId, String>>();
+
+        for (Map.Entry<String, Map<String, GangliaMetric>> componentEntry : resourceEntry.getValue().entrySet()) {
+          Map<PropertyId, String> metrics = new HashMap<PropertyId, String>();
+
+          for (Map.Entry<String, GangliaMetric> metricEntry : componentEntry.getValue().entrySet()) {
+            String property = metricEntry.getKey();
+            String category = "";
+
+            int i = property.lastIndexOf('/');
+            if (i != -1){
+              category = property.substring(0, i);
+              property = property.substring(i + 1);
+            }
+
+            GangliaMetric gangliaMetric = metricEntry.getValue();
+            if (gangliaMetric.isPointInTime()) {
+              metrics.put(PropertyHelper.getPropertyId(property, category, false), gangliaMetric.getMetric());
+            }
+            if (gangliaMetric.isTemporal()) {
+              metrics.put(PropertyHelper.getPropertyId(property, category, true), gangliaMetric.getMetric());
+            }
+          }
+          componentMetrics.put(componentEntry.getKey(), metrics);
+        }
+        resourceMetrics.put(resourceEntry.getKey(), componentMetrics);
+      }
+      return resourceMetrics;
+    } catch (IOException e) {
+      throw new IllegalStateException("Can't read properties file " + filename, e);
+    }
+  }
+
+  private static Map<Resource.Type, Set<PropertyId>> readPropertyIds(String filename) {
+    ObjectMapper mapper = new ObjectMapper();
+
+    try {
+      return mapper.readValue(ClassLoader.getSystemResourceAsStream(filename), new TypeReference<Map<Resource.Type, Set<PropertyIdImpl>>>() {
       });
     } catch (IOException e) {
       throw new IllegalStateException("Can't read properties file " + filename, e);
@@ -254,6 +308,39 @@ public class PropertyHelper {
       });
     } catch (IOException e) {
       throw new IllegalStateException("Can't read properties file " + filename, e);
+    }
+  }
+
+  private static class GangliaMetric {
+    private String metric;
+    private boolean pointInTime;
+    private boolean temporal;
+
+    private GangliaMetric() {
+    }
+
+    public String getMetric() {
+      return metric;
+    }
+
+    public void setMetric(String metric) {
+      this.metric = metric;
+    }
+
+    public boolean isPointInTime() {
+      return pointInTime;
+    }
+
+    public void setPointInTime(boolean pointInTime) {
+      this.pointInTime = pointInTime;
+    }
+
+    public boolean isTemporal() {
+      return temporal;
+    }
+
+    public void setTemporal(boolean temporal) {
+      this.temporal = temporal;
     }
   }
 }

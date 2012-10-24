@@ -38,18 +38,21 @@ import java.util.Set;
  */
 public class GangliaPropertyProvider implements PropertyProvider {
 
-  protected static final PropertyId HOST_COMPONENT_HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("host_name", "HostRoles");
-  protected static final PropertyId HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("component_name", "HostRoles");
-
-
   /**
    * Set of property ids supported by this provider.
    */
   private final Set<PropertyId> propertyIds;
 
+  private final Map<String, Map<PropertyId, String>> componentMetrics;
+
   private final StreamProvider streamProvider;
 
   private final String gangliaCollectorHostName;
+
+  private final PropertyId hostNamePropertyId;
+
+  private final PropertyId componentNamePropertyId;
+
 
   /**
    * Map of Ganglia cluster names keyed by component type.
@@ -57,21 +60,32 @@ public class GangliaPropertyProvider implements PropertyProvider {
   private static final Map<String, String> GANGLIA_CLUSTER_NAMES = new HashMap<String, String>();
 
   static {
-    GANGLIA_CLUSTER_NAMES.put("NAMENODE",    "HDPNameNode");
-    GANGLIA_CLUSTER_NAMES.put("JOBTRACKER",  "HDPJobTracker");
-    GANGLIA_CLUSTER_NAMES.put("DATANODE",    "HDPSlaves");
-    GANGLIA_CLUSTER_NAMES.put("TASKTRACKER", "HDPSlaves");
+    GANGLIA_CLUSTER_NAMES.put("NAMENODE",     "HDPNameNode");
+    GANGLIA_CLUSTER_NAMES.put("DATANODE",     "HDPSlaves");
+    GANGLIA_CLUSTER_NAMES.put("JOBTRACKER",   "HDPJobTracker");
+    GANGLIA_CLUSTER_NAMES.put("TASKTRACKER",  "HDPSlaves");
+    GANGLIA_CLUSTER_NAMES.put("HBASE_MASTER", "HDPHBaseMaster");
+    GANGLIA_CLUSTER_NAMES.put("HBASE_CLIENT", "HDPSlaves");
   }
 
 
   // ----- Constructors ------------------------------------------------------
 
-  public GangliaPropertyProvider(Set<PropertyId> propertyIds,
+  public GangliaPropertyProvider(Map<String, Map<PropertyId, String>> componentMetrics,
                                  StreamProvider streamProvider,
-                                 String gangliaCollectorHostName) {
-    this.propertyIds              = propertyIds;
+                                 String gangliaCollectorHostName,
+                                 PropertyId hostNamePropertyId,
+                                 PropertyId componentNamePropertyId) {
+    this.componentMetrics         = componentMetrics;
     this.streamProvider           = streamProvider;
     this.gangliaCollectorHostName = gangliaCollectorHostName;
+    this.hostNamePropertyId       = hostNamePropertyId;
+    this.componentNamePropertyId  = componentNamePropertyId;
+
+    propertyIds = new HashSet<PropertyId>();
+    for (Map.Entry<String, Map<PropertyId, String>> entry : componentMetrics.entrySet()) {
+      propertyIds.addAll(entry.getValue().keySet());
+    }
   }
 
 
@@ -97,7 +111,7 @@ public class GangliaPropertyProvider implements PropertyProvider {
   // ----- helper methods ----------------------------------------------------
 
   /**
-   * Populate a resource by obtaining the requested Ganglia metrics.
+   * Populate a resource by obtaining the requested Ganglia RESOURCE_METRICS.
    *
    * @param resource  the resource to be populated
    * @param request   the request
@@ -112,49 +126,64 @@ public class GangliaPropertyProvider implements PropertyProvider {
     if (getPropertyIds().isEmpty()) {
       return true;
     }
-    Set<PropertyId> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
 
-    String hostName           = PropertyHelper.fixHostName((String) resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
-    String componentName      = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    String componentName      = (String) resource.getPropertyValue(componentNamePropertyId);
     String gangliaClusterName = GANGLIA_CLUSTER_NAMES.get(componentName);
+    Map<PropertyId, String> metrics = componentMetrics.get(componentName);
 
-    if (gangliaClusterName == null) {
+    if (metrics == null || gangliaClusterName == null) {
       return true;
     }
 
+    String hostName = hostNamePropertyId == null ?
+        null : PropertyHelper.fixHostName((String) resource.getPropertyValue(hostNamePropertyId));
+
+    Set<PropertyId> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
+
     for (PropertyId propertyId : ids) {
 
-// TODO : ignoring category for now..
-//      String category = propertyId.getCategory();
-//      String property = (category == null || category.length() == 0 ? "" : category + ".") +
-//          propertyId.getName();
-      String property = propertyId.getName();
+      String metricName = metrics.get(propertyId);
 
-      TemporalInfo temporalInfo = request.getTemporalInfo(propertyId);
-      String spec = getSpec(gangliaClusterName, hostName, property,
-          temporalInfo.getStartTime(), temporalInfo.getEndTime(), temporalInfo.getStep());
+      if (metricName != null) {
+        boolean temporal = propertyId.isTemporal();
 
-      try {
-        List<GangliaMetric> properties = new ObjectMapper().readValue(streamProvider.readFrom(spec),
-            new TypeReference<List<GangliaMetric>>() {
-        });
-        resource.setProperty(propertyId, getTemporalValue(properties.get(0)));
-      } catch (IOException e) {
-        throw new AmbariException("Can't get metrics : " + property, e);
+        String spec = getSpec(gangliaClusterName, hostName, metricName,
+            temporal ? request.getTemporalInfo(propertyId) : null);
+
+        try {
+          List<GangliaMetric> properties = new ObjectMapper().readValue(streamProvider.readFrom(spec),
+              new TypeReference<List<GangliaMetric>>() {});
+
+          if (properties != null) {
+            resource.setProperty(propertyId, getValue(properties.get(0), temporal));
+          }
+        } catch (IOException e) {
+          throw new AmbariException("Can't get metric : " + metricName, e);
+        }
       }
     }
     return true;
   }
 
   /**
-   * Get a string representation of the temporal data from the given metric.
+   * Get value from the given metric.
    *
-   * @param metric  the metric
+   * @param metric     the metric
+   * @param isTemporal indicates whether or not this a temporal metric
    *
    * @return the string representation of the temporal data
    */
-  private String getTemporalValue(GangliaMetric metric) {
+  private Object getValue(GangliaMetric metric, boolean isTemporal) {
     double[][] dataPoints = metric.getDatapoints();
+
+    if (!isTemporal) {
+      int valuePosition = dataPoints.length - 1;
+      // discard last data point ... seems to always be zero
+      if (valuePosition > 0) {
+        valuePosition--;
+      }
+      return dataPoints[valuePosition][0];
+    }
 
     boolean first = true;
     StringBuilder stringBuilder = new StringBuilder();
@@ -181,42 +210,49 @@ public class GangliaPropertyProvider implements PropertyProvider {
    * @param gangliaCluster  the ganglia cluster name
    * @param host            the host name
    * @param metric          the metric
-   * @param startTime       the start time of the temporal data
-   * @param endTime         the end time of the temporal data
-   * @param step            the step for the temporal data
+   * @param temporalInfo    the temporal data; may be null
    *
    * @return the spec
    */
   protected String getSpec(String gangliaCluster,
                                   String host,
                                   String metric,
-                                  long startTime,
-                                  long endTime,
-                                  long step) {
+                                  TemporalInfo temporalInfo) {
 
     StringBuilder sb = new StringBuilder();
 
     sb.append("http://").
-       append(gangliaCollectorHostName).
-       append("/ganglia/graph.php?c=").
-       append(gangliaCluster).
-       append("&h=").
-       append(host == null ? "" : host).
-       append("&m=").
-       append(metric);
+        append(gangliaCollectorHostName).
+        append("/ganglia/graph.php?c=").
+        append(gangliaCluster);
 
-    if (startTime != -1) {
-      sb.append("&cs=").append(startTime);
+    if(host != null) {
+      sb.append("&h=").append(host);
     }
-    if (endTime != -1) {
-      sb.append("&ce=").append(endTime);
+
+    sb.append("&m=").append(metric);
+
+    if (temporalInfo == null) {
+      sb.append("&r=day");
+    } else {
+      long startTime = temporalInfo.getStartTime();
+      if (startTime != -1) {
+        sb.append("&cs=").append(startTime);
+      }
+
+      long endTime = temporalInfo.getEndTime();
+      if (endTime != -1) {
+        sb.append("&ce=").append(endTime);
+      }
+
+      long step = temporalInfo.getStep();
+      if (step != -1) {
+        sb.append("&step=").append(step);
+      }
     }
-    if (step != -1) {
-      sb.append("&step=").append(step);
-    }
+
     sb.append("&json=1");
 
     return sb.toString();
   }
 }
-

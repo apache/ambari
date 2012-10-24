@@ -26,29 +26,32 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
-import java.util.Set;
 
 /**
  * Test the Ganglia property provider.
  */
 public class GangliaPropertyProviderTest {
 
-  private static final PropertyId PROPERTY_ID = PropertyHelper.getPropertyId("bytes_out", "metrics/network", true);
+  private static final PropertyId PROPERTY_ID = PropertyHelper.getPropertyId("bytes_out", "metrics", true);
+  private static final PropertyId HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("host_name", "HostRoles");
+  private static final PropertyId COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("component_name", "HostRoles");
 
   @Test
   public void testGetResources() throws Exception {
-    Set< PropertyId > propertyIds     = PropertyHelper.getPropertyIds(Resource.Type.HostComponent, "GANGLIA");
     TestStreamProvider streamProvider  = new TestStreamProvider();
 
-    GangliaPropertyProvider propertyProvider = new GangliaPropertyProvider(propertyIds,
+    GangliaPropertyProvider propertyProvider = new GangliaPropertyProvider(
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
         streamProvider,
-        "ec2-23-23-71-42.compute-1.amazonaws.com");
+        "ec2-23-23-71-42.compute-1.amazonaws.com",
+        HOST_NAME_PROPERTY_ID,
+        COMPONENT_NAME_PROPERTY_ID);
 
     // namenode
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty(GangliaPropertyProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
-    resource.setProperty(GangliaPropertyProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
+    resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
 
     // only ask for one property
     Request  request = PropertyHelper.getReadRequest(Collections.singleton(PROPERTY_ID));

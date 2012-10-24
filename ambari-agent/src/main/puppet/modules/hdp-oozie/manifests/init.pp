@@ -28,11 +28,12 @@ class hdp-oozie(
 
 # Configs generation  
 
-  if has_key($configuration, 'hdp_oozie__oozie_site') {
-    configgenerator::configfile{'oozie_site_xml': 
+  if has_key($configuration, 'oozie_site') {
+    configgenerator::configfile{'oozie_site':
+      modulespath => $hdp-oozie::params::conf_dir, 
       filename => 'oozie-site.xml',
       module => 'hdp-oozie',
-      configuration => $configuration['hdp_oozie__oozie_site']
+      configuration => $configuration['oozie_site']
     }
   }
 
@@ -72,7 +73,7 @@ class hdp-oozie(
       force => true
     }
 
-     hdp-oozie::configfile { ['oozie-site.xml','oozie-env.sh','oozie-log4j.properties']: }
+     hdp-oozie::configfile { ['oozie-env.sh','oozie-log4j.properties']: }
 
     anchor { 'hdp-oozie::begin': } -> Hdp::Package['oozie-client'] -> Hdp::User[$oozie_user] -> Hdp::Directory[$oozie_config_dir] -> Hdp-oozie::Configfile<||> -> anchor { 'hdp-oozie::end': }
 

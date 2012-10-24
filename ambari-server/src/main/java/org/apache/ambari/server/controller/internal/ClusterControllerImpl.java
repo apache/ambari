@@ -103,7 +103,7 @@ public class ClusterControllerImpl implements ClusterController {
       schema = schemas.get(type);
       if (schema == null) {
         schema = new SchemaImpl(resourceProviders.get(type), propertyProviders.get(type));
-        schemas.put(Resource.Type.Cluster, schema);
+        schemas.put(type, schema);
       }
     }
     return schema;
