@@ -2462,4 +2462,16 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue(stages.isEmpty());
   }
 
+  @Test
+  public void testStartClientComponent() {
+    // FIXME write test after meta data integration
+    // start should fail
+  }
+
+  @Test
+  public void testStartClientHostComponent() {
+    // FIXME write test after meta data integration
+    // start should fail
+  }
+
 }
