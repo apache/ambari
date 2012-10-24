@@ -105,7 +105,7 @@ public class HostComponentResourceDefinition extends BaseResourceDefinition {
 
   /**
    * Host_Component resource processor which is responsible for generating href's for host components.
-   * This is called by the {@link org.apache.ambari.server.api.services.ResultPostProcessor} during post processing of a result.
+   * This is called by the ResultPostProcessor during post processing of a result.
    */
   private class HostComponentHrefProcessor extends BaseHrefPostProcessor {
     @Override
@@ -126,13 +126,12 @@ public class HostComponentResourceDefinition extends BaseResourceDefinition {
       } else {
         super.process(request, resultNode, href);
       }
-
     }
   }
 
   /**
    * Host_Component resource processor which is responsible for generating a host section for host components.
-   * This is called by the {@link org.apache.ambari.server.api.services.ResultPostProcessor} during post processing of a result.
+   * This is called by the ResultPostProcessor during post processing of a result.
    */
   private class HostComponentHostProcessor implements PostProcessor {
     @Override

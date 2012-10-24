@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.api.util;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Tree where each node can have a name, properties and an associated object.
@@ -36,7 +36,7 @@ public interface TreeNode<T> {
    *
    * @return a list of child nodes or an empty list if a leaf node
    */
-  public List<TreeNode<T>> getChildren();
+  public Collection<TreeNode<T>> getChildren();
 
   /**
    * Obtain the object associated with this node.
@@ -98,4 +98,15 @@ public interface TreeNode<T> {
    * @return the requested property value or null
    */
   public String getProperty(String name);
+
+  /**
+   * Find a child node by name.
+   * The name may contain '/' to delimit names to find a child more then one level deep.
+   * To find a node named 'bar' that is a child of a child named 'foo', use the name 'foo/bar'.
+   *
+   * @param name  the name of the child.  May contain the '/' path separator.
+   *
+   * @return the requested node or null if the child was not found
+   */
+  public TreeNode<T> getChild(String name);
 }

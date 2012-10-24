@@ -20,11 +20,9 @@ package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Default request implementation.
@@ -42,6 +40,13 @@ public class RequestImpl implements Request {
    * resources or update resource values.
    */
   private final Set<Map<PropertyId, Object>> properties;
+
+  /**
+   * Map of property to temporal info.
+   */
+  private Map<PropertyId, TemporalInfo> m_mapTemporalInfo = new HashMap<PropertyId, TemporalInfo>();
+
+  private static final TemporalInfo DEFAULT_TEMPORAL_INFO = new TemporalInfoImpl(-1, -1, -1);
 
 
   // ----- Constructors ------------------------------------------------------
@@ -77,25 +82,13 @@ public class RequestImpl implements Request {
 
   @Override
   public TemporalInfo getTemporalInfo(PropertyId id) {
-    return new TemporalInfoImpl();
+    TemporalInfo info =  m_mapTemporalInfo.get(id);
+    return info == null ? DEFAULT_TEMPORAL_INFO : info;
   }
 
-
-  public static class TemporalInfoImpl implements TemporalInfo {
-    @Override
-    public Long getStartTime() {
-      return null;  //TODO
-    }
-
-    @Override
-    public Long getEndTime() {
-      return null;  //TODO
-    }
-
-    @Override
-    public Long getStep() {
-      return null;  //TODO
-    }
+  @Override
+  public void setTemporalInfo(Map<PropertyId, TemporalInfo> mapTemporalInfo) {
+    m_mapTemporalInfo = mapTemporalInfo;
   }
 
   @Override

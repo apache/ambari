@@ -57,7 +57,7 @@ public class ServiceService extends BaseService {
   public Response getService(@Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, null, ui, org.apache.ambari.server.api.services.Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceDefinition(serviceName, m_clusterName));
   }
 
@@ -72,7 +72,7 @@ public class ServiceService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getServices(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, org.apache.ambari.server.api.services.Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceDefinition(null, m_clusterName));
   }
 
@@ -92,7 +92,8 @@ public class ServiceService extends BaseService {
   public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, ui, org.apache.ambari.server.api.services.Request.Type.PUT, createResourceDefinition(serviceName, m_clusterName));
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createResourceDefinition(serviceName, m_clusterName));
   }
 
   /**
@@ -111,7 +112,7 @@ public class ServiceService extends BaseService {
   public Response updateService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, ui, org.apache.ambari.server.api.services.Request.Type.POST, createResourceDefinition(serviceName, m_clusterName));
+    return handleRequest(headers, body, ui, Request.Type.POST, createResourceDefinition(serviceName, m_clusterName));
   }
 
   /**
@@ -129,7 +130,7 @@ public class ServiceService extends BaseService {
   public Response deleteService(@Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, null, ui, org.apache.ambari.server.api.services.Request.Type.DELETE, createResourceDefinition(serviceName, m_clusterName));
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createResourceDefinition(serviceName, m_clusterName));
   }
 
   /**

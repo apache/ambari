@@ -22,6 +22,7 @@ import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 
 import java.net.URI;
 import java.util.List;
@@ -82,11 +83,12 @@ public interface Request {
   public Predicate getQueryPredicate();
 
   /**
-   * Obtain the set of partial response fields which were provided in the query string of the request uri.
+   * Obtain the partial response fields and associated temporal information which were provided
+   * in the query string of the request uri.
    *
-   * @return a set of the provided partial response fields
+   * @return map of partial response propertyId to temporal information
    */
-  public Set<String> getPartialResponseFields();
+  public Map<PropertyId, TemporalInfo> getFields();
 
   /**
    * Obtain the result serializer for the request. The default serializer is of type JSON.

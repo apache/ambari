@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.predicate;
 
+import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Resource;
 
@@ -60,8 +61,13 @@ public class ResourceImpl implements Resource {
   }
 
   @Override
-  public Map<String, Map<String, Object>> getCategories() {
+  public Map<String, Map<String, Object>> getPropertiesMap() {
     return categories;
+  }
+
+  @Override
+  public TreeNode<Map<String, Object>> getProperties() {
+    return null;
   }
 
   @Override

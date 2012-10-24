@@ -23,10 +23,15 @@ import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Test;
 
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.easymock.EasyMock.*;
@@ -45,19 +50,23 @@ public class ReadHandlerTest {
     Predicate predicate = createMock(Predicate.class);
     Result result = createStrictMock(Result.class);
 
-    Set<String> setPartialResponseFields = new HashSet<String>();
-    setPartialResponseFields.add("foo");
-    setPartialResponseFields.add("bar/c");
-    setPartialResponseFields.add("bar/d/e");
+    Map<PropertyId, TemporalInfo> mapPartialResponseFields = new HashMap<PropertyId, TemporalInfo>();
+    mapPartialResponseFields.put(PropertyHelper.getPropertyId("foo"), null);
+    mapPartialResponseFields.put(PropertyHelper.getPropertyId("bar/c"), null);
+    mapPartialResponseFields.put(PropertyHelper.getPropertyId("bar/d/e"), null);
+    //Set<String> setPartialResponseFields = new HashSet<String>();
+//    setPartialResponseFields.add("foo");
+//    setPartialResponseFields.add("bar/c");
+//    setPartialResponseFields.add("bar/d/e");
 
     //expectations
     expect(request.getResourceDefinition()).andReturn(resourceDefinition);
     expect(resourceDefinition.getQuery()).andReturn(query);
 
-    expect(request.getPartialResponseFields()).andReturn(setPartialResponseFields);
-    query.addProperty(null, "foo");
-    query.addProperty("bar", "c");
-    query.addProperty("bar/d", "e");
+    expect(request.getFields()).andReturn(mapPartialResponseFields);
+    query.addProperty(null, "foo", null);
+    query.addProperty("bar", "c", null);
+    query.addProperty("bar/d", "e", null);
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);

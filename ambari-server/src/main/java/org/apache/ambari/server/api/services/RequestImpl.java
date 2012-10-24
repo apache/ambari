@@ -23,9 +23,11 @@ import org.apache.ambari.server.api.services.parsers.JsonPropertyParser;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.JsonSerializer;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.predicate.*;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -112,7 +114,6 @@ public class RequestImpl implements Request {
     String uri = getURI();
     int qsBegin = uri.indexOf("?");
 
-    //todo: consider returning an AlwaysPredicate in this case.
     if (qsBegin == -1) return null;
 
     Pattern pattern = Pattern.compile("!=|>=|<=|=|>|<");
@@ -141,13 +142,46 @@ public class RequestImpl implements Request {
   }
 
   @Override
-  public Set<String> getPartialResponseFields() {
+  public Map<PropertyId, TemporalInfo> getFields() {
+    Map<PropertyId, TemporalInfo> mapProperties;
     String partialResponseFields = m_uriInfo.getQueryParameters().getFirst("fields");
     if (partialResponseFields == null) {
-      return Collections.emptySet();
+      mapProperties = Collections.emptyMap();
     } else {
-      return new HashSet<String>(Arrays.asList(partialResponseFields.split(",")));
+      Set<String> setMatches = new HashSet<String>();
+      // Pattern basically splits a string using ',' as the deliminator unless ',' is between '[' and ']'.
+      // Actually, captures char sequences between ',' and all chars between '[' and ']' including ','.
+      Pattern re = Pattern.compile("[^,\\[]*?\\[[^\\]]*?\\]|[^,]+");
+      Matcher m = re.matcher(partialResponseFields);
+      while (m.find()){
+        for (int groupIdx = 0; groupIdx < m.groupCount() + 1; groupIdx++) {
+          setMatches.add(m.group(groupIdx));
+        }
+      }
+
+      mapProperties = new HashMap<PropertyId, TemporalInfo>(setMatches.size());
+      for (String field : setMatches) {
+        TemporalInfo temporalInfo = null;
+        if (field.contains("[")) {
+          String[] temporalData = field.substring(field.indexOf('[') + 1, field.indexOf(']')).split(",");
+          field = field.substring(0, field.indexOf('['));
+          long start = Long.parseLong(temporalData[0]);
+          long end   = -1;
+          long step  = -1;
+          if (temporalData.length >= 2) {
+            end = Long.parseLong(temporalData[1]);
+            if (temporalData.length == 3) {
+              step = Long.parseLong(temporalData[2]);
+            }
+          }
+          temporalInfo = new TemporalInfoImpl(start, end, step);
+        }
+        mapProperties.put(PropertyHelper.getPropertyId(
+            field, temporalInfo == null ? false : true), temporalInfo);
+      }
     }
+
+    return mapProperties;
   }
 
   @Override

@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.spi;
 
+import org.apache.ambari.server.api.util.TreeNode;
+
 import java.util.Map;
 
 /**
@@ -32,13 +34,22 @@ public interface Resource {
   public Type getType();
 
   /**
-   * Get the map of categories contained by this resource.  The map
-   * is keyed by the category name and contains maps of properties
-   * for each category.
+   * Get the properties contained by this resource.
+   * Each category is contained in a sub-node.
    *
-   * @return the map of categories
+   * @return resource properties tree
    */
-  public Map<String, Map<String, Object>> getCategories();
+  public TreeNode<Map<String, Object>> getProperties();
+
+  /**
+   * Obtain the properties contained by this group in a map structure.
+   * The category/property hierarchy is flattened into a map where
+   * each key is the absolute category name and the corresponding
+   * value is a map of properties(name/value pairs) for that category.
+   *
+   * @return  resource properties map
+   */
+  public Map<String, Map<String, Object>> getPropertiesMap();
 
   /**
    * Set a property value for the given property id on this resource.

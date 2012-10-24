@@ -22,6 +22,7 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 
 import java.util.Map;
 import java.util.Set;
@@ -38,8 +39,9 @@ public interface Query {
    *
    * @param group    the group name that contains the property
    * @param property the property name
+   * @param temporalInfo
    */
-  public void addProperty(String group, String property);
+  public void addProperty(String group, String property, TemporalInfo temporalInfo);
 
   /**
    * Add a property to the query.

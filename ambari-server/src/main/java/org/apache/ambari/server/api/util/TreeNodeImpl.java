@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.api.util;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   /**
    * child nodes
    */
-  private List<TreeNode<T>> m_listChildren = new ArrayList<TreeNode<T>>();
+  private Map<String, TreeNode<T>> m_mapChildren = new HashMap<String, TreeNode<T>>();
 
   /**
    * associated object
@@ -72,8 +72,8 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   }
 
   @Override
-  public List<TreeNode<T>> getChildren() {
-    return m_listChildren;
+  public Collection<TreeNode<T>> getChildren() {
+    return m_mapChildren.values();
   }
 
   @Override
@@ -99,7 +99,7 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   @Override
   public TreeNode<T> addChild(T child, String name) {
     TreeNodeImpl<T> node = new TreeNodeImpl<T>(this, child, name);
-    m_listChildren.add(node);
+    m_mapChildren.put(name, node);
 
     return node;
   }
@@ -107,7 +107,7 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   @Override
   public TreeNode<T> addChild(TreeNode<T> child) {
     child.setParent(this);
-    m_listChildren.add(child);
+    m_mapChildren.put(child.getName(), child);
 
     return child;
   }
@@ -123,5 +123,17 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   @Override
   public String getProperty(String name) {
     return m_mapNodeProps == null ? null : m_mapNodeProps.get(name);
+  }
+
+  @Override
+  public TreeNode<T> getChild(String name) {
+    if (name != null && name.contains("/")) {
+      int i = name.indexOf('/');
+      String s = name.substring(0, i);
+      TreeNode<T> node = m_mapChildren.get(s);
+      return node == null ? null : node.getChild(name.substring(i + 1));
+    } else {
+      return m_mapChildren.get(name);
+    }
   }
 }

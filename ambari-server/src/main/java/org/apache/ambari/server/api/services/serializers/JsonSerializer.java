@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services.serializers;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.log4j.Category;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
@@ -82,7 +83,7 @@ public class JsonSerializer implements ResultSerializer {
       m_generator.writeStartObject();
       writeHref(node);
       // resource props
-      handleResourceProperties(r.getCategories());
+      handleResourceProperties(r.getProperties());
     }
 
     for (TreeNode<Resource> child : node.getChildren()) {
@@ -101,22 +102,24 @@ public class JsonSerializer implements ResultSerializer {
     }
   }
 
-  private void handleResourceProperties(Map<String, Map<String, Object>> mapCatProps) throws IOException {
-    for (Map.Entry<String, Map<String, Object>> categoryEntry : mapCatProps.entrySet()) {
-      String category = categoryEntry.getKey();
-      Map<String, Object> mapProps = categoryEntry.getValue();
-      if (category != null) {
-        m_generator.writeFieldName(category);
-        m_generator.writeStartObject();
-      }
+  private void handleResourceProperties(TreeNode<Map<String, Object>> node) throws IOException {
+    String category = node.getName();
 
-      for (Map.Entry<String, Object> propEntry : mapProps.entrySet()) {
-        m_generator.writeObjectField(propEntry.getKey(), propEntry.getValue());
-      }
+    if (category != null) {
+      m_generator.writeFieldName(category);
+      m_generator.writeStartObject();
+    }
 
-      if (category != null) {
-        m_generator.writeEndObject();
-      }
+    for (Map.Entry<String, Object> entry : node.getObject().entrySet()) {
+      m_generator.writeObjectField(entry.getKey(), entry.getValue());
+    }
+
+    for (TreeNode<Map<String, Object>> n : node.getChildren()) {
+      handleResourceProperties(n);
+    }
+
+    if (category != null) {
+      m_generator.writeEndObject();
     }
   }
 

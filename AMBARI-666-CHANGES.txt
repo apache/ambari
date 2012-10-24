@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-893. provide api support for temporal queries. (John Speidel via 
+  mahadev)
+
   AMBARI-897. Operations request object and skeleton management methods.
   (jitendra)
 

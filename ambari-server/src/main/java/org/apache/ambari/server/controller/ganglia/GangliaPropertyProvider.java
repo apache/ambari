@@ -19,11 +19,8 @@
 package org.apache.ambari.server.controller.ganglia;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyId;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
+import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -133,7 +130,7 @@ public class GangliaPropertyProvider implements PropertyProvider {
 //          propertyId.getName();
       String property = propertyId.getName();
 
-      Request.TemporalInfo temporalInfo = request.getTemporalInfo(propertyId);
+      TemporalInfo temporalInfo = request.getTemporalInfo(propertyId);
       String spec = getSpec(gangliaClusterName, hostName, property,
           temporalInfo.getStartTime(), temporalInfo.getEndTime(), temporalInfo.getStep());
 
@@ -193,9 +190,9 @@ public class GangliaPropertyProvider implements PropertyProvider {
   protected String getSpec(String gangliaCluster,
                                   String host,
                                   String metric,
-                                  Long startTime,
-                                  Long endTime,
-                                  Long step) {
+                                  long startTime,
+                                  long endTime,
+                                  long step) {
 
     StringBuilder sb = new StringBuilder();
 
@@ -208,13 +205,13 @@ public class GangliaPropertyProvider implements PropertyProvider {
        append("&m=").
        append(metric);
 
-    if (startTime != null) {
+    if (startTime != -1) {
       sb.append("&cs=").append(startTime);
     }
-    if (endTime != null) {
+    if (endTime != -1) {
       sb.append("&ce=").append(endTime);
     }
-    if (step != null) {
+    if (step != -1) {
       sb.append("&step=").append(step);
     }
     sb.append("&json=1");
