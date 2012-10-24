@@ -165,6 +165,11 @@ public class ClustersImpl implements Clusters {
     if (!hostClusterMap.containsKey(hostname)) {
       getHost(hostname);
     }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Looking up clusters for hostname"
+          + ", hostname=" + hostname
+          + ", mappedClusters=" + hostClusterMap.get(hostname).size());
+    }
     return Collections.unmodifiableSet(hostClusterMap.get(hostname));
   }
 
@@ -221,7 +226,7 @@ public class ClustersImpl implements Clusters {
   @Override
   public synchronized void mapHostToCluster(String hostname,
                                             String clusterName) throws AmbariException {
-    ClusterImpl cluster = (ClusterImpl) getCluster(clusterName);
+    Cluster cluster = getCluster(clusterName);
     HostImpl host = (HostImpl) getHost(hostname);
 
     if (!hostClusterMap.containsKey(hostname)) {
@@ -295,8 +300,16 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public void deleteCluster(String clusterName) {
-    // TODO Auto-generated method stub
+  public synchronized void deleteCluster(String clusterName)
+      throws AmbariException {
+    Cluster cluster = getCluster(clusterName);
+    if (!cluster.canBeRemoved()) {
+      throw new AmbariException("Could not delete cluster"
+          + ", clusterName=" + clusterName);
+    }
+    cluster.deleteAllServices();
+    clusters.remove(clusterName);
+    // FIXME update DB
   }
 
 }

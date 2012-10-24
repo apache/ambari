@@ -22,21 +22,14 @@ import com.google.inject.Injector;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
-import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.ldap.userdetails.LdapUserDetailsService;
 
-import javax.persistence.NoResultException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class AmbariLocalUserDetailsService implements UserDetailsService {
   private static final Logger log = LoggerFactory.getLogger(AmbariLocalUserDetailsService.class);

@@ -271,7 +271,6 @@ public class ServiceComponentTest {
 
   @Test
   public void testConvertToResponse() throws AmbariException {
-    // TODO
     String componentName = "sc1";
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);

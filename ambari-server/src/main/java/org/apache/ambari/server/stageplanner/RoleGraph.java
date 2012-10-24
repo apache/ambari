@@ -29,18 +29,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 public class RoleGraph {
-  
+
   private static Log LOG = LogFactory.getLog(RoleGraph.class);
-  
+
   Map<String, RoleGraphNode> graph = null;
   private RoleCommandOrder roleDependencies;
   private Stage initialStage = null;
   private boolean sameHostOptimization = true;
- 
+
   public RoleGraph(RoleCommandOrder rd) {
     this.roleDependencies = rd;
   }
-  
+
   /**
    * Given a stage builds a DAG of all execution commands within the stage.
    */
@@ -83,7 +83,7 @@ public class RoleGraph {
       }
     }
   }
-  
+
   /**
    * Returns a list of stages that need to be executed one after another
    * to execute the DAG generated in the last {@link #build(Stage)} call.
@@ -102,7 +102,7 @@ public class RoleGraph {
         }
       }
       Stage aStage = getStageFromGraphNodes(initialStage, firstStageNodes);
-      aStage.setStageId(initialStageId++);
+      aStage.setStageId(++initialStageId);
       stageList.add(aStage);
       //Remove first stage nodes from the graph, we know that none of
       //these nodes have an incoming edges.
@@ -140,7 +140,7 @@ public class RoleGraph {
     }
     return newStage;
   }
-  
+
   public String stringifyGraph() {
     StringBuilder builder = new StringBuilder();
     builder.append("Graph:\n");

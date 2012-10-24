@@ -21,7 +21,6 @@ package org.apache.ambari.server.api.services.serializers;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.api.util.TreeNode;
-import org.apache.log4j.Category;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;

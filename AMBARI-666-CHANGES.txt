@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-903. Various fixes for config handling integration. (Hitesh Shah via 
+  mahadev)
+
   AMBARI-900. Add configuration mapping support. (Nate Cole via mahadev)
 
   AMBARI-895. Need name consistency for metrics. (Tom Beerbower via mahadev)

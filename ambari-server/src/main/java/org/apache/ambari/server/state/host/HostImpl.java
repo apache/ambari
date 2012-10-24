@@ -296,10 +296,10 @@ public class HostImpl implements Host {
   public void importHostInfo(HostInfo hostInfo) {
     try {
       writeLock.lock();
-      if (hostInfo.getHostName() != null
-          && !hostInfo.getHostName().isEmpty()
-          && !hostInfo.getHostName().equals(getHostName())) {
-        setHostName(hostInfo.getHostName());
+      if (hostInfo.getFQDN() != null
+          && !hostInfo.getFQDN().isEmpty()
+          && !hostInfo.getFQDN().equals(getHostName())) {
+        setHostName(hostInfo.getFQDN());
       }
       if (hostInfo.getIPAddress() != null
           && !hostInfo.getIPAddress().isEmpty()) {

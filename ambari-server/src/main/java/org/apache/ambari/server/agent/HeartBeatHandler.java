@@ -81,7 +81,10 @@ public class HeartBeatHandler {
     LOG.info("Heartbeat received from host " + heartbeat.getHostname()
         + " responseId=" + heartbeat.getResponseId());
     Host hostObject = clusterFsm.getHost(hostname);
+
     long now = System.currentTimeMillis();
+    hostObject.refresh();
+
     try {
       if (heartbeat.getNodeStatus().getStatus()
           .equals(HostStatus.Status.HEALTHY)) {

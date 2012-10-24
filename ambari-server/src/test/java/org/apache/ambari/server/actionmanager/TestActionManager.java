@@ -33,7 +33,6 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;

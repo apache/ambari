@@ -22,7 +22,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.configuration.Configuration;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.List;

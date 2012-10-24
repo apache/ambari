@@ -20,7 +20,6 @@ package org.apache.ambari.server.api.util;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**

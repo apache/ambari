@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 public class ActionDBAccessorImpl implements ActionDBAccessor {
-  private static final Logger log = LoggerFactory.getLogger(ActionDBAccessorImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ActionDBAccessorImpl.class);
 
   @Inject
   private ClusterDAO clusterDAO;
@@ -95,7 +95,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   public void abortOperation(long requestId) {
     Collection<HostRoleStatus> sourceStatuses = Arrays.asList(HostRoleStatus.QUEUED, HostRoleStatus.IN_PROGRESS, HostRoleStatus.PENDING);
     int result = hostRoleCommandDAO.updateStatusByRequestId(requestId, HostRoleStatus.ABORTED, sourceStatuses);
-    log.info("Aborted {} commands", result);
+    LOG.info("Aborted {} commands", result);
   }
 
   /* (non-Javadoc)
@@ -117,7 +117,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public List<Stage> getStagesInProgress() {
     List<Stage> stages = new ArrayList<Stage>();
-    for (StageEntity stageEntity : stageDAO.findByCommandStatuses(Arrays.asList(HostRoleStatus.IN_PROGRESS))) {
+    List<HostRoleStatus> statuses = new ArrayList<HostRoleStatus>();
+    statuses.add(HostRoleStatus.PENDING);
+    statuses.add(HostRoleStatus.QUEUED);
+    statuses.add(HostRoleStatus.IN_PROGRESS);
+    for (StageEntity stageEntity : stageDAO.findByCommandStatuses(statuses)) {
       stages.add(stageFactory.createExisting(stageEntity));
     }
     return stages;
@@ -129,6 +133,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   @Transactional
   public void persistActions(List<Stage> stages) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Adding stages to DB, stageCount=" + stages.size());
+    }
+
     for (Stage stage : stages) {
       StageEntity stageEntity = stage.constructNewPersistenceEntity();
       Cluster cluster;
@@ -149,7 +157,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
         HostEntity hostEntity = hostDAO.findByName(hostRoleCommandEntity.getHostName());
         if (hostEntity == null) {
-          log.error("Host {} doesn't exists in database", hostRoleCommandEntity.getHostName());
+          LOG.error("Host {} doesn't exists in database", hostRoleCommandEntity.getHostName());
           throw new RuntimeException("Host '"+hostRoleCommandEntity.getHostName()+"' doesn't exists in database");
         }
         hostEntity.getHostRoleCommandEntities().add(hostRoleCommandEntity);

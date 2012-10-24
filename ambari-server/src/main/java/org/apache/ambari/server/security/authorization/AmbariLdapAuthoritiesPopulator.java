@@ -30,7 +30,6 @@ import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
-import javax.persistence.NoResultException;
 import java.util.Collection;
 
 /**

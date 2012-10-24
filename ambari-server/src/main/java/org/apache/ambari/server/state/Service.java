@@ -75,4 +75,10 @@ public interface Service {
    * @return
    */
   public boolean canBeRemoved();
+
+  public void removeAllComponents() throws AmbariException;
+
+  public void deleteServiceComponent(String componentName)
+      throws AmbariException;
+
 }

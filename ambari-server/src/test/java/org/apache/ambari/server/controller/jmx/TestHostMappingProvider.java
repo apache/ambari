@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.controller.jmx;
 
-import org.apache.ambari.server.AmbariException;
-
 import java.util.HashMap;
 import java.util.Map;
 

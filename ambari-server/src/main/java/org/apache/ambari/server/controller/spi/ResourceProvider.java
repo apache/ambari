@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.spi;
 
 import org.apache.ambari.server.AmbariException;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 

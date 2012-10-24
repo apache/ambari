@@ -22,13 +22,11 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 
 import junit.framework.Assert;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.agent.rest.AgentJackSonJsonProvider;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
@@ -47,12 +45,9 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.server.wadl.generators.ApplicationDocs;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
-import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
-import com.sun.jersey.test.framework.spi.container.TestContainer;
 
 public class AgentResourceTest extends JerseyTest {
   static String PACKAGE_NAME = "org.apache.ambari.server.agent.rest";
@@ -61,13 +56,13 @@ public class AgentResourceTest extends JerseyTest {
   ActionManager actionManager;
   Injector injector;
   protected Client client;
-  
+
   public AgentResourceTest() {
     super(new WebAppDescriptor.Builder(PACKAGE_NAME).servletClass(ServletContainer.class)
         .initParam("com.sun.jersey.api.json.POJOMappingFeature", "true")
         .build());
   }
-  
+
   public class MockModule extends AbstractModule {
 
     RegistrationResponse response = new RegistrationResponse();
@@ -118,7 +113,7 @@ public class AgentResourceTest extends JerseyTest {
     json.put("hostname", "dummyHost");
     return json;
   }
- 
+
   @Test
   public void agentRegistration() throws UniformInterfaceException, JSONException {
     RegistrationResponse response;
@@ -141,7 +136,7 @@ public class AgentResourceTest extends JerseyTest {
     WebResource webResource = client.resource("http://localhost:9998/heartbeat/dummyhost");
     response = webResource.type(MediaType.APPLICATION_JSON)
         .post(HeartBeatResponse.class, createDummyHeartBeat());
-    LOG.info("Returned from Server: " 
+    LOG.info("Returned from Server: "
         + " responseid=" +   response.getResponseId());
     Assert.assertEquals(response.getResponseId(), 0L);
   }

@@ -87,7 +87,7 @@ public interface Cluster {
   public void addDesiredConfig(Config config);
 
   public Collection<Config> getAllConfigs();
-  
+
   public ClusterResponse convertToResponse() throws AmbariException;
 
   public void refresh();
@@ -99,4 +99,6 @@ public interface Cluster {
   public void deleteAllServices() throws AmbariException;
 
   public void deleteService(String serviceName) throws AmbariException;
+
+  public boolean canBeRemoved();
 }

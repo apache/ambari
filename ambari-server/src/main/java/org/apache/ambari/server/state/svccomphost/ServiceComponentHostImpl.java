@@ -490,13 +490,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       LOG.error("Host '{}' was not found", stateEntity.getHostName());
       throw new RuntimeException(e);
     }
-    
+
     desiredConfigs = new HashMap<String, String>();
-    
+
     for (HostComponentConfigMappingEntity entity : desiredStateEntity.getHostComponentConfigMappingEntities()) {
       desiredConfigs.put(entity.getConfigType(), entity.getVersionTag());
     }
-    
+
 
     persisted = true;
   }
@@ -674,7 +674,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public Map<String, Config> getConfigs() {
     try {
       readLock.lock();
-      
+
       return Collections.unmodifiableMap(configs);
     }
     finally {
@@ -684,7 +684,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void updateConfigs(Map<String, Config> configs) {
-    
+
     try {
       writeLock.lock();
 
@@ -744,10 +744,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public Map<String, Config> getDesiredConfigs() {
+    Map<String, Config> map = new HashMap<String, Config>();
     try {
       readLock.lock();
-      
-      Map<String, Config> map = new HashMap<String, Config>();
       for (Entry<String, String> entry : desiredConfigs.entrySet()) {
         Config config = clusters.getClusterById(getClusterId()).getDesiredConfig(
             entry.getKey(), entry.getValue());
@@ -755,7 +754,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           map.put(entry.getKey(), config);
         }
       }
-      return Collections.unmodifiableMap(map);
     }
     catch (AmbariException e) {
       // TODO do something
@@ -764,13 +762,21 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     finally {
       readLock.unlock();
     }
+    // do a union with component level configs
+    Map<String, Config> compConfigs = serviceComponent.getDesiredConfigs();
+    for (Entry<String, Config> entry : compConfigs.entrySet()) {
+      if (!map.containsKey(entry.getKey())) {
+        map.put(entry.getKey(), entry.getValue());
+      }
+    }
+    return Collections.unmodifiableMap(map);
   }
 
   @Override
   public void updateDesiredConfigs(Map<String, Config> configs) {
     try {
       writeLock.lock();
-      
+
       for (Entry<String,Config> entry : configs.entrySet()) {
         HostComponentConfigMappingEntity newEntity = new HostComponentConfigMappingEntity();
         newEntity.setClusterId(desiredStateEntity.getClusterId());
@@ -780,7 +786,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         newEntity.setConfigType(entry.getKey());
         newEntity.setVersionTag(entry.getValue().getVersionTag());
         newEntity.setTimestamp(Long.valueOf(new java.util.Date().getTime()));
-        
+
         if (!desiredStateEntity.getHostComponentConfigMappingEntities().contains(newEntity)) {
           newEntity.setHostComponentDesiredStateEntity(desiredStateEntity);
           desiredStateEntity.getHostComponentConfigMappingEntities().add(newEntity);
@@ -792,10 +798,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
             }
           }
         }
-          
+
         this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
-      }      
-      
+      }
+
     }
     finally {
       writeLock.unlock();
@@ -960,6 +966,22 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       hostComponentStateDAO.merge(stateEntity);
       hostComponentDesiredStateDAO.merge(desiredStateEntity);
     }
+  }
+
+  @Override
+  public synchronized boolean canBeRemoved() {
+    try {
+      readLock.lock();
+      State desiredState = getDesiredState();
+      State liveState = getState();
+      if ((desiredState == State.INIT || desiredState == State.UNINSTALLED)
+          && (liveState == State.INIT || liveState == State.UNINSTALLED)) {
+        return true;
+      }
+    } finally {
+      readLock.unlock();
+    }
+    return false;
   }
 
 }

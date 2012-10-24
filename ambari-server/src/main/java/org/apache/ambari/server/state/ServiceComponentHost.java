@@ -106,4 +106,6 @@ public interface ServiceComponentHost {
   void refresh();
 
   public void debugDump(StringBuilder sb);
+
+  public boolean canBeRemoved();
 }

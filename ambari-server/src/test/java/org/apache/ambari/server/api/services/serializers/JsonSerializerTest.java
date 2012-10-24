@@ -18,21 +18,11 @@
 
 package org.apache.ambari.server.api.services.serializers;
 
-import org.apache.ambari.server.api.services.Result;
-import org.junit.Test;
-
-import javax.ws.rs.core.UriInfo;
-
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 /**
  * JSONSerializer unit tests
  */
 public class JsonSerializerTest {
-  //todo: unit test serializer
+  // FIXME unit test serializer
 //  @Test
 //  public void testSerialize() throws Exception {
 //    Result result = createMock(Result.class);

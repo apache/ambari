@@ -24,10 +24,8 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Provides information on the current request.

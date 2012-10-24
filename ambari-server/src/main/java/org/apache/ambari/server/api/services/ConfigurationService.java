@@ -60,7 +60,7 @@ public class ConfigurationService extends BaseService {
   public Response getConfigurations(@Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceDefinition(null, null, m_clusterName));
-  }  
+  }
 
   /**
    * Handles URL: /clusters/{clusterId}/configurations.  The body should contain:
@@ -85,11 +85,11 @@ public class ConfigurationService extends BaseService {
   @PUT
   @Produces("text/plain")
   public Response createConfigurations(String body,@Context HttpHeaders headers, @Context UriInfo ui) {
-    
+
     return handleRequest(headers, body, ui, Request.Type.PUT,
         createResourceDefinition(null, null, m_clusterName));
-  }    
-  
+  }
+
   /**
    * Create a service resource definition.
    *

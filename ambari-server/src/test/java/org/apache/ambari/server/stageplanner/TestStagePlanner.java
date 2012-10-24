@@ -25,13 +25,12 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.Test;
 
 public class TestStagePlanner {
-  
+
   @Test
   public void testSingleStagePlan() {
     RoleCommandOrder.initialize();
@@ -48,7 +47,7 @@ public class TestStagePlanner {
     assertEquals(stage.getExecutionCommands(hostname), outStages.get(0)
         .getExecutionCommands(hostname));
   }
-  
+
   @Test
   public void testMultiStagePlan() {
     RoleCommandOrder.initialize();
@@ -63,7 +62,7 @@ public class TestStagePlanner {
         RoleCommand.START, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
             "host3", now), "cluster1", "ZOOKEEPER");
     System.out.println(stage.toString());
-    
+
     rg.build(stage);
     System.out.println(rg.stringifyGraph());
     List<Stage> outStages = rg.getStages();
@@ -72,7 +71,7 @@ public class TestStagePlanner {
     }
     assertEquals(3, outStages.size());
   }
-  
+
   @Test
   public void testManyStages() {
     RoleCommandOrder.initialize();

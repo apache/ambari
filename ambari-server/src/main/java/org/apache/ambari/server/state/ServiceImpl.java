@@ -79,7 +79,7 @@ public class ServiceImpl implements Service {
   private ServiceComponentFactory serviceComponentFactory;
 
   private void init() {
-
+    // TODO load from DB during restart?
   }
 
   @AssistedInject
@@ -114,7 +114,7 @@ public class ServiceImpl implements Service {
     this.desiredConfigs = new HashMap<String, String>();
 
     this.components = new HashMap<String, ServiceComponent>();
-    
+
     this.configs = new HashMap<String, Config>();
 
     if (!serviceEntity.getServiceComponentDesiredStateEntities().isEmpty()) {
@@ -123,12 +123,12 @@ public class ServiceImpl implements Service {
             serviceComponentFactory.createExisting(this, serviceComponentDesiredStateEntity));
       }
     }
-    
+
     for (ServiceConfigMappingEntity mappingEntity : serviceEntity.getServiceConfigMappings()) {
       desiredConfigs.put(mappingEntity.getConfigType(), mappingEntity.getVersionTag());
     }
-    
-    
+
+
     persisted = true;
   }
 
@@ -235,11 +235,18 @@ public class ServiceImpl implements Service {
       Config config = cluster.getDesiredConfig(entry.getKey(), entry.getValue());
       if (null != config) {
         map.put(entry.getKey(), config);
+      } else {
+        // FIXME this is an error - should throw a proper exception
+        throw new RuntimeException("Found an invalid config"
+            + ", clusterName=" + getCluster().getClusterName()
+            + ", serviceName=" + getName()
+            + ", configType=" + entry.getKey()
+            + ", configVersionTag=" + entry.getValue());
       }
     }
     return Collections.unmodifiableMap(map);
   }
-  
+
   @Override
   public synchronized void updateDesiredConfigs(Map<String, Config> configs) {
 
@@ -250,7 +257,7 @@ public class ServiceImpl implements Service {
       newEntity.setServiceName(getName());
       newEntity.setVersionTag(entry.getValue().getVersionTag());
       newEntity.setTimestamp(Long.valueOf(new java.util.Date().getTime()));
-      
+
       if (!serviceEntity.getServiceConfigMappings().contains(newEntity)) {
         newEntity.setServiceConfigEntity(serviceEntity);
         serviceEntity.getServiceConfigMappings().add(newEntity);
@@ -262,10 +269,10 @@ public class ServiceImpl implements Service {
           }
         }
       }
-        
+
       this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
     }
-    
+
   }
 
   @Override
@@ -288,8 +295,13 @@ public class ServiceImpl implements Service {
   }
 
   private synchronized Map<String, String> getConfigVersions() {
+    Map<String, Config> configMaps = getDesiredConfigs();
     Map<String, String> configVersions = new HashMap<String, String>();
-    // FIXME config impl required
+    if (configMaps != null) {
+      for (Map.Entry<String, Config> entry: configMaps.entrySet()) {
+        configVersions.put(entry.getKey(), entry.getValue().getVersionTag());
+      }
+    }
     return configVersions;
   }
 
@@ -316,7 +328,9 @@ public class ServiceImpl implements Service {
         + ", clusterId=" + cluster.getClusterId()
         + ", desiredStackVersion=" + getDesiredStackVersion()
         + ", desiredState=" + getDesiredState().toString()
+        + ", configs = " + getConfigVersions()
         + ", components=[ ");
+
     boolean first = true;
     for(ServiceComponent sc : components.values()) {
       if (!first) {
@@ -376,8 +390,67 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public boolean canBeRemoved() {
-    // TODO Auto-generated method stub
-    return false;
+  public synchronized boolean canBeRemoved() {
+    State state = getDesiredState();
+    if (state != State.INIT
+        && state != State.UNINSTALLED) {
+      return false;
+    }
+
+    boolean safeToRemove = true;
+    for (ServiceComponent sc : components.values()) {
+      if (!sc.canBeRemoved()) {
+        safeToRemove = false;
+        LOG.warn("Found non removable component when trying to delete service"
+            + ", clusterName=" + cluster.getClusterName()
+            + ", serviceName=" + getName()
+            + ", componentName=" + sc.getName());
+        break;
+      }
+    }
+    return safeToRemove;
   }
+
+  @Override
+  public synchronized void removeAllComponents() throws AmbariException {
+    LOG.info("Deleting all components for service"
+        + ", clusterName=" + cluster.getClusterName()
+        + ", serviceName=" + getName());
+    // FIXME check dependencies from meta layer
+    for (ServiceComponent component : components.values()) {
+      if (!component.canBeRemoved()) {
+        throw new AmbariException("Found non removable component when trying to"
+            + " delete all components from service"
+            + ", clusterName=" + cluster.getClusterName()
+            + ", serviceName=" + getName()
+            + ", componentName=" + component.getName());
+      }
+    }
+    for (ServiceComponent component : components.values()) {
+      component.removeAllServiceComponentHosts();
+    }
+    components.clear();
+    // FIXME update DB
+  }
+
+  @Override
+  public synchronized void deleteServiceComponent(String componentName)
+      throws AmbariException {
+    ServiceComponent component = getServiceComponent(componentName);
+    LOG.info("Deleting servicecomponent for cluster"
+        + ", clusterName=" + cluster.getClusterName()
+        + ", serviceName=" + getName()
+        + ", componentName=" + componentName);
+    // FIXME check dependencies from meta layer
+    if (!component.canBeRemoved()) {
+      throw new AmbariException("Could not delete component from cluster"
+          + ", clusterName=" + cluster.getClusterName()
+          + ", serviceName=" + getName()
+          + ", componentName=" + componentName);
+    }
+    component.removeAllServiceComponentHosts();
+    components.remove(componentName);
+    // FIXME update DB
+  }
+
 }

@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller.ganglia;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;

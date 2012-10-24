@@ -70,4 +70,11 @@ public interface ServiceComponent {
 
   public boolean isClientComponent();
 
+  public boolean canBeRemoved();
+
+  public void removeAllServiceComponentHosts() throws AmbariException;
+
+  public void removeServiceComponentHosts(String hostname)
+      throws AmbariException;
+
 }

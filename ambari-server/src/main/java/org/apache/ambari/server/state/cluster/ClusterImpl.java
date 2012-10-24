@@ -354,7 +354,7 @@ public class ClusterImpl implements Cluster {
 
     configs.get(config.getType()).put(config.getVersionTag(), config);
   }
-  
+
   public synchronized Collection<Config> getAllConfigs() {
     List<Config> list = new ArrayList<Config>();
     for (Entry<String,Map<String,Config>> entry : configs.entrySet()) {
@@ -398,12 +398,53 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public void deleteAllServices() throws AmbariException {
-    // TODO Auto-generated method stub
+  public synchronized void deleteAllServices() throws AmbariException {
+    LOG.info("Deleting all services for cluster"
+        + ", clusterName=" + getClusterName());
+    for (Service service : services.values()) {
+      if (!service.canBeRemoved()) {
+        throw new AmbariException("Found non removable service when trying to"
+            + " all services from cluster"
+            + ", clusterName=" + getClusterName()
+            + ", serviceName=" + service.getName());
+      }
+    }
+    for (Service service : services.values()) {
+      service.removeAllComponents();
+    }
+    services.clear();
+    // FIXME update DB
   }
 
   @Override
-  public void deleteService(String serviceName) throws AmbariException {
-    // TODO Auto-generated method stub
+  public synchronized void deleteService(String serviceName)
+      throws AmbariException {
+    Service service = getService(serviceName);
+    LOG.info("Deleting service for cluster"
+        + ", clusterName=" + getClusterName()
+        + ", serviceName=" + service.getName());
+    // FIXME check dependencies from meta layer
+    if (!service.canBeRemoved()) {
+      throw new AmbariException("Could not delete service from cluster"
+          + ", clusterName=" + getClusterName()
+          + ", serviceName=" + service.getName());
+    }
+    service.removeAllComponents();
+    services.remove(serviceName);
+    // FIXME update DB
+  }
+
+  @Override
+  public boolean canBeRemoved() {
+    boolean safeToRemove = true;
+    for (Service service : services.values()) {
+      if (!service.canBeRemoved()) {
+        safeToRemove = false;
+        LOG.warn("Found non removable service"
+            + ", clusterName=" + getClusterName()
+            + ", serviceName=" + service.getName());
+      }
+    }
+    return safeToRemove;
   }
 }

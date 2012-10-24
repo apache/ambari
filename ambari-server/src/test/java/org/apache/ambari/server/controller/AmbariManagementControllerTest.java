@@ -36,6 +36,8 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -1165,6 +1167,32 @@ public class AmbariManagementControllerTest {
     String clusterName = "foo1";
     String serviceName = "HDFS";
 
+    Cluster cluster = clusters.getCluster(clusterName);
+    Service s1 = cluster.getService(serviceName);
+
+    Map<String, Config> configs = new HashMap<String, Config>();
+    Map<String, String> properties = new HashMap<String, String>();
+    properties.put("a", "a1");
+    properties.put("b", "b1");
+
+    Config c1 = new ConfigImpl(cluster, "hdfs-site", properties, injector);
+    properties.put("c", "c1");
+    properties.put("d", "d1");
+    Config c2 = new ConfigImpl(cluster, "core-site", properties, injector);
+    Config c3 = new ConfigImpl(cluster, "foo-site", properties, injector);
+
+    c1.setVersionTag("v1");
+    c2.setVersionTag("v1");
+    c3.setVersionTag("v1");
+
+    cluster.addDesiredConfig(c1);
+    cluster.addDesiredConfig(c2);
+    cluster.addDesiredConfig(c3);
+
+    configs.put(c1.getType(), c1);
+    configs.put(c2.getType(), c2);
+    s1.updateDesiredConfigs(configs);
+
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, null,
         State.INSTALLED.toString());
     Set<ServiceRequest> requests1 = new HashSet<ServiceRequest>();
@@ -1845,7 +1873,6 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testServiceUpdateInvalidRequest() throws AmbariException {
-    // TODO
     // multiple clusters
     // dup services
     // multiple diff end states
@@ -2070,7 +2097,7 @@ public class AmbariManagementControllerTest {
     // sch3 to start
     // sch5 to start
     Stage stage1, stage2;
-    if (stages.get(0).getStageId() == 0) {
+    if (stages.get(0).getStageId() == 1) {
       stage1 = stages.get(0);
       stage2 = stages.get(1);
     } else {

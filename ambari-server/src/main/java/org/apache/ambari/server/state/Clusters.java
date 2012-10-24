@@ -103,6 +103,6 @@ public interface Clusters {
   public Map<String, Host> getHostsForCluster(String clusterName)
       throws AmbariException;
 
-  public void deleteCluster(String clusterName);
+  public void deleteCluster(String clusterName) throws AmbariException;
 
 }

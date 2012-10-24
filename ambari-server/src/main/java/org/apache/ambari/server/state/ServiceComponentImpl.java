@@ -70,7 +70,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   private final boolean isClientComponent;
 
   private void init() {
-    // TODO
+    // TODO load during restart
     // initialize from DB
   }
 
@@ -122,7 +122,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       hostComponents.put(hostComponentStateEntity.getComponentName(),
           serviceComponentHostFactory.createExisting(this, hostComponentStateEntity, hostComponentDesiredStateEntity));
     }
-    
+
     for (ComponentConfigMappingEntity entity : desiredStateEntity.getComponentConfigMappingEntities()) {
       desiredConfigs.put(entity.getConfigType(), entity.getVersionTag());
     }
@@ -264,6 +264,14 @@ public class ServiceComponentImpl implements ServiceComponent {
         map.put(entry.getKey(), config);
       }
     }
+
+    Map<String, Config> svcConfigs = service.getDesiredConfigs();
+    for (Entry<String, Config> entry : svcConfigs.entrySet()) {
+      if (!map.containsKey(entry.getKey())) {
+        map.put(entry.getKey(), entry.getValue());
+      }
+    }
+
     return Collections.unmodifiableMap(map);
   }
 
@@ -277,7 +285,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       newEntity.setConfigType(entry.getKey());
       newEntity.setVersionTag(entry.getValue().getVersionTag());
       newEntity.setTimestamp(Long.valueOf(new java.util.Date().getTime()));
-      
+
       if (!desiredStateEntity.getComponentConfigMappingEntities().contains(newEntity)) {
         newEntity.setServiceComponentDesiredStateEntity(desiredStateEntity);
         desiredStateEntity.getComponentConfigMappingEntities().add(newEntity);
@@ -289,7 +297,7 @@ public class ServiceComponentImpl implements ServiceComponent {
           }
         }
       }
-        
+
       this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
     }
   }
@@ -409,5 +417,69 @@ public class ServiceComponentImpl implements ServiceComponent {
     return this.isClientComponent;
   }
 
+  @Override
+  public synchronized boolean canBeRemoved() {
+    State state = getDesiredState();
+    if (state != State.INIT
+        && state != State.UNINSTALLED) {
+      return false;
+    }
+
+    boolean safeToRemove = true;
+    for (ServiceComponentHost sch : hostComponents.values()) {
+      if (!sch.canBeRemoved()) {
+        safeToRemove = false;
+        LOG.warn("Found non removable hostcomponent when trying to"
+            + " delete service component"
+            + ", clusterName=" + getClusterName()
+            + ", serviceName=" + getServiceName()
+            + ", componentName=" + getName()
+            + ", hostname=" + sch.getHostName());
+        break;
+      }
+    }
+    return safeToRemove;
+  }
+
+  @Override
+  public synchronized void removeAllServiceComponentHosts() throws AmbariException {
+    LOG.info("Deleting all servicecomponenthosts for component"
+        + ", clusterName=" + getClusterName()
+        + ", serviceName=" + getServiceName()
+        + ", componentName=" + getName());
+    for (ServiceComponentHost sch : hostComponents.values()) {
+      if (!sch.canBeRemoved()) {
+        throw new AmbariException("Found non removable hostcomponent "
+            + " when trying to delete"
+            + " all hostcomponents from servicecomponent"
+            + ", clusterName=" + getClusterName()
+            + ", serviceName=" + getServiceName()
+            + ", componentName=" + getName()
+            + ", hostname=" + sch.getHostName());
+      }
+    }
+    hostComponents.clear();
+    // FIXME update DB
+  }
+
+  @Override
+  public synchronized void removeServiceComponentHosts(String hostname)
+      throws AmbariException {
+    ServiceComponentHost sch = getServiceComponentHost(hostname);
+    LOG.info("Deleting servicecomponenthost for cluster"
+        + ", clusterName=" + getClusterName()
+        + ", serviceName=" + getServiceName()
+        + ", componentName=" + getName()
+        + ", hostname=" + sch.getHostName());
+    if (!sch.canBeRemoved()) {
+      throw new AmbariException("Could not delete hostcomponent from cluster"
+          + ", clusterName=" + getClusterName()
+          + ", serviceName=" + getServiceName()
+          + ", componentName=" + getName()
+          + ", hostname=" + sch.getHostName());
+    }
+    hostComponents.remove(hostname);
+    // FIXME update DB
+  }
 
 }
