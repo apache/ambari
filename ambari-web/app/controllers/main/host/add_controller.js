@@ -25,8 +25,32 @@ App.AddHostController = Em.Controller.extend({
 
   /**
    * All wizards data will be stored in this variable
+   *
+   * cluster - cluster name
+   * hosts - hosts, ssh key, repo info, etc.
+   * services - services list
+   * hostsInfo - list of selected hosts
+   * slaveComponentHosts, hostSlaveComponents - info about slave hosts
+   * masterComponentHosts - info about master hosts
+   * config??? - to be described later
    */
-  content: Em.Object.create(),
+  content: Em.Object.create({
+    cluster: {},
+    hosts: {},
+    services: {},
+    hostsInfo: {},
+    slaveComponentHosts: {},
+    hostSlaveComponents: {},
+    masterComponentHosts: {},
+    serviceConfigProperties: {}
+  }),
+
+  /**
+   * List of statuses, what data is currently loaded
+   */
+  isStepLoaded: {
+
+  },
 
   /**
    * Used for hiding back button in wizard
@@ -166,6 +190,52 @@ App.AddHostController = Em.Controller.extend({
   },
 
   /**
+   * Load clusterInfo(step1) to model
+   */
+  loadClusterInfo: function(){
+    var cluster = {
+      name: App.db.getClusterName(),
+      status: App.db.getClusterStatus().status,
+      isCompleted: App.db.getClusterStatus().isCompleted
+    };
+    this.set('content.cluster', cluster);
+    console.log("AddHostController:loadClusterInfo: loaded data ", cluster);
+  },
+
+  /**
+   * Save all info about claster to model
+   * @param stepController Step1WizardController
+   */
+  saveClusterInfo: function (stepController) {
+    var cluster = stepController.get('content.cluster');
+    var clusterStatus = {
+      status: cluster.status,
+      isCompleted: cluster.isCompleted
+    }
+    App.db.setClusterName(cluster.name);
+    App.db.setClusterStatus(clusterStatus);
+
+    console.log("AddHostController:saveClusterInfo: saved data ", cluster);
+
+    //probably next line is extra work - need to check it
+    this.set('content.cluster', cluster);
+  },
+
+  /**
+   * Temporary function for wizardStep9, before back-end integration
+   */
+  setInfoForStep9: function () {
+    App.db.setClusterStatus({status: 'pending', isCompleted: false});
+    var hostInfo = App.db.getHosts();
+    for (var index in hostInfo) {
+      hostInfo[index].status = "pending";
+      hostInfo[index].message = 'Information';
+      hostInfo[index].progress = '0';
+    }
+    App.db.setHosts(hostInfo);
+  },
+
+  /**
    * Load all data for <code>Specify Host(install step2)</code> step
    * Data Example:
    * {
@@ -249,7 +319,7 @@ App.AddHostController = Em.Controller.extend({
       });
 
       hosts.pushObject(hostInfo);
-    };
+    }
 
     console.log('TRACE: pushing ' + hosts);
     return hosts;
@@ -287,8 +357,29 @@ App.AddHostController = Em.Controller.extend({
    * Load confirmed hosts.
    * Will be used at <code>Assign Masters(step5)</code> step
    */
-  loadConfirmedHosts : function(){
+  loadConfirmedHosts: function(){
     this.set('content.hostsInfo', App.db.getHosts());
+  },
+
+  /**
+   * Save data after installation to main controller
+   * @param stepController App.WizardStep9Controller
+   */
+  saveInstalledHosts: function (stepController) {
+    var hosts = stepController.get('hosts');
+    var hostInfo = App.db.getHosts();
+
+    for (var index in hostInfo) {
+      hostInfo[index].status = "pending";
+      var host = hosts.findProperty('name', hostInfo[index].name);
+      if (host) {
+        hostInfo[index].status = host.status;
+        hostInfo[index].message = host.message;
+        hostInfo[index].progress = host.progress;
+      }
+    }
+    App.db.setHosts(hostInfo);
+    console.log('addHostController:saveInstalledHosts: save hosts ', hostInfo);
   },
 
   /**
@@ -368,7 +459,7 @@ App.AddHostController = Em.Controller.extend({
    * Save slaveHostComponents to main controller
    * @param stepController
    */
-  saveSlaveComponentHosts : function(stepController){
+  saveSlaveComponentHosts: function (stepController) {
 
     var hosts = stepController.get('hosts');
     var isMrSelected = stepController.get('isMrSelected');
@@ -428,24 +519,83 @@ App.AddHostController = Em.Controller.extend({
   },
 
   /**
+   * Load master component hosts data for using in required step controllers
+   */
+  loadSlaveComponentHosts: function () {
+    var slaveComponentHosts = App.db.getSlaveComponentHosts();
+    this.set("content.slaveComponentHosts", slaveComponentHosts);
+    console.log("AddHostController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
+
+    var hostSlaveComponents = App.db.getHostSlaveComponents();
+    this.set('content.hostSlaveComponents', hostSlaveComponents);
+    console.log("AddHostController.loadSlaveComponentHosts: loaded hosts ", hostSlaveComponents);
+  },
+
+  /**
+   * TODO:
+   * @param stepController Step7WizardController
+   */
+  saveServiceConfigProperties: function (stepController) {
+    var serviceConfigProperties = [];
+    stepController.get('stepConfigs').forEach(function (_content) {
+      _content.get('configs').forEach(function (_configProperties) {
+        var configProperty = {
+          name: _configProperties.get('name'),
+          value: _configProperties.get('value')
+        };
+        serviceConfigProperties.push(configProperty);
+      }, this);
+
+    }, this);
+
+    App.db.setServiceConfigProperties(serviceConfigProperties);
+    this.set('content.serviceConfigProperties', serviceConfigProperties);
+  },
+
+  /**
+   * Load serviceConfigProperties to model
+   */
+  loadServiceConfigProperties: function () {
+    var serviceConfigProperties = App.db.getServiceConfigProperties();
+    this.set('content.serviceConfigProperties', serviceConfigProperties);
+    console.log("AddHostController.loadServiceConfigProperties: loaded config ", serviceConfigProperties);
+  },
+
+  /**
+   * Call specified function only once
+   */
+  callLoadFuncOnce: function (name) {
+    if (!this.isStepLoaded[name]) {
+      this[name]();
+      this.isStepLoaded[name] = true;
+    }
+  },
+
+  /**
    * Load data for all steps until <code>current step</code>
    */
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
+      case '8':
+          //need to call it every time since we preload data in setInfoForStep9
+        this.loadClusterInfo();
       case '7':
-        //current
+        this.callLoadFuncOnce('loadClusterInfo');
       case '6':
-        //Sasha
+        this.callLoadFuncOnce('loadServiceConfigProperties');
       case '5':
-        this.loadMasterComponentHosts();
+        this.callLoadFuncOnce('loadMasterComponentHosts');
+        this.callLoadFuncOnce('loadSlaveComponentHosts');
       case '4':
-        this.loadConfirmedHosts();
+        this.callLoadFuncOnce('loadConfirmedHosts');
       case '3':
-        this.loadServices();
+        this.callLoadFuncOnce('loadServices');
       case '2':
       case '1':
-        this.loadInstallOptions();
+        this.callLoadFuncOnce('loadInstallOptions');
+      case '0':
+        this.callLoadFuncOnce('loadClusterInfo');
     }
   },
 

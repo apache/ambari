@@ -19,9 +19,9 @@
 
 var App = require('app');
 
-App.InstallerStep9View = Em.View.extend({
+App.WizardStep9View = Em.View.extend({
 
-  templateName: require('templates/installer/step9'),
+  templateName: require('templates/wizard/step9'),
   barColor: '',
   resultMsg: '',
   resultMsgColor: '',

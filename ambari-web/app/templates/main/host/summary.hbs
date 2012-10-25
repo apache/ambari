@@ -37,6 +37,18 @@
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
+          {{#if view.isDataNode}}
+            <li>
+              <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
+                Decommission
+              </a>
+            </li>
+            <li>
+              <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
+                Recommission
+              </a>
+            </li>
+          {{/if}}
             <li {{bindAttr class="view.content.workStatus::hidden"}}>
               <a href="javascript:void(null)" data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
                 Stop

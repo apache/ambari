@@ -29,7 +29,7 @@
       <!-- dropdown menu links -->
         {{#each option in view.maintenance}}
         <li>
-        <a {{action deleteButtonPopup target="controller"}} href="#">{{option.label}}</a>
+        <a {{action validateDeletion target="controller"}} href="#">{{option.label}}</a>
         </li>
         {{/each}}
       </ul>

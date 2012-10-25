@@ -1,0 +1,12 @@
+{{#if view.hasNoHosts}}
+  No host assigned
+{{else}}
+  <a href="#" {{action showEditSlaveComponentGroups view.serviceConfig.category target="controller"}}>
+    {{#if view.hasOneHost}}
+      {{hosts.firstObject.hostname}}
+    {{/if}}
+    {{#if view.hasMultipleHosts}}
+      {{hosts.firstObject.hostname}} and {{view.otherLength}}
+    {{/if}}
+  </a>
+{{/if}}

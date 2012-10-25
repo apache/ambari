@@ -19,12 +19,16 @@
 
 var App = require('app');
 
-App.InstallerStep8View = Em.View.extend({
+App.WizardStep1View = Em.View.extend({
 
-  templateName: require('templates/installer/step8'),
+  templateName: require('templates/wizard/step1'),
 
   didInsertElement: function () {
-    var controller = this.get('controller');
-    controller.loadStep();
-  }
+    $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
+  },
+
+  onError: function () {
+    return this.get('controller.clusterNameError') !== '';
+  }.property('controller.clusterNameError')
+
 });

@@ -33,23 +33,25 @@
     </ul>
   </div>
   {{#if controller.content.workStatus}}
-    <a href="javascript:void(null)" class="btn disabled">
-      <i class="icon-play"></i>
-      Start
-    </a>
-    <a href="javascript:void(null)" class="btn btn-danger" data-toggle="modal" {{action "stopConfirmPopup" target="controller"}}>
-      <i class="icon-stop icon-white"></i>
-      Stop
-    </a>
+  <a href="javascript:void(null)" class="btn disabled">
+    <i class="icon-play"></i>
+    Start
+  </a>
+  <a href="javascript:void(null)" class="btn btn-danger"
+     data-toggle="modal" {{action "stopConfirmPopup" target="controller"}}>
+    <i class="icon-stop icon-white"></i>
+    Stop
+  </a>
   {{else}}
-    <a href="javascript:void(null)" class="btn btn-success" data-toggle="modal" {{action "startConfirmPopup" target="controller"}}>
-      <i class="icon-play icon-white"></i>
-      Start
-    </a>
-    <a href="javascript:void(null)" class="btn disabled">
-      <i class="icon-stop"></i>
-      Stop
-    </a>
+  <a href="javascript:void(null)" class="btn btn-success"
+     data-toggle="modal" {{action "startConfirmPopup" target="controller"}}>
+    <i class="icon-play icon-white"></i>
+    Start
+  </a>
+  <a href="javascript:void(null)" class="btn disabled">
+    <i class="icon-stop"></i>
+    Stop
+  </a>
   {{/if}}
 </div>
-{{outlet}}
+    {{outlet}}

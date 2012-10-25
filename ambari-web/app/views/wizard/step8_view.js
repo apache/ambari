@@ -1,4 +1,4 @@
-  /**
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,8 +16,15 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
 
-App.MainHostsView = Em.View.extend({
-    templateName: require('templates/main/hosts')
+App.WizardStep8View = Em.View.extend({
+
+  templateName: require('templates/wizard/step8'),
+
+  didInsertElement: function () {
+    var controller = this.get('controller');
+    controller.loadStep();
+  }
 });

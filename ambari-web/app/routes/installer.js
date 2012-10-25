@@ -25,6 +25,7 @@ module.exports = Em.Route.extend({
     console.log('in /installer:enter');
 
     if (router.getAuthenticated()) {
+      router.get('mainController').stopLoadOperationsPeriodically();
       console.log('In installer with successful authenticated');
       // router.loadAllPriorSteps(router.getInstallerCurrentStep());
       Ember.run.next(function () {
@@ -159,47 +160,51 @@ module.exports = Em.Route.extend({
   step7: Em.Route.extend({
     route: '/step7',
     connectOutlets: function (router, context) {
-      router.setNavigationFlow('step7');
+      var controller = router.get('installerController');
       router.setInstallerCurrentStep('7', false);
-      router.get('installerController').connectOutlet('installerStep7');
+      controller.loadAllPriorSteps();
+      controller.connectOutlet('wizardStep7', controller.get('content'));
     },
     back: Em.Router.transitionTo('step6'),
-    next: Em.Router.transitionTo('step8')
+    next: function(router){
+      var installerController = router.get('installerController');
+      var wizardStep7Controller = router.get('wizardStep7Controller');
+      installerController.saveServiceConfigProperties( wizardStep7Controller );
+      router.transitionTo('step8');
+    }
   }),
 
   step8: Em.Route.extend({
     route: '/step8',
-
     connectOutlets: function (router, context) {
-      router.setNavigationFlow('step8');
+      console.log('in installer.step8:connectOutlets');
+      var controller = router.get('installerController');
       router.setInstallerCurrentStep('8', false);
-      router.get('installerController').connectOutlet('installerStep8');
+      controller.loadAllPriorSteps();
+      controller.connectOutlet('wizardStep8', controller.get('content'));
     },
     back: Em.Router.transitionTo('step7'),
-
-    next: function (router, context) {
-      App.db.setClusterStatus({status: 'pending', isCompleted: false});
-      var hostInfo = App.db.getHosts();
-      for (var index in hostInfo) {
-        hostInfo[index].status = "pending";
-        hostInfo[index].message = 'Information';
-        hostInfo[index].progress = '0';
-      }
-      App.db.setHosts(hostInfo);
-      console.log("TRACE: host name is: " + hostInfo[index].name);
-      router.transitionTo('step9');
-    }
+    next: Em.Router.transitionTo('step9')
   }),
 
   step9: Em.Route.extend({
     route: '/step9',
     connectOutlets: function (router, context) {
-      router.setNavigationFlow('step9');
+      console.log('in installer.step9:connectOutlets');
+      var controller = router.get('installerController');
+      controller.setInfoForStep9();
       router.setInstallerCurrentStep('9', false);
-      router.get('installerController').connectOutlet('installerStep9');
+      controller.loadAllPriorSteps();
+      controller.connectOutlet('wizardStep9', controller.get('content'));
     },
     back: Em.Router.transitionTo('step8'),
-    next: Em.Router.transitionTo('step10')
+    next: function (router) {
+      var addHostController = router.get('installerController');
+      var wizardStep9Controller = router.get('wizardStep9Controller');
+      addHostController.saveClusterInfo(wizardStep9Controller);
+      addHostController.saveInstalledHosts(wizardStep9Controller);
+      router.transitionTo('step10');
+    }
   }),
 
   step10: Em.Route.extend({

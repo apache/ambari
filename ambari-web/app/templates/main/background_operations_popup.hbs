@@ -15,12 +15,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-{{#each operation in hostOperations}}
-{{#view App.MainHostDetailsOperations contentBinding="operation"}}
+{{#each operation in backgroundOperations.tasks}}
+{{#view App.MainBackgroundOperation contentBinding="operation"}}
 <a class="open-details" {{action openDetails target="view"}} href="#">
   <i {{bindAttr class="view.iconClass"}}></i>
 </a>
-{{operation.command}} {{operation.role}} on {{operation.hostName}}
+{{operation.command}} {{operation.role}} on {{operation.hostname}}
 <div class="operation-details">
   {{#if operation.details.length}}
     {{#each detail in operation.details}}
@@ -33,9 +33,9 @@
   {{#if view.isOpenShowLog}}
   <div class="operation-log">
     <dl class="dl-horizontal">
-      <dt>Exit Code:</dt><dd>{{operation.logs.exitcode}}</dd>
-      <dt>Std Out:</dt><dd>{{operation.logs.stdout}}</dd>
-      <dt>Error:</dt><dd>{{operation.logs.stderror}}</dd>
+      <dt>exitcode:</dt><dd>{{view.logDetails.exitcode}}</dd>
+      <dt>stdout:</dt><dd>{{view.logDetails.stdout}}</dd>
+      <dt>stderror:</dt><dd>{{view.logDetails.stderror}}</dd>
     </dl>
   </div>
   {{/if}}

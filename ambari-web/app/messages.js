@@ -235,6 +235,9 @@ Em.I18n.translations = {
   'hosts.decommission.popup.header': 'Confirmation',
   'hosts.delete.popup.body': 'Are you sure?',
   'hosts.delete.popup.header': 'Confirmation',
+  'hosts.cant.do.popup.header': 'Operation not allowed',
+  'hosts.cant.do.popup.masterList.body': 'You cannot delete this host because it is hosting following master services: {0}.',
+  'hosts.cant.do.popup.workingList.body': 'You cannot delete this host because following slave services are not fully stopped or decommissioned: {0}.',
 
   'charts.horizon.chart.showText': 'show',
   'charts.horizon.chart.hideText': 'hide',

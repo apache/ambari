@@ -19,24 +19,28 @@
   <div class="box-header">
     <div class="button-section">
       <div class="btn-group">
-        <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+        <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary dropdown-toggle"
+                                                              data-toggle="dropdown">
           Rack
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
           {{#each clusters}}
           <li>
-            <a href="javascript:void(null)" data-toggle="modal" {{action "assignedToRackPopup" this target="controller"}}>
+            <a href="javascript:void(null)"
+               data-toggle="modal" {{action "assignedToRackPopup" this target="controller"}}>
               {{clusterName}}
             </a>
           </li>
           {{/each}}
         </ul>
       </div>
-      <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary decommission" data-toggle="modal" {{action "decommissionButtonPopup" target="controller"}}>
+      <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary decommission"
+                                                            data-toggle="modal" {{action "decommissionButtonPopup" target="controller"}}>
         Decommission
       </button>
-      <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary" data-toggle="modal" {{action "deleteButtonPopup" target="controller"}}>
+      <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary"
+                                                            data-toggle="modal" {{action "deleteButtonPopup" target="controller"}}>
         Delete
       </button>
       <button class="btn btn-inverse add-host-button" {{action addHost}}>
@@ -53,11 +57,16 @@
           {{view Ember.Checkbox checkedBinding="allChecked" class="checkbox"}}
         </label>
       </th>
-      <th>
-        <a href="#" {{action sortByName target="controller" }}>Name</a>
-        {{#if controller.isSort}}
-        <i class="icon-arrow-up"{{bindAttr class="controller.sortClass"}}></i>
-        {{/if}}
+      <th class="name">
+        <a class="filter-label" href="#" {{action sortByName target="controller" }}>Name
+          {{#if controller.isSort}}
+          <i class="icon-arrow-up"{{bindAttr class="controller.sortClass"}}></i>
+          {{/if}}
+        </a>
+
+        <div class="span1">
+          {{view Ember.TextField placeholder="search" valueBinding="view.filterByName"}}
+        </div>
       </th>
       <th>Rack</th>
       <th>CPU</th>
@@ -71,19 +80,47 @@
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu filter-components" id="filter-dropdown">
-            {{#each component in componentsForFilter}}
             <li>
-              <label>
-                {{view view.ComponentCheckboxView contentBinding="component"}}                                {{unbound component.componentName}}
+              <label class="checkbox">
+                {{view Ember.Checkbox checkedBinding="view.allComponentsChecked"}} All
               </label>
             </li>
-            {{/each}}
+
+            <li>
+              <label class="checkbox">
+                {{view Ember.Checkbox checkedBinding="view.masterComponentsChecked"}} Master Components:
+              </label>
+              <ul>
+                {{#each component in masterComponents}}
+                <li>
+                  <label class="checkbox">
+                    {{view view.ComponentCheckboxView contentBinding="component"}} {{unbound component.componentName}}
+                  </label>
+                </li>
+                {{/each}}
+              </ul>
+            </li>
+
+            <li>
+              <label class="checkbox">
+                {{view Ember.Checkbox checkedBinding="view.slaveComponentsChecked"}} Slave Components:
+              </label>
+              <ul>
+                {{#each component in slaveComponents}}
+                <li>
+                  <label class="checkbox">
+                    {{view view.ComponentCheckboxView contentBinding="component" }} {{unbound component.componentName}}
+                  </label>
+                </li>
+                {{/each}}
+              </ul>
+            </li>
+
           </ul>
           <button {{bindAttr disabled="view.isApplyDisabled"}} class="btn" {{action "applyFilters" target="view"}}>
             Apply
           </button>
         </div>
-
       </th>
     </tr>
     </thead>
@@ -103,7 +140,11 @@
       <td>{{host.cluster.clusterName}}</td>
       <td>{{host.cpu}}</td>
       <td>{{host.memory}}</td>
-      <td>{{host.diskUsage}}</td>
+      <td>
+        <div class="progress progress-info">
+          <div class="bar" {{bindAttr style="view.usageStyle"}} style="width: 20%"></div>
+        </div>
+      </td>
       <td>{{host.loadAvg}}</td>
       <td>
         {{view.labels}}
@@ -114,7 +155,7 @@
     </tbody>
   </table>
   <div class="box-footer">
-    <hr />
+    <hr/>
     <div class="footer-pagination">
       <ul class="nav nav-pills">
         <li class="disabled">Show Hosts</li>

@@ -26,6 +26,24 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     mapreduce: false,
     hbase: false
   },
+
+  alerts: function(){
+    var serviceId = this.get('service.id');
+    if(serviceId) {
+      return App.Alert.find({'service_id':serviceId });
+    }
+    return [];
+//    return App.router.get('mainServiceInfoSummaryController.content.alerts');
+  }.property('App.router.mainServiceInfoSummaryController.content.alerts'),
+
+  controller: function(){
+    return App.router.get('mainServiceInfoSummaryController');
+  }.property(),
+
+  service: function(){
+    return this.get('controller.content');
+  }.property('controller.content'),
+
   isHide: true,
   moreStatsView: Em.View.extend({
     tagName: "a",
@@ -56,6 +74,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         summaryView.set('serviceStatus.' + key, false);
       }
     });
+
     jQuery.getJSON('data/services/summary/' + serviceName + '.json',
       function (data) {
         if (data[serviceName]) {

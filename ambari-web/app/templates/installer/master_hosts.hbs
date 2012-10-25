@@ -1,9 +1,0 @@
-{{#if view.hasNoHosts}}
-No host assigned
-{{/if}}
-{{#if view.hasOneHost}}
-{{value}}
-{{/if}}
-{{#if view.hasMultipleHosts}}
-<a href="#" {{action showMasterHosts view.serviceConfig target="controller"}}>{{value.firstObject}} and {{view.otherLength}}</a>
-{{/if}}

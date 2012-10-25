@@ -17,109 +17,102 @@
  */
 
 var App = require('app');
+var validator = require('utils/validator');
 require('models/service');
 require('models/cluster');
 require('models/host');
-require('models/background_operation');
 
 App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   name:'mainHostController',
-  content: [],
-  fullContent: App.Host.find(),
-  clusters: App.Cluster.find(),
-  componentsForFilter: App.Component.find(),
-  totalBinding: 'fullContent.length',
-  filters: {components:[]},
-  pageSize: 3,
-  pageSizeRange: [1,3,5,'all'],
-  rangeStart: 0,
-  allChecked: false,
-  selectedHostsIds: [],
-  sortingAsc: true,
-  isSort: false,
-  intervalId: false,
-  updateOperationsInterval: 8000,
-  sortClass: function(){
-    return this.get('sortingAsc')? 'icon-arrow-down' : 'icon-arrow-up';
+  content:[],
+  fullContent:App.Host.find(),
+  clusters:App.Cluster.find(),
+  componentsForFilter:App.Component.find(),
+  totalBinding:'fullContent.length',
+  filters:{components:[]},
+  pageSize:3,
+  pageSizeRange:[1, 3, 5, 'all'],
+  rangeStart:0,
+  allChecked:false,
+  selectedHostsIds:[],
+  sortingAsc:true,
+  isSort:false,
+  sortClass:function () {
+    return this.get('sortingAsc') ? 'icon-arrow-down' : 'icon-arrow-up';
   }.property('sortingAsc'),
   isDisabled:true,
-  backgroundOperations: null,
-  startLoadOperationsPeriodically: function() {
-    this.intervalId = setInterval(this.loadBackgroundOperations, this.get('updateOperationsInterval'));
-  },
-  stopLoadOperationsPeriodically:function () {
-    if(this.intervalId) {
-      clearInterval(this.intervalId);
-    }
-    this.intervalId = false;
-  },
-  loadBackgroundOperations: function(){
-    var self = App.router.get('mainHostController');
-    jQuery.getJSON('data/hosts/background_operations/bg_operations.json',
-      function (data) {
-        var backgroundOperations = self.get('backgroundOperations');
-        if(!backgroundOperations)
-          self.set('backgroundOperations', data);
-        else backgroundOperations.tasks.pushObjects(data['tasks'])
-      }
-    )
-  },
 
   checkRemoved: function(host_id) {
     var hosts = this.get('content');
     var selectedHosts = hosts.filterProperty('id', host_id);
     this.get('fullContent').removeObjects(selectedHosts);
   },
-
-  backgroundOperationsCount: function() {
-    return this.get('backgroundOperations.tasks.length');
-  }.property('backgroundOperations.tasks.length'),
-
-  showBackgroundOperationsPopup: function(){
-    var self = this;
-    App.ModalPopup.show({
-      header: self.get('backgroundOperationsCount') + ' Background Operations Running',
-      bodyClass: Ember.View.extend({
-        controllerBinding: 'App.router.mainHostController',
-        templateName: require('templates/main/host/background_operations_popup')
-      }),
-      onPrimary: function() {
-        this.hide();
+  masterComponents:function () {
+    var components = [];
+    this.get('componentsForFilter').forEach(function (component) {
+      if (component.get('isMaster')) {
+        components.push(component);
       }
     });
-  },
+    return components;
+  }.property('componentsForFilter'),
 
-  onAllChecked: function () {
+  slaveComponents:function () {
+    var components = [];
+    this.get('componentsForFilter').forEach(function (component) {
+      if (component.get('isSlave')) {
+        components.push(component);
+      }
+    });
+    return components;
+  }.property('componentsForFilter'),
+
+  backgroundOperationsCount:function () {
+    return 5;
+  }.property(),
+
+  onAllChecked:function () {
     var hosts = this.get('content');
     hosts.setEach('isChecked', this.get('allChecked'));
     this.set('isDisabled', !this.get('allChecked'));
-    var selectedHostsIds = this.get('allChecked') ? hosts.getEach('id'):[];
+    var selectedHostsIds = this.get('allChecked') ? hosts.getEach('id') : [];
     this.set('selectedHostsIds', selectedHostsIds);
   }.observes('allChecked'),
 
-  onHostChecked: function (host) {
+  onHostChecked:function (host) {
     var selected = this.get('selectedHostsIds');
     host.set('isChecked', !host.get('isChecked'));
     if (host.get('isChecked')) selected.push(host.get('id'));
     else {
       var index = selected.indexOf(host.get('id'));
-      if(index!=-1) selected.splice(index, 1);
+      if (index != -1) selected.splice(index, 1);
     }
     this.set('isDisabled', selected.length == 0);
   },
 
-  changeSelectedHosts: function() {
+  changeSelectedHosts:function () {
     var visibleHosts = this.get('content');
     var selectedHosts = visibleHosts.filterProperty('isChecked', true);
-    this.get('fullContent').forEach(function(item) {
+    this.get('fullContent').forEach(function (item) {
       var index = visibleHosts.getEach('id').indexOf(item.get('id'));
-      if(index == -1) item.set('isChecked', false);
+      if (index == -1) item.set('isChecked', false);
     });
     this.set('isDisabled', selectedHosts.length == 0);
     this.set('selectedHostsIds', selectedHosts.getEach('id'));
   },
 
-  filterByComponentsIds: function(componentsIds) {
+  checkedComponentsIds:function () {
+    var checked = [];
+    this.get('componentsForFilter').forEach(function (comp) {
+      if (comp.get('checkedForHostFilter'))
+        checked.push(comp.get('id'));
+    });
+
+    return checked;
+  },
+
+  filterByComponentsIds:function () {
+    var componentsIds = this.checkedComponentsIds();
     this.set('filters.components', componentsIds);
     this.get('componentsForFilter').forEach(function(component) {
       if (componentsIds.indexOf(component.get('id')) != -1){
@@ -129,100 +122,138 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
     this.changeContent();
   },
 
-  filterByComponent: function(component) {
+  filterHostsBy:function (field, value) {
+    this.set('hostFilter' + field, value);
+    this.changeContent();
+  },
+
+  filterByComponent:function (component) {
     this.get('componentsForFilter').setEach('isChecked', false);
     component.set('isChecked', true);
     this.set('filters.components', [component.get('id')]);
     this.changeContent();
   },
 
-  changeContent: function() {
+
+  applyHostFilters:function (items) {
+
+    var field = 'hostName'; // make this function universal
+    var value = this.get('hostFilter' + field);
+
+    var itemsToDelete = [];
+    if (value) {
+      items.forEach(function (host, index) {
+        if (host) {
+          var fieldValue = host.get(field);
+          if (fieldValue) {
+            if (fieldValue.indexOf(value) == -1) {
+              itemsToDelete.push(host);
+            }
+          }
+        }
+      });
+    }
+
+    if (itemsToDelete.length) {
+      itemsToDelete.forEach(function (hostToDelete) {
+        var index = items.indexOf(hostToDelete);
+        items.removeAt(index);
+      })
+    }
+
+    return items;
+  },
+
+  changeContent:function () {
     var items = [];
     var filters = this.get('filters.components');
-    if (filters.length){
-      this.get('fullContent').forEach(function(item) {
+    this.get('fullContent').forEach(function (item) {
+      if (filters.length) {
         var inFilters = false;
         item.get('components').forEach(function(component) {
           if (filters.indexOf(component.get('id')) == -1){
             inFilters = true;
           }
         });
-        if (inFilters){
+        if (inFilters) {
           items.push(item);
         }
-      });
-      this.set('total', items.length);
-    } else {
-      items = this.get('fullContent');
-      this.set('total', this.get('fullContent.length'));
-    }
+
+      } else {
+        items.push(item);
+      }
+    });
+
+    items = this.applyHostFilters(items);
+    this.set('total', items.length);
+
     var content = items.slice(this.get('rangeStart'), this.get('rangeStop'));
     this.replace(0, this.get('length'), content);
     this.changeSelectedHosts();
   }.observes('rangeStart', 'rangeStop', 'total'),
 
-  showNextPage: function() {
+  showNextPage:function () {
     this.nextPage();
   },
-  showPreviousPage: function() {
+  showPreviousPage:function () {
     this.previousPage();
   },
-  assignedToRackPopup: function(event) {
+  assignedToRackPopup:function (event) {
     var self = this;
     App.ModalPopup.show({
-      header: Em.I18n.t('hosts.assignedToRack.popup.header'),
-      body: Em.I18n.t('hosts.assignedToRack.popup.body'),
-      primary: 'Yes',
-      secondary: 'No',
-      onPrimary: function() {
+      header:Em.I18n.t('hosts.assignedToRack.popup.header'),
+      body:Em.I18n.t('hosts.assignedToRack.popup.body'),
+      primary:'Yes',
+      secondary:'No',
+      onPrimary:function () {
         self.assignedToRack(event.context);
         this.hide();
       },
-      onSecondary: function() {
+      onSecondary:function () {
         this.hide();
       }
     });
   },
 
-  assignedToRack: function(rack) {
+  assignedToRack:function (rack) {
     var hosts = this.get('content');
     var selectedHosts = hosts.filterProperty('isChecked', true);
     selectedHosts.setEach('cluster', rack);
   },
 
-  decommissionButtonPopup: function() {
+  decommissionButtonPopup:function () {
     var self = this;
     App.ModalPopup.show({
-      header: Em.I18n.t('hosts.decommission.popup.header'),
-      body: Em.I18n.t('hosts.decommission.popup.body'),
-      primary: 'Yes',
-      secondary: 'No',
-      onPrimary: function() {
+      header:Em.I18n.t('hosts.decommission.popup.header'),
+      body:Em.I18n.t('hosts.decommission.popup.body'),
+      primary:'Yes',
+      secondary:'No',
+      onPrimary:function () {
         alert('do');
         this.hide();
       },
-      onSecondary: function() {
+      onSecondary:function () {
         this.hide();
       }
     });
   },
-  deleteButtonPopup: function() {
+  deleteButtonPopup:function () {
     var self = this;
     App.ModalPopup.show({
-      header: Em.I18n.t('hosts.delete.popup.header'),
-      body: Em.I18n.t('hosts.delete.popup.body'),
-      primary: 'Yes',
-      secondary: 'No',
-      onPrimary: function() {
+      header:Em.I18n.t('hosts.delete.popup.header'),
+      body:Em.I18n.t('hosts.delete.popup.body'),
+      primary:'Yes',
+      secondary:'No',
+      onPrimary:function () {
         self.removeHosts();
         this.hide();
       },
-      onSecondary: function() {
+      onSecondary:function () {
         this.hide();
       }
     });
   },
-  removeHosts: function () {
+  removeHosts:function () {
     var hosts = this.get('content');
     var selectedHosts = hosts.filterProperty('isChecked', true);
     selectedHosts.forEach(function (_hostInfo) {
@@ -231,15 +262,14 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
 //    App.db.removeHosts(selectedHosts);
     this.get('fullContent').removeObjects(selectedHosts);
   },
-  sortByName: function () {
+  sortByName:function () {
     var asc = this.get('sortingAsc');
-    var objects = this.get('fullContent').toArray().sort(function(a, b)
-    {
+    var objects = this.get('fullContent').toArray().sort(function (a, b) {
       var nA = a.get('hostName').toLowerCase();
       var nB = b.get('hostName').toLowerCase();
-      if(nA < nB)
+      if (nA < nB)
         return asc ? -1 : 1;
-      else if(nA > nB)
+      else if (nA > nB)
         return asc ? 1 : -1;
       return 0;
     });

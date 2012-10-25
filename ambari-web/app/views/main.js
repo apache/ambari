@@ -20,18 +20,32 @@
 var App = require('app');
 
 App.MainView = Em.View.extend({
-  templateName: require('templates/main'),
-  isInHostsPath: function(){
-    var isInHostsPath = App.router.get('currentState.name') === 'hosts';
-    if (isInHostsPath){
-      App.router.get('mainHostController').startLoadOperationsPeriodically()
-    } else {
-      App.router.get('mainHostController').stopLoadOperationsPeriodically()
-    }
-    return isInHostsPath;
-  }.property('App.router.currentState.name'),
-  backgroundOperationsCount:function () {
-    return App.router.get('mainHostController.backgroundOperationsCount');
-  }.property('App.router.mainHostController.backgroundOperationsCount')
+  templateName: require('templates/main')
+});
 
+App.MainBackgroundOperation = Em.View.extend({
+  content: null,
+  classNames: ['background-operations'],
+  classNameBindings: ['isOpen'],
+  isOpen: false,
+  logDetails: null,
+  isOpenShowLog: false,
+  iconClass: function(){
+    return this.get('isOpen') ? 'icon-minus' : 'icon-plus';
+  }.property('isOpen'),
+  openDetails: function(){
+    this.set('isOpen', !this.get('isOpen'))
+  },
+  showOperationLog:function(){
+    var operation = this.get('content');
+    var self = this;
+    if (!this.get('isOpenShowLog') && !this.get('logDetails')) {
+      jQuery.getJSON('data/hosts/background_operations/logs/task' +operation.taskId + '.json',
+        function (data) {
+          self.set('logDetails', data);
+        }
+      );
+    }
+    this.set('isOpenShowLog', !this.get('isOpenShowLog'))
+  }
 });

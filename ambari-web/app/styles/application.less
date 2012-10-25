@@ -127,10 +127,9 @@ footer {
   .brand {
     font-size: 17px;
     border-right: 1px solid rgba(0, 0, 0, 0.08);
-    .operations-count{
-      margin-top: 5px;
-      background-color: #006DCC;
-    }
+  }
+  .operations-count{
+    background-color: #006DCC;
   }
   li {
     font-size: 15px;
@@ -340,6 +339,8 @@ a:focus {
 
 @status-live-marker: url("/img/health-status-live.png");
 @status-dead-marker: url("/img/health-status-dead.png");
+@status-dead-orange-marker: url("/img/health-status-dead-orange.png");
+@status-dead-yellow-marker: url("/img/health-status-dead-yellow.png");
 @status-ok-marker: url("/img/status-ok.jpg");
 @status-corrupt-marker: url("/img/status-corrupt.jpg");
 @arrow-right: url("/img/arrow-right.png");
@@ -417,6 +418,14 @@ a:focus {
   .health-status-DEAD {
     .tab-marker-position;
     background-image: @status-dead-marker;
+  }
+  .health-status-DEAD-ORANGE {
+    .tab-marker-position;
+    background-image: @status-dead-orange-marker;
+  }
+  .health-status-DEAD-YELLOW {
+    .tab-marker-position;
+    background-image: @status-dead-yellow-marker;
   }
   dt {
     text-align: left;
@@ -723,6 +732,12 @@ a:focus {
   .health-status-DEAD {
     background-image: @status-dead-marker;
   }
+  .health-status-DEAD-ORANGE {
+    background-image: @status-dead-orange-marker;
+  }
+  .health-status-DEAD-YELLOW {
+    background-image: @status-dead-yellow-marker;
+  }
   .box-header {
     .btn-group {
       float: left;
@@ -806,6 +821,17 @@ a:focus {
     }
     .page-listing {
       width: 100px;
+
+      .table {
+        th.name {
+          width: 300px;
+          a.filter-label {
+            width: 57px;
+            display: block;
+            float: left;
+          }
+        }
+      }
     }
   }
 }
@@ -818,6 +844,16 @@ a:focus {
   }
   .health-status-DEAD {
     background-image: @status-dead-marker;
+    background-repeat: no-repeat;
+    background-position: 0px 4px;
+  }
+  .health-status-DEAD-ORANGE {
+    background-image: @status-dead-orange-marker;
+    background-repeat: no-repeat;
+    background-position: 0px 4px;
+  }
+  .health-status-DEAD-YELLOW {
+    background-image: @status-dead-yellow-marker;
     background-repeat: no-repeat;
     background-position: 0px 4px;
   }
@@ -1506,4 +1542,8 @@ ul.inline li {
   display: block;
   width: 105px;
   margin-bottom: 10px;
+}
+
+#step8-content{
+  max-height: 570px;
 }

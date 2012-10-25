@@ -347,6 +347,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-919. Partial refactoring and consolidation of code for various
+  wizards. (yusaku)
+
   AMBARI-918. Update styles in Cluster Management. (yusaku)
 
   AMBARI-917. Update layout and flow for App Browser. (yusaku)

@@ -1,0 +1,9 @@
+{{#if view.hasNoHosts}}
+  No host assigned
+{{/if}}
+{{#if view.hasOneHost}}
+  {{value}}
+{{/if}}
+{{#if view.hasMultipleHosts}}
+  <a href="#" {{action showHosts target="view"}}>{{value.firstObject}} and {{view.otherLength}}</a>
+{{/if}}

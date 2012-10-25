@@ -69,6 +69,14 @@ App.MainMenuView = Em.CollectionView.extend({
       }
     }.property(),
 
-    template:Ember.Handlebars.compile('<a href="#/main/{{unbound view.content.routing}}">{{unbound view.content.label}}{{#if view.alertsCount}}<span class="label label-important alerts-count">{{view.alertsCount}}</span>{{/if}}</a>')
+    hostDetailsOperationsCount:function () {
+      if (this.get('content').routing == 'hosts') {
+        if (App.router.currentState.parentState.name == 'hostDetails') {
+          return App.router.get('mainHostDetailsController.hostOperationsCount');
+        }
+      }
+    }.property('App.router.currentState.parentState.name', 'App.router.mainHostDetailsController.hostOperationsCount'),
+
+    templateName: require('templates/main/menu_item')
   })
 });

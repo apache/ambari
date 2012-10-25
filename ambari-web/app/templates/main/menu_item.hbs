@@ -15,17 +15,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<div id="main-nav">
-  <div class="navbar">
-    <div class="navbar-inner">
-      <a class="brand" href="#">
-        My Cluster
-          {{#if backgroundOperationsCount}}
-            <span class="label operations-count" {{action "showBackgroundOperationsPopup" target="controller"}}>{{backgroundOperationsCount}}</span>
-          {{/if}}
-      </a>
-      {{view App.MainMenuView}}
-    </div>
-  </div>
-</div>
-{{outlet}}
+<a href="#/main/{{unbound view.content.routing}}">
+  {{unbound view.content.label}}
+  {{#if view.alertsCount}}
+    <span class="label label-important alerts-count">
+      {{view.alertsCount}}
+    </span>
+  {{/if}}
+  {{#if view.hostDetailsOperationsCount}}
+    <span class="label operations-count" {{action "showBackgroundOperationsPopup" target="App.router.mainHostDetailsController"}}>
+      {{view.hostDetailsOperationsCount}}
+    </span>
+  {{/if}}
+</a>

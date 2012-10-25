@@ -16,37 +16,36 @@
  * limitations under the License.
  */
 var App = require('app');
-
-App.InstallerStep9Controller = Em.ArrayController.extend({
-  name: 'installerStep9Controller',
-  content: [],
-  progress: '0',
-  isStepCompleted: false,
-  isSubmitDisabled: function () {
+App.WizardStep9Controller = Em.Controller.extend({
+  name:'wizardStep9Controller',
+  hosts:[],
+  progress:'0',
+  isStepCompleted:false,
+  isSubmitDisabled:function () {
     return !this.get('isStepCompleted');
   }.property('isStepCompleted'),
 
-  mockHostData: require('data/mock/step9_hosts'),
-  pollData_1: require('data/mock/step9_pollData_1'),
-  pollData_2: require('data/mock/step9_pollData_2'),
-  pollDataCounter: 0,
+  mockHostData:require('data/mock/step9_hosts'),
+  pollData_1:require('data/mock/step9_pollData_1'),
+  pollData_2:require('data/mock/step9_pollData_2'),
+  pollDataCounter:0,
 
-  status: function () {
-    if (this.everyProperty('status', 'success')) {
+  status:function () {
+    if (this.hosts.everyProperty('status', 'success')) {
       return 'success';
-    } else if (this.someProperty('status', 'failed')) {
+    } else if (this.hosts.someProperty('status', 'failed')) {
       return 'failed';
-    } else if (this.someProperty('status', 'warning')) {
+    } else if (this.hosts.someProperty('status', 'warning')) {
       return 'warning';
     } else {
       return 'info';
     }
-  }.property('@each.status'),
+  }.property('hosts.@each.status'),
 
-  navigateStep: function () {
+  navigateStep:function () {
     this.loadStep();
     //TODO: uncomment following line after the hook up with the API call
-    if (App.db.getClusterStatus().isCompleted === false) {
+    if (this.get('content.cluster.isCompleted') === false) {
       //this.startPolling();
     } else {
       this.set('isStepCompleted', true);
@@ -54,22 +53,22 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
     }
   },
 
-  clearStep: function () {
-    this.clear();
+  clearStep:function () {
+    this.hosts.clear();
     this.set('status', 'info');
     this.set('progress', '0');
     this.set('isStepCompleted', false);
   },
 
-  loadStep: function () {
+  loadStep:function () {
     console.log("TRACE: Loading step9: Install, Start and Test");
     this.clearStep();
     this.renderHosts(this.loadHosts());
   },
 
-  loadHosts: function () {
+  loadHosts:function () {
     var hostInfo = [];
-    hostInfo = App.db.getHosts();
+    hostInfo = this.get('content.hostsInfo');
     var hosts = new Ember.Set();
     for (var index in hostInfo) {
       hosts.add(hostInfo[index]);
@@ -78,58 +77,58 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
     return hosts.filterProperty('bootStatus', 'success');
   },
 
-  renderHosts: function (hostsInfo) {
+  renderHosts:function (hostsInfo) {
     var self = this;
     hostsInfo.forEach(function (_hostInfo) {
       var hostInfo = App.HostInfo.create({
-        name: _hostInfo.name,
-        status: _hostInfo.status,
-        message: _hostInfo.message,
-        progress: _hostInfo.progress
+        name:_hostInfo.name,
+        status:_hostInfo.status,
+        message:_hostInfo.message,
+        progress:_hostInfo.progress
       });
 
       console.log('pushing ' + hostInfo.name);
-      self.content.pushObject(hostInfo);
+      self.hosts.pushObject(hostInfo);
     });
   },
 
-  onSuccessPerHost: function (actions, contentHost) {
+  onSuccessPerHost:function (actions, contentHost) {
     if (actions.everyProperty('status', 'completed')) {
       contentHost.set('status', 'success');
     }
   },
 
-  onWarningPerHost: function (actions, contentHost) {
+  onWarningPerHost:function (actions, contentHost) {
     if (actions.findProperty('status', 'failed') || actions.findProperty('status', 'aborted')) {
       contentHost.set('status', 'warning');
       this.set('status', 'warning');
     }
   },
 
-  onInProgressPerHost: function (actions, contentHost) {
+  onInProgressPerHost:function (actions, contentHost) {
     var runningAction = actions.findProperty('status', 'inprogress');
     if (runningAction !== null && runningAction !== undefined) {
       contentHost.set('message', runningAction.message);
     }
   },
 
-  progressPerHost: function (actions, contentHost) {
+  progressPerHost:function (actions, contentHost) {
     var totalProgress = 0;
     var actionsPerHost = actions.length;
     var completedActions = actions.filterProperty('status', 'completed').length
-      + actions.filterProperty('status', 'failed').length +
-      actions.filterProperty('status', 'aborted').length;
+        + actions.filterProperty('status', 'failed').length +
+        actions.filterProperty('status', 'aborted').length;
     var progress = Math.floor((completedActions / actionsPerHost) * 100);
     console.log('INFO: progressPerHost is: ' + progress);
     contentHost.set('progress', progress.toString());
     return progress;
   },
 
-  isSuccess: function (polledData) {
+  isSuccess:function (polledData) {
     return polledData.everyProperty('status', 'success');
   },
 
-  isStepFailed: function (polledData) {
+  isStepFailed:function (polledData) {
     var self = this;
     var result = false;
     polledData.forEach(function (_polledData) {
@@ -145,7 +144,7 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
     return result;
   },
 
-  getFailedHostsForFailedRoles: function (polledData) {
+  getFailedHostsForFailedRoles:function (polledData) {
     var hostArr = new Ember.Set();
     polledData.forEach(function (_polledData) {
       var successFactor = _polledData.sf;
@@ -164,17 +163,17 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
     return hostArr;
   },
 
-  setHostsStatus: function (hosts, status) {
+  setHostsStatus:function (hosts, status) {
     var self = this;
     hosts.forEach(function (_host) {
-      var host = self.findProperty('name', _host);
+      var host = self.hosts.findProperty('name', _host);
       host.set('status', status);
     });
   },
 
   // polling from ui stops only when no action has 'pending', 'queued' or 'inprogress' status
 
-  finishStep: function (polledData) {
+  finishStep:function (polledData) {
     var self = this;
     if (!polledData.someProperty('status', 'pending') && !polledData.someProperty('status', 'queued') && !polledData.someProperty('status', 'inprogress')) {
       this.set('progress', '100');
@@ -190,13 +189,12 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
     }
   },
 
-
-  parseHostInfo: function (polledData) {
+  parseHostInfo:function (polledData) {
     console.log('TRACE: Entering host info function');
     var self = this;
     var result = false;
     var totalProgress = 0;
-    this.forEach(function (_content) {
+    this.hosts.forEach(function (_content) {
       var actions = polledData.filterProperty('name', _content.name);
       if (actions.length === 0) {
         alert('For testing with mockData follow the sequence: hit referesh,"mockData btn", "pollData btn", again "pollData btn"');
@@ -209,7 +207,7 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
         totalProgress = totalProgress + self.progressPerHost(actions, _content);
       }
     }, this);
-    totalProgress = Math.floor(totalProgress / this.content.length);
+    totalProgress = Math.floor(totalProgress / this.hosts.length);
     this.set('progress', totalProgress.toString());
     console.log("INFO: right now the progress is: " + this.get('progress'));
     this.finishStep(polledData);
@@ -217,28 +215,28 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
   },
 
 
-  retry: function () {
+  retry:function () {
     if (this.get('isSubmitDisabled')) {
       return;
     }
-    this.clear();
+    this.hosts.clear();
     this.renderHosts(this.loadHosts());
     //this.startPolling();
   },
 
-  startPolling: function () {
+  startPolling:function () {
     this.set('isSubmitDisabled', true);
     this.doPolling();
   },
 
-  doPolling: function () {
+  doPolling:function () {
     var self = this;
     $.ajax({
-      type: 'GET',
-      url: '/ambari_server/api/polling',
-      async: false,
-      timeout: 5000,
-      success: function (data) {
+      type:'GET',
+      url:'/ambari_server/api/polling',
+      async:false,
+      timeout:5000,
+      success:function (data) {
         console.log("TRACE: In success function for the GET bootstrap call");
         var result = self.parseHostInfo(data);
         if (result !== true) {
@@ -248,76 +246,60 @@ App.InstallerStep9Controller = Em.ArrayController.extend({
         }
       },
 
-      error: function () {
+      error:function () {
         console.log("ERROR");
         self.stopPolling();
       },
 
-      statusCode: {
-        404: function () {
+      statusCode:{
+        404:function () {
           console.log("URI not found.");
         }
       },
 
-      dataType: 'application/json'
+      dataType:'application/json'
     });
 
   },
 
-  stopPolling: function () {
+  stopPolling:function () {
     //TODO: uncomment following line after the hook up with the API call
     // this.set('isStepCompleted',true);
   },
 
-  saveHostInfoToDb: function () {
-    var hostInfo = App.db.getHosts();
-    for (var index in hostInfo) {
-      hostInfo[index].status = "pending";
-      if (this.someProperty('name', hostInfo[index].name)) {
-        var host = this.findProperty('name', hostInfo[index].name);
-        hostInfo[index].status = host.status;
-        hostInfo[index].message = host.message;
-        hostInfo[index].progress = host.progress;
-      }
-      console.log("TRACE: host name is: " + hostInfo[index].name);
-    }
-    App.db.setHosts(hostInfo);
-  },
-
-
-  submit: function () {
+  submit:function () {
     if (!this.get('isSubmitDisabled')) {
-      this.saveHostInfoToDb();
-      App.db.setClusterStatus({status: this.get('status'), isCompleted: true});
-      App.get('router').transitionTo('step10');
+      this.set('content.cluster.status', this.get('status'));
+      this.set('content.cluster.isCompleted', true);
+      App.router.send('next');
     }
   },
 
-  back: function () {
+  back:function () {
     if (!this.get('isSubmitDisabled')) {
       App.router.send('back');
     }
   },
 
-  hostLogPopup: function (event) {
+  hostLogPopup:function (event) {
     App.ModalPopup.show({
-      header: Em.I18n.t('installer.step3.hostLog.popup.header'),
-      onPrimary: function () {
+      header:Em.I18n.t('installer.step3.hostLog.popup.header'),
+      onPrimary:function () {
         this.hide();
       },
-      bodyClass: Ember.View.extend({
-        templateName: require('templates/installer/step3HostLogPopup')
+      bodyClass:Ember.View.extend({
+        templateName:require('templates/installer/step3HostLogPopup')
       })
     });
   },
-  mockBtn: function () {
+  mockBtn:function () {
     this.set('isSubmitDisabled', false);
-    this.clear();
+    this.hosts.clear();
     var hostInfo = this.mockHostData;
     this.renderHosts(hostInfo);
 
   },
-  pollBtn: function () {
+  pollBtn:function () {
     this.set('isSubmitDisabled', false);
     var data1 = this.pollData_1;
     var data2 = this.pollData_2;

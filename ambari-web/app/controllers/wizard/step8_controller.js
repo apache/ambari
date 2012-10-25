@@ -18,70 +18,82 @@
 
 var App = require('app');
 
-App.InstallerStep8Controller = Em.ArrayController.extend({
-	name: 'installerStep8Controller',
+App.WizardStep8Controller = Em.Controller.extend({
+	name: 'wizardStep8Controller',
 	rawContent: require('data/review_configs'),
-	content: [],
+
+  clusterInfo : [],
 	services: [],
 
+  selectedServices : function(){
+    return this.get('content.services').filterProperty('isSelected', true);
+  }.property('content.services').cacheable(),
+
 	clearStep: function () {
-		this.clear();
 		this.get('services').clear();
+    this.get('clusterInfo').clear();
 	},
 
 	loadStep: function () {
 		console.log("TRACE: Loading step8: Review Page");
 		this.clearStep();
-		var configObj = new Ember.Set();
-		this.loadClusterName();
-		this.loadHosts();
-		this.loadRepo();
+    this.loadClusterInfo();
 		this.loadServices();
 	},
 
-	loadClusterName: function () {
-		var obj = {};
-		var cluster = this.rawContent.findProperty('config_name', 'cluster');
-		cluster.config_value = App.db.getClusterName();
-		this.pushObject(Ember.Object.create(cluster));
-	},
+  /**
+   * Load all info about cluster to <code>clusterInfo</code> variable
+   */
+  loadClusterInfo : function(){
 
-	loadHosts: function () {
-		var masterHosts = App.db.getMasterComponentHosts().mapProperty('hostName').uniq();
-		var slaveHosts = App.db.getSlaveComponentHosts();
-		var hostObj = [];
-		slaveHosts.forEach(function (_hosts) {
-			hostObj = hostObj.concat(_hosts.hosts);
-		}, this);
-		slaveHosts = hostObj.mapProperty('hostname').uniq();
-		console.log('The value of slaveHosts is: ' + slaveHosts);
-		var totalHosts = masterHosts.concat(slaveHosts).uniq().length;
-		var totalHostsObj = this.rawContent.findProperty('config_name', 'hosts');
-		totalHostsObj.config_value = totalHosts;
-		this.pushObject(Ember.Object.create(totalHostsObj));
-	},
+    // cluster name
+    var cluster = this.rawContent.findProperty('config_name', 'cluster');
+    cluster.config_value = this.get('content.cluster.name');
+    this.get('clusterInfo').pushObject(Ember.Object.create(cluster));
 
-	loadRepo: function () {
-		var repoOption = App.db.getSoftRepo().repoType;
-		var repoObj = this.rawContent.findProperty('config_name', 'Repo');
-		if (repoOption === 'local') {
-			repoObj.config_value = 'Yes';
-		} else {
-			repoObj.config_value = 'No';
-		}
-		this.pushObject(Ember.Object.create(repoObj));
-	},
+    //hosts
+    var masterHosts = this.get('content.masterComponentHosts').mapProperty('hostName').uniq();
+    var slaveHosts = this.get('content.slaveComponentHosts');
 
+    var hostObj = [];
+    slaveHosts.forEach(function (_hosts) {
+      hostObj = hostObj.concat(_hosts.hosts);
+    }, this);
+
+    slaveHosts = hostObj.mapProperty('hostname').uniq();
+
+    var totalHosts = masterHosts.concat(slaveHosts).uniq().length;
+
+    var totalHostsObj = this.rawContent.findProperty('config_name', 'hosts');
+    totalHostsObj.config_value = totalHosts;
+    this.get('clusterInfo').pushObject(Ember.Object.create(totalHostsObj));
+
+    //repo
+    var repoOption = this.get('content.hosts.localRepo');
+    var repoObj = this.rawContent.findProperty('config_name', 'Repo');
+    if (repoOption) {
+      repoObj.config_value = 'Yes';
+    } else {
+      repoObj.config_value = 'No';
+    }
+    this.get('clusterInfo').pushObject(Ember.Object.create(repoObj));
+
+  },
+
+
+  /**
+   * Load all info about services to <code>services</code> variable
+   */
 	loadServices: function () {
-		this.set('services', App.db.getSelectedServiceNames());
-		var services = App.db.getService().filterProperty('isSelected', true);
-		services.forEach(function (_service) {
+    var selectedServices = this.get('selectedServices');
+		this.set('services', selectedServices.mapProperty('serviceName'));
+
+    selectedServices.forEach(function (_service) {
 			console.log('INFO: step8: Name of the service from getService function: ' + _service.serviceName);
-			var serviceObj = {};
-			//var tempObj = {};
 			var reviewService = this.rawContent.findProperty('config_name', 'services');
-			serviceObj = reviewService.config_value.findProperty('service_name', _service.serviceName);
-			if (serviceObj !== undefined) {
+			var serviceObj = reviewService.config_value.findProperty('service_name', _service.serviceName);
+
+			if (serviceObj) {
 				switch (serviceObj.service_name) {
 					case 'HDFS':
 						this.loadHDFS(serviceObj);
@@ -117,6 +129,10 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 		}, this);
 	},
 
+  /**
+   * load all info about HDFS service
+   * @param hdfsObj
+   */
 	loadHDFS: function (hdfsObj) {
 		hdfsObj.get('service_components').forEach(function (_component) {
 			switch (_component.get('display_name')) {
@@ -133,21 +149,21 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 			}
 		}, this);
 		//var
-		this.services.pushObject(hdfsObj);
+		this.get('services').pushObject(hdfsObj);
 	},
 
 	loadNnValue: function (nnComponent) {
-		var nnHostName = App.db.getMasterComponentHosts().findProperty('component', nnComponent.display_name);
+		var nnHostName = this.get('content.masterComponentHosts').findProperty('component', nnComponent.display_name);
 		nnComponent.set('component_value', nnHostName.hostName);
 	},
 
 	loadSnnValue: function (snnComponent) {
-		var snnHostName = App.db.getMasterComponentHosts().findProperty('component', 'SNameNode');
+		var snnHostName = this.get('content.masterComponentHosts').findProperty('component', 'SNameNode');
 		snnComponent.set('component_value', snnHostName.hostName);
 	},
 
 	loadDnValue: function (dnComponent) {
-		var dnHosts = App.db.getSlaveComponentHosts().findProperty('displayName', 'DataNode');
+		var dnHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'DataNode');
 		var totalDnHosts = dnHosts.hosts.length;
 		var dnHostGroups = [];
 		dnHosts.hosts.forEach(function (_dnHost) {
@@ -164,6 +180,10 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 		dnComponent.set('component_value', totalDnHosts + ' hosts ' + '(' + totalGroups + ' ' + groupLabel + ')');
 	},
 
+  /**
+   * Load all info about mapReduce service
+   * @param mrObj
+   */
 	loadMapReduce: function (mrObj) {
 		mrObj.get('service_components').forEach(function (_component) {
 			switch (_component.get('display_name')) {
@@ -180,12 +200,12 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 	},
 
 	loadJtValue: function (jtComponent) {
-		var jtHostName = App.db.getMasterComponentHosts().findProperty('component', jtComponent.display_name);
+		var jtHostName = this.get('content.masterComponentHosts').findProperty('component', jtComponent.display_name);
 		jtComponent.set('component_value', jtHostName.hostName);
 	},
 
 	loadTtValue: function (ttComponent) {
-		var ttHosts = App.db.getSlaveComponentHosts().findProperty('displayName', 'TaskTracker');
+		var ttHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'TaskTracker');
 		var totalTtHosts = ttHosts.hosts.length;
 		var ttHostGroups = [];
 		ttHosts.hosts.forEach(function (_ttHost) {
@@ -201,6 +221,10 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 		ttComponent.set('component_value', totalTtHosts + ' hosts ' + '(' + totalGroups + ' ' + groupLabel + ')');
 	},
 
+  /**
+   * Load all info about Hive service
+   * @param hiveObj
+   */
 	loadHive: function (hiveObj) {
 		hiveObj.get('service_components').forEach(function (_component) {
 			switch (_component.get('display_name')) {
@@ -218,20 +242,18 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 	},
 
 	loadHiveMetaStoreValue: function (metaStoreComponent) {
-		var hiveHostName = App.db.getMasterComponentHosts().findProperty('component', 'Hive Metastore');
+		var hiveHostName = this.get('content.masterComponentHosts').findProperty('component', 'Hive Metastore');
 		metaStoreComponent.set('component_value', hiveHostName.hostName);
 	},
 
 	loadHiveDbValue: function (dbComponent) {
-    var hiveDb = App.db.getServiceConfigProperties().findProperty('name', 'hive_database');
-    if (hiveDb.value === 'New PostgreSQL Database') {
-      dbComponent.set('component_value', 'PostgreSQL (New Database)');
-    } else {
-      var db =    App.db.getServiceConfigProperties().findProperty('name', 'hive_existing_database');
-      dbComponent.set('component_value', db.value +' (' + hiveDb.value + ')');
-    }
+		dbComponent.set('component_value', 'MySQL');
 	},
 
+  /**
+   * Load all info about Hbase
+   * @param hbaseObj
+   */
 	loadHbase: function (hbaseObj) {
 		hbaseObj.service_components.forEach(function (_component) {
 			switch (_component.display_name) {
@@ -248,12 +270,12 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 	},
 
 	loadMasterValue: function (hbaseMaster) {
-		var hbaseHostName = App.db.getMasterComponentHosts().findProperty('component', 'HBase Master');
+		var hbaseHostName = this.get('content.masterComponentHosts').findProperty('component', 'HBase Master');
 		hbaseMaster.set('component_value', hbaseHostName.hostName);
 	},
 
 	loadRegionServerValue: function (rsComponent) {
-		var rsHosts = App.db.getSlaveComponentHosts().findProperty('displayName', 'RegionServer');
+		var rsHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'RegionServer');
 		var totalRsHosts = rsHosts.hosts.length;
 		var rsHostGroups = [];
 		rsHosts.hosts.forEach(function (_ttHost) {
@@ -269,6 +291,10 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 		rsComponent.set('component_value', totalRsHosts + ' hosts '  + '(' + totalGroups + ' ' + groupLabel + ')');
 	},
 
+  /**
+   * Load all info about ZooKeeper service
+   * @param zkObj
+   */
 	loadZk: function (zkObj) {
 		zkObj.get('service_components').forEach(function (_component) {
 			switch (_component.get('display_name')) {
@@ -282,7 +308,7 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 	},
 
 	loadZkServerValue: function (serverComponent) {
-		var zkHostNames = App.db.getMasterComponentHosts().filterProperty('component', 'ZooKeeper').length;
+		var zkHostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZooKeeper').length;
 		var hostSuffix;
 		if (zkHostNames === 1) {
 			hostSuffix = 'host';
@@ -292,15 +318,16 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 		serverComponent.set('component_value', zkHostNames + ' ' + hostSuffix);
 	},
 
+  /**
+   * Load all info about Oozie services
+   * @param oozieObj
+   */
 	loadOozie: function (oozieObj) {
 		oozieObj.get('service_components').forEach(function (_component) {
 			switch (_component.get('display_name')) {
 				case 'Server':
 					this.loadOozieServerValue(_component);
 					break;
-        case 'Database':
-          this.loadOozieDbValue(_component);
-          break;
 				default:
 			}
 		}, this);
@@ -308,20 +335,14 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 	},
 
 	loadOozieServerValue: function (oozieServer) {
-		var oozieServerName = App.db.getMasterComponentHosts().findProperty('component', 'Oozie Server');
+		var oozieServerName = this.get('content.masterComponentHosts').findProperty('component', 'Oozie Server');
 		oozieServer.set('component_value', oozieServerName.hostName);
 	},
 
-  loadOozieDbValue: function(dbComponent) {
-    var oozieDb = App.db.getServiceConfigProperties().findProperty('name', 'oozie_database');
-    if (oozieDb.value === 'New PostgreSQL Database') {
-      dbComponent.set('component_value', 'PostgreSQL (New Database)');
-    } else {
-      var db = App.db.getServiceConfigProperties().findProperty('name', 'oozie_existing_database');
-      dbComponent.set('component_value', db.value +' (' + oozieDb.value + ')');
-    }
-  },
-
+  /**
+   * Load all info about Nagios service
+   * @param nagiosObj
+   */
 	loadNagios: function (nagiosObj) {
 		nagiosObj.service_components.forEach(function (_component) {
 			switch (_component.display_name) {
@@ -338,16 +359,21 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 	},
 
 	loadNagiosServerValue: function (nagiosServer) {
-		var nagiosServerName = App.db.getMasterComponentHosts().findProperty('component', 'Nagios Server');
+		var nagiosServerName = this.get('content.masterComponentHosts').findProperty('component', 'Nagios Server');
 		nagiosServer.set('component_value', nagiosServerName.hostName);
 	},
 
 	loadNagiosAdminValue: function (nagiosAdmin) {
-		var adminLoginName = App.db.getServiceConfigProperties().findProperty('name', 'nagios_web_login');
-		var adminEmail = App.db.getServiceConfigProperties().findProperty('name', 'nagios_contact');
+    var config = this.get('content.serviceConfigProperties');
+		var adminLoginName = config.findProperty('name', 'nagios_web_login');
+		var adminEmail = config.findProperty('name', 'nagios_contact');
 		nagiosAdmin.set('component_value', adminLoginName.value + ' / (' + adminEmail.value +')');
 	},
 
+  /**
+   * Load all info about ganglia
+   * @param gangliaObj
+   */
 	loadGanglia: function (gangliaObj) {
 		gangliaObj.get('service_components').forEach(function (_component) {
 			switch (_component.get('display_name')) {
@@ -361,17 +387,20 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 	},
 
 	loadGangliaServerValue: function (gangliaServer) {
-		var gangliaServerName = App.db.getMasterComponentHosts().findProperty('component', 'Ganglia Collector');
+		var gangliaServerName = this.get('content.masterComponentHosts').findProperty('component', 'Ganglia Collector');
 		gangliaServer.set('component_value', gangliaServerName.hostName);
 	},
 
+
+  /**
+   * Onclick handler for <code>next</code> button
+   */
 	submit: function () {
 		this.createCluster();
 		this.createSelectedServices();
 		this.createComponents();
 		this.createHostComponents();
 		App.router.send('next');
-
 	},
 
 
@@ -379,7 +408,7 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 
 	createCluster: function () {
 		var self = this;
-		var clusterName = this.findProperty('config_name', 'cluster').config_value;
+		var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
 		var url = '/api/clusters/' + clusterName;
 		$.ajax({
 			type: 'PUT',
@@ -406,15 +435,14 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 	},
 
 	createSelectedServices: function () {
-		var services = App.db.getSelectedServiceNames();
+    var services = this.get('selectedServices').mapProperty('serviceName');
 		services.forEach(function (_service) {
 			this.createService(_service);
 		}, this);
 	},
 
 	createService: function (service) {
-		var self = this;
-		var clusterName = this.findProperty('config_name', 'cluster').config_value;
+		var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
 		var url = '/api/clusters/' + clusterName + '/services/' + service;
 		$.ajax({
 			type: 'PUT',
@@ -441,7 +469,7 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 
 	createComponents: function () {
 		var serviceComponents = require('data/service_components');
-		var services = App.db.getSelectedServiceNames();
+		var services = this.get('selectedServices').mapProperty('serviceName');
 		services.forEach(function (_service) {
 			var components = serviceComponents.filterProperty('service_name', _service);
 			components.forEach(function (_component) {
@@ -453,8 +481,7 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 	},
 
 	createComponent: function (service, component) {
-		var self = this;
-		var clusterName = this.findProperty('config_name', 'cluster').config_value;
+		var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
 		var url = '/api/clusters/' + clusterName + '/services/' + service + '/components/' + component;
 		$.ajax({
 			type: 'PUT',
@@ -479,8 +506,9 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 	},
 
 	createHostComponents: function () {
-		var masterHosts = App.db.getMasterComponentHosts();
-		var slaveHosts = App.db.getSlaveComponentHosts();
+    var masterHosts = this.get('content.masterComponentHosts');
+    var slaveHosts = this.get('content.slaveComponentHosts');
+
 		masterHosts.forEach(function (_masterHost) {
 			this.createHostComponent(_masterHost);
 		}, this);
@@ -495,8 +523,7 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 	},
 
 	createHostComponent: function (hostComponent) {
-		var self = this;
-		var clusterName = this.findProperty('config_name', 'cluster').config_value;
+		var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
 		var url = '/api/clusters/' + clusterName + '/hosts/' + hostComponent.hostName + '/host_components/' + hostComponent.component;
 
 		$.ajax({
@@ -526,5 +553,5 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 
 
 
-
-
+  
+  

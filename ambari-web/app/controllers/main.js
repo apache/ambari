@@ -17,7 +17,52 @@
  */
 
 var App = require('app');
+require('models/background_operation');
 
 App.MainController = Em.Controller.extend({
-  name: 'mainController'
+  name: 'mainController',
+  backgroundOperations: null,
+  intervalId: false,
+  updateOperationsInterval: 8000,
+
+  startLoadOperationsPeriodically: function() {
+    this.intervalId = setInterval(this.loadBackgroundOperations, this.get('updateOperationsInterval'));
+  },
+  stopLoadOperationsPeriodically:function () {
+    if(this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+    this.intervalId = false;
+  },
+  loadBackgroundOperations: function(){
+    var self = App.router.get('mainController');
+    jQuery.getJSON('data/hosts/background_operations/bg_operations.json',
+      function (data) {
+        var backgroundOperations = self.get('backgroundOperations');
+        if(!backgroundOperations || self.get('backgroundOperationsCount') >= 6)
+          self.set('backgroundOperations', data);
+        else backgroundOperations.tasks.pushObjects(data['tasks'])
+      }
+    )
+  },
+
+  backgroundOperationsCount: function() {
+    return this.get('backgroundOperations.tasks.length');
+  }.property('backgroundOperations.tasks.length'),
+
+  showBackgroundOperationsPopup: function(){
+    App.ModalPopup.show({
+      headerClass: Ember.View.extend({
+        controllerBinding: 'App.router.mainController',
+        template:Ember.Handlebars.compile('{{backgroundOperationsCount}} Background Operations Running')
+      }),
+      bodyClass: Ember.View.extend({
+        controllerBinding: 'App.router.mainController',
+        templateName: require('templates/main/background_operations_popup')
+      }),
+      onPrimary: function() {
+        this.hide();
+      }
+    });
+  }
 })

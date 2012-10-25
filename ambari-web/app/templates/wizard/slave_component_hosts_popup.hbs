@@ -14,10 +14,10 @@
       </td>
       <td>
         {{#view App.SlaveComponentDropDownGroupView contentBinding="host"}}
-        <select>
+        <select {{action changeGroup target="view" on="change"}}>
           {{#each groupName in controller.getGroupsForDropDown}}
             {{#view view.optionTag contentBinding="groupName"}}
-              <option value="{{unbound groupName}}" {{bindAttr selected="view.selected"}} {{action changeGroup target="view"}}>
+              <option value="{{unbound groupName}}" {{bindAttr selected="view.selected"}}>
                 {{groupName}}
               </option>
             {{/view}}

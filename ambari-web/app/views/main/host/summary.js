@@ -33,7 +33,10 @@ App.MainHostSummaryView = Em.View.extend({
     }.property('content.id') ,
     buttonClass: function() {
       return this.get('content.workStatus') ? 'btn btn-success dropdown-toggle' : 'btn btn-danger dropdown-toggle';
-    }.property('content.workStatus')
+    }.property('content.workStatus'),
+    isDataNode: function() {
+      return this.get('content.componentName') === 'DataNode';
+    }.property('content')
   })
 
 });

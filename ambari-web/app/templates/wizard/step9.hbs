@@ -74,7 +74,7 @@
 				</thead>
 
 				<tbody>
-				{{#each host in controller}}
+				{{#each host in controller.hosts}}
 				{{#view App.HostStatusView objBinding="host"}}
 				<td>
 					{{host.name}}
