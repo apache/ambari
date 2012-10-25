@@ -150,4 +150,38 @@ public class ServiceComponentResponse {
   public void setDesiredStackVersion(String desiredStackVersion) {
     this.desiredStackVersion = desiredStackVersion;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ServiceComponentResponse that =
+        (ServiceComponentResponse) o;
+
+    if (clusterName != null ?
+        !clusterName.equals(that.clusterName) : that.clusterName != null) {
+      return false;
+    }
+    if (serviceName != null ?
+        !serviceName.equals(that.serviceName) : that.serviceName != null) {
+      return false;
+    }
+    if (componentName != null ?
+        !componentName.equals(that.componentName) : that.componentName != null){
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = clusterId != null? clusterId.intValue() : 0;
+    result = 71 * result + (clusterName != null ? clusterName.hashCode() : 0);
+    result = 71 * result + (serviceName != null ? serviceName.hashCode() : 0);
+    result = 71 * result + (componentName != null ? componentName.hashCode():0);
+    return result;
+  }
+
 }

@@ -37,6 +37,7 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.state.Cluster;
@@ -1174,52 +1175,60 @@ public class AmbariManagementControllerImpl implements
         for (ServiceComponentHost scHost :
             changedScHosts.get(compName).get(newState)) {
           RoleCommand roleCommand;
-          State oldSchState = scHost.getDesiredState();
+          State oldSchState = scHost.getState();
           ServiceComponentHostEvent event;
           switch(newState) {
             case INSTALLED:
               if (oldSchState == State.INIT
                   || oldSchState == State.UNINSTALLED
-                  || oldSchState == State.INSTALLED) {
+                  || oldSchState == State.INSTALLED
+                  || oldSchState == State.INSTALL_FAILED) {
                 roleCommand = RoleCommand.INSTALL;
                 event = new ServiceComponentHostInstallEvent(
                     scHost.getServiceComponentName(), scHost.getHostName(),
                     nowTimestamp);
-              } else if (oldSchState == State.STARTED) {
+              } else if (oldSchState == State.STARTED
+                  || oldSchState == State.STOP_FAILED) {
                 roleCommand = RoleCommand.STOP;
                 event = new ServiceComponentHostStopEvent(
                     scHost.getServiceComponentName(), scHost.getHostName(),
                     nowTimestamp);
               } else {
                 // FIXME throw correct error
-                throw new AmbariException("Invalid transition for "
+                throw new AmbariException("Invalid transition for"
+                    + " servicecomponenthost"
                     + ", clusterName=" + cluster.getClusterName()
                     + ", clusterId=" + cluster.getClusterId()
                     + ", serviceName=" + scHost.getServiceName()
                     + ", componentName=" + scHost.getServiceComponentName()
                     + ", hostname=" + scHost.getHostName()
-                    + ", currentDesiredState=" + oldSchState
-                    + ", newDesiredState" + newState);
+                    + ", currentState=" + oldSchState
+                    + ", newDesiredState=" + newState);
               }
               break;
             case STARTED:
-              if (oldSchState == State.INSTALLED) {
+              if (oldSchState == State.INSTALLED
+                  || oldSchState == State.START_FAILED) {
                 roleCommand = RoleCommand.START;
                 event = new ServiceComponentHostStartEvent(
                     scHost.getServiceComponentName(), scHost.getHostName(),
                     nowTimestamp);
               } else {
                 // FIXME throw correct error
-                throw new AmbariException("Invalid transition for "
+                throw new AmbariException("Invalid transition for"
+                    + " servicecomponenthost"
                     + ", clusterName=" + cluster.getClusterName()
                     + ", clusterId=" + cluster.getClusterId()
                     + ", serviceName=" + scHost.getServiceName()
                     + ", componentName=" + scHost.getServiceComponentName()
                     + ", hostname=" + scHost.getHostName()
-                    + ", currentDesiredState=" + oldSchState
-                    + ", newDesiredState" + newState);
+                    + ", currentState=" + oldSchState
+                    + ", newDesiredState=" + newState);
               }
               break;
+            case INIT:
+            case UNINSTALLED:
+              throw new AmbariException("Uninstall is currently not supported");
             default:
               // TODO fix handling other transitions
               throw new AmbariException("Unsupported state change operation");
@@ -1284,7 +1293,45 @@ public class AmbariManagementControllerImpl implements
     return new TrackActionResponse(requestId);
   }
 
-  private boolean isValidTransition(State oldState, State newState) {
+  private boolean isValidStateTransition(State oldState,
+      State newState) {
+    switch(newState) {
+      case INSTALLED:
+        if (oldState == State.INIT
+            || oldState == State.UNINSTALLED
+            || oldState == State.INSTALLED
+            || oldState == State.STARTED
+            || oldState == State.INSTALL_FAILED
+            || oldState == State.STOP_FAILED) {
+          return true;
+        }
+        break;
+      case STARTED:
+        if (oldState == State.INSTALLED
+            || oldState == State.STARTED
+            || oldState == State.START_FAILED) {
+          return true;
+        }
+        break;
+      case UNINSTALLED:
+        if (oldState == State.INSTALLED
+            || oldState == State.UNINSTALLED
+            || oldState == State.UNINSTALL_FAILED) {
+          return true;
+        }
+      case INIT:
+        if (oldState == State.UNINSTALLED
+            || oldState == State.INIT
+            || oldState == State.WIPEOUT_FAILED) {
+          return true;
+        }
+    }
+    return false;
+  }
+
+
+  private boolean isValidDesiredStateTransition(State oldState,
+      State newState) {
     switch(newState) {
       case INSTALLED:
         if (oldState == State.INIT
@@ -1306,17 +1353,17 @@ public class AmbariManagementControllerImpl implements
 
   private void safeToUpdateConfigsForServiceComponentHost(
       ServiceComponentHost sch,
-      State currentDesiredState, State newDesiredState)
+      State currentState, State newDesiredState)
           throws AmbariException {
-    if (currentDesiredState == State.STARTED) {
+    if (currentState == State.STARTED) {
       throw new AmbariException("Changing of configs not supported"
           + " in STARTED state"
           + ", clusterName=" + sch.getClusterName()
           + ", serviceName=" + sch.getServiceName()
           + ", componentName=" + sch.getServiceComponentName()
           + ", hostname=" + sch.getHostName()
-          + ", currentDesiredState=" + currentDesiredState
-          + ", newDesiredState" + newDesiredState);
+          + ", currentState=" + currentState
+          + ", newDesiredState=" + newDesiredState);
     }
 
     if (newDesiredState != null) {
@@ -1329,8 +1376,8 @@ public class AmbariManagementControllerImpl implements
             + ", serviceName=" + sch.getServiceName()
             + ", componentName=" + sch.getServiceComponentName()
             + ", hostname=" + sch.getHostName()
-            + ", currentDesiredState=" + currentDesiredState
-            + ", newDesiredState" + newDesiredState);
+            + ", currentState=" + currentState
+            + ", newDesiredState=" + newDesiredState);
       }
     }
   }
@@ -1346,7 +1393,7 @@ public class AmbariManagementControllerImpl implements
           + ", serviceName=" + sc.getServiceName()
           + ", componentName=" + sc.getName()
           + ", currentDesiredState=" + currentDesiredState
-          + ", newDesiredState" + newDesiredState);
+          + ", newDesiredState=" + newDesiredState);
     }
 
     if (newDesiredState != null) {
@@ -1359,13 +1406,13 @@ public class AmbariManagementControllerImpl implements
             + ", serviceName=" + sc.getServiceName()
             + ", componentName=" + sc.getName()
             + ", currentDesiredState=" + currentDesiredState
-            + ", newDesiredState" + newDesiredState);
+            + ", newDesiredState=" + newDesiredState);
       }
     }
     for (ServiceComponentHost sch :
       sc.getServiceComponentHosts().values()) {
       safeToUpdateConfigsForServiceComponentHost(sch,
-        sch.getDesiredState(), newDesiredState);
+        sch.getState(), newDesiredState);
     }
   }
 
@@ -1378,7 +1425,7 @@ public class AmbariManagementControllerImpl implements
           + ", clusterName=" + service.getCluster().getClusterName()
           + ", serviceName=" + service.getName()
           + ", currentDesiredState=" + currentDesiredState
-          + ", newDesiredState" + newDesiredState);
+          + ", newDesiredState=" + newDesiredState);
     }
 
     if (newDesiredState != null) {
@@ -1390,7 +1437,7 @@ public class AmbariManagementControllerImpl implements
             + ", clusterName=" + service.getCluster().getClusterName()
             + ", serviceName=" + service.getName()
             + ", currentDesiredState=" + currentDesiredState
-            + ", newDesiredState" + newDesiredState);
+            + ", newDesiredState=" + newDesiredState);
       }
     }
 
@@ -1510,14 +1557,15 @@ public class AmbariManagementControllerImpl implements
       seenNewStates.add(newState);
 
       if (newState != oldState) {
-        if (!isValidTransition(oldState, newState)) {
+        if (!isValidDesiredStateTransition(oldState, newState)) {
           // FIXME throw correct error
-          throw new AmbariException("Invalid transition for "
+          throw new AmbariException("Invalid transition for"
+              + " service"
               + ", clusterName=" + cluster.getClusterName()
               + ", clusterId=" + cluster.getClusterId()
               + ", serviceName=" + s.getName()
               + ", currentDesiredState=" + oldState
-              + ", newDesiredState" + newState);
+              + ", newDesiredState=" + newState);
 
         }
         if (!changedServices.containsKey(newState)) {
@@ -1542,15 +1590,16 @@ public class AmbariManagementControllerImpl implements
               !newState.isValidClientComponentState()) {
             continue;
           }
-          if (!isValidTransition(oldScState, newState)) {
+          if (!isValidDesiredStateTransition(oldScState, newState)) {
             // FIXME throw correct error
-            throw new AmbariException("Invalid transition for "
+            throw new AmbariException("Invalid transition for"
+                + " servicecomponent"
                 + ", clusterName=" + cluster.getClusterName()
                 + ", clusterId=" + cluster.getClusterId()
                 + ", serviceName=" + sc.getServiceName()
                 + ", componentName=" + sc.getName()
                 + ", currentDesiredState=" + oldScState
-                + ", newDesiredState" + newState);
+                + ", newDesiredState=" + newState);
           }
           if (!changedComps.containsKey(newState)) {
             changedComps.put(newState, new ArrayList<ServiceComponent>());
@@ -1566,15 +1615,16 @@ public class AmbariManagementControllerImpl implements
               + ", newDesiredState=" + newState);
         }
         for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()){
-          State oldSchState = sch.getDesiredState();
+          State oldSchState = sch.getState();
           if (newState == oldSchState) {
+            sch.setDesiredState(newState);
             if (LOG.isDebugEnabled()) {
               LOG.debug("Ignoring ServiceComponentHost"
                   + ", clusterName=" + request.getClusterName()
                   + ", serviceName=" + s.getName()
                   + ", componentName=" + sc.getName()
                   + ", hostname=" + sch.getHostName()
-                  + ", currentDesiredState=" + oldSchState
+                  + ", currentState=" + oldSchState
                   + ", newDesiredState=" + newState);
             }
             continue;
@@ -1583,16 +1633,17 @@ public class AmbariManagementControllerImpl implements
               !newState.isValidClientComponentState()) {
             continue;
           }
-          if (!isValidTransition(oldSchState, newState)) {
+          if (!isValidStateTransition(oldSchState, newState)) {
             // FIXME throw correct error
-            throw new AmbariException("Invalid transition for "
+            throw new AmbariException("Invalid transition for"
+                + " servicecomponenthost"
                 + ", clusterName=" + cluster.getClusterName()
                 + ", clusterId=" + cluster.getClusterId()
                 + ", serviceName=" + sch.getServiceName()
                 + ", componentName=" + sch.getServiceComponentName()
                 + ", hostname=" + sch.getHostName()
-                + ", currentDesiredState=" + oldSchState
-                + ", newDesiredState" + newState);
+                + ", currentState=" + oldSchState
+                + ", newDesiredState=" + newState);
           }
           if (!changedScHosts.containsKey(sc.getName())) {
             changedScHosts.put(sc.getName(),
@@ -1608,7 +1659,7 @@ public class AmbariManagementControllerImpl implements
                 + ", serviceName=" + s.getName()
                 + ", componentName=" + sc.getName()
                 + ", hostname=" + sch.getHostName()
-                + ", currentDesiredState=" + oldSchState
+                + ", currentState=" + oldSchState
                 + ", newDesiredState=" + newState);
           }
           changedScHosts.get(sc.getName()).get(newState).add(sch);
@@ -1779,15 +1830,16 @@ public class AmbariManagementControllerImpl implements
 
       State oldScState = sc.getDesiredState();
       if (newState != oldScState) {
-        if (!isValidTransition(oldScState, newState)) {
+        if (!isValidDesiredStateTransition(oldScState, newState)) {
           // FIXME throw correct error
-          throw new AmbariException("Invalid transition for "
+          throw new AmbariException("Invalid transition for"
+              + " servicecomponent"
               + ", clusterName=" + cluster.getClusterName()
               + ", clusterId=" + cluster.getClusterId()
               + ", serviceName=" + sc.getServiceName()
               + ", componentName=" + sc.getName()
               + ", currentDesiredState=" + oldScState
-              + ", newDesiredState" + newState);
+              + ", newDesiredState=" + newState);
         }
         if (!changedComps.containsKey(newState)) {
           changedComps.put(newState, new ArrayList<ServiceComponent>());
@@ -1808,29 +1860,31 @@ public class AmbariManagementControllerImpl implements
       // at some point do we need to do stuff based on live state?
 
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-        State oldSchState = sch.getDesiredState();
+        State oldSchState = sch.getState();
         if (newState == oldSchState) {
+          sch.setDesiredState(newState);
           if (LOG.isDebugEnabled()) {
             LOG.debug("Ignoring ServiceComponentHost"
                 + ", clusterName=" + request.getClusterName()
                 + ", serviceName=" + s.getName()
                 + ", componentName=" + sc.getName()
                 + ", hostname=" + sch.getHostName()
-                + ", currentDesiredState=" + oldSchState
+                + ", currentState=" + oldSchState
                 + ", newDesiredState=" + newState);
           }
           continue;
         }
-        if (!isValidTransition(oldSchState, newState)) {
+        if (!isValidStateTransition(oldSchState, newState)) {
           // FIXME throw correct error
-          throw new AmbariException("Invalid transition for "
+          throw new AmbariException("Invalid transition for"
+              + " servicecomponenthost"
               + ", clusterName=" + cluster.getClusterName()
               + ", clusterId=" + cluster.getClusterId()
               + ", serviceName=" + sch.getServiceName()
               + ", componentName=" + sch.getServiceComponentName()
               + ", hostname=" + sch.getHostName()
-              + ", currentDesiredState=" + oldSchState
-              + ", newDesiredState" + newState);
+              + ", currentState=" + oldSchState
+              + ", newDesiredState=" + newState);
         }
         if (!changedScHosts.containsKey(sc.getName())) {
           changedScHosts.put(sc.getName(),
@@ -1846,7 +1900,7 @@ public class AmbariManagementControllerImpl implements
               + ", serviceName=" + s.getName()
               + ", componentName=" + sc.getName()
               + ", hostname=" + sch.getHostName()
-              + ", currentDesiredState=" + oldSchState
+              + ", currentState=" + oldSchState
               + ", newDesiredState=" + newState);
         }
         changedScHosts.get(sc.getName()).get(newState).add(sch);
@@ -2010,7 +2064,7 @@ public class AmbariManagementControllerImpl implements
         request.getComponentName());
       ServiceComponentHost sch = sc.getServiceComponentHost(
         request.getHostname());
-      State oldState = sch.getDesiredState();
+      State oldState = sch.getState();
       State newState = null;
       if (request.getDesiredState() != null) {
         newState = State.valueOf(request.getDesiredState());
@@ -2065,30 +2119,32 @@ public class AmbariManagementControllerImpl implements
 
       seenNewStates.add(newState);
 
-      State oldSchState = sch.getDesiredState();
+      State oldSchState = sch.getState();
       if (newState == oldSchState) {
+        sch.setDesiredState(newState);
         if (LOG.isDebugEnabled()) {
           LOG.debug("Ignoring ServiceComponentHost"
               + ", clusterName=" + request.getClusterName()
               + ", serviceName=" + s.getName()
               + ", componentName=" + sc.getName()
               + ", hostname=" + sch.getHostName()
-              + ", currentDesiredState=" + oldSchState
+              + ", currentState=" + oldSchState
               + ", newDesiredState=" + newState);
         }
         continue;
       }
 
-      if (!isValidTransition(oldSchState, newState)) {
+      if (!isValidStateTransition(oldSchState, newState)) {
         // FIXME throw correct error
-        throw new AmbariException("Invalid transition for "
+        throw new AmbariException("Invalid transition for"
+            + " servicecomponenthost"
             + ", clusterName=" + cluster.getClusterName()
             + ", clusterId=" + cluster.getClusterId()
             + ", serviceName=" + sch.getServiceName()
             + ", componentName=" + sch.getServiceComponentName()
             + ", hostname=" + sch.getHostName()
-            + ", currentDesiredState=" + oldSchState
-            + ", newDesiredState" + newState);
+            + ", currentState=" + oldSchState
+            + ", newDesiredState=" + newState);
       }
       if (!changedScHosts.containsKey(sc.getName())) {
         changedScHosts.put(sc.getName(),
@@ -2104,7 +2160,7 @@ public class AmbariManagementControllerImpl implements
             + ", serviceName=" + s.getName()
             + ", componentName=" + sc.getName()
             + ", hostname=" + sch.getHostName()
-            + ", currentDesiredState=" + oldSchState
+            + ", currentState=" + oldSchState
             + ", newDesiredState=" + newState);
       }
       changedScHosts.get(sc.getName()).get(newState).add(sch);
@@ -2207,6 +2263,69 @@ public class AmbariManagementControllerImpl implements
       throws AmbariException {
     // TODO Auto-generated method stub
 
+  }
+
+  @Override
+  public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests)
+      throws AmbariException {
+    Set<ClusterResponse> response = new HashSet<ClusterResponse>();
+    for (ClusterRequest request : requests) {
+      response.addAll(getClusters(request));
+    }
+    return response;
+  }
+
+  @Override
+  public Set<ServiceResponse> getServices(Set<ServiceRequest> requests)
+      throws AmbariException {
+    Set<ServiceResponse> response = new HashSet<ServiceResponse>();
+    for (ServiceRequest request : requests) {
+      response.addAll(getServices(request));
+    }
+    return response;
+  }
+
+  @Override
+  public Set<ServiceComponentResponse> getComponents(
+      Set<ServiceComponentRequest> requests) throws AmbariException {
+    Set<ServiceComponentResponse> response =
+        new HashSet<ServiceComponentResponse>();
+    for (ServiceComponentRequest request : requests) {
+      response.addAll(getComponents(request));
+    }
+    return response;
+  }
+
+  @Override
+  public Set<HostResponse> getHosts(Set<HostRequest> requests)
+      throws AmbariException {
+    Set<HostResponse> response = new HashSet<HostResponse>();
+    for (HostRequest request : requests) {
+      response.addAll(getHosts(request));
+    }
+    return response;
+  }
+
+  @Override
+  public Set<ServiceComponentHostResponse> getHostComponents(
+      Set<ServiceComponentHostRequest> requests) throws AmbariException {
+    Set<ServiceComponentHostResponse> response =
+        new HashSet<ServiceComponentHostResponse>();
+    for (ServiceComponentHostRequest request : requests) {
+      response.addAll(getHostComponents(request));
+    }
+    return response;
+  }
+
+  @Override
+  public Set<ConfigurationResponse> getConfigurations(
+      Set<ConfigurationRequest> requests) throws AmbariException {
+    Set<ConfigurationResponse> response =
+        new HashSet<ConfigurationResponse>();
+    for (ConfigurationRequest request : requests) {
+      response.addAll(getConfigurations(request));
+    }
+    return response;
   }
 
 }

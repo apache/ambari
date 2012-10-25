@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-907. Add support for getting multiple objects in controller.
+  (hitesh)
+
   AMBARI-906. Util to extract hosts for various components. (jitendra)
 
   AMBARI-903. Various fixes for config handling integration. (Hitesh Shah via 

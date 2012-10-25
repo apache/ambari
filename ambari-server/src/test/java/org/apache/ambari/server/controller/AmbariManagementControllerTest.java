@@ -48,6 +48,7 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackVersion;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.bag.HashBag;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -1210,6 +1211,7 @@ public class AmbariManagementControllerTest {
       Assert.assertEquals(State.INSTALLED, sc.getDesiredState());
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
+        Assert.assertEquals(State.INIT, sch.getState());
       }
     }
 
@@ -1228,6 +1230,15 @@ public class AmbariManagementControllerTest {
             + ", actionId=" + stage.getActionId()
             + ", commandDetails="
             + StageUtils.jaxbToString(stage.getExecutionCommands(host).get(0)));
+      }
+    }
+
+    // manually change live state to installed as no running action manager
+    for (ServiceComponent sc :
+      clusters.getCluster(clusterName).getService(serviceName)
+      .getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        sch.setState(State.INSTALLED);
       }
     }
 
@@ -1419,6 +1430,17 @@ public class AmbariManagementControllerTest {
     r = new ServiceRequest(c2.getClusterName(), null, null, "INIT");
     resp = controller.getServices(r);
     Assert.assertEquals(1, resp.size());
+
+    ServiceRequest r1, r2, r3;
+    r1 = new ServiceRequest(c1.getClusterName(), null, null, "INSTALLED");
+    r2 = new ServiceRequest(c2.getClusterName(), null, null, "INIT");
+    r3 = new ServiceRequest(c2.getClusterName(), null, null, "INIT");
+
+    Set<ServiceRequest> reqs = new HashSet<ServiceRequest>();
+    reqs.addAll(Arrays.asList(r1, r2, r3));
+    resp = controller.getServices(reqs);
+    Assert.assertEquals(3, resp.size());
+
   }
 
 
@@ -1563,6 +1585,17 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(sc5.getName(),
         resps.iterator().next().getComponentName());
 
+    ServiceComponentRequest r1, r2, r3;
+    Set<ServiceComponentRequest> reqs = new HashSet<ServiceComponentRequest>();
+    r1 = new ServiceComponentRequest(c2.getClusterName(),
+        null, null, null, State.UNINSTALLED.toString());
+    r2 = new ServiceComponentRequest(c1.getClusterName(),
+        null, null, null, null);
+    r3 = new ServiceComponentRequest(c1.getClusterName(),
+        null, null, null, State.INIT.toString());
+    reqs.addAll(Arrays.asList(r1, r2, r3));
+    resps = controller.getComponents(reqs);
+    Assert.assertEquals(7, resps.size());
   }
 
   @Test
@@ -1766,6 +1799,18 @@ public class AmbariManagementControllerTest {
     resps = controller.getHostComponents(r);
     Assert.assertEquals(1, resps.size());
 
+    ServiceComponentHostRequest r1, r2, r3;
+    r1 = new ServiceComponentHostRequest(c1.getClusterName(), null,
+        null, "h3", null, null);
+    r2 = new ServiceComponentHostRequest(c1.getClusterName(), s3.getName(),
+        sc3.getName(), "h2", null, null);
+    r3 = new ServiceComponentHostRequest(c1.getClusterName(), null,
+        null, "h2", null, null);
+    Set<ServiceComponentHostRequest> reqs =
+        new HashSet<ServiceComponentHostRequest>();
+    reqs.addAll(Arrays.asList(r1, r2, r3));
+    resps = controller.getHostComponents(reqs);
+    Assert.assertEquals(4, resps.size());
   }
 
   @Test
@@ -2016,6 +2061,11 @@ public class AmbariManagementControllerTest {
     sch3.setDesiredState(State.INSTALLED);
     sch4.setDesiredState(State.INSTALLED);
     sch5.setDesiredState(State.INSTALLED);
+    sch1.setState(State.INSTALLED);
+    sch2.setState(State.INSTALLED);
+    sch3.setState(State.INSTALLED);
+    sch4.setState(State.INSTALLED);
+    sch5.setState(State.INSTALLED);
 
     Set<ServiceRequest> reqs = new HashSet<ServiceRequest>();
     ServiceRequest req1, req2;
@@ -2035,11 +2085,16 @@ public class AmbariManagementControllerTest {
     sc1.setDesiredState(State.STARTED);
     sc2.setDesiredState(State.INSTALLED);
     sc3.setDesiredState(State.STARTED);
-    sch1.setDesiredState(State.INIT);
+    sch1.setDesiredState(State.INSTALLED);
     sch2.setDesiredState(State.INSTALLED);
-    sch3.setDesiredState(State.INIT);
+    sch3.setDesiredState(State.INSTALLED);
     sch4.setDesiredState(State.INSTALLED);
     sch5.setDesiredState(State.INSTALLED);
+    sch1.setState(State.INIT);
+    sch2.setState(State.INSTALLED);
+    sch3.setState(State.INIT);
+    sch4.setState(State.INSTALLED);
+    sch5.setState(State.INSTALLED);
 
     try {
       reqs.clear();
@@ -2057,11 +2112,16 @@ public class AmbariManagementControllerTest {
     sc1.setDesiredState(State.STARTED);
     sc2.setDesiredState(State.INSTALLED);
     sc3.setDesiredState(State.STARTED);
-    sch1.setDesiredState(State.INSTALLED);
-    sch2.setDesiredState(State.INSTALLED);
-    sch3.setDesiredState(State.INSTALLED);
+    sch1.setDesiredState(State.STARTED);
+    sch2.setDesiredState(State.STARTED);
+    sch3.setDesiredState(State.STARTED);
     sch4.setDesiredState(State.STARTED);
-    sch5.setDesiredState(State.INSTALLED);
+    sch5.setDesiredState(State.STARTED);
+    sch1.setState(State.INSTALLED);
+    sch2.setState(State.START_FAILED);
+    sch3.setState(State.INSTALLED);
+    sch4.setState(State.STARTED);
+    sch5.setState(State.INSTALLED);
 
     reqs.clear();
     req1 = new ServiceRequest(clusterName, serviceName1, null,
@@ -2082,6 +2142,11 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(State.STARTED, sch3.getDesiredState());
     Assert.assertEquals(State.STARTED, sch4.getDesiredState());
     Assert.assertEquals(State.STARTED, sch5.getDesiredState());
+    Assert.assertEquals(State.INSTALLED, sch1.getState());
+    Assert.assertEquals(State.START_FAILED, sch2.getState());
+    Assert.assertEquals(State.INSTALLED, sch3.getState());
+    Assert.assertEquals(State.STARTED, sch4.getState());
+    Assert.assertEquals(State.INSTALLED, sch5.getState());
 
     long requestId = trackAction.getRequestId();
     List<Stage> stages = actionDB.getAllStages(requestId);
@@ -2115,6 +2180,13 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(stage1.getExecutionCommand(host2, "NAMENODE"));
     Assert.assertNotNull(stage2.getExecutionCommand(host1, "HBASE_MASTER"));
     Assert.assertNull(stage1.getExecutionCommand(host2, "DATANODE"));
+
+    // manually set live state
+    sch1.setState(State.STARTED);
+    sch2.setState(State.STARTED);
+    sch3.setState(State.STARTED);
+    sch4.setState(State.STARTED);
+    sch5.setState(State.STARTED);
 
     // test no-op
     reqs.clear();
@@ -2201,6 +2273,11 @@ public class AmbariManagementControllerTest {
     sch3.setDesiredState(State.STARTED);
     sch4.setDesiredState(State.INSTALLED);
     sch5.setDesiredState(State.INSTALLED);
+    sch1.setState(State.INSTALLED);
+    sch2.setState(State.INSTALLED);
+    sch3.setState(State.STARTED);
+    sch4.setState(State.INSTALLED);
+    sch5.setState(State.INSTALLED);
 
     Set<ServiceComponentRequest> reqs =
         new HashSet<ServiceComponentRequest>();
@@ -2221,10 +2298,15 @@ public class AmbariManagementControllerTest {
     sc2.setDesiredState(State.INSTALLED);
     sc3.setDesiredState(State.STARTED);
     sch1.setDesiredState(State.INIT);
-    sch2.setDesiredState(State.INSTALLED);
+    sch2.setDesiredState(State.INIT);
     sch3.setDesiredState(State.INIT);
-    sch4.setDesiredState(State.INSTALLED);
-    sch5.setDesiredState(State.INSTALLED);
+    sch4.setDesiredState(State.INIT);
+    sch5.setDesiredState(State.INIT);
+    sch1.setState(State.INIT);
+    sch2.setState(State.INSTALLED);
+    sch3.setState(State.INIT);
+    sch4.setState(State.INSTALLED);
+    sch5.setState(State.INSTALLED);
 
     try {
       reqs.clear();
@@ -2241,11 +2323,16 @@ public class AmbariManagementControllerTest {
     sc1.setDesiredState(State.STARTED);
     sc2.setDesiredState(State.INIT);
     sc3.setDesiredState(State.STARTED);
-    sch1.setDesiredState(State.STARTED);
+    sch1.setDesiredState(State.INIT);
     sch2.setDesiredState(State.INIT);
-    sch3.setDesiredState(State.INSTALLED);
-    sch4.setDesiredState(State.STARTED);
+    sch3.setDesiredState(State.INIT);
+    sch4.setDesiredState(State.INIT);
     sch5.setDesiredState(State.INIT);
+    sch1.setState(State.STARTED);
+    sch2.setState(State.INIT);
+    sch3.setState(State.INSTALLED);
+    sch4.setState(State.STOP_FAILED);
+    sch5.setState(State.INIT);
 
     reqs.clear();
     req1 = new ServiceComponentRequest(clusterName, serviceName1,
@@ -2268,6 +2355,11 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(State.INSTALLED, sch3.getDesiredState());
     Assert.assertEquals(State.INSTALLED, sch4.getDesiredState());
     Assert.assertEquals(State.INSTALLED, sch5.getDesiredState());
+    Assert.assertEquals(State.STARTED, sch1.getState());
+    Assert.assertEquals(State.INIT, sch2.getState());
+    Assert.assertEquals(State.INSTALLED, sch3.getState());
+    Assert.assertEquals(State.STOP_FAILED, sch4.getState());
+    Assert.assertEquals(State.INIT, sch5.getState());
 
     long requestId = trackAction.getRequestId();
     List<Stage> stages = actionDB.getAllStages(requestId);
@@ -2280,6 +2372,13 @@ public class AmbariManagementControllerTest {
     }
 
     // FIXME verify stages content - execution commands, etc
+
+    // maually set live state
+    sch1.setState(State.INSTALLED);
+    sch2.setState(State.INSTALLED);
+    sch3.setState(State.INSTALLED);
+    sch4.setState(State.INSTALLED);
+    sch5.setState(State.INSTALLED);
 
     // test no-op
     reqs.clear();
@@ -2366,6 +2465,11 @@ public class AmbariManagementControllerTest {
     sch3.setDesiredState(State.INIT);
     sch4.setDesiredState(State.INSTALLED);
     sch5.setDesiredState(State.INSTALLED);
+    sch1.setState(State.INIT);
+    sch2.setState(State.INSTALL_FAILED);
+    sch3.setState(State.INIT);
+    sch4.setState(State.INSTALLED);
+    sch5.setState(State.INSTALLED);
 
     ServiceComponentHostRequest req1, req2, req3, req4, req5;
     Set<ServiceComponentHostRequest> reqs =
@@ -2446,6 +2550,13 @@ public class AmbariManagementControllerTest {
     }
 
     // FIXME verify stages content - execution commands, etc
+
+    // manually set live state
+    sch1.setState(State.INSTALLED);
+    sch2.setState(State.INSTALLED);
+    sch3.setState(State.INSTALLED);
+    sch4.setState(State.INSTALLED);
+    sch5.setState(State.INSTALLED);
 
     // test no-op
     reqs.clear();

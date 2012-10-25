@@ -716,7 +716,49 @@ public class JDBCManagementController implements AmbariManagementController {
   public void getOperations(Set<OperationRequest> request)
       throws AmbariException {
     // TODO Auto-generated method stub
-    
+
+  }
+
+  @Override
+  public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Set<ServiceResponse> getServices(Set<ServiceRequest> requests)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Set<ServiceComponentResponse> getComponents(
+      Set<ServiceComponentRequest> requests) throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Set<HostResponse> getHosts(Set<HostRequest> requests)
+      throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Set<ServiceComponentHostResponse> getHostComponents(
+      Set<ServiceComponentHostRequest> requests) throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Set<ConfigurationResponse> getConfigurations(
+      Set<ConfigurationRequest> requests) throws AmbariException {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
 

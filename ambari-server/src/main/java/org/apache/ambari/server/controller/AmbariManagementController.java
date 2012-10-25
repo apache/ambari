@@ -103,6 +103,8 @@ public interface AmbariManagementController {
    */
   public Set<ClusterResponse> getClusters(ClusterRequest request)
       throws AmbariException;
+  public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests)
+      throws AmbariException;
 
   /**
    * Get the services identified by the given request object.
@@ -116,6 +118,8 @@ public interface AmbariManagementController {
    */
   public Set<ServiceResponse> getServices(ServiceRequest request)
       throws AmbariException;
+  public Set<ServiceResponse> getServices(Set<ServiceRequest> requests)
+      throws AmbariException;
 
   /**
    * Get the components identified by the given request object.
@@ -128,6 +132,8 @@ public interface AmbariManagementController {
    */
   public Set<ServiceComponentResponse> getComponents(
       ServiceComponentRequest request) throws AmbariException;
+  public Set<ServiceComponentResponse> getComponents(
+      Set<ServiceComponentRequest> requests) throws AmbariException;
 
   /**
    * Get the hosts identified by the given request object.
@@ -138,7 +144,10 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the resource cannot be read
    */
-  public Set<HostResponse> getHosts(HostRequest request) throws AmbariException;
+  public Set<HostResponse> getHosts(HostRequest request)
+      throws AmbariException;
+  public Set<HostResponse> getHosts(Set<HostRequest> requests)
+      throws AmbariException;
 
   /**
    * Get the host components identified by the given request object.
@@ -152,6 +161,8 @@ public interface AmbariManagementController {
    */
   public Set<ServiceComponentHostResponse> getHostComponents(
       ServiceComponentHostRequest request) throws AmbariException;
+  public Set<ServiceComponentHostResponse> getHostComponents(
+      Set<ServiceComponentHostRequest> requests) throws AmbariException;
 
   /**
    * Gets the configurations identified by the given request object.
@@ -162,7 +173,10 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException if the configurations could not be read
    */
-  public Set<ConfigurationResponse> getConfigurations(ConfigurationRequest request) throws AmbariException;
+  public Set<ConfigurationResponse> getConfigurations(
+      ConfigurationRequest request) throws AmbariException;
+  public Set<ConfigurationResponse> getConfigurations(
+      Set<ConfigurationRequest> requests) throws AmbariException;
 
 
   // ----- Update -----------------------------------------------------------

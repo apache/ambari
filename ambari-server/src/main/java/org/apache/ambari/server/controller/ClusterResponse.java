@@ -77,4 +77,31 @@ public class ClusterResponse {
     sb.append("] }");
     return sb.toString();
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ClusterResponse that = (ClusterResponse) o;
+
+    if (clusterId != null ?
+        !clusterId.equals(that.clusterId) : that.clusterId != null) {
+      return false;
+    }
+    if (clusterName != null ?
+        !clusterName.equals(that.clusterName) : that.clusterName != null) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = clusterId != null ? clusterId.intValue() : 0;
+    result = 71 * result + (clusterName != null ? clusterName.hashCode() : 0);
+    return result;
+  }
+
 }

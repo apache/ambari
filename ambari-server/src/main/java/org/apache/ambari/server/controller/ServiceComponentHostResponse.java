@@ -165,4 +165,42 @@ public class ServiceComponentHostResponse {
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ServiceComponentHostResponse that =
+        (ServiceComponentHostResponse) o;
+
+    if (clusterName != null ?
+        !clusterName.equals(that.clusterName) : that.clusterName != null) {
+      return false;
+    }
+    if (serviceName != null ?
+        !serviceName.equals(that.serviceName) : that.serviceName != null) {
+      return false;
+    }
+    if (componentName != null ?
+        !componentName.equals(that.componentName) : that.componentName != null){
+      return false;
+    }
+    if (hostname != null ?
+        !hostname.equals(that.hostname) : that.hostname != null) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = clusterName != null ? clusterName.hashCode() : 0;
+    result = 71 * result + (serviceName != null ? serviceName.hashCode() : 0);
+    result = 71 * result + (componentName != null ? componentName.hashCode():0);
+    result = 71 * result + (hostname != null ? hostname.hashCode() : 0);
+    return result;
+  }
+
 }

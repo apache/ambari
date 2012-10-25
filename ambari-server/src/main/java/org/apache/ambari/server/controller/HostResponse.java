@@ -384,4 +384,26 @@ public class HostResponse {
   public void setHealthStatus(HostHealthStatus healthStatus) {
     this.healthStatus = healthStatus;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    HostResponse that = (HostResponse) o;
+
+    if (hostname != null ?
+        !hostname.equals(that.hostname) : that.hostname != null) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = hostname != null ? hostname.hashCode() : 0;
+    return result;
+  }
+
 }
