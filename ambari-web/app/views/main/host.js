@@ -23,7 +23,7 @@ App.MainHostView = Em.View.extend({
   content:function(){
     return App.router.get('mainHostController.content');
   }.property('App.router.mainHostController.content'),
-  componentsIds: [],
+  componentsIds: [1, 2, 3, 4, 5, 6, 7, 8],
   isFilterOpen: false,
   isApplyDisabled: function(){
     return !this.get('isFilterOpen')
@@ -45,7 +45,7 @@ App.MainHostView = Em.View.extend({
       $('.filter-component').each(function () {
         var componentId = parseInt($(this).attr('id').replace('component-',''));
         var index = filters.indexOf(componentId);
-        $(this).attr('checked', index!=-1);
+        $(this).attr('checked', index == -1);
       });
       this.set('componentsIds', filters.toArray());
 
@@ -102,6 +102,7 @@ App.MainBackgroundOperation = Em.View.extend({
   classNames: ['background-operations'],
   classNameBindings: ['isOpen'],
   isOpen: false,
+  logDetails: null,
   isOpenShowLog: false,
   iconClass: function(){
     return this.get('isOpen') ? 'icon-minus' : 'icon-plus';
@@ -109,10 +110,16 @@ App.MainBackgroundOperation = Em.View.extend({
   openDetails: function(){
     this.set('isOpen', !this.get('isOpen'))
   },
-  showLogClass: function(){
-    return this.get('isOpenShowLog') ? 'operation-log open' : 'operation-log';
-  }.property('isOpenShowLog'),
-  showLog:function(){
+  showOperationLog:function(){
+    var operation = this.get('content');
+    var self = this;
+    if (!this.get('isOpenShowLog') && !this.get('logDetails')) {
+      jQuery.getJSON('data/hosts/background_operations/logs/task' +operation.taskId + '.json',
+        function (data) {
+          self.set('logDetails', data);
+        }
+      );
+    }
     this.set('isOpenShowLog', !this.get('isOpenShowLog'))
   }
 });

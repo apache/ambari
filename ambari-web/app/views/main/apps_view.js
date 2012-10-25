@@ -21,69 +21,96 @@ var date = require('utils/date');
 
 App.MainAppsView = Em.View.extend({
   templateName:require('templates/main/apps'),
-  classNames:['table', 'dataTable'],
-  oTable:null,
-  types:function () {
+  content:function () {
+    var content =  this.get('controller').get('content');
+    content.forEach(function(item){
+      var app = App.store.find(App.App, item.get('appId'));
+      item.set('appName', app.get('appName'));
+      item.set('type', app.get('type'));
+      item.set('lastUpdateTime', date.dateFormat(item.get('lastUpdateTime')));
+    });
+    return content;
+  }.property('App.router.mainAppsController.content'),
+  types: function(){
     var result = new Array();
-    var content = this.get('content');
-    content.forEach(function (item) {
+    this.get('content').forEach(function(item){
       result.push(item.get('type'));
     });
+    result = $.unique(result);
     return result;
   }.property('content'),
-  uniqueTypes:function () {
-    return this.get('controller').get('arrayUnique')(this.get('types'));
-  }.property('types'),
-  filterTypesView:Em.CollectionView.extend({
-    tagName:'span',
-    parentView:null,
-    content:function () {
-      var content = new Array();
-      this.set('parentView', this._parentView);
-      content.push({label:'All', active:'active'});
-      for (var i = 0; i < this._parentView.get('uniqueTypes').length; i++) {
-        content.push({
-          label:this._parentView.get('uniqueTypes')[i],
-          active:''
-        })
-      }
-      return content;
-    }.property('view.uniqueTypes'),
-    filterByType:function (event) {
-      var type = (event.context.label === 'All') ? '' : event.context.label;
-      event.view._parentView.get('parentView').get('oTable').fnFilter(type, 1);
-    },
-    itemViewClass:Em.View.extend({
-      tagName:'span',
-      classNames:['btn', 'btn-link'],
-
-      filterByType:function (event) {
-        event.view._parentView.get('filterByType')(event);
-      },
-      template:Ember.Handlebars.compile('<a {{action "filterByType" view.content target="view"}}>{{view.content.label}}</a><p></p>')
-    })
-
-  }),
+  oTable:null,
   didInsertElement:function () {
     var oTable = this.$('#dataTable').dataTable({
+      "sDom": '<"search-bar"f>rt<"page-bar"lip><"clear">',
+      "oLanguage": {
+        "sSearch": "<i class='icon-question-sign'>&nbsp;Search</i>",
+        "sLengthMenu": "Show: _MENU_",
+        "sInfo": "_START_ - _END_ of _TOTAL_",
+        "oPaginate":{
+          "sPrevious": "<i class='icon-arrow-left'></i>",
+          "sNext": "<i class='icon-arrow-right'></i>"
+        }
+      },
+      "bSortCellsTop": true,
+      "iDisplayLength": 10,
+      "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
       "aoColumns":[
         null,
         null,
         null,
         null,
         null,
-        { "sType":"ambari-date" },
-        null
+        null,
+        null,
+        null,
+        { "sType":"ambari-date" }
       ]
     });
     this.set('oTable', oTable);
   },
-  content:function () {
-    var content = App.router.get('mainAppsController.content');
-    content.forEach(function (item) {
-      item.set('numRuns', item.get('runs').get('content').length);
-      item.set('executionTime', date.dateFormat(item.get('executionTime')));
-    });
-    return content;
-  }.property('App.router.mainAppsController.content')
+  typeSelectView: Em.Select.extend({
+    classNames:['input-small'],
+    selected: 'Any',
+    content: function(){
+      this._parentView.get('types').push('Any');
+      return this._parentView.get('types');
+    }.property('view.types'),
+
+    /*types:function(){
+        function stripTags( str ){
+            return str.replace(/<\/?[^>]+>/gi, '');
+        };
+        var columnData = new Array('Any');
+        var length = this._parentView.get('oTable').fnSettings().fnRecordsTotal();
+        for(var i = 0; i < length; i++) {
+            columnData.push(stripTags(this._parentView.get('oTable').fnGetData(i,2)));
+        }
+        return jQuery.unique(columnData);
+    }.property(),*/
+    change:function(event){
+      if(this.get('selection') === 'Any') {
+        this._parentView.get('oTable').fnFilter('', 2);
+        return;
+      }
+      this._parentView.get('oTable').fnFilter(this.get('selection'), 2);
+    }
+  }),
+  rundateSelectView: Em.Select.extend({
+    change:function(e) {
+      console.log(this.get('selection'));
+    },
+    content: ['Any', 'Running Now', 'Past 1 Day', 'Past 2 Day', 'Past 7 Day', 'Past 14 Day', 'Past 30 Day', 'Custom'],
+    selected: 'Any',
+    classNames:['input-medium']
+  }),
+  appidFilterView: Em.TextField.extend({
+    classNames:['input-small'],
+    type:'text',
+    placeholder: 'Any ID',
+    filtering:function(){
+      console.log(this.get('value'));
+      this._parentView.get('oTable').fnFilter(this.get('value') ,0);
+    }.observes('value')
+  })
 });

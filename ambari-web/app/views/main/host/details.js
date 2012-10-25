@@ -20,7 +20,11 @@ var App = require('app');
 
 App.MainHostDetailsView = Em.View.extend({
   templateName: require('templates/main/host/details'),
-  content:function(){
+  content: function(){
     return App.router.get('mainHostDetailsController.content');
-  }.property('App.router.mainHostDetailsController.content')
+  }.property('App.router.mainHostDetailsController.content'),
+  maintenance: function(){
+    var options = [{action: 'deleteHost', 'label': 'Delete Host'}];
+    return options;
+  }.property('controller.content')
 });

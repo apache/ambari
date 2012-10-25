@@ -1,0 +1,13 @@
+{
+  "taskId": 1,
+  "stageId": 2,
+  "hostname": "x.y.z.com",
+  "role": "NAMENODE",
+  "command": "START",
+  "status": "PENDING",
+  "exitcode": "exitcode",
+  "stderror": "stderror",
+  "stdout": "stdout",
+  "startTime": "",
+  "attemptCount": 8
+}

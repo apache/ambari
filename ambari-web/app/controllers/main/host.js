@@ -37,15 +37,43 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   selectedHostsIds: [],
   sortingAsc: true,
   isSort: false,
+  intervalId: false,
+  updateOperationsInterval: 8000,
   sortClass: function(){
     return this.get('sortingAsc')? 'icon-arrow-down' : 'icon-arrow-up';
   }.property('sortingAsc'),
   isDisabled:true,
-  operations: App.BackgroundOperation.find(),
+  backgroundOperations: null,
+  startLoadOperationsPeriodically: function() {
+    this.intervalId = setInterval(this.loadBackgroundOperations, this.get('updateOperationsInterval'));
+  },
+  stopLoadOperationsPeriodically:function () {
+    if(this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+    this.intervalId = false;
+  },
+  loadBackgroundOperations: function(){
+    var self = App.router.get('mainHostController');
+    jQuery.getJSON('data/hosts/background_operations/bg_operations.json',
+      function (data) {
+        var backgroundOperations = self.get('backgroundOperations');
+        if(!backgroundOperations)
+          self.set('backgroundOperations', data);
+        else backgroundOperations.tasks.pushObjects(data['tasks'])
+      }
+    )
+  },
+
+  checkRemoved: function(host_id) {
+    var hosts = this.get('content');
+    var selectedHosts = hosts.filterProperty('id', host_id);
+    this.get('fullContent').removeObjects(selectedHosts);
+  },
 
   backgroundOperationsCount: function() {
-    return this.get('operations.length');
-  }.property('operations.length'),
+    return this.get('backgroundOperations.tasks.length');
+  }.property('backgroundOperations.tasks.length'),
 
   showBackgroundOperationsPopup: function(){
     var self = this;
@@ -94,7 +122,7 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   filterByComponentsIds: function(componentsIds) {
     this.set('filters.components', componentsIds);
     this.get('componentsForFilter').forEach(function(component) {
-      if (componentsIds.indexOf(component.get('id')) == -1){
+      if (componentsIds.indexOf(component.get('id')) != -1){
         component.set('isChecked', false);
       } else component.set('isChecked', true);
     });
@@ -115,7 +143,7 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
       this.get('fullContent').forEach(function(item) {
         var inFilters = false;
         item.get('components').forEach(function(component) {
-          if (filters.indexOf(component.get('id')) != -1){
+          if (filters.indexOf(component.get('id')) == -1){
             inFilters = true;
           }
         });

@@ -344,6 +344,8 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-917. Update layout and flow for App Browser. (yusaku)
+
   AMBARI-888. Add more tests for controller implementation. (hitesh)
 
   AMBARI-891. Initial work to refactor the Wizards in Ambari Web. (yusaku)

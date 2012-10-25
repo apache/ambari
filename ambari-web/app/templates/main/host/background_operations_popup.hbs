@@ -16,20 +16,30 @@
 * limitations under the License.
 -->
 
-{{#each operation in operations}}
+{{#each operation in backgroundOperations.tasks}}
 {{#view App.MainBackgroundOperation contentBinding="operation"}}
 <a class="open-details" {{action openDetails target="view"}} href="#">
   <i {{bindAttr class="view.iconClass"}}></i>
 </a>
-{{operation.operationName}}
+{{operation.command}} {{operation.role}} on {{operation.hostname}}
 <div class="operation-details">
-  {{#each event in operation.events}}
-  <div>{{event.eventDate}}: {{event.eventName}}</div>
-  {{/each}}
-  <a {{action showLog target="view"}} href="#">
+  {{#if operation.details.length}}
+    {{#each detail in operation.details}}
+    <div>{{detail.startTime}}: {{detail.name}}</div>
+    {{/each}}
+  {{/if}}
+  <a {{action showOperationLog target="view"}} href="#">
     {{#if view.isOpenShowLog}}Hide{{else}}Show{{/if}} operation log
   </a>
-  <div {{bindAttr class="view.showLogClass"}}>{{operation.operationLog}}</div>
+  {{#if view.isOpenShowLog}}
+  <div class="operation-log">
+    <dl class="dl-horizontal">
+      <dt>exitcode:</dt><dd>{{view.logDetails.exitcode}}</dd>
+      <dt>stdout:</dt><dd>{{view.logDetails.stdout}}</dd>
+      <dt>stderror:</dt><dd>{{view.logDetails.stderror}}</dd>
+    </dl>
+  </div>
+  {{/if}}
 </div>
 {{/view}}
 {{/each}}

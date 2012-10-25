@@ -25,7 +25,13 @@ App.MainHostSummaryView = Em.View.extend({
   }.property('App.router.mainHostDetailsController.content'),
   ComponentButtonView: Em.View.extend({
     content: null,
-    buttonClass: function(){
+    adjustedIndex: function() {
+      return this.getPath('_parentView.contentIndex') + 1;
+    }.property(),
+    positionButton: function() {
+      return (this.get("adjustedIndex")%2 == 0) ? true : false;
+    }.property('content.id') ,
+    buttonClass: function() {
       return this.get('content.workStatus') ? 'btn btn-success dropdown-toggle' : 'btn btn-danger dropdown-toggle';
     }.property('content.workStatus')
   })

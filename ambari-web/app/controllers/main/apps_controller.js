@@ -20,26 +20,13 @@ var App = require('app');
 
 App.MainAppsController = Em.ArrayController.extend({
   name:'mainAppsController',
-  content:App.App.find(),
+  content:App.Run.find(),
+  apps:App.App.find(),
   routeHome:function () {
     App.router.transitionTo('main.dashboard');
     var view = Ember.View.views['main_menu'];
     $.each(view._childViews, function () {
       this.set('active', this.get('content.routing') == 'dashboard' ? "active" : "");
     });
-  },
-  arrayUnique:function (array) {
-    var result = new Array();
-    var i, j, unique;
-    for (i = 0; i < array.length; i++) {
-      j = 0;
-      unique = true;
-      do {
-        if (array[i] === result[j]) unique = false;
-        j++;
-      } while (j < result.length);
-      if (unique) result.push(array[i]);
-    }
-    return result;
   }
 })

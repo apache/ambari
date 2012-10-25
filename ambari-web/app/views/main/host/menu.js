@@ -23,7 +23,6 @@ App.MainHostMenuView = Em.CollectionView.extend({
   classNames: ["nav", "nav-tabs"],
   content:[
     { label:'Summary', routing:'summary'},
-    { label:'Metrics', routing:'metrics'},
     { label:'Audit', routing:'audit'}
   ],
 

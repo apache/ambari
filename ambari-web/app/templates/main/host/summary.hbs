@@ -31,27 +31,31 @@
   <div class="span3 host-components pull-right">
     {{#each component in view.content.components}}
     {{#view view.ComponentButtonView contentBinding="component"}}
-    <div class="btn-group">
-      <button {{bindAttr class="view.buttonClass"}} data-toggle="dropdown">
-        {{unbound view.content.componentName}}
-        <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu">
-        <li>
-          <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
-            Start
-          </a>
-        </li>
-        <li>
-          <a href="javascript:void(null)" data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
-            Stop
-          </a>
-        </li>
-      </ul>
-    </div>
+      <div {{bindAttr class=":btn-group view.positionButton:pull-right:pull-left"}}>
+        <button {{bindAttr class="view.buttonClass"}} data-toggle="dropdown">
+          {{unbound view.content.componentName}}
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+            <li {{bindAttr class="view.content.workStatus::hidden"}}>
+              <a href="javascript:void(null)" data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
+                Stop
+              </a>
+            </li>
+            <li {{bindAttr class="view.content.workStatus:hidden:"}}>
+              <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
+                Start
+              </a>
+            </li>
+        </ul>
+      </div>
     {{/view}}
     {{/each}}
   </div>
   {{/if}}
 </div>
-
+<div class="row">
+  <div class="span5 host-configuration">
+    {{view App.MainHostMetricsView}}
+  </div>
+</div>

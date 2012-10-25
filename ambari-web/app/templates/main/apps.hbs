@@ -15,39 +15,51 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<div id="apps" class="box">
-  <div><a href='#' {{action "routeHome" target="controller"}}><i class="icon-home"></i></a>&nbsp;/&nbsp;Apps</div>
-  <div>Show:
-  {{view view.filterTypesView}}
-  </div>
-  <div class="box-header">
-  <h2>Application list</h2>
-    <table class="table table-bordered table-striped" id="dataTable">
+<div id="apps">
+    <div id="filter_info" class="row">
+      <div class="span3">Show: <a href="javascript:void(0)">filtered(400)</a>&nbsp;&#124;&nbsp;<a href="javascript:void(0)">starred(20)</a></div>
+      <div class="span2 offset1"><a href="javascript:void(0)">Clear filters</a>&nbsp;&#124;&nbsp;<a href="javascript:void(0)">Clear stars</a></div>
+    </div>
+    <table class="table table-striped" id="dataTable">
     <thead>
     <tr>
-      <th>Application Name</th>
-      <th>Type</th>
-      <th>Runs</th>
-      <th>Jobs</th>
-      <th>User</th>
-      <th>Last Run</th>
-      <th></th>
+      <th>App ID<i class="icon-question-sign"></i></th>
+      <th>Name<i class="icon-question-sign"></i></th>
+      <th>Type<i class="icon-question-sign"></i></th>
+      <th>User<i class="icon-question-sign"></i></th>
+      <th>Jobs<i class="icon-question-sign"></i></th>
+      <th>Input<i class="icon-question-sign"></i></th>
+      <th>Output<i class="icon-question-sign"></i></th>
+      <th>Duration<i class="icon-question-sign"></i></th>
+      <th>Run Date</th>
     </tr>
+    <tr>
+          <th>{{view view.appidFilterView}}</th>
+          <th><input class="input-small" type="text" placeholder="Name"/></th>
+          <th>{{view view.typeSelectView}}</th>
+          <th><input class="input-mini" type="text" placeholder="User"/></th>
+          <th><input class="input-mini" type="text" placeholder="Jobs"/></th>
+          <th><input class="input-mini" type="text" placeholder="Input"/></th>
+          <th><input class="input-mini" type="text" placeholder="Output"/></th>
+          <th><input class="input-mini" type="text" placeholder="Duration"/></th>
+          <th>{{view view.rundateSelectView}}</th>
+        </tr>
     </thead>
     <tbody>
-    {{#each app in view.content}}
+    {{#each run in view.content}}
     <tr>
-      <td>{{app.appName}}</td>
-      <td>{{app.type}}</td>
-      <td>{{app.numRuns}}</td>
-      <td>{{app.numJobsTotal}}</td>
-      <td>{{app.userName}}</td>
-      <td>{{app.executionTime}}</td>
-      <td><a href="#"{{action "showApp" app}}>Runs</a></td>
+      <td><i class="icon-star"></i>&nbsp;<a href="javascript:void(0)">ID&nbsp;{{run.appId}}</a></td>
+      <td>{{run.appName}}</td>
+      <td>{{run.type}}</td>
+      <td>{{run.userName}}</td>
+      <td>{{run.numJobsTotal}}</td>
+      <td>10MB</td>
+      <td>30MB</td>
+      <td>00:15:32</td>
+      <td>{{run.lastUpdateTime}}</td>
     </tr>
     {{/each}}
     </tbody>
     </table>
-    </div>
 </div>
 

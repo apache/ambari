@@ -106,5 +106,29 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.hide();
       }
     });
+  },
+  deleteButtonPopup: function(event) {
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('hosts.delete.popup.header'),
+      body: Em.I18n.t('hosts.delete.popup.body'),
+      primary: 'Yes',
+      secondary: 'No',
+      onPrimary: function() {
+        self.removeHost(event);
+        this.hide();
+      },
+      onSecondary: function() {
+        this.hide();
+      }
+    });
+  },
+  removeHost: function () {
+    var clientId = this.get('content.clientId');
+    var host_ids = this.get('content.store.clientIdToId');
+    var host_id = host_ids[clientId];
+    App.router.get('mainHostController').checkRemoved(host_id);
+    App.router.transitionTo('hosts');
+
   }
 })

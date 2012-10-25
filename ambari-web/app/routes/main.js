@@ -79,7 +79,6 @@ module.exports = Em.Route.extend({
   apps:Em.Route.extend({
     route:'/apps',
     connectOutlets:function (router, context) {
-      console.log(1245);
       router.get('mainController').connectOutlet('mainApps');
     },
     index:Ember.Route.extend({

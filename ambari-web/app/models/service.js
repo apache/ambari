@@ -128,6 +128,15 @@ App.Component.FIXTURES = [
     service_id:3,
     host_id:2,
     work_status:true
+  },
+  {
+    id:8,
+    component_name:'Oozie',
+    label: 'Oz',
+    type: false,
+    service_id:5,
+    host_id:2,
+    work_status:true
   }
 ];
 
