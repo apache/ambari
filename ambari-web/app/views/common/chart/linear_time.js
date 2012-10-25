@@ -30,6 +30,7 @@ var App = require('app');
  * Extending classes should override the following:
  * <ul>
  * <li>url - from where the data can be retrieved
+ * <li>title - Title to be displayed when showing the chart
  * <li>id - which uniquely identifies this chart in any page
  * <li>#transformToSeries(jsonData) - function to map server data into graph
  * series
@@ -64,6 +65,14 @@ App.ChartLinearTimeView = Ember.View
        * @default null
        */
       id: null,
+
+      /**
+       * Title to be shown under the chart.
+       * 
+       * @type String
+       * @default null
+       */
+      title: null,
 
       /**
        * @private
@@ -130,7 +139,7 @@ App.ChartLinearTimeView = Ember.View
           }, {
             x: 1,
             y: 1
-          } ],
+          } ]
         } ]
       },
 
@@ -194,12 +203,12 @@ App.ChartLinearTimeView = Ember.View
             interpolation: 'step-after',
             stroke: true,
             renderer: 'area',
-            strokeWidth: 1,
+            strokeWidth: 1
           });
           this._graph.renderer.unstack = true;
 
           xAxis = new Rickshaw.Graph.Axis.Time({
-            graph: this._graph,
+            graph: this._graph
           });
           yAxis = new Rickshaw.Graph.Axis.Y({
             tickFormat: this.yAxisFormatter,
@@ -207,12 +216,12 @@ App.ChartLinearTimeView = Ember.View
             graph: this._graph
           });
 
-          overlayElement.addEventListener('mousemove', function (e) {
+          overlayElement.addEventListener('mousemove', function () {
             $(xaxisElement).removeClass('hide');
             $(yaxisElement).removeClass('hide');
             $(chartElement).children("div").removeClass('hide');
           });
-          overlayElement.addEventListener('mouseout', function (e) {
+          overlayElement.addEventListener('mouseout', function () {
             $(xaxisElement).addClass('hide');
             $(yaxisElement).addClass('hide');
             $(chartElement).children("div").addClass('hide');
@@ -224,7 +233,7 @@ App.ChartLinearTimeView = Ember.View
             $(chartElement).children('div').addClass('hide');
           });
 
-          var legend = new Rickshaw.Graph.Legend({
+          new Rickshaw.Graph.Legend({
             graph: this._graph,
             element: xaxisElement
           });
@@ -271,12 +280,66 @@ App.ChartLinearTimeView = Ember.View
 App.ChartLinearTimeView.BytesFormatter = function (y) {
   var value = Rickshaw.Fixtures.Number.formatBase1024KMGTP(y);
   if (!y || y.length < 1) {
-    value = "0";
+    value = '';
   } else {
+    if ("number" == typeof value) {
+      value = String(value);
+    }
     if ("string" == typeof value) {
-      value = value.replace(/\.\d+/, " ")
-      value = value + "B";
+      value = value.replace(/\.\d+/, ''); // Remove decimal part
+      // Either it ends with digit or ends with character
+      value = value.replace(/(\d$)/, '$1 '); // Ends with digit like '120'
+      value = value.replace(/([a-zA-Z]$)/, ' $1'); // Ends with character like
+      // '120M'
+      value = value + 'B'; // Append B to make B, MB, GB etc.
     }
   }
   return value;
-}
+};
+
+/**
+ * A formatter which will turn a number into percentage display like '42%'
+ * 
+ * @type Function
+ */
+App.ChartLinearTimeView.PercentageFormatter = function (percentage) {
+  var value = percentage;
+  if (!value || value.length < 1) {
+    value = '';
+  } else {
+    value = value + '%';
+  }
+  return value;
+};
+
+/**
+ * A formatter which will turn elapsed time into display time like '50 ms',
+ * '5s', '10 m', '3 hr' etc. Time is expected to be provided in milliseconds.
+ * 
+ * @type Function
+ */
+App.ChartLinearTimeView.TimeElapsedFormatter = function (millis) {
+  var value = millis;
+  if (!value || value.length < 1) {
+    value = '';
+  } else if ("number" == typeof millis) {
+    var seconds = millis > 1000 ? Math.round(millis / 1000) : 0;
+    var minutes = seconds > 60 ? Math.round(seconds / 60) : 0;
+    var hours = minutes > 60 ? Math.round(minutes / 60) : 0;
+    var days = hours > 24 ? Math.round(hours / 24) : 0;
+    if (days > 0) {
+      value = days + ' d';
+    } else if (hours > 0) {
+      value = hours + ' hr';
+    } else if (minutes > 0) {
+      value = minutes + ' m';
+    } else if (seconds > 0) {
+      value = seconds + ' s';
+    } else if (millis > 0) {
+      value = millis + ' ms';
+    } else {
+      value = millis + ' ms';
+    }
+  }
+  return value;
+};

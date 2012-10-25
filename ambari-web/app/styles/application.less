@@ -575,13 +575,12 @@ a:focus {
 
 /*end alerts summary*/
 
-/*start cluster metrics*/
-.cluster-metrics {
-  .chart-container {
-    position: relative;
-    margin: 20px 15px 0px 15px;
-  }
-  .chart {
+/*start chart/style graphs*/
+.chart-container{
+  position: relative;
+  margin: 20px 15px 0px 15px;
+  
+  .chart{
     padding-bottom: 0px !important;
     position: relative;
     height: 160px;
@@ -617,8 +616,7 @@ a:focus {
     font-size: small;
   }
 }
-
-/*end cluster metrics*/
+/*end chart/graph styles*/
 
 /*****end styles for dashboard page*****/
 
@@ -719,7 +717,19 @@ a:focus {
       text-align: left;
     }
   }
+}
 
+.summary-metric-graphs{
+  [class*="span"] {
+    float: left;
+    margin-left: 10px;
+  }
+  .chart-container{
+    .chart-x-axis{
+      left: 0%;
+      width: 100%;
+    }
+  }
 }
 
 /*End Services*/

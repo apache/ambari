@@ -30,6 +30,7 @@ var App = require('app');
 App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-network",
   url : "/data/cluster_metrics/network_1hr.json",
+  title: "Network Usage",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   
   transformToSeries : function (jsonData) {

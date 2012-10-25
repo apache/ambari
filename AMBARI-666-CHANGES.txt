@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-916. Provide metrics graphs in HDFS services page. (Srimanth
+  Gunturi via yusaku)
+
   AMBARI-908. Add ui option to either create a Postgres database for Hive
   and Oozie or choose existing database. (Jaimin Jetly via yusaku)
 

@@ -30,6 +30,7 @@ var App = require('app');
 App.ChartClusterMetricsLoad = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-load",
   url: "/data/cluster_metrics/load_1hr.json",
+  title: "Cluster Load",
   
   transformToSeries: function(jsonData){
     var seriesArray = [];

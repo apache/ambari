@@ -87,12 +87,17 @@ App.MainServiceInfoSummaryView = Em.View.extend({
             summary['dfs_percent_disk_used'] = parseFloat((100 - summary['dfs_percent_remaining']).toFixed(2)) + "%";
             summary['used_bytes'] = (summary['dfs_used_bytes'] + summary['nondfs_used_bytes']).bytesToSize(2, 'parseFloat');
             summary['dfs_total_bytes'] = summary['dfs_total_bytes'].bytesToSize(2, 'parseFloat');
+            summary['metricGraphViews'] = [App.ChartServiceMetricsHDFS_JVMThreads.extend(), 
+                                           App.ChartServiceMetricsHDFS_JVMHeap.extend(), 
+                                           App.ChartServiceMetricsHDFS_IO.extend(), 
+                                           App.ChartServiceMetricsHDFS_RPC.extend(), 
+                                           App.ChartServiceMetricsHDFS_FileOperations.extend(), 
+                                           App.ChartServiceMetricsHDFS_GC.extend()];
           } else if (serviceName == 'mapreduce') {
             summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
             summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
             summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');
             summary['memory_heap_max'] = summary['memory_heap_max'].bytesToSize(2, 'parseFloat');
-
           } else if (serviceName == 'hbase') {
             summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
             summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');

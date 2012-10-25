@@ -29,8 +29,9 @@ var App = require('app');
 App.ChartClusterMetricsMemory = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-memory",
   url: "/data/cluster_metrics/memory_1hr.json",
-  
+  title: "Memory Usage",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+  
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     if (jsonData instanceof Array) {

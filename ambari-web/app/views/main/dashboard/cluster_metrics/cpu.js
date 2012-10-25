@@ -29,14 +29,8 @@ var App = require('app');
 App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-cpu",
   url: "/data/cluster_metrics/cpu_1hr.json",
-  
-  yAxisFormatter: function (y) {
-    var value = this._super(y);
-    if (!value || value.length < 1) {
-      value = "0";
-    }
-    return value + "%";
-  },
+  title: "CPU Usage",
+  yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
   
   transformToSeries: function (jsonData) {
     var seriesArray = [];
