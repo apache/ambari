@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -33,6 +34,8 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +49,33 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 public class StageUtils {
   private static Log LOG = LogFactory.getLog(StageUtils.class);
+  
+  private static Map<String, String> componentToClusterInfoKeyMap = 
+      new HashMap<String, String>();
+  
+  static {
+    componentToClusterInfoKeyMap.put("NAMENODE", "namenode_host");
+    componentToClusterInfoKeyMap.put("JOBTRACKER", "jtnode_host");
+    componentToClusterInfoKeyMap.put("SNAMENODE", "snamenode_host");
+    componentToClusterInfoKeyMap.put("ZOOKEEPER_SERVER", "zookeeper_hosts");
+    componentToClusterInfoKeyMap.put("HBASE_MASTER", "hbase_master_host");
+    componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
+    componentToClusterInfoKeyMap.put("HCATALOG_SERVER", "hcat_server_host");
+    componentToClusterInfoKeyMap.put("HIVE_SERVER", "hive_server_host");
+    componentToClusterInfoKeyMap.put("OOZIE_SERVER", "oozie_server");
+    componentToClusterInfoKeyMap.put("TEMPLETON_SERVER",
+        "templeton_server_host");
+    componentToClusterInfoKeyMap.put("DASHBOARD", "dashboard_host");
+    componentToClusterInfoKeyMap.put("NAGIOS_SERVER", "nagios_server_host");
+    componentToClusterInfoKeyMap.put("GANGLIA_MONITOR_SERVER",
+        "ganglia_server_host");
+    componentToClusterInfoKeyMap.put("DATANODE", "slave_hosts");
+    componentToClusterInfoKeyMap.put("TASKTRACKER", "slave_hosts");
+    componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
+    componentToClusterInfoKeyMap.put("KERBEROS_SERVER", "kdc_host");
+    componentToClusterInfoKeyMap.put("KERBEROS_ADMIN_CLIENT",
+        "kerberos_adminclient_host");
+  }
   
   public static String getActionId(long requestId, long stageId) {
     return requestId + "-" + stageId;
@@ -123,5 +153,34 @@ public class StageUtils {
     mapper.configure(SerializationConfig.Feature.USE_ANNOTATIONS, true);
     InputStream is = new ByteArrayInputStream(json.getBytes());
     return mapper.readValue(is, clazz);
+  }
+  
+  public static Map<String, List<String>> getClusterHostInfo(Cluster cluster) {
+    Map<String, List<String>> info = new HashMap<String, List<String>>();
+    if (cluster.getServices() != null) {
+      for (String serviceName : cluster.getServices().keySet()) {
+        if (cluster.getServices().get(serviceName) != null) {
+          for (String componentName : cluster.getServices().get(serviceName)
+              .getServiceComponents().keySet()) {
+            String clusterInfoKey = componentToClusterInfoKeyMap
+                .get(componentName);
+            if (clusterInfoKey == null) {
+              continue;
+            }
+            ServiceComponent scomp = cluster.getServices().get(serviceName)
+                .getServiceComponents().get(componentName);
+            if (scomp.getServiceComponentHosts() != null
+                && !scomp.getServiceComponentHosts().isEmpty()) {
+              List<String> hostList = new ArrayList<String>();
+              for (String host: scomp.getServiceComponentHosts().keySet()) {
+                hostList.add(host);
+              }
+              info.put(clusterInfoKey, hostList);
+            }
+          }
+        }
+      }
+    }
+    return info;
   }
 }

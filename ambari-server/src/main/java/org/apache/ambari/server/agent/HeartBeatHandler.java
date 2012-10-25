@@ -39,6 +39,7 @@ import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
 import org.apache.ambari.server.state.host.HostUnhealthyHeartbeatEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
@@ -123,16 +124,16 @@ public class HeartBeatHandler {
               .getServiceComponentName(), hostname, now));
 
         } else if (report.getStatus().equals("FAILED")) {
-          scHost.handleEvent(new ServiceComponentHostOpSucceededEvent(scHost
+          scHost.handleEvent(new ServiceComponentHostOpFailedEvent(scHost
               .getServiceComponentName(), hostname, now));
         }
       } catch (InvalidStateTransitionException ex) {
-        throw new AmbariException("State machine exception", ex);
+        LOG.warn("State machine exception", ex);
       }
       LOG.info("Report for "+report.toString() +", processed successfully");
     }
     //Update state machines from reports
-    actionManager.actionResponse(hostname, reports);
+    actionManager.processTaskResponse(hostname, reports);
 
     // Examine heartbeart for component status
     Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);

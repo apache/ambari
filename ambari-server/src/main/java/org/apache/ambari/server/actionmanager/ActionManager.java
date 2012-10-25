@@ -78,7 +78,7 @@ public class ActionManager {
     return db.getAction(StageUtils.getActionId(requestId, stageId));
   }
 
-  public void actionResponse(String hostname, List<CommandReport> reports) {
+  public void processTaskResponse(String hostname, List<CommandReport> reports) {
     if (reports == null) {
       return;
     }
