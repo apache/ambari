@@ -360,6 +360,10 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-902. Fix ZooKeeper badge allocation logic for single host and 
+  muliple hosts installation in step5 installer wizard. (Jaimin Jetly via
+  yusaku)
+
   AMBARI-896. Resolve all navigation related issues for Step6 (Slave and
   Client component) of installer wizard. (Jaimin Jetly via yusaku)
 
