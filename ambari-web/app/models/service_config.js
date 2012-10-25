@@ -29,8 +29,8 @@ App.ServiceConfig = Ember.Object.extend({
   configs: null,
 
   errorCount: function () {
-    return this.get('configs').filterProperty('isValid', false).get('length');
-  }.property('configs.@each.isValid')
+    return this.get('configs').filterProperty('isValid', false).filterProperty('isVisible',true).get('length');
+  }.property('configs.@each.isValid','configs.@each.isVisible')
 });
 
 App.ServiceConfigCategory = Ember.Object.extend({
@@ -128,7 +128,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'hivemetastore.host':
         this.set('value', masterComponentHostsInDB.findProperty('component','Hive Metastore').hostName);
         break;
+      case 'hive_ambari_host':
+        this.set('value', masterComponentHostsInDB.findProperty('component','Hive Metastore').hostName);
+        break;
       case 'oozieserver.host':
+        this.set('value', masterComponentHostsInDB.findProperty('component','Oozie Server').hostName);
+        break;
+      case 'oozie_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component','Oozie Server').hostName);
         break;
     }
@@ -144,6 +150,11 @@ App.ServiceConfigProperty = Ember.Object.extend({
         return App.ServiceConfigCheckbox;
       case 'password':
         return App.ServiceConfigPasswordField;
+      case 'combobox':
+        return App.ServiceConfigComboBox;
+      case 'radio button':
+        return App.ServiceConfigRadioButtons;
+        break;
       case 'directories':
         return App.ServiceConfigTextArea;
       case 'custom':

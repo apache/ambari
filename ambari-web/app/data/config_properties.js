@@ -71,6 +71,7 @@ module.exports =
       "defaultValue": "",
       "description": "The host that has been assigned to run HBase Master",
       "displayType": "masterHost",
+      "isVisible":  true,
       "serviceName": "HBASE",
       "category": "HBase Master"
     },
@@ -81,6 +82,7 @@ module.exports =
       "defaultValue": "",
       "description": "The hosts that have been assigned to run RegionServer",
       "displayType": "slaveHosts",
+      "isVisible":  true,
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -91,6 +93,7 @@ module.exports =
       "defaultValue": "/var/log/hbase",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -101,6 +104,7 @@ module.exports =
       "defaultValue": "/var/run/hbase",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -111,6 +115,7 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -121,6 +126,7 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "HBASE",
       "category": "HBase Master"
     },
@@ -130,6 +136,7 @@ module.exports =
       "description": "If more than this number of HStoreFiles in any one HStore then a compaction is run to rewrite all HStoreFiles files as one.",
       "defaultValue": "3",
       "displayType": "int",
+      "isVisible":  true,
       "serviceName": "HBASE"
     },
     {
@@ -138,6 +145,7 @@ module.exports =
       "description": "Percentage of maximum heap (-Xmx setting) to allocate to block cache used by HFile/StoreFile. Set to 0 to disable but it's not recommended.",
       "defaultValue": "0.25",
       "displayType": "float",
+      "isVisible":  true,
       "serviceName": "HBASE"
     },
     {
@@ -147,6 +155,7 @@ module.exports =
       "defaultValue": "1073741824",
       "displayType": "int",
       "unit": "bytes",
+      "isVisible":  true,
       "serviceName": "HBASE"
     },
     {
@@ -155,6 +164,7 @@ module.exports =
       "description": "Count of RPC Listener instances spun up on RegionServers",
       "defaultValue": "30",
       "displayType": "int",
+      "isVisible":  true,
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -165,6 +175,7 @@ module.exports =
       "defaultValue": "86400000",
       "displayType": "int",
       "unit": "ms",
+      "isVisible":  true,
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -174,6 +185,7 @@ module.exports =
       "description": "Block updates if memstore has \"Multiplier * HBase Region Memstore Flush Size\" bytes. Useful preventing runaway memstore during spikes in update traffic",
       "defaultValue": "2",
       "displayType": "int",
+      "isVisible":  true,
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -184,6 +196,7 @@ module.exports =
       "defaultValue": "134217728",
       "displayType": "int",
       "unit": "bytes",
+      "isVisible":  true,
       "serviceName": "HBASE",
       "category": "RegionServer"
     },
@@ -194,6 +207,7 @@ module.exports =
       "defaultValue": "100",
       "displayType": "int",
       "unit": "rows",
+      "isVisible":  true,
       "serviceName": "HBASE"
     },
     {
@@ -203,6 +217,7 @@ module.exports =
       "defaultValue": "60000",
       "displayType": "int",
       "unit": "ms",
+      "isVisible":  true,
       "serviceName": "HBASE"
     },
     {
@@ -212,6 +227,7 @@ module.exports =
       "defaultValue": "10485760",
       "displayType": "int",
       "unit": "bytes",
+      "isVisible":  true,
       "serviceName": "HBASE"
     },
     {
@@ -221,6 +237,7 @@ module.exports =
       "defaultValue": "",
       "isRequired": false,
       "displayType": "custom",
+      "isVisible":  true,
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -231,6 +248,7 @@ module.exports =
       "defaultValue": "",
       "description": "The host that has been assigned to run NameNode",
       "displayType": "masterHost",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "NameNode"
     },
@@ -241,6 +259,7 @@ module.exports =
       "defaultValue": "",
       "isReconfigurable": false,
       "displayType": "directories",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "NameNode"
     },
@@ -251,6 +270,7 @@ module.exports =
       "defaultValue": "",
       "description": "The host that has been assigned to run SecondaryNameNode",
       "displayType": "masterHost",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "SNameNode"
     },
@@ -261,6 +281,7 @@ module.exports =
       "defaultValue": "",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "SNameNode"
     },
@@ -271,6 +292,7 @@ module.exports =
       "defaultValue": "",
       "description": "The hosts that have been assigned to run DataNode",
       "displayType": "slaveHosts",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "DataNode"
     },
@@ -281,6 +303,7 @@ module.exports =
       "defaultValue": "",
       "isReconfigurable": false,
       "displayType": "directories",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "DataNode"
     },
@@ -291,6 +314,7 @@ module.exports =
       "defaultValue": "/var/log/hadoop",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -301,6 +325,7 @@ module.exports =
       "defaultValue": "/var/run/hadoop",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -310,6 +335,7 @@ module.exports =
       "description": "Whether to enable HDFS Append feature",
       "defaultValue": true,
       "displayType": "checkbox",
+      "isVisible":  true,
       "serviceName": "HDFS"
     },
     {
@@ -318,6 +344,7 @@ module.exports =
       "description": "Whether to enable WebHDFS feature",
       "defaultValue": false,
       "displayType": "checkbox",
+      "isVisible":  true,
       "serviceName": "HDFS"
     },
     {
@@ -327,6 +354,7 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "HDFS"
     },
     {
@@ -336,6 +364,7 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "NameNode"
     },
@@ -346,6 +375,7 @@ module.exports =
       "defaultValue": "200",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "NameNode"
     },
@@ -356,6 +386,7 @@ module.exports =
       "defaultValue": "1",
       "displayType": "int",
       "unit": "GB",
+      "isVisible":  true,
       "serviceName": "HDFS"
     },
     {
@@ -365,6 +396,7 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "DataNode"
     },
@@ -374,6 +406,7 @@ module.exports =
       "description": "The number of volumes that are allowed to fail before a DataNode stops offering service",
       "defaultValue": "0",
       "displayType": "int",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "DataNode"
     },
@@ -385,6 +418,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "int",
       "unit": "seconds",
+      "isVisible":  true,
       "serviceName": "HDFS"
     },
     {
@@ -395,6 +429,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "float",
       "unit": "GB",
+      "isVisible":  true,
       "serviceName": "HDFS"
     },
     {
@@ -404,6 +439,7 @@ module.exports =
       "defaultValue": "",
       "isRequired": false,
       "displayType": "custom",
+      "isVisible":  true,
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -414,47 +450,110 @@ module.exports =
       "defaultValue": "",
       "description": "The host that has been assigned to run Hive Metastore",
       "displayType": "masterHost",
+      "isVisible":  true,
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
     {
-      "name": "hive_mysql_host",
-      "displayName": "MySQL host",
-      "description": "MySQL host on which the Hive Metastore is hosted. If left empty, the metastore will be set up on the same host as the Hive Server using the database name and user credentials specified",
+      "name": "hive_database",
+      "displayName": "Hive Database",
+      "value": "",
+      "defaultValue": "New PostgreSQL Database",
+      "options":  [
+        {
+          displayName: 'New PostgreSQL Database',
+          foreignKeys: ['hive_ambari_database','hive_ambari_host']
+        },
+        {
+          displayName: 'Existing Database',
+          foreignKeys: ['hive_existing_database','hive_existing_host']
+        }
+      ],
+      "description": "PostgreSQL will be installed by ambari. Any other database will have to be installed by the user.",
+      "displayType": "radio button",
+      "radioName": "hive-database",
+      "isVisible":  true,
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
+    },
+    {
+      "name": "hive_existing_database",
+      "displayName": "Hive Database",
+      "value": "",
+      "defaultValue": "MySQL",
+      "description": "Select the database, if you already have existing one for Hive Metastore.",
+      "displayType": "combobox",
+      "isVisible":  false,
+      "options": ['MySQL', 'PostgreSQL'],
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
+    },
+    {
+      "name": "hive_existing_host",
+      "displayName": "Database host",
+      "description": "Select the host on which the existing database is hosted.",
       "defaultValue": "",
-      "isRequired": false,
       "isReconfigurable": false,
       "displayType": "host",
+      "isVisible":  false,
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
     {
+      "name": "hive_ambari_database",
+      "displayName": "Hive Database",
+      "value": "",
+      "defaultValue": "PostgreSQL",
+      "description": "PostgreSQL will be installed by ambari.",
+      "displayType": "masterHost",
+      "isVisible":  true,
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
+    },
+    {
+      "name": "hive_ambari_host",
+      "value": "",
+      "defaultValue": "",
+      "displayName": "PostgreSQL host",
+      "description": "Host  on which the PostgreSQL database will be created by ambari. ",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "displayType": "masterHost",
+      "isVisible":  true,
+      "serviceName": "HIVE",
+      "category": "Hive Metastore"
+    },
+
+    {
       "name": "hive_database_name",
-      "displayName": "MySQL database name",
-      "description": "MySQL database name used as the Hive Metastore",
+      "displayName": "Database name",
+      "description": "Database name used as the Hive Metastore",
       "defaultValue": "hive",
       "isReconfigurable": false,
       "displayType": "host",
+      "isVisible":  true,
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
     {
       "name": "hive_metastore_user_name",
-      "displayName": "MySQL user",
-      "description": "MySQL user to use to connect to the MySQL database",
+      "displayName": "Database user",
+      "description": "Database user name to use to connect to the database",
       "defaultValue": "hive",
       "isReconfigurable": false,
       "displayType": "user",
+      "isVisible":  true,
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
     {
       "name": "hive_metastore_user_passwd",
-      "displayName": "MySQL password",
-      "description": "MySQL password to use to connect to the MySQL database",
+      "displayName": "Database password",
+      "description": "Database password to use to connect to the PostgreSQL database",
       "defaultValue": "",
       "isReconfigurable": false,
       "displayType": "password",
+      "isVisible":  true,
       "serviceName": "HIVE",
       "category": "Hive Metastore"
     },
@@ -465,6 +564,7 @@ module.exports =
       "defaultValue": "/var/log/hive",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  false,
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -475,6 +575,7 @@ module.exports =
       "defaultValue": "/var/run/hive",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -485,6 +586,7 @@ module.exports =
       "defaultValue": "/var/log/hcatalog",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -495,6 +597,7 @@ module.exports =
       "defaultValue": "/var/run/hcatalog",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -505,6 +608,7 @@ module.exports =
       "defaultValue": "",
       "isRequired": false,
       "displayType": "custom",
+      "isVisible":  true,
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -515,6 +619,7 @@ module.exports =
       "defaultValue": "",
       "description": "The host that has been assigned to run JobTracker",
       "displayType": "masterHost",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE",
       "category": "JobTracker"
     },
@@ -525,6 +630,7 @@ module.exports =
       "defaultValue": "",
       "description": "The hosts that have been assigned to run TaskTracker",
       "displayType": "slaveHosts",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE",
       "category": "TaskTracker"
     },
@@ -535,6 +641,7 @@ module.exports =
       "defaultValue": "",
       "displayType": "directories",
       "isReconfigurable": false,
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -543,6 +650,7 @@ module.exports =
       "description": "The scheduler to use for scheduling of MapReduce jobs",
       "defaultValue": "org.apache.hadoop.mapred.CapacityTaskScheduler",
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -552,6 +660,7 @@ module.exports =
       "defaultValue": "200",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE",
       "category": "JobTracker"
     },
@@ -562,6 +671,7 @@ module.exports =
       "defaultValue": "200",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE",
       "category": "JobTracker"
     },
@@ -572,6 +682,7 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE",
       "category": "JobTracker"
     },
@@ -581,6 +692,7 @@ module.exports =
       "description": "Number of slots that Map tasks that run simultaneously can occupy on a TaskTracker",
       "defaultValue": "4",
       "displayType": "int",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE",
       "category": "TaskTracker"
     },
@@ -590,6 +702,7 @@ module.exports =
       "description": "Number of slots that Reduce tasks that run simultaneously can occupy on a TaskTracker.",
       "defaultValue": "2",
       "displayType": "int",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE",
       "category": "TaskTracker"
     },
@@ -600,6 +713,7 @@ module.exports =
       "defaultValue": "-1",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -609,6 +723,7 @@ module.exports =
       "defaultValue": "-1",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -618,6 +733,7 @@ module.exports =
       "defaultValue": "-1",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -627,6 +743,7 @@ module.exports =
       "defaultValue": "-1",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -636,6 +753,7 @@ module.exports =
       "defaultValue": "-1",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -645,6 +763,7 @@ module.exports =
       "defaultValue": "-1",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -654,6 +773,7 @@ module.exports =
       "defaultValue": "768",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -663,6 +783,7 @@ module.exports =
       "defaultValue": "200",
       "displayType": "int",
       "unit": "MB",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -671,6 +792,7 @@ module.exports =
       "description": "Percentage of sort buffer used for record collection (Expert-only configuration)",
       "defaultValue": "0.9",
       "displayType": "float",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -680,6 +802,7 @@ module.exports =
       "defaultValue": "24",
       "displayType": "int",
       "unit": "hours",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -688,6 +811,7 @@ module.exports =
       "description": "Maximum number of tasks for a single Job",
       "defaultValue": "-1",
       "displayType": "int",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -696,6 +820,7 @@ module.exports =
       "description": "LZO compression enabled",
       "defaultValue": false,
       "displayType": "checkbox",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -705,6 +830,7 @@ module.exports =
       "defaultValue": true,
       "isReconfigurable": false,
       "displayType": "checkbox",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE"
     },
     {
@@ -714,6 +840,7 @@ module.exports =
       "defaultValue": "",
       "isRequired": false,
       "displayType": "custom",
+      "isVisible":  true,
       "serviceName": "MAPREDUCE",
       "category": "Advanced"
     },
@@ -725,6 +852,7 @@ module.exports =
       "isRequired": false,
       "isReconfigurable": false,
       "displayType": "url",
+      "isVisible":  true,
       "serviceName": "MISC"
     },
     {
@@ -735,6 +863,7 @@ module.exports =
       "isRequired": false,
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "MISC"
     },
     /*
@@ -745,7 +874,7 @@ module.exports =
      "defaultValue": "/var/log/hadoop",
      "isReconfigurable": false,
      "displayType": "directory",
-     "serviceName": "MISC",
+     "isVisible":  true, "serviceName": "MISC",
      "category": "Advanced"
      },
      {
@@ -755,7 +884,7 @@ module.exports =
      "defaultValue": "/var/run/hadoop",
      "isReconfigurable": false,
      "displayType": "directory",
-     "serviceName": "MISC",
+     "isVisible":  true, "serviceName": "MISC",
      "category": "Advanced"
      },
      */
@@ -766,6 +895,7 @@ module.exports =
       "defaultValue": false,
       "isReconfigurable": false,
       "displayType": "checkbox",
+      "isVisible":  true,
       "serviceName": "MISC"
     },
     {
@@ -775,6 +905,7 @@ module.exports =
       "defaultValue": "/etc/yum.repos.d/hdp.repo",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "MISC"
     },
     {
@@ -784,6 +915,7 @@ module.exports =
       "defaultValue": "hdfs",
       "isReconfigurable": false,
       "displayType": "user",
+      "isVisible":  true,
       "serviceName": "MISC",
       "category": "Users/Groups"
     },
@@ -794,6 +926,7 @@ module.exports =
       "defaultValue": "mapred",
       "isReconfigurable": false,
       "displayType": "user",
+      "isVisible":  true,
       "serviceName": "MISC",
       "category": "Users/Groups"
     },
@@ -804,6 +937,7 @@ module.exports =
       "defaultValue": "hbase",
       "isReconfigurable": false,
       "displayType": "user",
+      "isVisible":  true,
       "serviceName": "MISC",
       "category": "Users/Groups"
     },
@@ -814,6 +948,7 @@ module.exports =
       "defaultValue": "hive",
       "isReconfigurable": false,
       "displayType": "user",
+      "isVisible":  true,
       "serviceName": "MISC",
       "category": "Users/Groups"
     },
@@ -824,6 +959,7 @@ module.exports =
       "defaultValue": "hcat",
       "isReconfigurable": false,
       "displayType": "user",
+      "isVisible":  true,
       "serviceName": "MISC",
       "category": "Users/Groups"
     },
@@ -834,6 +970,7 @@ module.exports =
       "defaultValue": "oozie",
       "isReconfigurable": false,
       "displayType": "user",
+      "isVisible":  true,
       "serviceName": "MISC",
       "category": "Users/Groups"
     },
@@ -844,6 +981,7 @@ module.exports =
       "defaultValue": "pig",
       "isReconfigurable": false,
       "displayType": "user",
+      "isVisible":  true,
       "serviceName": "MISC",
       "category": "Users/Groups"
     },
@@ -854,6 +992,7 @@ module.exports =
       "defaultValue": "sqoop",
       "isReconfigurable": false,
       "displayType": "user",
+      "isVisible":  true,
       "serviceName": "MISC",
       "category": "Users/Groups"
     },
@@ -864,6 +1003,7 @@ module.exports =
       "defaultValue": "zookeeper",
       "isReconfigurable": false,
       "displayType": "user",
+      "isVisible":  true,
       "serviceName": "MISC",
       "category": "Users/Groups"
     },
@@ -874,6 +1014,7 @@ module.exports =
       "defaultValue": "hadoop",
       "isReconfigurable": false,
       "displayType": "user",
+      "isVisible":  true,
       "serviceName": "MISC",
       "category": "Users/Groups"
     },
@@ -884,6 +1025,7 @@ module.exports =
       "defaultValue": "nagiosadmin",
       "isReconfigurable": false,
       "displayType": "user",
+      "isVisible":  true,
       "serviceName": "NAGIOS"
     },
     {
@@ -893,6 +1035,7 @@ module.exports =
       "defaultValue": "",
       "isReconfigurable": false,
       "displayType": "password",
+      "isVisible":  true,
       "serviceName": "NAGIOS"
     },
     {
@@ -901,6 +1044,7 @@ module.exports =
       "description": "Hadoop Administrator email for alert notification",
       "defaultValue": "",
       "displayType": "email",
+      "isVisible":  true,
       "serviceName": "NAGIOS"
     },
     {
@@ -910,6 +1054,110 @@ module.exports =
       "defaultValue": "",
       "description": "The host that has been assigned to run Oozie Server",
       "displayType": "masterHost",
+      "isVisible":  true,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    {
+      "name": "oozie_database",
+      "displayName": "Oozie Database",
+      "value": "",
+      "defaultValue": "New PostgreSQL Database",
+      "options":  [
+        {
+          displayName: 'New PostgreSQL Database',
+          foreignKeys: ['oozie_ambari_database','oozie_ambari_host']
+        },
+        {
+          displayName: 'Existing Database',
+          foreignKeys: ['oozie_existing_database','oozie_existing_host']
+        }
+      ],
+      "description": "PostgreSQL will be installed by ambari. Any other database will have to be installed by the user.",
+      "displayType": "radio button",
+      "radioName": "oozie-database",
+      "isVisible":  true,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    {
+      "name": "oozie_existing_database",
+      "displayName": "Oozie Database",
+      "value": "",
+      "defaultValue": "MySQL",
+      "description": "Select the database, if you already have existing one for Oozie.",
+      "displayType": "combobox",
+      "isVisible":  false,
+      "options": ['MySQL','PostgreSQL'],
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    {
+      "name": "oozie_existing_host",
+      "displayName": "Database host",
+      "description": "Select the host on which the existing database is hosted.",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "displayType": "host",
+      "isVisible":  false,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    {
+      "name": "oozie_ambari_database",
+      "displayName": "Oozie Database",
+      "value": "",
+      "defaultValue": "PostgreSQL",
+      "description": "PostgreSQL will be installed by ambari.",
+      "displayType": "masterHost",
+      "isVisible":  true,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    {
+      "name": "oozie_ambari_host",
+      "value": "",
+      "defaultValue": "",
+      "displayName": "PostgreSQL host",
+      "description": "Host  on which the PostgreSQL database will be created by ambari. ",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "displayType": "masterHost",
+      "isVisible":  true,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+
+    {
+      "name": "oozie_database_name",
+      "displayName": "Database name",
+      "description": "Database name used for the Oozie",
+      "defaultValue": "oozie",
+      "isReconfigurable": false,
+      "displayType": "host",
+      "isVisible":  true,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    {
+      "name": "oozie_metastore_user_name",
+      "displayName": "Database user",
+      "description": "Database user name to use to connect to the database",
+      "defaultValue": "oozie",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isVisible":  true,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    {
+      "name": "oozie_metastore_user_passwd",
+      "displayName": "Database password",
+      "description": "Database password to use to connect to the PostgreSQL database",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "displayType": "password",
+      "isVisible":  true,
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
@@ -920,6 +1168,7 @@ module.exports =
       "defaultValue": "",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
@@ -930,6 +1179,7 @@ module.exports =
       "defaultValue": "/var/log/oozie",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
@@ -940,6 +1190,7 @@ module.exports =
       "defaultValue": "/var/run/oozie",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
@@ -950,6 +1201,7 @@ module.exports =
       "defaultValue": "",
       "isRequired": false,
       "displayType": "custom",
+      "isVisible":  true,
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
@@ -960,6 +1212,7 @@ module.exports =
       "defaultValue": "",
       "description": "The host that has been assigned to run ZooKeeper Server",
       "displayType": "masterHosts",
+      "isVisible":  true,
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
     },
@@ -970,6 +1223,7 @@ module.exports =
       "defaultValue": "",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
     },
@@ -980,6 +1234,7 @@ module.exports =
       "defaultValue": "/var/log/zookeeper",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "ZOOKEEPER",
       "category": "Advanced"
     },
@@ -990,6 +1245,7 @@ module.exports =
       "defaultValue": "/var/run/zookeeper",
       "isReconfigurable": false,
       "displayType": "directory",
+      "isVisible":  true,
       "serviceName": "ZOOKEEPER",
       "category": "Advanced"
     },
@@ -1000,6 +1256,7 @@ module.exports =
       "defaultValue": "2000",
       "displayType": "int",
       "unit": "ms",
+      "isVisible":  true,
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
     },
@@ -1009,6 +1266,7 @@ module.exports =
       "description": "Amount of time, in ticks to allow followers to connect and sync to a leader",
       "defaultValue": "10",
       "displayType": "int",
+      "isVisible":  true,
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
     },
@@ -1018,6 +1276,7 @@ module.exports =
       "description": "Amount of time, in ticks to allow followers to connect",
       "defaultValue": "5",
       "displayType": "int",
+      "isVisible":  true,
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
     },
@@ -1027,6 +1286,7 @@ module.exports =
       "description": "Port for running ZooKeeper server",
       "defaultValue": "2181",
       "displayType": "int",
+      "isVisible":  true,
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server"
     }

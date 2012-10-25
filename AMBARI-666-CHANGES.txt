@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-908. Add ui option to either create a Postgres database for Hive
+  and Oozie or choose existing database. (Jaimin Jetly via yusaku)
+
   AMBARI-915. Implement App Browser for displaying and navigating Pig/Hive
   workflows. (yusaku)
 

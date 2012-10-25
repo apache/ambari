@@ -149,6 +149,65 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
 
 });
 
+
+<!-- {{bindAttr name="view.name" value="option"}}  '<input type="radio" {{bindAttr name = "view.name" value="view.obj"}}>',-->
+App.ServiceConfigRadioButtons = Ember.View.extend({
+  template: Ember.Handlebars.compile([
+    '{{#each option in view.options}}',
+    '<label class="radio">',
+    '{{#view App.ServiceConfigRadioButton nameBinding = "view.name" valueBinding = "option.displayName"}}',
+    '{{/view}}',
+    '{{option.displayName}} &nbsp;',
+    '</label>',
+    '{{/each}}'
+  ].join('\n')),
+  serviceConfig: null,
+  categoryConfigs: null,
+  nameBinding: 'serviceConfig.radioName',
+  optionsBinding: 'serviceConfig.options'
+});
+
+App.ServiceConfigRadioButton = Ember.Checkbox.extend({
+  tagName: 'input',
+  attributeBindings: ['type', 'name', 'value', 'checked'],
+  checked: false,
+  type: 'radio',
+  name: null,
+  value: null,
+
+  didInsertElement: function () {
+    if (this.get('parentView.serviceConfig.value') === this.get('value')) {
+      this.set('checked', true);
+    }
+  },
+
+  click: function () {
+    this.set('checked', true);
+    this.onChecked();
+  },
+
+  onChecked: function () {
+    this.set('parentView.serviceConfig.value', this.get('value'));
+    var components = this.get('parentView.serviceConfig.options');
+    components.forEach(function (_component) {
+      _component.foreignKeys.forEach(function (_componentName) {
+        var component = this.get('parentView.categoryConfigs').findProperty('name', _componentName);
+        if (_component.displayName === this.get('value')) {
+          component.set('isVisible', true);
+        } else {
+          component.set('isVisible', false);
+        }
+      }, this);
+    }, this);
+  }.observes('checked')
+});
+
+App.ServiceConfigComboBox = Ember.Select.extend(App.ServiceConfigPopoverSupport, {
+  contentBinding: 'serviceConfig.options',
+  selectionBinding: 'serviceConfig.value',
+  classNames: [ 'span3' ]
+});
+
 App.ServiceConfigHostPopoverSupport = Ember.Mixin.create({
   didInsertElement: function () {
     this.$().popover({
@@ -232,33 +291,32 @@ App.AddSlaveComponentGroupButton = Ember.View.extend({
       trigger: 'hover'
     });
   }
-
 });
 
 App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
   controllerBinding: 'App.router.slaveComponentGroupsController',
-  content: function(){
+  content: function () {
     return this.get('controller.componentGroups');
   }.property('controller.componentGroups'),
-  tagName:'ul',
+  tagName: 'ul',
   classNames: ["nav", "nav-tabs"],
 
-  itemViewClass:Em.View.extend({
-    classNameBindings:["active"],
-    active:function(){
+  itemViewClass: Em.View.extend({
+    classNameBindings: ["active"],
+    active: function () {
       return this.get('content.active');
     }.property('content.active'),
-    template:Ember.Handlebars.compile('<a {{action showSlaveComponentGroup view.content target="controller"}} href="#"> {{view.content.name}}</a><i {{action removeSlaveComponentGroup view.content target="controller"}} class="icon-remove"></i>')  })
+    template: Ember.Handlebars.compile('<a {{action showSlaveComponentGroup view.content target="controller"}} href="#"> {{view.content.name}}</a><i {{action removeSlaveComponentGroup view.content target="controller"}} class="icon-remove"></i>')  })
 });
 
 App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, {
   classNames: ['slave-hosts', 'span6'],
   controllerBinding: 'App.router.slaveComponentGroupsController',
   valueBinding: 'hosts',
-  group: function(){
+  group: function () {
     return this.get('controller.activeGroup');
   }.property('controller.activeGroup'),
-  hosts: function(){
+  hosts: function () {
     if (this.get('group') !== undefined)
       return this.get('controller').getHostsByGroup(this.get('group'))
   }.property('controller.hosts.@each.group', 'group'),
@@ -271,11 +329,11 @@ App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHos
 App.SlaveComponentDropDownGroupView = Ember.View.extend({
   controllerBinding: 'App.router.slaveComponentGroupsController',
   optionTag: Ember.View.extend({
-    selected: function(){
+    selected: function () {
       var parent = this._parentView.templateData.view;
       return parent.get('content.group') === this.get('content');
     }.property('content'),
-    changeGroup: function(event) {
+    changeGroup: function (event) {
       var parent = this._parentView.templateData.view;
       var groupName = this.get('content');
       var host = parent.get('content');
@@ -290,15 +348,15 @@ App.SlaveComponentChangeGroupNameView = Ember.View.extend({
   classNames: ['control-group'],
   classNameBindings: 'error',
   error: false,
-  setError: function(){
+  setError: function () {
     this.set('error', false);
   }.observes('controller.activeGroup'),
-  errorMessage: function(){
+  errorMessage: function () {
     return this.get('error') ? 'group with this name already exist' : '';
   }.property('error'),
-  changeGroupName: function(event) {
-    var inputVal = $('#'+this.get('elementId') + ' input[type="text"]').val();
-    if (inputVal !== this.get('content.name')){
+  changeGroupName: function (event) {
+    var inputVal = $('#' + this.get('elementId') + ' input[type="text"]').val();
+    if (inputVal !== this.get('content.name')) {
       var result = this.get('controller').changeSlaveGroupName(this.get('content'), inputVal);
       this.set('error', result);
     }

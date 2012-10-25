@@ -26,8 +26,8 @@
     {{#each service in controller}}
     {{#view App.ServiceConfigTab}}
     <a class="active" href="#{{unbound service.serviceName}}"
-           data-toggle="tab" {{action selectService service target="view"}}>{{service.displayName}}{{#if service.errorCount}}<span
-      class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a>
+       data-toggle="tab" {{action selectService service target="view"}}>{{service.displayName}}{{#if service.errorCount}}<span
+            class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a>
     {{/view}}
     {{/each}}
   </ul>
@@ -44,12 +44,12 @@
         <div class="accordion-inner">
           {{#if category.isForSlaveComponent}}
           <div class="slave-component-group-menu">
-          {{view App.SlaveComponentGroupsMenu}}
+            {{view App.SlaveComponentGroupsMenu}}
           </div>
           {{#view App.AddSlaveComponentGroupButton slaveComponentNameBinding="category.name"}}
           <a
-            class="btn add-slave-component-group btn-large" {{action addSlaveComponentGroup category.name target="App.router.slaveComponentGroupsController"}}><i
-            class="icon-plus"></i></a>
+                  class="btn add-slave-component-group btn-large" {{action addSlaveComponentGroup category.name target="App.router.slaveComponentGroupsController"}}><i
+                  class="icon-plus"></i></a>
           {{/view}}
           <div class="remove-group-error control-group warning">
             <span class="help-inline">You cannot delete this group since there are hosts assigned to it. You must assign them to another group before you can delete this group.</span>
@@ -58,24 +58,27 @@
           <form class="form-horizontal">
             {{#if category.isForSlaveComponent}}
             {{#view App.SlaveComponentChangeGroupNameView}}
-              <label class="control-label">Group name</label>
-              <div class="controls">
-                <div class="span6">
-                  <input class="span9" type="text" {{bindAttr value="view.content.name"}}>
-                  <button class="btn" {{action changeGroupName target="view"}}>Save</button>
-                </div>
-                <span class="help-inline">{{view.errorMessage}}</span>
+            <label class="control-label">Group name</label>
+
+            <div class="controls">
+              <div class="span6">
+                <input class="span9" type="text" {{bindAttr value="view.content.name"}}>
+                <button class="btn" {{action changeGroupName target="view"}}>Save</button>
               </div>
+              <span class="help-inline">{{view.errorMessage}}</span>
+            </div>
             {{/view}}
             {{/if}}
             {{#each view.categoryConfigs}}
+            {{#if isVisible}}
             <div {{bindAttr class="errorMessage:error: :control-group"}}>
               <label class="control-label">{{displayName}}</label>
               <div class="controls">
-                {{view viewClass serviceConfigBinding="this"}}
+                {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs"}}
                 <span class="help-inline">{{errorMessage}}</span>
               </div>
             </div>
+            {{/if}}
             {{/each}}
           </form>
         </div>

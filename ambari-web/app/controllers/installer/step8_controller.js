@@ -223,7 +223,13 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 	},
 
 	loadHiveDbValue: function (dbComponent) {
-		dbComponent.set('component_value', 'MySQL');
+    var hiveDb = App.db.getServiceConfigProperties().findProperty('name', 'hive_database');
+    if (hiveDb.value === 'New PostgreSQL Database') {
+      dbComponent.set('component_value', 'PostgreSQL (New Database)');
+    } else {
+      var db =    App.db.getServiceConfigProperties().findProperty('name', 'hive_existing_database');
+      dbComponent.set('component_value', db.value +' (' + hiveDb.value + ')');
+    }
 	},
 
 	loadHbase: function (hbaseObj) {
@@ -292,6 +298,9 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 				case 'Server':
 					this.loadOozieServerValue(_component);
 					break;
+        case 'Database':
+          this.loadOozieDbValue(_component);
+          break;
 				default:
 			}
 		}, this);
@@ -302,6 +311,16 @@ App.InstallerStep8Controller = Em.ArrayController.extend({
 		var oozieServerName = App.db.getMasterComponentHosts().findProperty('component', 'Oozie Server');
 		oozieServer.set('component_value', oozieServerName.hostName);
 	},
+
+  loadOozieDbValue: function(dbComponent) {
+    var oozieDb = App.db.getServiceConfigProperties().findProperty('name', 'oozie_database');
+    if (oozieDb.value === 'New PostgreSQL Database') {
+      dbComponent.set('component_value', 'PostgreSQL (New Database)');
+    } else {
+      var db = App.db.getServiceConfigProperties().findProperty('name', 'oozie_existing_database');
+      dbComponent.set('component_value', db.value +' (' + oozieDb.value + ')');
+    }
+  },
 
 	loadNagios: function (nagiosObj) {
 		nagiosObj.service_components.forEach(function (_component) {
