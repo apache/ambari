@@ -156,7 +156,7 @@ App.Service.FIXTURES = [
     label:'HDFS',
     components: [1, 2, 3],
     service_audit: [1, 2, 3],
-    health_status: 'LIVE',
+    health_status: App.Service.Health.live,
     work_status: true,
     alerts: [1, 2],
     quick_links: [1, 2, 3, 4]
@@ -167,7 +167,7 @@ App.Service.FIXTURES = [
     label:'MapReduce',
     components: [4, 5],
     service_audit: [4, 5, 6],
-    health_status: 'STARTING',
+    health_status: App.Service.Health.start,
     work_status: true,
     alerts: [3, 4],
     quick_links: [5, 6, 7, 8, 9, 10]
@@ -177,7 +177,7 @@ App.Service.FIXTURES = [
     service_name:'hbase',
     label:'HBase',
     components: [6, 7],
-    health_status: 'DEAD',
+    health_status: App.Service.Health.dead,
     work_status: false,
     alerts: [5, 6],
     quick_links: [11, 12, 13, 14]
@@ -186,7 +186,7 @@ App.Service.FIXTURES = [
     id:4,
     service_name:'zookeeper',
     label:'Zookeeper',
-    health_status: 'STOPPING',
+    health_status: App.Service.Health.stop,
     work_status: false,
     alerts: [7, 8]
   },
@@ -194,7 +194,7 @@ App.Service.FIXTURES = [
     id:5,
     service_name:'oozie',
     label:'Oozie',
-    health_status: 'DEAD',
+    health_status: App.Service.Health.dead,
     work_status: false,
     alerts: [9, 10]
   },
@@ -202,7 +202,7 @@ App.Service.FIXTURES = [
     id:6,
     service_name:'hive',
     label:'Hive',
-    health_status: 'DEAD',
+    health_status: App.Service.Health.dead,
     work_status: false,
     alerts: [11, 12]
   }

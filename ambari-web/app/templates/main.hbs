@@ -18,7 +18,14 @@
 <div id="main-nav">
   <div class="navbar">
     <div class="navbar-inner">
-      <a class="brand" href="#">My Cluster</a>
+      <a class="brand" href="#">
+        My Cluster
+        {{#if view.isInHostsPath}}
+          {{#if view.backgroundOperationsCount}}
+            <span class="label operations-count">{{view.backgroundOperationsCount}}</span>
+          {{/if}}
+        {{/if}}
+      </a>
       {{view App.MainMenuView}}
     </div>
   </div>

@@ -24,10 +24,11 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   classNameBindings:["healthStatus"],
   template:Em.Handlebars.compile(""),
   blink:false,
+  tagName: 'span',
 
   status:function () {
-    return this.get('parent.service.healthStatus');
-  }.property('parent.service.healthStatus'),
+    return this.get('service.healthStatus');
+  }.property('service.healthStatus'),
 
   startBlink:function () {
     this.set('blink', true);

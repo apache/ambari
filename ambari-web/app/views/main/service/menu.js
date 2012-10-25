@@ -61,7 +61,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
   itemViewClass: Em.View.extend({
     classNameBindings: ["active"],
     active: "",
-    // {{action showService view.content}}
-    template: Ember.Handlebars.compile('<a href="#/main/services/{{unbound view.content.id}}/summary" class="health-status-{{unbound view.content.healthStatus}}"> {{unbound view.content.label}}</a>')
+
+    template: Em.Handlebars.compile('<a href="#/main/services/{{unbound view.content.id}}/summary">{{view App.MainDashboardServiceHealthView serviceBinding="view.content"}}&nbsp;<span>{{unbound view.content.label}}</span></a>')
   })
 });

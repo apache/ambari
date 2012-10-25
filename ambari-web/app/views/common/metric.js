@@ -27,6 +27,12 @@ var App = require('app');
 App.MetricFilteringWidget = Em.View.extend({
   classNames:['metric-filtering-widget'],
   /**
+   * chosen metric value
+   */
+  chosenMetric:null,
+  chosenMoreMetric:null,
+  showMore:0, // toggle more metrics indicator
+  /**
    * metrics
    */
   metrics:[
@@ -36,13 +42,58 @@ App.MetricFilteringWidget = Em.View.extend({
     Em.Object.create({ label:Em.I18n.t('metric.network'), value:'network'}),
     Em.Object.create({ label:Em.I18n.t('metric.io'), value:'io'})
   ],
-  /**
-   * chosen metric value
-   */
-  chosenMetric:null,
-  chosenMoreMetric: null,
 
-  showMore:0, // toggle more metrics indicator
+
+  moreMetrics:[
+    Em.Object.create({ label:Em.I18n.t('metric.more.cpu'), code:'cpu', items:[
+      Em.Object.create({value:"cpu_nice"}),
+      Em.Object.create({value:"cpu_wio"}),
+      Em.Object.create({value:"cpu_user"}),
+      Em.Object.create({value:"cpu_idle"}),
+      Em.Object.create({value:"cpu_system"}),
+      Em.Object.create({value:"cpu_aidle"})
+    ] }),
+
+    Em.Object.create({ label:Em.I18n.t('metric.more.disk'), code:'disk',
+      items:[
+        Em.Object.create({value:'disk_free'}),
+        Em.Object.create({value:'disk_total'}),
+        Em.Object.create({value:'part_max_used'})
+      ]
+    }),
+
+    Em.Object.create({ label:Em.I18n.t('metric.more.load'), code:'load',
+      items:[
+        Em.Object.create({value:'load_one'}),
+        Em.Object.create({value:'load_five'}),
+        Em.Object.create({value:'load_fifteen'})
+      ]
+    }),
+
+    Em.Object.create({ label:Em.I18n.t('metric.more.memory'), code:'memory',
+      items:[
+        Em.Object.create({value:'swap_free'}),
+        Em.Object.create({value:'cpu'})
+      ]
+    }),
+
+    Em.Object.create({ label:Em.I18n.t('metric.more.network'), code:'network',
+      items:[
+        Em.Object.create({value:'bytes_out'}),
+        Em.Object.create({value:'bytes_in'}),
+        Em.Object.create({value:'pkts_in'}),
+        Em.Object.create({value:'pkts_out'})
+      ]
+    }),
+
+    Em.Object.create({ label:Em.I18n.t('metric.more.process'), code:'process',
+      items:[
+        Em.Object.create({value:'proc_run'}),
+        Em.Object.create({value:'proc_total'}),
+      ]
+    })
+
+  ],
 
   /**
    * return array of chosen metrics
@@ -63,22 +114,19 @@ App.MetricFilteringWidget = Em.View.extend({
     isActive:function () {
       return this.get('metric.value') == this.get('widget.chosenMetric');
     }.property('widget.chosenMetric'),
-    template:Em.Handlebars.compile('<a {{action activate view.metric.value target="view.widget" href="true" }}>{{unbound view.metric.label}}</a>')
+    label:function () {
+      return this.get('metric.label');
+    }.property('metric.label'),
+    template:Em.Handlebars.compile('<a {{action activate view.metric.value target="view.widget" href="#" }}>{{unbound view.label}}</a>')
   }),
 
-  moreItemView: function(){
-    return this.get('itemView').extend({});
+  moreItemView:function () {
+    return this.get('itemView').extend({
+      label:function () {
+        return this.get('metric.value');
+      }.property('metric.value')
+    });
   }.property(),
-
-  moreMetrics:[
-    Em.Object.create({ label:Em.I18n.t('metric.more.cpu'), code:'cpu', items:[] }),
-    Em.Object.create({ label:Em.I18n.t('metric.more.memory'), code:'memory',
-      items:[
-        Em.Object.create({label:Em.I18n.t('metric.more.memory.swapFree'), value:'swap_free'}),
-        Em.Object.create({label:Em.I18n.t('metric.more.memory.memCached'), value:'cpu'})
-      ]
-    })
-  ],
 
   /**
    * return default selected metrics (currently - all)

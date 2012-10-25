@@ -19,5 +19,22 @@
 var App = require('app');
 
 App.MainServiceItemView = Em.View.extend({
-  templateName: require('templates/main/service/item')
+  templateName: require('templates/main/service/item'),
+  maintenance: function(){
+    var options = [];
+    var service = this.get('controller.content');
+    switch(service.get('serviceName')) {
+      case 'hdfs':
+        options.push({action: 'runRebalancer', 'label': Em.I18n.t('services.service.actions.run.rebalancer')});
+        break;
+      case 'hbase':
+        options.push({action: 'runCompaction', 'label': Em.I18n.t('services.service.actions.run.compaction')});
+        break;
+    }
+    options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
+    return options;
+  }.property('controller.content'),
+  todo: function(){
+    return alert('todo');
+  }
 });

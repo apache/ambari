@@ -53,7 +53,7 @@ App.InstallerStep7Controller = Em.ArrayController.extend({
     this.clear();
     this.selectedServiceNames.clear();
     this.masterComponentHosts.clear();
-    this.slaveComponentHosts.clear();
+//    this.slaveComponentHosts.clear();
   },
 
   loadStep: function () {
@@ -252,19 +252,30 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
 
   addSlaveComponentGroup: function (event) {
     var component = this.get('selectedSlaveComponent');
-    var newGroupName;
+    var newGroupName = 'New Group';
     component.groups.setEach('active', false);
-    var newGroups = component.groups.filterProperty('type', 'new');
-    if (newGroups.length === 0) {
+    var newGroups = component.groups.filterProperty('name', newGroupName);
+    if (newGroups.length === 0)
       component.newGroupIndex = 0;
-      newGroupName = 'New Group';
-    } else {
-      component.newGroupIndex++;
+    else {
+      if(component.newGroupIndex === undefined)
+        component.newGroupIndex = 0;
+      this.checkGroupName();
       newGroupName = 'New Group ' + component.newGroupIndex;
     }
     var newGroup = {name: newGroupName, index: component.newGroupIndex, type: 'new', active: true};
     component.groups.pushObject(newGroup);
     $('.remove-group-error').hide();
+  },
+
+  checkGroupName: function(){
+    var component = this.get('selectedSlaveComponent');
+    component.newGroupIndex++;
+    var newGroupName = 'New Group ' + component.newGroupIndex;
+    var groups = component.groups.filterProperty('name', newGroupName);
+    if (groups.length !== 0){
+      this.checkGroupName();
+    }
   },
 
   showEditSlaveComponentGroups: function (event) {
@@ -310,13 +321,15 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
 
   getGroupsForDropDown: function(){
      return this.get('componentGroups').getEach('name');
-  }.property('selectedComponentName', 'componentGroups.@each'),
+  }.property('selectedComponentName', 'componentGroups.@each.name'),
 
   activeGroup: function(){
-    var active = this.get('componentGroups').findProperty('active', true);
-    if (active !== undefined)
-      return active;
-  }.property('selectedComponentName', 'componentGroups.@each.active'),
+    if (this.get('componentGroups') !== undefined){
+      var active = this.get('componentGroups').findProperty('active', true);
+      if (active !== undefined)
+        return active;
+    }
+  }.property('selectedComponentName', 'componentGroups.@each.active', 'componentGroups.@each.name'),
 
   showSlaveComponentGroup: function(event){
     var component = this.get('selectedSlaveComponent');
@@ -355,6 +368,21 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
         lastGroup.setEach('active', true);
       }
     }
+  },
+
+  changeSlaveGroupName: function(group, newGroupName){
+    var component = this.get('selectedSlaveComponent');
+    var isExist = component.groups.filterProperty('name', newGroupName);
+    if (isExist.length !== 0)
+      return true;
+    else {
+      var assignedHosts = component.hosts.filterProperty('group', group.name);
+      if (assignedHosts.length !== 0)
+        assignedHosts.setEach('group', newGroupName);
+      var groupFilter = component.groups.filterProperty('name', group.name);
+      groupFilter.setEach('name', newGroupName);
+    }
+    return false;
   }
 
 });

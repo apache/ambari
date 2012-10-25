@@ -357,6 +357,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-914. Fix issues related to Slave Component Group in Installer.
+  (yusaku)
+
   AMBARI-909. Pass correct cluster info to Action Manager. (hitesh)
 
   AMBARI-904. Ensure state changes only happen after actionmanager persists

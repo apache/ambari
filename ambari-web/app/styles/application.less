@@ -127,6 +127,10 @@ footer {
   .brand {
     font-size: 17px;
     border-right: 1px solid rgba(0, 0, 0, 0.08);
+    .operations-count{
+      margin-top: 5px;
+      background-color: #006DCC;
+    }
   }
   li {
     font-size: 15px;
@@ -265,15 +269,16 @@ h1 {
         a {
           padding-right: 24px;
         }
-        i {
+        .icon-remove {
           border: 1px solid white;
           position: absolute;
           right: 7px;
           top: 10px;
           z-index: 2;
           cursor: default;
+          color: #555555;
         }
-        i:hover {
+        .icon-remove:hover {
           border: 1px solid grey;
         }
       }
@@ -610,10 +615,19 @@ a:focus {
 #services-menu {
   .nav-list {
     .tab-marker-position {
-      padding-left: 30px;
-      padding-right: 30px;
-      background-position: 12px 9px;
+
+      background-position: 6px 5px;
       background-repeat: no-repeat;
+      list-style: none;
+      height: 20px;
+      width: 20px;
+      margin-left: 0;
+
+    //      padding-left: 30px;
+    //      padding-right: 30px;
+    //      background-position: 12px 9px;
+    //      background-repeat: no-repeat;
+
     }
     .health-status-LIVE {
       .tab-marker-position;
@@ -1164,18 +1178,14 @@ ul.inline li {
 
   .accordion {
     background: none repeat scroll 0 0 #FFFFFF;
-    border: 1px solid;
+  /*border: 1px solid;*/
     font-size: 12px;
-    padding: 5px 0;
+  /*padding: 5px 0;*/
     position: absolute;
+    z-index: 1000;
 
     .accordion-group {
-      border: none;
-
       .accordion-heading {
-        .accordion-toggle {
-          padding: 0 5px;
-        }
         i {
           text-decoration: none;
         }
@@ -1183,22 +1193,17 @@ ul.inline li {
 
       .accordion-body {
         .accordion-inner {
-          border: none;
-          padding: 0 8px;
-          width: 160px;
+        /*border: none;
+        padding: 0 8px;
+        width: 160px;*/
 
           ul.items {
-            border: 1px solid #000;
             list-style: none;
-            border-bottom: none;
-
             li {
-              border-bottom: 1px solid;
-              line-height: 12px;
-              padding: 2px 5px;
-              padding: 2px 5px;
+              a:hover {
+                cursor: pointer;
+              }
             }
-
             li.disabled {
               a {
                 color: #999999;

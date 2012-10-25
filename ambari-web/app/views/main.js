@@ -21,6 +21,13 @@ var App = require('app');
 
 App.MainView = Em.View.extend({
 
-  templateName: require('templates/main')
+  templateName: require('templates/main'),
+  isInHostsPath: function(){
+    console.log(App.router.get('currentState.name'))
+    return App.router.get('currentState.name') === 'hosts';
+  }.property('App.router.currentState.name'),
+  backgroundOperationsCount:function () {
+    return App.router.get('mainHostController.backgroundOperationsCount');
+  }.property('App.router.mainHostController.backgroundOperationsCount')
 
 });

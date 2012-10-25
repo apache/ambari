@@ -236,8 +236,10 @@ App.AddSlaveComponentGroupButton = Ember.View.extend({
 });
 
 App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
-
-  contentBinding: 'App.router.slaveComponentGroupsController.componentGroups',
+  controllerBinding: 'App.router.slaveComponentGroupsController',
+  content: function(){
+    return this.get('controller.componentGroups');
+  }.property('controller.componentGroups'),
   tagName:'ul',
   classNames: ["nav", "nav-tabs"],
 
@@ -246,7 +248,7 @@ App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
     active:function(){
       return this.get('content.active');
     }.property('content.active'),
-    template:Ember.Handlebars.compile('<a {{action showSlaveComponentGroup view.content target="App.router.slaveComponentGroupsController"}} href="#"> {{unbound view.content.name}}</a><i {{action removeSlaveComponentGroup view.content target="App.router.slaveComponentGroupsController"}} class="icon-remove"></i>')  })
+    template:Ember.Handlebars.compile('<a {{action showSlaveComponentGroup view.content target="controller"}} href="#"> {{view.content.name}}</a><i {{action removeSlaveComponentGroup view.content target="controller"}} class="icon-remove"></i>')  })
 });
 
 App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, {
@@ -280,4 +282,25 @@ App.SlaveComponentDropDownGroupView = Ember.View.extend({
       parent.get('controller').changeHostGroup(host, groupName);
     }
   })
+});
+
+App.SlaveComponentChangeGroupNameView = Ember.View.extend({
+  controllerBinding: 'App.router.slaveComponentGroupsController',
+  contentBinding: 'controller.activeGroup',
+  classNames: ['control-group'],
+  classNameBindings: 'error',
+  error: false,
+  setError: function(){
+    this.set('error', false);
+  }.observes('controller.activeGroup'),
+  errorMessage: function(){
+    return this.get('error') ? 'group with this name already exist' : '';
+  }.property('error'),
+  changeGroupName: function(event) {
+    var inputVal = $('#'+this.get('elementId') + ' input[type="text"]').val();
+    if (inputVal !== this.get('content.name')){
+      var result = this.get('controller').changeSlaveGroupName(this.get('content'), inputVal);
+      this.set('error', result);
+    }
+  }
 });

@@ -41,6 +41,10 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   }.property('sortingAsc'),
   isDisabled:true,
 
+  backgroundOperationsCount: function() {
+    return 5;
+  }.property(),
+
   onAllChecked: function () {
     var hosts = this.get('content');
     hosts.setEach('isChecked', this.get('allChecked'));

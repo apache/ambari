@@ -18,7 +18,7 @@
           {{#each groupName in controller.getGroupsForDropDown}}
             {{#view view.optionTag contentBinding="groupName"}}
               <option value="{{unbound groupName}}" {{bindAttr selected="view.selected"}} {{action changeGroup target="view"}}>
-                {{unbound groupName}}
+                {{groupName}}
               </option>
             {{/view}}
           {{/each}}

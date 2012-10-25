@@ -57,13 +57,16 @@
           {{/if}}
           <form class="form-horizontal">
             {{#if category.isForSlaveComponent}}
-            <div class="control-group">
+            {{#view App.SlaveComponentChangeGroupNameView}}
               <label class="control-label">Group name</label>
               <div class="controls">
-                <input class="span6" type="text" {{bindAttr value="App.router.slaveComponentGroupsController.activeGroup.name"}}>
-                <span class="help-inline"></span>
+                <div class="span6">
+                  <input class="span9" type="text" {{bindAttr value="view.content.name"}}>
+                  <button class="btn" {{action changeGroupName target="view"}}>Save</button>
+                </div>
+                <span class="help-inline">{{view.errorMessage}}</span>
               </div>
-            </div>
+            {{/view}}
             {{/if}}
             {{#each view.categoryConfigs}}
             <div {{bindAttr class="errorMessage:error: :control-group"}}>

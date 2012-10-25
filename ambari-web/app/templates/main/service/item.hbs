@@ -18,12 +18,20 @@
 
 {{view App.MainServiceInfoMenuView}}
 <div class="service-button">
-  {{#if showRebalancer}}
-  <a class="btn" href="javascript:void(null)">
-    <i class="icon-play-circle"></i>
-    Run Rebalancer
-  </a>
-  {{/if}}
+  <div class="btn-group display-inline-block">
+    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+      {{t services.service.actions.maintenance}}
+      <span class="caret"></span>
+    </a>
+    <ul class="dropdown-menu">
+      <!-- dropdown menu links -->
+      {{#each option in view.maintenance}}
+      <li>
+        <a {{action todo target="view" href=true}}>{{option.label}}</a>
+      </li>
+      {{/each}}
+    </ul>
+  </div>
   {{#if controller.content.workStatus}}
     <a href="javascript:void(null)" class="btn disabled">
       <i class="icon-play"></i>
