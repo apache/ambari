@@ -367,6 +367,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-899. Use slf4j-api 1.5.5 rather than 1.6.6. (yusaku)
+
   AMBARI-902. Fix ZooKeeper badge allocation logic for single host and 
   muliple hosts installation in step5 installer wizard. (Jaimin Jetly via
   yusaku)
