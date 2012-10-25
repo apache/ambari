@@ -82,7 +82,8 @@ public class HeartBeatHandler {
     LOG.info("Heartbeat received from host " + heartbeat.getHostname()
         + " responseId=" + heartbeat.getResponseId());
     Host hostObject = clusterFsm.getHost(hostname);
-
+    // FIXME need to remove this hack
+    hostObject.refresh();
     long now = System.currentTimeMillis();
     hostObject.refresh();
 

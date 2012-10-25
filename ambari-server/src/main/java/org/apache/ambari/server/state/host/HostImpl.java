@@ -218,7 +218,8 @@ public class HostImpl implements Host {
       LOG.debug("Host transition to host status updates received state"
           + ", host=" + e.getHostName()
           + ", heartbeatTime=" + e.getTimestamp());
-      host.setHealthStatus(new HostHealthStatus(HealthStatus.HEALTHY, host.getHealthStatus().getHealthReport()));
+      host.setHealthStatus(new HostHealthStatus(HealthStatus.HEALTHY,
+          host.getHealthStatus().getHealthReport()));
     }
   }
 
@@ -296,10 +297,11 @@ public class HostImpl implements Host {
   public void importHostInfo(HostInfo hostInfo) {
     try {
       writeLock.lock();
-      if (hostInfo.getFQDN() != null
-          && !hostInfo.getFQDN().isEmpty()
-          && !hostInfo.getFQDN().equals(getHostName())) {
-        setHostName(hostInfo.getFQDN());
+      String fqdn = hostInfo.getFQDN();
+      if (fqdn != null
+          && !fqdn.isEmpty()
+          && !fqdn.equals(getHostName())) {
+        setHostName(hostInfo.getHostName());
       }
       if (hostInfo.getIPAddress() != null
           && !hostInfo.getIPAddress().isEmpty()) {

@@ -1192,6 +1192,7 @@ public class AmbariManagementControllerTest {
     configs.put(c1.getType(), c1);
     configs.put(c2.getType(), c2);
     s1.updateDesiredConfigs(configs);
+    s1.persist();
 
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, null,
         State.INSTALLED.toString());

@@ -1173,8 +1173,6 @@ public class AmbariManagementControllerImpl implements
       for (State newState : changedScHosts.get(compName).keySet()) {
         for (ServiceComponentHost scHost :
             changedScHosts.get(compName).get(newState)) {
-          // FIXME file configs with appropriate configs for this
-          // scHost instance if action is install or start
           RoleCommand roleCommand;
           State oldSchState = scHost.getDesiredState();
           ServiceComponentHostEvent event;
@@ -1242,6 +1240,18 @@ public class AmbariManagementControllerImpl implements
       }
     }
 
+    RoleGraph rg = new RoleGraph(rco);
+    rg.build(stage);
+    List<Stage> stages = rg.getStages();
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Triggering Action Manager"
+          + ", clusterName=" + cluster.getClusterName()
+          + ", requestId=" + requestId
+          + ", stagesCount=" + stages.size());
+    }
+    actionManager.sendActions(stages);
+
     if (changedServices != null) {
       for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
         State newState = entry.getKey();
@@ -1271,23 +1281,7 @@ public class AmbariManagementControllerImpl implements
       }
     }
 
-    RoleGraph rg = new RoleGraph(rco);
-    rg.build(stage);
-    List<Stage> stages = rg.getStages();
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Triggering Action Manager"
-          + ", clusterName=" + cluster.getClusterName()
-          + ", requestId=" + requestId
-          + ", stagesCount=" + stages.size());
-      for (Stage stagetmp: stages) {
-        LOG.debug("Stage tmp dump: " + stagetmp.toString());
-      }
-    }
-    actionManager.sendActions(stages);
-
     return new TrackActionResponse(requestId);
-
   }
 
   private boolean isValidTransition(State oldState, State newState) {
@@ -1730,29 +1724,41 @@ public class AmbariManagementControllerImpl implements
       Service s = cluster.getService(request.getServiceName());
       ServiceComponent sc = s.getServiceComponent(
         request.getComponentName());
-
-      if (request.getConfigVersions() != null) {
-        Map<String, Config> updated = new HashMap<String, Config>();
-
-        for (Entry<String,String> entry : request.getConfigVersions().entrySet()) {
-          Config config = cluster.getDesiredConfig(entry.getKey(), entry.getValue());
-          if (null != config) {
-            updated.put(config.getType(), config);
-          }
-
-          if (0 != updated.size()) {
-            sc.updateDesiredConfigs(updated);
-            sc.persist();
-          }
+      State oldState = sc.getDesiredState();
+      State newState = null;
+      if (request.getDesiredState() != null) {
+        newState = State.valueOf(request.getDesiredState());
+        if (!newState.isValidDesiredState()) {
+          // FIXME fix with appropriate exception
+          throw new AmbariException("Invalid desired state");
         }
-
-        // TODO handle config updates
-        // handle recursive updates to all components and hostcomponents
-        // if different from old desired configs, trigger relevant actions
       }
 
-      if (request.getDesiredState() == null
-          || request.getDesiredState().isEmpty()) {
+      if (request.getConfigVersions() != null) {
+        // validate whether changing configs is allowed
+        // FIXME this will need to change for cascading updates
+        // need to check all components and hostcomponents for correct state
+        safeToUpdateConfigsForServiceComponent(sc, oldState, newState);
+
+        for (Entry<String,String> entry :
+            request.getConfigVersions().entrySet()) {
+          Config config = cluster.getDesiredConfig(
+              entry.getKey(), entry.getValue());
+          if (null == config) {
+            // throw error for invalid config
+            throw new AmbariException("Trying to update servicecomponent with"
+                + " invalid configs"
+                + ", clusterName=" + cluster.getClusterName()
+                + ", clusterId=" + cluster.getClusterId()
+                + ", serviceName=" + s.getName()
+                + ", componentName=" + sc.getName()
+                + ", invalidConfigType=" + entry.getKey()
+                + ", invalidConfigTag=" + entry.getValue());
+          }
+        }
+      }
+
+      if (newState == null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Nothing to do for new updateServiceComponent request"
               + ", clusterName=" + request.getClusterName()
@@ -1761,12 +1767,6 @@ public class AmbariManagementControllerImpl implements
               + ", newDesiredState=null");
         }
         continue;
-      }
-
-      State newState = State.valueOf(request.getDesiredState());
-      if (!newState.isValidDesiredState()) {
-        // TODO fix
-        throw new AmbariException("Invalid desired state");
       }
 
       if (sc.isClientComponent() &&
@@ -1863,6 +1863,29 @@ public class AmbariManagementControllerImpl implements
 
     // TODO if all components reach a common state, should service state be
     // modified?
+
+    for (ServiceComponentRequest request : requests) {
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Service s = cluster.getService(request.getServiceName());
+      ServiceComponent sc = s.getServiceComponent(
+        request.getComponentName());
+      if (request.getConfigVersions() != null) {
+        Map<String, Config> updated = new HashMap<String, Config>();
+
+        for (Entry<String,String> entry :
+          request.getConfigVersions().entrySet()) {
+          Config config = cluster.getDesiredConfig(
+              entry.getKey(), entry.getValue());
+          updated.put(config.getType(), config);
+          if (!updated.isEmpty()) {
+            sc.updateDesiredConfigs(updated);
+            sc.persist();
+          }
+        }
+
+        // TODO handle recursive updates to all hostcomponents
+      }
+    }
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
@@ -1987,29 +2010,42 @@ public class AmbariManagementControllerImpl implements
         request.getComponentName());
       ServiceComponentHost sch = sc.getServiceComponentHost(
         request.getHostname());
-
-      if (request.getConfigVersions() != null) {
-        Map<String, Config> updated = new HashMap<String, Config>();
-
-        for (Entry<String,String> entry : request.getConfigVersions().entrySet()) {
-          Config config = cluster.getDesiredConfig(entry.getKey(), entry.getValue());
-          if (null != config) {
-            updated.put(config.getType(), config);
-          }
-
-          if (0 != updated.size()) {
-            sch.updateDesiredConfigs(updated);
-            sch.persist();
-          }
+      State oldState = sch.getDesiredState();
+      State newState = null;
+      if (request.getDesiredState() != null) {
+        newState = State.valueOf(request.getDesiredState());
+        if (!newState.isValidDesiredState()) {
+          // FIXME fix with appropriate exception
+          throw new AmbariException("Invalid desired state");
         }
-
-        // TODO handle config updates
-        // handle recursive updates to all components and hostcomponents
-        // if different from old desired configs, trigger relevant actions
       }
 
-      if (request.getDesiredState() == null
-          || request.getDesiredState().isEmpty()) {
+      if (request.getConfigVersions() != null) {
+        // validate whether changing configs is allowed
+        // FIXME this will need to change for cascading updates
+        // need to check all components and hostcomponents for correct state
+        safeToUpdateConfigsForServiceComponentHost(sch, oldState, newState);
+
+        for (Entry<String,String> entry :
+            request.getConfigVersions().entrySet()) {
+          Config config = cluster.getDesiredConfig(
+              entry.getKey(), entry.getValue());
+          if (null == config) {
+            // throw error for invalid config
+            throw new AmbariException("Trying to update servicecomponenthost"
+                + " with invalid configs"
+                + ", clusterName=" + cluster.getClusterName()
+                + ", clusterId=" + cluster.getClusterId()
+                + ", serviceName=" + s.getName()
+                + ", componentName=" + sc.getName()
+                + ", hostname=" + sch.getHostName()
+                + ", invalidConfigType=" + entry.getKey()
+                + ", invalidConfigTag=" + entry.getValue());
+          }
+        }
+      }
+
+      if (newState == null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Nothing to do for new updateServiceComponentHost request"
               + ", clusterName=" + request.getClusterName()
@@ -2019,12 +2055,6 @@ public class AmbariManagementControllerImpl implements
               + ", newDesiredState=null");
         }
         continue;
-      }
-
-      State newState = State.valueOf(request.getDesiredState());
-      if (!newState.isValidDesiredState()) {
-        // TODO fix
-        throw new AmbariException("Invalid desired state");
       }
 
       if (sc.isClientComponent() &&
@@ -2086,11 +2116,33 @@ public class AmbariManagementControllerImpl implements
           + " for a set of service components at the same time");
     }
 
-    // TODO fix
+    // TODO fix live state handling
     // currently everything is being done based on desired state
     // at some point do we need to do stuff based on live state?
 
     // TODO additional validation?
+    for (ServiceComponentHostRequest request : requests) {
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Service s = cluster.getService(request.getServiceName());
+      ServiceComponent sc = s.getServiceComponent(
+        request.getComponentName());
+      ServiceComponentHost sch = sc.getServiceComponentHost(
+        request.getHostname());
+      if (request.getConfigVersions() != null) {
+        Map<String, Config> updated = new HashMap<String, Config>();
+
+        for (Entry<String,String> entry : request.getConfigVersions().entrySet()) {
+          Config config = cluster.getDesiredConfig(
+              entry.getKey(), entry.getValue());
+          updated.put(config.getType(), config);
+
+          if (!updated.isEmpty()) {
+            sch.updateDesiredConfigs(updated);
+            sch.persist();
+          }
+        }
+      }
+    }
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 

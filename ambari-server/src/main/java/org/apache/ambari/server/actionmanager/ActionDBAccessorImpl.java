@@ -93,8 +93,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   public void abortOperation(long requestId) {
-    Collection<HostRoleStatus> sourceStatuses = Arrays.asList(HostRoleStatus.QUEUED, HostRoleStatus.IN_PROGRESS, HostRoleStatus.PENDING);
-    int result = hostRoleCommandDAO.updateStatusByRequestId(requestId, HostRoleStatus.ABORTED, sourceStatuses);
+    Collection<HostRoleStatus> sourceStatuses =
+        Arrays.asList(HostRoleStatus.QUEUED, HostRoleStatus.IN_PROGRESS,
+            HostRoleStatus.PENDING);
+    int result = hostRoleCommandDAO.updateStatusByRequestId(requestId,
+        HostRoleStatus.ABORTED, sourceStatuses);
     LOG.info("Aborted {} commands", result);
   }
 
@@ -103,8 +106,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   @Transactional
-  public void timeoutHostRole(String host, long requestId, long stageId, Role role) {
-    List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByHostRole(host, requestId, stageId, role);
+  public void timeoutHostRole(String host, long requestId, long stageId,
+      Role role) {
+    List<HostRoleCommandEntity> commands =
+        hostRoleCommandDAO.findByHostRole(host, requestId, stageId, role);
     for (HostRoleCommandEntity command : commands) {
       command.setStatus(HostRoleStatus.TIMEDOUT);
       hostRoleCommandDAO.merge(command);
@@ -117,10 +122,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public List<Stage> getStagesInProgress() {
     List<Stage> stages = new ArrayList<Stage>();
-    List<HostRoleStatus> statuses = new ArrayList<HostRoleStatus>();
-    statuses.add(HostRoleStatus.PENDING);
-    statuses.add(HostRoleStatus.QUEUED);
-    statuses.add(HostRoleStatus.IN_PROGRESS);
+    List<HostRoleStatus> statuses =
+        Arrays.asList(HostRoleStatus.QUEUED, HostRoleStatus.IN_PROGRESS,
+            HostRoleStatus.PENDING);
     for (StageEntity stageEntity : stageDAO.findByCommandStatuses(statuses)) {
       stages.add(stageFactory.createExisting(stageEntity));
     }
@@ -136,7 +140,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding stages to DB, stageCount=" + stages.size());
     }
-
     for (Stage stage : stages) {
       StageEntity stageEntity = stage.constructNewPersistenceEntity();
       Cluster cluster;
