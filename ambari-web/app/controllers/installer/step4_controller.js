@@ -49,12 +49,12 @@ App.InstallerStep4Controller = Em.ArrayController.extend({
     this.clear();
   },
 
-  loadStep: function() {
+  loadStep: function () {
     this.clearStep();
     this.renderStep(this.loadServices());
   },
 
-  loadServices: function() {
+  loadServices: function () {
     return db.getService();
   },
 
@@ -90,6 +90,21 @@ App.InstallerStep4Controller = Em.ArrayController.extend({
     } else {
       return false;
     }
+  },
+
+  setClientsForSelectedServices: function () {
+    var clients = [];
+    var serviceComponents = require('data/service_components');
+    db.getService().filterProperty('isSelected',true).forEach(function (_service) {
+      var client = serviceComponents.filterProperty('service_name', _service.serviceName).findProperty('isClient', true);
+      if (client) {
+        clients.pushObject({
+          component_name: client.component_name,
+          display_name: client.display_name
+        });
+      }
+    }, this);
+    db.setClientsForSelectedServices(clients);
   },
 
   gangliaOrNagiosNotSelected: function () {
@@ -137,6 +152,7 @@ App.InstallerStep4Controller = Em.ArrayController.extend({
 
   proceed: function () {
     this.saveSelectedServiceNamesToDB();
+    this.setClientsForSelectedServices();
     App.router.send('next');
   }
 })

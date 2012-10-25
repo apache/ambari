@@ -220,6 +220,13 @@ App.db.setSelectedServiceNames = function (serviceNames) {
   localStorage.setObject('ambari', App.db.data);
 }
 
+App.db.setClientsForSelectedServices = function(clientInfo) {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  App.db.data[user].Installer.clientInfo = clientInfo;
+  localStorage.setObject('ambari', App.db.data);
+}
+
 App.db.setMasterComponentHosts = function (masterComponentHosts) {
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
@@ -412,6 +419,12 @@ App.db.getSelectedServiceNames = function () {
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
   return App.db.data[user].Installer.selectedServiceNames;
+}
+
+App.db.getClientsForSelectedServices = function() {
+  App.db.data = localStorage.getObject('ambari');
+  var user = App.db.data.app.loginName;
+  return App.db.data[user].Installer.clientInfo;
 }
 
 App.db.getMasterComponentHosts = function () {

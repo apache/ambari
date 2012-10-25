@@ -22,16 +22,43 @@ var App = require('app');
 App.InstallerStep6View = Em.View.extend({
 
   templateName: require('templates/installer/step6'),
+  label: '',
+
   didInsertElement: function () {
     var controller = this.get('controller');
+    this.setLabel();
+    var client = App.db.getClientsForSelectedServices();
+    this.set('client', client);
+    var self = this;
+    $('body').tooltip({
+      selector: '[rel=tooltip]'
+    });
     controller.loadStep();
-  }
+  },
 
+  setLabel: function () {
+    var label = Em.I18n.t('installer.step6.body');
+    var clients = App.db.getClientsForSelectedServices();
+    clients.forEach(function (_client) {
+      if (clients.length === 1) {
+        label = label + ' ' + _client.display_name;
+      } else if (_client !== clients[clients.length - 1]) {           // [clients.length - 1]
+        label = label + ' ' + _client.display_name;
+        if(_client !== clients[clients.length - 2]) {
+          label = label + ',';
+        }
+      } else {
+        label = label + ' and ' + _client.display_name + '.';
+      }
+    }, this);
+    this.set('label', label);
+  }
 });
 
 App.InstallerStep6HostView = Em.View.extend({
 
   host: null,
+  tagName: 'td',
   didInsertElement: function (event, context) {
     var self = this;
     var components = this.get('controller').getMasterComponentsforHost(this.get('host.hostname')).toString();
@@ -48,3 +75,6 @@ App.InstallerStep6HostView = Em.View.extend({
     }
   }
 });
+
+
+

@@ -592,10 +592,6 @@ App.InstallerStep5Controller = Em.Controller.extend({
       });
     }, this);
     App.db.setHostToMasterComponent(hostsMasterServicesMapping);
-    App.db.getHostToMasterComponent().forEach(function (_hostcomponent) {
-      console.log("INFO: the name of this thimg is: " + _hostcomponent.hostname);
-      console.log("INFO: the name of this thimg is: " + _hostcomponent.components);
-    }, this);
   },
 
   submit: function () {

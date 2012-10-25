@@ -107,7 +107,7 @@ Em.I18n.translations = {
   'installer.step5.body': 'Assign master components to hosts you want to run them on.',
 
   'installer.step6.header': 'Assign Slaves and Clients',
-  'installer.step6.body': 'Assign slave and client components to hosts you want to run them on. <br/>Client component will install Hadoop client, HBase client and Pig client on the machine.',
+  'installer.step6.body': 'Assign slave and client components to hosts you want to run them on. <br/>Client component will install ',
   'installer.step6.error.mustSelectOne': 'You must assign at least one host to each.',
 
   'installer.step7.header': 'Customize Services',

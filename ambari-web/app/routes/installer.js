@@ -108,7 +108,7 @@ module.exports = Em.Route.extend({
     back: Em.Router.transitionTo('step2'),
     next: function (router, context) {
       App.db.setBootStatus(true);
-      App.db.setService(router.get('installerStep4Controller.rawContent'));
+      App.db.setService(require('data/mock/services'));
       router.transitionTo('step4');
     }
   }),
@@ -116,7 +116,6 @@ module.exports = Em.Route.extend({
   step4: Em.Route.extend({
     route: '/step4',
     connectOutlets: function (router, context) {
-
       router.setNavigationFlow('step4');
       router.setInstallerCurrentStep('4', false);
       router.get('installerController').connectOutlet('installerStep4');

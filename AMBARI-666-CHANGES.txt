@@ -360,6 +360,9 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-896. Resolve all navigation related issues for Step6 (Slave and
+  Client component) of installer wizard. (Jaimin Jetly via yusaku)
+
   AMBARI-914. Fix issues related to Slave Component Group in Installer.
   (yusaku)
 
