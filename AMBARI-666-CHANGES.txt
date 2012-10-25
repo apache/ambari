@@ -344,6 +344,8 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-918. Update styles in Cluster Management. (yusaku)
+
   AMBARI-917. Update layout and flow for App Browser. (yusaku)
 
   AMBARI-888. Add more tests for controller implementation. (hitesh)

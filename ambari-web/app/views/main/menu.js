@@ -30,8 +30,8 @@ App.MainMenuView = Em.CollectionView.extend({
     { label:'Charts', routing:'charts'},
     { label:'Services', routing:'services'},
     { label:'Hosts', routing:'hosts'},
-    { label:'Admin', routing:'admin'},
-    { label:'Apps', routing:'apps'}
+    { label:'Apps', routing:'apps'},
+    { label:'Admin', routing:'admin'}
   ],
 
   /**

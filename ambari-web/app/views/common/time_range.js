@@ -26,21 +26,25 @@ var App = require('app');
  */
 App.TimeRangeWidget = Em.View.extend({
   classNames:['time-range-widget'],
+  templateName:require('templates/common/time_range'),
+  dateFrom: null,
+  dateTo: null,
+
   /**
    * presets
    */
   presets:[
-    Em.Object.create({ label:Em.I18n.t('timeRange.presets.1hour'), value:'1h'}),
-    Em.Object.create({ label:Em.I18n.t('timeRange.presets.12hour'), value:'12h'}),
-    Em.Object.create({ label:Em.I18n.t('timeRange.presets.1day'), value:'1d'}),
-    Em.Object.create({ label:Em.I18n.t('timeRange.presets.1week'), value:'1wk'}),
-    Em.Object.create({ label:Em.I18n.t('timeRange.presets.1month'), value:'1mo'}),
-    Em.Object.create({ label:Em.I18n.t('timeRange.presets.1year'), value:'1yr'})
+    Em.Object.create({ label:Em.I18n.t('timeRange.presets.1hour'), value:'1h', period: 3600000, step: 300000}),
+    Em.Object.create({ label:Em.I18n.t('timeRange.presets.12hour'), value:'12h', period: 43200000, step: 3600000}),
+    Em.Object.create({ label:Em.I18n.t('timeRange.presets.1day'), value:'1d', period: 86400000, step: 3600000}),
+    Em.Object.create({ label:Em.I18n.t('timeRange.presets.1week'), value:'1wk', period: 604800000, step: 86400000}),
+    Em.Object.create({ label:Em.I18n.t('timeRange.presets.1month'), value:'1mo', period: 2592000000, step: 86400000}),
+    Em.Object.create({ label:Em.I18n.t('timeRange.presets.1year'), value:'1yr', period: 31536000000, step: 2592000000})
   ],
   /**
    * chosen preset value
    */
-  chosenPreset:'1h',
+  chosenPreset: null,
 
   /**
    * return array of chosen presets
@@ -59,9 +63,9 @@ App.TimeRangeWidget = Em.View.extend({
       return this.get('isActive') ? "disabled" : false;
     }.property('isActive'),
     isActive:function () {
-      return this.get('preset.value') == this.get('widget.chosenPreset');
+      return this.get('preset.value') == this.get('widget.chosenPreset.value');
     }.property('widget.chosenPreset'),
-    template:Em.Handlebars.compile('<a {{action activate view.preset.value target="view.widget" href="true" }}>{{unbound view.preset.label}}</a>')
+    template:Em.Handlebars.compile('<a {{action activate view.preset target="view.widget" href="true" }}>{{unbound view.preset.label}}</a>')
   }),
 
   /**
@@ -96,10 +100,12 @@ App.TimeRangeWidget = Em.View.extend({
    * @param event
    */
   activate:function (event) {
-    this.set('chosenPreset', event.context);
+    if (event.context == this.get('chosenPreset')) {
+      this.set('chosenPreset', null);
+    } else {
+      this.set('chosenPreset', event.context);
+    }
   },
-
-  templateName:require('templates/common/time_range'),
 
   dateFromView: Ember.TextField.extend({
     elementId: 'timeRangeFrom',
@@ -108,7 +114,7 @@ App.TimeRangeWidget = Em.View.extend({
     readonly: true,
     didInsertElement: function() {
       var self = this;
-      $('#timeRangeFrom').datetimepicker({
+      this.$().datetimepicker({
         dateFormat: 'dd/mm/yy',
         timeFormat: 'hh:mm',
         maxDate: new Date(),
@@ -119,8 +125,7 @@ App.TimeRangeWidget = Em.View.extend({
             var testEndDate = new Date(endDateTextBox.val());
             if (testStartDate > testEndDate)
               endDateTextBox.val(dateText);
-          }
-          else {
+          } else {
             endDateTextBox.val(dateText);
           }
           self.set('dateFrom', dateText);
@@ -141,10 +146,10 @@ App.TimeRangeWidget = Em.View.extend({
     readonly: true,
     didInsertElement: function() {
       var self = this;
-      $('#timeRangeTo').datetimepicker({
-        maxDate: new Date(),
+      this.$().datetimepicker({
         dateFormat: 'dd/mm/yy',
         timeFormat: 'hh:mm',
+        maxDate: new Date(),
         onClose:function (dateText, inst) {
           var startDateTextBox = $('#timeRangeFrom');
           if (startDateTextBox.val() != '') {
@@ -152,8 +157,7 @@ App.TimeRangeWidget = Em.View.extend({
             var testEndDate = new Date(dateText);
             if (testStartDate > testEndDate)
               startDateTextBox.val(dateText);
-          }
-          else {
+          } else {
             startDateTextBox.val(dateText);
           }
           self.set('dateTo', dateText);
@@ -165,5 +169,53 @@ App.TimeRangeWidget = Em.View.extend({
       });
       self.set('dateTo', this.get('value'));
     }
-  })
+  }),
+
+  sliderOptions: Ember.Object.extend({
+    end: null,
+    period: null,
+    start: function() {
+      return this.get('end') - this.get('period');
+    }.property('end', 'period')
+  }),
+  nowLabel: null,
+  rangeLabel: null,
+  buildSlider: function() {
+    if (this.get('chosenPreset')) {
+      var sliderOptions = this.sliderOptions.create({
+        end: function() {
+          var endDate = new Date();
+          return endDate.getTime();
+        }.property(),
+        period: this.get('chosenPreset.period'),
+        step: this.get('chosenPreset.step'),
+        countTimeAgo: function(stepValue) {
+          var msAgo = this.get('end') - stepValue;
+          return msAgo.toDaysHoursMinutes();
+        }
+      });
+      this.set('nowLabel', 'Now');
+      this.set('rangeLabel', new Date(sliderOptions.get('start')));
+
+      var self = this;
+      $('#slider').slider({
+        range: "max",
+        min: sliderOptions.get('start'),
+        max: sliderOptions.get('end'),
+        value: sliderOptions.get('start'),
+        step: sliderOptions.get('step'),
+        stop: function(event, ui) {
+          self.set('rangeLabel', new Date(ui.value));
+//          self.set('rangeLabel', sliderOptions.countTimeAgo(ui.value).h);
+        },
+        slide: function(event, ui){
+          self.set('rangeLabel', new Date(ui.value));
+//          self.set('rangeLabel', sliderOptions.countTimeAgo(ui.value).h);
+        }
+      });
+    } else {
+      console.log(this.get('chosenPreset'));
+      $("#slider").slider("destroy");
+    }
+  }.observes('chosenPreset')
 })

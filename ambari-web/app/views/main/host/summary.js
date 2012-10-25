@@ -26,7 +26,7 @@ App.MainHostSummaryView = Em.View.extend({
   ComponentButtonView: Em.View.extend({
     content: null,
     adjustedIndex: function() {
-      return this.getPath('_parentView.contentIndex') + 1;
+      return this.get('_parentView.contentIndex') + 1;
     }.property(),
     positionButton: function() {
       return (this.get("adjustedIndex")%2 == 0) ? true : false;

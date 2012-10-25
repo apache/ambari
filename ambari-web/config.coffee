@@ -61,8 +61,8 @@ exports.config =
       order:
         before: [
           'vendor/styles/bootstrap.css',
-          'vendor/styles/datepicker.css',
-          'vendor/styles/font-awesome.css',
+#          'vendor/styles/datepicker.css'
+          'vendor/styles/font-awesome.css'
           'vendor/styles/font-awesome-ie7.css',
           'vendor/styles/cubism.css',
           'vendor/styles/rickshaw.css'
