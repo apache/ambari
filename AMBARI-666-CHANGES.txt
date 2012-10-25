@@ -357,6 +357,8 @@ AMBARI-666 branch (unreleased changes)
 
   BUG FIXES
 
+  AMBARI-909. Pass correct cluster info to Action Manager. (hitesh)
+
   AMBARI-904. Ensure state changes only happen after actionmanager persists
   actions. (hitesh)
 

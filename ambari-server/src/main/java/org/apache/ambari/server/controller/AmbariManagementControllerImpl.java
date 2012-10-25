@@ -57,6 +57,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
+import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -751,7 +752,8 @@ public class AmbariManagementControllerImpl implements
     return stage;
   }
 
-  private void createHostAction(Stage stage, ServiceComponentHost scHost,
+  private void createHostAction(Cluster cluster,
+      Stage stage, ServiceComponentHost scHost,
       Map<String, Config> configs,
       RoleCommand command,
       long nowTimestamp,
@@ -769,11 +771,8 @@ public class AmbariManagementControllerImpl implements
     Map<String, List<String>> clusterHostInfo =
         new TreeMap<String, List<String>>();
 
-    // TODO hack alert
-    List<String> slaveHostList = new ArrayList<String>();
-    slaveHostList.add("localhost");
-    clusterHostInfo.put("slave_hosts", slaveHostList);
-    execCmd.setClusterHostInfo(clusterHostInfo);
+    execCmd.setClusterHostInfo(
+        StageUtils.getClusterHostInfo(cluster));
 
     // TODO do something from configs here
     Map<String, Map<String, String>> configurations =
@@ -1243,7 +1242,7 @@ public class AmbariManagementControllerImpl implements
           }
 
           Map<String, Config> configs = scHost.getDesiredConfigs();
-          createHostAction(stage, scHost, configs, roleCommand,
+          createHostAction(cluster, stage, scHost, configs, roleCommand,
             nowTimestamp, event);
         }
       }
