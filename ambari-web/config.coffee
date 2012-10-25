@@ -1,4 +1,3 @@
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -23,19 +22,18 @@ path = require 'path'
 
 exports.config =
 
-  files: 
-    
-    javascripts: 
-      joinTo: 
+  files:
+
+    javascripts:
+      joinTo:
         'javascripts/app.js': /^app/
         'javascripts/vendor.js': /^vendor/
         'test/javascripts/test.js': /^test(\/|\\)(?!vendor)/
         'test/javascripts/test-vendor.js': /^test(\/|\\)(?=vendor)/
-      order: 
+      order:
         before: [
           'vendor/scripts/console-helper.js',
           'vendor/scripts/jquery-1.7.2.min.js',
-          'vendor/scripts/jquery-ui-1.9.0.custom.js'
           'vendor/scripts/handlebars-1.0.0.beta.6.js',
           'vendor/scripts/ember-latest.js',
           'vendor/scripts/ember-data-latest.js',
@@ -43,6 +41,17 @@ exports.config =
           'vendor/scripts/bootstrap.js',
           'vendor/scripts/d3.v2.js',
           'vendor/scripts/sinon-1.4.2.js',
+          'vendor/scripts/cubism.v1.js',
+          'vendor/scripts/jquery.ui.core.js',
+          'vendor/scripts/jquery.ui.widget.js',
+          'vendor/scripts/jquery.ui.mouse.js',
+          'vendor/scripts/jquery.ui.datepicker.js',
+          'vendor/scripts/jquery-ui-timepicker-addon.js',
+          'vendor/scripts/jquery.ui.slider.js',
+          'vendor/scripts/jquery.ui.sortable.js',
+          'vendor/scripts/jquery.ui.custom-effects.js',
+          'vendor/scripts/jquery.dataTables.js',
+          'vendor/scripts/workflow_visualization.js',
           'vendor/scripts/rickshaw.js'
           ]
 
@@ -52,9 +61,10 @@ exports.config =
       order:
         before: [
           'vendor/styles/bootstrap.css',
-          'vendor/styles/datepicker.css'
-          'vendor/styles/font-awesome.css'
+          'vendor/styles/datepicker.css',
+          'vendor/styles/font-awesome.css',
           'vendor/styles/font-awesome-ie7.css',
+          'vendor/styles/cubism.css',
           'vendor/styles/rickshaw.css'
         ]
 

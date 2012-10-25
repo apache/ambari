@@ -29,19 +29,19 @@ describe('MainHostdetails', function () {
       controller.setBack(true);
       expect(controller.get('isFromHosts')).to.equal(true);
     })
-  }),
+  })
   describe('#workStatus positive', function () {
     it('should return true if workstatus is true', function () {
       controller.content.set('workStatus',true);   
       expect(controller.get('isStarting')).to.equal(true);
-      }),
+      })
     it('should return false if workStatus is true', function () {
       expect(controller.get('isStopping')).to.equal(false);
     })
     it('should return false if workstatus is false', function () {
       controller.content.set('workStatus',false);   
       expect(controller.get('isStarting')).to.equal(false);
-      }),
+      })
     it('should return true if workStatus is false', function () {
       expect(controller.get('isStopping')).to.equal(true);
     })

@@ -657,6 +657,60 @@ a:focus {
   }
 }
 
+.service-block {
+  margin-top: 20px;
+}
+
+.service-configuration {
+  padding: 10px;
+}
+
+.service-summary {
+  background: #F6FAFD;
+  .service-block.span8 {
+    margin-left: 0;
+    border-right: 1px solid #5fa3c3;
+  }
+  .service-block.span3 {
+    padding-left: 0;
+  }
+  .service-content {
+    padding: 5px 0 0 10px;
+    .service-links{
+      padding: 5px 0;
+    }
+  }
+  h5 {
+    color: #0088CC;
+    font-size: 14px;
+  }
+  .service-links {
+    padding: 5px 0 10px 0;
+  }
+  .service-configuration .dl-horizontal {
+    dt {
+      width: 90px;
+      line-height: 19px;
+    }
+    dd {
+      margin-left: 100px;
+      line-height: 19px;
+    }
+  }
+}
+
+.service-button {
+  text-align: right;
+  margin-bottom: 5px;
+  margin-top: -55px;
+  ul.dropdown-menu {
+    li {
+      text-align: left;
+    }
+  }
+
+}
+
 /*End Services*/
 
 /*Hosts*/
@@ -666,6 +720,91 @@ a:focus {
   }
   .health-status-DEAD {
     background-image: @status-dead-marker;
+  }
+  .box-header {
+    .btn-group {
+      float: left;
+    }
+    .btn.decommission {
+      margin-left: 5px;
+    }
+    .btn.add-host-button {
+      float: right;
+    }
+  }
+  .table {
+    margin-bottom: 0;
+    thead {
+      background: #EDF5FC;
+    }
+    th, td {
+      width: 130px;
+    }
+    th.first, td.first {
+      width: 30px;
+    }
+    td.first label {
+      padding-top: 3px;
+    }
+    td.name span {
+      display: block;
+      float: left;
+      height: 13px;
+      margin: 4px 5px 0 0;
+      width: 13px;
+    }
+    ul#filter-dropdown li {
+      display: block;
+      padding: 3px 0 3px 5px;
+      line-height: 20px;
+    }
+    ul#filter-dropdown li input[type="checkbox"] {
+      margin-top: 0;
+      margin-right: 2px;
+      margin-bottom: 2px;
+      margin: 0 2px 2px;
+    }
+  }
+  .open-group > .dropdown-menu {
+    display: block;
+  }
+  .nav-pills li.disabled {
+    display: block;
+    margin: 2px 0;
+    padding: 8px 12px;
+    line-height: 14px;
+  }
+  .box-footer .footer-pagination {
+    float: right;
+    .nav {
+      margin-bottom: 0;
+    }
+    .dropdown {
+      margin-top: 3px;
+    }
+    .dropdown {
+       margin-top: 3px;
+     }
+    .dropdown select {
+      width: 60px;
+    }
+    .page-listing a {
+      line-height: 0;
+      border: none;
+      margin: 0;
+      margin-right: 10px;
+      cursor: pointer;
+      color: #0088CC;
+      padding: 8px 0;
+      float: left;
+      text-decoration: underline;
+    }
+    .page-listing a:hover {
+      text-decoration: none;
+    }
+    .page-listing {
+      width: 100px;
+    }
   }
 }
 
@@ -718,7 +857,32 @@ a:focus {
     margin: 0 5px 10px 0;
   }
 }
-
+.background-operations {
+  .open-details{
+    clear: left;
+    display: block;
+    float: left;
+    text-decoration: none;
+    width: 16px;
+  }
+  .operation-details {
+    .operation-log{
+      display: none;
+    }
+    .operation-log.open{
+      display: block;
+    }
+    padding-left: 16px;
+    padding-top: 5px;
+    display: none;
+  }
+margin-bottom: 10px;
+}
+.background-operations.is-open {
+  .operation-details {
+    display: block;
+  }
+}
 /*End Hosts*/
 
 /*assign masters*/
@@ -1125,6 +1289,12 @@ ul.filter {
   /* opacity: 0.2; */
     z-index: 2;
   }
+
+  ul.dropdown-menu {
+    li {
+      text-align: left;
+    }
+  }
 }
 
 .linear {
@@ -1263,3 +1433,28 @@ ul.inline li {
 }
 
 /* TIME RANGE WIDGET END */
+
+/* fieldset begin */
+.fieldset {
+  border: 2px solid black;
+  padding: 10px;
+}
+.fieldset legend {
+  border-bottom: none;
+  width: auto;
+  font-size: 14px;
+}
+/* fieldset end */
+
+/* Start Carousel */
+.carousel-inner {
+  height: 80px;
+}
+/* End Carousel*/
+
+#add-host .back,
+#add-service .back{
+  display: block;
+  width: 105px;
+  margin-bottom: 10px;
+}

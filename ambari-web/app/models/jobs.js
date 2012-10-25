@@ -17,20 +17,40 @@
  */
 
 
-window.App = require('app');
+var App = require('app');
 
-require('messages');
-require('utils/data_table');
-require('utils/db');
-require('utils/helper');
-require('models');
-require('controllers');
-require('views');
-require('router');
+App.JobsInfo = Ember.Object.extend({
+  elementId:'jobs',
+  jobsName:'',
+  displayName:'',
+  isMaster:'',
+  isClient:'',
+  isDisabled:'',
+  isHidden:'',
+  isSelected:'true',
+  description:''
+});
 
-App.initialize();
+App.JobsModel = Em.Object.extend({
+  name:null,
+  components:[]
+});
 
-console.log('after initialize');
-console.log('TRACE: app.js-> localStorage:Ambari.authenticated=' + localStorage.getItem('Ambari' + 'authenticated'));
-console.log('TRACE: app.js-> localStorage:currentStep=' + localStorage.getItem(App.get('router').getLoginName() + 'Installer' + 'currentStep'));
-console.log('TRACE: app.js-> router.authenticated=' + App.get('router.loggedIn'));
+App.Jobs = DS.Model.extend({
+  jobsName:DS.attr('string'),
+  label:DS.attr('string')
+});
+
+
+App.Jobs.FIXTURES = [
+  {
+    id:1,
+    jobsName:'dag',
+    label:'DAG'
+  },
+  {
+    id:2,
+    jobsName:'bar',
+    label:'BAR'
+  }
+];

@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-915. Implement App Browser for displaying and navigating Pig/Hive
+  workflows. (yusaku)
+
   AMBARI-907. Add support for getting multiple objects in controller.
   (hitesh)
 

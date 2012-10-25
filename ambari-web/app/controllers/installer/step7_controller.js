@@ -312,7 +312,7 @@ App.SlaveComponentGroupsController = Ember.ArrayController.extend({
         return component.groups;
       }
     }
-  }.property('selectedComponentName'),
+  }.property('selectedSlaveComponent'),
 
   getHostsByGroup: function(group){
     var component = this.get('selectedSlaveComponent');

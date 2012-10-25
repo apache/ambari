@@ -16,21 +16,14 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
-window.App = require('app');
-
-require('messages');
-require('utils/data_table');
-require('utils/db');
-require('utils/helper');
-require('models');
-require('controllers');
-require('views');
-require('router');
-
-App.initialize();
-
-console.log('after initialize');
-console.log('TRACE: app.js-> localStorage:Ambari.authenticated=' + localStorage.getItem('Ambari' + 'authenticated'));
-console.log('TRACE: app.js-> localStorage:currentStep=' + localStorage.getItem(App.get('router').getLoginName() + 'Installer' + 'currentStep'));
-console.log('TRACE: app.js-> router.authenticated=' + App.get('router.loggedIn'));
+App.MainAppsRunsJobsView = Em.View.extend({
+  templateName:require('templates/main/apps/runs/jobs'),
+  runItem:function () {
+    return App.router.get('mainAppsRunsItemController.content');
+  }.property('App.router.mainAppsRunsItemController.content'),
+  appItem:function () {
+    return App.router.get('mainAppsItemController.content');
+  }.property('App.router.mainAppsItemController.content')
+});

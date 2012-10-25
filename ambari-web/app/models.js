@@ -32,3 +32,7 @@ require('models/user');
 require('models/pagination');
 require('models/host');
 require('models/rack');
+require('models/job');
+require('models/run');
+require('models/app');
+require('models/background_operation');

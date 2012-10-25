@@ -30,7 +30,8 @@ App.MainMenuView = Em.CollectionView.extend({
     { label:'Charts', routing:'charts'},
     { label:'Services', routing:'services'},
     { label:'Hosts', routing:'hosts'},
-    { label:'Admin', routing:'admin'}
+    { label:'Admin', routing:'admin'},
+    { label:'Apps', routing:'apps'}
   ],
 
   /**
@@ -45,8 +46,8 @@ App.MainMenuView = Em.CollectionView.extend({
    *    Syncs navigation menu with requested URL
    */
   renderOnRoute:function () {
-    var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/,'');
-    if(last_url.substr(1,4) !== 'main' || !this._childViews){
+    var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
+    if (last_url.substr(1, 4) !== 'main' || !this._childViews) {
       return;
     }
     var reg = /^\/main\/([a-z]+)/g;

@@ -96,3 +96,23 @@ App.MainHostView = Em.View.extend({
     }
   })
 });
+
+App.MainBackgroundOperation = Em.View.extend({
+  content: null,
+  classNames: ['background-operations'],
+  classNameBindings: ['isOpen'],
+  isOpen: false,
+  isOpenShowLog: false,
+  iconClass: function(){
+    return this.get('isOpen') ? 'icon-minus' : 'icon-plus';
+  }.property('isOpen'),
+  openDetails: function(){
+    this.set('isOpen', !this.get('isOpen'))
+  },
+  showLogClass: function(){
+    return this.get('isOpenShowLog') ? 'operation-log open' : 'operation-log';
+  }.property('isOpenShowLog'),
+  showLog:function(){
+    this.set('isOpenShowLog', !this.get('isOpenShowLog'))
+  }
+});

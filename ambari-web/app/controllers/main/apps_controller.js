@@ -16,21 +16,30 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
-window.App = require('app');
-
-require('messages');
-require('utils/data_table');
-require('utils/db');
-require('utils/helper');
-require('models');
-require('controllers');
-require('views');
-require('router');
-
-App.initialize();
-
-console.log('after initialize');
-console.log('TRACE: app.js-> localStorage:Ambari.authenticated=' + localStorage.getItem('Ambari' + 'authenticated'));
-console.log('TRACE: app.js-> localStorage:currentStep=' + localStorage.getItem(App.get('router').getLoginName() + 'Installer' + 'currentStep'));
-console.log('TRACE: app.js-> router.authenticated=' + App.get('router.loggedIn'));
+App.MainAppsController = Em.ArrayController.extend({
+  name:'mainAppsController',
+  content:App.App.find(),
+  routeHome:function () {
+    App.router.transitionTo('main.dashboard');
+    var view = Ember.View.views['main_menu'];
+    $.each(view._childViews, function () {
+      this.set('active', this.get('content.routing') == 'dashboard' ? "active" : "");
+    });
+  },
+  arrayUnique:function (array) {
+    var result = new Array();
+    var i, j, unique;
+    for (i = 0; i < array.length; i++) {
+      j = 0;
+      unique = true;
+      do {
+        if (array[i] === result[j]) unique = false;
+        j++;
+      } while (j < result.length);
+      if (unique) result.push(array[i]);
+    }
+    return result;
+  }
+})

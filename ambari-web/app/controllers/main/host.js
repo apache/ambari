@@ -20,6 +20,7 @@ var App = require('app');
 require('models/service');
 require('models/cluster');
 require('models/host');
+require('models/background_operation');
 
 App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   name:'mainHostController',
@@ -40,10 +41,25 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
     return this.get('sortingAsc')? 'icon-arrow-down' : 'icon-arrow-up';
   }.property('sortingAsc'),
   isDisabled:true,
+  operations: App.BackgroundOperation.find(),
 
   backgroundOperationsCount: function() {
-    return 5;
-  }.property(),
+    return this.get('operations.length');
+  }.property('operations.length'),
+
+  showBackgroundOperationsPopup: function(){
+    var self = this;
+    App.ModalPopup.show({
+      header: self.get('backgroundOperationsCount') + ' Background Operations Running',
+      bodyClass: Ember.View.extend({
+        controllerBinding: 'App.router.mainHostController',
+        templateName: require('templates/main/host/background_operations_popup')
+      }),
+      onPrimary: function() {
+        this.hide();
+      }
+    });
+  },
 
   onAllChecked: function () {
     var hosts = this.get('content');

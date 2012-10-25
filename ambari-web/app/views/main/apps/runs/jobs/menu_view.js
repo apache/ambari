@@ -16,17 +16,36 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.MainView = Em.View.extend({
+App.MainJobsAppsRunsMenuView = Em.CollectionView.extend({
+  tagName:'ul',
+  classNames:["nav", "nav-tabs"],
+  content:[
+    { label:'DAG', routing:'dag', active:"active"},
+    { label:'BAR', routing:'bar'}
+  ],
 
-  templateName: require('templates/main'),
-  isInHostsPath: function(){
-    return App.router.get('currentState.name') === 'hosts';
-  }.property('App.router.currentState.name'),
-  backgroundOperationsCount:function () {
-    return App.router.get('mainHostController.backgroundOperationsCount');
-  }.property('App.router.mainHostController.backgroundOperationsCount')
+  init:function () {
+    this._super();
+    this.activateView();
+  },
 
+  activateView:function () {
+    $.each(this._childViews, function () {
+      this.set('active', (this.get('content.routing') == 'dag' ? "active" : ""));
+    });
+  },
+
+  deactivateChildViews:function () {
+    $.each(this._childViews, function () {
+      this.set('active', "");
+    });
+  },
+
+  itemViewClass:Em.View.extend({
+    classNameBindings:["active"],
+    active:"",
+    template:Ember.Handlebars.compile('<a {{action showGraph view.content.routing }} href="#"> {{unbound view.content.label}}</a>')
+  })
 });

@@ -15,19 +15,21 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<div id="main-nav">
-  <div class="navbar">
-    <div class="navbar-inner">
-      <a class="brand" href="#">
-        My Cluster
-        {{#if view.isInHostsPath}}
-          {{#if view.backgroundOperationsCount}}
-            <span class="label operations-count" {{action "showBackgroundOperationsPopup" target="App.router.mainHostController"}}>{{view.backgroundOperationsCount}}</span>
-          {{/if}}
-        {{/if}}
-      </a>
-      {{view App.MainMenuView}}
-    </div>
-  </div>
+
+{{#each operation in operations}}
+{{#view App.MainBackgroundOperation contentBinding="operation"}}
+<a class="open-details" {{action openDetails target="view"}} href="#">
+  <i {{bindAttr class="view.iconClass"}}></i>
+</a>
+{{operation.operationName}}
+<div class="operation-details">
+  {{#each event in operation.events}}
+  <div>{{event.eventDate}}: {{event.eventName}}</div>
+  {{/each}}
+  <a {{action showLog target="view"}} href="#">
+    {{#if view.isOpenShowLog}}Hide{{else}}Show{{/if}} operation log
+  </a>
+  <div {{bindAttr class="view.showLogClass"}}>{{operation.operationLog}}</div>
 </div>
-{{outlet}}
+{{/view}}
+{{/each}}
