@@ -26,30 +26,21 @@ var App = require('app');
  * @extends Ember.Object
  * @extends Ember.View
  */
-App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
-  id: "service-metrics-hdfs-jvm-heap",
-  url: "/data/services/metrics/hdfs/jvm_heap.json",
-  title: "JVM Memory Status",
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+App.ChartServiceMetricsMapReduce_RPC = App.ChartLinearTimeView.extend({
+  id: "service-metrics-mapreduce-rpc",
+  url: "/data/services/metrics/mapreduce/rpc.json",
+  title: "RPC",
+  yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
   
   transformToSeries: function (jsonData) {
     var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.jvm) {
-      for (var name in jsonData.metrics.jvm){
+    if (jsonData && jsonData.metrics && jsonData.metrics.rpc) {
+      for (var name in jsonData.metrics.rpc){
         var displayName;
-        var seriesData = jsonData.metrics.jvm[name];
+        var seriesData = jsonData.metrics.rpc[name];
         switch (name) {
-          case "memHeapCommittedM":
-            displayName = "Heap Memory Committed";
-            break;
-          case "memNonHeapUsedM":
-            displayName = "Non Heap Memory Used";
-            break;
-          case "memHeapUsedM":
-            displayName = "Heap Memory Used";
-            break;
-          case "memNonHeapCommittedM":
-            displayName = "Non Heap Memory Committed";
+          case "RpcQueueTime_avg_time":
+            displayName = "Queue Average Wait Time";
             break;
           default:
             break;
@@ -66,7 +57,7 @@ App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
           for ( var index = 0; index < seriesData.length; index++) {
             series.data.push({
               x: seriesData[index][1],
-              y: seriesData[index][0] * 1000000 // Data is in MB
+              y: seriesData[index][0]
             });
           }
           seriesArray.push(series);

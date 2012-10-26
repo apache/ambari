@@ -26,11 +26,11 @@ var App = require('app');
  * @extends Ember.Object
  * @extends Ember.View
  */
-App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
-  id: "service-metrics-hdfs-jvm-heap",
-  url: "/data/services/metrics/hdfs/jvm_heap.json",
-  title: "JVM Memory Status",
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+App.ChartServiceMetricsMapReduce_GC = App.ChartLinearTimeView.extend({
+  id: "service-metrics-mapreduce-gc",
+  url: "/data/services/metrics/mapreduce/gc.json",
+  title: "Garbage Collection",
+  yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
   
   transformToSeries: function (jsonData) {
     var seriesArray = [];
@@ -39,17 +39,8 @@ App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
         var displayName;
         var seriesData = jsonData.metrics.jvm[name];
         switch (name) {
-          case "memHeapCommittedM":
-            displayName = "Heap Memory Committed";
-            break;
-          case "memNonHeapUsedM":
-            displayName = "Non Heap Memory Used";
-            break;
-          case "memHeapUsedM":
-            displayName = "Heap Memory Used";
-            break;
-          case "memNonHeapCommittedM":
-            displayName = "Non Heap Memory Committed";
+          case "gcTimeMillis":
+            displayName = "Time";
             break;
           default:
             break;
@@ -66,7 +57,7 @@ App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
           for ( var index = 0; index < seriesData.length; index++) {
             series.data.push({
               x: seriesData[index][1],
-              y: seriesData[index][0] * 1000000 // Data is in MB
+              y: seriesData[index][0]
             });
           }
           seriesArray.push(series);

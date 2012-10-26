@@ -26,30 +26,32 @@ var App = require('app');
  * @extends Ember.Object
  * @extends Ember.View
  */
-App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
-  id: "service-metrics-hdfs-jvm-heap",
-  url: "/data/services/metrics/hdfs/jvm_heap.json",
-  title: "JVM Memory Status",
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+App.ChartServiceMetricsMapReduce_JobsStatus = App.ChartLinearTimeView.extend({
+  id: "service-metrics-mapreduce-jobs-status",
+  url: "/data/services/metrics/mapreduce/jobs_status.json",
+  title: "Jobs Status",
   
   transformToSeries: function (jsonData) {
     var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.jvm) {
-      for (var name in jsonData.metrics.jvm){
+    if (jsonData && jsonData.metrics && jsonData.metrics.mapred && jsonData.metrics.mapred.jobtracker) {
+      for (var name in jsonData.metrics.mapred.jobtracker){
         var displayName;
-        var seriesData = jsonData.metrics.jvm[name];
+        var seriesData = jsonData.metrics.mapred.jobtracker[name];
         switch (name) {
-          case "memHeapCommittedM":
-            displayName = "Heap Memory Committed";
+          case "jobs_running":
+            displayName = "Running";
             break;
-          case "memNonHeapUsedM":
-            displayName = "Non Heap Memory Used";
+          case "jobs_failed":
+            displayName = "Failed";
             break;
-          case "memHeapUsedM":
-            displayName = "Heap Memory Used";
+          case "jobs_completed":
+            displayName = "Succeeded";
             break;
-          case "memNonHeapCommittedM":
-            displayName = "Non Heap Memory Committed";
+          case "jobs_preparing":
+            displayName = "Preparing";
+            break;
+          case "jobs_submitted":
+            displayName = "Submitted";
             break;
           default:
             break;
@@ -66,7 +68,7 @@ App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
           for ( var index = 0; index < seriesData.length; index++) {
             series.data.push({
               x: seriesData[index][1],
-              y: seriesData[index][0] * 1000000 // Data is in MB
+              y: seriesData[index][0]
             });
           }
           seriesArray.push(series);

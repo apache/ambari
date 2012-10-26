@@ -26,30 +26,23 @@ var App = require('app');
  * @extends Ember.Object
  * @extends Ember.View
  */
-App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
-  id: "service-metrics-hdfs-jvm-heap",
-  url: "/data/services/metrics/hdfs/jvm_heap.json",
-  title: "JVM Memory Status",
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+App.ChartServiceMetricsMapReduce_MapSlots = App.ChartLinearTimeView.extend({
+  id: "service-metrics-mapreduce-map-slots",
+  url: "/data/services/metrics/mapreduce/map_slots.json",
+  title: "Map Slot Utilization",
   
   transformToSeries: function (jsonData) {
     var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.jvm) {
-      for (var name in jsonData.metrics.jvm){
+    if (jsonData && jsonData.metrics && jsonData.metrics.mapred && jsonData.metrics.mapred.jobtracker) {
+      for (var name in jsonData.metrics.mapred.jobtracker){
         var displayName;
-        var seriesData = jsonData.metrics.jvm[name];
+        var seriesData = jsonData.metrics.mapred.jobtracker[name];
         switch (name) {
-          case "memHeapCommittedM":
-            displayName = "Heap Memory Committed";
+          case "reserved_map_slots":
+            displayName = "Map Slots Occupied";
             break;
-          case "memNonHeapUsedM":
-            displayName = "Non Heap Memory Used";
-            break;
-          case "memHeapUsedM":
-            displayName = "Heap Memory Used";
-            break;
-          case "memNonHeapCommittedM":
-            displayName = "Non Heap Memory Committed";
+          case "occupied_map_slots":
+            displayName = "Map Slots Reserved";
             break;
           default:
             break;
@@ -66,7 +59,7 @@ App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
           for ( var index = 0; index < seriesData.length; index++) {
             series.data.push({
               x: seriesData[index][1],
-              y: seriesData[index][0] * 1000000 // Data is in MB
+              y: seriesData[index][0]
             });
           }
           seriesArray.push(series);

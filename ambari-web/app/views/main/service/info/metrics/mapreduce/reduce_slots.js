@@ -26,30 +26,23 @@ var App = require('app');
  * @extends Ember.Object
  * @extends Ember.View
  */
-App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
-  id: "service-metrics-hdfs-jvm-heap",
-  url: "/data/services/metrics/hdfs/jvm_heap.json",
-  title: "JVM Memory Status",
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+App.ChartServiceMetricsMapReduce_ReduceSlots = App.ChartLinearTimeView.extend({
+  id: "service-metrics-mapreduce-reduce-slots",
+  url: "/data/services/metrics/mapreduce/reduce_slots.json",
+  title: "Reduce Slots Utilization",
   
   transformToSeries: function (jsonData) {
     var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.jvm) {
-      for (var name in jsonData.metrics.jvm){
+    if (jsonData && jsonData.metrics && jsonData.metrics.mapred && jsonData.metrics.mapred.jobtracker) {
+      for (var name in jsonData.metrics.mapred.jobtracker){
         var displayName;
-        var seriesData = jsonData.metrics.jvm[name];
+        var seriesData = jsonData.metrics.mapred.jobtracker[name];
         switch (name) {
-          case "memHeapCommittedM":
-            displayName = "Heap Memory Committed";
+          case "reserved_reduce_slots":
+            displayName = "Reduce Slots Reserved";
             break;
-          case "memNonHeapUsedM":
-            displayName = "Non Heap Memory Used";
-            break;
-          case "memHeapUsedM":
-            displayName = "Heap Memory Used";
-            break;
-          case "memNonHeapCommittedM":
-            displayName = "Non Heap Memory Committed";
+          case "occupied_reduce_slots":
+            displayName = "Reduce Slots Occupied";
             break;
           default:
             break;
@@ -66,7 +59,7 @@ App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
           for ( var index = 0; index < seriesData.length; index++) {
             series.data.push({
               x: seriesData[index][1],
-              y: seriesData[index][0] * 1000000 // Data is in MB
+              y: seriesData[index][0]
             });
           }
           seriesArray.push(series);

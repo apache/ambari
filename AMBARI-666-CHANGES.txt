@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-927. Provide metrics graphs on the MapReduce services page. 
+  (Srimanth Gunturi via yusaku)
+
   AMBARI-916. Provide metrics graphs in HDFS services page. (Srimanth
   Gunturi via yusaku)
 

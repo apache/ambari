@@ -26,9 +26,9 @@ var App = require('app');
  * @extends Ember.Object
  * @extends Ember.View
  */
-App.ChartServiceMetricsHDFS_JVMHeap = App.ChartLinearTimeView.extend({
-  id: "service-metrics-hdfs-jvm-heap",
-  url: "/data/services/metrics/hdfs/jvm_heap.json",
+App.ChartServiceMetricsMapReduce_JVMHeap = App.ChartLinearTimeView.extend({
+  id: "service-metrics-mapreduce-jvm-heap",
+  url: "/data/services/metrics/mapreduce/jvm_heap.json",
   title: "JVM Memory Status",
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   

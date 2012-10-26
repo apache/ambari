@@ -98,6 +98,14 @@ App.MainServiceInfoSummaryView = Em.View.extend({
             summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
             summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');
             summary['memory_heap_max'] = summary['memory_heap_max'].bytesToSize(2, 'parseFloat');
+            summary['metricGraphViews'] = [App.ChartServiceMetricsMapReduce_JobsStatus.extend(), 
+                                           App.ChartServiceMetricsMapReduce_JobsRunningWaiting.extend(), 
+                                           App.ChartServiceMetricsMapReduce_MapSlots.extend(), 
+                                           App.ChartServiceMetricsMapReduce_ReduceSlots.extend(), 
+                                           App.ChartServiceMetricsMapReduce_JVMHeap.extend(), 
+                                           App.ChartServiceMetricsMapReduce_JVMThreads.extend(),
+                                           App.ChartServiceMetricsMapReduce_GC.extend(),
+                                           App.ChartServiceMetricsMapReduce_RPC.extend()];
           } else if (serviceName == 'hbase') {
             summary['memory_heap_percent_used'] = summary['memory_heap_used'].countPercentageRatio(summary['memory_heap_max']);
             summary['memory_heap_used'] = summary['memory_heap_used'].bytesToSize(2, 'parseFloat');
