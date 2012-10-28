@@ -667,7 +667,8 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    createServiceComponentHost(clusterName, serviceName, componentName1,
+    // null service should work
+    createServiceComponentHost(clusterName, null, componentName1,
         host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName2,
         host1, null);

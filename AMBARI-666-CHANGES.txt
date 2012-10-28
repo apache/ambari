@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-938. Hardcode service name and client component mapping while
+  awaiting meta data integration. (hitesh)
+
   AMBARI-927. Provide metrics graphs on the MapReduce services page. 
   (Srimanth Gunturi via yusaku)
 

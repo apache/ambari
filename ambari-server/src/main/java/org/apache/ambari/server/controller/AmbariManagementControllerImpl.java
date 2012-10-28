@@ -514,6 +514,82 @@ public class AmbariManagementControllerImpl implements
     }
   }
 
+  private boolean hackisClientComponent(String componentName)
+      throws AmbariException {
+    if (componentName == null
+        || componentName.isEmpty()) {
+      throw new AmbariException("Found invalid component name when looking up"
+          + " whether component is a client"
+          + ", componentName=" + componentName);
+    }
+    boolean isClient = false;
+    if (componentName.equals("ZOOKEEPER_CLIENT")
+        || componentName.equals("HDFS_CLIENT")
+        || componentName.equals("HBASE_CLIENT")
+        || componentName.equals("MAPREDUCE_CLIENT")
+        || componentName.equals("KERBEROS_CLIENT")
+        || componentName.equals("KERBEROS_ADMIN_CLIENT")
+        || componentName.equals("HIVE_CLIENT")
+        || componentName.equals("HCAT")
+        || componentName.equals("OOZIE_CLIENT")
+        || componentName.equals("PIG")
+        || componentName.equals("SQOOP")
+        || componentName.equals("TEMPLETON_CLIENT")) {
+      isClient = true;
+    }
+    if (componentName.indexOf("_CLIENT") > 0) {
+      isClient = true;
+    }
+    LOG.debug("Looking up is client component"
+        + ", componentName=" + componentName
+        + ", isClient=" + isClient);
+    return isClient;
+  }
+
+  private String hackGetServiceName(String componentName)
+      throws AmbariException {
+    if (componentName == null
+        || componentName.isEmpty()) {
+      throw new AmbariException("Found invalid component name when looking up"
+          + " service"
+          + ", componentName=" + componentName);
+    }
+    if (componentName.equals("ZOOKEEPER_SERVER")) return "ZOOKEEPER";
+    if (componentName.equals("ZOOKEEPER_CLIENT")) return "ZOOKEEPER";
+    if (componentName.equals("NAMENODE")) return "HDFS";
+    if (componentName.equals("DATANODE")) return "HDFS";
+    if (componentName.equals("SECONDARY_NAMENODE")) return "HDFS";
+    if (componentName.equals("HDFS_CLIENT")) return "HDFS";
+    if (componentName.equals("HBASE_MASTER")) return "HBASE";
+    if (componentName.equals("HBASE_REGIONSERVER")) return "HBASE";
+    if (componentName.equals("HBASE_CLIENT")) return "HBASE";
+    if (componentName.equals("JOBTRACKER")) return "MAPREDUCE";
+    if (componentName.equals("TASKTRACKER")) return "MAPREDUCE";
+    if (componentName.equals("MAPREDUCE_CLIENT")) return "MAPREDUCE";
+    if (componentName.equals("JAVA_JCE")) return "";
+    if (componentName.equals("KERBEROS_SERVER")) return "KERBEROS";
+    if (componentName.equals("KERBEROS_CLIENT")) return "KERBEROS";
+    if (componentName.equals("KERBEROS_ADMIN_CLIENT")) return "KERBEROS";
+    if (componentName.equals("MYSQL_SERVER")) return "HIVE";
+    if (componentName.equals("HIVE_SERVER")) return "HIVE";
+    if (componentName.equals("HIVE_CLIENT")) return "HIVE";
+    if (componentName.equals("HCAT")) return "HCAT";
+    if (componentName.equals("OOZIE_CLIENT")) return "OOZIE";
+    if (componentName.equals("OOZIE_SERVER")) return "OOZIE";
+    if (componentName.equals("PIG")) return "PIG";
+    if (componentName.equals("SQOOP")) return "SQOOP";
+    if (componentName.equals("TEMPLETON_CLIENT")) return "TEMPLETON";
+    if (componentName.equals("TEMPLETON_SERVER")) return "TEMPLETON";
+    if (componentName.equals("DASHBOARD")) return "DASHBOARD";
+    if (componentName.equals("NAGIOS_SERVER")) return "NAGIOS";
+    if (componentName.equals("GANGLIA_SERVER")) return "GANGLIA";
+    if (componentName.equals("GANGLIA_MONITOR")) return "GANGLIA";
+    if (componentName.equals("MONTOR_WEBSERVER")) return "GANGLIA";
+    throw new AmbariException("Found invalid component name when looking up"
+        + " service"
+        + ", componentName=" + componentName);
+  }
+
   @Override
   public synchronized void createHostComponents(Set<ServiceComponentHostRequest> requests)
       throws AmbariException {
@@ -542,9 +618,12 @@ public class AmbariManagementControllerImpl implements
       if (request.getServiceName() == null
           || request.getServiceName().isEmpty()
         ) {
-        // FIXME get service name from meta data lib?
-        // Major boo-boo if component names are not unique
-        request.setServiceName("HDFS");
+        String serviceName =
+            hackGetServiceName(request.getComponentName());
+        LOG.debug("Looking up service name for component"
+            + ", componentName=" + request.getComponentName()
+            + ", serviceName=" + serviceName);
+        request.setServiceName(serviceName);
       }
 
       if (LOG.isDebugEnabled()) {
@@ -679,12 +758,7 @@ public class AmbariManagementControllerImpl implements
 
       // FIXME meta-data integration needed here
       // for now lets hack it up
-      boolean isClient = true;
-      if (sc.getName().equals("NAMENODE")
-          || sc.getName().equals("DATANODE")
-          || sc.getName().equals("SECONDARY_NAMENODE")) {
-        isClient = false;
-      }
+      boolean isClient = hackisClientComponent(sc.getName());
 
       ServiceComponentHost sch =
           serviceComponentHostFactory.createNew(sc, request.getHostname(),
