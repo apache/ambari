@@ -1,5 +1,5 @@
 {
-  "href" : "http://ec2-23-22-183-40.compute-1.amazonaws.com:9998/clusters/SrimanthAmbari/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/jobs_completed[1351213550,1351217148,60],metrics/mapred/jobtracker/jobs_preparing[1351213550,1351217148,60],metrics/mapred/jobtracker/jobs_failed[1351213550,1351217148,60],metrics/mapred/jobtracker/jobs_submitted[1351213550,1351217148,60],metrics/mapred/jobtracker/jobs_failed[1351213550,1351217148,60],metrics/mapred/jobtracker/jobs_running[1351213550,1351217148,60]",
+  "href" : "http://ambari/clusters/SrimanthAmbari/services/MAPREDUCE/components/JOBTRACKER?fields=metrics/mapred/jobtracker/jobs_completed[1351213550,1351217148,60],metrics/mapred/jobtracker/jobs_preparing[1351213550,1351217148,60],metrics/mapred/jobtracker/jobs_failed[1351213550,1351217148,60],metrics/mapred/jobtracker/jobs_submitted[1351213550,1351217148,60],metrics/mapred/jobtracker/jobs_failed[1351213550,1351217148,60],metrics/mapred/jobtracker/jobs_running[1351213550,1351217148,60]",
   "metrics" : {
     "mapred" : {
       "jobtracker" : {

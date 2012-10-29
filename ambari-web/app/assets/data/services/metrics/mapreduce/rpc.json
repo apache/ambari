@@ -1,12 +1,12 @@
 {
-  "href" : "http://ec2-23-22-183-40.compute-1.amazonaws.com:9998/clusters/SrimanthAmbari/hosts/ip-10-224-3-23.ec2.internal/host_components/JOBTRACKER?fields=metrics/rpc/RpcQueueTime_avg_time[1351213550,1351217148,60]",
+  "href" : "http://ambari/clusters/SrimanthAmbari/hosts/hostname/host_components/JOBTRACKER?fields=metrics/rpc/RpcQueueTime_avg_time[1351213550,1351217148,60]",
   "HostRoles" : {
     "cluster_name" : "SrimanthAmbari",
     "component_name" : "JOBTRACKER",
-    "host_name" : "ip-10-224-3-23.ec2.internal"
+    "host_name" : "hostname"
   },
   "host" : {
-    "href" : "http://ec2-23-22-183-40.compute-1.amazonaws.com:9998/clusters/SrimanthAmbari/hosts/ip-10-224-3-23.ec2.internal"
+    "href" : "http://ambari/clusters/SrimanthAmbari/hosts/hostname"
   },
   "metrics" : {
     "rpc" : {

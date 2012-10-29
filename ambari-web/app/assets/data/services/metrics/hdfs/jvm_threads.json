@@ -1,12 +1,12 @@
 {
-  "href" : "http://ec2-23-22-183-40.compute-1.amazonaws.com:9998/clusters/SrimanthAmbari/hosts/ip-10-224-3-23.ec2.internal/host_components/NAMENODE?fields=metrics/jvm/threadsRunnable[1351117114,1351120714,60],metrics/jvm/threadsBlocked[1351117114,1351120714,60],metrics/jvm/threadsWaiting[1351117114,1351120714,60],metrics/jvm/threadsTimedWaiting[1351117114,1351120714,60]",
+  "href" : "http://ambari/clusters/SrimanthAmbari/hosts/hostname/host_components/NAMENODE?fields=metrics/jvm/threadsRunnable[1351117114,1351120714,60],metrics/jvm/threadsBlocked[1351117114,1351120714,60],metrics/jvm/threadsWaiting[1351117114,1351120714,60],metrics/jvm/threadsTimedWaiting[1351117114,1351120714,60]",
   "HostRoles" : {
     "cluster_name" : "SrimanthAmbari",
     "component_name" : "NAMENODE",
-    "host_name" : "ip-10-224-3-23.ec2.internal"
+    "host_name" : "hostname"
   },
   "host" : {
-    "href" : "http://ec2-23-22-183-40.compute-1.amazonaws.com:9998/clusters/SrimanthAmbari/hosts/ip-10-224-3-23.ec2.internal"
+    "href" : "http://ambari/clusters/SrimanthAmbari/hosts/hostname"
   },
   "metrics" : {
     "jvm" : {

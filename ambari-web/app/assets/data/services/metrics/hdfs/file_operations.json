@@ -1,5 +1,5 @@
 {
-  "href" : "http://ec2-23-22-183-40.compute-1.amazonaws.com:9998/clusters/SrimanthAmbari/services/HDFS/components/NAMENODE?fields=metrics/dfs/namenode/FileInfoOps[1351117114,1351120714,60],metrics/dfs/namenode/CreateFileOps[1351117114,1351120714,60],metrics/dfs/namenode/DeleteFileOps[1351117114,1351120714,60]",
+  "href" : "http://ambari/clusters/SrimanthAmbari/services/HDFS/components/NAMENODE?fields=metrics/dfs/namenode/FileInfoOps[1351117114,1351120714,60],metrics/dfs/namenode/CreateFileOps[1351117114,1351120714,60],metrics/dfs/namenode/DeleteFileOps[1351117114,1351120714,60]",
   "metrics" : {
     "dfs" : {
       "namenode" : {
