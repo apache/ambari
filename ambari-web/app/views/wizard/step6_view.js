@@ -25,7 +25,47 @@ App.WizardStep6View = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
+    this.setLabel();
+    $('body').tooltip({
+      selector: '[rel=tooltip]'
+    });
     controller.loadStep();
-  }
+  },
 
+  setLabel: function () {
+    var label = Em.I18n.t('installer.step6.body');
+    var clients = this.get('controller.content.clients');
+    clients.forEach(function (_client) {
+      if (clients.length === 1) {
+        label = label + ' ' + _client.display_name;
+      } else if (_client !== clients[clients.length - 1]) {           // [clients.length - 1]
+        label = label + ' ' + _client.display_name;
+        if(_client !== clients[clients.length - 2]) {
+          label = label + ',';
+  }
+      } else {
+        label = label + ' and ' + _client.display_name + '.';
+      }
+    }, this);
+    this.set('label', label);
+  }
+});
+
+App.WizardStep6HostView = Em.View.extend({
+
+  host: null,
+  tagName: 'td',
+
+  didInsertElement: function () {
+    var components = this.get('controller').getMasterComponentsForHost(this.get('host.hostname'));
+    if(components){
+      components = components.join(" /\n");
+      this.$().popover({
+        title: 'master components hosted on ' + this.get('host.hostname'),
+        content: components,
+        placement: 'right',
+        trigger: 'hover'
+      });
+    }
+  }
 });

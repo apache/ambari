@@ -22,8 +22,8 @@ App.MainChartsMenuView = Em.CollectionView.extend({
   tagName: 'ul',
   classNames: ["nav", "nav-tabs"],
   content:[
-    { label:'Heatmap', routing:'heatmap', active:"active"},
-    { label:'Horizon Chart', routing:'horizon_chart'}
+    /*{ label:'Heatmap', routing:'heatmap', active:"active"},
+    { label:'Horizon Chart', routing:'horizon_chart'}*/
   ],
 
   init: function(){ this._super(); this.activateView(); },

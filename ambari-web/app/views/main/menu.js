@@ -69,13 +69,13 @@ App.MainMenuView = Em.CollectionView.extend({
       }
     }.property(),
 
-    hostDetailsOperationsCount:function () {
-      if (this.get('content').routing == 'hosts') {
-        if (App.router.currentState.parentState.name == 'hostDetails') {
-          return App.router.get('mainHostDetailsController.hostOperationsCount');
-        }
-      }
-    }.property('App.router.currentState.parentState.name', 'App.router.mainHostDetailsController.hostOperationsCount'),
+//    hostDetailsOperationsCount:function () {
+//      if (this.get('content').routing == 'hosts') {
+//        if (App.router.currentState.parentState.name == 'hostDetails') {
+//          return App.router.get('mainHostDetailsController.hostOperationsCount');
+//        }
+//      }
+//    }.property('App.router.currentState.parentState.name', 'App.router.mainHostDetailsController.hostOperationsCount'),
 
     templateName: require('templates/main/menu_item')
   })

@@ -27,7 +27,7 @@ App.MainAdminMenuView = Em.CollectionView.extend({
     {
       route:'authentication',
       label:'Authentication'
-    },
+    }/*,
     {
       route:'security',
       label:'Security'
@@ -35,7 +35,7 @@ App.MainAdminMenuView = Em.CollectionView.extend({
     {
       route:'audit',
       label:'Audit'
-    }
+    }*/
     /*,
     {
       route:'advanced',

@@ -20,47 +20,24 @@ var App = require('app');
 
 App.LoginController = Em.Object.extend({
 
-  name:'loginController',
-  loginName:'',
-  password:'',
-  errorMessage:'',
+  name: 'loginController',
+  loginName: '',
+  password: '',
+  errorMessage: '',
 
   submit: function (e) {
-    console.log('Login: ' + this.get('loginName') + ' Password: ' + this.get('password'));
+    // console.log('Login: ' + this.get('loginName') + ' Password: ' + this.get('password'));
 
     this.set('errorMessage', '');
 
-    var user = this.validateCredentials();
-   
-    if (user) {
-      App.get('router').login(this.get('loginName'), user);
-    } else {
-      console.log('Failed to login as: ' + this.get('loginName'));
-      this.set('errorMessage', Em.I18n.t('login.error'));
-    }
-  },
+    var self = this;
 
-  /**
-   *
-   * @return {number} user by credentials || {undefined}
-   */
-  validateCredentials: function () {
-    //TODO: REST api that validates the login
-    var thisController = this;
-    var auth = App.get('router').authenticated();
-    console.log(auth);
-//    if (auth) {
-      var user = App.store.filter(App.User, function (data) {
-        return data.get('user_name') == thisController.get('loginName') && data.get('password') == thisController.get('password');
-      });
-
-      var clientId = user.content[0];
-      if (user.content[0] !== undefined) {
-        return App.store.findByClientId(App.User, clientId);
-      } else {
-        return undefined;
+    var user = App.get('router').mockLogin(function (isAuthenticated) {
+      if (!isAuthenticated) {
+        console.log('Failed to login as: ' + self.get('loginName'));
+        self.set('errorMessage', Em.I18n.t('login.error'));
       }
-//    }
+    });
   }
 
 });

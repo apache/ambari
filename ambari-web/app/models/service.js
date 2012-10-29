@@ -63,13 +63,14 @@ App.Component = DS.Model.extend({
   service:DS.belongsTo('App.Service'),
   host:DS.belongsTo('App.Host'),
   workStatus:DS.attr('boolean'),
-  isMaster: function(){
+  isMaster:function () {
     return this.get('type');
   }.property('type'),
-  isSlave: function(){
+  isSlave:function () {
     return !this.get('type');
   }.property('type'),
   // checkedForHostFilter: true // this is for host page to set checkboxes checked
+  decommissioned: DS.attr('boolean')
 });
 
 App.Component.FIXTURES = [
@@ -98,7 +99,8 @@ App.Component.FIXTURES = [
     service_id:1,
     type:false,
     host_id:2,
-    work_status:true
+    work_status:true,
+    decommissioned: true
   },
   {
     id:4,
@@ -139,8 +141,8 @@ App.Component.FIXTURES = [
   {
     id:8,
     component_name:'Oozie',
-    label: 'Oz',
-    type: false,
+    label:'Oz',
+    type:false,
     service_id:5,
     host_id:2,
     work_status:true

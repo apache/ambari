@@ -362,6 +362,8 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-941. More refactoring of Wizards in Ambari Web. (yusaku)
+
   AMBARI-919. Partial refactoring and consolidation of code for various
   wizards. (yusaku)
 

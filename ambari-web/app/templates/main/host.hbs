@@ -21,7 +21,7 @@
       <div class="btn-group">
         <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary dropdown-toggle"
                                                               data-toggle="dropdown">
-          Rack
+          Assign Rack
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
@@ -35,17 +35,17 @@
           {{/each}}
         </ul>
       </div>
-      <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary decommission"
+     <!-- <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary decommission"
                                                             data-toggle="modal" {{action "decommissionButtonPopup" target="controller"}}>
         Decommission
       </button>
       <button {{bindAttr disabled="controller.isDisabled"}} class="btn btn-primary"
                                                             data-toggle="modal" {{action "deleteButtonPopup" target="controller"}}>
         Delete
-      </button>
+      </button>-->
       <button class="btn btn-inverse add-host-button" {{action addHost}}>
         <i class="icon-plus icon-white"></i>
-        Add New Host
+        Add New Hosts
       </button>
     </div>
   </div>

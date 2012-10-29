@@ -22,8 +22,8 @@ App.MainHostMenuView = Em.CollectionView.extend({
   tagName: 'ul',
   classNames: ["nav", "nav-tabs"],
   content:[
-    { label:'Summary', routing:'summary'},
-    { label:'Audit', routing:'audit'}
+ /*   { label:'Summary', routing:'summary'},
+    { label:'Audit', routing:'audit'}*/
   ],
 
   init: function(){ this._super(); this.activateView(); },

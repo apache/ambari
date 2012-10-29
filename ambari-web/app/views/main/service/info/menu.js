@@ -23,9 +23,8 @@ App.MainServiceInfoMenuView = Em.CollectionView.extend({
   classNames: ["nav", "nav-tabs"],
   content:[
     { label:'Summary', routing:'summary', active:"active"},
-    { label:'Metrics', routing:'metrics'},
-    { label:'Configs', routing:'configs'},
-    { label:'Audit', routing:'audit'}
+    { label:'Configs', routing:'configs'}/*,
+    { label:'Audit', routing:'audit'}*/
   ],
 
   init: function(){ this._super(); this.activateView(); },

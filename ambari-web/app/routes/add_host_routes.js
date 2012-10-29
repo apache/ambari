@@ -131,6 +131,9 @@ module.exports = Em.Route.extend({
       var addHostController = router.get('addHostController');
       var wizardStep4Controller = router.get('wizardStep4Controller');
       addHostController.saveServices(wizardStep4Controller);
+      addHostController.saveClients(wizardStep4Controller);
+      App.db.setMasterComponentHosts(undefined);
+      App.db.setHostToMasterComponent(undefined);
       router.transitionTo('step4');
     }
   }),
@@ -150,6 +153,7 @@ module.exports = Em.Route.extend({
       var addHostController = router.get('addHostController');
       var wizardStep5Controller = router.get('wizardStep5Controller');
       addHostController.saveMasterComponentHosts(wizardStep5Controller);
+      App.db.setSlaveComponentHosts(undefined);
       router.transitionTo('step5');
     }
   }),
@@ -170,6 +174,7 @@ module.exports = Em.Route.extend({
 
       if (wizardStep6Controller.validate()) {
         addHostController.saveSlaveComponentHosts(wizardStep6Controller);
+        App.db.setServiceConfigProperties(null);
         router.transitionTo('step6');
       }
     }
@@ -226,17 +231,26 @@ module.exports = Em.Route.extend({
     }
   }),
 
-//  step6: Em.Route.extend({
-//    route: '/step6',
-//    connectOutlets: function (router, context) {
-//      router.setNavigationFlow('step6');
-//      router.setInstallerCurrentStep('6', false);
-//      router.get('installerController').connectOutlet('installerStep6');
-//    },
-//    back: Em.Router.transitionTo('step5'),
-//    next: Em.Router.transitionTo('step7')
-//  }),
-//
+  step9: Em.Route.extend({
+    route: '/step9',
+    connectOutlets: function (router, context) {
+      console.log('in addHost.step9:connectOutlets');
+      var controller = router.get('addHostController');
+      controller.setCurrentStep('9', false);
+      controller.loadAllPriorSteps();
+      controller.connectOutlet('wizardStep10');
+    },
+    back: Em.Router.transitionTo('step8'),
+    complete: function (router, context) {
+      if (true) {   // this function will be moved to installerController where it will validate
+        var addHostController = router.get('addHostController');
+        addHostController.setCurrentStep('1', false);
+        router.transitionTo('hosts');
+      } else {
+        console.log('cluster installation failure');
+      }
+    }
+  }),
 
   backToHostsList: function (router, event) {
     router.transitionTo('hosts');

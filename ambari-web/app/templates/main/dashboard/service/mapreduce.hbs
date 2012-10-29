@@ -17,7 +17,7 @@
 -->
 <div class="clearfix">
   <div class="name span2">
-    {{view App.MainDashboardServiceHealthView parentBinding="view"}}
+    {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
     <a {{action selectService view.service href=true}}>{{view.service.label}}</a>
     {{#if view.criticalAlertsCount}}
       <span class="label label-important alerts-count">{{view.criticalAlertsCount}}</span>

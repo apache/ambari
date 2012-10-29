@@ -34,10 +34,10 @@ App.Router = Em.Router.extend({
   },
 
   clearAllSteps: function() {
-    var totalSteps = 10
+    /*var totalSteps = 10
     for (var step = 1; step <= totalSteps; step++){
       this.get('installerStep' + step + 'Controller').clearStep();
-    }
+    }*/
   },
 
   /*
@@ -137,19 +137,6 @@ App.Router = Em.Router.extend({
     return App.db.getUser();
   },
 
-  login: function (loginName, user) {
-    // TODO: this needs to be hooked up with server authentication
-    console.log("In login function");
-    this.setAuthenticated(true);
-    this.setLoginName(loginName);
-
-//    refactor to get user attributes
-    this.setUser(user);
-
-    this.transitionTo(this.getSection());
-
-  },
-
   resetAuth: function (authenticated) {
     if (!authenticated){
       App.db.cleanUp();
@@ -161,10 +148,11 @@ App.Router = Em.Router.extend({
     return authenticated;
   },
 
-  authenticated: function () {
-    var authenticated = false;
+  login: function (postLogin) {
     var controller = this.get('loginController');
-    var hash = ''; //window.btoa(controller.get('loginName') + ":" + controller.get('password'));
+    var hash = window.btoa(controller.get('loginName') + ":" + controller.get('password'));
+    var router = this;
+
     $.ajax({
       url : '/api/check',
       dataType : 'json',
@@ -172,29 +160,47 @@ App.Router = Em.Router.extend({
       beforeSend: function(xhr) {
         xhr.setRequestHeader("Authorization", "Basic " + hash);
       },
-      statusCode:{
-        200:function(){
+      statusCode: {
+        200: function() {
           console.log('Authorization status: 200');
-          authenticated = true;
         },
-        401:function(){
+        401: function() {
           console.log('Authorization status: 401');
         },
-        403:function(){
+        403: function(){
           console.log('Authorization status: 403');
         }
       },
-      success: function(data){
-        console.log('Success: ');
+      success: function (data) {
+        console.log('login success');
+        router.setAuthenticated(true);
+        router.setLoginName(loginName);
+        // TODO: set real usr
+        router.setUser(App.User.find(1));
+        router.transitionTo(this.getSection());
+        postLogin(true);
       },
-      error:function (req){
-        console.log("Error: " + req.statusText);
+      error: function (req) {
+        console.log("login error: " + req.statusText);
+        router.setAuthenticated(false);
+        postLogin(false);
       }
     });
-//    this.resetAuth(authenticated);
-    this.setAuthenticated(authenticated);
+  },
 
-    return this.getAuthenticated();
+  mockLogin: function (postLogin) {
+    var controller = this.get('loginController');
+
+    if (controller.get('loginName') === 'admin' && controller.get('password') === 'admin') {
+      this.setAuthenticated(true);
+      this.setLoginName('admin');
+      this.setUser(App.User.find(1));
+      this.transitionTo(this.getSection());
+      postLogin(true);
+    } else {
+      this.setAuthenticated(false);
+      postLogin(false);
+    }
   },
 
   defaultSection: 'installer',

@@ -16,16 +16,24 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.InstallerStep4View = Em.View.extend({
+App.WizardStep10Controller = Em.ArrayController.extend({
+  name: 'wizardStep10Controller',
+  content: [],
 
-  templateName: require('templates/installer/step4'),
+  clearStep: function() {
+    this.clear();
+  },
 
-  didInsertElement: function () {
-    var controller = this.get('controller');
-    controller.loadStep();
+  loadStep: function() {
+    console.log("TRACE: Loading step10: Summary Page");
+    this.clearStep();
+
+  },
+
+  navigateStep: function() {
+    this.loadStep();
   }
-
 });
+

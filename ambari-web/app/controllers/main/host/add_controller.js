@@ -35,14 +35,15 @@ App.AddHostController = Em.Controller.extend({
    * config??? - to be described later
    */
   content: Em.Object.create({
-    cluster: {},
-    hosts: {},
-    services: {},
-    hostsInfo: {},
-    slaveComponentHosts: {},
-    hostSlaveComponents: {},
-    masterComponentHosts: {},
-    serviceConfigProperties: {}
+    cluster: null,
+    hosts: null,
+    services: null,
+    hostsInfo: null,
+    slaveComponentHosts: null,
+    hostSlaveComponents: null,
+    masterComponentHosts: null,
+    hostToMasterComponent : null,
+    serviceConfigProperties: null
   }),
 
   /**
@@ -193,10 +194,11 @@ App.AddHostController = Em.Controller.extend({
    * Load clusterInfo(step1) to model
    */
   loadClusterInfo: function(){
+    var cStatus = App.db.getClusterStatus() || {status: "", isCompleted: false};
     var cluster = {
-      name: App.db.getClusterName(),
-      status: App.db.getClusterStatus().status,
-      isCompleted: App.db.getClusterStatus().isCompleted
+      name: App.db.getClusterName() || "",
+      status: cStatus.status,
+      isCompleted: cStatus.isCompleted
     };
     this.set('content.cluster', cluster);
     console.log("AddHostController:loadClusterInfo: loaded data ", cluster);
@@ -444,6 +446,19 @@ App.AddHostController = Em.Controller.extend({
     console.log("AddHostController.saveComponentHosts: saved hosts ", masterComponentHosts);
     App.db.setMasterComponentHosts(masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
+
+    var hosts = masterComponentHosts.mapProperty('hostName').uniq();
+    var hostsMasterServicesMapping = [];
+    hosts.forEach(function (_host) {
+      var componentsOnHost = masterComponentHosts.filterProperty('hostName', _host).mapProperty('component');
+      hostsMasterServicesMapping.push({
+        hostname: _host,
+        components: componentsOnHost
+      });
+    }, this);
+    console.log("AddHostController.setHostToMasterComponent: saved hosts ", hostsMasterServicesMapping);
+    App.db.setHostToMasterComponent(hostsMasterServicesMapping);
+    this.set('content.hostToMasterComponent', hostsMasterServicesMapping);
   },
 
   /**
@@ -453,6 +468,10 @@ App.AddHostController = Em.Controller.extend({
     var masterComponentHosts = App.db.getMasterComponentHosts();
     this.set("content.masterComponentHosts", masterComponentHosts);
     console.log("AddHostController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
+
+    var hostsMasterServicesMapping = App.db.getHostToMasterComponent();
+    this.set("content.hostToMasterComponent", hostsMasterServicesMapping);
+    console.log("AddHostController.loadHostToMasterComponent: loaded hosts ", hostsMasterServicesMapping);
   },
 
   /**
@@ -471,6 +490,7 @@ App.AddHostController = Em.Controller.extend({
     var dataNodeHosts = [];
     var taskTrackerHosts = [];
     var regionServerHosts = [];
+    var clientHosts = [];
 
     hosts.forEach(function (host) {
       if (host.get('isDataNode')) {
@@ -487,6 +507,12 @@ App.AddHostController = Em.Controller.extend({
       }
       if (isHbSelected && host.get('isRegionServer')) {
         regionServerHosts.push({
+          hostname: host.hostname,
+          group: 'Default'
+        });
+      }
+      if (host.get('isClient')) {
+        clientHosts.pushObject({
           hostname: host.hostname,
           group: 'Default'
         });
@@ -513,6 +539,11 @@ App.AddHostController = Em.Controller.extend({
         hosts: regionServerHosts
       });
     }
+    slaveComponentHosts.pushObject({
+      componentName: 'CLIENT',
+      displayName: 'client',
+      hosts: clientHosts
+    });
 
     App.db.setSlaveComponentHosts(slaveComponentHosts);
     this.set('content.slaveComponentHosts', slaveComponentHosts);
@@ -532,7 +563,7 @@ App.AddHostController = Em.Controller.extend({
   },
 
   /**
-   * TODO:
+   * Save config properties
    * @param stepController Step7WizardController
    */
   saveServiceConfigProperties: function (stepController) {
@@ -562,6 +593,48 @@ App.AddHostController = Em.Controller.extend({
   },
 
   /**
+   * Load information about hosts with clients components
+   */
+  loadClients: function(){
+    var clients = App.db.getClientsForSelectedServices();
+    this.set('content.clients', clients);
+    console.log("AddHostController.loadClients: loaded list ", clients);
+  },
+
+  /**
+   * Generate clients list for selected services and save it to model
+   * @param stepController step4WizardController
+   */
+  saveClients: function(stepController){
+    var clients = [];
+    var serviceComponents = require('data/service_components');
+
+    stepController.get('content').filterProperty('isSelected',true).forEach(function (_service) {
+      var client = serviceComponents.filterProperty('service_name', _service.serviceName).findProperty('isClient', true);
+      if (client) {
+        clients.pushObject({
+          component_name: client.component_name,
+          display_name: client.display_name
+        });
+      }
+    }, this);
+
+    App.db.setClientsForSelectedServices(clients);
+    this.set('content.clients', clients);
+    console.log("AddHostController.saveClients: saved list ", clients);
+  },
+
+  /**
+   * Load HostToMasterComponent array
+   */
+  loadHostToMasterComponent: function(){
+    var list = App.db.getHostToMasterComponent();
+    this.set('content.hostToMasterComponent', list);
+    console.log("AddHostController.loadHostToMasterComponent: loaded list ", list);
+  },
+
+
+  /**
    * Call specified function only once
    */
   callLoadFuncOnce: function (name) {
@@ -581,12 +654,14 @@ App.AddHostController = Em.Controller.extend({
           //need to call it every time since we preload data in setInfoForStep9
         this.loadClusterInfo();
       case '7':
-        this.callLoadFuncOnce('loadClusterInfo');
+        this.loadClusterInfo();
       case '6':
         this.callLoadFuncOnce('loadServiceConfigProperties');
       case '5':
         this.callLoadFuncOnce('loadMasterComponentHosts');
         this.callLoadFuncOnce('loadSlaveComponentHosts');
+        this.callLoadFuncOnce('loadClients');
+        this.callLoadFuncOnce('loadHostToMasterComponent');
       case '4':
         this.callLoadFuncOnce('loadConfirmedHosts');
       case '3':
@@ -605,6 +680,7 @@ App.AddHostController = Em.Controller.extend({
    */
   clearAllSteps: function () {
     this.clearHosts();
+    //todo it)
   }
 
 });

@@ -27,9 +27,38 @@ App.MainHostDetailsController = Em.Controller.extend({
   isStopping: function(){
     return !this.get('isStarting');
   }.property('isStarting'),
+  intervalId: false,
+  checkOperationsInterval: 5000,
+  init: function(){
+    this._super();
+    this.startCheckOperationsLifeTime();
+  },
 
   setBack: function(isFromHosts){
     this.set('isFromHosts', isFromHosts);
+  },
+
+  startCheckOperationsLifeTime: function() {
+    this.intervalId = setInterval(this.checkOperationsLifeTime, this.get('checkOperationsInterval'));
+  },
+  stopCheckOperationsLifeTime:function () {
+    if(this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+    this.intervalId = false;
+  },
+
+  checkOperationsLifeTime: function(){
+    var self = App.router.get('mainHostDetailsController');
+    var backgroundOperations = self.get('backgroundOperations');
+    var time = new Date().getTime();
+    if(backgroundOperations.length){
+      backgroundOperations.forEach(function(operation){
+        if (time - operation.time >= 60*1000){
+          backgroundOperations.removeObject(operation);
+        }
+      })
+    }
   },
 
   hostOperations: function(){
@@ -72,12 +101,14 @@ App.MainHostDetailsController = Em.Controller.extend({
           "hostName": self.get('content.hostName'),
           "role":component.get('componentName'),
           "command": "START",
+          "time": new Date().getTime(),
           "details": [
             {"startTime":"4 min ago", "name":"Some intermediate operation"},
             {"startTime":"5 min ago", "name":"Component started"}
           ],
           "logs":{"exitcode":"404", "stdout":27, "stderror":501}
         });
+        self.showBackgroundOperationsPopup();
         var stopped = self.get('content.components').filterProperty('workStatus', false);
         if (stopped.length == 0)
           self.set('isStarting', true);
@@ -103,12 +134,14 @@ App.MainHostDetailsController = Em.Controller.extend({
           "hostName": self.get('content.hostName'),
           "role": component.get('componentName'),
           "command": "STOP",
+          "time": new Date().getTime(),
           "details": [
             {"startTime":"4 min ago", "name":"Some intermediate operation"},
             {"startTime":"5 min ago", "name":"Component stopped"}
           ],
           "logs":{"exitcode":"404", "stdout":15, "stderror":501}
         });
+        self.showBackgroundOperationsPopup();
         var started = self.get('content.components').filterProperty('workStatus', true);
         if (started.length == 0)
           self.set('isStarting', false);
@@ -121,12 +154,28 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   decommission: function(event){
+    var self = this;
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.start.popup.header'),
       body: Em.I18n.t('hosts.host.start.popup.body'),
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
+        var component = event.context;
+        component.set('decommissioned', true);
+        var backgroundOperations = self.get('backgroundOperations');
+        backgroundOperations.pushObject({
+          "hostName": self.get('content.hostName'),
+          "role":component.get('componentName'),
+          "command": "DECOMMISSION",
+          "time": new Date().getTime(),
+          "details": [
+            {"startTime":"4 min ago", "name":"Some intermediate operation"},
+            {"startTime":"5 min ago", "name":"Component decommissioned"}
+          ],
+          "logs":{"exitcode":"404", "stdout":27, "stderror":501}
+        });
+        self.showBackgroundOperationsPopup();
         this.hide();
       },
       onSecondary: function() {
@@ -136,12 +185,28 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   recommission: function(event){
+    var self = this;
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.start.popup.header'),
       body: Em.I18n.t('hosts.host.start.popup.body'),
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
+        var component = event.context;
+        component.set('decommissioned', false);
+        var backgroundOperations = self.get('backgroundOperations');
+        backgroundOperations.pushObject({
+          "hostName": self.get('content.hostName'),
+          "role":component.get('componentName'),
+          "command": "RECOMMISSION",
+          "time": new Date().getTime(),
+          "details": [
+            {"startTime":"4 min ago", "name":"Some intermediate operation"},
+            {"startTime":"5 min ago", "name":"Component recommissioned"}
+          ],
+          "logs":{"exitcode":"404", "stdout":27, "stderror":501}
+        });
+        self.showBackgroundOperationsPopup();
         this.hide();
       },
       onSecondary: function() {
@@ -193,7 +258,8 @@ App.MainHostDetailsController = Em.Controller.extend({
     components.forEach(function(cInstance){
       var cName = cInstance.get('componentName');
       if(slaveComponents.contains(cName)) {
-        if(cInstance.get('workStatus')){
+        if(cInstance.get('workStatus') &&
+          !cInstance.get('decommissioned')){
           workingComponents.push(cName);
         }
       } else {

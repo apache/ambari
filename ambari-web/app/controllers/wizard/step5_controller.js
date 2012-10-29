@@ -38,7 +38,7 @@ App.WizardStep5Controller = Em.Controller.extend({
   },
 
   loadStep: function () {
-    console.log("TRACE: Loading step5: Assign Masters");
+    console.log("WizardStep5Controller: Loading step5: Assign Masters");
     this.clearStep();
     this.renderHostInfo();
     this.renderComponents(this.loadComponents());
@@ -80,7 +80,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       this.get("selectedServices").pushObject(Ember.Object.create({service_name: item}));
     }, this);
 
-    var masterHosts = this.get('content.masterHosts');
+    var masterHosts = this.get('content.masterComponentHosts');
 
     var components = new Ember.Set();
     if (!masterHosts) {
@@ -421,8 +421,11 @@ App.WizardStep5Controller = Em.Controller.extend({
 
   lastZooKeeper: function () {
     var currentZooKeepers = this.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper");
-    var lastZooKeeper = currentZooKeepers.get("lastObject");
-    return lastZooKeeper;
+    if(currentZooKeepers){
+      return currentZooKeepers.get("lastObject");
+    }
+
+    return null;
   },
 
   addZookeepers: function () {

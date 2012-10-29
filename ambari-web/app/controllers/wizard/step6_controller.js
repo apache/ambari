@@ -35,9 +35,6 @@ var db = require('utils/db');
 App.WizardStep6Controller = Em.Controller.extend({
 
   hosts: [],
-  // TODO: hook up with user host selection
-  rawHosts: [],
-  masterComponentHosts: require('data/mock/master_component_hosts'),
 
   isAllDataNodes: function () {
     return this.get('hosts').everyProperty('isDataNode', true);
@@ -51,6 +48,10 @@ App.WizardStep6Controller = Em.Controller.extend({
     return this.get('hosts').everyProperty('isRegionServer', true);
   }.property('hosts.@each.isRegionServer'),
 
+  isAllClients: function () {
+    return this.get('hosts').everyProperty('isClient', true);
+  }.property('hosts.@each.isClient'),
+
   isNoDataNodes: function () {
     return this.get('hosts').everyProperty('isDataNode', false);
   }.property('hosts.@each.isDataNode'),
@@ -62,6 +63,10 @@ App.WizardStep6Controller = Em.Controller.extend({
   isNoRegionServers: function () {
     return this.get('hosts').everyProperty('isRegionServer', false);
   }.property('hosts.@each.isRegionServer'),
+
+  isNoClients: function () {
+    return this.get('hosts').everyProperty('isClient', false);
+  }.property('hosts.@each.isClient'),
 
   /**
    * Return whether Hbase service was selected or not.
@@ -80,6 +85,15 @@ App.WizardStep6Controller = Em.Controller.extend({
 	isMrSelected: function () {
     return this.get('content.services').findProperty('serviceName', 'MAPREDUCE').get('isSelected');
 	}.property('content'),
+
+  clearError: function () {
+    if (this.get('isNoDataNodes') === false &&
+        (this.get('isNoTaskTrackers') === false || this.get('isMrSelected') === false) &&
+        (this.get('isNoRegionServers') === false || this.get('isHbSelected') === false) &&
+        this.get('isNoClients') === false) {
+      this.set('errorMessage', '');
+    }
+  }.observes('isNoDataNodes', 'isNoTaskTrackers', 'isNoRegionServers', 'isNoClients'),
 
   /**
    * Check whether current host is currently selected as master
@@ -102,6 +116,10 @@ App.WizardStep6Controller = Em.Controller.extend({
     this.get('hosts').setEach('isRegionServer', true);
   },
 
+  selectAllClients: function () {
+    this.get('hosts').setEach('isClient', true);
+  },
+
   deselectAllDataNodes: function () {
     this.get('hosts').setEach('isDataNode', false);
   },
@@ -114,12 +132,17 @@ App.WizardStep6Controller = Em.Controller.extend({
     this.get('hosts').setEach('isRegionServer', false);
   },
 
+  deselectAllClients: function () {
+    this.get('hosts').setEach('isClient', false);
+  },
+
   clearStep: function () {
     this.set('hosts', []);
+    this.clearError();
   },
 
   loadStep: function () {
-    console.log("TRACE: Loading step6: Assign Slaves");
+    console.log("WizardStep6Controller: Loading step6: Assign Slaves");
     this.clearStep();
     this.renderSlaveHosts();
   },
@@ -149,16 +172,26 @@ App.WizardStep6Controller = Em.Controller.extend({
 
     allHosts.forEach(function (_hostName) {
       hostsObj.push(Em.Object.create({
-        hostname: _hostName
+        hostname: _hostName,
+        isMaster: false,
+        isDataNode: false,
+        isTaskTracker: false,
+        isRegionServer: false,
+        isClient: false
       }));
     });
 
     if (!slaveHosts) { // we are at this page for the first time
 
       hostsObj.forEach(function (host) {
+        host.isMaster = this.hasMasterComponents(host.hostname);
         host.isDataNode = host.isTaskTracker
-            = host.isRegionServer = !this.hasMasterComponents(host.hostname);
+            = host.isRegionServer = !host.isMaster;
       }, this);
+
+      if (hostsObj.someProperty('isDataNode', true)) {
+        hostsObj.findProperty('isDataNode', true).set('isClient', true);
+      }
 
     } else {
 
@@ -166,27 +199,44 @@ App.WizardStep6Controller = Em.Controller.extend({
       dataNodes.hosts.forEach(function (_dataNode) {
         var dataNode = hostsObj.findProperty('hostname', _dataNode.hostname);
         if (dataNode) {
-          dataNode.isDataNode = true;
+          dataNode.set('isDataNode', true);
         }
       });
 
-			var taskTrackers = slaveHosts.findProperty('componentName', 'TASKTRACKER');
-      taskTrackers.hosts.forEach(function (_taskTracker) {
-        var taskTracker = hostsObj.findProperty('hostname', _taskTracker.hostname);
-        if (taskTracker) {
-          taskTracker.isTaskTracker = true;
-        }
-      });
+      if(this.get('isMrSelected')) {
+        var taskTrackers = slaveHosts.findProperty('componentName', 'TASKTRACKER');
+        taskTrackers.hosts.forEach(function (_taskTracker) {
+          var taskTracker = hostsObj.findProperty('hostname', _taskTracker.hostname);
+          if (taskTracker) {
+            taskTracker.set('isTaskTracker', true);
+          }
+        });
+      }
 
       if (this.get('isHbSelected')) {
 				var regionServers = slaveHosts.findProperty('componentName', 'HBASE_REGIONSERVER');
         regionServers.hosts.forEach(function (_regionServer) {
           var regionServer = hostsObj.findProperty('hostname', _regionServer.hostname);
           if (regionServer) {
-            regionServer.isRegionServer = true;
+            regionServer.set('isRegionServer', true);
           }
         });
       }
+
+      var clients = slaveHosts.findProperty('componentName', 'CLIENT');
+      clients.hosts.forEach(function (_client) {
+        var client = hostsObj.findProperty('hostname', _client.hostname);
+        if (client) {
+          client.set('isClient', true);
+        }
+      }, this);
+
+      allHosts.forEach(function (_hostname) {
+        var host = hostsObj.findProperty('hostname', _hostname);
+        if (host) {
+          host.set('isMaster', this.hasMasterComponents(_hostname));
+        }
+      }, this);
 
     }
 
@@ -196,15 +246,33 @@ App.WizardStep6Controller = Em.Controller.extend({
   },
 
   /**
+   * Return list of master components for specified <code>hostname</code>
+   * @param hostname
+   * @return {*}
+   */
+  getMasterComponentsForHost: function (hostname) {
+    var hostInfo = this.get('content.hostToMasterComponent').findProperty('hostname', hostname);
+    if(hostInfo){
+      return hostInfo.components;
+    }
+
+    return false;
+  },
+
+
+  /**
    * Validate form. Return do we have errors or not
    * @return {Boolean}
    */
   validate: function () {
-    var isOK =  !(this.get('isNoDataNodes') || ( this.get('isMrSelected') && this.get('isNoTaskTrackers')) || ( this.get('isHbSelected') &&this.get('isNoRegionServers')));
-    if(!isOK){
+    var isError =  this.get('isNoDataNodes') || this.get('isNoClients')
+      || ( this.get('isMrSelected') && this.get('isNoTaskTrackers'))
+      || ( this.get('isHbSelected') &&this.get('isNoRegionServers'));
+
+    if(isError){
       this.set('errorMessage', Ember.I18n.t('installer.step6.error.mustSelectOne'));
     }
-    return isOK;
+    return !isError;
   }
 
 });

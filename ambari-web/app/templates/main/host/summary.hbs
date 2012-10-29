@@ -38,12 +38,12 @@
         </button>
         <ul class="dropdown-menu">
           {{#if view.isDataNode}}
-            <li>
+            <li {{bindAttr class="view.content.decommissioned:hidden:"}}>
               <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
                 Decommission
               </a>
             </li>
-            <li>
+            <li {{bindAttr class="view.content.decommissioned::hidden"}}>
               <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
                 Recommission
               </a>

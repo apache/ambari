@@ -27,9 +27,12 @@ App.WizardStep5View = Em.View.extend({
     var controller = this.get('controller');
     controller.loadStep();
 
-    var ZooKeeper = controller.lastZooKeeper();
-    if (ZooKeeper) {
-      ZooKeeper.set('showAddControl', true);
+    if (controller.lastZooKeeper()) {
+      if (controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").length < controller.get("hosts.length")) {
+        controller.lastZooKeeper().set('showAddControl', true);
+      } else {
+        controller.lastZooKeeper().set('showRemoveControl', false);
+      }
     }
   }
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-.gradient(@color: #FAFAFA, @start: #FFFFFF, @stop: #F2F2F2){
+.gradient(@color: #FAFAFA, @start: #FFFFFF, @stop: #F2F2F2) {
   background: @color;
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0, @start), color-stop(1, @stop));
   background: -ms-linear-gradient(top, @start, @stop);
@@ -128,7 +128,7 @@ footer {
     font-size: 17px;
     border-right: 1px solid rgba(0, 0, 0, 0.08);
   }
-  .operations-count{
+  .operations-count {
     background-color: #006DCC;
   }
   li {
@@ -243,6 +243,9 @@ h1 {
     i.icon-asterisks {
       color: #FF4B4B;
     }
+  }
+  #step6 .pre-scrollable {
+    max-height: 440px;
   }
   #serviceConfig {
     .accordion-heading {
@@ -576,11 +579,11 @@ a:focus {
 /*end alerts summary*/
 
 /*start chart/style graphs*/
-.chart-container{
+.chart-container {
   position: relative;
   margin: 20px 15px 0px 15px;
-  
-  .chart{
+
+  .chart {
     padding-bottom: 0px !important;
     position: relative;
     height: 160px;
@@ -616,6 +619,7 @@ a:focus {
     font-size: small;
   }
 }
+
 /*end chart/graph styles*/
 
 /*****end styles for dashboard page*****/
@@ -630,13 +634,10 @@ a:focus {
       list-style: none;
       height: 20px;
       width: 20px;
-      margin-left: 0;
-
-    //      padding-left: 30px;
+      margin-left: 0; //      padding-left: 30px;
     //      padding-right: 30px;
     //      background-position: 12px 9px;
     //      background-repeat: no-repeat;
-
     }
     .health-status-LIVE {
       .tab-marker-position;
@@ -685,7 +686,7 @@ a:focus {
   }
   .service-content {
     padding: 5px 0 0 10px;
-    .service-links{
+    .service-links {
       padding: 5px 0;
     }
   }
@@ -719,13 +720,13 @@ a:focus {
   }
 }
 
-.summary-metric-graphs{
+.summary-metric-graphs {
   [class*="span"] {
     float: left;
     margin-left: 10px;
   }
-  .chart-container{
-    .chart-x-axis{
+  .chart-container {
+    .chart-x-axis {
       left: 0%;
       width: 100%;
     }
@@ -810,8 +811,8 @@ a:focus {
       margin-top: 3px;
     }
     .dropdown {
-       margin-top: 3px;
-     }
+      margin-top: 3px;
+    }
     .dropdown select {
       width: 60px;
     }
@@ -831,7 +832,6 @@ a:focus {
     }
     .page-listing {
       width: 100px;
-
       .table {
         th.name {
           width: 300px;
@@ -844,87 +844,88 @@ a:focus {
       }
     }
   }
-}
+  }
 
-#host-details {
-  .health-status-LIVE {
-    background-image: @status-live-marker;
-    background-repeat: no-repeat;
-    background-position: 0px 4px;
+  #host-details {
+    .health-status-LIVE {
+      background-image: @status-live-marker;
+      background-repeat: no-repeat;
+      background-position: 0px 4px;
+    }
+    .health-status-DEAD {
+      background-image: @status-dead-marker;
+      background-repeat: no-repeat;
+      background-position: 0px 4px;
+    }
+    .health-status-DEAD-ORANGE {
+      background-image: @status-dead-orange-marker;
+      background-repeat: no-repeat;
+      background-position: 0px 4px;
+    }
+    .health-status-DEAD-YELLOW {
+      background-image: @status-dead-yellow-marker;
+      background-repeat: no-repeat;
+      background-position: 0px 4px;
+    }
+    .back {
+      display: block;
+      width: 105px;
+      margin-bottom: 5px;
+    }
+    .box-header .host-title {
+      margin: 0;
+      padding-left: 17px;
+    }
+    .box-header .button-section {
+      margin-bottom: 5px;
+    }
+    hr {
+      margin-bottom: 0;
+      clear: both;
+    }
+    .content {
+      padding: 10px;
+    }
+    .host-configuration .dl-horizontal dt {
+      width: 90px;
+      line-height: 20px;
+    }
+    .host-configuration .dl-horizontal dd {
+      margin-left: 100px;
+      line-height: 20px;
+    }
+    .host-components {
+      padding: 10px;
+      padding-bottom: 0;
+      border: 1px solid #DEDEDE;
+      border-radius: 4px;
+      background: #F5F5F5;
+    }
+    .host-components .btn-group {
+      margin: 0 5px 10px 0;
+    }
   }
-  .health-status-DEAD {
-    background-image: @status-dead-marker;
-    background-repeat: no-repeat;
-    background-position: 0px 4px;
+  .background-operations {
+    .open-details {
+      clear: left;
+      display: block;
+      float: left;
+      text-decoration: none;
+      width: 16px;
+    }
+    .operation-details {
+      padding-left: 16px;
+      padding-top: 5px;
+      display: none;
+    }
+    margin-bottom: 10px;
   }
-  .health-status-DEAD-ORANGE {
-    background-image: @status-dead-orange-marker;
-    background-repeat: no-repeat;
-    background-position: 0px 4px;
+  .background-operations.is-open {
+    .operation-details {
+      display: block;
+    }
   }
-  .health-status-DEAD-YELLOW {
-    background-image: @status-dead-yellow-marker;
-    background-repeat: no-repeat;
-    background-position: 0px 4px;
-  }
-  .back {
-    display: block;
-    width: 105px;
-    margin-bottom: 5px;
-  }
-  .box-header .host-title {
-    margin: 0;
-    padding-left: 17px;
-  }
-  .box-header .button-section {
-    margin-bottom: 5px;
-  }
-  hr {
-    margin-bottom: 0;
-    clear: both;
-  }
-  .content {
-    padding: 10px;
-  }
-  .host-configuration .dl-horizontal dt {
-    width: 90px;
-    line-height: 20px;
-  }
-  .host-configuration .dl-horizontal dd {
-    margin-left: 100px;
-    line-height: 20px;
-  }
-  .host-components {
-    padding: 10px;
-    padding-bottom: 0;
-    border: 1px solid #DEDEDE;
-    border-radius: 4px;
-    background: #F5F5F5;
-  }
-  .host-components .btn-group {
-    margin: 0 5px 10px 0;
-  }
-}
-.background-operations {
-  .open-details{
-    clear: left;
-    display: block;
-    float: left;
-    text-decoration: none;
-    width: 16px;
-  }
-  .operation-details {
-    padding-left: 16px;
-    padding-top: 5px;
-    display: none;
-  }
-margin-bottom: 10px;
-}
-.background-operations.is-open {
-  .operation-details {
-    display: block;
-  }
-}
+
 /*End Hosts*/
 
 /*assign masters*/
@@ -1491,6 +1492,7 @@ ul.inline li {
 .ui-timepicker-rtl dl dd {
   margin: 0 65px 10px 10px;
 }
+
 /* end css for timepicker */
 
 #slider {
@@ -1511,20 +1513,20 @@ ul.inline li {
 
 /* TIME RANGE WIDGET END */
 
-#host-details .host-components .btn-group > .btn{
+#host-details .host-components .btn-group > .btn {
   min-width: 130px;
 }
 
-#host-details > .host-maintenance{
+#host-details > .host-maintenance {
   text-align: right;
   margin-top: -20px;
 }
 
-#host-details > .host-maintenance > div{
+#host-details > .host-maintenance > div {
   text-align: left;
 }
 
-#host-details > .host-title{
+#host-details > .host-title {
   background-position: 0px center;
   padding-left: 17px;
 }
@@ -1534,26 +1536,29 @@ ul.inline li {
   border: 2px solid black;
   padding: 10px;
 }
+
 .fieldset legend {
   border-bottom: none;
   width: auto;
   font-size: 14px;
 }
+
 /* fieldset end */
 
 /* Start Carousel */
 .carousel-inner {
   height: 80px;
 }
+
 /* End Carousel*/
 
 #add-host .back,
-#add-service .back{
+#add-service .back {
   display: block;
   width: 105px;
   margin-bottom: 10px;
 }
 
-#step8-content{
+#step8-content {
   max-height: 570px;
 }

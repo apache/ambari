@@ -19,10 +19,12 @@
 <div id="step6">
   <h2>{{t installer.step6.header}}</h2>
 
-  <div class="alert alert-info">{{t installer.step6.body}}</div>
+  <div class="alert alert-info">{{{view.label}}}</div>
   {{#if errorMessage}}
   <div class="alert alert-error">{{errorMessage}}</div>
   {{/if}}
+
+  <div class="pre-scrollable">
   <table class="table table-striped">
     <thead>
       <tr>
@@ -52,13 +54,23 @@
             {{action deselectAllRegionServers target="controller"}}>none</a>
         </th>
       {{/if}}
+        <th>
+          <a href="#" {{bindAttr class="isAllClients:selected:deselected"}} {{action selectAllClients target="controller"}}>all</a>
+          |
+          <a href="#" {{bindAttr class="isNoClients:selected:deselected"}} {{action deselectAllClients target="controller"}}>none</a>
+        </th>
       </tr>
     </thead>
     <tbody>
 
     {{#each hosts}}
     <tr>
-      <td>{{hostname}}</td>
+        {{#view App.WizardStep6HostView hostBinding = "this" }}
+          {{hostname}}
+          {{#if isMaster}}
+            <i class=icon-asterisks>&#10037</i>
+          {{/if}}
+        {{/view}}
       <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isDataNode"}}DataNode</label></td>
       {{#if controller.isMrSelected}}
       <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isTaskTracker"}}TaskTracker</label></td>
@@ -66,10 +78,12 @@
       {{#if controller.isHbSelected}}
       <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isRegionServer"}}RegionServer</label></td>
       {{/if}}
+      <td><label class="checkbox">{{view Ember.Checkbox checkedBinding="isClient"}}Client</label></td>
     </tr>
     {{/each}}
     </tbody>
   </table>
+  </div>
   <div class="btn-area">
     <a class="btn" {{action back href="true"}}>&larr; Back</a>
     <a class="btn btn-success pull-right" {{action next}}>Next &rarr;</a>
