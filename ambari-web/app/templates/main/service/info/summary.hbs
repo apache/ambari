@@ -235,15 +235,33 @@
         <a class="btn" href="http://nagiosserver/nagios" target="_blank" rel="tooltip" title="Go to Nagios"><i class="icon-link"></i></a>
 			</div>
 		</div>
-		<ul class="alerts">
-			{{#each controller.content.alerts}}
-			<li class="status-{{unbound status}}">
-				<p><span class="title">{{title}}</span> <a href="javascript:void(null)">{{service.label}}</a><span class="date-time">{{date}}</span></p>
-				<p><span>{{status}}:</span> <span>{{message}}</span></p>
-			</li>
+		<ul id='summary-alerts-list' class="alerts">
+			{{#each controller.alerts}}
+			 <li class="status-{{unbound status}}">
+          <div class="container-fluid">
+            <div class="row-fluid">
+              <div class="span1 status-icon">
+                {{#if isOk}}
+                  <i class="icon-ok icon-large"></i>
+                {{else}}
+                  <i class="icon-remove icon-large"></i>
+                {{/if}}
+              </div>
+              <div class="span11">
+                <div class="row-fluid">
+                  <div class="span7 title">{{title}}
+                  </div>
+                  <div class="span5 date-time">{{dateDisplay}}</div>
+                </div>
+                <div class="row-fluid message">{{message}}</div>
+              </div>
+            </div>
+          </div>
+        </li>
 			{{/each}}
 		</ul>
 	</div>
+</div>
 </div>
 <div class="row-fluid">
   <div class="span12">
@@ -253,7 +271,7 @@
       </div>
       
       <div class="summary-metric-graphs row-fluid">
-        {{#each graph in view.attributes.metricGraphViews}}
+        {{#each graph in view.attributes.metric_graph_views}}
           <div class="span3">
             {{view graph}}
           </div> 
@@ -262,5 +280,4 @@
       
     </div>
   </div>
-</div>
 </div>

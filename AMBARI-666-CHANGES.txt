@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-933. Provide service-specific alerts in the service summary
+  pages. (Srimanth Gunturi via yusaku)
+
   AMBARI-938. Hardcode service name and client component mapping while
   awaiting meta data integration. (hitesh)
 
