@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-936. Provide HBase service specific graphs. (Srimanth Gunturi
+  via yusaku)
+
   AMBARI-933. Provide service-specific alerts in the service summary
   pages. (Srimanth Gunturi via yusaku)
 

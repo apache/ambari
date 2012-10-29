@@ -100,6 +100,13 @@ App.MainServiceInfoSummaryView = Em.View.extend({
           summary['memory_heap_max'] = summary['memory_heap_max'].bytesToSize(2, 'parseFloat');
           summary['start_time'] = summary['start_time'].toDaysHoursMinutes();
           summary['active_time'] = summary['active_time'].toDaysHoursMinutes();
+          summary['metric_graph_views'] = [ App.ChartServiceMetricsHBASE_ClusterRequests.extend(),
+                                            App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests.extend(),
+                                            App.ChartServiceMetricsHBASE_RegionServerRegions.extend(),
+                                            App.ChartServiceMetricsHBASE_RegionServerQueueSize.extend(),
+                                            App.ChartServiceMetricsHBASE_HlogSplitTime.extend(),
+                                            App.ChartServiceMetricsHBASE_HlogSplitSize.extend()
+                                            ];
         }
         summaryView.set('attributes', summary);
       }
@@ -112,9 +119,11 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var summaryTable = document.getElementById('summary-info');
     var alertsList = document.getElementById('summary-alerts-list');
     if (summaryTable && alertsList) {
-      if (summaryTable.clientHeight > alertsList.clientHeight) {
+      var rows = $(summaryTable).find('tr');
+      if (rows != null && rows.length > 0) {
         $(alertsList).attr('style', "height:" + summaryTable.clientHeight + "px;");
-      } else {
+      } else if (alertsList.clientHeight > 0) {
+        $(summaryTable).append('<tr><td></td></tr>');
         $(summaryTable).attr('style', "height:" + alertsList.clientHeight + "px;");
       }
     }
