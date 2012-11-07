@@ -345,9 +345,9 @@ App.WizardStep9Controller = Em.Controller.extend({
     return hostArr;
   },
 
-  setHostsStatus: function (hosts, status) {
-    hosts.forEach(function (_host) {
-      var host = this.hosts.findProperty('name', _host.Tasks.host_name);
+  setHostsStatus: function (hostNames, status) {
+    hostNames.forEach(function (_hostName) {
+      var host = this.hosts.findProperty('name', _hostName);
       host.set('status', status);
       host.set('progress', '100');
     }, this);
@@ -391,7 +391,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           this.set('progress', '100');
           this.set('status', 'failed');
           this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData), 'failed');
-	  App.router.get('installerController').saveClusterStatus(clusterStatus);
+          App.router.get('installerController').saveClusterStatus(clusterStatus);
           this.set('isStepCompleted', true);
         } else {
           clusterStatus.status = 'INSTALLED';
@@ -407,7 +407,7 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   getCompletedTasksForHost: function (host) {
     var hostname = host.get('name');
-    var tasksPerHost = host.tasks.filterProperty('Tasks.host_name',hostname);
+    var tasksPerHost = host.tasks.filterProperty('Tasks.host_name', hostname);
     var succededTasks = tasksPerHost.filterProperty('Tasks.status', 'COMPLETED');
     var inProgressTasks = tasksPerHost.filterProperty('Tasks.status', 'IN_PROGRESS');
     var listedTasksPerHost = succededTasks.concat(inProgressTasks).uniq();
@@ -415,16 +415,16 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   // This is done at HostRole level.
-  setTasksStatePerHost: function(tasksPerHost,host) {
+  setTasksStatePerHost: function (tasksPerHost, host) {
     var tasks = [];
-    tasksPerHost.forEach(function(_taskPerHost){
-      if(_taskPerHost.Tasks.status !== 'PENDING' &&_taskPerHost.Tasks.status !== 'QUEUED') {
-        var task =  host.tasks.findProperty('Tasks.id',_taskPerHost.Tasks.id);
-        if(!(task && (task.Tasks.command === _taskPerHost.Tasks.command))) {
-        host.tasks.pushObject(_taskPerHost);
+    tasksPerHost.forEach(function (_taskPerHost) {
+      if (_taskPerHost.Tasks.status !== 'PENDING' && _taskPerHost.Tasks.status !== 'QUEUED') {
+        var task = host.tasks.findProperty('Tasks.id', _taskPerHost.Tasks.id);
+        if (!(task && (task.Tasks.command === _taskPerHost.Tasks.command))) {
+          host.tasks.pushObject(_taskPerHost);
         }
       }
-    },this);
+    }, this);
   },
 
   parseHostInfo: function (polledData) {
@@ -452,7 +452,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         this.onSuccessPerHost(actionsPerHost, _host);    // every action should be a success
         this.onWarningPerHost(actionsPerHost, _host);    // any action should be a faliure
         this.onInProgressPerHost(actionsPerHost, _host); // current running action for a host
-        this.setTasksStatePerHost(actionsPerHost,_host);
+        this.setTasksStatePerHost(actionsPerHost, _host);
         totalProgress = self.progressPerHost(actionsPerHost, _host);
       }
     }, this);

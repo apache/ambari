@@ -322,7 +322,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       return this.getKerberosServer(noOfHosts).host_name;
     } else if (componentName === 'NAMENODE') {
       return this.getNameNode(noOfHosts).host_name;
-    } else if (componentName === 'SNAMENODE') {
+    } else if (componentName === 'SECONDARY_NAMENODE') {
       return this.getSNameNode(noOfHosts).host_name;
     } else if (componentName === 'JOBTRACKER') {
       return this.getJobTracker(noOfHosts).host_name;

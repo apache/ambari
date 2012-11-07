@@ -114,7 +114,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.set('value', temp.hostName);
         break;
       case 'snamenode.host':
-        this.set('value', masterComponentHostsInDB.findProperty('component','SNAMENODE').hostName);
+        this.set('value', masterComponentHostsInDB.findProperty('component','SECONDARY_NAMENODE').hostName);
         break;
       case 'jobtracker.host':
         this.set('value', masterComponentHostsInDB.findProperty('component','JOBTRACKER').hostName);

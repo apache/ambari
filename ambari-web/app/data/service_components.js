@@ -28,7 +28,7 @@ module.exports = new Ember.Set([
   },
   {
     service_name: 'HDFS',
-    component_name: 'SNAMENODE',
+    component_name: 'SECONDARY_NAMENODE',
     display_name: 'SNameNode',
     isMaster: true,
     isClient: false,

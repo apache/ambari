@@ -511,7 +511,10 @@ App.WizardStep8Controller = Em.Controller.extend({
       var components = serviceComponents.filterProperty('service_name', _service);
       components.forEach(function (_component) {
         console.log("value of component is: " + _component.component_name);
-        this.createComponent(_service, _component.component_name);
+        // TODO: Skipping CLIENT components as we have issues on the server side for integration purposes
+        if (!_component.component_name.match(/CLIENT$/)) {
+          this.createComponent(_service, _component.component_name);
+        }
       }, this);
     }, this);
     //TODO: Remove below code after hooking up with all services.
@@ -600,7 +603,8 @@ App.WizardStep8Controller = Em.Controller.extend({
           slaveObj.component = _client.component_name;
           _slaveHosts.hosts.forEach(function (_slaveHost) {
             slaveObj.hostName = _slaveHost.hostname;
-            this.createHostComponent(slaveObj);
+            // TODO: Skip creation of clients for integration purposes
+            // this.createHostComponent(slaveObj);
           }, this);
         }, this);
       }
@@ -659,7 +663,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     $.ajax({
       type: 'POST',
       url: url,
-      data: data,
+      data: JSON.stringify(data),
       async: false,
       dataType: 'text',
       timeout: 5000,
@@ -682,7 +686,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   createCoreSiteObj: function () {
-    return '{"type": "core-site", "tag": "version1", "properties": { "fs.default.name": "localhost:8020"}}';
+    return {"type": "core-site", "tag": "version1", "properties": { "fs.default.name": "localhost:8020"}};
   },
 
   createHdfsSiteObj: function (serviceName) {
@@ -691,8 +695,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       hdfsProperties[_configProperty.name] = _configProperty.value;
     }, this);
+    // TODO: Using hardcoded params until meta data API becomes available
     hdfsProperties = {"dfs.datanode.data.dir.perm": "750"};
-    return '{"type": "hdfs-site", "tag": "version1", "properties":' + JSON.stringify(hdfsProperties) + '}';
+    return {"type": "hdfs-site", "tag": "version1", "properties": hdfsProperties };
   },
 
   createMrSiteObj: function (serviceName) {
@@ -701,7 +706,13 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       mrProperties[_configProperty.name] = _configProperty.value;
     }, this);
-    return{type: 'mapred-site', tag: 'version1', properties: mrProperties};
+    // TODO: Using hardcoded params until meta data API becomes available
+    mrProperties = {
+      "mapred.job.tracker": "localhost:50300",
+      "mapreduce.history.server.embedded": "false",
+      "mapreduce.history.server.http.address": "localhost:51111"
+    };
+    return {type: 'mapred-site', tag: 'version1', properties: mrProperties};
   },
 
   createHbaseSiteObj: function (serviceName) {
@@ -710,7 +721,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       hbaseProperties[_configProperty.name] = _configProperty.value;
     }, this);
-    return{type: 'hbase-site', tag: 'version1', properties: hbaseProperties};
+    return {type: 'hbase-site', tag: 'version1', properties: hbaseProperties};
   },
 
   createHiveSiteObj: function (serviceName) {
@@ -719,7 +730,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       hiveProperties[_configProperty.name] = _configProperty.value;
     }, this);
-    return{type: 'hbase-site', tag: 'version1', properties: hiveProperties};
+    return {type: 'hbase-site', tag: 'version1', properties: hiveProperties};
   },
 
   applyCreatedConfToServices: function () {
