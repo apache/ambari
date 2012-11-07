@@ -112,8 +112,39 @@ App.ChartLinearTimeView = Ember.View
           hash.contentType = 'application/json; charset=utf-8';
           hash.context = this;
           hash.success = this._refreshGraph;
+          hash.error = function(xhr, textStatus, errorThrown){
+            this._showMessage('warn', 'Error', 'There was a problem getting data for the chart ('+textStatus+': '+errorThrown+')');
+          }
           jQuery.ajax(hash);
         }
+      },
+      
+      /**
+       * Shows a yellow warning message in place of the chart.
+       * 
+       * @param type  Can be any of 'warn', 'error', 'info', 'success'
+       * @param title Bolded title for the message
+       * @param message String representing the message
+       * @type: Function
+       */
+      _showMessage: function(type, title, message){
+        var chartOverlayId = '#' + this.id + '-chart';
+        var typeClass;
+        switch (type) {
+          case 'error':
+            typeClass = 'alert-error';
+            break;
+          case 'success':
+            typeClass = 'alert-success';
+            break;
+          case 'info':
+            typeClass = 'alert-info';
+            break;
+          default:
+            typeClass = '';
+            break;
+        }
+        $(chartOverlayId).append('<div class=\"alert '+typeClass+'\"><strong>'+title+'</strong> '+message+'</div>');
       },
 
       /**
@@ -177,7 +208,7 @@ App.ChartLinearTimeView = Ember.View
        */
       _refreshGraph: function (jsonData) {
         var seriesData = this.transformToSeries(jsonData);
-        if (seriesData instanceof Array) {
+        if (seriesData instanceof Array && seriesData.length>0) {
           var palette = new Rickshaw.Color.Palette({
             scheme: this._paletteScheme
           });
@@ -185,67 +216,69 @@ App.ChartLinearTimeView = Ember.View
             series.color = this.colorForSeries(series) || palette.color();
             series.stroke = 'rgba(0,0,0,0.3)';
           }.bind(this));
+          
+          if (this._graph == null) {
+            var chartId = "#" + this.id + "-chart";
+            var chartOverlayId = "#" + this.id + "-overlay";
+            var xaxisElementId = "#" + this.id + "-xaxis";
+            var yaxisElementId = "#" + this.id + "-yaxis";
+            var chartElement = document.querySelector(chartId);
+            var overlayElement = document.querySelector(chartOverlayId);
+            var xaxisElement = document.querySelector(xaxisElementId);
+            var yaxisElement = document.querySelector(yaxisElementId);
+
+            this._graph = new Rickshaw.Graph({
+              height: 150,
+              element: chartElement,
+              series: seriesData,
+              interpolation: 'step-after',
+              stroke: true,
+              renderer: 'area',
+              strokeWidth: 1
+            });
+            this._graph.renderer.unstack = true;
+
+            xAxis = new Rickshaw.Graph.Axis.Time({
+              graph: this._graph
+            });
+            yAxis = new Rickshaw.Graph.Axis.Y({
+              tickFormat: this.yAxisFormatter,
+              element: yaxisElement,
+              graph: this._graph
+            });
+
+            overlayElement.addEventListener('mousemove', function () {
+              $(xaxisElement).removeClass('hide');
+              $(yaxisElement).removeClass('hide');
+              $(chartElement).children("div").removeClass('hide');
+            });
+            overlayElement.addEventListener('mouseout', function () {
+              $(xaxisElement).addClass('hide');
+              $(yaxisElement).addClass('hide');
+              $(chartElement).children("div").addClass('hide');
+            });
+            // Hide axes
+            this._graph.onUpdate(function () {
+              $(xaxisElement).addClass('hide');
+              $(yaxisElement).addClass('hide');
+              $(chartElement).children('div').addClass('hide');
+            });
+
+            new Rickshaw.Graph.Legend({
+              graph: this._graph,
+              element: xaxisElement
+            });
+
+            // The below code will be needed if we ever use curve
+            // smoothing in our graphs. (see rickshaw defect below)
+            // this._graph.onUpdate(jQuery.proxy(function () {
+            // this._adjustSVGHeight();
+            // }, this));
+          }
+          this._graph.render();
+        }else{
+          this._showMessage('info', 'No Data', 'There was no data available.');
         }
-        if (this._graph == null) {
-          var chartId = "#" + this.id + "-chart";
-          var chartOverlayId = "#" + this.id + "-overlay";
-          var xaxisElementId = "#" + this.id + "-xaxis";
-          var yaxisElementId = "#" + this.id + "-yaxis";
-          var chartElement = document.querySelector(chartId);
-          var overlayElement = document.querySelector(chartOverlayId);
-          var xaxisElement = document.querySelector(xaxisElementId);
-          var yaxisElement = document.querySelector(yaxisElementId);
-
-          this._graph = new Rickshaw.Graph({
-            height: 150,
-            element: chartElement,
-            series: seriesData,
-            interpolation: 'step-after',
-            stroke: true,
-            renderer: 'area',
-            strokeWidth: 1
-          });
-          this._graph.renderer.unstack = true;
-
-          xAxis = new Rickshaw.Graph.Axis.Time({
-            graph: this._graph
-          });
-          yAxis = new Rickshaw.Graph.Axis.Y({
-            tickFormat: this.yAxisFormatter,
-            element: yaxisElement,
-            graph: this._graph
-          });
-
-          overlayElement.addEventListener('mousemove', function () {
-            $(xaxisElement).removeClass('hide');
-            $(yaxisElement).removeClass('hide');
-            $(chartElement).children("div").removeClass('hide');
-          });
-          overlayElement.addEventListener('mouseout', function () {
-            $(xaxisElement).addClass('hide');
-            $(yaxisElement).addClass('hide');
-            $(chartElement).children("div").addClass('hide');
-          });
-          // Hide axes
-          this._graph.onUpdate(function () {
-            $(xaxisElement).addClass('hide');
-            $(yaxisElement).addClass('hide');
-            $(chartElement).children('div').addClass('hide');
-          });
-
-          new Rickshaw.Graph.Legend({
-            graph: this._graph,
-            element: xaxisElement
-          });
-
-          // The below code will be needed if we ever use curve
-          // smoothing in our graphs. (see rickshaw defect below)
-          // this._graph.onUpdate(jQuery.proxy(function () {
-          // this._adjustSVGHeight();
-          // }, this));
-        }
-        this._graph.render();
-
       },
 
       /**

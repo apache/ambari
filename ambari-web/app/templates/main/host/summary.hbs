@@ -17,15 +17,22 @@
 -->
 <div class="row">
   <div class="span5 host-configuration">
-    <dl class="dl-horizontal">
-      <dt>IP:</dt><dd>{{view.content.ip}}</dd>
-      <dt>CPU:</dt><dd>{{view.content.cpu}}</dd>
-      <dt>OS:</dt><dd>type</dd>
-      <dt>Disk Usage:</dt><dd>{{view.content.diskUsage}}</dd>
-      <dt>Memory:</dt><dd>{{view.content.memory}}</dd>
-      <dt>Load Avg:</dt><dd>{{view.content.loadAvg}}</dd>
-      <dt>Agent:</dt><dd>running</dd>
-    </dl>
+    <div class="box">
+		  <div class="box-header">
+		    <h4>Summary</h4>
+		  </div>
+		  <div class="host-summary-content">
+		    <dl class="dl-horizontal">
+		      <dt>IP:</dt><dd>{{view.content.ip}}</dd>
+		      <dt>CPU:</dt><dd>{{view.content.cpu}}</dd>
+		      <dt>OS:</dt><dd>type</dd>
+		      <dt>Disk Usage:</dt><dd>{{view.content.diskUsage}}</dd>
+		      <dt>Memory:</dt><dd>{{view.content.memory}}</dd>
+		      <dt>Load Avg:</dt><dd>{{view.content.loadAvg}}</dd>
+		      <dt>Agent:</dt><dd>running</dd>
+		    </dl>
+		  </div>
+	  </div>
   </div>
   {{#if view.content.components.length}}
   <div class="span3 host-components pull-right">
@@ -67,8 +74,15 @@
   </div>
   {{/if}}
 </div>
-<div class="row">
-  <div class="span5 host-configuration">
-    {{view App.MainHostMetricsView}}
+<div class="row-fluid">
+  <div class="span12">
+    <div class="box">
+      <div class="box-header">
+        <h4>Host Metrics</h4>
+      </div>
+      <div class="row-fluid">
+	     {{view App.MainHostMetricsView}}
+	    </div>
+	  </div>
   </div>
 </div>

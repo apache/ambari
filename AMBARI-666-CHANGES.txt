@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-949. Provide metric graphs for individual hosts. (Srimanth
+  Gunturi via yusaku)
+
   AMBARI-948. Invoke service starts after services are installed in the
   wizard. (yusaku)
 
