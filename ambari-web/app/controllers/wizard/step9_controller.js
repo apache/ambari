@@ -55,7 +55,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       } else if (App.db.getClusterStatus().isStartError === true) {
         this.launchStartServices();
       } else {
-        this.startPolling(); //TODO: uncomment for the actual hookup
+        this.startPolling();
       }
     } else {
       this.set('isStepCompleted', true);
@@ -203,8 +203,17 @@ App.WizardStep9Controller = Em.Controller.extend({
     var clusterName = this.get('content.cluster.name');
     var url = '/api/clusters/' + clusterName + '/services?state=INSTALLED';
     var data = '{"ServiceInfo": {"state": "STARTED"}}';
+    var method = 'PUT';
+
+    if (App.testMode) {
+      debugger;
+      url = '/data/wizard/deploy/poll_6.json';
+      method = 'GET';
+      this.numPolls = 6;
+    }
+
     $.ajax({
-      type: 'PUT',
+      type: method,
       url: url,
       async: false,
       data: data,
@@ -224,7 +233,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           isCompleted: false
         };
         App.router.get('installerController').saveClusterStatus(clusterStatus);
-        this.startPolling();
+        self.startPolling();
       },
 
       error: function () {
@@ -342,8 +351,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     }, this);
   },
 
-// polling from ui stops only when no action has 'pending', 'queued' or 'inprogress' status
-
+  // polling from ui stops only when no action has 'PENDING', 'QUEUED' or 'IN_PROGRESS' status
   finishState: function (polledData) {
     var clusterStatus = {};
     var retVal = false;
@@ -459,6 +467,8 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.doPolling();
   },
 
+  numPolls: 0,
+
   getUrl: function () {
     var clusterName = this.get('content.cluster.name');
     var requestId = App.db.getClusterStatus().requestId;
@@ -467,9 +477,24 @@ App.WizardStep9Controller = Em.Controller.extend({
     return url;
   },
 
+  POLL_INTERVAL: 4000,
+
   doPolling: function () {
     var self = this;
     var url = this.getUrl();
+
+    if (App.testMode) {
+      this.POLL_INTERVAL = 1;
+      this.numPolls++;
+      if (this.numPolls == 5) {
+        // url = 'data/wizard/deploy/poll_5.json';
+        url = 'data/wizard/deploy/poll_5_failed.json';
+      } else {
+        url = 'data/wizard/deploy/poll_' + this.numPolls + '.json';
+      }
+      debugger;
+    }
+
     $.ajax({
       type: 'GET',
       url: url,
@@ -483,7 +508,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         if (result !== true) {
           window.setTimeout(function () {
             self.doPolling();
-          }, 4000);
+          }, self.POLL_INTERVAL);
         } else {
           self.stopPolling();
         }
@@ -527,6 +552,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.renderHosts(hostInfo);
 
   },
+
   pollBtn: function () {
     this.set('isSubmitDisabled', false);
     var data1 = require('data/mock/step9PolledData/pollData_1');
@@ -574,4 +600,5 @@ App.WizardStep9Controller = Em.Controller.extend({
         break;
     }
   }
+
 });

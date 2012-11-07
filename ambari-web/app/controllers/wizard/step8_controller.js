@@ -421,6 +421,12 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Onclick handler for <code>next</code> button
    */
   submit: function () {
+
+    if (App.testMode) {
+      App.router.send('next');
+      return;
+    }
+
     this.createCluster();
     this.createSelectedServices();
     this.createConfigurations();
@@ -428,6 +434,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.createComponents();
     this.registerHostsToCluster();
     this.createHostComponents();
+
     App.router.send('next');
   },
 

@@ -200,14 +200,6 @@ App.InstallerController = Em.Controller.extend({
     }
   },
 
-  /**
-   *
-   * @param cluster ClusterModel
-   */
-  createCluster: function (cluster) {
-    alert('created cluster ' + cluster.name);
-  },
-
   content: Em.Object.create({
     cluster: null,
     hosts: null,
@@ -713,10 +705,11 @@ App.InstallerController = Em.Controller.extend({
   installServices: function () {
     var self = this;
     var clusterName = this.get('content.cluster.name');
-    var url = '/api/clusters/' + clusterName + '/services?state=INIT';
+    var url = (App.testMode) ? '/data/wizard/deploy/poll_1.json' : '/api/clusters/' + clusterName + '/services?state=INIT';
+    var method = (App.testMode) ? 'GET' : 'PUT';
     var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
     $.ajax({
-      type: 'PUT',
+      type: method,
       url: url,
       data: data,
       async: false,

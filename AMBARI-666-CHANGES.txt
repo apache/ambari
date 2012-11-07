@@ -365,6 +365,9 @@ AMBARI-666 branch (unreleased changes)
 
   IMPROVEMENTS
 
+  AMBARI-947. Make it easier to test Deploy (Install, Start + Test) step
+  of the wizard. (yusaku)
+
   AMBARI-978. Refactor App Browser code. (yusaku)
 
   AMBARI-977. Refactor Wizard and Cluster Management code. (yusaku)

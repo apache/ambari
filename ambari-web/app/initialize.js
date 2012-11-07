@@ -19,6 +19,9 @@
 
 window.App = require('app');
 
+//App.testMode = true;
+App.testMode = false;
+
 require('messages');
 require('utils/data_table');
 require('utils/db');
