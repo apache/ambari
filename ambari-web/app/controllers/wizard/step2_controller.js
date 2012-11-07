@@ -35,6 +35,7 @@ App.WizardStep2Controller = Em.Controller.extend({
     return this.get('content.localRepo');
   }.property('content.localRepo'),
 
+
   localRepoPath: function () {
     return this.get('content.localRepoPath');
   }.property('content.localRepoPath'),

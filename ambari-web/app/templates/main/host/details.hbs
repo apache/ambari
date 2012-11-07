@@ -16,9 +16,9 @@
 * limitations under the License.
 -->
 <div id="host-details">
-  <i class="icon-home"></i> /
+  <a href='#' {{action "routeHome" target="controller"}}><i class="icon-home"></i></a> /
   <a href="javascript:void(null)" data-toggle="modal" {{action backToHostsList}}>Hosts</a> /
-  <span class="host-title health-status-{{unbound view.content.healthStatus}}">{{unbound view.content.hostName}}</span>
+  <span {{bindAttr class=":host-title view.content.healthClass"}}>{{unbound view.content.hostName}}</span>
   <div class="host-maintenance">
     <div class="btn-group display-inline-block">
       <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">

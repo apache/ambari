@@ -22,42 +22,33 @@ var App = require('app');
 App.WizardStep3View = Em.View.extend({
 
   templateName: require('templates/wizard/step3'),
+  category: '',
 
   didInsertElement: function () {
-    var controller = this.get('controller');
-    controller.set('content', controller.get('data')); // workaround, to make select workable
-    controller.navigateStep();
+    this.get('controller').navigateStep();
   }
 });
 
-App.HostView = Em.View.extend({
+App.WizardHostView = Em.View.extend({
 
-  isVisible: true,
-  category: 'Hosts',
+  tagName: 'tr',
+  classNameBindings: ['hostInfo.bootStatus'],
+  hostInfo: null,
 
-  /**
-   * Onclick handler for remove host button(trash icon)
-   */
-  removeItem: function () {
-    var hostInfo = this.get('hostInfo');
-    this.get('controller').removeHosts([hostInfo]);
+  remove: function () {
+    this.get('controller').removeHost(this.get('hostInfo'));
   },
 
-  /**
-   * Show/hide hosts on the page according to correct <code>category</code> status
-   */
-  hideItem: function () {
-    var controller = this.get('controller');
-    var hostInfo = this.get('hostInfo');
-    var category = this.get('category');
-    if (category === "Hosts") {
-      this.set('isVisible', true);
-    } else if (category === "Succeeded" && hostInfo.get('bootStatus') == "success") {
-      this.set('isVisible', true);
-    } else if (category === "Failed" && hostInfo.get('bootStatus') == "error") {
-      this.set('isVisible', true);
-    } else {
-      this.set('isVisible', false);
-    }
-  }.observes('category')
+  retry: function() {
+    this.get('controller').retryHost(this.get('hostInfo'));
+  },
+
+  isRemovable: function () {
+    return true;
+  }.property(),
+
+  isRetryable: function() {
+    return ['pending', 'error'].contains(this.get('hostInfo.bootStatus'));
+  }.property('hostInfo.bootStatus')
+
 });

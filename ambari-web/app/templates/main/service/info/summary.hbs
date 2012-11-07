@@ -17,16 +17,20 @@
 -->
 <div class="row-fluid service-block">
 <div class="span6">
+{{#if view.service.quickLinks.length}}
+{{#view App.QuickViewLinks contentBinding="view.service"}}
 <ul class="nav nav-pills move">
   <li class="dropdown">
     <a class="dropdown-toggle" data-toggle="dropdown" href="#">Quick Links <b class="caret"></b></a>
     <ul class="dropdown-menu">
-      {{#each controller.content.quickLinks}}
-      <a href="javascript:void(null)">{{label}}</a>
+     {{#each view.quickLinks}}
+      <a {{bindAttr href="url"}}>{{label}}</a>
       {{/each}}
     </ul>
   </li>
 </ul>
+{{/view}}
+{{/if}}
 
 <div class="box">
   <div class="box-header">

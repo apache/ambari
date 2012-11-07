@@ -79,37 +79,67 @@ module.exports = Em.Route.extend({
     route: '/step2',
     connectOutlets: function (router, context) {
       router.setNavigationFlow('step2');
+      var controller = router.get('installerController');
       router.setInstallerCurrentStep('2', false);
-      router.get('installerController').connectOutlet('installerStep2');
+
+      var controller = router.get('installerController');
+      controller.loadAllPriorSteps();
+      controller.connectOutlet('wizardStep2', controller.get('content.hosts'));
     },
     back: Em.Router.transitionTo('step1'),
-    next: function (router, context) {
-      App.db.setBootStatus(false);
-      var hosts = App.db.getHosts();
-      var hostInfo = {};
-      for (var index in hosts) {
-        hostInfo[index] = {
-          name: hosts[index].name,
-          bootStatus: 'pending'
-        };
-      }
-      App.db.setHosts(hostInfo);
+    next: function (router) {
       router.transitionTo('step3');
+      App.db.setBootStatus(false);
+    },
+
+    /**
+     * Validate form before doing anything
+     * @param router
+     */
+    evaluateStep: function (router) {
+
+      var controller = router.get('installerController');
+      var wizardStep2Controller = router.get('wizardStep2Controller');
+
+      wizardStep2Controller.set('hasSubmitted', true);
+
+      if (!wizardStep2Controller.get('isSubmitDisabled')) {
+        App.db.setBootStatus(false);
+        controller.saveHosts(wizardStep2Controller);
+        wizardStep2Controller.evaluateStep();
+      }
     }
   }),
 
   step3: Em.Route.extend({
     route: '/step3',
-    connectOutlets: function (router, context) {
-      router.setNavigationFlow('step3');
+    connectOutlets: function (router) {
+      console.log('in installer.step3:connectOutlets');
+      var controller = router.get('installerController');
       router.setInstallerCurrentStep('3', false);
-      router.get('installerController').connectOutlet('installerStep3');
+      controller.loadAllPriorSteps();
+      controller.connectOutlet('wizardStep3', controller.get('content'));
     },
     back: Em.Router.transitionTo('step2'),
     next: function (router, context) {
+      var installerController = router.get('installerController');
+      var wizardStep3Controller = router.get('wizardStep3Controller');
+      installerController.saveConfirmedHosts(wizardStep3Controller);
+
       App.db.setBootStatus(true);
       App.db.setService(require('data/mock/services'));
       router.transitionTo('step4');
+    },
+    /**
+     * Wrapper for remove host action.
+     * Since saving data stored in installerController, we should call this from router
+     * @param router
+     * @param context Array of hosts to delete
+     */
+    removeHosts: function (router, context) {
+      console.log('in installer.step2.removeHosts:hosts to delete ', context);
+      var controller = router.get('installerController');
+      controller.removeHosts(context);
     }
   }),
 
@@ -118,12 +148,13 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       router.setNavigationFlow('step4');
       router.setInstallerCurrentStep('4', false);
-
       var controller = router.get('installerController');
       controller.loadAllPriorSteps();
+      controller.loadServices();
       controller.connectOutlet('wizardStep4', controller.get('content.services'));
     },
     back: Em.Router.transitionTo('step3'),
+
     next: function (router) {
       var controller = router.get('installerController');
       var wizardStep4Controller = router.get('wizardStep4Controller');
@@ -160,18 +191,19 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       router.setNavigationFlow('step6');
       router.setInstallerCurrentStep('6', false);
-
       var controller = router.get('installerController');
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep6', controller.get('content'));
     },
     back: Em.Router.transitionTo('step5'),
+
     next: function (router) {
       var controller = router.get('installerController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
 
       if (wizardStep6Controller.validate()) {
         controller.saveSlaveComponentHosts(wizardStep6Controller);
+        controller.get('content').set('serviceConfigProperties', null);
         App.db.setServiceConfigProperties(null);
         router.transitionTo('step7');
       }
@@ -187,10 +219,10 @@ module.exports = Em.Route.extend({
       controller.connectOutlet('wizardStep7', controller.get('content'));
     },
     back: Em.Router.transitionTo('step6'),
-    next: function(router){
+    next: function (router) {
       var installerController = router.get('installerController');
       var wizardStep7Controller = router.get('wizardStep7Controller');
-      installerController.saveServiceConfigProperties( wizardStep7Controller );
+      installerController.saveServiceConfigProperties(wizardStep7Controller);
       router.transitionTo('step8');
     }
   }),
@@ -205,7 +237,13 @@ module.exports = Em.Route.extend({
       controller.connectOutlet('wizardStep8', controller.get('content'));
     },
     back: Em.Router.transitionTo('step7'),
-    next: Em.Router.transitionTo('step9')
+    next: function (router) {
+      var installerController = router.get('installerController');
+      var wizardStep8Controller = router.get('wizardStep8Controller');
+      installerController.installServices();
+      installerController.setInfoForStep9();
+      router.transitionTo('step9');
+    }
   }),
 
   step9: Em.Route.extend({
@@ -213,38 +251,23 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       console.log('in installer.step9:connectOutlets');
       var controller = router.get('installerController');
-      controller.setInfoForStep9();
       router.setInstallerCurrentStep('9', false);
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep9', controller.get('content'));
     },
     back: Em.Router.transitionTo('step8'),
-    next: function (router) {
-      var addHostController = router.get('installerController');
+    retry: function(router,context) {
+      var installerController = router.get('installerController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
-      addHostController.saveClusterInfo(wizardStep9Controller);
-      addHostController.saveInstalledHosts(wizardStep9Controller);
-      router.transitionTo('step10');
-    }
-  }),
-
-  step10: Em.Route.extend({
-    route: '/step10',
-    connectOutlets: function (router, context) {
-      router.setNavigationFlow('step10');
-      router.setInstallerCurrentStep('10', false);
-      router.get('installerController').connectOutlet('installerStep10');
+      installerController.installServices();
+      wizardStep9Controller.navigateStep();
     },
-    back: Em.Router.transitionTo('step9'),
-
-    complete: function (router, context) {
-      if (true) {   // this function will be moved to installerController where it will validate
-        router.setInstallerCurrentStep('1', true);
-        router.setSection('main');
-        router.transitionTo('main');
-      } else {
-        console.log('cluster installation failure');
-      }
+    next: function (router) {
+      var installerController = router.get('installerController');
+      var wizardStep9Controller = router.get('wizardStep9Controller');
+      installerController.saveClusterInfo(wizardStep9Controller);
+      installerController.saveInstalledHosts(wizardStep9Controller);
+      router.transitionTo('step10');
     }
   }),
 

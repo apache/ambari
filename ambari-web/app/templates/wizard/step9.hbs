@@ -41,7 +41,7 @@
 			<div class="pull-left">
 				<a
 								class="btn btn-primary " {{bindAttr disabled="isSubmitDisabled"}}
-								href="#" {{action retry target="controller"}}><i
+								href="#" {{action retry }}><i
 								class="icon-repeat icon-white"></i>
 					Retry
 				</a>
@@ -91,7 +91,7 @@
 				<td>
 					<a {{bindAttr class="view.isFailed:text-error view.isSuccess:text-success view.isWarning:text-warning"}}
 									href="javascript:void(null)"
-									data-toggle="modal" {{action "hostLogPopup" target="controller"}}>{{host.message}}</a>
+									data-toggle="modal" {{action "hostLogPopup" target="view"}}>{{host.message}}</a>
 				</td>
 
 				{{/view}}
@@ -121,3 +121,4 @@
 		</div>
 
 	</div>
+</div>

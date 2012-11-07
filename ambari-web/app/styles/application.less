@@ -34,7 +34,7 @@ html, body {
 @footer-height: 100px;
 
 #main {
-  overflow: auto;
+  overflow: visible;
   padding-bottom: @footer-height;
 }
 
@@ -192,7 +192,7 @@ h1 {
   color: #FF4B4B;
 }
 
-#installer, #add-host {
+#installer, #add-host, #add-service {
   h2 {
     margin-top: 0;
   }
@@ -202,7 +202,7 @@ h1 {
   .btn-area {
     margin-top: 20px;
   }
-  #installer-content, #add-host-content {
+  #installer-content, #add-host-content, #add-service-content {
     padding: 25px;
     background-color: #fff;
 
@@ -781,16 +781,25 @@ a:focus {
       margin: 4px 5px 0 0;
       width: 13px;
     }
-    ul#filter-dropdown li {
-      display: block;
-      padding: 3px 0 3px 5px;
-      line-height: 20px;
-    }
-    ul#filter-dropdown li input[type="checkbox"] {
-      margin-top: 0;
-      margin-right: 2px;
-      margin-bottom: 2px;
-      margin: 0 2px 2px;
+    ul#filter-dropdown {
+      padding: 5px 25px 5px 0;
+
+      li {
+        display: block;
+        padding: 3px 0 3px 5px;
+        line-height: 20px;
+
+        label.checkbox {
+          padding-left: 3px;
+        }
+
+        input[type="checkbox"] {
+          margin-top: 0;
+          margin-right: 2px;
+          margin-bottom: 2px;
+          margin: 0 2px 2px;
+        }
+      }
     }
   }
   .open-group > .dropdown-menu {
@@ -847,6 +856,34 @@ a:focus {
   }
 
   #host-details {
+    .component-operation-button{
+      background-color: #E5E5E5;
+      background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#E5E5E5), to(#F1F1F1));
+      background-image: -webkit-linear-gradient(top, #E5E5E5, #F1F1F1);
+      background-image: -o-linear-gradient(top, #E5E5E5, #F1F1F1);
+      background-image: linear-gradient(to bottom, #E5E5E5, #F1F1F1);
+      background-image: -moz-linear-gradient(top, #E5E5E5, #F1F1F1);
+      background-repeat: repeat-x;
+      color:#000000;
+    }
+    .caret{
+      border-top-color: #000000;
+      border-bottom-color: #000000;
+    }
+    .health-status-STARTED, .health-status-STARTING {
+      background-image: @status-live-marker;
+      background-repeat: no-repeat;
+      background-position: 0px 4px;
+    }
+    .health-status-STOPPED, .health-status-STOPPING {
+      background-image: @status-dead-marker;
+      background-repeat: no-repeat;
+      background-position: 0px 4px;
+    }
+    .span3.host-components {
+        width: 300px;
+    }
+
     .health-status-LIVE {
       background-image: @status-live-marker;
       background-repeat: no-repeat;
@@ -903,6 +940,13 @@ a:focus {
     }
     .host-components .btn-group {
       margin: 0 5px 10px 0;
+      .components-health{
+        margin-top: 4px;
+        width:13px;
+        height: 13px;
+        float:left;
+        background-position: center center;
+      }
     }
   }
   .background-operations {
@@ -1378,6 +1422,10 @@ ul.filter {
 /* CHARTS END */
 
 /* UNIVERSAL STYLES */
+.align-right {
+  text-align: right;
+}
+
 .left {
   float: left;
 }
@@ -1552,10 +1600,15 @@ ul.inline li {
 
 /* End Carousel*/
 
-#add-host .back,
-#add-service .back {
+#add-host .back{
   display: block;
   width: 105px;
+  margin-bottom: 10px;
+}
+
+#add-service .back{
+  display: block;
+  width: 130px;
   margin-bottom: 10px;
 }
 

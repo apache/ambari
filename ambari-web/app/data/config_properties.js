@@ -308,6 +308,17 @@ module.exports =
       "category": "DataNode"
     },
     {
+      "name": "dfs.datanode.data.dir.perm",
+      "displayName": "Directory Permission",
+      "description": "DataNode directories for HDFS to store the data blocks",
+      "defaultValue": "750",
+      "isReconfigurable": false,
+      "displayType": "int",
+      "isVisible":  true,
+      "serviceName": "HDFS",
+      "category": "DataNode"
+    },
+    {
       "name": "hdfs_log_dir_prefix",
       "displayName": "Hadoop Log Dir Prefix",
       "description": "The parent directory for Hadoop log files.  The HDFS log directory will be ${hadoop_log_dir_prefix} / ${hdfs_user} and the MapReduce log directory will be ${hadoop_log_dir_prefix} / ${mapred_user}.",

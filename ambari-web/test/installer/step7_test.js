@@ -17,8 +17,9 @@
  */
 
 var App = require('app');
-require('controllers/installer/step7_controller');
+require('controllers/wizard/step7_controller');
 
+/*
 describe('App.InstallerStep7Controller', function () {
 
-})
+})*/

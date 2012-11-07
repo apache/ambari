@@ -52,6 +52,7 @@ App.db.cleanUp = function () {
       'authenticated': false
     }
   };
+  console.log("In cleanup./..");
   localStorage.setObject('ambari', App.db.data);
 }
 

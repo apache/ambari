@@ -40,7 +40,7 @@ module.exports = {
   /**
    * Convert time in seconds to 'HOURS:MINUTES:SECONDS'
    * @param seconds
-   * @return formated date-string
+   * @return formatted date-string
    */
   dateFormatInterval:function (timestamp_interval) {
     if (!validator.isValidInt(timestamp_interval)) return timestamp_interval;

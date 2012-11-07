@@ -26,7 +26,7 @@
       <!-- View for array controller -->
       {{#each selectedServicesMasters}}
       <div class="control-group">
-        <label class="control-label">{{component_name}}:</label>
+        <label class="control-label">{{display_name}}:</label>
 
         <div class="controls">
           {{view App.SelectHostView
@@ -34,12 +34,12 @@
             optionValuePath="content.host_name"
             optionLabelPath="content.host_info"
             selectedHostBinding="selectedHost"
-            serviceNameBinding="component_name"
+            serviceNameBinding="display_name"
             zIdBinding="zId"
           }}
           {{#if showAddControl}}
           {{view App.AddControlView
-            componentNameBinding="component_name"
+            componentNameBinding="display_name"
           }}
           {{/if}}
           {{#if showRemoveControl}}
@@ -58,7 +58,7 @@
     <div class="mapping-box round-corners well">
       <div class="hostString"><span><strong>{{host_name}}</strong></span><span>{{hostInfo}}</span></div>
       {{#each masterServices}}
-      <span class="assignedService round-corners">{{component_name}}</span>
+      <span class="assignedService round-corners">{{display_name}}</span>
       {{/each}}
     </div>
     {{/each}}

@@ -110,7 +110,26 @@ App.HostStatusView = Em.View.extend({
     } else {
       return false;
     }
-  }.property('controller.isStepCompleted', 'controller.status')
+  }.property('controller.isStepCompleted', 'controller.status'),
 
+  hostLogPopup: function (event) {
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step3.hostLog.popup.header'),
+      onPrimary: function () {
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/installer/step3HostLogPopup'),
+        controllerBinding: 'parentView.controller',
+        polledData: function() {
+          return this.get('controller.polledData');
+        }.property('controller.polledData'),
+        didInsertElement: function() {
+          this.get('controller').getCompletedTasksForHost(this.get('parentView'));
+        }
+
+      })
+    });
+  }
 });
 

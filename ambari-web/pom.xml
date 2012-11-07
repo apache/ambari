@@ -73,7 +73,7 @@
                   <fileset dir="${basedir}/../ambari-web/public"/>
                 </copy>
                 -->
-                <symlink overwrite="true" link="${basedir}/../ambari-server/target/ambari-server-${project.version}-dist/ambari-server-${project.version}/web" resource="${basedir}/public" failonerror="false" />
+                <symlink overwrite="true" link="${basedir}/../ambari-server/target/ambari-server-${project.version}/ambari-server-${project.version}/web" resource="${basedir}/public" failonerror="false" />
               </target>
             </configuration>
           </execution>

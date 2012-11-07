@@ -186,10 +186,8 @@ Em.I18n.translations = {
 
   'services.service.start': 'Start',
   'services.service.stop': 'Stop',
-  'services.service.start.popup.header': 'Confirmation',
-  'services.service.stop.popup.header': 'Confirmation',
-  'services.service.start.popup.body': 'Are you sure?',
-  'services.service.stop.popup.body': 'Are you sure?',
+  'services.service.confirmation.header': 'Confirmation',
+  'services.service.confirmation.body': 'Are you sure?',
   'services.service.summary.version': 'Version',
   'services.service.summary.nameNode': 'NameNode Web UI',
   'services.service.summary.nameNodeUptime': 'NameNode Uptime',
@@ -224,6 +222,8 @@ Em.I18n.translations = {
   'services.service.actions.run.compaction': 'Run Compaction',
   'services.service.actions.run.smoke': 'Run Smoke Test',
   'services.service.actions.maintenance': 'Maintenance',
+
+  'services.add.header': 'Add Service Wizard',
 
   'hosts.host.start.popup.header': 'Confirmation',
   'hosts.host.stop.popup.header': 'Confirmation',

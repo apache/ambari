@@ -16,39 +16,15 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.InstallerStep3View = Em.View.extend({
-
-  templateName: require('templates/installer/step3'),
-  category: '',
-
-  didInsertElement: function () {
-    this.get('controller').navigateStep();
+App.MainAppsRunsController = Em.ArrayController.extend({
+  name:'mainAppsRunsController',
+  content:null,
+  routeHome:function(){
+      App.router.get('mainAppsController').get('routeHome')();
+  },
+  routeApps: function(){
+      App.router.transitionTo('main.apps');
   }
-});
-
-App.InstallerHostView = Em.View.extend({
-
-  tagName: 'tr',
-  classNameBindings: ['hostInfo.bootStatus'],
-  hostInfo: null,
-
-  remove: function () {
-    this.get('controller').removeHost(this.get('hostInfo'));
-  },
-
-  retry: function() {
-    this.get('controller').retryHost(this.get('hostInfo'));
-  },
-
-  isRemovable: function () {
-    return true;
-  }.property(),
-
-  isRetryable: function() {
-    return ['pending', 'error'].contains(this.get('hostInfo.bootStatus'));
-  }.property('hostInfo.bootStatus')
-
-});
+})

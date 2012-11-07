@@ -45,7 +45,7 @@ module.exports = new Ember.Set([
   {
     service_name: 'HDFS',
     component_name: 'HDFS_CLIENT',
-    display_name: 'HDFS Client',
+    display_name: 'Hadoop Client',
     isMaster: false,
     isClient: true,
     description: 'Client component for HDFS'
@@ -116,16 +116,16 @@ module.exports = new Ember.Set([
   },
   {
     service_name: 'PIG',
-    component_name: 'PIG_CLIENT',
-    display_name: 'Pig Client',
+    component_name: 'PIG',
+    display_name: 'Pig',
     isMaster: false,
     isClient: true,
     description: ''
   },
   {
     service_name: 'SQOOP',
-    component_name: 'SQOOP_CLIENT',
-    display_name: 'Sqoop Client',
+    component_name: 'SQOOP',
+    display_name: 'Sqoop',
     isMaster: false,
     isClient: true,
     description: ''

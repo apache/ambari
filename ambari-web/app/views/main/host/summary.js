@@ -31,8 +31,14 @@ App.MainHostSummaryView = Em.View.extend({
     positionButton: function() {
       return (this.get("adjustedIndex")%2 == 0) ? true : false;
     }.property('content.id') ,
-    buttonClass: function() {
-      return this.get('content.workStatus') ? 'btn btn-success dropdown-toggle' : 'btn btn-danger dropdown-toggle';
+    indicatorClass: function() {
+      return 'components-health health-status-' + this.get('content.workStatus');
+    }.property('content.workStatus'),
+    componentCheckStatus : function() {
+      return (this.get('content.workStatus') === "STARTED" || this.get('content.workStatus') === "STARTING");
+    }.property('content.workStatus'),
+    buttonId: function() {
+      return "component-button-" + this.get('content.id');
     }.property('content.workStatus'),
     isDataNode: function() {
       return this.get('content.componentName') === 'DataNode';

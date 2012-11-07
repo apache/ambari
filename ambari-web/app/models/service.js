@@ -62,7 +62,7 @@ App.Component = DS.Model.extend({
   type:DS.attr('boolean'),
   service:DS.belongsTo('App.Service'),
   host:DS.belongsTo('App.Host'),
-  workStatus:DS.attr('boolean'),
+  workStatus:DS.attr('string'),
   isMaster:function () {
     return this.get('type');
   }.property('type'),
@@ -73,6 +73,13 @@ App.Component = DS.Model.extend({
   decommissioned: DS.attr('boolean')
 });
 
+App.Component.Status = {
+  started:"STARTED",
+  starting:"STARTING",
+  stopped:"STOPPED",
+  stopping:"STOPPING"
+}
+
 App.Component.FIXTURES = [
   {
     id:1,
@@ -81,7 +88,7 @@ App.Component.FIXTURES = [
     type:true,
     service_id:1,
     host_id:1,
-    work_status:false
+    work_status:App.Component.Status.stopped
   },
   {
     id:2,
@@ -90,7 +97,7 @@ App.Component.FIXTURES = [
     type:true,
     service_id:1,
     host_id:2,
-    work_status:true
+    work_status:App.Component.Status.started
   },
   {
     id:3,
@@ -99,7 +106,7 @@ App.Component.FIXTURES = [
     service_id:1,
     type:false,
     host_id:2,
-    work_status:true,
+    work_status:App.Component.Status.started,
     decommissioned: true
   },
   {
@@ -109,7 +116,7 @@ App.Component.FIXTURES = [
     type:true,
     service_id:2,
     host_id:4,
-    work_status:true
+    work_status:App.Component.Status.started
   },
   {
     id:5,
@@ -118,7 +125,7 @@ App.Component.FIXTURES = [
     type:false,
     service_id:2,
     host_id:4,
-    work_status:true
+    work_status:App.Component.Status.started
   },
   {
     id:6,
@@ -127,7 +134,7 @@ App.Component.FIXTURES = [
     type:true,
     service_id:3,
     host_id:4,
-    work_status:true
+    work_status:App.Component.Status.started
   },
   {
     id:7,
@@ -136,7 +143,7 @@ App.Component.FIXTURES = [
     type:false,
     service_id:3,
     host_id:2,
-    work_status:true
+    work_status:App.Component.Status.started
   },
   {
     id:8,
@@ -145,7 +152,7 @@ App.Component.FIXTURES = [
     type:false,
     service_id:5,
     host_id:2,
-    work_status:true
+    work_status:App.Component.Status.started
   }
 ];
 
@@ -188,7 +195,7 @@ App.Service.FIXTURES = [
     health_status:App.Service.Health.start,
     work_status:true,
     alerts:[3, 4],
-    quick_links:[5, 6, 7, 8, 9, 10]
+    quick_links:[5, 6, 7, 8, 9, 10, 17, 18]
   },
   {
     id:3,
@@ -198,7 +205,7 @@ App.Service.FIXTURES = [
     health_status:App.Service.Health.dead,
     work_status:false,
     alerts:[5, 6],
-    quick_links:[11, 12, 13, 14]
+    quick_links:[11, 12, 13, 14, 15, 16]
   },
   {
     id:4,
@@ -235,71 +242,91 @@ App.QuickLinks.FIXTURES = [
   {
     id:1,
     label:'NameNode UI',
-    url:''
+    url:'http://%@:50070/dfshealth.jsp'
   },
   {
     id:2,
     label:'NameNode logs',
-    url:''
+    url:'http://%@:50070/logs'
   },
   {
     id:3,
     label:'NameNode JMX',
-    url:''
+    url:'http://%@:50070/jmx'
   },
   {
     id:4,
     label:'Thread Stacks',
-    url:''
+    url:'http://%@:50070/stacks'
   },
   {
     id:5,
     label:'JobTracker UI',
-    url:''
+    url:'http://%@:50030/jobtracker.jsp'
   },
   {
     id:6,
     label:'Scheduling Info',
-    url:''
+    url:'http://%@:50030/scheduler'
   },
   {
     id:7,
     label:'Running Jobs',
-    url:''
+    url:'http://%@:50030/jobtracker.jsp#running_jobs'
   },
   {
     id:8,
     label:'Retired Jobs',
-    url:''
+    url:'http://%@:50030/jobtracker.jsp#retired_jobs'
   },
   {
     id:9,
     label:'JobHistory Server',
-    url:''
+    url:'http://%@:51111/jobhistoryhome.jsp'
   },
   {
     id:10,
     label:'JobTracker Logs',
-    url:''
+    url:'http://%@:50030/logs'
   },
   {
     id:11,
     label:'HBase Master UI',
-    url:''
+    url:'http://%@:60010/master-status'
   },
   {
     id:12,
     label:'HBase Logs',
-    url:''
+    url:'http://%@:60010/logs'
   },
   {
     id:13,
     label:'Zookeeper Info',
-    url:''
+    url:'http://%@:60010/zk.jsp'
   },
   {
     id:14,
     label:'HBase Master JMX',
-    url:''
+    url:'http://%@:60010/jmx'
+  },
+  {
+    id:15,
+    label:'Debug Dump',
+    url:'http://%@:60010/dump'
+  },
+  {
+    id:16,
+    label:'Thread Stacks',
+    url:'http://%@:60010/stacks'
+  },
+  {
+    id:17,
+    label:'JobTracker JMX',
+    url:'http://%@:50030/jmx'
+  },
+  {
+    id:18,
+    label:'Thread Stacks',
+    url:'http://%@:50030/stacks'
   }
 ];

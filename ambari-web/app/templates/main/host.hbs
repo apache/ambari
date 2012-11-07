@@ -85,7 +85,6 @@
                 {{view Ember.Checkbox checkedBinding="view.allComponentsChecked"}} All
               </label>
             </li>
-
             <li>
               <label class="checkbox">
                 {{view Ember.Checkbox checkedBinding="view.masterComponentsChecked"}} Master Components:
@@ -94,7 +93,7 @@
                 {{#each component in masterComponents}}
                 <li>
                   <label class="checkbox">
-                    {{view view.ComponentCheckboxView contentBinding="component"}} {{unbound component.componentName}}
+                    {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.componentName}}
                   </label>
                 </li>
                 {{/each}}
@@ -109,17 +108,22 @@
                 {{#each component in slaveComponents}}
                 <li>
                   <label class="checkbox">
-                    {{view view.ComponentCheckboxView contentBinding="component" }} {{unbound component.componentName}}
+                    {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.componentName}}
                   </label>
                 </li>
                 {{/each}}
               </ul>
             </li>
 
+            <li class="align-right">
+              <button class="btn" {{action "closeFilters" target="view"}}>
+                Cancel
+              </button>
+              <button class="btn btn-primary" {{action "applyFilters" target="view"}}>
+                Apply
+              </button>
+            </li>
           </ul>
-          <button {{bindAttr disabled="view.isApplyDisabled"}} class="btn" {{action "applyFilters" target="view"}}>
-            Apply
-          </button>
         </div>
       </th>
     </tr>
@@ -134,7 +138,7 @@
         </label>
       </td>
       <td class="name">
-        <span class="health-status-{{unbound host.healthStatus}}"></span>
+        <span {{bindAttr class="host.healthClass"}}></span>
         <a href="#" {{action "showDetails" host}}>{{unbound host.hostName}}</a>
       </td>
       <td>{{host.cluster.clusterName}}</td>

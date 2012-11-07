@@ -366,8 +366,11 @@ module.exports = Em.Route.extend({
         router.transitionTo(event.context);
       }
     }),
-    showService:Em.Router.transitionTo('service')
+    showService:Em.Router.transitionTo('service'),
+    addService:Em.Router.transitionTo('serviceAdd')
   }),
+
+  serviceAdd:require('routes/add_service_routes'),
 
   selectService:Em.Route.transitionTo('services.service'),
   selectHost:function (router, event) {

@@ -20,44 +20,188 @@ var App = require('app');
 
 App.MainServiceItemController = Em.Controller.extend({
   name: 'mainServiceItemController',
-  content: App.Service.find(1),
-  showRebalancer: function() {
-    if(this.content.get('serviceName') == 'hdfs') {
-      return true;
-    } else {
-      return false;
+  backgroundOperations: [],
+  taskId: 0,
+  intervalId: false,
+  checkOperationsInterval: 5000,
+  init: function(){
+    this._super();
+    this.startCheckOperationsLifeTime();
+  },
+  startCheckOperationsLifeTime: function () {
+    this.intervalId = setInterval(this.checkOperationsLifeTime, this.get('checkOperationsInterval'));
+  },
+  stopCheckOperationsLifeTime:function () {
+    if(this.intervalId) {
+      clearInterval(this.intervalId);
     }
-  }.property('content'),
-  startConfirmPopup: function (event) {
+    this.intervalId = false;
+  },
+
+  checkOperationsLifeTime: function () {
+    var self = App.router.get('mainServiceItemController');
+    var backgroundOperations = self.get('backgroundOperations');
+    var time = new Date().getTime();
+    if(backgroundOperations.length){
+      backgroundOperations.forEach(function (operation) {
+        if (time - operation.startTime >= 60*1000){
+          backgroundOperations.removeObject(operation);
+        }
+      })
+    }
+  },
+  createBackgroundOperation: function (role, command) {
+    var newTaskId = this.get('taskId') + 1;
+    this.set('taskId', newTaskId);
+    var operation = Em.Object.create({
+      taskId: newTaskId,
+      stageId: null,
+      serviceName: this.content.get('serviceName'),
+      role: role,
+      command: command,
+      status: null,
+      exitcode: 404,
+      stderror: 27,
+      stdout: 501,
+      startTime: new Date().getTime(),
+      attemptCount: null
+    })
+
+    return operation;
+  },
+  startService: function (event) {
+    var self = this;
     App.ModalPopup.show({
-      header: Em.I18n.t('services.service.start.popup.header'),
-      body: Em.I18n.t('services.service.start.popup.body'),
+      header: Em.I18n.t('services.service.confirmation.header'),
+      body: Em.I18n.t('services.service.confirmation.body'),
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
-        alert('do');
+        self.content.set('workStatus', true);
+        var newOperation = self.createBackgroundOperation('Service', 'Start');
+        newOperation.detail = "Another detail info";
+        self.addBackgroundOperation(newOperation);
         this.hide();
       },
       onSecondary: function() {
-        alert('not do');
         this.hide();
       }
     });
   },
-  stopConfirmPopup: function (event) {
+  stopService: function (event) {
+    var self = this;
     App.ModalPopup.show({
-      header: Em.I18n.t('services.service.stop.popup.header'),
-      body: Em.I18n.t('services.service.stop.popup.body'),
+      header: Em.I18n.t('services.service.confirmation.header'),
+      body: Em.I18n.t('services.service.confirmation.body'),
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
-        alert('do');
+        self.content.set('workStatus', false);
+        var newOperation = self.createBackgroundOperation('Service', 'Stop');
+        newOperation.detail = "Another detail info";
+        self.addBackgroundOperation(newOperation);
         this.hide();
       },
       onSecondary: function() {
-        alert('not do');
         this.hide();
       }
     });
+  },
+  runRebalancer: function (event) {
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('services.service.confirmation.header'),
+      body: Em.I18n.t('services.service.confirmation.body'),
+      primary: 'Yes',
+      secondary: 'No',
+      onPrimary: function() {
+        self.content.set('runRebalancer', true);
+        var newOperation = self.createBackgroundOperation('Service', 'Run Rebalancer');
+        newOperation.detail = "Some detail info";
+        self.addBackgroundOperation(newOperation);
+        this.hide();
+      },
+      onSecondary: function() {
+        this.hide();
+      }
+    });
+  },
+  runCompaction: function (event) {
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('services.service.confirmation.header'),
+      body: Em.I18n.t('services.service.confirmation.body'),
+      primary: 'Yes',
+      secondary: 'No',
+      onPrimary: function() {
+        self.content.set('runCompaction', true);
+        var newOperation = self.createBackgroundOperation('Service', 'Run Compaction');
+        self.addBackgroundOperation(newOperation);
+        this.hide();
+      },
+      onSecondary: function() {
+        this.hide();
+      }
+    });
+  },
+  runSmokeTest: function (event) {
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('services.service.confirmation.header'),
+      body: Em.I18n.t('services.service.confirmation.body'),
+      primary: 'Yes',
+      secondary: 'No',
+      onPrimary: function() {
+        self.content.set('runSmokeTest', true);
+        var newOperation = self.createBackgroundOperation('Service', 'Run Smoke Test');
+        self.addBackgroundOperation(newOperation);
+        this.hide();
+      },
+      onSecondary: function() {
+        this.hide();
+      }
+    });
+  },
+  doAction: function (event) {
+    var methodName = event.context;
+    switch (methodName) {
+      case 'runRebalancer':
+        this.runRebalancer();
+        break;
+      case 'runCompaction':
+        this.runCompaction();
+        break;
+      case 'runSmokeTest':
+        this.runSmokeTest();
+        break;
+    }
+  },
+  serviceOperations: function(){
+    var serviceName = this.get('content.serviceName');
+    return this.get('backgroundOperations').filterProperty('serviceName', serviceName);
+  }.property('backgroundOperations.length', 'content'),
+  serviceOperationsCount: function() {
+    return this.get('serviceOperations.length');
+  }.property('serviceOperations'),
+  showBackgroundOperationsPopup: function(){
+    console.log(this.get('backgroundOperations'));
+    App.ModalPopup.show({
+      headerClass: Ember.View.extend({
+        controllerBinding: 'App.router.mainServiceItemController',
+        template:Ember.Handlebars.compile('{{serviceOperationsCount}} Background Operations Running')
+      }),
+      bodyClass: Ember.View.extend({
+        controllerBinding: 'App.router.mainServiceItemController',
+        templateName: require('templates/main/service/background_operations_popup')
+      }),
+      onPrimary: function() {
+        this.hide();
+      }
+    });
+  },
+  addBackgroundOperation: function (operation) {
+    var backgroundOperations = this.get('backgroundOperations');
+    backgroundOperations.pushObject(operation);
+    this.showBackgroundOperationsPopup();
   }
 })

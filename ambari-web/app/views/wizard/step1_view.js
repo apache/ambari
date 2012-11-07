@@ -25,6 +25,8 @@ App.WizardStep1View = Em.View.extend({
 
   didInsertElement: function () {
     $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
+    console.log("The value of cluster controller is: "+ this.get('controller.name'));
+    this.get('controller').loadStep();
   },
 
   onError: function () {

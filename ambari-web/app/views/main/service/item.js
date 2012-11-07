@@ -33,8 +33,23 @@ App.MainServiceItemView = Em.View.extend({
     }
     options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
     return options;
-  }.property('controller.content'),
-  todo: function(){
-    return alert('todo');
+  }.property('controller.content')
+});
+
+App.MainServiceItemOperations = Em.View.extend({
+  content: null,
+  classNames: ['background-operations'],
+  classNameBindings: ['isOpen'],
+  isOpen: false,
+  logDetails: null,
+  isOpenShowLog: false,
+  iconClass: function(){
+    return this.get('isOpen') ? 'icon-minus' : 'icon-plus';
+  }.property('isOpen'),
+  openDetails: function(){
+    this.set('isOpen', !this.get('isOpen'))
+  },
+  showOperationLog:function(){
+    this.set('isOpenShowLog', !this.get('isOpenShowLog'))
   }
 });

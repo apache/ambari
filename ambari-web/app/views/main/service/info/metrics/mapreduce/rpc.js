@@ -27,7 +27,7 @@ var App = require('app');
  * @extends Ember.View
  */
 App.ChartServiceMetricsMapReduce_RPC = App.ChartLinearTimeView.extend({
-  id: "service-metrics-mapreduce-rpc",
+ /* id: "service-metrics-mapreduce-rpc",
   url: "/data/services/metrics/mapreduce/rpc.json",
   title: "RPC",
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
@@ -65,5 +65,5 @@ App.ChartServiceMetricsMapReduce_RPC = App.ChartLinearTimeView.extend({
       }
     }
     return seriesArray;
-  }
+  } */
 });

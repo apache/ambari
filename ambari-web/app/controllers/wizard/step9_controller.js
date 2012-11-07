@@ -16,21 +16,22 @@
  * limitations under the License.
  */
 var App = require('app');
+
 App.WizardStep9Controller = Em.Controller.extend({
-  name:'wizardStep9Controller',
-  hosts:[],
-  progress:'0',
-  isStepCompleted:false,
-  isSubmitDisabled:function () {
-    return !this.get('isStepCompleted');
+  name: 'wizardStep9Controller',
+  hosts: [],
+  progress: '0',
+  isStepCompleted: false,
+  isSubmitDisabled: function () {
+    return !this.get('isStepCompleted'); //TODO: uncomment after the hook up
+    return false;
   }.property('isStepCompleted'),
 
-  mockHostData:require('data/mock/step9_hosts'),
-  pollData_1:require('data/mock/step9_pollData_1'),
-  pollData_2:require('data/mock/step9_pollData_2'),
-  pollDataCounter:0,
+  mockHostData: require('data/mock/step9_hosts'),
+  pollDataCounter: 0,
+  polledData: [],
 
-  status:function () {
+  status: function () {
     if (this.hosts.everyProperty('status', 'success')) {
       return 'success';
     } else if (this.hosts.someProperty('status', 'failed')) {
@@ -42,101 +43,273 @@ App.WizardStep9Controller = Em.Controller.extend({
     }
   }.property('hosts.@each.status'),
 
-  navigateStep:function () {
-    this.loadStep();
+  navigateStep: function () {
+
     //TODO: uncomment following line after the hook up with the API call
     if (this.get('content.cluster.isCompleted') === false) {
-      //this.startPolling();
+      this.loadStep();
+      if (App.db.getClusterStatus().isInstallError === true) {
+        this.set('isStepCompleted', true);
+        this.set('status', 'failed');
+        this.set('progress', '100');
+      } else if (App.db.getClusterStatus().isStartError === true) {
+        this.launchStartServices();
+      } else {
+        this.startPolling();
+      }
     } else {
       this.set('isStepCompleted', true);
       this.set('progress', '100');
     }
   },
 
-  clearStep:function () {
+  clearStep: function () {
     this.hosts.clear();
     this.set('status', 'info');
     this.set('progress', '0');
     this.set('isStepCompleted', false);
   },
 
-  loadStep:function () {
+  loadStep: function () {
     console.log("TRACE: Loading step9: Install, Start and Test");
     this.clearStep();
     this.renderHosts(this.loadHosts());
   },
 
-  loadHosts:function () {
+  loadHosts: function () {
     var hostInfo = [];
-    hostInfo = this.get('content.hostsInfo');
+    hostInfo = App.db.getHosts();
     var hosts = new Ember.Set();
     for (var index in hostInfo) {
       hosts.add(hostInfo[index]);
       console.log("TRACE: host name is: " + hostInfo[index].name);
     }
-    return hosts.filterProperty('bootStatus', 'success');
+    return hosts;
+    //return hosts.filterProperty('bootStatus', 'success'); //TODO: uncomment after actual hookup with bootstrap
   },
 
-  renderHosts:function (hostsInfo) {
-    var self = this;
+  renderHosts: function (hostsInfo) {
     hostsInfo.forEach(function (_hostInfo) {
       var hostInfo = App.HostInfo.create({
-        name:_hostInfo.name,
-        status:_hostInfo.status,
-        message:_hostInfo.message,
-        progress:_hostInfo.progress
+        name: _hostInfo.name,
+        status: _hostInfo.status,
+        message: _hostInfo.message,
+        progress: _hostInfo.progress
       });
 
       console.log('pushing ' + hostInfo.name);
-      self.hosts.pushObject(hostInfo);
+      this.hosts.pushObject(hostInfo);
+    }, this);
+  },
+
+  replacePolledData: function (polledData) {
+    this.polledData.clear;
+    this.set('polledData', polledData);
+    console.log('*******/ In replace PolledData function **********/');
+    console.log("The value of polleddata is: " + polledData);
+    console.log("2.The value of polleddata is: " + this.get('polledData'));
+    this.get('polledData').forEach(function (_data) {
+      console.log('The name of the host is: ' + _data.Tasks.host_name);
+      console.log('The status of the task is: ' + _data.Tasks.status);
+    }, this);
+  },
+
+  displayMessage: function (task) {
+    console.log("In display message with task command value: " + task.command);
+    switch (task.command) {
+      case 'INSTALL':
+        switch (task.status) {
+          case 'PENDING':
+            return 'Preparing to install ' + task.role;
+          case 'QUEUED' :
+            return task.role + ' is Queued for installation';
+          case 'IN_PROGRESS':
+            return 'Installing ' + task.role;
+          case 'COMPLETED' :
+            return 'Successfully installed ' + task.role;
+          case 'FAILED':
+            return 'Faliure in installing ' + task.role;
+        }
+      case 'UNINSTALL':
+        switch (task.status) {
+          case 'PENDING':
+            return 'Preparing to uninstall ' + task.role;
+          case 'QUEUED' :
+            return task.role + ' is Queued for uninstallation';
+          case 'IN_PROGRESS':
+            return 'Unnstalling ' + task.role;
+          case 'COMPLETED' :
+            return 'Successfully uninstalled ' + task.role;
+          case 'FAILED':
+            return 'Faliure in uninstalling ' + task.role;
+        }
+      case 'START' :
+        switch (task.status) {
+          case 'PENDING':
+            return 'Preparing to start ' + task.role;
+          case 'QUEUED' :
+            return task.role + ' is Queued for starting';
+          case 'IN_PROGRESS':
+            return 'Starting ' + task.role;
+          case 'COMPLETED' :
+            return task.role + ' started successfully';
+          case 'FAILED':
+            return task.role + ' failed to start';
+        }
+      case 'STOP' :
+        switch (task.status) {
+          case 'PENDING':
+            return 'Preparing to stop ' + role;
+          case 'QUEUED' :
+            return task.role + ' is Queued for stopping';
+          case 'IN_PROGRESS':
+            return 'Stopping ' + task.role;
+          case 'COMPLETED' :
+            return role + ' stoped successfully';
+          case 'FAILED':
+            return role + ' failed to stop';
+        }
+      case 'EXECUTE' :
+        switch (task.status) {
+          case 'PENDING':
+            return 'Preparing to execute' + task.role;
+          case 'QUEUED' :
+            return task.role + ' is Queued for execution';
+          case 'IN_PROGRESS':
+            return 'Execution of ' + task.role + ' in progress';
+          case 'COMPLETED' :
+            return task.role + ' executed successfully';
+          case 'FAILED':
+            return task.role + ' failed to execute';
+        }
+      case 'ABORT' :
+        switch (task.status) {
+          case 'PENDING':
+            return 'Preparing to abort ' + task.role;
+          case 'QUEUED' :
+            return task.role + ' is Queued for Aborting';
+          case 'IN_PROGRESS':
+            return 'Aborting ' + task.role;
+          case 'COMPLETED' :
+            return task.role + ' aborted successfully';
+          case 'FAILED':
+            return task.role + ' failed to abort';
+        }
+    }
+  },
+
+  launchStartServices: function () {
+    var self = this;
+    var clusterName = this.get('content.cluster.name');
+    var url = '/api/clusters/' + clusterName + '/services?state=INSTALLED';
+    var data = '{"ServiceInfo": {"state": "STARTED"}}';
+    $.ajax({
+      type: 'PUT',
+      url: url,
+      async: false,
+      data: data,
+      dataType: 'text',
+      timeout: 5000,
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        console.log("TRACE: Step9 -> In success function for the startService call");
+        console.log("TRACE: Step9 -> value of the url is: " + url);
+        console.log("TRACE: Step9 -> value of the received data is: " + jsonData);
+        var requestId = jsonData.href.match(/.*\/(.*)$/)[1];
+        console.log('requestId is: ' + requestId);
+        var clusterStatus = {
+          status: 'INSTALLED',
+          requestId: requestId,
+          isStartError: false,
+          isCompleted: false
+        };
+        App.router.get('installerController').saveClusterStatus(clusterStatus);
+        this.startPolling();
+      },
+
+      error: function () {
+        console.log("ERROR");
+        var clusterStatus = {
+          status: 'PENDING',
+          isStartError: true,
+          isCompleted: false
+        };
+
+        App.router.get('installerController').saveClusterStatus(clusterStatus);
+      },
+
+      statusCode: require('data/statusCodes')
     });
   },
 
-  onSuccessPerHost:function (actions, contentHost) {
-    if (actions.everyProperty('status', 'completed')) {
+
+  getCompletedTasksForHost: function (host) {
+    var hostname = host.get('name');
+    console.log("The hostname is: " + hostname);
+  },
+
+
+  onSuccessPerHost: function (actions, contentHost) {
+    if (actions.everyProperty('Tasks.status', 'COMPLETED') && this.get('content.cluster.status') === 'INSTALLED') {
       contentHost.set('status', 'success');
     }
   },
 
-  onWarningPerHost:function (actions, contentHost) {
-    if (actions.findProperty('status', 'failed') || actions.findProperty('status', 'aborted')) {
+  onWarningPerHost: function (actions, contentHost) {
+    if (actions.findProperty('Tasks.status', 'FAILED') || actions.findProperty('Tasks.status', 'ABORTED') || actions.findProperty('Tasks.status', 'TIMEDOUT')) {
+      console.log('step9: In warning');
       contentHost.set('status', 'warning');
       this.set('status', 'warning');
     }
   },
 
-  onInProgressPerHost:function (actions, contentHost) {
-    var runningAction = actions.findProperty('status', 'inprogress');
+  onInProgressPerHost: function (tasks, contentHost) {
+    var runningAction = tasks.findProperty('Tasks.status', 'IN_PROGRESS');
+    if (runningAction === undefined || runningAction === null) {
+      runningAction = tasks.findProperty('Tasks.status', 'QUEUED');
+    }
+    if (runningAction === undefined || runningAction === null) {
+      runningAction = tasks.findProperty('Tasks.status', 'PENDING');
+    }
     if (runningAction !== null && runningAction !== undefined) {
-      contentHost.set('message', runningAction.message);
+      contentHost.set('message', this.displayMessage(runningAction.Tasks));
     }
   },
 
-  progressPerHost:function (actions, contentHost) {
-    var totalProgress = 0;
+  progressPerHost: function (actions, contentHost) {
+    var progress = 0;
     var actionsPerHost = actions.length;
-    var completedActions = actions.filterProperty('status', 'completed').length
-        + actions.filterProperty('status', 'failed').length +
-        actions.filterProperty('status', 'aborted').length;
-    var progress = Math.floor((completedActions / actionsPerHost) * 100);
+    var completedActions = actions.filterProperty('Tasks.status', 'COMPLETED').length
+      + actions.filterProperty('Tasks.status', 'IN_PROGRESS').length
+      + actions.filterProperty('Tasks.status', 'FAILED').length
+      + actions.filterProperty('Tasks.status', 'ABORTED').length
+      + actions.filterProperty('Tasks.status', 'TIMEDOUT').length;
+    if (this.get('content.cluster.status') === 'PENDING') {
+      progress = Math.floor(((completedActions / actionsPerHost) * 100) / 3);
+    } else if (this.get('content.cluster.status') === 'INSTALLED') {
+      progress = 34 + Math.floor(((completedActions / actionsPerHost) * 100 * 2) / 3);
+    }
     console.log('INFO: progressPerHost is: ' + progress);
     contentHost.set('progress', progress.toString());
     return progress;
   },
 
-  isSuccess:function (polledData) {
-    return polledData.everyProperty('status', 'success');
+  isSuccess: function (polledData) {
+    return polledData.everyProperty('Tasks.status', 'COMPLETED');
   },
 
-  isStepFailed:function (polledData) {
+  isStepFailed: function (polledData) {
     var self = this;
     var result = false;
     polledData.forEach(function (_polledData) {
-      var successFactor = _polledData.sf;
-      var actionsPerRole = polledData.filterProperty('role', _polledData.role);
-      var actionsFailed = actionsPerRole.filterProperty('status', 'failed');
-      var actionsAborted = actionsPerRole.filterProperty('status', 'aborted');
-      if ((((actionsFailed.length + actionsAborted.length) / actionsPerRole.length) * 100) <= successFactor) {
+      _polledData.Tasks.sf = 100;  //TODO: Remove this line after hook up with actual success factor
+      var successFactor = _polledData.Tasks.sf;
+      console.log("Step9: isStepFailed sf value: " + successFactor);
+      var actionsPerRole = polledData.filterProperty('Tasks.role', _polledData.Tasks.role);
+      var actionsFailed = actionsPerRole.filterProperty('Tasks.status', 'FAILED');
+      var actionsAborted = actionsPerRole.filterProperty('Tasks.status', 'ABORTED');
+      var actionsTimedOut = actionsPerRole.filterProperty('Tasks.status', 'TIMEDOUT');
+      if ((((actionsFailed.length + actionsAborted.length + actionsTimedOut.length) / actionsPerRole.length) * 100) > (100 - successFactor)) {
         console.log('TRACE: Entering success factor and result is failed');
         result = true;
       }
@@ -144,130 +317,180 @@ App.WizardStep9Controller = Em.Controller.extend({
     return result;
   },
 
-  getFailedHostsForFailedRoles:function (polledData) {
+  getFailedHostsForFailedRoles: function (polledData) {
     var hostArr = new Ember.Set();
     polledData.forEach(function (_polledData) {
+      _polledData.sf = 100;  //TODO: Remove this line after hook up with actual success factor
       var successFactor = _polledData.sf;
-      var actionsPerRole = polledData.filterProperty('role', _polledData.role);
-      var actionsFailed = actionsPerRole.filterProperty('status', 'failed');
-      var actionsAborted = actionsPerRole.filterProperty('status', 'aborted');
-      if ((((actionsFailed.length + actionsAborted.length) / actionsPerRole.length) * 100) <= successFactor) {
+      var actionsPerRole = polledData.filterProperty('Tasks.role', _polledData.Tasks.role);
+      var actionsFailed = actionsPerRole.filterProperty('Tasks.status', 'FAILED');
+      var actionsAborted = actionsPerRole.filterProperty('Tasks.status', 'ABORTED');
+      var actionsTimedOut = actionsPerRole.filterProperty('Tasks.status', 'TIMEDOUT');
+      if ((((actionsFailed.length + actionsAborted.length + actionsTimedOut.length) / actionsPerRole.length) * 100) > (100 - successFactor)) {
         actionsFailed.forEach(function (_actionFailed) {
-          hostArr.add(_actionFailed.name);
+          hostArr.add(_actionFailed.Tasks.host_name);
         });
         actionsAborted.forEach(function (_actionFailed) {
-          hostArr.add(_actionFailed.name);
+          hostArr.add(_actionFailed.Tasks.host_name);
+        });
+        actionsTimedOut.forEach(function (_actionFailed) {
+          hostArr.add(_actionFailed.Tasks.host_name);
         });
       }
     });
     return hostArr;
   },
 
-  setHostsStatus:function (hosts, status) {
-    var self = this;
+  setHostsStatus: function (hosts, status) {
     hosts.forEach(function (_host) {
-      var host = self.hosts.findProperty('name', _host);
+      var host = this.hosts.findProperty('name', _host.Tasks.host_name);
       host.set('status', status);
-    });
+      host.set('progress', '100');
+    }, this);
   },
 
-  // polling from ui stops only when no action has 'pending', 'queued' or 'inprogress' status
+// polling from ui stops only when no action has 'pending', 'queued' or 'inprogress' status
 
-  finishStep:function (polledData) {
-    var self = this;
-    if (!polledData.someProperty('status', 'pending') && !polledData.someProperty('status', 'queued') && !polledData.someProperty('status', 'inprogress')) {
-      this.set('progress', '100');
-      if (this.isSuccess(polledData)) {
-        this.set('status', 'success');
-      } else {
-        if (this.isStepFailed(polledData)) {
-          self.set('status', 'failed');
-          this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData), 'failed');
+  finishState: function (polledData) {
+    var clusterStatus = {};
+    var requestId = this.get('content.cluster.requestId');
+    if (this.get('content.cluster.status') === 'INSTALLED') {
+      if (!polledData.someProperty('Tasks.status', 'PENDING') && !polledData.someProperty('Tasks.status', 'QUEUED') && !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
+        this.set('progress', '100');
+        clusterStatus = {
+          status: 'INSTALLED',
+          requestId: requestId,
+          isCompleted: true
         }
+        if (this.isSuccess(polledData)) {
+          clusterStatus.status = 'STARTED';
+          this.set('status', 'success');
+        } else {
+          if (this.isStepFailed(polledData)) {
+            clusterStatus.status = 'FAILED';
+            this.set('status', 'failed');
+            this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData));
+          }
+        }
+        App.router.get('installerController').saveClusterStatus(clusterStatus);
+        this.set('isStepCompleted', true);
       }
-      this.set('isStepCompleted', true);
+    } else if (this.get('content.cluster.status') === 'PENDING') {
+      if (!polledData.someProperty('Tasks.status', 'PENDING') && !polledData.someProperty('Tasks.status', 'QUEUED') && !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
+        clusterStatus = {
+          status: 'PENDING',
+          requestId: requestId,
+          isCompleted: true
+        }
+        if (this.isStepFailed(polledData)) {
+          clusterStatus.status = 'FAILED';
+          this.set('progress', '100');
+          this.set('status', 'failed');
+          this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData), 'failed');
+          this.set('isStepCompleted', true);
+        } else {
+          clusterStatus.status = 'INSTALLED';
+          this.set('progress', '34');
+          // this.launchStartServices();  //TODO: uncomment after the actual hookup
+        }
+        App.router.get('installerController').saveClusterStatus(clusterStatus);
+      }
     }
   },
 
-  parseHostInfo:function (polledData) {
+
+  parseHostInfo: function (polledData) {
     console.log('TRACE: Entering host info function');
     var self = this;
-    var result = false;
-    var totalProgress = 0;
+    var totalProgress;
+    /* if (this.get('content.cluster.status') === 'INSTALLED') {
+     totalProgress = 34;
+     } else {
+     totalProgress = 0;
+     }  */
+    var tasksData = polledData.tasks;
+    console.log("The value of tasksData is: " + tasksData);
+    if (!tasksData) {
+      console.log("Step9: ERROR: NO tasks availaible to process");
+    }
+    tasksData.forEach(function (_host) {
+      console.log("The host name is " + _host.Tasks.host_name);
+    }, this);
+
+    this.replacePolledData(tasksData);
     this.hosts.forEach(function (_content) {
-      var actions = polledData.filterProperty('name', _content.name);
-      if (actions.length === 0) {
+      var actionsPerHost = tasksData.filterProperty('Tasks.host_name', _content.name); // retrieved from polled Data
+      if (actionsPerHost.length === 0) {
         alert('For testing with mockData follow the sequence: hit referesh,"mockData btn", "pollData btn", again "pollData btn"');
         //exit();
       }
-      if (actions !== null && actions !== undefined && actions.length !== 0) {
-        this.onSuccessPerHost(actions, _content);    // every action should be a success
-        this.onWarningPerHost(actions, _content);    // any action should be a faliure
-        this.onInProgressPerHost(actions, _content); // current running action for a host
-        totalProgress = totalProgress + self.progressPerHost(actions, _content);
+      if (actionsPerHost !== null && actionsPerHost !== undefined && actionsPerHost.length !== 0) {
+        this.onSuccessPerHost(actionsPerHost, _content);    // every action should be a success
+        this.onWarningPerHost(actionsPerHost, _content);    // any action should be a faliure
+        this.onInProgressPerHost(actionsPerHost, _content); // current running action for a host
+        totalProgress = self.progressPerHost(actionsPerHost, _content);
       }
     }, this);
     totalProgress = Math.floor(totalProgress / this.hosts.length);
     this.set('progress', totalProgress.toString());
     console.log("INFO: right now the progress is: " + this.get('progress'));
-    this.finishStep(polledData);
+    this.finishState(tasksData);
     return this.get('isStepCompleted');
   },
 
-
-  retry:function () {
-    if (this.get('isSubmitDisabled')) {
-      return;
-    }
-    this.hosts.clear();
-    this.renderHosts(this.loadHosts());
-    //this.startPolling();
-  },
-
-  startPolling:function () {
+  startPolling: function () {
     this.set('isSubmitDisabled', true);
     this.doPolling();
   },
 
-  doPolling:function () {
+  getUrl: function () {
+    var clusterName = this.get('content.cluster.name');
+    var requestId = App.db.getClusterStatus().requestId;
+    var url = '/api/clusters/' + clusterName + '/requests/' + requestId;
+    console.log("URL for step9 is: " + url);
+    return url;
+  },
+
+  doPolling: function () {
     var self = this;
+    var url = this.getUrl();
     $.ajax({
-      type:'GET',
-      url:'/ambari_server/api/polling',
-      async:false,
-      timeout:5000,
-      success:function (data) {
+      type: 'GET',
+      url: url,
+      async: true,
+      timeout: 10000,
+      dataType: 'text',
+      success: function (data) {
         console.log("TRACE: In success function for the GET bootstrap call");
-        var result = self.parseHostInfo(data);
+        console.log("TRACE: STep9 -> The value is: " + jQuery.parseJSON(data));
+        var result = self.parseHostInfo(jQuery.parseJSON(data));
         if (result !== true) {
-          window.setTimeout(self.doPolling, 3000);
+          window.setTimeout(function () {
+            self.doPolling();
+          }, 4000);
         } else {
           self.stopPolling();
         }
       },
 
-      error:function () {
-        console.log("ERROR");
+      error: function (request, ajaxOptions, error) {
+        console.log("TRACE: STep9 -> In error function for the getService call");
+        console.log("TRACE: STep9 -> value of the url is: " + url);
+        console.log("TRACE: STep9 -> error code status is: " + request.status);
         self.stopPolling();
       },
 
-      statusCode:{
-        404:function () {
-          console.log("URI not found.");
-        }
-      },
-
-      dataType:'application/json'
+      statusCode: require('data/statusCodes')
     });
 
   },
 
-  stopPolling:function () {
+  stopPolling: function () {
     //TODO: uncomment following line after the hook up with the API call
     // this.set('isStepCompleted',true);
   },
 
-  submit:function () {
+  submit: function () {
     if (!this.get('isSubmitDisabled')) {
       this.set('content.cluster.status', this.get('status'));
       this.set('content.cluster.isCompleted', true);
@@ -275,46 +498,64 @@ App.WizardStep9Controller = Em.Controller.extend({
     }
   },
 
-  back:function () {
+  back: function () {
     if (!this.get('isSubmitDisabled')) {
       App.router.send('back');
     }
   },
 
-  hostLogPopup:function (event) {
-    App.ModalPopup.show({
-      header:Em.I18n.t('installer.step3.hostLog.popup.header'),
-      onPrimary:function () {
-        this.hide();
-      },
-      bodyClass:Ember.View.extend({
-        templateName:require('templates/installer/step3HostLogPopup')
-      })
-    });
-  },
-  mockBtn:function () {
+  mockBtn: function () {
     this.set('isSubmitDisabled', false);
     this.hosts.clear();
     var hostInfo = this.mockHostData;
     this.renderHosts(hostInfo);
 
   },
-  pollBtn:function () {
+  pollBtn: function () {
     this.set('isSubmitDisabled', false);
-    var data1 = this.pollData_1;
-    var data2 = this.pollData_2;
-    if ((this.get('pollDataCounter') / 2) === 0) {
-      console.log("TRACE: In pollBtn function data1");
-      var counter = parseInt(this.get('pollDataCounter')) + 1;
-      this.set('pollDataCounter', counter.toString());
-      this.parseHostInfo(data1);
-    } else {
-      console.log("TRACE: In pollBtn function data2");
-      var counter = parseInt(this.get('pollDataCounter')) + 1;
-      this.set('pollDataCounter', counter.toString());
-      this.parseHostInfo(data2);
+    var data1 = require('data/mock/step9PolledData/pollData_1');
+    var data2 = require('data/mock/step9PolledData/pollData_2');
+    var data3 = require('data/mock/step9PolledData/pollData_3');
+    var data4 = require('data/mock/step9PolledData/pollData_4');
+    var data5 = require('data/mock/step9PolledData/pollData_5');
+    var data6 = require('data/mock/step9PolledData/pollData_6');
+    var data7 = require('data/mock/step9PolledData/pollData_7');
+    var data8 = require('data/mock/step9PolledData/pollData_8');
+    var data9 = require('data/mock/step9PolledData/pollData_9');
+    console.log("TRACE: In pollBtn function data1");
+    var counter = parseInt(this.get('pollDataCounter')) + 1;
+    this.set('pollDataCounter', counter.toString());
+    switch (this.get('pollDataCounter')) {
+      case '1':
+        this.parseHostInfo(data1);
+        break;
+      case '2':
+        this.parseHostInfo(data2);
+        break;
+      case '3':
+        this.parseHostInfo(data3);
+        break;
+      case '4':
+        this.parseHostInfo(data4);
+        break;
+      case '5':
+        this.parseHostInfo(data5);
+        break;
+      case '6':
+        this.set('content.cluster.status', 'INSTALLED');
+        this.parseHostInfo(data6);
+        break;
+      case '7':
+        this.parseHostInfo(data7);
+        break;
+      case '8':
+        this.parseHostInfo(data8);
+        break;
+      case '9':
+        this.parseHostInfo(data9);
+        break;
+      default:
+        break;
     }
-
   }
-
 });

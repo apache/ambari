@@ -109,33 +109,33 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var masterComponentHostsInDB = App.db.getMasterComponentHosts();
     switch (this.get('name')) {
       case 'namenode.host':
-        var temp = masterComponentHostsInDB.findProperty('component','NameNode');
+        var temp = masterComponentHostsInDB.findProperty('component','NAMENODE');
         console.log("this is temp: " + temp.hostName);
         this.set('value', temp.hostName);
         break;
       case 'snamenode.host':
-        this.set('value', masterComponentHostsInDB.findProperty('component','SNameNode').hostName);
+        this.set('value', masterComponentHostsInDB.findProperty('component','SNAMENODE').hostName);
         break;
       case 'jobtracker.host':
-        this.set('value', masterComponentHostsInDB.findProperty('component','JobTracker').hostName);
+        this.set('value', masterComponentHostsInDB.findProperty('component','JOBTRACKER').hostName);
         break;
       case 'hbasemaster.host':
-        this.set('value', masterComponentHostsInDB.findProperty('component','HBase Master').hostName);
+        this.set('value', masterComponentHostsInDB.findProperty('component','HBASE_MASTER').hostName);
         break;
       case 'zookeeperserver.hosts':
-        this.set('value', masterComponentHostsInDB.filterProperty('component','ZooKeeper').mapProperty('hostName'));
+        this.set('value', masterComponentHostsInDB.filterProperty('component','ZOOKEEPER_SERVER').mapProperty('hostName'));
         break;
       case 'hivemetastore.host':
-        this.set('value', masterComponentHostsInDB.findProperty('component','Hive Metastore').hostName);
+        this.set('value', masterComponentHostsInDB.findProperty('component','HIVE_SERVER').hostName);
         break;
       case 'hive_ambari_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component','Hive Metastore').hostName);
+        this.set('value', masterComponentHostsInDB.findProperty('component','HIVE_SERVER').hostName);
         break;
       case 'oozieserver.host':
-        this.set('value', masterComponentHostsInDB.findProperty('component','Oozie Server').hostName);
+        this.set('value', masterComponentHostsInDB.findProperty('component','OOZIE_SERVER').hostName);
         break;
       case 'oozie_ambari_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component','Oozie Server').hostName);
+        this.set('value', masterComponentHostsInDB.findProperty('component','OOZIE_SERVER').hostName);
         break;
     }
   },

@@ -22,8 +22,6 @@
 require('controllers/application');
 require('controllers/login_controller');
 require('controllers/installer');
-require('controllers/installer/step2_controller');
-require('controllers/installer/step3_controller');
 require('controllers/main');
 require('controllers/main/admin');
 require('controllers/main/admin/item');
@@ -37,6 +35,7 @@ require('controllers/main/service/info/summary');
 require('controllers/main/service/info/metrics');
 require('controllers/main/service/info/configs');
 require('controllers/main/service/info/audit');
+require('controllers/main/service/add_controller');
 require('controllers/main/alert');
 require('controllers/main/host');
 require('controllers/main/host/details');

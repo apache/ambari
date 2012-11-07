@@ -34,39 +34,20 @@ App.Router = Em.Router.extend({
   },
 
   clearAllSteps: function() {
-    /*var totalSteps = 10
-    for (var step = 1; step <= totalSteps; step++){
-      this.get('installerStep' + step + 'Controller').clearStep();
-    }*/
+    this.get('installerController.content').set('cluster',null);
+    /*this.get('installerController.content').set({
+      cluster: null,
+      hosts: null,
+      services: null,
+      hostsInfo: null,
+      slaveComponentHosts: null,
+      hostSlaveComponents: null,
+      masterComponentHosts: null,
+      hostToMasterComponent : null,
+      serviceConfigProperties: null
+    });*/
   },
 
-  /*
-  loadAllPriorSteps: function(step) {
-    var stepVal = parseInt(step);
-    switch(step){
-      case '10':
-        this.get('installerStep9Controller').loadStep();
-      case '9':
-        this.get('installerStep8Controller').loadStep();
-      case '8':
-        this.get('installerStep7Controller').loadStep();
-      case '7':
-        this.get('installerStep6Controller').loadStep();
-      case '6':
-        this.get('installerStep5Controller').loadStep();
-      case '5':
-        this.get('installerStep4Controller').loadStep();
-      case '4':
-        this.get('installerStep3Controller').loadStep();
-      case '3':
-        this.get('installerStep2Controller').loadStep();
-      case '2':
-        this.get('installerStep1Controller').loadStep();
-      case '1':
-
-    }
-  },
-  */
 
   setInstallerCurrentStep: function (currentStep, completed) {
     App.db.setInstallerCurrentStep(currentStep, completed);
@@ -255,6 +236,7 @@ App.Router = Em.Router.extend({
       console.log('logging off');
       router.clearAllSteps();
       App.db.cleanUp();
+      console.log("Log off: " + App.db.getClusterName());
       router.set('loginController.loginName', '');
       router.set('loginController.password', '');
       router.transitionTo('login', context);

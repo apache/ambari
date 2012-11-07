@@ -21,7 +21,7 @@ var App = require('app');
 
 App.Job = DS.Model.extend({
   jobId:DS.attr('string'),
-  workflow:DS.belongsTo('App.Workflow'),
+  workflow:DS.belongsTo('App.Run'),
   jobName:DS.attr('string'),
   workflowEntityName:DS.attr('string'),
   userName:DS.attr('string'),

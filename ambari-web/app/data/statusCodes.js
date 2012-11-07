@@ -21,6 +21,9 @@ module.exports = {
 	200: function () {
 		console.log("Status code 200: Success.");
 	},
+  202: function () {
+    console.log("Status code 202: Success for creation.");
+  },
 	400: function () {
 		console.log("Error code 400: Bad Request.");
 	},

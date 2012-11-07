@@ -63,6 +63,12 @@ App.InstallerController = Em.Controller.extend({
     }
   }.property('App.router.loginController.loginName'),
 
+  /**
+   * Set current step to new value.
+   * Method moved from App.router.setInstallerCurrentStep
+   * @param currentStep
+   * @param completed
+   */
   currentStep: function () {
     return App.get('router').getInstallerCurrentStep();
   }.property(),
@@ -210,7 +216,7 @@ App.InstallerController = Em.Controller.extend({
     slaveComponentHosts: null,
     hostSlaveComponents: null,
     masterComponentHosts: null,
-    hostToMasterComponent : null,
+    hostToMasterComponent: null,
     serviceConfigProperties: null
   }),
 
@@ -231,7 +237,7 @@ App.InstallerController = Em.Controller.extend({
 
 
   /**
-   * Save all info about claster to model
+   * Save all info about cluster to model
    * @param stepController Step1WizardController
    */
   saveClusterInfo: function (stepController) {
@@ -239,25 +245,33 @@ App.InstallerController = Em.Controller.extend({
     var clusterStatus = {
       status: cluster.status,
       isCompleted: cluster.isCompleted
-    }
+    };
     App.db.setClusterName(cluster.name);
     App.db.setClusterStatus(clusterStatus);
 
     console.log("InstallerController:saveClusterInfo: saved data ", cluster);
 
     //probably next line is extra work - need to check it
-    this.set('content.cluster', cluster);
+    //this.set('content.cluster', cluster);
+  },
+
+  /**
+   * save status of the cluster. This is called from step8 and step9 to persist install and start requestId
+   * @param clusterStatus object with status, isCompleted, requestId, isInstallError and isStartError field.
+   */
+  saveClusterStatus: function (clusterStatus) {
+    this.set('content.cluster', clusterStatus);
+    App.db.setClusterStatus(clusterStatus);
   },
 
   /**
    * Temporary function for wizardStep9, before back-end integration
    */
   setInfoForStep9: function () {
-    App.db.setClusterStatus({status: 'pending', isCompleted: false});
     var hostInfo = App.db.getHosts();
     for (var index in hostInfo) {
       hostInfo[index].status = "pending";
-      hostInfo[index].message = 'Information';
+      hostInfo[index].message = 'Waiting';
       hostInfo[index].progress = '0';
     }
     App.db.setHosts(hostInfo);
@@ -368,7 +382,7 @@ App.InstallerController = Em.Controller.extend({
    */
   saveConfirmedHosts: function (stepController) {
     var hostInfo = {};
-    stepController.get('content').forEach(function (_host) {
+    stepController.get('content.hostsInfo').forEach(function (_host) {
       hostInfo[_host.name] = {
         name: _host.name,
         cpu: _host.cpu,
@@ -461,11 +475,13 @@ App.InstallerController = Em.Controller.extend({
    */
   saveMasterComponentHosts: function (stepController) {
     var obj = stepController.get('selectedServicesMasters');
+    console.log("installerController.selectedServicesMasters: saved hosts ", stepController.get('selectedServicesMasters'));
     var masterComponentHosts = [];
     obj.forEach(function (_component) {
       masterComponentHosts.push({
-        component: _component.component_name,
-        hostName: _component.selectedHost
+        display_name: _component.get('display_name'),
+        component: _component.get('component_name'),
+        hostName: _component.get('selectedHost')
       });
     });
 
@@ -598,7 +614,8 @@ App.InstallerController = Em.Controller.extend({
       _content.get('configs').forEach(function (_configProperties) {
         var configProperty = {
           name: _configProperties.get('name'),
-          value: _configProperties.get('value')
+          value: _configProperties.get('value'),
+          service: _configProperties.get('serviceName')
         };
         serviceConfigProperties.push(configProperty);
       }, this);
@@ -621,7 +638,7 @@ App.InstallerController = Em.Controller.extend({
   /**
    * Load information about hosts with clients components
    */
-  loadClients: function(){
+  loadClients: function () {
     var clients = App.db.getClientsForSelectedServices();
     this.set('content.clients', clients);
     console.log("InstallerController.loadClients: loaded list ", clients);
@@ -631,11 +648,11 @@ App.InstallerController = Em.Controller.extend({
    * Generate clients list for selected services and save it to model
    * @param stepController step4WizardController
    */
-  saveClients: function(stepController){
+  saveClients: function (stepController) {
     var clients = [];
     var serviceComponents = require('data/service_components');
 
-    stepController.get('content').filterProperty('isSelected',true).forEach(function (_service) {
+    stepController.get('content').filterProperty('isSelected', true).forEach(function (_service) {
       var client = serviceComponents.filterProperty('service_name', _service.serviceName).findProperty('isClient', true);
       if (client) {
         clients.pushObject({
@@ -653,25 +670,10 @@ App.InstallerController = Em.Controller.extend({
   /**
    * Load HostToMasterComponent array
    */
-  loadHostToMasterComponent: function(){
+  loadHostToMasterComponent: function () {
     var list = App.db.getHostToMasterComponent();
     this.set('content.hostToMasterComponent', list);
     console.log("AddHostController.loadHostToMasterComponent: loaded list ", list);
-  },
-
-  /**
-   * List of statuses, what data is currently loaded
-   */
-  isStepLoaded: {},
-
-  /**
-   * Call specified function only once
-   */
-  callLoadFuncOnce: function (name) {
-    if (!this.isStepLoaded[name]) {
-      this[name]();
-      this.isStepLoaded[name] = true;
-    }
   },
 
   /**
@@ -681,27 +683,81 @@ App.InstallerController = Em.Controller.extend({
     var step = this.get('currentStep');
     switch (step) {
       case '9':
-          //need to call it every time since we preload data in setInfoForStep9
-        this.loadClusterInfo();
       case '8':
-        this.loadClusterInfo();
       case '7':
-        this.callLoadFuncOnce('loadServiceConfigProperties');
+        this.loadServiceConfigProperties();
       case '6':
-        this.callLoadFuncOnce('loadMasterComponentHosts');
-        this.callLoadFuncOnce('loadSlaveComponentHosts');
-        this.callLoadFuncOnce('loadClients');
-        this.callLoadFuncOnce('loadHostToMasterComponent');
+        this.loadClients();
       case '5':
-        this.callLoadFuncOnce('loadConfirmedHosts');
+        this.loadMasterComponentHosts();
+        this.loadSlaveComponentHosts();
+        this.loadHostToMasterComponent();
+        this.loadConfirmedHosts();
       case '4':
-        this.callLoadFuncOnce('loadServices');
+        this.loadServices();
+        this.loadClients();
       case '3':
+        this.loadConfirmedHosts();
       case '2':
-        this.callLoadFuncOnce('loadInstallOptions');
+        this.loadInstallOptions();
       case '1':
-        this.callLoadFuncOnce('loadClusterInfo');
+        this.loadClusterInfo();
     }
+  },
+
+  /**
+   * Generate clients list for selected services and save it to model
+   * @param stepController step8WizardController or step9WizardController
+   */
+  installServices: function () {
+    var self = this;
+    var clusterName = this.get('content.cluster.name');
+    var url = '/api/clusters/' + clusterName + '/services?state=INIT';
+    var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
+    $.ajax({
+      type: 'PUT',
+      url: url,
+      data: data,
+      async: false,
+      dataType: 'text',
+      timeout: 5000,
+      success: function (data) {
+        var jsonData = jQuery.parseJSON(data);
+        console.log("TRACE: STep8 -> In success function for the installService call");
+        console.log("TRACE: STep8 -> value of the url is: " + url);
+        if (jsonData) {
+          var requestId = jsonData.href.match(/.*\/(.*)$/)[1];
+          console.log('requestId is: ' + requestId);
+          var clusterStatus = {
+            status: 'PENDING',
+            requestId: requestId,
+            isInstallError: false,
+            isCompleted: false
+          };
+          self.saveClusterStatus(clusterStatus);
+        } else {
+          console.log('ERROR: Error occurred in parsing JSON data');
+        }
+      },
+
+      error: function (request, ajaxOptions, error) {
+        console.log("TRACE: STep8 -> In error function for the installService call");
+        console.log("TRACE: STep8 -> value of the url is: " + url);
+        console.log("TRACE: STep8 -> error code status is: " + request.status);
+        console.log('Step8: Error message is: ' + request.responseText);
+        var clusterStatus = {
+          status: 'PENDING',
+          isInstallError: true,
+          isCompleted: false
+        };
+        self.saveClusterStatus(clusterStatus);
+      },
+
+      statusCode: require('data/statusCodes')
+    });
+
   }
+
+
 
 });

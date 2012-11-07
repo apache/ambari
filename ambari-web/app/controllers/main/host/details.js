@@ -33,6 +33,13 @@ App.MainHostDetailsController = Em.Controller.extend({
     this._super();
     this.startCheckOperationsLifeTime();
   },
+  routeHome:function () {
+    App.router.transitionTo('main.dashboard');
+    var view = Ember.View.views['main_menu'];
+    $.each(view._childViews, function () {
+      this.set('active', this.get('content.routing') == 'dashboard' ? "active" : "");
+    });
+  },
 
   setBack: function(isFromHosts){
     this.set('isFromHosts', isFromHosts);
@@ -95,7 +102,14 @@ App.MainHostDetailsController = Em.Controller.extend({
       secondary: 'No',
       onPrimary: function() {
         var component = event.context;
-        component.set('workStatus', true);
+        component.set('workStatus', "STARTING");
+        self.componentIndicatorBlink(component);
+        self.setComponentButtonStatus(component,"disabled");
+        //TODO: here must be call to server side
+        setTimeout(function(){
+          self.setComponentButtonStatus(component,"enabled");
+          component.set('workStatus', "STARTED");
+        },10000);
         var backgroundOperations = self.get('backgroundOperations');
         backgroundOperations.pushObject({
           "hostName": self.get('content.hostName'),
@@ -109,7 +123,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           "logs":{"exitcode":"404", "stdout":27, "stderror":501}
         });
         self.showBackgroundOperationsPopup();
-        var stopped = self.get('content.components').filterProperty('workStatus', false);
+        var stopped = self.get('content.components').filterProperty('workStatus', "STOPPING");
         if (stopped.length == 0)
           self.set('isStarting', true);
         this.hide();
@@ -128,7 +142,14 @@ App.MainHostDetailsController = Em.Controller.extend({
       secondary: 'No',
       onPrimary: function() {
         var component = event.context;
-        component.set('workStatus', false);
+        component.set('workStatus', "STOPPING");
+        self.componentIndicatorBlink(component);
+        self.setComponentButtonStatus(component,"disabled");
+        //TODO: here must be call to server side
+        setTimeout(function(){
+          self.setComponentButtonStatus(component,"enabled");
+          component.set('workStatus', "STOPPED");
+        },10000);
         var backgroundOperations = self.get('backgroundOperations');
         backgroundOperations.pushObject({
           "hostName": self.get('content.hostName'),
@@ -142,7 +163,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           "logs":{"exitcode":"404", "stdout":15, "stderror":501}
         });
         self.showBackgroundOperationsPopup();
-        var started = self.get('content.components').filterProperty('workStatus', true);
+        var started = self.get('content.components').filterProperty('workStatus', "STARTING");
         if (started.length == 0)
           self.set('isStarting', false);
         this.hide();
@@ -150,6 +171,21 @@ App.MainHostDetailsController = Em.Controller.extend({
       onSecondary: function() {
         this.hide();
       }
+    });
+  },
+
+  setComponentButtonStatus: function(component,status){
+    if(status=="disabled"){
+      $("#component-button-" + component.get("id") ).addClass("disabled");
+    }else{
+      $("#component-button-" + component.get("id") ).removeClass("disabled");
+    }
+  },
+  componentIndicatorBlink: function(component){
+    var self=this;
+    $("#component-button-"+component.get("id")).find(".components-health").effect("pulsate", { times:1 }, "slow", function () {
+      if(component.get('workStatus')==="STOPPING" || component.get('workStatus')==="STARTING")
+        self.componentIndicatorBlink(component);
     });
   },
 
@@ -222,7 +258,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
-        self.get('content.components').setEach('workStatus', true);
+        self.get('content.components').setEach('workStatus', "STARTING");
         self.set('isStarting', !self.get('isStarting'));
         this.hide();
       },
@@ -239,7 +275,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       primary: 'Yes',
       secondary: 'No',
       onPrimary: function() {
-        self.get('content.components').setEach('workStatus', false);
+        self.get('content.components').setEach('workStatus', "STOPPING");
         self.set('isStarting', !self.get('isStarting'));
         this.hide();
       },
@@ -258,7 +294,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     components.forEach(function(cInstance){
       var cName = cInstance.get('componentName');
       if(slaveComponents.contains(cName)) {
-        if(cInstance.get('workStatus') &&
+        if(cInstance.get('workStatus')==="STOPPED" &&
           !cInstance.get('decommissioned')){
           workingComponents.push(cName);
         }

@@ -61,7 +61,12 @@ App.MainServiceMenuView = Em.CollectionView.extend({
   itemViewClass: Em.View.extend({
     classNameBindings: ["active"],
     active: "",
+    serviceOperationsCount: function () {
+      if (this.get('content.id') == App.router.get('mainServiceItemController.content.id')) {
+        return App.router.get('mainServiceItemController.serviceOperationsCount');
+      }
+    }.property('App.router.mainServiceItemController.serviceOperationsCount'),
 
-    template: Em.Handlebars.compile('<a href="#/main/services/{{unbound view.content.id}}/summary">{{view App.MainDashboardServiceHealthView serviceBinding="view.content"}}&nbsp;<span>{{unbound view.content.label}}</span></a>')
+    templateName: require('templates/main/service/menu_item')
   })
 });

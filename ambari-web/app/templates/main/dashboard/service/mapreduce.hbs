@@ -85,16 +85,18 @@
   {{view view.Chart}}
   <div class="chartLabel">{{t dashboard.services.mapreduce.chart.label}}</div>
   {{#if view.service.quickLinks.length}}
+  {{#view App.QuickViewLinks contentBinding="view.service"}}
   <div class="btn-group">
     <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
       Quick Links
       <span class="caret"></span>
     </a>
     <ul class="dropdown-menu">
-      {{#each view.service.quickLinks}}
-      <li><a href="javascript:void(null)">{{label}}</a></li>
+      {{#each view.quickLinks}}
+      <li><a {{bindAttr href="url"}}>{{label}}</a></li>
       {{/each}}
     </ul>
   </div>
+  {{/view}}
   {{/if}}
 </div>

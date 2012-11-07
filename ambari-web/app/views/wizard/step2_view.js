@@ -40,7 +40,6 @@ App.WizardStep2View = Em.View.extend({
     }
   }.observes('controller.hostNameEmptyError', 'controller.hostNameNotRequiredErr', 'controller.hostNameErr')
 
-
 });
 
 

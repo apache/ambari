@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+require('utils/jquery.unique');
 
 App.MainAppsController = Em.ArrayController.extend({
   name:'mainAppsController',
@@ -28,5 +29,10 @@ App.MainAppsController = Em.ArrayController.extend({
     $.each(view._childViews, function () {
       this.set('active', this.get('content.routing') == 'dashboard' ? "active" : "");
     });
-  }
+  },
+  /**
+   * Row, which is expanded at the moment, will update this property.
+   * Used to collapse rows, which are not used at the moment
+   */
+  expandedRowId : null
 })

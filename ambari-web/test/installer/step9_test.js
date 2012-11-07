@@ -20,9 +20,9 @@
 var Ember = require('ember');
 var App = require('app');
 require('models/hosts');
-require('controllers/installer/step9_controller');
+require('controllers/wizard/step9_controller');
 
-describe('App.InstallerStep9Controller', function () {
+/*describe('App.InstallerStep9Controller', function () {
   //var controller = App.InstallerStep3Controller.create();
 
   describe('#isStepFailed', function () {
@@ -160,6 +160,6 @@ describe('App.InstallerStep9Controller', function () {
   })
 
 
-})
+})*/
 
 

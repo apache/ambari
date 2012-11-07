@@ -66,7 +66,10 @@ module.exports = Em.Route.extend({
       controller.connectOutlet('wizardStep2', controller.get('content.hosts'));
     },
 
-    next: Em.Router.transitionTo('step2'),
+    next: function (router) {
+      router.transitionTo('step2');
+      App.db.setBootStatus(false);
+    },
     evaluateStep: function (router) {
       console.log('in addHost.step1:evaluateStep');
       var addHostController = router.get('addHostController');
@@ -88,21 +91,18 @@ module.exports = Em.Route.extend({
       var controller = router.get('addHostController');
       controller.setCurrentStep('2', false);
       controller.loadAllPriorSteps();
-      router.get('wizardStep3Controller').set('data', controller.getHostList(true)); // workaround
-      controller.connectOutlet('wizardStep3', controller.getHostList(true));
+      controller.connectOutlet('wizardStep3', controller.get('content'));
     },
     back: Em.Router.transitionTo('step1'),
-    next: function (router) {
-      console.log('in addHost.step2:next');
+    next: function (router, context) {
       var addHostController = router.get('addHostController');
       var wizardStep3Controller = router.get('wizardStep3Controller');
+      addHostController.saveConfirmedHosts(wizardStep3Controller);
 
-      if (wizardStep3Controller.get('isSubmitDisabled') === false) {
-        addHostController.saveConfirmedHosts(wizardStep3Controller);
-        router.transitionTo('step3');
-      }
+      App.db.setBootStatus(true);
+      App.db.setService(require('data/mock/services'));
+      router.transitionTo('step3');
     },
-
     /**
      * Wrapper for remove host action.
      * Since saving data stored in addHostController, we should call this from router
@@ -208,7 +208,13 @@ module.exports = Em.Route.extend({
       controller.connectOutlet('wizardStep8', controller.get('content'));
     },
     back: Em.Router.transitionTo('step6'),
-    next: Em.Router.transitionTo('step8')
+    next: function (router) {
+      var addHostController = router.get('addHostController');
+      var wizardStep8Controller = router.get('wizardStep8Controller');
+      addHostController.installServices();
+      addHostController.setInfoForStep9();
+      router.transitionTo('step8');
+    }
   }),
 
   step8: Em.Route.extend({
@@ -222,6 +228,12 @@ module.exports = Em.Route.extend({
       controller.connectOutlet('wizardStep9', controller.get('content'));
     },
     back: Em.Router.transitionTo('step7'),
+    retry: function(router,context) {
+      var addHostController = router.get('addHostController');
+      var wizardStep9Controller = router.get('wizardStep9Controller');
+      addHostController.installServices();
+      wizardStep9Controller.navigateStep();
+    },
     next: function (router) {
       var addHostController = router.get('addHostController');
       var wizardStep9Controller = router.get('wizardStep9Controller');

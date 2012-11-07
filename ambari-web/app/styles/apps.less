@@ -1,41 +1,81 @@
-#apps {
+#apps{
+  .breadcrumbs {
+    padding-bottom: 16px;
+    margin-left: 16px;
+  }
+  .table thead th{
+    vertical-align:top;
+  }
+  .avg-table td {
+    text-align:center;
+    border:none;
+  }
+  td.avg-star{
+    border-left:1px solid #DDD;
+  }
+  .a {
+    width:25px;
+    height: 25px;
+    background-position: center center;
+    background-repeat: no-repeat;
+    position: relative;
+    left:50%;
+    margin-left:-13px;
+    margin-top: 36px;
+    font-size:30px;
+    color:red;
+  }
+  .avg-info {
+    font-size:16px;
+    font-weight:700;
+  }
+  .compare-info {
+    font-size:12px;
+  }
   .search-bar {
-    float: right;
-    margin-top: -40px;
+    float:right;
+  }
+  .clear {
+    clear:both;
   }
   .dataTable {
     border: 1px solid silver;
     th {
-      border-top: none;
+      border-top:none;
     }
   }
-  .dataTables_wrapper {
-    margin-top: 10px;
+  .app-table-row.hover{
+    opacity:0.8 ;
+  }
+  .app-table-row{
+    cursor: pointer;
   }
   #filter_info {
-    padding-top: 10px;
+    float:left;
+    padding-top:10px;
   }
   .page-bar {
     border: 1px solid silver;
-    text-align: right;
+    text-align:right;
     div {
       display: inline-block;
-      margin: 0 10px;
+      margin:0 10px;
     }
     .dataTables_length {
       label {
-        display: inline;
+        display:inline;
       }
       select {
         margin-bottom: 4px;
         margin-top: 4px;
-        width: 70px;
+        width:70px;
       }
     }
     .dataTables_paginate {
       a {
-        padding: 0 5px;
+        padding:0 5px;
       }
     }
   }
 }
+

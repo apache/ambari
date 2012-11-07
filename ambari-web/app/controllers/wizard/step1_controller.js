@@ -25,7 +25,23 @@ App.WizardStep1Controller = Em.Controller.extend({
     return this.get('content.cluster.name');
   }.property('content.cluster.name'),
 
+
   hasSubmitted : false,
+
+  clearStep: function() {
+     this.set('content.cluster.name','');
+  },
+
+  loadStep: function () {
+    var clusterName;
+    console.log('The value of the cluster name is: ' + App.db.getClusterName());
+    if (App.db.getClusterName() !== undefined) {
+      this.set('clusterName', App.db.getClusterName());
+    } else {
+      this.set('clusterNameError','');
+      this.set('invalidClusterName',true);
+    }
+  },
 
   invalidClusterName : function(){
     if(!this.get('hasSubmitted')){
@@ -59,6 +75,8 @@ App.WizardStep1Controller = Em.Controller.extend({
   submit: function () {
     this.set('hasSubmitted', true);
     if (!this.get('invalidClusterName')) {
+      this.set('content.cluster',{name: this.get('clusterName'), status: 'PENDING', isCompleted: false});
+     // App.router.get('installerController').saveClusterStatus({status: 'PENDING', isCompleted: false});
       App.router.send('next');
     }
   }

@@ -42,11 +42,12 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   }.property('sortingAsc'),
   isDisabled:true,
 
-  checkRemoved: function(host_id) {
+  checkRemoved:function (host_id) {
     var hosts = this.get('content');
     var selectedHosts = hosts.filterProperty('id', host_id);
     this.get('fullContent').removeObjects(selectedHosts);
   },
+
   masterComponents:function () {
     var components = [];
     this.get('componentsForFilter').forEach(function (component) {
@@ -114,11 +115,9 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
   filterByComponentsIds:function () {
     var componentsIds = this.checkedComponentsIds();
     this.set('filters.components', componentsIds);
-    this.get('componentsForFilter').forEach(function(component) {
-      if (componentsIds.indexOf(component.get('id')) != -1){
-        component.set('isChecked', false);
-      } else component.set('isChecked', true);
-    });
+
+//      component.set('isChecked', component.get('id') != -1);
+
     this.changeContent();
   },
 
@@ -170,15 +169,16 @@ App.MainHostController = Em.ArrayController.extend(App.Pagination, {
     this.get('fullContent').forEach(function (item) {
       if (filters.length) {
         var inFilters = false;
-        item.get('components').forEach(function(component) {
-          if (filters.indexOf(component.get('id')) == -1){
+        item.get('components').forEach(function (component) {
+          if (filters.indexOf(component.get('id')) != -1) {
             inFilters = true;
           }
         });
+
+
         if (inFilters) {
           items.push(item);
         }
-
       } else {
         items.push(item);
       }
