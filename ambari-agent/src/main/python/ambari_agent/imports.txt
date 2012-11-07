@@ -10,3 +10,4 @@ hdp-hive/manifests/*.pp
 hdp-hcat/manifests/*.pp
 hdp-mysql/manifests/*.pp
 hdp-monitor-webserver/manifests/*.pp
+hdp-repos/manifests/*.pp

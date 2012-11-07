@@ -33,8 +33,12 @@ import java.util.Map;
  * JMX property provider tests.
  */
 public class JMXPropertyProviderTest {
+  protected static final PropertyId HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("cluster_name", "HostRoles");
+  protected static final PropertyId HOST_COMPONENT_HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("host_name", "HostRoles");
+  protected static final PropertyId HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("component_name", "HostRoles");
 
-    @Test
+
+  @Test
   public void testGetResources() throws Exception {
 
     TestStreamProvider  streamProvider = new TestStreamProvider();
@@ -43,13 +47,13 @@ public class JMXPropertyProviderTest {
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
         PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
         streamProvider,
-        hostProvider);
+        hostProvider, PropertyHelper.getPropertyId("cluster_name", "HostRoles"), PropertyHelper.getPropertyId("host_name", "HostRoles"), PropertyHelper.getPropertyId("component_name", "HostRoles"));
 
     // namenode
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
-    resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
 
     // request with an empty set should get all supported properties
     Request request = PropertyHelper.getReadRequest(Collections.<PropertyId>emptySet());
@@ -67,8 +71,8 @@ public class JMXPropertyProviderTest {
     // datanode
     resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
-    resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "DATANODE");
 
     // request with an empty set should get all supported properties
     request = PropertyHelper.getReadRequest(Collections.<PropertyId>emptySet());
@@ -85,8 +89,8 @@ public class JMXPropertyProviderTest {
     // jobtracker
     resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
-    resource.setProperty(JMXPropertyProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "JOBTRACKER");
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "JOBTRACKER");
 
     // only ask for one property
     request = PropertyHelper.getReadRequest(Collections.singleton(PropertyHelper.getPropertyId("threadsWaiting", "metrics/jvm")));
@@ -106,7 +110,12 @@ public class JMXPropertyProviderTest {
 
   private static class TestJMXHostProvider implements JMXHostProvider {
     @Override
-    public Map<String, String> getHostMapping(String hostName) {
+    public String getHostName(String clusterName, String componentName) {
+      return null;
+    }
+
+    @Override
+    public Map<String, String> getHostMapping(String clusterName) {
       return TestHostMappingProvider.getHostMap();
     }
   }

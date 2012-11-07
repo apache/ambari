@@ -266,5 +266,27 @@
       "category":"Tasks",
       "temporal":false
     }
+  ],
+  "User": [
+  	{
+  	  "name":"user_name",
+  	  "category":"Users",
+  	  "temporal":false
+  	},
+  	{
+  	  "name":"roles",
+  	  "category":"Users",
+  	  "temporal":false
+  	},
+  	{
+  	  "name":"password",
+  	  "category":"Users",
+  	  "temporal":false
+  	},
+  	{
+  	  "name":"old_password",
+  	  "category":"Users",
+  	  "temporal":false
+  	}
   ]
 }

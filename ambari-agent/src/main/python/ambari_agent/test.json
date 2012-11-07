@@ -14,7 +14,22 @@
 
 "java32_home" : "/usr/jdk64/jdk1.6.0_31",
 "java64_home" : "/usr/jdk64/jdk1.6.0_31",
-"jdk_bins" :  { "32" : "jdk-6u31-linux-x64.bin", "64" : "jdk-6u31-linux-x64.bin" }
+"jdk_bins" :  { "32" : "jdk-6u31-linux-x64.bin", "64" : "jdk-6u31-linux-x64.bin" },
+"repo_info" :[
+{
+  "base_url":"http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos5",
+  "os_type":"centos5",
+  "repo_id":"HDP-1.1.1.16_TEST",
+  "repo_name":"HDP_TEST"
+}
+,
+{
+  "base_url":"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos5",
+  "os_type":"centos5",
+  "repo_id":"HDP-UTILS-1.1.0.15_TEST",
+  "repo_name":"HDP-UTILS_TEST"
+}]
+
 },
 
 

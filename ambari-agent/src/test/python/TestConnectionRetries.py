@@ -31,10 +31,9 @@ import socket
 import os
 import logging
 from ambari_agent.Controller import Controller
-import logging
 
 NON_EXISTING_DOMAIN = 'non-existing-domain43342432.com'
-BAD_URL = 'http://www.iana.org/domains/ex222ample/'
+BAD_URL = 'http://localhost:54222/badurl/'
 
 class TestConnectionRetries(TestCase):
 
@@ -54,20 +53,20 @@ class TestConnectionRetries(TestCase):
 
   def test_registration_retries(self):
     netutil = NetUtil()
-    netutil.CONNECT_SERVER_RETRY_INTERVAL_SEC=0.1
+    netutil.CONNECT_SERVER_RETRY_INTERVAL_SEC=0.05
     retries = netutil.try_to_connect(BAD_URL, 3)
     self.assertEquals(retries, 3)
 
   def test_infinit_registration_retries(self):
     netutil = NetUtil()
-    netutil.CONNECT_SERVER_RETRY_INTERVAL_SEC=0.1
+    netutil.CONNECT_SERVER_RETRY_INTERVAL_SEC=0.05
     thread = Thread(target = netutil.try_to_connect, args = (BAD_URL, -1))
     thread.start()
-    time.sleep(0.5)
+    time.sleep(0.25)
     # I have to stop the thread anyway, so I'll check results later
     threadWasAlive = thread.isAlive()
     netutil.DEBUG_STOP_RETRIES_FLAG = True
-    time.sleep(1)
+    time.sleep(0.5)
     # Checking results before thread stop
     self.assertEquals(threadWasAlive, True, "Thread should still be retrying to connect")
     # Checking results after thread stop
@@ -75,8 +74,8 @@ class TestConnectionRetries(TestCase):
 
   def test_heartbeat_retries(self):
     netutil = NetUtil()
-    netutil.HEARTBEAT_IDDLE_INTERVAL_SEC=0.1
-    netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC=0.1
+    netutil.HEARTBEAT_IDDLE_INTERVAL_SEC=0.05
+    netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC=0.05
     #building heartbeat object
     testsPath = os.path.dirname(os.path.realpath(__file__))
     dictPath = testsPath + os.sep + '..' + os.sep + '..' + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent' + os.sep + 'servicesToPidNames.dict'
@@ -104,7 +103,7 @@ class TestConnectionRetries(TestCase):
     # Checking results before thread stop
     self.assertEquals(threadWasAlive, True, "Heartbeat should be alive now")
     self.assertEquals(successfull_heartbits0, 0, "Heartbeat should not have any success")
-    self.assertGreater(heartbeat_retries0, 1, "Heartbeat should retry connecting")
+    self.assertEquals(heartbeat_retries0 > 1, True, "Heartbeat should retry connecting")
     # Checking results after thread stop
     self.assertEquals(thread.isAlive(), False, "Heartbeat should stop now")
     self.assertEquals(controller.DEBUG_SUCCESSFULL_HEARTBEATS, 0, "Heartbeat should not have any success")

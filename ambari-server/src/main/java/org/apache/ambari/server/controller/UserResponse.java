@@ -15,18 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.controller;
 
-package org.apache.ambari.server.controller.jmx;
-
-import java.util.Map;
+import java.util.Collections;
+import java.util.Set;
 
 /**
- *
+ * Represents a user maintenance request.
  */
-public interface JMXHostProvider {
-
-  public String getHostName(String clusterName, String componentName);
-
-
-  public Map<String, String> getHostMapping(String clusterName);
+public class UserResponse {
+  
+  private Set<String> roles = Collections.emptySet();
+  private String userName;
+  
+  public UserResponse(String name) {
+    this.userName = name;
+  }
+  
+  public String getUsername() {
+    return userName;
+  }
+  
+  public Set<String> getRoles() {
+    return roles;
+  }
+  
+  public void setRoles(Set<String> userRoles) {
+    roles = userRoles;
+  }
+  
 }

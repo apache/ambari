@@ -81,6 +81,7 @@ public interface Resource {
     Configuration,
     Action,
     Request,
-    Task
+    Task,
+    User
   }
 }

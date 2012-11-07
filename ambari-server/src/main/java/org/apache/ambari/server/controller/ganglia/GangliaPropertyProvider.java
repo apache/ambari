@@ -37,6 +37,10 @@ import java.util.Set;
  */
 public class GangliaPropertyProvider implements PropertyProvider {
 
+  // temporary
+  private static boolean useRRD = true;
+  private static boolean checkRRD = true;
+
   /**
    * Set of property ids supported by this provider.
    */
@@ -159,6 +163,37 @@ public class GangliaPropertyProvider implements PropertyProvider {
 
     Set<PropertyId> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
 
+    if (checkRRD || useRRD) {
+      useRRD = setProperties(resource, request, clusterName, hostName, gangliaClusterName, metrics, ids, true);
+      checkRRD = false;
+    }
+
+    if(!useRRD) {
+      setProperties(resource, request, clusterName, hostName, gangliaClusterName, metrics, ids, false);
+    }
+
+    return true;
+  }
+
+  private boolean setProperties(Resource resource,
+                             Request request,
+                             String clusterName,
+                             String hostName,
+                             String gangliaClusterName,
+                             Map<PropertyId, String> metrics,
+                             Set<PropertyId> ids,
+                             boolean rrd) {
+    return rrd ? setPropertiesRRD(resource, request, clusterName, hostName, gangliaClusterName, metrics, ids) :
+        setPropertiesNonRRD(resource, request, clusterName, hostName, gangliaClusterName, metrics, ids);
+  }
+
+  private boolean setPropertiesNonRRD(Resource resource,
+                                      Request request,
+                                      String clusterName,
+                                      String hostName,
+                                      String gangliaClusterName,
+                                      Map<PropertyId, String> metrics,
+                                      Set<PropertyId> ids) {
     for (PropertyId propertyId : ids) {
 
       String metricName = metrics.get(propertyId);
@@ -168,7 +203,7 @@ public class GangliaPropertyProvider implements PropertyProvider {
 
         String spec = getSpec(clusterName, gangliaClusterName,
             hostName == null ? null : PropertyHelper.fixHostName(hostName), metricName,
-            temporal ? request.getTemporalInfo(propertyId) : null);
+            temporal ? request.getTemporalInfo(propertyId) : null, false);
 
         try {
           List<GangliaMetric> properties = new ObjectMapper().readValue(streamProvider.readFrom(spec),
@@ -184,6 +219,36 @@ public class GangliaPropertyProvider implements PropertyProvider {
       }
     }
     return true;
+  }
+
+  private boolean setPropertiesRRD(Resource resource,
+                                      Request request,
+                                      String clusterName,
+                                      String hostName,
+                                      String gangliaClusterName,
+                                      Map<PropertyId, String> metrics,
+                                      Set<PropertyId> ids) {
+
+//    // TODO : pull temporal info from request and do in chunks ...
+//    // request.getTemporalInfo(propertyId)
+//
+//    String spec = getSpec(clusterName, gangliaClusterName,
+//        hostName == null ? "__SummaryInfo__" : PropertyHelper.fixHostName(hostName), null,
+//        null, false);
+//
+//    try {
+//      List<GangliaMetric> properties = new ObjectMapper().readValue(streamProvider.readFrom(spec),
+//          new TypeReference<List<GangliaMetric>>() {});
+//
+//      if (properties != null) {
+//        resource.setProperty(propertyId, getValue(properties.get(0), temporal));
+//      }
+//    } catch (IOException e) {
+//      // TODO : log this
+//      return false;
+//    }
+//    return true;
+    return false;
   }
 
   /**
@@ -239,20 +304,29 @@ public class GangliaPropertyProvider implements PropertyProvider {
   protected String getSpec(String clusterName, String gangliaCluster,
                                   String host,
                                   String metric,
-                                  TemporalInfo temporalInfo) {
+                                  TemporalInfo temporalInfo,
+                                  boolean rrd) {
 
     StringBuilder sb = new StringBuilder();
 
     sb.append("http://").
-        append(hostProvider.getGangliaCollectorHostName(clusterName)).
-        append("/ganglia/graph.php?c=").
-        append(gangliaCluster);
+        append(hostProvider.getGangliaCollectorHostName(clusterName));
 
-    if(host != null) {
+    if (rrd) {
+      sb.append("/rrd.py?c=");
+    } else {
+      sb.append("/ganglia/graph.php?c=");
+    }
+
+    sb.append(gangliaCluster);
+
+    if (host != null) {
       sb.append("&h=").append(host);
     }
 
-    sb.append("&m=").append(metric);
+    if (metric != null) {
+      sb.append("&m=").append(metric);
+    }
 
     if (temporalInfo == null) {
       sb.append("&r=day");
@@ -273,7 +347,9 @@ public class GangliaPropertyProvider implements PropertyProvider {
       }
     }
 
-    sb.append("&json=1");
+    if (!rrd) {
+      sb.append("&json=1");
+    }
 
     return sb.toString();
   }

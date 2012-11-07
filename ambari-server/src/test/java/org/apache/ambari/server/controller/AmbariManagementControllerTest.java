@@ -46,6 +46,7 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -63,7 +64,6 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,6 +85,7 @@ public class AmbariManagementControllerTest {
   private ServiceComponentFactory serviceComponentFactory;
   private ServiceComponentHostFactory serviceComponentHostFactory;
   private AmbariMetaInfo ambariMetaInfo;
+  private Users users;
 
   @Before
   public void setup() throws Exception {
@@ -100,6 +101,7 @@ public class AmbariManagementControllerTest {
         ServiceComponentHostFactory.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
+    users = injector.getInstance(Users.class);
   }
 
   @After
@@ -2972,4 +2974,64 @@ public class AmbariManagementControllerTest {
     assertEquals(2, tasks.size());
 
   }
+  
+  private void createUser(String userName) throws Exception {
+    UserRequest request = new UserRequest(userName);
+    request.setPassword("password");
+    
+    controller.createUsers(new HashSet<UserRequest>(Collections.singleton(request)));
+  }
+  
+  @Test
+  public void testCreateAndGetUsers() throws Exception {
+    createUser("user1");
+    
+    Set<UserResponse> r =
+        controller.getUsers(Collections.singleton(new UserRequest("user1")));
+            
+    Assert.assertEquals(1, r.size());
+    UserResponse resp = r.iterator().next();
+    Assert.assertEquals("user1", resp.getUsername());
+  }
+
+  @Test
+  public void testGetUsers() throws Exception {
+    createUser("user1");
+    createUser("user2");
+    createUser("user3");
+    
+    UserRequest request = new UserRequest(null);
+    
+    Set<UserResponse> responses = controller.getUsers(Collections.singleton(request));
+    
+    Assert.assertEquals(3, responses.size());
+  }
+  
+  @Test
+  public void testUpdateUsers() throws Exception {
+    createUser("user1");
+    
+    users.createDefaultRoles();
+    
+    UserRequest request = new UserRequest("user1");
+    request.setRoles(new HashSet<String>(){{
+      add("user");
+      add("admin");
+    }});
+    
+    controller.updateUsers(Collections.singleton(request));
+  }
+ 
+  @Test
+  public void testDeleteUsers() throws Exception {
+    createUser("user1");
+    
+    UserRequest request = new UserRequest("user1");    
+    controller.deleteUsers(Collections.singleton(request));
+    
+    Set<UserResponse> responses = controller.getUsers(Collections.singleton(new UserRequest(null)));
+    
+    Assert.assertEquals(0, responses.size());
+  }
+  
 }

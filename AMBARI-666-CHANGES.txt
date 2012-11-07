@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-970. Add additional Ganglia metrics and JMX properties. (Tom
+  Beerbower via mahadev)
+
   AMBARI-967. Enhance predicate comparison. (Tom Beerbower via mahadev)
 
   AMBARI-954. Support installation of Ganglia master and slaves via

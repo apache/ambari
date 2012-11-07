@@ -87,6 +87,15 @@ public interface AmbariManagementController {
    */
   public void createConfiguration(ConfigurationRequest request)
       throws AmbariException;
+  
+  /**
+   * Creates users.
+   * 
+   * @param requests the request objects which defines the user.
+   * 
+   * @throws AmbariException when the user cannot be created.
+   */
+  public void createUsers(Set<UserRequest> requests) throws AmbariException;
 
 
   // ----- Read -------------------------------------------------------------
@@ -189,6 +198,19 @@ public interface AmbariManagementController {
   public Set<TaskStatusResponse> getTaskStatus(Set<TaskStatusRequest> requests)
       throws AmbariException;
 
+  /**
+   * Gets the users identified by the given request objects.
+   *
+   * @param requests  the request objects
+   * 
+   * @return  a set of user responses
+   * 
+   * @throws AmbariException if the users could not be read
+   */
+  public Set<UserResponse> getUsers(Set<UserRequest> requests)
+      throws AmbariException;
+  
+
 
   // ----- Update -----------------------------------------------------------
 
@@ -259,6 +281,15 @@ public interface AmbariManagementController {
    */
   public RequestStatusResponse updateHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException;
+  
+  /**
+   * Updates the users specified.
+   * 
+   * @param requests  the users to modify
+   * 
+   * @throws  AmbariException if the resources cannot be updated
+   */
+  public void updateUsers(Set<UserRequest> requests) throws AmbariException;
 
 
   // ----- Delete -----------------------------------------------------------
@@ -319,6 +350,15 @@ public interface AmbariManagementController {
    */
   public RequestStatusResponse deleteHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException;
+  
+  /**
+   * Deletes the users specified.
+   * 
+   * @param requests  the users to delete
+   * 
+   * @throws  AmbariException if the resources cannot be deleted
+   */
+  public void deleteUsers(Set<UserRequest> requests) throws AmbariException;  
 
   public RequestStatusResponse createActions(Set<ActionRequest> request)
       throws AmbariException;

@@ -205,12 +205,15 @@ public class PropertyHelper {
   public static String fixHostName(String host) {
     int first_dash = host.indexOf('-');
     int first_dot = host.indexOf('.');
-    String segment1 = host.substring(0, first_dash);
-    if (segment1.equals("domu")) {
-      segment1 = "domU";
+
+    if (first_dash > -1 && first_dot > -1) {
+      String segment1 = host.substring(0, first_dash);
+      if (segment1.equals("domu")) {
+        segment1 = "domU";
+      }
+      String segment2 = host.substring(first_dash, first_dot).toUpperCase();
+      host = segment1 + segment2 + host.substring(first_dot);
     }
-    String segment2 = host.substring(first_dash, first_dot).toUpperCase();
-    host = segment1 + segment2 + host.substring(first_dot);
     return host;
   }
 

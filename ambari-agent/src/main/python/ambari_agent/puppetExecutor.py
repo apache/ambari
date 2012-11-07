@@ -23,10 +23,21 @@ import logging
 import subprocess
 from manifestGenerator import generateManifest
 import pprint
+from Grep import Grep
 
 logger = logging.getLogger()
 
 class puppetExecutor:
+
+  # How many lines from command output send to server
+  OUTPUT_LAST_LINES = 10
+  # How many lines from command error output send to server (before Err phrase)
+  ERROR_LAST_LINES_BEFORE = 10
+  # How many lines from command error output send to server (after Err phrase)
+  ERROR_LAST_LINES_AFTER = 30
+
+  NO_ERROR = "none"
+
   """ Class that executes the commands that come from the server using puppet.
   This is the class that provides the pluggable point for executing the puppet"""
   
@@ -60,6 +71,7 @@ class puppetExecutor:
   def runCommand(self, command):
     result = {}
     taskId = 0;
+    grep = Grep()
     if command.has_key("taskId"):
       taskId = command['taskId']
       
@@ -81,9 +93,9 @@ class puppetExecutor:
                                   stderr=subprocess.PIPE,
                                   env=puppetEnv)
     stderr_out = puppet.communicate()
-    error = "none"
+    error = self.NO_ERROR
     returncode = 0
-    if (puppet.returncode != 0 and puppet.returncode != 2) :
+    if puppet.returncode != 0 and puppet.returncode != 2:
       returncode = puppet.returncode
       error = stderr_out[1]
       logging.error("Error running puppet: \n" + stderr_out[1])
@@ -92,8 +104,10 @@ class puppetExecutor:
     puppetOutput = stderr_out[0]
     logger.info("Output from puppet :\n" + puppetOutput)
     result["exitcode"] = returncode
-    
-    result["stdout"] = "Output"
+    if error == self.NO_ERROR:
+      result["stdout"] = grep.tail(puppetOutput, self.OUTPUT_LAST_LINES)
+    else:
+      result["stdout"] = grep.grep(puppetOutput, "err", self.ERROR_LAST_LINES_BEFORE, self.ERROR_LAST_LINES_AFTER)
     logger.info("ExitCode : "  + str(result["exitcode"]))
     return result
  

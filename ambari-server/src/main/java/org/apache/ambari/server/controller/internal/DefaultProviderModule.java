@@ -40,7 +40,6 @@ import org.codehaus.jackson.type.TypeReference;
 import com.google.inject.Inject;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,6 +51,7 @@ import java.util.Set;
  */
 public class DefaultProviderModule implements ProviderModule {
 
+  private static final PropertyId HOST_CLUSTER_NAME_PROPERTY_ID             = PropertyHelper.getPropertyId("cluster_name", "HostRoles");
   private static final PropertyId HOST_NAME_PROPERTY_ID                     = PropertyHelper.getPropertyId("host_name", "Hosts");
   private static final PropertyId HOST_IP_PROPERTY_ID                       = PropertyHelper.getPropertyId("ip", "Hosts");
   private static final PropertyId HOST_ATTRIBUTES_PROPERTY_ID               = PropertyHelper.getPropertyId("attributes", "Hosts");
@@ -60,7 +60,7 @@ public class DefaultProviderModule implements ProviderModule {
   private static final PropertyId HOST_COMPONENT_HOST_NAME_PROPERTY_ID      = PropertyHelper.getPropertyId("host_name", "HostRoles");
   private static final PropertyId HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("component_name", "HostRoles");
   private static final String     GANGLIA_SERVER                            = "GANGLIA_SERVER";
-//  private static final String     GANGLIA_SERVER                    = "GANGLIA_MONITOR_SERVER";
+  private static final String     GANGLIA_SERVER_OLD                        = "GANGLIA_MONITOR_SERVER";
 
   /**
    * The map of resource providers.
@@ -72,9 +72,11 @@ public class DefaultProviderModule implements ProviderModule {
    */
   private final Map<Resource.Type,List<PropertyProvider>> propertyProviders = new HashMap<Resource.Type, List<PropertyProvider>>();
 
+  private final JMXHostProvider     jmxHostProvider = new DefaultJMXHostProvider();
+  private final GangliaHostProvider gangliaHostProvider = new DefaultGangliaHostProvider(jmxHostProvider);
+
   @Inject
   private AmbariManagementController managementController;
-
 
 
   // ----- Constructors ------------------------------------------------------
@@ -128,12 +130,10 @@ public class DefaultProviderModule implements ProviderModule {
   }
 
   protected void createPropertyProviders(Resource.Type type) {
+
     List<PropertyProvider> providers = new LinkedList<PropertyProvider>();
 
     URLStreamProvider streamProvider = new URLStreamProvider();
-
-    JMXHostProvider     jmxHostProvider = new DefaultJMXHostProvider();
-    GangliaHostProvider gangliaHostProvider = new DefaultGangliaHostProvider(jmxHostProvider);
 
     switch (type){
       case Host :
@@ -146,6 +146,14 @@ public class DefaultProviderModule implements ProviderModule {
             null));
         break;
       case Component :
+        providers.add(new JMXPropertyProvider(
+            PropertyHelper.getJMXPropertyIds(type),
+            streamProvider,
+            jmxHostProvider,
+            PropertyHelper.getPropertyId("cluster_name", "ServiceComponentInfo"),
+            null,
+            PropertyHelper.getPropertyId("component_name", "ServiceComponentInfo")));
+
         providers.add(new GangliaPropertyProvider(
             PropertyHelper.getGangliaPropertyIds(type),
             streamProvider,
@@ -155,20 +163,21 @@ public class DefaultProviderModule implements ProviderModule {
             PropertyHelper.getPropertyId("component_name", "ServiceComponentInfo")));
         break;
       case HostComponent:
-        if (type == Resource.Type.HostComponent) {
-          providers.add(new JMXPropertyProvider(
-              PropertyHelper.getJMXPropertyIds(type),
-              streamProvider,
-              jmxHostProvider));
+        providers.add(new JMXPropertyProvider(
+            PropertyHelper.getJMXPropertyIds(type),
+            streamProvider,
+            jmxHostProvider,
+            PropertyHelper.getPropertyId("cluster_name", "HostRoles"),
+            PropertyHelper.getPropertyId("host_name", "HostRoles"),
+            PropertyHelper.getPropertyId("component_name", "HostRoles")));
 
-          providers.add(new GangliaPropertyProvider(
-              PropertyHelper.getGangliaPropertyIds(type),
-              streamProvider,
-              gangliaHostProvider,
-              PropertyHelper.getPropertyId("cluster_name", "HostRoles"),
-              PropertyHelper.getPropertyId("host_name", "HostRoles"),
-              PropertyHelper.getPropertyId("component_name", "HostRoles")));
-        }
+        providers.add(new GangliaPropertyProvider(
+            PropertyHelper.getGangliaPropertyIds(type),
+            streamProvider,
+            gangliaHostProvider,
+            PropertyHelper.getPropertyId("cluster_name", "HostRoles"),
+            PropertyHelper.getPropertyId("host_name", "HostRoles"),
+            PropertyHelper.getPropertyId("component_name", "HostRoles")));
         break;
       default :
         break;
@@ -182,18 +191,28 @@ public class DefaultProviderModule implements ProviderModule {
      * The map of hosts.
      */
     private Map<String, Map<String, String>> hostMapping;
+    private Map<String, Map<String, String>> hostComponentMapping;
 
     private boolean init = false;
 
 
     @Override
-    public Map<String, String> getHostMapping(String hostName) {
+    public String getHostName(String clusterName, String componentName) {
+      if (!init) {
+        init = true;
+        getHostMap();
+      }
+      return hostComponentMapping.get(clusterName).get(componentName);
+    }
+
+    @Override
+    public Map<String, String> getHostMapping(String clusterName) {
       if (!init) {
         init = true;
         getHostMap();
       }
 
-      return hostMapping.get(hostName);
+      return hostMapping.get(clusterName);
     }
 
     protected void getHostMap() {
@@ -208,12 +227,13 @@ public class DefaultProviderModule implements ProviderModule {
         ObjectMapper mapper = new ObjectMapper();
 
         hostMapping = new HashMap<String, Map<String, String>>();
+        hostComponentMapping = new HashMap<String, Map<String, String>>();
 
         for (Resource cluster : clusters) {
 
           String clusterName = (String) cluster.getPropertyValue(CLUSTER_NAME_PROPERTY_ID);
 
-          Predicate predicate = new PredicateBuilder().property(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).toPredicate();
+          Predicate predicate = new PredicateBuilder().property(HOST_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).toPredicate();
 
           Set<Resource> hosts = provider.getResources(request, predicate);
 
@@ -237,6 +257,31 @@ public class DefaultProviderModule implements ProviderModule {
               String hostName = (String) host.getPropertyValue(HOST_NAME_PROPERTY_ID);
               String ip = (String) host.getPropertyValue(HOST_IP_PROPERTY_ID);
               map.put(hostName, ip);
+            }
+          }
+
+          request = PropertyHelper.getReadRequest(HOST_COMPONENT_HOST_NAME_PROPERTY_ID,
+              HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+
+          predicate = new PredicateBuilder().property(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).toPredicate();
+
+          provider = getResourceProvider(Resource.Type.HostComponent);
+
+          Set<Resource> hostComponents = provider.getResources(request, predicate);
+
+          Map<String, String> cmap = hostComponentMapping.get(clusterName);
+
+          if (cmap == null) {
+            cmap = new HashMap<String, String>();
+            hostComponentMapping.put(clusterName, cmap);
+          }
+
+          for (Resource hostComponent : hostComponents) {
+            String componentName = (String) hostComponent.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+            String hostName      = (String) hostComponent.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
+
+            if (componentName.equals("NAMENODE")) {
+              cmap.put(componentName, map.get(hostName));
             }
           }
         }
@@ -325,7 +370,7 @@ public class DefaultProviderModule implements ProviderModule {
                 hostClusterMap.put(hostName, gangliaCluster);
               }
             }
-            if (componentName.equals(GANGLIA_SERVER)) {
+            if (componentName.equals(GANGLIA_SERVER) || componentName.equals(GANGLIA_SERVER_OLD)) {
               gangliaCollectorHostName.put(clusterName, hostProvider.getHostMapping(clusterName).get(hostName));
             }
           }

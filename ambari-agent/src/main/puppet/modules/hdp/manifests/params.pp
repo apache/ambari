@@ -351,6 +351,12 @@ class hdp::params()
     $hcat_server_host = hdp_default("hive_server_host")
     $hcat_mysql_host = hdp_default("hive_mysql_host")
 
+
+  $repos_paths = 
+  {
+    centos6 => '/etc/yum.repos.d'
+  }
+
   }
  
 ###### snmp

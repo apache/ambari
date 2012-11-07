@@ -47,8 +47,26 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.security.authorization.User;
+import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stageplanner.RoleGraph;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
@@ -100,6 +118,8 @@ public class AmbariManagementControllerImpl implements
   private ActionMetadata actionMetadata;
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+  @Inject
+  private Users users;
 
   @Inject
   public AmbariManagementControllerImpl(ActionManager actionManager,
@@ -798,7 +818,36 @@ public class AmbariManagementControllerImpl implements
 
     cluster.addDesiredConfig(config);
   }
+  
+  @Override
+  public void createUsers(Set<UserRequest> requests) throws AmbariException {
+    
+    for (UserRequest request : requests) {
 
+      if (null == request.getUsername() || request.getUsername().isEmpty() ||
+          null == request.getPassword() || request.getPassword().isEmpty()) {
+        throw new AmbariException("Username and password must be supplied.");
+      }
+      
+      User user = users.getAnyUser(request.getUsername());
+      if (null != user)
+        throw new AmbariException("User already exists.");
+      
+      users.createUser(request.getUsername(), request.getPassword());
+      
+      if (0 != request.getRoles().size()) {
+        user = users.getAnyUser(request.getUsername());
+        if (null != user) {
+          for (String role : request.getRoles()) {
+            if (!user.getRoles().contains(role))
+              users.addRoleToUser(user, role);
+          }
+        }
+      }
+    }
+    
+  }
+  
   private Stage createNewStage(Cluster cluster, long requestId) {
     String logDir = baseLogDir + "/" + requestId;
     Stage stage = new Stage(requestId, logDir, cluster.getClusterName());
@@ -2370,6 +2419,31 @@ public class AmbariManagementControllerImpl implements
     return doStageCreation(cluster, null,
         null, changedScHosts);
   }
+  
+  @Override
+  public synchronized void updateUsers(Set<UserRequest> requests) throws AmbariException {
+    for (UserRequest request : requests) {
+      User u = users.getAnyUser(request.getUsername());
+      if (null == u)
+        continue;
+
+      if (null != request.getOldPassword() && null != request.getPassword()) {
+        users.modifyPassword(u.getUserName(), request.getOldPassword(),
+            request.getPassword());
+      }
+      
+      if (request.getRoles().size() > 0) {
+        for (String role : u.getRoles()) {
+          users.removeRoleFromUser(u, role);
+        }
+        
+        for (String role : request.getRoles()) {
+          users.addRoleToUser(u, role);
+        }
+      }
+      
+    }
+  }
 
   @Override
   public synchronized void deleteCluster(ClusterRequest request)
@@ -2418,6 +2492,17 @@ public class AmbariManagementControllerImpl implements
       Set<ServiceComponentHostRequest> request) throws AmbariException {
     // TODO Auto-generated method stub
     throw new AmbariException("Delete host components not supported");
+  }
+  
+  @Override
+  public void deleteUsers(Set<UserRequest> requests)
+    throws AmbariException {
+    
+    for (UserRequest r : requests) {
+      User u = users.getAnyUser(r.getUsername());
+      if (null != u)
+        users.removeUser(u);
+    }
   }
 
   @Override
@@ -2585,6 +2670,39 @@ public class AmbariManagementControllerImpl implements
     }
     return response;
   }
+  
+  @Override
+  public Set<UserResponse> getUsers(Set<UserRequest> requests)
+      throws AmbariException {
+    
+    Set<UserResponse> responses = new HashSet<UserResponse>();
+
+    for (UserRequest r : requests) {
+      
+      // get them all
+      if (null == r.getUsername()) {
+        for (User u : users.getAllUsers()) {
+          responses.add(new UserResponse(u.getUserName()));
+        }
+      } else {
+        
+        User u = users.getAnyUser(r.getUsername());
+        
+        if (null == u) {
+          throw new AmbariException("Cannot find user '" + r.getUsername() + "'");
+        }
+        
+        UserResponse resp = new UserResponse(u.getUserName());
+        resp.setRoles(new HashSet<String>(u.getRoles()));
+
+        responses.add(resp);
+      }
+    }
+    
+    return responses;
+  }
+  
+  
 
   private String getClientHostForRunningAction(Cluster cluster,
       Service service) throws AmbariException {

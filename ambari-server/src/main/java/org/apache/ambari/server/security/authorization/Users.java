@@ -17,9 +17,10 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.RoleDAO;
@@ -29,9 +30,9 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.UserEntityPK;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 /**
  * Provides high-level access to Users and Roles in database
@@ -58,6 +59,15 @@ public class Users {
     }
 
     return users;
+  }
+  
+  public User getAnyUser(String userName) {
+    UserEntity userEntity = userDAO.findLdapUserByName(userName);
+    if (null == userEntity) {
+      userEntity = userDAO.findLocalUserByName(userName);
+    }
+    
+    return (null == userEntity) ? null : new User(userEntity);
   }
 
   public User getLocalUser(String userName) throws AmbariException{

@@ -1,391 +1,1943 @@
 {
+  "Component":{
+    "NAMENODE":{
+      "ServiceComponentInfo/Version":{
+        "metric":"Hadoop:service=NameNode,name=NameNodeInfo.Version",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "ServiceComponentInfo/UpgradeFinalized":{
+        "metric":"Hadoop:service=NameNode,name=NameNodeInfo.UpgradeFinalized",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "ServiceComponentInfo/CapacityUsed":{
+        "metric":"Hadoop:service=NameNode,name=NameNodeInfo.Used",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "ServiceComponentInfo/CapacityTotal":{
+        "metric":"Hadoop:service=NameNode,name=NameNodeInfo.Total",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "ServiceComponentInfo/LiveNodes":{
+        "metric":"Hadoop:service=NameNode,name=NameNodeInfo.LiveNodes",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "ServiceComponentInfo/DeadNodes":{
+        "metric":"Hadoop:service=NameNode,name=NameNodeInfo.DeadNodes",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "ServiceComponentInfo/DecomNodes":{
+        "metric":"Hadoop:service=NameNode,name=NameNodeInfo.DecomNodes",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "ServiceComponentInfo/Safemode":{
+        "metric":"Hadoop:service=NameNode,name=NameNodeInfo.Safemode",
+        "pointInTime":true,
+        "temporal":false
+      }
+    }
+  },
   "HostComponent":{
-    "NAMENODE" :{
-      "metrics/dfs/FSNamesystem/BlockCapacity" :                {"metric" : "dfs.BlockCapacity",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/BlocksTotal" :                  {"metric" : "dfs.BlocksTotal",                                 "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CapacityRemainingGB" :          {"metric" : "dfs.CapacityRemainingGB",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CapacityTotalGB" :              {"metric" : "dfs.CapacityTotalGB",                             "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CapacityUsedGB" :               {"metric" : "dfs.CapacityUsedGB",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CorruptBlocks" :                {"metric" : "dfs.CorruptBlocks",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/ExcessBlocks" :                 {"metric" : "dfs.ExcessBlocks",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/FilesTotal" :                   {"metric" : "dfs.FilesTotal",                                  "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/MissingBlocks" :                {"metric" : "dfs.MissingBlocks",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/PendingDeletionBlocks" :        {"metric" : "dfs.PendingDeletionBlocks",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/PendingReplicationBlocks" :     {"metric" : "dfs.PendingReplicationBlocks",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/ScheduledReplicationBlocks" :   {"metric" : "dfs.ScheduledReplicationBlocks",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/TotalLoad" :                    {"metric" : "dfs.TotalLoad",                                   "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/UnderReplicatedBlocks" :        {"metric" : "dfs.UnderReplicatedBlocks",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/AddBlockOps" :                      {"metric" : "dfs.AddBlockOps",                                 "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/CreateFileOps" :                    {"metric" : "dfs.CreateFileOps",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/FileInfoOps" :                      {"metric" : "dfs.FileInfoOps",                                 "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/FilesCreated" :                     {"metric" : "dfs.FilesCreated",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/FilesInGetListingOps" :             {"metric" : "dfs.FilesInGetListingOps",                        "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/GetBlockLocations" :                {"metric" : "dfs.GetBlockLocations",                           "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/GetListingOps" :                    {"metric" : "dfs.GetListingOps",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/Syncs_avg_time" :                   {"metric" : "dfs.Syncs_avg_time",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/Syncs_num_ops" :                    {"metric" : "dfs.Syncs_num_ops",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/Transactions_avg_time" :            {"metric" : "dfs.Transactions_avg_time",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/Transactions_num_ops" :             {"metric" : "dfs.Transactions_num_ops",                        "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/blockReport_avg_time" :             {"metric" : "dfs.blockReport_avg_time",                        "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/namenode/blockReport_num_ops" :              {"metric" : "dfs.blockReport_num_ops",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/gcCount" :                                   {"metric" : "jvm.gcCount",                                     "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/gcTimeMillis" :                              {"metric" : "jvm.gcTimeMillis",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logError" :                                  {"metric" : "jvm.logError",                                    "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logFatal" :                                  {"metric" : "jvm.logFatal",                                    "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logInfo" :                                   {"metric" : "jvm.logInfo",                                     "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logWarn" :                                   {"metric" : "jvm.logWarn",                                     "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memHeapCommittedM" :                         {"metric" : "jvm.memHeapCommittedM",                           "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memHeapUsedM" :                              {"metric" : "jvm.memHeapUsedM",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memNonHeapCommittedM" :                      {"metric" : "jvm.memNonHeapCommittedM",                        "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memNonHeapUsedM" :                           {"metric" : "jvm.memNonHeapUsedM",                             "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsBlocked" :                            {"metric" : "jvm.threadsBlocked",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsNew" :                                {"metric" : "jvm.threadsNew",                                  "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsRunnable" :                           {"metric" : "jvm.threadsRunnable",                             "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsTerminated" :                         {"metric" : "jvm.threadsTerminated",                           "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsTimedWaiting" :                       {"metric" : "jvm.threadsTimedWaiting",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsWaiting" :                            {"metric" : "jvm.threadsWaiting",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/dropped_pub_all" :                 {"metric" : "metricssystem.dropped_pub_all",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/num_sinks" :                       {"metric" : "metricssystem.num_sinks",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/num_sources" :                     {"metric" : "metricssystem.num_sources",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_avg_time" :                {"metric" : "metricssystem.publish_avg_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_imax_time" :               {"metric" : "metricssystem.publish_imax_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_imin_time" :               {"metric" : "metricssystem.publish_imin_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_max_time" :                {"metric" : "metricssystem.publish_max_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_min_time" :                {"metric" : "metricssystem.publish_min_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_num_ops" :                 {"metric" : "metricssystem.publish_num_ops",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_stdev_time" :              {"metric" : "metricssystem.publish_stdev_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/latency_avg_time" :                {"metric" : "metricssystem.sink.ganglia.latency_avg_time",     "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/latency_num_ops" :                 {"metric" : "metricssystem.sink.ganglia.latency_num_ops",      "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_avg_time" :               {"metric" : "metricssystem.snapshot_avg_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_imax_time" :              {"metric" : "metricssystem.snapshot_imax_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_imin_time" :              {"metric" : "metricssystem.snapshot_imin_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_max_time" :               {"metric" : "metricssystem.snapshot_max_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_min_time" :               {"metric" : "metricssystem.snapshot_min_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_num_ops" :                {"metric" : "metricssystem.snapshot_num_ops",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_stdev_time" :             {"metric" : "metricssystem.snapshot_stdev_time",               "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/NumOpenConnections" :                        {"metric" : "rpc.NumOpenConnections",                          "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/ReceivedBytes" :                             {"metric" : "rpc.ReceivedBytes",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcProcessingTime_avg_time" :                {"metric" : "rpc.RpcProcessingTime_avg_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcProcessingTime_num_ops" :                 {"metric" : "rpc.RpcProcessingTime_num_ops",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcQueueTime_avg_time" :                     {"metric" : "rpc.RpcQueueTime_avg_time",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcQueueTime_num_ops" :                      {"metric" : "rpc.RpcQueueTime_num_ops",                        "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/SentBytes" :                                 {"metric" : "rpc.SentBytes",                                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/callQueueLen" :                              {"metric" : "rpc.callQueueLen",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthenticationFailures" :                 {"metric" : "rpc.rpcAuthenticationFailures",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthenticationSuccesses" :                {"metric" : "rpc.rpcAuthenticationSuccesses",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthorizationFailures" :                  {"metric" : "rpc.rpcAuthorizationFailures",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthorizationSuccesses" :                 {"metric" : "rpc.rpcAuthorizationSuccesses",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/addBlock_avg_time" :                 {"metric" : "rpcdetailed.addBlock_avg_time",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/addBlock_num_ops" :                  {"metric" : "rpcdetailed.addBlock_num_ops",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReceived_avg_time" :            {"metric" : "rpcdetailed.blockReceived_avg_time",              "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReceived_num_ops" :             {"metric" : "rpcdetailed.blockReceived_num_ops",               "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReport_avg_time" :              {"metric" : "rpcdetailed.blockReport_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReport_num_ops" :               {"metric" : "rpcdetailed.blockReport_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/complete_avg_time" :                 {"metric" : "rpcdetailed.complete_avg_time",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/complete_num_ops" :                  {"metric" : "rpcdetailed.complete_num_ops",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/create_avg_time" :                   {"metric" : "rpcdetailed.create_avg_time",                     "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/create_num_ops" :                    {"metric" : "rpcdetailed.create_num_ops",                      "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/fsync_avg_time" :                    {"metric" : "rpcdetailed.fsync_avg_time",                      "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/fsync_num_ops" :                     {"metric" : "rpcdetailed.fsync_num_ops",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getBlockLocations_avg_time" :        {"metric" : "rpcdetailed.getBlockLocations_avg_time",          "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getBlockLocations_num_ops" :         {"metric" : "rpcdetailed.getBlockLocations_num_ops",           "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getEditLogSize_avg_time" :           {"metric" : "rpcdetailed.getEditLogSize_avg_time",             "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getEditLogSize_num_ops" :            {"metric" : "rpcdetailed.getEditLogSize_num_ops",              "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getFileInfo_avg_time" :              {"metric" : "rpcdetailed.getFileInfo_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getFileInfo_num_ops" :               {"metric" : "rpcdetailed.getFileInfo_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getListing_avg_time" :               {"metric" : "rpcdetailed.getListing_avg_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getListing_num_ops" :                {"metric" : "rpcdetailed.getListing_num_ops",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getProtocolVersion_avg_time" :       {"metric" : "rpcdetailed.getProtocolVersion_avg_time",         "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getProtocolVersion_num_ops" :        {"metric" : "rpcdetailed.getProtocolVersion_num_ops",          "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/renewLease_avg_time" :               {"metric" : "rpcdetailed.renewLease_avg_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/renewLease_num_ops" :                {"metric" : "rpcdetailed.renewLease_num_ops",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollEditLog_avg_time" :              {"metric" : "rpcdetailed.rollEditLog_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollEditLog_num_ops" :               {"metric" : "rpcdetailed.rollEditLog_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollFsImage_avg_time" :              {"metric" : "rpcdetailed.rollFsImage_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollFsImage_num_ops" :               {"metric" : "rpcdetailed.rollFsImage_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/sendHeartbeat_avg_time" :            {"metric" : "rpcdetailed.sendHeartbeat_avg_time",              "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/sendHeartbeat_num_ops" :             {"metric" : "rpcdetailed.sendHeartbeat_num_ops",               "pointInTime" : true,   "temporal" : false}
+    "NAMENODE":{
+      "metrics/dfs/FSNamesystem/BlockCapacity":{
+        "metric":"dfs.BlockCapacity",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/BlocksTotal":{
+        "metric":"dfs.BlocksTotal",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CapacityRemainingGB":{
+        "metric":"dfs.CapacityRemainingGB",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CapacityTotalGB":{
+        "metric":"dfs.CapacityTotalGB",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CapacityUsedGB":{
+        "metric":"dfs.CapacityUsedGB",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CorruptBlocks":{
+        "metric":"dfs.CorruptBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/ExcessBlocks":{
+        "metric":"dfs.ExcessBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/FilesTotal":{
+        "metric":"dfs.FilesTotal",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/MissingBlocks":{
+        "metric":"dfs.MissingBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/PendingDeletionBlocks":{
+        "metric":"dfs.PendingDeletionBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/PendingReplicationBlocks":{
+        "metric":"dfs.PendingReplicationBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/ScheduledReplicationBlocks":{
+        "metric":"dfs.ScheduledReplicationBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/TotalLoad":{
+        "metric":"dfs.TotalLoad",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/UnderReplicatedBlocks":{
+        "metric":"dfs.UnderReplicatedBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/AddBlockOps":{
+        "metric":"dfs.AddBlockOps",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/CreateFileOps":{
+        "metric":"dfs.CreateFileOps",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/FileInfoOps":{
+        "metric":"dfs.FileInfoOps",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/FilesCreated":{
+        "metric":"dfs.FilesCreated",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/FilesInGetListingOps":{
+        "metric":"dfs.FilesInGetListingOps",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/GetBlockLocations":{
+        "metric":"dfs.GetBlockLocations",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/GetListingOps":{
+        "metric":"dfs.GetListingOps",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/Syncs_avg_time":{
+        "metric":"dfs.Syncs_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/Syncs_num_ops":{
+        "metric":"dfs.Syncs_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/Transactions_avg_time":{
+        "metric":"dfs.Transactions_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/Transactions_num_ops":{
+        "metric":"dfs.Transactions_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/blockReport_avg_time":{
+        "metric":"dfs.blockReport_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/namenode/blockReport_num_ops":{
+        "metric":"dfs.blockReport_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/gcCount":{
+        "metric":"jvm.gcCount",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/gcTimeMillis":{
+        "metric":"jvm.gcTimeMillis",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logError":{
+        "metric":"jvm.logError",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logFatal":{
+        "metric":"jvm.logFatal",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logInfo":{
+        "metric":"jvm.logInfo",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logWarn":{
+        "metric":"jvm.logWarn",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memHeapCommittedM":{
+        "metric":"jvm.memHeapCommittedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memHeapUsedM":{
+        "metric":"jvm.memHeapUsedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memNonHeapCommittedM":{
+        "metric":"jvm.memNonHeapCommittedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memNonHeapUsedM":{
+        "metric":"jvm.memNonHeapUsedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsBlocked":{
+        "metric":"jvm.threadsBlocked",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsNew":{
+        "metric":"jvm.threadsNew",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsRunnable":{
+        "metric":"jvm.threadsRunnable",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsTerminated":{
+        "metric":"jvm.threadsTerminated",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsTimedWaiting":{
+        "metric":"jvm.threadsTimedWaiting",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsWaiting":{
+        "metric":"jvm.threadsWaiting",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/dropped_pub_all":{
+        "metric":"metricssystem.dropped_pub_all",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/num_sinks":{
+        "metric":"metricssystem.num_sinks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/num_sources":{
+        "metric":"metricssystem.num_sources",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_avg_time":{
+        "metric":"metricssystem.publish_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_imax_time":{
+        "metric":"metricssystem.publish_imax_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_imin_time":{
+        "metric":"metricssystem.publish_imin_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_max_time":{
+        "metric":"metricssystem.publish_max_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_min_time":{
+        "metric":"metricssystem.publish_min_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_num_ops":{
+        "metric":"metricssystem.publish_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_stdev_time":{
+        "metric":"metricssystem.publish_stdev_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/latency_avg_time":{
+        "metric":"metricssystem.sink.ganglia.latency_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/latency_num_ops":{
+        "metric":"metricssystem.sink.ganglia.latency_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_avg_time":{
+        "metric":"metricssystem.snapshot_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_imax_time":{
+        "metric":"metricssystem.snapshot_imax_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_imin_time":{
+        "metric":"metricssystem.snapshot_imin_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_max_time":{
+        "metric":"metricssystem.snapshot_max_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_min_time":{
+        "metric":"metricssystem.snapshot_min_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_num_ops":{
+        "metric":"metricssystem.snapshot_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_stdev_time":{
+        "metric":"metricssystem.snapshot_stdev_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/NumOpenConnections":{
+        "metric":"rpc.NumOpenConnections",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/ReceivedBytes":{
+        "metric":"rpc.ReceivedBytes",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcProcessingTime_avg_time":{
+        "metric":"rpc.RpcProcessingTime_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcProcessingTime_num_ops":{
+        "metric":"rpc.RpcProcessingTime_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcQueueTime_avg_time":{
+        "metric":"rpc.RpcQueueTime_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcQueueTime_num_ops":{
+        "metric":"rpc.RpcQueueTime_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/SentBytes":{
+        "metric":"rpc.SentBytes",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/callQueueLen":{
+        "metric":"rpc.callQueueLen",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthenticationFailures":{
+        "metric":"rpc.rpcAuthenticationFailures",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthenticationSuccesses":{
+        "metric":"rpc.rpcAuthenticationSuccesses",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthorizationFailures":{
+        "metric":"rpc.rpcAuthorizationFailures",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthorizationSuccesses":{
+        "metric":"rpc.rpcAuthorizationSuccesses",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/addBlock_avg_time":{
+        "metric":"rpcdetailed.addBlock_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/addBlock_num_ops":{
+        "metric":"rpcdetailed.addBlock_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReceived_avg_time":{
+        "metric":"rpcdetailed.blockReceived_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReceived_num_ops":{
+        "metric":"rpcdetailed.blockReceived_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReport_avg_time":{
+        "metric":"rpcdetailed.blockReport_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReport_num_ops":{
+        "metric":"rpcdetailed.blockReport_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/complete_avg_time":{
+        "metric":"rpcdetailed.complete_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/complete_num_ops":{
+        "metric":"rpcdetailed.complete_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/create_avg_time":{
+        "metric":"rpcdetailed.create_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/create_num_ops":{
+        "metric":"rpcdetailed.create_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/fsync_avg_time":{
+        "metric":"rpcdetailed.fsync_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/fsync_num_ops":{
+        "metric":"rpcdetailed.fsync_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getBlockLocations_avg_time":{
+        "metric":"rpcdetailed.getBlockLocations_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getBlockLocations_num_ops":{
+        "metric":"rpcdetailed.getBlockLocations_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getEditLogSize_avg_time":{
+        "metric":"rpcdetailed.getEditLogSize_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getEditLogSize_num_ops":{
+        "metric":"rpcdetailed.getEditLogSize_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getFileInfo_avg_time":{
+        "metric":"rpcdetailed.getFileInfo_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getFileInfo_num_ops":{
+        "metric":"rpcdetailed.getFileInfo_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getListing_avg_time":{
+        "metric":"rpcdetailed.getListing_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getListing_num_ops":{
+        "metric":"rpcdetailed.getListing_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getProtocolVersion_avg_time":{
+        "metric":"rpcdetailed.getProtocolVersion_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getProtocolVersion_num_ops":{
+        "metric":"rpcdetailed.getProtocolVersion_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/renewLease_avg_time":{
+        "metric":"rpcdetailed.renewLease_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/renewLease_num_ops":{
+        "metric":"rpcdetailed.renewLease_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollEditLog_avg_time":{
+        "metric":"rpcdetailed.rollEditLog_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollEditLog_num_ops":{
+        "metric":"rpcdetailed.rollEditLog_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollFsImage_avg_time":{
+        "metric":"rpcdetailed.rollFsImage_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollFsImage_num_ops":{
+        "metric":"rpcdetailed.rollFsImage_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/sendHeartbeat_avg_time":{
+        "metric":"rpcdetailed.sendHeartbeat_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/sendHeartbeat_num_ops":{
+        "metric":"rpcdetailed.sendHeartbeat_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      }
     },
-    "DATANODE" :{
-      "metrics/dfs/FSNamesystem/BlockCapacity" :                {"metric" : "dfs.BlockCapacity",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/BlocksTotal" :                  {"metric" : "dfs.BlocksTotal",                                 "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CapacityRemainingGB" :          {"metric" : "dfs.CapacityRemainingGB",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CapacityTotalGB" :              {"metric" : "dfs.CapacityTotalGB",                             "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CapacityUsedGB" :               {"metric" : "dfs.CapacityUsedGB",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CorruptBlocks" :                {"metric" : "dfs.CorruptBlocks",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/ExcessBlocks" :                 {"metric" : "dfs.ExcessBlocks",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/FilesTotal" :                   {"metric" : "dfs.FilesTotal",                                  "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/MissingBlocks" :                {"metric" : "dfs.MissingBlocks",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/PendingDeletionBlocks" :        {"metric" : "dfs.PendingDeletionBlocks",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/PendingReplicationBlocks" :     {"metric" : "dfs.PendingReplicationBlocks",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/ScheduledReplicationBlocks" :   {"metric" : "dfs.ScheduledReplicationBlocks",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/TotalLoad" :                    {"metric" : "dfs.TotalLoad",                                   "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/UnderReplicatedBlocks" :        {"metric" : "dfs.UnderReplicatedBlocks",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/gcCount" :                                   {"metric" : "jvm.gcCount",                                     "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/gcTimeMillis" :                              {"metric" : "jvm.gcTimeMillis",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logError" :                                  {"metric" : "jvm.logError",                                    "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logFatal" :                                  {"metric" : "jvm.logFatal",                                    "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logInfo" :                                   {"metric" : "jvm.logInfo",                                     "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logWarn" :                                   {"metric" : "jvm.logWarn",                                     "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memHeapCommittedM" :                         {"metric" : "jvm.memHeapCommittedM",                           "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memHeapUsedM" :                              {"metric" : "jvm.memHeapUsedM",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memNonHeapCommittedM" :                      {"metric" : "jvm.memNonHeapCommittedM",                        "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memNonHeapUsedM" :                           {"metric" : "jvm.memNonHeapUsedM",                             "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsBlocked" :                            {"metric" : "jvm.threadsBlocked",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsNew" :                                {"metric" : "jvm.threadsNew",                                  "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsRunnable" :                           {"metric" : "jvm.threadsRunnable",                             "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsTerminated" :                         {"metric" : "jvm.threadsTerminated",                           "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsTimedWaiting" :                       {"metric" : "jvm.threadsTimedWaiting",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsWaiting" :                            {"metric" : "jvm.threadsWaiting",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/dropped_pub_all" :                 {"metric" : "metricssystem.dropped_pub_all",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/num_sinks" :                       {"metric" : "metricssystem.num_sinks",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/num_sources" :                     {"metric" : "metricssystem.num_sources",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_avg_time" :                {"metric" : "metricssystem.publish_avg_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_imax_time" :               {"metric" : "metricssystem.publish_imax_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_imin_time" :               {"metric" : "metricssystem.publish_imin_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_max_time" :                {"metric" : "metricssystem.publish_max_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_min_time" :                {"metric" : "metricssystem.publish_min_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_num_ops" :                 {"metric" : "metricssystem.publish_num_ops",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_stdev_time" :              {"metric" : "metricssystem.publish_stdev_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/latency_avg_time" :                {"metric" : "metricssystem.sink.ganglia.latency_avg_time",     "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/latency_num_ops" :                 {"metric" : "metricssystem.sink.ganglia.latency_num_ops",      "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_avg_time" :               {"metric" : "metricssystem.snapshot_avg_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_imax_time" :              {"metric" : "metricssystem.snapshot_imax_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_imin_time" :              {"metric" : "metricssystem.snapshot_imin_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_max_time" :               {"metric" : "metricssystem.snapshot_max_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_min_time" :               {"metric" : "metricssystem.snapshot_min_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_num_ops" :                {"metric" : "metricssystem.snapshot_num_ops",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_stdev_time" :             {"metric" : "metricssystem.snapshot_stdev_time",               "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/NumOpenConnections" :                        {"metric" : "rpc.NumOpenConnections",                          "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/ReceivedBytes" :                             {"metric" : "rpc.ReceivedBytes",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcProcessingTime_avg_time" :                {"metric" : "rpc.RpcProcessingTime_avg_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcProcessingTime_num_ops" :                 {"metric" : "rpc.RpcProcessingTime_num_ops",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcQueueTime_avg_time" :                     {"metric" : "rpc.RpcQueueTime_avg_time",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcQueueTime_num_ops" :                      {"metric" : "rpc.RpcQueueTime_num_ops",                        "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/SentBytes" :                                 {"metric" : "rpc.SentBytes",                                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/callQueueLen" :                              {"metric" : "rpc.callQueueLen",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthenticationFailures" :                 {"metric" : "rpc.rpcAuthenticationFailures",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthenticationSuccesses" :                {"metric" : "rpc.rpcAuthenticationSuccesses",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthorizationFailures" :                  {"metric" : "rpc.rpcAuthorizationFailures",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthorizationSuccesses" :                 {"metric" : "rpc.rpcAuthorizationSuccesses",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/addBlock_avg_time" :                 {"metric" : "rpcdetailed.addBlock_avg_time",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/addBlock_num_ops" :                  {"metric" : "rpcdetailed.addBlock_num_ops",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReceived_avg_time" :            {"metric" : "rpcdetailed.blockReceived_avg_time",              "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReceived_num_ops" :             {"metric" : "rpcdetailed.blockReceived_num_ops",               "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReport_avg_time" :              {"metric" : "rpcdetailed.blockReport_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReport_num_ops" :               {"metric" : "rpcdetailed.blockReport_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/complete_avg_time" :                 {"metric" : "rpcdetailed.complete_avg_time",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/complete_num_ops" :                  {"metric" : "rpcdetailed.complete_num_ops",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/create_avg_time" :                   {"metric" : "rpcdetailed.create_avg_time",                     "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/create_num_ops" :                    {"metric" : "rpcdetailed.create_num_ops",                      "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/fsync_avg_time" :                    {"metric" : "rpcdetailed.fsync_avg_time",                      "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/fsync_num_ops" :                     {"metric" : "rpcdetailed.fsync_num_ops",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getBlockLocations_avg_time" :        {"metric" : "rpcdetailed.getBlockLocations_avg_time",          "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getBlockLocations_num_ops" :         {"metric" : "rpcdetailed.getBlockLocations_num_ops",           "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getEditLogSize_avg_time" :           {"metric" : "rpcdetailed.getEditLogSize_avg_time",             "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getEditLogSize_num_ops" :            {"metric" : "rpcdetailed.getEditLogSize_num_ops",              "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getFileInfo_avg_time" :              {"metric" : "rpcdetailed.getFileInfo_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getFileInfo_num_ops" :               {"metric" : "rpcdetailed.getFileInfo_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getListing_avg_time" :               {"metric" : "rpcdetailed.getListing_avg_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getListing_num_ops" :                {"metric" : "rpcdetailed.getListing_num_ops",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getProtocolVersion_avg_time" :       {"metric" : "rpcdetailed.getProtocolVersion_avg_time",         "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getProtocolVersion_num_ops" :        {"metric" : "rpcdetailed.getProtocolVersion_num_ops",          "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/renewLease_avg_time" :               {"metric" : "rpcdetailed.renewLease_avg_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/renewLease_num_ops" :                {"metric" : "rpcdetailed.renewLease_num_ops",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollEditLog_avg_time" :              {"metric" : "rpcdetailed.rollEditLog_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollEditLog_num_ops" :               {"metric" : "rpcdetailed.rollEditLog_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollFsImage_avg_time" :              {"metric" : "rpcdetailed.rollFsImage_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollFsImage_num_ops" :               {"metric" : "rpcdetailed.rollFsImage_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/sendHeartbeat_avg_time" :            {"metric" : "rpcdetailed.sendHeartbeat_avg_time",              "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/sendHeartbeat_num_ops" :             {"metric" : "rpcdetailed.sendHeartbeat_num_ops",               "pointInTime" : true,   "temporal" : false}
+    "DATANODE":{
+      "metrics/dfs/FSNamesystem/BlockCapacity":{
+        "metric":"dfs.BlockCapacity",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/BlocksTotal":{
+        "metric":"dfs.BlocksTotal",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CapacityRemainingGB":{
+        "metric":"dfs.CapacityRemainingGB",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CapacityTotalGB":{
+        "metric":"dfs.CapacityTotalGB",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CapacityUsedGB":{
+        "metric":"dfs.CapacityUsedGB",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CorruptBlocks":{
+        "metric":"dfs.CorruptBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/ExcessBlocks":{
+        "metric":"dfs.ExcessBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/FilesTotal":{
+        "metric":"dfs.FilesTotal",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/MissingBlocks":{
+        "metric":"dfs.MissingBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/PendingDeletionBlocks":{
+        "metric":"dfs.PendingDeletionBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/PendingReplicationBlocks":{
+        "metric":"dfs.PendingReplicationBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/ScheduledReplicationBlocks":{
+        "metric":"dfs.ScheduledReplicationBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/TotalLoad":{
+        "metric":"dfs.TotalLoad",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/UnderReplicatedBlocks":{
+        "metric":"dfs.UnderReplicatedBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/gcCount":{
+        "metric":"jvm.gcCount",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/gcTimeMillis":{
+        "metric":"jvm.gcTimeMillis",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logError":{
+        "metric":"jvm.logError",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logFatal":{
+        "metric":"jvm.logFatal",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logInfo":{
+        "metric":"jvm.logInfo",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logWarn":{
+        "metric":"jvm.logWarn",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memHeapCommittedM":{
+        "metric":"jvm.memHeapCommittedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memHeapUsedM":{
+        "metric":"jvm.memHeapUsedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memNonHeapCommittedM":{
+        "metric":"jvm.memNonHeapCommittedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memNonHeapUsedM":{
+        "metric":"jvm.memNonHeapUsedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsBlocked":{
+        "metric":"jvm.threadsBlocked",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsNew":{
+        "metric":"jvm.threadsNew",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsRunnable":{
+        "metric":"jvm.threadsRunnable",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsTerminated":{
+        "metric":"jvm.threadsTerminated",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsTimedWaiting":{
+        "metric":"jvm.threadsTimedWaiting",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsWaiting":{
+        "metric":"jvm.threadsWaiting",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/dropped_pub_all":{
+        "metric":"metricssystem.dropped_pub_all",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/num_sinks":{
+        "metric":"metricssystem.num_sinks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/num_sources":{
+        "metric":"metricssystem.num_sources",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_avg_time":{
+        "metric":"metricssystem.publish_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_imax_time":{
+        "metric":"metricssystem.publish_imax_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_imin_time":{
+        "metric":"metricssystem.publish_imin_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_max_time":{
+        "metric":"metricssystem.publish_max_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_min_time":{
+        "metric":"metricssystem.publish_min_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_num_ops":{
+        "metric":"metricssystem.publish_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_stdev_time":{
+        "metric":"metricssystem.publish_stdev_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/latency_avg_time":{
+        "metric":"metricssystem.sink.ganglia.latency_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/latency_num_ops":{
+        "metric":"metricssystem.sink.ganglia.latency_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_avg_time":{
+        "metric":"metricssystem.snapshot_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_imax_time":{
+        "metric":"metricssystem.snapshot_imax_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_imin_time":{
+        "metric":"metricssystem.snapshot_imin_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_max_time":{
+        "metric":"metricssystem.snapshot_max_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_min_time":{
+        "metric":"metricssystem.snapshot_min_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_num_ops":{
+        "metric":"metricssystem.snapshot_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_stdev_time":{
+        "metric":"metricssystem.snapshot_stdev_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/NumOpenConnections":{
+        "metric":"rpc.NumOpenConnections",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/ReceivedBytes":{
+        "metric":"rpc.ReceivedBytes",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcProcessingTime_avg_time":{
+        "metric":"rpc.RpcProcessingTime_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcProcessingTime_num_ops":{
+        "metric":"rpc.RpcProcessingTime_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcQueueTime_avg_time":{
+        "metric":"rpc.RpcQueueTime_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcQueueTime_num_ops":{
+        "metric":"rpc.RpcQueueTime_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/SentBytes":{
+        "metric":"rpc.SentBytes",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/callQueueLen":{
+        "metric":"rpc.callQueueLen",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthenticationFailures":{
+        "metric":"rpc.rpcAuthenticationFailures",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthenticationSuccesses":{
+        "metric":"rpc.rpcAuthenticationSuccesses",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthorizationFailures":{
+        "metric":"rpc.rpcAuthorizationFailures",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthorizationSuccesses":{
+        "metric":"rpc.rpcAuthorizationSuccesses",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/addBlock_avg_time":{
+        "metric":"rpcdetailed.addBlock_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/addBlock_num_ops":{
+        "metric":"rpcdetailed.addBlock_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReceived_avg_time":{
+        "metric":"rpcdetailed.blockReceived_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReceived_num_ops":{
+        "metric":"rpcdetailed.blockReceived_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReport_avg_time":{
+        "metric":"rpcdetailed.blockReport_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReport_num_ops":{
+        "metric":"rpcdetailed.blockReport_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/complete_avg_time":{
+        "metric":"rpcdetailed.complete_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/complete_num_ops":{
+        "metric":"rpcdetailed.complete_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/create_avg_time":{
+        "metric":"rpcdetailed.create_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/create_num_ops":{
+        "metric":"rpcdetailed.create_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/fsync_avg_time":{
+        "metric":"rpcdetailed.fsync_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/fsync_num_ops":{
+        "metric":"rpcdetailed.fsync_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getBlockLocations_avg_time":{
+        "metric":"rpcdetailed.getBlockLocations_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getBlockLocations_num_ops":{
+        "metric":"rpcdetailed.getBlockLocations_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getEditLogSize_avg_time":{
+        "metric":"rpcdetailed.getEditLogSize_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getEditLogSize_num_ops":{
+        "metric":"rpcdetailed.getEditLogSize_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getFileInfo_avg_time":{
+        "metric":"rpcdetailed.getFileInfo_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getFileInfo_num_ops":{
+        "metric":"rpcdetailed.getFileInfo_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getListing_avg_time":{
+        "metric":"rpcdetailed.getListing_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getListing_num_ops":{
+        "metric":"rpcdetailed.getListing_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getProtocolVersion_avg_time":{
+        "metric":"rpcdetailed.getProtocolVersion_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getProtocolVersion_num_ops":{
+        "metric":"rpcdetailed.getProtocolVersion_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/renewLease_avg_time":{
+        "metric":"rpcdetailed.renewLease_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/renewLease_num_ops":{
+        "metric":"rpcdetailed.renewLease_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollEditLog_avg_time":{
+        "metric":"rpcdetailed.rollEditLog_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollEditLog_num_ops":{
+        "metric":"rpcdetailed.rollEditLog_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollFsImage_avg_time":{
+        "metric":"rpcdetailed.rollFsImage_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollFsImage_num_ops":{
+        "metric":"rpcdetailed.rollFsImage_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/sendHeartbeat_avg_time":{
+        "metric":"rpcdetailed.sendHeartbeat_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/sendHeartbeat_num_ops":{
+        "metric":"rpcdetailed.sendHeartbeat_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      }
     },
-    "JOBTRACKER" :{
-      "metrics/dfs/FSNamesystem/BlockCapacity" :                {"metric" : "dfs.BlockCapacity",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/BlocksTotal" :                  {"metric" : "dfs.BlocksTotal",                                 "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CapacityRemainingGB" :          {"metric" : "dfs.CapacityRemainingGB",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CapacityTotalGB" :              {"metric" : "dfs.CapacityTotalGB",                             "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CapacityUsedGB" :               {"metric" : "dfs.CapacityUsedGB",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CorruptBlocks" :                {"metric" : "dfs.CorruptBlocks",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/ExcessBlocks" :                 {"metric" : "dfs.ExcessBlocks",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/FilesTotal" :                   {"metric" : "dfs.FilesTotal",                                  "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/MissingBlocks" :                {"metric" : "dfs.MissingBlocks",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/PendingDeletionBlocks" :        {"metric" : "dfs.PendingDeletionBlocks",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/PendingReplicationBlocks" :     {"metric" : "dfs.PendingReplicationBlocks",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/ScheduledReplicationBlocks" :   {"metric" : "dfs.ScheduledReplicationBlocks",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/TotalLoad" :                    {"metric" : "dfs.TotalLoad",                                   "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/UnderReplicatedBlocks" :        {"metric" : "dfs.UnderReplicatedBlocks",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/gcCount" :                                   {"metric" : "jvm.gcCount",                                     "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/gcTimeMillis" :                              {"metric" : "jvm.gcTimeMillis",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logError" :                                  {"metric" : "jvm.logError",                                    "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logFatal" :                                  {"metric" : "jvm.logFatal",                                    "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logInfo" :                                   {"metric" : "jvm.logInfo",                                     "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logWarn" :                                   {"metric" : "jvm.logWarn",                                     "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memHeapCommittedM" :                         {"metric" : "jvm.memHeapCommittedM",                           "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memHeapUsedM" :                              {"metric" : "jvm.memHeapUsedM",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memNonHeapCommittedM" :                      {"metric" : "jvm.memNonHeapCommittedM",                        "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memNonHeapUsedM" :                           {"metric" : "jvm.memNonHeapUsedM",                             "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsBlocked" :                            {"metric" : "jvm.threadsBlocked",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsNew" :                                {"metric" : "jvm.threadsNew",                                  "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsRunnable" :                           {"metric" : "jvm.threadsRunnable",                             "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsTerminated" :                         {"metric" : "jvm.threadsTerminated",                           "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsTimedWaiting" :                       {"metric" : "jvm.threadsTimedWaiting",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsWaiting" :                            {"metric" : "jvm.threadsWaiting",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/dropped_pub_all" :                 {"metric" : "metricssystem.dropped_pub_all",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/num_sinks" :                       {"metric" : "metricssystem.num_sinks",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/num_sources" :                     {"metric" : "metricssystem.num_sources",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_avg_time" :                {"metric" : "metricssystem.publish_avg_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_imax_time" :               {"metric" : "metricssystem.publish_imax_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_imin_time" :               {"metric" : "metricssystem.publish_imin_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_max_time" :                {"metric" : "metricssystem.publish_max_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_min_time" :                {"metric" : "metricssystem.publish_min_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_num_ops" :                 {"metric" : "metricssystem.publish_num_ops",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_stdev_time" :              {"metric" : "metricssystem.publish_stdev_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/latency_avg_time" :                {"metric" : "metricssystem.sink.ganglia.latency_avg_time",     "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/latency_num_ops" :                 {"metric" : "metricssystem.sink.ganglia.latency_num_ops",      "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_avg_time" :               {"metric" : "metricssystem.snapshot_avg_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_imax_time" :              {"metric" : "metricssystem.snapshot_imax_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_imin_time" :              {"metric" : "metricssystem.snapshot_imin_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_max_time" :               {"metric" : "metricssystem.snapshot_max_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_min_time" :               {"metric" : "metricssystem.snapshot_min_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_num_ops" :                {"metric" : "metricssystem.snapshot_num_ops",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_stdev_time" :             {"metric" : "metricssystem.snapshot_stdev_time",               "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/NumOpenConnections" :                        {"metric" : "rpc.NumOpenConnections",                          "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/ReceivedBytes" :                             {"metric" : "rpc.ReceivedBytes",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcProcessingTime_avg_time" :                {"metric" : "rpc.RpcProcessingTime_avg_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcProcessingTime_num_ops" :                 {"metric" : "rpc.RpcProcessingTime_num_ops",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcQueueTime_avg_time" :                     {"metric" : "rpc.RpcQueueTime_avg_time",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcQueueTime_num_ops" :                      {"metric" : "rpc.RpcQueueTime_num_ops",                        "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/SentBytes" :                                 {"metric" : "rpc.SentBytes",                                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/callQueueLen" :                              {"metric" : "rpc.callQueueLen",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthenticationFailures" :                 {"metric" : "rpc.rpcAuthenticationFailures",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthenticationSuccesses" :                {"metric" : "rpc.rpcAuthenticationSuccesses",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthorizationFailures" :                  {"metric" : "rpc.rpcAuthorizationFailures",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthorizationSuccesses" :                 {"metric" : "rpc.rpcAuthorizationSuccesses",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/addBlock_avg_time" :                 {"metric" : "rpcdetailed.addBlock_avg_time",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/addBlock_num_ops" :                  {"metric" : "rpcdetailed.addBlock_num_ops",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReceived_avg_time" :            {"metric" : "rpcdetailed.blockReceived_avg_time",              "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReceived_num_ops" :             {"metric" : "rpcdetailed.blockReceived_num_ops",               "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReport_avg_time" :              {"metric" : "rpcdetailed.blockReport_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReport_num_ops" :               {"metric" : "rpcdetailed.blockReport_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/complete_avg_time" :                 {"metric" : "rpcdetailed.complete_avg_time",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/complete_num_ops" :                  {"metric" : "rpcdetailed.complete_num_ops",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/create_avg_time" :                   {"metric" : "rpcdetailed.create_avg_time",                     "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/create_num_ops" :                    {"metric" : "rpcdetailed.create_num_ops",                      "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/fsync_avg_time" :                    {"metric" : "rpcdetailed.fsync_avg_time",                      "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/fsync_num_ops" :                     {"metric" : "rpcdetailed.fsync_num_ops",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getBlockLocations_avg_time" :        {"metric" : "rpcdetailed.getBlockLocations_avg_time",          "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getBlockLocations_num_ops" :         {"metric" : "rpcdetailed.getBlockLocations_num_ops",           "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getEditLogSize_avg_time" :           {"metric" : "rpcdetailed.getEditLogSize_avg_time",             "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getEditLogSize_num_ops" :            {"metric" : "rpcdetailed.getEditLogSize_num_ops",              "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getFileInfo_avg_time" :              {"metric" : "rpcdetailed.getFileInfo_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getFileInfo_num_ops" :               {"metric" : "rpcdetailed.getFileInfo_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getListing_avg_time" :               {"metric" : "rpcdetailed.getListing_avg_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getListing_num_ops" :                {"metric" : "rpcdetailed.getListing_num_ops",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getProtocolVersion_avg_time" :       {"metric" : "rpcdetailed.getProtocolVersion_avg_time",         "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getProtocolVersion_num_ops" :        {"metric" : "rpcdetailed.getProtocolVersion_num_ops",          "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/renewLease_avg_time" :               {"metric" : "rpcdetailed.renewLease_avg_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/renewLease_num_ops" :                {"metric" : "rpcdetailed.renewLease_num_ops",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollEditLog_avg_time" :              {"metric" : "rpcdetailed.rollEditLog_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollEditLog_num_ops" :               {"metric" : "rpcdetailed.rollEditLog_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollFsImage_avg_time" :              {"metric" : "rpcdetailed.rollFsImage_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollFsImage_num_ops" :               {"metric" : "rpcdetailed.rollFsImage_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/sendHeartbeat_avg_time" :            {"metric" : "rpcdetailed.sendHeartbeat_avg_time",              "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/sendHeartbeat_num_ops" :             {"metric" : "rpcdetailed.sendHeartbeat_num_ops",               "pointInTime" : true,   "temporal" : false}
+    "JOBTRACKER":{
+      "metrics/dfs/FSNamesystem/BlockCapacity":{
+        "metric":"dfs.BlockCapacity",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/BlocksTotal":{
+        "metric":"dfs.BlocksTotal",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CapacityRemainingGB":{
+        "metric":"dfs.CapacityRemainingGB",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CapacityTotalGB":{
+        "metric":"dfs.CapacityTotalGB",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CapacityUsedGB":{
+        "metric":"dfs.CapacityUsedGB",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CorruptBlocks":{
+        "metric":"dfs.CorruptBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/ExcessBlocks":{
+        "metric":"dfs.ExcessBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/FilesTotal":{
+        "metric":"dfs.FilesTotal",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/MissingBlocks":{
+        "metric":"dfs.MissingBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/PendingDeletionBlocks":{
+        "metric":"dfs.PendingDeletionBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/PendingReplicationBlocks":{
+        "metric":"dfs.PendingReplicationBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/ScheduledReplicationBlocks":{
+        "metric":"dfs.ScheduledReplicationBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/TotalLoad":{
+        "metric":"dfs.TotalLoad",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/UnderReplicatedBlocks":{
+        "metric":"dfs.UnderReplicatedBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/gcCount":{
+        "metric":"jvm.gcCount",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/gcTimeMillis":{
+        "metric":"jvm.gcTimeMillis",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logError":{
+        "metric":"jvm.logError",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logFatal":{
+        "metric":"jvm.logFatal",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logInfo":{
+        "metric":"jvm.logInfo",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logWarn":{
+        "metric":"jvm.logWarn",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memHeapCommittedM":{
+        "metric":"jvm.memHeapCommittedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memHeapUsedM":{
+        "metric":"jvm.memHeapUsedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memNonHeapCommittedM":{
+        "metric":"jvm.memNonHeapCommittedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memNonHeapUsedM":{
+        "metric":"jvm.memNonHeapUsedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsBlocked":{
+        "metric":"jvm.threadsBlocked",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsNew":{
+        "metric":"jvm.threadsNew",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsRunnable":{
+        "metric":"jvm.threadsRunnable",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsTerminated":{
+        "metric":"jvm.threadsTerminated",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsTimedWaiting":{
+        "metric":"jvm.threadsTimedWaiting",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsWaiting":{
+        "metric":"jvm.threadsWaiting",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/dropped_pub_all":{
+        "metric":"metricssystem.dropped_pub_all",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/num_sinks":{
+        "metric":"metricssystem.num_sinks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/num_sources":{
+        "metric":"metricssystem.num_sources",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_avg_time":{
+        "metric":"metricssystem.publish_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_imax_time":{
+        "metric":"metricssystem.publish_imax_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_imin_time":{
+        "metric":"metricssystem.publish_imin_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_max_time":{
+        "metric":"metricssystem.publish_max_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_min_time":{
+        "metric":"metricssystem.publish_min_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_num_ops":{
+        "metric":"metricssystem.publish_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_stdev_time":{
+        "metric":"metricssystem.publish_stdev_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/latency_avg_time":{
+        "metric":"metricssystem.sink.ganglia.latency_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/latency_num_ops":{
+        "metric":"metricssystem.sink.ganglia.latency_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_avg_time":{
+        "metric":"metricssystem.snapshot_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_imax_time":{
+        "metric":"metricssystem.snapshot_imax_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_imin_time":{
+        "metric":"metricssystem.snapshot_imin_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_max_time":{
+        "metric":"metricssystem.snapshot_max_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_min_time":{
+        "metric":"metricssystem.snapshot_min_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_num_ops":{
+        "metric":"metricssystem.snapshot_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_stdev_time":{
+        "metric":"metricssystem.snapshot_stdev_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/NumOpenConnections":{
+        "metric":"rpc.NumOpenConnections",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/ReceivedBytes":{
+        "metric":"rpc.ReceivedBytes",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcProcessingTime_avg_time":{
+        "metric":"rpc.RpcProcessingTime_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcProcessingTime_num_ops":{
+        "metric":"rpc.RpcProcessingTime_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcQueueTime_avg_time":{
+        "metric":"rpc.RpcQueueTime_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcQueueTime_num_ops":{
+        "metric":"rpc.RpcQueueTime_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/SentBytes":{
+        "metric":"rpc.SentBytes",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/callQueueLen":{
+        "metric":"rpc.callQueueLen",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthenticationFailures":{
+        "metric":"rpc.rpcAuthenticationFailures",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthenticationSuccesses":{
+        "metric":"rpc.rpcAuthenticationSuccesses",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthorizationFailures":{
+        "metric":"rpc.rpcAuthorizationFailures",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthorizationSuccesses":{
+        "metric":"rpc.rpcAuthorizationSuccesses",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/addBlock_avg_time":{
+        "metric":"rpcdetailed.addBlock_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/addBlock_num_ops":{
+        "metric":"rpcdetailed.addBlock_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReceived_avg_time":{
+        "metric":"rpcdetailed.blockReceived_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReceived_num_ops":{
+        "metric":"rpcdetailed.blockReceived_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReport_avg_time":{
+        "metric":"rpcdetailed.blockReport_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReport_num_ops":{
+        "metric":"rpcdetailed.blockReport_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/complete_avg_time":{
+        "metric":"rpcdetailed.complete_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/complete_num_ops":{
+        "metric":"rpcdetailed.complete_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/create_avg_time":{
+        "metric":"rpcdetailed.create_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/create_num_ops":{
+        "metric":"rpcdetailed.create_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/fsync_avg_time":{
+        "metric":"rpcdetailed.fsync_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/fsync_num_ops":{
+        "metric":"rpcdetailed.fsync_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getBlockLocations_avg_time":{
+        "metric":"rpcdetailed.getBlockLocations_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getBlockLocations_num_ops":{
+        "metric":"rpcdetailed.getBlockLocations_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getEditLogSize_avg_time":{
+        "metric":"rpcdetailed.getEditLogSize_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getEditLogSize_num_ops":{
+        "metric":"rpcdetailed.getEditLogSize_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getFileInfo_avg_time":{
+        "metric":"rpcdetailed.getFileInfo_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getFileInfo_num_ops":{
+        "metric":"rpcdetailed.getFileInfo_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getListing_avg_time":{
+        "metric":"rpcdetailed.getListing_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getListing_num_ops":{
+        "metric":"rpcdetailed.getListing_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getProtocolVersion_avg_time":{
+        "metric":"rpcdetailed.getProtocolVersion_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getProtocolVersion_num_ops":{
+        "metric":"rpcdetailed.getProtocolVersion_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/renewLease_avg_time":{
+        "metric":"rpcdetailed.renewLease_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/renewLease_num_ops":{
+        "metric":"rpcdetailed.renewLease_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollEditLog_avg_time":{
+        "metric":"rpcdetailed.rollEditLog_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollEditLog_num_ops":{
+        "metric":"rpcdetailed.rollEditLog_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollFsImage_avg_time":{
+        "metric":"rpcdetailed.rollFsImage_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollFsImage_num_ops":{
+        "metric":"rpcdetailed.rollFsImage_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/sendHeartbeat_avg_time":{
+        "metric":"rpcdetailed.sendHeartbeat_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/sendHeartbeat_num_ops":{
+        "metric":"rpcdetailed.sendHeartbeat_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      }
     },
-    "TASKTRACKER" :{
-      "metrics/dfs/FSNamesystem/BlockCapacity" :                {"metric" : "dfs.BlockCapacity",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/BlocksTotal" :                  {"metric" : "dfs.BlocksTotal",                                 "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CapacityRemainingGB" :          {"metric" : "dfs.CapacityRemainingGB",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CapacityTotalGB" :              {"metric" : "dfs.CapacityTotalGB",                             "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CapacityUsedGB" :               {"metric" : "dfs.CapacityUsedGB",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/CorruptBlocks" :                {"metric" : "dfs.CorruptBlocks",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/ExcessBlocks" :                 {"metric" : "dfs.ExcessBlocks",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/FilesTotal" :                   {"metric" : "dfs.FilesTotal",                                  "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/MissingBlocks" :                {"metric" : "dfs.MissingBlocks",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/PendingDeletionBlocks" :        {"metric" : "dfs.PendingDeletionBlocks",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/PendingReplicationBlocks" :     {"metric" : "dfs.PendingReplicationBlocks",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/ScheduledReplicationBlocks" :   {"metric" : "dfs.ScheduledReplicationBlocks",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/TotalLoad" :                    {"metric" : "dfs.TotalLoad",                                   "pointInTime" : true,   "temporal" : false},
-      "metrics/dfs/FSNamesystem/UnderReplicatedBlocks" :        {"metric" : "dfs.UnderReplicatedBlocks",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/gcCount" :                                   {"metric" : "jvm.gcCount",                                     "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/gcTimeMillis" :                              {"metric" : "jvm.gcTimeMillis",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logError" :                                  {"metric" : "jvm.logError",                                    "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logFatal" :                                  {"metric" : "jvm.logFatal",                                    "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logInfo" :                                   {"metric" : "jvm.logInfo",                                     "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/logWarn" :                                   {"metric" : "jvm.logWarn",                                     "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memHeapCommittedM" :                         {"metric" : "jvm.memHeapCommittedM",                           "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memHeapUsedM" :                              {"metric" : "jvm.memHeapUsedM",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memNonHeapCommittedM" :                      {"metric" : "jvm.memNonHeapCommittedM",                        "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/memNonHeapUsedM" :                           {"metric" : "jvm.memNonHeapUsedM",                             "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsBlocked" :                            {"metric" : "jvm.threadsBlocked",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsNew" :                                {"metric" : "jvm.threadsNew",                                  "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsRunnable" :                           {"metric" : "jvm.threadsRunnable",                             "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsTerminated" :                         {"metric" : "jvm.threadsTerminated",                           "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsTimedWaiting" :                       {"metric" : "jvm.threadsTimedWaiting",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/jvm/threadsWaiting" :                            {"metric" : "jvm.threadsWaiting",                              "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/dropped_pub_all" :                 {"metric" : "metricssystem.dropped_pub_all",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/num_sinks" :                       {"metric" : "metricssystem.num_sinks",                         "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/num_sources" :                     {"metric" : "metricssystem.num_sources",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_avg_time" :                {"metric" : "metricssystem.publish_avg_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_imax_time" :               {"metric" : "metricssystem.publish_imax_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_imin_time" :               {"metric" : "metricssystem.publish_imin_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_max_time" :                {"metric" : "metricssystem.publish_max_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_min_time" :                {"metric" : "metricssystem.publish_min_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_num_ops" :                 {"metric" : "metricssystem.publish_num_ops",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/publish_stdev_time" :              {"metric" : "metricssystem.publish_stdev_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/latency_avg_time" :                {"metric" : "metricssystem.sink.ganglia.latency_avg_time",     "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/latency_num_ops" :                 {"metric" : "metricssystem.sink.ganglia.latency_num_ops",      "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_avg_time" :               {"metric" : "metricssystem.snapshot_avg_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_imax_time" :              {"metric" : "metricssystem.snapshot_imax_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_imin_time" :              {"metric" : "metricssystem.snapshot_imin_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_max_time" :               {"metric" : "metricssystem.snapshot_max_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_min_time" :               {"metric" : "metricssystem.snapshot_min_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_num_ops" :                {"metric" : "metricssystem.snapshot_num_ops",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/metricssystem/snapshot_stdev_time" :             {"metric" : "metricssystem.snapshot_stdev_time",               "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/NumOpenConnections" :                        {"metric" : "rpc.NumOpenConnections",                          "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/ReceivedBytes" :                             {"metric" : "rpc.ReceivedBytes",                               "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcProcessingTime_avg_time" :                {"metric" : "rpc.RpcProcessingTime_avg_time",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcProcessingTime_num_ops" :                 {"metric" : "rpc.RpcProcessingTime_num_ops",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcQueueTime_avg_time" :                     {"metric" : "rpc.RpcQueueTime_avg_time",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/RpcQueueTime_num_ops" :                      {"metric" : "rpc.RpcQueueTime_num_ops",                        "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/SentBytes" :                                 {"metric" : "rpc.SentBytes",                                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/callQueueLen" :                              {"metric" : "rpc.callQueueLen",                                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthenticationFailures" :                 {"metric" : "rpc.rpcAuthenticationFailures",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthenticationSuccesses" :                {"metric" : "rpc.rpcAuthenticationSuccesses",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthorizationFailures" :                  {"metric" : "rpc.rpcAuthorizationFailures",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/rpc/rpcAuthorizationSuccesses" :                 {"metric" : "rpc.rpcAuthorizationSuccesses",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/addBlock_avg_time" :                 {"metric" : "rpcdetailed.addBlock_avg_time",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/addBlock_num_ops" :                  {"metric" : "rpcdetailed.addBlock_num_ops",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReceived_avg_time" :            {"metric" : "rpcdetailed.blockReceived_avg_time",              "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReceived_num_ops" :             {"metric" : "rpcdetailed.blockReceived_num_ops",               "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReport_avg_time" :              {"metric" : "rpcdetailed.blockReport_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/blockReport_num_ops" :               {"metric" : "rpcdetailed.blockReport_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/complete_avg_time" :                 {"metric" : "rpcdetailed.complete_avg_time",                   "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/complete_num_ops" :                  {"metric" : "rpcdetailed.complete_num_ops",                    "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/create_avg_time" :                   {"metric" : "rpcdetailed.create_avg_time",                     "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/create_num_ops" :                    {"metric" : "rpcdetailed.create_num_ops",                      "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/fsync_avg_time" :                    {"metric" : "rpcdetailed.fsync_avg_time",                      "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/fsync_num_ops" :                     {"metric" : "rpcdetailed.fsync_num_ops",                       "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getBlockLocations_avg_time" :        {"metric" : "rpcdetailed.getBlockLocations_avg_time",          "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getBlockLocations_num_ops" :         {"metric" : "rpcdetailed.getBlockLocations_num_ops",           "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getEditLogSize_avg_time" :           {"metric" : "rpcdetailed.getEditLogSize_avg_time",             "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getEditLogSize_num_ops" :            {"metric" : "rpcdetailed.getEditLogSize_num_ops",              "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getFileInfo_avg_time" :              {"metric" : "rpcdetailed.getFileInfo_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getFileInfo_num_ops" :               {"metric" : "rpcdetailed.getFileInfo_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getListing_avg_time" :               {"metric" : "rpcdetailed.getListing_avg_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getListing_num_ops" :                {"metric" : "rpcdetailed.getListing_num_ops",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getProtocolVersion_avg_time" :       {"metric" : "rpcdetailed.getProtocolVersion_avg_time",         "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/getProtocolVersion_num_ops" :        {"metric" : "rpcdetailed.getProtocolVersion_num_ops",          "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/renewLease_avg_time" :               {"metric" : "rpcdetailed.renewLease_avg_time",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/renewLease_num_ops" :                {"metric" : "rpcdetailed.renewLease_num_ops",                  "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollEditLog_avg_time" :              {"metric" : "rpcdetailed.rollEditLog_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollEditLog_num_ops" :               {"metric" : "rpcdetailed.rollEditLog_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollFsImage_avg_time" :              {"metric" : "rpcdetailed.rollFsImage_avg_time",                "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/rollFsImage_num_ops" :               {"metric" : "rpcdetailed.rollFsImage_num_ops",                 "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/sendHeartbeat_avg_time" :            {"metric" : "rpcdetailed.sendHeartbeat_avg_time",              "pointInTime" : true,   "temporal" : false},
-      "metrics/rpcdetailed/sendHeartbeat_num_ops" :             {"metric" : "rpcdetailed.sendHeartbeat_num_ops",               "pointInTime" : true,   "temporal" : false}
+    "TASKTRACKER":{
+      "metrics/dfs/FSNamesystem/BlockCapacity":{
+        "metric":"dfs.BlockCapacity",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/BlocksTotal":{
+        "metric":"dfs.BlocksTotal",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CapacityRemainingGB":{
+        "metric":"dfs.CapacityRemainingGB",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CapacityTotalGB":{
+        "metric":"dfs.CapacityTotalGB",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CapacityUsedGB":{
+        "metric":"dfs.CapacityUsedGB",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/CorruptBlocks":{
+        "metric":"dfs.CorruptBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/ExcessBlocks":{
+        "metric":"dfs.ExcessBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/FilesTotal":{
+        "metric":"dfs.FilesTotal",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/MissingBlocks":{
+        "metric":"dfs.MissingBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/PendingDeletionBlocks":{
+        "metric":"dfs.PendingDeletionBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/PendingReplicationBlocks":{
+        "metric":"dfs.PendingReplicationBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/ScheduledReplicationBlocks":{
+        "metric":"dfs.ScheduledReplicationBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/TotalLoad":{
+        "metric":"dfs.TotalLoad",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/dfs/FSNamesystem/UnderReplicatedBlocks":{
+        "metric":"dfs.UnderReplicatedBlocks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/gcCount":{
+        "metric":"jvm.gcCount",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/gcTimeMillis":{
+        "metric":"jvm.gcTimeMillis",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logError":{
+        "metric":"jvm.logError",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logFatal":{
+        "metric":"jvm.logFatal",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logInfo":{
+        "metric":"jvm.logInfo",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/logWarn":{
+        "metric":"jvm.logWarn",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memHeapCommittedM":{
+        "metric":"jvm.memHeapCommittedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memHeapUsedM":{
+        "metric":"jvm.memHeapUsedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memNonHeapCommittedM":{
+        "metric":"jvm.memNonHeapCommittedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/memNonHeapUsedM":{
+        "metric":"jvm.memNonHeapUsedM",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsBlocked":{
+        "metric":"jvm.threadsBlocked",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsNew":{
+        "metric":"jvm.threadsNew",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsRunnable":{
+        "metric":"jvm.threadsRunnable",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsTerminated":{
+        "metric":"jvm.threadsTerminated",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsTimedWaiting":{
+        "metric":"jvm.threadsTimedWaiting",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/jvm/threadsWaiting":{
+        "metric":"jvm.threadsWaiting",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/dropped_pub_all":{
+        "metric":"metricssystem.dropped_pub_all",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/num_sinks":{
+        "metric":"metricssystem.num_sinks",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/num_sources":{
+        "metric":"metricssystem.num_sources",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_avg_time":{
+        "metric":"metricssystem.publish_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_imax_time":{
+        "metric":"metricssystem.publish_imax_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_imin_time":{
+        "metric":"metricssystem.publish_imin_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_max_time":{
+        "metric":"metricssystem.publish_max_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_min_time":{
+        "metric":"metricssystem.publish_min_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_num_ops":{
+        "metric":"metricssystem.publish_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/publish_stdev_time":{
+        "metric":"metricssystem.publish_stdev_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/latency_avg_time":{
+        "metric":"metricssystem.sink.ganglia.latency_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/latency_num_ops":{
+        "metric":"metricssystem.sink.ganglia.latency_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_avg_time":{
+        "metric":"metricssystem.snapshot_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_imax_time":{
+        "metric":"metricssystem.snapshot_imax_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_imin_time":{
+        "metric":"metricssystem.snapshot_imin_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_max_time":{
+        "metric":"metricssystem.snapshot_max_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_min_time":{
+        "metric":"metricssystem.snapshot_min_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_num_ops":{
+        "metric":"metricssystem.snapshot_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/metricssystem/snapshot_stdev_time":{
+        "metric":"metricssystem.snapshot_stdev_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/NumOpenConnections":{
+        "metric":"rpc.NumOpenConnections",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/ReceivedBytes":{
+        "metric":"rpc.ReceivedBytes",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcProcessingTime_avg_time":{
+        "metric":"rpc.RpcProcessingTime_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcProcessingTime_num_ops":{
+        "metric":"rpc.RpcProcessingTime_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcQueueTime_avg_time":{
+        "metric":"rpc.RpcQueueTime_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/RpcQueueTime_num_ops":{
+        "metric":"rpc.RpcQueueTime_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/SentBytes":{
+        "metric":"rpc.SentBytes",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/callQueueLen":{
+        "metric":"rpc.callQueueLen",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthenticationFailures":{
+        "metric":"rpc.rpcAuthenticationFailures",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthenticationSuccesses":{
+        "metric":"rpc.rpcAuthenticationSuccesses",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthorizationFailures":{
+        "metric":"rpc.rpcAuthorizationFailures",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpc/rpcAuthorizationSuccesses":{
+        "metric":"rpc.rpcAuthorizationSuccesses",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/addBlock_avg_time":{
+        "metric":"rpcdetailed.addBlock_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/addBlock_num_ops":{
+        "metric":"rpcdetailed.addBlock_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReceived_avg_time":{
+        "metric":"rpcdetailed.blockReceived_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReceived_num_ops":{
+        "metric":"rpcdetailed.blockReceived_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReport_avg_time":{
+        "metric":"rpcdetailed.blockReport_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/blockReport_num_ops":{
+        "metric":"rpcdetailed.blockReport_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/complete_avg_time":{
+        "metric":"rpcdetailed.complete_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/complete_num_ops":{
+        "metric":"rpcdetailed.complete_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/create_avg_time":{
+        "metric":"rpcdetailed.create_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/create_num_ops":{
+        "metric":"rpcdetailed.create_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/fsync_avg_time":{
+        "metric":"rpcdetailed.fsync_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/fsync_num_ops":{
+        "metric":"rpcdetailed.fsync_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getBlockLocations_avg_time":{
+        "metric":"rpcdetailed.getBlockLocations_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getBlockLocations_num_ops":{
+        "metric":"rpcdetailed.getBlockLocations_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getEditLogSize_avg_time":{
+        "metric":"rpcdetailed.getEditLogSize_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getEditLogSize_num_ops":{
+        "metric":"rpcdetailed.getEditLogSize_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getFileInfo_avg_time":{
+        "metric":"rpcdetailed.getFileInfo_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getFileInfo_num_ops":{
+        "metric":"rpcdetailed.getFileInfo_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getListing_avg_time":{
+        "metric":"rpcdetailed.getListing_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getListing_num_ops":{
+        "metric":"rpcdetailed.getListing_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getProtocolVersion_avg_time":{
+        "metric":"rpcdetailed.getProtocolVersion_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/getProtocolVersion_num_ops":{
+        "metric":"rpcdetailed.getProtocolVersion_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/renewLease_avg_time":{
+        "metric":"rpcdetailed.renewLease_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/renewLease_num_ops":{
+        "metric":"rpcdetailed.renewLease_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollEditLog_avg_time":{
+        "metric":"rpcdetailed.rollEditLog_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollEditLog_num_ops":{
+        "metric":"rpcdetailed.rollEditLog_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollFsImage_avg_time":{
+        "metric":"rpcdetailed.rollFsImage_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/rollFsImage_num_ops":{
+        "metric":"rpcdetailed.rollFsImage_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/sendHeartbeat_avg_time":{
+        "metric":"rpcdetailed.sendHeartbeat_avg_time",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/rpcdetailed/sendHeartbeat_num_ops":{
+        "metric":"rpcdetailed.sendHeartbeat_num_ops",
+        "pointInTime":true,
+        "temporal":false
+      }
     },
-    "HBASE_MASTER" :{
+    "HBASE_MASTER":{
     }
   }
 }

@@ -47,6 +47,8 @@ import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.TaskStatusRequest;
 import org.apache.ambari.server.controller.TaskStatusResponse;
+import org.apache.ambari.server.controller.UserRequest;
+import org.apache.ambari.server.controller.UserResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyId;
 import org.apache.ambari.server.controller.spi.Request;
@@ -135,6 +137,11 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
   protected static final PropertyId TASK_STOUT_PROPERTY_ID        = PropertyHelper.getPropertyId("stdout","Tasks");
   protected static final PropertyId TASK_START_TIME_PROPERTY_ID   = PropertyHelper.getPropertyId("start_time","Tasks");
   protected static final PropertyId TASK_ATTEMPT_CNT_PROPERTY_ID  = PropertyHelper.getPropertyId("attempt_cnt","Tasks");
+  
+  protected static final PropertyId USER_USERNAME_PROPERTY_ID     = PropertyHelper.getPropertyId("user_name","Users");
+  protected static final PropertyId USER_ROLES_PROPERTY_ID        = PropertyHelper.getPropertyId("roles", "Users");
+  protected static final PropertyId USER_PASSWORD_PROPERTY_ID     = PropertyHelper.getPropertyId("password", "Users");
+  protected static final PropertyId USER_OLD_PASSWORD_PROPERTY_ID = PropertyHelper.getPropertyId("old_password", "Users");
 
   private final static Logger LOG =
       LoggerFactory.getLogger(ResourceProviderImpl.class);
@@ -407,6 +414,8 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
         return new RequestResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Task:
         return new TaskResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case User:
+        return new UserResourceProvider(propertyIds, keyPropertyIds, managementController);
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }
@@ -1259,7 +1268,11 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
     @Override
     public Set<Resource> getResources(Request request, Predicate predicate) throws AmbariException {
       Set<PropertyId> requestedIds = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
-      TaskStatusRequest taskStatusRequest = getRequest(getProperties(predicate));
+      Map<PropertyId, Object> predicateProperties = getProperties(predicate);
+      TaskStatusRequest taskStatusRequest = getRequest(predicateProperties);
+
+      String clusterName = (String) predicateProperties.get(TASK_CLUSTER_NAME_PROPERTY_ID);
+      Long   request_id  = new Long((String) predicateProperties.get(TASK_REQUEST_ID_PROPERTY_ID));
 
       // TODO : handle multiple requests
       LOG.info("Request to management controller " + taskStatusRequest.getRequestId() +
@@ -1274,17 +1287,20 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
       Set<Resource> resources = new HashSet<Resource>();
       for (TaskStatusResponse response : responses) {
         Resource resource = new ResourceImpl(Resource.Type.Task);
-        resource.setProperty(TASK_ID_PROPERTY_ID, response.getTaskId() + "");
-        resource.setProperty(TASK_STAGE_ID_PROPERTY_ID, response.getStageId() + "");
-        resource.setProperty(TASK_HOST_NAME_PROPERTY_ID, response.getHostName() + "");
-        resource.setProperty(TASK_ROLE_PROPERTY_ID, response.getRole() + "");
-        resource.setProperty(TASK_COMMAND_PROPERTY_ID, response.getCommand() + "");
-        resource.setProperty(TASK_STATUS_PROPERTY_ID, response.getStatus());
-        resource.setProperty(TASK_EXIT_CODE_PROPERTY_ID, response.getExitCode() + "");
-        resource.setProperty(TASK_STDERR_PROPERTY_ID, response.getStderr() + "");
-        resource.setProperty(TASK_STOUT_PROPERTY_ID, response.getStdout() + "");
-        resource.setProperty(TASK_START_TIME_PROPERTY_ID, response.getStartTime() + "");
-        resource.setProperty(TASK_ATTEMPT_CNT_PROPERTY_ID, response.getAttemptCount() + "");
+
+        setResourceProperty(resource, TASK_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
+        setResourceProperty(resource, TASK_REQUEST_ID_PROPERTY_ID, request_id, requestedIds);
+        setResourceProperty(resource, TASK_ID_PROPERTY_ID, response.getTaskId(), requestedIds);
+        setResourceProperty(resource, TASK_STAGE_ID_PROPERTY_ID, response.getStageId(), requestedIds);
+        setResourceProperty(resource, TASK_HOST_NAME_PROPERTY_ID, response.getHostName(), requestedIds);
+        setResourceProperty(resource, TASK_ROLE_PROPERTY_ID, response.getRole(), requestedIds);
+        setResourceProperty(resource, TASK_COMMAND_PROPERTY_ID, response.getCommand(), requestedIds);
+        setResourceProperty(resource, TASK_STATUS_PROPERTY_ID, response.getStatus(), requestedIds);
+        setResourceProperty(resource, TASK_EXIT_CODE_PROPERTY_ID, response.getExitCode(), requestedIds);
+        setResourceProperty(resource, TASK_STDERR_PROPERTY_ID, response.getStderr(), requestedIds);
+        setResourceProperty(resource, TASK_STOUT_PROPERTY_ID, response.getStdout(), requestedIds);
+        setResourceProperty(resource, TASK_START_TIME_PROPERTY_ID, response.getStartTime(), requestedIds);
+        setResourceProperty(resource, TASK_ATTEMPT_CNT_PROPERTY_ID, response.getAttemptCount(), requestedIds);
         LOG.info("Creating resource " + resource.toString());
         resources.add(resource);
       }
@@ -1323,4 +1339,128 @@ public abstract class ResourceProviderImpl implements ResourceProvider {
           task_id);
     }
   }
+  
+  private static class UserResourceProvider extends ResourceProviderImpl{
+
+    private static Set<PropertyId> pkPropertyIds =
+        new HashSet<PropertyId>(Arrays.asList(new PropertyId[]{
+            USER_USERNAME_PROPERTY_ID}));
+
+    /**
+     * Create a  new resource provider for the given management controller.
+     */
+    private UserResourceProvider(Set<PropertyId> propertyIds,
+                                          Map<Resource.Type, PropertyId> keyPropertyIds,
+                                          AmbariManagementController managementController) {
+      super(propertyIds, keyPropertyIds, managementController);
+    }
+
+    @Override
+    public RequestStatus createResources(Request request)
+        throws AmbariException {
+      
+      
+      Set<UserRequest> requests = new HashSet<UserRequest>();
+      for (Map<PropertyId, Object> propertyMap : request.getProperties()) {
+        requests.add(getRequest(propertyMap));
+      }
+      
+      getManagementController().createUsers(requests);
+      
+      return getRequestStatus(null);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws AmbariException {
+      
+      UserRequest userRequest = getRequest(getProperties(predicate));
+      
+      Set<UserResponse> responses = getManagementController().getUsers(
+          Collections.singleton(userRequest));
+      
+      Set<Resource> resources = new HashSet<Resource>();
+      for (UserResponse userResponse : responses) {
+        ResourceImpl resource = new ResourceImpl(Resource.Type.User);
+        
+        resource.setProperty(USER_USERNAME_PROPERTY_ID, userResponse.getUsername());
+
+        // TODO support arrays/sets in the JsonSerializer
+        if (userResponse.getRoles().size() > 0) {
+          int i = 0;
+          StringBuilder sb = new StringBuilder();
+          for (String role : userResponse.getRoles()) {
+            if ((i++) != 0)
+              sb.append(',');
+            sb.append(role);
+          }
+          resource.setProperty(USER_ROLES_PROPERTY_ID, sb.toString());
+        }
+        
+        resources.add(resource);
+      }
+      
+      return resources;
+    }
+
+    @Override
+    public RequestStatus updateResources(Request request, Predicate predicate)
+        throws AmbariException {
+
+      Set<UserRequest> requests = new HashSet<UserRequest>();
+      
+      for (Map<PropertyId, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
+        UserRequest req = getRequest(propertyMap);
+        
+        requests.add(req);
+      }
+      
+      getManagementController().updateUsers(requests);      
+
+      return getRequestStatus(null);
+    }
+
+    @Override
+    public RequestStatus deleteResources(Predicate predicate)
+        throws AmbariException {
+      Set<UserRequest> requests = new HashSet<UserRequest>();
+      
+      for (Map<PropertyId, Object> propertyMap : getPropertyMaps(null, predicate)) {
+        UserRequest req = getRequest(propertyMap);
+        
+        requests.add(req);
+
+      }
+      getManagementController().deleteUsers(requests);      
+
+      return getRequestStatus(null);
+    }
+
+    @Override
+    protected Set<PropertyId> getPKPropertyIds() {
+      return pkPropertyIds;
+    }
+    
+    private UserRequest getRequest(Map<PropertyId, Object> properties) {
+      UserRequest request = new UserRequest ((String) properties.get(USER_USERNAME_PROPERTY_ID));
+      
+      request.setPassword((String) properties.get(USER_PASSWORD_PROPERTY_ID));
+      request.setOldPassword((String) properties.get(USER_OLD_PASSWORD_PROPERTY_ID));
+      
+      // TODO - support array/sets directly out of the request
+      if (null != properties.get(USER_ROLES_PROPERTY_ID)) {
+        HashSet<String> roles = new HashSet<String>();
+        for (String str : ((String) properties.get(USER_ROLES_PROPERTY_ID)).split(",")) {
+          roles.add(str);
+        }
+        request.setRoles(roles);
+      }
+      
+      return request;
+    }
+    
+    
+    
+  }
+
 }

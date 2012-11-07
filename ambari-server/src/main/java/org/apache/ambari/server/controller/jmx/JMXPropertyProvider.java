@@ -39,12 +39,8 @@ import java.util.Set;
  */
 public class JMXPropertyProvider implements PropertyProvider {
 
-  protected static final PropertyId HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("cluster_name", "HostRoles");
-  protected static final PropertyId HOST_COMPONENT_HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("host_name", "HostRoles");
-  protected static final PropertyId HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("component_name", "HostRoles");
-
   private static final String CATEGORY_KEY = "tag.context";
-//  private static final String NAME_KEY     = "name";
+  private static final String NAME_KEY     = "name";
 
   /**
    * Set of property ids supported by this provider.
@@ -58,6 +54,13 @@ public class JMXPropertyProvider implements PropertyProvider {
   private final JMXHostProvider jmxHostProvider;
 
   private static final Map<String, String> JMX_PORTS = new HashMap<String, String>();
+
+  private final PropertyId clusterNamePropertyId;
+
+  private final PropertyId hostNamePropertyId;
+
+  private final PropertyId componentNamePropertyId;
+
 
   static {
     JMX_PORTS.put("NAMENODE",     "50070");
@@ -76,12 +79,22 @@ public class JMXPropertyProvider implements PropertyProvider {
    * @param componentMetrics the map of supported metrics
    * @param streamProvider   the stream provider
    * @param jmxHostProvider      the host mapping
+   * @param clusterNamePropertyId
+   * @param hostNamePropertyId
+   * @param componentNamePropertyId
    */
-  public JMXPropertyProvider(Map<String, Map<PropertyId, String>> componentMetrics, StreamProvider streamProvider,
-                             JMXHostProvider jmxHostProvider) {
-    this.componentMetrics = componentMetrics;
-    this.streamProvider   = streamProvider;
-    this.jmxHostProvider  = jmxHostProvider;
+  public JMXPropertyProvider(Map<String, Map<PropertyId, String>> componentMetrics,
+                             StreamProvider streamProvider,
+                             JMXHostProvider jmxHostProvider,
+                             PropertyId clusterNamePropertyId,
+                             PropertyId hostNamePropertyId,
+                             PropertyId componentNamePropertyId) {
+    this.componentMetrics         = componentMetrics;
+    this.streamProvider           = streamProvider;
+    this.jmxHostProvider          = jmxHostProvider;
+    this.clusterNamePropertyId    = clusterNamePropertyId;
+    this.hostNamePropertyId       = hostNamePropertyId;
+    this.componentNamePropertyId  = componentNamePropertyId;
 
     propertyIds = new HashSet<PropertyId>();
     for (Map.Entry<String, Map<PropertyId, String>> entry : componentMetrics.entrySet()) {
@@ -136,17 +149,23 @@ public class JMXPropertyProvider implements PropertyProvider {
 
     Set<PropertyId> ids = PropertyHelper.getRequestPropertyIds(getPropertyIds(), request, predicate);
 
-    String clusterName   = (String) resource.getPropertyValue(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
+    String clusterName   = (String) resource.getPropertyValue(clusterNamePropertyId);
 
     // TODO : what should we do if the host mapping is null?
     if (jmxHostProvider.getHostMapping(clusterName) == null) {
       return true;
     }
 
-
-    String hostName      = jmxHostProvider.getHostMapping(clusterName).get(resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID));
-    String componentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+    String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
     String port          = JMX_PORTS.get(componentName);
+
+    String hostName;
+    if (hostNamePropertyId == null) {
+      hostName = jmxHostProvider.getHostName(clusterName, componentName);
+    }
+    else {
+      hostName = jmxHostProvider.getHostMapping(clusterName).get(resource.getPropertyValue(hostNamePropertyId));
+    }
 
     Map<PropertyId, String> metrics = componentMetrics.get(componentName);
 
@@ -200,6 +219,9 @@ public class JMXPropertyProvider implements PropertyProvider {
   private String getCategory(Map<String, Object> bean) {
     if (bean.containsKey(CATEGORY_KEY)) {
       return (String) bean.get(CATEGORY_KEY);
+    }
+    else if (bean.containsKey(NAME_KEY)) {
+      return (String) bean.get(NAME_KEY);
     }
     return null;
   }
