@@ -725,7 +725,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   applyCreatedConfToServices: function () {
     var services = this.get('selectedServices').mapProperty('serviceName');
     services.forEach(function (_service) {
-      var data = this.getDataForHdfs();
+      var data = this.getConfigForService(_service);
       this.applyCreatedConfToService(_service, 'PUT', data);
     }, this);
   },
@@ -733,13 +733,16 @@ App.WizardStep8Controller = Em.Controller.extend({
   applyCreatedConfToService: function (service, httpMethod, data) {
     console.log("Inside applyCreatedConfToService");
     var clusterName = this.get('clusterInfo').findProperty('config_name', 'cluster').config_value;
-    var data = data;
     var url = '/api/clusters/' + clusterName + '/services/' + service;
+
+    debugger;
+
     $.ajax({
       type: httpMethod,
       url: url,
       async: false,
       dataType: 'text',
+      data: JSON.stringify(data),
       timeout: 5000,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
@@ -759,8 +762,13 @@ App.WizardStep8Controller = Em.Controller.extend({
     console.log("Exiting applyCreatedConfToService");
   },
 
-  getDataForHdfs: function () {
-    return {config: {'core-site': 'version1', 'hdfs-site': 'version1'}};
+  getConfigForService: function (serviceName) {
+    switch (serviceName) {
+      case 'HDFS':
+        return {config: {'core-site': 'version1', 'hdfs-site': 'version1'}};
+      case 'MAPREDUCE':
+        return {config: {'core-site': 'version1', 'mapred-site': 'version1'}};
+    }
   }
 
 })

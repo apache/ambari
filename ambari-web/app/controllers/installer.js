@@ -252,7 +252,9 @@ App.InstallerController = Em.Controller.extend({
    * @param clusterStatus object with status, isCompleted, requestId, isInstallError and isStartError field.
    */
   saveClusterStatus: function (clusterStatus) {
+    clusterStatus.name = this.get('content.cluster.name');
     this.set('content.cluster', clusterStatus);
+    console.log('called saveClusterStatus ' + JSON.stringify(clusterStatus));
     App.db.setClusterStatus(clusterStatus);
   },
 

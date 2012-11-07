@@ -227,6 +227,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         var requestId = jsonData.href.match(/.*\/(.*)$/)[1];
         console.log('requestId is: ' + requestId);
         var clusterStatus = {
+          name: clusterName,
           status: 'INSTALLED',
           requestId: requestId,
           isStartError: false,
@@ -239,6 +240,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       error: function () {
         console.log("ERROR");
         var clusterStatus = {
+          name: clusterName,
           status: 'PENDING',
           isStartError: true,
           isCompleted: false
@@ -354,7 +356,6 @@ App.WizardStep9Controller = Em.Controller.extend({
   // polling from ui stops only when no action has 'PENDING', 'QUEUED' or 'IN_PROGRESS' status
   finishState: function (polledData) {
     var clusterStatus = {};
-    var retVal = false;
     var requestId = this.get('content.cluster.requestId');
     if (this.get('content.cluster.status') === 'INSTALLED') {
       if (!polledData.someProperty('Tasks.status', 'PENDING') && !polledData.someProperty('Tasks.status', 'QUEUED') && !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
@@ -376,7 +377,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         }
         App.router.get('installerController').saveClusterStatus(clusterStatus);
         this.set('isStepCompleted', true);
-        retVal = true;
+        return true;
       }
     } else if (this.get('content.cluster.status') === 'PENDING') {
       if (!polledData.someProperty('Tasks.status', 'PENDING') && !polledData.someProperty('Tasks.status', 'QUEUED') && !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
@@ -390,19 +391,18 @@ App.WizardStep9Controller = Em.Controller.extend({
           this.set('progress', '100');
           this.set('status', 'failed');
           this.setHostsStatus(this.getFailedHostsForFailedRoles(polledData), 'failed');
+	  App.router.get('installerController').saveClusterStatus(clusterStatus);
           this.set('isStepCompleted', true);
         } else {
           clusterStatus.status = 'INSTALLED';
           this.set('progress', '34');
           App.router.get('installerController').saveInstalledHosts(this);
           this.launchStartServices();  //TODO: uncomment after the actual hookup
-
         }
-        App.router.get('installerController').saveClusterStatus(clusterStatus);
-        retVal = true;
+        return true;
       }
     }
-    return retVal;
+    return false;
   },
 
   getCompletedTasksForHost: function (host) {

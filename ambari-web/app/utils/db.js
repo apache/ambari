@@ -189,7 +189,7 @@ App.db.setSoftRepo = function (softRepo) {
 }
 
 App.db.setBootStatus = function (status) {
-  console.log('TRACE: Entering db:setService function');
+  console.log('TRACE: Entering db:setBootStatus function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
   App.db.data[user].Installer.bootStatus = status;
@@ -274,6 +274,7 @@ App.db.setClusterStatus = function (status) {
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
   App.db.data[user].Installer.clusterStatus = status;
+  console.log('db.setClusterStatus called: ' + JSON.stringify(status));
   localStorage.setObject('ambari', App.db.data);
 }
 
@@ -403,7 +404,7 @@ App.db.getHosts = function () {
 }
 
 App.db.getBootStatus = function () {
-  console.log('TRACE: Entering db:setService function');
+  console.log('TRACE: Entering db:getBootStatus function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
   return App.db.data[user].Installer.bootStatus;
@@ -465,7 +466,7 @@ App.db.getServiceConfigProperties = function () {
 }
 
 App.db.getClusterStatus = function () {
-  console.log('TRACE: Entering db:setService function');
+  console.log('TRACE: Entering db:getClusterStatus function');
   App.db.data = localStorage.getObject('ambari');
   var user = App.db.data.app.loginName;
   return App.db.data[user].Installer.clusterStatus;

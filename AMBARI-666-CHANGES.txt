@@ -12,6 +12,9 @@ AMBARI-666 branch (unreleased changes)
 
   NEW FEATURES
 
+  AMBARI-948. Invoke service starts after services are installed in the
+  wizard. (yusaku)
+
   AMBARI-942. Integrate Install and Start APIs with the installer wizard.
   (Jaimin Jetly via yusaku)
 
